@@ -3,6 +3,8 @@ use clap::Parser;
 use home::home_dir;
 use std::path::PathBuf;
 
+use ck3_mod_validator::ModFile;
+
 const CK3_RECOGNITION_FILE: &str = "events/councillor_task_events/steward_task_events.txt";
 
 #[derive(Parser)]
@@ -57,5 +59,7 @@ fn main() -> Result<()> {
     if args.ck3.is_none() {
         bail!("Cannot find CK3 game directory. Please supply it as the --ck3 option.");
     }
+
+    let modfile = ModFile::read(&args.modpath)?;
     Ok(())
 }
