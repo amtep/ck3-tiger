@@ -1,3 +1,4 @@
+use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::rc::Rc;
 
@@ -7,7 +8,6 @@ pub struct Scope {
     // The latter are inserted as None tokens and Comparator::None
     v: Vec<(Option<Token>, Comparator, ScopeValue)>,
     loc: Loc,
-    warnings: Vec<(Token, String)>,
 }
 
 #[derive(Clone, Debug)]
@@ -38,17 +38,20 @@ pub struct Loc {
 #[derive(Clone, Debug)]
 pub struct Token {
     s: String,
-    loc: Loc,
+    pub loc: Loc,
 }
 
 impl Scope {
     pub fn new(loc: Loc) -> Self {
-        Scope { v: Vec::new(), loc, warnings: Vec::new() }
+        Scope { v: Vec::new(), loc }
     }
 
-    pub fn warn(&mut self, token: Token, msg: String) {
-        // TODO: also log warn! here
-        self.warnings.push((token, msg));
+    pub fn add_value(&mut self, value: ScopeValue) {
+        self.v.push((None, Comparator::None, value));
+    }
+
+    pub fn add_key_value(&mut self, key: Token, cmp: Comparator, value: ScopeValue) {
+        self.v.push((Some(key), cmp, value));
     }
 }
 
@@ -74,7 +77,21 @@ impl Comparator {
 
 impl Loc {
     pub fn new(pathname: Rc<PathBuf>, line: usize, column: usize, offset: usize) -> Self {
-        Loc { pathname, line, column, offset }
+        Loc {
+            pathname,
+            line,
+            column,
+            offset,
+        }
+    }
+
+    pub fn marker(&self) -> String {
+        let fname = self
+            .pathname
+            .file_name()
+            .unwrap_or_else(|| OsStr::new(""))
+            .to_string_lossy();
+        format!("{}:{}:{}: ", fname, self.line, self.column)
     }
 }
 
