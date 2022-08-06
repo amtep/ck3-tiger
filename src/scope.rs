@@ -1,4 +1,5 @@
 use std::ffi::OsStr;
+use std::fmt::{Display, Error, Formatter};
 use std::path::PathBuf;
 use std::rc::Rc;
 
@@ -16,7 +17,7 @@ pub enum ScopeValue {
     Scope(Scope),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Comparator {
     None,
     Eq, // Eq is also Assign
@@ -73,6 +74,10 @@ impl Comparator {
             None
         }
     }
+
+    pub fn from_token(token: &Token) -> Option<Self> {
+        Self::from_str(&token.s)
+    }
 }
 
 impl Loc {
@@ -98,5 +103,11 @@ impl Loc {
 impl Token {
     pub fn new(s: String, loc: Loc) -> Self {
         Token { s, loc }
+    }
+}
+
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        write!(f, "{}", self.s)
     }
 }

@@ -1,9 +1,10 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use crate::errors::{ErrorKey, Errors};
 use crate::scope::{Comparator, Loc, Scope, ScopeValue, Token};
 
+#[derive(Copy, Clone, Debug)]
 enum State {
     Neutral,
     QString,
@@ -20,7 +21,7 @@ trait CharExt {
 
 impl CharExt for char {
     fn is_id_char(self) -> bool {
-        self.is_ascii_alphanumeric() || self == '.' || self == ':' || self == '$'
+        self.is_ascii_alphanumeric() || self == '.' || self == ':' || self == '$' || self == '_'
     }
 
     fn is_comparator_char(self) -> bool {
@@ -28,14 +29,75 @@ impl CharExt for char {
     }
 }
 
+struct Parser<'a> {
+    pathname: Rc<PathBuf>,
+    errors: &'a mut Errors,
+    scope: Scope,
+    key: Option<Token>,
+    comp: Option<Comparator>,
+}
+
+impl<'a> Parser<'a> {
+    fn unknown_char(&mut self, c: char, loc: Loc) {
+        let token = Token::new(c.to_string(), loc);
+        self.errors.error(
+            token,
+            ErrorKey::ParseError,
+            format!("Unrecognized character {}", c),
+        );
+    }
+
+    fn token(&mut self, token: Token) {
+        if let Some(key) = self.key.take() {
+            if let Some(comp) = self.comp.take() {
+                self.scope
+                    .add_key_value(key, comp, ScopeValue::Token(token));
+            } else {
+                self.scope.add_value(ScopeValue::Token(key));
+                self.key = Some(token);
+            }
+        } else {
+            self.key = Some(token);
+        }
+    }
+
+    fn comparator(&mut self, token: Token) {
+        let cmp = Comparator::from_token(&token).unwrap_or_else(|| {
+            self.errors.error(
+                token.clone(),
+                ErrorKey::ParseError,
+                format!("Unrecognized comparator {}", token),
+            );
+            Comparator::Eq
+        });
+
+        if self.key.is_none() {
+            let msg = format!("Unexpected comparator {}", token);
+            self.errors.error(token, ErrorKey::ParseError, msg);
+        } else {
+            if self.comp.is_some() {
+                let msg = format!("Double comparator {}", token);
+                self.errors.error(token, ErrorKey::ParseError, msg);
+            }
+            self.comp = Some(cmp);
+        }
+    }
+
+    fn eof(&mut self) {}
+}
+
 pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
     let pathname = Rc::new(pathname.to_path_buf());
+    let mut loc = Loc::new(pathname.clone(), 1, 1, 0);
+    let mut parser = Parser {
+        pathname,
+        errors,
+        scope: Scope::new(loc.clone()),
+        key: None,
+        comp: None,
+    };
     let mut state = State::Neutral;
-    let mut loc = Loc::new(pathname, 1, 1, 0);
     let mut token_start = 0;
-    let mut scope = Scope::new(loc.clone());
-    let mut key = None;
-    let mut comp = None;
 
     for (i, c) in content.char_indices() {
         loc.offset = i;
@@ -53,12 +115,7 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
                 } else if c.is_id_char() {
                     state = State::Id;
                 } else {
-                    let token = Token::new(c.to_string(), loc.clone());
-                    errors.error(
-                        token,
-                        ErrorKey::ParseError,
-                        format!("Unrecognized character {}", c),
-                    );
+                    parser.unknown_char(c, loc.clone());
                 }
                 token_start = i;
             }
@@ -73,7 +130,7 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
                 } else if c == '\n' {
                     let s = content[token_start..next_i].to_string();
                     let token = Token::new(s, loc.clone());
-                    errors.warn(
+                    parser.errors.warn(
                         token,
                         ErrorKey::ParseError,
                         "Quoted string not closed".to_string(),
@@ -88,18 +145,7 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
                 } else {
                     let id = content[token_start..i].to_string();
                     let token = Token::new(id, loc.clone());
-                    if let Some(k) = key {
-                        if let Some(c) = comp {
-                            scope.add_key_value(k, c, ScopeValue::Token(token));
-                            key = None;
-                            comp = None;
-                        } else {
-                            scope.add_value(ScopeValue::Token(k));
-                            key = Some(token);
-                        }
-                    } else {
-                        key = Some(token);
-                    }
+                    parser.token(token);
 
                     if c.is_comparator_char() {
                         state = State::Comparator;
@@ -107,6 +153,9 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
                         state = State::Neutral;
                     } else if c == '#' {
                         state = State::Comment;
+                    } else {
+                        parser.unknown_char(c, loc.clone());
+                        state = State::Neutral;
                     }
                     token_start = i;
                 }
@@ -114,26 +163,9 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
             State::Comparator => {
                 if c.is_comparator_char() {
                 } else {
-                    let s = &content[token_start..i];
-                    let cmp = Comparator::from_str(s).unwrap_or_else(|| {
-                        let token = Token::new(s.to_string(), loc.clone());
-                        errors.error(
-                            token,
-                            ErrorKey::ParseError,
-                            format!("Unrecognized comparator {}", s),
-                        );
-                        Comparator::Eq
-                    });
-                    if key.is_none() {
-                        let token = Token::new(s.to_string(), loc.clone());
-                        errors.error(
-                            token,
-                            ErrorKey::ParseError,
-                            format!("Unexpected comparator {}", s),
-                        );
-                    } else {
-                        comp = Some(cmp);
-                    }
+                    let s = content[token_start..i].to_string();
+                    let token = Token::new(s, loc.clone());
+                    parser.comparator(token);
 
                     if c == '"' {
                         state = State::QString;
@@ -144,12 +176,7 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
                     } else if c == '#' {
                         state = State::Comment;
                     } else {
-                        let token = Token::new(c.to_string(), loc.clone());
-                        errors.error(
-                            token,
-                            ErrorKey::ParseError,
-                            format!("Unrecognized character {}", c),
-                        );
+                        parser.unknown_char(c, loc.clone());
                         state = State::Neutral;
                     }
                     token_start = i;
@@ -164,5 +191,32 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
             loc.column += 1;
         }
     }
-    scope
+
+    // Deal with state at end of file
+    match state {
+        State::QString => {
+            let s = content[token_start..].to_string();
+            let token = Token::new(s, loc);
+            parser.errors.error(
+                token.clone(),
+                ErrorKey::ParseError,
+                "Quoted string not closed".to_string(),
+            );
+            parser.token(token);
+        }
+        State::Id => {
+            let s = content[token_start..].to_string();
+            let token = Token::new(s, loc);
+            parser.token(token);
+        }
+        State::Comparator => {
+            let s = content[token_start..].to_string();
+            let token = Token::new(s, loc);
+            parser.comparator(token);
+        }
+        _ => (),
+    }
+
+    parser.eof();
+    parser.scope
 }
