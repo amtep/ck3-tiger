@@ -1,3 +1,4 @@
+use std::mem::swap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
@@ -32,9 +33,14 @@ impl CharExt for char {
 struct Parser<'a> {
     pathname: Rc<PathBuf>,
     errors: &'a mut Errors,
+    current: ParseLevel,
+    stack: Vec<ParseLevel>,
+}
+
+struct ParseLevel {
     scope: Scope,
     key: Option<Token>,
-    comp: Option<Comparator>,
+    comp: Option<(Comparator, Token)>,
 }
 
 impl<'a> Parser<'a> {
@@ -48,16 +54,33 @@ impl<'a> Parser<'a> {
     }
 
     fn token(&mut self, token: Token) {
-        if let Some(key) = self.key.take() {
-            if let Some(comp) = self.comp.take() {
-                self.scope
+        if let Some(key) = self.current.key.take() {
+            if let Some((comp, _)) = self.current.comp.take() {
+                self.current
+                    .scope
                     .add_key_value(key, comp, ScopeValue::Token(token));
             } else {
-                self.scope.add_value(ScopeValue::Token(key));
-                self.key = Some(token);
+                self.current.scope.add_value(ScopeValue::Token(key));
+                self.current.key = Some(token);
             }
         } else {
-            self.key = Some(token);
+            self.current.key = Some(token);
+        }
+    }
+
+    fn scope_value(&mut self, scope: Scope) {
+        // Like token(), but scope values cannot become keys
+        if let Some(key) = self.current.key.take() {
+            if let Some((comp, _)) = self.current.comp.take() {
+                self.current
+                    .scope
+                    .add_key_value(key, comp, ScopeValue::Scope(scope));
+            } else {
+                self.current.scope.add_value(ScopeValue::Token(key));
+                self.current.scope.add_value(ScopeValue::Scope(scope));
+            }
+        } else {
+            self.current.scope.add_value(ScopeValue::Scope(scope));
         }
     }
 
@@ -66,24 +89,70 @@ impl<'a> Parser<'a> {
             self.errors.error(
                 token.clone(),
                 ErrorKey::ParseError,
-                format!("Unrecognized comparator {}", token),
+                format!("Unrecognized comparator '{}'", token),
             );
             Comparator::Eq
         });
 
-        if self.key.is_none() {
-            let msg = format!("Unexpected comparator {}", token);
+        if self.current.key.is_none() {
+            let msg = format!("Unexpected comparator '{}'", token);
             self.errors.error(token, ErrorKey::ParseError, msg);
         } else {
-            if self.comp.is_some() {
-                let msg = format!("Double comparator {}", token);
-                self.errors.error(token, ErrorKey::ParseError, msg);
+            if self.current.comp.is_some() {
+                let msg = format!("Double comparator '{}'", token);
+                self.errors.error(token.clone(), ErrorKey::ParseError, msg);
             }
-            self.comp = Some(cmp);
+            self.current.comp = Some((cmp, token));
         }
     }
 
-    fn eof(&mut self) {}
+    fn end_assign(&mut self) {
+        if let Some(key) = self.current.key.take() {
+            if let Some((_, comp_token)) = self.current.comp.take() {
+                let msg = "Comparator without value".to_string();
+                self.errors.error(comp_token, ErrorKey::ParseError, msg);
+            }
+            self.current.scope.add_value(ScopeValue::Token(key));
+        }
+    }
+
+    fn open_brace(&mut self, loc: Loc) {
+        let mut new_level = ParseLevel {
+            scope: Scope::new(loc),
+            key: None,
+            comp: None,
+        };
+        swap(&mut new_level, &mut self.current);
+        self.stack.push(new_level);
+    }
+
+    fn close_brace(&mut self, loc: Loc) {
+        self.end_assign();
+        if let Some(mut prev_level) = self.stack.pop() {
+            swap(&mut self.current, &mut prev_level);
+            self.scope_value(prev_level.scope);
+        } else {
+            self.errors.error(
+                Token::new("}".to_string(), loc),
+                ErrorKey::ParseError,
+                "Unexpected }".to_string(),
+            );
+        }
+    }
+
+    fn eof(mut self) -> Scope {
+        self.end_assign();
+        while let Some(mut prev_level) = self.stack.pop() {
+            self.errors.error(
+                Token::new("{".to_string(), self.current.scope.loc.clone()),
+                ErrorKey::ParseError,
+                "Opening { was never closed".to_string(),
+            );
+            swap(&mut self.current, &mut prev_level);
+            self.scope_value(prev_level.scope);
+        }
+        self.current.scope
+    }
 }
 
 pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
@@ -92,9 +161,12 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
     let mut parser = Parser {
         pathname,
         errors,
-        scope: Scope::new(loc.clone()),
-        key: None,
-        comp: None,
+        current: ParseLevel {
+            scope: Scope::new(loc.clone()),
+            key: None,
+            comp: None,
+        },
+        stack: Vec::new(),
     };
     let mut state = State::Neutral;
     let mut token_start = 0;
@@ -114,6 +186,10 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
                     state = State::Comparator;
                 } else if c.is_id_char() {
                     state = State::Id;
+                } else if c == '{' {
+                    parser.open_brace(loc.clone());
+                } else if c == '}' {
+                    parser.close_brace(loc.clone());
                 } else {
                     parser.unknown_char(c, loc.clone());
                 }
@@ -153,6 +229,12 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
                         state = State::Neutral;
                     } else if c == '#' {
                         state = State::Comment;
+                    } else if c == '{' {
+                        parser.open_brace(loc.clone());
+                        state = State::Neutral;
+                    } else if c == '}' {
+                        parser.close_brace(loc.clone());
+                        state = State::Neutral;
                     } else {
                         parser.unknown_char(c, loc.clone());
                         state = State::Neutral;
@@ -175,6 +257,12 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
                         state = State::Neutral;
                     } else if c == '#' {
                         state = State::Comment;
+                    } else if c == '{' {
+                        parser.open_brace(loc.clone());
+                        state = State::Neutral;
+                    } else if c == '}' {
+                        parser.close_brace(loc.clone());
+                        state = State::Neutral;
                     } else {
                         parser.unknown_char(c, loc.clone());
                         state = State::Neutral;
@@ -217,6 +305,5 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
         _ => (),
     }
 
-    parser.eof();
-    parser.scope
+    parser.eof()
 }

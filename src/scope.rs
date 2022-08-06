@@ -8,7 +8,7 @@ pub struct Scope {
     // v can contain key = value pairs as well as unadorned values.
     // The latter are inserted as None tokens and Comparator::None
     v: Vec<(Option<Token>, Comparator, ScopeValue)>,
-    loc: Loc,
+    pub loc: Loc,
 }
 
 #[derive(Clone, Debug)]
