@@ -3,7 +3,7 @@ use std::fmt::{Display, Error, Formatter};
 use std::path::PathBuf;
 use std::rc::Rc;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Scope {
     // v can contain key = value pairs as well as unadorned values.
     // The latter are inserted as None tokens and Comparator::None
@@ -81,12 +81,10 @@ impl Comparator {
 }
 
 impl Loc {
-    pub fn new(pathname: Rc<PathBuf>, line: usize, column: usize, offset: usize) -> Self {
+    pub fn new(pathname: Rc<PathBuf>) -> Self {
         Loc {
             pathname,
-            line,
-            column,
-            offset,
+            ..Default::default()
         }
     }
 
@@ -97,6 +95,17 @@ impl Loc {
             .unwrap_or_else(|| OsStr::new(""))
             .to_string_lossy();
         format!("{}:{}:{}: ", fname, self.line, self.column)
+    }
+}
+
+impl Default for Loc {
+    fn default() -> Self {
+        Loc {
+            pathname: Rc::new(PathBuf::new()),
+            line: 1,
+            column: 1,
+            offset: 0,
+        }
     }
 }
 

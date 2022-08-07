@@ -171,7 +171,7 @@ impl<'a> Parser<'a> {
 
 pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Result<Scope> {
     let pathname = Rc::new(pathname.to_path_buf());
-    let mut loc = Loc::new(pathname.clone(), 1, 1, 0);
+    let mut loc = Loc::new(pathname.clone());
     let mut parser = Parser {
         pathname,
         errors,

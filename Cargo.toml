@@ -1,3 +1,8 @@
+[workspace]
+members = [
+  "derive",
+]
+
 [package]
 name = "ck3-mod-validator"
 version = "0.1.0"
@@ -7,3 +12,5 @@ edition = "2021"
 anyhow = "1"
 clap = { version = "3.2.12", features = ["derive"] }
 home = "0.5"
+
+ck3-mod-validator_derive = { version = "0.1", path = "derive" }
