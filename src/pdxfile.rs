@@ -13,6 +13,6 @@ pub struct PdxFile;
 impl PdxFile {
     pub fn read(pathname: &Path, errors: &mut Errors) -> Result<Scope> {
         let contents = read_to_string(pathname)?;
-        Ok(parse_pdx(pathname, &contents, errors))
+        parse_pdx(pathname, &contents, errors)
     }
 }

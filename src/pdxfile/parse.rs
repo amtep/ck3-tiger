@@ -1,3 +1,4 @@
+use anyhow::{bail, Result};
 use std::mem::swap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -35,6 +36,7 @@ struct Parser<'a> {
     errors: &'a mut Errors,
     current: ParseLevel,
     stack: Vec<ParseLevel>,
+    brace_error: bool,
 }
 
 struct ParseLevel {
@@ -132,6 +134,7 @@ impl<'a> Parser<'a> {
             swap(&mut self.current, &mut prev_level);
             self.scope_value(prev_level.scope);
         } else {
+            self.brace_error = true;
             self.errors.error(
                 Token::new("}".to_string(), loc),
                 ErrorKey::ParseError,
@@ -140,9 +143,10 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn eof(mut self) -> Scope {
+    fn eof(mut self) -> Result<Scope> {
         self.end_assign();
         while let Some(mut prev_level) = self.stack.pop() {
+            self.brace_error = true;
             self.errors.error(
                 Token::new("{".to_string(), self.current.scope.loc.clone()),
                 ErrorKey::ParseError,
@@ -151,11 +155,21 @@ impl<'a> Parser<'a> {
             swap(&mut self.current, &mut prev_level);
             self.scope_value(prev_level.scope);
         }
-        self.current.scope
+        // Brace errors mean we shoudln't try to use the file at all,
+        // since its structure is unclear. Validating such a file would
+        // just produce a cascade of irrelevant errors.
+        if self.brace_error {
+            bail!(
+                "Could not parse {} due to brace mismatch",
+                self.pathname.display()
+            );
+        } else {
+            Ok(self.current.scope)
+        }
     }
 }
 
-pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
+pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Result<Scope> {
     let pathname = Rc::new(pathname.to_path_buf());
     let mut loc = Loc::new(pathname.clone(), 1, 1, 0);
     let mut parser = Parser {
@@ -167,6 +181,7 @@ pub fn parse_pdx(pathname: &Path, content: &str, errors: &mut Errors) -> Scope {
             comp: None,
         },
         stack: Vec::new(),
+        brace_error: false,
     };
     let mut state = State::Neutral;
     let mut token_start = 0;
