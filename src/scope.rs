@@ -10,12 +10,13 @@ pub mod validator;
 pub struct Scope {
     // v can contain key = value pairs as well as unadorned values.
     // The latter are inserted as None tokens and Comparator::None
-    v: Vec<(Option<Token>, Comparator, ScopeValue)>,
+    v: Vec<(Option<Token>, Comparator, ScopeOrValue)>,
     pub loc: Loc,
 }
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
-pub enum ScopeValue {
+pub enum ScopeOrValue {
     Token(Token),
     Scope(Scope),
 }
@@ -50,11 +51,11 @@ impl Scope {
         Scope { v: Vec::new(), loc }
     }
 
-    pub fn add_value(&mut self, value: ScopeValue) {
+    pub fn add_value(&mut self, value: ScopeOrValue) {
         self.v.push((None, Comparator::None, value));
     }
 
-    pub fn add_key_value(&mut self, key: Token, cmp: Comparator, value: ScopeValue) {
+    pub fn add_key_value(&mut self, key: Token, cmp: Comparator, value: ScopeOrValue) {
         self.v.push((Some(key), cmp, value));
     }
 
@@ -72,8 +73,8 @@ impl Scope {
             if let Some(key) = k {
                 if key.as_str() == name {
                     match v {
-                        ScopeValue::Token(t) => return Some(t.clone()),
-                        ScopeValue::Scope(_) => (),
+                        ScopeOrValue::Token(t) => return Some(t.clone()),
+                        ScopeOrValue::Scope(_) => (),
                     }
                 }
             }
@@ -88,8 +89,8 @@ impl Scope {
             if let Some(key) = k {
                 if key.as_str() == name {
                     match v {
-                        ScopeValue::Token(t) => vec.push(t.clone()),
-                        ScopeValue::Scope(_) => (),
+                        ScopeOrValue::Token(t) => vec.push(t.clone()),
+                        ScopeOrValue::Scope(_) => (),
                     }
                 }
             }
@@ -103,8 +104,8 @@ impl Scope {
             if let Some(key) = k {
                 if key.as_str() == name {
                     match v {
-                        ScopeValue::Token(_) => (),
-                        ScopeValue::Scope(s) => {
+                        ScopeOrValue::Token(_) => (),
+                        ScopeOrValue::Scope(s) => {
                             return Some(s.get_values());
                         }
                     }
@@ -120,8 +121,8 @@ impl Scope {
         for (k, _, v) in &self.v {
             if k.is_none() {
                 match v {
-                    ScopeValue::Token(t) => vec.push(t.clone()),
-                    ScopeValue::Scope(_) => (),
+                    ScopeOrValue::Token(t) => vec.push(t.clone()),
+                    ScopeOrValue::Scope(_) => (),
                 }
             }
         }

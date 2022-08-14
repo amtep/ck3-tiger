@@ -24,6 +24,7 @@ pub enum ErrorLevel {
 }
 
 impl Errors {
+    #[allow(clippy::unused_self)] // At some point we will cache files in self
     fn get_line(&mut self, token: &Token) -> Option<String> {
         read_to_string(&*token.loc.pathname)
             .ok()

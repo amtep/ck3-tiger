@@ -14,7 +14,7 @@ pub fn derive_verify(input: DeriveInput) -> TokenStream {
     let body = match input.data {
         Data::Struct(ref data) => match data.fields {
             Fields::Named(ref fields) => {
-                let fields_verify = fields.named.iter().map(|f| derive_verify_field(f));
+                let fields_verify = fields.named.iter().map(derive_verify_field);
                 quote! {
                     Self { #(#fields_verify ,)* }
                 }

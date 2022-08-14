@@ -1,5 +1,5 @@
 use crate::errors::{error, warn, ErrorKey};
-use crate::scope::{Comparator, Scope, ScopeValue, Token};
+use crate::scope::{Comparator, Scope, ScopeOrValue, Token};
 use crate::validate::ValidationError;
 
 #[derive(Debug)]
@@ -81,8 +81,8 @@ impl<'a> Validator<'a> {
                         self.error(key, &format!("expected `{} =`, found `{}`", key, cmp));
                     }
                     match v {
-                        ScopeValue::Token(_) => (),
-                        ScopeValue::Scope(s) => {
+                        ScopeOrValue::Token(_) => (),
+                        ScopeOrValue::Scope(s) => {
                             self.err(ValidationError::RequiredFieldInvalid(name.to_string()));
                             self.error(&s.token(), "expected value, found scope");
                         }
@@ -117,8 +117,8 @@ impl<'a> Validator<'a> {
                         self.error(key, &format!("expected `{} =`, found `{}`", key, cmp));
                     }
                     match v {
-                        ScopeValue::Token(_) => (),
-                        ScopeValue::Scope(s) => {
+                        ScopeOrValue::Token(_) => (),
+                        ScopeOrValue::Scope(s) => {
                             self.error(&s.token(), "expected value, found scope");
                         }
                     }
@@ -145,8 +145,8 @@ impl<'a> Validator<'a> {
                         self.error(key, &format!("expected `{} =`, found `{}`", key, cmp));
                     }
                     match v {
-                        ScopeValue::Token(t) => self.error(t, "expected scope, found value"),
-                        ScopeValue::Scope(s) => {
+                        ScopeOrValue::Token(t) => self.error(t, "expected scope, found value"),
+                        ScopeOrValue::Scope(s) => {
                             for (k, _, v) in &s.v {
                                 if let Some(key) = k {
                                     self.warn(
@@ -155,8 +155,8 @@ impl<'a> Validator<'a> {
                                     );
                                 }
                                 match v {
-                                    ScopeValue::Token(_) => (),
-                                    ScopeValue::Scope(s) => {
+                                    ScopeOrValue::Token(_) => (),
+                                    ScopeOrValue::Scope(s) => {
                                         self.error(&s.token(), "expected value, found scope");
                                     }
                                 }
@@ -179,8 +179,8 @@ impl<'a> Validator<'a> {
                         self.error(key, &format!("expected `{} =`, found `{}`", key, cmp));
                     }
                     match v {
-                        ScopeValue::Token(_) => (),
-                        ScopeValue::Scope(s) => {
+                        ScopeOrValue::Token(_) => (),
+                        ScopeOrValue::Scope(s) => {
                             self.error(&s.token(), "expected value, found scope");
                         }
                     }
@@ -198,10 +198,10 @@ impl<'a> Validator<'a> {
                     }
                 }
                 None => match v {
-                    ScopeValue::Token(t) => {
-                        self.warn(t, "found loose value, expected only `key =`")
+                    ScopeOrValue::Token(t) => {
+                        self.warn(t, "found loose value, expected only `key =`");
                     }
-                    ScopeValue::Scope(s) => {
+                    ScopeOrValue::Scope(s) => {
                         self.warn(&s.token(), "found subscope, expected only `key =`");
                     }
                 },

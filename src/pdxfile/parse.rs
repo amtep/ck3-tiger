@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use crate::errors::{error, warn, ErrorKey};
-use crate::scope::{Comparator, Loc, Scope, ScopeValue, Token};
+use crate::scope::{Comparator, Loc, Scope, ScopeOrValue, Token};
 
 #[derive(Copy, Clone, Debug)]
 enum State {
@@ -45,7 +45,7 @@ struct ParseLevel {
 }
 
 impl Parser {
-    fn unknown_char(&mut self, c: char, loc: Loc) {
+    fn unknown_char(c: char, loc: Loc) {
         let token = Token::new(c.to_string(), loc);
         error(
             &token,
@@ -59,9 +59,9 @@ impl Parser {
             if let Some((comp, _)) = self.current.comp.take() {
                 self.current
                     .scope
-                    .add_key_value(key, comp, ScopeValue::Token(token));
+                    .add_key_value(key, comp, ScopeOrValue::Token(token));
             } else {
-                self.current.scope.add_value(ScopeValue::Token(key));
+                self.current.scope.add_value(ScopeOrValue::Token(key));
                 self.current.key = Some(token);
             }
         } else {
@@ -75,13 +75,13 @@ impl Parser {
             if let Some((comp, _)) = self.current.comp.take() {
                 self.current
                     .scope
-                    .add_key_value(key, comp, ScopeValue::Scope(scope));
+                    .add_key_value(key, comp, ScopeOrValue::Scope(scope));
             } else {
-                self.current.scope.add_value(ScopeValue::Token(key));
-                self.current.scope.add_value(ScopeValue::Scope(scope));
+                self.current.scope.add_value(ScopeOrValue::Token(key));
+                self.current.scope.add_value(ScopeOrValue::Scope(scope));
             }
         } else {
-            self.current.scope.add_value(ScopeValue::Scope(scope));
+            self.current.scope.add_value(ScopeOrValue::Scope(scope));
         }
     }
 
@@ -116,7 +116,7 @@ impl Parser {
                     "Comparator without value",
                 );
             }
-            self.current.scope.add_value(ScopeValue::Token(key));
+            self.current.scope.add_value(ScopeOrValue::Token(key));
         }
     }
 
@@ -157,7 +157,7 @@ impl Parser {
             swap(&mut self.current, &mut prev_level);
             self.scope_value(prev_level.scope);
         }
-        // Brace errors mean we shoudln't try to use the file at all,
+        // Brace errors mean we shouldn't try to use the file at all,
         // since its structure is unclear. Validating such a file would
         // just produce a cascade of irrelevant errors.
         if self.brace_error {
@@ -165,12 +165,13 @@ impl Parser {
                 "Could not parse {} due to brace mismatch",
                 self.pathname.display()
             );
-        } else {
-            Ok(self.current.scope)
         }
+        Ok(self.current.scope)
     }
 }
 
+#[allow(clippy::module_name_repetitions)]
+#[allow(clippy::too_many_lines)] // many lines are natural for state machines
 pub fn parse_pdx(pathname: &Path, content: &str) -> Result<Scope> {
     let pathname = Rc::new(pathname.to_path_buf());
     let mut loc = Loc::new(pathname.clone());
@@ -207,7 +208,7 @@ pub fn parse_pdx(pathname: &Path, content: &str) -> Result<Scope> {
                 } else if c == '}' {
                     parser.close_brace(loc.clone());
                 } else {
-                    parser.unknown_char(c, loc.clone());
+                    Parser::unknown_char(c, loc.clone());
                 }
                 token_start = i;
             }
@@ -248,7 +249,7 @@ pub fn parse_pdx(pathname: &Path, content: &str) -> Result<Scope> {
                         parser.close_brace(loc.clone());
                         state = State::Neutral;
                     } else {
-                        parser.unknown_char(c, loc.clone());
+                        Parser::unknown_char(c, loc.clone());
                         state = State::Neutral;
                     }
                     token_start = i;
@@ -276,7 +277,7 @@ pub fn parse_pdx(pathname: &Path, content: &str) -> Result<Scope> {
                         parser.close_brace(loc.clone());
                         state = State::Neutral;
                     } else {
-                        parser.unknown_char(c, loc.clone());
+                        Parser::unknown_char(c, loc.clone());
                         state = State::Neutral;
                     }
                     token_start = i;
