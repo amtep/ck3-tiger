@@ -4,7 +4,6 @@ mod errors;
 mod modfile;
 mod pdxfile;
 mod scope;
-mod verify;
+mod validate;
 
-pub use crate::errors::Errors;
 pub use crate::modfile::ModFile;

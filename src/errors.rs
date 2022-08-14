@@ -1,24 +1,19 @@
 use std::fmt::{Display, Formatter};
-use std::slice::Iter;
+use std::fs::read_to_string;
 
 use crate::scope::Token;
 
-#[derive(Clone, Debug, Default)]
-pub struct Errors {
-    v: Vec<Error>,
-}
+static mut ERRORS: Errors = Errors {};
 
-#[derive(Clone, Debug)]
-pub struct Error {
-    token: Token,
-    level: ErrorLevel,
-    key: ErrorKey,
-    msg: String,
-}
+#[derive(Clone, Debug, Default)]
+pub struct Errors {}
 
 #[derive(Clone, Copy, Debug)]
 pub enum ErrorKey {
     ParseError,
+    Packaging,
+    Validation,
+    TooManyErrors,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -29,40 +24,38 @@ pub enum ErrorLevel {
 }
 
 impl Errors {
-    pub fn new() -> Self {
-        Errors { v: Vec::new() }
+    fn get_line(&mut self, token: &Token) -> Option<String> {
+        read_to_string(&*token.loc.pathname)
+            .ok()
+            .and_then(|contents| contents.lines().nth(token.loc.line - 1).map(str::to_string))
     }
 
-    pub fn push(&mut self, token: Token, level: ErrorLevel, key: ErrorKey, msg: String) {
-        self.v.push(Error {
-            token,
-            key,
-            level,
-            msg,
-        });
+    pub fn push(&mut self, token: &Token, level: ErrorLevel, _key: ErrorKey, msg: &str) {
+        if let Some(line) = self.get_line(token) {
+            let line_marker = token.loc.line_marker();
+            eprintln!("{}{}", line_marker, line);
+            eprintln!("{}{:<count$}", line_marker, "^", count = token.loc.column);
+        }
+        eprintln!("{}{}: {}", token.loc.marker(), level, msg);
     }
 
-    pub fn error(&mut self, token: Token, key: ErrorKey, msg: String) {
-        self.push(token, ErrorLevel::Error, key, msg);
-    }
-
-    pub fn warn(&mut self, token: Token, key: ErrorKey, msg: String) {
-        self.push(token, ErrorLevel::Warning, key, msg);
-    }
-
-    pub fn advice(&mut self, token: Token, key: ErrorKey, msg: String) {
-        self.push(token, ErrorLevel::Advice, key, msg);
-    }
-
-    pub fn iter(&self) -> Iter<'_, Error> {
-        self.v.iter()
+    pub fn get_mut() -> &'static mut Self {
+        // Safe because we're single-threaded, and won't start reporting
+        // validation errors until we're well past initialization.
+        unsafe { &mut ERRORS }
     }
 }
 
-impl Display for Error {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        write!(f, "{}{}: {}", self.token.loc.marker(), self.level, self.msg)
-    }
+pub fn error(token: &Token, key: ErrorKey, msg: &str) {
+    Errors::get_mut().push(token, ErrorLevel::Error, key, msg);
+}
+
+pub fn warn(token: &Token, key: ErrorKey, msg: &str) {
+    Errors::get_mut().push(token, ErrorLevel::Warning, key, msg);
+}
+
+pub fn advice(token: &Token, key: ErrorKey, msg: &str) {
+    Errors::get_mut().push(token, ErrorLevel::Advice, key, msg);
 }
 
 impl Display for ErrorLevel {

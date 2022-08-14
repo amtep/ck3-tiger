@@ -39,6 +39,7 @@ dependencies = [
  "ck3-mod-validator_derive",
  "clap",
  "home",
+ "thiserror",
 ]
 
 [[package]]
