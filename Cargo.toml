@@ -13,5 +13,6 @@ anyhow = "1"
 clap = { version = "3.2.12", features = ["derive"] }
 home = "0.5"
 thiserror = "1.0"
+walkdir = "2"
 
 ck3-mod-validator_derive = { version = "0.1", path = "derive" }
