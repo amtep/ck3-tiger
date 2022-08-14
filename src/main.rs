@@ -5,7 +5,7 @@ use std::ffi::OsStr;
 use std::path::PathBuf;
 use walkdir::WalkDir;
 
-use ck3_mod_validator::ModFile;
+use ck3_mod_validator::{Everything, ModFile};
 
 const CK3_RECOGNITION_FILE: &str = "events/councillor_task_events/steward_task_events.txt";
 
@@ -145,6 +145,8 @@ fn main() -> Result<()> {
             Err(e) => eprintln!("{:#}", e),
         }
     }
+
+    let everything = Everything::new(args.ck3.unwrap(), modpath);
 
     Ok(())
 }
