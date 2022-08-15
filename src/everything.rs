@@ -1,7 +1,16 @@
+use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
 use thiserror::Error;
 use walkdir::WalkDir;
+
+use crate::localization::Localization;
+use crate::scope::{Loc, Token};
+
+pub trait FileHandler {
+    fn handle_file(&mut self, entry: &FileEntry);
+}
 
 #[derive(Debug, Error)]
 pub enum FilesError {
@@ -26,7 +35,8 @@ pub enum FileKind {
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct FileEntry {
     /// Pathname components below the mod directory or the vanilla game dir
-    path: Vec<String>,
+    /// Must not be empty.
+    path: PathBuf,
     /// Whether it's a vanilla or mod file
     kind: FileKind,
 }
@@ -41,11 +51,14 @@ pub struct Everything {
 
     /// The CK3 and mod files in the order the game would load them
     ordered_files: Vec<FileEntry>,
+
+    /// Processed localization files
+    localization: Localization,
 }
 
 impl FileEntry {
-    fn new(path: Vec<String>, kind: FileKind) -> Self {
-        assert!(!path.is_empty());
+    fn new(path: PathBuf, kind: FileKind) -> Self {
+        assert!(path.file_name().is_some());
         Self { path, kind }
     }
 
@@ -53,25 +66,33 @@ impl FileEntry {
         self.kind
     }
 
-    pub fn path(&self) -> &Vec<String> {
+    pub fn path(&self) -> &Path {
         &self.path
     }
 
     /// Convenience function
-    pub fn filename(&self) -> &str {
-        &self.path[self.path.len() - 1]
+    /// Won't panic because `FileEntry` with empty filename is not allowed.
+    #[allow(clippy::missing_panics_doc)]
+    pub fn filename(&self) -> &OsStr {
+        self.path.file_name().unwrap()
     }
 }
 
 impl Display for FileEntry {
-    #[cfg(target_os = "windows")]
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), std::fmt::Error> {
-        write!(fmt, "{}", self.path.join("\\"))
+        write!(fmt, "{}", self.path.display())
     }
+}
 
-    #[cfg(not(target_os = "windows"))]
-    fn fmt(&self, fmt: &mut Formatter) -> Result<(), std::fmt::Error> {
-        write!(fmt, "{}", self.path.join("/"))
+impl From<&FileEntry> for Loc {
+    fn from(entry: &FileEntry) -> Self {
+        Loc::for_file(Rc::new(entry.path().to_path_buf()))
+    }
+}
+
+impl From<&FileEntry> for Token {
+    fn from(entry: &FileEntry) -> Self {
+        Token::from(Loc::from(entry))
     }
 }
 
@@ -99,6 +120,7 @@ impl Everything {
             vanilla_root,
             mod_root,
             ordered_files: files,
+            localization: Localization::default(),
         })
     }
 
@@ -114,28 +136,28 @@ impl Everything {
             }
             // unwrap is safe here because WalkDir gives us paths with this prefix.
             let inner_path = entry.path().strip_prefix(path).unwrap();
-            let fname = match inner_path
-                .components()
-                .map(|c| c.as_os_str().to_str().map(str::to_string))
-                .collect()
-            {
-                Some(path) => FileEntry::new(path, kind),
-                None => {
-                    eprintln!("found problem file: {}", inner_path.display());
-                    eprintln!("Validator only works on unicode filenames.");
-                    continue;
-                }
-            };
-            files.push(fname);
+            files.push(FileEntry::new(inner_path.to_path_buf(), kind));
         }
         Ok(())
     }
 
-    pub fn get_files_under<'a>(&'a self, subdirectory: &'a str) -> Files<'a> {
-        let subpath = subdirectory.trim_end_matches('/').split('/').collect();
+    pub fn get_files_under<'a>(&'a self, subpath: &'a Path) -> Files<'a> {
         Files {
             iter: self.ordered_files.iter(),
             subpath,
+        }
+    }
+
+    pub fn load_localizations(&mut self) {
+        let subpath = PathBuf::from("localization");
+        // TODO: the borrow checker won't let us call get_files_under() here because
+        // it sees the whole of self as borrowed.
+        let iter = Files {
+            iter: self.ordered_files.iter(),
+            subpath: &subpath,
+        };
+        for entry in iter {
+            self.localization.handle_file(entry);
         }
     }
 }
@@ -143,32 +165,17 @@ impl Everything {
 #[derive(Clone, Debug)]
 pub struct Files<'a> {
     iter: std::slice::Iter<'a, FileEntry>,
-    subpath: Vec<&'a str>,
-}
-
-impl<'a> Files<'a> {
-    fn _matches(&self, path: &Vec<String>) -> bool {
-        if path.len() <= self.subpath.len() {
-            return false;
-        }
-        for (p1, p2) in path.iter().zip(self.subpath.iter()) {
-            if p1 != p2 {
-                return false;
-            }
-        }
-        true
-    }
+    subpath: &'a Path,
 }
 
 impl<'a> Iterator for Files<'a> {
     type Item = &'a FileEntry;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(entry) = self.iter.next() {
-            if !self._matches(&entry.path) {
-                continue;
+        for entry in self.iter.by_ref() {
+            if entry.path.starts_with(self.subpath) {
+                return Some(entry);
             }
-            return Some(entry);
         }
         None
     }

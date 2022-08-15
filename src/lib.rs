@@ -11,9 +11,11 @@
 #![warn(trivial_numeric_casts)]
 #![warn(unused_results)]
 
-mod errors;
 pub mod everything;
 pub mod modfile;
+
+mod errors;
+mod localization;
 mod pdxfile;
 mod scope;
 mod validate;

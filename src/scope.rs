@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 pub mod validator;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Scope {
     // v can contain key = value pairs as well as unadorned values.
     // The latter are inserted as None tokens and Comparator::None
@@ -35,6 +35,7 @@ pub enum Comparator {
 #[derive(Clone, Debug)]
 pub struct Loc {
     pub pathname: Rc<PathBuf>,
+    /// line 0 means the loc applies to the file as a whole.
     pub line: usize,
     pub column: usize,
     pub offset: usize,
@@ -172,16 +173,35 @@ impl Loc {
     pub fn new(pathname: Rc<PathBuf>) -> Self {
         Loc {
             pathname,
-            ..Default::default()
+            line: 1,
+            column: 1,
+            offset: 0,
+        }
+    }
+
+    pub fn for_file(pathname: Rc<PathBuf>) -> Self {
+        Loc {
+            pathname,
+            line: 0,
+            column: 0,
+            offset: 0,
         }
     }
 
     pub fn marker(&self) -> String {
-        format!("{}:{}:{}: ", self.filename(), self.line, self.column)
+        if self.line == 0 {
+            format!("{}: ", self.filename())
+        } else {
+            format!("{}:{}:{}: ", self.filename(), self.line, self.column)
+        }
     }
 
     pub fn line_marker(&self) -> String {
-        format!("{}:{}: ", self.filename(), self.line)
+        if self.line == 0 {
+            format!("{}: ", self.filename())
+        } else {
+            format!("{}:{}: ", self.filename(), self.line)
+        }
     }
 
     pub fn filename(&self) -> Cow<str> {
@@ -189,17 +209,6 @@ impl Loc {
             .file_name()
             .unwrap_or_else(|| OsStr::new(""))
             .to_string_lossy()
-    }
-}
-
-impl Default for Loc {
-    fn default() -> Self {
-        Loc {
-            pathname: Rc::new(PathBuf::new()),
-            line: 1,
-            column: 1,
-            offset: 0,
-        }
     }
 }
 
