@@ -24,7 +24,7 @@ pub enum FileKind {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct FileName {
+pub struct FileEntry {
     /// Pathname components below the mod directory or the vanilla game dir
     path: Vec<String>,
     /// Whether it's a vanilla or mod file
@@ -40,10 +40,30 @@ pub struct Everything {
     mod_root: PathBuf,
 
     /// The CK3 and mod files in the order the game would load them
-    ordered_files: Vec<FileName>,
+    ordered_files: Vec<FileEntry>,
 }
 
-impl Display for FileName {
+impl FileEntry {
+    fn new(path: Vec<String>, kind: FileKind) -> Self {
+        assert!(!path.is_empty());
+        Self { path, kind }
+    }
+
+    pub fn kind(&self) -> FileKind {
+        self.kind
+    }
+
+    pub fn path(&self) -> &Vec<String> {
+        &self.path
+    }
+
+    /// Convenience function
+    pub fn filename(&self) -> &str {
+        &self.path[self.path.len() - 1]
+    }
+}
+
+impl Display for FileEntry {
     #[cfg(target_os = "windows")]
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), std::fmt::Error> {
         write!(fmt, "{}", self.path.join("\\"))
@@ -85,7 +105,7 @@ impl Everything {
     fn _scan(
         path: &PathBuf,
         kind: FileKind,
-        files: &mut Vec<FileName>,
+        files: &mut Vec<FileEntry>,
     ) -> Result<(), walkdir::Error> {
         for entry in WalkDir::new(path) {
             let entry = entry?;
@@ -99,7 +119,7 @@ impl Everything {
                 .map(|c| c.as_os_str().to_str().map(str::to_string))
                 .collect()
             {
-                Some(path) => FileName { path, kind },
+                Some(path) => FileEntry::new(path, kind),
                 None => {
                     eprintln!("found problem file: {}", inner_path.display());
                     eprintln!("Validator only works on unicode filenames.");
@@ -109,5 +129,47 @@ impl Everything {
             files.push(fname);
         }
         Ok(())
+    }
+
+    pub fn get_files_under<'a>(&'a self, subdirectory: &'a str) -> Files<'a> {
+        let subpath = subdirectory.trim_end_matches('/').split('/').collect();
+        Files {
+            iter: self.ordered_files.iter(),
+            subpath,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Files<'a> {
+    iter: std::slice::Iter<'a, FileEntry>,
+    subpath: Vec<&'a str>,
+}
+
+impl<'a> Files<'a> {
+    fn _matches(&self, path: &Vec<String>) -> bool {
+        if path.len() <= self.subpath.len() {
+            return false;
+        }
+        for (p1, p2) in path.iter().zip(self.subpath.iter()) {
+            if p1 != p2 {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+impl<'a> Iterator for Files<'a> {
+    type Item = &'a FileEntry;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(entry) = self.iter.next() {
+            if !self._matches(&entry.path) {
+                continue;
+            }
+            return Some(entry);
+        }
+        None
     }
 }

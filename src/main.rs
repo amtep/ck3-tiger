@@ -1,11 +1,10 @@
 use anyhow::{bail, Result};
 use clap::Parser;
 use home::home_dir;
-use std::ffi::OsStr;
 use std::path::PathBuf;
-use walkdir::WalkDir;
 
-use ck3_mod_validator::{Everything, ModFile};
+use ck3_mod_validator::everything::{Everything, FileKind};
+use ck3_mod_validator::modfile::ModFile;
 
 const CK3_RECOGNITION_FILE: &str = "events/councillor_task_events/steward_task_events.txt";
 
@@ -62,10 +61,9 @@ fn find_ck3_directory() -> Option<PathBuf> {
         })
 }
 
-fn get_file_lang(filename: &OsStr) -> Option<&str> {
-    let filename = filename.to_str()?;
+fn get_file_lang(filename: &str) -> Option<&'static str> {
     for lang in KNOWN_LANGUAGES {
-        if filename.ends_with(&format!("_l_{}.yml", lang)) {
+        if filename.ends_with(&format!("l_{}.yml", lang)) {
             return Some(lang);
         }
     }
@@ -89,64 +87,52 @@ fn main() -> Result<()> {
         bail!("Cannot find mod directory. Please make sure the .mod file is correct.");
     }
 
-    for entry in WalkDir::new(modpath.join("localization")) {
-        match entry {
-            Ok(entry) => {
-                if entry.depth() == 0 {
-                    continue;
-                }
-                let inner_path = entry.path().strip_prefix(&modpath)?;
-                if entry.depth() == 1 && !entry.file_type().is_dir() {
-                    eprintln!("found file in wrong location: {}", inner_path.display());
-                    eprintln!("localization files should be in subdirectories according to their language.");
-                }
-                let lang = inner_path
-                    .components()
-                    .nth(1)
-                    .unwrap()
-                    .as_os_str()
-                    .to_string_lossy();
-                if !KNOWN_LANGUAGES.contains(&&*lang) && lang != "replace" {
-                    // check depth, to warn only once
-                    if entry.depth() == 1 {
-                        eprintln!(
-                            "Unknown subdirectory in localization: {}",
-                            inner_path.display()
-                        );
-                        eprintln!(
-                            "Valid subdirectories are {} and replace",
-                            KNOWN_LANGUAGES.join(", ")
-                        );
-                    }
-                    continue;
-                }
-                if !entry.file_type().is_file() {
-                    continue;
-                }
-                let filename = entry.file_name();
-                let filelang = get_file_lang(filename);
-                if filelang.is_none() {
-                    eprintln!(
-                        "could not determine language from filename: {}",
-                        inner_path.display()
-                    );
-                    eprintln!(
-                        "localization filenames should end in _l_language.yml, where language is"
-                    );
-                    eprintln!("one of {}", KNOWN_LANGUAGES.join(", "));
-                    continue;
-                }
-                if filelang.unwrap() != lang {
-                    eprintln!("localization file with wrong name or in wrong directory:");
-                    eprintln!("  {}", inner_path.display());
-                    eprintln!("a localization file should be in a subdirectory corresponding to its language.");
-                }
+    let everything = Everything::new(args.ck3.unwrap(), modpath)?;
+
+    let mut warned_dirs = Vec::new();
+    for entry in everything.get_files_under("localization") {
+        if entry.kind() != FileKind::ModFile {
+            continue;
+        }
+        if entry.path().len() == 2 && !entry.filename().ends_with(".info") {
+            eprintln!();
+            eprintln!("{}: file in wrong location", entry);
+            eprintln!(
+                "Localization files should be in subdirectories according to their language."
+            );
+            continue;
+        }
+        let lang: &str = &entry.path()[1];
+        if lang != "replace" && !KNOWN_LANGUAGES.contains(&lang) {
+            if !warned_dirs.contains(&lang) {
+                eprintln!();
+                eprintln!("{}: unknown subdirectory in localization", entry);
+                eprintln!(
+                    "Valid subdirectories are {} and replace",
+                    KNOWN_LANGUAGES.join(", ")
+                );
             }
-            Err(e) => eprintln!("{:#}", e),
+            warned_dirs.push(lang);
+            continue;
+        }
+        if let Some(filelang) = get_file_lang(entry.filename()) {
+            if filelang != lang && lang != "replace" {
+                eprintln!();
+                eprintln!(
+                    "{}: localization file with wrong name or in wrong directory",
+                    entry
+                );
+                eprintln!("A localization file should be in a subdirectory corresponding to its language.");
+            }
+        } else {
+            eprintln!();
+            eprintln!("{}: could not determine language from filename", entry);
+            eprintln!(
+                "Localization filenames should end in _l_language.yml, where language is one of {}",
+                KNOWN_LANGUAGES.join(", ")
+            );
         }
     }
-
-    let everything = Everything::new(args.ck3.unwrap(), modpath);
 
     Ok(())
 }

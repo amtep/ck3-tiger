@@ -12,11 +12,8 @@
 #![warn(unused_results)]
 
 mod errors;
-mod everything;
-mod modfile;
+pub mod everything;
+pub mod modfile;
 mod pdxfile;
 mod scope;
 mod validate;
-
-pub use crate::everything::Everything;
-pub use crate::modfile::ModFile;
