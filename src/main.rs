@@ -9,7 +9,7 @@ use winreg::enums::HKEY_LOCAL_MACHINE;
 #[cfg(windows)]
 use winreg::RegKey;
 
-use ck3_mod_validator::errors::{set_vanilla_root, set_mod_root};
+use ck3_mod_validator::errors::{set_mod_root, set_vanilla_root};
 use ck3_mod_validator::everything::Everything;
 use ck3_mod_validator::modfile::ModFile;
 
@@ -47,7 +47,9 @@ fn find_steamapps_directory() -> Option<PathBuf> {
     }
     #[cfg(windows)]
     {
-        let key = RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey(STEAM_WINDOWS_KEY).ok()?;
+        let key = RegKey::predef(HKEY_LOCAL_MACHINE)
+            .open_subkey(STEAM_WINDOWS_KEY)
+            .ok()?;
         let on_windows = key.get_value("InstallPath").ok()?;
         let on_windows = PathBuf::from(on_windows).join("steamapps");
         if on_windows.is_dir() {
@@ -75,7 +77,7 @@ fn find_ck3_directory() -> Option<PathBuf> {
             } else if key == CK3_APP_ID && found_path.is_some() {
                 let ck3_path = found_path.unwrap().join(CK3_GAME_DIR);
                 if ck3_path.is_dir() {
-                    return Some(ck3_path)
+                    return Some(ck3_path);
                 }
                 return None;
             }
@@ -93,6 +95,7 @@ fn main() -> Result<()> {
     if args.ck3.is_none() {
         bail!("Cannot find CK3 game directory. Please supply it as the --ck3 option.");
     }
+    set_vanilla_root(args.ck3.as_ref().unwrap().clone());
 
     let modfile = ModFile::read(&args.modpath)?;
     let modpath = modfile.modpath();
@@ -100,6 +103,7 @@ fn main() -> Result<()> {
         eprintln!("Looking for mod in {}", modpath.display());
         bail!("Cannot find mod directory. Please make sure the .mod file is correct.");
     }
+    set_mod_root(modpath.clone());
 
     let mut everything = Everything::new(args.ck3.unwrap(), modpath)?;
     everything.load_localizations();

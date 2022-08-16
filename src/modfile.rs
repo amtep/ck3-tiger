@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
 use crate::errors::{warn, ErrorKey};
+use crate::everything::FileKind;
 use crate::pdxfile::PdxFile;
 use crate::scope::validator::Validator;
 use crate::scope::{Scope, Token};
@@ -75,7 +76,7 @@ impl Validate for ModFile {
 
 impl ModFile {
     pub fn read(pathname: &Path) -> Result<Self> {
-        let scope = PdxFile::read(pathname)
+        let scope = PdxFile::read(pathname, FileKind::ModFile)
             .with_context(|| format!("Could not read .mod file {}", pathname.display()))?;
         let modfile = ModFile::from_scope(scope)?;
 

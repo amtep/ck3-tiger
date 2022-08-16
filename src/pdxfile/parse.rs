@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use crate::errors::{error, warn, ErrorKey};
+use crate::everything::FileKind;
 use crate::scope::{Comparator, Loc, Scope, ScopeOrValue, Token};
 
 #[derive(Copy, Clone, Debug)]
@@ -172,13 +173,14 @@ impl Parser {
 
 #[allow(clippy::module_name_repetitions)]
 #[allow(clippy::too_many_lines)] // many lines are natural for state machines
-pub fn parse_pdx(pathname: &Path, content: &str) -> Result<Scope> {
+pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Scope> {
     let pathname = Rc::new(pathname.to_path_buf());
-    let mut loc = Loc::new(pathname.clone());
+    let mut loc = Loc::new(pathname.clone(), kind);
+    let scope_loc = Loc::for_file(pathname.clone(), kind);
     let mut parser = Parser {
         pathname,
         current: ParseLevel {
-            scope: Scope::new(loc.clone()),
+            scope: Scope::new(scope_loc),
             key: None,
             comp: None,
         },

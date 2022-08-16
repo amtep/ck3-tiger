@@ -6,6 +6,8 @@ use std::rc::Rc;
 
 pub mod validator;
 
+use crate::everything::FileKind;
+
 #[derive(Clone, Debug)]
 pub struct Scope {
     // v can contain key = value pairs as well as unadorned values.
@@ -35,6 +37,7 @@ pub enum Comparator {
 #[derive(Clone, Debug)]
 pub struct Loc {
     pub pathname: Rc<PathBuf>,
+    pub kind: FileKind,
     /// line 0 means the loc applies to the file as a whole.
     pub line: usize,
     pub column: usize,
@@ -170,18 +173,20 @@ impl Display for Comparator {
 }
 
 impl Loc {
-    pub fn new(pathname: Rc<PathBuf>) -> Self {
+    pub fn new(pathname: Rc<PathBuf>, kind: FileKind) -> Self {
         Loc {
             pathname,
+            kind,
             line: 1,
             column: 1,
             offset: 0,
         }
     }
 
-    pub fn for_file(pathname: Rc<PathBuf>) -> Self {
+    pub fn for_file(pathname: Rc<PathBuf>, kind: FileKind) -> Self {
         Loc {
             pathname,
+            kind,
             line: 0,
             column: 0,
             offset: 0,

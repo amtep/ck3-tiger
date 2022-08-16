@@ -86,7 +86,7 @@ impl Display for FileEntry {
 
 impl From<&FileEntry> for Loc {
     fn from(entry: &FileEntry) -> Self {
-        Loc::for_file(Rc::new(entry.path().to_path_buf()))
+        Loc::for_file(Rc::new(entry.path().to_path_buf()), entry.kind)
     }
 }
 

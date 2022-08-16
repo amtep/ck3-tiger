@@ -1,12 +1,20 @@
 use std::fmt::{Display, Formatter};
 use std::fs::read_to_string;
+use std::path::PathBuf;
 
+use crate::everything::FileKind;
 use crate::scope::Token;
 
-static mut ERRORS: Errors = Errors {};
+static mut ERRORS: Option<Errors> = None;
 
 #[derive(Clone, Debug, Default)]
-pub struct Errors {}
+pub struct Errors {
+    /// The CK3 game directory
+    vanilla_root: PathBuf,
+
+    /// The mod directory
+    mod_root: PathBuf,
+}
 
 #[derive(Clone, Copy, Debug)]
 pub enum ErrorKey {
@@ -30,7 +38,11 @@ impl Errors {
         if token.loc.line == 0 {
             return None;
         }
-        read_to_string(&*token.loc.pathname)
+        let pathname = match token.loc.kind {
+            FileKind::VanillaFile => self.vanilla_root.join(&*token.loc.pathname),
+            FileKind::ModFile => self.mod_root.join(&*token.loc.pathname),
+        };
+        read_to_string(&pathname)
             .ok()
             .and_then(|contents| contents.lines().nth(token.loc.line - 1).map(str::to_string))
     }
@@ -58,8 +70,24 @@ impl Errors {
     pub fn get_mut() -> &'static mut Self {
         // Safe because we're single-threaded, and won't start reporting
         // validation errors until we're well past initialization.
-        unsafe { &mut ERRORS }
+        unsafe {
+            if ERRORS.is_none() {
+                ERRORS = Some(Errors::default());
+            }
+            match ERRORS {
+                Some(ref mut errors) => errors,
+                None => unreachable!(),
+            }
+        }
     }
+}
+
+pub fn set_vanilla_root(root: PathBuf) {
+    Errors::get_mut().vanilla_root = root;
+}
+
+pub fn set_mod_root(root: PathBuf) {
+    Errors::get_mut().mod_root = root;
 }
 
 pub fn error(token: &Token, key: ErrorKey, msg: &str) {
