@@ -1,12 +1,29 @@
 use anyhow::{bail, Result};
 use clap::Parser;
 use home::home_dir;
+use std::fs::read_to_string;
 use std::path::PathBuf;
 
+#[cfg(windows)]
+use winreg::enums::HKEY_LOCAL_MACHINE;
+#[cfg(windows)]
+use winreg::RegKey;
+
+use ck3_mod_validator::errors::{set_vanilla_root, set_mod_root};
 use ck3_mod_validator::everything::Everything;
 use ck3_mod_validator::modfile::ModFile;
 
-const CK3_RECOGNITION_FILE: &str = "events/councillor_task_events/steward_task_events.txt";
+/// Steam's code for Crusader Kings 3
+const CK3_APP_ID: &str = "1158310";
+
+// How to find steamapps dir on different systems
+const STEAM_LINUX: &str = ".local/share/Steam/steamapps";
+const STEAM_MAC: &str = "Library/Application Support/Steam/steamapps";
+#[cfg(windows)]
+const STEAM_WINDOWS_KEY: &str = r"SOFTWARE\Wow6432Node\Valve\Steam";
+
+// CK3 directory under steam library dir
+const CK3_GAME_DIR: &str = "steamapps/common/Crusader Kings III/game";
 
 #[derive(Parser)]
 struct Cli {
@@ -17,38 +34,54 @@ struct Cli {
     ck3: Option<PathBuf>,
 }
 
-fn try_ck3_directory(dir: PathBuf) -> Option<PathBuf> {
-    let mut recognize = dir.clone();
-    recognize.push(CK3_RECOGNITION_FILE);
-    if recognize.exists() {
-        Some(dir)
-    } else {
-        None
+fn find_steamapps_directory() -> Option<PathBuf> {
+    if let Some(home) = home_dir() {
+        let on_linux = home.join(STEAM_LINUX);
+        if on_linux.is_dir() {
+            return Some(on_linux);
+        }
+        let on_mac = home.join(STEAM_MAC);
+        if on_mac.is_dir() {
+            return Some(on_mac);
+        }
     }
+    #[cfg(windows)]
+    {
+        let key = RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey(STEAM_WINDOWS_KEY).ok()?;
+        let on_windows = key.get_value("InstallPath").ok()?;
+        let on_windows = PathBuf::from(on_windows).join("steamapps");
+        if on_windows.is_dir() {
+            return Some(on_windows);
+        }
+    }
+    None
 }
 
 fn find_ck3_directory() -> Option<PathBuf> {
-    // Linux default
-    home_dir()
-        .and_then(|mut home| {
-            home.push(".local/share/Steam/steamapps/common/Crusader Kings III/game");
-            try_ck3_directory(home)
-        })
-        .or_else(|| {
-            // Windows default
-            let mut path = PathBuf::new();
-            path.push("C:/Program Files (x86)/Steam/steamapps/common/Crusader Kings III/game");
-            try_ck3_directory(path)
-        })
-        .or_else(|| {
-            // Mac default
-            home_dir().and_then(|mut home| {
-                home.push(
-                    "Library/Application Support/Steam/steamapps/common/Crusader Kings III/game",
-                );
-                try_ck3_directory(home)
-            })
-        })
+    let steamapps_dir = find_steamapps_directory()?;
+
+    let vdf = steamapps_dir.join("libraryfolders.vdf");
+    // Rudimentary libraryfolders.vdf parsing.
+    // We're looking for a subsection with a "path" setting that has
+    // our app (CK3) listed in its "apps" list.
+    let mut found_path = None;
+    for line in read_to_string(vdf).ok()?.lines() {
+        let fields = line.split_ascii_whitespace().collect::<Vec<&str>>();
+        if fields.len() == 2 {
+            let key = fields[0].trim_matches('"');
+            let value = fields[1].trim_matches('"');
+            if key == "path" {
+                found_path = Some(PathBuf::from(value))
+            } else if key == CK3_APP_ID && found_path.is_some() {
+                let ck3_path = found_path.unwrap().join(CK3_GAME_DIR);
+                if ck3_path.is_dir() {
+                    return Some(ck3_path)
+                }
+                return None;
+            }
+        }
+    }
+    None
 }
 
 fn main() -> Result<()> {

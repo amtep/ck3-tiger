@@ -16,3 +16,6 @@ thiserror = "1.0"
 walkdir = "2"
 
 ck3-mod-validator_derive = { version = "0.1", path = "derive" }
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.10"
