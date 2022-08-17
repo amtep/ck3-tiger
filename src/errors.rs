@@ -14,6 +14,9 @@ pub struct Errors {
 
     /// The mod directory
     mod_root: PathBuf,
+
+    /// Don't log if this is > 0,
+    logging_paused: isize,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -57,6 +60,9 @@ impl Errors {
         msg: &str,
         info: Option<&str>,
     ) {
+        if self.logging_paused > 0 {
+            return;
+        }
         if let Some(line) = self.get_line(token) {
             let line_marker = token.loc.line_marker();
             eprintln!("{}{}", line_marker, line);
@@ -82,6 +88,15 @@ impl Errors {
             }
         }
     }
+}
+
+// TODO: make pause and resume logging depend on having an object in scope (RAII logic)
+pub fn pause_logging() {
+    Errors::get_mut().logging_paused += 1;
+}
+
+pub fn resume_logging() {
+    Errors::get_mut().logging_paused -= 1;
 }
 
 pub fn set_vanilla_root(root: PathBuf) {

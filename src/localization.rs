@@ -3,7 +3,9 @@ use std::ffi::{OsStr, OsString};
 use std::fs::read_to_string;
 use std::path::{Component, Path};
 
-use crate::errors::{advice_info, error_info, warn, warn_info, ErrorKey};
+use crate::errors::{
+    advice_info, error_info, pause_logging, resume_logging, warn, warn_info, ErrorKey,
+};
 use crate::everything::{FileEntry, FileHandler, FileKind};
 use crate::localization::parse::parse_loca;
 use crate::scope::Token;
@@ -106,9 +108,7 @@ impl FileHandler for Localization {
         let depth = entry.path().components().count();
         assert!(depth >= 2);
         assert!(entry.path().starts_with("localization"));
-        if entry.kind() != FileKind::ModFile
-            || entry.filename().to_string_lossy().ends_with(".info")
-        {
+        if entry.filename().to_string_lossy().ends_with(".info") {
             return;
         }
 
@@ -157,12 +157,18 @@ impl FileHandler for Localization {
                 .any(|c| c == Component::Normal(&OsString::from("replace")));
             match read_to_string(fullpath) {
                 Ok(content) => {
+                    if entry.kind() != FileKind::ModFile {
+                        pause_logging();
+                    }
                     for loca in parse_loca(entry.path(), entry.kind(), &content) {
                         let hash = self.locas.entry(filelang).or_default();
                         if hash.contains_key(loca.key.as_str()) && !replace {
                             warn(&loca.key, ErrorKey::Localization, "This localization key redefines an existing key, but is not in a replace/ subdirectory.");
                         }
                         hash.insert(loca.key.as_str().to_string(), loca);
+                    }
+                    if entry.kind() != FileKind::ModFile {
+                        resume_logging();
                     }
                 }
                 Err(e) => eprintln!("{:#}", e),

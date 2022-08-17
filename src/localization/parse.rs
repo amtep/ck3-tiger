@@ -335,7 +335,11 @@ impl<'a> LocaParser<'a> {
                 }
                 loc = self.loc.clone();
             } else if c == '"' && self.loc.offset == self.loca_end {
-                break;
+                let s = self.content[loc.offset..self.loc.offset].to_string();
+                v.push(MacroValue::Text(Token::new(s, loc)));
+                self.value.push(LocaValue::Macro(v));
+                self.next_char();
+                return;
             } else {
                 self.next_char();
             }
@@ -376,6 +380,7 @@ impl<'a> LocaParser<'a> {
                 self.value.push(LocaValue::Error);
                 return;
             }
+        } else {
             self.unexpected_char("expected icon name");
             self.value.push(LocaValue::Error);
             return;
