@@ -90,13 +90,15 @@ impl<'a> LocaParser<'a> {
         while let Some(&c) = self.chars.peek() {
             if c == '\n' {
                 break;
-            } else {
-                self.next_char();
             }
+            self.next_char();
         }
-        self.next_char();
+        self.next_char(); // Eat the newline
     }
 
+    // This function returns an Option so that the caller can return
+    // its value without further boilerplate.
+    #[allow(clippy::unnecessary_wraps)]
     fn error_line(&mut self, key: Token) -> Option<LocaEntry> {
         self.skip_line();
         Some(LocaEntry {
@@ -202,14 +204,13 @@ impl<'a> LocaParser<'a> {
                 v.push(CodeArg::Literal(Token::new(s, loc)));
                 self.next_char();
             } else {
-                CodeArg::Chain(self.parse_code_inner());
+                v.push(CodeArg::Chain(self.parse_code_inner()));
             }
             self.skip_linear_whitespace();
             if self.chars.peek() != Some(&',') {
                 break;
-            } else {
-                self.next_char();
             }
+            self.next_char(); // Eat the comma
         }
         if self.chars.peek() == Some(&')') {
             self.next_char();
@@ -262,9 +263,8 @@ impl<'a> LocaParser<'a> {
             while let Some(&c) = self.chars.peek() {
                 if c == '$' || c == ']' || c == '\n' {
                     break;
-                } else {
-                    self.next_char();
                 }
+                self.next_char();
             }
             let s = self.content[loc.offset..self.loc.offset].to_string();
             Some(Token::new(s, loc))
@@ -391,7 +391,6 @@ impl<'a> LocaParser<'a> {
         } else {
             self.unexpected_char("expected `!`");
             self.value.push(LocaValue::Error);
-            return;
         }
     }
 
@@ -453,7 +452,7 @@ impl<'a> LocaParser<'a> {
         self.skip_linear_whitespace();
 
         // Now we should see the value. But what if the line ends here?
-        if matches!(self.chars.peek(), Some('#') | Some('\n') | None) {
+        if matches!(self.chars.peek(), Some('#' | '\n') | None) {
             if self.expecting_language {
                 if key.as_str() != format!("l_{}", self.language) {
                     error(
@@ -466,10 +465,9 @@ impl<'a> LocaParser<'a> {
                 self.skip_line();
                 // Recursing here is safe because it can happen only once.
                 return self.parse_loca();
-            } else {
-                error(&key, ErrorKey::Localization, "key with no value");
-                return self.error_line(key);
             }
+            error(&key, ErrorKey::Localization, "key with no value");
+            return self.error_line(key);
         } else if self.expecting_language {
             error(
                 &key,
