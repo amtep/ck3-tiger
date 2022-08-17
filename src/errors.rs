@@ -60,7 +60,7 @@ impl Errors {
         if let Some(line) = self.get_line(token) {
             let line_marker = token.loc.line_marker();
             eprintln!("{}{}", line_marker, line);
-            eprintln!("{}{:<count$}", line_marker, "^", count = token.loc.column);
+            eprintln!("{}{:>count$}", line_marker, "^", count = token.loc.column);
         }
         // TODO: get terminal column width and do line wrapping of msg and info
         eprintln!("{}{}: {}", token.loc.marker(), level, msg);
