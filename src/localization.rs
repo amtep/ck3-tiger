@@ -37,7 +37,40 @@ pub struct LocaEntry {
 pub enum LocaValue {
     Concat(Vec<LocaValue>),
     Text(Token),
+    Markup(Token),
+    MarkupEnd(Token),
+    // The optional token is the formatting
+    // TODO: convert [topic|E] code to something else than Code
+    Code(CodeChain, Option<Token>),
+    Keyword(Token, Option<Token>),
+    Icon(Vec<LocaValue>),
     Error,
+}
+
+#[derive(Clone, Debug)]
+pub struct CodeChain {
+    // "codes" is my name for the things separated by dots in gui functions.
+    // They may be "scopes", "promotes", or "functions" according to the game.
+    // I don't understand the difference well enough yet to parse them that way.
+    codes: Vec<Code>,
+}
+
+// Most "codes" are just a name followed by another dot or by the end of the code section.
+// Some have arguments, which can be single-quoted strings, or other code chains.
+// There is apparently a limit of two arguments per call, but we parse more so we can
+// warn about that.
+#[derive(Clone, Debug)]
+pub struct Code {
+    name: Token,
+    arguments: Vec<CodeArg>,
+}
+
+// Possibly the literals can themselves contain [ ] code blocks.
+// I'll have to test that.
+#[derive(Clone, Debug)]
+pub enum CodeArg {
+    Chain(CodeChain),
+    Literal(Token),
 }
 
 fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
