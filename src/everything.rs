@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
@@ -115,11 +116,19 @@ impl Everything {
             }
         })?;
         files.sort();
+        let mut files_filtered = Vec::new();
+        // When there are identical paths, only keep the last entry of them.
+        // TODO: this does a lot of cloning
+        files.iter().circular_tuple_windows().for_each(|(e1, e2)| {
+            if e1.path != e2.path {
+                files_filtered.push(e1.clone());
+            }
+        });
 
         Ok(Everything {
             vanilla_root,
             mod_root,
-            ordered_files: files,
+            ordered_files: files_filtered,
             localization: Localization::default(),
         })
     }
