@@ -195,14 +195,6 @@ impl<'a> LocaParser<'a> {
                 self.next_char();
             }
         }
-        if v.len() > 2 {
-            // TODO: actually go in and fish out the 3rd argument
-            warn(
-                &Token::from(&self.loc),
-                ErrorKey::Localization,
-                "More than 2 arguments are not supported in GUI functions.",
-            );
-        }
         if self.chars.peek() == Some(&')') {
             self.next_char();
         } else {
