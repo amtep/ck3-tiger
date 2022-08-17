@@ -195,17 +195,22 @@ impl Loc {
 
     pub fn marker(&self) -> String {
         if self.line == 0 {
-            format!("{}: ", self.filename())
+            format!("{}: ", self.pathname.display())
         } else {
-            format!("{}:{}:{}: ", self.filename(), self.line, self.column)
+            format!(
+                "{}:{}:{}: ",
+                self.pathname.display(),
+                self.line,
+                self.column
+            )
         }
     }
 
     pub fn line_marker(&self) -> String {
         if self.line == 0 {
-            format!("{}: ", self.filename())
+            format!("{}: ", self.pathname.display())
         } else {
-            format!("{}:{}: ", self.filename(), self.line)
+            format!("{}:{}: ", self.pathname.display(), self.line)
         }
     }
 
