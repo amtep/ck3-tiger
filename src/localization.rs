@@ -33,8 +33,12 @@ pub struct LocaEntry {
     value: LocaValue,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub enum LocaValue {
+    // If the LocaValue is a Macro type, then it should be re-parsed after the macro values
+    // have been filled in. Some macro values are supplied at runtime and we'll have to guess
+    // at those.
+    Macro(Vec<MacroValue>),
     Concat(Vec<LocaValue>),
     Text(Token),
     Markup(Token),
@@ -42,9 +46,16 @@ pub enum LocaValue {
     // The optional token is the formatting
     // TODO: convert [topic|E] code to something else than Code
     Code(CodeChain, Option<Token>),
-    Keyword(Token, Option<Token>),
-    Icon(Vec<LocaValue>),
+    Icon(Token),
+    #[default]
     Error,
+}
+
+#[derive(Clone, Debug)]
+pub enum MacroValue {
+    Text(Token),
+    // The optional token is the formatting
+    Keyword(Token, Option<Token>),
 }
 
 #[derive(Clone, Debug)]
