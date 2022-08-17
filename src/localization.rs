@@ -13,7 +13,7 @@ mod parse;
 #[derive(Clone, Debug, Default)]
 pub struct Localization {
     warned_dirs: Vec<String>,
-    locas: FnvHashMap<String, LocaEntry>,
+    locas: FnvHashMap<&'static str, FnvHashMap<String, LocaEntry>>,
 }
 
 // LAST UPDATED VERSION 1.6.2.2
@@ -114,10 +114,11 @@ impl FileHandler for Localization {
             match read_to_string(fullpath) {
                 Ok(content) => {
                     for loca in parse_loca(entry.path(), entry.kind(), &content) {
-                        if self.locas.contains_key(loca.key.as_str()) && !replace {
+                        let hash = self.locas.entry(filelang).or_default();
+                        if hash.contains_key(loca.key.as_str()) && !replace {
                             warn(&loca.key, ErrorKey::Localization, "This localization key redefines an existing key, but is not in a replace/ subdirectory.");
                         }
-                        self.locas.insert(loca.key.as_str().to_string(), loca);
+                        hash.insert(loca.key.as_str().to_string(), loca);
                     }
                 }
                 Err(e) => eprintln!("{:#}", e),
