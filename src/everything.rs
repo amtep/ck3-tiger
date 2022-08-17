@@ -1,3 +1,4 @@
+use anyhow::Result;
 use itertools::Itertools;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
@@ -6,24 +7,27 @@ use std::rc::Rc;
 use thiserror::Error;
 use walkdir::WalkDir;
 
-use crate::localization::Localization;
-use crate::scope::{Loc, Token};
-
-pub trait FileHandler {
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path);
-}
+use crate::errors::{pause_logging, resume_logging};
+use crate::localization::{Localization, KNOWN_LANGUAGES};
+use crate::pdxfile::PdxFile;
+use crate::scope::{Loc, Scope, Token};
 
 #[derive(Debug, Error)]
 pub enum FilesError {
-    #[error("Could not read CK3 game files at {ck3path}")]
+    #[error("Could not read CK3 game files at {path}")]
     VanillaUnreadable {
-        ck3path: PathBuf,
+        path: PathBuf,
         source: walkdir::Error,
     },
-    #[error("Could not read mod files at {modpath}")]
+    #[error("Could not read mod files at {path}")]
     ModUnreadable {
-        modpath: PathBuf,
+        path: PathBuf,
         source: walkdir::Error,
+    },
+    #[error("Could not read config file at {path}")]
+    ConfigUnreadable {
+        path: PathBuf,
+        source: anyhow::Error,
     },
 }
 
@@ -49,6 +53,9 @@ pub struct Everything {
 
     /// The mod directory
     mod_root: PathBuf,
+
+    /// Config from file
+    config: Scope,
 
     /// The CK3 and mod files in the order the game would load them
     ordered_files: Vec<FileEntry>,
@@ -105,13 +112,13 @@ impl Everything {
         // a full map of vanilla's or the mod's contents and might give bad advice.
         Everything::_scan(&vanilla_root, FileKind::VanillaFile, &mut files).map_err(|e| {
             FilesError::VanillaUnreadable {
-                ck3path: vanilla_root.clone(),
+                path: vanilla_root.clone(),
                 source: e,
             }
         })?;
         Everything::_scan(&mod_root, FileKind::ModFile, &mut files).map_err(|e| {
             FilesError::ModUnreadable {
-                modpath: mod_root.clone(),
+                path: mod_root.clone(),
                 source: e,
             }
         })?;
@@ -125,12 +132,27 @@ impl Everything {
             }
         });
 
+        let config_file = mod_root.join("mod-validator.conf");
+        let config = if config_file.is_file() {
+            Self::_read_config(&config_file).map_err(|e| FilesError::ConfigUnreadable {
+                path: config_file,
+                source: e,
+            })?
+        } else {
+            Scope::new(Loc::for_file(Rc::new(config_file), FileKind::ModFile))
+        };
+
         Ok(Everything {
             vanilla_root,
             mod_root,
             ordered_files: files_filtered,
             localization: Localization::default(),
+            config,
         })
+    }
+
+    fn _read_config(path: &Path) -> Result<Scope> {
+        PdxFile::read(path, FileKind::ModFile)
     }
 
     fn _scan(
@@ -164,8 +186,28 @@ impl Everything {
         }
     }
 
+    pub fn config_languages(&self) -> Vec<&'static str> {
+        let mut langs: Vec<&str> = Vec::new();
+
+        if let Some(scope) = self.config.get_field_scope("languages") {
+            let check = scope.get_field_values("check");
+            let skip = scope.get_field_values("skip");
+            for lang in &KNOWN_LANGUAGES {
+                if check.iter().any(|t| t.as_str() == *lang)
+                    || (check.is_empty() && skip.iter().all(|t| t.as_str() != *lang))
+                {
+                    langs.push(lang);
+                }
+            }
+        } else {
+            langs.extend(KNOWN_LANGUAGES);
+        }
+        langs
+    }
+
     pub fn load_localizations(&mut self) {
         let subpath = PathBuf::from("localization");
+        let langs = self.config_languages();
         // TODO: the borrow checker won't let us call get_files_under() here because
         // it sees the whole of self as borrowed.
         let iter = Files {
@@ -173,7 +215,14 @@ impl Everything {
             subpath: &subpath,
         };
         for entry in iter {
-            self.localization.handle_file(entry, &self.fullpath(entry));
+            if entry.kind() != FileKind::ModFile {
+                pause_logging();
+            }
+            self.localization
+                .handle_file(entry, &self.fullpath(entry), &langs);
+            if entry.kind() != FileKind::ModFile {
+                resume_logging();
+            }
         }
     }
 }

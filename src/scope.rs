@@ -102,6 +102,21 @@ impl Scope {
         vec
     }
 
+    /// Get the scope of a `name = { ... }` assignment
+    pub fn get_field_scope(&self, name: &str) -> Option<&Scope> {
+        for (k, _, v) in self.v.iter().rev() {
+            if let Some(key) = k {
+                if key.as_str() == name {
+                    match v {
+                        ScopeOrValue::Token(_) => (),
+                        ScopeOrValue::Scope(s) => return Some(s),
+                    }
+                }
+            }
+        }
+        None
+    }
+
     /// Get the values of a single `name = { value ... }` assignment
     pub fn get_field_list(&self, name: &str) -> Option<Vec<Token>> {
         for (k, _, v) in self.v.iter().rev() {

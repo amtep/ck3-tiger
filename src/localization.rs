@@ -3,10 +3,8 @@ use std::ffi::{OsStr, OsString};
 use std::fs::read_to_string;
 use std::path::{Component, Path};
 
-use crate::errors::{
-    advice_info, error_info, pause_logging, resume_logging, warn, warn_info, ErrorKey,
-};
-use crate::everything::{FileEntry, FileHandler, FileKind};
+use crate::errors::{advice_info, error_info, warn, warn_info, ErrorKey};
+use crate::everything::{FileEntry, FileKind};
 use crate::localization::parse::parse_loca;
 use crate::scope::Token;
 
@@ -19,7 +17,7 @@ pub struct Localization {
 }
 
 // LAST UPDATED VERSION 1.6.2.2
-const KNOWN_LANGUAGES: [&str; 7] = [
+pub const KNOWN_LANGUAGES: [&str; 7] = [
     "english",
     "spanish",
     "french",
@@ -103,8 +101,8 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
     None
 }
 
-impl FileHandler for Localization {
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+impl Localization {
+    pub fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path, check_langs: &[&str]) {
         let depth = entry.path().components().count();
         assert!(depth >= 2);
         assert!(entry.path().starts_with("localization"));
@@ -147,7 +145,15 @@ impl FileHandler for Localization {
             warned = true;
         }
 
+        if lang != "replace" && KNOWN_LANGUAGES.contains(&&*lang) && !check_langs.contains(&&*lang)
+        {
+            return;
+        }
+
         if let Some(filelang) = get_file_lang(entry.filename()) {
+            if !check_langs.contains(&filelang) {
+                return;
+            }
             if filelang != lang && lang != "replace" && !warned {
                 advice_info(&Token::from(entry), ErrorKey::Filename, "localization file with wrong name or in wrong directory", "A localization file should be in a subdirectory corresponding to its language.");
             }
@@ -157,9 +163,6 @@ impl FileHandler for Localization {
                 .any(|c| c == Component::Normal(&OsString::from("replace")));
             match read_to_string(fullpath) {
                 Ok(content) => {
-                    if entry.kind() != FileKind::ModFile {
-                        pause_logging();
-                    }
                     for loca in parse_loca(entry.path(), entry.kind(), &content) {
                         let hash = self.locas.entry(filelang).or_default();
                         if hash.contains_key(loca.key.as_str()) && !replace {
@@ -167,14 +170,16 @@ impl FileHandler for Localization {
                         }
                         hash.insert(loca.key.as_str().to_string(), loca);
                     }
-                    if entry.kind() != FileKind::ModFile {
-                        resume_logging();
-                    }
                 }
                 Err(e) => eprintln!("{:#}", e),
             }
         } else {
-            error_info(&Token::from(entry), ErrorKey::Filename, "could not determine language from filename", &format!("Localization filenames should end in _l_language.yml, where language is one of {}", KNOWN_LANGUAGES.join(", ")));
+            error_info(
+               &Token::from(entry),
+               ErrorKey::Filename,
+               "could not determine language from filename",
+               &format!("Localization filenames should end in _l_language.yml, where language is one of {}", KNOWN_LANGUAGES.join(", "))
+            );
         }
     }
 }
