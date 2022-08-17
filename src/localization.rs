@@ -1,12 +1,19 @@
-use std::ffi::OsStr;
+use fnv::FnvHashMap;
+use std::ffi::{OsStr, OsString};
+use std::fs::read_to_string;
+use std::path::{Component, Path};
 
-use crate::errors::{advice_info, error_info, warn_info, ErrorKey};
+use crate::errors::{advice_info, error_info, warn, warn_info, ErrorKey};
 use crate::everything::{FileEntry, FileHandler, FileKind};
+use crate::localization::parse::parse_loca;
 use crate::scope::Token;
+
+mod parse;
 
 #[derive(Clone, Debug, Default)]
 pub struct Localization {
     warned_dirs: Vec<String>,
+    locas: FnvHashMap<String, LocaEntry>,
 }
 
 // LAST UPDATED VERSION 1.6.2.2
@@ -19,6 +26,19 @@ const KNOWN_LANGUAGES: [&str; 7] = [
     "korean",
     "simp_chinese",
 ];
+
+#[derive(Clone, Debug)]
+pub struct LocaEntry {
+    key: Token,
+    value: LocaValue,
+}
+
+#[derive(Clone, Debug)]
+pub enum LocaValue {
+    Concat(Vec<LocaValue>),
+    Text(Token),
+    Error,
+}
 
 fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
     for lang in KNOWN_LANGUAGES {
@@ -38,7 +58,7 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
 }
 
 impl FileHandler for Localization {
-    fn handle_file(&mut self, entry: &FileEntry) {
+    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
         let depth = entry.path().components().count();
         assert!(depth >= 2);
         assert!(entry.path().starts_with("localization"));
@@ -86,6 +106,21 @@ impl FileHandler for Localization {
         if let Some(filelang) = get_file_lang(entry.filename()) {
             if filelang != lang && lang != "replace" && !warned {
                 advice_info(&Token::from(entry), ErrorKey::Filename, "localization file with wrong name or in wrong directory", "A localization file should be in a subdirectory corresponding to its language.");
+            }
+            let replace = entry
+                .path()
+                .components()
+                .any(|c| c == Component::Normal(&OsString::from("replace")));
+            match read_to_string(fullpath) {
+                Ok(content) => {
+                    for loca in parse_loca(entry.path(), entry.kind(), &content) {
+                        if self.locas.contains_key(loca.key.as_str()) && !replace {
+                            warn(&loca.key, ErrorKey::Localization, "This localization key redefines an existing key, but is not in a replace/ subdirectory.");
+                        }
+                        self.locas.insert(loca.key.as_str().to_string(), loca);
+                    }
+                }
+                Err(e) => eprintln!("{:#}", e),
             }
         } else {
             error_info(&Token::from(entry), ErrorKey::Filename, "could not determine language from filename", &format!("Localization filenames should end in _l_language.yml, where language is one of {}", KNOWN_LANGUAGES.join(", ")));

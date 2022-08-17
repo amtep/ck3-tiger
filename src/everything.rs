@@ -9,7 +9,7 @@ use crate::localization::Localization;
 use crate::scope::{Loc, Token};
 
 pub trait FileHandler {
-    fn handle_file(&mut self, entry: &FileEntry);
+    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path);
 }
 
 #[derive(Debug, Error)]
@@ -148,6 +148,13 @@ impl Everything {
         }
     }
 
+    pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {
+        match entry.kind {
+            FileKind::VanillaFile => self.vanilla_root.join(entry.path()),
+            FileKind::ModFile => self.mod_root.join(entry.path()),
+        }
+    }
+
     pub fn load_localizations(&mut self) {
         let subpath = PathBuf::from("localization");
         // TODO: the borrow checker won't let us call get_files_under() here because
@@ -157,7 +164,7 @@ impl Everything {
             subpath: &subpath,
         };
         for entry in iter {
-            self.localization.handle_file(entry);
+            self.localization.handle_file(entry, &self.fullpath(entry));
         }
     }
 }

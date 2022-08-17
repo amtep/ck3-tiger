@@ -236,6 +236,15 @@ impl From<Loc> for Token {
     }
 }
 
+impl From<&Loc> for Token {
+    fn from(loc: &Loc) -> Self {
+        Token {
+            s: String::new(),
+            loc: loc.clone(),
+        }
+    }
+}
+
 impl Display for Token {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(f, "{}", self.s)

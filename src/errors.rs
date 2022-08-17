@@ -23,6 +23,8 @@ pub enum ErrorKey {
     Validation,
     TooManyErrors,
     Filename,
+    Encoding,
+    Localization,
 }
 
 #[derive(Clone, Copy, Debug)]

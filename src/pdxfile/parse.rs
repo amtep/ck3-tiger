@@ -224,6 +224,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Scope
                     state = State::Id;
                 } else if c == '\n' {
                     let s = content[token_start..next_i].replace('"', "");
+                    loc.offset = token_start;
                     let token = Token::new(s, loc.clone());
                     warn(&token, ErrorKey::ParseError, "Quoted string not closed");
                 }
@@ -235,6 +236,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Scope
                 } else if c.is_id_char() {
                 } else {
                     let id = content[token_start..i].replace('"', "");
+                    loc.offset = token_start;
                     let token = Token::new(id, loc.clone());
                     parser.token(token);
 
@@ -261,6 +263,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Scope
                 if c.is_comparator_char() {
                 } else {
                     let s = content[token_start..i].to_string();
+                    loc.offset = token_start;
                     let token = Token::new(s, loc.clone());
                     parser.comparator(token);
 

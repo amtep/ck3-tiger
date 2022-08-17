@@ -9,7 +9,6 @@
 #![warn(noop_method_call)]
 #![warn(trivial_casts)]
 #![warn(trivial_numeric_casts)]
-#![warn(unused_results)]
 
 pub mod errors;
 pub mod everything;

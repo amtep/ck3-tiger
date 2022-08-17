@@ -11,6 +11,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1"
 clap = { version = "3.2.12", features = ["derive"] }
+fnv = "1.0.7"
 home = "0.5"
 thiserror = "1.0"
 walkdir = "2"
