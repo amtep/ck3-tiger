@@ -3,7 +3,7 @@ use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
-use crate::errors::{advice_info, error, error_info, warn, warn_info, ErrorKey};
+use crate::errors::{advice_info, error, error_info, info, warn, warn_info, ErrorKey};
 use crate::everything::{FileEntry, FileHandler, FileKind};
 use crate::localization::parse::parse_loca;
 use crate::scope::{Scope, Token};
@@ -192,7 +192,7 @@ impl FileHandler for Localization {
                                 ErrorKey::LocalizationDup,
                                 "This localization key redefines an existing key",
                             );
-                            warn(
+                            info(
                                 &hash.get(loca.key.as_str()).unwrap().key,
                                 ErrorKey::LocalizationDup,
                                 "-- the other key is here.",

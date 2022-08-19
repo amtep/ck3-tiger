@@ -23,6 +23,7 @@ pub enum ErrorKey {
 pub enum ErrorLevel {
     Error,
     Warning,
+    Info,
     Advice,
 }
 
@@ -31,6 +32,7 @@ impl Display for ErrorLevel {
         match self {
             ErrorLevel::Error => write!(f, "ERROR"),
             ErrorLevel::Warning => write!(f, "WARNING"),
+            ErrorLevel::Info => write!(f, "INFO"),
             ErrorLevel::Advice => write!(f, "ADVICE"),
         }
     }
@@ -132,6 +134,14 @@ pub fn warn(token: &Token, key: ErrorKey, msg: &str) {
 
 pub fn warn_info(token: &Token, key: ErrorKey, msg: &str, info: &str) {
     Errors::get_mut().push(token, ErrorLevel::Warning, key, msg, Some(info));
+}
+
+pub fn info(token: &Token, key: ErrorKey, msg: &str) {
+    Errors::get_mut().push(token, ErrorLevel::Info, key, msg, None);
+}
+
+pub fn info_info(token: &Token, key: ErrorKey, msg: &str, info: &str) {
+    Errors::get_mut().push(token, ErrorLevel::Info, key, msg, Some(info));
 }
 
 pub fn advice(token: &Token, key: ErrorKey, msg: &str) {
