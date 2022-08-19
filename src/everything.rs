@@ -206,8 +206,8 @@ impl Everything {
     }
 
     pub fn load_localizations(&mut self) {
+        self.localization.set_check_langs(self.config_languages());
         let subpath = PathBuf::from("localization");
-        let langs = self.config_languages();
         // TODO: the borrow checker won't let us call get_files_under() here because
         // it sees the whole of self as borrowed.
         let iter = Files {
@@ -218,8 +218,7 @@ impl Everything {
             if entry.kind() != FileKind::ModFile {
                 pause_logging();
             }
-            self.localization
-                .handle_file(entry, &self.fullpath(entry), &langs);
+            self.localization.handle_file(entry, &self.fullpath(entry));
             if entry.kind() != FileKind::ModFile {
                 resume_logging();
             }

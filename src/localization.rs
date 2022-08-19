@@ -10,8 +10,9 @@ use crate::scope::Token;
 
 mod parse;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Localization {
+    check_langs: Vec<&'static str>,
     warned_dirs: Vec<String>,
     locas: FnvHashMap<&'static str, FnvHashMap<String, LocaEntry>>,
 }
@@ -102,7 +103,11 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
 }
 
 impl Localization {
-    pub fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path, check_langs: &[&str]) {
+    pub fn set_check_langs(&mut self, check_langs: Vec<&'static str>) {
+        self.check_langs = check_langs;
+    }
+
+    pub fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
         let depth = entry.path().components().count();
         assert!(depth >= 2);
         assert!(entry.path().starts_with("localization"));
@@ -142,12 +147,12 @@ impl Localization {
             warned = true;
         }
 
-        if KNOWN_LANGUAGES.contains(&&*lang) && !check_langs.contains(&&*lang) {
+        if KNOWN_LANGUAGES.contains(&&*lang) && !self.check_langs.contains(&&*lang) {
             return;
         }
 
         if let Some(filelang) = get_file_lang(entry.filename()) {
-            if !check_langs.contains(&filelang) {
+            if !self.check_langs.contains(&filelang) {
                 return;
             }
             if filelang != lang && !warned {
@@ -184,6 +189,16 @@ impl Localization {
                "could not determine language from filename",
                &format!("Localization filenames should end in _l_language.yml, where language is one of {}", KNOWN_LANGUAGES.join(", "))
             );
+        }
+    }
+}
+
+impl Default for Localization {
+    fn default() -> Self {
+        Localization {
+            check_langs: Vec::from(KNOWN_LANGUAGES),
+            warned_dirs: Vec::default(),
+            locas: FnvHashMap::default(),
         }
     }
 }
