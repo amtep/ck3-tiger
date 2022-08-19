@@ -10,6 +10,14 @@ use crate::localization::{
 };
 use crate::scope::{Loc, Token};
 
+fn is_key_char(c: char) -> bool {
+    c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '\''
+}
+
+fn is_code_char(c: char) -> bool {
+    c.is_alphanumeric() || c == '_'
+}
+
 #[derive(Clone, Debug)]
 struct LocaParser<'a> {
     loc: Loc,
@@ -19,14 +27,6 @@ struct LocaParser<'a> {
     expecting_language: bool,
     loca_end: usize,
     value: Vec<LocaValue>,
-}
-
-fn is_key_char(c: char) -> bool {
-    c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '\''
-}
-
-fn is_code_char(c: char) -> bool {
-    c.is_alphanumeric() || c == '_'
 }
 
 impl<'a> LocaParser<'a> {

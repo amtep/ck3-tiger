@@ -46,24 +46,6 @@ pub struct FileEntry {
     kind: FileKind,
 }
 
-#[derive(Clone, Debug)]
-pub struct Everything {
-    /// The CK3 game directory
-    vanilla_root: PathBuf,
-
-    /// The mod directory
-    mod_root: PathBuf,
-
-    /// Config from file
-    config: Scope,
-
-    /// The CK3 and mod files in the order the game would load them
-    ordered_files: Vec<FileEntry>,
-
-    /// Processed localization files
-    localization: Localization,
-}
-
 impl FileEntry {
     fn new(path: PathBuf, kind: FileKind) -> Self {
         assert!(path.file_name().is_some());
@@ -102,6 +84,24 @@ impl From<&FileEntry> for Token {
     fn from(entry: &FileEntry) -> Self {
         Token::from(Loc::from(entry))
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct Everything {
+    /// The CK3 game directory
+    vanilla_root: PathBuf,
+
+    /// The mod directory
+    mod_root: PathBuf,
+
+    /// Config from file
+    config: Scope,
+
+    /// The CK3 and mod files in the order the game would load them
+    ordered_files: Vec<FileEntry>,
+
+    /// Processed localization files
+    localization: Localization,
 }
 
 impl Everything {

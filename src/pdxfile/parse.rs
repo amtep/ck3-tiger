@@ -32,17 +32,17 @@ impl CharExt for char {
     }
 }
 
+struct ParseLevel {
+    scope: Scope,
+    key: Option<Token>,
+    comp: Option<(Comparator, Token)>,
+}
+
 struct Parser {
     pathname: Rc<PathBuf>,
     current: ParseLevel,
     stack: Vec<ParseLevel>,
     brace_error: bool,
-}
-
-struct ParseLevel {
-    scope: Scope,
-    key: Option<Token>,
-    comp: Option<(Comparator, Token)>,
 }
 
 impl Parser {

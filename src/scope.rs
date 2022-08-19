@@ -8,14 +8,6 @@ pub mod validator;
 
 use crate::everything::FileKind;
 
-#[derive(Clone, Debug)]
-pub struct Scope {
-    // v can contain key = value pairs as well as unadorned values.
-    // The latter are inserted as None tokens and Comparator::None
-    v: Vec<(Option<Token>, Comparator, ScopeOrValue)>,
-    pub loc: Loc,
-}
-
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
 pub enum ScopeOrValue {
@@ -23,30 +15,11 @@ pub enum ScopeOrValue {
     Scope(Scope),
 }
 
-#[derive(Copy, Clone, Debug)]
-pub enum Comparator {
-    None,
-    Eq, // Eq is also Assign
-    Lt,
-    Gt,
-    Le,
-    Ge,
-    Ne,
-}
-
 #[derive(Clone, Debug)]
-pub struct Loc {
-    pub pathname: Rc<PathBuf>,
-    pub kind: FileKind,
-    /// line 0 means the loc applies to the file as a whole.
-    pub line: usize,
-    pub column: usize,
-    pub offset: usize,
-}
-
-#[derive(Clone, Debug)]
-pub struct Token {
-    s: String,
+pub struct Scope {
+    // v can contain key = value pairs as well as unadorned values.
+    // The latter are inserted as None tokens and Comparator::None
+    v: Vec<(Option<Token>, Comparator, ScopeOrValue)>,
     pub loc: Loc,
 }
 
@@ -149,6 +122,17 @@ impl Scope {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum Comparator {
+    None,
+    Eq, // Eq is also Assign
+    Lt,
+    Gt,
+    Le,
+    Ge,
+    Ne,
+}
+
 impl Comparator {
     pub fn from_str(s: &str) -> Option<Self> {
         if s == "=" {
@@ -185,6 +169,16 @@ impl Display for Comparator {
             Comparator::None => Ok(()),
         }
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct Loc {
+    pub pathname: Rc<PathBuf>,
+    pub kind: FileKind,
+    /// line 0 means the loc applies to the file as a whole.
+    pub line: usize,
+    pub column: usize,
+    pub offset: usize,
 }
 
 impl Loc {
@@ -235,6 +229,12 @@ impl Loc {
             .unwrap_or_else(|| OsStr::new(""))
             .to_string_lossy()
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct Token {
+    s: String,
+    pub loc: Loc,
 }
 
 impl Token {

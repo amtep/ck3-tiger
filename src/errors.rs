@@ -7,18 +7,6 @@ use crate::scope::Token;
 
 static mut ERRORS: Option<Errors> = None;
 
-#[derive(Clone, Debug, Default)]
-pub struct Errors {
-    /// The CK3 game directory
-    vanilla_root: PathBuf,
-
-    /// The mod directory
-    mod_root: PathBuf,
-
-    /// Don't log if this is > 0,
-    logging_paused: isize,
-}
-
 #[derive(Clone, Copy, Debug)]
 pub enum ErrorKey {
     ParseError,
@@ -36,6 +24,28 @@ pub enum ErrorLevel {
     Error,
     Warning,
     Advice,
+}
+
+impl Display for ErrorLevel {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        match self {
+            ErrorLevel::Error => write!(f, "ERROR"),
+            ErrorLevel::Warning => write!(f, "WARNING"),
+            ErrorLevel::Advice => write!(f, "ADVICE"),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct Errors {
+    /// The CK3 game directory
+    vanilla_root: PathBuf,
+
+    /// The mod directory
+    mod_root: PathBuf,
+
+    /// Don't log if this is > 0,
+    logging_paused: isize,
 }
 
 impl Errors {
@@ -130,14 +140,4 @@ pub fn advice(token: &Token, key: ErrorKey, msg: &str) {
 
 pub fn advice_info(token: &Token, key: ErrorKey, msg: &str, info: &str) {
     Errors::get_mut().push(token, ErrorLevel::Advice, key, msg, Some(info));
-}
-
-impl Display for ErrorLevel {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        match self {
-            ErrorLevel::Error => write!(f, "ERROR"),
-            ErrorLevel::Warning => write!(f, "WARNING"),
-            ErrorLevel::Advice => write!(f, "ADVICE"),
-        }
-    }
 }
