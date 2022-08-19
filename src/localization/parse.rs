@@ -353,6 +353,7 @@ impl<'a> LocaParser<'a> {
         self.next_char(); // Skip the $
         let loc = self.loc.clone();
         let key = self.get_key();
+        let end_loc = self.loc.clone();
         let format = self.parse_format();
         if self.chars.peek() != Some(&'$') {
             // TODO: check if there is a closing $, adapt warning text
@@ -363,7 +364,7 @@ impl<'a> LocaParser<'a> {
             );
             return None;
         }
-        let s = self.content[loc.offset..self.loc.offset].to_string();
+        let s = self.content[loc.offset..end_loc.offset].to_string();
         self.next_char();
         Some(MacroValue::Keyword(Token::new(s, loc), format))
     }

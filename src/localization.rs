@@ -1,10 +1,10 @@
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::Path;
 
-use crate::errors::{advice_info, error_info, warn, warn_info, ErrorKey};
-use crate::everything::FileEntry;
+use crate::errors::{advice_info, error, error_info, warn, warn_info, ErrorKey};
+use crate::everything::{FileEntry, FileKind};
 use crate::localization::parse::parse_loca;
 use crate::scope::Token;
 
@@ -27,6 +27,10 @@ pub const KNOWN_LANGUAGES: [&str; 7] = [
     "korean",
     "simp_chinese",
 ];
+
+// LAST UPDATED VERSION 1.6.2.2
+// These are just the ones that can't be deduced from the vanilla localization files.
+pub const BUILTIN_MACROS: [&str; 2] = ["TRIGGER_AND", "TRIGGER_OR"];
 
 #[derive(Clone, Debug)]
 pub struct LocaEntry {
@@ -189,6 +193,56 @@ impl Localization {
                "could not determine language from filename",
                &format!("Localization filenames should end in _l_language.yml, where language is one of {}", KNOWN_LANGUAGES.join(", "))
             );
+        }
+    }
+
+    /// Do checks that can only be done after having all of the loca values
+    pub fn finalize(&mut self) {
+        // Does every macro use refer to a defined key?
+        // First build the list of builtin macros by just checking which ones vanilla uses.
+        let mut builtins = FnvHashSet::default();
+        for lang in self.locas.values() {
+            for entry in lang.values() {
+                if entry.key.loc.kind != FileKind::VanillaFile {
+                    continue;
+                }
+
+                if let LocaValue::Macro(ref v) = entry.value {
+                    for macrovalue in v {
+                        if let MacroValue::Keyword(k, _) = macrovalue {
+                            if k.as_str()
+                                .chars()
+                                .all(|c| c.is_uppercase() || c.is_ascii_digit() || c == '_')
+                            {
+                                builtins.insert(k.as_str());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for lang in self.locas.values() {
+            for entry in lang.values() {
+                if entry.key.loc.kind == FileKind::VanillaFile {
+                    // Only warn for mod files
+                    continue;
+                }
+
+                if let LocaValue::Macro(ref v) = entry.value {
+                    for macrovalue in v {
+                        if let MacroValue::Keyword(k, _) = macrovalue {
+                            if !lang.contains_key(k.as_str())
+                                && !builtins.contains(k.as_str())
+                                && !BUILTIN_MACROS.contains(&k.as_str())
+                            {
+                                // TODO: display these errors in a sensible order, like by filename
+                                error(&k, ErrorKey::Localization, &format!("The substitution parameter ${}$ is not defined anywhere as a key.", k.as_str()));
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

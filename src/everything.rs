@@ -223,6 +223,7 @@ impl Everything {
                 resume_logging();
             }
         }
+        self.localization.finalize();
     }
 }
 
