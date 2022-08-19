@@ -1,0 +1,16 @@
+# The mod-validator.conf file is in standard Paradox script format.
+# It should be placed in the top directory of your mod.
+
+# It currently has only one possible field
+
+languages = {
+    # This will check only english and german localizations
+    check = "english"
+    check = "german"
+
+    # If you DON'T specify any check languages, you can instead say which ones to skip.
+    skip = "french"
+    skip = "spanish"
+
+    # If you don't specify anything in languages, the validator will check all languages.
+}
