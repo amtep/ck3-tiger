@@ -14,6 +14,7 @@ pub mod errors;
 pub mod everything;
 pub mod modfile;
 
+mod events;
 mod localization;
 mod pdxfile;
 mod scope;

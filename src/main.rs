@@ -107,6 +107,7 @@ fn main() -> Result<()> {
 
     let mut everything = Everything::new(args.ck3.unwrap(), modpath)?;
     everything.load_localizations();
+    everything.load_events();
 
     Ok(())
 }

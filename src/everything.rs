@@ -7,6 +7,7 @@ use std::rc::Rc;
 use thiserror::Error;
 use walkdir::WalkDir;
 
+use crate::events::Events;
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 use crate::scope::{Loc, Scope, Token};
@@ -120,6 +121,9 @@ pub struct Everything {
 
     /// Processed localization files
     localization: Localization,
+
+    /// Processed event files
+    events: Events,
 }
 
 impl Everything {
@@ -168,12 +172,13 @@ impl Everything {
             mod_root,
             ordered_files: files_filtered,
             localization: Localization::default(),
+            events: Events::default(),
             config,
         })
     }
 
     fn _read_config(path: &Path) -> Result<Scope> {
-        PdxFile::read(path, FileKind::ModFile)
+        PdxFile::read(path, FileKind::ModFile, path, false)
     }
 
     fn _scan(
@@ -220,6 +225,21 @@ impl Everything {
             self.localization.handle_file(entry, &self.fullpath(entry));
         }
         self.localization.finalize();
+    }
+
+    pub fn load_events(&mut self) {
+        self.events.config(&self.config);
+        let subpath = self.events.subpath();
+        // TODO: the borrow checker won't let us call get_files_under() here because
+        // it sees the whole of self as borrowed.
+        let iter = Files {
+            iter: self.ordered_files.iter(),
+            subpath: &subpath,
+        };
+        for entry in iter {
+            self.events.handle_file(entry, &self.fullpath(entry));
+        }
+        self.events.finalize();
     }
 }
 

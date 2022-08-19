@@ -41,7 +41,7 @@ impl Scope {
     }
 
     pub fn token(&self) -> Token {
-        Token::new(String::new(), self.loc.clone())
+        Token::from(&self.loc)
     }
 
     /// Get the value of a single `name = value` assignment
@@ -119,6 +119,10 @@ impl Scope {
             }
         }
         vec
+    }
+
+    pub fn iter_items(&self) -> std::slice::Iter<(Option<Token>, Comparator, ScopeOrValue)> {
+        self.v.iter()
     }
 }
 

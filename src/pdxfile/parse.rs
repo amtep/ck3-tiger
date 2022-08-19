@@ -24,7 +24,17 @@ trait CharExt {
 
 impl CharExt for char {
     fn is_id_char(self) -> bool {
-        self.is_ascii_alphanumeric() || self == '.' || self == ':' || self == '$' || self == '_'
+        self.is_alphabetic()
+            || self.is_ascii_digit()
+            || self == '.'
+            || self == ':'
+            || self == '$'
+            || self == '_'
+            || self == '-'
+            || self == '&'
+            || self == '/'
+            || self == '|'
+            || self == '\''
     }
 
     fn is_comparator_char(self) -> bool {

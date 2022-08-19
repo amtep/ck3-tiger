@@ -9,7 +9,9 @@ static mut ERRORS: Option<Errors> = None;
 
 #[derive(Clone, Copy, Debug)]
 pub enum ErrorKey {
+    ReadError,
     ParseError,
+    Bom,
     Packaging,
     Validation,
     TooManyErrors,
@@ -17,6 +19,7 @@ pub enum ErrorKey {
     Encoding,
     Localization,
     LocalizationDup,
+    EventNamespace,
 }
 
 #[derive(Clone, Copy, Debug)]
