@@ -76,7 +76,7 @@ impl Validate for ModFile {
 
 impl ModFile {
     pub fn read(pathname: &Path) -> Result<Self> {
-        let scope = PdxFile::read(pathname, FileKind::ModFile, pathname, false)
+        let scope = PdxFile::read_no_bom(pathname, FileKind::ModFile, pathname)
             .with_context(|| format!("Could not read .mod file {}", pathname.display()))?;
         let modfile = ModFile::from_scope(scope)?;
 

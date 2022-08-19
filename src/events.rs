@@ -45,7 +45,7 @@ impl FileHandler for Events {
 
         let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
 
-        let scope = match PdxFile::read(entry.path(), entry.kind(), fullpath, true) {
+        let scope = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
             Ok(scope) => scope,
             Err(e) => {
                 let t = Token::from(Loc::for_file(

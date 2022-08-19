@@ -178,7 +178,7 @@ impl Everything {
     }
 
     fn _read_config(path: &Path) -> Result<Scope> {
-        PdxFile::read(path, FileKind::ModFile, path, false)
+        PdxFile::read_no_bom(path, FileKind::ModFile, path)
     }
 
     fn _scan(
