@@ -43,7 +43,7 @@ impl FileHandler for Events {
             return;
         }
 
-        // let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
+        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
 
         let scope = match PdxFile::read(entry.path(), entry.kind(), fullpath, true) {
             Ok(scope) => scope,
@@ -62,7 +62,7 @@ impl FileHandler for Events {
             }
         };
 
-        let mut namespace = None;
+        let mut namespaces = Vec::new();
         let mut expecting = Expecting::Event;
 
         for (k, cmp, v) in scope.iter_items() {
@@ -76,7 +76,7 @@ impl FileHandler for Events {
                 }
                 if key.as_str() == "namespace" {
                     match v {
-                        ScopeOrValue::Token(t) => namespace = Some(t.as_str()),
+                        ScopeOrValue::Token(t) => namespaces.push(t.as_str()),
                         ScopeOrValue::Scope(s) => error(
                             &s.token(),
                             ErrorKey::EventNamespace,
@@ -102,26 +102,24 @@ impl FileHandler for Events {
                             Expecting::Event => {
                                 let mut namespace_ok = false;
 
-                                if let Some(namespace) = namespace {
-                                    if let Some(key_a) = key.as_str().strip_prefix(namespace) {
-                                        if let Some(key_b) = key_a.strip_prefix('.') {
-                                            if key_b.chars().all(|c| c.is_ascii_digit()) {
-                                                namespace_ok = true;
-                                            } else {
-                                                warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
-                                            }
-                                        } else {
-                                            warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
-                                        }
-                                    } else {
-                                        warn_info(key, ErrorKey::EventNamespace, "Event name should start with namespace", "If the event doesn't match its namespace, the game can't properly find the event when triggering it.")
-                                    }
-                                } else {
+                                if namespaces.is_empty() {
                                     error(
                                         key,
                                         ErrorKey::EventNamespace,
                                         "Event files must start with a namespace declaration",
                                     );
+                                } else if let Some((key_a, key_b)) = key.as_str().split_once('.') {
+                                    if key_b.chars().all(|c| c.is_ascii_digit()) {
+                                        if namespaces.contains(&key_a) {
+                                            namespace_ok = true;
+                                        } else {
+                                            warn_info(key, ErrorKey::EventNamespace, "Event name should start with namespace", "If the event doesn't match its namespace, the game can't properly find the event when triggering it.")
+                                        }
+                                    } else {
+                                        warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
+                                    }
+                                } else {
+                                    warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
                                 }
 
                                 if namespace_ok {
