@@ -8,7 +8,7 @@ use thiserror::Error;
 use walkdir::WalkDir;
 
 use crate::errors::{pause_logging, resume_logging};
-use crate::localization::{Localization, KNOWN_LANGUAGES};
+use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 use crate::scope::{Loc, Scope, Token};
 
@@ -29,6 +29,25 @@ pub enum FilesError {
         path: PathBuf,
         source: anyhow::Error,
     },
+}
+
+/// A trait for a submodule that can process files.
+pub trait FileHandler {
+    /// The `FileHandler` can read settings it needs from the mod-validator config.
+    fn config(&mut self, config: &Scope);
+
+    /// Which files this handler is interested in.
+    /// This is a directory prefix of files it wants to handle,
+    /// relative to the mod or vanilla root.
+    fn subpath(&self) -> PathBuf;
+
+    /// This is called for each matching file in turn, in lexical order.
+    /// That's the order in which the CK3 game engine loads them too.
+    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path);
+
+    /// This is called after all files have been handled.
+    /// The `FileHandler` can generate indexes, perform full-data checks, etc.
+    fn finalize(&mut self);
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -186,28 +205,9 @@ impl Everything {
         }
     }
 
-    pub fn config_languages(&self) -> Vec<&'static str> {
-        let mut langs: Vec<&str> = Vec::new();
-
-        if let Some(scope) = self.config.get_field_scope("languages") {
-            let check = scope.get_field_values("check");
-            let skip = scope.get_field_values("skip");
-            for lang in &KNOWN_LANGUAGES {
-                if check.iter().any(|t| t.as_str() == *lang)
-                    || (check.is_empty() && skip.iter().all(|t| t.as_str() != *lang))
-                {
-                    langs.push(lang);
-                }
-            }
-        } else {
-            langs.extend(KNOWN_LANGUAGES);
-        }
-        langs
-    }
-
     pub fn load_localizations(&mut self) {
-        self.localization.set_check_langs(self.config_languages());
-        let subpath = PathBuf::from("localization");
+        self.localization.config(&self.config);
+        let subpath = self.localization.subpath();
         // TODO: the borrow checker won't let us call get_files_under() here because
         // it sees the whole of self as borrowed.
         let iter = Files {

@@ -1,12 +1,12 @@
 use fnv::{FnvHashMap, FnvHashSet};
 use std::ffi::OsStr;
 use std::fs::read_to_string;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::errors::{advice_info, error, error_info, warn, warn_info, ErrorKey};
-use crate::everything::{FileEntry, FileKind};
+use crate::everything::{FileEntry, FileHandler, FileKind};
 use crate::localization::parse::parse_loca;
-use crate::scope::Token;
+use crate::scope::{Scope, Token};
 
 mod parse;
 
@@ -106,12 +106,29 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
     None
 }
 
-impl Localization {
-    pub fn set_check_langs(&mut self, check_langs: Vec<&'static str>) {
-        self.check_langs = check_langs;
+impl FileHandler for Localization {
+    fn subpath(&self) -> PathBuf {
+        PathBuf::from("localization")
     }
 
-    pub fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn config(&mut self, config: &Scope) {
+        let mut langs: Vec<&str> = Vec::new();
+
+        if let Some(scope) = config.get_field_scope("languages") {
+            let check = scope.get_field_values("check");
+            let skip = scope.get_field_values("skip");
+            for lang in &KNOWN_LANGUAGES {
+                if check.iter().any(|t| t.as_str() == *lang)
+                    || (check.is_empty() && skip.iter().all(|t| t.as_str() != *lang))
+                {
+                    langs.push(lang);
+                }
+            }
+            self.check_langs = langs;
+        }
+    }
+
+    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
         let depth = entry.path().components().count();
         assert!(depth >= 2);
         assert!(entry.path().starts_with("localization"));
@@ -197,7 +214,7 @@ impl Localization {
     }
 
     /// Do checks that can only be done after having all of the loca values
-    pub fn finalize(&mut self) {
+    fn finalize(&mut self) {
         // Does every macro use refer to a defined key?
         // First build the list of builtin macros by just checking which ones vanilla uses.
         let mut builtins = FnvHashSet::default();
