@@ -7,7 +7,6 @@ use std::rc::Rc;
 use thiserror::Error;
 use walkdir::WalkDir;
 
-use crate::errors::{pause_logging, resume_logging};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 use crate::scope::{Loc, Scope, Token};
@@ -215,13 +214,7 @@ impl Everything {
             subpath: &subpath,
         };
         for entry in iter {
-            if entry.kind() != FileKind::ModFile {
-                pause_logging();
-            }
             self.localization.handle_file(entry, &self.fullpath(entry));
-            if entry.kind() != FileKind::ModFile {
-                resume_logging();
-            }
         }
         self.localization.finalize();
     }

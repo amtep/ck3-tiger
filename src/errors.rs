@@ -50,6 +50,10 @@ pub struct Errors {
     logging_paused: isize,
 }
 
+// TODO: allow a message to have multiple tokens, and print the relevant lines as a stack
+// before the message. This might be implemented by letting Token have something like an
+// `Option<Token>` field to chain them.
+
 impl Errors {
     #[allow(clippy::unused_self)] // At some point we will cache files in self
     fn get_line(&mut self, token: &Token) -> Option<String> {
@@ -103,13 +107,36 @@ impl Errors {
     }
 }
 
-// TODO: make pause and resume logging depend on having an object in scope (RAII logic)
 pub fn pause_logging() {
     Errors::get_mut().logging_paused += 1;
 }
 
 pub fn resume_logging() {
     Errors::get_mut().logging_paused -= 1;
+}
+
+/// This is an object that can pause logging as long as it's in scope.
+/// Whether it does to depends on its constructor's `pause` argument.
+#[derive(Debug)]
+pub struct LogPauseRaii {
+    paused: bool,
+}
+
+impl LogPauseRaii {
+    pub fn new(pause: bool) -> Self {
+        if pause {
+            pause_logging();
+        }
+        Self { paused: pause }
+    }
+}
+
+impl Drop for LogPauseRaii {
+    fn drop(&mut self) {
+        if self.paused {
+            resume_logging();
+        }
+    }
 }
 
 pub fn set_vanilla_root(root: PathBuf) {

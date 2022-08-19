@@ -3,7 +3,9 @@ use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
-use crate::errors::{advice_info, error, error_info, info, warn, warn_info, ErrorKey};
+use crate::errors::{
+    advice_info, error, error_info, info, warn, warn_info, ErrorKey, LogPauseRaii,
+};
 use crate::everything::{FileEntry, FileHandler, FileKind};
 use crate::localization::parse::parse_loca;
 use crate::scope::{Scope, Token};
@@ -135,6 +137,8 @@ impl FileHandler for Localization {
         if entry.filename().to_string_lossy().ends_with(".info") {
             return;
         }
+
+        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
 
         // unwrap is safe here because we're only handed files under localization/
         // to_string_lossy is ok because we compare lang against a set of known strings.
