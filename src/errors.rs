@@ -28,6 +28,7 @@ pub enum ErrorKey {
     Filename,
     Encoding,
     Localization,
+    LocalizationDup,
 }
 
 #[derive(Clone, Copy, Debug)]

@@ -1,10 +1,10 @@
 use fnv::FnvHashMap;
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsStr;
 use std::fs::read_to_string;
-use std::path::{Component, Path};
+use std::path::Path;
 
 use crate::errors::{advice_info, error_info, warn, warn_info, ErrorKey};
-use crate::everything::{FileEntry, FileKind};
+use crate::everything::FileEntry;
 use crate::localization::parse::parse_loca;
 use crate::scope::Token;
 
@@ -129,24 +129,20 @@ impl Localization {
                 "Localization files should be in subdirectories according to their language.",
             );
             warned = true;
-        } else if lang != "replace" && !KNOWN_LANGUAGES.contains(&&*lang) {
+        } else if !KNOWN_LANGUAGES.contains(&&*lang) {
             if self.warned_dirs.iter().any(|d| *d == *lang) {
                 warn_info(
                     &Token::from(entry),
                     ErrorKey::Filename,
                     "unknown subdirectory in localization",
-                    &format!(
-                        "Valid subdirectories are {} and replace",
-                        KNOWN_LANGUAGES.join(", ")
-                    ),
+                    &format!("Valid subdirectories are {}", KNOWN_LANGUAGES.join(", ")),
                 );
             }
             self.warned_dirs.push(lang.to_string());
             warned = true;
         }
 
-        if lang != "replace" && KNOWN_LANGUAGES.contains(&&*lang) && !check_langs.contains(&&*lang)
-        {
+        if KNOWN_LANGUAGES.contains(&&*lang) && !check_langs.contains(&&*lang) {
             return;
         }
 
@@ -154,19 +150,27 @@ impl Localization {
             if !check_langs.contains(&filelang) {
                 return;
             }
-            if filelang != lang && lang != "replace" && !warned {
+            if filelang != lang && !warned {
                 advice_info(&Token::from(entry), ErrorKey::Filename, "localization file with wrong name or in wrong directory", "A localization file should be in a subdirectory corresponding to its language.");
             }
-            let replace = entry
-                .path()
-                .components()
-                .any(|c| c == Component::Normal(&OsString::from("replace")));
             match read_to_string(fullpath) {
                 Ok(content) => {
                     for loca in parse_loca(entry.path(), entry.kind(), &content) {
                         let hash = self.locas.entry(filelang).or_default();
-                        if hash.contains_key(loca.key.as_str()) && !replace {
-                            warn(&loca.key, ErrorKey::Localization, "This localization key redefines an existing key, but is not in a replace/ subdirectory.");
+                        if hash.contains_key(loca.key.as_str())
+                            && hash.get(loca.key.as_str()).unwrap().key.loc.kind == entry.kind()
+                        {
+                            // TODO: show where the other key is
+                            warn(
+                                &loca.key,
+                                ErrorKey::LocalizationDup,
+                                "This localization key redefines an existing key",
+                            );
+                            warn(
+                                &hash.get(loca.key.as_str()).unwrap().key,
+                                ErrorKey::LocalizationDup,
+                                "-- the other key is here.",
+                            );
                         }
                         hash.insert(loca.key.as_str().to_string(), loca);
                     }
