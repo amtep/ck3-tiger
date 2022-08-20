@@ -1,12 +1,11 @@
 use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
 
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn_info, LogPauseRaii};
 use crate::everything::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
-use crate::scope::{Comparator, Loc, Scope, ScopeOrValue, Token};
+use crate::scope::{Comparator, Scope, ScopeOrValue, Token};
 
 #[derive(Clone, Debug, Default)]
 pub struct Events {
@@ -49,12 +48,8 @@ impl FileHandler for Events {
         let scope = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
             Ok(scope) => scope,
             Err(e) => {
-                let t = Token::from(Loc::for_file(
-                    Rc::new(entry.path().to_path_buf()),
-                    entry.kind(),
-                ));
                 error_info(
-                    t,
+                    entry,
                     ErrorKey::ReadError,
                     "could not read file",
                     &format!("{:#}", e),

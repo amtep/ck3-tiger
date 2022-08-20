@@ -109,6 +109,7 @@ fn main() -> Result<()> {
     everything.load_errorkey_config();
     everything.load_localizations();
     everything.load_events();
+    everything.load_decisions();
 
     Ok(())
 }

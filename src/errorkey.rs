@@ -14,7 +14,7 @@ pub enum ErrorKey {
     Filename,
     Encoding,
     Localization,
-    LocalizationDup,
+    Duplicate,
     EventNamespace,
 }
 
@@ -34,7 +34,7 @@ impl FromStr for ErrorKey {
             "filename" => ErrorKey::Filename,
             "encoding" => ErrorKey::Encoding,
             "localization" => ErrorKey::Localization,
-            "localization-dup" => ErrorKey::LocalizationDup,
+            "duplicate" => ErrorKey::Duplicate,
             "event-namespace" => ErrorKey::EventNamespace,
             _ => {
                 return Err(ParseKeyError::new("unknown error key"));
@@ -57,7 +57,7 @@ impl Display for ErrorKey {
             ErrorKey::Filename => write!(fmt, "filename"),
             ErrorKey::Encoding => write!(fmt, "encoding"),
             ErrorKey::Localization => write!(fmt, "localization"),
-            ErrorKey::LocalizationDup => write!(fmt, "localization-dup"),
+            ErrorKey::Duplicate => write!(fmt, "duplicate"),
             ErrorKey::EventNamespace => write!(fmt, "event-namespace"),
         }
     }

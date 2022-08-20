@@ -7,6 +7,7 @@ use std::rc::Rc;
 use thiserror::Error;
 use walkdir::WalkDir;
 
+use crate::decisions::Decisions;
 use crate::errorkey::ErrorKey;
 use crate::errors::{ignore_key, ignore_key_for, warn};
 use crate::events::Events;
@@ -126,6 +127,9 @@ pub struct Everything {
 
     /// Processed event files
     events: Events,
+
+    /// Processed decision files
+    decisions: Decisions,
 }
 
 impl Everything {
@@ -173,9 +177,10 @@ impl Everything {
             vanilla_root,
             mod_root,
             ordered_files: files_filtered,
+            config,
             localization: Localization::default(),
             events: Events::default(),
-            config,
+            decisions: Decisions::default(),
         })
     }
 
@@ -248,6 +253,10 @@ impl Everything {
         }
     }
 
+    // TODO: these very similar functions that all rely on the FileHandler trait
+    // can't be refactored with a handle_files() function because the borrow checker
+    // complains that the whole of self is borrowed.
+
     pub fn load_localizations(&mut self) {
         self.localization.config(&self.config);
         let subpath = self.localization.subpath();
@@ -276,6 +285,21 @@ impl Everything {
             self.events.handle_file(entry, &self.fullpath(entry));
         }
         self.events.finalize();
+    }
+
+    pub fn load_decisions(&mut self) {
+        self.decisions.config(&self.config);
+        let subpath = self.decisions.subpath();
+        // TODO: the borrow checker won't let us call get_files_under() here because
+        // it sees the whole of self as borrowed.
+        let iter = Files {
+            iter: self.ordered_files.iter(),
+            subpath: &subpath,
+        };
+        for entry in iter {
+            self.decisions.handle_file(entry, &self.fullpath(entry));
+        }
+        self.decisions.finalize();
     }
 }
 

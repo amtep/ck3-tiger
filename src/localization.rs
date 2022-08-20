@@ -4,7 +4,9 @@ use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
 use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, error, error_info, info, warn, warn_info, LogPauseRaii};
+use crate::errors::{
+    advice_info, error, error_info, info, warn, warn_info, will_log, LogPauseRaii,
+};
 use crate::everything::{FileEntry, FileHandler, FileKind};
 use crate::localization::parse::parse_loca;
 use crate::scope::{Scope, Token};
@@ -190,17 +192,18 @@ impl FileHandler for Localization {
                         if hash.contains_key(loca.key.as_str())
                             && hash.get(loca.key.as_str()).unwrap().key.loc.kind == entry.kind()
                         {
-                            // TODO: show where the other key is
-                            warn(
-                                &loca.key,
-                                ErrorKey::LocalizationDup,
-                                "This localization key redefines an existing key",
-                            );
-                            info(
-                                &hash.get(loca.key.as_str()).unwrap().key,
-                                ErrorKey::LocalizationDup,
-                                "-- the other key is here.",
-                            );
+                            if will_log(&loca.key, ErrorKey::Duplicate) {
+                                warn(
+                                    &loca.key,
+                                    ErrorKey::Duplicate,
+                                    "This localization key redefines an existing key",
+                                );
+                                info(
+                                    &hash.get(loca.key.as_str()).unwrap().key,
+                                    ErrorKey::Duplicate,
+                                    "-- the other key is here.",
+                                );
+                            }
                         }
                         hash.insert(loca.key.to_string(), loca);
                     }

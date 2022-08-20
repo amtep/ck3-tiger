@@ -36,6 +36,7 @@ impl CharExt for char {
             || self == '/'
             || self == '|'
             || self == '\''
+            || self == '@'
     }
 
     fn is_comparator_char(self) -> bool {

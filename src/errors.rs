@@ -131,6 +131,20 @@ impl Errors {
             .and_then(|contents| contents.lines().nth(loc.line - 1).map(str::to_string))
     }
 
+    pub fn will_log(&self, loc: &Loc, key: ErrorKey) -> bool {
+        if self.logging_paused > 0 || self.ignore_keys.contains(&key) {
+            return false;
+        }
+        if let Some(true) = self
+            .ignore_keys_for
+            .get(&*loc.pathname)
+            .map(|v| v.contains(&key))
+        {
+            return false;
+        }
+        true
+    }
+
     pub fn push<E: ErrorLoc>(
         &mut self,
         eloc: E,
@@ -139,18 +153,8 @@ impl Errors {
         msg: &str,
         info: Option<&str>,
     ) {
-        if self.logging_paused > 0 {
-            return;
-        }
         let loc = eloc.as_loc();
-        if self.ignore_keys.contains(&key) {
-            return;
-        }
-        if let Some(true) = self
-            .ignore_keys_for
-            .get(&*loc.pathname)
-            .map(|v| v.contains(&key))
-        {
+        if !self.will_log(&loc, key) {
             return;
         }
         if let Some(line) = self.get_line(&loc) {
@@ -175,6 +179,18 @@ impl Errors {
             }
             match ERRORS {
                 Some(ref mut errors) => errors,
+                None => unreachable!(),
+            }
+        }
+    }
+
+    pub fn get() -> &'static Self {
+        unsafe {
+            if ERRORS.is_none() {
+                ERRORS = Some(Errors::default());
+            }
+            match ERRORS {
+                Some(ref errors) => errors,
                 None => unreachable!(),
             }
         }
@@ -263,4 +279,8 @@ pub fn ignore_key_for(path: PathBuf, key: ErrorKey) {
 
 pub fn ignore_key(key: ErrorKey) {
     Errors::get_mut().ignore_keys.push(key);
+}
+
+pub fn will_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
+    Errors::get().will_log(&eloc.as_loc(), key)
 }
