@@ -1,5 +1,5 @@
-use crate::errors::{error, warn, ErrorKey};
-use crate::scope::{Comparator, Scope, ScopeOrValue, Token};
+use crate::errors::{error, warn, ErrorKey, ErrorLoc};
+use crate::scope::{Comparator, Scope, ScopeOrValue};
 use crate::validate::ValidationError;
 
 #[derive(Debug)]
@@ -33,22 +33,22 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn warn(&mut self, t: &Token, msg: &str) {
+    pub fn warn<E: ErrorLoc + Clone>(&mut self, eloc: E, msg: &str) {
         if self.errors < self.error_limit {
-            warn(t, ErrorKey::Validation, msg);
+            warn(eloc.clone(), ErrorKey::Validation, msg);
             self.errors += 1;
             if self.errors == self.error_limit {
-                warn(t, ErrorKey::TooManyErrors, self.error_limit_msg);
+                warn(eloc, ErrorKey::TooManyErrors, self.error_limit_msg);
             }
         }
     }
 
-    pub fn error(&mut self, t: &Token, msg: &str) {
+    pub fn error<E: ErrorLoc + Clone>(&mut self, eloc: E, msg: &str) {
         if self.errors < self.error_limit {
-            error(t, ErrorKey::Validation, msg);
+            error(eloc.clone(), ErrorKey::Validation, msg);
             self.errors += 1;
             if self.errors == self.error_limit {
-                warn(t, ErrorKey::TooManyErrors, self.error_limit_msg);
+                warn(eloc, ErrorKey::TooManyErrors, self.error_limit_msg);
             }
         }
     }
@@ -84,7 +84,7 @@ impl<'a> Validator<'a> {
                         ScopeOrValue::Token(_) => (),
                         ScopeOrValue::Scope(s) => {
                             self.err(ValidationError::RequiredFieldInvalid(name.to_string()));
-                            self.error(&s.token(), "expected value, found scope");
+                            self.error(s, "expected value, found scope");
                         }
                     }
                     found = true;
@@ -94,7 +94,7 @@ impl<'a> Validator<'a> {
         if !found {
             self.err(ValidationError::RequiredFieldMissing(name.to_string()));
             self.error(
-                &self.scope.token(),
+                &self.scope.loc,
                 &format!("required field `{}` missing", name),
             );
         }
@@ -119,7 +119,7 @@ impl<'a> Validator<'a> {
                     match v {
                         ScopeOrValue::Token(_) => (),
                         ScopeOrValue::Scope(s) => {
-                            self.error(&s.token(), "expected value, found scope");
+                            self.error(s, "expected value, found scope");
                         }
                     }
                     found = true;
@@ -157,7 +157,7 @@ impl<'a> Validator<'a> {
                                 match v {
                                     ScopeOrValue::Token(_) => (),
                                     ScopeOrValue::Scope(s) => {
-                                        self.error(&s.token(), "expected value, found scope");
+                                        self.error(s, "expected value, found scope");
                                     }
                                 }
                             }
@@ -181,7 +181,7 @@ impl<'a> Validator<'a> {
                     match v {
                         ScopeOrValue::Token(_) => (),
                         ScopeOrValue::Scope(s) => {
-                            self.error(&s.token(), "expected value, found scope");
+                            self.error(s, "expected value, found scope");
                         }
                     }
                 }
@@ -202,7 +202,7 @@ impl<'a> Validator<'a> {
                         self.warn(t, "found loose value, expected only `key =`");
                     }
                     ScopeOrValue::Scope(s) => {
-                        self.warn(&s.token(), "found subscope, expected only `key =`");
+                        self.warn(s, "found subscope, expected only `key =`");
                     }
                 },
             }

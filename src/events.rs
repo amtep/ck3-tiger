@@ -53,7 +53,7 @@ impl FileHandler for Events {
                     entry.kind(),
                 ));
                 error_info(
-                    &t,
+                    t,
                     ErrorKey::ReadError,
                     "could not read file",
                     &format!("{:#}", e),
@@ -78,7 +78,7 @@ impl FileHandler for Events {
                     match v {
                         ScopeOrValue::Token(t) => namespaces.push(t.as_str()),
                         ScopeOrValue::Scope(s) => error(
-                            &s.token(),
+                            s,
                             ErrorKey::EventNamespace,
                             "expected namespace to have a simple string value",
                         ),
@@ -125,8 +125,7 @@ impl FileHandler for Events {
                                 if namespace_ok {
                                     self.load_event(key.clone(), s);
                                 } else {
-                                    self.error_events
-                                        .insert(key.as_str().to_string(), key.clone());
+                                    self.error_events.insert(key.to_string(), key.clone());
                                 }
                             }
                         },
@@ -152,7 +151,7 @@ impl FileHandler for Events {
                         }
                     }
                     ScopeOrValue::Scope(s) => error_info(
-                        &s.token(),
+                        s,
                         ErrorKey::Validation,
                         "unexpected block",
                         "Did you forget an = ?",

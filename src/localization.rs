@@ -153,7 +153,7 @@ impl FileHandler for Localization {
 
         if depth == 2 {
             advice_info(
-                &Token::from(entry),
+                entry,
                 ErrorKey::Filename,
                 "file in wrong location",
                 "Localization files should be in subdirectories according to their language.",
@@ -162,7 +162,7 @@ impl FileHandler for Localization {
         } else if !KNOWN_LANGUAGES.contains(&&*lang) {
             if self.warned_dirs.iter().any(|d| *d == *lang) {
                 warn_info(
-                    &Token::from(entry),
+                    entry,
                     ErrorKey::Filename,
                     "unknown subdirectory in localization",
                     &format!("Valid subdirectories are {}", KNOWN_LANGUAGES.join(", ")),
@@ -181,7 +181,7 @@ impl FileHandler for Localization {
                 return;
             }
             if filelang != lang && !warned {
-                advice_info(&Token::from(entry), ErrorKey::Filename, "localization file with wrong name or in wrong directory", "A localization file should be in a subdirectory corresponding to its language.");
+                advice_info(entry, ErrorKey::Filename, "localization file with wrong name or in wrong directory", "A localization file should be in a subdirectory corresponding to its language.");
             }
             match read_to_string(fullpath) {
                 Ok(content) => {
@@ -202,14 +202,14 @@ impl FileHandler for Localization {
                                 "-- the other key is here.",
                             );
                         }
-                        hash.insert(loca.key.as_str().to_string(), loca);
+                        hash.insert(loca.key.to_string(), loca);
                     }
                 }
                 Err(e) => eprintln!("{:#}", e),
             }
         } else {
             error_info(
-               &Token::from(entry),
+               entry,
                ErrorKey::Filename,
                "could not determine language from filename",
                &format!("Localization filenames should end in _l_language.yml, where language is one of {}", KNOWN_LANGUAGES.join(", "))

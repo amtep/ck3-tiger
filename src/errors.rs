@@ -1,9 +1,10 @@
 use std::fmt::{Display, Formatter};
 use std::fs::read_to_string;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
 
-use crate::everything::FileKind;
-use crate::scope::Token;
+use crate::everything::{FileEntry, FileKind};
+use crate::scope::{Loc, Scope, Token};
 
 static mut ERRORS: Option<Errors> = None;
 
@@ -41,6 +42,71 @@ impl Display for ErrorLevel {
     }
 }
 
+// This trait lets the error functions accept a variety of things as the error locator.
+pub trait ErrorLoc {
+    fn as_loc(self) -> Loc;
+}
+
+impl ErrorLoc for (PathBuf, FileKind) {
+    fn as_loc(self) -> Loc {
+        Loc::for_file(Rc::new(self.0), self.1)
+    }
+}
+
+impl ErrorLoc for (&Path, FileKind) {
+    fn as_loc(self) -> Loc {
+        Loc::for_file(Rc::new(self.0.to_path_buf()), self.1)
+    }
+}
+
+impl ErrorLoc for FileEntry {
+    fn as_loc(self) -> Loc {
+        Loc::for_file(Rc::new(self.path().to_path_buf()), self.kind())
+    }
+}
+
+impl ErrorLoc for &FileEntry {
+    fn as_loc(self) -> Loc {
+        Loc::for_file(Rc::new(self.path().to_path_buf()), self.kind())
+    }
+}
+
+impl ErrorLoc for Loc {
+    fn as_loc(self) -> Loc {
+        self
+    }
+}
+
+impl ErrorLoc for &Loc {
+    fn as_loc(self) -> Loc {
+        self.clone()
+    }
+}
+
+impl ErrorLoc for Token {
+    fn as_loc(self) -> Loc {
+        self.loc
+    }
+}
+
+impl ErrorLoc for &Token {
+    fn as_loc(self) -> Loc {
+        self.loc.clone()
+    }
+}
+
+impl ErrorLoc for Scope {
+    fn as_loc(self) -> Loc {
+        self.loc
+    }
+}
+
+impl ErrorLoc for &Scope {
+    fn as_loc(self) -> Loc {
+        self.loc.clone()
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Errors {
     /// The CK3 game directory
@@ -59,22 +125,22 @@ pub struct Errors {
 
 impl Errors {
     #[allow(clippy::unused_self)] // At some point we will cache files in self
-    fn get_line(&mut self, token: &Token) -> Option<String> {
-        if token.loc.line == 0 {
+    fn get_line(&mut self, loc: &Loc) -> Option<String> {
+        if loc.line == 0 {
             return None;
         }
-        let pathname = match token.loc.kind {
-            FileKind::VanillaFile => self.vanilla_root.join(&*token.loc.pathname),
-            FileKind::ModFile => self.mod_root.join(&*token.loc.pathname),
+        let pathname = match loc.kind {
+            FileKind::VanillaFile => self.vanilla_root.join(&*loc.pathname),
+            FileKind::ModFile => self.mod_root.join(&*loc.pathname),
         };
         read_to_string(&pathname)
             .ok()
-            .and_then(|contents| contents.lines().nth(token.loc.line - 1).map(str::to_string))
+            .and_then(|contents| contents.lines().nth(loc.line - 1).map(str::to_string))
     }
 
-    pub fn push(
+    pub fn push<E: ErrorLoc>(
         &mut self,
-        token: &Token,
+        eloc: E,
         level: ErrorLevel,
         _key: ErrorKey,
         msg: &str,
@@ -83,13 +149,15 @@ impl Errors {
         if self.logging_paused > 0 {
             return;
         }
-        if let Some(line) = self.get_line(token) {
-            let line_marker = token.loc.line_marker();
+        let loc = eloc.as_loc();
+        if let Some(line) = self.get_line(&loc) {
+            let line_marker = loc.line_marker();
             eprintln!("{}{}", line_marker, line);
-            eprintln!("{}{:>count$}", line_marker, "^", count = token.loc.column);
+            // TODO: adjust the column count for tabs in the line
+            eprintln!("{}{:>count$}", line_marker, "^", count = loc.column);
         }
         // TODO: get terminal column width and do line wrapping of msg and info
-        eprintln!("{}{}: {}", token.loc.marker(), level, msg);
+        eprintln!("{}{}: {}", loc.marker(), level, msg);
         if let Some(info) = info {
             eprintln!("  {}", info);
         }
@@ -150,34 +218,34 @@ pub fn set_mod_root(root: PathBuf) {
     Errors::get_mut().mod_root = root;
 }
 
-pub fn error(token: &Token, key: ErrorKey, msg: &str) {
-    Errors::get_mut().push(token, ErrorLevel::Error, key, msg, None);
+pub fn error<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
+    Errors::get_mut().push(eloc, ErrorLevel::Error, key, msg, None);
 }
 
-pub fn error_info(token: &Token, key: ErrorKey, msg: &str, info: &str) {
-    Errors::get_mut().push(token, ErrorLevel::Error, key, msg, Some(info));
+pub fn error_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
+    Errors::get_mut().push(eloc, ErrorLevel::Error, key, msg, Some(info));
 }
 
-pub fn warn(token: &Token, key: ErrorKey, msg: &str) {
-    Errors::get_mut().push(token, ErrorLevel::Warning, key, msg, None);
+pub fn warn<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
+    Errors::get_mut().push(eloc, ErrorLevel::Warning, key, msg, None);
 }
 
-pub fn warn_info(token: &Token, key: ErrorKey, msg: &str, info: &str) {
-    Errors::get_mut().push(token, ErrorLevel::Warning, key, msg, Some(info));
+pub fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
+    Errors::get_mut().push(eloc, ErrorLevel::Warning, key, msg, Some(info));
 }
 
-pub fn info(token: &Token, key: ErrorKey, msg: &str) {
-    Errors::get_mut().push(token, ErrorLevel::Info, key, msg, None);
+pub fn info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
+    Errors::get_mut().push(eloc, ErrorLevel::Info, key, msg, None);
 }
 
-pub fn info_info(token: &Token, key: ErrorKey, msg: &str, info: &str) {
-    Errors::get_mut().push(token, ErrorLevel::Info, key, msg, Some(info));
+pub fn info_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
+    Errors::get_mut().push(eloc, ErrorLevel::Info, key, msg, Some(info));
 }
 
-pub fn advice(token: &Token, key: ErrorKey, msg: &str) {
-    Errors::get_mut().push(token, ErrorLevel::Advice, key, msg, None);
+pub fn advice<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
+    Errors::get_mut().push(eloc, ErrorLevel::Advice, key, msg, None);
 }
 
-pub fn advice_info(token: &Token, key: ErrorKey, msg: &str, info: &str) {
-    Errors::get_mut().push(token, ErrorLevel::Advice, key, msg, Some(info));
+pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
+    Errors::get_mut().push(eloc, ErrorLevel::Advice, key, msg, Some(info));
 }

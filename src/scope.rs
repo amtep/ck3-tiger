@@ -40,10 +40,6 @@ impl Scope {
         self.loc.filename()
     }
 
-    pub fn token(&self) -> Token {
-        Token::from(&self.loc)
-    }
-
     /// Get the value of a single `name = value` assignment
     pub fn get_field_value(&self, name: &str) -> Option<Token> {
         for (k, _, v) in self.v.iter().rev() {

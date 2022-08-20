@@ -36,11 +36,7 @@ impl<'a> LocaParser<'a> {
             loc.offset += '\u{feff}'.len_utf8();
             chars.next();
         } else {
-            warn(
-                &Token::from(&loc),
-                ErrorKey::Encoding,
-                "Expected UTF-8 BOM encoding",
-            );
+            warn(&loc, ErrorKey::Encoding, "Expected UTF-8 BOM encoding");
         }
         LocaParser {
             loc,
@@ -123,7 +119,7 @@ impl<'a> LocaParser<'a> {
     fn unexpected_char(&mut self, expected: &str) {
         // TODO: handle EOF better
         error(
-            &Token::from(&self.loc),
+            &self.loc,
             ErrorKey::Localization,
             &format!(
                 "Unexpected character `{}`, {}",
@@ -186,7 +182,7 @@ impl<'a> LocaParser<'a> {
                     match c {
                         '\'' | '\n' | '"' => break,
                         ']' | ')' if parens == 0 => warn(
-                            &Token::from(&self.loc),
+                            &self.loc,
                             ErrorKey::Localization,
                             "Possible unterminated argument string",
                         ),
@@ -306,7 +302,7 @@ impl<'a> LocaParser<'a> {
                     self.next_char();
                 } else {
                     warn(
-                        &Token::from(loc),
+                        loc,
                         ErrorKey::Localization,
                         "#markup should be followed by a space",
                     );
@@ -358,7 +354,7 @@ impl<'a> LocaParser<'a> {
         if self.chars.peek() != Some(&'$') {
             // TODO: check if there is a closing $, adapt warning text
             warn(
-                &key,
+                key,
                 ErrorKey::Localization,
                 "didn't recognize a key between $",
             );
@@ -457,7 +453,7 @@ impl<'a> LocaParser<'a> {
             if self.expecting_language {
                 if key.as_str() != format!("l_{}", self.language) {
                     error(
-                        &key,
+                        key,
                         ErrorKey::Localization,
                         &format!("wrong language header, should be `l_{}:`", self.language),
                     );
@@ -493,7 +489,7 @@ impl<'a> LocaParser<'a> {
             Some(i) => i,
             None => {
                 error(
-                    &Token::from(&self.loc),
+                    &self.loc,
                     ErrorKey::Localization,
                     "localization entry without ending quote",
                 );
@@ -536,7 +532,7 @@ impl<'a> LocaParser<'a> {
             None | Some('#' | '\n') => (),
             _ => {
                 warn(
-                    &Token::from(&self.loc),
+                    &self.loc,
                     ErrorKey::Localization,
                     "content after final `\"` on line",
                 );

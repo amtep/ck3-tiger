@@ -59,7 +59,7 @@ impl Parser {
     fn unknown_char(c: char, loc: Loc) {
         let token = Token::new(c.to_string(), loc);
         error(
-            &token,
+            token,
             ErrorKey::ParseError,
             &format!("Unrecognized character {}", c),
         );
@@ -108,7 +108,7 @@ impl Parser {
 
         if self.current.key.is_none() {
             let msg = format!("Unexpected comparator '{}'", token);
-            error(&token, ErrorKey::ParseError, &msg);
+            error(token, ErrorKey::ParseError, &msg);
         } else {
             if self.current.comp.is_some() {
                 let msg = &format!("Double comparator '{}'", token);
@@ -121,11 +121,7 @@ impl Parser {
     fn end_assign(&mut self) {
         if let Some(key) = self.current.key.take() {
             if let Some((_, comp_token)) = self.current.comp.take() {
-                error(
-                    &comp_token,
-                    ErrorKey::ParseError,
-                    "Comparator without value",
-                );
+                error(comp_token, ErrorKey::ParseError, "Comparator without value");
             }
             self.current.scope.add_value(ScopeOrValue::Token(key));
         }
@@ -236,7 +232,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Scope
                     let s = content[token_start..next_i].replace('"', "");
                     loc.offset = token_start;
                     let token = Token::new(s, loc.clone());
-                    warn(&token, ErrorKey::ParseError, "Quoted string not closed");
+                    warn(token, ErrorKey::ParseError, "Quoted string not closed");
                 }
             }
             State::Id => {

@@ -1,12 +1,11 @@
 use anyhow::Result;
 use std::fs::read_to_string;
 use std::path::Path;
-use std::rc::Rc;
 
 use crate::errors::{warn, ErrorKey};
 use crate::everything::FileKind;
 use crate::pdxfile::parse::parse_pdx;
-use crate::scope::{Loc, Scope, Token};
+use crate::scope::Scope;
 
 mod parse;
 
@@ -24,7 +23,7 @@ impl PdxFile {
             parse_pdx(pathname, kind, bomless)
         } else {
             warn(
-                &Token::from(Loc::for_file(Rc::new(pathname.to_path_buf()), kind)),
+                (pathname, kind),
                 ErrorKey::Bom,
                 "file must start with a UTF-8 BOM",
             );
