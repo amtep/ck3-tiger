@@ -2,7 +2,8 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-use crate::errors::{error, error_info, warn_info, ErrorKey, LogPauseRaii};
+use crate::errorkey::ErrorKey;
+use crate::errors::{error, error_info, warn_info, LogPauseRaii};
 use crate::everything::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
 use crate::scope::{Comparator, Loc, Scope, ScopeOrValue, Token};

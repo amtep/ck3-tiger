@@ -1,27 +1,14 @@
+use fnv::FnvHashMap;
 use std::fmt::{Display, Formatter};
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+use crate::errorkey::ErrorKey;
 use crate::everything::{FileEntry, FileKind};
 use crate::scope::{Loc, Scope, Token};
 
 static mut ERRORS: Option<Errors> = None;
-
-#[derive(Clone, Copy, Debug)]
-pub enum ErrorKey {
-    ReadError,
-    ParseError,
-    Bom,
-    Packaging,
-    Validation,
-    TooManyErrors,
-    Filename,
-    Encoding,
-    Localization,
-    LocalizationDup,
-    EventNamespace,
-}
 
 #[derive(Clone, Copy, Debug)]
 pub enum ErrorLevel {
@@ -117,6 +104,12 @@ pub struct Errors {
 
     /// Don't log if this is > 0,
     logging_paused: isize,
+
+    /// Skip logging errors with these keys for these files
+    ignore_keys_for: FnvHashMap<PathBuf, Vec<ErrorKey>>,
+
+    /// Skip logging errors with these keys
+    ignore_keys: Vec<ErrorKey>,
 }
 
 // TODO: allow a message to have multiple tokens, and print the relevant lines as a stack
@@ -142,7 +135,7 @@ impl Errors {
         &mut self,
         eloc: E,
         level: ErrorLevel,
-        _key: ErrorKey,
+        key: ErrorKey,
         msg: &str,
         info: Option<&str>,
     ) {
@@ -150,6 +143,16 @@ impl Errors {
             return;
         }
         let loc = eloc.as_loc();
+        if self.ignore_keys.contains(&key) {
+            return;
+        }
+        if let Some(true) = self
+            .ignore_keys_for
+            .get(&*loc.pathname)
+            .map(|v| v.contains(&key))
+        {
+            return;
+        }
         if let Some(line) = self.get_line(&loc) {
             let line_marker = loc.line_marker();
             eprintln!("{}{}", line_marker, line);
@@ -248,4 +251,16 @@ pub fn advice<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
 
 pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     Errors::get_mut().push(eloc, ErrorLevel::Advice, key, msg, Some(info));
+}
+
+pub fn ignore_key_for(path: PathBuf, key: ErrorKey) {
+    Errors::get_mut()
+        .ignore_keys_for
+        .entry(path)
+        .or_default()
+        .push(key);
+}
+
+pub fn ignore_key(key: ErrorKey) {
+    Errors::get_mut().ignore_keys.push(key);
 }

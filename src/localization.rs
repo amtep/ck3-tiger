@@ -3,9 +3,8 @@ use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
-use crate::errors::{
-    advice_info, error, error_info, info, warn, warn_info, ErrorKey, LogPauseRaii,
-};
+use crate::errorkey::ErrorKey;
+use crate::errors::{advice_info, error, error_info, info, warn, warn_info, LogPauseRaii};
 use crate::everything::{FileEntry, FileHandler, FileKind};
 use crate::localization::parse::parse_loca;
 use crate::scope::{Scope, Token};
@@ -117,6 +116,7 @@ impl FileHandler for Localization {
         let mut langs: Vec<&str> = Vec::new();
 
         if let Some(scope) = config.get_field_scope("languages") {
+            // TODO: warn if there are unknown languages in check or skip?
             let check = scope.get_field_values("check");
             let skip = scope.get_field_values("skip");
             for lang in &KNOWN_LANGUAGES {

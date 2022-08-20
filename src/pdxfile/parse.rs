@@ -3,7 +3,8 @@ use std::mem::swap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-use crate::errors::{error, warn, ErrorKey};
+use crate::errorkey::ErrorKey;
+use crate::errors::{error, warn, warn_info};
 use crate::everything::FileKind;
 use crate::scope::{Comparator, Loc, Scope, ScopeOrValue, Token};
 
@@ -142,6 +143,13 @@ impl Parser {
         if let Some(mut prev_level) = self.stack.pop() {
             swap(&mut self.current, &mut prev_level);
             self.scope_value(prev_level.scope);
+            if loc.column == 1 && !self.stack.is_empty() {
+                warn_info(&Token::new("}".to_string(), loc),
+                ErrorKey::BracePlacement,
+                "possible brace error",
+                "This closing brace is at the start of a line but does not end a top-level item."
+                );
+            }
         } else {
             self.brace_error = true;
             error(

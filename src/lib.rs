@@ -10,6 +10,7 @@
 #![warn(trivial_casts)]
 #![warn(trivial_numeric_casts)]
 
+pub mod errorkey;
 pub mod errors;
 pub mod everything;
 pub mod modfile;

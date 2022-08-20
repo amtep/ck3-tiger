@@ -2,7 +2,8 @@ use anyhow::Result;
 use std::fs::read_to_string;
 use std::path::Path;
 
-use crate::errors::{warn, ErrorKey};
+use crate::errorkey::ErrorKey;
+use crate::errors::warn;
 use crate::everything::FileKind;
 use crate::pdxfile::parse::parse_pdx;
 use crate::scope::Scope;

@@ -86,6 +86,22 @@ impl Scope {
         None
     }
 
+    /// Get all the scopes of `name = { ... }` assignments in this scope
+    pub fn get_field_scopes(&self, name: &str) -> Vec<&Scope> {
+        let mut vec = Vec::new();
+        for (k, _, v) in &self.v {
+            if let Some(key) = k {
+                if key.as_str() == name {
+                    match v {
+                        ScopeOrValue::Token(_) => (),
+                        ScopeOrValue::Scope(s) => vec.push(s),
+                    }
+                }
+            }
+        }
+        vec
+    }
+
     /// Get the values of a single `name = { value ... }` assignment
     pub fn get_field_list(&self, name: &str) -> Option<Vec<Token>> {
         for (k, _, v) in self.v.iter().rev() {

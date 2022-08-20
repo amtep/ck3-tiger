@@ -1,8 +1,6 @@
 # The mod-validator.conf file is in standard Paradox script format.
 # It should be placed in the top directory of your mod.
 
-# It currently has only one possible field
-
 languages = {
     # This will check only english and german localizations
     check = "english"
@@ -13,4 +11,19 @@ languages = {
     skip = "spanish"
 
     # If you don't specify anything in languages, the validator will check all languages.
+}
+
+# There can be multiple ignore sections.
+ignore = {
+    # This will ignore the specified warnings.
+    # The names of the keys are in src/errorkey.rs.
+    # TODO: when the list of keys is stable, list them here.
+    # TODO: maybe show the key names in the error messages instead?
+
+    # Each key entry specifies a key to ignore.
+    key = brace-placement
+
+    # Each file entry specifies a file in which to ignore the specified key or keys.
+    # If there are no file entries, the keys are ignored in all files.
+    file = events/POD_initialization/POD_maintenance_events.txt
 }

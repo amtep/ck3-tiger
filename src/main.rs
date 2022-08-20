@@ -106,6 +106,7 @@ fn main() -> Result<()> {
     set_mod_root(modpath.clone());
 
     let mut everything = Everything::new(args.ck3.unwrap(), modpath)?;
+    everything.load_errorkey_config();
     everything.load_localizations();
     everything.load_events();
 

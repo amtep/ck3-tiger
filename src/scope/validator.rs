@@ -1,4 +1,5 @@
-use crate::errors::{error, warn, ErrorKey, ErrorLoc};
+use crate::errorkey::ErrorKey;
+use crate::errors::{error, warn, ErrorLoc};
 use crate::scope::{Comparator, Scope, ScopeOrValue};
 use crate::validate::ValidationError;
 

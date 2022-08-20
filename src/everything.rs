@@ -7,6 +7,8 @@ use std::rc::Rc;
 use thiserror::Error;
 use walkdir::WalkDir;
 
+use crate::errorkey::ErrorKey;
+use crate::errors::{ignore_key, ignore_key_for, warn};
 use crate::events::Events;
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
@@ -209,6 +211,40 @@ impl Everything {
         match entry.kind {
             FileKind::VanillaFile => self.vanilla_root.join(entry.path()),
             FileKind::ModFile => self.mod_root.join(entry.path()),
+        }
+    }
+
+    pub fn load_errorkey_config(&self) {
+        for scope in self.config.get_field_scopes("ignore") {
+            let keynames = scope.get_field_values("key");
+            if keynames.is_empty() {
+                continue;
+            }
+
+            let mut keys = Vec::new();
+            for keyname in keynames {
+                let key = match keyname.as_str().parse() {
+                    Ok(key) => key,
+                    Err(e) => {
+                        warn(keyname, ErrorKey::Config, &format!("{:#}", e));
+                        continue;
+                    }
+                };
+                keys.push(key);
+            }
+
+            let pathnames = scope.get_field_values("file");
+            if pathnames.is_empty() {
+                for key in keys {
+                    ignore_key(key);
+                }
+            } else {
+                for pathname in pathnames {
+                    for &key in &keys {
+                        ignore_key_for(PathBuf::from(pathname.as_str()), key);
+                    }
+                }
+            }
         }
     }
 

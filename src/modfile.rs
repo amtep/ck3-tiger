@@ -1,7 +1,8 @@
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
-use crate::errors::{warn, ErrorKey};
+use crate::errorkey::ErrorKey;
+use crate::errors::warn;
 use crate::everything::FileKind;
 use crate::pdxfile::PdxFile;
 use crate::scope::validator::Validator;
