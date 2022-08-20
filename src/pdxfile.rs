@@ -25,7 +25,7 @@ impl PdxFile {
         } else {
             warn(
                 (pathname, kind),
-                ErrorKey::Bom,
+                ErrorKey::Encoding,
                 "file must start with a UTF-8 BOM",
             );
             parse_pdx(pathname, kind, &contents)
