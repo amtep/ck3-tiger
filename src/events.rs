@@ -20,8 +20,8 @@ pub struct Events {
 
 impl Events {
     pub fn load_event(&mut self, key: Token, scope: &Scope) {}
-    pub fn load_scripted_trigger(&mut self, key: Token, scope: &Scope) {}
-    pub fn load_scripted_effect(&mut self, key: Token, scope: &Scope) {}
+    pub fn load_scripted_trigger(&mut self, _key: Token, _scope: &Scope) {}
+    pub fn load_scripted_effect(&mut self, _key: Token, _scope: &Scope) {}
 }
 
 impl FileHandler for Events {
@@ -86,7 +86,7 @@ impl FileHandler for Events {
                 } else {
                     match v {
                         ScopeOrValue::Token(_) => error(
-                            &key,
+                            key,
                             ErrorKey::Validation,
                             "unknown setting in event files, expected only `namespace`",
                         ),
@@ -113,7 +113,7 @@ impl FileHandler for Events {
                                         if namespaces.contains(&key_a) {
                                             namespace_ok = true;
                                         } else {
-                                            warn_info(key, ErrorKey::EventNamespace, "Event name should start with namespace", "If the event doesn't match its namespace, the game can't properly find the event when triggering it.")
+                                            warn_info(key, ErrorKey::EventNamespace, "Event name should start with namespace", "If the event doesn't match its namespace, the game can't properly find the event when triggering it.");
                                         }
                                     } else {
                                         warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
@@ -144,7 +144,7 @@ impl FileHandler for Events {
                             expecting = Expecting::ScriptedEffect;
                         } else {
                             error_info(
-                                &t,
+                                t,
                                 ErrorKey::Validation,
                                 "unexpected token",
                                 "Did you forget an = ?",

@@ -258,7 +258,7 @@ impl FileHandler for Localization {
                                 && !BUILTIN_MACROS.contains(&k.as_str())
                             {
                                 // TODO: display these errors in a sensible order, like by filename
-                                error(&k, ErrorKey::Localization, &format!("The substitution parameter ${}$ is not defined anywhere as a key.", k.as_str()));
+                                error(k, ErrorKey::Localization, &format!("The substitution parameter ${}$ is not defined anywhere as a key.", k.as_str()));
                             }
                         }
                     }

@@ -570,6 +570,7 @@ impl<'a> Iterator for LocaReader<'a> {
     }
 }
 
+#[allow(clippy::module_name_repetitions)]
 pub fn parse_loca<'a>(pathname: &Path, kind: FileKind, content: &'a str) -> LocaReader<'a> {
     // lang can be unwrapped here because we wouldn't be called to parse a bad filename
     let lang = get_file_lang(pathname.file_name().unwrap()).unwrap();
