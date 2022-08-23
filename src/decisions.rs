@@ -3,7 +3,8 @@ use std::path::{Path, PathBuf};
 
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, will_log, LogPauseRaii};
-use crate::everything::{FileEntry, FileHandler, FileKind};
+use crate::everything::FileHandler;
+use crate::fileset::{FileEntry, FileKind};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 use crate::scope::validator::Validator;

@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 pub mod validator;
 
-use crate::everything::FileKind;
+use crate::fileset::FileKind;
 
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]

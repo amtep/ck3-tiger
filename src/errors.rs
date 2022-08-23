@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use crate::errorkey::ErrorKey;
-use crate::everything::{FileEntry, FileKind};
+use crate::fileset::{FileEntry, FileKind};
 use crate::scope::{Loc, Scope, ScopeOrValue, Token};
 
 static mut ERRORS: Option<Errors> = None;

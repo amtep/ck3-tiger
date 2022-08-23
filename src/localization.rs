@@ -7,7 +7,8 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{
     advice_info, error, error_info, info, warn, warn_info, will_log, LogPauseRaii,
 };
-use crate::everything::{FileEntry, FileHandler, FileKind};
+use crate::everything::FileHandler;
+use crate::fileset::{FileEntry, FileKind};
 use crate::localization::parse::parse_loca;
 use crate::scope::{Scope, Token};
 

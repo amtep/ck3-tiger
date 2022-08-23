@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, warn_info};
-use crate::everything::FileKind;
+use crate::fileset::FileKind;
 use crate::scope::{Comparator, Loc, Scope, ScopeOrValue, Token};
 
 #[derive(Copy, Clone, Debug)]

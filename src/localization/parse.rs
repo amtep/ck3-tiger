@@ -5,7 +5,7 @@ use std::str::Chars;
 
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
-use crate::everything::FileKind;
+use crate::fileset::FileKind;
 use crate::localization::{
     get_file_lang, Code, CodeArg, CodeChain, LocaEntry, LocaValue, MacroValue,
 };

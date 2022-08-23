@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
-use crate::everything::FileKind;
+use crate::fileset::FileKind;
 use crate::pdxfile::PdxFile;
 use crate::scope::validator::Validator;
 use crate::scope::{Scope, Token};

@@ -17,6 +17,7 @@ pub mod modfile;
 
 mod decisions;
 mod events;
+mod fileset;
 mod localization;
 mod pdxfile;
 mod scope;

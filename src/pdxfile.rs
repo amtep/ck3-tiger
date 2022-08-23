@@ -4,7 +4,7 @@ use std::path::Path;
 
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
-use crate::everything::FileKind;
+use crate::fileset::FileKind;
 use crate::pdxfile::parse::parse_pdx;
 use crate::scope::Scope;
 
