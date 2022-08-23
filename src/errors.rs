@@ -1,6 +1,7 @@
 use fnv::FnvHashMap;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 use std::fs::read_to_string;
+use std::io::{stderr, Write};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
@@ -112,8 +113,8 @@ impl ErrorLoc for &Scope {
     }
 }
 
-#[derive(Clone, Debug, Default)]
-pub struct Errors {
+#[derive(Default)]
+struct Errors {
     /// The CK3 game directory
     vanilla_root: PathBuf,
 
@@ -128,6 +129,9 @@ pub struct Errors {
 
     /// Skip logging errors with these keys
     ignore_keys: Vec<ErrorKey>,
+
+    /// Error logs are written here (initially stderr)
+    outfile: Option<Box<dyn Write>>,
 }
 
 // TODO: allow a message to have multiple tokens, and print the relevant lines as a stack
@@ -163,6 +167,7 @@ impl Errors {
         true
     }
 
+    #[allow(unused_must_use)] // If logging errors fails, there's not much we can do
     pub fn push<E: ErrorLoc>(
         &mut self,
         eloc: E,
@@ -175,16 +180,31 @@ impl Errors {
         if !self.will_log(&loc, key) {
             return;
         }
+        if self.outfile.is_none() {
+            self.outfile = Some(Box::new(stderr()));
+        }
         if let Some(line) = self.get_line(&loc) {
             let line_marker = loc.line_marker();
-            eprintln!("{}{}", line_marker, line);
+            writeln!(self.outfile.as_mut().unwrap(), "{}{}", line_marker, line);
             // TODO: adjust the column count for tabs in the line
-            eprintln!("{}{:>count$}", line_marker, "^", count = loc.column);
+            writeln!(
+                self.outfile.as_mut().unwrap(),
+                "{}{:>count$}",
+                line_marker,
+                "^",
+                count = loc.column
+            );
         }
         // TODO: get terminal column width and do line wrapping of msg and info
-        eprintln!("{}{}: {}", loc.marker(), level, msg);
+        writeln!(
+            self.outfile.as_mut().unwrap(),
+            "{}{}: {}",
+            loc.marker(),
+            level,
+            msg
+        );
         if let Some(info) = info {
-            eprintln!("  {}", info);
+            writeln!(self.outfile.as_mut().unwrap(), "  {}", info);
         }
     }
 
@@ -213,6 +233,14 @@ impl Errors {
             }
         }
     }
+}
+
+pub fn log_to(outfile: Box<dyn Write>) {
+    Errors::get_mut().outfile = Some(outfile);
+}
+
+pub fn take_log_to() -> Box<dyn Write> {
+    Errors::get_mut().outfile.take().unwrap()
 }
 
 pub fn pause_logging() {
