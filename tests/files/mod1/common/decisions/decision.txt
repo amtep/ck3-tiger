@@ -1,0 +1,12 @@
+﻿
+my_decision = {
+    picture = ""
+}
+
+my_decision2 = {
+    picture = ""
+    title = "my_decision_also"
+    desc = "my_decision2_description"
+    selection_tooltip = "totally_different"
+    confirm_text = "my_decision2_c"
+}
