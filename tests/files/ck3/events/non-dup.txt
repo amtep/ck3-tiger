@@ -1,0 +1,4 @@
+﻿namespace = non-dup
+
+non-dup.0001 = {
+}

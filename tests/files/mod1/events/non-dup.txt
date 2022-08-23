@@ -1,0 +1,6 @@
+﻿namespace = non-dup
+
+# The validator should NOT warn about this being a duplicate of vanilla's, because the
+# filename is the same.
+non-dup.0001 = {
+}

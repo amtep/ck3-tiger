@@ -1,7 +1,7 @@
 use fnv::FnvHashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::fs::read_to_string;
-use std::io::{stderr, Write};
+use std::io::{stderr, Stderr, Write};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
@@ -131,7 +131,7 @@ struct Errors {
     ignore_keys: Vec<ErrorKey>,
 
     /// Error logs are written here (initially stderr)
-    outfile: Option<Box<dyn Write>>,
+    outfile: Option<Box<dyn ErrorLogger>>,
 }
 
 // TODO: allow a message to have multiple tokens, and print the relevant lines as a stack
@@ -235,11 +235,11 @@ impl Errors {
     }
 }
 
-pub fn log_to(outfile: Box<dyn Write>) {
+pub fn log_to(outfile: Box<dyn ErrorLogger>) {
     Errors::get_mut().outfile = Some(outfile);
 }
 
-pub fn take_log_to() -> Box<dyn Write> {
+pub fn take_log_to() -> Box<dyn ErrorLogger> {
     Errors::get_mut().outfile.take().unwrap()
 }
 
@@ -329,4 +329,20 @@ pub fn ignore_key(key: ErrorKey) {
 
 pub fn will_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
     Errors::get().will_log(&eloc.as_loc(), key)
+}
+
+pub trait ErrorLogger: Write {
+    fn get_logs(&self) -> Option<String>;
+}
+
+impl ErrorLogger for Stderr {
+    fn get_logs(&self) -> Option<String> {
+        None
+    }
+}
+
+impl ErrorLogger for Vec<u8> {
+    fn get_logs(&self) -> Option<String> {
+        Some(String::from_utf8_lossy(self).to_string())
+    }
 }
