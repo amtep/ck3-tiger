@@ -199,8 +199,8 @@ impl DecisionEntry {
 
 #[derive(Clone, Debug)]
 pub struct Decision {
-    picture: PathBuf,
-    extra_picture: Option<PathBuf>,
+    picture: Token,
+    extra_picture: Option<Token>,
     major: bool, // default no
     sort_order: Option<i64>,
     is_invisible: bool, // default no
@@ -305,8 +305,8 @@ impl Validate for Decision {
         }
 
         let decision = Decision {
-            picture: PathBuf::from(picture?.as_str()),
-            extra_picture: extra_picture.map(|t| PathBuf::from(t.as_str())),
+            picture: picture?,
+            extra_picture: extra_picture,
             major,
             sort_order,
             is_invisible,
