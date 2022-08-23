@@ -19,7 +19,7 @@ pub struct Events {
 }
 
 impl Events {
-    pub fn load_event(&mut self, key: Token, scope: &Scope) {}
+    pub fn load_event(&mut self, _key: Token, _scope: &Scope) {}
     pub fn load_scripted_trigger(&mut self, _key: Token, _scope: &Scope) {}
     pub fn load_scripted_effect(&mut self, _key: Token, _scope: &Scope) {}
 }

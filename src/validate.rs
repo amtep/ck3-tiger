@@ -11,7 +11,7 @@ pub enum ValidationError {
 }
 
 pub trait Validate {
-    fn from_scope(scope: Scope) -> Result<Self, ValidationError>
+    fn from_scope(scope: Scope, id: &str) -> Result<Self, ValidationError>
     where
         Self: Sized;
 }

@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use crate::errorkey::ErrorKey;
 use crate::everything::{FileEntry, FileKind};
-use crate::scope::{Loc, Scope, Token};
+use crate::scope::{Loc, Scope, ScopeOrValue, Token};
 
 static mut ERRORS: Option<Errors> = None;
 
@@ -43,6 +43,24 @@ impl ErrorLoc for (PathBuf, FileKind) {
 impl ErrorLoc for (&Path, FileKind) {
     fn as_loc(self) -> Loc {
         Loc::for_file(Rc::new(self.0.to_path_buf()), self.1)
+    }
+}
+
+impl ErrorLoc for ScopeOrValue {
+    fn as_loc(self) -> Loc {
+        match self {
+            ScopeOrValue::Token(t) => t.as_loc(),
+            ScopeOrValue::Scope(s) => s.as_loc(),
+        }
+    }
+}
+
+impl ErrorLoc for &ScopeOrValue {
+    fn as_loc(self) -> Loc {
+        match self {
+            ScopeOrValue::Token(t) => t.as_loc(),
+            ScopeOrValue::Scope(s) => s.as_loc(),
+        }
     }
 }
 

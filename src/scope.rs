@@ -133,6 +133,17 @@ impl Scope {
         vec
     }
 
+    pub fn key_token(&self, name: &str) -> Option<Token> {
+        for (k, _, _) in self.v.iter().rev() {
+            if let Some(key) = k {
+                if key.as_str() == name {
+                    return Some(key.clone());
+                }
+            }
+        }
+        None
+    }
+
     pub fn iter_items(&self) -> std::slice::Iter<(Option<Token>, Comparator, ScopeOrValue)> {
         self.v.iter()
     }

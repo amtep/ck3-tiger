@@ -109,6 +109,21 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
     None
 }
 
+impl Localization {
+    pub fn verify_have_key(&self, key: &str, for_token: &Token, desc: &str) {
+        for lang in &self.check_langs {
+            let hash = self.locas.get(lang);
+            if hash.is_none() || !hash.unwrap().contains_key(key) {
+                error(
+                    for_token,
+                    ErrorKey::MissingLocalization,
+                    &format!("missing {} localization key {} for {}", lang, key, desc),
+                );
+            }
+        }
+    }
+}
+
 impl FileHandler for Localization {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("localization")

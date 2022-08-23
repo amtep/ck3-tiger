@@ -123,7 +123,7 @@ pub struct Everything {
     ordered_files: Vec<FileEntry>,
 
     /// Processed localization files
-    localization: Localization,
+    localizations: Localization,
 
     /// Processed event files
     events: Events,
@@ -178,7 +178,7 @@ impl Everything {
             mod_root,
             ordered_files: files_filtered,
             config,
-            localization: Localization::default(),
+            localizations: Localization::default(),
             events: Events::default(),
             decisions: Decisions::default(),
         })
@@ -258,8 +258,8 @@ impl Everything {
     // complains that the whole of self is borrowed.
 
     pub fn load_localizations(&mut self) {
-        self.localization.config(&self.config);
-        let subpath = self.localization.subpath();
+        self.localizations.config(&self.config);
+        let subpath = self.localizations.subpath();
         // TODO: the borrow checker won't let us call get_files_under() here because
         // it sees the whole of self as borrowed.
         let iter = Files {
@@ -267,9 +267,9 @@ impl Everything {
             subpath: &subpath,
         };
         for entry in iter {
-            self.localization.handle_file(entry, &self.fullpath(entry));
+            self.localizations.handle_file(entry, &self.fullpath(entry));
         }
-        self.localization.finalize();
+        self.localizations.finalize();
     }
 
     pub fn load_events(&mut self) {
@@ -300,6 +300,21 @@ impl Everything {
             self.decisions.handle_file(entry, &self.fullpath(entry));
         }
         self.decisions.finalize();
+    }
+
+    pub fn load_all(&mut self) {
+        self.load_errorkey_config();
+        self.load_localizations();
+        self.load_events();
+        self.load_decisions();
+    }
+
+    pub fn check_have_localizations(&self) {
+        self.decisions.check_have_localizations(&self.localizations);
+    }
+
+    pub fn check_all(&mut self) {
+        self.check_have_localizations();
     }
 }
 

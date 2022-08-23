@@ -12,7 +12,7 @@ use crate::validate::{Validate, ValidationError};
 #[derive(Clone, Debug)]
 pub struct ModFile {
     name: Token,
-    path: Token,
+    path: Option<Token>,
     replace_path: Vec<Token>,
     version: Token,
     tags: Option<Vec<Token>>,
@@ -22,25 +22,27 @@ pub struct ModFile {
 }
 
 impl Validate for ModFile {
-    fn from_scope(scope: Scope) -> Result<Self, ValidationError> {
-        let mut vd = Validator::new(&scope, "Modfile");
-        vd.error_limit(3, "Are you sure this is a modfile?");
+    fn from_scope(scope: Scope, id: &str) -> Result<Self, ValidationError> {
+        let mut vd = Validator::new(&scope, id);
         // Reference: https://ck3.paradoxwikis.com/Mod_structure#Keys
-        vd.require_unique_field_value("version");
-        vd.allow_unique_field_list("tags");
-        vd.require_unique_field_value("name");
+        let version = vd.require_unique_field_value("version");
+        let tags = vd.allow_unique_field_list("tags");
+        let name = vd.require_unique_field_value("name");
+
+        let supported_version;
+        let path;
 
         if scope.filename() == "descriptor.mod" {
-            vd.allow_unique_field_value("supported_version");
-            vd.allow_unique_field_value("path");
+            supported_version = vd.allow_unique_field_value("supported_version");
+            path = vd.allow_unique_field_value("path");
         } else {
-            vd.require_unique_field_value("supported_version");
-            vd.require_unique_field_value("path");
+            supported_version = Some(vd.require_unique_field_value("supported_version")?);
+            path = Some(vd.require_unique_field_value("path")?);
         }
 
-        vd.allow_unique_field_value("remote_file_id");
-        vd.allow_unique_field_value("picture");
-        vd.allow_multiple_field_values("replace_path");
+        let remote_file_id = vd.allow_unique_field_value("remote_file_id");
+        let picture = vd.allow_unique_field_value("picture");
+        let replace_path = vd.allow_field_values("replace_path");
         vd.warn_unused_entries();
 
         if let Some(err) = vd.err {
@@ -48,14 +50,14 @@ impl Validate for ModFile {
         }
 
         let modfile = ModFile {
-            name: scope.get_field_value("name").unwrap(),
-            path: scope.get_field_value("path").unwrap(),
-            replace_path: scope.get_field_values("replace_path"),
-            version: scope.get_field_value("version").unwrap(),
-            tags: scope.get_field_list("tags"),
-            supported_version: scope.get_field_value("supported_version"),
-            remote_file_id: scope.get_field_value("remote_file_id"),
-            picture: scope.get_field_value("picture"),
+            name: name?,
+            path,
+            replace_path,
+            version: version?,
+            tags,
+            supported_version,
+            remote_file_id,
+            picture,
         };
 
         if let Some(picture) = &modfile.picture {
@@ -79,7 +81,7 @@ impl ModFile {
     pub fn read(pathname: &Path) -> Result<Self> {
         let scope = PdxFile::read_no_bom(pathname, FileKind::ModFile, pathname)
             .with_context(|| format!("Could not read .mod file {}", pathname.display()))?;
-        let modfile = ModFile::from_scope(scope)?;
+        let modfile = ModFile::from_scope(scope, "Modfile")?;
 
         Ok(modfile)
     }
@@ -94,11 +96,17 @@ impl ModFile {
         if dirpath.components().count() == 0 {
             dirpath = Path::new(".");
         }
-        let modpath = dirpath.join(self.path.as_str());
-        if !modpath.exists() && self.name.loc.filename() == "descriptor.mod" {
-            dirpath.to_path_buf()
+
+        let modpath = if let Some(path) = &self.path {
+            dirpath.join(path.as_str())
         } else {
+            dirpath.to_path_buf()
+        };
+
+        if modpath.exists() {
             modpath
+        } else {
+            dirpath.to_path_buf()
         }
     }
 }
