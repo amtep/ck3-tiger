@@ -32,83 +32,83 @@ impl Display for ErrorLevel {
 
 // This trait lets the error functions accept a variety of things as the error locator.
 pub trait ErrorLoc {
-    fn as_loc(self) -> Loc;
+    fn into_loc(self) -> Loc;
 }
 
 impl ErrorLoc for (PathBuf, FileKind) {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         Loc::for_file(Rc::new(self.0), self.1)
     }
 }
 
 impl ErrorLoc for (&Path, FileKind) {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         Loc::for_file(Rc::new(self.0.to_path_buf()), self.1)
     }
 }
 
 impl ErrorLoc for ScopeOrValue {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         match self {
-            ScopeOrValue::Token(t) => t.as_loc(),
-            ScopeOrValue::Scope(s) => s.as_loc(),
+            ScopeOrValue::Token(t) => t.into_loc(),
+            ScopeOrValue::Scope(s) => s.into_loc(),
         }
     }
 }
 
 impl ErrorLoc for &ScopeOrValue {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         match self {
-            ScopeOrValue::Token(t) => t.as_loc(),
-            ScopeOrValue::Scope(s) => s.as_loc(),
+            ScopeOrValue::Token(t) => t.into_loc(),
+            ScopeOrValue::Scope(s) => s.into_loc(),
         }
     }
 }
 
 impl ErrorLoc for FileEntry {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         Loc::for_file(Rc::new(self.path().to_path_buf()), self.kind())
     }
 }
 
 impl ErrorLoc for &FileEntry {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         Loc::for_file(Rc::new(self.path().to_path_buf()), self.kind())
     }
 }
 
 impl ErrorLoc for Loc {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         self
     }
 }
 
 impl ErrorLoc for &Loc {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         self.clone()
     }
 }
 
 impl ErrorLoc for Token {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         self.loc
     }
 }
 
 impl ErrorLoc for &Token {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         self.loc.clone()
     }
 }
 
 impl ErrorLoc for Scope {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         self.loc
     }
 }
 
 impl ErrorLoc for &Scope {
-    fn as_loc(self) -> Loc {
+    fn into_loc(self) -> Loc {
         self.loc.clone()
     }
 }
@@ -176,7 +176,7 @@ impl Errors {
         msg: &str,
         info: Option<&str>,
     ) {
-        let loc = eloc.as_loc();
+        let loc = eloc.into_loc();
         if !self.will_log(&loc, key) {
             return;
         }
@@ -328,7 +328,7 @@ pub fn ignore_key(key: ErrorKey) {
 }
 
 pub fn will_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
-    Errors::get().will_log(&eloc.as_loc(), key)
+    Errors::get().will_log(&eloc.into_loc(), key)
 }
 
 pub trait ErrorLogger: Write {

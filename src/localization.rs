@@ -206,19 +206,18 @@ impl FileHandler for Localization {
                         let hash = self.locas.entry(filelang).or_default();
                         if hash.contains_key(loca.key.as_str())
                             && hash.get(loca.key.as_str()).unwrap().key.loc.kind == entry.kind()
+                            && will_log(&loca.key, ErrorKey::Duplicate)
                         {
-                            if will_log(&loca.key, ErrorKey::Duplicate) {
-                                warn(
-                                    &loca.key,
-                                    ErrorKey::Duplicate,
-                                    "This localization key redefines an existing key",
-                                );
-                                info(
-                                    &hash.get(loca.key.as_str()).unwrap().key,
-                                    ErrorKey::Duplicate,
-                                    "-- the other key is here.",
-                                );
-                            }
+                            warn(
+                                &loca.key,
+                                ErrorKey::Duplicate,
+                                "This localization key redefines an existing key",
+                            );
+                            info(
+                                &hash.get(loca.key.as_str()).unwrap().key,
+                                ErrorKey::Duplicate,
+                                "-- the other key is here.",
+                            );
                         }
                         hash.insert(loca.key.to_string(), loca);
                     }

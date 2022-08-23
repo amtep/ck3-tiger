@@ -22,19 +22,17 @@ pub struct Decisions {
 impl Decisions {
     pub fn load_decision(&mut self, key: Token, scope: &Scope, values: Vec<(Token, Token)>) {
         if let Some(other) = self.decisions.get(key.as_str()) {
-            if other.key.loc.kind == key.loc.kind {
-                if will_log(&key, ErrorKey::Duplicate) {
-                    error(
-                        &key,
-                        ErrorKey::Duplicate,
-                        "decision redefines an existing decision",
-                    );
-                    info(
-                        &other.key,
-                        ErrorKey::Duplicate,
-                        "the other decision is here",
-                    );
-                }
+            if other.key.loc.kind == key.loc.kind && will_log(&key, ErrorKey::Duplicate) {
+                error(
+                    &key,
+                    ErrorKey::Duplicate,
+                    "decision redefines an existing decision",
+                );
+                info(
+                    &other.key,
+                    ErrorKey::Duplicate,
+                    "the other decision is here",
+                );
             }
         }
         self.decisions.insert(
@@ -103,7 +101,7 @@ impl FileHandler for Decisions {
                         }
                     }
                     ScopeOrValue::Scope(s) => {
-                        self.load_decision(key.clone(), s, decision_values.clone())
+                        self.load_decision(key.clone(), s, decision_values.clone());
                     }
                 }
             } else {
@@ -160,13 +158,13 @@ impl DecisionEntry {
 
         match decision.title.as_ref() {
             Some(ScopeOrValue::Scope(_)) => (),
-            Some(ScopeOrValue::Token(t)) => locs.verify_have_key(t.as_str(), &t, "decision title"),
+            Some(ScopeOrValue::Token(t)) => locs.verify_have_key(t.as_str(), t, "decision title"),
             None => locs.verify_have_key(self.key.as_str(), &self.key, "decision title"),
         }
         match decision.desc.as_ref() {
             Some(ScopeOrValue::Scope(_)) => (),
             Some(ScopeOrValue::Token(t)) => {
-                locs.verify_have_key(t.as_str(), &t, "decision description")
+                locs.verify_have_key(t.as_str(), t, "decision description");
             }
             None => locs.verify_have_key(
                 &(self.key.to_string() + "_desc"),
@@ -177,7 +175,7 @@ impl DecisionEntry {
         match decision.tooltip.as_ref() {
             Some(ScopeOrValue::Scope(_)) => (),
             Some(ScopeOrValue::Token(t)) => {
-                locs.verify_have_key(t.as_str(), &t, "decision tooltip")
+                locs.verify_have_key(t.as_str(), t, "decision tooltip");
             }
             None => locs.verify_have_key(
                 &(self.key.to_string() + "_tooltip"),
@@ -306,7 +304,7 @@ impl Validate for Decision {
 
         let decision = Decision {
             picture: picture?,
-            extra_picture: extra_picture,
+            extra_picture,
             major,
             sort_order,
             is_invisible,

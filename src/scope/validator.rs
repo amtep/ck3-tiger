@@ -112,7 +112,7 @@ impl<'a> Validator<'a> {
     }
 
     pub fn allow_unique_field(&mut self, name: &'a str) -> Option<ScopeOrValue> {
-        self.allow_unique_field_check(name, |v| Some(v))
+        self.allow_unique_field_check(name, Some)
     }
 
     pub fn allow_unique_field_value(&mut self, name: &'a str) -> Option<Token> {
@@ -152,13 +152,14 @@ impl<'a> Validator<'a> {
 
     pub fn allow_unique_field_integer(&mut self, name: &'a str) -> Option<i64> {
         self.allow_unique_field_check(name, |v| match v {
-            ScopeOrValue::Token(t) => match t.as_str().parse() {
-                Ok(i) => Some(i),
-                Err(_) => {
+            ScopeOrValue::Token(t) => {
+                if let Ok(i) = t.as_str().parse() {
+                    Some(i)
+                } else {
                     error(t, ErrorKey::Validation, "expected integer");
                     None
                 }
-            },
+            }
             ScopeOrValue::Scope(s) => {
                 error(s, ErrorKey::Validation, "expected value, found scope");
                 None
