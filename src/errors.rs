@@ -5,9 +5,9 @@ use std::io::{stderr, Stderr, Write};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+use crate::block::{Block, BlockOrValue, Loc, Token};
 use crate::errorkey::ErrorKey;
 use crate::fileset::{FileEntry, FileKind};
-use crate::scope::{Loc, Scope, ScopeOrValue, Token};
 
 static mut ERRORS: Option<Errors> = None;
 
@@ -47,20 +47,20 @@ impl ErrorLoc for (&Path, FileKind) {
     }
 }
 
-impl ErrorLoc for ScopeOrValue {
+impl ErrorLoc for BlockOrValue {
     fn into_loc(self) -> Loc {
         match self {
-            ScopeOrValue::Token(t) => t.into_loc(),
-            ScopeOrValue::Scope(s) => s.into_loc(),
+            BlockOrValue::Token(t) => t.into_loc(),
+            BlockOrValue::Block(s) => s.into_loc(),
         }
     }
 }
 
-impl ErrorLoc for &ScopeOrValue {
+impl ErrorLoc for &BlockOrValue {
     fn into_loc(self) -> Loc {
         match self {
-            ScopeOrValue::Token(t) => t.into_loc(),
-            ScopeOrValue::Scope(s) => s.into_loc(),
+            BlockOrValue::Token(t) => t.into_loc(),
+            BlockOrValue::Block(s) => s.into_loc(),
         }
     }
 }
@@ -101,13 +101,13 @@ impl ErrorLoc for &Token {
     }
 }
 
-impl ErrorLoc for Scope {
+impl ErrorLoc for Block {
     fn into_loc(self) -> Loc {
         self.loc
     }
 }
 
-impl ErrorLoc for &Scope {
+impl ErrorLoc for &Block {
     fn into_loc(self) -> Loc {
         self.loc.clone()
     }

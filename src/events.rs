@@ -1,12 +1,12 @@
 use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
+use crate::block::{Block, BlockOrValue, Comparator, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn_info, LogPauseRaii};
 use crate::everything::FileHandler;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pdxfile::PdxFile;
-use crate::scope::{Comparator, Scope, ScopeOrValue, Token};
 
 #[derive(Clone, Debug, Default)]
 pub struct Events {
@@ -20,9 +20,9 @@ pub struct Events {
 }
 
 impl Events {
-    pub fn load_event(&mut self, _key: Token, _scope: &Scope) {}
-    pub fn load_scripted_trigger(&mut self, _key: Token, _scope: &Scope) {}
-    pub fn load_scripted_effect(&mut self, _key: Token, _scope: &Scope) {}
+    pub fn load_event(&mut self, _key: Token, _block: &Block) {}
+    pub fn load_scripted_trigger(&mut self, _key: Token, _block: &Block) {}
+    pub fn load_scripted_effect(&mut self, _key: Token, _block: &Block) {}
 }
 
 impl FileHandler for Events {
@@ -30,7 +30,7 @@ impl FileHandler for Events {
         PathBuf::from("events")
     }
 
-    fn config(&mut self, _config: &Scope) {}
+    fn config(&mut self, _config: &Block) {}
 
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
         #[derive(Copy, Clone)]
@@ -46,8 +46,8 @@ impl FileHandler for Events {
 
         let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
 
-        let scope = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
-            Ok(scope) => scope,
+        let block = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
+            Ok(block) => block,
             Err(e) => {
                 error_info(
                     entry,
@@ -62,7 +62,7 @@ impl FileHandler for Events {
         let mut namespaces = Vec::new();
         let mut expecting = Expecting::Event;
 
-        for (k, cmp, v) in scope.iter_items() {
+        for (k, cmp, v) in block.iter_items() {
             if let Some(key) = k {
                 if !matches!(*cmp, Comparator::Eq) {
                     error(
@@ -73,8 +73,8 @@ impl FileHandler for Events {
                 }
                 if key.as_str() == "namespace" {
                     match v {
-                        ScopeOrValue::Token(t) => namespaces.push(t.as_str()),
-                        ScopeOrValue::Scope(s) => error(
+                        BlockOrValue::Token(t) => namespaces.push(t.as_str()),
+                        BlockOrValue::Block(s) => error(
                             s,
                             ErrorKey::EventNamespace,
                             "expected namespace to have a simple string value",
@@ -82,12 +82,12 @@ impl FileHandler for Events {
                     }
                 } else {
                     match v {
-                        ScopeOrValue::Token(_) => error(
+                        BlockOrValue::Token(_) => error(
                             key,
                             ErrorKey::Validation,
                             "unknown setting in event files, expected only `namespace`",
                         ),
-                        ScopeOrValue::Scope(s) => match expecting {
+                        BlockOrValue::Block(s) => match expecting {
                             Expecting::ScriptedTrigger => {
                                 self.load_scripted_trigger(key.clone(), s);
                                 expecting = Expecting::Event;
@@ -130,7 +130,7 @@ impl FileHandler for Events {
                 }
             } else {
                 match v {
-                    ScopeOrValue::Token(t) => {
+                    BlockOrValue::Token(t) => {
                         if matches!(expecting, Expecting::Event) && t.as_str() == "scripted_trigger"
                         {
                             expecting = Expecting::ScriptedTrigger;
@@ -147,7 +147,7 @@ impl FileHandler for Events {
                             );
                         }
                     }
-                    ScopeOrValue::Scope(s) => error_info(
+                    BlockOrValue::Block(s) => error_info(
                         s,
                         ErrorKey::Validation,
                         "unexpected block",

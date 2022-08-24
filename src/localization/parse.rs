@@ -3,13 +3,13 @@ use std::path::Path;
 use std::rc::Rc;
 use std::str::Chars;
 
+use crate::block::{Loc, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::fileset::FileKind;
 use crate::localization::{
     get_file_lang, Code, CodeArg, CodeChain, LocaEntry, LocaValue, MacroValue,
 };
-use crate::scope::{Loc, Token};
 
 fn is_key_char(c: char) -> bool {
     c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '\''

@@ -1,12 +1,12 @@
+use crate::block::{Block, BlockOrValue, Comparator, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
-use crate::scope::{Comparator, Scope, ScopeOrValue, Token};
 use crate::validate::{Validate, ValidationError};
 
 #[derive(Debug)]
 pub struct Validator<'a> {
-    // The scope being validated
-    scope: &'a Scope,
+    // The block being validated
+    block: &'a Block,
     // Identifier used for error messages
     id: &'a str,
     // Fields that have been requested so far
@@ -16,9 +16,9 @@ pub struct Validator<'a> {
 }
 
 impl<'a> Validator<'a> {
-    pub fn new(scope: &'a Scope, id: &'a str) -> Self {
+    pub fn new(block: &'a Block, id: &'a str) -> Self {
         Validator {
-            scope,
+            block,
             id,
             known_fields: Vec::new(),
             err: None,
@@ -36,7 +36,7 @@ impl<'a> Validator<'a> {
 
         let mut found = false;
         let mut value = None;
-        for (k, cmp, v) in &self.scope.v {
+        for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.as_str() == name {
                     if found {
@@ -54,10 +54,10 @@ impl<'a> Validator<'a> {
                         );
                     }
                     match v {
-                        ScopeOrValue::Token(t) => value = Some(t.clone()),
-                        ScopeOrValue::Scope(s) => {
+                        BlockOrValue::Token(t) => value = Some(t.clone()),
+                        BlockOrValue::Block(s) => {
                             self.err(ValidationError::RequiredFieldInvalid(name.to_string()));
-                            error(s, ErrorKey::Validation, "expected value, found scope");
+                            error(s, ErrorKey::Validation, "expected value, found block");
                         }
                     }
                     found = true;
@@ -68,7 +68,7 @@ impl<'a> Validator<'a> {
             let err = ValidationError::RequiredFieldMissing(name.to_string());
             self.err(err.clone());
             error(
-                &self.scope.loc,
+                &self.block.loc,
                 ErrorKey::Validation,
                 &format!("required field `{}` missing", name),
             );
@@ -80,13 +80,13 @@ impl<'a> Validator<'a> {
 
     pub fn allow_unique_field_check<F, T>(&mut self, name: &'a str, mut f: F) -> Option<T>
     where
-        F: FnMut(ScopeOrValue) -> Option<T>,
+        F: FnMut(BlockOrValue) -> Option<T>,
     {
         self.known_fields.push(name);
 
         let mut found = false;
         let mut value = None;
-        for (k, cmp, v) in &self.scope.v {
+        for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.as_str() == name {
                     if found {
@@ -111,40 +111,40 @@ impl<'a> Validator<'a> {
         value
     }
 
-    pub fn allow_unique_field(&mut self, name: &'a str) -> Option<ScopeOrValue> {
+    pub fn allow_unique_field(&mut self, name: &'a str) -> Option<BlockOrValue> {
         self.allow_unique_field_check(name, Some)
     }
 
     pub fn allow_unique_field_value(&mut self, name: &'a str) -> Option<Token> {
         self.allow_unique_field_check(name, |v| match v {
-            ScopeOrValue::Token(t) => Some(t),
-            ScopeOrValue::Scope(s) => {
-                error(s, ErrorKey::Validation, "expected value, found scope");
+            BlockOrValue::Token(t) => Some(t),
+            BlockOrValue::Block(s) => {
+                error(s, ErrorKey::Validation, "expected value, found block");
                 None
             }
         })
     }
 
-    pub fn allow_unique_field_scope(&mut self, name: &'a str) -> Option<Scope> {
+    pub fn allow_unique_field_block(&mut self, name: &'a str) -> Option<Block> {
         self.allow_unique_field_check(name, |v| match v {
-            ScopeOrValue::Token(t) => {
-                error(t, ErrorKey::Validation, "expected scope, found value");
+            BlockOrValue::Token(t) => {
+                error(t, ErrorKey::Validation, "expected block, found value");
                 None
             }
-            ScopeOrValue::Scope(s) => Some(s),
+            BlockOrValue::Block(s) => Some(s),
         })
     }
 
     pub fn allow_unique_field_boolean(&mut self, name: &'a str) -> Option<bool> {
         self.allow_unique_field_check(name, |v| match v {
-            ScopeOrValue::Token(t) if t.as_str() == "yes" => Some(true),
-            ScopeOrValue::Token(t) if t.as_str() == "no" => Some(false),
-            ScopeOrValue::Token(t) => {
+            BlockOrValue::Token(t) if t.as_str() == "yes" => Some(true),
+            BlockOrValue::Token(t) if t.as_str() == "no" => Some(false),
+            BlockOrValue::Token(t) => {
                 error(t, ErrorKey::Validation, "expected yes or no");
                 None
             }
-            ScopeOrValue::Scope(s) => {
-                error(s, ErrorKey::Validation, "expected value, found scope");
+            BlockOrValue::Block(s) => {
+                error(s, ErrorKey::Validation, "expected value, found block");
                 None
             }
         })
@@ -152,7 +152,7 @@ impl<'a> Validator<'a> {
 
     pub fn allow_unique_field_integer(&mut self, name: &'a str) -> Option<i64> {
         self.allow_unique_field_check(name, |v| match v {
-            ScopeOrValue::Token(t) => {
+            BlockOrValue::Token(t) => {
                 if let Ok(i) = t.as_str().parse() {
                     Some(i)
                 } else {
@@ -160,8 +160,8 @@ impl<'a> Validator<'a> {
                     None
                 }
             }
-            ScopeOrValue::Scope(s) => {
-                error(s, ErrorKey::Validation, "expected value, found scope");
+            BlockOrValue::Block(s) => {
+                error(s, ErrorKey::Validation, "expected value, found block");
                 None
             }
         })
@@ -169,11 +169,11 @@ impl<'a> Validator<'a> {
 
     pub fn allow_unique_field_list(&mut self, name: &'a str) -> Option<Vec<Token>> {
         self.allow_unique_field_check(name, |v| match v {
-            ScopeOrValue::Token(t) => {
-                error(t, ErrorKey::Validation, "expected scope, found value");
+            BlockOrValue::Token(t) => {
+                error(t, ErrorKey::Validation, "expected block, found value");
                 None
             }
-            ScopeOrValue::Scope(s) => {
+            BlockOrValue::Block(s) => {
                 let mut vec = Vec::new();
                 for (k, _, v) in &s.v {
                     if let Some(key) = k {
@@ -184,9 +184,9 @@ impl<'a> Validator<'a> {
                         );
                     }
                     match v {
-                        ScopeOrValue::Token(t) => vec.push(t.clone()),
-                        ScopeOrValue::Scope(s) => {
-                            error(s, ErrorKey::Validation, "expected value, found scope");
+                        BlockOrValue::Token(t) => vec.push(t.clone()),
+                        BlockOrValue::Block(s) => {
+                            error(s, ErrorKey::Validation, "expected value, found block");
                         }
                     }
                 }
@@ -199,7 +199,7 @@ impl<'a> Validator<'a> {
         self.known_fields.push(name);
 
         let mut vec = Vec::new();
-        for (k, cmp, v) in &self.scope.v {
+        for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.as_str() == name {
                     if !matches!(cmp, Comparator::Eq) {
@@ -210,9 +210,9 @@ impl<'a> Validator<'a> {
                         );
                     }
                     match v {
-                        ScopeOrValue::Token(t) => vec.push(t.clone()),
-                        ScopeOrValue::Scope(s) => {
-                            error(s, ErrorKey::Validation, "expected value, found scope");
+                        BlockOrValue::Token(t) => vec.push(t.clone()),
+                        BlockOrValue::Block(s) => {
+                            error(s, ErrorKey::Validation, "expected value, found block");
                         }
                     }
                 }
@@ -221,7 +221,7 @@ impl<'a> Validator<'a> {
         vec
     }
 
-    pub fn allow_field_validated_scopes<V: Validate>(
+    pub fn allow_field_validated_blocks<V: Validate>(
         &mut self,
         name: &'a str,
     ) -> Result<Vec<V>, ValidationError> {
@@ -229,7 +229,7 @@ impl<'a> Validator<'a> {
         let id = format!("{}.{}", self.id, name);
 
         let mut vec = Vec::new();
-        for (k, cmp, v) in &self.scope.v {
+        for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.as_str() == name {
                     if !matches!(cmp, Comparator::Eq) {
@@ -240,10 +240,10 @@ impl<'a> Validator<'a> {
                         );
                     }
                     match v {
-                        ScopeOrValue::Token(t) => {
-                            error(t, ErrorKey::Validation, "expected scope, found value");
+                        BlockOrValue::Token(t) => {
+                            error(t, ErrorKey::Validation, "expected block, found value");
                         }
-                        ScopeOrValue::Scope(s) => vec.push(V::from_scope(s.clone(), &id)?),
+                        BlockOrValue::Block(s) => vec.push(V::from_block(s.clone(), &id)?),
                     }
                 }
             }
@@ -251,11 +251,11 @@ impl<'a> Validator<'a> {
         Ok(vec)
     }
 
-    pub fn allow_field_scopes(&mut self, name: &'a str) -> Vec<Scope> {
+    pub fn allow_field_blocks(&mut self, name: &'a str) -> Vec<Block> {
         self.known_fields.push(name);
 
         let mut vec = Vec::new();
-        for (k, cmp, v) in &self.scope.v {
+        for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.as_str() == name {
                     if !matches!(cmp, Comparator::Eq) {
@@ -266,10 +266,10 @@ impl<'a> Validator<'a> {
                         );
                     }
                     match v {
-                        ScopeOrValue::Token(t) => {
-                            error(t, ErrorKey::Validation, "expected scope, found value");
+                        BlockOrValue::Token(t) => {
+                            error(t, ErrorKey::Validation, "expected block, found value");
                         }
-                        ScopeOrValue::Scope(s) => vec.push(s.clone()),
+                        BlockOrValue::Block(s) => vec.push(s.clone()),
                     }
                 }
             }
@@ -278,7 +278,7 @@ impl<'a> Validator<'a> {
     }
 
     pub fn warn_unused_entries(&mut self) {
-        for (k, _, v) in &self.scope.v {
+        for (k, _, v) in &self.block.v {
             match k {
                 Some(key) => {
                     if !self.known_fields.contains(&key.as_str()) {
@@ -290,18 +290,18 @@ impl<'a> Validator<'a> {
                     }
                 }
                 None => match v {
-                    ScopeOrValue::Token(t) => {
+                    BlockOrValue::Token(t) => {
                         warn(
                             t,
                             ErrorKey::Validation,
                             "found loose value, expected only `key =`",
                         );
                     }
-                    ScopeOrValue::Scope(s) => {
+                    BlockOrValue::Block(s) => {
                         warn(
                             s,
                             ErrorKey::Validation,
-                            "found subscope, expected only `key =`",
+                            "found sub-block, expected only `key =`",
                         );
                     }
                 },

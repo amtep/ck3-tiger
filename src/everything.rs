@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use thiserror::Error;
 
+use crate::block::{Block, Loc};
 use crate::decisions::Decisions;
 use crate::errorkey::ErrorKey;
 use crate::errors::{ignore_key, ignore_key_for, warn};
@@ -10,7 +11,6 @@ use crate::events::Events;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
-use crate::scope::{Loc, Scope};
 
 #[derive(Debug, Error)]
 pub enum FilesError {
@@ -34,7 +34,7 @@ pub enum FilesError {
 /// A trait for a submodule that can process files.
 pub trait FileHandler {
     /// The `FileHandler` can read settings it needs from the mod-validator config.
-    fn config(&mut self, config: &Scope);
+    fn config(&mut self, config: &Block);
 
     /// Which files this handler is interested in.
     /// This is a directory prefix of files it wants to handle,
@@ -53,7 +53,7 @@ pub trait FileHandler {
 #[derive(Clone, Debug)]
 pub struct Everything {
     /// Config from file
-    config: Scope,
+    config: Block,
 
     /// The CK3 and mod files
     fileset: Fileset,
@@ -95,7 +95,7 @@ impl Everything {
                 source: e,
             })?
         } else {
-            Scope::new(Loc::for_file(Rc::new(config_file), FileKind::ModFile))
+            Block::new(Loc::for_file(Rc::new(config_file), FileKind::ModFile))
         };
 
         Ok(Everything {
@@ -107,7 +107,7 @@ impl Everything {
         })
     }
 
-    fn _read_config(path: &Path) -> Result<Scope> {
+    fn _read_config(path: &Path) -> Result<Block> {
         PdxFile::read_no_bom(path, FileKind::ModFile, path)
     }
 
@@ -116,8 +116,8 @@ impl Everything {
     }
 
     pub fn load_errorkey_config(&self) {
-        for scope in self.config.get_field_scopes("ignore") {
-            let keynames = scope.get_field_values("key");
+        for block in self.config.get_field_blocks("ignore") {
+            let keynames = block.get_field_values("key");
             if keynames.is_empty() {
                 continue;
             }
@@ -134,7 +134,7 @@ impl Everything {
                 keys.push(key);
             }
 
-            let pathnames = scope.get_field_values("file");
+            let pathnames = block.get_field_values("file");
             if pathnames.is_empty() {
                 for key in keys {
                     ignore_key(key);

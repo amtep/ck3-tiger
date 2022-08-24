@@ -3,10 +3,10 @@ use std::mem::swap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+use crate::block::{Block, BlockOrValue, Comparator, Loc, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, warn_info};
 use crate::fileset::FileKind;
-use crate::scope::{Comparator, Loc, Scope, ScopeOrValue, Token};
 
 #[derive(Copy, Clone, Debug)]
 enum State {
@@ -45,7 +45,7 @@ impl CharExt for char {
 }
 
 struct ParseLevel {
-    scope: Scope,
+    block: Block,
     key: Option<Token>,
     comp: Option<(Comparator, Token)>,
 }
@@ -71,10 +71,10 @@ impl Parser {
         if let Some(key) = self.current.key.take() {
             if let Some((comp, _)) = self.current.comp.take() {
                 self.current
-                    .scope
-                    .add_key_value(key, comp, ScopeOrValue::Token(token));
+                    .block
+                    .add_key_value(key, comp, BlockOrValue::Token(token));
             } else {
-                self.current.scope.add_value(ScopeOrValue::Token(key));
+                self.current.block.add_value(BlockOrValue::Token(key));
                 self.current.key = Some(token);
             }
         } else {
@@ -82,19 +82,19 @@ impl Parser {
         }
     }
 
-    fn scope_value(&mut self, scope: Scope) {
-        // Like token(), but scope values cannot become keys
+    fn block_value(&mut self, block: Block) {
+        // Like token(), but block values cannot become keys
         if let Some(key) = self.current.key.take() {
             if let Some((comp, _)) = self.current.comp.take() {
                 self.current
-                    .scope
-                    .add_key_value(key, comp, ScopeOrValue::Scope(scope));
+                    .block
+                    .add_key_value(key, comp, BlockOrValue::Block(block));
             } else {
-                self.current.scope.add_value(ScopeOrValue::Token(key));
-                self.current.scope.add_value(ScopeOrValue::Scope(scope));
+                self.current.block.add_value(BlockOrValue::Token(key));
+                self.current.block.add_value(BlockOrValue::Block(block));
             }
         } else {
-            self.current.scope.add_value(ScopeOrValue::Scope(scope));
+            self.current.block.add_value(BlockOrValue::Block(block));
         }
     }
 
@@ -125,13 +125,13 @@ impl Parser {
             if let Some((_, comp_token)) = self.current.comp.take() {
                 error(comp_token, ErrorKey::ParseError, "Comparator without value");
             }
-            self.current.scope.add_value(ScopeOrValue::Token(key));
+            self.current.block.add_value(BlockOrValue::Token(key));
         }
     }
 
     fn open_brace(&mut self, loc: Loc) {
         let mut new_level = ParseLevel {
-            scope: Scope::new(loc),
+            block: Block::new(loc),
             key: None,
             comp: None,
         };
@@ -143,7 +143,7 @@ impl Parser {
         self.end_assign();
         if let Some(mut prev_level) = self.stack.pop() {
             swap(&mut self.current, &mut prev_level);
-            self.scope_value(prev_level.scope);
+            self.block_value(prev_level.block);
             if loc.column == 1 && !self.stack.is_empty() {
                 warn_info(&Token::new("}".to_string(), loc),
                 ErrorKey::BracePlacement,
@@ -161,17 +161,17 @@ impl Parser {
         }
     }
 
-    fn eof(mut self) -> Result<Scope> {
+    fn eof(mut self) -> Result<Block> {
         self.end_assign();
         while let Some(mut prev_level) = self.stack.pop() {
             self.brace_error = true;
             error(
-                &Token::new("{".to_string(), self.current.scope.loc.clone()),
+                &Token::new("{".to_string(), self.current.block.loc.clone()),
                 ErrorKey::ParseError,
                 "Opening { was never closed",
             );
             swap(&mut self.current, &mut prev_level);
-            self.scope_value(prev_level.scope);
+            self.block_value(prev_level.block);
         }
         // Brace errors mean we shouldn't try to use the file at all,
         // since its structure is unclear. Validating such a file would
@@ -182,20 +182,20 @@ impl Parser {
                 self.pathname.display()
             );
         }
-        Ok(self.current.scope)
+        Ok(self.current.block)
     }
 }
 
 #[allow(clippy::module_name_repetitions)]
 #[allow(clippy::too_many_lines)] // many lines are natural for state machines
-pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Scope> {
+pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block> {
     let pathname = Rc::new(pathname.to_path_buf());
     let mut loc = Loc::new(pathname.clone(), kind);
-    let scope_loc = Loc::for_file(pathname.clone(), kind);
+    let block_loc = Loc::for_file(pathname.clone(), kind);
     let mut parser = Parser {
         pathname,
         current: ParseLevel {
-            scope: Scope::new(scope_loc),
+            block: Block::new(block_loc),
             key: None,
             comp: None,
         },

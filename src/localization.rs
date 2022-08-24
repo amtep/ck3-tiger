@@ -3,6 +3,7 @@ use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
+use crate::block::{Block, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{
     advice_info, error, error_info, info, warn, warn_info, will_log, LogPauseRaii,
@@ -10,7 +11,6 @@ use crate::errors::{
 use crate::everything::FileHandler;
 use crate::fileset::{FileEntry, FileKind};
 use crate::localization::parse::parse_loca;
-use crate::scope::{Scope, Token};
 
 mod parse;
 
@@ -130,13 +130,13 @@ impl FileHandler for Localization {
         PathBuf::from("localization")
     }
 
-    fn config(&mut self, config: &Scope) {
+    fn config(&mut self, config: &Block) {
         let mut langs: Vec<&str> = Vec::new();
 
-        if let Some(scope) = config.get_field_scope("languages") {
+        if let Some(block) = config.get_field_block("languages") {
             // TODO: warn if there are unknown languages in check or skip?
-            let check = scope.get_field_values("check");
-            let skip = scope.get_field_values("skip");
+            let check = block.get_field_values("check");
+            let skip = block.get_field_values("skip");
             for lang in &KNOWN_LANGUAGES {
                 if check.iter().any(|t| t.as_str() == *lang)
                     || (check.is_empty() && skip.iter().all(|t| t.as_str() != *lang))

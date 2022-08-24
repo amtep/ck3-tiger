@@ -10,29 +10,29 @@ use crate::fileset::FileKind;
 
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
-pub enum ScopeOrValue {
+pub enum BlockOrValue {
     Token(Token),
-    Scope(Scope),
+    Block(Block),
 }
 
 #[derive(Clone, Debug)]
-pub struct Scope {
+pub struct Block {
     // v can contain key = value pairs as well as unadorned values.
     // The latter are inserted as None tokens and Comparator::None
-    v: Vec<(Option<Token>, Comparator, ScopeOrValue)>,
+    v: Vec<(Option<Token>, Comparator, BlockOrValue)>,
     pub loc: Loc,
 }
 
-impl Scope {
+impl Block {
     pub fn new(loc: Loc) -> Self {
-        Scope { v: Vec::new(), loc }
+        Block { v: Vec::new(), loc }
     }
 
-    pub fn add_value(&mut self, value: ScopeOrValue) {
+    pub fn add_value(&mut self, value: BlockOrValue) {
         self.v.push((None, Comparator::None, value));
     }
 
-    pub fn add_key_value(&mut self, key: Token, cmp: Comparator, value: ScopeOrValue) {
+    pub fn add_key_value(&mut self, key: Token, cmp: Comparator, value: BlockOrValue) {
         self.v.push((Some(key), cmp, value));
     }
 
@@ -46,8 +46,8 @@ impl Scope {
             if let Some(key) = k {
                 if key.as_str() == name {
                     match v {
-                        ScopeOrValue::Token(t) => return Some(t.clone()),
-                        ScopeOrValue::Scope(_) => (),
+                        BlockOrValue::Token(t) => return Some(t.clone()),
+                        BlockOrValue::Block(_) => (),
                     }
                 }
             }
@@ -55,15 +55,15 @@ impl Scope {
         None
     }
 
-    /// Get all the values of `name = value` assignments in this scope
+    /// Get all the values of `name = value` assignments in this block
     pub fn get_field_values(&self, name: &str) -> Vec<Token> {
         let mut vec = Vec::new();
         for (k, _, v) in &self.v {
             if let Some(key) = k {
                 if key.as_str() == name {
                     match v {
-                        ScopeOrValue::Token(t) => vec.push(t.clone()),
-                        ScopeOrValue::Scope(_) => (),
+                        BlockOrValue::Token(t) => vec.push(t.clone()),
+                        BlockOrValue::Block(_) => (),
                     }
                 }
             }
@@ -71,14 +71,14 @@ impl Scope {
         vec
     }
 
-    /// Get the scope of a `name = { ... }` assignment
-    pub fn get_field_scope(&self, name: &str) -> Option<&Scope> {
+    /// Get the block of a `name = { ... }` assignment
+    pub fn get_field_block(&self, name: &str) -> Option<&Block> {
         for (k, _, v) in self.v.iter().rev() {
             if let Some(key) = k {
                 if key.as_str() == name {
                     match v {
-                        ScopeOrValue::Token(_) => (),
-                        ScopeOrValue::Scope(s) => return Some(s),
+                        BlockOrValue::Token(_) => (),
+                        BlockOrValue::Block(s) => return Some(s),
                     }
                 }
             }
@@ -86,15 +86,15 @@ impl Scope {
         None
     }
 
-    /// Get all the scopes of `name = { ... }` assignments in this scope
-    pub fn get_field_scopes(&self, name: &str) -> Vec<&Scope> {
+    /// Get all the blocks of `name = { ... }` assignments in this block
+    pub fn get_field_blocks(&self, name: &str) -> Vec<&Block> {
         let mut vec = Vec::new();
         for (k, _, v) in &self.v {
             if let Some(key) = k {
                 if key.as_str() == name {
                     match v {
-                        ScopeOrValue::Token(_) => (),
-                        ScopeOrValue::Scope(s) => vec.push(s),
+                        BlockOrValue::Token(_) => (),
+                        BlockOrValue::Block(s) => vec.push(s),
                     }
                 }
             }
@@ -108,8 +108,8 @@ impl Scope {
             if let Some(key) = k {
                 if key.as_str() == name {
                     match v {
-                        ScopeOrValue::Token(_) => (),
-                        ScopeOrValue::Scope(s) => {
+                        BlockOrValue::Token(_) => (),
+                        BlockOrValue::Block(s) => {
                             return Some(s.get_values());
                         }
                     }
@@ -119,14 +119,14 @@ impl Scope {
         None
     }
 
-    /// Get all the unkeyed values in this scope
+    /// Get all the unkeyed values in this block
     pub fn get_values(&self) -> Vec<Token> {
         let mut vec = Vec::new();
         for (k, _, v) in &self.v {
             if k.is_none() {
                 match v {
-                    ScopeOrValue::Token(t) => vec.push(t.clone()),
-                    ScopeOrValue::Scope(_) => (),
+                    BlockOrValue::Token(t) => vec.push(t.clone()),
+                    BlockOrValue::Block(_) => (),
                 }
             }
         }
@@ -144,7 +144,7 @@ impl Scope {
         None
     }
 
-    pub fn iter_items(&self) -> std::slice::Iter<(Option<Token>, Comparator, ScopeOrValue)> {
+    pub fn iter_items(&self) -> std::slice::Iter<(Option<Token>, Comparator, BlockOrValue)> {
         self.v.iter()
     }
 }

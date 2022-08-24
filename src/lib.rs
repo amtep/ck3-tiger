@@ -15,10 +15,10 @@ pub mod errors;
 pub mod everything;
 pub mod modfile;
 
+mod block;
 mod decisions;
 mod events;
 mod fileset;
 mod localization;
 mod pdxfile;
-mod scope;
 mod validate;

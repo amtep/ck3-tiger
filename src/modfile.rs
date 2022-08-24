@@ -1,12 +1,12 @@
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
+use crate::block::validator::Validator;
+use crate::block::{Block, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
 use crate::fileset::FileKind;
 use crate::pdxfile::PdxFile;
-use crate::scope::validator::Validator;
-use crate::scope::{Scope, Token};
 use crate::validate::{Validate, ValidationError};
 
 #[derive(Clone, Debug)]
@@ -22,8 +22,8 @@ pub struct ModFile {
 }
 
 impl Validate for ModFile {
-    fn from_scope(scope: Scope, id: &str) -> Result<Self, ValidationError> {
-        let mut vd = Validator::new(&scope, id);
+    fn from_block(block: Block, id: &str) -> Result<Self, ValidationError> {
+        let mut vd = Validator::new(&block, id);
         // Reference: https://ck3.paradoxwikis.com/Mod_structure#Keys
         let version = vd.require_unique_field_value("version");
         let tags = vd.allow_unique_field_list("tags");
@@ -32,7 +32,7 @@ impl Validate for ModFile {
         let supported_version;
         let path;
 
-        if scope.filename() == "descriptor.mod" {
+        if block.filename() == "descriptor.mod" {
             supported_version = vd.allow_unique_field_value("supported_version");
             path = vd.allow_unique_field_value("path");
         } else {
@@ -79,9 +79,9 @@ impl Validate for ModFile {
 
 impl ModFile {
     pub fn read(pathname: &Path) -> Result<Self> {
-        let scope = PdxFile::read_no_bom(pathname, FileKind::ModFile, pathname)
+        let block = PdxFile::read_no_bom(pathname, FileKind::ModFile, pathname)
             .with_context(|| format!("Could not read .mod file {}", pathname.display()))?;
-        let modfile = ModFile::from_scope(scope, "Modfile")?;
+        let modfile = ModFile::from_block(block, "Modfile")?;
 
         Ok(modfile)
     }

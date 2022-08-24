@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::scope::Scope;
+use crate::block::Block;
 
 #[derive(Clone, Debug, Error)]
 pub enum ValidationError {
@@ -11,7 +11,7 @@ pub enum ValidationError {
 }
 
 pub trait Validate {
-    fn from_scope(scope: Scope, id: &str) -> Result<Self, ValidationError>
+    fn from_block(block: Block, id: &str) -> Result<Self, ValidationError>
     where
         Self: Sized;
 }
