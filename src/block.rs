@@ -6,6 +6,8 @@ use std::rc::Rc;
 
 pub mod validator;
 
+use crate::errorkey::ErrorKey;
+use crate::errors::{error, error_info};
 use crate::fileset::FileKind;
 
 #[allow(clippy::module_name_repetitions)]
@@ -15,11 +17,13 @@ pub enum BlockOrValue {
     Block(Block),
 }
 
+type BlockItem = (Option<Token>, Comparator, BlockOrValue);
+
 #[derive(Clone, Debug)]
 pub struct Block {
     // v can contain key = value pairs as well as unadorned values.
     // The latter are inserted as None tokens and Comparator::None
-    v: Vec<(Option<Token>, Comparator, BlockOrValue)>,
+    v: Vec<BlockItem>,
     pub loc: Loc,
 }
 
@@ -144,8 +148,15 @@ impl Block {
         None
     }
 
-    pub fn iter_items(&self) -> std::slice::Iter<(Option<Token>, Comparator, BlockOrValue)> {
+    pub fn iter_items(&self) -> std::slice::Iter<BlockItem> {
         self.v.iter()
+    }
+
+    pub fn iter_definitions_warn(&self) -> IterDefinitions {
+        IterDefinitions {
+            iter: self.v.iter(),
+            warn: true,
+        }
     }
 }
 
@@ -295,5 +306,59 @@ impl From<&Loc> for Token {
 impl Display for Token {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(f, "{}", self.s)
+    }
+}
+
+/// A type for callers who are only interested in "definition"-style blocks, where there
+/// are no comparisons and no loose blocks.
+#[derive(Clone, Debug)]
+pub enum DefinitionItem<'a> {
+    Assignment(&'a Token, &'a Token), // key = value
+    Definition(&'a Token, &'a Block), // key = { definition }
+    Keyword(&'a Token),
+}
+
+#[derive(Clone, Debug)]
+pub struct IterDefinitions<'a> {
+    iter: std::slice::Iter<'a, BlockItem>,
+    warn: bool,
+}
+
+impl<'a> Iterator for IterDefinitions<'a> {
+    type Item = DefinitionItem<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for (k, cmp, v) in self.iter.by_ref() {
+            if let Some(key) = k {
+                if !matches!(cmp, Comparator::Eq) {
+                    if self.warn {
+                        error(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("expected `{} =`, found `{}`", key, cmp),
+                        );
+                    }
+                    continue;
+                }
+                return match v {
+                    BlockOrValue::Token(t) => Some(DefinitionItem::Assignment(key, t)),
+                    BlockOrValue::Block(b) => Some(DefinitionItem::Definition(key, b)),
+                };
+            }
+            match v {
+                BlockOrValue::Token(t) => return Some(DefinitionItem::Keyword(t)),
+                BlockOrValue::Block(b) => {
+                    if self.warn {
+                        error_info(
+                            b,
+                            ErrorKey::Validation,
+                            "unexpected block",
+                            "Did you forget an = ?",
+                        );
+                    }
+                }
+            }
+        }
+        None
     }
 }

@@ -1,7 +1,7 @@
 use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
-use crate::block::{Block, BlockOrValue, Comparator, Token};
+use crate::block::{Block, DefinitionItem, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn_info, LogPauseRaii};
 use crate::everything::FileHandler;
@@ -62,104 +62,88 @@ impl FileHandler for Events {
         let mut namespaces = Vec::new();
         let mut expecting = Expecting::Event;
 
-        for (k, cmp, v) in block.iter_items() {
-            if let Some(key) = k {
-                if !matches!(*cmp, Comparator::Eq) {
-                    error(
-                        key,
-                        ErrorKey::Validation,
-                        &format!("expected `{} =`, found `{}`", key, cmp),
-                    );
+        for def in block.iter_definitions_warn() {
+            match def {
+                DefinitionItem::Assignment(key, value) if key.as_str() == "namespace" => {
+                    namespaces.push(value.as_str());
                 }
-                if key.as_str() == "namespace" {
-                    match v {
-                        BlockOrValue::Token(t) => namespaces.push(t.as_str()),
-                        BlockOrValue::Block(s) => error(
-                            s,
-                            ErrorKey::EventNamespace,
-                            "expected namespace to have a simple string value",
-                        ),
-                    }
-                } else if key.as_str() == "scripted_trigger" || key.as_str() == "scripted_effect" {
+                DefinitionItem::Assignment(key, _)
+                    if key.as_str() == "scripted_trigger" || key.as_str() == "scripted_effect" =>
+                {
                     error(
                         key,
                         ErrorKey::Validation,
                         &format!("`{}` should be used without `=`", key),
                     );
-                } else {
-                    match v {
-                        BlockOrValue::Token(_) => error(
-                            key,
-                            ErrorKey::Validation,
-                            "unknown setting in event files, expected only `namespace`",
-                        ),
-                        BlockOrValue::Block(s) => match expecting {
-                            Expecting::ScriptedTrigger => {
-                                self.load_scripted_trigger(key.clone(), s);
-                                expecting = Expecting::Event;
-                            }
-                            Expecting::ScriptedEffect => {
-                                self.load_scripted_effect(key.clone(), s);
-                                expecting = Expecting::Event;
-                            }
-                            Expecting::Event => {
-                                let mut namespace_ok = false;
-
-                                if namespaces.is_empty() {
-                                    error(
-                                        key,
-                                        ErrorKey::EventNamespace,
-                                        "Event files must start with a namespace declaration",
-                                    );
-                                } else if let Some((key_a, key_b)) = key.as_str().split_once('.') {
-                                    if key_b.chars().all(|c| c.is_ascii_digit()) {
-                                        if namespaces.contains(&key_a) {
-                                            namespace_ok = true;
-                                        } else {
-                                            warn_info(key, ErrorKey::EventNamespace, "Event name should start with namespace", "If the event doesn't match its namespace, the game can't properly find the event when triggering it.");
-                                        }
-                                    } else {
-                                        warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
-                                    }
-                                } else {
-                                    warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
-                                }
-
-                                if namespace_ok {
-                                    self.load_event(key.clone(), s);
-                                } else {
-                                    self.error_events.insert(key.to_string(), key.clone());
-                                }
-                            }
-                        },
-                    }
                 }
-            } else {
-                match v {
-                    BlockOrValue::Token(t) => {
-                        if matches!(expecting, Expecting::Event) && t.as_str() == "scripted_trigger"
-                        {
-                            expecting = Expecting::ScriptedTrigger;
-                        } else if matches!(expecting, Expecting::Event)
-                            && t.as_str() == "scripted_effect"
-                        {
-                            expecting = Expecting::ScriptedEffect;
-                        } else {
-                            error_info(
-                                t,
-                                ErrorKey::Validation,
-                                "unexpected token",
-                                "Did you forget an = ?",
+                DefinitionItem::Assignment(key, _) => error(
+                    key,
+                    ErrorKey::Validation,
+                    "unknown setting in event files, expected only `namespace`",
+                ),
+                DefinitionItem::Keyword(key)
+                    if matches!(expecting, Expecting::Event)
+                        && key.as_str() == "scripted_trigger" =>
+                {
+                    expecting = Expecting::ScriptedTrigger;
+                }
+                DefinitionItem::Keyword(key)
+                    if matches!(expecting, Expecting::Event)
+                        && key.as_str() == "scripted_effect" =>
+                {
+                    expecting = Expecting::ScriptedEffect;
+                }
+                DefinitionItem::Keyword(key) => error_info(
+                    key,
+                    ErrorKey::Validation,
+                    "unexpected token",
+                    "Did you forget an = ?",
+                ),
+                DefinitionItem::Definition(key, b) if key.as_str() == "namespace" => {
+                    error(
+                        b,
+                        ErrorKey::EventNamespace,
+                        "expected namespace to have a simple string value",
+                    );
+                }
+                DefinitionItem::Definition(key, b) => match expecting {
+                    Expecting::ScriptedTrigger => {
+                        self.load_scripted_trigger(key.clone(), b);
+                        expecting = Expecting::Event;
+                    }
+                    Expecting::ScriptedEffect => {
+                        self.load_scripted_effect(key.clone(), b);
+                        expecting = Expecting::Event;
+                    }
+                    Expecting::Event => {
+                        let mut namespace_ok = false;
+                        if namespaces.is_empty() {
+                            error(
+                                key,
+                                ErrorKey::EventNamespace,
+                                "Event files must start with a namespace declaration",
                             );
+                        } else if let Some((key_a, key_b)) = key.as_str().split_once('.') {
+                            if key_b.chars().all(|c| c.is_ascii_digit()) {
+                                if namespaces.contains(&key_a) {
+                                    namespace_ok = true;
+                                } else {
+                                    warn_info(key, ErrorKey::EventNamespace, "Event name should start with namespace", "If the event doesn't match its namespace, the game can't properly find the event when triggering it.");
+                                }
+                            } else {
+                                warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
+                            }
+                        } else {
+                            warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
+                        }
+
+                        if namespace_ok {
+                            self.load_event(key.clone(), b);
+                        } else {
+                            self.error_events.insert(key.to_string(), key.clone());
                         }
                     }
-                    BlockOrValue::Block(s) => error_info(
-                        s,
-                        ErrorKey::Validation,
-                        "unexpected block",
-                        "Did you forget an = ?",
-                    ),
-                }
+                },
             }
         }
     }

@@ -2,7 +2,7 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue, Comparator, Token};
+use crate::block::{Block, BlockOrValue, DefinitionItem, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, will_log, LogPauseRaii};
 use crate::everything::FileHandler;
@@ -86,45 +86,27 @@ impl FileHandler for Decisions {
 
         let mut decision_values: Vec<(Token, Token)> = Vec::new();
 
-        for (k, cmp, v) in block.iter_items() {
-            if let Some(key) = k {
-                if !matches!(*cmp, Comparator::Eq) {
-                    error(
-                        key,
-                        ErrorKey::Validation,
-                        &format!("expected `{} =`, found `{}`", key, cmp),
-                    );
-                }
-                match v {
-                    BlockOrValue::Token(t) => {
-                        if key.as_str().starts_with('@') {
-                            decision_values.push((key.clone(), t.clone()));
-                        } else {
-                            error(
-                                key,
-                                ErrorKey::Validation,
-                                "unknown setting in decision file",
-                            );
-                        }
-                    }
-                    BlockOrValue::Block(s) => {
-                        self.load_decision(key.clone(), s, decision_values.clone());
+        for def in block.iter_definitions_warn() {
+            match def {
+                DefinitionItem::Keyword(key) => error_info(
+                    key,
+                    ErrorKey::Validation,
+                    "unexpected token",
+                    "Did you forget an = ?",
+                ),
+                DefinitionItem::Assignment(key, value) => {
+                    if key.as_str().starts_with('@') {
+                        decision_values.push((key.clone(), value.clone()));
+                    } else {
+                        error(
+                            key,
+                            ErrorKey::Validation,
+                            "unknown setting in decision file",
+                        );
                     }
                 }
-            } else {
-                match v {
-                    BlockOrValue::Token(t) => error_info(
-                        t,
-                        ErrorKey::Validation,
-                        "unexpected token",
-                        "Did you forget an = ?",
-                    ),
-                    BlockOrValue::Block(s) => error_info(
-                        s,
-                        ErrorKey::Validation,
-                        "unexpected block",
-                        "Did you forget an = ?",
-                    ),
+                DefinitionItem::Definition(key, b) => {
+                    self.load_decision(key.clone(), b, decision_values.clone());
                 }
             }
         }
@@ -192,7 +174,7 @@ impl DecisionEntry {
         }
         match decision.confirm.as_ref() {
             Some(BlockOrValue::Block(_)) => (),
-            Some(BlockOrValue::Token(t)) => locs.verify_have_key(t.as_str(), &t, "decision button"),
+            Some(BlockOrValue::Token(t)) => locs.verify_have_key(t.as_str(), t, "decision button"),
             None => locs.verify_have_key(
                 &(self.key.to_string() + "_confirm"),
                 &self.key,
