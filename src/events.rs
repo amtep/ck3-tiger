@@ -80,6 +80,12 @@ impl FileHandler for Events {
                             "expected namespace to have a simple string value",
                         ),
                     }
+                } else if key.as_str() == "scripted_trigger" || key.as_str() == "scripted_effect" {
+                    error(
+                        key,
+                        ErrorKey::Validation,
+                        &format!("`{}` should be used without `=`", key),
+                    );
                 } else {
                     match v {
                         BlockOrValue::Token(_) => error(
