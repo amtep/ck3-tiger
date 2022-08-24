@@ -1,11 +1,13 @@
 use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
-use crate::block::{Block, DefinitionItem, Token};
+use crate::block::{Block, BlockOrValue, DefinitionItem, Token};
+use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn_info, LogPauseRaii};
+use crate::errors::{error, error_info, info, warn, warn_info, will_log, LogPauseRaii};
 use crate::everything::FileHandler;
 use crate::fileset::{FileEntry, FileKind};
+use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 
 #[derive(Clone, Debug, Default)]
@@ -20,9 +22,29 @@ pub struct Events {
 }
 
 impl Events {
-    pub fn load_event(&mut self, _key: Token, _block: &Block) {}
+    pub fn load_event(&mut self, key: Token, block: &Block) {
+        if let Some(other) = self.events.get(key.as_str()) {
+            if will_log(&key, ErrorKey::Duplicate) {
+                error(
+                    &key,
+                    ErrorKey::Duplicate,
+                    "event redefines an existing event",
+                );
+                info(&other.key, ErrorKey::Duplicate, "the other event is here");
+            }
+        }
+        self.events
+            .insert(key.to_string(), Event::new(key, block.clone()));
+    }
+
     pub fn load_scripted_trigger(&mut self, _key: Token, _block: &Block) {}
     pub fn load_scripted_effect(&mut self, _key: Token, _block: &Block) {}
+
+    pub fn check_have_localizations(&self, locs: &Localization) {
+        for event in self.events.values() {
+            event.check_have_localizations(locs);
+        }
+    }
 }
 
 impl FileHandler for Events {
@@ -64,11 +86,11 @@ impl FileHandler for Events {
 
         for def in block.iter_definitions_warn() {
             match def {
-                DefinitionItem::Assignment(key, value) if key.as_str() == "namespace" => {
+                DefinitionItem::Assignment(key, value) if key.is("namespace") => {
                     namespaces.push(value.as_str());
                 }
                 DefinitionItem::Assignment(key, _)
-                    if key.as_str() == "scripted_trigger" || key.as_str() == "scripted_effect" =>
+                    if key.is("scripted_trigger") || key.is("scripted_effect") =>
                 {
                     error(
                         key,
@@ -82,14 +104,12 @@ impl FileHandler for Events {
                     "unknown setting in event files, expected only `namespace`",
                 ),
                 DefinitionItem::Keyword(key)
-                    if matches!(expecting, Expecting::Event)
-                        && key.as_str() == "scripted_trigger" =>
+                    if matches!(expecting, Expecting::Event) && key.is("scripted_trigger") =>
                 {
                     expecting = Expecting::ScriptedTrigger;
                 }
                 DefinitionItem::Keyword(key)
-                    if matches!(expecting, Expecting::Event)
-                        && key.as_str() == "scripted_effect" =>
+                    if matches!(expecting, Expecting::Event) && key.is("scripted_effect") =>
                 {
                     expecting = Expecting::ScriptedEffect;
                 }
@@ -99,7 +119,7 @@ impl FileHandler for Events {
                     "unexpected token",
                     "Did you forget an = ?",
                 ),
-                DefinitionItem::Definition(key, b) if key.as_str() == "namespace" => {
+                DefinitionItem::Definition(key, b) if key.is("namespace") => {
                     error(
                         b,
                         ErrorKey::EventNamespace,
@@ -152,7 +172,58 @@ impl FileHandler for Events {
 }
 
 #[derive(Clone, Debug)]
-pub struct Event {}
+pub struct Event {
+    key: Token,
+    block: Block,
+}
+
+impl Event {
+    pub fn new(key: Token, block: Block) -> Self {
+        Event { key, block }
+    }
+
+    pub fn check_have_localizations(&self, locas: &Localization) {
+        if let Some(title) = self.block.get_field("title") {
+            verify_desc_locas(title, locas, "event title");
+        }
+        if let Some(desc) = self.block.get_field("desc") {
+            verify_desc_locas(desc, locas, "event description");
+        }
+        if let Some(opening) = self.block.get_field("opening") {
+            verify_desc_locas(opening, locas, "letter event opening");
+        }
+        for option in self.block.get_field_blocks("option") {
+            if let Some(name) = option.get_field("name") {
+                match name {
+                    BlockOrValue::Token(t) => {
+                        locas.verify_have_key(t.as_str(), t, "event option name");
+                    }
+                    BlockOrValue::Block(b) => {
+                        if let Some(text) = b.get_field("text") {
+                            verify_desc_locas(text, locas, "event option name");
+                        } else {
+                            warn(b, ErrorKey::Validation, "event option name with no text");
+                        }
+                    }
+                }
+            }
+            if let Some(tooltip) = option.get_field("custom_tooltip") {
+                match tooltip {
+                    BlockOrValue::Token(t) => {
+                        locas.verify_have_key(t.as_str(), t, "event option tooltip");
+                    }
+                    BlockOrValue::Block(b) => {
+                        if let Some(text) = b.get_field("text") {
+                            verify_desc_locas(text, locas, "event option tooltip");
+                        } else {
+                            warn(b, ErrorKey::Validation, "event option tooltip with no text");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct ScriptedTrigger {}

@@ -48,7 +48,7 @@ impl Block {
     pub fn get_field_value(&self, name: &str) -> Option<Token> {
         for (k, _, v) in self.v.iter().rev() {
             if let Some(key) = k {
-                if key.as_str() == name {
+                if key.is(name) {
                     match v {
                         BlockOrValue::Token(t) => return Some(t.clone()),
                         BlockOrValue::Block(_) => (),
@@ -64,7 +64,7 @@ impl Block {
         let mut vec = Vec::new();
         for (k, _, v) in &self.v {
             if let Some(key) = k {
-                if key.as_str() == name {
+                if key.is(name) {
                     match v {
                         BlockOrValue::Token(t) => vec.push(t.clone()),
                         BlockOrValue::Block(_) => (),
@@ -79,7 +79,7 @@ impl Block {
     pub fn get_field_block(&self, name: &str) -> Option<&Block> {
         for (k, _, v) in self.v.iter().rev() {
             if let Some(key) = k {
-                if key.as_str() == name {
+                if key.is(name) {
                     match v {
                         BlockOrValue::Token(_) => (),
                         BlockOrValue::Block(s) => return Some(s),
@@ -95,7 +95,7 @@ impl Block {
         let mut vec = Vec::new();
         for (k, _, v) in &self.v {
             if let Some(key) = k {
-                if key.as_str() == name {
+                if key.is(name) {
                     match v {
                         BlockOrValue::Token(_) => (),
                         BlockOrValue::Block(s) => vec.push(s),
@@ -110,13 +110,24 @@ impl Block {
     pub fn get_field_list(&self, name: &str) -> Option<Vec<Token>> {
         for (k, _, v) in self.v.iter().rev() {
             if let Some(key) = k {
-                if key.as_str() == name {
+                if key.is(name) {
                     match v {
                         BlockOrValue::Token(_) => (),
                         BlockOrValue::Block(s) => {
                             return Some(s.get_values());
                         }
                     }
+                }
+            }
+        }
+        None
+    }
+
+    pub fn get_field(&self, name: &str) -> Option<&BlockOrValue> {
+        for (k, _, v) in self.v.iter().rev() {
+            if let Some(key) = k {
+                if key.is(name) {
+                    return Some(v);
                 }
             }
         }
@@ -140,7 +151,7 @@ impl Block {
     pub fn key_token(&self, name: &str) -> Option<Token> {
         for (k, _, _) in self.v.iter().rev() {
             if let Some(key) = k {
-                if key.as_str() == name {
+                if key.is(name) {
                     return Some(key.clone());
                 }
             }
@@ -282,6 +293,10 @@ impl Token {
 
     pub fn as_str(&self) -> &str {
         &self.s
+    }
+
+    pub fn is(&self, s: &str) -> bool {
+        self.s == s
     }
 }
 

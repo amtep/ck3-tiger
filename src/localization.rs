@@ -111,14 +111,14 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
 }
 
 impl Localization {
-    pub fn verify_have_key(&self, key: &str, for_token: &Token, desc: &str) {
+    pub fn verify_have_key(&self, key: &str, for_token: &Token, context: &str) {
         for lang in &self.check_langs {
             let hash = self.locas.get(lang);
             if hash.is_none() || !hash.unwrap().contains_key(key) {
                 error(
                     for_token,
                     ErrorKey::MissingLocalization,
-                    &format!("missing {} localization key {} for {}", lang, key, desc),
+                    &format!("missing {} localization key {} for {}", lang, key, context),
                 );
             }
         }
@@ -138,8 +138,8 @@ impl FileHandler for Localization {
             let check = block.get_field_values("check");
             let skip = block.get_field_values("skip");
             for lang in &KNOWN_LANGUAGES {
-                if check.iter().any(|t| t.as_str() == *lang)
-                    || (check.is_empty() && skip.iter().all(|t| t.as_str() != *lang))
+                if check.iter().any(|t| t.is(*lang))
+                    || (check.is_empty() && skip.iter().all(|t| !t.is(*lang)))
                 {
                     langs.push(lang);
                 }

@@ -38,7 +38,7 @@ impl<'a> Validator<'a> {
         let mut value = None;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
-                if key.as_str() == name {
+                if key.is(name) {
                     if found {
                         warn(
                             key,
@@ -88,7 +88,7 @@ impl<'a> Validator<'a> {
         let mut value = None;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
-                if key.as_str() == name {
+                if key.is(name) {
                     if found {
                         warn(
                             key,
@@ -137,8 +137,8 @@ impl<'a> Validator<'a> {
 
     pub fn allow_unique_field_boolean(&mut self, name: &'a str) -> Option<bool> {
         self.allow_unique_field_check(name, |v| match v {
-            BlockOrValue::Token(t) if t.as_str() == "yes" => Some(true),
-            BlockOrValue::Token(t) if t.as_str() == "no" => Some(false),
+            BlockOrValue::Token(t) if t.is("yes") => Some(true),
+            BlockOrValue::Token(t) if t.is("no") => Some(false),
             BlockOrValue::Token(t) => {
                 error(t, ErrorKey::Validation, "expected yes or no");
                 None
@@ -201,7 +201,7 @@ impl<'a> Validator<'a> {
         let mut vec = Vec::new();
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
-                if key.as_str() == name {
+                if key.is(name) {
                     if !matches!(cmp, Comparator::Eq) {
                         error(
                             key,
@@ -231,7 +231,7 @@ impl<'a> Validator<'a> {
         let mut vec = Vec::new();
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
-                if key.as_str() == name {
+                if key.is(name) {
                     if !matches!(cmp, Comparator::Eq) {
                         error(
                             key,
@@ -257,7 +257,7 @@ impl<'a> Validator<'a> {
         let mut vec = Vec::new();
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
-                if key.as_str() == name {
+                if key.is(name) {
                     if !matches!(cmp, Comparator::Eq) {
                         error(
                             key,

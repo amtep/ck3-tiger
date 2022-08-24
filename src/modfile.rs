@@ -61,7 +61,7 @@ impl Validate for ModFile {
         };
 
         if let Some(picture) = &modfile.picture {
-            if picture.as_str() != "thumbnail.png" {
+            if !picture.is("thumbnail.png") {
                 warn(
                     picture,
                     ErrorKey::Packaging,

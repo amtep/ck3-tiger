@@ -17,6 +17,7 @@ pub mod modfile;
 
 mod block;
 mod decisions;
+mod desc;
 mod events;
 mod fileset;
 mod localization;

@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, DefinitionItem, Token};
+use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, will_log, LogPauseRaii};
 use crate::everything::FileHandler;
@@ -41,9 +42,7 @@ impl Decisions {
             DecisionEntry::new(key, block.clone(), values),
         );
     }
-}
 
-impl Decisions {
     pub fn check_have_localizations(&self, locs: &Localization) {
         for decision in self.decisions.values() {
             decision.check_have_localizations(locs);
@@ -146,15 +145,11 @@ impl DecisionEntry {
         // which loca entries must exist.
 
         match decision.title.as_ref() {
-            Some(BlockOrValue::Block(_)) => (),
-            Some(BlockOrValue::Token(t)) => locs.verify_have_key(t.as_str(), t, "decision title"),
+            Some(v) => verify_desc_locas(v, locs, "decision title"),
             None => locs.verify_have_key(self.key.as_str(), &self.key, "decision title"),
         }
         match decision.desc.as_ref() {
-            Some(BlockOrValue::Block(_)) => (),
-            Some(BlockOrValue::Token(t)) => {
-                locs.verify_have_key(t.as_str(), t, "decision description");
-            }
+            Some(v) => verify_desc_locas(v, locs, "decision description"),
             None => locs.verify_have_key(
                 &(self.key.to_string() + "_desc"),
                 &self.key,
@@ -162,10 +157,7 @@ impl DecisionEntry {
             ),
         }
         match decision.tooltip.as_ref() {
-            Some(BlockOrValue::Block(_)) => (),
-            Some(BlockOrValue::Token(t)) => {
-                locs.verify_have_key(t.as_str(), t, "decision tooltip");
-            }
+            Some(v) => verify_desc_locas(v, locs, "decision tooltip"),
             None => locs.verify_have_key(
                 &(self.key.to_string() + "_tooltip"),
                 &self.key,
@@ -173,12 +165,11 @@ impl DecisionEntry {
             ),
         }
         match decision.confirm.as_ref() {
-            Some(BlockOrValue::Block(_)) => (),
-            Some(BlockOrValue::Token(t)) => locs.verify_have_key(t.as_str(), t, "decision button"),
+            Some(v) => verify_desc_locas(v, locs, "decision confirm text"),
             None => locs.verify_have_key(
                 &(self.key.to_string() + "_confirm"),
                 &self.key,
-                "decision button",
+                "decision confirm text",
             ),
         }
     }

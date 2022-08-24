@@ -75,13 +75,13 @@ impl Everything {
         // Abort if whole directories are unreadable, because then we don't have
         // a full map of vanilla's or the mod's contents and might give bad advice.
         fileset
-            .scan(&vanilla_root, FileKind::VanillaFile)
+            .scan(vanilla_root, FileKind::VanillaFile)
             .map_err(|e| FilesError::VanillaUnreadable {
                 path: vanilla_root.to_path_buf(),
                 source: e,
             })?;
         fileset
-            .scan(&mod_root, FileKind::ModFile)
+            .scan(mod_root, FileKind::ModFile)
             .map_err(|e| FilesError::ModUnreadable {
                 path: mod_root.to_path_buf(),
                 source: e,
@@ -189,6 +189,7 @@ impl Everything {
 
     pub fn check_have_localizations(&self) {
         self.decisions.check_have_localizations(&self.localizations);
+        self.events.check_have_localizations(&self.localizations);
     }
 
     pub fn check_have_files(&self) {
