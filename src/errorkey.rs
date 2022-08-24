@@ -17,6 +17,7 @@ pub enum ErrorKey {
     Duplicate,
     EventNamespace,
     MissingLocalization,
+    MissingFile,
     Conflict,
 }
 
@@ -39,6 +40,7 @@ impl FromStr for ErrorKey {
             "duplicate" => ErrorKey::Duplicate,
             "event-namespace" => ErrorKey::EventNamespace,
             "missing-localization" => ErrorKey::MissingLocalization,
+            "missing-file" => ErrorKey::MissingFile,
             "conflict" => ErrorKey::Conflict,
             _ => {
                 return Err(ParseKeyError::new("unknown error key"));
@@ -64,6 +66,7 @@ impl Display for ErrorKey {
             ErrorKey::Duplicate => write!(fmt, "duplicate"),
             ErrorKey::EventNamespace => write!(fmt, "event-namespace"),
             ErrorKey::MissingLocalization => write!(fmt, "missing-localization"),
+            ErrorKey::MissingFile => write!(fmt, "missing-file"),
             ErrorKey::Conflict => write!(fmt, "conflict"),
         }
     }

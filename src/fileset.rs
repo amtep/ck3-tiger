@@ -1,10 +1,13 @@
 use anyhow::Result;
+use fnv::FnvHashSet;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use walkdir::WalkDir;
 
+use crate::errorkey::ErrorKey;
+use crate::errors::error;
 use crate::scope::{Loc, Token};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -75,6 +78,9 @@ pub struct Fileset {
 
     /// The CK3 and mod files in the order the game would load them
     ordered_files: Vec<FileEntry>,
+
+    /// All filenames from ordered_files, for quick lookup
+    filenames: FnvHashSet<PathBuf>,
 }
 
 impl Fileset {
@@ -84,6 +90,7 @@ impl Fileset {
             mod_root,
             files: Vec::new(),
             ordered_files: Vec::new(),
+            filenames: FnvHashSet::default(),
         }
     }
 
@@ -117,6 +124,10 @@ impl Fileset {
                 self.ordered_files.push(entry);
             }
         }
+
+        for entry in &self.ordered_files {
+            self.filenames.insert(entry.path.clone());
+        }
     }
 
     pub fn get_files_under<'a>(&'a self, subpath: &'a Path) -> Files<'a> {
@@ -130,6 +141,17 @@ impl Fileset {
         match entry.kind {
             FileKind::VanillaFile => self.vanilla_root.join(entry.path()),
             FileKind::ModFile => self.mod_root.join(entry.path()),
+        }
+    }
+
+    pub fn verify_have_file(&self, file: &Token) {
+        let filepath = PathBuf::from(file.as_str());
+        if !self.filenames.contains(&filepath) {
+            error(
+                file,
+                ErrorKey::MissingFile,
+                "referenced file does not exist",
+            );
         }
     }
 }

@@ -191,7 +191,12 @@ impl Everything {
         self.decisions.check_have_localizations(&self.localizations);
     }
 
+    pub fn check_have_files(&self) {
+        self.decisions.check_have_files(&self.fileset);
+    }
+
     pub fn check_all(&mut self) {
         self.check_have_localizations();
+        self.check_have_files();
     }
 }

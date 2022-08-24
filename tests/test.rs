@@ -45,4 +45,6 @@ fn test_mod_1() {
     ));
     assert!(errors
         .contains("decision.txt:11:36: ERROR: missing english localization key my_decision2_c "));
+
+    assert!(errors.contains("decision.txt:7:17: ERROR: referenced file does not exist"));
 }

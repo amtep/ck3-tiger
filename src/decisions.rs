@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, will_log, LogPauseRaii};
 use crate::everything::FileHandler;
-use crate::fileset::{FileEntry, FileKind};
+use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 use crate::scope::validator::Validator;
@@ -47,6 +47,12 @@ impl Decisions {
     pub fn check_have_localizations(&self, locs: &Localization) {
         for decision in self.decisions.values() {
             decision.check_have_localizations(locs);
+        }
+    }
+
+    pub fn check_have_files(&self, fileset: &Fileset) {
+        for decision in self.decisions.values() {
+            decision.check_have_files(fileset);
         }
     }
 }
@@ -193,6 +199,20 @@ impl DecisionEntry {
                 "decision button",
             ),
         }
+    }
+
+    pub fn check_have_files(&self, fileset: &Fileset) {
+        if self.decision.is_none() {
+            return;
+        }
+        let decision = self.decision.as_ref().unwrap();
+
+        fileset.verify_have_file(&decision.picture);
+        if let Some(extra_picture) = &decision.extra_picture {
+            fileset.verify_have_file(extra_picture);
+        }
+        // confirm_click_sound in vanilla kind of looks like a filename but it isn't.
+        // TODO: check widget
     }
 }
 
