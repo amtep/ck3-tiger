@@ -1,0 +1,5 @@
+test_interaction = {
+    icon = missing_icon
+    extra_icon = "gfx/also_missing"
+    should_use_extra_icon = { always = yes }
+}

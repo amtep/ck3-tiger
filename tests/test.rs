@@ -1,12 +1,19 @@
+use lazy_static::lazy_static;
 use std::path::PathBuf;
+use std::sync::Mutex;
 
 use ck3_mod_validator::errors::{log_to, set_mod_root, set_vanilla_root, take_log_to};
 use ck3_mod_validator::everything::Everything;
 
-#[test]
-fn test_mod_1() {
+lazy_static! {
+    static ref TEST_MUTEX: Mutex<()> = Mutex::new(());
+}
+
+fn check_mod_helper(modname: &str) -> String {
+    let _guard = TEST_MUTEX.lock().unwrap();
+
     let vanilla_root = PathBuf::from("tests/files/ck3");
-    let mod_root = PathBuf::from("tests/files/mod1");
+    let mod_root = PathBuf::from(format!("tests/files/{}", modname));
 
     set_vanilla_root(vanilla_root.clone());
     set_mod_root(mod_root.clone());
@@ -18,6 +25,12 @@ fn test_mod_1() {
 
     let errors = (*take_log_to()).get_logs().unwrap();
     eprint!("{}", &errors);
+    errors
+}
+
+#[test]
+fn test_mod_1() {
+    let errors = check_mod_helper("mod1");
 
     // TODO: check for absence of duplicate event warning for non-dup.0001
 
@@ -47,4 +60,14 @@ fn test_mod_1() {
         .contains("decision.txt:11:36: ERROR: missing english localization key my_decision2_c "));
 
     assert!(errors.contains("decision.txt:7:17: ERROR: referenced file does not exist"));
+}
+
+#[test]
+fn test_mod_2() {
+    let errors = check_mod_helper("mod2");
+
+    assert!(errors.contains("interaction.txt:1:17: ERROR: missing english localization key test_interaction for interaction"));
+    assert!(errors.contains("interaction.txt:3:15: ERROR: missing english localization key test_interaction_extra_icon for interaction extra_icon localization"));
+    assert!(errors.contains("interaction.txt:3:36: ERROR: referenced file does not exist"));
+    assert!(errors.contains("interaction.txt:2:24: ERROR: file gfx/interface/icons/character_interactions/missing_icon.dds does not exist"));
 }

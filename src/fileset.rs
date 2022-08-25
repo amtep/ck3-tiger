@@ -154,6 +154,17 @@ impl Fileset {
             );
         }
     }
+
+    pub fn verify_have_implied_file(&self, file: &str, t: &Token) {
+        let filepath = PathBuf::from(file);
+        if !self.filenames.contains(&filepath) {
+            error(
+                t,
+                ErrorKey::MissingFile,
+                &format!("file {} does not exist", file),
+            );
+        }
+    }
 }
 
 #[derive(Clone, Debug)]

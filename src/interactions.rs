@@ -6,7 +6,7 @@ use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, will_log, LogPauseRaii};
 use crate::everything::FileHandler;
-use crate::fileset::{FileEntry, FileKind};
+use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 
@@ -40,6 +40,12 @@ impl Interactions {
     pub fn check_have_localizations(&self, locas: &Localization) {
         for interaction in self.interactions.values() {
             interaction.check_have_localizations(locas);
+        }
+    }
+
+    pub fn check_have_files(&self, files: &Fileset) {
+        for interaction in self.interactions.values() {
+            interaction.check_have_files(files);
         }
     }
 }
@@ -175,6 +181,16 @@ impl Interaction {
             if let Some(key) = self.block.get_field_value("localization") {
                 locas.verify_have_key(key.as_str(), &key, "interaction option");
             }
+        }
+    }
+
+    pub fn check_have_files(&self, files: &Fileset) {
+        if let Some(pathname) = self.block.get_field_value("extra_icon") {
+            files.verify_have_file(&pathname);
+        }
+        if let Some(name) = self.block.get_field_value("icon") {
+            let pathname = format!("gfx/interface/icons/character_interactions/{}.dds", name);
+            files.verify_have_implied_file(&pathname, &name);
         }
     }
 }
