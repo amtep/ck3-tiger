@@ -183,6 +183,8 @@ impl Event {
     }
 
     pub fn check_have_localizations(&self, locas: &Localization) {
+        let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
+
         if let Some(title) = self.block.get_field("title") {
             verify_desc_locas(title, locas, "event title");
         }

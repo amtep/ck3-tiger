@@ -121,6 +121,8 @@ impl Interaction {
     }
 
     pub fn check_have_localizations(&self, locas: &Localization) {
+        let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
+
         // TODO: The ai_ name check is a heuristic. It would be better to check if the
         // is_shown trigger requires scope:actor to be is_ai = yes. But that's a long way off.
         if !self.key.as_str().starts_with("ai_") {
@@ -185,6 +187,8 @@ impl Interaction {
     }
 
     pub fn check_have_files(&self, files: &Fileset) {
+        let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
+
         if let Some(pathname) = self.block.get_field_value("extra_icon") {
             files.verify_have_file(&pathname);
         }
