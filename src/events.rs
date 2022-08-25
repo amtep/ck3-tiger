@@ -195,6 +195,7 @@ impl Event {
             verify_desc_locas(opening, locas, "letter event opening");
         }
         for option in self.block.get_field_blocks("option") {
+            // TODO: descend into the effect blocks and collect custom_tooltip everywhere
             if let Some(name) = option.get_field("name") {
                 match name {
                     BlockOrValue::Token(t) => {
@@ -209,6 +210,7 @@ impl Event {
                     }
                 }
             }
+            // TODO: see if you can have multiple custom_tooltip in one block (and they all work)
             if let Some(tooltip) = option.get_field("custom_tooltip") {
                 match tooltip {
                     BlockOrValue::Token(t) => {

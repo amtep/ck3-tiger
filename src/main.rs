@@ -9,7 +9,7 @@ use winreg::enums::HKEY_LOCAL_MACHINE;
 #[cfg(windows)]
 use winreg::RegKey;
 
-use ck3_mod_validator::errors::{set_mod_root, set_vanilla_root};
+use ck3_mod_validator::errors::{never_pause, set_mod_root, set_vanilla_root};
 use ck3_mod_validator::everything::Everything;
 use ck3_mod_validator::modfile::ModFile;
 
@@ -32,6 +32,8 @@ struct Cli {
     /// Path to CK3 game directory.
     #[clap(long)]
     ck3: Option<PathBuf>,
+    #[clap(long)]
+    show_vanilla: bool,
 }
 
 fn find_steamapps_directory() -> Option<PathBuf> {
@@ -96,6 +98,10 @@ fn main() -> Result<()> {
         bail!("Cannot find CK3 game directory. Please supply it as the --ck3 option.");
     }
     set_vanilla_root(args.ck3.as_ref().unwrap().clone());
+
+    if args.show_vanilla {
+        never_pause();
+    }
 
     let modfile = ModFile::read(&args.modpath)?;
     let modpath = modfile.modpath();

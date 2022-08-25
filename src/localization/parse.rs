@@ -295,12 +295,26 @@ impl<'a> LocaParser<'a> {
             let s = self.content[loc.offset..self.loc.offset].to_string();
             self.value.push(LocaValue::MarkupEnd(Token::new(s, loc)));
         } else {
+            // TODO This may have become complicated enough to need its own state machine
+            let mut at_end = false;
             while let Some(&c) = self.chars.peek() {
                 if c.is_whitespace() {
                     self.next_char();
                     break;
-                } else if is_key_char(c) {
+                } else if !at_end && (is_key_char(c) || c == ';') {
+                    // TODO: check that ';' is a separator, not at the beginning or end
                     self.next_char();
+                } else if !at_end && c == ':' {
+                    // #indent_newline:2 parsing
+                    self.next_char();
+                    while let Some(&c) = self.chars.peek() {
+                        if c.is_ascii_digit() {
+                            self.next_char();
+                        } else {
+                            break;
+                        }
+                    }
+                    at_end = true;
                 } else {
                     warn(
                         loc,
