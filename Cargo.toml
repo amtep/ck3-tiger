@@ -11,6 +11,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1"
 clap = { version = "3", features = ["derive"] }
+encoding = "0.2"
 fnv = "1"
 home = "0.5"
 itertools = "0.10"

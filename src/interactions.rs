@@ -180,7 +180,7 @@ impl Interaction {
             locas.verify_have_key(key.as_str(), &key, "interaction name");
         }
         for b in self.block.get_field_blocks("send_option") {
-            if let Some(key) = self.block.get_field_value("localization") {
+            if let Some(key) = b.get_field_value("localization") {
                 locas.verify_have_key(key.as_str(), &key, "interaction option");
             }
         }

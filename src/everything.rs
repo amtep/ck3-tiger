@@ -12,6 +12,7 @@ use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::interactions::Interactions;
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
+use crate::provinces::Provinces;
 
 #[derive(Debug, Error)]
 pub enum FilesError {
@@ -70,6 +71,9 @@ pub struct Everything {
 
     /// Processed character interaction files
     interactions: Interactions,
+
+    /// Processed map data
+    provinces: Provinces,
 }
 
 impl Everything {
@@ -109,6 +113,7 @@ impl Everything {
             events: Events::default(),
             decisions: Decisions::default(),
             interactions: Interactions::default(),
+            provinces: Provinces::default(),
         })
     }
 
@@ -194,12 +199,22 @@ impl Everything {
         self.interactions.finalize();
     }
 
+    pub fn load_provinces(&mut self) {
+        self.provinces.config(&self.config);
+        let subpath = self.provinces.subpath();
+        for entry in self.fileset.get_files_under(&subpath) {
+            self.provinces.handle_file(entry, &self.fullpath(entry));
+        }
+        self.provinces.finalize();
+    }
+
     pub fn load_all(&mut self) {
         self.load_errorkey_config();
         self.load_localizations();
         self.load_events();
         self.load_decisions();
         self.load_interactions();
+        self.load_provinces();
     }
 
     pub fn check_have_localizations(&self) {
