@@ -19,6 +19,7 @@ pub enum ErrorKey {
     MissingLocalization,
     MissingFile,
     Conflict,
+    ImageFormat,
 }
 
 // This has to be kept up to date with ErrorKey and with its Display impl
@@ -42,6 +43,7 @@ impl FromStr for ErrorKey {
             "missing-localization" => ErrorKey::MissingLocalization,
             "missing-file" => ErrorKey::MissingFile,
             "conflict" => ErrorKey::Conflict,
+            "image-format" => ErrorKey::ImageFormat,
             _ => {
                 return Err(ParseKeyError::new("unknown error key"));
             }
@@ -68,6 +70,7 @@ impl Display for ErrorKey {
             ErrorKey::MissingLocalization => write!(fmt, "missing-localization"),
             ErrorKey::MissingFile => write!(fmt, "missing-file"),
             ErrorKey::Conflict => write!(fmt, "conflict"),
+            ErrorKey::ImageFormat => write!(fmt, "image-format"),
         }
     }
 }

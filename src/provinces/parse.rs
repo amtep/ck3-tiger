@@ -19,7 +19,9 @@ struct CsvParser<'a> {
 }
 
 impl<'a> CsvParser<'a> {
-    fn new(loc: Loc, header_lines: usize, content: &'a str) -> Self {
+    fn new(mut loc: Loc, header_lines: usize, content: &'a str) -> Self {
+        loc.line = 1;
+        loc.column = 1;
         let chars = content.chars().peekable();
         Self {
             loc,

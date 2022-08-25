@@ -1,12 +1,13 @@
 use fnv::{FnvHashMap, FnvHashSet};
+use image::{DynamicImage, Pixel, Rgb};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use crate::block::{Block, Loc, Token};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, LogPauseRaii};
+use crate::errors::{error, warn, LogPauseRaii};
 use crate::everything::FileHandler;
-use crate::fileset::FileEntry;
+use crate::fileset::{FileEntry, FileKind};
 use crate::provinces::parse::{parse_csv, read_csv};
 
 mod parse;
@@ -16,13 +17,32 @@ type ProvId = u32;
 #[derive(Clone, Debug, Default)]
 pub struct Provinces {
     /// Colors in the provinces.png
-    colors: FnvHashSet<RGB>,
-    /// Colors defined in definition.csv. Should ideally be the same values as in `colors`.
+    colors: FnvHashSet<Rgb<u8>>,
+
+    /// Provinces defined in definition.csv.
     /// CK3 requires uninterrupted indices starting at 0, but we want to be able to warn
     /// and continue if they're not, so it's a hashmap.
-    province_colors: FnvHashMap<ProvId, RGB>,
+    provinces: FnvHashMap<ProvId, Province>,
+
+    /// Kept and used for error reporting
+    definition_csv: Option<FileEntry>,
 
     adjacencies: Vec<Adjacency>,
+}
+
+impl Provinces {
+    fn parse_definition(&mut self, csv: Vec<Token>) {
+        if let Some(province) = Province::parse(csv) {
+            if self.provinces.contains_key(&province.id) {
+                error(
+                    &province.comment,
+                    ErrorKey::Duplicate,
+                    "duplicate entry for this province id",
+                );
+            }
+            self.provinces.insert(province.id, province);
+        }
+    }
 }
 
 impl FileHandler for Provinces {
@@ -33,7 +53,7 @@ impl FileHandler for Provinces {
     fn config(&mut self, _config: &Block) {}
 
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
-        // let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
+        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
 
         if entry.path().components().count() == 2 {
             match &*entry.filename().to_string_lossy() {
@@ -50,22 +70,109 @@ impl FileHandler for Provinces {
                         }
                     };
                     self.adjacencies = parse_csv(entry, 1, &content)
-                        .filter_map(Adjacency::new)
+                        .filter_map(Adjacency::parse)
                         .collect();
+                }
+                "definition.csv" => {
+                    self.definition_csv = Some(entry.clone());
+                    let content = match read_csv(fullpath) {
+                        Ok(content) => content,
+                        Err(e) => {
+                            error(
+                                entry,
+                                ErrorKey::ReadError,
+                                &format!("could not read `{}`: {:#}", entry.path().display(), e),
+                            );
+                            return;
+                        }
+                    };
+                    for csv in parse_csv(entry, 0, &content) {
+                        self.parse_definition(csv);
+                    }
+                }
+                "provinces.png" => {
+                    let img = match image::open(fullpath) {
+                        Ok(img) => img,
+                        Err(e) => {
+                            error(
+                                entry,
+                                ErrorKey::ReadError,
+                                &format!("could not read `{}`: {:#}", entry.path().display(), e),
+                            );
+                            return;
+                        }
+                    };
+                    if let DynamicImage::ImageRgb8(img) = img {
+                        for pixel in img.pixels() {
+                            self.colors.insert(*pixel);
+                        }
+                    } else {
+                        error(
+                            entry,
+                            ErrorKey::ImageFormat,
+                            &format!(
+                                "`{}` has wrong color format `{:?}`, should be Rgb8",
+                                entry.path().display(),
+                                img.color()
+                            ),
+                        );
+                        return;
+                    }
                 }
                 _ => (),
             }
         }
     }
 
-    fn finalize(&mut self) {}
-}
+    fn finalize(&mut self) {
+        if self.definition_csv.is_none() {
+            // Shouldn't happen, it should come from vanilla if not from the mod
+            eprintln!("map_data/definition.csv is missing?!?");
+            return;
+        }
+        let definition_csv = self.definition_csv.as_ref().unwrap();
 
-#[derive(Copy, Clone, Debug, Default)]
-pub struct RGB {
-    r: u8,
-    g: u8,
-    b: u8,
+        let mut seen_colors = FnvHashMap::default();
+        for i in 1..self.provinces.len() as u32 {
+            if let Some(province) = self.provinces.get(&i) {
+                if !province.valid {
+                    continue;
+                }
+                if !self.colors.contains(&province.color) {
+                    warn(
+                        &province.comment,
+                        ErrorKey::Validation,
+                        "color is not in the provinces.png",
+                    );
+                } else if let Some(k) = seen_colors.get(&province.color) {
+                    warn(
+                        &province.comment,
+                        ErrorKey::Validation,
+                        &format!("color was already used for id {}", k),
+                    );
+                } else {
+                    seen_colors.insert(province.color, i);
+                }
+            } else {
+                error(
+                    definition_csv,
+                    ErrorKey::Validation,
+                    &format!("province ids must be sequential, but {} is missing", i),
+                );
+                return;
+            }
+        }
+        if seen_colors.len() < self.colors.len() {
+            warn(
+                definition_csv,
+                ErrorKey::Validation,
+                &format!(
+                    "provinces.png contains {} colors with no provinces assigned",
+                    self.colors.len() - seen_colors.len()
+                ),
+            );
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -90,16 +197,16 @@ pub struct Adjacency {
     comment: Token,
 }
 
-impl Adjacency {
-    pub fn _verify<T: FromStr>(v: &Token, msg: &str) -> Option<T> {
-        let r = v.as_str().parse().ok();
-        if r.is_none() {
-            error(v, ErrorKey::ParseError, msg);
-        }
-        r
+fn _verify<T: FromStr>(v: &Token, msg: &str) -> Option<T> {
+    let r = v.as_str().parse().ok();
+    if r.is_none() {
+        error(v, ErrorKey::ParseError, msg);
     }
+    r
+}
 
-    pub fn new(csv: Vec<Token>) -> Option<Self> {
+impl Adjacency {
+    pub fn parse(csv: Vec<Token>) -> Option<Self> {
         // TODO: this does panic if we get an empty line
         let line = csv[0].loc.clone();
 
@@ -118,13 +225,13 @@ impl Adjacency {
             return None;
         }
 
-        let from = Self::_verify(&csv[0], "expected province id");
-        let to = Self::_verify(&csv[1], "expected province id");
-        let through = Self::_verify(&csv[3], "expected province id");
-        let start_x = Self::_verify(&csv[4], "expected x coordinate");
-        let start_y = Self::_verify(&csv[5], "expected y coordinate");
-        let stop_x = Self::_verify(&csv[6], "expected x coordinate");
-        let stop_y = Self::_verify(&csv[7], "expected y coordinate");
+        let from = _verify(&csv[0], "expected province id");
+        let to = _verify(&csv[1], "expected province id");
+        let through = _verify(&csv[3], "expected province id");
+        let start_x = _verify(&csv[4], "expected x coordinate");
+        let start_y = _verify(&csv[5], "expected y coordinate");
+        let stop_x = _verify(&csv[6], "expected x coordinate");
+        let stop_y = _verify(&csv[7], "expected y coordinate");
 
         Some(Adjacency {
             line,
@@ -141,6 +248,42 @@ impl Adjacency {
                 y: stop_y?,
             },
             comment: csv[8].clone(),
+        })
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Province {
+    id: ProvId,
+    valid: bool,
+    color: Rgb<u8>,
+    comment: Token,
+}
+
+impl Province {
+    fn parse(csv: Vec<Token>) -> Option<Self> {
+        // TODO: this does panic if we get an empty line
+        let line = csv[0].loc.clone();
+
+        if csv.len() < 5 {
+            error(
+                &line,
+                ErrorKey::ParseError,
+                "too few fields for this line, expected 5",
+            );
+            return None;
+        }
+
+        let id = _verify(&csv[0], "expected province id")?;
+        let r = _verify(&csv[1], "expected red value")?;
+        let g = _verify(&csv[2], "expected green value")?;
+        let b = _verify(&csv[3], "expected blue value")?;
+        let rgb = Pixel::from_channels(r, g, b, 0);
+        Some(Province {
+            id: id,
+            valid: !csv[4].as_str().is_empty(),
+            color: rgb,
+            comment: csv[4].clone(),
         })
     }
 }
