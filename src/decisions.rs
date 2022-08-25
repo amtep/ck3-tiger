@@ -141,9 +141,6 @@ impl DecisionEntry {
         }
         let decision = self.decision.as_ref().unwrap();
 
-        // TODO: if these fields have complex descriptions, parse them to figure out
-        // which loca entries must exist.
-
         match decision.title.as_ref() {
             Some(v) => verify_desc_locas(v, locs, "decision title"),
             None => locs.verify_have_key(self.key.as_str(), &self.key, "decision title"),
@@ -282,7 +279,7 @@ impl Validate for Decision {
             vd.allow_unique_field_block("is_valid_showing_failures_only");
         let is_valid = vd.allow_unique_field_block("is_valid");
         // cost can have multiple definitions and they will be combined
-        // TODO: figure out if cost { gold = 500 } cost { gold = 500} will result in gold = 1000
+        // however, two costs of the same type are not summed
         let cost = vd.allow_field_validated_blocks("cost");
         let minimum_cost = vd.allow_field_validated_blocks("minimum_cost");
         let effect = vd.allow_unique_field_block("effect");

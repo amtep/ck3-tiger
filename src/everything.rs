@@ -9,6 +9,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{ignore_key, ignore_key_for, warn};
 use crate::events::Events;
 use crate::fileset::{FileEntry, FileKind, Fileset};
+use crate::interactions::Interactions;
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 
@@ -66,6 +67,9 @@ pub struct Everything {
 
     /// Processed decision files
     decisions: Decisions,
+
+    /// Processed character interaction files
+    interactions: Interactions,
 }
 
 impl Everything {
@@ -104,6 +108,7 @@ impl Everything {
             localizations: Localization::default(),
             events: Events::default(),
             decisions: Decisions::default(),
+            interactions: Interactions::default(),
         })
     }
 
@@ -180,16 +185,28 @@ impl Everything {
         self.decisions.finalize();
     }
 
+    pub fn load_interactions(&mut self) {
+        self.interactions.config(&self.config);
+        let subpath = self.interactions.subpath();
+        for entry in self.fileset.get_files_under(&subpath) {
+            self.interactions.handle_file(entry, &self.fullpath(entry));
+        }
+        self.interactions.finalize();
+    }
+
     pub fn load_all(&mut self) {
         self.load_errorkey_config();
         self.load_localizations();
         self.load_events();
         self.load_decisions();
+        self.load_interactions();
     }
 
     pub fn check_have_localizations(&self) {
         self.decisions.check_have_localizations(&self.localizations);
         self.events.check_have_localizations(&self.localizations);
+        self.interactions
+            .check_have_localizations(&self.localizations);
     }
 
     pub fn check_have_files(&self) {

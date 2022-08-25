@@ -20,6 +20,7 @@ mod decisions;
 mod desc;
 mod events;
 mod fileset;
+mod interactions;
 mod localization;
 mod pdxfile;
 mod validate;

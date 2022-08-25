@@ -148,11 +148,20 @@ impl Block {
         vec
     }
 
-    pub fn key_token(&self, name: &str) -> Option<Token> {
+    pub fn dbg_keys(&self) {
+        for (k, _, _) in self.v.iter() {
+            if let Some(k) = k {
+                let key = k.as_str();
+                dbg!(key);
+            }
+        }
+    }
+
+    pub fn key_token(&self, name: &str) -> Option<&Token> {
         for (k, _, _) in self.v.iter().rev() {
             if let Some(key) = k {
                 if key.is(name) {
-                    return Some(key.clone());
+                    return Some(key);
                 }
             }
         }
