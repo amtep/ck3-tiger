@@ -6,8 +6,7 @@ use std::str::FromStr;
 use crate::block::{Loc, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, LogPauseRaii};
-use crate::everything::FileHandler;
-use crate::fileset::{FileEntry, FileKind};
+use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::provinces::parse::{parse_csv, read_csv};
 
 mod parse;

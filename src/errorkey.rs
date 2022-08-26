@@ -20,6 +20,7 @@ pub enum ErrorKey {
     MissingFile,
     Conflict,
     ImageFormat,
+    Unneeded,
 }
 
 // This has to be kept up to date with ErrorKey and with its Display impl
@@ -44,6 +45,7 @@ impl FromStr for ErrorKey {
             "missing-file" => ErrorKey::MissingFile,
             "conflict" => ErrorKey::Conflict,
             "image-format" => ErrorKey::ImageFormat,
+            "unneeded" => ErrorKey::Unneeded,
             _ => {
                 return Err(ParseKeyError::new("unknown error key"));
             }
@@ -71,6 +73,7 @@ impl Display for ErrorKey {
             ErrorKey::MissingFile => write!(fmt, "missing-file"),
             ErrorKey::Conflict => write!(fmt, "conflict"),
             ErrorKey::ImageFormat => write!(fmt, "image-format"),
+            ErrorKey::Unneeded => write!(fmt, "unneeded"),
         }
     }
 }

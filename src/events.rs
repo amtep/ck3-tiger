@@ -5,8 +5,7 @@ use crate::block::{Block, BlockOrValue, DefinitionItem, Token};
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, warn_info, will_log, LogPauseRaii};
-use crate::everything::FileHandler;
-use crate::fileset::{FileEntry, FileKind};
+use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 
@@ -92,9 +91,9 @@ impl Events {
             .insert(key.to_string(), ScriptedEffect::new(key, block.clone()));
     }
 
-    pub fn check_have_localizations(&self, locs: &Localization) {
+    pub fn check_have_locas(&self, locs: &Localization) {
         for event in self.events.values() {
-            event.check_have_localizations(locs);
+            event.check_have_locas(locs);
         }
     }
 }
@@ -205,7 +204,7 @@ impl Event {
         Event { key, block }
     }
 
-    pub fn check_have_localizations(&self, locas: &Localization) {
+    pub fn check_have_locas(&self, locas: &Localization) {
         let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
 
         if let Some(title) = self.block.get_field("title") {

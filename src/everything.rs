@@ -35,25 +35,6 @@ pub enum FilesError {
     },
 }
 
-/// A trait for a submodule that can process files.
-pub trait FileHandler {
-    /// The `FileHandler` can read settings it needs from the mod-validator config.
-    fn config(&mut self, _config: &Block) {}
-
-    /// Which files this handler is interested in.
-    /// This is a directory prefix of files it wants to handle,
-    /// relative to the mod or vanilla root.
-    fn subpath(&self) -> PathBuf;
-
-    /// This is called for each matching file in turn, in lexical order.
-    /// That's the order in which the CK3 game engine loads them too.
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path);
-
-    /// This is called after all files have been handled.
-    /// The `FileHandler` can generate indexes, perform full-data checks, etc.
-    fn finalize(&mut self) {}
-}
-
 #[derive(Clone, Debug)]
 pub struct Everything {
     /// Config from file
@@ -114,6 +95,8 @@ impl Everything {
             Block::new(Loc::for_file(Rc::new(config_file), FileKind::ModFile))
         };
 
+        fileset.config(config.clone());
+
         Ok(Everything {
             fileset,
             config,
@@ -169,92 +152,24 @@ impl Everything {
         }
     }
 
-    // TODO: these very similar functions that all rely on the FileHandler trait
-    // can't be refactored with a handle_files() function because the borrow checker
-    // complains that the whole of self is borrowed.
-
-    pub fn load_localizations(&mut self) {
-        self.localizations.config(&self.config);
-        let subpath = self.localizations.subpath();
-        for entry in self.fileset.get_files_under(&subpath) {
-            self.localizations.handle_file(entry, &self.fullpath(entry));
-        }
-        self.localizations.finalize();
-    }
-
-    pub fn load_events(&mut self) {
-        self.events.config(&self.config);
-        let subpath = self.events.subpath();
-        for entry in self.fileset.get_files_under(&subpath) {
-            self.events.handle_file(entry, &self.fullpath(entry));
-        }
-        self.events.finalize();
-    }
-
-    pub fn load_decisions(&mut self) {
-        self.decisions.config(&self.config);
-        let subpath = self.decisions.subpath();
-        for entry in self.fileset.get_files_under(&subpath) {
-            self.decisions.handle_file(entry, &self.fullpath(entry));
-        }
-        self.decisions.finalize();
-    }
-
-    pub fn load_interactions(&mut self) {
-        self.interactions.config(&self.config);
-        let subpath = self.interactions.subpath();
-        for entry in self.fileset.get_files_under(&subpath) {
-            self.interactions.handle_file(entry, &self.fullpath(entry));
-        }
-        self.interactions.finalize();
-    }
-
-    pub fn load_provinces(&mut self) {
-        self.provinces.config(&self.config);
-        let subpath = self.provinces.subpath();
-        for entry in self.fileset.get_files_under(&subpath) {
-            self.provinces.handle_file(entry, &self.fullpath(entry));
-        }
-        self.provinces.finalize();
-    }
-
-    pub fn load_province_histories(&mut self) {
-        self.province_histories.config(&self.config);
-        let subpath = self.province_histories.subpath();
-        for entry in self.fileset.get_files_under(&subpath) {
-            self.province_histories
-                .handle_file(entry, &self.fullpath(entry));
-        }
-        self.province_histories.finalize();
-    }
-
-    pub fn load_game_concepts(&mut self) {
-        self.game_concepts.config(&self.config);
-        let subpath = self.game_concepts.subpath();
-        for entry in self.fileset.get_files_under(&subpath) {
-            self.game_concepts.handle_file(entry, &self.fullpath(entry));
-        }
-        self.game_concepts.finalize();
-    }
-
     pub fn load_all(&mut self) {
         self.load_errorkey_config();
-        self.load_localizations();
-        self.load_events();
-        self.load_decisions();
-        self.load_interactions();
-        self.load_provinces();
-        self.load_province_histories();
-        self.load_game_concepts();
+        self.fileset.config(self.config.clone());
+
+        self.fileset.handle(&mut self.localizations);
+        self.fileset.handle(&mut self.events);
+        self.fileset.handle(&mut self.decisions);
+        self.fileset.handle(&mut self.interactions);
+        self.fileset.handle(&mut self.provinces);
+        self.fileset.handle(&mut self.province_histories);
+        self.fileset.handle(&mut self.game_concepts);
     }
 
     pub fn check_have_localizations(&self) {
-        self.decisions.check_have_localizations(&self.localizations);
-        self.events.check_have_localizations(&self.localizations);
-        self.interactions
-            .check_have_localizations(&self.localizations);
-        self.game_concepts
-            .check_have_localizations(&self.localizations);
+        self.decisions.check_have_locas(&self.localizations);
+        self.events.check_have_locas(&self.localizations);
+        self.interactions.check_have_locas(&self.localizations);
+        self.game_concepts.check_have_locas(&self.localizations);
     }
 
     pub fn check_have_files(&self) {

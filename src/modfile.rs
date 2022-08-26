@@ -7,94 +7,82 @@ use crate::errorkey::ErrorKey;
 use crate::errors::warn;
 use crate::fileset::FileKind;
 use crate::pdxfile::PdxFile;
-use crate::validate::{Validate, ValidationError};
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)] // remove when TODO are fixed
 pub struct ModFile {
-    name: Token,
+    block: Block,
+    name: Option<Token>,
     path: Option<Token>,
     // TODO: implement this in Fileset
     replace_path: Vec<Token>,
-    version: Token,
+    version: Option<Token>,
     // TODO: check that these are tags accepted by steam ?
     tags: Option<Vec<Token>>,
     // TODO: check if the version is compatible with the validator.
     // (Newer means the validator is too old, older means it's not up to date
     // with current CK3)
     supported_version: Option<Token>,
-    remote_file_id: Option<Token>,
     picture: Option<Token>,
 }
 
-impl Validate for ModFile {
-    fn from_block(block: Block, id: &str) -> Result<Self, ValidationError> {
-        let mut vd = Validator::new(&block, id);
-        // Reference: https://ck3.paradoxwikis.com/Mod_structure#Keys
-        let version = vd.require_unique_field_value("version");
-        let tags = vd.allow_unique_field_list("tags");
-        let name = vd.require_unique_field_value("name");
+fn validate_modfile(block: &Block) -> ModFile {
+    let mut vd = Validator::new(block, "modfile");
+    // Reference: https://ck3.paradoxwikis.com/Mod_structure#Keys
+    vd.req_field_value("version");
+    vd.opt_field_list("tags");
+    vd.req_field_value("name");
 
-        let supported_version;
-        let path;
-
-        if block.filename() == "descriptor.mod" {
-            supported_version = vd.allow_unique_field_value("supported_version");
-            path = vd.allow_unique_field_value("path");
-        } else {
-            supported_version = Some(vd.require_unique_field_value("supported_version")?);
-            path = Some(vd.require_unique_field_value("path")?);
-        }
-
-        let remote_file_id = vd.allow_unique_field_value("remote_file_id");
-        let picture = vd.allow_unique_field_value("picture");
-        let replace_path = vd.allow_field_values("replace_path");
-        vd.warn_unused_entries();
-
-        if let Some(err) = vd.err {
-            return Err(err);
-        }
-
-        let modfile = ModFile {
-            name: name?,
-            path,
-            replace_path,
-            version: version?,
-            tags,
-            supported_version,
-            remote_file_id,
-            picture,
-        };
-
-        if let Some(picture) = &modfile.picture {
-            if !picture.is("thumbnail.png") {
-                warn(
-                    picture,
-                    ErrorKey::Packaging,
-                    "Steam ignores picture= and always uses thumbnail.png.",
-                );
-            }
-        }
-
-        // TODO: check if supported_version is newer than validator,
-        // or is older than known CK3
-
-        Ok(modfile)
+    if block.filename() == "descriptor.mod" {
+        vd.opt_field_value("supported_version");
+        vd.opt_field_value("path");
+    } else {
+        vd.req_field_value("supported_version");
+        vd.req_field_value("path");
     }
+
+    vd.opt_field_value("remote_file_id");
+    vd.opt_field_value("picture");
+    vd.opt_field_values("replace_path");
+    vd.warn_remaining();
+
+    let modfile = ModFile {
+        block: block.clone(),
+        name: block.get_field_value("name").cloned(),
+        path: block.get_field_value("path").cloned(),
+        replace_path: block.get_field_values("replace_path"),
+        version: block.get_field_value("version").cloned(),
+        tags: block.get_field_list("tags"),
+        supported_version: block.get_field_value("supported_version").cloned(),
+        picture: block.get_field_value("picture").cloned(),
+    };
+
+    if let Some(picture) = &modfile.picture {
+        if !picture.is("thumbnail.png") {
+            warn(
+                picture,
+                ErrorKey::Packaging,
+                "Steam ignores picture= and always uses thumbnail.png.",
+            );
+        }
+    }
+
+    // TODO: check if supported_version is newer than validator,
+    // or is older than known CK3
+
+    modfile
 }
 
 impl ModFile {
     pub fn read(pathname: &Path) -> Result<Self> {
         let block = PdxFile::read_no_bom(pathname, FileKind::ModFile, pathname)
             .with_context(|| format!("Could not read .mod file {}", pathname.display()))?;
-        let modfile = ModFile::from_block(block, "Modfile")?;
-
-        Ok(modfile)
+        Ok(validate_modfile(&block))
     }
 
     pub fn modpath(&self) -> PathBuf {
         let mut dirpath = self
-            .name
+            .block
             .loc
             .pathname
             .parent()

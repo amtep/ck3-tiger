@@ -49,12 +49,12 @@ impl Block {
     }
 
     /// Get the value of a single `name = value` assignment
-    pub fn get_field_value(&self, name: &str) -> Option<Token> {
+    pub fn get_field_value(&self, name: &str) -> Option<&Token> {
         for (k, _, v) in self.v.iter().rev() {
             if let Some(key) = k {
                 if key.is(name) {
                     match v {
-                        BlockOrValue::Token(t) => return Some(t.clone()),
+                        BlockOrValue::Token(t) => return Some(t),
                         BlockOrValue::Block(_) => (),
                     }
                 }
@@ -161,7 +161,7 @@ impl Block {
         }
     }
 
-    pub fn key_token(&self, name: &str) -> Option<&Token> {
+    pub fn get_key(&self, name: &str) -> Option<&Token> {
         for (k, _, _) in self.v.iter().rev() {
             if let Some(key) = k {
                 if key.is(name) {

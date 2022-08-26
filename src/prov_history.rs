@@ -4,8 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::block::{Block, DefinitionItem, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn, LogPauseRaii};
-use crate::everything::FileHandler;
-use crate::fileset::{FileEntry, FileKind};
+use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
 use crate::provinces::ProvId;
 

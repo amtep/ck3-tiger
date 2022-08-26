@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use walkdir::WalkDir;
 
-use crate::block::{Loc, Token};
+use crate::block::{Block, Loc, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::error;
 
@@ -65,6 +65,25 @@ impl From<&FileEntry> for Token {
     }
 }
 
+/// A trait for a submodule that can process files.
+pub trait FileHandler {
+    /// The `FileHandler` can read settings it needs from the mod-validator config.
+    fn config(&mut self, _config: &Block) {}
+
+    /// Which files this handler is interested in.
+    /// This is a directory prefix of files it wants to handle,
+    /// relative to the mod or vanilla root.
+    fn subpath(&self) -> PathBuf;
+
+    /// This is called for each matching file in turn, in lexical order.
+    /// That's the order in which the CK3 game engine loads them too.
+    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path);
+
+    /// This is called after all files have been handled.
+    /// The `FileHandler` can generate indexes, perform full-data checks, etc.
+    fn finalize(&mut self) {}
+}
+
 #[derive(Clone, Debug)]
 pub struct Fileset {
     /// The CK3 game directory
@@ -72,6 +91,9 @@ pub struct Fileset {
 
     /// The mod directory
     mod_root: PathBuf,
+
+    /// The mod-validator config
+    config: Option<Block>,
 
     /// The CK3 and mod files in arbitrary order (will be empty after `finalize`)
     files: Vec<FileEntry>,
@@ -88,10 +110,15 @@ impl Fileset {
         Fileset {
             vanilla_root,
             mod_root,
+            config: None,
             files: Vec::new(),
             ordered_files: Vec::new(),
             filenames: FnvHashSet::default(),
         }
+    }
+
+    pub fn config(&mut self, config: Block) {
+        self.config = Some(config);
     }
 
     pub fn scan(&mut self, path: &Path, kind: FileKind) -> Result<(), walkdir::Error> {
@@ -142,6 +169,17 @@ impl Fileset {
             FileKind::VanillaFile => self.vanilla_root.join(entry.path()),
             FileKind::ModFile => self.mod_root.join(entry.path()),
         }
+    }
+
+    pub fn handle<H: FileHandler>(&self, handler: &mut H) {
+        if let Some(config) = &self.config {
+            handler.config(config);
+        }
+        let subpath = handler.subpath();
+        for entry in self.get_files_under(&subpath) {
+            handler.handle_file(entry, &self.fullpath(entry));
+        }
+        handler.finalize();
     }
 
     pub fn verify_have_file(&self, file: &Token) {

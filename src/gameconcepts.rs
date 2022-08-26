@@ -1,11 +1,11 @@
 use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
+use crate::block::validator::Validator;
 use crate::block::{Block, DefinitionItem, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, will_log, LogPauseRaii};
-use crate::everything::FileHandler;
-use crate::fileset::{FileEntry, FileKind, Fileset};
+use crate::fileset::{FileEntry, FileHandler, FileKind, Fileset};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 
@@ -30,9 +30,9 @@ impl GameConcepts {
             .insert(key.to_string(), Concept::new(key, block.clone()));
     }
 
-    pub fn check_have_localizations(&self, locas: &Localization) {
+    pub fn check_have_locas(&self, locas: &Localization) {
         for concept in self.concepts.values() {
-            concept.check_have_localizations(locas);
+            concept.check_have_locas(locas);
         }
     }
 
@@ -109,7 +109,28 @@ impl Concept {
         Self { key, block }
     }
 
-    pub fn check_have_localizations(&self, locas: &Localization) {
+    pub fn validate(&self) {
+        fn validate_framesize(block: &Block, id: &str) {
+            let mut vd = Validator::new(block, id);
+            vd.req_tokens_integers_exactly(2);
+            vd.warn_remaining();
+        }
+
+        let mut vd = Validator::new(&self.block, "game concept");
+        vd.opt_field_list("alias");
+        vd.opt_field_value("parent");
+        vd.opt_field_value("texture");
+        if self.block.get_field_value("texture").is_some() {
+            vd.opt_field_validated_block("framesize", validate_framesize);
+            vd.opt_field_value("frame");
+        } else {
+            vd.advice_field("framesize", "not needed without texture");
+            vd.advice_field("frame", "not needed without texture");
+        }
+        vd.warn_remaining();
+    }
+
+    pub fn check_have_locas(&self, locas: &Localization) {
         let _pause = LogPauseRaii::new(self.key.loc.kind == FileKind::VanillaFile);
         let loca = format!("game_concept_{}", self.key);
         locas.verify_have_key(&loca, &self.key, "game concept");
@@ -128,7 +149,7 @@ impl Concept {
         let _pause = LogPauseRaii::new(self.key.loc.kind == FileKind::VanillaFile);
         if let Some(texture) = self.block.get_field_value("texture") {
             if !texture.is("piety") {
-                fileset.verify_have_file(&texture);
+                fileset.verify_have_file(texture);
                 // TODO: check the file's resolution and check it against framesize and frame keys
             }
         }

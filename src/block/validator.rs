@@ -1,7 +1,6 @@
-use crate::block::{Block, BlockOrValue, Comparator, Token};
+use crate::block::{Block, BlockOrValue, Comparator};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
-use crate::validate::{Validate, ValidationError};
+use crate::errors::{advice, error, warn};
 
 #[derive(Debug)]
 pub struct Validator<'a> {
@@ -11,8 +10,10 @@ pub struct Validator<'a> {
     id: &'a str,
     // Fields that have been requested so far
     known_fields: Vec<&'a str>,
-    // Fatal error, if any
-    pub err: Option<ValidationError>,
+    // Whether loose tokens are expected
+    accepted_tokens: bool,
+    // Whether subblocks are expected
+    accepted_blocks: bool,
 }
 
 impl<'a> Validator<'a> {
@@ -21,21 +22,15 @@ impl<'a> Validator<'a> {
             block,
             id,
             known_fields: Vec::new(),
-            err: None,
+            accepted_tokens: false,
+            accepted_blocks: false,
         }
     }
 
-    pub fn err(&mut self, e: ValidationError) {
-        if self.err.is_none() {
-            self.err = Some(e);
-        }
-    }
-
-    pub fn require_unique_field_value(&mut self, name: &'a str) -> Result<Token, ValidationError> {
+    pub fn req_field_value(&mut self, name: &'a str) {
         self.known_fields.push(name);
 
         let mut found = false;
-        let mut value = None;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
@@ -54,9 +49,8 @@ impl<'a> Validator<'a> {
                         );
                     }
                     match v {
-                        BlockOrValue::Token(t) => value = Some(t.clone()),
+                        BlockOrValue::Token(_) => (),
                         BlockOrValue::Block(s) => {
-                            self.err(ValidationError::RequiredFieldInvalid(name.to_string()));
                             error(s, ErrorKey::Validation, "expected value, found block");
                         }
                     }
@@ -64,28 +58,22 @@ impl<'a> Validator<'a> {
                 }
             }
         }
-        if !found || value.is_none() {
-            let err = ValidationError::RequiredFieldMissing(name.to_string());
-            self.err(err.clone());
+        if !found {
             error(
                 &self.block.loc,
                 ErrorKey::Validation,
                 &format!("required field `{}` missing", name),
             );
-            Err(err)
-        } else {
-            Ok(value.unwrap())
         }
     }
 
-    pub fn allow_unique_field_check<F, T>(&mut self, name: &'a str, mut f: F) -> Option<T>
+    pub fn opt_field_check<F>(&mut self, name: &'a str, mut f: F)
     where
-        F: FnMut(BlockOrValue) -> Option<T>,
+        F: FnMut(BlockOrValue),
     {
         self.known_fields.push(name);
 
         let mut found = false;
-        let mut value = None;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
@@ -103,75 +91,64 @@ impl<'a> Validator<'a> {
                             &format!("expected `{} =`, found `{}`", key, cmp),
                         );
                     }
-                    value = f(v.clone());
+                    f(v.clone());
                     found = true;
                 }
             }
         }
-        value
     }
 
-    pub fn allow_unique_field(&mut self, name: &'a str) -> Option<BlockOrValue> {
-        self.allow_unique_field_check(name, Some)
+    pub fn opt_field(&mut self, name: &'a str) {
+        self.opt_field_check(name, |_| ());
     }
 
-    pub fn allow_unique_field_value(&mut self, name: &'a str) -> Option<Token> {
-        self.allow_unique_field_check(name, |v| match v {
-            BlockOrValue::Token(t) => Some(t),
+    pub fn opt_field_value(&mut self, name: &'a str) {
+        self.opt_field_check(name, |v| match v {
+            BlockOrValue::Token(_) => (),
             BlockOrValue::Block(s) => {
                 error(s, ErrorKey::Validation, "expected value, found block");
-                None
             }
-        })
+        });
     }
 
-    pub fn allow_unique_field_block(&mut self, name: &'a str) -> Option<Block> {
-        self.allow_unique_field_check(name, |v| match v {
+    pub fn opt_field_block(&mut self, name: &'a str) {
+        self.opt_field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
                 error(t, ErrorKey::Validation, "expected block, found value");
-                None
             }
-            BlockOrValue::Block(s) => Some(s),
-        })
+            BlockOrValue::Block(_) => (),
+        });
     }
 
-    pub fn allow_unique_field_boolean(&mut self, name: &'a str) -> Option<bool> {
-        self.allow_unique_field_check(name, |v| match v {
-            BlockOrValue::Token(t) if t.is("yes") => Some(true),
-            BlockOrValue::Token(t) if t.is("no") => Some(false),
+    pub fn opt_field_bool(&mut self, name: &'a str) {
+        self.opt_field_check(name, |v| match v {
+            BlockOrValue::Token(t) if t.is("yes") || t.is("no") => (),
             BlockOrValue::Token(t) => {
                 error(t, ErrorKey::Validation, "expected yes or no");
-                None
             }
             BlockOrValue::Block(s) => {
                 error(s, ErrorKey::Validation, "expected value, found block");
-                None
             }
-        })
+        });
     }
 
-    pub fn allow_unique_field_integer(&mut self, name: &'a str) -> Option<i64> {
-        self.allow_unique_field_check(name, |v| match v {
+    pub fn opt_field_integer(&mut self, name: &'a str) {
+        self.opt_field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
-                if let Ok(i) = t.as_str().parse() {
-                    Some(i)
-                } else {
+                if t.as_str().parse::<i32>().is_err() {
                     error(t, ErrorKey::Validation, "expected integer");
-                    None
                 }
             }
             BlockOrValue::Block(s) => {
                 error(s, ErrorKey::Validation, "expected value, found block");
-                None
             }
-        })
+        });
     }
 
-    pub fn allow_unique_field_list(&mut self, name: &'a str) -> Option<Vec<Token>> {
-        self.allow_unique_field_check(name, |v| match v {
+    pub fn opt_field_list(&mut self, name: &'a str) {
+        self.opt_field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
                 error(t, ErrorKey::Validation, "expected block, found value");
-                None
             }
             BlockOrValue::Block(s) => {
                 let mut vec = Vec::new();
@@ -190,12 +167,11 @@ impl<'a> Validator<'a> {
                         }
                     }
                 }
-                Some(vec)
             }
-        })
+        });
     }
 
-    pub fn allow_field_values(&mut self, name: &'a str) -> Vec<Token> {
+    pub fn opt_field_values(&mut self, name: &'a str) {
         self.known_fields.push(name);
 
         let mut vec = Vec::new();
@@ -218,17 +194,15 @@ impl<'a> Validator<'a> {
                 }
             }
         }
-        vec
     }
 
-    pub fn allow_field_validated_blocks<V: Validate>(
-        &mut self,
-        name: &'a str,
-    ) -> Result<Vec<V>, ValidationError> {
+    pub fn opt_field_validated_blocks<F>(&mut self, name: &'a str, f: F)
+    where
+        F: Fn(&Block, &str),
+    {
         self.known_fields.push(name);
         let id = format!("{}.{}", self.id, name);
 
-        let mut vec = Vec::new();
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
@@ -243,18 +217,53 @@ impl<'a> Validator<'a> {
                         BlockOrValue::Token(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
                         }
-                        BlockOrValue::Block(s) => vec.push(V::from_block(s.clone(), &id)?),
+                        BlockOrValue::Block(s) => f(s, &id),
                     }
                 }
             }
         }
-        Ok(vec)
     }
 
-    pub fn allow_field_blocks(&mut self, name: &'a str) -> Vec<Block> {
+    pub fn opt_field_validated_block<F>(&mut self, name: &'a str, f: F)
+    where
+        F: Fn(&Block, &str),
+    {
+        self.known_fields.push(name);
+        let id = format!("{}.{}", self.id, name);
+        let mut found = false;
+
+        for (k, cmp, v) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    if found {
+                        warn(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("multiple definitions of `{}`, expected only one.", key),
+                        );
+                    }
+                    if !matches!(cmp, Comparator::Eq) {
+                        error(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("expected `{} =`, found `{}`", key, cmp),
+                        );
+                    }
+                    match v {
+                        BlockOrValue::Token(t) => {
+                            error(t, ErrorKey::Validation, "expected block, found value");
+                        }
+                        BlockOrValue::Block(s) => f(s, &id),
+                    }
+                    found = true;
+                }
+            }
+        }
+    }
+
+    pub fn opt_field_blocks(&mut self, name: &'a str) {
         self.known_fields.push(name);
 
-        let mut vec = Vec::new();
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
@@ -269,15 +278,40 @@ impl<'a> Validator<'a> {
                         BlockOrValue::Token(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
                         }
-                        BlockOrValue::Block(s) => vec.push(s.clone()),
+                        BlockOrValue::Block(_) => (),
                     }
                 }
             }
         }
-        vec
     }
 
-    pub fn warn_unused_entries(&mut self) {
+    pub fn req_tokens_integers_exactly(&mut self, expect: usize) {
+        self.accepted_tokens = true;
+        let mut found = 0;
+        for (k, _, v) in &self.block.v {
+            if k.is_none() {
+                if let BlockOrValue::Token(t) = v {
+                    if t.as_str().parse::<i32>().is_ok() {
+                        found += 1;
+                    } else {
+                        error(t, ErrorKey::Validation, "expected integer");
+                    }
+                }
+            }
+        }
+        if found != expect {
+            let msg = format!("expected {} integers", expect);
+            error(self.block, ErrorKey::Validation, &msg);
+        }
+    }
+
+    pub fn advice_field(&mut self, name: &str, msg: &str) {
+        if let Some(key) = self.block.get_key(name) {
+            advice(key, ErrorKey::Unneeded, msg);
+        }
+    }
+
+    pub fn warn_remaining(&mut self) {
         for (k, _, v) in &self.block.v {
             match k {
                 Some(key) => {
@@ -291,18 +325,22 @@ impl<'a> Validator<'a> {
                 }
                 None => match v {
                     BlockOrValue::Token(t) => {
-                        warn(
-                            t,
-                            ErrorKey::Validation,
-                            "found loose value, expected only `key =`",
-                        );
+                        if !self.accepted_tokens {
+                            warn(
+                                t,
+                                ErrorKey::Validation,
+                                "found loose value, expected only `key =`",
+                            );
+                        }
                     }
                     BlockOrValue::Block(s) => {
-                        warn(
-                            s,
-                            ErrorKey::Validation,
-                            "found sub-block, expected only `key =`",
-                        );
+                        if !self.accepted_blocks {
+                            warn(
+                                s,
+                                ErrorKey::Validation,
+                                "found sub-block, expected only `key =`",
+                            );
+                        }
                     }
                 },
             }
