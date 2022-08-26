@@ -32,7 +32,7 @@ pub struct Provinces {
 
 impl Provinces {
     fn parse_definition(&mut self, csv: Vec<Token>) {
-        if let Some(province) = Province::parse(csv) {
+        if let Some(province) = Province::parse(&csv) {
             if self.provinces.contains_key(&province.id) {
                 error(
                     &province.comment,
@@ -69,9 +69,28 @@ impl FileHandler for Provinces {
                             return;
                         }
                     };
-                    self.adjacencies = parse_csv(entry, 1, &content)
-                        .filter_map(Adjacency::parse)
-                        .collect();
+                    let mut seen_terminator = false;
+                    for csv in parse_csv(entry, 1, &content) {
+                        if csv[0].is("-1") {
+                            seen_terminator = true;
+                        } else if seen_terminator {
+                            warn(
+                                &csv[0],
+                                ErrorKey::ParseError,
+                                "the line with all `-1;` should be the last line in the file",
+                            );
+                            break;
+                        } else {
+                            self.adjacencies.extend(Adjacency::parse(&csv));
+                        }
+                    }
+                    if !seen_terminator {
+                        error(
+                            entry,
+                            ErrorKey::ParseError,
+                            "CK3 needs a line with all `-1;` at the end of this file",
+                        );
+                    }
                 }
                 "definition.csv" => {
                     self.definition_csv = Some(entry.clone());
@@ -133,6 +152,7 @@ impl FileHandler for Provinces {
         let definition_csv = self.definition_csv.as_ref().unwrap();
 
         let mut seen_colors = FnvHashMap::default();
+        #[allow(clippy::cast_possible_truncation)]
         for i in 1..self.provinces.len() as u32 {
             if let Some(province) = self.provinces.get(&i) {
                 if !province.valid {
@@ -206,15 +226,9 @@ fn _verify<T: FromStr>(v: &Token, msg: &str) -> Option<T> {
 }
 
 impl Adjacency {
-    pub fn parse(csv: Vec<Token>) -> Option<Self> {
+    pub fn parse(csv: &[Token]) -> Option<Self> {
         // TODO: this does panic if we get an empty line
         let line = csv[0].loc.clone();
-
-        // TODO: warn if it's missing
-        // The dummy last line
-        if csv[0].as_str() == "-1" {
-            return None;
-        }
 
         if csv.len() != 9 {
             error(
@@ -261,7 +275,7 @@ pub struct Province {
 }
 
 impl Province {
-    fn parse(csv: Vec<Token>) -> Option<Self> {
+    fn parse(csv: &[Token]) -> Option<Self> {
         // TODO: this does panic if we get an empty line
         let line = csv[0].loc.clone();
 
@@ -278,11 +292,11 @@ impl Province {
         let r = _verify(&csv[1], "expected red value")?;
         let g = _verify(&csv[2], "expected green value")?;
         let b = _verify(&csv[3], "expected blue value")?;
-        let rgb = Pixel::from_channels(r, g, b, 0);
+        let color = Pixel::from_channels(r, g, b, 0);
         Some(Province {
-            id: id,
+            id,
             valid: !csv[4].as_str().is_empty(),
-            color: rgb,
+            color,
             comment: csv[4].clone(),
         })
     }
