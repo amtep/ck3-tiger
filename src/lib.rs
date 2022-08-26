@@ -24,6 +24,7 @@ mod decisions;
 mod desc;
 mod events;
 mod fileset;
+mod gameconcepts;
 mod interactions;
 mod localization;
 mod pdxfile;

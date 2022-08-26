@@ -9,6 +9,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{ignore_key, ignore_key_for, warn};
 use crate::events::Events;
 use crate::fileset::{FileEntry, FileKind, Fileset};
+use crate::gameconcepts::GameConcepts;
 use crate::interactions::Interactions;
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
@@ -78,6 +79,9 @@ pub struct Everything {
 
     /// Processed history/provinces data
     province_histories: ProvinceHistories,
+
+    /// Processed game concepts
+    game_concepts: GameConcepts,
 }
 
 impl Everything {
@@ -119,6 +123,7 @@ impl Everything {
             interactions: Interactions::default(),
             provinces: Provinces::default(),
             province_histories: ProvinceHistories::default(),
+            game_concepts: GameConcepts::default(),
         })
     }
 
@@ -223,6 +228,15 @@ impl Everything {
         self.province_histories.finalize();
     }
 
+    pub fn load_game_concepts(&mut self) {
+        self.game_concepts.config(&self.config);
+        let subpath = self.game_concepts.subpath();
+        for entry in self.fileset.get_files_under(&subpath) {
+            self.game_concepts.handle_file(entry, &self.fullpath(entry));
+        }
+        self.game_concepts.finalize();
+    }
+
     pub fn load_all(&mut self) {
         self.load_errorkey_config();
         self.load_localizations();
@@ -231,6 +245,7 @@ impl Everything {
         self.load_interactions();
         self.load_provinces();
         self.load_province_histories();
+        self.load_game_concepts();
     }
 
     pub fn check_have_localizations(&self) {
@@ -238,11 +253,14 @@ impl Everything {
         self.events.check_have_localizations(&self.localizations);
         self.interactions
             .check_have_localizations(&self.localizations);
+        self.game_concepts
+            .check_have_localizations(&self.localizations);
     }
 
     pub fn check_have_files(&self) {
         self.decisions.check_have_files(&self.fileset);
         self.interactions.check_have_files(&self.fileset);
+        self.game_concepts.check_have_files(&self.fileset);
     }
 
     pub fn check_all(&mut self) {
