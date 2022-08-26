@@ -6,8 +6,6 @@ use crate::errors::{advice, error, warn};
 pub struct Validator<'a> {
     // The block being validated
     block: &'a Block,
-    // Identifier used for error messages
-    id: &'a str,
     // Fields that have been requested so far
     known_fields: Vec<&'a str>,
     // Whether loose tokens are expected
@@ -17,10 +15,9 @@ pub struct Validator<'a> {
 }
 
 impl<'a> Validator<'a> {
-    pub fn new(block: &'a Block, id: &'a str) -> Self {
+    pub fn new(block: &'a Block) -> Self {
         Validator {
             block,
-            id,
             known_fields: Vec::new(),
             accepted_tokens: false,
             accepted_blocks: false,
@@ -198,10 +195,9 @@ impl<'a> Validator<'a> {
 
     pub fn opt_field_validated_blocks<F>(&mut self, name: &'a str, f: F)
     where
-        F: Fn(&Block, &str),
+        F: Fn(&Block),
     {
         self.known_fields.push(name);
-        let id = format!("{}.{}", self.id, name);
 
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
@@ -217,7 +213,7 @@ impl<'a> Validator<'a> {
                         BlockOrValue::Token(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
                         }
-                        BlockOrValue::Block(s) => f(s, &id),
+                        BlockOrValue::Block(s) => f(s),
                     }
                 }
             }
@@ -226,10 +222,9 @@ impl<'a> Validator<'a> {
 
     pub fn opt_field_validated_block<F>(&mut self, name: &'a str, f: F)
     where
-        F: Fn(&Block, &str),
+        F: Fn(&Block),
     {
         self.known_fields.push(name);
-        let id = format!("{}.{}", self.id, name);
         let mut found = false;
 
         for (k, cmp, v) in &self.block.v {
@@ -253,7 +248,7 @@ impl<'a> Validator<'a> {
                         BlockOrValue::Token(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
                         }
-                        BlockOrValue::Block(s) => f(s, &id),
+                        BlockOrValue::Block(s) => f(s),
                     }
                     found = true;
                 }
@@ -319,7 +314,7 @@ impl<'a> Validator<'a> {
                         warn(
                             key,
                             ErrorKey::Validation,
-                            &format!("unknown field `{}` for {}", key, self.id),
+                            &format!("unknown field `{}`", key),
                         );
                     }
                 }

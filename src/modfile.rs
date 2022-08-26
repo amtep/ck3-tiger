@@ -27,7 +27,7 @@ pub struct ModFile {
 }
 
 fn validate_modfile(block: &Block) -> ModFile {
-    let mut vd = Validator::new(block, "modfile");
+    let mut vd = Validator::new(block);
     // Reference: https://ck3.paradoxwikis.com/Mod_structure#Keys
     vd.req_field_value("version");
     vd.opt_field_list("tags");

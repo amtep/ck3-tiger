@@ -159,7 +159,7 @@ impl Decision {
     }
 
     fn validate(&self) {
-        let mut vd = Validator::new(&self.block, self.key.as_str());
+        let mut vd = Validator::new(&self.block);
 
         vd.req_field_value("picture");
         vd.opt_field_value("extra_picture");
@@ -198,8 +198,8 @@ impl Decision {
     }
 }
 
-fn validate_cost(block: &Block, id: &str) {
-    let mut vd = Validator::new(block, id);
+fn validate_cost(block: &Block) {
+    let mut vd = Validator::new(block);
     vd.opt_field("gold");
     vd.opt_field("prestige");
     vd.opt_field("piety");

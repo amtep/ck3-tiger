@@ -106,17 +106,19 @@ pub struct Concept {
 
 impl Concept {
     pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+        let concept = Self { key, block };
+        concept.validate();
+        concept
     }
 
     pub fn validate(&self) {
-        fn validate_framesize(block: &Block, id: &str) {
-            let mut vd = Validator::new(block, id);
+        fn validate_framesize(block: &Block) {
+            let mut vd = Validator::new(block);
             vd.req_tokens_integers_exactly(2);
             vd.warn_remaining();
         }
 
-        let mut vd = Validator::new(&self.block, "game concept");
+        let mut vd = Validator::new(&self.block);
         vd.opt_field_list("alias");
         vd.opt_field_value("parent");
         vd.opt_field_value("texture");
