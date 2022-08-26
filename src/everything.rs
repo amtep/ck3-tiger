@@ -12,6 +12,7 @@ use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::interactions::Interactions;
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
+use crate::prov_history::ProvinceHistories;
 use crate::provinces::Provinces;
 
 #[derive(Debug, Error)]
@@ -74,6 +75,9 @@ pub struct Everything {
 
     /// Processed map data
     provinces: Provinces,
+
+    /// Processed history/provinces data
+    province_histories: ProvinceHistories,
 }
 
 impl Everything {
@@ -114,6 +118,7 @@ impl Everything {
             decisions: Decisions::default(),
             interactions: Interactions::default(),
             provinces: Provinces::default(),
+            province_histories: ProvinceHistories::default(),
         })
     }
 
@@ -208,6 +213,16 @@ impl Everything {
         self.provinces.finalize();
     }
 
+    pub fn load_province_histories(&mut self) {
+        self.province_histories.config(&self.config);
+        let subpath = self.province_histories.subpath();
+        for entry in self.fileset.get_files_under(&subpath) {
+            self.province_histories
+                .handle_file(entry, &self.fullpath(entry));
+        }
+        self.province_histories.finalize();
+    }
+
     pub fn load_all(&mut self) {
         self.load_errorkey_config();
         self.load_localizations();
@@ -215,6 +230,7 @@ impl Everything {
         self.load_decisions();
         self.load_interactions();
         self.load_provinces();
+        self.load_province_histories();
     }
 
     pub fn check_have_localizations(&self) {

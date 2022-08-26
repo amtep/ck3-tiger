@@ -40,6 +40,10 @@ impl Block {
         self.v.push((Some(key), cmp, value));
     }
 
+    pub fn append(&mut self, other: &mut Block) {
+        self.v.append(&mut other.v);
+    }
+
     pub fn filename(&self) -> Cow<str> {
         self.loc.filename()
     }

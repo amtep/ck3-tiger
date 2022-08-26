@@ -12,7 +12,7 @@ use crate::provinces::parse::{parse_csv, read_csv};
 
 mod parse;
 
-type ProvId = u32;
+pub type ProvId = u32;
 
 #[derive(Clone, Debug, Default)]
 pub struct Provinces {

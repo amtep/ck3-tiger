@@ -1,14 +1,20 @@
 use anyhow::Result;
-use std::fs::read_to_string;
+use encoding::all::WINDOWS_1252;
+use encoding::{DecoderTrap, Encoding};
+use std::fs::{read, read_to_string};
 use std::path::Path;
 
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::warn;
+use crate::errors::{warn, warn_info};
 use crate::fileset::FileKind;
 use crate::pdxfile::parse::parse_pdx;
 
 mod parse;
+
+/// If a windows-1252 file mistakenly starts with a UTF-8 BOM, this is
+/// what it will look like after decoding
+const BOM_FROM_1252: &str = "\u{00ef}\u{00bb}\u{00bf}";
 
 pub struct PdxFile;
 
@@ -28,6 +34,25 @@ impl PdxFile {
                 ErrorKey::Encoding,
                 "file must start with a UTF-8 BOM",
             );
+            parse_pdx(pathname, kind, &contents)
+        }
+    }
+
+    pub fn read_cp1252(pathname: &Path, kind: FileKind, fullpath: &Path) -> Result<Block> {
+        let bytes = read(fullpath)?;
+        let contents = WINDOWS_1252
+            .decode(&bytes, DecoderTrap::Strict)
+            .map_err(anyhow::Error::msg)?;
+
+        if let Some(bomless) = contents.strip_prefix(BOM_FROM_1252) {
+            warn_info(
+                (pathname, kind),
+                ErrorKey::Encoding,
+                "file must not start with a UTF-8 BOM",
+                "This kind of file must be in Windows-1252 encoding",
+            );
+            parse_pdx(pathname, kind, bomless)
+        } else {
             parse_pdx(pathname, kind, &contents)
         }
     }
