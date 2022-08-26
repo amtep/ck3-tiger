@@ -22,23 +22,75 @@ pub struct Events {
 }
 
 impl Events {
-    pub fn load_event(&mut self, key: Token, block: &Block) {
-        if let Some(other) = self.events.get(key.as_str()) {
+    fn load_event(&mut self, key: &Token, block: &Block, namespaces: &[&str]) {
+        let mut namespace_ok = false;
+        if namespaces.is_empty() {
+            error(
+                key,
+                ErrorKey::EventNamespace,
+                "Event files must start with a namespace declaration",
+            );
+        } else if let Some((key_a, key_b)) = key.as_str().split_once('.') {
+            if key_b.chars().all(|c| c.is_ascii_digit()) {
+                if namespaces.contains(&key_a) {
+                    namespace_ok = true;
+                } else {
+                    warn_info(key, ErrorKey::EventNamespace, "Event name should start with namespace", "If the event doesn't match its namespace, the game can't properly find the event when triggering it.");
+                }
+            } else {
+                warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
+            }
+        } else {
+            warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
+        }
+
+        if namespace_ok {
+            if let Some(other) = self.events.get(key.as_str()) {
+                if will_log(key, ErrorKey::Duplicate) {
+                    error(
+                        key,
+                        ErrorKey::Duplicate,
+                        "event redefines an existing event",
+                    );
+                    info(&other.key, ErrorKey::Duplicate, "the other event is here");
+                }
+            }
+            self.events
+                .insert(key.to_string(), Event::new(key.clone(), block.clone()));
+        } else {
+            self.error_events.insert(key.to_string(), key.clone());
+        }
+    }
+
+    fn load_scripted_trigger(&mut self, key: Token, block: &Block) {
+        if let Some(other) = self.scripted_triggers.get(key.as_str()) {
             if will_log(&key, ErrorKey::Duplicate) {
                 error(
                     &key,
                     ErrorKey::Duplicate,
-                    "event redefines an existing event",
+                    "scripted trigger redefines an existing trigger",
                 );
-                info(&other.key, ErrorKey::Duplicate, "the other event is here");
+                info(&other.key, ErrorKey::Duplicate, "the other trigger is here");
             }
         }
-        self.events
-            .insert(key.to_string(), Event::new(key, block.clone()));
+        self.scripted_triggers
+            .insert(key.to_string(), ScriptedTrigger::new(key, block.clone()));
     }
 
-    pub fn load_scripted_trigger(&mut self, _key: Token, _block: &Block) {}
-    pub fn load_scripted_effect(&mut self, _key: Token, _block: &Block) {}
+    fn load_scripted_effect(&mut self, key: Token, block: &Block) {
+        if let Some(other) = self.scripted_effects.get(key.as_str()) {
+            if will_log(&key, ErrorKey::Duplicate) {
+                error(
+                    &key,
+                    ErrorKey::Duplicate,
+                    "scripted effect redefines an existing effect",
+                );
+                info(&other.key, ErrorKey::Duplicate, "the other effect is here");
+            }
+        }
+        self.scripted_effects
+            .insert(key.to_string(), ScriptedEffect::new(key, block.clone()));
+    }
 
     pub fn check_have_localizations(&self, locs: &Localization) {
         for event in self.events.values() {
@@ -136,32 +188,7 @@ impl FileHandler for Events {
                         expecting = Expecting::Event;
                     }
                     Expecting::Event => {
-                        let mut namespace_ok = false;
-                        if namespaces.is_empty() {
-                            error(
-                                key,
-                                ErrorKey::EventNamespace,
-                                "Event files must start with a namespace declaration",
-                            );
-                        } else if let Some((key_a, key_b)) = key.as_str().split_once('.') {
-                            if key_b.chars().all(|c| c.is_ascii_digit()) {
-                                if namespaces.contains(&key_a) {
-                                    namespace_ok = true;
-                                } else {
-                                    warn_info(key, ErrorKey::EventNamespace, "Event name should start with namespace", "If the event doesn't match its namespace, the game can't properly find the event when triggering it.");
-                                }
-                            } else {
-                                warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
-                            }
-                        } else {
-                            warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
-                        }
-
-                        if namespace_ok {
-                            self.load_event(key.clone(), b);
-                        } else {
-                            self.error_events.insert(key.to_string(), key.clone());
-                        }
+                        self.load_event(key, b, &namespaces);
                     }
                 },
             }
@@ -230,7 +257,25 @@ impl Event {
 }
 
 #[derive(Clone, Debug)]
-pub struct ScriptedTrigger {}
+pub struct ScriptedTrigger {
+    key: Token,
+    block: Block,
+}
+
+impl ScriptedTrigger {
+    fn new(key: Token, block: Block) -> Self {
+        Self { key, block }
+    }
+}
 
 #[derive(Clone, Debug)]
-pub struct ScriptedEffect {}
+pub struct ScriptedEffect {
+    key: Token,
+    block: Block,
+}
+
+impl ScriptedEffect {
+    fn new(key: Token, block: Block) -> Self {
+        Self { key, block }
+    }
+}

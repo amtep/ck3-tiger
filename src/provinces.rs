@@ -1,5 +1,5 @@
 use fnv::{FnvHashMap, FnvHashSet};
-use image::{DynamicImage, Pixel, Rgb};
+use image::{DynamicImage, Rgb};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
@@ -31,8 +31,8 @@ pub struct Provinces {
 }
 
 impl Provinces {
-    fn parse_definition(&mut self, csv: Vec<Token>) {
-        if let Some(province) = Province::parse(&csv) {
+    fn parse_definition(&mut self, csv: &[Token]) {
+        if let Some(province) = Province::parse(csv) {
             if self.provinces.contains_key(&province.id) {
                 error(
                     &province.comment,
@@ -106,7 +106,7 @@ impl FileHandler for Provinces {
                         }
                     };
                     for csv in parse_csv(entry, 0, &content) {
-                        self.parse_definition(csv);
+                        self.parse_definition(&csv);
                     }
                 }
                 "provinces.png" => {
@@ -135,7 +135,6 @@ impl FileHandler for Provinces {
                                 img.color()
                             ),
                         );
-                        return;
                     }
                 }
                 _ => (),
@@ -292,7 +291,7 @@ impl Province {
         let r = _verify(&csv[1], "expected red value")?;
         let g = _verify(&csv[2], "expected green value")?;
         let b = _verify(&csv[3], "expected blue value")?;
-        let color = Pixel::from_channels(r, g, b, 0);
+        let color = Rgb::from([r, g, b]);
         Some(Province {
             id,
             valid: !csv[4].as_str().is_empty(),

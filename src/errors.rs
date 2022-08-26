@@ -170,6 +170,7 @@ impl Errors {
     }
 
     #[allow(unused_must_use)] // If logging errors fails, there's not much we can do
+    #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
     pub fn push<E: ErrorLoc>(
         &mut self,
         eloc: E,
@@ -241,6 +242,8 @@ pub fn log_to(outfile: Box<dyn ErrorLogger>) {
     Errors::get_mut().outfile = Some(outfile);
 }
 
+/// # Panics
+/// Can panic if it is called without a previous `log_to()` call.
 pub fn take_log_to() -> Box<dyn ErrorLogger> {
     Errors::get_mut().outfile.take().unwrap()
 }

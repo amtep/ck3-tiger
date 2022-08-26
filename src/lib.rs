@@ -9,6 +9,10 @@
 #![warn(noop_method_call)]
 #![warn(trivial_casts)]
 #![warn(trivial_numeric_casts)]
+// As long as the validator is so unfinished, this warning is just noise
+// Unfortunately we can't set it to warn only on unused functions. It keeps
+// warning about struct fields.
+#![allow(dead_code)]
 
 pub mod errorkey;
 pub mod errors;

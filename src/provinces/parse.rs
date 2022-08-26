@@ -78,9 +78,7 @@ impl<'a> CsvParser<'a> {
                 break;
             }
         }
-        if self.chars.peek().is_none() {
-            return None;
-        }
+        self.chars.peek()?;
 
         let mut vec = Vec::new();
         let mut loc = self.loc.clone();

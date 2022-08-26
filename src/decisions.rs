@@ -15,10 +15,6 @@ use crate::validate::{Validate, ValidationError};
 #[derive(Clone, Debug, Default)]
 pub struct Decisions {
     decisions: FnvHashMap<String, DecisionEntry>,
-
-    // These decisions are known to exist, so don't warn abour them not being found,
-    // but they had errors on validation.
-    error_decisions: FnvHashMap<String, Token>,
 }
 
 impl Decisions {

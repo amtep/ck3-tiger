@@ -149,7 +149,7 @@ impl Block {
     }
 
     pub fn dbg_keys(&self) {
-        for (k, _, _) in self.v.iter() {
+        for (k, _, _) in &self.v {
             if let Some(k) = k {
                 let key = k.as_str();
                 dbg!(key);

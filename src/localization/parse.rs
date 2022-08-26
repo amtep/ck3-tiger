@@ -421,10 +421,7 @@ impl<'a> LocaParser<'a> {
         self.value.push(LocaValue::Text(Token::new(s, loc)));
     }
 
-    /// Return the next `LocaEntry`, or None if there are no more in the file.
-    fn parse_loca(&mut self) -> Option<LocaEntry> {
-        // Loop until we have a key. Once we have a key, we'll definitely
-        // return a LocaEntry for the current line, though it might be an Error.
+    fn skip_until_key(&mut self) {
         loop {
             // Skip comments and blank lines
             self.skip_whitespace();
@@ -438,11 +435,18 @@ impl<'a> LocaParser<'a> {
                 Some(_) => {
                     self.unexpected_char("expected localization key");
                     self.skip_line();
-                    continue;
                 }
-                None => return None,
+                None => break,
             }
         }
+    }
+
+    /// Return the next `LocaEntry`, or None if there are no more in the file.
+    fn parse_loca(&mut self) -> Option<LocaEntry> {
+        // Loop until we have a key. Once we have a key, we'll definitely
+        // return a LocaEntry for the current line, though it might be an Error entry.
+        self.skip_until_key();
+        self.chars.peek()?;
 
         let key = self.get_key();
         self.skip_linear_whitespace();
@@ -466,7 +470,7 @@ impl<'a> LocaParser<'a> {
         // Now we should see the value. But what if the line ends here?
         if matches!(self.chars.peek(), Some('#' | '\n') | None) {
             if self.expecting_language {
-                if key.as_str() != format!("l_{}", self.language) {
+                if !key.is(&format!("l_{}", self.language)) {
                     error(
                         key,
                         ErrorKey::Localization,
@@ -555,17 +559,12 @@ impl<'a> LocaParser<'a> {
         }
 
         self.skip_line();
-        if self.value.len() == 1 {
-            Some(LocaEntry {
-                key,
-                value: std::mem::take(&mut self.value[0]),
-            })
+        let value = if self.value.len() == 1 {
+            std::mem::take(&mut self.value[0])
         } else {
-            Some(LocaEntry {
-                key,
-                value: LocaValue::Concat(std::mem::take(&mut self.value)),
-            })
-        }
+            LocaValue::Concat(std::mem::take(&mut self.value))
+        };
+        Some(LocaEntry { key, value })
     }
 }
 

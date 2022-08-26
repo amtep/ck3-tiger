@@ -10,12 +10,18 @@ use crate::pdxfile::PdxFile;
 use crate::validate::{Validate, ValidationError};
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)] // remove when TODO are fixed
 pub struct ModFile {
     name: Token,
     path: Option<Token>,
+    // TODO: implement this in Fileset
     replace_path: Vec<Token>,
     version: Token,
+    // TODO: check that these are tags accepted by steam ?
     tags: Option<Vec<Token>>,
+    // TODO: check if the version is compatible with the validator.
+    // (Newer means the validator is too old, older means it's not up to date
+    // with current CK3)
     supported_version: Option<Token>,
     remote_file_id: Option<Token>,
     picture: Option<Token>,
