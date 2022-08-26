@@ -123,6 +123,36 @@ impl Localization {
             }
         }
     }
+
+    fn check_game_concepts(&self, value: &LocaValue, lang: &str) {
+        match value {
+            LocaValue::Concat(v) => {
+                for value in v {
+                    self.check_game_concepts(value, lang);
+                }
+            }
+            LocaValue::Code(chain, _)
+                if chain.codes.len() == 1
+                    && chain.codes[0].arguments.is_empty()
+                    && chain.codes[0].name.as_str().chars().all(char::is_lowercase) =>
+            {
+                let key = format!("game_concept_{}", chain.codes[0].name.as_str());
+                // duplicate some of verify_have_key because we should only check the current lang
+                let hash = self.locas.get(lang);
+                if hash.is_none() || !hash.unwrap().contains_key(&key) {
+                    error(
+                        &chain.codes[0].name,
+                        ErrorKey::MissingLocalization,
+                        &format!(
+                            "missing {} localization key {} for {}",
+                            lang, key, "game concept"
+                        ),
+                    );
+                }
+            }
+            _ => (),
+        }
+    }
 }
 
 impl FileHandler for Localization {
@@ -239,6 +269,7 @@ impl FileHandler for Localization {
     fn finalize(&mut self) {
         // Does every macro use refer to a defined key?
         // First build the list of builtin macros by just checking which ones vanilla uses.
+        // TODO: scan the character interactions, which can also define macros
         let mut builtins = FnvHashSet::default();
         for lang in self.locas.values() {
             for entry in lang.values() {
@@ -263,10 +294,7 @@ impl FileHandler for Localization {
 
         for lang in self.locas.values() {
             for entry in lang.values() {
-                if entry.key.loc.kind == FileKind::VanillaFile {
-                    // Only warn for mod files
-                    continue;
-                }
+                let _pause = LogPauseRaii::new(entry.key.loc.kind == FileKind::VanillaFile);
 
                 if let LocaValue::Macro(ref v) = entry.value {
                     for macrovalue in v {
@@ -281,6 +309,16 @@ impl FileHandler for Localization {
                         }
                     }
                 }
+            }
+        }
+
+        // Does every `[concept]` reference have a defined `game_concept_` key?
+        // TODO: expand macros, don't just skip them
+        for (lang, hash) in &self.locas {
+            for entry in hash.values() {
+                let _pause = LogPauseRaii::new(entry.key.loc.kind == FileKind::VanillaFile);
+
+                self.check_game_concepts(&entry.value, lang);
             }
         }
     }
