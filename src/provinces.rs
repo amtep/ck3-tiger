@@ -3,7 +3,7 @@ use image::{DynamicImage, Rgb};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use crate::block::{Block, Loc, Token};
+use crate::block::{Loc, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, LogPauseRaii};
 use crate::everything::FileHandler;
@@ -49,8 +49,6 @@ impl FileHandler for Provinces {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("map_data")
     }
-
-    fn config(&mut self, _config: &Block) {}
 
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
         let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);

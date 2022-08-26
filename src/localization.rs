@@ -156,10 +156,6 @@ impl Localization {
 }
 
 impl FileHandler for Localization {
-    fn subpath(&self) -> PathBuf {
-        PathBuf::from("localization")
-    }
-
     fn config(&mut self, config: &Block) {
         let mut langs: Vec<&str> = Vec::new();
 
@@ -176,6 +172,10 @@ impl FileHandler for Localization {
             }
             self.check_langs = langs;
         }
+    }
+
+    fn subpath(&self) -> PathBuf {
+        PathBuf::from("localization")
     }
 
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {

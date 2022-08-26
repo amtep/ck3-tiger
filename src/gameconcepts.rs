@@ -48,8 +48,6 @@ impl FileHandler for GameConcepts {
         PathBuf::from("common/game_concepts")
     }
 
-    fn config(&mut self, _config: &Block) {}
-
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return;

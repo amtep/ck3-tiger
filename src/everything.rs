@@ -38,7 +38,7 @@ pub enum FilesError {
 /// A trait for a submodule that can process files.
 pub trait FileHandler {
     /// The `FileHandler` can read settings it needs from the mod-validator config.
-    fn config(&mut self, config: &Block);
+    fn config(&mut self, _config: &Block) {}
 
     /// Which files this handler is interested in.
     /// This is a directory prefix of files it wants to handle,
@@ -51,7 +51,7 @@ pub trait FileHandler {
 
     /// This is called after all files have been handled.
     /// The `FileHandler` can generate indexes, perform full-data checks, etc.
-    fn finalize(&mut self);
+    fn finalize(&mut self) {}
 }
 
 #[derive(Clone, Debug)]

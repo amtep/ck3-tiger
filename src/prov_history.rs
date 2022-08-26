@@ -38,8 +38,6 @@ impl FileHandler for ProvinceHistories {
         PathBuf::from("history/provinces")
     }
 
-    fn config(&mut self, _config: &Block) {}
-
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
         let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
 
@@ -85,8 +83,6 @@ impl FileHandler for ProvinceHistories {
             }
         }
     }
-
-    fn finalize(&mut self) {}
 }
 
 #[derive(Clone, Debug)]

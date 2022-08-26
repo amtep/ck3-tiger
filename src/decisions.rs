@@ -57,8 +57,6 @@ impl FileHandler for Decisions {
         PathBuf::from("common/decisions")
     }
 
-    fn config(&mut self, _config: &Block) {}
-
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return;
@@ -106,8 +104,6 @@ impl FileHandler for Decisions {
             }
         }
     }
-
-    fn finalize(&mut self) {}
 }
 
 #[derive(Clone, Debug)]

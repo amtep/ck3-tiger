@@ -104,8 +104,6 @@ impl FileHandler for Events {
         PathBuf::from("events")
     }
 
-    fn config(&mut self, _config: &Block) {}
-
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
         #[derive(Copy, Clone)]
         enum Expecting {
@@ -194,8 +192,6 @@ impl FileHandler for Events {
             }
         }
     }
-
-    fn finalize(&mut self) {}
 }
 
 #[derive(Clone, Debug)]

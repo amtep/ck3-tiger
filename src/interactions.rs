@@ -55,8 +55,6 @@ impl FileHandler for Interactions {
         PathBuf::from("common/character_interactions")
     }
 
-    fn config(&mut self, _config: &Block) {}
-
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return;
@@ -104,8 +102,6 @@ impl FileHandler for Interactions {
             }
         }
     }
-
-    fn finalize(&mut self) {}
 }
 
 #[derive(Clone, Debug)]
