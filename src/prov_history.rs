@@ -1,4 +1,4 @@
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
 
 use crate::block::{Block, Date, DefinitionItem, Token};
@@ -8,6 +8,7 @@ use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
 use crate::provinces::ProvId;
 use crate::religions::Religions;
+use crate::titles::Titles;
 
 #[derive(Clone, Debug, Default)]
 pub struct ProvinceHistories {
@@ -32,25 +33,29 @@ impl ProvinceHistories {
         }
     }
 
-    pub fn check_pod_faiths(&self, religions: &Religions) {
+    pub fn check_pod_faiths(&self, religions: &Religions, titles: &Titles) {
+        let mut warned = FnvHashSet::default();
+
         for bookmark in [
             Date::new(1230, 1, 4),
-            Date::new(1375, 7, 5),
             Date::new(1230, 1, 5),
-            Date::new(1510, 1, 3),
             Date::new(1230, 1, 6),
+            Date::new(1375, 7, 5),
+            Date::new(1510, 1, 3),
         ] {
-            for provhist in self.provinces.values() {
-                let religion = provhist.block.get_field_at_date("religion", bookmark);
-                if let Some(religion) = religion.and_then(|v| v.into_value()) {
-                    if let Some(faith) = religions.faiths.get(religion.as_str()) {
-                        if faith.kind() == FileKind::VanillaFile {
-                            // TODO: also check that this is a capital barony.
-                            // let msg = format!(
-                            //     "Vanilla religion in county {} at {}",
-                            //     provhist.key, bookmark
-                            // );
-                            // warn(religion, ErrorKey::PrincesOfDarkness, &msg);
+            for (provid, provhist) in &self.provinces {
+                if let Some(capital) = titles.capital_of(*provid) {
+                    let religion = provhist.block.get_field_at_date("religion", bookmark);
+                    if let Some(religion) = religion.and_then(|v| v.into_value()) {
+                        if let Some(faith) = religions.faiths.get(religion.as_str()) {
+                            if faith.kind() == FileKind::VanillaFile && !warned.contains(provid) {
+                                let msg = format!(
+                                    "Vanilla religion in prov {} (county {}) at {}",
+                                    provhist.key, capital, bookmark
+                                );
+                                warn(religion, ErrorKey::PrincesOfDarkness, &msg);
+                                warned.insert(provid);
+                            }
                         }
                     }
                 }

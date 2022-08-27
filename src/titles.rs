@@ -71,7 +71,7 @@ impl Titles {
         key: Token,
         block: &Block,
         values: Vec<(Token, Token)>,
-        capital: bool,
+        capital_of: Option<Token>,
     ) {
         if let Some(other) = self.titles.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind && will_log(&key, ErrorKey::Duplicate) {
@@ -88,7 +88,7 @@ impl Titles {
             key.clone(),
             block.clone(),
             values.clone(),
-            capital,
+            capital_of,
         ));
         self.titles.insert(key.to_string(), title.clone());
 
@@ -108,7 +108,8 @@ impl Titles {
                     let msg = format!("can't put a {} inside a {}", tier, parent_tier);
                     error(k, ErrorKey::Validation, &msg);
                 }
-                self.load_item(k.clone(), v, values.clone(), capital);
+                let capital_of = if capital { Some(key.clone()) } else { None };
+                self.load_item(k.clone(), v, values.clone(), capital_of);
                 capital = false;
             }
         }
@@ -121,6 +122,10 @@ impl Titles {
         for title in self.titles.values() {
             title.check_have_locas(locas);
         }
+    }
+
+    pub fn capital_of(&self, prov: ProvId) -> Option<&Token> {
+        self.baronies.get(&prov).and_then(|b| b.capital_of.as_ref())
     }
 }
 
@@ -166,7 +171,7 @@ impl FileHandler for Titles {
                 }
                 DefinitionItem::Definition(key, b) => {
                     if Tier::try_from(key).is_ok() {
-                        self.load_item(key.clone(), b, defined_values.clone(), false);
+                        self.load_item(key.clone(), b, defined_values.clone(), None);
                     } else {
                         warn(key, ErrorKey::Validation, "expected title");
                     }
@@ -196,18 +201,23 @@ pub struct Title {
     values: Vec<(Token, Token)>,
     block: Block,
     tier: Tier,
-    is_capital: bool, // for baronies
+    capital_of: Option<Token>, // for baronies
 }
 
 impl Title {
-    pub fn new(key: Token, block: Block, values: Vec<(Token, Token)>, is_capital: bool) -> Self {
+    pub fn new(
+        key: Token,
+        block: Block,
+        values: Vec<(Token, Token)>,
+        capital_of: Option<Token>,
+    ) -> Self {
         let tier = Tier::try_from(&key).unwrap(); // guaranteed by caller
         Self {
             key,
             values,
             block,
             tier,
-            is_capital,
+            capital_of,
         }
     }
 

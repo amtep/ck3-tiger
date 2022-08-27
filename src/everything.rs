@@ -199,6 +199,7 @@ impl Everything {
     }
 
     pub fn check_pod(&mut self) {
-        self.province_histories.check_pod_faiths(&self.religions);
+        self.province_histories
+            .check_pod_faiths(&self.religions, &self.titles);
     }
 }
