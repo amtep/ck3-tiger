@@ -91,6 +91,11 @@ impl Block {
         self.get_field_value(name).map(|t| t.is("yes"))
     }
 
+    pub fn get_field_integer(&self, name: &str) -> Option<i64> {
+        self.get_field_value(name)
+            .and_then(|t| t.as_str().parse().ok())
+    }
+
     /// Get all the values of `name = value` assignments in this block
     pub fn get_field_values(&self, name: &str) -> Vec<Token> {
         let mut vec = Vec::new();
@@ -233,6 +238,13 @@ impl Block {
         self.v.iter()
     }
 
+    pub fn iter_definitions(&self) -> IterDefinitions {
+        IterDefinitions {
+            iter: self.v.iter(),
+            warn: false,
+        }
+    }
+
     pub fn iter_definitions_warn(&self) -> IterDefinitions {
         IterDefinitions {
             iter: self.v.iter(),
@@ -244,6 +256,13 @@ impl Block {
         IterPureDefinitions {
             iter: self.iter_definitions_warn(),
             warn: true,
+        }
+    }
+
+    pub fn iter_pure_definitions(&self) -> IterPureDefinitions {
+        IterPureDefinitions {
+            iter: self.iter_definitions(),
+            warn: false,
         }
     }
 

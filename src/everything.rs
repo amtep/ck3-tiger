@@ -16,6 +16,7 @@ use crate::pdxfile::PdxFile;
 use crate::prov_history::ProvinceHistories;
 use crate::provinces::Provinces;
 use crate::religions::Religions;
+use crate::titles::Titles;
 
 #[derive(Debug, Error)]
 pub enum FilesError {
@@ -67,6 +68,9 @@ pub struct Everything {
 
     /// Religions and faiths
     religions: Religions,
+
+    /// Landed titles
+    titles: Titles,
 }
 
 impl Everything {
@@ -112,6 +116,7 @@ impl Everything {
             province_histories: ProvinceHistories::default(),
             game_concepts: GameConcepts::default(),
             religions: Religions::default(),
+            titles: Titles::default(),
         })
     }
 
@@ -169,6 +174,7 @@ impl Everything {
         self.fileset.handle(&mut self.province_histories);
         self.fileset.handle(&mut self.game_concepts);
         self.fileset.handle(&mut self.religions);
+        self.fileset.handle(&mut self.titles);
     }
 
     pub fn check_have_localizations(&self) {
@@ -177,6 +183,7 @@ impl Everything {
         self.interactions.check_have_locas(&self.localizations);
         self.game_concepts.check_have_locas(&self.localizations);
         self.religions.check_have_locas(&self.localizations);
+        self.titles.check_have_locas(&self.localizations);
     }
 
     pub fn check_have_files(&self) {
