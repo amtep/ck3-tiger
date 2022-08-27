@@ -1,12 +1,13 @@
 use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
-use crate::block::{Block, DefinitionItem, Token};
+use crate::block::{Block, Date, DefinitionItem, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn, LogPauseRaii};
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
 use crate::provinces::ProvId;
+use crate::religions::Religions;
 
 #[derive(Clone, Debug, Default)]
 pub struct ProvinceHistories {
@@ -28,6 +29,32 @@ impl ProvinceHistories {
         } else {
             self.provinces
                 .insert(id, ProvinceHistory::new(key.clone(), b.clone()));
+        }
+    }
+
+    pub fn check_pod_faiths(&self, religions: &Religions) {
+        for bookmark in [
+            Date::new(1230, 1, 4),
+            Date::new(1375, 7, 5),
+            Date::new(1230, 1, 5),
+            Date::new(1510, 1, 3),
+            Date::new(1230, 1, 6),
+        ] {
+            for provhist in self.provinces.values() {
+                let religion = provhist.block.get_field_at_date("religion", bookmark);
+                if let Some(religion) = religion.and_then(|v| v.into_value()) {
+                    if let Some(faith) = religions.faiths.get(religion.as_str()) {
+                        if faith.kind() == FileKind::VanillaFile {
+                            // TODO: also check that this is a capital barony.
+                            // let msg = format!(
+                            //     "Vanilla religion in county {} at {}",
+                            //     provhist.key, bookmark
+                            // );
+                            // warn(religion, ErrorKey::PrincesOfDarkness, &msg);
+                        }
+                    }
+                }
+            }
         }
     }
 }

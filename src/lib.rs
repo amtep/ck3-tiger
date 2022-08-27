@@ -31,4 +31,5 @@ mod localization;
 mod pdxfile;
 mod prov_history;
 mod provinces;
+mod religions;
 mod validate;

@@ -15,6 +15,7 @@ use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 use crate::prov_history::ProvinceHistories;
 use crate::provinces::Provinces;
+use crate::religions::Religions;
 
 #[derive(Debug, Error)]
 pub enum FilesError {
@@ -63,6 +64,9 @@ pub struct Everything {
 
     /// Processed game concepts
     game_concepts: GameConcepts,
+
+    /// Religions and faiths
+    religions: Religions,
 }
 
 impl Everything {
@@ -107,6 +111,7 @@ impl Everything {
             provinces: Provinces::default(),
             province_histories: ProvinceHistories::default(),
             game_concepts: GameConcepts::default(),
+            religions: Religions::default(),
         })
     }
 
@@ -163,6 +168,7 @@ impl Everything {
         self.fileset.handle(&mut self.provinces);
         self.fileset.handle(&mut self.province_histories);
         self.fileset.handle(&mut self.game_concepts);
+        self.fileset.handle(&mut self.religions);
     }
 
     pub fn check_have_localizations(&self) {
@@ -170,16 +176,22 @@ impl Everything {
         self.events.check_have_locas(&self.localizations);
         self.interactions.check_have_locas(&self.localizations);
         self.game_concepts.check_have_locas(&self.localizations);
+        self.religions.check_have_locas(&self.localizations);
     }
 
     pub fn check_have_files(&self) {
         self.decisions.check_have_files(&self.fileset);
         self.interactions.check_have_files(&self.fileset);
         self.game_concepts.check_have_files(&self.fileset);
+        self.religions.check_have_files(&self.fileset);
     }
 
     pub fn check_all(&mut self) {
         self.check_have_localizations();
         self.check_have_files();
+    }
+
+    pub fn check_pod(&mut self) {
+        self.province_histories.check_pod_faiths(&self.religions);
     }
 }

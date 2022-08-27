@@ -32,8 +32,12 @@ struct Cli {
     /// Path to CK3 game directory.
     #[clap(long)]
     ck3: Option<PathBuf>,
+    /// Show errors in the base CK3 script code as well
     #[clap(long)]
     show_vanilla: bool,
+    /// Do checks specific to the Princes of Darkness mod
+    #[clap(long)]
+    pod: bool,
 }
 
 fn find_steamapps_directory() -> Option<PathBuf> {
@@ -114,6 +118,9 @@ fn main() -> Result<()> {
     let mut everything = Everything::new(&args.ck3.unwrap(), &modpath)?;
     everything.load_all();
     everything.check_all();
+    if args.pod {
+        everything.check_pod();
+    }
 
     Ok(())
 }

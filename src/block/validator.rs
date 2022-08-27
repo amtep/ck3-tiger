@@ -50,6 +50,18 @@ impl<'a> Validator<'a> {
         found
     }
 
+    pub fn req_field_list(&mut self, name: &'a str) -> bool {
+        let found = self.opt_field_list(name);
+        if !found {
+            error(
+                &self.block.loc,
+                ErrorKey::Validation,
+                &format!("required field `{}` missing", name),
+            );
+        }
+        found
+    }
+
     pub fn req_field_block(&mut self, name: &'a str) -> bool {
         let found = self.opt_field_block(name);
         if !found {
@@ -64,6 +76,18 @@ impl<'a> Validator<'a> {
 
     pub fn req_field_blocks(&mut self, name: &'a str) -> bool {
         let found = self.opt_field_blocks(name);
+        if !found {
+            error(
+                &self.block.loc,
+                ErrorKey::Validation,
+                &format!("required field `{}` missing", name),
+            );
+        }
+        found
+    }
+
+    pub fn req_field_values(&mut self, name: &'a str) -> bool {
+        let found = self.opt_field_values(name);
         if !found {
             error(
                 &self.block.loc,
@@ -89,6 +113,33 @@ impl<'a> Validator<'a> {
         found
     }
 
+    pub fn req_field_validated_block<F>(&mut self, name: &'a str, f: F) -> bool
+    where
+        F: Fn(&Block),
+    {
+        let found = self.opt_field_validated_block(name, f);
+        if !found {
+            error(
+                &self.block.loc,
+                ErrorKey::Validation,
+                &format!("required field `{}` missing", name),
+            );
+        }
+        found
+    }
+
+    pub fn req_field(&mut self, name: &'a str) -> bool {
+        let found = self.opt_field(name);
+        if !found {
+            error(
+                &self.block.loc,
+                ErrorKey::Validation,
+                &format!("required field `{}` missing", name),
+            );
+        }
+        found
+    }
+
     pub fn opt_field_check<F>(&mut self, name: &'a str, mut f: F) -> bool
     where
         F: FnMut(&BlockOrValue),
@@ -102,7 +153,7 @@ impl<'a> Validator<'a> {
                     if found {
                         warn(
                             key,
-                            ErrorKey::Validation,
+                            ErrorKey::Duplicate,
                             &format!("multiple definitions of `{}`, expected only one.", key),
                         );
                     }
@@ -208,9 +259,10 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn opt_field_values(&mut self, name: &'a str) {
+    pub fn opt_field_values(&mut self, name: &'a str) -> bool {
         self.known_fields.push(name);
 
+        let mut found = false;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
@@ -227,17 +279,20 @@ impl<'a> Validator<'a> {
                             error(s, ErrorKey::Validation, "expected value, found block");
                         }
                     }
+                    found = true;
                 }
             }
         }
+        found
     }
 
-    pub fn opt_field_validated_blocks<F>(&mut self, name: &'a str, f: F)
+    pub fn opt_field_validated_blocks<F>(&mut self, name: &'a str, f: F) -> bool
     where
         F: Fn(&Block),
     {
         self.known_fields.push(name);
 
+        let mut found = false;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
@@ -255,11 +310,13 @@ impl<'a> Validator<'a> {
                         BlockOrValue::Block(s) => f(s),
                     }
                 }
+                found = true;
             }
         }
+        found
     }
 
-    pub fn opt_field_validated_block<F>(&mut self, name: &'a str, f: F)
+    pub fn opt_field_validated_block<F>(&mut self, name: &'a str, f: F) -> bool
     where
         F: Fn(&Block),
     {
@@ -272,7 +329,7 @@ impl<'a> Validator<'a> {
                     if found {
                         warn(
                             key,
-                            ErrorKey::Validation,
+                            ErrorKey::Duplicate,
                             &format!("multiple definitions of `{}`, expected only one.", key),
                         );
                     }
@@ -293,6 +350,7 @@ impl<'a> Validator<'a> {
                 }
             }
         }
+        found
     }
 
     pub fn opt_field_blocks(&mut self, name: &'a str) -> bool {

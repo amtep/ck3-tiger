@@ -3,6 +3,7 @@ use std::ffi::OsStr;
 use std::fmt::{Display, Error, Formatter};
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::str::FromStr;
 
 pub mod validator;
 
@@ -15,6 +16,29 @@ use crate::fileset::FileKind;
 pub enum BlockOrValue {
     Token(Token),
     Block(Block),
+}
+
+impl BlockOrValue {
+    pub fn get_block(&self) -> Option<&Block> {
+        match self {
+            BlockOrValue::Token(_) => None,
+            BlockOrValue::Block(b) => Some(b),
+        }
+    }
+
+    pub fn get_value(&self) -> Option<&Token> {
+        match self {
+            BlockOrValue::Token(t) => Some(t),
+            BlockOrValue::Block(_) => None,
+        }
+    }
+
+    pub fn into_value(self) -> Option<Token> {
+        match self {
+            BlockOrValue::Token(t) => Some(t),
+            BlockOrValue::Block(_) => None,
+        }
+    }
 }
 
 type BlockItem = (Option<Token>, Comparator, BlockOrValue);
@@ -156,6 +180,35 @@ impl Block {
         vec
     }
 
+    /// Get all the unkeyed blocks in this block
+    pub fn get_sub_blocks(&self) -> Vec<Block> {
+        let mut vec = Vec::new();
+        for (k, _, v) in &self.v {
+            if k.is_none() {
+                match v {
+                    BlockOrValue::Token(_) => (),
+                    BlockOrValue::Block(b) => vec.push(b.clone()),
+                }
+            }
+        }
+        vec
+    }
+
+    /// Get all the token = token items in this block
+    pub fn get_assignments(&self) -> Vec<(&Token, &Token)> {
+        let mut vec = Vec::new();
+        for (k, cmp, v) in &self.v {
+            if let Some(key) = k {
+                if matches!(cmp, Comparator::Eq) {
+                    match v {
+                        BlockOrValue::Token(t) => vec.push((key, t)),
+                        BlockOrValue::Block(_) => (),
+                    }
+                }
+            }
+        }
+        vec
+    }
     pub fn dbg_keys(&self) {
         for (k, _, _) in &self.v {
             if let Some(k) = k {
@@ -185,6 +238,34 @@ impl Block {
             iter: self.v.iter(),
             warn: true,
         }
+    }
+
+    pub fn iter_pure_definitions_warn(&self) -> IterPureDefinitions {
+        IterPureDefinitions {
+            iter: self.iter_definitions_warn(),
+            warn: true,
+        }
+    }
+
+    pub fn get_field_at_date(&self, name: &str, date: Date) -> Option<BlockOrValue> {
+        let mut found_date: Option<Date> = None;
+        let mut found: Option<&BlockOrValue> = None;
+
+        for (k, _, v) in &self.v {
+            if let Some(k) = k {
+                if k.is(name) && found_date.is_none() {
+                    found = Some(v);
+                } else if let Ok(isdate) = Date::try_from(k) {
+                    if isdate <= date && (found_date.is_none() || found_date.unwrap() < isdate) {
+                        if let Some(value) = v.get_block().and_then(|b| b.get_field(name)) {
+                            found_date = Some(isdate);
+                            found = Some(value);
+                        }
+                    }
+                }
+            }
+        }
+        found.cloned()
     }
 }
 
@@ -392,5 +473,87 @@ impl<'a> Iterator for IterDefinitions<'a> {
             }
         }
         None
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct IterPureDefinitions<'a> {
+    iter: IterDefinitions<'a>,
+    warn: bool,
+}
+
+impl<'a> Iterator for IterPureDefinitions<'a> {
+    type Item = (&'a Token, &'a Block);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for def in self.iter.by_ref() {
+            match def {
+                DefinitionItem::Keyword(t) => {
+                    if self.warn {
+                        error_info(
+                            t,
+                            ErrorKey::Validation,
+                            "unexpected token",
+                            "Did you forget an = ?",
+                        );
+                    }
+                }
+                DefinitionItem::Assignment(key, _) => {
+                    if self.warn {
+                        error(key, ErrorKey::Validation, "unexpected assignment");
+                    }
+                }
+                DefinitionItem::Definition(key, block) => {
+                    return Some((key, block));
+                }
+            }
+        }
+        None
+    }
+}
+
+#[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
+pub struct Date {
+    year: i16,
+    month: i8,
+    day: i8,
+}
+
+impl Date {
+    pub fn new(year: i16, month: i8, day: i8) -> Self {
+        Date { year, month, day }
+    }
+}
+
+impl FromStr for Date {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut splits = s.split('.');
+        let year = splits.next().ok_or(Error)?;
+        let month = splits.next().ok_or(Error)?;
+        let day = splits.next().ok_or(Error)?;
+        if splits.next().is_some() {
+            return Err(Error);
+        }
+        Ok(Date {
+            year: year.parse().map_err(|_| Error)?,
+            month: month.parse().map_err(|_| Error)?,
+            day: day.parse().map_err(|_| Error)?,
+        })
+    }
+}
+
+impl TryFrom<&Token> for Date {
+    type Error = Error;
+
+    fn try_from(value: &Token) -> Result<Self, Self::Error> {
+        value.as_str().parse()
+    }
+}
+
+impl Display for Date {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        write!(f, "{}.{}.{}", self.year, self.month, self.day)
     }
 }
