@@ -3,6 +3,7 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::must_use_candidate)]
+#![allow(clippy::module_name_repetitions)]
 // Turn on some rustc lints
 #![warn(future_incompatible)]
 #![warn(missing_copy_implementations)]

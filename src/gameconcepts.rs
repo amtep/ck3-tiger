@@ -129,6 +129,7 @@ impl Concept {
             vd.advice_field("framesize", "not needed without texture");
             vd.advice_field("frame", "not needed without texture");
         }
+        vd.opt_field_value("requires_dlc_flag");
         vd.warn_remaining();
     }
 

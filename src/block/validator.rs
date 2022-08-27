@@ -24,37 +24,10 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn req_field_value(&mut self, name: &'a str) {
-        self.known_fields.push(name);
+    // TODO: add a helper function for these req_ functions
 
-        let mut found = false;
-        for (k, cmp, v) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    if found {
-                        warn(
-                            key,
-                            ErrorKey::Validation,
-                            &format!("multiple definitions of `{}`, expected only one.", key),
-                        );
-                    }
-                    if !matches!(cmp, Comparator::Eq) {
-                        error(
-                            key,
-                            ErrorKey::Validation,
-                            &format!("expected `{} =`, found `{}`", key, cmp),
-                        );
-                    }
-                    match v {
-                        BlockOrValue::Token(_) => (),
-                        BlockOrValue::Block(s) => {
-                            error(s, ErrorKey::Validation, "expected value, found block");
-                        }
-                    }
-                    found = true;
-                }
-            }
-        }
+    pub fn req_field_value(&mut self, name: &'a str) -> bool {
+        let found = self.opt_field_value(name);
         if !found {
             error(
                 &self.block.loc,
@@ -62,11 +35,63 @@ impl<'a> Validator<'a> {
                 &format!("required field `{}` missing", name),
             );
         }
+        found
     }
 
-    pub fn opt_field_check<F>(&mut self, name: &'a str, mut f: F)
+    pub fn req_field_choice(&mut self, name: &'a str, choices: &[&str]) -> bool {
+        let found = self.opt_field_choice(name, choices);
+        if !found {
+            error(
+                &self.block.loc,
+                ErrorKey::Validation,
+                &format!("required field `{}` missing", name),
+            );
+        }
+        found
+    }
+
+    pub fn req_field_block(&mut self, name: &'a str) -> bool {
+        let found = self.opt_field_block(name);
+        if !found {
+            error(
+                &self.block.loc,
+                ErrorKey::Validation,
+                &format!("required field `{}` missing", name),
+            );
+        }
+        found
+    }
+
+    pub fn req_field_blocks(&mut self, name: &'a str) -> bool {
+        let found = self.opt_field_blocks(name);
+        if !found {
+            error(
+                &self.block.loc,
+                ErrorKey::Validation,
+                &format!("required field `{}` missing", name),
+            );
+        }
+        found
+    }
+
+    pub fn req_field_check<F>(&mut self, name: &'a str, f: F) -> bool
     where
-        F: FnMut(BlockOrValue),
+        F: FnMut(&BlockOrValue),
+    {
+        let found = self.opt_field_check(name, f);
+        if !found {
+            error(
+                &self.block.loc,
+                ErrorKey::Validation,
+                &format!("required field `{}` missing", name),
+            );
+        }
+        found
+    }
+
+    pub fn opt_field_check<F>(&mut self, name: &'a str, mut f: F) -> bool
+    where
+        F: FnMut(&BlockOrValue),
     {
         self.known_fields.push(name);
 
@@ -88,36 +113,37 @@ impl<'a> Validator<'a> {
                             &format!("expected `{} =`, found `{}`", key, cmp),
                         );
                     }
-                    f(v.clone());
+                    f(v);
                     found = true;
                 }
             }
         }
+        found
     }
 
-    pub fn opt_field(&mut self, name: &'a str) {
-        self.opt_field_check(name, |_| ());
+    pub fn opt_field(&mut self, name: &'a str) -> bool {
+        self.opt_field_check(name, |_| ())
     }
 
-    pub fn opt_field_value(&mut self, name: &'a str) {
+    pub fn opt_field_value(&mut self, name: &'a str) -> bool {
         self.opt_field_check(name, |v| match v {
             BlockOrValue::Token(_) => (),
             BlockOrValue::Block(s) => {
                 error(s, ErrorKey::Validation, "expected value, found block");
             }
-        });
+        })
     }
 
-    pub fn opt_field_block(&mut self, name: &'a str) {
+    pub fn opt_field_block(&mut self, name: &'a str) -> bool {
         self.opt_field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
                 error(t, ErrorKey::Validation, "expected block, found value");
             }
             BlockOrValue::Block(_) => (),
-        });
+        })
     }
 
-    pub fn opt_field_bool(&mut self, name: &'a str) {
+    pub fn opt_field_bool(&mut self, name: &'a str) -> bool {
         self.opt_field_check(name, |v| match v {
             BlockOrValue::Token(t) if t.is("yes") || t.is("no") => (),
             BlockOrValue::Token(t) => {
@@ -126,10 +152,10 @@ impl<'a> Validator<'a> {
             BlockOrValue::Block(s) => {
                 error(s, ErrorKey::Validation, "expected value, found block");
             }
-        });
+        })
     }
 
-    pub fn opt_field_integer(&mut self, name: &'a str) {
+    pub fn opt_field_integer(&mut self, name: &'a str) -> bool {
         self.opt_field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
                 if t.as_str().parse::<i32>().is_err() {
@@ -139,10 +165,24 @@ impl<'a> Validator<'a> {
             BlockOrValue::Block(s) => {
                 error(s, ErrorKey::Validation, "expected value, found block");
             }
-        });
+        })
     }
 
-    pub fn opt_field_list(&mut self, name: &'a str) {
+    pub fn opt_field_choice(&mut self, name: &'a str, choices: &[&str]) -> bool {
+        self.opt_field_check(name, |v| match v {
+            BlockOrValue::Token(t) => {
+                if !choices.contains(&t.as_str()) {
+                    let msg = format!("expected one of {}", choices.join(", "));
+                    error(t, ErrorKey::Validation, &msg);
+                }
+            }
+            BlockOrValue::Block(s) => {
+                error(s, ErrorKey::Validation, "expected value, found block");
+            }
+        })
+    }
+
+    pub fn opt_field_list(&mut self, name: &'a str) -> bool {
         self.opt_field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
                 error(t, ErrorKey::Validation, "expected block, found value");
@@ -165,13 +205,12 @@ impl<'a> Validator<'a> {
                     }
                 }
             }
-        });
+        })
     }
 
     pub fn opt_field_values(&mut self, name: &'a str) {
         self.known_fields.push(name);
 
-        let mut vec = Vec::new();
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
@@ -183,7 +222,7 @@ impl<'a> Validator<'a> {
                         );
                     }
                     match v {
-                        BlockOrValue::Token(t) => vec.push(t.clone()),
+                        BlockOrValue::Token(_) => (),
                         BlockOrValue::Block(s) => {
                             error(s, ErrorKey::Validation, "expected value, found block");
                         }
@@ -256,9 +295,10 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn opt_field_blocks(&mut self, name: &'a str) {
+    pub fn opt_field_blocks(&mut self, name: &'a str) -> bool {
         self.known_fields.push(name);
 
+        let mut found = false;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
@@ -275,9 +315,11 @@ impl<'a> Validator<'a> {
                         }
                         BlockOrValue::Block(_) => (),
                     }
+                    found = true;
                 }
             }
         }
+        found
     }
 
     pub fn req_tokens_integers_exactly(&mut self, expect: usize) {
@@ -300,12 +342,16 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn advice_field(&mut self, name: &str, msg: &str) {
+    pub fn advice_field(&mut self, name: &'a str, msg: &str) {
+        self.known_fields.push(name);
         if let Some(key) = self.block.get_key(name) {
             advice(key, ErrorKey::Unneeded, msg);
         }
     }
 
+    // TODO: make this execute on drop, and provide another function
+    // to tell it not to warn. This way, there's less risk of a function
+    // just forgetting to call warn_remaining.
     pub fn warn_remaining(&mut self) {
         for (k, _, v) in &self.block.v {
             match k {

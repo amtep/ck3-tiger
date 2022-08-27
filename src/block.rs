@@ -63,6 +63,10 @@ impl Block {
         None
     }
 
+    pub fn get_field_bool(&self, name: &str) -> Option<bool> {
+        self.get_field_value(name).map(|t| t.is("yes"))
+    }
+
     /// Get all the values of `name = value` assignments in this block
     pub fn get_field_values(&self, name: &str) -> Vec<Token> {
         let mut vec = Vec::new();
