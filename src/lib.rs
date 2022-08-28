@@ -21,6 +21,7 @@ pub mod everything;
 pub mod modfile;
 
 mod block;
+mod characters;
 mod decisions;
 mod desc;
 mod dynasties;

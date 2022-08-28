@@ -27,3 +27,8 @@ ignore = {
     # If there are no file entries, the keys are ignored in all files.
     file = events/POD_initialization/POD_maintenance_events.txt
 }
+
+characters = {
+    # Only warn about characters who are born by this date (usually your last bookmark)
+    only_born = "1511.1.1"  # optional
+}

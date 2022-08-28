@@ -1,4 +1,4 @@
-use crate::block::{Block, BlockOrValue, Comparator};
+use crate::block::{Block, BlockOrValue, Comparator, Date};
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice, error, warn};
 
@@ -286,6 +286,27 @@ impl<'a> Validator<'a> {
         found
     }
 
+    pub fn opt_fields(&mut self, name: &'a str) -> bool {
+        self.known_fields.push(name);
+
+        let mut found = false;
+        for (k, cmp, _) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    if !matches!(cmp, Comparator::Eq) {
+                        error(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("expected `{} =`, found `{}`", key, cmp),
+                        );
+                    }
+                    found = true;
+                }
+            }
+        }
+        found
+    }
+
     pub fn opt_field_validated_blocks<F>(&mut self, name: &'a str, f: F) -> bool
     where
         F: Fn(&Block),
@@ -404,6 +425,29 @@ impl<'a> Validator<'a> {
         self.known_fields.push(name);
         if let Some(key) = self.block.get_key(name) {
             advice(key, ErrorKey::Unneeded, msg);
+        }
+    }
+
+    pub fn validate_history_blocks<F: Fn(&Block)>(&mut self, f: F) {
+        for (k, cmp, v) in &self.block.v {
+            if let Some(key) = k {
+                if Date::try_from(key).is_ok() {
+                    self.known_fields.push(key.as_str());
+                    if !matches!(cmp, Comparator::Eq) {
+                        error(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("expected `{} =`, found `{}`", key, cmp),
+                        );
+                    }
+                    match v {
+                        BlockOrValue::Token(t) => {
+                            error(t, ErrorKey::Validation, "expected block, found value");
+                        }
+                        BlockOrValue::Block(s) => f(s),
+                    }
+                }
+            }
         }
     }
 

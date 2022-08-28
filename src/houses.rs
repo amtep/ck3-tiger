@@ -42,6 +42,16 @@ impl Houses {
             house.check_have_dynasty(dynasties);
         }
     }
+
+    pub fn verify_have_house(&self, house: &Token) {
+        if !self.houses.contains_key(house.as_str()) {
+            error(
+                house,
+                ErrorKey::MissingDynasty,
+                "house not defined in common/dynasty_houses/",
+            );
+        }
+    }
 }
 
 impl FileHandler for Houses {

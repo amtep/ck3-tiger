@@ -80,6 +80,16 @@ impl Religions {
             faith.check_have_files(files);
         }
     }
+
+    pub fn verify_have_faith(&self, faith: &Token) {
+        if !self.faiths.contains_key(faith.as_str()) {
+            error(
+                faith,
+                ErrorKey::MissingFaith,
+                "faith not defined in common/religion/religions",
+            );
+        }
+    }
 }
 
 impl FileHandler for Religions {

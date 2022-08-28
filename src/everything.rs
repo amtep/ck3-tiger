@@ -4,6 +4,7 @@ use std::rc::Rc;
 use thiserror::Error;
 
 use crate::block::{Block, Loc};
+use crate::characters::Characters;
 use crate::decisions::Decisions;
 use crate::dynasties::Dynasties;
 use crate::errorkey::ErrorKey;
@@ -76,6 +77,7 @@ pub struct Everything {
 
     dynasties: Dynasties,
     houses: Houses,
+    characters: Characters,
 }
 
 impl Everything {
@@ -124,6 +126,7 @@ impl Everything {
             titles: Titles::default(),
             dynasties: Dynasties::default(),
             houses: Houses::default(),
+            characters: Characters::default(),
         })
     }
 
@@ -184,6 +187,7 @@ impl Everything {
         self.fileset.handle(&mut self.titles);
         self.fileset.handle(&mut self.dynasties);
         self.fileset.handle(&mut self.houses);
+        self.fileset.handle(&mut self.characters);
     }
 
     pub fn check_have_localizations(&self) {
@@ -195,6 +199,7 @@ impl Everything {
         self.titles.check_have_locas(&self.localizations);
         self.dynasties.check_have_locas(&self.localizations);
         self.houses.check_have_locas(&self.localizations);
+        self.characters.check_have_locas(&self.localizations);
     }
 
     pub fn check_have_files(&self) {
@@ -204,11 +209,22 @@ impl Everything {
         self.religions.check_have_files(&self.fileset);
     }
 
+    pub fn check_have_dynasties(&self) {
+        self.houses.check_have_dynasties(&self.dynasties);
+        self.characters
+            .check_have_dynasties(&self.houses, &self.dynasties);
+    }
+
+    pub fn check_have_faiths(&self) {
+        self.characters.check_have_faiths(&self.religions);
+    }
+
     pub fn check_all(&mut self) {
         self.check_have_localizations();
         self.check_have_files();
+        self.check_have_dynasties();
+        self.check_have_faiths();
         self.religions.check_have_customs();
-        self.houses.check_have_dynasties(&self.dynasties);
     }
 
     pub fn check_pod(&mut self) {
