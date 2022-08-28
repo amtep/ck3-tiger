@@ -5,11 +5,13 @@ use thiserror::Error;
 
 use crate::block::{Block, Loc};
 use crate::decisions::Decisions;
+use crate::dynasties::Dynasties;
 use crate::errorkey::ErrorKey;
 use crate::errors::{ignore_key, ignore_key_for, warn};
 use crate::events::Events;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::gameconcepts::GameConcepts;
+use crate::houses::Houses;
 use crate::interactions::Interactions;
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
@@ -71,6 +73,9 @@ pub struct Everything {
 
     /// Landed titles
     titles: Titles,
+
+    dynasties: Dynasties,
+    houses: Houses,
 }
 
 impl Everything {
@@ -117,6 +122,8 @@ impl Everything {
             game_concepts: GameConcepts::default(),
             religions: Religions::default(),
             titles: Titles::default(),
+            dynasties: Dynasties::default(),
+            houses: Houses::default(),
         })
     }
 
@@ -175,6 +182,8 @@ impl Everything {
         self.fileset.handle(&mut self.game_concepts);
         self.fileset.handle(&mut self.religions);
         self.fileset.handle(&mut self.titles);
+        self.fileset.handle(&mut self.dynasties);
+        self.fileset.handle(&mut self.houses);
     }
 
     pub fn check_have_localizations(&self) {
@@ -184,6 +193,8 @@ impl Everything {
         self.game_concepts.check_have_locas(&self.localizations);
         self.religions.check_have_locas(&self.localizations);
         self.titles.check_have_locas(&self.localizations);
+        self.dynasties.check_have_locas(&self.localizations);
+        self.houses.check_have_locas(&self.localizations);
     }
 
     pub fn check_have_files(&self) {
@@ -197,6 +208,7 @@ impl Everything {
         self.check_have_localizations();
         self.check_have_files();
         self.religions.check_have_customs();
+        self.houses.check_have_dynasties(&self.dynasties);
     }
 
     pub fn check_pod(&mut self) {
