@@ -56,7 +56,11 @@ impl ProvinceHistories {
                                 warn(religion, ErrorKey::PrincesOfDarkness, &msg);
                                 warned.insert(provid);
                             }
+                        } else {
+                            warn(religion, ErrorKey::PrincesOfDarkness, "unknown faith");
                         }
+                    } else {
+                        warn(&provhist.key, ErrorKey::PrincesOfDarkness, "no religion");
                     }
                 }
             }

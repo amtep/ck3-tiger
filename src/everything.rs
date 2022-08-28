@@ -196,6 +196,7 @@ impl Everything {
     pub fn check_all(&mut self) {
         self.check_have_localizations();
         self.check_have_files();
+        self.religions.check_have_customs();
     }
 
     pub fn check_pod(&mut self) {

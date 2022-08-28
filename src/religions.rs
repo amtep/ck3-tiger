@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::{Block, DefinitionItem, Token};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, will_log, LogPauseRaii};
+use crate::errors::{error, error_info, info, warn, will_log, LogPauseRaii};
 use crate::fileset::{FileEntry, FileHandler, FileKind, Fileset};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
@@ -53,6 +53,13 @@ impl Religions {
                     Faith::new(faith.clone(), b.clone(), key.clone(), pagan),
                 );
             }
+        }
+    }
+
+    pub fn check_have_customs(&self) {
+        for faith in self.faiths.values() {
+            let religion = &self.religions[faith.religion.as_str()];
+            faith.check_have_customs(religion);
         }
     }
 
@@ -289,6 +296,22 @@ impl Faith {
             let loca = format!("{}_old_adherent_plural", self.key);
             locas.verify_have_key(&loca, &self.key, "faith");
         }
+
+        if let Some(b) = self.block.get_field_block("localization") {
+            for (_, loca) in b.get_assignments() {
+                locas.verify_have_key(loca.as_str(), loca, "faith");
+            }
+            if let Some(list) = b.get_field_list("GoodGodNames") {
+                for loca in list {
+                    locas.verify_have_key(loca.as_str(), &loca, "faith");
+                }
+            }
+            if let Some(list) = b.get_field_list("EvilGodNames") {
+                for loca in list {
+                    locas.verify_have_key(loca.as_str(), &loca, "faith");
+                }
+            }
+        }
     }
 
     pub fn check_have_files(&self, files: &Fileset) {
@@ -307,4 +330,154 @@ impl Faith {
             files.verify_have_implied_file(&pathname, icon);
         }
     }
+
+    pub fn check_have_customs(&self, religion: &Religion) {
+        let self_block = self.block.get_field_block("localization");
+        let religion_block = religion.block.get_field_block("localization");
+        for s in CUSTOM_RELIGION_LOCAS {
+            if let Some(block) = self_block {
+                if block.get_key(s).is_some() {
+                    continue;
+                }
+            }
+            if let Some(block) = religion_block {
+                if block.get_key(s).is_some() {
+                    continue;
+                }
+            }
+            let msg = format!("faith or religion missing localization for `{}`", s);
+            warn(&self.key, ErrorKey::MissingLocalization, &msg);
+        }
+    }
 }
+
+// LAST UPDATED VERSION 1.6.2.2
+const CUSTOM_RELIGION_LOCAS: &[&str] = &[
+    "AltPriestTermPlural",
+    "BishopFemale",
+    "BishopFemalePlural",
+    "BishopMale",
+    "BishopMalePlural",
+    "BishopNeuter",
+    "BishopNeuterPlural",
+    "CreatorHerHim",
+    "CreatorHerHis",
+    "CreatorName",
+    "CreatorNamePossessive",
+    "CreatorSheHe",
+    "DeathDeityHerHis",
+    "DeathDeityName",
+    "DeathDeityNamePossessive",
+    "DeathDeitySheHe",
+    "DevilHerHis",
+    "DevilHerselfHimself",
+    "DevilName",
+    "DevilNamePossessive",
+    "DevilSheHe",
+    "DevoteeFemale",
+    "DevoteeFemalePlural",
+    "DevoteeMale",
+    "DevoteeMalePlural",
+    "DevoteeNeuter",
+    "DevoteeNeuterPlural",
+    "DivineRealm",
+    "DivineRealm2",
+    "DivineRealm3",
+    "EvilGodNames",
+    "FateGodHerHim",
+    "FateGodHerHis",
+    "FateGodName",
+    "FateGodNamePossessive",
+    "FateGodSheHe",
+    "FertilityGodHerHim",
+    "FertilityGodHerHis",
+    "FertilityGodName",
+    "FertilityGodNamePossessive",
+    "FertilityGodSheHe",
+    "GHWName",
+    "GHWNamePlural",
+    "GoodGodNames",
+    "HealthGodHerHim",
+    "HealthGodHerHis",
+    "HealthGodName",
+    "HealthGodNamePossessive",
+    "HealthGodSheHe",
+    "HighGodHerHis",
+    "HighGodHerselfHimself",
+    "HighGodName",
+    "HighGodName2",
+    "HighGodNameAlternate",
+    "HighGodNameAlternatePossessive",
+    "HighGodNamePossessive",
+    "HighGodNameSheHe",
+    "HouseOfWorship",
+    "HouseOfWorship2",
+    "HouseOfWorship3",
+    "HouseOfWorshipPlural",
+    "HouseholdGodHerHim",
+    "HouseholdGodHerHis",
+    "HouseholdGodName",
+    "HouseholdGodNamePossessive",
+    "HouseholdGodSheHe",
+    "KnowledgeGodHerHim",
+    "KnowledgeGodHerHis",
+    "KnowledgeGodName",
+    "KnowledgeGodNamePossessive",
+    "KnowledgeGodSheHe",
+    "NegativeAfterLife",
+    "NegativeAfterLife2",
+    "NegativeAfterLife3",
+    "NightGodHerHim",
+    "NightGodHerHis",
+    "NightGodName",
+    "NightGodNamePossessive",
+    "NightGodSheHe",
+    "PantheonTerm",
+    "PantheonTerm2",
+    "PantheonTerm3",
+    "PantheonTermHasHave",
+    "PositiveAfterLife",
+    "PositiveAfterLife2",
+    "PositiveAfterLife3",
+    "PriestFemale",
+    "PriestFemalePlural",
+    "PriestMale",
+    "PriestMalePlural",
+    "PriestNeuter",
+    "PriestNeuterPlural",
+    "ReligiousHeadName",
+    "ReligiousHeadTitleName",
+    "ReligiousSymbol",
+    "ReligiousSymbol2",
+    "ReligiousSymbol3",
+    "ReligiousText",
+    "ReligiousText2",
+    "ReligiousText3",
+    "TricksterGodHerHim",
+    "TricksterGodHerHis",
+    "TricksterGodName",
+    "TricksterGodNamePossessive",
+    "TricksterGodSheHe",
+    "WarGodHerHim",
+    "WarGodHerHis",
+    "WarGodName",
+    "WarGodNamePossessive",
+    "WarGodSheHe",
+    "WaterGodHerHim",
+    "WaterGodHerHis",
+    "WaterGodName",
+    "WaterGodNamePossessive",
+    "WaterGodSheHe",
+    "WealthGodHerHim",
+    "WealthGodHerHis",
+    "WealthGodName",
+    "WealthGodNamePossessive",
+    "WealthGodSheHe",
+    "WitchGodHerHim",
+    "WitchGodHerHis",
+    "WitchGodMistressMaster",
+    "WitchGodMotherFather",
+    "WitchGodName",
+    "WitchGodNamePossessive",
+    "WitchGodSheHe",
+];
