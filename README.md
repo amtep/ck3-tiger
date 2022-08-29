@@ -2,7 +2,7 @@
 Checks Crusader Kings 3 user mod files for common mistakes and warns about them.
 
 ## Status
-This project still in its beginning stages. At the moment, it only loads the localization files and warns about some formatting errors and about duplicate keys.
+This project still in its beginning stages. It might warn about things that are actually correct.
 
 ## How to use
 Run it from the command line:
