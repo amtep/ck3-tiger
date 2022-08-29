@@ -3,10 +3,11 @@ use std::mem::swap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-use crate::block::{Block, BlockOrValue, Comparator, Loc, Token};
+use crate::block::{Block, BlockOrValue, Comparator};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, warn_info};
 use crate::fileset::FileKind;
+use crate::token::{Loc, Token};
 
 #[derive(Copy, Clone, Debug)]
 enum State {

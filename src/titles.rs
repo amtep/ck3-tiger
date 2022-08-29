@@ -3,13 +3,14 @@ use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-use crate::block::{Block, DefinitionItem, Token};
+use crate::block::{Block, DefinitionItem};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, will_log};
 use crate::fileset::{FileEntry, FileHandler};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 use crate::provinces::ProvId;
+use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
 pub struct Titles {

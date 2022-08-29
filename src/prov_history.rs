@@ -1,7 +1,7 @@
 use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
 
-use crate::block::{Block, Date, DefinitionItem, Token};
+use crate::block::{Block, Date, DefinitionItem};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn, LogPauseRaii};
 use crate::fileset::{FileEntry, FileHandler, FileKind};
@@ -9,6 +9,7 @@ use crate::pdxfile::PdxFile;
 use crate::provinces::ProvId;
 use crate::religions::Religions;
 use crate::titles::Titles;
+use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
 pub struct ProvinceHistories {

@@ -6,9 +6,10 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use walkdir::WalkDir;
 
-use crate::block::{Block, Loc, Token};
+use crate::block::Block;
 use crate::errorkey::ErrorKey;
 use crate::errors::error;
+use crate::token::{Loc, Token};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum FileKind {

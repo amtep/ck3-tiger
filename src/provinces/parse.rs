@@ -6,9 +6,9 @@ use std::iter::Peekable;
 use std::path::Path;
 use std::str::Chars;
 
-use crate::block::{Loc, Token};
 use crate::errors::ErrorLoc;
 use crate::fileset::FileEntry;
+use crate::token::{Loc, Token};
 
 #[derive(Clone, Debug)]
 struct CsvParser<'a> {

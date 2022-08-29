@@ -2,13 +2,14 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, Token};
+use crate::block::Block;
 use crate::dynasties::Dynasties;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, will_log, LogPauseRaii};
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
+use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
 pub struct Houses {
@@ -47,7 +48,7 @@ impl Houses {
         if !self.houses.contains_key(house.as_str()) {
             error(
                 house,
-                ErrorKey::MissingDynasty,
+                ErrorKey::MissingItem,
                 "house not defined in common/dynasty_houses/",
             );
         }

@@ -3,11 +3,11 @@ use image::{DynamicImage, Rgb};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use crate::block::{Loc, Token};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, LogPauseRaii};
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::provinces::parse::{parse_csv, read_csv};
+use crate::token::{Loc, Token};
 
 mod parse;
 

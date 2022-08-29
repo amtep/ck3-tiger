@@ -2,7 +2,7 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, Date, Token};
+use crate::block::{Block, Date};
 use crate::dynasties::Dynasties;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, will_log, LogPauseRaii};
@@ -11,6 +11,7 @@ use crate::houses::Houses;
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 use crate::religions::Religions;
+use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
 pub struct Characters {
@@ -70,7 +71,7 @@ impl Characters {
         if !self.characters.contains_key(ch.as_str()) {
             error(
                 ch,
-                ErrorKey::MissingCharacter,
+                ErrorKey::MissingItem,
                 "character not defined in history/characters/",
             );
         }

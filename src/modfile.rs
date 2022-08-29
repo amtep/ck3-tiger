@@ -2,11 +2,12 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, Token};
+use crate::block::Block;
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
 use crate::fileset::FileKind;
 use crate::pdxfile::PdxFile;
+use crate::token::Token;
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)] // remove when TODO are fixed

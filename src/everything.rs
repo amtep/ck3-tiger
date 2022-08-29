@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use thiserror::Error;
 
-use crate::block::{Block, Loc};
+use crate::block::Block;
 use crate::characters::Characters;
 use crate::decisions::Decisions;
 use crate::dynasties::Dynasties;
@@ -20,6 +20,7 @@ use crate::prov_history::ProvinceHistories;
 use crate::provinces::Provinces;
 use crate::religions::Religions;
 use crate::titles::Titles;
+use crate::token::Loc;
 
 #[derive(Debug, Error)]
 pub enum FilesError {

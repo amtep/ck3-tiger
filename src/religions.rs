@@ -2,12 +2,13 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, DefinitionItem, Token};
+use crate::block::{Block, DefinitionItem};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, will_log, LogPauseRaii};
 use crate::fileset::{FileEntry, FileHandler, FileKind, Fileset};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
+use crate::token::Token;
 use crate::validate::validate_color;
 
 #[derive(Clone, Debug, Default)]
@@ -85,7 +86,7 @@ impl Religions {
         if !self.faiths.contains_key(faith.as_str()) {
             error(
                 faith,
-                ErrorKey::MissingFaith,
+                ErrorKey::MissingItem,
                 "faith not defined in common/religion/religions",
             );
         }
@@ -235,7 +236,7 @@ fn validate_traits(block: &Block) {
     vd.warn_remaining();
 }
 
-fn validate_holy_order_names(block: &Block) {
+fn validate_holy_order_names(_block: &Block) {
     // TODO
     // It's a list of sub-blocks, each one having a name key and optional coat_of_arms key
 }

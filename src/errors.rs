@@ -5,9 +5,10 @@ use std::io::{stderr, Stderr, Write};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-use crate::block::{Block, BlockOrValue, Loc, Token};
+use crate::block::{Block, BlockOrValue};
 use crate::errorkey::ErrorKey;
 use crate::fileset::{FileEntry, FileKind};
+use crate::token::{Loc, Token};
 
 static mut ERRORS: Option<Errors> = None;
 

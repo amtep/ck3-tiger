@@ -2,12 +2,13 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, Token};
+use crate::block::Block;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, will_log, LogPauseRaii};
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
+use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
 pub struct Dynasties {
@@ -40,7 +41,7 @@ impl Dynasties {
         if !self.dynasties.contains_key(dynn.as_str()) {
             error(
                 dynn,
-                ErrorKey::MissingDynasty,
+                ErrorKey::MissingItem,
                 "dynasty not defined in common/dynasties/",
             );
         }

@@ -3,13 +3,14 @@ use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
-use crate::block::{Block, Token};
+use crate::block::Block;
 use crate::errorkey::ErrorKey;
 use crate::errors::{
     advice_info, error, error_info, info, warn, warn_info, will_log, LogPauseRaii,
 };
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::localization::parse::parse_loca;
+use crate::token::Token;
 
 mod parse;
 
