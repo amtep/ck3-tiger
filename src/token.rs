@@ -14,6 +14,8 @@ pub struct Loc {
     pub line: usize,
     pub column: usize,
     pub offset: usize,
+    /// Used in macro expansions to point to the macro invocation
+    pub link: Option<Rc<Loc>>,
 }
 
 impl Loc {
@@ -24,6 +26,7 @@ impl Loc {
             line: 1,
             column: 1,
             offset: 0,
+            link: None,
         }
     }
 
@@ -34,6 +37,7 @@ impl Loc {
             line: 0,
             column: 0,
             offset: 0,
+            link: None,
         }
     }
 

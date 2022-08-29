@@ -40,6 +40,7 @@ pub const BUILTIN_MACROS: [&str; 2] = ["TRIGGER_AND", "TRIGGER_OR"];
 pub struct LocaEntry {
     key: Token,
     value: LocaValue,
+    orig: Option<Token>, // original unparsed value, with enclosing " stripped
 }
 
 #[derive(Clone, Debug, Default)]

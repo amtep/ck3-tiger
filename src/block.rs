@@ -449,9 +449,12 @@ impl FromStr for Date {
         let mut splits = s.split('.');
         let year = splits.next().ok_or(Error)?;
         let month = splits.next().unwrap_or("1");
-        let day = splits.next().unwrap_or("1");
+        let mut day = splits.next().unwrap_or("1");
         if splits.next().is_some() {
             return Err(Error);
+        }
+        if day.is_empty() {
+            day = "1";
         }
         Ok(Date {
             year: year.parse().map_err(|_| Error)?,

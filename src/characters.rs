@@ -93,6 +93,9 @@ impl Characters {
         if let Some(ch) = b.get_field_value("add_same_sex_spouse") {
             self.verify_have_character(ch);
         }
+        if let Some(ch) = b.get_field_value("add_concubine") {
+            self.verify_have_character(ch);
+        }
     }
 }
 
@@ -185,6 +188,7 @@ impl Character {
         vd.opt_field_value("faith");
         vd.opt_field_value("employer");
         vd.opt_field_value("set_house");
+        vd.opt_field_value("culture");
         vd.opt_field_value("set_culture");
         vd.opt_field_value("set_character_faith_no_effect");
         vd.opt_field_values("trait");
@@ -192,9 +196,12 @@ impl Character {
         vd.opt_field_values("remove_trait");
         vd.opt_fields("add_character_flag"); // can be { flag = }
         vd.opt_field_values("add_pressed_claim"); // TODO: check title exists
+        vd.opt_field_values("remove_claim"); // TODO: check title exists
+        vd.opt_field_values("capital"); // TODO: check title exists. This one is without title:
         vd.opt_field_values("add_spouse");
         vd.opt_field_values("add_matrilineal_spouse");
         vd.opt_field_values("add_same_sex_spouse");
+        vd.opt_field_values("add_concubine");
         vd.opt_field_values("remove_spouse");
         vd.opt_field_blocks("add_secret");
         vd.opt_field_value("give_nickname");

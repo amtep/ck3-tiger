@@ -28,6 +28,7 @@ struct LocaParser<'a> {
     expecting_language: bool,
     loca_end: usize,
     value: Vec<LocaValue>,
+    value_loc: Loc,
 }
 
 impl<'a> LocaParser<'a> {
@@ -39,6 +40,7 @@ impl<'a> LocaParser<'a> {
         } else {
             warn(&loc, ErrorKey::Encoding, "Expected UTF-8 BOM encoding");
         }
+        let value_loc = loc.clone();
         LocaParser {
             loc,
             content,
@@ -47,6 +49,7 @@ impl<'a> LocaParser<'a> {
             expecting_language: true,
             value: Vec::new(),
             loca_end: 0,
+            value_loc,
         }
     }
 
@@ -101,6 +104,7 @@ impl<'a> LocaParser<'a> {
         Some(LocaEntry {
             key,
             value: LocaValue::Error,
+            orig: None,
         })
     }
 
@@ -145,6 +149,24 @@ impl<'a> LocaParser<'a> {
         dquote_offset
     }
 
+    fn parse_format(&mut self) -> Option<Token> {
+        if self.chars.peek() == Some(&'|') {
+            self.next_char(); // eat the |
+            let loc = self.loc.clone();
+            let mut text = String::new();
+            while let Some(&c) = self.chars.peek() {
+                if c == '$' || c == ']' || c == '\n' {
+                    break;
+                }
+                text.push(c);
+                self.next_char();
+            }
+            Some(Token::new(text, loc))
+        } else {
+            None
+        }
+    }
+
     fn line_has_macros(&self) -> bool {
         for c in self.chars.clone() {
             if c == '\n' {
@@ -154,180 +176,6 @@ impl<'a> LocaParser<'a> {
             }
         }
         false
-    }
-
-    fn parse_text(&mut self) {
-        let loc = self.loc.clone();
-        while let Some(c) = self.chars.peek() {
-            match c {
-                '[' | '#' | '@' | '\\' => break,
-                '"' if self.loc.offset == self.loca_end => break,
-                _ => self.next_char(),
-            }
-        }
-        let s = self.content[loc.offset..self.loc.offset].to_string();
-        self.value.push(LocaValue::Text(Token::new(s, loc)));
-    }
-
-    fn parse_code_args(&mut self) -> Vec<CodeArg> {
-        self.next_char(); // eat the opening (
-        let mut v = Vec::new();
-
-        loop {
-            self.skip_linear_whitespace();
-            if self.chars.peek() == Some(&'\'') {
-                self.next_char();
-                let loc = self.loc.clone();
-                let mut parens: isize = 0;
-                while let Some(&c) = self.chars.peek() {
-                    match c {
-                        '\'' | '\n' | '"' => break,
-                        ']' | ')' if parens == 0 => warn(
-                            &self.loc,
-                            ErrorKey::Localization,
-                            "Possible unterminated argument string",
-                        ),
-                        '(' => parens += 1,
-                        ')' => parens -= 1,
-                        _ => (),
-                    }
-                    self.next_char();
-                }
-                if self.chars.peek() != Some(&'\'') {
-                    self.value.push(LocaValue::Error);
-                    return Vec::new();
-                }
-                let s = self.content[loc.offset..self.loc.offset].to_string();
-                v.push(CodeArg::Literal(Token::new(s, loc)));
-                self.next_char();
-            } else {
-                v.push(CodeArg::Chain(self.parse_code_inner()));
-            }
-            self.skip_linear_whitespace();
-            if self.chars.peek() != Some(&',') {
-                break;
-            }
-            self.next_char(); // Eat the comma
-        }
-        if self.chars.peek() == Some(&')') {
-            self.next_char();
-        } else {
-            self.unexpected_char("expected `)`");
-        }
-        v
-    }
-
-    fn parse_code_code(&mut self) -> Code {
-        let loc = self.loc.clone();
-        while let Some(&c) = self.chars.peek() {
-            if is_code_char(c) {
-                self.next_char();
-            } else {
-                break;
-            }
-        }
-        let s = self.content[loc.offset..self.loc.offset].to_string();
-        let name = Token::new(s, loc);
-        if self.chars.peek() == Some(&'(') {
-            Code {
-                name,
-                arguments: self.parse_code_args(),
-            }
-        } else {
-            Code {
-                name,
-                arguments: Vec::new(),
-            }
-        }
-    }
-
-    fn parse_code_inner(&mut self) -> CodeChain {
-        let mut v = Vec::new();
-        loop {
-            v.push(self.parse_code_code());
-            if self.chars.peek() != Some(&'.') {
-                break;
-            }
-            self.next_char(); // Eat the '.'
-        }
-        CodeChain { codes: v }
-    }
-
-    fn parse_format(&mut self) -> Option<Token> {
-        if self.chars.peek() == Some(&'|') {
-            self.next_char(); // eat the |
-            let loc = self.loc.clone();
-            while let Some(&c) = self.chars.peek() {
-                if c == '$' || c == ']' || c == '\n' {
-                    break;
-                }
-                self.next_char();
-            }
-            let s = self.content[loc.offset..self.loc.offset].to_string();
-            Some(Token::new(s, loc))
-        } else {
-            None
-        }
-    }
-
-    fn parse_code(&mut self) {
-        self.next_char(); // eat the opening [
-        self.skip_linear_whitespace();
-
-        let chain = self.parse_code_inner();
-
-        self.skip_linear_whitespace();
-        let format = self.parse_format();
-        if self.chars.peek() == Some(&']') {
-            self.next_char();
-            self.value.push(LocaValue::Code(chain, format));
-        } else {
-            self.unexpected_char("expected `]`");
-            self.value.push(LocaValue::Error);
-        }
-    }
-
-    fn parse_markup(&mut self) {
-        let loc = self.loc.clone();
-        self.next_char(); // skip the #
-        if self.chars.peek() == Some(&'!') {
-            self.next_char();
-            let s = self.content[loc.offset..self.loc.offset].to_string();
-            self.value.push(LocaValue::MarkupEnd(Token::new(s, loc)));
-        } else {
-            // TODO This may have become complicated enough to need its own state machine
-            let mut at_end = false;
-            while let Some(&c) = self.chars.peek() {
-                if c.is_whitespace() {
-                    self.next_char();
-                    break;
-                } else if !at_end && (is_key_char(c) || c == ';') {
-                    // TODO: check that ';' is a separator, not at the beginning or end
-                    self.next_char();
-                } else if !at_end && c == ':' {
-                    // #indent_newline:2 parsing
-                    self.next_char();
-                    while let Some(&c) = self.chars.peek() {
-                        if c.is_ascii_digit() {
-                            self.next_char();
-                        } else {
-                            break;
-                        }
-                    }
-                    at_end = true;
-                } else {
-                    warn(
-                        loc,
-                        ErrorKey::Localization,
-                        "#markup should be followed by a space",
-                    );
-                    self.value.push(LocaValue::Error);
-                    return;
-                }
-            }
-            let s = self.content[loc.offset..self.loc.offset].to_string();
-            self.value.push(LocaValue::Markup(Token::new(s, loc)));
-        }
     }
 
     fn parse_macros(&mut self) {
@@ -379,47 +227,6 @@ impl<'a> LocaParser<'a> {
         let s = self.content[loc.offset..end_loc.offset].to_string();
         self.next_char();
         Some(MacroValue::Keyword(Token::new(s, loc), format))
-    }
-
-    fn parse_icon(&mut self) {
-        self.next_char(); // eat the @
-
-        if let Some(&c) = self.chars.peek() {
-            if is_key_char(c) {
-                let key = self.get_key();
-                self.value.push(LocaValue::Icon(key));
-            } else {
-                self.unexpected_char("expected icon name");
-                self.value.push(LocaValue::Error);
-                return;
-            }
-        } else {
-            self.unexpected_char("expected icon name");
-            self.value.push(LocaValue::Error);
-            return;
-        }
-
-        if self.chars.peek() == Some(&'!') {
-            self.next_char();
-        } else {
-            self.unexpected_char("expected `!`");
-            self.value.push(LocaValue::Error);
-        }
-    }
-
-    fn parse_escape(&mut self) {
-        let loc = self.loc.clone();
-        self.next_char(); // Skip the \
-        let s = match self.chars.peek() {
-            Some('n') => '\n'.to_string(),
-            Some(c) => c.to_string(),
-            None => {
-                self.value.push(LocaValue::Error);
-                return;
-            }
-        };
-        self.next_char();
-        self.value.push(LocaValue::Text(Token::new(s, loc)));
     }
 
     fn skip_until_key(&mut self) {
@@ -518,6 +325,8 @@ impl<'a> LocaParser<'a> {
         };
 
         self.value = Vec::new();
+        let s = self.content[self.loc.offset..self.loca_end].to_string();
+        let token = Token::new(s, self.loc.clone());
 
         // We also need to pre-parse because $macros$ can appear anywhere and
         // we don't know how to parse the results until we know what to
@@ -529,22 +338,8 @@ impl<'a> LocaParser<'a> {
                 return self.error_line(key);
             }
         } else {
-            while let Some(c) = self.chars.peek() {
-                match c {
-                    '[' => self.parse_code(),
-                    '#' => self.parse_markup(),
-                    '@' => self.parse_icon(),
-                    '\\' => self.parse_escape(),
-                    '"' if self.loc.offset == self.loca_end => {
-                        self.next_char();
-                        break;
-                    }
-                    _ => self.parse_text(),
-                }
-                if matches!(self.value.last(), Some(&LocaValue::Error)) {
-                    return self.error_line(key);
-                }
-            }
+            let mut parser = ValueParser::new(vec![&token]);
+            self.value = parser.parse_value();
         }
 
         self.skip_linear_whitespace();
@@ -565,7 +360,332 @@ impl<'a> LocaParser<'a> {
         } else {
             LocaValue::Concat(std::mem::take(&mut self.value))
         };
-        Some(LocaEntry { key, value })
+        Some(LocaEntry {
+            key,
+            value,
+            orig: Some(token),
+        })
+    }
+}
+
+pub struct ValueParser<'a> {
+    loc: Loc,
+    content: Vec<&'a Token>,
+    content_iters: Vec<Peekable<Chars<'a>>>,
+    content_idx: usize,
+    value: Vec<LocaValue>,
+}
+
+// TODO: some duplication of helper functions between `LocaParser` and `ValueParser`
+impl<'a> ValueParser<'a> {
+    fn new(content: Vec<&'a Token>) -> Self {
+        assert!(!content.is_empty());
+
+        Self {
+            loc: content[0].loc.clone(),
+            content_iters: content
+                .iter()
+                .map(|t| t.as_str().chars().peekable())
+                .collect(),
+            content,
+            content_idx: 0,
+            value: Vec::new(),
+        }
+    }
+
+    fn peek(&mut self) -> Option<char> {
+        let p = self.content_iters[self.content_idx].peek();
+        if p.is_none() {
+            if self.content_idx + 1 == self.content.len() {
+                None
+            } else {
+                self.content_idx += 1;
+                self.loc = self.content[self.content_idx].loc.clone();
+                self.peek()
+            }
+        } else {
+            p.copied()
+        }
+    }
+
+    fn next_char(&mut self) {
+        // self.peek advances content_idx if needed
+        if self.peek().is_some() {
+            self.content_iters[self.content_idx].next();
+        }
+    }
+
+    fn skip_whitespace(&mut self) {
+        while let Some(c) = self.peek() {
+            if c.is_whitespace() {
+                self.next_char();
+            } else {
+                break;
+            }
+        }
+    }
+
+    fn unexpected_char(&mut self, expected: &str) {
+        // TODO: handle EOF better
+        let c = self.peek().unwrap_or(' ');
+        error(
+            &self.loc,
+            ErrorKey::Localization,
+            &format!("Unexpected character `{}`, {}", c, expected),
+        );
+    }
+
+    fn get_key(&mut self) -> Token {
+        let loc = self.loc.clone();
+        let mut text = String::new();
+        while let Some(c) = self.peek() {
+            if is_key_char(c) {
+                text.push(c);
+                self.next_char();
+            } else {
+                break;
+            }
+        }
+        Token::new(text, loc)
+    }
+
+    fn parse_format(&mut self) -> Option<Token> {
+        if self.peek() == Some('|') {
+            self.next_char(); // eat the |
+            let loc = self.loc.clone();
+            let mut text = String::new();
+            while let Some(c) = self.peek() {
+                if c == '$' || c == ']' {
+                    break;
+                }
+                text.push(c);
+                self.next_char();
+            }
+            Some(Token::new(text, loc))
+        } else {
+            None
+        }
+    }
+
+    fn parse_code_args(&mut self) -> Vec<CodeArg> {
+        self.next_char(); // eat the opening (
+        let mut v = Vec::new();
+
+        loop {
+            self.skip_whitespace();
+            if self.peek() == Some('\'') {
+                self.next_char();
+                let loc = self.loc.clone();
+                let mut text = String::new();
+                let mut parens: isize = 0;
+                while let Some(c) = self.peek() {
+                    match c {
+                        '\'' => break,
+                        ']' | ')' if parens == 0 => warn(
+                            &self.loc,
+                            ErrorKey::Localization,
+                            "Possible unterminated argument string",
+                        ),
+                        '(' => parens += 1,
+                        ')' => parens -= 1,
+                        _ => (),
+                    }
+                    text.push(c);
+                    self.next_char();
+                }
+                if self.peek() != Some('\'') {
+                    self.value.push(LocaValue::Error);
+                    return Vec::new();
+                }
+                v.push(CodeArg::Literal(Token::new(text, loc)));
+                self.next_char();
+            } else {
+                v.push(CodeArg::Chain(self.parse_code_inner()));
+            }
+            self.skip_whitespace();
+            if self.peek() != Some(',') {
+                break;
+            }
+            self.next_char(); // Eat the comma
+        }
+        if self.peek() == Some(')') {
+            self.next_char();
+        } else {
+            self.unexpected_char("expected `)`");
+        }
+        v
+    }
+
+    fn parse_code_code(&mut self) -> Code {
+        let loc = self.loc.clone();
+        let mut text = String::new();
+        while let Some(c) = self.peek() {
+            if is_code_char(c) {
+                text.push(c);
+                self.next_char();
+            } else {
+                break;
+            }
+        }
+        let name = Token::new(text, loc);
+        if self.peek() == Some('(') {
+            Code {
+                name,
+                arguments: self.parse_code_args(),
+            }
+        } else {
+            Code {
+                name,
+                arguments: Vec::new(),
+            }
+        }
+    }
+
+    fn parse_code_inner(&mut self) -> CodeChain {
+        let mut v = Vec::new();
+        loop {
+            v.push(self.parse_code_code());
+            if self.peek() != Some('.') {
+                break;
+            }
+            self.next_char(); // Eat the '.'
+        }
+        CodeChain { codes: v }
+    }
+
+    fn parse_code(&mut self) {
+        self.next_char(); // eat the opening [
+        self.skip_whitespace();
+
+        let chain = self.parse_code_inner();
+
+        self.skip_whitespace();
+        let format = self.parse_format();
+        if self.peek() == Some(']') {
+            self.next_char();
+            self.value.push(LocaValue::Code(chain, format));
+        } else {
+            self.unexpected_char("expected `]`");
+            self.value.push(LocaValue::Error);
+        }
+    }
+
+    fn parse_markup(&mut self) {
+        let loc = self.loc.clone();
+        let mut text = "#".to_string();
+        self.next_char(); // skip the #
+        if self.peek() == Some('!') {
+            text.push('!');
+            self.next_char();
+            self.value.push(LocaValue::MarkupEnd(Token::new(text, loc)));
+        } else {
+            // TODO This may have become complicated enough to need its own state machine
+            let mut at_end = false;
+            while let Some(c) = self.peek() {
+                if c.is_whitespace() {
+                    self.next_char();
+                    break;
+                } else if !at_end && (is_key_char(c) || c == ';') {
+                    // TODO: check that ';' is a separator, not at the beginning or end
+                    text.push(c);
+                    self.next_char();
+                } else if !at_end && c == ':' {
+                    // #indent_newline:2 parsing
+                    text.push(c);
+                    self.next_char();
+                    while let Some(c) = self.peek() {
+                        if c.is_ascii_digit() {
+                            text.push(c);
+                            self.next_char();
+                        } else {
+                            break;
+                        }
+                    }
+                    at_end = true;
+                } else {
+                    warn(
+                        loc,
+                        ErrorKey::Localization,
+                        "#markup should be followed by a space",
+                    );
+                    self.value.push(LocaValue::Error);
+                    return;
+                }
+            }
+            self.value.push(LocaValue::Markup(Token::new(text, loc)));
+        }
+    }
+
+    fn parse_icon(&mut self) {
+        self.next_char(); // eat the @
+
+        if let Some(c) = self.peek() {
+            if is_key_char(c) {
+                let key = self.get_key();
+                self.value.push(LocaValue::Icon(key));
+            } else {
+                self.unexpected_char("expected icon name");
+                self.value.push(LocaValue::Error);
+                return;
+            }
+        } else {
+            self.unexpected_char("expected icon name");
+            self.value.push(LocaValue::Error);
+            return;
+        }
+
+        if self.peek() == Some('!') {
+            self.next_char();
+        } else {
+            self.unexpected_char("expected `!`");
+            self.value.push(LocaValue::Error);
+        }
+    }
+
+    fn parse_escape(&mut self) {
+        let loc = self.loc.clone();
+        self.next_char(); // Skip the \
+        let s = match self.peek() {
+            Some('n') => '\n'.to_string(),
+            Some(c) => c.to_string(),
+            None => {
+                self.value.push(LocaValue::Error);
+                return;
+            }
+        };
+        self.next_char();
+        self.value.push(LocaValue::Text(Token::new(s, loc)));
+    }
+
+    fn parse_text(&mut self) {
+        let loc = self.loc.clone();
+        let mut text = String::new();
+        while let Some(c) = self.peek() {
+            match c {
+                '[' | '#' | '@' | '\\' => break,
+                _ => {
+                    text.push(c);
+                    self.next_char();
+                }
+            }
+        }
+        self.value.push(LocaValue::Text(Token::new(text, loc)));
+    }
+
+    fn parse_value(&mut self) -> Vec<LocaValue> {
+        while let Some(c) = self.peek() {
+            match c {
+                '[' => self.parse_code(),
+                '#' => self.parse_markup(),
+                '@' => self.parse_icon(),
+                '\\' => self.parse_escape(),
+                _ => self.parse_text(),
+            }
+            if matches!(self.value.last(), Some(&LocaValue::Error)) {
+                return vec![LocaValue::Error];
+            }
+        }
+        std::mem::take(&mut self.value)
     }
 }
 
