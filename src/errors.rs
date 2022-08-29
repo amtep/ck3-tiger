@@ -1,6 +1,8 @@
+use encoding::all::{UTF_8, WINDOWS_1252};
+use encoding::{DecoderTrap, Encoding};
 use fnv::FnvHashMap;
 use std::fmt::{Debug, Display, Formatter};
-use std::fs::read_to_string;
+use std::fs::read;
 use std::io::{stderr, Stderr, Write};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -151,9 +153,12 @@ impl Errors {
             FileKind::VanillaFile => self.vanilla_root.join(&*loc.pathname),
             FileKind::ModFile => self.mod_root.join(&*loc.pathname),
         };
-        read_to_string(&pathname)
-            .ok()
-            .and_then(|contents| contents.lines().nth(loc.line - 1).map(str::to_string))
+        let bytes = read(&pathname).ok()?;
+        let contents = match UTF_8.decode(&bytes, DecoderTrap::Strict) {
+            Ok(contents) => contents,
+            Err(_) => WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).ok()?,
+        };
+        contents.lines().nth(loc.line - 1).map(str::to_string)
     }
 
     pub fn will_log(&self, loc: &Loc, key: ErrorKey) -> bool {
