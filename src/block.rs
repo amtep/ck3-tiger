@@ -45,12 +45,17 @@ pub struct Block {
     // v can contain key = value pairs as well as unadorned values.
     // The latter are inserted as None tokens and Comparator::None
     v: Vec<BlockItem>,
+    pub tag: Option<Token>,
     pub loc: Loc,
 }
 
 impl Block {
     pub fn new(loc: Loc) -> Self {
-        Block { v: Vec::new(), loc }
+        Block {
+            v: Vec::new(),
+            tag: None,
+            loc,
+        }
     }
 
     pub fn add_value(&mut self, value: BlockOrValue) {

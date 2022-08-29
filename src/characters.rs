@@ -199,6 +199,8 @@ impl Character {
         vd.opt_field_blocks("add_secret");
         vd.opt_field_value("give_nickname");
         vd.opt_field_blocks("create_alliance");
+        vd.opt_field_value("dynasty");
+        vd.opt_field_value("dynasty_house");
         vd.opt_field_integer("set_immortal_age");
         // At this point it seems that just about any effect can be here
         // without an effect block around it.
@@ -263,6 +265,12 @@ impl Character {
             if Date::try_from(k).is_ok() {
                 if let Some(house) = b.get_field_value("set_house") {
                     houses.verify_have_house(house);
+                }
+                if let Some(house) = b.get_field_value("dynasty_house") {
+                    houses.verify_have_house(house);
+                }
+                if let Some(dynasty) = b.get_field_value("dynasty") {
+                    dynasties.verify_have_dynasty(dynasty);
                 }
             }
         }

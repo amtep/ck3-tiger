@@ -331,6 +331,7 @@ impl<'a> LocaParser<'a> {
     }
 
     fn parse_macros(&mut self) {
+        // TODO: vanilla uses $[DATE_MIN.GetStringShort|V]$ which breaks all my assumptions
         let mut v = Vec::new();
         let mut loc = self.loc.clone();
         while let Some(&c) = self.chars.peek() {

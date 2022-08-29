@@ -49,6 +49,7 @@ struct ParseLevel {
     block: Block,
     key: Option<Token>,
     comp: Option<(Comparator, Token)>,
+    tag: Option<Token>,
 }
 
 struct Parser {
@@ -69,6 +70,11 @@ impl Parser {
     }
 
     fn token(&mut self, token: Token) {
+        // Special case parsing of color = hsv { ... }
+        if token.is("hsv") {
+            self.current.tag = Some(token);
+            return;
+        }
         if let Some(key) = self.current.key.take() {
             if let Some((comp, _)) = self.current.comp.take() {
                 self.current
@@ -83,8 +89,11 @@ impl Parser {
         }
     }
 
-    fn block_value(&mut self, block: Block) {
+    fn block_value(&mut self, mut block: Block) {
         // Like token(), but block values cannot become keys
+        if let Some(tag) = self.current.tag.take() {
+            block.tag = Some(tag);
+        }
         if let Some(key) = self.current.key.take() {
             if let Some((comp, _)) = self.current.comp.take() {
                 self.current
@@ -135,6 +144,7 @@ impl Parser {
             block: Block::new(loc),
             key: None,
             comp: None,
+            tag: None,
         };
         swap(&mut new_level, &mut self.current);
         self.stack.push(new_level);
@@ -199,6 +209,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
             block: Block::new(block_loc),
             key: None,
             comp: None,
+            tag: None,
         },
         stack: Vec::new(),
         brace_error: false,
