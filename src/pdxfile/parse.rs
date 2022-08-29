@@ -204,7 +204,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
         brace_error: false,
     };
     let mut state = State::Neutral;
-    let mut token_start = 0;
+    let mut token_start = loc.clone();
 
     for (i, c) in content.char_indices() {
         loc.offset = i;
@@ -228,7 +228,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                 } else {
                     Parser::unknown_char(c, loc.clone());
                 }
-                token_start = i;
+                token_start = loc.clone();
             }
             State::Comment => {
                 if c == '\n' {
@@ -239,9 +239,8 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                 if c == '"' {
                     state = State::Id;
                 } else if c == '\n' {
-                    let s = content[token_start..next_i].replace('"', "");
-                    loc.offset = token_start;
-                    let token = Token::new(s, loc.clone());
+                    let s = content[token_start.offset..next_i].replace('"', "");
+                    let token = Token::new(s, token_start.clone());
                     warn(token, ErrorKey::ParseError, "Quoted string not closed");
                 }
             }
@@ -251,9 +250,8 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                     state = State::QString;
                 } else if c.is_id_char() {
                 } else {
-                    let id = content[token_start..i].replace('"', "");
-                    loc.offset = token_start;
-                    let token = Token::new(id, loc.clone());
+                    let id = content[token_start.offset..i].replace('"', "");
+                    let token = Token::new(id, token_start.clone());
                     parser.token(token);
 
                     if c.is_comparator_char() {
@@ -272,15 +270,14 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                         Parser::unknown_char(c, loc.clone());
                         state = State::Neutral;
                     }
-                    token_start = i;
+                    token_start = loc.clone();
                 }
             }
             State::Comparator => {
                 if c.is_comparator_char() {
                 } else {
-                    let s = content[token_start..i].to_string();
-                    loc.offset = token_start;
-                    let token = Token::new(s, loc.clone());
+                    let s = content[token_start.offset..i].to_string();
+                    let token = Token::new(s, token_start.clone());
                     parser.comparator(token);
 
                     if c == '"' {
@@ -301,7 +298,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                         Parser::unknown_char(c, loc.clone());
                         state = State::Neutral;
                     }
-                    token_start = i;
+                    token_start = loc.clone();
                 }
             }
         }
@@ -317,19 +314,19 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
     // Deal with state at end of file
     match state {
         State::QString => {
-            let s = content[token_start..].to_string();
-            let token = Token::new(s, loc);
+            let s = content[token_start.offset..].to_string();
+            let token = Token::new(s, token_start);
             error(&token, ErrorKey::ParseError, "Quoted string not closed");
             parser.token(token);
         }
         State::Id => {
-            let s = content[token_start..].to_string();
-            let token = Token::new(s, loc);
+            let s = content[token_start.offset..].to_string();
+            let token = Token::new(s, token_start);
             parser.token(token);
         }
         State::Comparator => {
-            let s = content[token_start..].to_string();
-            let token = Token::new(s, loc);
+            let s = content[token_start.offset..].to_string();
+            let token = Token::new(s, token_start);
             parser.comparator(token);
         }
         _ => (),
