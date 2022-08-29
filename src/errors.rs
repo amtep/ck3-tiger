@@ -6,6 +6,7 @@ use std::fs::read;
 use std::io::{stderr, Stderr, Write};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+use unicode_width::UnicodeWidthChar;
 
 use crate::block::{Block, BlockOrValue};
 use crate::errorkey::ErrorKey;
@@ -195,13 +196,21 @@ impl Errors {
         if let Some(line) = self.get_line(&loc) {
             let line_marker = loc.line_marker();
             writeln!(self.outfile.as_mut().unwrap(), "{}{}", line_marker, line);
-            // TODO: adjust the column count for tabs in the line
+            let mut spacing = String::new();
+            for c in line.chars().take(loc.column.saturating_sub(1)) {
+                if c == '\t' {
+                    spacing.push('\t');
+                } else {
+                    for _ in 0..c.width().unwrap_or(0) {
+                        spacing.push(' ');
+                    }
+                }
+            }
             writeln!(
                 self.outfile.as_mut().unwrap(),
-                "{}{:>count$}",
+                "{}{}^",
                 line_marker,
-                "^",
-                count = loc.column
+                spacing
             );
         }
         // TODO: get terminal column width and do line wrapping of msg and info

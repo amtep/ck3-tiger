@@ -98,6 +98,7 @@ impl Dynasty {
         vd.opt_field_value("prefix");
         vd.opt_field_value("motto");
         vd.opt_field_value("culture");
+        vd.opt_field_value("forced_coa_religiongroup");
         vd.warn_remaining();
     }
 

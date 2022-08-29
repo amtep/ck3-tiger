@@ -18,9 +18,8 @@ image = "0.24"
 itertools = "0.10"
 lazy_static = "1"
 thiserror = "1"
+unicode-width = "0.1.9"
 walkdir = "2"
-
-ck3-mod-validator_derive = { version = "0.1", path = "derive" }
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.10"
