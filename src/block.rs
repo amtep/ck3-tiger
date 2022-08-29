@@ -448,8 +448,8 @@ impl FromStr for Date {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut splits = s.split('.');
         let year = splits.next().ok_or(Error)?;
-        let month = splits.next().ok_or(Error)?;
-        let day = splits.next().ok_or(Error)?;
+        let month = splits.next().unwrap_or("1");
+        let day = splits.next().unwrap_or("1");
         if splits.next().is_some() {
             return Err(Error);
         }
