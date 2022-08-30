@@ -29,10 +29,11 @@ impl<'a> Validator<'a> {
     }
 
     pub fn req_field(&mut self, name: &'a str) -> bool {
-        let found = self.field(name).is_some();
+        self.known_fields.push(name);
+        let found = self.block.get_key(name).is_some();
         if !found {
             error(
-                &self.block.loc,
+                self.block,
                 ErrorKey::Validation,
                 &format!("required field `{}` missing", name),
             );
@@ -382,6 +383,57 @@ impl<'a> Validator<'a> {
         if let Some(key) = self.block.get_key(name) {
             advice(key, ErrorKey::Unneeded, msg);
         }
+    }
+
+    pub fn values(&mut self) -> Vec<&Token> {
+        self.accepted_tokens = true;
+        let mut vec = Vec::new();
+        for (k, _, v) in &self.block.v {
+            if k.is_none() {
+                if let BlockOrValue::Token(t) = v {
+                    vec.push(t);
+                }
+            }
+        }
+        vec
+    }
+
+    pub fn blocks(&mut self) -> Vec<&Block> {
+        self.accepted_blocks = true;
+        let mut vec = Vec::new();
+        for (k, _, v) in &self.block.v {
+            if k.is_none() {
+                if let BlockOrValue::Block(b) = v {
+                    vec.push(b);
+                }
+            }
+        }
+        vec
+    }
+
+    pub fn integer_blocks(&mut self) -> Vec<(&Token, &Block)> {
+        let mut vec = Vec::new();
+        for (k, cmp, v) in &self.block.v {
+            if let Some(key) = k {
+                if key.as_str().parse::<i32>().is_ok() {
+                    self.known_fields.push(key.as_str());
+                    if !matches!(cmp, Comparator::Eq) {
+                        error(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("expected `{} =`, found `{}`", key, cmp),
+                        );
+                    }
+                    match v {
+                        BlockOrValue::Token(t) => {
+                            error(t, ErrorKey::Validation, "expected block, found value");
+                        }
+                        BlockOrValue::Block(s) => vec.push((key, s)),
+                    }
+                }
+            }
+        }
+        vec
     }
 
     pub fn validate_history_blocks<F>(&mut self, f: F)

@@ -312,7 +312,7 @@ impl Faith {
         }
 
         vd.field_value("religious_head");
-        vd.req_field("holy site");
+        vd.req_field("holy_site");
         vd.field_values("holy_site");
         vd.req_field("doctrine");
         vd.field_values("doctrine");

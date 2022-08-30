@@ -13,12 +13,13 @@ use crate::token::Token;
 #[derive(Clone, Debug, Default)]
 pub struct GameConcepts {
     concepts: FnvHashMap<String, Concept>,
+    aliases: FnvHashMap<String, String>,
 }
 
 impl GameConcepts {
-    pub fn load_concept(&mut self, key: Token, block: &Block) {
+    pub fn load_item(&mut self, key: Token, block: &Block) {
         if let Some(other) = self.concepts.get(key.as_str()) {
-            if other.key.loc.kind == key.loc.kind && will_log(&key, ErrorKey::Duplicate) {
+            if other.key.loc.kind >= key.loc.kind && will_log(&key, ErrorKey::Duplicate) {
                 error(
                     &key,
                     ErrorKey::Duplicate,
@@ -27,12 +28,17 @@ impl GameConcepts {
                 info(&other.key, ErrorKey::Duplicate, "the other concept is here");
             }
         }
+        if let Some(list) = block.get_field_list("alias") {
+            for token in list {
+                self.aliases.insert(token.to_string(), key.to_string());
+            }
+        }
         self.concepts
             .insert(key.to_string(), Concept::new(key, block.clone()));
     }
 
     pub fn verify_exists(&self, item: &Token) {
-        if !self.concepts.contains_key(item.as_str()) {
+        if !self.concepts.contains_key(item.as_str()) && !self.aliases.contains_key(item.as_str()) {
             error(
                 item,
                 ErrorKey::MissingItem,
@@ -86,7 +92,7 @@ impl FileHandler for GameConcepts {
                     error(key, ErrorKey::Validation, "unexpected assignment");
                 }
                 DefinitionItem::Definition(key, b) => {
-                    self.load_concept(key.clone(), b);
+                    self.load_item(key.clone(), b);
                 }
             }
         }

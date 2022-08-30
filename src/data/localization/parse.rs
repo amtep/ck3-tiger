@@ -414,7 +414,10 @@ impl<'a> ValueParser<'a> {
     fn next_char(&mut self) {
         // self.peek advances content_idx if needed
         if self.peek().is_some() {
-            self.content_iters[self.content_idx].next();
+            if let Some(c) = self.content_iters[self.content_idx].next() {
+                self.loc.offset += c.len_utf8();
+                self.loc.column += 1;
+            }
         }
     }
 

@@ -12,6 +12,7 @@ use crate::data::gameconcepts::GameConcepts;
 use crate::data::houses::Houses;
 use crate::data::interactions::Interactions;
 use crate::data::localization::Localization;
+use crate::data::namelists::Namelists;
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::religions::Religions;
@@ -79,6 +80,9 @@ pub struct Everything {
     pub dynasties: Dynasties,
     pub houses: Houses,
     pub characters: Characters,
+
+    /// Cultural name lists
+    pub namelists: Namelists,
 }
 
 impl Everything {
@@ -128,6 +132,7 @@ impl Everything {
             dynasties: Dynasties::default(),
             houses: Houses::default(),
             characters: Characters::default(),
+            namelists: Namelists::default(),
         })
     }
 
@@ -189,6 +194,7 @@ impl Everything {
         self.fileset.handle(&mut self.dynasties);
         self.fileset.handle(&mut self.houses);
         self.fileset.handle(&mut self.characters);
+        self.fileset.handle(&mut self.namelists);
     }
 
     pub fn validate_all(&mut self) {
@@ -204,6 +210,7 @@ impl Everything {
         self.dynasties.validate(self);
         self.houses.validate(self);
         self.characters.validate(self);
+        self.namelists.validate(self);
     }
 
     pub fn check_pod(&mut self) {

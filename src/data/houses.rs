@@ -62,7 +62,7 @@ impl FileHandler for Houses {
             return;
         }
 
-        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
+        let _pause = LogPauseRaii::new(entry.kind() == FileKind::VanillaFile);
 
         let block = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
             Ok(block) => block,
@@ -106,6 +106,7 @@ impl House {
         if let Some(token) = vd.field_value("dynasty") {
             data.dynasties.verify_exists(token);
         }
+        vd.field_value("forced_coa_religiongroup");
         vd.warn_remaining();
     }
 }
