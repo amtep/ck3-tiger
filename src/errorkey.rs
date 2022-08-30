@@ -19,9 +19,11 @@ pub enum ErrorKey {
     MissingLocalization,
     MissingFile,
     MissingItem,
+    WrongGender,
     Conflict,
     ImageFormat,
     Unneeded,
+    Scopes,
     PrincesOfDarkness,
 }
 
@@ -46,9 +48,11 @@ impl FromStr for ErrorKey {
             "missing-localization" => ErrorKey::MissingLocalization,
             "missing-file" => ErrorKey::MissingFile,
             "missing-item" => ErrorKey::MissingItem,
+            "wrong-gender" => ErrorKey::WrongGender,
             "conflict" => ErrorKey::Conflict,
             "image-format" => ErrorKey::ImageFormat,
             "unneeded" => ErrorKey::Unneeded,
+            "scopes" => ErrorKey::Scopes,
             "princes-of-darkness" => ErrorKey::PrincesOfDarkness,
             _ => {
                 return Err(ParseKeyError::new("unknown error key"));
@@ -76,9 +80,11 @@ impl Display for ErrorKey {
             ErrorKey::MissingLocalization => write!(fmt, "missing-localization"),
             ErrorKey::MissingFile => write!(fmt, "missing-file"),
             ErrorKey::MissingItem => write!(fmt, "missing-item"),
+            ErrorKey::WrongGender => write!(fmt, "wrong-gender"),
             ErrorKey::Conflict => write!(fmt, "conflict"),
             ErrorKey::ImageFormat => write!(fmt, "image-format"),
             ErrorKey::Unneeded => write!(fmt, "unneeded"),
+            ErrorKey::Scopes => write!(fmt, "scopes"),
             ErrorKey::PrincesOfDarkness => write!(fmt, "princes-of-darkness"),
         }
     }

@@ -3,10 +3,10 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, DefinitionItem};
-use crate::data::localization::Localization;
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, warn_info, will_log, LogPauseRaii};
+use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
@@ -96,9 +96,10 @@ impl Events {
             .insert(key.to_string(), ScriptedEffect::new(key, block.clone()));
     }
 
-    pub fn check_have_locas(&self, locs: &Localization) {
-        for event in self.events.values() {
-            event.check_have_locas(locs);
+    pub fn validate(&self, data: &Everything) {
+        for item in self.events.values() {
+            let _pause = LogPauseRaii::new(item.key.loc.kind == FileKind::VanillaFile);
+            item.validate(data);
         }
     }
 }
@@ -206,17 +207,16 @@ pub struct Event {
 
 impl Event {
     pub fn new(key: Token, block: Block) -> Self {
-        Self::validate(&block);
         Self { key, block }
     }
 
-    pub fn validate(block: &Block) {
-        let mut vd = Validator::new(block);
+    pub fn validate(&self, data: &Everything) {
+        let mut vd = Validator::new(&self.block, data);
 
-        vd.opt_field_bool("hidden");
-        vd.opt_field_bool("major");
-        vd.opt_field_block("major_trigger"); // trigger
-        vd.opt_field_choice(
+        vd.field_bool("hidden");
+        vd.field_bool("major");
+        vd.field_block("major_trigger"); // trigger
+        vd.field_choice(
             "type",
             &[
                 "letter_event",
@@ -227,19 +227,31 @@ impl Event {
                 "empty",
             ],
         );
-        let evtype = block
+        let evtype = self
+            .block
             .get_field_value("type")
             .map_or("missing", |t| t.as_str());
-        vd.opt_field_value("scope");
-        vd.opt_field_block("immediate"); // effect
-        vd.opt_field_block("trigger"); // trigger
-        vd.opt_field_block("on_trigger_fail"); // effect
-        vd.opt_field_block("weight_multiplier"); // modifier
-        vd.opt_field("title"); // desc
-        vd.opt_field("desc"); // desc
+
+        vd.field_value("scope"); // the expected scope type
+        vd.field_block("immediate"); // effect
+        vd.field_block("trigger"); // trigger
+        vd.field_block("on_trigger_fail"); // effect
+        vd.field_block("weight_multiplier"); // modifier
+
+        if let Some(bv) = vd.field("title") {
+            verify_desc_locas(bv, &data.localization);
+        }
+
+        if let Some(bv) = vd.field("desc") {
+            verify_desc_locas(bv, &data.localization);
+        }
+
         if evtype == "letter_event" {
-            vd.opt_field("opening"); // desc
-            vd.req_field_check("sender", validate_portrait);
+            if let Some(bv) = vd.field("opening") {
+                verify_desc_locas(bv, &data.localization);
+            }
+            vd.req_field("sender");
+            vd.field_validated("sender", validate_portrait);
         } else {
             vd.advice_field("opening", "only needed for letter_event");
             vd.advice_field("sender", "only needed for letter_event");
@@ -248,111 +260,100 @@ impl Event {
             vd.advice_field("left_portrait", "not needed for court_event");
             vd.advice_field("right_portrait", "not needed for court_event");
         } else {
-            vd.opt_field_check("left_portrait", validate_portrait);
-            vd.opt_field_check("right_portrait", validate_portrait);
+            vd.field_validated("left_portrait", validate_portrait);
+            vd.field_validated("right_portrait", validate_portrait);
         }
-        vd.opt_field_check("lower_left_portrait", validate_portrait);
-        vd.opt_field_check("lower_center_portrait", validate_portrait);
-        vd.opt_field_check("lower_right_portrait", validate_portrait);
+        vd.field_validated("lower_left_portrait", validate_portrait);
+        vd.field_validated("lower_center_portrait", validate_portrait);
+        vd.field_validated("lower_right_portrait", validate_portrait);
         // TODO: check that artifacts are not in the same position as a character
-        vd.opt_field_validated_blocks("artifact", validate_artifact);
-        vd.opt_field_validated_block("court_scene", validate_court_scene);
+        vd.field_validated_blocks("artifact", validate_artifact);
+        vd.field_validated_block("court_scene", validate_court_scene);
         // TODO: check defined event themes
-        vd.opt_field_value("theme");
+        vd.field_value("theme");
         // TODO: warn if more than one of each is defined with no trigger
         if evtype == "court_event" {
             vd.advice_field("override_background", "not needed for court_event");
         } else {
-            vd.opt_field_validated_blocks("override_background", validate_theme_background);
+            vd.field_validated_blocks("override_background", validate_theme_background);
         }
-        vd.opt_field_validated_blocks("override_icon", validate_theme_icon);
-        vd.opt_field_validated_blocks("override_sound", validate_theme_sound);
+        vd.field_validated_blocks("override_icon", validate_theme_icon);
+        vd.field_validated_blocks("override_sound", validate_theme_sound);
         // Note: override_environment seems to be unused, and themes defined in
         // common/event_themes don't have environments. So I left it out even though
         // it's in the docs.
 
-        // TODO: validate options
-        if block.get_field_bool("hidden").unwrap_or(false) {
-            vd.opt_field_blocks("option");
-        } else {
-            vd.req_field_blocks("option");
+        if !self.block.get_field_bool("hidden").unwrap_or(false) {
+            vd.req_field("option");
         }
-        vd.opt_field_block("after"); // effect
-        vd.opt_field_validated_block("cooldown", validate_cooldown);
-        vd.opt_field_value("soundeffect");
-        vd.opt_field_bool("orphan");
+        vd.field_validated_blocks("option", validate_event_option);
+
+        vd.field_block("after"); // effect
+        vd.field_validated_block("cooldown", validate_cooldown);
+        vd.field_value("soundeffect");
+        vd.field_bool("orphan");
         // TODO: validate widget
-        vd.opt_field("widget");
-        vd.opt_field_block("widgets");
+        vd.field("widget");
+        vd.field_block("widgets");
         vd.warn_remaining();
     }
+}
 
-    pub fn check_have_locas(&self, locas: &Localization) {
-        let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
-
-        if let Some(title) = self.block.get_field("title") {
-            verify_desc_locas(title, locas);
-        }
-        if let Some(desc) = self.block.get_field("desc") {
-            verify_desc_locas(desc, locas);
-        }
-        if let Some(opening) = self.block.get_field("opening") {
-            verify_desc_locas(opening, locas);
-        }
-        for option in self.block.get_field_blocks("option") {
-            // TODO: descend into the effect blocks and collect custom_tooltip everywhere
-            if let Some(name) = option.get_field("name") {
-                match name {
-                    BlockOrValue::Token(t) => {
-                        locas.verify_exists(t.as_str(), t);
-                    }
-                    BlockOrValue::Block(b) => {
-                        if let Some(text) = b.get_field("text") {
-                            verify_desc_locas(text, locas);
-                        } else {
-                            warn(b, ErrorKey::Validation, "event option name with no text");
-                        }
-                    }
+fn validate_event_option(block: &Block, data: &Everything) {
+    // TODO: actually validate the whole option
+    if let Some(bv) = block.get_field("name") {
+        match bv {
+            BlockOrValue::Token(t) => {
+                data.localization.verify_exists(t);
+            }
+            BlockOrValue::Block(b) => {
+                if let Some(text) = b.get_field("text") {
+                    verify_desc_locas(text, &data.localization);
+                } else {
+                    warn(b, ErrorKey::Validation, "event option name with no text");
                 }
             }
-            // TODO: see if you can have multiple custom_tooltip in one block (and they all work)
-            if let Some(tooltip) = option.get_field("custom_tooltip") {
-                match tooltip {
-                    BlockOrValue::Token(t) => {
-                        locas.verify_exists(t.as_str(), t);
-                    }
-                    BlockOrValue::Block(b) => {
-                        if let Some(text) = b.get_field("text") {
-                            verify_desc_locas(text, locas);
-                        } else {
-                            warn(b, ErrorKey::Validation, "event option tooltip with no text");
-                        }
-                    }
+        }
+    }
+    // TODO: see if you can have multiple custom_tooltip in one block (and they all work)
+    if let Some(bv) = block.get_field("custom_tooltip") {
+        match bv {
+            BlockOrValue::Token(t) => {
+                data.localization.verify_exists(t);
+            }
+            BlockOrValue::Block(b) => {
+                if let Some(text) = b.get_field("text") {
+                    verify_desc_locas(text, &data.localization);
+                } else {
+                    warn(b, ErrorKey::Validation, "event option tooltip with no text");
                 }
             }
         }
     }
 }
 
-fn validate_court_scene(block: &Block) {
-    let mut vd = Validator::new(block);
+fn validate_court_scene(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
 
-    vd.req_field_value("button_position_character");
-    vd.opt_field_bool("court_event_force_open");
-    vd.opt_field_bool("show_timeout_info");
-    vd.opt_field_bool("should_pause_time");
-    vd.opt_field_value("court_owner");
-    vd.opt_field("scripted_animation");
+    vd.req_field("button_position_character");
+    vd.field_value("button_position_character");
+    vd.field_bool("court_event_force_open");
+    vd.field_bool("show_timeout_info");
+    vd.field_bool("should_pause_time");
+    vd.field_value("court_owner");
+    vd.field("scripted_animation");
     // TODO: validate roles
-    vd.opt_field_blocks("roles");
+    vd.field_blocks("roles");
     vd.warn_remaining();
 }
 
-fn validate_artifact(block: &Block) {
-    let mut vd = Validator::new(block);
+fn validate_artifact(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
 
-    vd.req_field_value("target");
-    vd.req_field_choice(
+    vd.req_field("target");
+    vd.req_field("position");
+    vd.field_value("target");
+    vd.field_choice(
         "position",
         &[
             "lower_left_portrait",
@@ -360,47 +361,50 @@ fn validate_artifact(block: &Block) {
             "lower_right_portrait",
         ],
     );
-    vd.opt_field_block("trigger");
+    vd.field_block("trigger");
     vd.warn_remaining();
 }
 
-fn validate_triggered_animation(block: &Block) {
-    let mut vd = Validator::new(block);
+fn validate_triggered_animation(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
 
-    vd.req_field_block("trigger");
-    vd.req_field_value("animation");
+    vd.req_field("trigger");
+    vd.req_field("animation");
+    vd.field_block("trigger");
+    vd.field_value("animation");
     vd.warn_remaining();
 }
 
-fn validate_triggered_outfit(block: &Block) {
-    let mut vd = Validator::new(block);
+fn validate_triggered_outfit(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
 
     // trigger is apparently optional
-    vd.opt_field_block("trigger");
+    vd.field_block("trigger");
     // TODO: check that at least one of these is set?
-    vd.opt_field_list("outfit_tags");
-    vd.opt_field_bool("remove_default_outfit");
-    vd.opt_field_bool("hide_info");
+    vd.field_list("outfit_tags");
+    vd.field_bool("remove_default_outfit");
+    vd.field_bool("hide_info");
     vd.warn_remaining();
 }
 
-fn validate_portrait(v: &BlockOrValue) {
+fn validate_portrait(v: &BlockOrValue, data: &Everything) {
     match v {
         BlockOrValue::Token(_) => (),
         BlockOrValue::Block(b) => {
-            let mut vd = Validator::new(b);
+            let mut vd = Validator::new(b, data);
 
-            vd.req_field_value("character");
-            vd.opt_field_block("trigger"); // trigger
-            vd.opt_field_value("animation");
-            vd.opt_field("scripted_animation");
-            vd.opt_field_validated_blocks("triggered_animation", validate_triggered_animation);
-            vd.opt_field_list("outfit_tags");
-            vd.opt_field_bool("remove_default_outfit");
-            vd.opt_field_bool("hide_info");
-            vd.opt_field_validated_blocks("triggered_outfit", validate_triggered_outfit);
+            vd.req_field("character");
+            vd.field_value("character");
+            vd.field_block("trigger"); // trigger
+            vd.field_value("animation");
+            vd.field("scripted_animation");
+            vd.field_validated_blocks("triggered_animation", validate_triggered_animation);
+            vd.field_list("outfit_tags");
+            vd.field_bool("remove_default_outfit");
+            vd.field_bool("hide_info");
+            vd.field_validated_blocks("triggered_outfit", validate_triggered_outfit);
             // TODO: is this only useful when animation is prisondungeon ?
-            vd.opt_field_bool("override_imprisonment_visuals");
+            vd.field_bool("override_imprisonment_visuals");
             vd.warn_remaining();
         }
     }

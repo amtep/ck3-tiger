@@ -1,17 +1,49 @@
 use fnv::FnvHashMap;
+use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
-use crate::data::dynasties::Dynasties;
-use crate::data::houses::Houses;
-use crate::data::localization::Localization;
-use crate::data::religions::Religions;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, will_log, LogPauseRaii};
+use crate::errors::{error, error_info, info, warn, will_log, LogPauseRaii};
+use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
+
+const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual"];
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum Gender {
+    Male,
+    Female,
+}
+
+impl Gender {
+    fn from_female_bool(b: bool) -> Self {
+        if b {
+            Gender::Female
+        } else {
+            Gender::Male
+        }
+    }
+
+    fn flip(self) -> Self {
+        match self {
+            Gender::Male => Gender::Female,
+            Gender::Female => Gender::Male,
+        }
+    }
+}
+
+impl Display for Gender {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        match *self {
+            Gender::Male => write!(f, "male"),
+            Gender::Female => write!(f, "female"),
+        }
+    }
+}
 
 #[derive(Clone, Debug, Default)]
 pub struct Characters {
@@ -43,27 +75,18 @@ impl Characters {
             .insert(key.to_string(), Character::new(key.clone(), block.clone()));
     }
 
-    pub fn check_have_locas(&self, locas: &Localization) {
-        for character in self.characters.values() {
-            if character.born_by(self.config_only_born) {
-                character.check_have_locas(locas);
+    pub fn verify_exists_gender(&self, item: &Token, gender: Gender) {
+        if let Some(ch) = self.characters.get(item.as_str()) {
+            if gender != ch.gender() {
+                let msg = format!("character is not {}", gender);
+                error(item, ErrorKey::WrongGender, &msg);
             }
-        }
-    }
-
-    pub fn check_have_dynasties(&self, houses: &Houses, dynasties: &Dynasties) {
-        for character in self.characters.values() {
-            if character.born_by(self.config_only_born) {
-                character.check_have_dynasty(houses, dynasties);
-            }
-        }
-    }
-
-    pub fn check_have_faiths(&self, religions: &Religions) {
-        for character in self.characters.values() {
-            if character.born_by(self.config_only_born) {
-                character.check_have_faith(religions);
-            }
+        } else {
+            error(
+                item,
+                ErrorKey::MissingItem,
+                "character not defined in history/characters/",
+            );
         }
     }
 
@@ -77,24 +100,12 @@ impl Characters {
         }
     }
 
-    fn finalize_history(&self, b: &Block) {
-        if let Some(ch) = b.get_field_value("employer") {
-            self.verify_exists(ch);
-        }
-        if let Some(ch) = b.get_field_value("add_spouse") {
-            self.verify_exists(ch);
-        }
-        if let Some(ch) = b.get_field_value("remove_spouse") {
-            self.verify_exists(ch);
-        }
-        if let Some(ch) = b.get_field_value("add_matrilineal_spouse") {
-            self.verify_exists(ch);
-        }
-        if let Some(ch) = b.get_field_value("add_same_sex_spouse") {
-            self.verify_exists(ch);
-        }
-        if let Some(ch) = b.get_field_value("add_concubine") {
-            self.verify_exists(ch);
+    pub fn validate(&self, data: &Everything) {
+        for item in self.characters.values() {
+            if item.born_by(self.config_only_born) {
+                let _pause = LogPauseRaii::new(item.key.loc.kind == FileKind::VanillaFile);
+                item.validate(data);
+            }
         }
     }
 }
@@ -119,8 +130,6 @@ impl FileHandler for Characters {
             return;
         }
 
-        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
-
         let block = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
             Ok(block) => block,
             Err(e) => {
@@ -138,25 +147,6 @@ impl FileHandler for Characters {
             self.load_item(key, b);
         }
     }
-
-    fn finalize(&mut self) {
-        for character in self.characters.values() {
-            if !character.born_by(self.config_only_born) {
-                continue;
-            }
-            if let Some(ch) = character.block.get_field_value("father") {
-                self.verify_exists(ch);
-            }
-            if let Some(ch) = character.block.get_field_value("mother") {
-                self.verify_exists(ch);
-            }
-            for (k, b) in character.block.iter_pure_definitions() {
-                if Date::try_from(k).is_ok() {
-                    self.finalize_history(b);
-                }
-            }
-        }
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -167,7 +157,6 @@ pub struct Character {
 
 impl Character {
     pub fn new(key: Token, block: Block) -> Self {
-        Self::validate(&block);
         Self { key, block }
     }
 
@@ -179,129 +168,126 @@ impl Character {
         }
     }
 
-    pub fn validate_history(block: &Block) {
-        let mut vd = Validator::new(block);
-        vd.opt_field_value("name");
-        vd.opt_field_value("birth");
-        vd.opt_field("death"); // can be { death_reason = }
-        vd.opt_field_value("religion");
-        vd.opt_field_value("faith");
-        vd.opt_field_value("employer");
-        vd.opt_field_value("set_house");
-        vd.opt_field_value("culture");
-        vd.opt_field_value("set_culture");
-        vd.opt_field_value("set_character_faith_no_effect");
-        vd.opt_field_values("trait");
-        vd.opt_field_values("add_trait");
-        vd.opt_field_values("remove_trait");
-        vd.opt_fields("add_character_flag"); // can be { flag = }
-        vd.opt_field_values("add_pressed_claim"); // TODO: check title exists
-        vd.opt_field_values("remove_claim"); // TODO: check title exists
-        vd.opt_field_values("capital"); // TODO: check title exists. This one is without title:
-        vd.opt_field_values("add_spouse");
-        vd.opt_field_values("add_matrilineal_spouse");
-        vd.opt_field_values("add_same_sex_spouse");
-        vd.opt_field_values("add_concubine");
-        vd.opt_field_values("remove_spouse");
-        vd.opt_field_blocks("add_secret");
-        vd.opt_field_value("give_nickname");
-        vd.opt_field_blocks("create_alliance");
-        vd.opt_field_value("dynasty");
-        vd.opt_field_value("dynasty_house");
-        vd.opt_field_integer("set_immortal_age");
+    pub fn gender(&self) -> Gender {
+        Gender::from_female_bool(self.block.get_field_bool("female").unwrap_or(false))
+    }
+
+    pub fn validate_history(_key: &Token, block: &Block, parent: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        vd.field_value_loca("name");
+
+        vd.field_value("birth"); // TODO: can be "yes" or a date
+        vd.field("death"); // TODO: can be "yes" or { death_reason = }
+                           // religion and faith both mean faith here
+        data.religions
+            .verify_faith_exists_opt(vd.field_value("religion"));
+        data.religions
+            .verify_faith_exists_opt(vd.field_value("faith"));
+
+        if let Some(token) = vd.field_value("set_character_faith") {
+            // At some point, this should probably be part of general effect-and-scope processing
+            if let Some(faith) = token.as_str().strip_prefix("faith:") {
+                data.religions.verify_implied_faith_exists(faith, token);
+            } else {
+                warn(
+                    token,
+                    ErrorKey::Scopes,
+                    "faith should start with `faith:` here",
+                );
+            }
+        }
+
+        if let Some(token) = vd.field_value("employer") {
+            data.characters.verify_exists(token);
+        }
+        vd.field_value("culture");
+        vd.field_value("set_culture");
+        vd.field_values("trait");
+        vd.field_values("add_trait");
+        vd.field_values("remove_trait");
+        vd.fields("add_character_flag"); // TODO: can be flag name or { flag = }
+        vd.field_values("add_pressed_claim"); // TODO: check title exists
+        vd.field_values("remove_claim"); // TODO: check title exists
+        vd.field_values("capital"); // TODO: check title exists. This one is without title:
+
+        let gender = Gender::from_female_bool(parent.get_field_bool("female").unwrap_or(false));
+        for token in vd.field_values("add_spouse") {
+            data.characters.verify_exists_gender(token, gender.flip());
+        }
+        for token in vd.field_values("add_matrilineal_spouse") {
+            data.characters.verify_exists_gender(token, gender.flip());
+        }
+        for token in vd.field_values("add_same_sex_spouse") {
+            data.characters.verify_exists_gender(token, gender);
+        }
+        for token in vd.field_values("add_concubine") {
+            data.characters.verify_exists_gender(token, gender.flip());
+        }
+        for token in vd.field_values("remove_spouse") {
+            // TODO: also check that they were a spouse
+            data.characters.verify_exists_gender(token, gender.flip());
+        }
+        vd.field_blocks("add_secret");
+        vd.field_value("give_nickname");
+        vd.field_blocks("create_alliance");
+
+        data.dynasties.verify_exists_opt(vd.field_value("dynasty"));
+        data.houses
+            .verify_exists_opt(vd.field_value("dynasty_house"));
+
+        vd.field_integer("set_immortal_age");
         // At this point it seems that just about any effect can be here
         // without an effect block around it.
-        vd.opt_field_integer("add_gold");
-        vd.opt_field_blocks("effect");
+        vd.field_integer("add_gold");
+        vd.field_blocks("effect");
         vd.warn_remaining();
     }
 
-    pub fn validate(block: &Block) {
-        let mut vd = Validator::new(block);
+    fn validate(&self, data: &Everything) {
+        let mut vd = Validator::new(&self.block, data);
 
-        vd.req_field_value("name");
-        vd.opt_field_value("dna");
-        vd.opt_field_bool("female");
-        vd.opt_field_integer("martial");
-        vd.opt_field_integer("prowess");
-        vd.opt_field_integer("diplomacy");
-        vd.opt_field_integer("intrigue");
-        vd.opt_field_integer("stewardship");
-        vd.opt_field_integer("learning");
-        vd.opt_field_values("trait");
-        vd.opt_field_value("father");
-        vd.opt_field_value("mother");
-        vd.opt_field_bool("disallow_random_traits");
-        vd.opt_field_value("religion");
-        vd.opt_field_value("faith");
-        vd.opt_field_value("culture");
-        vd.opt_field_value("dynasty");
-        vd.opt_field_value("dynasty_house");
-        vd.opt_field_value("give_nickname");
-        vd.opt_field_value("sexuality");
-        vd.opt_field_value("health");
-        vd.opt_field_value("fertility");
-        vd.opt_field_block("portrait_override");
+        vd.req_field("name");
+        vd.field_value_loca("name");
+
+        vd.field_value("dna");
+        vd.field_bool("female");
+        vd.field_integer("martial");
+        vd.field_integer("prowess");
+        vd.field_integer("diplomacy");
+        vd.field_integer("intrigue");
+        vd.field_integer("stewardship");
+        vd.field_integer("learning");
+        vd.field_values("trait");
+
+        if let Some(ch) = vd.field_value("father") {
+            data.characters.verify_exists_gender(ch, Gender::Male);
+        }
+
+        if let Some(ch) = vd.field_value("mother") {
+            data.characters.verify_exists_gender(ch, Gender::Female);
+        }
+
+        vd.field_bool("disallow_random_traits");
+
+        // religion and faith both mean faith here
+        data.religions
+            .verify_faith_exists_opt(vd.field_value("religion"));
+        data.religions
+            .verify_faith_exists_opt(vd.field_value("faith"));
+
+        vd.field_value("culture");
+
+        data.dynasties.verify_exists_opt(vd.field_value("dynasty"));
+        data.houses
+            .verify_exists_opt(vd.field_value("dynasty_house"));
+
+        vd.field_value("give_nickname");
+        vd.field_choice("sexuality", SEXUALITIES);
+        vd.field_float("health");
+        vd.field_float("fertility");
+        vd.field_block("portrait_override");
+
         vd.validate_history_blocks(Self::validate_history);
         vd.warn_remaining();
-    }
-
-    pub fn check_have_locas(&self, locas: &Localization) {
-        let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
-
-        if let Some(loca) = self.block.get_field_value("name") {
-            locas.verify_exists(loca.as_str(), loca);
-        }
-        for (k, b) in self.block.iter_pure_definitions() {
-            if Date::try_from(k).is_ok() {
-                if let Some(loca) = b.get_field_value("name") {
-                    locas.verify_exists(loca.as_str(), loca);
-                }
-            }
-        }
-    }
-
-    pub fn check_have_dynasty(&self, houses: &Houses, dynasties: &Dynasties) {
-        if let Some(dynasty) = self.block.get_field_value("dynasty") {
-            dynasties.verify_exists(dynasty);
-        }
-        if let Some(house) = self.block.get_field_value("dynasty_house") {
-            houses.verify_exists(house);
-        }
-        for (k, b) in self.block.iter_pure_definitions() {
-            if Date::try_from(k).is_ok() {
-                if let Some(house) = b.get_field_value("set_house") {
-                    houses.verify_exists(house);
-                }
-                if let Some(house) = b.get_field_value("dynasty_house") {
-                    houses.verify_exists(house);
-                }
-                if let Some(dynasty) = b.get_field_value("dynasty") {
-                    dynasties.verify_exists(dynasty);
-                }
-            }
-        }
-    }
-
-    pub fn check_have_faith(&self, religions: &Religions) {
-        if let Some(faith) = self.block.get_field_value("religion") {
-            religions.verify_faith_exists(faith);
-        }
-        if let Some(faith) = self.block.get_field_value("faith") {
-            religions.verify_faith_exists(faith);
-        }
-        for (k, b) in self.block.iter_pure_definitions() {
-            if Date::try_from(k).is_ok() {
-                if let Some(faith) = b.get_field_value("religion") {
-                    religions.verify_faith_exists(faith);
-                }
-                if let Some(faith) = b.get_field_value("faith") {
-                    religions.verify_faith_exists(faith);
-                }
-                if let Some(faith) = b.get_field_value("set_character_faith_no_effect") {
-                    religions.verify_faith_exists(faith);
-                }
-            }
-        }
     }
 }

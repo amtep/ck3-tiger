@@ -3,10 +3,10 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, DefinitionItem};
-use crate::data::localization::Localization;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, will_log, LogPauseRaii};
-use crate::fileset::{FileEntry, FileHandler, FileKind, Fileset};
+use crate::everything::Everything;
+use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 use crate::validate::validate_color;
@@ -57,28 +57,28 @@ impl Religions {
         }
     }
 
-    pub fn check_have_customs(&self) {
+    pub fn validate(&self, data: &Everything) {
+        for religion in self.religions.values() {
+            let _pause = LogPauseRaii::new(religion.key.loc.kind == FileKind::VanillaFile);
+
+            religion.validate(data);
+        }
         for faith in self.faiths.values() {
+            let _pause = LogPauseRaii::new(faith.key.loc.kind == FileKind::VanillaFile);
+            faith.validate(data);
+
             let religion = &self.religions[faith.religion.as_str()];
             faith.check_have_customs(religion);
         }
     }
 
-    pub fn check_have_locas(&self, locas: &Localization) {
-        for religion in self.religions.values() {
-            religion.check_have_locas(locas);
-        }
-        for faith in self.faiths.values() {
-            faith.check_have_locas(locas);
-        }
-    }
-
-    pub fn check_have_files(&self, files: &Fileset) {
-        for religion in self.religions.values() {
-            religion.check_have_files(files);
-        }
-        for faith in self.faiths.values() {
-            faith.check_have_files(files);
+    pub fn verify_implied_faith_exists(&self, key: &str, item: &Token) {
+        if !self.faiths.contains_key(key) {
+            error(
+                item,
+                ErrorKey::MissingItem,
+                "faith not defined in common/religion/religions",
+            );
         }
     }
 
@@ -90,6 +90,10 @@ impl Religions {
                 "faith not defined in common/religion/religions",
             );
         }
+    }
+
+    pub fn verify_faith_exists_opt(&self, item: Option<&Token>) {
+        item.map(|item| self.verify_faith_exists(item));
     }
 
     pub fn is_modded_faith(&self, item: &Token) -> bool {
@@ -153,90 +157,59 @@ pub struct Religion {
 
 impl Religion {
     pub fn new(key: Token, block: Block) -> Self {
-        Self::validate(&block);
         Self { key, block }
     }
 
-    pub fn validate(block: &Block) {
-        let mut vd = Validator::new(block);
-
-        vd.req_field_value("family");
-        vd.req_field_values("doctrine");
-        vd.opt_field_blocks("doctrine_selection_pair"); // TODO: validate
-        vd.opt_field_value("doctrine_background_icon");
-        vd.opt_field_value("piety_icon_group");
-        vd.opt_field_value("graphical_faith");
-        vd.opt_field_bool("pagan_roots");
-        vd.opt_field_validated_block("traits", validate_traits);
-        vd.opt_field_list("custom_faith_icons");
-        vd.opt_field_list("reserved_male_names");
-        vd.opt_field_list("reserved_female_names");
-        vd.opt_field_validated_block("holy_order_names", validate_holy_order_names);
-        vd.opt_field_list("holy_order_maa");
-        // TODO: check that all keys are there.
-        // Which needs checking up the chain faith, religion, family
-        vd.opt_field_block("localization");
-        vd.opt_field_blocks("faiths");
-        vd.warn_remaining();
-    }
-
-    pub fn check_have_locas(&self, locas: &Localization) {
-        let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
-
-        locas.verify_exists(self.key.as_str(), &self.key);
+    pub fn validate(&self, data: &Everything) {
+        data.localization.verify_exists(&self.key);
         let loca = format!("{}_adj", self.key);
-        locas.verify_exists(&loca, &self.key);
+        data.localization.verify_exists_implied(&loca, &self.key);
         let loca = format!("{}_adherent", self.key);
-        locas.verify_exists(&loca, &self.key);
+        data.localization.verify_exists_implied(&loca, &self.key);
         let loca = format!("{}_adherent_plural", self.key);
-        locas.verify_exists(&loca, &self.key);
+        data.localization.verify_exists_implied(&loca, &self.key);
         let loca = format!("{}_desc", self.key);
-        locas.verify_exists(&loca, &self.key);
+        data.localization.verify_exists_implied(&loca, &self.key);
 
-        if let Some(holy) = self.block.get_field_block("holy_order_names") {
-            for b in holy.get_sub_blocks() {
-                if let Some(name) = b.get_field_value("name") {
-                    locas.verify_exists(name.as_str(), name);
-                }
-            }
+        let mut vd = Validator::new(&self.block, data);
+
+        vd.req_field("family");
+        vd.field_value("family");
+
+        vd.req_field("doctrine");
+        vd.field_values("doctrine");
+
+        vd.field_blocks("doctrine_selection_pair"); // TODO: validate
+        if let Some(icon) = vd.field_value("doctrine_background_icon") {
+            let pathname = format!("gfx/interface/icons/faith_doctrines/{}", icon);
+            data.fileset.verify_exists_implied(&pathname, icon);
         }
+        vd.field_value("piety_icon_group");
+        vd.field_value("graphical_faith");
+        vd.field_bool("pagan_roots");
+        vd.field_validated_block("traits", validate_traits);
 
-        if let Some(b) = self.block.get_field_block("localization") {
-            for (_, loca) in b.get_assignments() {
-                locas.verify_exists(loca.as_str(), loca);
-            }
-            if let Some(list) = b.get_field_list("GoodGodNames") {
-                for loca in list {
-                    locas.verify_exists(loca.as_str(), &loca);
-                }
-            }
-            if let Some(list) = b.get_field_list("EvilGodNames") {
-                for loca in list {
-                    locas.verify_exists(loca.as_str(), &loca);
-                }
-            }
-        }
-    }
-
-    pub fn check_have_files(&self, files: &Fileset) {
-        let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
-
+        vd.field_list("custom_faith_icons");
         if let Some(icons) = self.block.get_field_list("custom_faith_icons") {
             for icon in &icons {
                 let pathname = format!("gfx/interface/icons/faith/{}.dds", icon);
-                files.verify_exists_implied(&pathname, icon);
+                data.fileset.verify_exists_implied(&pathname, icon);
             }
         }
 
-        if let Some(icon) = self.block.get_field_value("doctrine_background_icon") {
-            let pathname = format!("gfx/interface/icons/faith_doctrines/{}", icon);
-            files.verify_exists_implied(&pathname, icon);
-        }
+        vd.field_list("reserved_male_names"); // TODO
+        vd.field_list("reserved_female_names"); // TODO
+
+        vd.field_validated_block("holy_order_names", validate_holy_order_names);
+        vd.field_list("holy_order_maa");
+        vd.field_validated_block("localization", validate_localization);
+        vd.field_blocks("faiths");
+        vd.warn_remaining();
     }
 }
 
-fn validate_traits(block: &Block) {
-    let mut vd = Validator::new(block);
+fn validate_traits(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
     // TODO: parse these. Can be single tokens ("wrathful") or assignments ("wrathful = 3")
     // or even wrathful = { modifier = modifier_key scale = 2 }
     vd.req_field("virtues");
@@ -244,7 +217,30 @@ fn validate_traits(block: &Block) {
     vd.warn_remaining();
 }
 
-fn validate_holy_order_names(_block: &Block) {
+fn validate_localization(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    for field in CUSTOM_RELIGION_LOCAS {
+        vd.field(field);
+        if let Some(token) = block.get_field_value(field) {
+            data.localization.verify_exists(token);
+        } else if let Some(list) = block.get_field_list(field) {
+            for token in list {
+                data.localization.verify_exists(&token);
+            }
+        }
+    }
+    vd.warn_remaining();
+}
+
+fn validate_holy_order_names(block: &Block, data: &Everything) {
+    if let Some(holy) = block.get_field_block("holy_order_names") {
+        for b in holy.get_sub_blocks() {
+            if let Some(name) = b.get_field_value("name") {
+                data.localization.verify_exists(name);
+            }
+        }
+    }
+
     // TODO
     // It's a list of sub-blocks, each one having a name key and optional coat_of_arms key
 }
@@ -259,7 +255,6 @@ pub struct Faith {
 
 impl Faith {
     pub fn new(key: Token, block: Block, religion: Token, pagan: bool) -> Self {
-        Self::validate(&block);
         // TODO: verify that reform_icon is set if a pagan faith
         Self {
             key,
@@ -273,81 +268,61 @@ impl Faith {
         self.key.loc.kind
     }
 
-    pub fn validate(block: &Block) {
-        let mut vd = Validator::new(block);
-
-        vd.req_field_validated_block("color", validate_color);
-        vd.opt_field_value("icon");
-        vd.opt_field_value("reformed_icon");
-        vd.opt_field_value("graphical_faith");
-        vd.opt_field_value("piety_icon_group");
-        vd.opt_field_value("doctrine_background_icon");
-        vd.opt_field_value("religious_head");
-        vd.req_field_values("holy_site");
-        vd.req_field_values("doctrine");
-        vd.opt_field_blocks("doctrine_selection_pair"); // TODO: validate
-        vd.opt_field_list("reserved_male_names");
-        vd.opt_field_list("reserved_female_names");
-        vd.opt_field_block("localization");
-        vd.opt_field_validated_block("holy_order_names", validate_holy_order_names);
-        vd.opt_field_list("holy_order_maa"); // TODO: verify this is allowed
-        vd.warn_remaining();
-    }
-
-    pub fn check_have_locas(&self, locas: &Localization) {
-        let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
-
-        locas.verify_exists(self.key.as_str(), &self.key);
+    pub fn validate(&self, data: &Everything) {
+        data.localization.verify_exists(&self.key);
         let loca = format!("{}_adj", self.key);
-        locas.verify_exists(&loca, &self.key);
+        data.localization.verify_exists_implied(&loca, &self.key);
         let loca = format!("{}_adherent", self.key);
-        locas.verify_exists(&loca, &self.key);
+        data.localization.verify_exists_implied(&loca, &self.key);
         let loca = format!("{}_adherent_plural", self.key);
-        locas.verify_exists(&loca, &self.key);
+        data.localization.verify_exists_implied(&loca, &self.key);
 
         if self.pagan {
             let loca = format!("{}_old", self.key);
-            locas.verify_exists(&loca, &self.key);
+            data.localization.verify_exists_implied(&loca, &self.key);
             let loca = format!("{}_old_adj", self.key);
-            locas.verify_exists(&loca, &self.key);
+            data.localization.verify_exists_implied(&loca, &self.key);
             let loca = format!("{}_old_adherent", self.key);
-            locas.verify_exists(&loca, &self.key);
+            data.localization.verify_exists_implied(&loca, &self.key);
             let loca = format!("{}_old_adherent_plural", self.key);
-            locas.verify_exists(&loca, &self.key);
+            data.localization.verify_exists_implied(&loca, &self.key);
         }
 
-        if let Some(b) = self.block.get_field_block("localization") {
-            for (_, loca) in b.get_assignments() {
-                locas.verify_exists(loca.as_str(), loca);
-            }
-            if let Some(list) = b.get_field_list("GoodGodNames") {
-                for loca in list {
-                    locas.verify_exists(loca.as_str(), &loca);
-                }
-            }
-            if let Some(list) = b.get_field_list("EvilGodNames") {
-                for loca in list {
-                    locas.verify_exists(loca.as_str(), &loca);
-                }
-            }
-        }
-    }
+        let mut vd = Validator::new(&self.block, data);
 
-    pub fn check_have_files(&self, files: &Fileset) {
-        let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
-
-        if let Some(icon) = self.block.get_field_value("icon") {
+        vd.req_field("color");
+        vd.field_validated_block("color", validate_color);
+        if let Some(icon) = vd.field_value("icon") {
             let pathname = format!("gfx/interface/icons/faith/{}.dds", icon);
-            files.verify_exists_implied(&pathname, icon);
+            data.fileset.verify_exists_implied(&pathname, icon);
         } else {
             let pathname = format!("gfx/interface/icons/faith/{}.dds", self.key);
-            files.verify_exists_implied(&pathname, &self.key);
+            data.fileset.verify_exists_implied(&pathname, &self.key);
+        }
+        if let Some(icon) = vd.field_value("reformed_icon") {
+            let pathname = format!("gfx/interface/icons/faith/{}.dds", icon);
+            data.fileset.verify_exists_implied(&pathname, icon);
+        }
+        vd.field_value("graphical_faith");
+        vd.field_value("piety_icon_group");
+
+        if let Some(icon) = vd.field_value("doctrine_background_icon") {
+            let pathname = format!("gfx/interface/icons/faith_doctrines/{}", icon);
+            data.fileset.verify_exists_implied(&pathname, icon);
         }
 
-        if let Some(icon) = self.block.get_field_value("reformed_icon") {
-            let pathname = format!("gfx/interface/icons/faith/{}.dds", icon);
-            files.verify_exists_implied(&pathname, icon);
-        }
+        vd.field_value("religious_head");
+        vd.req_field("holy site");
+        vd.field_values("holy_site");
+        vd.req_field("doctrine");
+        vd.field_values("doctrine");
+        vd.field_blocks("doctrine_selection_pair"); // TODO: validate
+        vd.field_list("reserved_male_names");
+        vd.field_list("reserved_female_names");
+        vd.field_validated_block("localization", validate_localization);
+        vd.field_validated_block("holy_order_names", validate_holy_order_names);
+        vd.field_list("holy_order_maa"); // TODO: verify this is allowed
+        vd.warn_remaining();
     }
 
     pub fn check_have_customs(&self, religion: &Religion) {

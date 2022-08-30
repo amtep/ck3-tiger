@@ -5,6 +5,7 @@ use std::str::FromStr;
 
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, LogPauseRaii};
+use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::token::{Loc, Token};
@@ -40,6 +41,8 @@ impl Provinces {
             self.provinces.insert(province.id, province);
         }
     }
+
+    pub fn validate(&self, _data: &Everything) {}
 }
 
 impl FileHandler for Provinces {

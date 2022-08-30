@@ -47,38 +47,38 @@ pub struct Everything {
     config: Block,
 
     /// The CK3 and mod files
-    fileset: Fileset,
+    pub fileset: Fileset,
 
     /// Processed localization files
-    localizations: Localization,
+    pub localization: Localization,
 
     /// Processed event files
-    events: Events,
+    pub events: Events,
 
     /// Processed decision files
-    decisions: Decisions,
+    pub decisions: Decisions,
 
     /// Processed character interaction files
-    interactions: Interactions,
+    pub interactions: Interactions,
 
     /// Processed map data
-    provinces: Provinces,
+    pub provinces: Provinces,
 
     /// Processed history/provinces data
-    province_histories: ProvinceHistories,
+    pub province_histories: ProvinceHistories,
 
     /// Processed game concepts
-    game_concepts: GameConcepts,
+    pub game_concepts: GameConcepts,
 
     /// Religions and faiths
-    religions: Religions,
+    pub religions: Religions,
 
     /// Landed titles
-    titles: Titles,
+    pub titles: Titles,
 
-    dynasties: Dynasties,
-    houses: Houses,
-    characters: Characters,
+    pub dynasties: Dynasties,
+    pub houses: Houses,
+    pub characters: Characters,
 }
 
 impl Everything {
@@ -116,7 +116,7 @@ impl Everything {
         Ok(Everything {
             fileset,
             config,
-            localizations: Localization::default(),
+            localization: Localization::default(),
             events: Events::default(),
             decisions: Decisions::default(),
             interactions: Interactions::default(),
@@ -177,7 +177,7 @@ impl Everything {
         self.load_errorkey_config();
         self.fileset.config(self.config.clone());
 
-        self.fileset.handle(&mut self.localizations);
+        self.fileset.handle(&mut self.localization);
         self.fileset.handle(&mut self.events);
         self.fileset.handle(&mut self.decisions);
         self.fileset.handle(&mut self.interactions);
@@ -191,41 +191,19 @@ impl Everything {
         self.fileset.handle(&mut self.characters);
     }
 
-    pub fn check_have_localizations(&self) {
-        self.decisions.check_have_locas(&self.localizations);
-        self.events.check_have_locas(&self.localizations);
-        self.interactions.check_have_locas(&self.localizations);
-        self.game_concepts.check_have_locas(&self.localizations);
-        self.religions.check_have_locas(&self.localizations);
-        self.titles.check_have_locas(&self.localizations);
-        self.dynasties.check_have_locas(&self.localizations);
-        self.houses.check_have_locas(&self.localizations);
-        self.characters.check_have_locas(&self.localizations);
-    }
-
-    pub fn check_have_files(&self) {
-        self.decisions.check_have_files(&self.fileset);
-        self.interactions.check_have_files(&self.fileset);
-        self.game_concepts.check_have_files(&self.fileset);
-        self.religions.check_have_files(&self.fileset);
-    }
-
-    pub fn check_have_dynasties(&self) {
-        self.houses.check_have_dynasties(&self.dynasties);
-        self.characters
-            .check_have_dynasties(&self.houses, &self.dynasties);
-    }
-
-    pub fn check_have_faiths(&self) {
-        self.characters.check_have_faiths(&self.religions);
-    }
-
-    pub fn check_all(&mut self) {
-        self.check_have_localizations();
-        self.check_have_files();
-        self.check_have_dynasties();
-        self.check_have_faiths();
-        self.religions.check_have_customs();
+    pub fn validate_all(&mut self) {
+        self.localization.validate(self);
+        self.events.validate(self);
+        self.decisions.validate(self);
+        self.interactions.validate(self);
+        self.provinces.validate(self);
+        self.province_histories.validate(self);
+        self.game_concepts.validate(self);
+        self.religions.validate(self);
+        self.titles.validate(self);
+        self.dynasties.validate(self);
+        self.houses.validate(self);
+        self.characters.validate(self);
     }
 
     pub fn check_pod(&mut self) {

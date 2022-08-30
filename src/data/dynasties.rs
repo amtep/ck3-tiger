@@ -3,9 +3,9 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
-use crate::data::localization::Localization;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, will_log, LogPauseRaii};
+use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
@@ -31,12 +31,6 @@ impl Dynasties {
             .insert(key.to_string(), Dynasty::new(key.clone(), block.clone()));
     }
 
-    pub fn check_have_locas(&self, locas: &Localization) {
-        for dynasty in self.dynasties.values() {
-            dynasty.check_have_locas(locas);
-        }
-    }
-
     pub fn verify_exists(&self, item: &Token) {
         if !self.dynasties.contains_key(item.as_str()) {
             error(
@@ -44,6 +38,16 @@ impl Dynasties {
                 ErrorKey::MissingItem,
                 "dynasty not defined in common/dynasties/",
             );
+        }
+    }
+
+    pub fn verify_exists_opt(&self, item: Option<&Token>) {
+        item.map(|item| self.verify_exists(item));
+    }
+
+    pub fn validate(&self, data: &Everything) {
+        for item in self.dynasties.values() {
+            item.validate(data);
         }
     }
 }
@@ -87,32 +91,18 @@ pub struct Dynasty {
 
 impl Dynasty {
     pub fn new(key: Token, block: Block) -> Self {
-        Self::validate(&block);
         Self { key, block }
     }
 
-    pub fn validate(block: &Block) {
-        let mut vd = Validator::new(block);
+    pub fn validate(&self, data: &Everything) {
+        let mut vd = Validator::new(&self.block, data);
 
-        vd.req_field_value("name");
-        vd.opt_field_value("prefix");
-        vd.opt_field_value("motto");
-        vd.opt_field_value("culture");
-        vd.opt_field_value("forced_coa_religiongroup");
+        vd.req_field("name");
+        vd.field_value_loca("name");
+        vd.field_value_loca("prefix");
+        vd.field_value_loca("motto");
+        vd.field_value("culture");
+        vd.field_value("forced_coa_religiongroup");
         vd.warn_remaining();
-    }
-
-    pub fn check_have_locas(&self, locas: &Localization) {
-        let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
-
-        if let Some(loca) = self.block.get_field_value("name") {
-            locas.verify_exists(loca.as_str(), loca);
-        }
-        if let Some(loca) = self.block.get_field_value("prefix") {
-            locas.verify_exists(loca.as_str(), loca);
-        }
-        if let Some(loca) = self.block.get_field_value("motto") {
-            locas.verify_exists(loca.as_str(), loca);
-        }
     }
 }

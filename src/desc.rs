@@ -7,7 +7,7 @@ pub fn verify_desc_locas(desc: &BlockOrValue, locas: &Localization) {
     match desc {
         BlockOrValue::Token(t) => {
             if !t.as_str().contains(' ') {
-                locas.verify_exists(t.as_str(), t);
+                locas.verify_exists(t);
             }
         }
         BlockOrValue::Block(b) => {
@@ -21,7 +21,7 @@ pub fn verify_desc_block_locas(desc: &Block, locas: &Localization) {
         match def {
             DefinitionItem::Assignment(key, t) if key.is("desc") => {
                 if !t.as_str().contains(' ') {
-                    locas.verify_exists(t.as_str(), t);
+                    locas.verify_exists(t);
                 }
             }
             DefinitionItem::Assignment(key, _) | DefinitionItem::Keyword(key) => {

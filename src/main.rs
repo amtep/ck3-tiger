@@ -117,7 +117,7 @@ fn main() -> Result<()> {
 
     let mut everything = Everything::new(&args.ck3.unwrap(), &modpath)?;
     everything.load_all();
-    everything.check_all();
+    everything.validate_all();
     if args.pod {
         everything.check_pod();
     }

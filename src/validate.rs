@@ -3,42 +3,43 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
+use crate::everything::Everything;
 
-pub fn validate_theme_background(block: &Block) {
-    let mut vd = Validator::new(block);
+pub fn validate_theme_background(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
 
-    vd.opt_field_block("trigger");
+    vd.field_block("trigger");
     // TODO: verify the background is defined
-    vd.opt_field_value("event_background");
+    vd.field_value("event_background");
     // TODO: check if `reference` actually works or is a mistake in vanilla
-    vd.opt_field_value("reference");
+    vd.field_value("reference");
     vd.warn_remaining();
 }
 
-pub fn validate_theme_icon(block: &Block) {
-    let mut vd = Validator::new(block);
+pub fn validate_theme_icon(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
 
-    vd.opt_field_block("trigger");
+    vd.field_block("trigger");
     // TODO: verify the file exists
-    vd.opt_field_value("reference"); // file
+    vd.field_value("reference"); // file
     vd.warn_remaining();
 }
 
-pub fn validate_theme_sound(block: &Block) {
-    let mut vd = Validator::new(block);
+pub fn validate_theme_sound(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
 
-    vd.opt_field_block("trigger");
-    vd.opt_field_value("reference"); // event:/ resource reference
+    vd.field_block("trigger");
+    vd.field_value("reference"); // event:/ resource reference
     vd.warn_remaining();
 }
 
-pub fn validate_cooldown(block: &Block) {
-    let mut vd = Validator::new(block);
+pub fn validate_cooldown(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
 
     let mut count = 0;
-    count += isize::from(vd.opt_field_integer("years"));
-    count += isize::from(vd.opt_field_integer("months"));
-    count += isize::from(vd.opt_field_integer("days"));
+    count += isize::from(vd.field_integer("years"));
+    count += isize::from(vd.field_integer("months"));
+    count += isize::from(vd.field_integer("days"));
     if count != 1 {
         warn(
             block,
@@ -49,7 +50,7 @@ pub fn validate_cooldown(block: &Block) {
     vd.warn_remaining();
 }
 
-pub fn validate_color(block: &Block) {
+pub fn validate_color(block: &Block, _data: &Everything) {
     let mut count = 0;
     for (k, _, v) in block.iter_items() {
         if let Some(key) = k {

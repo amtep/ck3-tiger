@@ -3,11 +3,11 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, DefinitionItem};
-use crate::data::localization::Localization;
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, will_log, LogPauseRaii};
-use crate::fileset::{FileEntry, FileHandler, FileKind, Fileset};
+use crate::everything::Everything;
+use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -32,21 +32,13 @@ impl Decisions {
                 );
             }
         }
-        let strkey = key.to_string();
-        let decision = Decision::new(key, block.clone(), values);
-        decision.validate();
-        self.decisions.insert(strkey, decision);
+        self.decisions
+            .insert(key.to_string(), Decision::new(key, block.clone(), values));
     }
 
-    pub fn check_have_locas(&self, locs: &Localization) {
-        for decision in self.decisions.values() {
-            decision.check_have_locas(locs);
-        }
-    }
-
-    pub fn check_have_files(&self, fileset: &Fileset) {
-        for decision in self.decisions.values() {
-            decision.check_have_files(fileset);
+    pub fn validate(&self, data: &Everything) {
+        for item in self.decisions.values() {
+            item.validate(data);
         }
     }
 }
@@ -117,81 +109,82 @@ impl Decision {
         Decision { key, values, block }
     }
 
-    pub fn check_have_locas(&self, locs: &Localization) {
-        match self.block.get_field("title") {
-            Some(v) => verify_desc_locas(v, locs),
-            None => locs.verify_exists(self.key.as_str(), &self.key),
-        }
-        match self.block.get_field("desc") {
-            Some(v) => verify_desc_locas(v, locs),
-            None => locs.verify_exists(&(self.key.to_string() + "_desc"), &self.key),
-        }
-        match self.block.get_field("selection_tooltip") {
-            Some(v) => verify_desc_locas(v, locs),
-            None => locs.verify_exists(&(self.key.to_string() + "_tooltip"), &self.key),
-        }
-        match self.block.get_field("confirm_text") {
-            Some(v) => verify_desc_locas(v, locs),
-            None => locs.verify_exists(&(self.key.to_string() + "_confirm"), &self.key),
-        }
-    }
+    fn validate(&self, data: &Everything) {
+        let mut vd = Validator::new(&self.block, data);
 
-    pub fn check_have_files(&self, fileset: &Fileset) {
-        if let Some(picture) = self.block.get_field_value("picture") {
-            fileset.verify_exists(picture);
+        vd.req_field("picture");
+        if let Some(token) = vd.field_value("picture") {
+            data.fileset.verify_exists(token);
         }
-        if let Some(extra_picture) = self.block.get_field_value("extra_picture") {
-            fileset.verify_exists(extra_picture);
+        if let Some(token) = vd.field_value("extra_picture") {
+            data.fileset.verify_exists(token);
         }
-        // confirm_click_sound in vanilla kind of looks like a filename but it isn't.
-        // TODO: check widget
-    }
+        vd.field_bool("major");
+        vd.field_integer("sort_order");
+        vd.field_bool("is_invisible");
+        vd.field_bool("ai_goal");
+        vd.field_integer("ai_check_interval");
+        if self.block.get_field_bool("ai_goal").unwrap_or(false) {
+            vd.advice_field("ai_check_interval", "not needed if ai_goal = yes");
+        }
+        vd.field_block("cooldown");
 
-    fn validate(&self) {
-        let mut vd = Validator::new(&self.block);
+        // kind of looks like a filename but it isn't.
+        vd.field_value("confirm_click_sound");
 
-        vd.req_field_value("picture");
-        vd.opt_field_value("extra_picture");
-        vd.opt_field_bool("major");
-        vd.opt_field_integer("sort_order");
-        vd.opt_field_bool("is_invisible");
-        vd.opt_field_bool("ai_goal");
-        vd.opt_field_integer("ai_check_interval");
-        if let Some(ai_goal) = self.block.get_field_value("ai_goal") {
-            if ai_goal.is("yes") {
-                vd.advice_field("ai_check_interval", "not needed if ai_goal = yes");
-            }
+        if let Some(bv) = vd.field("selection_tooltip") {
+            verify_desc_locas(bv, &data.localization);
+        } else {
+            let loca = format!("{}_tooltip", self.key);
+            data.localization.verify_exists_implied(&loca, &self.key);
         }
-        vd.opt_field_block("cooldown");
-        vd.opt_field_value("confirm_click_sound");
-        vd.opt_field("selection_tooltip");
-        vd.opt_field("title");
-        vd.opt_field("desc");
-        vd.opt_field("confirm_text");
-        vd.opt_field_block("is_shown");
-        vd.opt_field_block("is_valid_showing_failures_only");
-        vd.opt_field_block("is_valid");
+
+        if let Some(bv) = vd.field("title") {
+            verify_desc_locas(bv, &data.localization);
+        } else {
+            data.localization.verify_exists(&self.key);
+        }
+
+        if let Some(bv) = vd.field("desc") {
+            verify_desc_locas(bv, &data.localization);
+        } else {
+            let loca = format!("{}_desc", self.key);
+            data.localization.verify_exists_implied(&loca, &self.key);
+        }
+
+        if let Some(bv) = vd.field("confirm_text") {
+            verify_desc_locas(bv, &data.localization);
+        } else {
+            let loca = format!("{}_confirm", self.key);
+            data.localization.verify_exists_implied(&loca, &self.key);
+        }
+
+        vd.field_block("is_shown");
+        vd.field_block("is_valid_showing_failures_only");
+        vd.field_block("is_valid");
+
         // cost can have multiple definitions and they will be combined
         // however, two costs of the same type are not summed
-        vd.opt_field_validated_blocks("cost", validate_cost);
-        vd.opt_field_validated_blocks("minimum_cost", validate_cost);
-        vd.opt_field_block("effect");
-        vd.opt_field_block("ai_potential");
-        vd.opt_field_block("ai_will_do");
-        vd.opt_field_block("should_create_alert");
-        vd.opt_field("widget");
-        vd.warn_remaining();
-
+        vd.field_validated_blocks("cost", validate_cost);
         check_cost(&self.block.get_field_blocks("cost"));
+        vd.field_validated_blocks("minimum_cost", validate_cost);
         check_cost(&self.block.get_field_blocks("minimum_cost"));
+
+        vd.field_block("effect");
+        vd.field_block("ai_potential");
+        vd.field_block("ai_will_do");
+        vd.field_block("should_create_alert");
+        vd.field("widget");
+        vd.warn_remaining();
     }
 }
 
-fn validate_cost(block: &Block) {
-    let mut vd = Validator::new(block);
-    vd.opt_field("gold");
-    vd.opt_field("prestige");
-    vd.opt_field("piety");
+fn validate_cost(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    // These can all be script values
+    vd.field("gold");
+    vd.field("prestige");
+    vd.field("piety");
     vd.warn_remaining();
 }
 

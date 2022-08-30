@@ -9,6 +9,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{
     advice_info, error, error_info, info, warn, warn_info, will_log, LogPauseRaii,
 };
+use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::token::Token;
 
@@ -112,7 +113,11 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
 }
 
 impl Localization {
-    pub fn verify_exists(&self, key: &str, token: &Token) {
+    pub fn verify_exists(&self, token: &Token) {
+        self.verify_exists_implied(token.as_str(), token);
+    }
+
+    pub fn verify_exists_implied(&self, key: &str, token: &Token) {
         for lang in &self.check_langs {
             let hash = self.locas.get(lang);
             if hash.is_none() || !hash.unwrap().contains_key(key) {
@@ -125,33 +130,34 @@ impl Localization {
         }
     }
 
-    fn check_game_concepts(&self, value: &LocaValue, lang: &str) {
+    fn check_game_concepts(&self, value: &LocaValue, data: &Everything) {
         match value {
             LocaValue::Concat(v) => {
                 for value in v {
-                    self.check_game_concepts(value, lang);
+                    self.check_game_concepts(value, data);
                 }
             }
+            // TODO: The is_lowercase here is a heuristic. We should be checking that it's
+            // not a known function like [GetGameVersionInfo]
             LocaValue::Code(chain, _)
                 if chain.codes.len() == 1
                     && chain.codes[0].arguments.is_empty()
                     && chain.codes[0].name.as_str().chars().all(char::is_lowercase) =>
             {
-                let key = format!("game_concept_{}", chain.codes[0].name.as_str());
-                // duplicate some of verify_have_key because we should only check the current lang
-                let hash = self.locas.get(lang);
-                if hash.is_none() || !hash.unwrap().contains_key(&key) {
-                    error(
-                        &chain.codes[0].name,
-                        ErrorKey::MissingLocalization,
-                        &format!(
-                            "missing {} localization key {} for {}",
-                            lang, key, "game concept"
-                        ),
-                    );
-                }
+                data.game_concepts.verify_exists(&chain.codes[0].name);
             }
             _ => (),
+        }
+    }
+
+    pub fn validate(&self, data: &Everything) {
+        // Does every `[concept]` reference have a defined `game_concept_` key?
+        for (_, hash) in &self.locas {
+            for entry in hash.values() {
+                let _pause = LogPauseRaii::new(entry.key.loc.kind == FileKind::VanillaFile);
+
+                self.check_game_concepts(&entry.value, data);
+            }
         }
     }
 }
@@ -272,6 +278,7 @@ impl FileHandler for Localization {
         // First build the list of builtin macros by just checking which ones vanilla uses.
         // TODO: scan the character interactions, which can also define macros
         let mut builtins = FnvHashSet::default();
+        builtins.extend(&BUILTIN_MACROS);
         for lang in self.locas.values() {
             for entry in lang.values() {
                 if entry.key.loc.kind != FileKind::VanillaFile {
@@ -300,26 +307,13 @@ impl FileHandler for Localization {
                 if let LocaValue::Macro(ref v) = entry.value {
                     for macrovalue in v {
                         if let MacroValue::Keyword(k, _) = macrovalue {
-                            if !lang.contains_key(k.as_str())
-                                && !builtins.contains(k.as_str())
-                                && !BUILTIN_MACROS.contains(&k.as_str())
-                            {
+                            if !lang.contains_key(k.as_str()) && !builtins.contains(k.as_str()) {
                                 // TODO: display these errors in a sensible order, like by filename
                                 error(k, ErrorKey::Localization, &format!("The substitution parameter ${}$ is not defined anywhere as a key.", k.as_str()));
                             }
                         }
                     }
                 }
-            }
-        }
-
-        // Does every `[concept]` reference have a defined `game_concept_` key?
-        // TODO: expand macros, don't just skip them
-        for (lang, hash) in &self.locas {
-            for entry in hash.values() {
-                let _pause = LogPauseRaii::new(entry.key.loc.kind == FileKind::VanillaFile);
-
-                self.check_game_concepts(&entry.value, lang);
             }
         }
     }

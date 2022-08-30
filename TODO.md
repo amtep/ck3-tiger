@@ -2,6 +2,8 @@
 
 ## Bugs
 
+* @key = value also works in event files, should be parsed
+
 ## Features
 
 * The validations in IDEAS.md

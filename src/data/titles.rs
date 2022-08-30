@@ -4,10 +4,10 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use crate::block::{Block, DefinitionItem};
-use crate::data::localization::Localization;
 use crate::data::provinces::ProvId;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, will_log};
+use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
@@ -84,7 +84,6 @@ impl Titles {
                 info(&other.key, ErrorKey::Duplicate, "the other title is here");
             }
         }
-        Title::validate(block);
         let title = Rc::new(Title::new(
             key.clone(),
             block.clone(),
@@ -119,9 +118,9 @@ impl Titles {
         }
     }
 
-    pub fn check_have_locas(&self, locas: &Localization) {
-        for title in self.titles.values() {
-            title.check_have_locas(locas);
+    pub fn validate(&self, data: &Everything) {
+        for item in self.titles.values() {
+            item.validate(data);
         }
     }
 
@@ -222,21 +221,17 @@ impl Title {
         }
     }
 
-    pub fn check_have_locas(&self, locas: &Localization) {
-        locas.verify_exists(self.key.as_str(), &self.key);
+    pub fn validate(&self, data: &Everything) {
+        data.localization.verify_exists(&self.key);
         // TODO: figure out when to recommend adding _adj or _pre titles
         // The _adj key is optional
         // The _pre key is optional
 
         if let Some(names) = self.block.get_field_block("cultural_names") {
             for (_, t) in names.get_assignments() {
-                locas.verify_exists(t.as_str(), t);
+                data.localization.verify_exists(t);
                 // The _adj key is optional
             }
         }
-    }
-
-    fn validate(_block: &Block) {
-        // TODO
     }
 }

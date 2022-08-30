@@ -7,6 +7,7 @@ use crate::data::religions::Religions;
 use crate::data::titles::Titles;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn, LogPauseRaii};
+use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
@@ -33,6 +34,8 @@ impl ProvinceHistories {
                 .insert(id, ProvinceHistory::new(key.clone(), b.clone()));
         }
     }
+
+    pub fn validate(&self, _data: &Everything) {}
 
     pub fn check_pod_faiths(&self, religions: &Religions, titles: &Titles) {
         let mut warned = FnvHashSet::default();

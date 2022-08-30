@@ -1,7 +1,6 @@
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
@@ -28,25 +27,6 @@ pub struct ModFile {
 }
 
 fn validate_modfile(block: &Block) -> ModFile {
-    let mut vd = Validator::new(block);
-    // Reference: https://ck3.paradoxwikis.com/Mod_structure#Keys
-    vd.req_field_value("version");
-    vd.opt_field_list("tags");
-    vd.req_field_value("name");
-
-    if block.filename() == "descriptor.mod" {
-        vd.opt_field_value("supported_version");
-        vd.opt_field_value("path");
-    } else {
-        vd.req_field_value("supported_version");
-        vd.req_field_value("path");
-    }
-
-    vd.opt_field_value("remote_file_id");
-    vd.opt_field_value("picture");
-    vd.opt_field_values("replace_path");
-    vd.warn_remaining();
-
     let modfile = ModFile {
         block: block.clone(),
         name: block.get_field_value("name").cloned(),
