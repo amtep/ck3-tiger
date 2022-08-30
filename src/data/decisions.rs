@@ -119,41 +119,29 @@ impl Decision {
 
     pub fn check_have_locas(&self, locs: &Localization) {
         match self.block.get_field("title") {
-            Some(v) => verify_desc_locas(v, locs, "decision title"),
-            None => locs.verify_have_key(self.key.as_str(), &self.key, "decision title"),
+            Some(v) => verify_desc_locas(v, locs),
+            None => locs.verify_exists(self.key.as_str(), &self.key),
         }
         match self.block.get_field("desc") {
-            Some(v) => verify_desc_locas(v, locs, "decision description"),
-            None => locs.verify_have_key(
-                &(self.key.to_string() + "_desc"),
-                &self.key,
-                "decision description",
-            ),
+            Some(v) => verify_desc_locas(v, locs),
+            None => locs.verify_exists(&(self.key.to_string() + "_desc"), &self.key),
         }
         match self.block.get_field("selection_tooltip") {
-            Some(v) => verify_desc_locas(v, locs, "decision tooltip"),
-            None => locs.verify_have_key(
-                &(self.key.to_string() + "_tooltip"),
-                &self.key,
-                "decision tooltip",
-            ),
+            Some(v) => verify_desc_locas(v, locs),
+            None => locs.verify_exists(&(self.key.to_string() + "_tooltip"), &self.key),
         }
         match self.block.get_field("confirm_text") {
-            Some(v) => verify_desc_locas(v, locs, "decision confirm text"),
-            None => locs.verify_have_key(
-                &(self.key.to_string() + "_confirm"),
-                &self.key,
-                "decision confirm text",
-            ),
+            Some(v) => verify_desc_locas(v, locs),
+            None => locs.verify_exists(&(self.key.to_string() + "_confirm"), &self.key),
         }
     }
 
     pub fn check_have_files(&self, fileset: &Fileset) {
         if let Some(picture) = self.block.get_field_value("picture") {
-            fileset.verify_have_file(picture);
+            fileset.verify_exists(picture);
         }
         if let Some(extra_picture) = self.block.get_field_value("extra_picture") {
-            fileset.verify_have_file(extra_picture);
+            fileset.verify_exists(extra_picture);
         }
         // confirm_click_sound in vanilla kind of looks like a filename but it isn't.
         // TODO: check widget

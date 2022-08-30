@@ -291,24 +291,24 @@ impl Event {
         let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
 
         if let Some(title) = self.block.get_field("title") {
-            verify_desc_locas(title, locas, "event title");
+            verify_desc_locas(title, locas);
         }
         if let Some(desc) = self.block.get_field("desc") {
-            verify_desc_locas(desc, locas, "event description");
+            verify_desc_locas(desc, locas);
         }
         if let Some(opening) = self.block.get_field("opening") {
-            verify_desc_locas(opening, locas, "letter event opening");
+            verify_desc_locas(opening, locas);
         }
         for option in self.block.get_field_blocks("option") {
             // TODO: descend into the effect blocks and collect custom_tooltip everywhere
             if let Some(name) = option.get_field("name") {
                 match name {
                     BlockOrValue::Token(t) => {
-                        locas.verify_have_key(t.as_str(), t, "event option name");
+                        locas.verify_exists(t.as_str(), t);
                     }
                     BlockOrValue::Block(b) => {
                         if let Some(text) = b.get_field("text") {
-                            verify_desc_locas(text, locas, "event option name");
+                            verify_desc_locas(text, locas);
                         } else {
                             warn(b, ErrorKey::Validation, "event option name with no text");
                         }
@@ -319,11 +319,11 @@ impl Event {
             if let Some(tooltip) = option.get_field("custom_tooltip") {
                 match tooltip {
                     BlockOrValue::Token(t) => {
-                        locas.verify_have_key(t.as_str(), t, "event option tooltip");
+                        locas.verify_exists(t.as_str(), t);
                     }
                     BlockOrValue::Block(b) => {
                         if let Some(text) = b.get_field("text") {
-                            verify_desc_locas(text, locas, "event option tooltip");
+                            verify_desc_locas(text, locas);
                         } else {
                             warn(b, ErrorKey::Validation, "event option tooltip with no text");
                         }

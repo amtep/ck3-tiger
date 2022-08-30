@@ -183,7 +183,7 @@ impl Fileset {
         handler.finalize();
     }
 
-    pub fn verify_have_file(&self, file: &Token) {
+    pub fn verify_exists(&self, file: &Token) {
         let filepath = PathBuf::from(file.as_str());
         if !self.filenames.contains(&filepath) {
             error(
@@ -194,7 +194,7 @@ impl Fileset {
         }
     }
 
-    pub fn verify_have_implied_file(&self, file: &str, t: &Token) {
+    pub fn verify_exists_implied(&self, file: &str, t: &Token) {
         let filepath = PathBuf::from(file);
         if !self.filenames.contains(&filepath) {
             error(

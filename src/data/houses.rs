@@ -13,7 +13,7 @@ use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
 pub struct Houses {
-    pub houses: FnvHashMap<String, House>,
+    houses: FnvHashMap<String, House>,
 }
 
 impl Houses {
@@ -44,10 +44,10 @@ impl Houses {
         }
     }
 
-    pub fn verify_have_house(&self, house: &Token) {
-        if !self.houses.contains_key(house.as_str()) {
+    pub fn verify_exists(&self, item: &Token) {
+        if !self.houses.contains_key(item.as_str()) {
             error(
-                house,
+                item,
                 ErrorKey::MissingItem,
                 "house not defined in common/dynasty_houses/",
             );
@@ -112,19 +112,19 @@ impl House {
         let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
 
         if let Some(loca) = self.block.get_field_value("name") {
-            locas.verify_have_key(loca.as_str(), loca, "house");
+            locas.verify_exists(loca.as_str(), loca);
         }
         if let Some(loca) = self.block.get_field_value("prefix") {
-            locas.verify_have_key(loca.as_str(), loca, "house");
+            locas.verify_exists(loca.as_str(), loca);
         }
         if let Some(loca) = self.block.get_field_value("motto") {
-            locas.verify_have_key(loca.as_str(), loca, "house");
+            locas.verify_exists(loca.as_str(), loca);
         }
     }
 
     pub fn check_have_dynasty(&self, dynasties: &Dynasties) {
         if let Some(dynasty) = self.block.get_field_value("dynasty") {
-            dynasties.verify_have_dynasty(dynasty);
+            dynasties.verify_exists(dynasty);
         }
     }
 }

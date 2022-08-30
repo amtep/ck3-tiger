@@ -13,8 +13,8 @@ use crate::validate::validate_color;
 
 #[derive(Clone, Debug, Default)]
 pub struct Religions {
-    pub religions: FnvHashMap<String, Religion>,
-    pub faiths: FnvHashMap<String, Faith>,
+    religions: FnvHashMap<String, Religion>,
+    faiths: FnvHashMap<String, Faith>,
 }
 
 impl Religions {
@@ -82,13 +82,21 @@ impl Religions {
         }
     }
 
-    pub fn verify_have_faith(&self, faith: &Token) {
-        if !self.faiths.contains_key(faith.as_str()) {
+    pub fn verify_faith_exists(&self, item: &Token) {
+        if !self.faiths.contains_key(item.as_str()) {
             error(
-                faith,
+                item,
                 ErrorKey::MissingItem,
                 "faith not defined in common/religion/religions",
             );
+        }
+    }
+
+    pub fn is_modded_faith(&self, item: &Token) -> bool {
+        if let Some(faith) = self.faiths.get(item.as_str()) {
+            faith.key.loc.kind != FileKind::VanillaFile
+        } else {
+            false
         }
     }
 }
@@ -175,36 +183,36 @@ impl Religion {
     pub fn check_have_locas(&self, locas: &Localization) {
         let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
 
-        locas.verify_have_key(self.key.as_str(), &self.key, "religion");
+        locas.verify_exists(self.key.as_str(), &self.key);
         let loca = format!("{}_adj", self.key);
-        locas.verify_have_key(&loca, &self.key, "religion");
+        locas.verify_exists(&loca, &self.key);
         let loca = format!("{}_adherent", self.key);
-        locas.verify_have_key(&loca, &self.key, "religion");
+        locas.verify_exists(&loca, &self.key);
         let loca = format!("{}_adherent_plural", self.key);
-        locas.verify_have_key(&loca, &self.key, "religion");
+        locas.verify_exists(&loca, &self.key);
         let loca = format!("{}_desc", self.key);
-        locas.verify_have_key(&loca, &self.key, "religion");
+        locas.verify_exists(&loca, &self.key);
 
         if let Some(holy) = self.block.get_field_block("holy_order_names") {
             for b in holy.get_sub_blocks() {
                 if let Some(name) = b.get_field_value("name") {
-                    locas.verify_have_key(name.as_str(), name, "holy order");
+                    locas.verify_exists(name.as_str(), name);
                 }
             }
         }
 
         if let Some(b) = self.block.get_field_block("localization") {
             for (_, loca) in b.get_assignments() {
-                locas.verify_have_key(loca.as_str(), loca, "religion");
+                locas.verify_exists(loca.as_str(), loca);
             }
             if let Some(list) = b.get_field_list("GoodGodNames") {
                 for loca in list {
-                    locas.verify_have_key(loca.as_str(), &loca, "religion");
+                    locas.verify_exists(loca.as_str(), &loca);
                 }
             }
             if let Some(list) = b.get_field_list("EvilGodNames") {
                 for loca in list {
-                    locas.verify_have_key(loca.as_str(), &loca, "religion");
+                    locas.verify_exists(loca.as_str(), &loca);
                 }
             }
         }
@@ -216,13 +224,13 @@ impl Religion {
         if let Some(icons) = self.block.get_field_list("custom_faith_icons") {
             for icon in &icons {
                 let pathname = format!("gfx/interface/icons/faith/{}.dds", icon);
-                files.verify_have_implied_file(&pathname, icon);
+                files.verify_exists_implied(&pathname, icon);
             }
         }
 
         if let Some(icon) = self.block.get_field_value("doctrine_background_icon") {
             let pathname = format!("gfx/interface/icons/faith_doctrines/{}", icon);
-            files.verify_have_implied_file(&pathname, icon);
+            files.verify_exists_implied(&pathname, icon);
         }
     }
 }
@@ -289,37 +297,37 @@ impl Faith {
     pub fn check_have_locas(&self, locas: &Localization) {
         let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
 
-        locas.verify_have_key(self.key.as_str(), &self.key, "faith");
+        locas.verify_exists(self.key.as_str(), &self.key);
         let loca = format!("{}_adj", self.key);
-        locas.verify_have_key(&loca, &self.key, "faith");
+        locas.verify_exists(&loca, &self.key);
         let loca = format!("{}_adherent", self.key);
-        locas.verify_have_key(&loca, &self.key, "faith");
+        locas.verify_exists(&loca, &self.key);
         let loca = format!("{}_adherent_plural", self.key);
-        locas.verify_have_key(&loca, &self.key, "faith");
+        locas.verify_exists(&loca, &self.key);
 
         if self.pagan {
             let loca = format!("{}_old", self.key);
-            locas.verify_have_key(&loca, &self.key, "faith");
+            locas.verify_exists(&loca, &self.key);
             let loca = format!("{}_old_adj", self.key);
-            locas.verify_have_key(&loca, &self.key, "faith");
+            locas.verify_exists(&loca, &self.key);
             let loca = format!("{}_old_adherent", self.key);
-            locas.verify_have_key(&loca, &self.key, "faith");
+            locas.verify_exists(&loca, &self.key);
             let loca = format!("{}_old_adherent_plural", self.key);
-            locas.verify_have_key(&loca, &self.key, "faith");
+            locas.verify_exists(&loca, &self.key);
         }
 
         if let Some(b) = self.block.get_field_block("localization") {
             for (_, loca) in b.get_assignments() {
-                locas.verify_have_key(loca.as_str(), loca, "faith");
+                locas.verify_exists(loca.as_str(), loca);
             }
             if let Some(list) = b.get_field_list("GoodGodNames") {
                 for loca in list {
-                    locas.verify_have_key(loca.as_str(), &loca, "faith");
+                    locas.verify_exists(loca.as_str(), &loca);
                 }
             }
             if let Some(list) = b.get_field_list("EvilGodNames") {
                 for loca in list {
-                    locas.verify_have_key(loca.as_str(), &loca, "faith");
+                    locas.verify_exists(loca.as_str(), &loca);
                 }
             }
         }
@@ -330,15 +338,15 @@ impl Faith {
 
         if let Some(icon) = self.block.get_field_value("icon") {
             let pathname = format!("gfx/interface/icons/faith/{}.dds", icon);
-            files.verify_have_implied_file(&pathname, icon);
+            files.verify_exists_implied(&pathname, icon);
         } else {
             let pathname = format!("gfx/interface/icons/faith/{}.dds", self.key);
-            files.verify_have_implied_file(&pathname, &self.key);
+            files.verify_exists_implied(&pathname, &self.key);
         }
 
         if let Some(icon) = self.block.get_field_value("reformed_icon") {
             let pathname = format!("gfx/interface/icons/faith/{}.dds", icon);
-            files.verify_have_implied_file(&pathname, icon);
+            files.verify_exists_implied(&pathname, icon);
         }
     }
 

@@ -48,17 +48,13 @@ impl ProvinceHistories {
                 if let Some(capital) = titles.capital_of(*provid) {
                     let religion = provhist.block.get_field_at_date("religion", bookmark);
                     if let Some(religion) = religion.and_then(|v| v.into_value()) {
-                        if let Some(faith) = religions.faiths.get(religion.as_str()) {
-                            if faith.kind() == FileKind::VanillaFile && !warned.contains(provid) {
-                                let msg = format!(
-                                    "Vanilla religion in prov {} (county {}) at {}",
-                                    provhist.key, capital, bookmark
-                                );
-                                warn(religion, ErrorKey::PrincesOfDarkness, &msg);
-                                warned.insert(provid);
-                            }
-                        } else {
-                            warn(religion, ErrorKey::PrincesOfDarkness, "unknown faith");
+                        if !religions.is_modded_faith(&religion) && !warned.contains(provid) {
+                            let msg = format!(
+                                "Vanilla or unknown religion in prov {} (county {}) at {}",
+                                provhist.key, capital, bookmark
+                            );
+                            warn(religion, ErrorKey::PrincesOfDarkness, &msg);
+                            warned.insert(provid);
                         }
                     } else {
                         warn(&provhist.key, ErrorKey::PrincesOfDarkness, "no religion");

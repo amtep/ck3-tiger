@@ -12,7 +12,7 @@ use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
 pub struct Dynasties {
-    pub dynasties: FnvHashMap<String, Dynasty>,
+    dynasties: FnvHashMap<String, Dynasty>,
 }
 
 impl Dynasties {
@@ -37,10 +37,10 @@ impl Dynasties {
         }
     }
 
-    pub fn verify_have_dynasty(&self, dynn: &Token) {
-        if !self.dynasties.contains_key(dynn.as_str()) {
+    pub fn verify_exists(&self, item: &Token) {
+        if !self.dynasties.contains_key(item.as_str()) {
             error(
-                dynn,
+                item,
                 ErrorKey::MissingItem,
                 "dynasty not defined in common/dynasties/",
             );
@@ -106,13 +106,13 @@ impl Dynasty {
         let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
 
         if let Some(loca) = self.block.get_field_value("name") {
-            locas.verify_have_key(loca.as_str(), loca, "dynasty");
+            locas.verify_exists(loca.as_str(), loca);
         }
         if let Some(loca) = self.block.get_field_value("prefix") {
-            locas.verify_have_key(loca.as_str(), loca, "dynasty");
+            locas.verify_exists(loca.as_str(), loca);
         }
         if let Some(loca) = self.block.get_field_value("motto") {
-            locas.verify_have_key(loca.as_str(), loca, "dynasty");
+            locas.verify_exists(loca.as_str(), loca);
         }
     }
 }

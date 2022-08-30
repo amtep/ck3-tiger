@@ -122,7 +122,7 @@ impl Interaction {
         // TODO: The ai_ name check is a heuristic. It would be better to check if the
         // is_shown trigger requires scope:actor to be is_ai = yes. But that's a long way off.
         if !self.key.as_str().starts_with("ai_") {
-            locas.verify_have_key(self.key.as_str(), &self.key, "interaction");
+            locas.verify_exists(self.key.as_str(), &self.key);
         }
         if self.block.get_field_value("extra_icon").is_some()
             && self
@@ -130,54 +130,53 @@ impl Interaction {
                 .get_field_block("should_use_extra_icon")
                 .is_some()
         {
-            locas.verify_have_key(
+            locas.verify_exists(
                 &format!("{}_extra_icon", self.key),
                 self.block.get_key("extra_icon").unwrap(),
-                "interaction extra_icon localization",
             );
         }
         if let Some(desc) = self.block.get_field("desc") {
-            verify_desc_locas(desc, locas, "interaction description");
+            verify_desc_locas(desc, locas);
         }
         if let Some(desc) = self.block.get_field("prompt") {
-            verify_desc_locas(desc, locas, "interaction prompt");
+            verify_desc_locas(desc, locas);
         }
         if let Some(desc) = self.block.get_field("notification_text") {
-            verify_desc_locas(desc, locas, "interaction notification");
+            verify_desc_locas(desc, locas);
         }
         if let Some(desc) = self.block.get_field("on_decline_summary") {
-            verify_desc_locas(desc, locas, "interaction on_decline");
+            verify_desc_locas(desc, locas);
         }
         if let Some(key) = self.block.get_field_value("answer_accept_key") {
-            locas.verify_have_key(key.as_str(), key, "interaction acceptance");
+            locas.verify_exists(key.as_str(), key);
         }
         if let Some(key) = self.block.get_field_value("answer_reject_key") {
-            locas.verify_have_key(key.as_str(), key, "interaction rejection");
+            locas.verify_exists(key.as_str(), key);
         }
         if let Some(key) = self.block.get_field_value("highlighted_reason") {
-            locas.verify_have_key(key.as_str(), key, "interaction reason");
+            locas.verify_exists(key.as_str(), key);
         }
         if let Some(key) = self.block.get_field_value("options_heading") {
-            locas.verify_have_key(key.as_str(), key, "interaction options");
+            locas.verify_exists(key.as_str(), key);
         }
         if let Some(key) = self.block.get_field_value("pre_answer_maybe_breakdown_key") {
-            locas.verify_have_key(key.as_str(), key, "interaction");
+            locas.verify_exists(key.as_str(), key);
         }
         if let Some(key) = self.block.get_field_value("pre_answer_maybe_key") {
-            locas.verify_have_key(key.as_str(), key, "interaction");
+            locas.verify_exists(key.as_str(), key);
         }
         if let Some(key) = self.block.get_field_value("pre_answer_no_key") {
-            locas.verify_have_key(key.as_str(), key, "interaction");
+            locas.verify_exists(key.as_str(), key);
         }
         if let Some(key) = self.block.get_field_value("pre_answer_yes_key") {
-            locas.verify_have_key(key.as_str(), key, "interaction");
+            locas.verify_exists(key.as_str(), key);
         }
         if let Some(key) = self.block.get_field_value("send_name") {
-            locas.verify_have_key(key.as_str(), key, "interaction name");
+            locas.verify_exists(key.as_str(), key);
         }
         for b in self.block.get_field_blocks("send_option") {
             if let Some(key) = b.get_field_value("localization") {
-                locas.verify_have_key(key.as_str(), key, "interaction option");
+                locas.verify_exists(key.as_str(), key);
             }
         }
     }
@@ -186,11 +185,11 @@ impl Interaction {
         let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
 
         if let Some(pathname) = self.block.get_field_value("extra_icon") {
-            files.verify_have_file(pathname);
+            files.verify_exists(pathname);
         }
         if let Some(name) = self.block.get_field_value("icon") {
             let pathname = format!("gfx/interface/icons/character_interactions/{}.dds", name);
-            files.verify_have_implied_file(&pathname, name);
+            files.verify_exists_implied(&pathname, name);
         }
     }
 }

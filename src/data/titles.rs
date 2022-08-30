@@ -223,14 +223,14 @@ impl Title {
     }
 
     pub fn check_have_locas(&self, locas: &Localization) {
-        locas.verify_have_key(self.key.as_str(), &self.key, "title");
+        locas.verify_exists(self.key.as_str(), &self.key);
         // TODO: figure out when to recommend adding _adj or _pre titles
         // The _adj key is optional
         // The _pre key is optional
 
         if let Some(names) = self.block.get_field_block("cultural_names") {
             for (_, t) in names.get_assignments() {
-                locas.verify_have_key(t.as_str(), t, "cultural name");
+                locas.verify_exists(t.as_str(), t);
                 // The _adj key is optional
             }
         }

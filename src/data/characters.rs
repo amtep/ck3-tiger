@@ -67,10 +67,10 @@ impl Characters {
         }
     }
 
-    pub fn verify_have_character(&self, ch: &Token) {
-        if !self.characters.contains_key(ch.as_str()) {
+    pub fn verify_exists(&self, item: &Token) {
+        if !self.characters.contains_key(item.as_str()) {
             error(
-                ch,
+                item,
                 ErrorKey::MissingItem,
                 "character not defined in history/characters/",
             );
@@ -79,22 +79,22 @@ impl Characters {
 
     fn finalize_history(&self, b: &Block) {
         if let Some(ch) = b.get_field_value("employer") {
-            self.verify_have_character(ch);
+            self.verify_exists(ch);
         }
         if let Some(ch) = b.get_field_value("add_spouse") {
-            self.verify_have_character(ch);
+            self.verify_exists(ch);
         }
         if let Some(ch) = b.get_field_value("remove_spouse") {
-            self.verify_have_character(ch);
+            self.verify_exists(ch);
         }
         if let Some(ch) = b.get_field_value("add_matrilineal_spouse") {
-            self.verify_have_character(ch);
+            self.verify_exists(ch);
         }
         if let Some(ch) = b.get_field_value("add_same_sex_spouse") {
-            self.verify_have_character(ch);
+            self.verify_exists(ch);
         }
         if let Some(ch) = b.get_field_value("add_concubine") {
-            self.verify_have_character(ch);
+            self.verify_exists(ch);
         }
     }
 }
@@ -145,10 +145,10 @@ impl FileHandler for Characters {
                 continue;
             }
             if let Some(ch) = character.block.get_field_value("father") {
-                self.verify_have_character(ch);
+                self.verify_exists(ch);
             }
             if let Some(ch) = character.block.get_field_value("mother") {
-                self.verify_have_character(ch);
+                self.verify_exists(ch);
             }
             for (k, b) in character.block.iter_pure_definitions() {
                 if Date::try_from(k).is_ok() {
@@ -250,12 +250,12 @@ impl Character {
         let _pause = LogPauseRaii::new(self.key.loc.kind != FileKind::ModFile);
 
         if let Some(loca) = self.block.get_field_value("name") {
-            locas.verify_have_key(loca.as_str(), loca, "character");
+            locas.verify_exists(loca.as_str(), loca);
         }
         for (k, b) in self.block.iter_pure_definitions() {
             if Date::try_from(k).is_ok() {
                 if let Some(loca) = b.get_field_value("name") {
-                    locas.verify_have_key(loca.as_str(), loca, "character");
+                    locas.verify_exists(loca.as_str(), loca);
                 }
             }
         }
@@ -263,21 +263,21 @@ impl Character {
 
     pub fn check_have_dynasty(&self, houses: &Houses, dynasties: &Dynasties) {
         if let Some(dynasty) = self.block.get_field_value("dynasty") {
-            dynasties.verify_have_dynasty(dynasty);
+            dynasties.verify_exists(dynasty);
         }
         if let Some(house) = self.block.get_field_value("dynasty_house") {
-            houses.verify_have_house(house);
+            houses.verify_exists(house);
         }
         for (k, b) in self.block.iter_pure_definitions() {
             if Date::try_from(k).is_ok() {
                 if let Some(house) = b.get_field_value("set_house") {
-                    houses.verify_have_house(house);
+                    houses.verify_exists(house);
                 }
                 if let Some(house) = b.get_field_value("dynasty_house") {
-                    houses.verify_have_house(house);
+                    houses.verify_exists(house);
                 }
                 if let Some(dynasty) = b.get_field_value("dynasty") {
-                    dynasties.verify_have_dynasty(dynasty);
+                    dynasties.verify_exists(dynasty);
                 }
             }
         }
@@ -285,21 +285,21 @@ impl Character {
 
     pub fn check_have_faith(&self, religions: &Religions) {
         if let Some(faith) = self.block.get_field_value("religion") {
-            religions.verify_have_faith(faith);
+            religions.verify_faith_exists(faith);
         }
         if let Some(faith) = self.block.get_field_value("faith") {
-            religions.verify_have_faith(faith);
+            religions.verify_faith_exists(faith);
         }
         for (k, b) in self.block.iter_pure_definitions() {
             if Date::try_from(k).is_ok() {
                 if let Some(faith) = b.get_field_value("religion") {
-                    religions.verify_have_faith(faith);
+                    religions.verify_faith_exists(faith);
                 }
                 if let Some(faith) = b.get_field_value("faith") {
-                    religions.verify_have_faith(faith);
+                    religions.verify_faith_exists(faith);
                 }
                 if let Some(faith) = b.get_field_value("set_character_faith_no_effect") {
-                    religions.verify_have_faith(faith);
+                    religions.verify_faith_exists(faith);
                 }
             }
         }

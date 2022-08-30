@@ -112,14 +112,14 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
 }
 
 impl Localization {
-    pub fn verify_have_key(&self, key: &str, for_token: &Token, context: &str) {
+    pub fn verify_exists(&self, key: &str, token: &Token) {
         for lang in &self.check_langs {
             let hash = self.locas.get(lang);
             if hash.is_none() || !hash.unwrap().contains_key(key) {
                 error(
-                    for_token,
+                    token,
                     ErrorKey::MissingLocalization,
-                    &format!("missing {} localization key {} for {}", lang, key, context),
+                    &format!("missing {} localization key {}", lang, key),
                 );
             }
         }

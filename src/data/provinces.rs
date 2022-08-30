@@ -59,7 +59,7 @@ impl FileHandler for Provinces {
                             error(
                                 entry,
                                 ErrorKey::ReadError,
-                                &format!("could not read `{}`: {:#}", entry.path().display(), e),
+                                &format!("could not read file: {:#}", e),
                             );
                             return;
                         }

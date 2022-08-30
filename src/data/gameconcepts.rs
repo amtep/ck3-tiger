@@ -138,14 +138,14 @@ impl Concept {
     pub fn check_have_locas(&self, locas: &Localization) {
         let _pause = LogPauseRaii::new(self.key.loc.kind == FileKind::VanillaFile);
         let loca = format!("game_concept_{}", self.key);
-        locas.verify_have_key(&loca, &self.key, "game concept");
+        locas.verify_exists(&loca, &self.key);
         let loca = format!("game_concept_{}_desc", self.key);
-        locas.verify_have_key(&loca, &self.key, "game concept");
+        locas.verify_exists(&loca, &self.key);
 
         if let Some(aliases) = self.block.get_field_list("alias") {
             for alias in aliases {
                 let loca = format!("game_concept_{}", alias);
-                locas.verify_have_key(&loca, &alias, "game concept");
+                locas.verify_exists(&loca, &alias);
             }
         }
     }
@@ -154,7 +154,7 @@ impl Concept {
         let _pause = LogPauseRaii::new(self.key.loc.kind == FileKind::VanillaFile);
         if let Some(texture) = self.block.get_field_value("texture") {
             if !texture.is("piety") {
-                fileset.verify_have_file(texture);
+                fileset.verify_exists(texture);
                 // TODO: check the file's resolution and check it against framesize and frame keys
             }
         }
