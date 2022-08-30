@@ -1,7 +1,7 @@
 use crate::block::{Block, BlockOrValue, DefinitionItem};
+use crate::data::localization::Localization;
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
-use crate::localization::Localization;
 
 pub fn verify_desc_locas(desc: &BlockOrValue, locas: &Localization, context: &str) {
     match desc {

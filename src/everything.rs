@@ -4,22 +4,22 @@ use std::rc::Rc;
 use thiserror::Error;
 
 use crate::block::Block;
-use crate::characters::Characters;
-use crate::decisions::Decisions;
-use crate::dynasties::Dynasties;
+use crate::data::characters::Characters;
+use crate::data::decisions::Decisions;
+use crate::data::dynasties::Dynasties;
+use crate::data::events::Events;
+use crate::data::gameconcepts::GameConcepts;
+use crate::data::houses::Houses;
+use crate::data::interactions::Interactions;
+use crate::data::localization::Localization;
+use crate::data::prov_history::ProvinceHistories;
+use crate::data::provinces::Provinces;
+use crate::data::religions::Religions;
+use crate::data::titles::Titles;
 use crate::errorkey::ErrorKey;
 use crate::errors::{ignore_key, ignore_key_for, warn};
-use crate::events::Events;
 use crate::fileset::{FileEntry, FileKind, Fileset};
-use crate::gameconcepts::GameConcepts;
-use crate::houses::Houses;
-use crate::interactions::Interactions;
-use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
-use crate::prov_history::ProvinceHistories;
-use crate::provinces::Provinces;
-use crate::religions::Religions;
-use crate::titles::Titles;
 use crate::token::Loc;
 
 #[derive(Debug, Error)]

@@ -3,11 +3,11 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, DefinitionItem};
+use crate::data::localization::Localization;
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, warn_info, will_log, LogPauseRaii};
 use crate::fileset::{FileEntry, FileHandler, FileKind};
-use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 use crate::validate::{

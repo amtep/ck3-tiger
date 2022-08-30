@@ -8,9 +8,7 @@ use crate::block::Block;
 use crate::errorkey::ErrorKey;
 use crate::errors::{warn, warn_info};
 use crate::fileset::FileKind;
-use crate::pdxfile::parse::parse_pdx;
-
-mod parse;
+use crate::parse::pdxfile::parse_pdx;
 
 /// If a windows-1252 file mistakenly starts with a UTF-8 BOM, this is
 /// what it will look like after decoding
@@ -48,8 +46,8 @@ impl PdxFile {
             warn_info(
                 (pathname, kind),
                 ErrorKey::Encoding,
-                "file must not start with a UTF-8 BOM",
-                "This kind of file must be in Windows-1252 encoding",
+                "file should not start with a UTF-8 BOM",
+                "This kind of file is expected to be in Windows-1252 encoding",
             );
             parse_pdx(pathname, kind, bomless)
         } else {

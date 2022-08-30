@@ -4,12 +4,12 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use crate::block::{Block, DefinitionItem};
+use crate::data::localization::Localization;
+use crate::data::provinces::ProvId;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, warn, will_log};
 use crate::fileset::{FileEntry, FileHandler};
-use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
-use crate::provinces::ProvId;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]

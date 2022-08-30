@@ -3,12 +3,12 @@ use std::path::Path;
 use std::rc::Rc;
 use std::str::Chars;
 
+use crate::data::localization::{
+    get_file_lang, Code, CodeArg, CodeChain, LocaEntry, LocaValue, MacroValue,
+};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::fileset::FileKind;
-use crate::localization::{
-    get_file_lang, Code, CodeArg, CodeChain, LocaEntry, LocaValue, MacroValue,
-};
 use crate::token::{Loc, Token};
 
 fn is_key_char(c: char) -> bool {

@@ -6,10 +6,8 @@ use std::str::FromStr;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, LogPauseRaii};
 use crate::fileset::{FileEntry, FileHandler, FileKind};
-use crate::provinces::parse::{parse_csv, read_csv};
+use crate::parse::csv::{parse_csv, read_csv};
 use crate::token::{Loc, Token};
-
-mod parse;
 
 pub type ProvId = u32;
 

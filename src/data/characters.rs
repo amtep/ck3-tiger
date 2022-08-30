@@ -3,14 +3,14 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
-use crate::dynasties::Dynasties;
+use crate::data::dynasties::Dynasties;
+use crate::data::houses::Houses;
+use crate::data::localization::Localization;
+use crate::data::religions::Religions;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, info, will_log, LogPauseRaii};
 use crate::fileset::{FileEntry, FileHandler, FileKind};
-use crate::houses::Houses;
-use crate::localization::Localization;
 use crate::pdxfile::PdxFile;
-use crate::religions::Religions;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
