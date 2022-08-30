@@ -340,6 +340,9 @@ impl<'a> LocaParser<'a> {
         } else {
             let mut parser = ValueParser::new(vec![&token]);
             self.value = parser.parse_value();
+            while self.loc.offset <= self.loca_end {
+                self.next_char();
+            }
         }
 
         self.skip_linear_whitespace();
