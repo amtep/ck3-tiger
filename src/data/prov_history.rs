@@ -1,6 +1,7 @@
 use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
 
+use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, Date, DefinitionItem};
 use crate::data::provinces::ProvId;
 use crate::data::religions::Religions;
@@ -35,7 +36,11 @@ impl ProvinceHistories {
         }
     }
 
-    pub fn validate(&self, _data: &Everything) {}
+    pub fn validate(&self, data: &Everything) {
+        for item in self.provinces.values() {
+            item.validate(data);
+        }
+    }
 
     pub fn check_pod_faiths(&self, religions: &Religions, titles: &Titles) {
         let mut warned = FnvHashSet::default();
@@ -129,5 +134,43 @@ pub struct ProvinceHistory {
 impl ProvinceHistory {
     fn new(key: Token, block: Block) -> Self {
         Self { key, block }
+    }
+
+    fn validate_common(vd: &mut Validator, data: &Everything) {
+        vd.field_value("culture");
+        if let Some(token) = vd.field_value("religion") {
+            data.religions.verify_faith_exists(token);
+        }
+        vd.field_choice(
+            "holding",
+            &[
+                "none",
+                "castle_holding",
+                "church_holding",
+                "city_holding",
+                "tribal_holding",
+                "auto",
+            ],
+        );
+        vd.field_list("buildings");
+        vd.field_value("special_building_slot");
+        vd.field_value("special_building");
+        vd.field_value("duchy_capital_building"); // TODO: check if duchy capital
+    }
+
+    fn validate_history(block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        Self::validate_common(&mut vd, data);
+        vd.warn_remaining();
+    }
+
+    fn validate(&self, data: &Everything) {
+        // TODO: verify that all county-capital provinces have a culture and religion
+        // This needs province mappings to be loaded too
+        let mut vd = Validator::new(&self.block, data);
+        Self::validate_common(&mut vd, data);
+        vd.field_value("terrain");
+        vd.validate_history_blocks(Self::validate_history);
+        vd.warn_remaining();
     }
 }

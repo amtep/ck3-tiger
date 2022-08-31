@@ -172,7 +172,7 @@ impl Character {
         Gender::from_female_bool(self.block.get_field_bool("female").unwrap_or(false))
     }
 
-    pub fn validate_history(_key: &Token, block: &Block, parent: &Block, data: &Everything) {
+    pub fn validate_history(block: &Block, parent: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         vd.field_value_loca("name");
 
@@ -287,7 +287,7 @@ impl Character {
         vd.field_float("fertility");
         vd.field_block("portrait_override");
 
-        vd.validate_history_blocks(Self::validate_history);
+        vd.validate_history_blocks(|b, data| Self::validate_history(b, &self.block, data));
         vd.warn_remaining();
     }
 }

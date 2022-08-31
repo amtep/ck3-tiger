@@ -438,7 +438,7 @@ impl<'a> Validator<'a> {
 
     pub fn validate_history_blocks<F>(&mut self, f: F)
     where
-        F: Fn(&Token, &Block, &Block, &Everything),
+        F: Fn(&Block, &Everything),
     {
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
@@ -455,7 +455,7 @@ impl<'a> Validator<'a> {
                         BlockOrValue::Token(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
                         }
-                        BlockOrValue::Block(s) => f(key, s, self.block, self.data),
+                        BlockOrValue::Block(s) => f(s, self.data),
                     }
                 }
             }
