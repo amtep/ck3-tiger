@@ -84,7 +84,7 @@ impl Religions {
 
     pub fn is_modded_faith(&self, item: &Token) -> bool {
         if let Some(faith) = self.faiths.get(item.as_str()) {
-            faith.key.loc.kind != FileKind::VanillaFile
+            faith.key.loc.kind == FileKind::Mod
         } else {
             false
         }

@@ -56,7 +56,7 @@ fn validate_modfile(block: &Block) -> ModFile {
 
 impl ModFile {
     pub fn read(pathname: &Path) -> Result<Self> {
-        let block = PdxFile::read_no_bom(pathname, FileKind::ModFile, pathname)
+        let block = PdxFile::read_no_bom(pathname, FileKind::Mod, pathname)
             .with_context(|| format!("Could not read .mod file {}", pathname.display()))?;
         Ok(validate_modfile(&block))
     }

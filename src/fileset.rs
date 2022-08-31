@@ -13,15 +13,15 @@ use crate::token::{Loc, Token};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum FileKind {
-    VanillaFile,
-    ModFile,
+    Vanilla,
+    Mod,
 }
 
 impl Display for FileKind {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), std::fmt::Error> {
         match *self {
-            FileKind::VanillaFile => write!(fmt, "CK3"),
-            FileKind::ModFile => write!(fmt, "MOD"),
+            FileKind::Vanilla => write!(fmt, "CK3"),
+            FileKind::Mod => write!(fmt, "MOD"),
         }
     }
 }
@@ -146,7 +146,7 @@ impl Fileset {
     }
 
     pub fn finalize(&mut self) {
-        // This places `ModFile` after `VanillaFile`
+        // This places `Mod` entries after `Vanilla` entries
         self.files.sort();
 
         // When there are identical paths, only keep the last entry of them.
@@ -176,8 +176,8 @@ impl Fileset {
 
     pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {
         match entry.kind {
-            FileKind::VanillaFile => self.vanilla_root.join(entry.path()),
-            FileKind::ModFile => self.mod_root.join(entry.path()),
+            FileKind::Vanilla => self.vanilla_root.join(entry.path()),
+            FileKind::Mod => self.mod_root.join(entry.path()),
         }
     }
 

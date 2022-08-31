@@ -152,8 +152,8 @@ impl Errors {
             return None;
         }
         let pathname = match loc.kind {
-            FileKind::VanillaFile => self.vanilla_root.join(&*loc.pathname),
-            FileKind::ModFile => self.mod_root.join(&*loc.pathname),
+            FileKind::Vanilla => self.vanilla_root.join(&*loc.pathname),
+            FileKind::Mod => self.mod_root.join(&*loc.pathname),
         };
         let bytes = read(&pathname).ok()?;
         let contents = match UTF_8.decode(&bytes, DecoderTrap::Strict) {
@@ -166,7 +166,7 @@ impl Errors {
     pub fn will_log(&self, loc: &Loc, key: ErrorKey) -> bool {
         if self.logging_paused > 0
             || self.ignore_keys.contains(&key)
-            || (loc.kind == FileKind::VanillaFile && !self.show_vanilla)
+            || (loc.kind == FileKind::Vanilla && !self.show_vanilla)
         {
             return false;
         }

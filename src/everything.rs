@@ -91,14 +91,14 @@ impl Everything {
 
         // Abort if whole directories are unreadable, because then we don't have
         // a full map of vanilla's or the mod's contents and might give bad advice.
-        fileset
-            .scan(vanilla_root, FileKind::VanillaFile)
-            .map_err(|e| FilesError::VanillaUnreadable {
+        fileset.scan(vanilla_root, FileKind::Vanilla).map_err(|e| {
+            FilesError::VanillaUnreadable {
                 path: vanilla_root.to_path_buf(),
                 source: e,
-            })?;
+            }
+        })?;
         fileset
-            .scan(mod_root, FileKind::ModFile)
+            .scan(mod_root, FileKind::Mod)
             .map_err(|e| FilesError::ModUnreadable {
                 path: mod_root.to_path_buf(),
                 source: e,
@@ -112,7 +112,7 @@ impl Everything {
                 source: e,
             })?
         } else {
-            Block::new(Loc::for_file(Rc::new(config_file), FileKind::ModFile))
+            Block::new(Loc::for_file(Rc::new(config_file), FileKind::Mod))
         };
 
         fileset.config(config.clone());
@@ -137,7 +137,7 @@ impl Everything {
     }
 
     fn _read_config(path: &Path) -> Result<Block> {
-        PdxFile::read_no_bom(path, FileKind::ModFile, path)
+        PdxFile::read_no_bom(path, FileKind::Mod, path)
     }
 
     pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {

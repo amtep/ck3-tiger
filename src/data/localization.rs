@@ -266,7 +266,7 @@ impl FileHandler for Localization {
         builtins.extend(&BUILTIN_MACROS);
         for lang in self.locas.values() {
             for entry in lang.values() {
-                if entry.key.loc.kind != FileKind::VanillaFile {
+                if entry.key.loc.kind != FileKind::Vanilla {
                     continue;
                 }
 
