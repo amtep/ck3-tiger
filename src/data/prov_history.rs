@@ -148,8 +148,8 @@ impl ProvinceHistory {
             ],
         );
         vd.field_list("buildings");
-        vd.field_value("special_building_slot");
-        vd.field_value("special_building");
+        vd.field_values("special_building_slot");
+        vd.field_values("special_building");
         vd.field_value("duchy_capital_building"); // TODO: check if duchy capital
     }
 

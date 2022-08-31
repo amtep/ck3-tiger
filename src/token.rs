@@ -43,10 +43,11 @@ impl Loc {
 
     pub fn marker(&self) -> String {
         if self.line == 0 {
-            format!("{}: ", self.pathname.display())
+            format!("[{}] {}: ", self.kind, self.pathname.display())
         } else {
             format!(
-                "{}:{}:{}: ",
+                "[{}] {}:{}:{}: ",
+                self.kind,
                 self.pathname.display(),
                 self.line,
                 self.column
@@ -56,9 +57,14 @@ impl Loc {
 
     pub fn line_marker(&self) -> String {
         if self.line == 0 {
-            format!("{}: ", self.pathname.display())
+            format!("[{}] {}: ", self.kind, self.pathname.display())
         } else {
-            format!("{}:{}: ", self.pathname.display(), self.line)
+            format!(
+                "[{}] {}:{}: ",
+                self.kind,
+                self.pathname.display(),
+                self.line
+            )
         }
     }
 

@@ -15,8 +15,10 @@ fn is_key_char(c: char) -> bool {
     c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '\''
 }
 
+// code_char might end up being identical to key_char, since we can write [gameconcept] and
+// game concepts can be any id
 fn is_code_char(c: char) -> bool {
-    c.is_alphanumeric() || c == '_'
+    c.is_alphanumeric() || c == '_' || c == '\''
 }
 
 #[derive(Clone, Debug)]

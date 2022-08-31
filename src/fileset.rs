@@ -17,6 +17,15 @@ pub enum FileKind {
     ModFile,
 }
 
+impl Display for FileKind {
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), std::fmt::Error> {
+        match *self {
+            FileKind::VanillaFile => write!(fmt, "CK3"),
+            FileKind::ModFile => write!(fmt, "MOD"),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct FileEntry {
     /// Pathname components below the mod directory or the vanilla game dir
