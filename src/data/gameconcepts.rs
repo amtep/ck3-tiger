@@ -4,9 +4,9 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::{Block, DefinitionItem};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, will_log, LogPauseRaii};
+use crate::errors::{error, error_info, info, will_log};
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler, FileKind};
+use crate::fileset::{FileEntry, FileHandler};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -49,7 +49,6 @@ impl GameConcepts {
 
     pub fn validate(&self, data: &Everything) {
         for item in self.concepts.values() {
-            let _pause = LogPauseRaii::new(item.key.loc.kind == FileKind::VanillaFile);
             item.validate(data);
         }
     }
@@ -64,8 +63,6 @@ impl FileHandler for GameConcepts {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return;
         }
-
-        let _pause = LogPauseRaii::new(entry.kind() == FileKind::VanillaFile);
 
         let block = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
             Ok(block) => block,

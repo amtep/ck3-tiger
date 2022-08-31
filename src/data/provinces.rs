@@ -4,9 +4,9 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn, LogPauseRaii};
+use crate::errors::{error, warn};
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler, FileKind};
+use crate::fileset::{FileEntry, FileHandler};
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::token::{Loc, Token};
 
@@ -53,8 +53,6 @@ impl FileHandler for Provinces {
     }
 
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
-        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
-
         if entry.path().components().count() == 2 {
             match &*entry.filename().to_string_lossy() {
                 "adjacencies.csv" => {

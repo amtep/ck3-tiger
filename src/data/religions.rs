@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::{Block, DefinitionItem};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, warn, will_log, LogPauseRaii};
+use crate::errors::{error, error_info, info, warn, will_log};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::pdxfile::PdxFile;
@@ -59,12 +59,9 @@ impl Religions {
 
     pub fn validate(&self, data: &Everything) {
         for religion in self.religions.values() {
-            let _pause = LogPauseRaii::new(religion.key.loc.kind == FileKind::VanillaFile);
-
             religion.validate(data);
         }
         for faith in self.faiths.values() {
-            let _pause = LogPauseRaii::new(faith.key.loc.kind == FileKind::VanillaFile);
             faith.validate(data);
 
             let religion = &self.religions[faith.religion.as_str()];
@@ -116,8 +113,6 @@ impl FileHandler for Religions {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return;
         }
-
-        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
 
         let block = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
             Ok(block) => block,
@@ -264,10 +259,6 @@ impl Faith {
             religion,
             pagan,
         }
-    }
-
-    pub fn kind(&self) -> FileKind {
-        self.key.loc.kind
     }
 
     pub fn validate(&self, data: &Everything) {

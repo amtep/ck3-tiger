@@ -5,9 +5,9 @@ use crate::block::validator::Validator;
 use crate::block::{Block, DefinitionItem};
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, warn, will_log, LogPauseRaii};
+use crate::errors::{error, error_info, info, warn, will_log};
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler, FileKind};
+use crate::fileset::{FileEntry, FileHandler};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -52,8 +52,6 @@ impl FileHandler for Decisions {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return;
         }
-
-        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
 
         let block = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
             Ok(block) => block,

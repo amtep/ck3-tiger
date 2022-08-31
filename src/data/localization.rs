@@ -6,9 +6,7 @@ use std::path::{Path, PathBuf};
 use crate::block::Block;
 use crate::data::localization::parse::parse_loca;
 use crate::errorkey::ErrorKey;
-use crate::errors::{
-    advice_info, error, error_info, info, warn, warn_info, will_log, LogPauseRaii,
-};
+use crate::errors::{advice_info, error, error_info, info, warn, warn_info, will_log};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::token::Token;
@@ -154,8 +152,6 @@ impl Localization {
         // Does every `[concept]` reference have a defined game concept?
         for hash in self.locas.values() {
             for entry in hash.values() {
-                let _pause = LogPauseRaii::new(entry.key.loc.kind == FileKind::VanillaFile);
-
                 self.check_game_concepts(&entry.value, data);
             }
         }
@@ -192,8 +188,6 @@ impl FileHandler for Localization {
         if entry.filename().to_string_lossy().ends_with(".info") {
             return;
         }
-
-        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
 
         // unwrap is safe here because we're only handed files under localization/
         // to_string_lossy is ok because we compare lang against a set of known strings.
@@ -302,8 +296,6 @@ impl FileHandler for Localization {
 
         for lang in self.locas.values() {
             for entry in lang.values() {
-                let _pause = LogPauseRaii::new(entry.key.loc.kind == FileKind::VanillaFile);
-
                 if let LocaValue::Macro(ref v) = entry.value {
                     for macrovalue in v {
                         if let MacroValue::Keyword(k, _) = macrovalue {

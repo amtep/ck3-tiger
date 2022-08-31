@@ -4,9 +4,9 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, will_log, LogPauseRaii};
+use crate::errors::{error, error_info, info, will_log};
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler, FileKind};
+use crate::fileset::{FileEntry, FileHandler};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -37,7 +37,6 @@ impl Namelists {
 
     pub fn validate(&self, data: &Everything) {
         for item in self.lists.values() {
-            let _pause = LogPauseRaii::new(item.key.loc.kind == FileKind::VanillaFile);
             item.validate(data);
         }
     }

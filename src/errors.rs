@@ -127,8 +127,9 @@ struct Errors {
 
     /// Don't log if this is > 0,
     logging_paused: isize,
-    /// Unless never_pause is set
-    never_pause: bool,
+
+    /// Whether to log errors in vanilla CK3 files
+    show_vanilla: bool,
 
     /// Skip logging errors with these keys for these files
     ignore_keys_for: FnvHashMap<PathBuf, Vec<ErrorKey>>,
@@ -163,7 +164,10 @@ impl Errors {
     }
 
     pub fn will_log(&self, loc: &Loc, key: ErrorKey) -> bool {
-        if (self.logging_paused > 0 && !self.never_pause) || self.ignore_keys.contains(&key) {
+        if self.logging_paused > 0
+            || self.ignore_keys.contains(&key)
+            || (loc.kind == FileKind::VanillaFile && !self.show_vanilla)
+        {
             return false;
         }
         if let Some(true) = self
@@ -271,8 +275,8 @@ pub fn resume_logging() {
     Errors::get_mut().logging_paused -= 1;
 }
 
-pub fn never_pause() {
-    Errors::get_mut().never_pause = true;
+pub fn show_vanilla(v: bool) {
+    Errors::get_mut().show_vanilla = v;
 }
 
 /// This is an object that can pause logging as long as it's in scope.

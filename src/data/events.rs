@@ -5,9 +5,9 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, DefinitionItem};
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, warn, warn_info, will_log, LogPauseRaii};
+use crate::errors::{error, error_info, info, warn, warn_info, will_log};
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler, FileKind};
+use crate::fileset::{FileEntry, FileHandler};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 use crate::validate::{
@@ -98,7 +98,6 @@ impl Events {
 
     pub fn validate(&self, data: &Everything) {
         for item in self.events.values() {
-            let _pause = LogPauseRaii::new(item.key.loc.kind == FileKind::VanillaFile);
             item.validate(data);
         }
     }
@@ -120,8 +119,6 @@ impl FileHandler for Events {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return;
         }
-
-        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
 
         let block = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
             Ok(block) => block,

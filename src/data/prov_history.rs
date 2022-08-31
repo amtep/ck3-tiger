@@ -7,9 +7,9 @@ use crate::data::provinces::ProvId;
 use crate::data::religions::Religions;
 use crate::data::titles::Titles;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn, LogPauseRaii};
+use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler, FileKind};
+use crate::fileset::{FileEntry, FileHandler};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -79,8 +79,6 @@ impl FileHandler for ProvinceHistories {
     }
 
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
-        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
-
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return;
         }
