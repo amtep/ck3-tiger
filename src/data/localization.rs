@@ -6,9 +6,10 @@ use std::path::{Path, PathBuf};
 use crate::block::Block;
 use crate::data::localization::parse::parse_loca;
 use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, error, error_info, info, warn, warn_info, will_log};
+use crate::errors::{advice_info, error, error_info, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
+use crate::helpers::dup_error;
 use crate::token::Token;
 
 mod parse;
@@ -236,20 +237,10 @@ impl FileHandler for Localization {
                 Ok(content) => {
                     for loca in parse_loca(entry.path(), entry.kind(), &content) {
                         let hash = self.locas.entry(filelang).or_default();
-                        if hash.contains_key(loca.key.as_str())
-                            && hash.get(loca.key.as_str()).unwrap().key.loc.kind == entry.kind()
-                            && will_log(&loca.key, ErrorKey::Duplicate)
-                        {
-                            warn(
-                                &loca.key,
-                                ErrorKey::Duplicate,
-                                "This localization key redefines an existing key",
-                            );
-                            info(
-                                &hash.get(loca.key.as_str()).unwrap().key,
-                                ErrorKey::Duplicate,
-                                "-- the other key is here.",
-                            );
+                        if let Some(other) = hash.get(loca.key.as_str()) {
+                            if other.key.loc.kind >= entry.kind() && loca.orig != other.orig {
+                                dup_error(&loca.key, &other.key, "localization");
+                            }
                         }
                         hash.insert(loca.key.to_string(), loca);
                     }

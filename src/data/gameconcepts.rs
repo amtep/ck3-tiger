@@ -4,9 +4,10 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::{Block, DefinitionItem};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, will_log};
+use crate::errors::{error, error_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -19,13 +20,8 @@ pub struct GameConcepts {
 impl GameConcepts {
     pub fn load_item(&mut self, key: Token, block: &Block) {
         if let Some(other) = self.concepts.get(key.as_str()) {
-            if other.key.loc.kind >= key.loc.kind && will_log(&key, ErrorKey::Duplicate) {
-                error(
-                    &key,
-                    ErrorKey::Duplicate,
-                    "game concept redefines an existing game concept",
-                );
-                info(&other.key, ErrorKey::Duplicate, "the other concept is here");
+            if other.key.loc.kind >= key.loc.kind {
+                dup_error(&key, &other.key, "game concept");
             }
         }
         if let Some(list) = block.get_field_list("alias") {

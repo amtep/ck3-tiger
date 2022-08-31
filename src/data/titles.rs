@@ -6,9 +6,10 @@ use std::rc::Rc;
 use crate::block::{Block, DefinitionItem};
 use crate::data::provinces::ProvId;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, warn, will_log};
+use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -75,13 +76,8 @@ impl Titles {
         capital_of: Option<Token>,
     ) {
         if let Some(other) = self.titles.get(key.as_str()) {
-            if other.key.loc.kind >= key.loc.kind && will_log(&key, ErrorKey::Duplicate) {
-                error(
-                    &key,
-                    ErrorKey::Duplicate,
-                    "title redefines an existing title",
-                );
-                info(&other.key, ErrorKey::Duplicate, "the other title is here");
+            if other.key.loc.kind >= key.loc.kind {
+                dup_error(&key, &other.key, "title");
             }
         }
         let title = Rc::new(Title::new(

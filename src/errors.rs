@@ -181,23 +181,11 @@ impl Errors {
     }
 
     #[allow(unused_must_use)] // If logging errors fails, there's not much we can do
-    #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
-    pub fn push<E: ErrorLoc>(
-        &mut self,
-        eloc: E,
-        level: ErrorLevel,
-        key: ErrorKey,
-        msg: &str,
-        info: Option<&str>,
-    ) {
-        let loc = eloc.into_loc();
-        if !self.will_log(&loc, key) {
-            return;
-        }
+    pub fn log(&mut self, loc: &Loc, level: ErrorLevel, msg: &str, info: Option<&str>) {
         if self.outfile.is_none() {
             self.outfile = Some(Box::new(stderr()));
         }
-        if let Some(line) = self.get_line(&loc) {
+        if let Some(line) = self.get_line(loc) {
             let line_marker = loc.line_marker();
             writeln!(self.outfile.as_mut().unwrap(), "{}{}", line_marker, line);
             let mut spacing = String::new();
@@ -228,6 +216,41 @@ impl Errors {
         if let Some(info) = info {
             writeln!(self.outfile.as_mut().unwrap(), "  {}", info);
         }
+    }
+
+    #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
+    pub fn push<E: ErrorLoc>(
+        &mut self,
+        eloc: E,
+        level: ErrorLevel,
+        key: ErrorKey,
+        msg: &str,
+        info: Option<&str>,
+    ) {
+        let loc = eloc.into_loc();
+        if !self.will_log(&loc, key) {
+            return;
+        }
+        self.log(&loc, level, msg, info);
+    }
+
+    #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
+    pub fn push2<E: ErrorLoc, E2: ErrorLoc>(
+        &mut self,
+        eloc: E,
+        level: ErrorLevel,
+        key: ErrorKey,
+        msg: &str,
+        eloc2: E2,
+        msg2: &str,
+    ) {
+        let loc = eloc.into_loc();
+        let loc2 = eloc2.into_loc();
+        if !self.will_log(&loc, key) {
+            return;
+        }
+        self.log(&loc, level, msg, None);
+        self.log(&loc2, ErrorLevel::Info, msg2, None);
     }
 
     pub fn get_mut() -> &'static mut Self {
@@ -313,6 +336,10 @@ pub fn set_mod_root(root: PathBuf) {
 
 pub fn error<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
     Errors::get_mut().push(eloc, ErrorLevel::Error, key, msg, None);
+}
+
+pub fn error2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
+    Errors::get_mut().push2(eloc, ErrorLevel::Error, key, msg, eloc2, msg2);
 }
 
 pub fn error_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {

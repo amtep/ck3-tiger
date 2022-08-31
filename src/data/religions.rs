@@ -4,9 +4,10 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::{Block, DefinitionItem};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, warn, will_log};
+use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
+use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 use crate::validate::validate_color;
@@ -20,17 +21,8 @@ pub struct Religions {
 impl Religions {
     fn load_item(&mut self, key: &Token, block: &Block) {
         if let Some(other) = self.religions.get(key.as_str()) {
-            if other.key.loc.kind >= key.loc.kind && will_log(key, ErrorKey::Duplicate) {
-                error(
-                    key,
-                    ErrorKey::Duplicate,
-                    "religion redefines an existing religion",
-                );
-                info(
-                    &other.key,
-                    ErrorKey::Duplicate,
-                    "the other religion is here",
-                );
+            if other.key.loc.kind >= key.loc.kind {
+                dup_error(key, &other.key, "religion");
             }
         }
         self.religions
@@ -39,13 +31,8 @@ impl Religions {
         if let Some(faith_block) = block.get_field_block("faiths") {
             for (faith, b) in faith_block.iter_pure_definitions_warn() {
                 if let Some(other) = self.faiths.get(faith.as_str()) {
-                    if other.key.loc.kind >= key.loc.kind && will_log(key, ErrorKey::Duplicate) {
-                        error(
-                            key,
-                            ErrorKey::Duplicate,
-                            "faith redefines an existing faith",
-                        );
-                        info(&other.key, ErrorKey::Duplicate, "the other faith is here");
+                    if other.key.loc.kind >= key.loc.kind {
+                        dup_error(key, &other.key, "faith");
                     }
                 }
                 let pagan = block.get_field_bool("pagan_roots").unwrap_or(false);

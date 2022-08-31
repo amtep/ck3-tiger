@@ -5,9 +5,10 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, DefinitionItem};
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, warn, warn_info, will_log};
+use crate::errors::{error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 use crate::validate::{
@@ -50,14 +51,7 @@ impl Events {
 
         if namespace_ok {
             if let Some(other) = self.events.get(key.as_str()) {
-                if will_log(key, ErrorKey::Duplicate) {
-                    error(
-                        key,
-                        ErrorKey::Duplicate,
-                        "event redefines an existing event",
-                    );
-                    info(&other.key, ErrorKey::Duplicate, "the other event is here");
-                }
+                dup_error(key, &other.key, "event");
             }
             self.events
                 .insert(key.to_string(), Event::new(key.clone(), block.clone()));
@@ -68,14 +62,7 @@ impl Events {
 
     fn load_scripted_trigger(&mut self, key: Token, block: &Block) {
         if let Some(other) = self.scripted_triggers.get(key.as_str()) {
-            if will_log(&key, ErrorKey::Duplicate) {
-                error(
-                    &key,
-                    ErrorKey::Duplicate,
-                    "scripted trigger redefines an existing trigger",
-                );
-                info(&other.key, ErrorKey::Duplicate, "the other trigger is here");
-            }
+            dup_error(&key, &other.key, "scripted trigger");
         }
         self.scripted_triggers
             .insert(key.to_string(), ScriptedTrigger::new(key, block.clone()));
@@ -83,14 +70,7 @@ impl Events {
 
     fn load_scripted_effect(&mut self, key: Token, block: &Block) {
         if let Some(other) = self.scripted_effects.get(key.as_str()) {
-            if will_log(&key, ErrorKey::Duplicate) {
-                error(
-                    &key,
-                    ErrorKey::Duplicate,
-                    "scripted effect redefines an existing effect",
-                );
-                info(&other.key, ErrorKey::Duplicate, "the other effect is here");
-            }
+            dup_error(&key, &other.key, "scripted effect");
         }
         self.scripted_effects
             .insert(key.to_string(), ScriptedEffect::new(key, block.clone()));

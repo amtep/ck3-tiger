@@ -10,6 +10,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -22,12 +23,8 @@ impl ProvinceHistories {
     fn load_history(&mut self, id: ProvId, key: &Token, b: &Block) {
         if let Some(province) = self.provinces.get_mut(&id) {
             // Multiple entries are valid but could easily be a mistake.
-            if province.key.loc.kind == key.loc.kind {
-                warn(
-                    key,
-                    ErrorKey::Duplicate,
-                    &format!("there are two entries for province id {}", id),
-                );
+            if province.key.loc.kind >= key.loc.kind {
+                dup_error(key, &province.key, "province");
             }
             province.block.append(&mut b.clone());
         } else {

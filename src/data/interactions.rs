@@ -4,9 +4,10 @@ use std::path::{Path, PathBuf};
 use crate::block::{Block, DefinitionItem};
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, will_log};
+use crate::errors::{error, error_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -18,17 +19,8 @@ pub struct Interactions {
 impl Interactions {
     pub fn load_interaction(&mut self, key: Token, block: &Block, values: Vec<(Token, Token)>) {
         if let Some(other) = self.interactions.get(key.as_str()) {
-            if other.key.loc.kind == key.loc.kind && will_log(&key, ErrorKey::Duplicate) {
-                error(
-                    &key,
-                    ErrorKey::Duplicate,
-                    "interaction redefines an existing interaction",
-                );
-                info(
-                    &other.key,
-                    ErrorKey::Duplicate,
-                    "the other interaction is here",
-                );
+            if other.key.loc.kind == key.loc.kind {
+                dup_error(&key, &other.key, "interaction");
             }
         }
         self.interactions.insert(

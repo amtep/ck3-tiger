@@ -5,9 +5,10 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, info, warn, will_log};
+use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -55,20 +56,8 @@ pub struct Characters {
 impl Characters {
     fn load_item(&mut self, key: &Token, block: &Block) {
         if let Some(other) = self.characters.get(key.as_str()) {
-            if other.key.loc.kind >= key.loc.kind
-                && will_log(key, ErrorKey::Duplicate)
-                && other.born_by(self.config_only_born)
-            {
-                error(
-                    key,
-                    ErrorKey::Duplicate,
-                    "character redefines an existing character",
-                );
-                info(
-                    &other.key,
-                    ErrorKey::Duplicate,
-                    "the other character is here",
-                );
+            if other.key.loc.kind >= key.loc.kind && other.born_by(self.config_only_born) {
+                dup_error(key, &other.key, "character");
             }
         }
         self.characters

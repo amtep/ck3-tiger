@@ -90,6 +90,14 @@ impl Token {
     }
 }
 
+/// Tokens are compared for equality regardless of their loc.
+impl PartialEq for Token {
+    fn eq(&self, other: &Self) -> bool {
+        self.s == other.s
+    }
+}
+impl Eq for Token {}
+
 impl From<Loc> for Token {
     fn from(loc: Loc) -> Self {
         Token {

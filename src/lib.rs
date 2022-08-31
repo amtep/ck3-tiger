@@ -24,6 +24,7 @@ mod block;
 mod data;
 mod desc;
 mod fileset;
+mod helpers;
 mod parse;
 mod pdxfile;
 mod token;
