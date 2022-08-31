@@ -300,6 +300,9 @@ impl Event {
 }
 
 fn validate_event_option(block: &Block, data: &Everything) {
+    // TODO: warn if they use desc, first_valid, random_valid, or triggered_desc directly
+    // in the name or tooltip.
+
     // TODO: actually validate the whole option
     if let Some(bv) = block.get_field("name") {
         match bv {

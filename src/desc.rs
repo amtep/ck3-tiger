@@ -25,11 +25,7 @@ pub fn verify_desc_block_locas(desc: &Block, locas: &Localization) {
                 }
             }
             DefinitionItem::Assignment(key, _) | DefinitionItem::Keyword(key) => {
-                warn(
-                    key,
-                    ErrorKey::Validation,
-                    &format!("unexpected key in description"),
-                );
+                warn(key, ErrorKey::Validation, "unexpected key in description");
             }
             DefinitionItem::Definition(key, b) => {
                 if key.is("desc")
@@ -41,11 +37,7 @@ pub fn verify_desc_block_locas(desc: &Block, locas: &Localization) {
                 } else if key.is("trigger") {
                     continue;
                 } else {
-                    warn(
-                        key,
-                        ErrorKey::Validation,
-                        &format!("unexpected key in description"),
-                    );
+                    warn(key, ErrorKey::Validation, "unexpected key in description");
                 }
             }
         }

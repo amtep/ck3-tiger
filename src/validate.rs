@@ -54,12 +54,12 @@ pub fn validate_color(block: &Block, _data: &Everything) {
     let mut count = 0;
     for (k, _, v) in block.iter_items() {
         if let Some(key) = k {
-            error(key, ErrorKey::Validation, "expected color value")
+            error(key, ErrorKey::Validation, "expected color value");
         } else {
             match v {
                 BlockOrValue::Token(t) => {
                     if let Ok(i) = t.as_str().parse::<isize>() {
-                        if i < 0 || i > 255 {
+                        if !(0..=255).contains(&i) {
                             error(
                                 t,
                                 ErrorKey::Validation,
@@ -67,7 +67,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
                             );
                         }
                     } else if let Ok(f) = t.as_str().parse::<f64>() {
-                        if f < 0.0 || f > 1.0 {
+                        if !(0.0..=1.0).contains(&f) {
                             error(
                                 t,
                                 ErrorKey::Validation,

@@ -1,7 +1,7 @@
 use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
 
-use crate::block::{Block, Date, DefinitionItem};
+use crate::block::{Block, BlockOrValue, Date, DefinitionItem};
 use crate::data::provinces::ProvId;
 use crate::data::religions::Religions;
 use crate::data::titles::Titles;
@@ -50,7 +50,7 @@ impl ProvinceHistories {
             for (provid, provhist) in &self.provinces {
                 if let Some(capital) = titles.capital_of(*provid) {
                     let religion = provhist.block.get_field_at_date("religion", bookmark);
-                    if let Some(religion) = religion.and_then(|v| v.into_value()) {
+                    if let Some(religion) = religion.and_then(BlockOrValue::into_value) {
                         if !religions.is_modded_faith(&religion) && !warned.contains(provid) {
                             let msg = format!(
                                 "Vanilla or unknown religion in prov {} (county {}) at {}",

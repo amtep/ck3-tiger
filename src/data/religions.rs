@@ -93,7 +93,9 @@ impl Religions {
     }
 
     pub fn verify_faith_exists_opt(&self, item: Option<&Token>) {
-        item.map(|item| self.verify_faith_exists(item));
+        if let Some(item) = item {
+            self.verify_faith_exists(item);
+        };
     }
 
     pub fn is_modded_faith(&self, item: &Token) -> bool {
@@ -133,7 +135,7 @@ impl FileHandler for Religions {
         for def in block.iter_definitions_warn() {
             match def {
                 DefinitionItem::Assignment(key, _) => {
-                    error(key, ErrorKey::Validation, "unknown assignment")
+                    error(key, ErrorKey::Validation, "unknown assignment");
                 }
                 DefinitionItem::Keyword(key) => error_info(
                     key,

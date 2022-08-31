@@ -71,7 +71,7 @@ impl Titles {
         &mut self,
         key: Token,
         block: &Block,
-        values: Vec<(Token, Token)>,
+        values: &[(Token, Token)],
         capital_of: Option<Token>,
     ) {
         if let Some(other) = self.titles.get(key.as_str()) {
@@ -87,7 +87,7 @@ impl Titles {
         let title = Rc::new(Title::new(
             key.clone(),
             block.clone(),
-            values.clone(),
+            values.to_owned(),
             capital_of,
         ));
         self.titles.insert(key.to_string(), title.clone());
@@ -95,7 +95,15 @@ impl Titles {
         let parent_tier = Tier::try_from(&key).unwrap(); // guaranteed by caller
         if parent_tier == Tier::Barony {
             if let Some(provid) = block.get_field_integer("province") {
-                self.baronies.insert(provid as ProvId, title);
+                if let Ok(provid) = ProvId::try_from(provid) {
+                    self.baronies.insert(provid, title);
+                } else {
+                    error(
+                        block.get_field_value("province").unwrap(),
+                        ErrorKey::Validation,
+                        "province id out of range",
+                    );
+                }
             } else {
                 error(&key, ErrorKey::Validation, "barony without province id");
             }
@@ -109,7 +117,7 @@ impl Titles {
                     error(k, ErrorKey::Validation, &msg);
                 }
                 let capital_of = if capital { Some(key.clone()) } else { None };
-                self.load_item(k.clone(), v, values.clone(), capital_of);
+                self.load_item(k.clone(), v, values, capital_of);
                 capital = false;
             }
         }
@@ -171,7 +179,7 @@ impl FileHandler for Titles {
                 }
                 DefinitionItem::Definition(key, b) => {
                     if Tier::try_from(key).is_ok() {
-                        self.load_item(key.clone(), b, defined_values.clone(), None);
+                        self.load_item(key.clone(), b, &defined_values, None);
                     } else {
                         warn(key, ErrorKey::Validation, "expected title");
                     }

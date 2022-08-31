@@ -42,11 +42,14 @@ impl Dynasties {
     }
 
     pub fn verify_exists_opt(&self, item: Option<&Token>) {
-        item.map(|item| self.verify_exists(item));
+        if let Some(item) = item {
+            self.verify_exists(item);
+        }
     }
 
     pub fn validate(&self, data: &Everything) {
         for item in self.dynasties.values() {
+            let _pause = LogPauseRaii::new(item.key.loc.kind == FileKind::VanillaFile);
             item.validate(data);
         }
     }
@@ -62,7 +65,7 @@ impl FileHandler for Dynasties {
             return;
         }
 
-        let _pause = LogPauseRaii::new(entry.kind() != FileKind::ModFile);
+        let _pause = LogPauseRaii::new(entry.kind() == FileKind::VanillaFile);
 
         let block = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
             Ok(block) => block,

@@ -42,7 +42,9 @@ impl Provinces {
         }
     }
 
-    pub fn validate(&self, _data: &Everything) {}
+    pub fn validate(&self, _data: &Everything) {
+        // TODO: validate adjacencies
+    }
 }
 
 impl FileHandler for Provinces {
@@ -224,7 +226,10 @@ fn _verify<T: FromStr>(v: &Token, msg: &str) -> Option<T> {
 
 impl Adjacency {
     pub fn parse(csv: &[Token]) -> Option<Self> {
-        // TODO: this does panic if we get an empty line
+        if csv.is_empty() {
+            return None;
+        }
+
         let line = csv[0].loc.clone();
 
         if csv.len() != 9 {
@@ -273,7 +278,10 @@ pub struct Province {
 
 impl Province {
     fn parse(csv: &[Token]) -> Option<Self> {
-        // TODO: this does panic if we get an empty line
+        if csv.is_empty() {
+            return None;
+        }
+
         let line = csv[0].loc.clone();
 
         if csv.len() < 5 {

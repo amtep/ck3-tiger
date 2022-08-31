@@ -127,7 +127,7 @@ fn validate_name_list(block: &Block, data: &Everything) {
     for (_, block) in vd.integer_blocks() {
         let mut vd = Validator::new(block, data);
         for token in vd.values() {
-            data.localization.verify_exists(&token);
+            data.localization.verify_exists(token);
         }
         vd.warn_remaining();
     }

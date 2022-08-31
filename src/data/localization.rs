@@ -151,8 +151,8 @@ impl Localization {
     }
 
     pub fn validate(&self, data: &Everything) {
-        // Does every `[concept]` reference have a defined `game_concept_` key?
-        for (_, hash) in &self.locas {
+        // Does every `[concept]` reference have a defined game concept?
+        for hash in self.locas.values() {
             for entry in hash.values() {
                 let _pause = LogPauseRaii::new(entry.key.loc.kind == FileKind::VanillaFile);
 

@@ -42,11 +42,14 @@ impl Houses {
     }
 
     pub fn verify_exists_opt(&self, item: Option<&Token>) {
-        item.map(|item| self.verify_exists(item));
+        if let Some(item) = item {
+            self.verify_exists(item);
+        }
     }
 
     pub fn validate(&self, data: &Everything) {
         for item in self.houses.values() {
+            let _pause = LogPauseRaii::new(item.key.loc.kind == FileKind::VanillaFile);
             item.validate(data);
         }
     }

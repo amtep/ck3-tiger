@@ -321,7 +321,7 @@ impl Comparator {
     }
 
     pub fn from_token(token: &Token) -> Option<Self> {
-        Self::from_str(&token.as_str())
+        Self::from_str(token.as_str())
     }
 }
 
