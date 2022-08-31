@@ -27,7 +27,13 @@ pub struct Events {
 }
 
 impl Events {
-    fn load_event(&mut self, key: &Token, block: &Block, namespaces: &[&str]) {
+    fn load_event(
+        &mut self,
+        key: &Token,
+        block: &Block,
+        namespaces: &[&str],
+        values: &[(Token, Token)],
+    ) {
         let mut namespace_ok = false;
         if namespaces.is_empty() {
             error(
@@ -53,27 +59,33 @@ impl Events {
             if let Some(other) = self.events.get(key.as_str()) {
                 dup_error(key, &other.key, "event");
             }
-            self.events
-                .insert(key.to_string(), Event::new(key.clone(), block.clone()));
+            self.events.insert(
+                key.to_string(),
+                Event::new(key.clone(), block.clone(), values.to_owned()),
+            );
         } else {
             self.error_events.insert(key.to_string(), key.clone());
         }
     }
 
-    fn load_scripted_trigger(&mut self, key: Token, block: &Block) {
+    fn load_scripted_trigger(&mut self, key: Token, block: &Block, values: &[(Token, Token)]) {
         if let Some(other) = self.scripted_triggers.get(key.as_str()) {
             dup_error(&key, &other.key, "scripted trigger");
         }
-        self.scripted_triggers
-            .insert(key.to_string(), ScriptedTrigger::new(key, block.clone()));
+        self.scripted_triggers.insert(
+            key.to_string(),
+            ScriptedTrigger::new(key, block.clone(), values.to_owned()),
+        );
     }
 
-    fn load_scripted_effect(&mut self, key: Token, block: &Block) {
+    fn load_scripted_effect(&mut self, key: Token, block: &Block, values: &[(Token, Token)]) {
         if let Some(other) = self.scripted_effects.get(key.as_str()) {
             dup_error(&key, &other.key, "scripted effect");
         }
-        self.scripted_effects
-            .insert(key.to_string(), ScriptedEffect::new(key, block.clone()));
+        self.scripted_effects.insert(
+            key.to_string(),
+            ScriptedEffect::new(key, block.clone(), values.to_owned()),
+        );
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -114,6 +126,7 @@ impl FileHandler for Events {
         };
 
         let mut namespaces = Vec::new();
+        let mut values: Vec<(Token, Token)> = Vec::new();
         let mut expecting = Expecting::Event;
 
         for def in block.iter_definitions_warn() {
@@ -130,11 +143,13 @@ impl FileHandler for Events {
                         &format!("`{}` should be used without `=`", key),
                     );
                 }
-                DefinitionItem::Assignment(key, _) => error(
-                    key,
-                    ErrorKey::Validation,
-                    "unknown setting in event files, expected only `namespace`",
-                ),
+                DefinitionItem::Assignment(key, value) => {
+                    if key.as_str().starts_with('@') {
+                        values.push((key.clone(), value.clone()));
+                    } else {
+                        error(key, ErrorKey::Validation, "unknown setting in event files");
+                    }
+                }
                 DefinitionItem::Keyword(key)
                     if matches!(expecting, Expecting::Event) && key.is("scripted_trigger") =>
                 {
@@ -160,15 +175,15 @@ impl FileHandler for Events {
                 }
                 DefinitionItem::Definition(key, b) => match expecting {
                     Expecting::ScriptedTrigger => {
-                        self.load_scripted_trigger(key.clone(), b);
+                        self.load_scripted_trigger(key.clone(), b, &values);
                         expecting = Expecting::Event;
                     }
                     Expecting::ScriptedEffect => {
-                        self.load_scripted_effect(key.clone(), b);
+                        self.load_scripted_effect(key.clone(), b, &values);
                         expecting = Expecting::Event;
                     }
                     Expecting::Event => {
-                        self.load_event(key, b, &namespaces);
+                        self.load_event(key, b, &namespaces, &values);
                     }
                 },
             }
@@ -180,11 +195,12 @@ impl FileHandler for Events {
 pub struct Event {
     key: Token,
     block: Block,
+    values: Vec<(Token, Token)>,
 }
 
 impl Event {
-    pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+    pub fn new(key: Token, block: Block, values: Vec<(Token, Token)>) -> Self {
+        Self { key, block, values }
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -394,11 +410,12 @@ fn validate_portrait(v: &BlockOrValue, data: &Everything) {
 pub struct ScriptedTrigger {
     key: Token,
     block: Block,
+    values: Vec<(Token, Token)>,
 }
 
 impl ScriptedTrigger {
-    fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+    fn new(key: Token, block: Block, values: Vec<(Token, Token)>) -> Self {
+        Self { key, block, values }
     }
 }
 
@@ -406,10 +423,11 @@ impl ScriptedTrigger {
 pub struct ScriptedEffect {
     key: Token,
     block: Block,
+    values: Vec<(Token, Token)>,
 }
 
 impl ScriptedEffect {
-    fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+    fn new(key: Token, block: Block, values: Vec<(Token, Token)>) -> Self {
+        Self { key, block, values }
     }
 }
