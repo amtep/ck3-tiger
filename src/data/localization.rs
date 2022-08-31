@@ -238,7 +238,7 @@ impl FileHandler for Localization {
                     for loca in parse_loca(entry.path(), entry.kind(), &content) {
                         let hash = self.locas.entry(filelang).or_default();
                         if let Some(other) = hash.get(loca.key.as_str()) {
-                            if other.key.loc.kind >= entry.kind() && loca.orig != other.orig {
+                            if other.key.loc.kind == entry.kind() {
                                 dup_error(&loca.key, &other.key, "localization");
                             }
                         }
