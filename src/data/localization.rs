@@ -4,7 +4,7 @@ use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
 use crate::block::Block;
-use crate::data::localization::parse::parse_loca;
+use crate::data::localization::parse::{parse_loca, ValueParser};
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice_info, error, error_info, warn_info};
 use crate::everything::Everything;
@@ -295,6 +295,43 @@ impl FileHandler for Localization {
                                 error(k, ErrorKey::Localization, &format!("The substitution parameter ${}$ is not defined anywhere as a key.", k.as_str()));
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        // Now expand all the macro values we can, and re-parse them after expansion
+        for lang in self.locas.values_mut() {
+            let orig_lang = lang.clone();
+            for mut entry in lang.values_mut() {
+                let mut recursion_count = 0u8;
+                'outer: while let LocaValue::Macro(ref v) = entry.value {
+                    let mut new_line: Vec<&Token> = Vec::new();
+                    for macrovalue in v {
+                        match macrovalue {
+                            MacroValue::Text(token) => new_line.push(token),
+                            MacroValue::Keyword(k, _) => {
+                                if let Some(entry) = orig_lang.get(k.as_str()) {
+                                    if let Some(orig) = &entry.orig {
+                                        new_line.push(orig);
+                                    } else {
+                                        break 'outer;
+                                    }
+                                } else {
+                                    break 'outer;
+                                }
+                            }
+                        }
+                    }
+                    let mut value = ValueParser::new(new_line).parse_value();
+                    entry.value = if value.len() == 1 {
+                        std::mem::take(&mut value[0])
+                    } else {
+                        LocaValue::Concat(value)
+                    };
+                    recursion_count += 1;
+                    if recursion_count >= 250 {
+                        break;
                     }
                 }
             }

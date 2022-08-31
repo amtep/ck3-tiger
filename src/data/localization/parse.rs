@@ -383,7 +383,7 @@ pub struct ValueParser<'a> {
 
 // TODO: some duplication of helper functions between `LocaParser` and `ValueParser`
 impl<'a> ValueParser<'a> {
-    fn new(content: Vec<&'a Token>) -> Self {
+    pub fn new(content: Vec<&'a Token>) -> Self {
         assert!(!content.is_empty());
 
         Self {
@@ -680,7 +680,7 @@ impl<'a> ValueParser<'a> {
         self.value.push(LocaValue::Text(Token::new(text, loc)));
     }
 
-    fn parse_value(&mut self) -> Vec<LocaValue> {
+    pub fn parse_value(&mut self) -> Vec<LocaValue> {
         while let Some(c) = self.peek() {
             match c {
                 '[' => self.parse_code(),
