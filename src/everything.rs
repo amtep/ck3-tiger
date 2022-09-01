@@ -15,6 +15,7 @@ use crate::data::localization::Localization;
 use crate::data::namelists::Namelists;
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
+use crate::data::relations::Relations;
 use crate::data::religions::Religions;
 use crate::data::titles::Titles;
 use crate::errorkey::ErrorKey;
@@ -83,6 +84,9 @@ pub struct Everything {
 
     /// Cultural name lists
     pub namelists: Namelists,
+
+    /// Scripted relations
+    pub relations: Relations,
 }
 
 impl Everything {
@@ -133,6 +137,7 @@ impl Everything {
             houses: Houses::default(),
             characters: Characters::default(),
             namelists: Namelists::default(),
+            relations: Relations::default(),
         })
     }
 
@@ -195,6 +200,7 @@ impl Everything {
         self.fileset.handle(&mut self.houses);
         self.fileset.handle(&mut self.characters);
         self.fileset.handle(&mut self.namelists);
+        self.fileset.handle(&mut self.relations);
     }
 
     pub fn validate_all(&mut self) {
@@ -211,6 +217,7 @@ impl Everything {
         self.houses.validate(self);
         self.characters.validate(self);
         self.namelists.validate(self);
+        self.relations.validate(self);
     }
 
     pub fn check_pod(&mut self) {

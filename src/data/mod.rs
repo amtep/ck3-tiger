@@ -9,5 +9,6 @@ pub mod localization;
 pub mod namelists;
 pub mod prov_history;
 pub mod provinces;
+pub mod relations;
 pub mod religions;
 pub mod titles;

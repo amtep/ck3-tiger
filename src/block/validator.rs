@@ -436,6 +436,31 @@ impl<'a> Validator<'a> {
         vec
     }
 
+    pub fn integer_values(&mut self) -> Vec<(&Token, &Token)> {
+        let mut vec = Vec::new();
+        for (k, cmp, v) in &self.block.v {
+            if let Some(key) = k {
+                if key.as_str().parse::<i32>().is_ok() {
+                    self.known_fields.push(key.as_str());
+                    if !matches!(cmp, Comparator::Eq) {
+                        error(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("expected `{} =`, found `{}`", key, cmp),
+                        );
+                    }
+                    match v {
+                        BlockOrValue::Token(t) => vec.push((key, t)),
+                        BlockOrValue::Block(b) => {
+                            error(b, ErrorKey::Validation, "expected value, found block");
+                        }
+                    }
+                }
+            }
+        }
+        vec
+    }
+
     pub fn validate_history_blocks<F>(&mut self, f: F)
     where
         F: Fn(&Block, &Everything),
