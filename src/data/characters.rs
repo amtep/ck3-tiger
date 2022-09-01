@@ -90,7 +90,9 @@ impl Characters {
     }
 
     pub fn validate(&self, data: &Everything) {
-        for item in self.characters.values() {
+        let mut vec = self.characters.values().collect::<Vec<&Character>>();
+        vec.sort_unstable_by_key(|item| &item.key.loc);
+        for item in vec {
             if item.born_by(self.config_only_born) {
                 item.validate(data);
             }
