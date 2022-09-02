@@ -17,7 +17,14 @@ enum State {
     Id,
     Comparator,
     Calculation,
+    CalculationId,
     Comment,
+}
+
+#[derive(Copy, Clone, Debug)]
+enum CalculationOp {
+    Add,
+    Divide,
 }
 
 #[allow(clippy::wrong_self_convention)]
@@ -59,6 +66,8 @@ struct Parser {
     stack: Vec<ParseLevel>,
     brace_error: bool,
     local_macros: FnvHashMap<String, f64>,
+    calculation_op: CalculationOp,
+    calculation: f64,
 }
 
 impl Parser {
@@ -69,6 +78,35 @@ impl Parser {
             ErrorKey::ParseError,
             &format!("Unrecognized character {}", c),
         );
+    }
+
+    fn calculation_start(&mut self) {
+        self.calculation = 0.0;
+        self.calculation_op = CalculationOp::Add;
+    }
+
+    fn calculation_op(&mut self, op: CalculationOp) {
+        self.calculation_op = op;
+    }
+
+    fn calculation_next(&mut self, local_macro: &Token) {
+        if let Some(value) = self
+            .local_macros
+            .get(local_macro.as_str())
+            .copied()
+            .or_else(|| local_macro.as_str().parse::<f64>().ok())
+        {
+            match self.calculation_op {
+                CalculationOp::Add => self.calculation += value,
+                CalculationOp::Divide => self.calculation /= value,
+            }
+        } else {
+            error(local_macro, ErrorKey::ParseError, "local value not defined");
+        }
+    }
+
+    fn calculation_result(&mut self) -> f64 {
+        std::mem::take(&mut self.calculation)
     }
 
     fn token(&mut self, token: Token) {
@@ -233,9 +271,12 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
         stack: Vec::new(),
         brace_error: false,
         local_macros: FnvHashMap::default(),
+        calculation: 0.0,
+        calculation_op: CalculationOp::Add,
     };
     let mut state = State::Neutral;
     let mut token_start = loc.clone();
+    let mut calculation_start = loc.clone();
 
     for (i, c) in content.char_indices() {
         loc.offset = i;
@@ -250,8 +291,11 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                     state = State::Comment;
                 } else if c.is_comparator_char() {
                     state = State::Comparator;
-                } else if c == '@' || c.is_id_char() {
+                } else if c == '@' {
                     // @ can start tokens but is special
+                    calculation_start = loc.clone();
+                    state = State::Id;
+                } else if c.is_id_char() {
                     state = State::Id;
                 } else if c == '{' {
                     parser.open_brace(loc.clone());
@@ -283,6 +327,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                 } else if c.is_id_char() {
                 } else if c == '[' && loc.offset == token_start.offset + 1 {
                     state = State::Calculation;
+                    parser.calculation_start();
                 } else {
                     let id = content[token_start.offset..i].replace('"', "");
                     let token = Token::new(id, token_start.clone());
@@ -308,14 +353,49 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                 }
             }
             State::Calculation => {
-                // TODO: we should probably parse these and do math on them, and return
-                // the resulting values as part of the tokens
-                if c == ']' {
-                    let id = content[token_start.offset..=i].to_string();
-                    let token = Token::new(id, token_start.clone());
+                if c.is_whitespace() {
+                } else if c == '+' {
+                    parser.calculation_op(CalculationOp::Add);
+                } else if c == '/' {
+                    parser.calculation_op(CalculationOp::Divide);
+                } else if c.is_id_char() {
+                    state = State::CalculationId;
+                } else if c == ']' {
+                    let token = Token::new(
+                        parser.calculation_result().to_string(),
+                        calculation_start.clone(),
+                    );
                     parser.token(token);
                     state = State::Neutral;
-                    token_start = loc.clone();
+                }
+                token_start = loc.clone();
+            }
+            State::CalculationId => {
+                if c.is_id_char() {
+                } else if c.is_whitespace() || c == '+' || c == '/' {
+                    let id = content[token_start.offset..i].to_string();
+                    let token = Token::new(id, token_start.clone());
+                    parser.calculation_next(&token);
+                    state = State::Calculation;
+                    if c == '+' {
+                        parser.calculation_op(CalculationOp::Add);
+                    } else if c == '/' {
+                        parser.calculation_op(CalculationOp::Divide);
+                    }
+                } else if c == ']' {
+                    let id = content[token_start.offset..i].to_string();
+                    let token = Token::new(id, token_start.clone());
+                    parser.calculation_next(&token);
+
+                    let token = Token::new(
+                        parser.calculation_result().to_string(),
+                        calculation_start.clone(),
+                    );
+                    parser.token(token);
+                    state = State::Neutral;
+                } else {
+                    Parser::unknown_char(c, loc.clone());
+                    state = State::Neutral;
                 }
             }
             State::Comparator => {
@@ -327,6 +407,10 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
 
                     if c == '"' {
                         state = State::QString;
+                    } else if c == '@' {
+                        // @ can start tokens but is special
+                        calculation_start = loc.clone();
+                        state = State::Id;
                     } else if c.is_id_char() {
                         state = State::Id;
                     } else if c.is_whitespace() {
