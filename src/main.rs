@@ -115,7 +115,7 @@ fn main() -> Result<()> {
     }
     set_mod_root(modpath.clone());
 
-    let mut everything = Everything::new(&args.ck3.unwrap(), &modpath)?;
+    let mut everything = Everything::new(&args.ck3.unwrap(), &modpath, modfile.replace_paths())?;
     everything.load_all();
     everything.validate_all();
     if args.pod {

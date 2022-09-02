@@ -102,6 +102,9 @@ pub struct Fileset {
     /// The mod directory
     mod_root: PathBuf,
 
+    /// A list of directories that should not be read from vanilla.
+    replace_paths: Vec<PathBuf>,
+
     /// The mod-validator config
     config: Option<Block>,
 
@@ -116,10 +119,11 @@ pub struct Fileset {
 }
 
 impl Fileset {
-    pub fn new(vanilla_root: PathBuf, mod_root: PathBuf) -> Self {
+    pub fn new(vanilla_root: PathBuf, mod_root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
         Fileset {
             vanilla_root,
             mod_root,
+            replace_paths,
             config: None,
             files: Vec::new(),
             ordered_files: Vec::new(),
@@ -139,6 +143,9 @@ impl Fileset {
             }
             // unwrap is safe here because WalkDir gives us paths with this prefix.
             let inner_path = entry.path().strip_prefix(path).unwrap();
+            if kind == FileKind::Vanilla && self.replace_paths.iter().any(|p| p == inner_path) {
+                continue;
+            }
             self.files
                 .push(FileEntry::new(inner_path.to_path_buf(), kind));
         }

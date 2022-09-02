@@ -24,6 +24,7 @@ pub enum ErrorKey {
     ImageFormat,
     Unneeded,
     Scopes,
+    Crash,
     PrincesOfDarkness,
 }
 
@@ -53,6 +54,7 @@ impl FromStr for ErrorKey {
             "image-format" => ErrorKey::ImageFormat,
             "unneeded" => ErrorKey::Unneeded,
             "scopes" => ErrorKey::Scopes,
+            "crash" => ErrorKey::Crash,
             "princes-of-darkness" => ErrorKey::PrincesOfDarkness,
             _ => {
                 return Err(ParseKeyError::new("unknown error key"));
@@ -85,6 +87,7 @@ impl Display for ErrorKey {
             ErrorKey::ImageFormat => write!(fmt, "image-format"),
             ErrorKey::Unneeded => write!(fmt, "unneeded"),
             ErrorKey::Scopes => write!(fmt, "scopes"),
+            ErrorKey::Crash => write!(fmt, "crash"),
             ErrorKey::PrincesOfDarkness => write!(fmt, "princes-of-darkness"),
         }
     }

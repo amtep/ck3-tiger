@@ -90,8 +90,16 @@ pub struct Everything {
 }
 
 impl Everything {
-    pub fn new(vanilla_root: &Path, mod_root: &Path) -> Result<Self, FilesError> {
-        let mut fileset = Fileset::new(vanilla_root.to_path_buf(), mod_root.to_path_buf());
+    pub fn new(
+        vanilla_root: &Path,
+        mod_root: &Path,
+        replace_paths: Vec<PathBuf>,
+    ) -> Result<Self, FilesError> {
+        let mut fileset = Fileset::new(
+            vanilla_root.to_path_buf(),
+            mod_root.to_path_buf(),
+            replace_paths,
+        );
 
         // Abort if whole directories are unreadable, because then we don't have
         // a full map of vanilla's or the mod's contents and might give bad advice.

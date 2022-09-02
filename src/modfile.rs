@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::warn;
+use crate::errors::{advice_info, error_info, warn};
 use crate::fileset::FileKind;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
@@ -48,6 +48,21 @@ fn validate_modfile(block: &Block) -> ModFile {
         }
     }
 
+    for path in &modfile.replace_path {
+        if path.is("history") {
+            advice_info(path, ErrorKey::Unneeded,
+                "replace_path only replaces the specific directory, not any directories below it",
+                "So replace_path = history is not useful, you should replace the paths under it. However, replace_path = history/province_mapping will crash the game.");
+        } else if path.is("history/province_mapping") {
+            error_info(
+                path,
+                ErrorKey::Crash,
+                "replace_path of history/province_mapping will crash the game",
+                "Replace the files in it with empty files, instead.",
+            );
+        }
+    }
+
     // TODO: check if supported_version is newer than validator,
     // or is older than known CK3
 
@@ -83,5 +98,12 @@ impl ModFile {
         } else {
             dirpath.to_path_buf()
         }
+    }
+
+    pub fn replace_paths(&self) -> Vec<PathBuf> {
+        self.replace_path
+            .iter()
+            .map(|t| PathBuf::from(t.as_str()))
+            .collect()
     }
 }

@@ -19,7 +19,7 @@ fn check_mod_helper(modname: &str) -> String {
     set_mod_root(mod_root.clone());
     log_to(Box::new(Vec::new()));
 
-    let mut everything = Everything::new(&vanilla_root, &mod_root).unwrap();
+    let mut everything = Everything::new(&vanilla_root, &mod_root, Vec::new()).unwrap();
     everything.load_all();
     everything.validate_all();
 
