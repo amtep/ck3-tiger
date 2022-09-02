@@ -3,11 +3,13 @@ use image::{DynamicImage, Rgb};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use crate::block::{Block, BlockOrValue};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
+use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::parse::csv::{parse_csv, read_csv};
+use crate::pdxfile::PdxFile;
 use crate::token::{Loc, Token};
 
 pub type ProvId = u32;
@@ -26,6 +28,8 @@ pub struct Provinces {
     definition_csv: Option<FileEntry>,
 
     adjacencies: Vec<Adjacency>,
+
+    impassable: FnvHashSet<ProvId>,
 }
 
 impl Provinces {
@@ -39,6 +43,64 @@ impl Provinces {
                 );
             }
             self.provinces.insert(province.id, province);
+        }
+    }
+
+    pub fn load_impassable(&mut self, block: &Block) {
+        enum Expecting {
+            Range,
+            List,
+            Nothing,
+        }
+
+        let mut expecting = Expecting::Nothing;
+        for (k, _, v) in block.iter_items() {
+            if let Some(key) = k {
+                if key.is("sea_zones")
+                    || key.is("river_provinces")
+                    || key.is("impassable_mountains")
+                {
+                    if let BlockOrValue::Token(t) = v {
+                        if t.is("LIST") {
+                            expecting = Expecting::List;
+                        } else if t.is("RANGE") {
+                            expecting = Expecting::Range;
+                        } else {
+                            expecting = Expecting::Nothing;
+                        }
+                    }
+                }
+            } else if let BlockOrValue::Block(b) = v {
+                if matches!(expecting, Expecting::Range) {
+                    let vec = b.get_values();
+                    if vec.len() != 2 {
+                        error(b, ErrorKey::Validation, "invalid RANGE");
+                        expecting = Expecting::Nothing;
+                        continue;
+                    }
+                    let from = vec[0].as_str().parse::<ProvId>();
+                    let to = vec[1].as_str().parse::<ProvId>();
+                    if from.is_err() || to.is_err() {
+                        error(b, ErrorKey::Validation, "invalid RANGE");
+                        expecting = Expecting::Nothing;
+                        continue;
+                    }
+                    for provid in from.unwrap()..=to.unwrap() {
+                        self.impassable.insert(provid);
+                    }
+                } else if matches!(expecting, Expecting::List) {
+                    for token in b.get_values() {
+                        let provid = token.as_str().parse::<ProvId>();
+                        if let Ok(provid) = provid {
+                            self.impassable.insert(provid);
+                        } else {
+                            error(b, ErrorKey::Validation, "invalid LIST");
+                            break;
+                        }
+                    }
+                }
+                expecting = Expecting::Nothing;
+            }
         }
     }
 
@@ -134,6 +196,21 @@ impl FileHandler for Provinces {
                             ),
                         );
                     }
+                }
+                "default.map" => {
+                    let block = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
+                        Ok(block) => block,
+                        Err(e) => {
+                            error_info(
+                                entry,
+                                ErrorKey::ReadError,
+                                "could not read file",
+                                &format!("{:#}", e),
+                            );
+                            return;
+                        }
+                    };
+                    self.load_impassable(&block);
                 }
                 _ => (),
             }
