@@ -2,10 +2,10 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, DefinitionItem};
+use crate::block::Block;
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn};
+use crate::errors::{error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -18,14 +18,14 @@ pub struct Decisions {
 }
 
 impl Decisions {
-    pub fn load_decision(&mut self, key: Token, block: &Block, values: Vec<(Token, Token)>) {
+    pub fn load_decision(&mut self, key: Token, block: &Block) {
         if let Some(other) = self.decisions.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
                 dup_error(&key, &other.key, "decision");
             }
         }
         self.decisions
-            .insert(key.to_string(), Decision::new(key, block.clone(), values));
+            .insert(key.to_string(), Decision::new(key, block.clone()));
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -58,31 +58,8 @@ impl FileHandler for Decisions {
             }
         };
 
-        let mut decision_values: Vec<(Token, Token)> = Vec::new();
-
-        for def in block.iter_definitions_warn() {
-            match def {
-                DefinitionItem::Keyword(key) => error_info(
-                    key,
-                    ErrorKey::Validation,
-                    "unexpected token",
-                    "Did you forget an = ?",
-                ),
-                DefinitionItem::Assignment(key, value) => {
-                    if key.as_str().starts_with('@') {
-                        decision_values.push((key.clone(), value.clone()));
-                    } else {
-                        error(
-                            key,
-                            ErrorKey::Validation,
-                            "unknown setting in decision file",
-                        );
-                    }
-                }
-                DefinitionItem::Definition(key, b) => {
-                    self.load_decision(key.clone(), b, decision_values.clone());
-                }
-            }
+        for (key, block) in block.iter_pure_definitions_warn() {
+            self.load_decision(key.clone(), block);
         }
     }
 }
@@ -90,13 +67,12 @@ impl FileHandler for Decisions {
 #[derive(Clone, Debug)]
 pub struct Decision {
     key: Token,
-    values: Vec<(Token, Token)>,
     block: Block,
 }
 
 impl Decision {
-    pub fn new(key: Token, block: Block, values: Vec<(Token, Token)>) -> Self {
-        Decision { key, values, block }
+    pub fn new(key: Token, block: Block) -> Self {
+        Decision { key, block }
     }
 
     fn validate(&self, data: &Everything) {

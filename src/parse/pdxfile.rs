@@ -1,4 +1,5 @@
 use anyhow::{bail, Result};
+use fnv::FnvHashMap;
 use std::mem::swap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -57,6 +58,7 @@ struct Parser {
     current: ParseLevel,
     stack: Vec<ParseLevel>,
     brace_error: bool,
+    local_macros: FnvHashMap<String, f64>,
 }
 
 impl Parser {
@@ -77,9 +79,26 @@ impl Parser {
         }
         if let Some(key) = self.current.key.take() {
             if let Some((comp, _)) = self.current.comp.take() {
-                self.current
-                    .block
-                    .add_key_value(key, comp, BlockOrValue::Token(token));
+                if let Some(local_macro) = key.as_str().strip_prefix('@') {
+                    if let Ok(value) = token.as_str().parse::<f64>() {
+                        self.local_macros.insert(local_macro.to_string(), value);
+                    } else {
+                        error(token, ErrorKey::ParseError, "can't parse local value");
+                    }
+                } else if let Some(local_macro) = token.as_str().strip_prefix('@') {
+                    if let Some(value) = self.local_macros.get(local_macro) {
+                        let token = Token::new(value.to_string(), token.loc);
+                        self.current
+                            .block
+                            .add_key_value(key, comp, BlockOrValue::Token(token));
+                    } else {
+                        error(token, ErrorKey::ParseError, "local value not defined");
+                    }
+                } else {
+                    self.current
+                        .block
+                        .add_key_value(key, comp, BlockOrValue::Token(token));
+                }
             } else {
                 self.current.block.add_value(BlockOrValue::Token(key));
                 self.current.key = Some(token);
@@ -213,6 +232,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
         },
         stack: Vec::new(),
         brace_error: false,
+        local_macros: FnvHashMap::default(),
     };
     let mut state = State::Neutral;
     let mut token_start = loc.clone();

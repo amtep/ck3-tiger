@@ -1,10 +1,10 @@
 use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
-use crate::block::{Block, DefinitionItem};
+use crate::block::Block;
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
+use crate::errors::error_info;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -17,16 +17,14 @@ pub struct Interactions {
 }
 
 impl Interactions {
-    pub fn load_interaction(&mut self, key: Token, block: &Block, values: Vec<(Token, Token)>) {
+    pub fn load_interaction(&mut self, key: Token, block: &Block) {
         if let Some(other) = self.interactions.get(key.as_str()) {
             if other.key.loc.kind == key.loc.kind {
                 dup_error(&key, &other.key, "interaction");
             }
         }
-        self.interactions.insert(
-            key.to_string(),
-            Interaction::new(key, block.clone(), values),
-        );
+        self.interactions
+            .insert(key.to_string(), Interaction::new(key, block.clone()));
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -59,31 +57,8 @@ impl FileHandler for Interactions {
             }
         };
 
-        let mut values: Vec<(Token, Token)> = Vec::new();
-
-        for def in block.iter_definitions_warn() {
-            match def {
-                DefinitionItem::Keyword(key) => error_info(
-                    key,
-                    ErrorKey::Validation,
-                    "unexpected token",
-                    "Did you forget an = ?",
-                ),
-                DefinitionItem::Assignment(key, value) => {
-                    if key.as_str().starts_with('@') {
-                        values.push((key.clone(), value.clone()));
-                    } else {
-                        error(
-                            key,
-                            ErrorKey::Validation,
-                            "unknown setting in interaction file",
-                        );
-                    }
-                }
-                DefinitionItem::Definition(key, b) => {
-                    self.load_interaction(key.clone(), b, values.clone());
-                }
-            }
+        for (key, block) in block.iter_pure_definitions_warn() {
+            self.load_interaction(key.clone(), block);
         }
     }
 }
@@ -91,13 +66,12 @@ impl FileHandler for Interactions {
 #[derive(Clone, Debug)]
 pub struct Interaction {
     key: Token,
-    values: Vec<(Token, Token)>,
     block: Block,
 }
 
 impl Interaction {
-    pub fn new(key: Token, block: Block, values: Vec<(Token, Token)>) -> Self {
-        Interaction { key, values, block }
+    pub fn new(key: Token, block: Block) -> Self {
+        Interaction { key, block }
     }
 
     pub fn validate(&self, data: &Everything) {
