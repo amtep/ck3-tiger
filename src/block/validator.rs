@@ -256,6 +256,38 @@ impl<'a> Validator<'a> {
                             &format!("expected `{} =`, found `{}`", key, cmp),
                         );
                     }
+                    if found {
+                        warn(
+                            key,
+                            ErrorKey::Duplicate,
+                            &format!("multiple definitions of `{}`, expected only one.", key),
+                        );
+                    }
+                    f(v, self.data);
+                    found = true;
+                }
+            }
+        }
+        found
+    }
+
+    pub fn field_validated_bvs<F>(&mut self, name: &'a str, f: F) -> bool
+    where
+        F: Fn(&BlockOrValue, &Everything),
+    {
+        self.known_fields.push(name);
+
+        let mut found = false;
+        for (k, cmp, v) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    if !matches!(cmp, Comparator::Eq) {
+                        error(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("expected `{} =`, found `{}`", key, cmp),
+                        );
+                    }
                     f(v, self.data);
                     found = true;
                 }
@@ -482,6 +514,21 @@ impl<'a> Validator<'a> {
                         }
                         BlockOrValue::Block(s) => f(s, self.data),
                     }
+                }
+            }
+        }
+    }
+
+    pub fn warn_past_known(&mut self, name: &str, msg: &str) {
+        let mut past_known = false;
+        for (k, _, _) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    if past_known {
+                        warn(key, ErrorKey::Validation, msg);
+                    }
+                } else if !self.known_fields.contains(&key.as_str()) {
+                    past_known = true;
                 }
             }
         }

@@ -15,6 +15,7 @@ enum State {
     QString,
     Id,
     Comparator,
+    Calculation,
     Comment,
 }
 
@@ -37,7 +38,6 @@ impl CharExt for char {
             || self == '/'
             || self == '|'
             || self == '\''
-            || self == '@'
     }
 
     fn is_comparator_char(self) -> bool {
@@ -230,7 +230,8 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                     state = State::Comment;
                 } else if c.is_comparator_char() {
                     state = State::Comparator;
-                } else if c.is_id_char() {
+                } else if c == '@' || c.is_id_char() {
+                    // @ can start tokens but is special
                     state = State::Id;
                 } else if c == '{' {
                     parser.open_brace(loc.clone());
@@ -260,6 +261,8 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                     // The quoted string actually becomes part of this id
                     state = State::QString;
                 } else if c.is_id_char() {
+                } else if c == '[' && loc.offset == token_start.offset + 1 {
+                    state = State::Calculation;
                 } else {
                     let id = content[token_start.offset..i].replace('"', "");
                     let token = Token::new(id, token_start.clone());
@@ -281,6 +284,17 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                         Parser::unknown_char(c, loc.clone());
                         state = State::Neutral;
                     }
+                    token_start = loc.clone();
+                }
+            }
+            State::Calculation => {
+                // TODO: we should probably parse these and do math on them, and return
+                // the resulting values as part of the tokens
+                if c == ']' {
+                    let id = content[token_start.offset..=i].to_string();
+                    let token = Token::new(id, token_start.clone());
+                    parser.token(token);
+                    state = State::Neutral;
                     token_start = loc.clone();
                 }
             }

@@ -17,6 +17,7 @@ use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::relations::Relations;
 use crate::data::religions::Religions;
+use crate::data::scriptvalues::ScriptValues;
 use crate::data::titles::Titles;
 use crate::errorkey::ErrorKey;
 use crate::errors::{ignore_key, ignore_key_for, warn};
@@ -87,6 +88,8 @@ pub struct Everything {
 
     /// Scripted relations
     pub relations: Relations,
+
+    pub scriptvalues: ScriptValues,
 }
 
 impl Everything {
@@ -146,6 +149,7 @@ impl Everything {
             characters: Characters::default(),
             namelists: Namelists::default(),
             relations: Relations::default(),
+            scriptvalues: ScriptValues::default(),
         })
     }
 
@@ -209,6 +213,7 @@ impl Everything {
         self.fileset.handle(&mut self.characters);
         self.fileset.handle(&mut self.namelists);
         self.fileset.handle(&mut self.relations);
+        self.fileset.handle(&mut self.scriptvalues);
     }
 
     pub fn validate_all(&mut self) {
@@ -226,6 +231,7 @@ impl Everything {
         self.characters.validate(self);
         self.namelists.validate(self);
         self.relations.validate(self);
+        self.scriptvalues.validate(self);
     }
 
     pub fn check_pod(&mut self) {

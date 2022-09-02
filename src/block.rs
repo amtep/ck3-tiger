@@ -254,6 +254,13 @@ impl Block {
         }
     }
 
+    pub fn iter_bv_definitions_warn(&self) -> IterBlockValueDefinitions {
+        IterBlockValueDefinitions {
+            iter: self.v.iter(),
+            warn: true,
+        }
+    }
+
     pub fn iter_pure_definitions_warn(&self) -> IterPureDefinitions {
         IterPureDefinitions {
             iter: self.iter_definitions_warn(),
@@ -422,6 +429,57 @@ impl<'a> Iterator for IterPureDefinitions<'a> {
                 }
                 DefinitionItem::Definition(key, block) => {
                     return Some((key, block));
+                }
+            }
+        }
+        None
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct IterBlockValueDefinitions<'a> {
+    iter: std::slice::Iter<'a, BlockItem>,
+    warn: bool,
+}
+
+impl<'a> Iterator for IterBlockValueDefinitions<'a> {
+    type Item = (&'a Token, &'a BlockOrValue);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for (k, cmp, bv) in self.iter.by_ref() {
+            if let Some(key) = k {
+                if !matches!(cmp, Comparator::Eq) {
+                    if self.warn {
+                        error(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("expected `{} =`, found `{}`", key, cmp),
+                        );
+                    }
+                    continue;
+                }
+                return Some((key, bv));
+            }
+            match bv {
+                BlockOrValue::Token(t) => {
+                    if self.warn {
+                        error_info(
+                            t,
+                            ErrorKey::Validation,
+                            "unexpected token",
+                            "Did you forget an = ?",
+                        );
+                    }
+                }
+                BlockOrValue::Block(b) => {
+                    if self.warn {
+                        error_info(
+                            b,
+                            ErrorKey::Validation,
+                            "unexpected block",
+                            "Did you forget an = ?",
+                        );
+                    }
                 }
             }
         }
