@@ -15,6 +15,8 @@ pub struct Validator<'a> {
     accepted_tokens: bool,
     // Whether subblocks are expected
     accepted_blocks: bool,
+    // Whether unknown keys are expected
+    accepted_keys: bool,
 }
 
 impl<'a> Validator<'a> {
@@ -25,6 +27,7 @@ impl<'a> Validator<'a> {
             known_fields: Vec::new(),
             accepted_tokens: false,
             accepted_blocks: false,
+            accepted_keys: false,
         }
     }
 
@@ -534,14 +537,27 @@ impl<'a> Validator<'a> {
         }
     }
 
+    pub fn unknown_keys(&mut self) -> Vec<(&Token, &BlockOrValue)> {
+        self.accepted_keys = true;
+        let mut vec = Vec::new();
+        for (k, _, bv) in &self.block.v {
+            if let Some(key) = k {
+                if !self.known_fields.contains(&key.as_str()) {
+                    vec.push((key, bv));
+                }
+            }
+        }
+        vec
+    }
+
     // TODO: make this execute on drop, and provide another function
     // to tell it not to warn. This way, there's less risk of a function
     // just forgetting to call warn_remaining.
-    pub fn warn_remaining(&mut self) {
+    pub fn warn_remaining(&self) {
         for (k, _, v) in &self.block.v {
             match k {
                 Some(key) => {
-                    if !self.known_fields.contains(&key.as_str()) {
+                    if !self.accepted_keys && !self.known_fields.contains(&key.as_str()) {
                         warn(
                             key,
                             ErrorKey::Validation,

@@ -27,5 +27,6 @@ mod fileset;
 mod helpers;
 mod parse;
 mod pdxfile;
+mod scopes;
 mod token;
 mod validate;

@@ -94,6 +94,36 @@ impl Token {
     pub fn is(&self, s: &str) -> bool {
         self.s == s
     }
+
+    pub fn split(&self, ch: char) -> Vec<Token> {
+        let mut pos = 0;
+        let mut vec = Vec::new();
+        let mut loc = self.loc.clone();
+        for (cols, (i, c)) in self.s.char_indices().enumerate() {
+            if c == ch {
+                vec.push(Token::new(self.s[pos..i].to_string(), loc.clone()));
+                pos = i + 1;
+                loc.offset = self.loc.offset + i + 1;
+                loc.column = self.loc.column + cols + 1;
+            }
+        }
+        vec.push(Token::new(self.s[pos..].to_string(), loc));
+        vec
+    }
+
+    pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
+        for (cols, (i, c)) in self.s.char_indices().enumerate() {
+            if c == ch {
+                let token1 = Token::new(self.s[..i].to_string(), self.loc.clone());
+                let mut loc = self.loc.clone();
+                loc.offset += i + 1;
+                loc.column += cols + 1;
+                let token2 = Token::new(self.s[i + 1..].to_string(), loc);
+                return Some((token1, token2));
+            }
+        }
+        None
+    }
 }
 
 /// Tokens are compared for equality regardless of their loc.
