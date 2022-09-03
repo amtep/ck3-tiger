@@ -117,6 +117,9 @@ impl Localization {
     }
 
     pub fn verify_exists_implied(&self, key: &str, token: &Token) {
+        if key.is_empty() {
+            return;
+        }
         for lang in &self.check_langs {
             let hash = self.locas.get(lang);
             if hash.is_none() || !hash.unwrap().contains_key(key) {
