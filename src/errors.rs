@@ -350,6 +350,10 @@ pub fn warn<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
     Errors::get_mut().push(eloc, ErrorLevel::Warning, key, msg, None);
 }
 
+pub fn warn2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
+    Errors::get_mut().push2(eloc, ErrorLevel::Warning, key, msg, eloc2, msg2);
+}
+
 pub fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     Errors::get_mut().push(eloc, ErrorLevel::Warning, key, msg, Some(info));
 }

@@ -1,9 +1,9 @@
 use crate::errorkey::ErrorKey;
-use crate::errors::error2;
+use crate::errors::warn2;
 use crate::token::Token;
 
 pub fn dup_error(key: &Token, other: &Token, id: &str) {
-    error2(
+    warn2(
         other,
         ErrorKey::Duplicate,
         &format!("{} is redefined by another {}", id, id),
