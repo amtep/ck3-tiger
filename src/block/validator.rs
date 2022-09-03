@@ -274,6 +274,38 @@ impl<'a> Validator<'a> {
         found
     }
 
+    pub fn field_validated_bv<F>(&mut self, name: &'a str, f: F) -> bool
+    where
+        F: Fn(&BlockOrValue, &Everything),
+    {
+        self.known_fields.push(name);
+
+        let mut found = false;
+        for (k, cmp, v) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    if found {
+                        warn(
+                            key,
+                            ErrorKey::Duplicate,
+                            &format!("multiple definitions of `{}`, expected only one.", key),
+                        );
+                    }
+                    if !matches!(cmp, Comparator::Eq) {
+                        error(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("expected `{} =`, found `{}`", key, cmp),
+                        );
+                    }
+                    f(v, self.data);
+                    found = true;
+                }
+            }
+        }
+        found
+    }
+
     pub fn field_validated_bvs<F>(&mut self, name: &'a str, f: F) -> bool
     where
         F: Fn(&BlockOrValue, &Everything),
