@@ -111,6 +111,16 @@ impl Titles {
         }
     }
 
+    pub fn verify_exists(&self, item: &Token) {
+        if !self.titles.contains_key(item.as_str()) {
+            error(
+                item,
+                ErrorKey::MissingItem,
+                "title not defined in common/landed_titles/",
+            );
+        }
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.titles.values() {
             item.validate(data);

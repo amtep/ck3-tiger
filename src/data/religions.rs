@@ -67,19 +67,27 @@ impl Religions {
     }
 
     pub fn verify_faith_exists(&self, item: &Token) {
-        if !self.faiths.contains_key(item.as_str()) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "faith not defined in common/religion/religions",
-            );
-        }
+        self.verify_implied_faith_exists(item.as_str(), item);
     }
 
     pub fn verify_faith_exists_opt(&self, item: Option<&Token>) {
         if let Some(item) = item {
             self.verify_faith_exists(item);
         };
+    }
+
+    pub fn verify_implied_religion_exists(&self, key: &str, item: &Token) {
+        if !self.religions.contains_key(key) {
+            error(
+                item,
+                ErrorKey::MissingItem,
+                "religions not defined in common/religion/religions",
+            );
+        }
+    }
+
+    pub fn verify_religion_exists(&self, item: &Token) {
+        self.verify_implied_religion_exists(item.as_str(), item);
     }
 
     pub fn is_modded_faith(&self, item: &Token) -> bool {

@@ -104,6 +104,20 @@ impl Provinces {
         }
     }
 
+    pub fn verify_exists(&self, item: &Token) {
+        if let Ok(provid) = item.as_str().parse::<ProvId>() {
+            if !self.provinces.contains_key(&provid) {
+                error(
+                    item,
+                    ErrorKey::MissingItem,
+                    "province not defined in map_data/definition.csv",
+                );
+            }
+        } else {
+            error(item, ErrorKey::Validation, "province id should be numeric");
+        }
+    }
+
     pub fn validate(&self, _data: &Everything) {
         // TODO: validate adjacencies
     }

@@ -4,6 +4,7 @@ use crate::block::{Block, BlockOrValue};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
+use crate::token::Token;
 
 pub fn validate_theme_background(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
@@ -87,5 +88,19 @@ pub fn validate_color(block: &Block, _data: &Everything) {
     }
     if count != 3 {
         error(block, ErrorKey::Validation, "expected 3 color values");
+    }
+}
+
+pub fn validate_scope_reference(prefix: &Token, arg: &Token, data: &Everything) {
+    // TODO there are more to match
+    match prefix.as_str() {
+        "character" => data.characters.verify_exists(arg),
+        "dynasty" => data.dynasties.verify_exists(arg),
+        "faith" => data.religions.verify_faith_exists(arg),
+        "house" => data.houses.verify_exists(arg),
+        "province" => data.provinces.verify_exists(arg),
+        "religion" => data.religions.verify_religion_exists(arg),
+        "title" => data.titles.verify_exists(arg),
+        &_ => (),
     }
 }

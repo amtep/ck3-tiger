@@ -11,6 +11,7 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, scope_value, Scopes};
 use crate::token::Token;
+use crate::validate::validate_scope_reference;
 
 #[derive(Clone, Debug, Default)]
 pub struct ScriptValues {
@@ -141,13 +142,14 @@ impl ScriptValue {
             // Semantic correctness is done in the separate scopes pass.
             let mut first = true;
             for part in key.split('.') {
-                if let Some((prefix, _)) = part.split_once(':') {
+                if let Some((prefix, arg)) = part.split_once(':') {
                     // TODO: check valid values for all specific prefixes
                     if let Some((inscope, _)) = scope_prefix(prefix.as_str()) {
                         if inscope == crate::scopes::None && !first {
                             let msg = format!("`{}:` makes no sense except as first part", prefix);
                             warn(part, ErrorKey::Validation, &msg);
                         }
+                        validate_scope_reference(&prefix, &arg, data);
                     } else {
                         let msg = format!("unknown prefix `{}:`", prefix);
                         error(part, ErrorKey::Validation, &msg);
