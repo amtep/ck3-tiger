@@ -1,6 +1,7 @@
 #![allow(non_upper_case_globals)]
 
 use bitflags::bitflags;
+use std::fmt::{Display, Formatter};
 
 bitflags! {
     /// LAST UPDATED VERSION 1.6.2.2
@@ -118,6 +119,116 @@ pub fn scope_iterator(name: &str) -> Option<(Scopes, Scopes)> {
         }
     }
     std::option::Option::None
+}
+
+impl Display for Scopes {
+    #[allow(clippy::too_many_lines)]
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        if *self == Scopes::all() {
+            write!(f, "any scope")
+        } else {
+            let mut vec = Vec::new();
+            if self.contains(Scopes::None) {
+                vec.push("none");
+            }
+            if self.contains(Scopes::Value) {
+                vec.push("value");
+            }
+            if self.contains(Scopes::Bool) {
+                vec.push("bool");
+            }
+            if self.contains(Scopes::Flag) {
+                vec.push("flag");
+            }
+            if self.contains(Scopes::Character) {
+                vec.push("character");
+            }
+            if self.contains(Scopes::LandedTitle) {
+                vec.push("landed title");
+            }
+            if self.contains(Scopes::Activity) {
+                vec.push("activity");
+            }
+            if self.contains(Scopes::Secret) {
+                vec.push("secret");
+            }
+            if self.contains(Scopes::Province) {
+                vec.push("province");
+            }
+            if self.contains(Scopes::Scheme) {
+                vec.push("scheme");
+            }
+            if self.contains(Scopes::Combat) {
+                vec.push("combat");
+            }
+            if self.contains(Scopes::CombatSide) {
+                vec.push("combat side");
+            }
+            if self.contains(Scopes::TitleAndVassalChange) {
+                vec.push("title and vassal change");
+            }
+            if self.contains(Scopes::Faith) {
+                vec.push("faith");
+            }
+            if self.contains(Scopes::GreatHolyWar) {
+                vec.push("great holy war");
+            }
+            if self.contains(Scopes::Religion) {
+                vec.push("religion");
+            }
+            if self.contains(Scopes::War) {
+                vec.push("war");
+            }
+            if self.contains(Scopes::StoryCycle) {
+                vec.push("story cycle");
+            }
+            if self.contains(Scopes::CasusBelli) {
+                vec.push("casus belli");
+            }
+            if self.contains(Scopes::Dynasty) {
+                vec.push("dynasty");
+            }
+            if self.contains(Scopes::DynastyHouse) {
+                vec.push("dynasty house");
+            }
+            if self.contains(Scopes::Faction) {
+                vec.push("faction");
+            }
+            if self.contains(Scopes::Culture) {
+                vec.push("culture");
+            }
+            if self.contains(Scopes::Army) {
+                vec.push("army");
+            }
+            if self.contains(Scopes::HolyOrder) {
+                vec.push("holy order");
+            }
+            if self.contains(Scopes::CouncilTask) {
+                vec.push("council task");
+            }
+            if self.contains(Scopes::MercenaryCompany) {
+                vec.push("mercenary company");
+            }
+            if self.contains(Scopes::Artifact) {
+                vec.push("artifact");
+            }
+            if self.contains(Scopes::Inspiration) {
+                vec.push("inspiration");
+            }
+            if self.contains(Scopes::Struggle) {
+                vec.push("struggle");
+            }
+            for i in 0..vec.len() {
+                write!(f, "{}", vec[i])?;
+                if i + 1 == vec.len() {
+                    write!(f, " or ")?;
+                } else {
+                    write!(f, ", ")?;
+                }
+            }
+            Ok(())
+        }
+    }
 }
 
 /// LAST UPDATED VERSION 1.6.2.2

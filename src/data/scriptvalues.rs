@@ -85,6 +85,7 @@ impl FileHandler for ScriptValues {
 pub struct ScriptValue {
     key: Token,
     bv: BlockOrValue,
+    /// TODO: calculate possible scopes for each script value
     scopes: Scopes,
 }
 
@@ -97,31 +98,35 @@ impl ScriptValue {
         }
     }
 
-    fn validate_inner(mut vd: Validator, data: &Everything) {
+    fn validate_inner(mut vd: Validator, data: &Everything, scopes: Scopes) {
         vd.field_value_loca("desc");
         vd.field_value_loca("format");
-        vd.field_validated("value", Self::validate_bv);
+        vd.field_validated("value", |bv, data| Self::validate_bv(bv, data, scopes));
         vd.warn_past_known(
             "value",
             "Setting value here will overwrite the previous calculations",
         );
-        vd.field_validated_bvs("add", Self::validate_bv);
-        vd.field_validated_bvs("subtract", Self::validate_bv);
-        vd.field_validated_bvs("multiply", Self::validate_bv);
+        vd.field_validated_bvs("add", |bv, data| Self::validate_bv(bv, data, scopes));
+        vd.field_validated_bvs("subtract", |bv, data| Self::validate_bv(bv, data, scopes));
+        vd.field_validated_bvs("multiply", |bv, data| Self::validate_bv(bv, data, scopes));
         // TODO: warn if not sure that divide by zero is impossible?
-        vd.field_validated_bvs("divide", Self::validate_bv);
-        vd.field_validated_bvs("modulo", Self::validate_bv);
-        vd.field_validated_bvs("min", Self::validate_bv);
-        vd.field_validated_bvs("max", Self::validate_bv);
+        vd.field_validated_bvs("divide", |bv, data| Self::validate_bv(bv, data, scopes));
+        vd.field_validated_bvs("modulo", |bv, data| Self::validate_bv(bv, data, scopes));
+        vd.field_validated_bvs("min", |bv, data| Self::validate_bv(bv, data, scopes));
+        vd.field_validated_bvs("max", |bv, data| Self::validate_bv(bv, data, scopes));
         vd.field_bool("round");
         vd.field_bool("ceiling");
         vd.field_bool("floor");
-        vd.field_validated_blocks("fixed_range", Self::validate_minmax_range);
-        vd.field_validated_blocks("integer_range", Self::validate_minmax_range);
+        vd.field_validated_blocks("fixed_range", |b, data| {
+            Self::validate_minmax_range(b, data, scopes);
+        });
+        vd.field_validated_blocks("integer_range", |b, data| {
+            Self::validate_minmax_range(b, data, scopes);
+        });
         // TODO: check that these actually follow each other
-        vd.field_validated_blocks("if", Self::validate_if);
-        vd.field_validated_blocks("else_if", Self::validate_if);
-        vd.field_validated_blocks("else", Self::validate_block);
+        vd.field_validated_blocks("if", |b, data| Self::validate_if(b, data, scopes));
+        vd.field_validated_blocks("else_if", |b, data| Self::validate_if(b, data, scopes));
+        vd.field_validated_blocks("else", |b, data| Self::validate_block(b, data, scopes));
 
         'outer: for (key, bv) in vd.unknown_keys() {
             if let Some(token) = bv.get_value() {
@@ -130,25 +135,46 @@ impl ScriptValue {
             }
 
             if let Some((it_type, it_name)) = key.as_str().split_once('_') {
-                if (it_type == "every" || it_type == "ordered" || it_type == "random")
-                    && scope_iterator(it_name).is_some()
-                {
-                    Self::validate_iterator(it_type, it_name, bv.get_block().unwrap(), data);
-                    continue;
+                if it_type == "every" || it_type == "ordered" || it_type == "random" {
+                    if let Some((inscope, outscope)) = scope_iterator(it_name) {
+                        if !inscope.intersects(scopes | Scopes::None) {
+                            let msg = format!(
+                                "iterator is for {} but scope seems to be {}",
+                                inscope, scopes
+                            );
+                            warn(key, ErrorKey::Scopes, &msg);
+                        }
+                        Self::validate_iterator(
+                            it_type,
+                            it_name,
+                            bv.get_block().unwrap(),
+                            data,
+                            outscope,
+                        );
+                        continue;
+                    }
                 }
             }
 
             // Here we just warn about syntactical correctness.
-            // Semantic correctness is done in the separate scopes pass.
             let mut first = true;
+            let mut part_scopes = scopes;
             for part in key.split('.') {
                 if let Some((prefix, arg)) = part.split_once(':') {
-                    if let Some((inscope, _)) = scope_prefix(prefix.as_str()) {
+                    if let Some((inscope, outscope)) = scope_prefix(prefix.as_str()) {
                         if inscope == Scopes::None && !first {
                             let msg = format!("`{}:` makes no sense except as first part", prefix);
-                            warn(part, ErrorKey::Validation, &msg);
+                            warn(&part, ErrorKey::Validation, &msg);
+                        }
+                        if !inscope.intersects(part_scopes | Scopes::None) {
+                            let msg = format!(
+                                "{}: is for {} but scope seems to be {}",
+                                prefix, inscope, part_scopes
+                            );
+                            warn(&part, ErrorKey::Scopes, &msg);
                         }
                         validate_scope_reference(&prefix, &arg, data);
+                        part_scopes = outscope;
                     } else {
                         let msg = format!("unknown prefix `{}:`", prefix);
                         error(part, ErrorKey::Validation, &msg);
@@ -157,13 +183,23 @@ impl ScriptValue {
                 } else if part.is("root") || part.is("prev") || part.is("this") {
                     if !first {
                         let msg = format!("`{}` makes no sense except as first part", part);
-                        warn(part, ErrorKey::Validation, &msg);
+                        warn(&part, ErrorKey::Validation, &msg);
                     }
-                } else if let Some((inscope, _)) = scope_to_scope(part.as_str()) {
+                    // TODO: accurate scope analysis for root, prev, this
+                    part_scopes = Scopes::all();
+                } else if let Some((inscope, outscope)) = scope_to_scope(part.as_str()) {
                     if inscope == Scopes::None && !first {
                         let msg = format!("`{}` makes no sense except as first part", part);
-                        warn(part, ErrorKey::Validation, &msg);
+                        warn(&part, ErrorKey::Validation, &msg);
                     }
+                    if !inscope.intersects(part_scopes | Scopes::None) {
+                        let msg = format!(
+                            "{} is for {} but scope seems to be {}",
+                            part, inscope, part_scopes
+                        );
+                        warn(&part, ErrorKey::Scopes, &msg);
+                    }
+                    part_scopes = outscope;
                 } else {
                     let msg = format!("unknown token `{}`", part);
                     error(part, ErrorKey::Validation, &msg);
@@ -171,19 +207,25 @@ impl ScriptValue {
                 }
                 first = false;
             }
-            Self::validate_block(bv.get_block().unwrap(), data);
+            Self::validate_block(bv.get_block().unwrap(), data, part_scopes);
         }
         vd.warn_remaining();
     }
 
-    fn validate_iterator(it_type: &str, it_name: &str, block: &Block, data: &Everything) {
+    fn validate_iterator(
+        it_type: &str,
+        it_name: &str,
+        block: &Block,
+        data: &Everything,
+        scopes: Scopes,
+    ) {
         let mut vd = Validator::new(block, data);
         vd.field_block("limit"); // TODO: validate trigger
         if it_type == "ordered" {
-            vd.field_validated_bv("order_by", Self::validate_bv);
+            vd.field_validated_bv("order_by", |bv, data| Self::validate_bv(bv, data, scopes));
             vd.field_integer("position");
             vd.field_integer("min");
-            vd.field_validated_bv("max", Self::validate_bv);
+            vd.field_validated_bv("max", |bv, data| Self::validate_bv(bv, data, scopes));
             vd.field_bool("check_range_bounds");
         } else if it_type == "random" {
             vd.field_block("weight"); // TODO: validate modifier
@@ -211,34 +253,35 @@ impl ScriptValue {
                 data.relations.verify_exists(token);
             }
         }
-        Self::validate_inner(vd, data);
+        Self::validate_inner(vd, data, scopes);
     }
 
-    fn validate_minmax_range(block: &Block, data: &Everything) {
+    fn validate_minmax_range(block: &Block, data: &Everything, scopes: Scopes) {
         let mut vd = Validator::new(block, data);
         vd.req_field("min");
         vd.req_field("max");
-        vd.field_validated_bvs("min", Self::validate_bv);
-        vd.field_validated_bvs("max", Self::validate_bv);
+        vd.field_validated_bvs("min", |bv, data| Self::validate_bv(bv, data, scopes));
+        vd.field_validated_bvs("max", |bv, data| Self::validate_bv(bv, data, scopes));
         vd.warn_remaining();
     }
 
-    fn validate_if(block: &Block, data: &Everything) {
+    fn validate_if(block: &Block, data: &Everything, scopes: Scopes) {
         let mut vd = Validator::new(block, data);
         vd.field_block("limit"); // TODO: validate trigger
-        Self::validate_inner(vd, data);
+        Self::validate_inner(vd, data, scopes);
     }
 
-    fn validate_block(block: &Block, data: &Everything) {
+    fn validate_block(block: &Block, data: &Everything, scopes: Scopes) {
         let vd = Validator::new(block, data);
-        Self::validate_inner(vd, data);
+        Self::validate_inner(vd, data, scopes);
     }
 
-    pub fn validate_value(t: &Token, data: &Everything) {
+    pub fn validate_value(t: &Token, data: &Everything, scopes: Scopes) {
         if t.as_str().parse::<i32>().is_ok() || t.as_str().parse::<f64>().is_ok() {
             // numeric literal is always valid
         } else {
             let part_vec = t.split('.');
+            let mut part_scopes = scopes;
             for i in 0..part_vec.len() {
                 let first = i == 0;
                 let last = i + 1 == part_vec.len();
@@ -255,6 +298,13 @@ impl ScriptValue {
                                 format!("expected a numeric formula instead of `{}:` ", prefix);
                             warn(part, ErrorKey::Validation, &msg);
                         }
+                        if !inscope.intersects(part_scopes | Scopes::None) {
+                            let msg = format!(
+                                "{}: is for {} but scope seems to be {}",
+                                prefix, inscope, part_scopes
+                            );
+                            warn(part, ErrorKey::Scopes, &msg);
+                        }
                         validate_scope_reference(&prefix, &arg, data);
                     } else {
                         let msg = format!("unknown prefix `{}:`", prefix);
@@ -269,6 +319,8 @@ impl ScriptValue {
                         let msg = format!("`{}` makes no sense as script value", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
+                    // TODO: accurate scope analysis for root, prev, this
+                    part_scopes = Scopes::all();
                 } else if let Some((inscope, outscope)) = scope_to_scope(part.as_str()) {
                     if inscope == Scopes::None && !first {
                         let msg = format!("`{}` makes no sense except as first part", part);
@@ -278,6 +330,14 @@ impl ScriptValue {
                         let msg = format!("expected a numeric formula instead of `{}` ", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
+                    if !inscope.intersects(part_scopes | Scopes::None) {
+                        let msg = format!(
+                            "{} is for {} but scope seems to be {}",
+                            part, inscope, part_scopes
+                        );
+                        warn(part, ErrorKey::Scopes, &msg);
+                    }
+                    part_scopes = outscope;
                 } else if last {
                     if let Some(inscope) = scope_value(part.as_str()) {
                         if inscope == Scopes::None && !first {
@@ -296,9 +356,9 @@ impl ScriptValue {
         }
     }
 
-    pub fn validate_bv(bv: &BlockOrValue, data: &Everything) {
+    pub fn validate_bv(bv: &BlockOrValue, data: &Everything, scopes: Scopes) {
         match bv {
-            BlockOrValue::Token(t) => Self::validate_value(t, data),
+            BlockOrValue::Token(t) => Self::validate_value(t, data, scopes),
             BlockOrValue::Block(b) => {
                 let mut vd = Validator::new(b, data);
                 if let Some((None, _, _)) = b.iter_items().next() {
@@ -306,14 +366,14 @@ impl ScriptValue {
                     let vec = vd.values();
                     if vec.len() == 2 {
                         for v in vec {
-                            Self::validate_value(v, data);
+                            Self::validate_value(v, data, scopes);
                         }
                     } else {
                         warn(b, ErrorKey::Validation, "invalid script value range");
                     }
                     vd.warn_remaining();
                 } else {
-                    Self::validate_inner(vd, data);
+                    Self::validate_inner(vd, data, scopes);
                 }
             }
         }
@@ -326,6 +386,6 @@ impl ScriptValue {
                 return;
             }
         }
-        Self::validate_bv(&self.bv, data);
+        Self::validate_bv(&self.bv, data, self.scopes);
     }
 }
