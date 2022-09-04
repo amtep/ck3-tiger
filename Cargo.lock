@@ -78,6 +78,7 @@ name = "ck3-mod-validator"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bitflags",
  "clap",
  "encoding",
  "fnv",

@@ -1,45 +1,86 @@
 #![allow(non_upper_case_globals)]
 
-pub type Scopes = u32;
+use bitflags::bitflags;
+
+bitflags! {
+    /// LAST UPDATED VERSION 1.6.2.2
+    /// See `event_scopes.log` from the game data dumps.
+    /// Keep in sync with the module constants below.
+    pub struct Scopes: u32 {
+        const None = 0x0000_0001;
+        const Value = 0x0000_0002;
+        const Bool = 0x0000_0004;
+        const Flag = 0x0000_0008;
+        const Character = 0x0000_0010;
+        const LandedTitle = 0x0000_0020;
+        const Activity = 0x0000_0040;
+        const Secret = 0x0000_0080;
+        const Province = 0x0000_0100;
+        const Scheme = 0x0000_0200;
+        const Combat = 0x0000_0400;
+        const CombatSide = 0x0000_0800;
+        const TitleAndVassalChange = 0x0000_1000;
+        const Faith = 0x0000_2000;
+        const GreatHolyWar = 0x0000_4000;
+        const Religion = 0x0000_8000;
+        const War = 0x0001_0000;
+        const StoryCycle = 0x0002_0000;
+        const CasusBelli = 0x0004_0000;
+        const Dynasty = 0x0008_0000;
+        const DynastyHouse = 0x0010_0000;
+        const Faction = 0x0020_0000;
+        const Culture = 0x0040_0000;
+        const Army = 0x0080_0000;
+        const HolyOrder = 0x0100_0000;
+        const CouncilTask = 0x0200_0000;
+        const MercenaryCompany = 0x0400_0000;
+        const Artifact = 0x0800_0000;
+        const Inspiration = 0x1000_0000;
+        const Struggle = 0x2000_0000;
+    }
+}
 
 /// LAST UPDATED VERSION 1.6.2.2
 /// See `event_scopes.log` from the game data dumps.
-pub const None: Scopes = 0x0000_0001;
-pub const Value: Scopes = 0x0000_0002;
-pub const Bool: Scopes = 0x0000_0004;
-pub const Flag: Scopes = 0x0000_0008;
-pub const Character: Scopes = 0x0000_0010;
-pub const LandedTitle: Scopes = 0x0000_0020;
-pub const Activity: Scopes = 0x0000_0040;
-pub const Secret: Scopes = 0x0000_0080;
-pub const Province: Scopes = 0x0000_0100;
-pub const Scheme: Scopes = 0x0000_0200;
-pub const Combat: Scopes = 0x0000_0400;
-pub const CombatSide: Scopes = 0x0000_0800;
-pub const TitleAndVassalChange: Scopes = 0x0000_1000;
-pub const Faith: Scopes = 0x0000_2000;
-pub const GreatHolyWar: Scopes = 0x0000_4000;
-pub const Religion: Scopes = 0x0000_8000;
-pub const War: Scopes = 0x0001_0000;
-pub const StoryCycle: Scopes = 0x0002_0000;
-pub const CasusBelli: Scopes = 0x0004_0000;
-pub const Dynasty: Scopes = 0x0008_0000;
-pub const DynastyHouse: Scopes = 0x0010_0000;
-pub const Faction: Scopes = 0x0020_0000;
-pub const Culture: Scopes = 0x0040_0000;
-pub const Army: Scopes = 0x0080_0000;
-pub const HolyOrder: Scopes = 0x0100_0000;
-pub const CouncilTask: Scopes = 0x0200_0000;
-pub const MercenaryCompany: Scopes = 0x0400_0000;
-pub const Artifact: Scopes = 0x0800_0000;
-pub const Inspiration: Scopes = 0x1000_0000;
-pub const Struggle: Scopes = 0x2000_0000;
-pub const ALL: Scopes = 0x3fff_ffff;
+const None: u32 = 0x0000_0001;
+const Value: u32 = 0x0000_0002;
+const Bool: u32 = 0x0000_0004;
+const Flag: u32 = 0x0000_0008;
+const Character: u32 = 0x0000_0010;
+const LandedTitle: u32 = 0x0000_0020;
+const Activity: u32 = 0x0000_0040;
+const Secret: u32 = 0x0000_0080;
+const Province: u32 = 0x0000_0100;
+const Scheme: u32 = 0x0000_0200;
+const Combat: u32 = 0x0000_0400;
+const CombatSide: u32 = 0x0000_0800;
+const TitleAndVassalChange: u32 = 0x0000_1000;
+const Faith: u32 = 0x0000_2000;
+const GreatHolyWar: u32 = 0x0000_4000;
+const Religion: u32 = 0x0000_8000;
+const War: u32 = 0x0001_0000;
+const StoryCycle: u32 = 0x0002_0000;
+const CasusBelli: u32 = 0x0004_0000;
+const Dynasty: u32 = 0x0008_0000;
+const DynastyHouse: u32 = 0x0010_0000;
+const Faction: u32 = 0x0020_0000;
+const Culture: u32 = 0x0040_0000;
+const Army: u32 = 0x0080_0000;
+const HolyOrder: u32 = 0x0100_0000;
+const CouncilTask: u32 = 0x0200_0000;
+const MercenaryCompany: u32 = 0x0400_0000;
+const Artifact: u32 = 0x0800_0000;
+const Inspiration: u32 = 0x1000_0000;
+const Struggle: u32 = 0x2000_0000;
+const ALL: u32 = 0x3fff_ffff;
 
 pub fn scope_to_scope(name: &str) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_TO_SCOPE {
         if *s == name {
-            return Some((*from, *to));
+            return Some((
+                Scopes::from_bits_truncate(*from),
+                Scopes::from_bits_truncate(*to),
+            ));
         }
     }
     std::option::Option::None
@@ -48,7 +89,10 @@ pub fn scope_to_scope(name: &str) -> Option<(Scopes, Scopes)> {
 pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_FROM_PREFIX {
         if *s == prefix {
-            return Some((*from, *to));
+            return Some((
+                Scopes::from_bits_truncate(*from),
+                Scopes::from_bits_truncate(*to),
+            ));
         }
     }
     std::option::Option::None
@@ -57,7 +101,7 @@ pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
 pub fn scope_value(name: &str) -> Option<Scopes> {
     for (from, s) in SCOPE_VALUE {
         if *s == name {
-            return Some(*from);
+            return Some(Scopes::from_bits_truncate(*from));
         }
     }
     std::option::Option::None
@@ -67,7 +111,10 @@ pub fn scope_value(name: &str) -> Option<Scopes> {
 pub fn scope_iterator(name: &str) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_ITERATOR {
         if *s == name {
-            return Some((*from, *to));
+            return Some((
+                Scopes::from_bits_truncate(*from),
+                Scopes::from_bits_truncate(*to),
+            ));
         }
     }
     std::option::Option::None
@@ -76,7 +123,7 @@ pub fn scope_iterator(name: &str) -> Option<(Scopes, Scopes)> {
 /// LAST UPDATED VERSION 1.6.2.2
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
-const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
+const SCOPE_TO_SCOPE: &[(u32, &str, u32)] = &[
     (Faction, "faction_leader", Character),
     (Faction, "faction_target", Character),
     (Faction, "faction_war", War),
@@ -212,7 +259,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
-const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
+const SCOPE_FROM_PREFIX: &[(u32, &str, u32)] = &[
     (Character, "vassal_contract_obligation_level", Value),
     (Character, "aptitude", Value),
     (Character, "council_task", CouncilTask),
@@ -241,7 +288,7 @@ const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
 /// LAST UPDATED VERSION 1.6.2.2
 /// See `triggers.log` from the game data dumps
 /// These are 'triggers' that return a value.
-const SCOPE_VALUE: &[(Scopes, &str)] = &[
+const SCOPE_VALUE: &[(u32, &str)] = &[
     (Faction, "average_faction_opinion"),
     (Faction, "average_faction_opinion_not_powerful_vassal"),
     (Faction, "average_faction_opinion_powerful_vassal"),
@@ -461,7 +508,7 @@ const SCOPE_VALUE: &[(Scopes, &str)] = &[
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
-const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
+const SCOPE_ITERATOR: &[(u32, &str, u32)] = &[
     (DynastyHouse, "house_claimed_artifact", Artifact),
     (DynastyHouse, "house_member", Character),
     (Faction, "faction_county_member", LandedTitle),

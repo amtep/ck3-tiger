@@ -118,6 +118,7 @@ impl Provinces {
         }
     }
 
+    #[allow(clippy::unused_self)]
     pub fn validate(&self, _data: &Everything) {
         // TODO: validate adjacencies
     }

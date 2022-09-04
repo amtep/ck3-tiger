@@ -93,7 +93,7 @@ impl ScriptValue {
         Self {
             key,
             bv,
-            scopes: crate::scopes::ALL,
+            scopes: Scopes::all(),
         }
     }
 
@@ -143,9 +143,8 @@ impl ScriptValue {
             let mut first = true;
             for part in key.split('.') {
                 if let Some((prefix, arg)) = part.split_once(':') {
-                    // TODO: check valid values for all specific prefixes
                     if let Some((inscope, _)) = scope_prefix(prefix.as_str()) {
-                        if inscope == crate::scopes::None && !first {
+                        if inscope == Scopes::None && !first {
                             let msg = format!("`{}:` makes no sense except as first part", prefix);
                             warn(part, ErrorKey::Validation, &msg);
                         }
@@ -161,7 +160,7 @@ impl ScriptValue {
                         warn(part, ErrorKey::Validation, &msg);
                     }
                 } else if let Some((inscope, _)) = scope_to_scope(part.as_str()) {
-                    if inscope == crate::scopes::None && !first {
+                    if inscope == Scopes::None && !first {
                         let msg = format!("`{}` makes no sense except as first part", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
@@ -245,18 +244,18 @@ impl ScriptValue {
                 let last = i + 1 == part_vec.len();
                 let part = &part_vec[i];
 
-                if let Some((prefix, _)) = part.split_once(':') {
-                    // TODO: check valid values for all specific prefixes
+                if let Some((prefix, arg)) = part.split_once(':') {
                     if let Some((inscope, outscope)) = scope_prefix(prefix.as_str()) {
-                        if inscope == crate::scopes::None && !first {
+                        if inscope == Scopes::None && !first {
                             let msg = format!("`{}:` makes no sense except as first part", prefix);
                             warn(part, ErrorKey::Validation, &msg);
                         }
-                        if last && (outscope & crate::scopes::Value) == 0 {
+                        if last && !outscope.contains(Scopes::Value) {
                             let msg =
                                 format!("expected a numeric formula instead of `{}:` ", prefix);
                             warn(part, ErrorKey::Validation, &msg);
                         }
+                        validate_scope_reference(&prefix, &arg, data);
                     } else {
                         let msg = format!("unknown prefix `{}:`", prefix);
                         error(part, ErrorKey::Validation, &msg);
@@ -271,17 +270,17 @@ impl ScriptValue {
                         warn(part, ErrorKey::Validation, &msg);
                     }
                 } else if let Some((inscope, outscope)) = scope_to_scope(part.as_str()) {
-                    if inscope == crate::scopes::None && !first {
+                    if inscope == Scopes::None && !first {
                         let msg = format!("`{}` makes no sense except as first part", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
-                    if last && (outscope & crate::scopes::Value) == 0 {
+                    if last && !outscope.contains(Scopes::Value) {
                         let msg = format!("expected a numeric formula instead of `{}` ", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
                 } else if last {
                     if let Some(inscope) = scope_value(part.as_str()) {
-                        if inscope == crate::scopes::None && !first {
+                        if inscope == Scopes::None && !first {
                             let msg = format!("`{}` makes no sense except as first part", part);
                             warn(part, ErrorKey::Validation, &msg);
                         }
