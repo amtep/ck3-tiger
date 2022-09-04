@@ -98,35 +98,55 @@ impl ScriptValue {
         }
     }
 
-    fn validate_inner(mut vd: Validator, data: &Everything, scopes: Scopes) {
+    fn validate_inner(mut vd: Validator, data: &Everything, mut scopes: Scopes) -> Scopes {
         vd.field_value_loca("desc");
         vd.field_value_loca("format");
-        vd.field_validated("value", |bv, data| Self::validate_bv(bv, data, scopes));
+        vd.field_validated("value", |bv, data| {
+            scopes = Self::validate_bv(bv, data, scopes);
+        });
         vd.warn_past_known(
             "value",
             "Setting value here will overwrite the previous calculations",
         );
-        vd.field_validated_bvs("add", |bv, data| Self::validate_bv(bv, data, scopes));
-        vd.field_validated_bvs("subtract", |bv, data| Self::validate_bv(bv, data, scopes));
-        vd.field_validated_bvs("multiply", |bv, data| Self::validate_bv(bv, data, scopes));
+        vd.field_validated_bvs("add", |bv, data| {
+            scopes = Self::validate_bv(bv, data, scopes);
+        });
+        vd.field_validated_bvs("subtract", |bv, data| {
+            scopes = Self::validate_bv(bv, data, scopes);
+        });
+        vd.field_validated_bvs("multiply", |bv, data| {
+            scopes = Self::validate_bv(bv, data, scopes);
+        });
         // TODO: warn if not sure that divide by zero is impossible?
-        vd.field_validated_bvs("divide", |bv, data| Self::validate_bv(bv, data, scopes));
-        vd.field_validated_bvs("modulo", |bv, data| Self::validate_bv(bv, data, scopes));
-        vd.field_validated_bvs("min", |bv, data| Self::validate_bv(bv, data, scopes));
-        vd.field_validated_bvs("max", |bv, data| Self::validate_bv(bv, data, scopes));
+        vd.field_validated_bvs("divide", |bv, data| {
+            scopes = Self::validate_bv(bv, data, scopes);
+        });
+        vd.field_validated_bvs("modulo", |bv, data| {
+            scopes = Self::validate_bv(bv, data, scopes);
+        });
+        vd.field_validated_bvs("min", |bv, data| {
+            scopes = Self::validate_bv(bv, data, scopes);
+        });
+        vd.field_validated_bvs("max", |bv, data| {
+            scopes = Self::validate_bv(bv, data, scopes);
+        });
         vd.field_bool("round");
         vd.field_bool("ceiling");
         vd.field_bool("floor");
         vd.field_validated_blocks("fixed_range", |b, data| {
-            Self::validate_minmax_range(b, data, scopes);
+            scopes = Self::validate_minmax_range(b, data, scopes);
         });
         vd.field_validated_blocks("integer_range", |b, data| {
-            Self::validate_minmax_range(b, data, scopes);
+            scopes = Self::validate_minmax_range(b, data, scopes);
         });
         // TODO: check that these actually follow each other
-        vd.field_validated_blocks("if", |b, data| Self::validate_if(b, data, scopes));
-        vd.field_validated_blocks("else_if", |b, data| Self::validate_if(b, data, scopes));
-        vd.field_validated_blocks("else", |b, data| Self::validate_block(b, data, scopes));
+        vd.field_validated_blocks("if", |b, data| scopes = Self::validate_if(b, data, scopes));
+        vd.field_validated_blocks("else_if", |b, data| {
+            scopes = Self::validate_if(b, data, scopes);
+        });
+        vd.field_validated_blocks("else", |b, data| {
+            scopes = Self::validate_block(b, data, scopes);
+        });
 
         'outer: for (key, bv) in vd.unknown_keys() {
             if let Some(token) = bv.get_value() {
@@ -143,6 +163,8 @@ impl ScriptValue {
                                 inscope, scopes
                             );
                             warn(key, ErrorKey::Scopes, &msg);
+                        } else if inscope != Scopes::None {
+                            scopes &= inscope;
                         }
                         Self::validate_iterator(
                             it_type,
@@ -172,6 +194,8 @@ impl ScriptValue {
                                 prefix, inscope, part_scopes
                             );
                             warn(&part, ErrorKey::Scopes, &msg);
+                        } else if first && inscope != Scopes::None {
+                            scopes &= inscope;
                         }
                         validate_scope_reference(&prefix, &arg, data);
                         part_scopes = outscope;
@@ -198,6 +222,8 @@ impl ScriptValue {
                             part, inscope, part_scopes
                         );
                         warn(&part, ErrorKey::Scopes, &msg);
+                    } else if first && inscope != Scopes::None {
+                        scopes &= inscope;
                     }
                     part_scopes = outscope;
                 } else {
@@ -210,6 +236,7 @@ impl ScriptValue {
             Self::validate_block(bv.get_block().unwrap(), data, part_scopes);
         }
         vd.warn_remaining();
+        scopes
     }
 
     fn validate_iterator(
@@ -217,15 +244,19 @@ impl ScriptValue {
         it_name: &str,
         block: &Block,
         data: &Everything,
-        scopes: Scopes,
+        mut scopes: Scopes,
     ) {
         let mut vd = Validator::new(block, data);
         vd.field_block("limit"); // TODO: validate trigger
         if it_type == "ordered" {
-            vd.field_validated_bv("order_by", |bv, data| Self::validate_bv(bv, data, scopes));
+            vd.field_validated_bv("order_by", |bv, data| {
+                scopes = Self::validate_bv(bv, data, scopes);
+            });
             vd.field_integer("position");
             vd.field_integer("min");
-            vd.field_validated_bv("max", |bv, data| Self::validate_bv(bv, data, scopes));
+            vd.field_validated_bv("max", |bv, data| {
+                scopes = Self::validate_bv(bv, data, scopes);
+            });
             vd.field_bool("check_range_bounds");
         } else if it_type == "random" {
             vd.field_block("weight"); // TODO: validate modifier
@@ -256,27 +287,32 @@ impl ScriptValue {
         Self::validate_inner(vd, data, scopes);
     }
 
-    fn validate_minmax_range(block: &Block, data: &Everything, scopes: Scopes) {
+    fn validate_minmax_range(block: &Block, data: &Everything, mut scopes: Scopes) -> Scopes {
         let mut vd = Validator::new(block, data);
         vd.req_field("min");
         vd.req_field("max");
-        vd.field_validated_bvs("min", |bv, data| Self::validate_bv(bv, data, scopes));
-        vd.field_validated_bvs("max", |bv, data| Self::validate_bv(bv, data, scopes));
+        vd.field_validated_bvs("min", |bv, data| {
+            scopes = Self::validate_bv(bv, data, scopes);
+        });
+        vd.field_validated_bvs("max", |bv, data| {
+            scopes = Self::validate_bv(bv, data, scopes);
+        });
         vd.warn_remaining();
+        scopes
     }
 
-    fn validate_if(block: &Block, data: &Everything, scopes: Scopes) {
+    fn validate_if(block: &Block, data: &Everything, scopes: Scopes) -> Scopes {
         let mut vd = Validator::new(block, data);
         vd.field_block("limit"); // TODO: validate trigger
-        Self::validate_inner(vd, data, scopes);
+        Self::validate_inner(vd, data, scopes)
     }
 
-    fn validate_block(block: &Block, data: &Everything, scopes: Scopes) {
+    fn validate_block(block: &Block, data: &Everything, scopes: Scopes) -> Scopes {
         let vd = Validator::new(block, data);
-        Self::validate_inner(vd, data, scopes);
+        Self::validate_inner(vd, data, scopes)
     }
 
-    pub fn validate_value(t: &Token, data: &Everything, scopes: Scopes) {
+    pub fn validate_value(t: &Token, data: &Everything, mut scopes: Scopes) -> Scopes {
         if t.as_str().parse::<i32>().is_ok() || t.as_str().parse::<f64>().is_ok() {
             // numeric literal is always valid
         } else {
@@ -304,12 +340,14 @@ impl ScriptValue {
                                 prefix, inscope, part_scopes
                             );
                             warn(part, ErrorKey::Scopes, &msg);
+                        } else if first && inscope != Scopes::None {
+                            scopes &= inscope;
                         }
                         validate_scope_reference(&prefix, &arg, data);
                     } else {
                         let msg = format!("unknown prefix `{}:`", prefix);
                         error(part, ErrorKey::Validation, &msg);
-                        return;
+                        return scopes;
                     }
                 } else if part.is("root") || part.is("prev") || part.is("this") {
                     if !first {
@@ -336,6 +374,8 @@ impl ScriptValue {
                             part, inscope, part_scopes
                         );
                         warn(part, ErrorKey::Scopes, &msg);
+                    } else if first && inscope != Scopes::None {
+                        scopes &= inscope;
                     }
                     part_scopes = outscope;
                 } else if last {
@@ -343,6 +383,14 @@ impl ScriptValue {
                         if inscope == Scopes::None && !first {
                             let msg = format!("`{}` makes no sense except as first part", part);
                             warn(part, ErrorKey::Validation, &msg);
+                        } else if !inscope.intersects(part_scopes | Scopes::None) {
+                            let msg = format!(
+                                "{} is for {} but scope seems to be {}",
+                                part, inscope, part_scopes
+                            );
+                            warn(part, ErrorKey::Scopes, &msg);
+                        } else if first && inscope != Scopes::None {
+                            scopes &= inscope;
                         }
                     } else {
                         data.scriptvalues.verify_exists(part);
@@ -350,13 +398,14 @@ impl ScriptValue {
                 } else {
                     let msg = format!("unknown token `{}`", part);
                     error(part, ErrorKey::Validation, &msg);
-                    return;
+                    return scopes;
                 }
             }
         }
+        scopes
     }
 
-    pub fn validate_bv(bv: &BlockOrValue, data: &Everything, scopes: Scopes) {
+    pub fn validate_bv(bv: &BlockOrValue, data: &Everything, mut scopes: Scopes) -> Scopes {
         match bv {
             BlockOrValue::Token(t) => Self::validate_value(t, data, scopes),
             BlockOrValue::Block(b) => {
@@ -366,14 +415,15 @@ impl ScriptValue {
                     let vec = vd.values();
                     if vec.len() == 2 {
                         for v in vec {
-                            Self::validate_value(v, data, scopes);
+                            scopes = Self::validate_value(v, data, scopes);
                         }
                     } else {
                         warn(b, ErrorKey::Validation, "invalid script value range");
                     }
                     vd.warn_remaining();
+                    scopes
                 } else {
-                    Self::validate_inner(vd, data, scopes);
+                    Self::validate_inner(vd, data, scopes)
                 }
             }
         }
@@ -386,6 +436,7 @@ impl ScriptValue {
                 return;
             }
         }
+        // TODO: record calculated scope
         Self::validate_bv(&self.bv, data, self.scopes);
     }
 }

@@ -221,6 +221,7 @@ impl Display for Scopes {
             for i in 0..vec.len() {
                 write!(f, "{}", vec[i])?;
                 if i + 1 == vec.len() {
+                } else if i + 2 == vec.len() {
                     write!(f, " or ")?;
                 } else {
                     write!(f, ", ")?;

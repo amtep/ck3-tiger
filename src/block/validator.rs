@@ -242,9 +242,9 @@ impl<'a> Validator<'a> {
         found
     }
 
-    pub fn field_validated<F>(&mut self, name: &'a str, f: F) -> bool
+    pub fn field_validated<F>(&mut self, name: &'a str, mut f: F) -> bool
     where
-        F: Fn(&BlockOrValue, &Everything),
+        F: FnMut(&BlockOrValue, &Everything),
     {
         self.known_fields.push(name);
 
@@ -274,9 +274,9 @@ impl<'a> Validator<'a> {
         found
     }
 
-    pub fn field_validated_bv<F>(&mut self, name: &'a str, f: F) -> bool
+    pub fn field_validated_bv<F>(&mut self, name: &'a str, mut f: F) -> bool
     where
-        F: Fn(&BlockOrValue, &Everything),
+        F: FnMut(&BlockOrValue, &Everything),
     {
         self.known_fields.push(name);
 
@@ -306,9 +306,9 @@ impl<'a> Validator<'a> {
         found
     }
 
-    pub fn field_validated_bvs<F>(&mut self, name: &'a str, f: F) -> bool
+    pub fn field_validated_bvs<F>(&mut self, name: &'a str, mut f: F) -> bool
     where
-        F: Fn(&BlockOrValue, &Everything),
+        F: FnMut(&BlockOrValue, &Everything),
     {
         self.known_fields.push(name);
 
@@ -331,9 +331,9 @@ impl<'a> Validator<'a> {
         found
     }
 
-    pub fn field_validated_blocks<F>(&mut self, name: &'a str, f: F) -> bool
+    pub fn field_validated_blocks<F>(&mut self, name: &'a str, mut f: F) -> bool
     where
-        F: Fn(&Block, &Everything),
+        F: FnMut(&Block, &Everything),
     {
         self.known_fields.push(name);
 
@@ -361,9 +361,9 @@ impl<'a> Validator<'a> {
         found
     }
 
-    pub fn field_validated_block<F>(&mut self, name: &'a str, f: F) -> bool
+    pub fn field_validated_block<F>(&mut self, name: &'a str, mut f: F) -> bool
     where
-        F: Fn(&Block, &Everything),
+        F: FnMut(&Block, &Everything),
     {
         self.known_fields.push(name);
         let mut found = false;
@@ -528,9 +528,9 @@ impl<'a> Validator<'a> {
         vec
     }
 
-    pub fn validate_history_blocks<F>(&mut self, f: F)
+    pub fn validate_history_blocks<F>(&mut self, mut f: F)
     where
-        F: Fn(&Block, &Everything),
+        F: FnMut(&Block, &Everything),
     {
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
