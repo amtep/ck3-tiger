@@ -75,6 +75,42 @@ const Inspiration: u32 = 0x1000_0000;
 const Struggle: u32 = 0x2000_0000;
 const ALL: u32 = 0x3fff_ffff;
 
+pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
+    Some(match s {
+        "none" => Scopes::None,
+        "value" => Scopes::Value,
+        "bool" => Scopes::Bool,
+        "flag" => Scopes::Flag,
+        "character" => Scopes::Character,
+        "landed_title" => Scopes::LandedTitle,
+        "activity" => Scopes::Activity,
+        "secret" => Scopes::Secret,
+        "province" => Scopes::Province,
+        "scheme" => Scopes::Scheme,
+        "combat" => Scopes::Combat,
+        "combat_side" => Scopes::CombatSide,
+        "title_and_vassal_change" => Scopes::TitleAndVassalChange,
+        "faith" => Scopes::Faith,
+        "great_holy_war" => Scopes::GreatHolyWar,
+        "religion" => Scopes::Religion,
+        "war" => Scopes::War,
+        "story_cycle" => Scopes::StoryCycle,
+        "casus_belli" => Scopes::CasusBelli,
+        "dynasty" => Scopes::Dynasty,
+        "dynasty_house" => Scopes::DynastyHouse,
+        "faction" => Scopes::Faction,
+        "culture" => Scopes::Culture,
+        "army" => Scopes::Army,
+        "holy_order" => Scopes::HolyOrder,
+        "council_task" => Scopes::CouncilTask,
+        "mercenary_company" => Scopes::MercenaryCompany,
+        "artifact" => Scopes::Artifact,
+        "inspiration" => Scopes::Inspiration,
+        "struggle" => Scopes::Struggle,
+        _ => return std::option::Option::None,
+    })
+}
+
 pub fn scope_to_scope(name: &str) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_TO_SCOPE {
         if *s == name {

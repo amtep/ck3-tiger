@@ -196,9 +196,18 @@ impl Character {
         vd.field_values("add_trait");
         vd.field_values("remove_trait");
         vd.fields("add_character_flag"); // TODO: can be flag name or { flag = }
-        vd.field_values("add_pressed_claim"); // TODO: check title exists
-        vd.field_values("remove_claim"); // TODO: check title exists
-        vd.field_values("capital"); // TODO: check title exists. This one is without title:
+        for token in vd.field_values("add_pressed_claim") {
+            data.titles.verify_exists_prefix(token);
+        }
+        for token in vd.field_values("remove_claim") {
+            data.titles.verify_exists_prefix(token);
+        }
+        if let Some(token) = vd.field_value("capital") {
+            data.titles.verify_exists(token);
+            if !token.as_str().starts_with("c_") {
+                error(token, ErrorKey::Validation, "capital must be a county");
+            }
+        }
 
         let gender = Gender::from_female_bool(parent.get_field_bool("female").unwrap_or(false));
         for token in vd.field_values("add_spouse") {

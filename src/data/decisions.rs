@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::data::scriptvalues::ScriptValue;
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error_info, warn};
@@ -10,6 +11,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -148,9 +150,15 @@ impl Decision {
 fn validate_cost(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     // These can all be script values
-    vd.field("gold");
-    vd.field("prestige");
-    vd.field("piety");
+    vd.field_validated_bv("gold", |bv, data| {
+        ScriptValue::validate_bv(bv, data, Scopes::Character);
+    });
+    vd.field_validated_bv("prestige", |bv, data| {
+        ScriptValue::validate_bv(bv, data, Scopes::Character);
+    });
+    vd.field_validated_bv("piety", |bv, data| {
+        ScriptValue::validate_bv(bv, data, Scopes::Character);
+    });
     vd.warn_remaining();
 }
 

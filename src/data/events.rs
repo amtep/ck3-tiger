@@ -10,6 +10,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
+use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::validate::{
     validate_cooldown, validate_theme_background, validate_theme_icon, validate_theme_sound,
@@ -205,9 +206,19 @@ impl Event {
         let evtype = self
             .block
             .get_field_value("type")
-            .map_or("missing", |t| t.as_str());
+            .map_or("character_event", |t| t.as_str());
 
-        vd.field_value("scope"); // the expected scope type
+        let mut _scopes = Scopes::Character;
+        if evtype == "empty" {
+            _scopes = Scopes::None;
+        }
+        if let Some(token) = vd.field_value("scope") {
+            if let Some(scope) = scope_from_snake_case(token.as_str()) {
+                _scopes = scope;
+            } else {
+                warn(token, ErrorKey::Scopes, "unknown scope type");
+            }
+        }
         vd.field_block("immediate"); // effect
         vd.field_block("trigger"); // trigger
         vd.field_block("on_trigger_fail"); // effect

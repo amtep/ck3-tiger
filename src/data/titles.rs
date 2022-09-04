@@ -112,12 +112,30 @@ impl Titles {
     }
 
     pub fn verify_exists(&self, item: &Token) {
-        if !self.titles.contains_key(item.as_str()) {
+        self.verify_implied_exists(item.as_str(), item);
+    }
+
+    pub fn verify_implied_exists(&self, key: &str, item: &Token) {
+        if !self.titles.contains_key(key) {
             error(
                 item,
                 ErrorKey::MissingItem,
                 "title not defined in common/landed_titles/",
             );
+        }
+    }
+
+    pub fn verify_exists_prefix(&self, item: &Token) {
+        if let Some(arg) = item.as_str().strip_prefix("title:") {
+            self.verify_implied_exists(arg, item);
+        } else {
+            warn(item, ErrorKey::Scopes, "expected title:");
+        }
+    }
+
+    pub fn verify_exists_prefix_opt(&self, item: Option<&Token>) {
+        if let Some(item) = item {
+            self.verify_exists_prefix(item);
         }
     }
 
