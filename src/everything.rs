@@ -21,6 +21,7 @@ use crate::data::scripted_effects::Effects;
 use crate::data::scripted_triggers::Triggers;
 use crate::data::scriptvalues::ScriptValues;
 use crate::data::titles::Titles;
+use crate::data::traits::Traits;
 use crate::errorkey::ErrorKey;
 use crate::errors::{ignore_key, ignore_key_for, warn};
 use crate::fileset::{FileEntry, FileKind, Fileset};
@@ -95,6 +96,8 @@ pub struct Everything {
 
     pub triggers: Triggers,
     pub effects: Effects,
+
+    pub traits: Traits,
 }
 
 impl Everything {
@@ -157,6 +160,7 @@ impl Everything {
             scriptvalues: ScriptValues::default(),
             triggers: Triggers::default(),
             effects: Effects::default(),
+            traits: Traits::default(),
         })
     }
 
@@ -223,6 +227,7 @@ impl Everything {
         self.fileset.handle(&mut self.scriptvalues);
         self.fileset.handle(&mut self.triggers);
         self.fileset.handle(&mut self.effects);
+        self.fileset.handle(&mut self.traits);
     }
 
     pub fn validate_all(&mut self) {
@@ -244,6 +249,7 @@ impl Everything {
         self.scriptvalues.validate(self);
         self.triggers.validate(self);
         self.effects.validate(self);
+        self.traits.validate(self);
     }
 
     pub fn check_pod(&mut self) {

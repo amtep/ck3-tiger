@@ -2,7 +2,7 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::Block;
-use crate::desc::verify_desc_locas;
+use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
 use crate::errors::error_info;
 use crate::everything::Everything;
@@ -102,16 +102,16 @@ impl Interaction {
             data.fileset.verify_exists(pathname);
         }
         if let Some(desc) = self.block.get_field("desc") {
-            verify_desc_locas(desc, &data.localization);
+            validate_desc(desc, data);
         }
         if let Some(desc) = self.block.get_field("prompt") {
-            verify_desc_locas(desc, &data.localization);
+            validate_desc(desc, data);
         }
         if let Some(desc) = self.block.get_field("notification_text") {
-            verify_desc_locas(desc, &data.localization);
+            validate_desc(desc, data);
         }
         if let Some(desc) = self.block.get_field("on_decline_summary") {
-            verify_desc_locas(desc, &data.localization);
+            validate_desc(desc, data);
         }
         if let Some(key) = self.block.get_field_value("answer_accept_key") {
             data.localization.verify_exists(key);

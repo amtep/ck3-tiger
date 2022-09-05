@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::data::scriptvalues::ScriptValue;
-use crate::desc::verify_desc_locas;
+use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error_info, warn};
 use crate::everything::Everything;
@@ -102,27 +102,27 @@ impl Decision {
         vd.field_value("confirm_click_sound");
 
         if let Some(bv) = vd.field("selection_tooltip") {
-            verify_desc_locas(bv, &data.localization);
+            validate_desc(bv, data);
         } else {
             let loca = format!("{}_tooltip", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
         if let Some(bv) = vd.field("title") {
-            verify_desc_locas(bv, &data.localization);
+            validate_desc(bv, data);
         } else {
             data.localization.verify_exists(&self.key);
         }
 
         if let Some(bv) = vd.field("desc") {
-            verify_desc_locas(bv, &data.localization);
+            validate_desc(bv, data);
         } else {
             let loca = format!("{}_desc", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
         if let Some(bv) = vd.field("confirm_text") {
-            verify_desc_locas(bv, &data.localization);
+            validate_desc(bv, data);
         } else {
             let loca = format!("{}_confirm", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);

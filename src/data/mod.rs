@@ -15,3 +15,4 @@ pub mod scripted_effects;
 pub mod scripted_triggers;
 pub mod scriptvalues;
 pub mod titles;
+pub mod traits;

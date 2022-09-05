@@ -5,7 +5,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, DefinitionItem};
 use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
-use crate::desc::verify_desc_locas;
+use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn, warn_info};
 use crate::everything::Everything;
@@ -245,16 +245,16 @@ impl Event {
         vd.field_block("weight_multiplier"); // modifier
 
         if let Some(bv) = vd.field("title") {
-            verify_desc_locas(bv, &data.localization);
+            validate_desc(bv, data);
         }
 
         if let Some(bv) = vd.field("desc") {
-            verify_desc_locas(bv, &data.localization);
+            validate_desc(bv, data);
         }
 
         if evtype == "letter_event" {
             if let Some(bv) = vd.field("opening") {
-                verify_desc_locas(bv, &data.localization);
+                validate_desc(bv, data);
             }
             vd.req_field("sender");
             vd.field_validated("sender", validate_portrait);
@@ -317,7 +317,7 @@ fn validate_event_option(block: &Block, data: &Everything) {
             }
             BlockOrValue::Block(b) => {
                 if let Some(text) = b.get_field("text") {
-                    verify_desc_locas(text, &data.localization);
+                    validate_desc(text, data);
                 } else {
                     warn(b, ErrorKey::Validation, "event option name with no text");
                 }
@@ -332,7 +332,7 @@ fn validate_event_option(block: &Block, data: &Everything) {
             }
             BlockOrValue::Block(b) => {
                 if let Some(text) = b.get_field("text") {
-                    verify_desc_locas(text, &data.localization);
+                    validate_desc(text, data);
                 } else {
                     warn(b, ErrorKey::Validation, "event option tooltip with no text");
                 }
