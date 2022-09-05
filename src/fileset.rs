@@ -9,6 +9,7 @@ use walkdir::WalkDir;
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
 use crate::errors::error;
+use crate::everything::Everything;
 use crate::token::{Loc, Token};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -220,6 +221,30 @@ impl Fileset {
             );
         }
     }
+
+    pub fn validate(&self, _data: &Everything) {
+        // Check the files in directories in common/ to make sure they are in known directories
+        let mut warned: Vec<&Path> = Vec::new();
+        'outer: for entry in &self.ordered_files {
+            if !entry.path.starts_with("common") || !entry.path.to_string_lossy().ends_with(".txt")
+            {
+                continue;
+            }
+            let dirname = entry.path.parent().unwrap();
+            if warned.contains(&dirname) {
+                continue;
+            }
+            // TODO: check if subdirectories are ok in the different common/ directories
+            for valid in COMMON_DIRS {
+                if entry.path.starts_with(valid) {
+                    continue 'outer;
+                }
+            }
+            // TODO: maybe call out specific common mistakes like scripted_values or on_actions ?
+            error(entry, ErrorKey::Filename, "file in unexpected directory");
+            warned.push(dirname);
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -240,3 +265,121 @@ impl<'a> Iterator for Files<'a> {
         None
     }
 }
+
+const COMMON_DIRS: &[&str] = &[
+    "common/achievements",
+    "common/activities",
+    "common/ai_goaltypes",
+    "common/ai_war_stances",
+    "common/artifacts/blueprints",
+    "common/artifacts/feature_groups",
+    "common/artifacts/features",
+    "common/artifacts/slots",
+    "common/artifacts/templates",
+    "common/artifacts/types",
+    "common/artifacts/visuals",
+    "common/bookmark_portraits",
+    "common/bookmarks",
+    "common/buildings",
+    "common/casus_belli_groups",
+    "common/casus_belli_types",
+    "common/character_backgrounds",
+    "common/character_interaction_categories",
+    "common/character_interactions",
+    "common/coat_of_arms/coat_of_arms",
+    "common/coat_of_arms/dynamic_definitions",
+    "common/coat_of_arms/options",
+    "common/coat_of_arms/template_lists",
+    "common/combat_effects",
+    "common/combat_phase_events",
+    "common/console_groups",
+    "common/council_positions",
+    "common/council_tasks",
+    "common/court_amenities",
+    "common/courtier_guest_management",
+    "common/court_positions/categories",
+    "common/court_positions/types",
+    "common/court_types",
+    "common/culture/aesthetics_bundles",
+    "common/culture/creation_names",
+    "common/culture/cultures",
+    "common/culture/eras",
+    "common/culture/innovations",
+    "common/culture/name_equivalency",
+    "common/culture/name_lists",
+    "common/culture/pillars",
+    "common/culture/traditions",
+    "common/customizable_localization",
+    "common/deathreasons",
+    "common/decisions",
+    "common/defines",
+    "common/dna_data",
+    "common/dynasties",
+    "common/dynasty_house_motto_inserts",
+    "common/dynasty_house_mottos",
+    "common/dynasty_houses",
+    "common/dynasty_legacies",
+    "common/dynasty_perks",
+    "common/effect_localization",
+    "common/ethnicities",
+    "common/event_backgrounds",
+    "common/event_themes",
+    "common/factions",
+    "common/flavorization",
+    "common/focuses",
+    "common/game_concepts",
+    "common/game_rules",
+    "common/genes",
+    "common/governments",
+    "common/guest_system",
+    "common/holdings",
+    "common/hook_types",
+    "common/important_actions",
+    "common/inspirations",
+    "common/landed_titles",
+    "common/laws",
+    "common/lease_contracts",
+    "common/lifestyle_perks",
+    "common/lifestyles",
+    "common/men_at_arms_types",
+    "common/messages",
+    "common/modifier_definition_formats",
+    "common/modifier_icons",
+    "common/modifiers",
+    "common/named_colors",
+    "common/nicknames",
+    "common/on_action",
+    "common/opinion_modifiers",
+    "common/playable_difficulty_infos",
+    "common/pool_character_selectors",
+    "common/province_terrain",
+    "common/religion/doctrines",
+    "common/religion/fervor_modifiers",
+    "common/religion/holy_sites",
+    "common/religion/religion_families",
+    "common/religion/religions",
+    "common/schemes",
+    "common/scripted_animations",
+    "common/scripted_character_templates",
+    "common/scripted_costs",
+    "common/scripted_effects",
+    "common/scripted_guis",
+    "common/scripted_lists",
+    "common/scripted_modifiers",
+    "common/scripted_relations",
+    "common/scripted_rules",
+    "common/scripted_triggers",
+    "common/script_values",
+    "common/secret_types",
+    "common/story_cycles",
+    "common/struggle/catalysts",
+    "common/struggle/struggles",
+    "common/succession_election",
+    "common/suggestions",
+    "common/terrain_types",
+    "common/traits",
+    "common/trigger_localization",
+    "common/tutorial_lesson_chains",
+    "common/tutorial_lessons",
+    "common/vassal_contracts",
+];

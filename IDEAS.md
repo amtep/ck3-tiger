@@ -1,9 +1,7 @@
 # Ideas for potential checks
 
 ## General
-* replace_path doesn't work recursively. It only works on the specific directory. (Warn about replace_path = "history" for example)
-* replace_path on the province mapping directory will crash the game
-* root.set_variable doesn't work; an effect can't be chained to a scope. Has to be root = { set_variable ... }
+* root.set_variable doesn't work; an effect can't be chained to a scope. Has to be `root = { set_variable ... }`
 
 ## GUI
 * ck3 crashes if you have multiple objects with `resizeparent` in one parent

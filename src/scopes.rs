@@ -91,7 +91,7 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "combat_side" => Scopes::CombatSide,
         "title_and_vassal_change" => Scopes::TitleAndVassalChange,
         "faith" => Scopes::Faith,
-        "great_holy_war" => Scopes::GreatHolyWar,
+        "ghw" => Scopes::GreatHolyWar, // Warning, this is an exception to the general rule
         "religion" => Scopes::Religion,
         "war" => Scopes::War,
         "story_cycle" => Scopes::StoryCycle,

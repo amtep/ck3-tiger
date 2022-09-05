@@ -217,6 +217,7 @@ impl Everything {
     }
 
     pub fn validate_all(&mut self) {
+        self.fileset.validate(self);
         self.localization.validate(self);
         self.events.validate(self);
         self.decisions.validate(self);
