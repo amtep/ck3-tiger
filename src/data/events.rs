@@ -81,6 +81,16 @@ impl Events {
         self.effects.insert(index, Effect::new(key, block.clone()));
     }
 
+    pub fn trigger_exists(&self, key: &Token) -> bool {
+        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        self.triggers.contains_key(&index)
+    }
+
+    pub fn effect_exists(&self, key: &Token) -> bool {
+        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        self.effects.contains_key(&index)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.events.values() {
             item.validate(data);

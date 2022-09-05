@@ -42,6 +42,10 @@ impl Triggers {
         }
     }
 
+    pub fn exists(&self, item: &Token) -> bool {
+        self.triggers.contains_key(item.as_str())
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.triggers.values() {
             item.validate(data);
