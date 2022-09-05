@@ -13,6 +13,7 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::validate::{validate_character_trigger, validate_cooldown};
 
 #[derive(Clone, Debug, Default)]
 pub struct Decisions {
@@ -95,7 +96,7 @@ impl Decision {
         if self.block.get_field_bool("ai_goal").unwrap_or(false) {
             vd.advice_field("ai_check_interval", "not needed if ai_goal = yes");
         }
-        vd.field_block("cooldown");
+        vd.field_validated_block("cooldown", validate_cooldown);
 
         // kind of looks like a filename but it isn't.
         vd.field_value("confirm_click_sound");
@@ -127,9 +128,9 @@ impl Decision {
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
-        vd.field_block("is_shown");
-        vd.field_block("is_valid_showing_failures_only");
-        vd.field_block("is_valid");
+        vd.field_validated_block("is_shown", validate_character_trigger);
+        vd.field_validated_block("is_valid_showing_failures_only", validate_character_trigger);
+        vd.field_validated_block("is_valid", validate_character_trigger);
 
         // cost can have multiple definitions and they will be combined
         // however, two costs of the same type are not summed
@@ -139,9 +140,9 @@ impl Decision {
         check_cost(&self.block.get_field_blocks("minimum_cost"));
 
         vd.field_block("effect");
-        vd.field_block("ai_potential");
+        vd.field_validated_block("ai_potential", validate_character_trigger);
         vd.field_block("ai_will_do");
-        vd.field_block("should_create_alert");
+        vd.field_validated_block("should_create_alert", validate_character_trigger);
         vd.field("widget");
         vd.warn_remaining();
     }

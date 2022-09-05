@@ -16,6 +16,7 @@ use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::validate::{
     validate_cooldown, validate_theme_background, validate_theme_icon, validate_theme_sound,
+    validate_trigger,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -192,9 +193,6 @@ impl Event {
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
 
-        vd.field_bool("hidden");
-        vd.field_bool("major");
-        vd.field_block("major_trigger"); // trigger
         vd.field_choice(
             "type",
             &[
@@ -211,19 +209,28 @@ impl Event {
             .get_field_value("type")
             .map_or("character_event", |t| t.as_str());
 
-        let mut _scopes = Scopes::Character;
+        let mut scopes = Scopes::Character;
         if evtype == "empty" {
-            _scopes = Scopes::None;
+            scopes = Scopes::None;
         }
         if let Some(token) = vd.field_value("scope") {
             if let Some(scope) = scope_from_snake_case(token.as_str()) {
-                _scopes = scope;
+                scopes = scope;
             } else {
                 warn(token, ErrorKey::Scopes, "unknown scope type");
             }
         }
+
+        vd.field_bool("hidden");
+        vd.field_bool("major");
+        vd.field_validated_block("major_trigger", |b, data| {
+            scopes = validate_trigger(b, data, scopes, &[])
+        });
+
         vd.field_block("immediate"); // effect
-        vd.field_block("trigger"); // trigger
+        vd.field_validated_block("trigger", |b, data| {
+            scopes = validate_trigger(b, data, scopes, &[])
+        });
         vd.field_block("on_trigger_fail"); // effect
         vd.field_block("weight_multiplier"); // modifier
 
@@ -353,7 +360,9 @@ fn validate_artifact(block: &Block, data: &Everything) {
             "lower_right_portrait",
         ],
     );
-    vd.field_block("trigger");
+    vd.field_validated_block("trigger", |b, data| {
+        validate_trigger(b, data, Scopes::Artifact, &[]);
+    });
     vd.warn_remaining();
 }
 

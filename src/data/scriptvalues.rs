@@ -155,8 +155,16 @@ impl ScriptValue {
             }
 
             if let Some((it_type, it_name)) = key.as_str().split_once('_') {
-                if it_type == "every" || it_type == "ordered" || it_type == "random" {
+                if it_type == "every"
+                    || it_type == "ordered"
+                    || it_type == "random"
+                    || it_type == "any"
+                {
                     if let Some((inscope, outscope)) = scope_iterator(it_name) {
+                        if it_type == "any" {
+                            let msg = format!("cannot use `{}` in a script value", key);
+                            error(key, ErrorKey::Validation, &msg);
+                        }
                         if !inscope.intersects(scopes | Scopes::None) {
                             let msg = format!(
                                 "iterator is for {} but scope seems to be {}",
@@ -226,6 +234,7 @@ impl ScriptValue {
                         scopes &= inscope;
                     }
                     part_scopes = outscope;
+                // TODO: warn if trying to use iterator here
                 } else {
                     let msg = format!("unknown token `{}`", part);
                     error(part, ErrorKey::Validation, &msg);

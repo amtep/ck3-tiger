@@ -9,7 +9,6 @@ pub enum ErrorKey {
     BracePlacement,
     Packaging,
     Validation,
-    TooManyErrors,
     Filename,
     Encoding,
     Localization,
@@ -24,5 +23,8 @@ pub enum ErrorKey {
     Unneeded,
     Scopes,
     Crash,
+    Range,
+    Tooltip,
+
     PrincesOfDarkness,
 }

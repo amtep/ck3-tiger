@@ -8,7 +8,6 @@
 
 ## Tooltips
 * `create_character` is not executed during tooltip generation, so the scope it creates won't exist yet.
-* `title:k_burgundy = { is_title_created = yes }` gives a nicer tooltip than `exists = title:k_burgundy.holder`
 * iterators should have a `custom =` to summarize the iterator. ("All infidel counties:" for example)
 * character interaction can't show OR in is_valid_showing_failures_only, should change them to custom_description or trigger_if.
 

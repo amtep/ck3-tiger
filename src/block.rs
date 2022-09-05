@@ -30,6 +30,26 @@ impl BlockOrValue {
         }
     }
 
+    pub fn expect_block(&self) -> Option<&Block> {
+        match self {
+            BlockOrValue::Token(_) => {
+                error(self, ErrorKey::Validation, "expected block, found value");
+                None
+            }
+            BlockOrValue::Block(b) => Some(b),
+        }
+    }
+
+    pub fn expect_value(&self) -> Option<&Token> {
+        match self {
+            BlockOrValue::Token(t) => Some(t),
+            BlockOrValue::Block(_) => {
+                error(self, ErrorKey::Validation, "expected value, found block");
+                None
+            }
+        }
+    }
+
     pub fn into_value(self) -> Option<Token> {
         match self {
             BlockOrValue::Token(t) => Some(t),
@@ -47,6 +67,9 @@ pub struct Block {
     v: Vec<BlockItem>,
     pub tag: Option<Token>,
     pub loc: Loc,
+    /// If the block is a top-level block and contains macro substitutions,
+    /// this field will hold the original source for re-parsing.
+    pub source: Option<Token>,
 }
 
 impl Block {
@@ -55,6 +78,7 @@ impl Block {
             v: Vec::new(),
             tag: None,
             loc,
+            source: None,
         }
     }
 

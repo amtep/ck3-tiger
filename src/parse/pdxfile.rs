@@ -39,7 +39,6 @@ impl CharExt for char {
             || self.is_ascii_digit()
             || self == '.'
             || self == ':'
-            || self == '$'
             || self == '_'
             || self == '-'
             || self == '&'
@@ -58,6 +57,7 @@ struct ParseLevel {
     key: Option<Token>,
     comp: Option<(Comparator, Token)>,
     tag: Option<Token>,
+    contains_macro_parms: bool,
 }
 
 struct Parser {
@@ -114,6 +114,14 @@ impl Parser {
         if token.is("hsv") {
             self.current.tag = Some(token);
             return;
+        }
+        if self.stack.is_empty() && self.current.contains_macro_parms {
+            error(
+                &token,
+                ErrorKey::ParseError,
+                "$-substitutions only work inside blocks, not at top level",
+            );
+            self.current.contains_macro_parms = false;
         }
         if let Some(key) = self.current.key.take() {
             if let Some((comp, _)) = self.current.comp.take() {
@@ -202,15 +210,23 @@ impl Parser {
             key: None,
             comp: None,
             tag: None,
+            contains_macro_parms: false,
         };
         swap(&mut new_level, &mut self.current);
         self.stack.push(new_level);
     }
 
-    fn close_brace(&mut self, loc: Loc) {
+    fn close_brace(&mut self, loc: Loc, content: &str) {
         self.end_assign();
         if let Some(mut prev_level) = self.stack.pop() {
             swap(&mut self.current, &mut prev_level);
+            if self.stack.is_empty() && prev_level.contains_macro_parms {
+                let s = content[prev_level.block.loc.offset..=loc.offset].to_string();
+                let token = Token::new(s, prev_level.block.loc.clone());
+                prev_level.block.source = Some(token);
+            } else {
+                self.current.contains_macro_parms |= prev_level.contains_macro_parms;
+            }
             self.block_value(prev_level.block);
             if loc.column == 1 && !self.stack.is_empty() {
                 warn_info(&Token::new("}".to_string(), loc),
@@ -267,6 +283,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
             key: None,
             comp: None,
             tag: None,
+            contains_macro_parms: false,
         },
         stack: Vec::new(),
         brace_error: false,
@@ -295,12 +312,15 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                     // @ can start tokens but is special
                     calculation_start = loc.clone();
                     state = State::Id;
+                } else if c == '$' {
+                    parser.current.contains_macro_parms = true;
+                    state = State::Id;
                 } else if c.is_id_char() {
                     state = State::Id;
                 } else if c == '{' {
                     parser.open_brace(loc.clone());
                 } else if c == '}' {
-                    parser.close_brace(loc.clone());
+                    parser.close_brace(loc.clone(), content);
                 } else {
                     Parser::unknown_char(c, loc.clone());
                 }
@@ -324,6 +344,8 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                 if c == '"' {
                     // The quoted string actually becomes part of this id
                     state = State::QString;
+                } else if c == '$' {
+                    parser.current.contains_macro_parms = true;
                 } else if c.is_id_char() {
                 } else if c == '[' && loc.offset == token_start.offset + 1 {
                     state = State::Calculation;
@@ -343,7 +365,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                         parser.open_brace(loc.clone());
                         state = State::Neutral;
                     } else if c == '}' {
-                        parser.close_brace(loc.clone());
+                        parser.close_brace(loc.clone(), content);
                         state = State::Neutral;
                     } else {
                         Parser::unknown_char(c, loc.clone());
@@ -411,6 +433,9 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                         // @ can start tokens but is special
                         calculation_start = loc.clone();
                         state = State::Id;
+                    } else if c == '$' {
+                        parser.current.contains_macro_parms = true;
+                        state = State::Id;
                     } else if c.is_id_char() {
                         state = State::Id;
                     } else if c.is_whitespace() {
@@ -421,7 +446,7 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
                         parser.open_brace(loc.clone());
                         state = State::Neutral;
                     } else if c == '}' {
-                        parser.close_brace(loc.clone());
+                        parser.close_brace(loc.clone(), content);
                         state = State::Neutral;
                     } else {
                         Parser::unknown_char(c, loc.clone());
