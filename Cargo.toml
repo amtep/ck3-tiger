@@ -1,8 +1,3 @@
-[workspace]
-members = [
-  "derive",
-]
-
 [package]
 name = "ck3-mod-validator"
 version = "0.1.0"
