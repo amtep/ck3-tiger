@@ -107,6 +107,10 @@ fn main() -> Result<()> {
         show_vanilla(true);
     }
 
+    println!("This validator was made for Crusader Kings version 1.6.2.2.");
+    println!("If you are using a newer version of Crusader Kings, it may be inaccurate.");
+    println!("!! Currently it's inaccurate anyway because it's in alpha state.");
+
     let modfile = ModFile::read(&args.modpath)?;
     let modpath = modfile.modpath();
     if !modpath.exists() {
