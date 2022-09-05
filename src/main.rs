@@ -9,9 +9,9 @@ use winreg::enums::HKEY_LOCAL_MACHINE;
 #[cfg(windows)]
 use winreg::RegKey;
 
-use ck3_mod_validator::errors::{set_mod_root, set_vanilla_root, show_vanilla};
-use ck3_mod_validator::everything::Everything;
-use ck3_mod_validator::modfile::ModFile;
+use ck3_tiger::errors::{set_mod_root, set_vanilla_root, show_vanilla};
+use ck3_tiger::everything::Everything;
+use ck3_tiger::modfile::ModFile;
 
 /// Steam's code for Crusader Kings 3
 const CK3_APP_ID: &str = "1158310";

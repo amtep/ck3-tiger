@@ -2,8 +2,8 @@ use lazy_static::lazy_static;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-use ck3_mod_validator::errors::{log_to, set_mod_root, set_vanilla_root, take_log_to};
-use ck3_mod_validator::everything::Everything;
+use ck3_tiger::errors::{log_to, set_mod_root, set_vanilla_root, take_log_to};
+use ck3_tiger::everything::Everything;
 
 lazy_static! {
     static ref TEST_MUTEX: Mutex<()> = Mutex::new(());
