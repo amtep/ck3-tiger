@@ -17,6 +17,8 @@ use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::relations::Relations;
 use crate::data::religions::Religions;
+use crate::data::scripted_effects::Effects;
+use crate::data::scripted_triggers::Triggers;
 use crate::data::scriptvalues::ScriptValues;
 use crate::data::titles::Titles;
 use crate::errorkey::ErrorKey;
@@ -90,6 +92,9 @@ pub struct Everything {
     pub relations: Relations,
 
     pub scriptvalues: ScriptValues,
+
+    pub triggers: Triggers,
+    pub effects: Effects,
 }
 
 impl Everything {
@@ -150,6 +155,8 @@ impl Everything {
             namelists: Namelists::default(),
             relations: Relations::default(),
             scriptvalues: ScriptValues::default(),
+            triggers: Triggers::default(),
+            effects: Effects::default(),
         })
     }
 
@@ -214,6 +221,8 @@ impl Everything {
         self.fileset.handle(&mut self.namelists);
         self.fileset.handle(&mut self.relations);
         self.fileset.handle(&mut self.scriptvalues);
+        self.fileset.handle(&mut self.triggers);
+        self.fileset.handle(&mut self.effects);
     }
 
     pub fn validate_all(&mut self) {
@@ -233,6 +242,8 @@ impl Everything {
         self.namelists.validate(self);
         self.relations.validate(self);
         self.scriptvalues.validate(self);
+        self.triggers.validate(self);
+        self.effects.validate(self);
     }
 
     pub fn check_pod(&mut self) {

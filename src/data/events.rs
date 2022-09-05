@@ -3,6 +3,8 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, DefinitionItem};
+use crate::data::scripted_effects::Effect;
+use crate::data::scripted_triggers::Trigger;
 use crate::desc::verify_desc_locas;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn, warn_info};
@@ -19,8 +21,8 @@ use crate::validate::{
 #[derive(Clone, Debug, Default)]
 pub struct Events {
     events: FnvHashMap<String, Event>,
-    scripted_triggers: FnvHashMap<String, ScriptedTrigger>,
-    scripted_effects: FnvHashMap<String, ScriptedEffect>,
+    triggers: FnvHashMap<(PathBuf, String), Trigger>,
+    effects: FnvHashMap<(PathBuf, String), Effect>,
 
     // These events are known to exist, so don't warn abour them not being found,
     // but they had errors on validation.
@@ -62,19 +64,20 @@ impl Events {
     }
 
     fn load_scripted_trigger(&mut self, key: Token, block: &Block) {
-        if let Some(other) = self.scripted_triggers.get(key.as_str()) {
+        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        if let Some(other) = self.triggers.get(&index) {
             dup_error(&key, &other.key, "scripted trigger");
         }
-        self.scripted_triggers
-            .insert(key.to_string(), ScriptedTrigger::new(key, block.clone()));
+        self.triggers
+            .insert(index, Trigger::new(key, block.clone()));
     }
 
     fn load_scripted_effect(&mut self, key: Token, block: &Block) {
-        if let Some(other) = self.scripted_effects.get(key.as_str()) {
+        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        if let Some(other) = self.effects.get(&index) {
             dup_error(&key, &other.key, "scripted effect");
         }
-        self.scripted_effects
-            .insert(key.to_string(), ScriptedEffect::new(key, block.clone()));
+        self.effects.insert(index, Effect::new(key, block.clone()));
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -396,29 +399,5 @@ fn validate_portrait(v: &BlockOrValue, data: &Everything) {
             vd.field_bool("override_imprisonment_visuals");
             vd.warn_remaining();
         }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct ScriptedTrigger {
-    key: Token,
-    block: Block,
-}
-
-impl ScriptedTrigger {
-    fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct ScriptedEffect {
-    key: Token,
-    block: Block,
-}
-
-impl ScriptedEffect {
-    fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
     }
 }
