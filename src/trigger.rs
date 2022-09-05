@@ -1,5 +1,5 @@
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue, Comparator};
+use crate::block::{Block, BlockOrValue, Comparator, Date};
 use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice_info, error, warn, warn_info};
@@ -9,7 +9,7 @@ use crate::scopes::{
     scope_value, Scopes,
 };
 use crate::token::Token;
-use crate::validate::validate_scope_reference;
+use crate::validate::validate_prefix_reference;
 
 pub fn validate_trigger(
     block: &Block,
@@ -72,16 +72,8 @@ pub fn validate_trigger(
                 continue;
             }
 
-            if key.is("has_character_flag") {
-                if !scopes.intersects(Scopes::Character) {
-                    let msg = format!(
-                        "{} is for {} but scope seems to be {}",
-                        key,
-                        Scopes::Character,
-                        scopes
-                    );
-                    warn(key, ErrorKey::Scopes, &msg);
-                }
+            if key.is("has_character_flag") || key.is("has_character_modifier") {
+                scopes.expect_scope(key, Scopes::Character);
                 bv.expect_value();
                 continue;
             }
@@ -106,6 +98,7 @@ pub fn validate_trigger(
             }
 
             if key.is("has_trait") {
+                scopes.expect_scope(key, Scopes::Character);
                 if let Some(token) = bv.expect_value() {
                     data.traits.verify_exists(token);
                 }
@@ -113,14 +106,33 @@ pub fn validate_trigger(
             }
 
             if key.is("has_county_modifier") {
+                scopes.expect_scope(key, Scopes::LandedTitle);
                 // TODO: validate
                 bv.expect_value();
                 continue;
             }
 
             if key.is("can_start_scheme") {
+                scopes.expect_scope(key, Scopes::Character);
                 if let Some(block) = bv.expect_block() {
                     verify_trigger_can_start_scheme(block, data, scopes);
+                }
+                continue;
+            }
+
+            if key.is("religion_tag") {
+                scopes.expect_scope(key, Scopes::Faith);
+                if let Some(token) = bv.expect_value() {
+                    data.religions.verify_religion_exists(token);
+                }
+                continue;
+            }
+
+            if key.is("current_date") {
+                if let Some(token) = bv.expect_value() {
+                    if Date::try_from(token).is_err() {
+                        error(token, ErrorKey::Validation, "expected date");
+                    }
                 }
                 continue;
             }
@@ -160,7 +172,7 @@ pub fn validate_trigger(
                         } else if first && inscope != Scopes::None {
                             scopes &= inscope;
                         }
-                        validate_scope_reference(&prefix, &arg, data);
+                        validate_prefix_reference(&prefix, &arg, data);
                         part_scopes = outscope;
                     } else {
                         let msg = format!("unknown prefix `{}:`", prefix);
@@ -364,7 +376,7 @@ pub fn validate_target(
                 } else if first && inscope != Scopes::None {
                     scopes &= inscope;
                 }
-                validate_scope_reference(&prefix, &arg, data);
+                validate_prefix_reference(&prefix, &arg, data);
                 part_scopes = outscope;
             } else {
                 let msg = format!("unknown prefix `{}:`", prefix);

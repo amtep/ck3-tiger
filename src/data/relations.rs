@@ -28,7 +28,11 @@ impl Relations {
     }
 
     pub fn verify_exists(&self, item: &Token) {
-        if !self.relations.contains_key(item.as_str()) {
+        self.verify_exists_implied(item.as_str(), item);
+    }
+
+    pub fn verify_exists_implied(&self, key: &str, item: &Token) {
+        if !self.relations.contains_key(key) {
             error(
                 item,
                 ErrorKey::MissingItem,

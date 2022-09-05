@@ -2,6 +2,9 @@
 
 ## General
 * root.set_variable doesn't work; an effect can't be chained to a scope. Has to be `root = { set_variable ... }`
+* for `current_date >= 1200.1.1` suggest `current_year >= 1200`
+* for `current_date < 1201.1.1` suggest `current_year < 1200`
+* for both in one block, suggest current_year = 1200
 
 ## GUI
 * ck3 crashes if you have multiple objects with `resizeparent` in one parent

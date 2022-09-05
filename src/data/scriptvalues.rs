@@ -11,7 +11,7 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, scope_value, Scopes};
 use crate::token::Token;
-use crate::validate::validate_scope_reference;
+use crate::validate::validate_prefix_reference;
 
 #[derive(Clone, Debug, Default)]
 pub struct ScriptValues {
@@ -205,7 +205,7 @@ impl ScriptValue {
                         } else if first && inscope != Scopes::None {
                             scopes &= inscope;
                         }
-                        validate_scope_reference(&prefix, &arg, data);
+                        validate_prefix_reference(&prefix, &arg, data);
                         part_scopes = outscope;
                     } else {
                         let msg = format!("unknown prefix `{}:`", prefix);
@@ -352,7 +352,7 @@ impl ScriptValue {
                         } else if first && inscope != Scopes::None {
                             scopes &= inscope;
                         }
-                        validate_scope_reference(&prefix, &arg, data);
+                        validate_prefix_reference(&prefix, &arg, data);
                     } else {
                         let msg = format!("unknown prefix `{}:`", prefix);
                         error(part, ErrorKey::Validation, &msg);

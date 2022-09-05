@@ -3,6 +3,10 @@
 use bitflags::bitflags;
 use std::fmt::{Display, Formatter};
 
+use crate::errorkey::ErrorKey;
+use crate::errors::warn;
+use crate::token::Token;
+
 bitflags! {
     /// LAST UPDATED VERSION 1.6.2.2
     /// See `event_scopes.log` from the game data dumps.
@@ -38,6 +42,22 @@ bitflags! {
         const Artifact = 0x0800_0000;
         const Inspiration = 0x1000_0000;
         const Struggle = 0x2000_0000;
+    }
+}
+
+impl Scopes {
+    pub fn expect_scope(&mut self, key: &Token, expect: Scopes) {
+        if self.intersects(expect) {
+            *self &= expect;
+        } else {
+            let msg = format!(
+                "{} is for {} but scope seems to be {}",
+                key,
+                Scopes::Character,
+                self
+            );
+            warn(key, ErrorKey::Scopes, &msg);
+        }
     }
 }
 

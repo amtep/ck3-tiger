@@ -11,6 +11,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
+use crate::validate::validate_prefix_reference_token;
 
 const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual"];
 
@@ -175,16 +176,7 @@ impl Character {
             .verify_faith_exists_opt(vd.field_value("faith"));
 
         if let Some(token) = vd.field_value("set_character_faith") {
-            // At some point, this should probably be part of general effect-and-scope processing
-            if let Some(faith) = token.as_str().strip_prefix("faith:") {
-                data.religions.verify_implied_faith_exists(faith, token);
-            } else {
-                warn(
-                    token,
-                    ErrorKey::Scopes,
-                    "faith should start with `faith:` here",
-                );
-            }
+            validate_prefix_reference_token(token, data, "faith");
         }
 
         if let Some(token) = vd.field_value("employer") {
@@ -239,6 +231,19 @@ impl Character {
         // without an effect block around it.
         vd.field_integer("add_gold");
         vd.field_blocks("effect");
+
+        for (token, bv) in vd.unknown_keys() {
+            if let Some(relation) = token.as_str().strip_prefix("set_relation_") {
+                data.relations.verify_exists_implied(relation, token);
+                if let Some(value) = bv.expect_value() {
+                    validate_prefix_reference_token(value, data, "character");
+                }
+            } else {
+                let msg = format!("unknown field `{}`", token);
+                warn(token, ErrorKey::Validation, &msg);
+            }
+        }
+
         vd.warn_remaining();
     }
 

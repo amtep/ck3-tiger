@@ -91,7 +91,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
     }
 }
 
-pub fn validate_scope_reference(prefix: &Token, arg: &Token, data: &Everything) {
+pub fn validate_prefix_reference(prefix: &Token, arg: &Token, data: &Everything) {
     // TODO there are more to match
     match prefix.as_str() {
         "character" => data.characters.verify_exists(arg),
@@ -103,4 +103,15 @@ pub fn validate_scope_reference(prefix: &Token, arg: &Token, data: &Everything) 
         "title" => data.titles.verify_exists(arg),
         &_ => (),
     }
+}
+
+pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted: &str) {
+    if let Some((prefix, arg)) = token.split_once(':') {
+        validate_prefix_reference(&prefix, &arg, data);
+        if prefix.is(wanted) {
+            return;
+        }
+    }
+    let msg = format!("should start with `{}:` here", wanted);
+    error(token, ErrorKey::Validation, &msg);
 }
