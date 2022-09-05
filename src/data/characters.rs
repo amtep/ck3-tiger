@@ -282,8 +282,8 @@ impl Character {
 
         vd.field_value("give_nickname");
         vd.field_choice("sexuality", SEXUALITIES);
-        vd.field_float("health");
-        vd.field_float("fertility");
+        vd.field_numeric("health");
+        vd.field_numeric("fertility");
         vd.field_block("portrait_override");
 
         vd.validate_history_blocks(|b, data| Self::validate_history(b, &self.block, data));

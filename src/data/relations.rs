@@ -103,7 +103,7 @@ impl Relation {
             }
         }
         vd.field_integer("opinion");
-        vd.field_float("fertility");
+        vd.field_numeric("fertility");
         for (key, _) in vd.integer_values() {
             let val = key.as_str().parse::<i32>().unwrap();
             if !(0..=15).contains(&val) {

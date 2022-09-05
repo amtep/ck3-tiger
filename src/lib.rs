@@ -29,4 +29,5 @@ mod parse;
 mod pdxfile;
 mod scopes;
 mod token;
+mod trigger;
 mod validate;

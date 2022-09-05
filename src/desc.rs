@@ -4,7 +4,7 @@ use crate::errors::warn;
 use crate::everything::Everything;
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::validate::validate_trigger;
+use crate::trigger::validate_trigger;
 
 pub fn validate_desc_map_block(
     block: &Block,

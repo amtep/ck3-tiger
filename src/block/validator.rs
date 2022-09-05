@@ -142,7 +142,7 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_float(&mut self, name: &'a str) -> bool {
+    pub fn field_numeric(&mut self, name: &'a str) -> bool {
         self.field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
                 if t.as_str().parse::<f64>().is_err() {

@@ -937,6 +937,7 @@ const SCOPE_ITERATOR: &[(u32, &str, u32)] = &[
     (Character, "war_ally", Character),
     (Character, "war_enemy", Character),
     (Religion, "faith", Faith),
+    (Character, "held_county", LandedTitle), // This one is undocumented
 ];
 
 /// LAST UPDATED VERSION 1.6.2.2

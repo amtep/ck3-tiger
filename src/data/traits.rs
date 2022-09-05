@@ -105,6 +105,13 @@ impl Trait {
         vd.field_integer("stewardship_no_portrait");
         vd.field_integer("learning_no_portrait");
         vd.field_integer("prowess_no_portrait");
+        vd.field_numeric("dead_loss_mult");
+        vd.field_integer("attraction_opinion");
+        vd.field_integer("ai_boldness");
+        vd.field_integer("ai_energy");
+        vd.field_integer("monthly_piety");
+        vd.field_integer("advantage");
+
         // TODO: monthly_<lifestyle>_xp_gain_mult
     }
 
@@ -159,6 +166,13 @@ impl Trait {
 
         vd.field_validated_blocks("culture_modifier", Self::validate_culture_modifier);
         vd.field_validated_blocks("triggered_opinion", Self::validate_triggered_opinion);
+
+        vd.field_list("opposites");
+        if let Some(tokens) = self.block.get_field_list("opposites") {
+            for token in tokens {
+                data.traits.verify_exists(&token);
+            }
+        }
 
         vd.field_integer("minimum_age");
         vd.field_bool("education");

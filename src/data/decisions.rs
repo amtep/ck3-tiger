@@ -13,7 +13,8 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::validate::{validate_character_trigger, validate_cooldown};
+use crate::trigger::validate_character_trigger;
+use crate::validate::validate_cooldown;
 
 #[derive(Clone, Debug, Default)]
 pub struct Decisions {

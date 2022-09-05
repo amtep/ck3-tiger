@@ -14,9 +14,9 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
+use crate::trigger::validate_trigger;
 use crate::validate::{
     validate_cooldown, validate_theme_background, validate_theme_icon, validate_theme_sound,
-    validate_trigger,
 };
 
 #[derive(Clone, Debug, Default)]
