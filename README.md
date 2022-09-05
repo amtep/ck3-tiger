@@ -1,8 +1,8 @@
-# ck3-mod-validator
-Checks Crusader Kings 3 user mod files for common mistakes and warns about them.
+# ck3-tiger
+Pounces on bugs. Checks Crusader Kings 3 user mod files for common mistakes and warns about them.
 
 ## Status
-This project still in its beginning stages. It might warn about things that are actually correct.
+This project still in its beginning stages. It will warn about many things that are actually correct.
 
 ## How to use
 Run it from the command line:
