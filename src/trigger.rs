@@ -49,6 +49,7 @@ pub fn validate_trigger(
                 continue;
             }
             seen_if = false;
+
             if let Some((it_type, it_name)) = key.as_str().split_once('_') {
                 if it_type == "any"
                     || it_type == "ordered"
@@ -78,6 +79,13 @@ pub fn validate_trigger(
                         continue;
                     }
                 }
+            }
+
+            if key.is("custom_description") {
+                if let Some(block) = bv.expect_block() {
+                    scopes = validate_custom_description(block, data, scopes);
+                }
+                continue;
             }
 
             let (scopes2, handled) = validate_trigger_keys(key, bv, data, scopes);
@@ -315,6 +323,22 @@ fn validate_trigger_if(block: &Block, data: &Everything, mut scopes: Scopes) -> 
         }
     }
     validate_trigger(block, data, scopes, &["limit"])
+}
+
+fn validate_custom_description(block: &Block, data: &Everything, mut scopes: Scopes) -> Scopes {
+    for (key, _, bv) in block.iter_items() {
+        if let Some(key) = key {
+            if key.is("text") {
+                // TODO: validate trigger_localization
+                bv.expect_value();
+            } else if key.is("subject") || key.is("object") {
+                if let Some(token) = bv.expect_value() {
+                    (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
+                }
+            }
+        }
+    }
+    validate_trigger(block, data, scopes, &["text", "subject", "object"])
 }
 
 pub fn validate_target(
