@@ -59,6 +59,10 @@ impl Scopes {
             warn(key, ErrorKey::Scopes, &msg);
         }
     }
+
+    pub fn non_primitive() -> Scopes {
+        Scopes::all() ^ (Scopes::None | Scopes::Value | Scopes::Bool | Scopes::Flag)
+    }
 }
 
 /// LAST UPDATED VERSION 1.6.2.2
@@ -203,6 +207,8 @@ impl Display for Scopes {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         if *self == Scopes::all() {
             write!(f, "any scope")
+        } else if *self == Scopes::non_primitive() {
+            write!(f, "non-primitive scope")
         } else {
             let mut vec = Vec::new();
             if self.contains(Scopes::None) {

@@ -55,7 +55,7 @@ pub fn validate_trigger(
 
             if key.is("exists") {
                 if let Some(token) = bv.expect_value() {
-                    (scopes, _) = validate_target(token, data, scopes, Scopes::all());
+                    (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
 
                     if let Some(firstpart) = token.as_str().strip_suffix(".holder") {
                         advice_info(
@@ -108,6 +108,12 @@ pub fn validate_trigger(
             if key.is("has_county_modifier") {
                 scopes.expect_scope(key, Scopes::LandedTitle);
                 // TODO: validate
+                bv.expect_value();
+                continue;
+            }
+
+            if key.is("has_variable") {
+                scopes.expect_scope(key, Scopes::non_primitive());
                 bv.expect_value();
                 continue;
             }
@@ -179,7 +185,13 @@ pub fn validate_trigger(
                         error(part, ErrorKey::Validation, &msg);
                         continue 'outer;
                     }
-                } else if part.is("root") || part.is("prev") || part.is("this") {
+                } else if part.is("root")
+                    || part.is("prev")
+                    || part.is("this")
+                    || part.is("ROOT")
+                    || part.is("PREV")
+                    || part.is("THIS")
+                {
                     if !first {
                         let msg = format!("`{}` makes no sense except as first part", part);
                         warn(part, ErrorKey::Validation, &msg);
@@ -310,12 +322,8 @@ pub fn validate_trigger(
     scopes
 }
 
-pub fn validate_trigger_iterator(
-    _name: &str,
-    block: &Block,
-    data: &Everything,
-    mut scopes: Scopes,
-) {
+pub fn validate_trigger_iterator(name: &str, block: &Block, data: &Everything, mut scopes: Scopes) {
+    let mut ignore = vec!["count", "percent"];
     for (key, _, bv) in block.iter_items() {
         if let Some(key) = key {
             if key.is("percent") {
@@ -338,10 +346,15 @@ pub fn validate_trigger_iterator(
                     }
                 }
                 scopes = ScriptValue::validate_bv(bv, data, scopes);
+            } else if name == "relation" && key.is("type") {
+                if let Some(token) = bv.expect_value() {
+                    data.relations.verify_exists(token);
+                }
+                ignore.push("type");
             }
         }
     }
-    validate_trigger(block, data, scopes, &["count", "percent"]);
+    validate_trigger(block, data, scopes, &ignore);
 }
 
 pub fn validate_character_trigger(block: &Block, data: &Everything) {
@@ -354,6 +367,13 @@ pub fn validate_target(
     mut scopes: Scopes,
     outscopes: Scopes,
 ) -> (Scopes, Scopes) {
+    if token.as_str().parse::<f64>().is_ok() {
+        if !outscopes.intersects(Scopes::Value | Scopes::None) {
+            let msg = format!("expected {}", outscopes);
+            warn(token, ErrorKey::Scopes, &msg);
+        }
+        return (scopes, Scopes::Value);
+    }
     let part_vec = token.split('.');
     let mut part_scopes = scopes;
     for i in 0..part_vec.len() {

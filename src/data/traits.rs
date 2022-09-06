@@ -1,4 +1,4 @@
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
@@ -15,6 +15,7 @@ use crate::token::Token;
 #[derive(Clone, Debug, Default)]
 pub struct Traits {
     traits: FnvHashMap<String, Trait>,
+    groups: FnvHashSet<String>,
 }
 
 impl Traits {
@@ -24,12 +25,15 @@ impl Traits {
                 dup_error(key, &other.key, "trait");
             }
         }
+        if let Some(token) = block.get_field_value("group") {
+            self.groups.insert(token.to_string());
+        }
         self.traits
             .insert(key.to_string(), Trait::new(key.clone(), block.clone()));
     }
 
     pub fn verify_exists(&self, item: &Token) {
-        if !self.traits.contains_key(item.as_str()) {
+        if !self.traits.contains_key(item.as_str()) && !self.groups.contains(item.as_str()) {
             error(
                 item,
                 ErrorKey::MissingItem,
