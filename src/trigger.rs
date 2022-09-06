@@ -1210,7 +1210,7 @@ fn validate_trigger_target_value(
     if let Some(token) = vd.field_value("target") {
         validate_target(token, data, scopes, outscopes);
     }
-    if let Some(bv) = vd.field("value") {
+    if let Some(bv) = vd.field_any_cmp("value") {
         ScriptValue::validate_bv(bv, data, scopes);
     }
 

@@ -548,7 +548,7 @@ const SCOPE_VALUE: &[(u32, &str)] = &[
     (LandedTitle, "title_held_years"), // TODO: warn if this is compared with =
     (Culture, "culture_age"),
     (Culture, "culture_number_of_counties"),
-    (GreatHolyWar, "days_until_ghx_launch"),
+    (GreatHolyWar, "days_until_ghw_launch"),
     (GreatHolyWar, "ghw_attackers_strength"),
     (GreatHolyWar, "ghw_defenders_strength"),
     (GreatHolyWar, "war_chest_gold"),

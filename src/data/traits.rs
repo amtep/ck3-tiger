@@ -10,6 +10,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -114,16 +115,67 @@ impl Trait {
         vd.field_integer("stewardship_no_portrait");
         vd.field_integer("learning_no_portrait");
         vd.field_integer("prowess_no_portrait");
-        vd.field_numeric("dead_loss_mult");
+        vd.field_integer("diplomacy_per_stress_level");
+        vd.field_integer("martial_per_stress_level");
+        vd.field_integer("intrigue_per_stress_level");
+        vd.field_integer("stewardship_per_stress_level");
+        vd.field_integer("learning_per_stress_level");
+        vd.field_integer("prowess_per_stress_level");
+        vd.field_numeric("dread_loss_mult");
+        vd.field_numeric("dread_baseline_add");
         vd.field_integer("attraction_opinion");
-        vd.field_integer("ai_boldness");
-        vd.field_integer("ai_energy");
-        vd.field_integer("monthly_piety");
-        vd.field_integer("advantage");
+        vd.field_integer("general_opinion");
+        vd.field_script_value("ai_boldness", Scopes::None);
+        vd.field_script_value("ai_compassion", Scopes::None);
+        vd.field_script_value("ai_energy", Scopes::None);
+        vd.field_script_value("ai_greed", Scopes::None);
+        vd.field_script_value("ai_honor", Scopes::None);
+        vd.field_script_value("ai_rationality", Scopes::None);
+        vd.field_script_value("ai_sociability", Scopes::None);
+        vd.field_script_value("ai_vengefulness", Scopes::None);
+        vd.field_script_value("ai_zeal", Scopes::None);
+        vd.field_numeric("monthly_income");
+        vd.field_numeric("monthly_piety");
+        vd.field_numeric("monthly_prestige");
+        vd.field_numeric("monthly_dynasty_prestige");
+        vd.field_numeric("monthly_piety_gain_mult");
+        vd.field_numeric("monthly_dynasty_prestige_mult");
+        vd.field_numeric("monthly_lifestyle_xp_gain_mult");
+        vd.field_numeric("monthly_county_control_change_add");
+        vd.field_numeric("advantage");
+        vd.field_numeric("attacker_advantage");
+        vd.field_numeric("defender_advantage");
+        vd.field_numeric("enemy_terrain_advantage");
+        vd.field_numeric("controlled_province_advantage");
+        vd.field_numeric("tolerance_advantage_mod");
+        vd.field_numeric("hard_casualty_modifier");
+        vd.field_numeric("enemy_hard_casualty_modifier");
+        vd.field_numeric("counter_efficiency");
+        vd.field_numeric("pursue_efficiency");
+        vd.field_numeric("retreat_losses");
+        vd.field_numeric("supply_duration");
+        vd.field_numeric("movement_speed");
+        vd.field_numeric("raid_speed");
+        vd.field_integer("min_combat_roll");
+        vd.field_integer("max_combat_roll");
+        vd.field_numeric("hostile_county_attrition");
         vd.field_numeric("fertility");
         vd.field_numeric("health");
         vd.field_integer("years_of_fertility");
         vd.field_integer("life_expectancy");
+        vd.field_integer("max_hostile_schemes_add");
+        vd.field_integer("hostile_scheme_resistance_add");
+        vd.field_integer("hostile_scheme_power_add");
+        vd.field_integer("owned_hostile_scheme_success_chance_add");
+        vd.field_numeric("ai_war_cooldown");
+        vd.field_numeric("ai_war_chance");
+        vd.field_bool("no_prowess_loss_from_age");
+        vd.field_numeric("stress_loss_mult");
+        vd.field_numeric("stress_gain_mult");
+        vd.field_numeric("knight_effectiveness_mult");
+        vd.field_integer("positive_inactive_inheritance_chance");
+        vd.field_integer("positive_random_genetic_chance");
+        vd.field_integer("genetic_trait_strengthen_chance");
 
         // TODO: monthly_<lifestyle>_xp_gain_mult
     }
@@ -187,13 +239,39 @@ impl Trait {
             }
         }
 
+        // TODO: validate as trait = integer assignments
+        vd.field_block("compatibility");
+
         vd.field_integer("minimum_age");
         vd.field_bool("education");
         vd.field_integer("ruler_designer_cost");
         vd.field_bool("shown_in_ruler_designer");
         vd.field_bool("add_commander_trait");
+        vd.field_bool("fame");
+        vd.field_bool("lifestyle");
+        vd.field_bool("health_trait");
+        vd.field_bool("genetic");
+        vd.field_bool("immortal");
+        vd.field_bool("can_have_children");
         vd.field_value("group");
         vd.field_value("group_equivalence");
+        vd.field_numeric("same_opinion");
+        vd.field_numeric("opposite_opinion");
+        vd.field_numeric("same_faith_opinion");
+        vd.field_numeric("same_culture_opinion");
+        vd.field_integer("level");
+        vd.field_integer("inherit_chance");
+        vd.field_integer("both_parent_has_trait_inherit_chance");
+        vd.field_numeric("birth");
+        vd.field_numeric("random_creation");
+        vd.field_bool("can_inherit");
+        vd.field_bool("inherit_from_real_father");
+        vd.field_bool("blocks_from_claim_inheritance");
+        vd.field_bool("incapacitating");
+        vd.field_bool("disables_combat_leadership");
+        vd.field_bool("no_water_crossing_penalty");
+        vd.field_choice("parent_inheritance_sex", &["male", "female"]);
+        vd.field_values("flag");
 
         Self::validate_modifiers(data, &mut vd);
         vd.warn_remaining();

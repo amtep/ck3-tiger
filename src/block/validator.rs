@@ -1,7 +1,9 @@
 use crate::block::{Block, BlockOrValue, Comparator, Date, Token};
+use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice, error, warn};
 use crate::everything::Everything;
+use crate::scopes::Scopes;
 
 #[derive(Debug)]
 pub struct Validator<'a> {
@@ -178,6 +180,12 @@ impl<'a> Validator<'a> {
                 error(s, ErrorKey::Validation, "expected value, found block");
             }
         })
+    }
+
+    pub fn field_script_value(&mut self, name: &'a str, scopes: Scopes) {
+        self.field_check(name, |bv| {
+            _ = ScriptValue::validate_bv(bv, self.data, scopes)
+        });
     }
 
     pub fn field_choice(&mut self, name: &'a str, choices: &[&str]) -> bool {
