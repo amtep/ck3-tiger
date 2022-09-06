@@ -388,7 +388,7 @@ impl ScriptValue {
                     }
                     part_scopes = outscope;
                 } else if last {
-                    if let Some(inscope) = scope_value(part.as_str()) {
+                    if let Some(inscope) = scope_value(part, data) {
                         if inscope == Scopes::None && !first {
                             let msg = format!("`{}` makes no sense except as first part", part);
                             warn(part, ErrorKey::Validation, &msg);

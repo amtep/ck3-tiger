@@ -132,7 +132,7 @@ pub fn validate_trigger(
                         scopes &= inscope;
                     }
                     part_scopes = outscope;
-                } else if let Some(inscope) = scope_value(part.as_str()) {
+                } else if let Some(inscope) = scope_value(part, data) {
                     if !last {
                         let msg = format!("`{}` should be the last part", part);
                         warn(part, ErrorKey::Validation, &msg);
@@ -151,7 +151,7 @@ pub fn validate_trigger(
                         scopes &= inscope;
                     }
                     part_scopes = Scopes::Value;
-                } else if let Some((inscope, outscope)) = scope_trigger_target(part.as_str()) {
+                } else if let Some((inscope, outscope)) = scope_trigger_target(part, data) {
                     if !last {
                         let msg = format!("`{}` should be the last part", part);
                         error(part, ErrorKey::Validation, &msg);
@@ -344,7 +344,7 @@ pub fn validate_target(
                 scopes &= inscope;
             }
             part_scopes = outscope;
-        } else if let Some(inscope) = scope_value(part.as_str()) {
+        } else if let Some(inscope) = scope_value(part, data) {
             if !last {
                 let msg = format!("`{}` only makes sense as the last part", part);
                 warn(part, ErrorKey::Scopes, &msg);

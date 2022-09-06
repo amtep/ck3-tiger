@@ -5,6 +5,7 @@ use std::fmt::{Display, Formatter};
 
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
+use crate::everything::Everything;
 use crate::token::Token;
 
 bitflags! {
@@ -159,10 +160,15 @@ pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
     std::option::Option::None
 }
 
-pub fn scope_value(name: &str) -> Option<Scopes> {
+pub fn scope_value(name: &Token, data: &Everything) -> Option<Scopes> {
     for (from, s) in SCOPE_VALUE {
-        if *s == name {
+        if name.is(s) {
             return Some(Scopes::from_bits_truncate(*from));
+        }
+    }
+    if let Some(relation) = name.as_str().strip_prefix("num_of_relation_") {
+        if data.relations.exists(relation) {
+            return Some(Scopes::Character);
         }
     }
     std::option::Option::None
@@ -181,13 +187,23 @@ pub fn scope_iterator(name: &str) -> Option<(Scopes, Scopes)> {
     std::option::Option::None
 }
 
-pub fn scope_trigger_target(name: &str) -> Option<(Scopes, Scopes)> {
+pub fn scope_trigger_target(name: &Token, data: &Everything) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_TRIGGER_TARGET {
-        if *s == name {
+        if name.is(s) {
             return Some((
                 Scopes::from_bits_truncate(*from),
                 Scopes::from_bits_truncate(*to),
             ));
+        }
+    }
+    if let Some(relation) = name.as_str().strip_prefix("has_relation_") {
+        if data.relations.exists(relation) {
+            return Some((Scopes::Character, Scopes::Character));
+        }
+    }
+    if let Some(relation) = name.as_str().strip_prefix("has_secret_relation_") {
+        if data.relations.exists(relation) {
+            return Some((Scopes::Character, Scopes::Character));
         }
     }
     std::option::Option::None
@@ -690,6 +706,9 @@ const SCOPE_VALUE: &[(u32, &str)] = &[
     (Character, "yearly_character_income"),
     (Character, "years_as_ruler"),
 ];
+// Special:
+// num_of_relation_<relation>
+//
 // TODO Special:
 // <legacy>_track_perks
 // perks_in_<lifestyle>
@@ -697,7 +716,6 @@ const SCOPE_VALUE: &[(u32, &str)] = &[
 // <lifestyle>_perks
 // <lifestyle>_unlockable_perks
 // <lifestyle>_xp
-// num_of_relation_<relation>
 
 /// LAST UPDATED VERSION 1.6.2.2
 /// See `effects.log` from the game data dumps

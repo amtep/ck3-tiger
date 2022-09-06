@@ -31,6 +31,10 @@ impl Relations {
         self.verify_exists_implied(item.as_str(), item);
     }
 
+    pub fn exists(&self, key: &str) -> bool {
+        self.relations.contains_key(key)
+    }
+
     pub fn verify_exists_implied(&self, key: &str, item: &Token) {
         if !self.relations.contains_key(key) {
             error(
