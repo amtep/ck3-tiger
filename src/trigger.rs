@@ -17,11 +17,38 @@ pub fn validate_trigger(
     mut scopes: Scopes,
     ignore_keys: &[&str],
 ) -> Scopes {
+    let mut seen_if = false;
+
     'outer: for (key, cmp, bv) in block.iter_items() {
         if let Some(key) = key {
             if ignore_keys.contains(&key.as_str()) {
                 continue;
             }
+            if key.is("trigger_if") {
+                if let Some(block) = bv.expect_block() {
+                    scopes = validate_trigger_if(block, data, scopes);
+                }
+                seen_if = true;
+                continue;
+            } else if key.is("trigger_else_if") {
+                if !seen_if {
+                    error(key, ErrorKey::Validation, "must follow `trigger_if`");
+                }
+                if let Some(block) = bv.expect_block() {
+                    scopes = validate_trigger_if(block, data, scopes);
+                }
+                continue;
+            } else if key.is("trigger_else") {
+                if !seen_if {
+                    error(key, ErrorKey::Validation, "must follow `trigger_if`");
+                }
+                if let Some(block) = bv.expect_block() {
+                    scopes = validate_trigger(block, data, scopes, &[]);
+                }
+                seen_if = false;
+                continue;
+            }
+            seen_if = false;
             if let Some((it_type, it_name)) = key.as_str().split_once('_') {
                 if it_type == "any"
                     || it_type == "ordered"
@@ -275,6 +302,19 @@ pub fn validate_trigger_iterator(name: &str, block: &Block, data: &Everything, m
 
 pub fn validate_character_trigger(block: &Block, data: &Everything) {
     validate_trigger(block, data, Scopes::Character, &[]);
+}
+
+fn validate_trigger_if(block: &Block, data: &Everything, mut scopes: Scopes) -> Scopes {
+    for (key, _, bv) in block.iter_items() {
+        if let Some(key) = key {
+            if key.is("limit") {
+                if let Some(block) = bv.expect_block() {
+                    scopes = validate_trigger(block, data, scopes, &[]);
+                }
+            }
+        }
+    }
+    validate_trigger(block, data, scopes, &["limit"])
 }
 
 pub fn validate_target(
