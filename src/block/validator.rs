@@ -84,6 +84,31 @@ impl<'a> Validator<'a> {
         }
     }
 
+    pub fn field_any_cmp(&mut self, name: &'a str) -> Option<&BlockOrValue> {
+        self.known_fields.push(name);
+
+        let mut found = false;
+        for (k, _, _) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    if found {
+                        warn(
+                            key,
+                            ErrorKey::Duplicate,
+                            &format!("multiple definitions of `{}`, expected only one.", key),
+                        );
+                    }
+                    found = true;
+                }
+            }
+        }
+        if found {
+            self.block.get_field(name)
+        } else {
+            None
+        }
+    }
+
     pub fn field_value(&mut self, name: &'a str) -> Option<&Token> {
         if self.field_check(name, |v| match v {
             BlockOrValue::Token(_) => (),

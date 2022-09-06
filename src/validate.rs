@@ -36,19 +36,19 @@ pub fn validate_theme_sound(block: &Block, data: &Everything) {
     vd.warn_remaining();
 }
 
-fn validate_days_months_years(block: &Block, data: &Everything, scopes: Scopes) {
+pub fn validate_days_months_years(block: &Block, data: &Everything, scopes: Scopes) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
 
-    if let Some(bv) = vd.field("days") {
+    if let Some(bv) = vd.field_any_cmp("days") {
         ScriptValue::validate_bv(bv, data, scopes);
         count += 1;
     }
-    if let Some(bv) = vd.field("months") {
+    if let Some(bv) = vd.field_any_cmp("months") {
         ScriptValue::validate_bv(bv, data, scopes);
         count += 1;
     }
-    if let Some(bv) = vd.field("years") {
+    if let Some(bv) = vd.field_any_cmp("years") {
         ScriptValue::validate_bv(bv, data, scopes);
         count += 1;
     }
@@ -64,8 +64,33 @@ fn validate_days_months_years(block: &Block, data: &Everything, scopes: Scopes) 
     vd.warn_remaining();
 }
 
+// Very similar to validate_years_months_days, but requires = instead of allowing comparators
 pub fn validate_cooldown(block: &Block, data: &Everything) {
-    validate_days_months_years(block, data, Scopes::Character);
+    let mut vd = Validator::new(block, data);
+    let mut count = 0;
+
+    if let Some(bv) = vd.field("days") {
+        ScriptValue::validate_bv(bv, data, Scopes::Character);
+        count += 1;
+    }
+    if let Some(bv) = vd.field("months") {
+        ScriptValue::validate_bv(bv, data, Scopes::Character);
+        count += 1;
+    }
+    if let Some(bv) = vd.field("years") {
+        ScriptValue::validate_bv(bv, data, Scopes::Character);
+        count += 1;
+    }
+
+    if count != 1 {
+        error(
+            block,
+            ErrorKey::Validation,
+            "must have 1 of days, months, or years",
+        );
+    }
+
+    vd.warn_remaining();
 }
 
 pub fn validate_color(block: &Block, _data: &Everything) {

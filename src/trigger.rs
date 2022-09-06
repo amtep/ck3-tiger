@@ -9,7 +9,7 @@ use crate::scopes::{
     scope_value, Scopes,
 };
 use crate::token::Token;
-use crate::validate::validate_prefix_reference;
+use crate::validate::{validate_days_months_years, validate_prefix_reference};
 
 pub fn validate_trigger(
     block: &Block,
@@ -1212,34 +1212,6 @@ fn validate_trigger_target_value(
     }
     if let Some(bv) = vd.field("value") {
         ScriptValue::validate_bv(bv, data, scopes);
-    }
-
-    vd.warn_remaining();
-}
-
-fn validate_days_months_years(block: &Block, data: &Everything, scopes: Scopes) {
-    let mut vd = Validator::new(block, data);
-    let mut count = 0;
-
-    if let Some(bv) = vd.field("days") {
-        ScriptValue::validate_bv(bv, data, scopes);
-        count += 1;
-    }
-    if let Some(bv) = vd.field("months") {
-        ScriptValue::validate_bv(bv, data, scopes);
-        count += 1;
-    }
-    if let Some(bv) = vd.field("years") {
-        ScriptValue::validate_bv(bv, data, scopes);
-        count += 1;
-    }
-
-    if count != 1 {
-        error(
-            block,
-            ErrorKey::Validation,
-            "must have 1 of days, months, or years",
-        );
     }
 
     vd.warn_remaining();
