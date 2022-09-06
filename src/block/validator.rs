@@ -135,13 +135,17 @@ impl<'a> Validator<'a> {
         });
     }
 
-    pub fn field_block(&mut self, name: &'a str) -> bool {
-        self.field_check(name, |v| match v {
+    pub fn field_block(&mut self, name: &'a str) -> Option<&Block> {
+        if self.field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
                 error(t, ErrorKey::Validation, "expected block, found value");
             }
             BlockOrValue::Block(_) => (),
-        })
+        }) {
+            self.block.get_field_block(name)
+        } else {
+            None
+        }
     }
 
     pub fn field_bool(&mut self, name: &'a str) -> bool {

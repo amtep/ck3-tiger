@@ -18,6 +18,7 @@ use crate::data::provinces::Provinces;
 use crate::data::relations::Relations;
 use crate::data::religions::Religions;
 use crate::data::scripted_effects::Effects;
+use crate::data::scripted_lists::ScriptedLists;
 use crate::data::scripted_triggers::Triggers;
 use crate::data::scriptvalues::ScriptValues;
 use crate::data::titles::Titles;
@@ -57,6 +58,8 @@ pub struct Everything {
 
     /// Processed localization files
     pub localization: Localization,
+
+    pub scripted_lists: ScriptedLists,
 
     /// Processed event files
     pub events: Events,
@@ -144,6 +147,7 @@ impl Everything {
             fileset,
             config,
             localization: Localization::default(),
+            scripted_lists: ScriptedLists::default(),
             events: Events::default(),
             decisions: Decisions::default(),
             interactions: Interactions::default(),
@@ -211,6 +215,7 @@ impl Everything {
         self.fileset.config(self.config.clone());
 
         self.fileset.handle(&mut self.localization);
+        self.fileset.handle(&mut self.scripted_lists);
         self.fileset.handle(&mut self.events);
         self.fileset.handle(&mut self.decisions);
         self.fileset.handle(&mut self.interactions);
@@ -233,6 +238,7 @@ impl Everything {
     pub fn validate_all(&mut self) {
         self.fileset.validate(self);
         self.localization.validate(self);
+        self.scripted_lists.validate(self);
         self.events.validate(self);
         self.decisions.validate(self);
         self.interactions.validate(self);

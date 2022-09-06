@@ -50,14 +50,14 @@ pub fn validate_trigger(
             }
             seen_if = false;
 
-            if let Some((it_type, it_name)) = key.as_str().split_once('_') {
-                if it_type == "any"
-                    || it_type == "ordered"
-                    || it_type == "every"
-                    || it_type == "random"
+            if let Some((it_type, it_name)) = key.split_once('_') {
+                if it_type.is("any")
+                    || it_type.is("ordered")
+                    || it_type.is("every")
+                    || it_type.is("random")
                 {
-                    if let Some((inscope, outscope)) = scope_iterator(it_name) {
-                        if it_type != "any" {
+                    if let Some((inscope, outscope)) = scope_iterator(&it_name, data) {
+                        if !it_type.is("any") {
                             let msg = format!("cannot use `{}` in a trigger", key);
                             error(key, ErrorKey::Validation, &msg);
                             continue;
@@ -72,7 +72,7 @@ pub fn validate_trigger(
                             scopes &= inscope;
                         }
                         if let Some(b) = bv.get_block() {
-                            validate_trigger_iterator(it_name, b, data, outscope);
+                            validate_trigger_iterator(&it_name, b, data, outscope);
                         } else {
                             error(bv, ErrorKey::Validation, "expected block, found value");
                         }
@@ -297,7 +297,12 @@ pub fn validate_trigger(
     scopes
 }
 
-pub fn validate_trigger_iterator(name: &str, block: &Block, data: &Everything, mut scopes: Scopes) {
+pub fn validate_trigger_iterator(
+    name: &Token,
+    block: &Block,
+    data: &Everything,
+    mut scopes: Scopes,
+) {
     let mut ignore = vec!["count", "percent"];
     for (key, _, bv) in block.iter_items() {
         if let Some(key) = key {
@@ -323,22 +328,22 @@ pub fn validate_trigger_iterator(name: &str, block: &Block, data: &Everything, m
                     }
                 }
                 scopes = ScriptValue::validate_bv(bv, data, scopes);
-            } else if (name == "in_list" || name == "in_global_list" || name == "in_local_list")
+            } else if (name.is("in_list") || name.is("in_global_list") || name.is("in_local_list"))
                 && (key.is("list") || key.is("variable"))
             {
                 bv.expect_value();
                 ignore.push(key.as_str());
-            } else if name == "relation" && key.is("type") {
+            } else if name.is("relation") && key.is("type") {
                 if let Some(token) = bv.expect_value() {
                     data.relations.verify_exists(token);
                 }
                 ignore.push(key.as_str());
-            } else if name == "pool_character" && key.is("province") {
+            } else if name.is("pool_character") && key.is("province") {
                 if let Some(token) = bv.expect_value() {
                     (scopes, _) = validate_target(token, data, scopes, Scopes::Province);
                 }
                 ignore.push(key.as_str());
-            } else if name == "court_position_holder" && key.is("type") {
+            } else if name.is("court_position_holder") && key.is("type") {
                 bv.expect_value();
                 ignore.push(key.as_str());
             } else if scopes == Scopes::Character
@@ -346,10 +351,10 @@ pub fn validate_trigger_iterator(name: &str, block: &Block, data: &Everything, m
             {
                 bv.expect_value();
                 ignore.push(key.as_str());
-            } else if name == "character_struggle" && key.is("involvement") {
+            } else if name.is("character_struggle") && key.is("involvement") {
                 bv.expect_value();
                 ignore.push(key.as_str());
-            } else if name == "county_in_region" && key.is("region") {
+            } else if name.is("county_in_region") && key.is("region") {
                 bv.expect_value();
                 ignore.push(key.as_str());
             }

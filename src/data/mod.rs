@@ -12,6 +12,7 @@ pub mod provinces;
 pub mod relations;
 pub mod religions;
 pub mod scripted_effects;
+pub mod scripted_lists;
 pub mod scripted_triggers;
 pub mod scriptvalues;
 pub mod titles;

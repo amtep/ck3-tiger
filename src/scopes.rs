@@ -175,14 +175,20 @@ pub fn scope_value(name: &Token, data: &Everything) -> Option<Scopes> {
 }
 
 /// `name` is without the `every_`, `ordered_`, `random_`, or `any_`
-pub fn scope_iterator(name: &str) -> Option<(Scopes, Scopes)> {
+pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_ITERATOR {
-        if *s == name {
+        if name.is(s) {
             return Some((
                 Scopes::from_bits_truncate(*from),
                 Scopes::from_bits_truncate(*to),
             ));
         }
+    }
+    if data.scripted_lists.exists(name) {
+        return data
+            .scripted_lists
+            .base(name)
+            .and_then(|name| scope_iterator(name, data));
     }
     std::option::Option::None
 }

@@ -275,6 +275,7 @@ impl Trait {
         vd.field_integer("both_parent_has_trait_inherit_chance");
         vd.field_numeric("birth");
         vd.field_numeric("random_creation");
+        vd.field_bool("enables_inbred");
         vd.field_bool("can_inherit");
         vd.field_bool("inherit_from_real_father");
         vd.field_bool("blocks_from_claim_inheritance");

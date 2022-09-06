@@ -11,6 +11,7 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, scope_value, Scopes};
 use crate::token::Token;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_prefix_reference;
 
 #[derive(Clone, Debug, Default)]
@@ -158,14 +159,14 @@ impl ScriptValue {
                 continue;
             }
 
-            if let Some((it_type, it_name)) = key.as_str().split_once('_') {
-                if it_type == "every"
-                    || it_type == "ordered"
-                    || it_type == "random"
-                    || it_type == "any"
+            if let Some((it_type, it_name)) = key.split_once('_') {
+                if it_type.is("every")
+                    || it_type.is("ordered")
+                    || it_type.is("random")
+                    || it_type.is("any")
                 {
-                    if let Some((inscope, outscope)) = scope_iterator(it_name) {
-                        if it_type == "any" {
+                    if let Some((inscope, outscope)) = scope_iterator(&it_name, data) {
+                        if it_type.is("any") {
                             let msg = format!("cannot use `{}` in a script value", key);
                             error(key, ErrorKey::Validation, &msg);
                         }
@@ -179,8 +180,8 @@ impl ScriptValue {
                             scopes &= inscope;
                         }
                         Self::validate_iterator(
-                            it_type,
-                            it_name,
+                            &it_type,
+                            &it_name,
                             bv.get_block().unwrap(),
                             data,
                             outscope,
@@ -253,15 +254,15 @@ impl ScriptValue {
     }
 
     fn validate_iterator(
-        it_type: &str,
-        it_name: &str,
+        it_type: &Token,
+        it_name: &Token,
         block: &Block,
         data: &Everything,
         mut scopes: Scopes,
     ) {
         let mut vd = Validator::new(block, data);
         vd.field_block("limit"); // TODO: validate trigger
-        if it_type == "ordered" {
+        if it_type.is("ordered") {
             vd.field_validated_bv("order_by", |bv, data| {
                 scopes = Self::validate_bv(bv, data, scopes);
             });
@@ -271,10 +272,11 @@ impl ScriptValue {
                 scopes = Self::validate_bv(bv, data, scopes);
             });
             vd.field_bool("check_range_bounds");
-        } else if it_type == "random" {
+        } else if it_type.is("random") {
             vd.field_block("weight"); // TODO: validate modifier
         }
-        if it_name == "in_list" || it_name == "in_local_list" || it_name == "in_global_list" {
+
+        if it_name.is("in_list") || it_name.is("in_local_list") || it_name.is("in_global_list") {
             let have_list = vd.field_value("list").is_some();
             let have_var = vd.field_value("variable").is_some();
             if have_list == have_var {
@@ -284,14 +286,16 @@ impl ScriptValue {
                     "must have one of `list =` or `variable =`",
                 );
             }
-        } else if it_name == "in_de_facto_hierarchy" || it_name == "in_de_jure_hierarchy" {
-            vd.field_block("continue"); // TODO: validate trigger
-        } else if it_name == "county_in_region" {
+        } else if it_name.is("in_de_facto_hierarchy") || it_name.is("in_de_jure_hierarchy") {
+            if let Some(block) = vd.field_block("continue") {
+                scopes = validate_trigger(block, data, scopes, &[]);
+            }
+        } else if it_name.is("county_in_region") {
             vd.field_value("region");
-        } else if it_name == "court_position_holder" {
+        } else if it_name.is("court_position_holder") {
             vd.req_field("type");
             vd.field_value("type");
-        } else if it_name == "relation" {
+        } else if it_name.is("relation") {
             vd.req_field("type");
             if let Some(token) = vd.field_value("type") {
                 data.relations.verify_exists(token);
