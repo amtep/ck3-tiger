@@ -28,6 +28,9 @@ impl Traits {
         if let Some(token) = block.get_field_value("group") {
             self.groups.insert(token.to_string());
         }
+        if let Some(token) = block.get_field_value("group_equivalence") {
+            self.groups.insert(token.to_string());
+        }
         self.traits
             .insert(key.to_string(), Trait::new(key.clone(), block.clone()));
     }
@@ -115,6 +118,10 @@ impl Trait {
         vd.field_integer("ai_energy");
         vd.field_integer("monthly_piety");
         vd.field_integer("advantage");
+        vd.field_numeric("fertility");
+        vd.field_numeric("health");
+        vd.field_integer("years_of_fertility");
+        vd.field_integer("life_expectancy");
 
         // TODO: monthly_<lifestyle>_xp_gain_mult
     }
@@ -184,6 +191,7 @@ impl Trait {
         vd.field_bool("shown_in_ruler_designer");
         vd.field_bool("add_commander_trait");
         vd.field_value("group");
+        vd.field_value("group_equivalence");
 
         Self::validate_modifiers(data, &mut vd);
         vd.warn_remaining();
