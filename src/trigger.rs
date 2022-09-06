@@ -234,6 +234,14 @@ pub fn validate_trigger(
                         scopes &= inscope;
                     }
                     part_scopes = Scopes::Bool;
+                } else if data.scriptvalues.exists(part.as_str()) {
+                    if !last {
+                        let msg = format!("script value should be the last part");
+                        warn(part, ErrorKey::Validation, &msg);
+                        continue 'outer;
+                    }
+                    // TODO: check script value's scoping
+                    part_scopes = Scopes::Value;
                 // TODO: warn if trying to use iterator here
                 } else {
                     let msg = format!("unknown token `{}`", part);
@@ -241,6 +249,7 @@ pub fn validate_trigger(
                     continue 'outer;
                 }
             }
+
             if !matches!(cmp, Comparator::Eq) {
                 if part_scopes.intersects(Scopes::Value) {
                     scopes = ScriptValue::validate_bv(bv, data, scopes);
@@ -250,6 +259,7 @@ pub fn validate_trigger(
                     warn(key, ErrorKey::Validation, &msg);
                 }
             }
+
             // TODO: this needs to accept more constructions
             if part_scopes == Scopes::Bool {
                 if let Some(token) = bv.expect_value() {

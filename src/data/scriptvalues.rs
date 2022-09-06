@@ -29,6 +29,10 @@ impl ScriptValues {
             .insert(key.to_string(), ScriptValue::new(key.clone(), bv.clone()));
     }
 
+    pub fn exists(&self, key: &str) -> bool {
+        self.scriptvalues.contains_key(key)
+    }
+
     pub fn verify_exists(&self, item: &Token) {
         if !self.scriptvalues.contains_key(item.as_str()) {
             error(
