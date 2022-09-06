@@ -103,6 +103,7 @@ impl Trait {
 
     // TODO: move these to Modifiers when we load those.
     fn validate_modifiers(_data: &Everything, vd: &mut Validator) {
+        vd.field_bool("enables_inbred");
         vd.field_integer("diplomacy");
         vd.field_integer("martial");
         vd.field_integer("intrigue");
@@ -170,11 +171,11 @@ impl Trait {
         vd.field_numeric("negate_health_penalty_add");
         vd.field_integer("years_of_fertility");
         vd.field_integer("life_expectancy");
-        vd.field_integer("max_hostile_schemes_add");
-        vd.field_integer("hostile_scheme_resistance_add");
-        vd.field_integer("hostile_scheme_resistance_mult");
-        vd.field_integer("hostile_scheme_power_add");
-        vd.field_integer("owned_hostile_scheme_success_chance_add");
+        vd.field_numeric("max_hostile_schemes_add");
+        vd.field_numeric("hostile_scheme_resistance_add");
+        vd.field_numeric("hostile_scheme_resistance_mult");
+        vd.field_numeric("hostile_scheme_power_add");
+        vd.field_numeric("owned_hostile_scheme_success_chance_add");
         vd.field_numeric("ai_war_cooldown");
         vd.field_numeric("ai_war_chance");
         vd.field_bool("no_prowess_loss_from_age");
@@ -275,7 +276,6 @@ impl Trait {
         vd.field_integer("both_parent_has_trait_inherit_chance");
         vd.field_numeric("birth");
         vd.field_numeric("random_creation");
-        vd.field_bool("enables_inbred");
         vd.field_bool("can_inherit");
         vd.field_bool("inherit_from_real_father");
         vd.field_bool("blocks_from_claim_inheritance");

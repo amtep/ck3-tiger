@@ -1275,7 +1275,9 @@ fn validate_trigger_keys(
             }
         }
 
-        "vassal_contract_has_flag" => {
+        "vassal_contract_has_flag"
+        | "vassal_contract_obligation_level_can_be_decreased"
+        | "vassal_contract_obligation_level_can_be_increased" => {
             scopes.expect_scope(key, Scopes::Character);
             bv.expect_value();
         }
