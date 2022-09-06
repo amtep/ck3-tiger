@@ -88,6 +88,20 @@ pub fn validate_trigger(
                 continue;
             }
 
+            if key.is("custom_tooltip") {
+                if let Some(block) = bv.expect_block() {
+                    scopes = validate_custom_tooltip(block, data, scopes);
+                }
+                continue;
+            }
+
+            if key.is("calc_true_if") {
+                if let Some(block) = bv.expect_block() {
+                    scopes = validate_calc_true_if(block, data, scopes);
+                }
+                continue;
+            }
+
             let (scopes2, handled) = validate_trigger_keys(key, bv, data, scopes);
             if handled {
                 continue;
@@ -297,11 +311,27 @@ pub fn validate_trigger_iterator(name: &str, block: &Block, data: &Everything, m
                     }
                 }
                 scopes = ScriptValue::validate_bv(bv, data, scopes);
+            } else if (name == "in_list" || name == "in_global_list" || name == "in_local_list")
+                && (key.is("list") || key.is("variable"))
+            {
+                bv.expect_value();
+                ignore.push(key.as_str());
             } else if name == "relation" && key.is("type") {
                 if let Some(token) = bv.expect_value() {
                     data.relations.verify_exists(token);
                 }
                 ignore.push("type");
+            } else if name == "pool_character" && key.is("province") {
+                if let Some(token) = bv.expect_value() {
+                    (scopes, _) = validate_target(token, data, scopes, Scopes::Province);
+                }
+                ignore.push("province");
+            } else if name == "court_position_holder" && key.is("type") {
+                bv.expect_value();
+                ignore.push("type");
+            } else if scopes == Scopes::Character && key.is("even_if_dead") {
+                bv.expect_value();
+                ignore.push("even_if_dead");
             }
         }
     }
@@ -339,6 +369,38 @@ fn validate_custom_description(block: &Block, data: &Everything, mut scopes: Sco
         }
     }
     validate_trigger(block, data, scopes, &["text", "subject", "object"])
+}
+
+fn validate_custom_tooltip(block: &Block, data: &Everything, mut scopes: Scopes) -> Scopes {
+    for (key, _, bv) in block.iter_items() {
+        if let Some(key) = key {
+            if key.is("text") {
+                if let Some(token) = bv.expect_value() {
+                    data.localization.verify_exists(token);
+                }
+            } else if key.is("subject") {
+                if let Some(token) = bv.expect_value() {
+                    (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
+                }
+            }
+        }
+    }
+    validate_trigger(block, data, scopes, &["text", "subject"])
+}
+
+fn validate_calc_true_if(block: &Block, data: &Everything, scopes: Scopes) -> Scopes {
+    for (key, _, bv) in block.iter_items() {
+        if let Some(key) = key {
+            if key.is("amount") {
+                if let Some(token) = bv.expect_value() {
+                    if token.as_str().parse::<i32>().is_err() {
+                        warn(token, ErrorKey::Validation, "expected a number");
+                    }
+                }
+            }
+        }
+    }
+    validate_trigger(block, data, scopes, &["amount"])
 }
 
 pub fn validate_target(
@@ -383,7 +445,13 @@ pub fn validate_target(
                 error(part, ErrorKey::Validation, &msg);
                 return (scopes, Scopes::all());
             }
-        } else if part.is("root") || part.is("prev") || part.is("this") {
+        } else if part.is("root")
+            || part.is("prev")
+            || part.is("this")
+            || part.is("ROOT")
+            || part.is("PREV")
+            || part.is("THIS")
+        {
             if !first {
                 let msg = format!("`{}` makes no sense except as first part", part);
                 warn(part, ErrorKey::Validation, &msg);
@@ -597,6 +665,11 @@ fn validate_trigger_keys(
             bv.expect_value();
         }
 
+        "story_type" => {
+            scopes.expect_scope(key, Scopes::StoryCycle);
+            bv.expect_value();
+        }
+
         "controls_holy_site" | "controls_holy_site_with_flag" => {
             scopes.expect_scope(key, Scopes::Faith);
             bv.expect_value();
@@ -721,18 +794,22 @@ fn validate_trigger_keys(
 
         "exists" => {
             if let Some(token) = bv.expect_value() {
-                (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
+                if token.is("yes") || token.is("no") {
+                    // TODO: check scope is not none?
+                } else {
+                    (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
 
-                if let Some(firstpart) = token.as_str().strip_suffix(".holder") {
-                    advice_info(
-                        key,
-                        ErrorKey::Tooltip,
-                        &format!(
-                            "could rewrite this as `{} = {{ is_title_created = yes }}`",
-                            firstpart
-                        ),
-                        "it gives a nicer tooltip",
-                    );
+                    if let Some(firstpart) = token.as_str().strip_suffix(".holder") {
+                        advice_info(
+                            key,
+                            ErrorKey::Tooltip,
+                            &format!(
+                                "could rewrite this as `{} = {{ is_title_created = yes }}`",
+                                firstpart
+                            ),
+                            "it gives a nicer tooltip",
+                        );
+                    }
                 }
             }
         }

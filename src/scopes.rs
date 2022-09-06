@@ -434,8 +434,11 @@ const SCOPE_TO_SCOPE: &[(u32, &str, u32)] = &[
     (CombatSide, "enemy_side", CombatSide),
     (CombatSide, "side_commander", Character),
     (CombatSide, "side_primary_participant", Character),
-    (Character, "faith", Faith),
-    (LandedTitle | Province | GreatHolyWar, "faith", Faith),
+    (
+        Character | LandedTitle | Province | GreatHolyWar,
+        "faith",
+        Faith,
+    ),
     (Character | LandedTitle | Province, "culture", Culture),
     (
         Character | LandedTitle | Province | Faith | GreatHolyWar,
@@ -760,30 +763,38 @@ const SCOPE_ITERATOR: &[(u32, &str, u32)] = &[
     (LandedTitle, "title_joined_faction", Faction),
     (
         LandedTitle,
-        "title_to_title_neighoring_and_across_water_county",
+        "title_to_title_neighboring_and_across_water_county",
         LandedTitle,
     ),
     (
         LandedTitle,
-        "title_to_title_neighoring_and_across_water_duchy",
+        "title_to_title_neighboring_and_across_water_duchy",
         LandedTitle,
     ),
     (
         LandedTitle,
-        "title_to_title_neighoring_and_across_water_empire",
+        "title_to_title_neighboring_and_across_water_empire",
         LandedTitle,
     ),
     (
         LandedTitle,
-        "title_to_title_neighoring_and_across_water_kingdom",
+        "title_to_title_neighboring_and_across_water_kingdom",
         LandedTitle,
     ),
-    (LandedTitle, "title_to_title_neighoring_county", LandedTitle),
-    (LandedTitle, "title_to_title_neighoring_duchy", LandedTitle),
-    (LandedTitle, "title_to_title_neighoring_empire", LandedTitle),
     (
         LandedTitle,
-        "title_to_title_neighoring_kingdom",
+        "title_to_title_neighboring_county",
+        LandedTitle,
+    ),
+    (LandedTitle, "title_to_title_neighboring_duchy", LandedTitle),
+    (
+        LandedTitle,
+        "title_to_title_neighboring_empire",
+        LandedTitle,
+    ),
+    (
+        LandedTitle,
+        "title_to_title_neighboring_kingdom",
         LandedTitle,
     ),
     (Culture, "culture_county", LandedTitle),
@@ -982,6 +993,7 @@ const SCOPE_ITERATOR: &[(u32, &str, u32)] = &[
     (Character, "war_enemy", Character),
     (Religion, "faith", Faith),
     (Character, "held_county", LandedTitle), // This one is undocumented
+    (Character, "powerful_vassal", Character), // Undocumented
 ];
 
 /// LAST UPDATED VERSION 1.6.2.2
