@@ -1098,7 +1098,7 @@ fn validate_trigger_keys(
         "time_in_prison" | "time_in_prison_type" | "time_since_death" => {
             scopes.expect_scope(key, Scopes::Character);
             if let Some(block) = bv.expect_block() {
-                validate_trigger_days_months_years(block, data, scopes);
+                validate_days_months_years(block, data, scopes);
             }
         }
 
@@ -1153,7 +1153,7 @@ fn validate_trigger_target_value(
     vd.warn_remaining();
 }
 
-fn validate_trigger_days_months_years(block: &Block, data: &Everything, scopes: Scopes) {
+fn validate_days_months_years(block: &Block, data: &Everything, scopes: Scopes) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
 

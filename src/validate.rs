@@ -1,9 +1,11 @@
 /// A module for validation functions that are useful for more than one data module.
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
+use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
+use crate::errors::error;
 use crate::everything::Everything;
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 pub fn validate_theme_background(block: &Block, data: &Everything) {
@@ -34,21 +36,36 @@ pub fn validate_theme_sound(block: &Block, data: &Everything) {
     vd.warn_remaining();
 }
 
-pub fn validate_cooldown(block: &Block, data: &Everything) {
+fn validate_days_months_years(block: &Block, data: &Everything, scopes: Scopes) {
     let mut vd = Validator::new(block, data);
-
     let mut count = 0;
-    count += isize::from(vd.field_integer("years"));
-    count += isize::from(vd.field_integer("months"));
-    count += isize::from(vd.field_integer("days"));
+
+    if let Some(bv) = vd.field("days") {
+        ScriptValue::validate_bv(bv, data, scopes);
+        count += 1;
+    }
+    if let Some(bv) = vd.field("months") {
+        ScriptValue::validate_bv(bv, data, scopes);
+        count += 1;
+    }
+    if let Some(bv) = vd.field("years") {
+        ScriptValue::validate_bv(bv, data, scopes);
+        count += 1;
+    }
+
     if count != 1 {
-        warn(
+        error(
             block,
             ErrorKey::Validation,
-            "cooldown must have one of `years`, `months`, or `days`",
+            "must have 1 of days, months, or years",
         );
     }
+
     vd.warn_remaining();
+}
+
+pub fn validate_cooldown(block: &Block, data: &Everything) {
+    validate_days_months_years(block, data, Scopes::Character);
 }
 
 pub fn validate_color(block: &Block, _data: &Everything) {
