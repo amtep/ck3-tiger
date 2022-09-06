@@ -301,6 +301,8 @@ pub fn validate_trigger_iterator(name: &str, block: &Block, data: &Everything, m
     let mut ignore = vec!["count", "percent"];
     for (key, _, bv) in block.iter_items() {
         if let Some(key) = key {
+            // These branches are identical now but they should check for different things later
+            #[allow(clippy::if_same_then_else)]
             if key.is("percent") {
                 if let Some(token) = bv.get_value() {
                     if let Ok(num) = token.as_str().parse::<f64>() {
@@ -330,18 +332,26 @@ pub fn validate_trigger_iterator(name: &str, block: &Block, data: &Everything, m
                 if let Some(token) = bv.expect_value() {
                     data.relations.verify_exists(token);
                 }
-                ignore.push("type");
+                ignore.push(key.as_str());
             } else if name == "pool_character" && key.is("province") {
                 if let Some(token) = bv.expect_value() {
                     (scopes, _) = validate_target(token, data, scopes, Scopes::Province);
                 }
-                ignore.push("province");
+                ignore.push(key.as_str());
             } else if name == "court_position_holder" && key.is("type") {
                 bv.expect_value();
-                ignore.push("type");
-            } else if scopes == Scopes::Character && key.is("even_if_dead") {
+                ignore.push(key.as_str());
+            } else if scopes == Scopes::Character
+                && (key.is("even_if_dead") || key.is("only_if_dead"))
+            {
                 bv.expect_value();
-                ignore.push("even_if_dead");
+                ignore.push(key.as_str());
+            } else if name == "character_struggle" && key.is("involvement") {
+                bv.expect_value();
+                ignore.push(key.as_str());
+            } else if name == "county_in_region" && key.is("region") {
+                bv.expect_value();
+                ignore.push(key.as_str());
             }
         }
     }
@@ -1273,7 +1283,7 @@ fn validate_trigger_keys(
         }
 
         "is_in_family" => {
-            scopes.expect_scope(key, Scopes::Character);
+            scopes.expect_scope(key, Scopes::Religion);
             bv.expect_value();
         }
 

@@ -122,9 +122,13 @@ impl Trait {
         vd.field_integer("learning_per_stress_level");
         vd.field_integer("prowess_per_stress_level");
         vd.field_numeric("dread_loss_mult");
+        vd.field_numeric("dread_gain_mult");
         vd.field_numeric("dread_baseline_add");
         vd.field_integer("attraction_opinion");
         vd.field_integer("general_opinion");
+        vd.field_integer("vassal_opinion");
+        vd.field_numeric("same_culture_opinion");
+        vd.field_integer("county_opinion_add");
         vd.field_script_value("ai_boldness", Scopes::None);
         vd.field_script_value("ai_compassion", Scopes::None);
         vd.field_script_value("ai_energy", Scopes::None);
@@ -139,6 +143,7 @@ impl Trait {
         vd.field_numeric("monthly_prestige");
         vd.field_numeric("monthly_dynasty_prestige");
         vd.field_numeric("monthly_piety_gain_mult");
+        vd.field_numeric("monthly_prestige_gain_mult");
         vd.field_numeric("monthly_dynasty_prestige_mult");
         vd.field_numeric("monthly_lifestyle_xp_gain_mult");
         vd.field_numeric("monthly_county_control_change_add");
@@ -155,16 +160,19 @@ impl Trait {
         vd.field_numeric("retreat_losses");
         vd.field_numeric("supply_duration");
         vd.field_numeric("movement_speed");
+        vd.field_numeric("winter_movement_speed");
         vd.field_numeric("raid_speed");
         vd.field_integer("min_combat_roll");
         vd.field_integer("max_combat_roll");
         vd.field_numeric("hostile_county_attrition");
         vd.field_numeric("fertility");
         vd.field_numeric("health");
+        vd.field_numeric("negate_health_penalty_add");
         vd.field_integer("years_of_fertility");
         vd.field_integer("life_expectancy");
         vd.field_integer("max_hostile_schemes_add");
         vd.field_integer("hostile_scheme_resistance_add");
+        vd.field_integer("hostile_scheme_resistance_mult");
         vd.field_integer("hostile_scheme_power_add");
         vd.field_integer("owned_hostile_scheme_success_chance_add");
         vd.field_numeric("ai_war_cooldown");
@@ -176,6 +184,7 @@ impl Trait {
         vd.field_integer("positive_inactive_inheritance_chance");
         vd.field_integer("positive_random_genetic_chance");
         vd.field_integer("genetic_trait_strengthen_chance");
+        vd.field_numeric("levy_size");
 
         // TODO: monthly_<lifestyle>_xp_gain_mult
     }
@@ -249,8 +258,11 @@ impl Trait {
         vd.field_bool("add_commander_trait");
         vd.field_bool("fame");
         vd.field_bool("lifestyle");
+        vd.field_bool("personality");
         vd.field_bool("health_trait");
         vd.field_bool("genetic");
+        vd.field_bool("physical");
+        vd.field_bool("good");
         vd.field_bool("immortal");
         vd.field_bool("can_have_children");
         vd.field_value("group");
@@ -258,7 +270,6 @@ impl Trait {
         vd.field_numeric("same_opinion");
         vd.field_numeric("opposite_opinion");
         vd.field_numeric("same_faith_opinion");
-        vd.field_numeric("same_culture_opinion");
         vd.field_integer("level");
         vd.field_integer("inherit_chance");
         vd.field_integer("both_parent_has_trait_inherit_chance");

@@ -992,8 +992,6 @@ const SCOPE_ITERATOR: &[(u32, &str, u32)] = &[
     (Character, "war_ally", Character),
     (Character, "war_enemy", Character),
     (Religion, "faith", Faith),
-    (Character, "held_county", LandedTitle), // This one is undocumented
-    (Character, "powerful_vassal", Character), // Undocumented
 ];
 
 /// LAST UPDATED VERSION 1.6.2.2
@@ -1293,7 +1291,7 @@ const SCOPE_TRIGGER_BOOL: &[(u32, &str)] = &[
     (Character, "is_at_war"),
     (Character, "is_at_war_as_attacker"),
     (Character, "is_at_war_as_defender"),
-    (Character, "is_at_war_as_with_liege"),
+    (Character, "is_at_war_with_liege"),
     (Character, "is_attracted_to_men"),
     (Character, "is_attracted_to_women"),
     (Character, "is_away_from_court"),
