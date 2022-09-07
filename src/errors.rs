@@ -15,12 +15,13 @@ use crate::token::{Loc, Token};
 
 static mut ERRORS: Option<Errors> = None;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default, Ord, PartialOrd, Eq, PartialEq)]
 pub enum ErrorLevel {
-    Error,
-    Warning,
-    Info,
+    #[default]
     Advice,
+    Info,
+    Warning,
+    Error,
 }
 
 impl Display for ErrorLevel {
@@ -139,6 +140,9 @@ struct Errors {
 
     /// Error logs are written here (initially stderr)
     outfile: Option<Box<dyn ErrorLogger>>,
+
+    /// Minimum error level to log
+    minimum_level: ErrorLevel,
 }
 
 // TODO: allow a message to have multiple tokens, and print the relevant lines as a stack
@@ -227,6 +231,9 @@ impl Errors {
         msg: &str,
         info: Option<&str>,
     ) {
+        if level < self.minimum_level {
+            return;
+        }
         let loc = eloc.into_loc();
         if !self.will_log(&loc, key) {
             return;
@@ -244,6 +251,9 @@ impl Errors {
         eloc2: E2,
         msg2: &str,
     ) {
+        if level < self.minimum_level {
+            return;
+        }
         let loc = eloc.into_loc();
         let loc2 = eloc2.into_loc();
         if !self.will_log(&loc, key) {
@@ -300,6 +310,10 @@ pub fn resume_logging() {
 
 pub fn show_vanilla(v: bool) {
     Errors::get_mut().show_vanilla = v;
+}
+
+pub fn minimum_level(lvl: ErrorLevel) {
+    Errors::get_mut().minimum_level = lvl;
 }
 
 /// This is an object that can pause logging as long as it's in scope.

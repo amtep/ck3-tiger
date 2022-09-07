@@ -9,7 +9,7 @@ use winreg::enums::HKEY_LOCAL_MACHINE;
 #[cfg(windows)]
 use winreg::RegKey;
 
-use ck3_tiger::errors::{set_mod_root, set_vanilla_root, show_vanilla};
+use ck3_tiger::errors::{minimum_level, set_mod_root, set_vanilla_root, show_vanilla, ErrorLevel};
 use ck3_tiger::everything::Everything;
 use ck3_tiger::modfile::ModFile;
 
@@ -35,6 +35,9 @@ struct Cli {
     /// Show errors in the base CK3 script code as well
     #[clap(long)]
     show_vanilla: bool,
+    /// Show advice in addition to warnings and errors
+    #[clap(long)]
+    advice: bool,
     /// Do checks specific to the Princes of Darkness mod
     #[clap(long)]
     pod: bool,
@@ -105,6 +108,10 @@ fn main() -> Result<()> {
 
     if args.show_vanilla {
         show_vanilla(true);
+    }
+
+    if !args.advice {
+        minimum_level(ErrorLevel::Info);
     }
 
     println!("This validator was made for Crusader Kings version 1.6.2.2.");
