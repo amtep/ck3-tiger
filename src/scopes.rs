@@ -493,6 +493,7 @@ const SCOPE_TO_SCOPE: &[(u32, &str, u32)] = &[
     // "root" special
     // "this" special
     (None, "yes", Bool),
+    (Value, "compare_value", Value), // special
 ];
 
 /// LAST UPDATED VERSION 1.6.2.2
@@ -507,7 +508,6 @@ const SCOPE_FROM_PREFIX: &[(u32, &str, u32)] = &[
     (Character, "cp", Character), // councillor
     (None, "array_define", Value),
     (None, "character", Character),
-    (Value, "compare_value", Value), // ?? needs more investigation
     (None, "culture", Culture),
     (None, "define", Value),
     (None, "dynasty", Dynasty),
