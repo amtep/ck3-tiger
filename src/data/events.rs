@@ -234,12 +234,12 @@ impl Event {
         vd.field_bool("hidden");
         vd.field_bool("major");
         vd.field_validated_block("major_trigger", |b, data| {
-            scopes = validate_trigger(b, data, scopes, &[])
+            scopes = validate_trigger(b, data, scopes, &[]);
         });
 
         vd.field_block("immediate"); // effect
         vd.field_validated_block("trigger", |b, data| {
-            scopes = validate_trigger(b, data, scopes, &[])
+            scopes = validate_trigger(b, data, scopes, &[]);
         });
         vd.field_block("on_trigger_fail"); // effect
         vd.field_block("weight_multiplier"); // modifier

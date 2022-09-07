@@ -241,8 +241,8 @@ pub fn validate_trigger(
                     part_scopes = Scopes::Bool;
                 } else if data.scriptvalues.exists(part.as_str()) {
                     if !last {
-                        let msg = format!("script value should be the last part");
-                        warn(part, ErrorKey::Validation, &msg);
+                        let msg = "script value should be the last part";
+                        warn(part, ErrorKey::Validation, msg);
                         continue 'outer;
                     }
                     // TODO: check script value's scoping
@@ -258,11 +258,11 @@ pub fn validate_trigger(
             if !matches!(cmp, Comparator::Eq) {
                 if part_scopes.intersects(Scopes::Value) {
                     scopes = ScriptValue::validate_bv(bv, data, scopes);
-                    continue;
                 } else {
                     let msg = format!("unexpected comparator {}", cmp);
                     warn(key, ErrorKey::Validation, &msg);
                 }
+                continue;
             }
 
             if part_scopes == Scopes::Bool {
@@ -276,7 +276,7 @@ pub fn validate_trigger(
             } else {
                 match bv {
                     BlockOrValue::Token(t) => {
-                        (scopes, _) = validate_target(t, data, scopes, part_scopes)
+                        (scopes, _) = validate_target(t, data, scopes, part_scopes);
                     }
                     BlockOrValue::Block(b) => _ = validate_trigger(b, data, part_scopes, &[]),
                 }
@@ -558,7 +558,7 @@ pub fn validate_target(
         );
         warn(part, ErrorKey::Scopes, &msg);
     }
-    return (scopes, part_scopes);
+    (scopes, part_scopes)
 }
 
 /// Validate the keys that don't follow a consistent pattern in what they require from their
@@ -566,6 +566,7 @@ pub fn validate_target(
 /// Returns true iff the key was recognized (and handled)
 /// LAST UPDATED VERSION 1.6.2.2
 /// See `triggers.log` for details
+#[allow(clippy::match_same_arms)] // many of these "same arms" just need further coding
 fn validate_trigger_keys(
     key: &Token,
     bv: &BlockOrValue,
@@ -766,7 +767,7 @@ fn validate_trigger_keys(
             scopes.expect_scope(key, Scopes::Province);
             match bv {
                 BlockOrValue::Block(block) => {
-                    validate_trigger_has_building_with_flag(block, data, scopes)
+                    validate_trigger_has_building_with_flag(block, data, scopes);
                 }
                 BlockOrValue::Token(_token) => (), // TODO
             }

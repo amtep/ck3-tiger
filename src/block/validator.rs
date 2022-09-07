@@ -188,7 +188,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_script_value(&mut self, name: &'a str, scopes: Scopes) {
         self.field_check(name, |bv| {
-            _ = ScriptValue::validate_bv(bv, self.data, scopes)
+            _ = ScriptValue::validate_bv(bv, self.data, scopes);
         });
     }
 

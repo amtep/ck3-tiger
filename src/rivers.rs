@@ -152,11 +152,11 @@ impl Rivers {
                     3..=11 => {
                         if river_neighbors <= 2 {
                             let mut found = Vec::new();
-                            for i in 0..river_segments.len() {
-                                match river_segments[i] {
+                            for (i, segment) in river_segments.iter_mut().enumerate() {
+                                match *segment {
                                     RiverSegment::Single(coord) => {
                                         if are_neighbors(coord, (x, y)) {
-                                            river_segments[i] = RiverSegment::Stream(coord, (x, y));
+                                            *segment = RiverSegment::Stream(coord, (x, y));
                                             found.push(i);
                                         }
                                     }
@@ -170,16 +170,16 @@ impl Rivers {
                                             );
                                             bad_problem = true;
                                         } else if are_neighbors(c1, (x, y)) {
-                                            river_segments[i] = RiverSegment::Stream((x, y), c2);
+                                            *segment = RiverSegment::Stream((x, y), c2);
                                             found.push(i);
                                         } else if are_neighbors(c2, (x, y)) {
-                                            river_segments[i] = RiverSegment::Stream(c1, (x, y));
+                                            *segment = RiverSegment::Stream(c1, (x, y));
                                             found.push(i);
                                         }
                                     }
                                 }
                             }
-                            if found.len() == 0 {
+                            if found.is_empty() {
                                 river_segments.push(RiverSegment::Single((x, y)));
                             } else if found.len() == 2 {
                                 let new_segment =
@@ -211,7 +211,7 @@ impl Rivers {
                         let msg =
                             format!("({}, {}) river pixel connects two special pixels", c.0, c.1);
                         error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
-                    } else if special_neighbors.len() == 0 {
+                    } else if special_neighbors.is_empty() {
                         let msg = format!("({}, {}) orphan river pixel", c.0, c.1);
                         error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
                     } else {
@@ -230,7 +230,7 @@ impl Rivers {
                 RiverSegment::Stream(c1, c2) => {
                     let mut special_neighbors = self.special_neighbors(c1);
                     special_neighbors.append(&mut self.special_neighbors(c2));
-                    if special_neighbors.len() == 0 {
+                    if special_neighbors.is_empty() {
                         let msg = format!(
                             "({}, {}) - ({}, {}) orphan river segment",
                             c1.0, c1.1, c2.0, c2.1
@@ -275,7 +275,6 @@ impl FileHandler for Rivers {
                 "could not read image",
                 &format!("{:#}", e),
             );
-            return;
         }
     }
 }
@@ -302,9 +301,8 @@ impl RiverSegment {
                     return RiverSegment::Stream(*c1, *o2);
                 } else if c2 == o2 {
                     return RiverSegment::Stream(*c1, *o1);
-                } else {
-                    panic!("asked to join non-adjacent river segments");
                 }
+                panic!("asked to join non-adjacent river segments");
             }
         }
         panic!("asked to join single-pixel river segments");
