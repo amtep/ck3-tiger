@@ -27,6 +27,7 @@ mod fileset;
 mod helpers;
 mod parse;
 mod pdxfile;
+mod rivers;
 mod scopes;
 mod token;
 mod trigger;

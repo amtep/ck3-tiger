@@ -26,6 +26,7 @@ pub enum ErrorKey {
     Range,
     Tooltip,
     Tidying,
+    Rivers,
 
     PrincesOfDarkness,
 }

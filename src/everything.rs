@@ -28,6 +28,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{ignore_key, ignore_key_for, warn};
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::pdxfile::PdxFile;
+use crate::rivers::Rivers;
 use crate::token::Loc;
 
 #[derive(Debug, Error)]
@@ -262,6 +263,12 @@ impl Everything {
         self.effects.validate(self);
         self.traits.validate(self);
         self.lifestyles.validate(self);
+    }
+
+    pub fn check_rivers(&mut self) {
+        let mut rivers = Rivers::default();
+        self.fileset.handle(&mut rivers);
+        rivers.validate(self);
     }
 
     pub fn check_pod(&mut self) {

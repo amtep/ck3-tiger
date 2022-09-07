@@ -129,6 +129,7 @@ fn main() -> Result<()> {
     let mut everything = Everything::new(&args.ck3.unwrap(), &modpath, modfile.replace_paths())?;
     everything.load_all();
     everything.validate_all();
+    everything.check_rivers();
     if args.pod {
         everything.check_pod();
     }
