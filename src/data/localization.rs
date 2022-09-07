@@ -10,6 +10,7 @@ use crate::errors::{advice_info, error, error_info, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::token::Token;
 
 mod parse;
@@ -112,6 +113,16 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
 }
 
 impl Localization {
+    pub fn exists(&self, key: &str) -> bool {
+        for lang in &self.check_langs {
+            let hash = self.locas.get(lang);
+            if hash.is_none() || !hash.unwrap().contains_key(key) {
+                return false;
+            }
+        }
+        true
+    }
+
     pub fn verify_exists(&self, token: &Token) {
         self.verify_exists_implied(token.as_str(), token);
     }
@@ -146,7 +157,7 @@ impl Localization {
                     && chain.codes[0].arguments.is_empty()
                     && chain.codes[0].name.as_str().chars().all(char::is_lowercase) =>
             {
-                data.game_concepts.verify_exists(&chain.codes[0].name);
+                data.verify_exists(Item::GameConcept, &chain.codes[0].name);
             }
             _ => (),
         }

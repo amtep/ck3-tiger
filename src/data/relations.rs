@@ -8,6 +8,7 @@ use crate::errors::{error, error_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -27,22 +28,8 @@ impl Relations {
             .insert(key.to_string(), Relation::new(key, block.clone()));
     }
 
-    pub fn verify_exists(&self, item: &Token) {
-        self.verify_exists_implied(item.as_str(), item);
-    }
-
     pub fn exists(&self, key: &str) -> bool {
         self.relations.contains_key(key)
-    }
-
-    pub fn verify_exists_implied(&self, key: &str, item: &Token) {
-        if !self.relations.contains_key(key) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "relation not defined in common/scripted_relations",
-            );
-        }
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -94,20 +81,18 @@ impl Relation {
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        if let Some(other) = vd.field_value("corresponding") {
-            data.relations.verify_exists(other);
-        }
+        vd.field_value_item("corresponding", Item::Relation);
         vd.field_bool("title_grant_target");
         vd.field_list("opposites");
         if let Some(list) = self.block.get_field_list("opposites") {
             for token in list {
-                data.relations.verify_exists(&token);
+                data.verify_exists(Item::Relation, &token);
             }
         }
         vd.field_list("relation_aliases");
         if let Some(list) = self.block.get_field_list("relation_aliases") {
             for token in list {
-                data.relations.verify_exists(&token);
+                data.verify_exists(Item::Relation, &token);
             }
         }
         vd.field_integer("opinion");

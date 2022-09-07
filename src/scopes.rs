@@ -6,6 +6,7 @@ use std::fmt::{Display, Formatter};
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
 use crate::everything::Everything;
+use crate::item::Item;
 use crate::token::Token;
 
 bitflags! {
@@ -204,7 +205,7 @@ pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes
             ));
         }
     }
-    if data.scripted_lists.exists(name) {
+    if data.scripted_lists.exists(name.as_str()) {
         return data
             .scripted_lists
             .base(name)
@@ -239,6 +240,15 @@ pub fn scope_trigger_bool(name: &str) -> Option<Scopes> {
     for (from, s) in SCOPE_TRIGGER_BOOL {
         if *s == name {
             return Some(Scopes::from_bits_truncate(*from));
+        }
+    }
+    std::option::Option::None
+}
+
+pub fn scope_trigger_item(name: &str) -> Option<(Scopes, Item)> {
+    for (from, s, item) in SCOPE_TRIGGER_ITEM {
+        if *s == name {
+            return Some((Scopes::from_bits_truncate(*from), *item));
         }
     }
     std::option::Option::None
@@ -1152,6 +1162,7 @@ const SCOPE_TRIGGER_TARGET: &[(u32, &str, u32)] = &[
     (Character, "is_courtier_of", Character),
     (Character, "is_cousin_of", Character),
     (Character, "is_defender_in_war", War),
+    (Character, "is_employer_of", Character),
     (Character, "is_extended_family_of", Character),
     (Character, "is_forbidden_from_scheme", Scheme),
     (Character, "is_forced_into_scheme", Scheme),
@@ -1370,4 +1381,122 @@ const SCOPE_TRIGGER_BOOL: &[(u32, &str)] = &[
     (Character, "patrilinear_marriage"),
     (Character, "vassal_contract_has_modifiable_obligations"),
     (Character, "vassal_contract_is_blocked_from_modification"),
+];
+
+/// LAST UPDATED VERSION 1.6.2.2
+/// See `triggers.log` from the game data dumps
+/// These are the triggers that compare to an item type
+const SCOPE_TRIGGER_ITEM: &[(u32, &str, Item)] = &[
+    (DynastyHouse, "has_house_modifier", Item::Modifier),
+    (
+        DynastyHouse,
+        "has_house_modifier_duration_remaining",
+        Item::Modifier,
+    ),
+    (Faction, "faction_is_type", Item::Faction),
+    (War, "using_cb", Item::CasusBelli),
+    (CombatSide, "has_maa_of_type", Item::MenAtArms),
+    (Artifact, "artifact_slot_type", Item::ArtifactSlot),
+    (Artifact, "artifact_type", Item::Artifact),
+    (Artifact, "category", Item::ArtifactCategory),
+    (Artifact, "has_artifact_feature", Item::ArtifactFeature),
+    (
+        Artifact,
+        "has_artifact_feature_group",
+        Item::ArtifactFeatureGroup,
+    ),
+    (Artifact, "has_artifact_modifier", Item::ArtifactModifier),
+    (Artifact, "rarity", Item::ArtifactRarity),
+    (LandedTitle, "has_county_modifier", Item::Modifier),
+    (
+        LandedTitle,
+        "has_county_modifier_duration_remaining",
+        Item::Modifier,
+    ),
+    (LandedTitle, "has_holy_site_flag", Item::HolySiteFlag),
+    (LandedTitle, "has_title_law", Item::TitleLaw),
+    (LandedTitle, "has_title_law_flag", Item::TitleLawFlag),
+    (LandedTitle, "is_target_of_council_task", Item::CouncilTask),
+    (
+        Culture,
+        "culture_overlaps_geographical_region",
+        Item::Region,
+    ),
+    (Culture, "has_building_gfx", Item::BuildingGfx),
+    (Culture, "has_clothing_gfx", Item::ClothingGfx),
+    (Culture, "has_coa_gfx", Item::CoaGfx),
+    (Culture, "has_cultural_era_or_later", Item::CultureEra),
+    (Culture, "has_cultural_parameter", Item::CultureParameter),
+    (Culture, "has_cultural_pillar", Item::CulturePillar),
+    (Culture, "has_cultural_tradition", Item::CultureTradition),
+    (Culture, "has_innovation", Item::Innovation),
+    (Culture, "has_innovation_flag", Item::InnovationFlag),
+    (Culture, "has_name_list", Item::NameList),
+    (Culture, "has_primary_name_list", Item::NameList),
+    (Culture, "has_unit_gfx", Item::UnitGfx),
+    (StoryCycle, "story_type", Item::Story),
+    (Faith, "controls_holy_site", Item::HolySite),
+    (Faith, "controls_holy_site_with_flag", Item::HolySiteFlag),
+    (Faith, "has_doctrine", Item::Doctrine),
+    (Faith, "has_doctrine_parameter", Item::DoctrineParameter),
+    (Faith, "has_graphical_faith", Item::GraphicalFaith),
+    (Faith, "has_icon", Item::FaithIcon),
+    (Faith, "religion_tag", Item::Religion),
+    (Faith, "trait_is_sin", Item::Trait),
+    (Faith, "trait_is_virtue", Item::Trait),
+    (Province, "geographical_region", Item::Region),
+    (Province, "has_building", Item::Building),
+    (Province, "has_building_or_higher", Item::Building),
+    (Province, "has_construction_with_flag", Item::BuildingFlag),
+    (Province, "has_holding_type", Item::Holding),
+    (Province, "has_province_modifier", Item::Modifier),
+    (
+        Province,
+        "has_province_modifier_duration_remaining",
+        Item::Modifier,
+    ),
+    (Province, "terrain", Item::Terrain),
+    (
+        Struggle,
+        "has_struggle_phase_parameter",
+        Item::StrugglePhaseParameter,
+    ),
+    (Struggle, "is_struggle_phase", Item::StrugglePhase),
+    (Struggle, "is_struggle_type", Item::Struggle),
+    (Struggle, "phase_has_catalyst", Item::Catalyst),
+    (Scheme, "has_scheme_modifier", Item::Modifier),
+    (Scheme, "scheme_skill", Item::Skill),
+    (Scheme, "scheme_type", Item::Scheme),
+    (Inspiration, "has_inspiration_type", Item::Inspiration),
+    (Secret, "secret_type", Item::Secret),
+    (Dynasty, "has_dynasty_modifier", Item::Modifier),
+    (
+        Dynasty,
+        "has_dynasty_modifier_duration_remaining",
+        Item::Modifier,
+    ),
+    (Dynasty, "has_dynasty_perk", Item::DynastyPerk),
+    // ---
+    (Character, "can_execute_decision", Item::Decision),
+    (Character, "is_decision_on_cooldown", Item::Decision),
+    (Character, "completely_controls_region", Item::Region),
+    // ---
+    (Character, "has_character_modifier", Item::Modifier),
+    (
+        Character,
+        "has_character_modifier_duration_remaining",
+        Item::Modifier,
+    ),
+    // ---
+    (Character, "has_lifestyle", Item::Lifestyle),
+    (Character, "has_trait", Item::Trait),
+    (Character, "has_inactive_trait", Item::Trait),
+    (Character, "has_opposite_relation", Item::Relation),
+    (
+        Character,
+        "has_pending_interaction_of_type",
+        Item::Interaction,
+    ),
+    (Character, "is_leading_faction_type", Item::Faction),
+    (Character, "owns_story_of_type", Item::Story),
 ];

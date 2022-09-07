@@ -8,6 +8,7 @@ use crate::errors::{error, error_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -33,14 +34,8 @@ impl GameConcepts {
             .insert(key.to_string(), Concept::new(key, block.clone()));
     }
 
-    pub fn verify_exists(&self, item: &Token) {
-        if !self.concepts.contains_key(item.as_str()) && !self.aliases.contains_key(item.as_str()) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "game concept not defined in common/game_concepts/",
-            );
-        }
+    pub fn exists(&self, key: &str) -> bool {
+        self.concepts.contains_key(key) || self.aliases.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -124,9 +119,7 @@ impl Concept {
             }
         }
 
-        if let Some(parent) = vd.field_value("parent") {
-            data.game_concepts.verify_exists(parent);
-        }
+        vd.field_value_item("parent", Item::GameConcept);
         if let Some(token) = vd.field_value("texture") {
             // TODO: check the file's resolution and check it against framesize and frame keys
             if !token.is("piety") {

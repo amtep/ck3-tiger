@@ -6,7 +6,7 @@ use crate::block::Block;
 use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn};
+use crate::errors::{error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -32,18 +32,8 @@ impl Decisions {
             .insert(key.to_string(), Decision::new(key, block.clone()));
     }
 
-    pub fn verify_exists(&self, item: &Token) {
-        self.verify_implied_exists(item.as_str(), item);
-    }
-
-    pub fn verify_implied_exists(&self, key: &str, item: &Token) {
-        if !self.decisions.contains_key(key) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "decision not defined in common/decisions/",
-            );
-        }
+    pub fn exists(&self, key: &str) -> bool {
+        self.decisions.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {

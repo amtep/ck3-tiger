@@ -91,6 +91,10 @@ impl Events {
         self.effects.contains_key(&index)
     }
 
+    pub fn exists(&self, key: &str) -> bool {
+        self.events.contains_key(key)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.events.values() {
             item.validate(data);

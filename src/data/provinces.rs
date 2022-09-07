@@ -104,17 +104,22 @@ impl Provinces {
         }
     }
 
-    pub fn verify_exists(&self, item: &Token) {
-        if let Ok(provid) = item.as_str().parse::<ProvId>() {
+    pub fn verify_exists_implied(&self, key: &str, item: &Token) {
+        if let Ok(provid) = key.parse::<ProvId>() {
             if !self.provinces.contains_key(&provid) {
-                error(
-                    item,
-                    ErrorKey::MissingItem,
-                    "province not defined in map_data/definition.csv",
-                );
+                let msg = format!("province {} not defined in map_data/definition.csv", provid);
+                error(item, ErrorKey::MissingItem, &msg);
             }
         } else {
             error(item, ErrorKey::Validation, "province id should be numeric");
+        }
+    }
+
+    pub fn exists(&self, key: &str) -> bool {
+        if let Ok(provid) = key.parse::<ProvId>() {
+            self.provinces.contains_key(&provid)
+        } else {
+            false
         }
     }
 

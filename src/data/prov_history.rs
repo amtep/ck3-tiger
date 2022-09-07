@@ -11,6 +11,7 @@ use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -133,11 +134,9 @@ impl ProvinceHistory {
         Self { key, block }
     }
 
-    fn validate_common(vd: &mut Validator, data: &Everything) {
+    fn validate_common(vd: &mut Validator, _data: &Everything) {
         vd.field_value("culture");
-        if let Some(token) = vd.field_value("religion") {
-            data.religions.verify_faith_exists(token);
-        }
+        vd.field_value_item("religion", Item::Faith);
         vd.field_choice(
             "holding",
             &[

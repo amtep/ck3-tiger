@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::block::Block;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
+use crate::errors::error_info;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -27,18 +27,8 @@ impl Interactions {
             .insert(key.to_string(), Interaction::new(key, block.clone()));
     }
 
-    pub fn verify_exists(&self, item: &Token) {
-        self.verify_implied_exists(item.as_str(), item);
-    }
-
-    pub fn verify_implied_exists(&self, key: &str, item: &Token) {
-        if !self.interactions.contains_key(key) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "interaction not defined in common/character_interactions/",
-            );
-        }
+    pub fn exists(&self, key: &str) -> bool {
+        self.interactions.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {

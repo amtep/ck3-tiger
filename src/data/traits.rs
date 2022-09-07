@@ -5,10 +5,11 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::desc::{validate_desc, validate_desc_map};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
+use crate::errors::error_info;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -36,20 +37,8 @@ impl Traits {
             .insert(key.to_string(), Trait::new(key.clone(), block.clone()));
     }
 
-    pub fn verify_exists(&self, item: &Token) {
-        if !self.traits.contains_key(item.as_str()) && !self.groups.contains(item.as_str()) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "trait not defined in common/traits/",
-            );
-        }
-    }
-
-    pub fn verify_exists_opt(&self, item: Option<&Token>) {
-        if let Some(item) = item {
-            self.verify_exists(item);
-        }
+    pub fn exists(&self, key: &str) -> bool {
+        self.traits.contains_key(key) || self.groups.contains(key)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -251,7 +240,7 @@ impl Trait {
         vd.field_list("opposites");
         if let Some(tokens) = self.block.get_field_list("opposites") {
             for token in tokens {
-                data.traits.verify_exists(&token);
+                data.verify_exists(Item::Trait, &token);
             }
         }
 

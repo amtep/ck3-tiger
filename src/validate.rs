@@ -5,6 +5,7 @@ use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::error;
 use crate::everything::Everything;
+use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 
@@ -136,13 +137,14 @@ pub fn validate_color(block: &Block, _data: &Everything) {
 pub fn validate_prefix_reference(prefix: &Token, arg: &Token, data: &Everything) {
     // TODO there are more to match
     match prefix.as_str() {
-        "character" => data.characters.verify_exists(arg),
-        "dynasty" => data.dynasties.verify_exists(arg),
-        "faith" => data.religions.verify_faith_exists(arg),
-        "house" => data.houses.verify_exists(arg),
-        "province" => data.provinces.verify_exists(arg),
-        "religion" => data.religions.verify_religion_exists(arg),
-        "title" => data.titles.verify_exists(arg),
+        "character" => data.verify_exists(Item::Character, arg),
+        "dynasty" => data.verify_exists(Item::Dynasty, arg),
+        "event_id" => data.verify_exists(Item::Event, arg),
+        "faith" => data.verify_exists(Item::Faith, arg),
+        "house" => data.verify_exists(Item::House, arg),
+        "province" => data.verify_exists(Item::Province, arg),
+        "religion" => data.verify_exists(Item::Religion, arg),
+        "title" => data.verify_exists(Item::Title, arg),
         &_ => (),
     }
 }

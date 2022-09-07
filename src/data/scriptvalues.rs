@@ -8,6 +8,7 @@ use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, scope_value, Scopes};
 use crate::token::Token;
@@ -32,22 +33,6 @@ impl ScriptValues {
 
     pub fn exists(&self, key: &str) -> bool {
         self.scriptvalues.contains_key(key)
-    }
-
-    pub fn verify_exists(&self, item: &Token) {
-        if !self.scriptvalues.contains_key(item.as_str()) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "script value not defined in common/script_values/",
-            );
-        }
-    }
-
-    pub fn verify_exists_opt(&self, item: Option<&Token>) {
-        if let Some(item) = item {
-            self.verify_exists(item);
-        }
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -104,8 +89,8 @@ impl ScriptValue {
     }
 
     fn validate_inner(mut vd: Validator, data: &Everything, mut scopes: Scopes) -> Scopes {
-        vd.field_value_loca("desc");
-        vd.field_value_loca("format");
+        vd.field_value_item("desc", Item::Localization);
+        vd.field_value_item("format", Item::Localization);
         vd.field_validated("value", |bv, data| {
             scopes = Self::validate_bv(bv, data, scopes);
         });
@@ -290,15 +275,13 @@ impl ScriptValue {
                 scopes = validate_trigger(block, data, scopes, &[]);
             }
         } else if it_name.is("county_in_region") {
-            vd.field_value("region");
+            vd.field_value_item("region", Item::Region);
         } else if it_name.is("court_position_holder") {
             vd.req_field("type");
             vd.field_value("type");
         } else if it_name.is("relation") {
             vd.req_field("type");
-            if let Some(token) = vd.field_value("type") {
-                data.relations.verify_exists(token);
-            }
+            vd.field_value_item("type", Item::Relation)
         }
         Self::validate_inner(vd, data, scopes);
     }
@@ -410,7 +393,7 @@ impl ScriptValue {
                             scopes &= inscope;
                         }
                     } else {
-                        data.scriptvalues.verify_exists(part);
+                        data.verify_exists(Item::ScriptValue, part);
                     }
                 } else {
                     let msg = format!("unknown token `{}`", part);

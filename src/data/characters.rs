@@ -9,6 +9,7 @@ use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 use crate::validate::validate_prefix_reference_token;
@@ -80,14 +81,8 @@ impl Characters {
         }
     }
 
-    pub fn verify_exists(&self, item: &Token) {
-        if !self.characters.contains_key(item.as_str()) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "character not defined in history/characters/",
-            );
-        }
+    pub fn exists(&self, key: &str) -> bool {
+        self.characters.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -165,37 +160,34 @@ impl Character {
 
     pub fn validate_history(block: &Block, parent: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        vd.field_value_loca("name");
+        vd.field_value_item("name", Item::Localization);
 
         vd.field_value("birth"); // TODO: can be "yes" or a date
         vd.field("death"); // TODO: can be "yes" or { death_reason = }
-                           // religion and faith both mean faith here
-        data.religions
-            .verify_faith_exists_opt(vd.field_value("religion"));
-        data.religions
-            .verify_faith_exists_opt(vd.field_value("faith"));
+
+        // religion and faith both mean faith here
+        vd.field_value_item("religion", Item::Faith);
+        vd.field_value_item("faith", Item::Faith);
 
         if let Some(token) = vd.field_value("set_character_faith") {
             validate_prefix_reference_token(token, data, "faith");
         }
 
-        if let Some(token) = vd.field_value("employer") {
-            data.characters.verify_exists(token);
-        }
+        vd.field_value_item("employer", Item::Character);
         vd.field_value("culture");
         vd.field_value("set_culture");
-        vd.field_values("trait");
-        vd.field_values("add_trait");
-        vd.field_values("remove_trait");
+        vd.field_values_items("trait", Item::Trait);
+        vd.field_values_items("add_trait", Item::Trait);
+        vd.field_values_items("remove_trait", Item::Trait);
         vd.fields("add_character_flag"); // TODO: can be flag name or { flag = }
         for token in vd.field_values("add_pressed_claim") {
-            data.titles.verify_exists_prefix(token);
+            validate_prefix_reference_token(token, data, "title");
         }
         for token in vd.field_values("remove_claim") {
-            data.titles.verify_exists_prefix(token);
+            validate_prefix_reference_token(token, data, "title");
         }
         if let Some(token) = vd.field_value("capital") {
-            data.titles.verify_exists(token);
+            data.verify_exists(Item::Title, token);
             if !token.as_str().starts_with("c_") {
                 error(token, ErrorKey::Validation, "capital must be a county");
             }
@@ -222,9 +214,8 @@ impl Character {
         vd.field_value("give_nickname");
         vd.field_blocks("create_alliance");
 
-        data.dynasties.verify_exists_opt(vd.field_value("dynasty"));
-        data.houses
-            .verify_exists_opt(vd.field_value("dynasty_house"));
+        vd.field_value_item("dynasty", Item::Dynasty);
+        vd.field_value_item("dynasty_house", Item::House);
 
         vd.field_integer("set_immortal_age");
         // At this point it seems that just about any effect can be here
@@ -239,7 +230,7 @@ impl Character {
 
         for (token, bv) in vd.unknown_keys() {
             if let Some(relation) = token.as_str().strip_prefix("set_relation_") {
-                data.relations.verify_exists_implied(relation, token);
+                data.verify_exists_implied(Item::Relation, relation, token);
                 if let Some(value) = bv.expect_value() {
                     validate_prefix_reference_token(value, data, "character");
                 }
@@ -256,7 +247,7 @@ impl Character {
         let mut vd = Validator::new(&self.block, data);
 
         vd.req_field("name");
-        vd.field_value_loca("name");
+        vd.field_value_item("name", Item::Localization);
 
         vd.field_value("dna");
         vd.field_bool("female");
@@ -266,7 +257,7 @@ impl Character {
         vd.field_integer("intrigue");
         vd.field_integer("stewardship");
         vd.field_integer("learning");
-        vd.field_values("trait");
+        vd.field_values_items("trait", Item::Trait);
 
         if let Some(ch) = vd.field_value("father") {
             data.characters.verify_exists_gender(ch, Gender::Male);
@@ -279,16 +270,13 @@ impl Character {
         vd.field_bool("disallow_random_traits");
 
         // religion and faith both mean faith here
-        data.religions
-            .verify_faith_exists_opt(vd.field_value("religion"));
-        data.religions
-            .verify_faith_exists_opt(vd.field_value("faith"));
+        vd.field_value_item("religion", Item::Faith);
+        vd.field_value_item("faith", Item::Faith);
 
         vd.field_value("culture");
 
-        data.dynasties.verify_exists_opt(vd.field_value("dynasty"));
-        data.houses
-            .verify_exists_opt(vd.field_value("dynasty_house"));
+        vd.field_value_item("dynasty", Item::Dynasty);
+        vd.field_value_item("dynasty_house", Item::House);
 
         vd.field_value("give_nickname");
         vd.field_choice("sexuality", SEXUALITIES);

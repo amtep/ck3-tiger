@@ -3,6 +3,7 @@ use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice, error, warn};
 use crate::everything::Everything;
+use crate::item::Item;
 use crate::scopes::Scopes;
 
 #[derive(Debug)]
@@ -124,13 +125,10 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn field_value_loca(&mut self, name: &'a str) {
-        self.field_check(name, |v| match v {
-            BlockOrValue::Token(t) => {
-                self.data.localization.verify_exists(t);
-            }
-            BlockOrValue::Block(s) => {
-                error(s, ErrorKey::Validation, "expected value, found block");
+    pub fn field_value_item(&mut self, name: &'a str, itype: Item) {
+        self.field_check(name, |bv| {
+            if let Some(token) = bv.expect_value() {
+                self.data.verify_exists(itype, token);
             }
         });
     }
@@ -256,6 +254,27 @@ impl<'a> Validator<'a> {
             }
         }
         vec
+    }
+
+    pub fn field_values_items(&mut self, name: &'a str, itype: Item) {
+        self.known_fields.push(name);
+
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    if !matches!(cmp, Comparator::Eq) {
+                        error(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("expected `{} =`, found `{}`", key, cmp),
+                        );
+                    }
+                    if let Some(token) = bv.expect_value() {
+                        self.data.verify_exists(itype, token);
+                    }
+                }
+            }
+        }
     }
 
     pub fn fields(&mut self, name: &'a str) -> bool {

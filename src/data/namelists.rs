@@ -8,6 +8,7 @@ use crate::errors::error_info;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -25,6 +26,10 @@ impl Namelists {
         }
         self.lists
             .insert(key.to_string(), List::new(key, block.clone()));
+    }
+
+    pub fn exists(&self, key: &str) -> bool {
+        self.lists.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -81,18 +86,18 @@ impl List {
         vd.field_validated_block("female_names", validate_name_list);
         vd.field_validated_block("dynasty_names", validate_dynasty_names);
         vd.field_validated_block("cadet_dynasty_names", validate_dynasty_names);
-        vd.field_value_loca("dynasty_of_location_prefix");
+        vd.field_value_item("dynasty_of_location_prefix", Item::Localization);
 
         vd.field_bool("always_use_patronym");
-        vd.field_value_loca("patronym_prefix_male");
-        vd.field_value_loca("patronym_prefix_male_vowel");
-        vd.field_value_loca("patronym_suffix_male");
-        vd.field_value_loca("patronym_prefix_female");
-        vd.field_value_loca("patronym_prefix_female_vowel");
-        vd.field_value_loca("patronym_suffix_female");
+        vd.field_value_item("patronym_prefix_male", Item::Localization);
+        vd.field_value_item("patronym_prefix_male_vowel", Item::Localization);
+        vd.field_value_item("patronym_suffix_male", Item::Localization);
+        vd.field_value_item("patronym_prefix_female", Item::Localization);
+        vd.field_value_item("patronym_prefix_female_vowel", Item::Localization);
+        vd.field_value_item("patronym_suffix_female", Item::Localization);
 
         vd.field_bool("founder_named_dynasties");
-        vd.field_value_loca("bastard_dynasty_prefix");
+        vd.field_value_item("bastard_dynasty_prefix", Item::Localization);
 
         // TODO: these should sum to <= 100
         vd.field_integer("father_name_chance");
@@ -113,12 +118,12 @@ impl List {
 fn validate_name_list(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     for token in vd.values() {
-        data.localization.verify_exists(token);
+        data.verify_exists(Item::Localization, token);
     }
     for (_, block) in vd.integer_blocks() {
         let mut vd = Validator::new(block, data);
         for token in vd.values() {
-            data.localization.verify_exists(token);
+            data.verify_exists(Item::Localization, token);
         }
         vd.warn_remaining();
     }
@@ -130,7 +135,7 @@ fn validate_mercenary_names(block: &Block, data: &Everything) {
     for block in vd.blocks() {
         let mut vd = Validator::new(block, data);
         vd.req_field("name");
-        vd.field_value_loca("name");
+        vd.field_value_item("name", Item::Localization);
         vd.field_value("coat_of_arms");
         vd.warn_remaining();
     }
@@ -140,12 +145,12 @@ fn validate_mercenary_names(block: &Block, data: &Everything) {
 fn validate_dynasty_names(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     for token in vd.values() {
-        data.localization.verify_exists(token);
+        data.verify_exists(Item::Localization, token);
     }
     for block in vd.blocks() {
         let mut vd = Validator::new(block, data);
         for token in vd.values() {
-            data.localization.verify_exists(token);
+            data.verify_exists(Item::Localization, token);
         }
         vd.warn_remaining();
     }

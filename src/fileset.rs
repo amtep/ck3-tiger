@@ -200,6 +200,11 @@ impl Fileset {
         handler.finalize();
     }
 
+    pub fn exists(&self, key: &str) -> bool {
+        let filepath = PathBuf::from(key);
+        self.filenames.contains(&filepath)
+    }
+
     pub fn verify_exists(&self, file: &Token) {
         let filepath = PathBuf::from(file.as_str());
         if !self.filenames.contains(&filepath) {

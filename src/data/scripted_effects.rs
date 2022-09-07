@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
+use crate::errors::error_info;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -26,20 +26,8 @@ impl Effects {
             .insert(key.to_string(), Effect::new(key.clone(), block.clone()));
     }
 
-    pub fn verify_exists(&self, item: &Token) {
-        if !self.effects.contains_key(item.as_str()) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "effect not defined in common/scripted_effects/",
-            );
-        }
-    }
-
-    pub fn verify_exists_opt(&self, item: Option<&Token>) {
-        if let Some(item) = item {
-            self.verify_exists(item);
-        }
+    pub fn exists(&self, key: &str) -> bool {
+        self.effects.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {

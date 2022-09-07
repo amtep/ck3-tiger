@@ -4,10 +4,11 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
+use crate::errors::error_info;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -27,20 +28,8 @@ impl Dynasties {
             .insert(key.to_string(), Dynasty::new(key.clone(), block.clone()));
     }
 
-    pub fn verify_exists(&self, item: &Token) {
-        if !self.dynasties.contains_key(item.as_str()) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "dynasty not defined in common/dynasties/",
-            );
-        }
-    }
-
-    pub fn verify_exists_opt(&self, item: Option<&Token>) {
-        if let Some(item) = item {
-            self.verify_exists(item);
-        }
+    pub fn exists(&self, key: &str) -> bool {
+        self.dynasties.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -94,10 +83,10 @@ impl Dynasty {
         let mut vd = Validator::new(&self.block, data);
 
         vd.req_field("name");
-        vd.field_value_loca("name");
-        vd.field_value_loca("prefix");
-        vd.field_value_loca("motto");
-        vd.field_value("culture");
+        vd.field_value_item("name", Item::Localization);
+        vd.field_value_item("prefix", Item::Localization);
+        vd.field_value_item("motto", Item::Localization);
+        vd.field_value_item("culture", Item::Culture);
         vd.field_value("forced_coa_religiongroup");
         vd.warn_remaining();
     }

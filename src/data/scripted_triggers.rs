@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
+use crate::errors::error_info;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -28,24 +28,8 @@ impl Triggers {
             .insert(key.to_string(), Trigger::new(key.clone(), block.clone()));
     }
 
-    pub fn verify_exists(&self, item: &Token) {
-        if !self.triggers.contains_key(item.as_str()) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "trigger not defined in common/scripted_triggers/",
-            );
-        }
-    }
-
-    pub fn verify_exists_opt(&self, item: Option<&Token>) {
-        if let Some(item) = item {
-            self.verify_exists(item);
-        }
-    }
-
-    pub fn exists(&self, item: &Token) -> bool {
-        self.triggers.contains_key(item.as_str())
+    pub fn exists(&self, key: &str) -> bool {
+        self.triggers.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {

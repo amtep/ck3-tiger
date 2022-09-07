@@ -4,10 +4,11 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
+use crate::errors::error_info;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -27,20 +28,8 @@ impl Houses {
             .insert(key.to_string(), House::new(key.clone(), block.clone()));
     }
 
-    pub fn verify_exists(&self, item: &Token) {
-        if !self.houses.contains_key(item.as_str()) {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "house not defined in common/dynasty_houses/",
-            );
-        }
-    }
-
-    pub fn verify_exists_opt(&self, item: Option<&Token>) {
-        if let Some(item) = item {
-            self.verify_exists(item);
-        }
+    pub fn exists(&self, key: &str) -> bool {
+        self.houses.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -96,12 +85,10 @@ impl House {
         vd.req_field("name");
         vd.req_field("dynasty");
 
-        vd.field_value_loca("name");
-        vd.field_value_loca("prefix");
-        vd.field_value_loca("motto");
-        if let Some(token) = vd.field_value("dynasty") {
-            data.dynasties.verify_exists(token);
-        }
+        vd.field_value_item("name", Item::Localization);
+        vd.field_value_item("prefix", Item::Localization);
+        vd.field_value_item("motto", Item::Localization);
+        vd.field_value_item("dynasty", Item::Dynasty);
         vd.field_value("forced_coa_religiongroup");
         vd.warn_remaining();
     }

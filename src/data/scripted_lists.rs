@@ -29,8 +29,8 @@ impl ScriptedLists {
             .insert(key.to_string(), List::new(key.clone(), block.clone()));
     }
 
-    pub fn exists(&self, item: &Token) -> bool {
-        self.lists.contains_key(item.as_str())
+    pub fn exists(&self, key: &str) -> bool {
+        self.lists.contains_key(key)
     }
 
     pub fn base(&self, item: &Token) -> Option<&Token> {

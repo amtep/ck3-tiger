@@ -25,11 +25,12 @@ use crate::data::scriptvalues::ScriptValues;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
 use crate::errorkey::ErrorKey;
-use crate::errors::{ignore_key, ignore_key_for, warn};
+use crate::errors::{error, ignore_key, ignore_key_for, warn};
 use crate::fileset::{FileEntry, FileKind, Fileset};
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::rivers::Rivers;
-use crate::token::Loc;
+use crate::token::{Loc, Token};
 
 #[derive(Debug, Error)]
 pub enum FilesError {
@@ -79,7 +80,7 @@ pub struct Everything {
     pub province_histories: ProvinceHistories,
 
     /// Processed game concepts
-    pub game_concepts: GameConcepts,
+    pub gameconcepts: GameConcepts,
 
     /// Religions and faiths
     pub religions: Religions,
@@ -157,7 +158,7 @@ impl Everything {
             interactions: Interactions::default(),
             provinces: Provinces::default(),
             province_histories: ProvinceHistories::default(),
-            game_concepts: GameConcepts::default(),
+            gameconcepts: GameConcepts::default(),
             religions: Religions::default(),
             titles: Titles::default(),
             dynasties: Dynasties::default(),
@@ -226,7 +227,7 @@ impl Everything {
         self.fileset.handle(&mut self.interactions);
         self.fileset.handle(&mut self.provinces);
         self.fileset.handle(&mut self.province_histories);
-        self.fileset.handle(&mut self.game_concepts);
+        self.fileset.handle(&mut self.gameconcepts);
         self.fileset.handle(&mut self.religions);
         self.fileset.handle(&mut self.titles);
         self.fileset.handle(&mut self.dynasties);
@@ -250,7 +251,7 @@ impl Everything {
         self.interactions.validate(self);
         self.provinces.validate(self);
         self.province_histories.validate(self);
-        self.game_concepts.validate(self);
+        self.gameconcepts.validate(self);
         self.religions.validate(self);
         self.titles.validate(self);
         self.dynasties.validate(self);
@@ -274,5 +275,50 @@ impl Everything {
     pub fn check_pod(&mut self) {
         self.province_histories
             .check_pod_faiths(&self.religions, &self.titles);
+    }
+
+    pub fn item_exists(&self, itype: Item, key: &str) -> bool {
+        match itype {
+            Item::Character => self.characters.exists(key),
+            Item::Decision => self.decisions.exists(key),
+            Item::Dynasty => self.dynasties.exists(key),
+            Item::Event => self.events.exists(key),
+            Item::Faith => self.religions.faith_exists(key),
+            Item::File => self.fileset.exists(key),
+            Item::GameConcept => self.gameconcepts.exists(key),
+            Item::House => self.houses.exists(key),
+            Item::Interaction => self.interactions.exists(key),
+            Item::Lifestyle => self.lifestyles.exists(key),
+            Item::Localization => self.localization.exists(key),
+            Item::NameList => self.namelists.exists(key),
+            Item::Province => self.provinces.exists(key),
+            Item::Relation => self.relations.exists(key),
+            Item::Religion => self.religions.religion_exists(key),
+            Item::ScriptedEffect => self.effects.exists(key),
+            Item::ScriptedList => self.scripted_lists.exists(key),
+            Item::ScriptedTrigger => self.triggers.exists(key),
+            Item::ScriptValue => self.scriptvalues.exists(key),
+            Item::Title => self.titles.exists(key),
+            Item::Trait => self.traits.exists(key),
+            _ => true,
+        }
+    }
+
+    pub fn verify_exists(&self, itype: Item, token: &Token) {
+        self.verify_exists_implied(itype, token.as_str(), token);
+    }
+
+    pub fn verify_exists_implied(&self, itype: Item, key: &str, token: &Token) {
+        match itype {
+            Item::File => self.fileset.verify_exists_implied(key, token),
+            Item::Localization => self.localization.verify_exists_implied(key, token),
+            Item::Province => self.provinces.verify_exists_implied(key, token),
+            _ => {
+                if !self.item_exists(itype, key) {
+                    let msg = format!("{} {} not defined in {}", itype, key, itype.path());
+                    error(token, ErrorKey::MissingItem, &msg);
+                }
+            }
+        }
     }
 }
