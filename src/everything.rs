@@ -11,6 +11,7 @@ use crate::data::events::Events;
 use crate::data::gameconcepts::GameConcepts;
 use crate::data::houses::Houses;
 use crate::data::interactions::Interactions;
+use crate::data::lifestyles::Lifestyles;
 use crate::data::localization::Localization;
 use crate::data::namelists::Namelists;
 use crate::data::prov_history::ProvinceHistories;
@@ -101,6 +102,8 @@ pub struct Everything {
     pub effects: Effects,
 
     pub traits: Traits,
+
+    pub lifestyles: Lifestyles,
 }
 
 impl Everything {
@@ -165,6 +168,7 @@ impl Everything {
             triggers: Triggers::default(),
             effects: Effects::default(),
             traits: Traits::default(),
+            lifestyles: Lifestyles::default(),
         })
     }
 
@@ -233,6 +237,7 @@ impl Everything {
         self.fileset.handle(&mut self.triggers);
         self.fileset.handle(&mut self.effects);
         self.fileset.handle(&mut self.traits);
+        self.fileset.handle(&mut self.lifestyles);
     }
 
     pub fn validate_all(&mut self) {
@@ -256,6 +261,7 @@ impl Everything {
         self.triggers.validate(self);
         self.effects.validate(self);
         self.traits.validate(self);
+        self.lifestyles.validate(self);
     }
 
     pub fn check_pod(&mut self) {

@@ -5,6 +5,7 @@ pub mod events;
 pub mod gameconcepts;
 pub mod houses;
 pub mod interactions;
+pub mod lifestyles;
 pub mod localization;
 pub mod namelists;
 pub mod prov_history;

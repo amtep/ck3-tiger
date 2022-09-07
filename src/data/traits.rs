@@ -102,7 +102,7 @@ impl Trait {
     }
 
     // TODO: move these to Modifiers when we load those.
-    fn validate_modifiers(_data: &Everything, vd: &mut Validator) {
+    fn validate_modifiers<'a>(data: &'a Everything, vd: &mut Validator<'a>) {
         vd.field_bool("enables_inbred");
         vd.field_integer("diplomacy");
         vd.field_integer("martial");
@@ -127,6 +127,7 @@ impl Trait {
         vd.field_numeric("dread_baseline_add");
         vd.field_integer("attraction_opinion");
         vd.field_integer("general_opinion");
+        vd.field_integer("clergy_opinion");
         vd.field_integer("vassal_opinion");
         vd.field_numeric("same_culture_opinion");
         vd.field_integer("county_opinion_add");
@@ -187,7 +188,12 @@ impl Trait {
         vd.field_integer("genetic_trait_strengthen_chance");
         vd.field_numeric("levy_size");
 
-        // TODO: monthly_<lifestyle>_xp_gain_mult
+        for name in data.lifestyles.iter_modifier_keys() {
+            vd.field_numeric(name);
+        }
+        for name in data.religions.iter_modifier_keys() {
+            vd.field_numeric(name);
+        }
     }
 
     fn validate_culture_modifier(block: &Block, data: &Everything) {
@@ -269,6 +275,7 @@ impl Trait {
         vd.field_value("group");
         vd.field_value("group_equivalence");
         vd.field_numeric("same_opinion");
+        vd.field_numeric("same_opinion_if_same_faith");
         vd.field_numeric("opposite_opinion");
         vd.field_numeric("same_faith_opinion");
         vd.field_integer("level");
@@ -284,6 +291,7 @@ impl Trait {
         vd.field_bool("no_water_crossing_penalty");
         vd.field_choice("parent_inheritance_sex", &["male", "female"]);
         vd.field_values("flag");
+        vd.field_bool("shown_in_encyclopedia");
 
         Self::validate_modifiers(data, &mut vd);
         vd.warn_remaining();

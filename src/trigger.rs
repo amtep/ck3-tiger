@@ -24,6 +24,11 @@ pub fn validate_trigger(
             if ignore_keys.contains(&key.as_str()) {
                 continue;
             }
+            if key.is("limit") {
+                // give a nicer message than "unknown token"
+                warn(key, ErrorKey::Validation, "cannot use `limit` here");
+                continue;
+            }
             if key.is("trigger_if") {
                 if let Some(block) = bv.expect_block() {
                     scopes = validate_trigger_if(block, data, scopes);
@@ -260,12 +265,11 @@ pub fn validate_trigger(
                 }
             }
 
-            // TODO: this needs to accept more constructions
             if part_scopes == Scopes::Bool {
-                if let Some(token) = bv.expect_value() {
-                    if !(token.is("yes") || token.is("no")) {
-                        warn(token, ErrorKey::Validation, "expected yes or no");
-                    }
+                if let Some(_token) = bv.expect_value() {
+                    scopes = ScriptValue::validate_bv(bv, data, scopes);
+                    // TODO: get outscope from ScriptValue because it can be either Value or Bool.
+                    // Then check if it's Bool here.
                 }
             } else if part_scopes == Scopes::Value {
                 scopes = ScriptValue::validate_bv(bv, data, scopes);
@@ -579,6 +583,7 @@ fn validate_trigger_keys(
         }
 
         "artifact_slot_type"
+        | "artifact_type"
         | "category"
         | "has_artifact_feature"
         | "has_artifact_feature_group"
@@ -740,8 +745,11 @@ fn validate_trigger_keys(
 
         "has_building_with_flag" => {
             scopes.expect_scope(key, Scopes::Province);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_has_building_with_flag(block, data, scopes);
+            match bv {
+                BlockOrValue::Block(block) => {
+                    validate_trigger_has_building_with_flag(block, data, scopes)
+                }
+                BlockOrValue::Token(_token) => (), // TODO
             }
         }
 
@@ -1240,6 +1248,13 @@ fn validate_trigger_keys(
             bv.expect_value();
         }
 
+        "perks_in_tree" => {
+            scopes.expect_scope(key, Scopes::Character);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_perks_in_tree(block, data, scopes);
+            }
+        }
+
         "player_heir_position" => {
             scopes.expect_scope(key, Scopes::Character);
             if let Some(block) = bv.expect_block() {
@@ -1500,6 +1515,10 @@ fn validate_trigger_number_maa_of_base_type(_block: &Block, _data: &Everything, 
 }
 
 fn validate_trigger_number_maa_of_type(_block: &Block, _data: &Everything, _scopes: Scopes) {
+    // TODO
+}
+
+fn validate_trigger_perks_in_tree(_block: &Block, _data: &Everything, _scopes: Scopes) {
     // TODO
 }
 

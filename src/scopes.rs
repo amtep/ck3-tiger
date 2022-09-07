@@ -170,6 +170,26 @@ pub fn scope_value(name: &Token, data: &Everything) -> Option<Scopes> {
         if data.relations.exists(relation) {
             return Some(Scopes::Character);
         }
+    } else if let Some(lifestyle) = name.as_str().strip_prefix("perks_in_") {
+        if data.lifestyles.exists(lifestyle) {
+            return Some(Scopes::Character);
+        }
+    } else if let Some(lifestyle) = name.as_str().strip_suffix("_perk_points") {
+        if data.lifestyles.exists(lifestyle) {
+            return Some(Scopes::Character);
+        }
+    } else if let Some(lifestyle) = name.as_str().strip_suffix("_perks") {
+        if data.lifestyles.exists(lifestyle) {
+            return Some(Scopes::Character);
+        }
+    } else if let Some(lifestyle) = name.as_str().strip_suffix("_unlockable_perks") {
+        if data.lifestyles.exists(lifestyle) {
+            return Some(Scopes::Character);
+        }
+    } else if let Some(lifestyle) = name.as_str().strip_suffix("_xp") {
+        if data.lifestyles.exists(lifestyle) {
+            return Some(Scopes::Character);
+        }
     }
     std::option::Option::None
 }
@@ -717,14 +737,14 @@ const SCOPE_VALUE: &[(u32, &str)] = &[
 ];
 // Special:
 // num_of_relation_<relation>
-//
-// TODO Special:
-// <legacy>_track_perks
 // perks_in_<lifestyle>
 // <lifestyle>_perk_points
 // <lifestyle>_perks
 // <lifestyle>_unlockable_perks
 // <lifestyle>_xp
+//
+// TODO Special:
+// <legacy>_track_perks
 
 /// LAST UPDATED VERSION 1.6.2.2
 /// See `effects.log` from the game data dumps

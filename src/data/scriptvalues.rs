@@ -191,7 +191,6 @@ impl ScriptValue {
                 }
             }
 
-            // Here we just warn about syntactical correctness.
             let mut first = true;
             let mut part_scopes = scopes;
             for part in key.split('.') {
@@ -361,6 +360,7 @@ impl ScriptValue {
                             scopes &= inscope;
                         }
                         validate_prefix_reference(&prefix, &arg, data);
+                        part_scopes = outscope;
                     } else {
                         let msg = format!("unknown prefix `{}:`", prefix);
                         error(part, ErrorKey::Validation, &msg);
@@ -381,7 +381,7 @@ impl ScriptValue {
                         let msg = format!("`{}` makes no sense except as first part", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
-                    if last && !outscope.contains(Scopes::Value) {
+                    if last && !outscope.intersects(Scopes::Value | Scopes::Bool) {
                         let msg = format!("expected a numeric formula instead of `{}` ", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }

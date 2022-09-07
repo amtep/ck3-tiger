@@ -16,6 +16,7 @@ use crate::validate::validate_color;
 pub struct Religions {
     religions: FnvHashMap<String, Religion>,
     faiths: FnvHashMap<String, Faith>,
+    modifier_keys: Vec<String>,
 }
 
 impl Religions {
@@ -24,6 +25,9 @@ impl Religions {
             if other.key.loc.kind >= key.loc.kind {
                 dup_error(key, &other.key, "religion");
             }
+        } else {
+            let key = format!("{}_opinion", key);
+            self.modifier_keys.push(key);
         }
         self.religions
             .insert(key.to_string(), Religion::new(key.clone(), block.clone()));
@@ -88,6 +92,10 @@ impl Religions {
 
     pub fn verify_religion_exists(&self, item: &Token) {
         self.verify_implied_religion_exists(item.as_str(), item);
+    }
+
+    pub fn iter_modifier_keys(&self) -> impl Iterator<Item = &String> {
+        self.modifier_keys.iter()
     }
 
     pub fn is_modded_faith(&self, item: &Token) -> bool {
