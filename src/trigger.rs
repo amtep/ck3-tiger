@@ -48,7 +48,7 @@ pub fn validate_trigger(
                     error(key, ErrorKey::Validation, "must follow `trigger_if`");
                 }
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger(block, data, scopes, &[]);
+                    scopes = validate_trigger_else(block, data, scopes);
                 }
                 seen_if = false;
                 continue;
@@ -375,6 +375,25 @@ fn validate_trigger_if(block: &Block, data: &Everything, mut scopes: Scopes) -> 
     for (key, _, bv) in block.iter_items() {
         if let Some(key) = key {
             if key.is("limit") {
+                if let Some(block) = bv.expect_block() {
+                    scopes = validate_trigger(block, data, scopes, &[]);
+                }
+            }
+        }
+    }
+    validate_trigger(block, data, scopes, &["limit"])
+}
+
+fn validate_trigger_else(block: &Block, data: &Everything, mut scopes: Scopes) -> Scopes {
+    for (key, _, bv) in block.iter_items() {
+        if let Some(key) = key {
+            if key.is("limit") {
+                advice_info(
+                    key,
+                    ErrorKey::Tidying,
+                    "`limit` in a trigger_else block is confusing",
+                    "consider making it a trigger_else_if block",
+                );
                 if let Some(block) = bv.expect_block() {
                     scopes = validate_trigger(block, data, scopes, &[]);
                 }

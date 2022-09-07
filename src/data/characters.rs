@@ -230,6 +230,11 @@ impl Character {
         // At this point it seems that just about any effect can be here
         // without an effect block around it.
         vd.field_integer("add_gold");
+
+        for effect in data.lifestyles.iter_effect_keys() {
+            vd.field_numeric(effect);
+        }
+
         vd.field_blocks("effect");
 
         for (token, bv) in vd.unknown_keys() {
