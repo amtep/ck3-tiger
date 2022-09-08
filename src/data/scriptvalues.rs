@@ -271,6 +271,9 @@ impl ScriptValue {
                 );
             }
         } else if it_name.is("in_de_facto_hierarchy") || it_name.is("in_de_jure_hierarchy") {
+            if let Some(block) = vd.field_block("filter") {
+                scopes = validate_trigger(block, data, scopes, &[]);
+            }
             if let Some(block) = vd.field_block("continue") {
                 scopes = validate_trigger(block, data, scopes, &[]);
             }

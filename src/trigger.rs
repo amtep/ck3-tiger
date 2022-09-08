@@ -374,7 +374,16 @@ pub fn validate_trigger_iterator(
                 bv.expect_value();
                 ignore.push(key.as_str());
             } else if name.is("county_in_region") && key.is("region") {
-                bv.expect_value();
+                if let Some(token) = bv.expect_value() {
+                    data.verify_exists(Item::Region, token);
+                }
+                ignore.push(key.as_str());
+            } else if (name.is("in_de_jure_hierarchy") || name.is("in_de_facto_hierarchy"))
+                && (key.is("filter") || key.is("continue"))
+            {
+                if let Some(block) = bv.expect_block() {
+                    scopes = validate_trigger(block, data, scopes, &[]);
+                }
                 ignore.push(key.as_str());
             }
         }
