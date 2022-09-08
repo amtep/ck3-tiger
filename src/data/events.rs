@@ -96,7 +96,21 @@ impl Events {
     }
 
     pub fn validate(&self, data: &Everything) {
-        for item in self.events.values() {
+        let mut vec = self.effects.values().collect::<Vec<&Effect>>();
+        vec.sort_unstable_by_key(|item| &item.key.loc);
+        for item in vec {
+            item.validate(data);
+        }
+
+        let mut vec = self.triggers.values().collect::<Vec<&Trigger>>();
+        vec.sort_unstable_by_key(|item| &item.key.loc);
+        for item in vec {
+            item.validate(data);
+        }
+
+        let mut vec = self.events.values().collect::<Vec<&Event>>();
+        vec.sort_unstable_by_key(|item| &item.key.loc);
+        for item in vec {
             item.validate(data);
         }
     }
