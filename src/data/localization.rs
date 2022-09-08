@@ -22,7 +22,7 @@ pub struct Localization {
     locas: FnvHashMap<&'static str, FnvHashMap<String, LocaEntry>>,
 }
 
-// LAST UPDATED VERSION 1.6.2.2
+// LAST UPDATED VERSION 1.7.0
 pub const KNOWN_LANGUAGES: [&str; 7] = [
     "english",
     "spanish",
@@ -33,7 +33,7 @@ pub const KNOWN_LANGUAGES: [&str; 7] = [
     "simp_chinese",
 ];
 
-// LAST UPDATED VERSION 1.6.2.2
+// LAST UPDATED VERSION 1.7.0
 // These are just the ones that can't be deduced from the vanilla localization files.
 pub const BUILTIN_MACROS: [&str; 2] = ["TRIGGER_AND", "TRIGGER_OR"];
 

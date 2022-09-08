@@ -590,236 +590,9 @@ fn validate_trigger_keys(
 ) -> (Scopes, bool) {
     let match_key: &str = &key.as_str().to_lowercase();
     match match_key {
-        "war_contribution" => {
-            scopes.expect_scope(key, Scopes::War);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_target_value(block, data, scopes, Scopes::Character);
-            }
-        }
-
-        "can_title_create_faction" => {
-            scopes.expect_scope(key, Scopes::LandedTitle);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_type_target(block, data, Item::Faction, scopes, Scopes::Character);
-            }
-        }
-
-        "county_opinion_target" => {
-            scopes.expect_scope(key, Scopes::LandedTitle);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_target_value(block, data, scopes, Scopes::Character);
-            }
-        }
-
-        "de_jure_drift_progress" => {
-            scopes.expect_scope(key, Scopes::LandedTitle);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_target_value(block, data, scopes, Scopes::LandedTitle);
-            }
-        }
-
-        "has_order_of_succession" => {
-            scopes.expect_scope(key, Scopes::LandedTitle);
-            // The only known value for this is "election"
-            bv.expect_value();
-        }
-
-        "place_in_line_of_succession" => {
-            scopes.expect_scope(key, Scopes::LandedTitle);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_target_value(block, data, scopes, Scopes::Character);
-            }
-        }
-
-        "recent_history" => {
-            scopes.expect_scope(key, Scopes::LandedTitle);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_recent_history(block, data, scopes);
-            }
-        }
-
-        "title_create_faction_type_chance" => {
-            scopes.expect_scope(key, Scopes::LandedTitle);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_create_faction_type_chance(block, data, scopes);
-            }
-        }
-
-        "title_join_faction_chance" => {
-            scopes.expect_scope(key, Scopes::LandedTitle);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_type_value(block, data, "faction", Item::Faction, scopes);
-            }
-        }
-
-        "join_faction_chance" => {
-            scopes.expect_scope(key, Scopes::Character);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_target_value(block, data, scopes, Scopes::Faction);
-            }
-        }
-
-        "cultural_acceptance" => {
-            scopes.expect_scope(key, Scopes::Culture);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_target_value(block, data, scopes, Scopes::Culture);
-            }
-        }
-
-        "has_all_innovations" => {
-            scopes.expect_scope(key, Scopes::Culture);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_has_all_innovations(block, data, scopes);
-            }
-        }
-
-        "faith_hostility_level" => {
-            scopes.expect_scope(key, Scopes::Faith);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_target_value(block, data, scopes, Scopes::Faith);
-            }
-        }
-
-        "faith_hostility_level_comparison" => {
-            scopes.expect_scope(key, Scopes::Faith);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_faith_hostility_level_comparison(block, data, scopes);
-            }
-        }
-
-        "has_building_with_flag" => {
-            scopes.expect_scope(key, Scopes::Province);
-            match bv {
-                BlockOrValue::Block(block) => {
-                    validate_trigger_has_building_with_flag(block, data, scopes);
-                }
-                BlockOrValue::Token(token) => {
-                    data.verify_exists(Item::BuildingFlag, token);
-                }
-            }
-        }
-
-        "squared_distance" => {
-            scopes.expect_scope(key, Scopes::LandedTitle | Scopes::Province);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_target_value(
-                    block,
-                    data,
-                    scopes,
-                    Scopes::LandedTitle | Scopes::Province,
-                );
-            }
-        }
-
         "add_to_temporary_list" => {
             // TODO: if inside an any_ iterator, this should be at the end.
             bv.expect_value();
-        }
-
-        "and" | "or" | "not" | "nor" | "nand" | "all_false" | "any_false" => {
-            if let Some(block) = bv.expect_block() {
-                scopes = validate_trigger(block, data, scopes, &[]);
-            }
-        }
-
-        "can_start_tutorial_lesson" => {
-            bv.expect_value();
-        }
-
-        "current_computer_date" | "current_date" | "game_start_date" => {
-            if let Some(token) = bv.expect_value() {
-                if Date::try_from(token).is_err() {
-                    error(token, ErrorKey::Validation, "expected date");
-                }
-            }
-        }
-
-        "exists" => {
-            if let Some(token) = bv.expect_value() {
-                if token.is("yes") || token.is("no") {
-                    // TODO: check scope is not none?
-                } else {
-                    (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
-
-                    if let Some(firstpart) = token.as_str().strip_suffix(".holder") {
-                        advice_info(
-                            key,
-                            ErrorKey::Tooltip,
-                            &format!(
-                                "could rewrite this as `{} = {{ is_title_created = yes }}`",
-                                firstpart
-                            ),
-                            "it gives a nicer tooltip",
-                        );
-                    }
-                }
-            }
-        }
-
-        "global_variable_list_size"
-        | "list_size"
-        | "local_variable_list_size"
-        | "variable_list_size" => {
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_list_size(block, data, scopes);
-            }
-        }
-
-        "has_dlc"
-        | "has_dlc_feature"
-        | "has_game_rule"
-        | "has_global_variable"
-        | "has_global_variable_list"
-        | "has_local_variable"
-        | "has_local_variable_list"
-        | "has_map_mode"
-        | "has_variable"
-        | "has_variable_list"
-        | "has_war_result_message_with_outcome"
-        | "is_bad_nickname"
-        | "is_game_view_open"
-        | "is_in_list" => {
-            bv.expect_value();
-        }
-
-        "is_target_in_global_variable_list"
-        | "is_target_in_local_variable_list"
-        | "is_target_in_variable_list" => {
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_is_target_in_list(block, data, scopes);
-            }
-        }
-
-        "is_tooltip_with_name_open"
-        | "is_tutorial_lesson_active"
-        | "is_tutorial_lesson_chain_completed"
-        | "is_tutorial_lesson_completed"
-        | "is_tutorial_lesson_step_completed"
-        | "is_war_overview_tab_open"
-        | "is_widget_open" => {
-            bv.expect_value();
-        }
-
-        "save_temporary_opinion_value_as" => {
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_save_temporary_opinion_value_as(block, data, scopes);
-            }
-        }
-
-        "save_temporary_scope_as" => {
-            bv.expect_value();
-        }
-
-        "save_temporary_scope_value_as" => {
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_save_temporary_scope_value_as(block, data, scopes);
-            }
-        }
-
-        "time_of_year" => {
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_time_of_year(block, data, scopes);
-            }
         }
 
         "ai_diplomacy_stance" => {
@@ -836,9 +609,10 @@ fn validate_trigger_keys(
             }
         }
 
-        "all_court_artifact_slots" | "all_inventory_artifact_slots" => {
-            scopes.expect_scope(key, Scopes::Character);
-            bv.expect_value();
+        "and" | "or" | "not" | "nor" | "nand" | "all_false" | "any_false" => {
+            if let Some(block) = bv.expect_block() {
+                scopes = validate_trigger(block, data, scopes, &[]);
+            }
         }
 
         "amenity_level" => {
@@ -855,6 +629,11 @@ fn validate_trigger_keys(
             }
         }
 
+        "all_court_artifact_slots" | "all_inventory_artifact_slots" => {
+            scopes.expect_scope(key, Scopes::Character);
+            bv.expect_value();
+        }
+
         "can_add_hook" => {
             scopes.expect_scope(key, Scopes::Character);
             if let Some(block) = bv.expect_block() {
@@ -862,10 +641,7 @@ fn validate_trigger_keys(
             }
         }
 
-        "can_be_employed_as"
-        | "can_employ_court_position_type"
-        | "employs_court_position"
-        | "is_court_position_employer" => {
+        "can_be_employed_as" | "can_employ_court_position_type" => {
             scopes.expect_scope(key, Scopes::Character);
             bv.expect_value();
         }
@@ -898,10 +674,50 @@ fn validate_trigger_keys(
             }
         }
 
+        "can_start_tutorial_lesson" => {
+            bv.expect_value();
+        }
+
+        "can_title_create_faction" => {
+            scopes.expect_scope(key, Scopes::LandedTitle);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_type_target(block, data, Item::Faction, scopes, Scopes::Character);
+            }
+        }
+
+        "county_opinion_target" => {
+            scopes.expect_scope(key, Scopes::LandedTitle);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_target_value(block, data, scopes, Scopes::Character);
+            }
+        }
+
         "create_faction_type_chance" => {
             scopes.expect_scope(key, Scopes::Character);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_create_faction_type_chance(block, data, scopes);
+            }
+        }
+
+        "cultural_acceptance" => {
+            scopes.expect_scope(key, Scopes::Culture);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_target_value(block, data, scopes, Scopes::Culture);
+            }
+        }
+
+        "current_computer_date" | "current_date" | "game_start_date" => {
+            if let Some(token) = bv.expect_value() {
+                if Date::try_from(token).is_err() {
+                    error(token, ErrorKey::Validation, "expected date");
+                }
+            }
+        }
+
+        "de_jure_drift_progress" => {
+            scopes.expect_scope(key, Scopes::LandedTitle);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_target_value(block, data, scopes, Scopes::LandedTitle);
             }
         }
 
@@ -925,9 +741,78 @@ fn validate_trigger_keys(
             }
         }
 
+        "employs_court_position" | "is_court_position_employer" => {
+            scopes.expect_scope(key, Scopes::Character);
+            bv.expect_value();
+        }
+
+        "exists" => {
+            if let Some(token) = bv.expect_value() {
+                if token.is("yes") || token.is("no") {
+                    // TODO: check scope is not none?
+                } else {
+                    (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
+
+                    if let Some(firstpart) = token.as_str().strip_suffix(".holder") {
+                        advice_info(
+                            key,
+                            ErrorKey::Tooltip,
+                            &format!(
+                                "could rewrite this as `{} = {{ is_title_created = yes }}`",
+                                firstpart
+                            ),
+                            "it gives a nicer tooltip",
+                        );
+                    }
+                }
+            }
+        }
+
+        "faith_hostility_level" => {
+            scopes.expect_scope(key, Scopes::Faith);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_target_value(block, data, scopes, Scopes::Faith);
+            }
+        }
+
+        "faith_hostility_level_comparison" => {
+            scopes.expect_scope(key, Scopes::Faith);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_faith_hostility_level_comparison(block, data, scopes);
+            }
+        }
+
+        "global_variable_list_size"
+        | "list_size"
+        | "local_variable_list_size"
+        | "variable_list_size" => {
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_list_size(block, data, scopes);
+            }
+        }
+
         "government_allows" | "government_disallows" | "government_has_flag" => {
             scopes.expect_scope(key, Scopes::Character);
             bv.expect_value();
+        }
+
+        "has_all_innovations" => {
+            scopes.expect_scope(key, Scopes::Culture);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_has_all_innovations(block, data, scopes);
+            }
+        }
+
+        "has_building_with_flag" => {
+            scopes.expect_scope(key, Scopes::Province);
+            match bv {
+                BlockOrValue::Block(block) => {
+                    validate_trigger_has_building_with_flag(block, data, scopes);
+                }
+                BlockOrValue::Token(token) => {
+                    data.verify_exists(Item::BuildingFlag, token);
+                }
+            }
         }
 
         "has_cb_on" => {
@@ -942,8 +827,34 @@ fn validate_trigger_keys(
         | "has_councillor_for_skill"
         | "has_court_language"
         | "has_court_position"
-        | "has_court_type" => {
+        | "has_court_type"
+        | "has_trait_with_flag"
+        | "highest_skill" => {
             scopes.expect_scope(key, Scopes::Character);
+            bv.expect_value();
+        }
+
+        "has_dlc"
+        | "has_dlc_feature"
+        | "has_game_rule"
+        | "has_global_variable"
+        | "has_global_variable_list"
+        | "has_local_variable"
+        | "has_local_variable_list"
+        | "has_map_mode"
+        | "has_variable"
+        | "has_variable_list"
+        | "has_war_result_message_with_outcome"
+        | "is_bad_nickname"
+        | "is_game_view_open"
+        | "is_in_list"
+        | "is_tooltip_with_name_open"
+        | "is_tutorial_lesson_active"
+        | "is_tutorial_lesson_chain_completed"
+        | "is_tutorial_lesson_completed"
+        | "is_tutorial_lesson_step_completed"
+        | "is_war_overview_tab_open"
+        | "is_widget_open" => {
             bv.expect_value();
         }
 
@@ -985,6 +896,11 @@ fn validate_trigger_keys(
             }
         }
 
+        "has_memory_category" | "has_memory_type" => {
+            scopes.expect_scope(key, Scopes::CharacterMemory);
+            bv.expect_value();
+        }
+
         "has_nickname" => {
             scopes.expect_scope(key, Scopes::Character);
             bv.expect_value();
@@ -995,6 +911,12 @@ fn validate_trigger_keys(
             if let Some(block) = bv.expect_block() {
                 validate_trigger_has_opinion_modifier(block, data, scopes);
             }
+        }
+
+        "has_order_of_succession" => {
+            scopes.expect_scope(key, Scopes::LandedTitle);
+            // The only known value for this is "election"
+            bv.expect_value();
         }
 
         "has_perk" | "has_realm_law" | "has_realm_law_flag" => {
@@ -1021,8 +943,7 @@ fn validate_trigger_keys(
             }
         }
 
-        "has_trait_with_flag"
-        | "important_action_is_valid_but_invisible"
+        "important_action_is_valid_but_invisible"
         | "important_action_is_visible"
         | "in_activity_type" => {
             scopes.expect_scope(key, Scopes::Character);
@@ -1038,8 +959,20 @@ fn validate_trigger_keys(
             }
         }
 
+        "is_connected_to" => {
+            scopes.expect_scope(key, Scopes::LandedTitle);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_is_connected_to(block, data, scopes);
+            }
+        }
+
         "is_council_task_valid" | "is_in_prison_type" | "is_performing_council_task" => {
             scopes.expect_scope(key, Scopes::Character);
+            bv.expect_value();
+        }
+
+        "is_in_family" => {
+            scopes.expect_scope(key, Scopes::Religion);
             bv.expect_value();
         }
 
@@ -1047,6 +980,21 @@ fn validate_trigger_keys(
             scopes.expect_scope(key, Scopes::Character);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_is_scheming_against(block, data, scopes);
+            }
+        }
+
+        "is_target_in_global_variable_list"
+        | "is_target_in_local_variable_list"
+        | "is_target_in_variable_list" => {
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_is_target_in_list(block, data, scopes);
+            }
+        }
+
+        "join_faction_chance" => {
+            scopes.expect_scope(key, Scopes::Character);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_target_value(block, data, scopes, Scopes::Faction);
             }
         }
 
@@ -1060,6 +1008,24 @@ fn validate_trigger_keys(
         "knows_language" => {
             scopes.expect_scope(key, Scopes::Character);
             bv.expect_value();
+        }
+
+        "max_number_maa_soldiers_of_base_type"
+        | "number_maa_regiments_of_base_type"
+        | "number_maa_soldiers_of_base_type" => {
+            scopes.expect_scope(key, Scopes::Character);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_type_value(block, data, "type", Item::MenAtArmsBase, scopes);
+            }
+        }
+
+        "max_number_maa_soldiers_of_type"
+        | "number_maa_regiments_of_type"
+        | "number_maa_soldiers_of_type" => {
+            scopes.expect_scope(key, Scopes::Character);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_type_value(block, data, "type", Item::MenAtArms, scopes);
+            }
         }
 
         "morph_gene_attribute" => {
@@ -1076,21 +1042,14 @@ fn validate_trigger_keys(
             }
         }
 
-        "number_maa_regiments_of_base_type"
-        | "number_maa_soldiers_of_base_type"
-        | "max_number_maa_soldiers_of_base_type" => {
+        "number_of_commander_traits_in_common"
+        | "number_of_opposing_personality_traits"
+        | "number_of_opposing_traits"
+        | "number_of_personality_traits_in_common"
+        | "number_of_traits_in_common" => {
             scopes.expect_scope(key, Scopes::Character);
             if let Some(block) = bv.expect_block() {
-                validate_trigger_type_value(block, data, "type", Item::MenAtArmsBase, scopes);
-            }
-        }
-
-        "number_maa_regiments_of_type"
-        | "number_maa_soldiers_of_type"
-        | "max_number_maa_soldiers_of_type" => {
-            scopes.expect_scope(key, Scopes::Character);
-            if let Some(block) = bv.expect_block() {
-                validate_trigger_type_value(block, data, "type", Item::MenAtArms, scopes);
+                validate_trigger_target_value(block, data, scopes, Scopes::Character);
             }
         }
 
@@ -1101,10 +1060,7 @@ fn validate_trigger_keys(
             }
         }
 
-        "number_of_opposing_personality_traits"
-        | "number_of_opposing_traits"
-        | "number_of_personality_traits_in_common"
-        | "number_of_traits_in_common" => {
+        "number_of_sinful_traits_in_common" | "number_of_virtue_traits_in_common" => {
             scopes.expect_scope(key, Scopes::Character);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, scopes, Scopes::Character);
@@ -1125,6 +1081,13 @@ fn validate_trigger_keys(
             }
         }
 
+        "place_in_line_of_succession" => {
+            scopes.expect_scope(key, Scopes::LandedTitle);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_target_value(block, data, scopes, Scopes::Character);
+            }
+        }
+
         "player_heir_position" => {
             scopes.expect_scope(key, Scopes::Character);
             if let Some(block) = bv.expect_block() {
@@ -1136,6 +1099,55 @@ fn validate_trigger_keys(
             scopes.expect_scope(key, Scopes::Character);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_realm_to_title_distance_squared(block, data, scopes);
+            }
+        }
+
+        "save_temporary_opinion_value_as" => {
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_save_temporary_opinion_value_as(block, data, scopes);
+            }
+        }
+
+        "save_temporary_scope_as" => {
+            bv.expect_value();
+        }
+
+        "save_temporary_scope_value_as" => {
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_save_temporary_scope_value_as(block, data, scopes);
+            }
+        }
+
+        "squared_distance" => {
+            scopes.expect_scope(key, Scopes::LandedTitle | Scopes::Province);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_target_value(
+                    block,
+                    data,
+                    scopes,
+                    Scopes::LandedTitle | Scopes::Province,
+                );
+            }
+        }
+
+        "time_to_hook_expiry" | "trait_compatibility" => {
+            scopes.expect_scope(key, Scopes::Character);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_target_value(block, data, scopes, Scopes::Character);
+            }
+        }
+
+        "title_join_faction_chance" => {
+            scopes.expect_scope(key, Scopes::LandedTitle);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_type_value(block, data, "faction", Item::Faction, scopes);
+            }
+        }
+
+        "recent_history" => {
+            scopes.expect_scope(key, Scopes::LandedTitle);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_recent_history(block, data, scopes);
             }
         }
 
@@ -1153,10 +1165,16 @@ fn validate_trigger_keys(
             }
         }
 
-        "time_to_hook_expiry" | "trait_compatibility" => {
-            scopes.expect_scope(key, Scopes::Character);
+        "time_of_year" => {
             if let Some(block) = bv.expect_block() {
-                validate_trigger_target_value(block, data, scopes, Scopes::Character);
+                validate_trigger_time_of_year(block, data, scopes);
+            }
+        }
+
+        "title_create_faction_type_chance" => {
+            scopes.expect_scope(key, Scopes::LandedTitle);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_create_faction_type_chance(block, data, scopes);
             }
         }
 
@@ -1167,16 +1185,18 @@ fn validate_trigger_keys(
             bv.expect_value();
         }
 
+        "war_contribution" => {
+            scopes.expect_scope(key, Scopes::War);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_target_value(block, data, scopes, Scopes::Character);
+            }
+        }
+
         "yields_alliance" => {
             scopes.expect_scope(key, Scopes::Character);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_yields_alliance(block, data, scopes);
             }
-        }
-
-        "is_in_family" => {
-            scopes.expect_scope(key, Scopes::Religion);
-            bv.expect_value();
         }
 
         _ => {
@@ -1399,6 +1419,10 @@ fn validate_trigger_has_trait_rank(_block: &Block, _data: &Everything, _scopes: 
 }
 
 fn validate_trigger_is_character_interaction(_block: &Block, _data: &Everything, _scopes: Scopes) {
+    // TODO
+}
+
+fn validate_trigger_is_connected_to(_block: &Block, _data: &Everything, _scopes: Scopes) {
     // TODO
 }
 
