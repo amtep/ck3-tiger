@@ -114,7 +114,7 @@ fn main() -> Result<()> {
         minimum_level(ErrorLevel::Info);
     }
 
-    println!("This validator was made for Crusader Kings version 1.6.2.2.");
+    println!("This validator was made for Crusader Kings version 1.7.0.");
     println!("If you are using a newer version of Crusader Kings, it may be inaccurate.");
     println!("!! Currently it's inaccurate anyway because it's in alpha state.");
 

@@ -30,3 +30,7 @@
 
 ## Gfx
 * CK3 needs all of its bones to be oriented y+ in rest position
+
+## Crashes
+* If you try to use scripted triggers in music files it will crash on startup
+* scripted_triggers in the dynasty legacy tracks too, though individual perks are fine

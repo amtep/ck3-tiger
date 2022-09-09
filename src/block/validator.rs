@@ -3,6 +3,7 @@ use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice, error, warn};
 use crate::everything::Everything;
+use crate::helpers::dup_assign_error;
 use crate::item::Item;
 use crate::scopes::Scopes;
 
@@ -53,16 +54,12 @@ impl<'a> Validator<'a> {
     {
         self.known_fields.push(name);
 
-        let mut found = false;
+        let mut found = None;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
-                    if found {
-                        warn(
-                            key,
-                            ErrorKey::Duplicate,
-                            &format!("multiple definitions of `{}`, expected only one.", key),
-                        );
+                    if let Some(other) = found {
+                        dup_assign_error(key, other);
                     }
                     if !matches!(cmp, Comparator::Eq) {
                         error(
@@ -72,11 +69,11 @@ impl<'a> Validator<'a> {
                         );
                     }
                     f(v);
-                    found = true;
+                    found = Some(key);
                 }
             }
         }
-        found
+        found.is_some()
     }
 
     pub fn field(&mut self, name: &'a str) -> Option<&BlockOrValue> {
@@ -90,35 +87,26 @@ impl<'a> Validator<'a> {
     pub fn field_any_cmp(&mut self, name: &'a str) -> Option<&BlockOrValue> {
         self.known_fields.push(name);
 
-        let mut found = false;
-        for (k, _, _) in &self.block.v {
+        let mut found = None;
+        for (k, _, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
-                    if found {
-                        warn(
-                            key,
-                            ErrorKey::Duplicate,
-                            &format!("multiple definitions of `{}`, expected only one.", key),
-                        );
+                    if let Some((other, _)) = found {
+                        dup_assign_error(key, other);
                     }
-                    found = true;
+                    found = Some((key, bv));
                 }
             }
         }
-        if found {
-            self.block.get_field(name)
+        if let Some((_, bv)) = found {
+            Some(bv)
         } else {
             None
         }
     }
 
     pub fn field_value(&mut self, name: &'a str) -> Option<&Token> {
-        if self.field_check(name, |v| match v {
-            BlockOrValue::Token(_) => (),
-            BlockOrValue::Block(s) => {
-                error(s, ErrorKey::Validation, "expected value, found block");
-            }
-        }) {
+        if self.field_check(name, |bv| _ = bv.expect_value()) {
             self.block.get_field_value(name)
         } else {
             None
@@ -134,12 +122,7 @@ impl<'a> Validator<'a> {
     }
 
     pub fn field_block(&mut self, name: &'a str) -> Option<&Block> {
-        if self.field_check(name, |v| match v {
-            BlockOrValue::Token(t) => {
-                error(t, ErrorKey::Validation, "expected block, found value");
-            }
-            BlockOrValue::Block(_) => (),
-        }) {
+        if self.field_check(name, |bv| _ = bv.expect_block()) {
             self.block.get_field_block(name)
         } else {
             None
@@ -304,7 +287,7 @@ impl<'a> Validator<'a> {
     {
         self.known_fields.push(name);
 
-        let mut found = false;
+        let mut found = None;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
@@ -315,19 +298,15 @@ impl<'a> Validator<'a> {
                             &format!("expected `{} =`, found `{}`", key, cmp),
                         );
                     }
-                    if found {
-                        warn(
-                            key,
-                            ErrorKey::Duplicate,
-                            &format!("multiple definitions of `{}`, expected only one.", key),
-                        );
+                    if let Some(other) = found {
+                        dup_assign_error(key, other);
                     }
                     f(v, self.data);
-                    found = true;
+                    found = Some(key);
                 }
             }
         }
-        found
+        found.is_some()
     }
 
     pub fn field_validated_bv<F>(&mut self, name: &'a str, mut f: F) -> bool
@@ -336,16 +315,12 @@ impl<'a> Validator<'a> {
     {
         self.known_fields.push(name);
 
-        let mut found = false;
+        let mut found = None;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
-                    if found {
-                        warn(
-                            key,
-                            ErrorKey::Duplicate,
-                            &format!("multiple definitions of `{}`, expected only one.", key),
-                        );
+                    if let Some(other) = found {
+                        dup_assign_error(key, other);
                     }
                     if !matches!(cmp, Comparator::Eq) {
                         error(
@@ -355,11 +330,11 @@ impl<'a> Validator<'a> {
                         );
                     }
                     f(v, self.data);
-                    found = true;
+                    found = Some(key);
                 }
             }
         }
-        found
+        found.is_some()
     }
 
     pub fn field_validated_bvs<F>(&mut self, name: &'a str, mut f: F) -> bool
@@ -422,17 +397,13 @@ impl<'a> Validator<'a> {
         F: FnMut(&Block, &Everything),
     {
         self.known_fields.push(name);
-        let mut found = false;
+        let mut found = None;
 
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
-                    if found {
-                        warn(
-                            key,
-                            ErrorKey::Duplicate,
-                            &format!("multiple definitions of `{}`, expected only one.", key),
-                        );
+                    if let Some(other) = found {
+                        dup_assign_error(key, other);
                     }
                     if !matches!(cmp, Comparator::Eq) {
                         error(
@@ -447,18 +418,18 @@ impl<'a> Validator<'a> {
                         }
                         BlockOrValue::Block(s) => f(s, self.data),
                     }
-                    found = true;
+                    found = Some(key);
                 }
             }
         }
-        found
+        found.is_some()
     }
 
     pub fn field_blocks(&mut self, name: &'a str) -> bool {
         self.known_fields.push(name);
 
         let mut found = false;
-        for (k, cmp, v) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
                     if !matches!(cmp, Comparator::Eq) {
@@ -468,12 +439,7 @@ impl<'a> Validator<'a> {
                             &format!("expected `{} =`, found `{}`", key, cmp),
                         );
                     }
-                    match v {
-                        BlockOrValue::Token(t) => {
-                            error(t, ErrorKey::Validation, "expected block, found value");
-                        }
-                        BlockOrValue::Block(_) => (),
-                    }
+                    bv.expect_block();
                     found = true;
                 }
             }
