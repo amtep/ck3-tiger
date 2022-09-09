@@ -16,7 +16,7 @@ use crate::trigger::validate_trigger;
 #[derive(Clone, Debug, Default)]
 pub struct Lifestyles {
     lifestyles: FnvHashMap<String, Lifestyle>,
-    modifier_keys: Vec<String>,
+    modif_keys: Vec<String>,
     effect_keys: Vec<String>,
 }
 
@@ -28,7 +28,7 @@ impl Lifestyles {
             }
         } else {
             let modifier = format!("monthly_{}_xp_gain_mult", key);
-            self.modifier_keys.push(modifier);
+            self.modif_keys.push(modifier);
             let effect = format!("add_{}_perk_points", key);
             self.effect_keys.push(effect);
         }
@@ -41,8 +41,8 @@ impl Lifestyles {
         self.lifestyles.contains_key(key)
     }
 
-    pub fn iter_modifier_keys(&self) -> impl Iterator<Item = &String> {
-        self.modifier_keys.iter()
+    pub fn iter_modif_keys(&self) -> impl Iterator<Item = &String> {
+        self.modif_keys.iter()
     }
 
     pub fn iter_effect_keys(&self) -> impl Iterator<Item = &String> {

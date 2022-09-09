@@ -101,15 +101,18 @@ pub fn validate_modifs<'a>(
         vd.field_numeric("same_heritage_county_advantage_add");
         vd.field_numeric("winter_advantage");
 
-        // TODO: <terrain>_advantage
-        // TODO: <terrain>_attrition_mult
-        // TODO: <terrain>_cancel_negative_supply
-        // TODO: <terrain>_max_combat_roll
-        // TODO: <terrain>_min_combat_roll
+        for key in data.terrains.iter_modif_char_keys() {
+            // <terrain>_advantage
+            // <terrain>_attrition_mult
+            // <terrain>_cancel_negative_supply
+            // <terrain>_max_combat_roll
+            // <terrain>_min_combat_roll
+            vd.field_numeric(key);
+        }
         vd.field_numeric("max_combat_roll");
         vd.field_numeric("min_combat_roll");
 
-        for key in data.religions.iter_modifier_keys() {
+        for key in data.religions.iter_modif_keys() {
             // <faith>_opinion
             // <religion>_opinion
             vd.field_numeric(key);
@@ -310,7 +313,7 @@ pub fn validate_modifs<'a>(
         vd.field_numeric("monthly_county_control_change_add_even_if_baron");
         vd.field_numeric("monthly_county_control_change_factor_even_if_baron");
 
-        for key in data.lifestyles.iter_modifier_keys() {
+        for key in data.lifestyles.iter_modif_keys() {
             // monthly_<lifestyle>_xp_gain_mult
             vd.field_numeric(key);
         }
@@ -448,18 +451,21 @@ pub fn validate_modifs<'a>(
         vd.field_numeric("tribal_holding_holding_build_prestige_cost");
         vd.field_numeric("tribal_holding_holding_build_speed");
         vd.field_numeric("defender_holding_advantage");
-        // TODO: <terrain>_construction_gold_cost
-        // TODO: <terrain>_construction_piety_cost
-        // TODO: <terrain>_construction_prestige_cost
-        // TODO: <terrain>_development_growth
-        // TODO: <terrain>_development_growth_factor
-        // TODO: <terrain>_holding_construction_gold_cost
-        // TODO: <terrain>_holding_construction_piety_cost
-        // TODO: <terrain>_holding_construction_prestige_cost
-        // TODO: <terrain>_levy_size
-        // TODO: <terrain>_supply_limit
-        // TODO: <terrain>_supply_limit_mult
-        // TODO: <terrain>_tax_mult
+        for key in data.terrains.iter_modif_prov_keys() {
+            // <terrain>_construction_gold_cost
+            // <terrain>_construction_piety_cost
+            // <terrain>_construction_prestige_cost
+            // <terrain>_development_growth
+            // <terrain>_development_growth_factor
+            // <terrain>_holding_construction_gold_cost
+            // <terrain>_holding_construction_piety_cost
+            // <terrain>_holding_construction_prestige_cost
+            // <terrain>_levy_size
+            // <terrain>_supply_limit
+            // <terrain>_supply_limit_mult
+            // <terrain>_tax_mult
+            vd.field_numeric(key);
+        }
         vd.field_numeric("development_growth");
         vd.field_numeric("development_growth_factor");
         vd.field_numeric("fort_level");

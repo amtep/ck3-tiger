@@ -22,6 +22,7 @@ use crate::data::scripted_effects::Effects;
 use crate::data::scripted_lists::ScriptedLists;
 use crate::data::scripted_triggers::Triggers;
 use crate::data::scriptvalues::ScriptValues;
+use crate::data::terrain::Terrains;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
 use crate::errorkey::ErrorKey;
@@ -106,6 +107,8 @@ pub struct Everything {
     pub traits: Traits,
 
     pub lifestyles: Lifestyles,
+
+    pub terrains: Terrains,
 }
 
 impl Everything {
@@ -171,6 +174,7 @@ impl Everything {
             effects: Effects::default(),
             traits: Traits::default(),
             lifestyles: Lifestyles::default(),
+            terrains: Terrains::default(),
         })
     }
 
@@ -240,12 +244,14 @@ impl Everything {
         self.fileset.handle(&mut self.effects);
         self.fileset.handle(&mut self.traits);
         self.fileset.handle(&mut self.lifestyles);
+        self.fileset.handle(&mut self.terrains);
     }
 
     pub fn validate_all(&mut self) {
         self.fileset.validate(self);
         self.localization.validate(self);
         self.scripted_lists.validate(self);
+        self.terrains.validate(self);
         self.events.validate(self);
         self.decisions.validate(self);
         self.interactions.validate(self);
@@ -298,6 +304,7 @@ impl Everything {
             Item::ScriptedList => self.scripted_lists.exists(key),
             Item::ScriptedTrigger => self.triggers.exists(key),
             Item::ScriptValue => self.scriptvalues.exists(key),
+            Item::Terrain => self.terrains.exists(key),
             Item::Title => self.titles.exists(key),
             Item::Trait => self.traits.exists(key),
             _ => true,

@@ -99,7 +99,7 @@ impl Trait {
 
         vd.field_value("parameter"); // TODO: check cultural parameter exists
         Self::validate_modifiers(block, data, &mut vd);
-        vd.warn_remaining();
+        // vd.warn_remaining(); TODO: re-enable when modifs are complete
     }
 
     fn validate_triggered_opinion(block: &Block, data: &Everything) {
@@ -192,6 +192,6 @@ impl Trait {
         vd.field_bool("shown_in_encyclopedia");
 
         Self::validate_modifiers(&self.block, data, &mut vd);
-        vd.warn_remaining();
+        // vd.warn_remaining(); TODO: re-enable when modifs are complete
     }
 }
