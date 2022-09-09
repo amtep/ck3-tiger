@@ -4,7 +4,7 @@ use crate::errors::warn;
 use crate::everything::Everything;
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::trigger::validate_trigger;
+use crate::trigger::validate_normal_trigger;
 
 pub fn validate_desc_map_block(
     block: &Block,
@@ -29,7 +29,7 @@ pub fn validate_desc_map_block(
                     validate_desc_map_block(b, data, f, true);
                 } else if triggered && key.is("trigger") {
                     // TODO: pass in correct scopes
-                    validate_trigger(b, data, Scopes::all(), &[]);
+                    validate_normal_trigger(b, data, Scopes::all());
                 } else {
                     warn(key, ErrorKey::Validation, "unexpected key in description");
                 }

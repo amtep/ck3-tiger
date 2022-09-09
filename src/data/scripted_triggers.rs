@@ -10,7 +10,7 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::trigger::validate_trigger;
+use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct Triggers {
@@ -86,6 +86,6 @@ impl Trigger {
         }
 
         // TODO: remember the deduced scope
-        _ = validate_trigger(&self.block, data, Scopes::all(), &[]);
+        _ = validate_normal_trigger(&self.block, data, Scopes::all());
     }
 }

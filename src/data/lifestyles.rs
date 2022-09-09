@@ -11,7 +11,7 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::trigger::validate_trigger;
+use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct Lifestyles {
@@ -109,15 +109,15 @@ impl Lifestyle {
         let mut vd = Validator::new(&self.block, data);
 
         if let Some(block) = vd.field_block("is_highlighted") {
-            validate_trigger(block, data, Scopes::Character, &[]);
+            validate_normal_trigger(block, data, Scopes::Character);
         }
 
         if let Some(block) = vd.field_block("is_valid") {
-            validate_trigger(block, data, Scopes::Character, &[]);
+            validate_normal_trigger(block, data, Scopes::Character);
         }
 
         if let Some(block) = vd.field_block("is_valid_showing_failures_only") {
-            validate_trigger(block, data, Scopes::Character, &[]);
+            validate_normal_trigger(block, data, Scopes::Character);
         }
 
         if let Some(token) = vd.field_value("icon") {

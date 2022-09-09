@@ -12,49 +12,273 @@ use crate::scopes::{
 use crate::token::Token;
 use crate::validate::{validate_days_months_years, validate_prefix_reference};
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum Caller {
+    Normal,
+    If,
+    CustomDescription,
+    CustomTooltip,
+    CalcTrueIf,
+
+    // All lists should be below this entry, all non-lists above.
+    AnyList,
+    AnyInList,
+    AnyRelationType,
+    AnyCourtPositionType,
+    AnyProvince,
+    AnyInvolvement,
+    AnyRegion,
+    AnyClaim,
+    AnyHierarchy,
+}
+
+pub fn validate_normal_trigger(block: &Block, data: &Everything, scopes: Scopes) -> Scopes {
+    validate_trigger(Caller::Normal, block, data, scopes)
+}
+
 pub fn validate_trigger(
+    caller: Caller,
     block: &Block,
     data: &Everything,
     mut scopes: Scopes,
-    ignore_keys: &[&str],
 ) -> Scopes {
     let mut seen_if = false;
 
     'outer: for (key, cmp, bv) in block.iter_items() {
         if let Some(key) = key {
-            if ignore_keys.contains(&key.as_str()) {
-                continue;
-            }
             if key.is("limit") {
-                // give a nicer message than "unknown token"
-                warn(key, ErrorKey::Validation, "cannot use `limit` here");
+                if caller == Caller::If {
+                    if let Some(block) = bv.expect_block() {
+                        scopes = validate_normal_trigger(block, data, scopes);
+                    }
+                } else {
+                    warn(key, ErrorKey::Validation, "can only use `limit` in `trigger_if` or `trigger_else_if` or `trigger_else`");
+                }
                 continue;
             }
             if key.is("trigger_if") {
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger_if(block, data, scopes);
+                    scopes = validate_trigger(Caller::If, block, data, scopes);
                 }
                 seen_if = true;
                 continue;
             } else if key.is("trigger_else_if") {
                 if !seen_if {
-                    error(key, ErrorKey::Validation, "must follow `trigger_if`");
+                    error(
+                        key,
+                        ErrorKey::Validation,
+                        "must follow `trigger_if` or `trigger_else_if`",
+                    );
                 }
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger_if(block, data, scopes);
+                    scopes = validate_trigger(Caller::If, block, data, scopes);
                 }
                 continue;
             } else if key.is("trigger_else") {
                 if !seen_if {
-                    error(key, ErrorKey::Validation, "must follow `trigger_if`");
+                    error(
+                        key,
+                        ErrorKey::Validation,
+                        "must follow `trigger_if` or `trigger_else_if`",
+                    );
                 }
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger_else(block, data, scopes);
+                    scopes = validate_trigger(Caller::If, block, data, scopes);
                 }
                 seen_if = false;
                 continue;
             }
             seen_if = false;
+
+            if key.is("percent") {
+                if caller < Caller::AnyList {
+                    warn(
+                        key,
+                        ErrorKey::Validation,
+                        "can only use `percent =` in an `any_` list",
+                    );
+                    continue;
+                }
+                if let Some(token) = bv.get_value() {
+                    if let Ok(num) = token.as_str().parse::<f64>() {
+                        if num > 1.0 {
+                            warn(
+                                token,
+                                ErrorKey::Range,
+                                "'percent' here needs to be between 0 and 1",
+                            );
+                        }
+                    }
+                }
+                scopes = ScriptValue::validate_bv(bv, data, scopes);
+                continue;
+            }
+            if key.is("count") {
+                if caller < Caller::AnyList {
+                    warn(
+                        key,
+                        ErrorKey::Validation,
+                        "can only use `count =` in an `any_` list",
+                    );
+                    continue;
+                }
+                if let Some(token) = bv.get_value() {
+                    if token.is("all") {
+                        continue;
+                    }
+                }
+                scopes = ScriptValue::validate_bv(bv, data, scopes);
+                continue;
+            }
+
+            if key.is("list") || key.is("variable") {
+                if caller != Caller::AnyInList {
+                    let msg = format!("can only use `{} =` in `any_in_list`, `any_in_global_list`, or `any_in_local_list`", key);
+                    warn(key, ErrorKey::Validation, &msg);
+                    continue;
+                }
+                bv.expect_value(); // TODO
+                continue;
+            }
+
+            if key.is("type") {
+                if caller == Caller::AnyRelationType {
+                    if let Some(token) = bv.expect_value() {
+                        data.verify_exists(Item::Relation, token);
+                    }
+                } else if caller == Caller::AnyCourtPositionType {
+                    bv.expect_value(); // TODO
+                } else {
+                    let msg = format!("can only use `{} =` in `any_relation` list", key);
+                    warn(key, ErrorKey::Validation, &msg);
+                }
+                continue;
+            }
+
+            if key.is("province") {
+                if caller != Caller::AnyProvince {
+                    let msg = format!("can only use `{} =` in `any_pool_character` list", key);
+                    warn(key, ErrorKey::Validation, &msg);
+                    continue;
+                }
+                if let Some(token) = bv.expect_value() {
+                    (scopes, _) = validate_target(token, data, scopes, Scopes::Province);
+                }
+                continue;
+            }
+
+            if key.is("even_if_dead") || key.is("only_if_dead") {
+                if caller < Caller::AnyList || !scopes.intersects(Scopes::Character) {
+                    let msg = format!("can only use `{} =` in a character list", key);
+                    warn(key, ErrorKey::Validation, &msg);
+                    continue;
+                }
+                // TODO Might be literal yes/no expected, might be any bool value
+                bv.expect_value();
+                continue;
+            }
+
+            if key.is("involvement") {
+                if caller != Caller::AnyInvolvement {
+                    let msg = format!("can only use `{} =` in `any_character_struggle` list", key);
+                    warn(key, ErrorKey::Validation, &msg);
+                    continue;
+                }
+                bv.expect_value(); // TODO "involved" or "interloper"
+                continue;
+            }
+
+            if key.is("region") {
+                if caller != Caller::AnyRegion {
+                    let msg = format!("can only use `{} =` in `any_county_in_region` list", key);
+                    warn(key, ErrorKey::Validation, &msg);
+                    continue;
+                }
+                if let Some(token) = bv.expect_value() {
+                    data.verify_exists(Item::Region, token);
+                }
+                continue;
+            }
+
+            if key.is("filter") || key.is("continue") {
+                if caller != Caller::AnyHierarchy {
+                    let msg = format!("can only use `{} =` in `..._hierarchy` list", key);
+                    warn(key, ErrorKey::Validation, &msg);
+                    continue;
+                }
+                if let Some(block) = bv.expect_block() {
+                    scopes = validate_normal_trigger(block, data, scopes);
+                }
+                continue;
+            }
+
+            if key.is("pressed") || key.is("explicit") {
+                if caller != Caller::AnyClaim {
+                    let msg = format!("can only use `{} =` in `any_claim` list", key);
+                    warn(key, ErrorKey::Validation, &msg);
+                    continue;
+                }
+                bv.expect_value(); // TODO: check yes/no/all
+                continue;
+            }
+
+            if key.is("text") {
+                if caller == Caller::CustomDescription {
+                    // TODO: validate trigger_localization
+                    bv.expect_value();
+                } else if caller == Caller::CustomTooltip {
+                    if let Some(token) = bv.expect_value() {
+                        data.localization.verify_exists(token);
+                    }
+                } else {
+                    let msg = format!(
+                        "can only use `{} =` in `custom_description` or `custom_tooltip`",
+                        key
+                    );
+                    warn(key, ErrorKey::Validation, &msg);
+                }
+                continue;
+            }
+
+            if key.is("subject") {
+                if caller == Caller::CustomDescription || caller == Caller::CustomTooltip {
+                    if let Some(token) = bv.expect_value() {
+                        (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
+                    }
+                } else {
+                    let msg = format!(
+                        "can only use `{} =` in `custom_description` or `custom_tooltip`",
+                        key
+                    );
+                    warn(key, ErrorKey::Validation, &msg);
+                }
+                continue;
+            }
+            if key.is("object") {
+                if caller == Caller::CustomDescription {
+                    if let Some(token) = bv.expect_value() {
+                        (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
+                    }
+                } else {
+                    let msg = format!("can only use `{} =` in `custom_description`", key);
+                    warn(key, ErrorKey::Validation, &msg);
+                }
+                continue;
+            }
+
+            if key.is("amount") {
+                if caller == Caller::CalcTrueIf {
+                    if let Some(token) = bv.expect_value() {
+                        if token.as_str().parse::<i32>().is_err() {
+                            warn(token, ErrorKey::Validation, "expected a number");
+                        }
+                    }
+                } else {
+                    let msg = format!("can only use `{} =` in `calc_true_if`", key);
+                    warn(key, ErrorKey::Validation, &msg);
+                }
+                continue;
+            }
 
             if let Some((it_type, it_name)) = key.split_once('_') {
                 if it_type.is("any")
@@ -89,21 +313,21 @@ pub fn validate_trigger(
 
             if key.is("custom_description") {
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_custom_description(block, data, scopes);
+                    scopes = validate_trigger(Caller::CustomDescription, block, data, scopes);
                 }
                 continue;
             }
 
             if key.is("custom_tooltip") {
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_custom_tooltip(block, data, scopes);
+                    scopes = validate_trigger(Caller::CustomTooltip, block, data, scopes);
                 }
                 continue;
             }
 
             if key.is("calc_true_if") {
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_calc_true_if(block, data, scopes);
+                    scopes = validate_trigger(Caller::CalcTrueIf, block, data, scopes);
                 }
                 continue;
             }
@@ -293,7 +517,7 @@ pub fn validate_trigger(
                     BlockOrValue::Token(t) => {
                         (scopes, _) = validate_target(t, data, scopes, part_scopes);
                     }
-                    BlockOrValue::Block(b) => _ = validate_trigger(b, data, part_scopes, &[]),
+                    BlockOrValue::Block(b) => _ = validate_normal_trigger(b, data, part_scopes),
                 }
             }
         } else {
@@ -316,166 +540,23 @@ pub fn validate_trigger(
     scopes
 }
 
-pub fn validate_trigger_iterator(
-    name: &Token,
-    block: &Block,
-    data: &Everything,
-    mut scopes: Scopes,
-) {
-    let mut ignore = vec!["count", "percent"];
-    for (key, _, bv) in block.iter_items() {
-        if let Some(key) = key {
-            // These branches are identical now but they should check for different things later
-            #[allow(clippy::if_same_then_else)]
-            if key.is("percent") {
-                if let Some(token) = bv.get_value() {
-                    if let Ok(num) = token.as_str().parse::<f64>() {
-                        if num > 1.0 {
-                            warn(
-                                token,
-                                ErrorKey::Range,
-                                "'percent' here needs to be between 0 and 1",
-                            );
-                        }
-                    }
-                }
-                scopes = ScriptValue::validate_bv(bv, data, scopes);
-            } else if key.is("count") {
-                if let Some(token) = bv.get_value() {
-                    if token.is("all") {
-                        continue;
-                    }
-                }
-                scopes = ScriptValue::validate_bv(bv, data, scopes);
-            } else if (name.is("in_list") || name.is("in_global_list") || name.is("in_local_list"))
-                && (key.is("list") || key.is("variable"))
-            {
-                bv.expect_value();
-                ignore.push(key.as_str());
-            } else if name.is("relation") && key.is("type") {
-                if let Some(token) = bv.expect_value() {
-                    data.verify_exists(Item::Relation, token);
-                }
-                ignore.push(key.as_str());
-            } else if name.is("pool_character") && key.is("province") {
-                if let Some(token) = bv.expect_value() {
-                    (scopes, _) = validate_target(token, data, scopes, Scopes::Province);
-                }
-                ignore.push(key.as_str());
-            } else if name.is("court_position_holder") && key.is("type") {
-                bv.expect_value();
-                ignore.push(key.as_str());
-            } else if scopes == Scopes::Character
-                && (key.is("even_if_dead") || key.is("only_if_dead"))
-            {
-                bv.expect_value();
-                ignore.push(key.as_str());
-            } else if name.is("character_struggle") && key.is("involvement") {
-                bv.expect_value();
-                ignore.push(key.as_str());
-            } else if name.is("county_in_region") && key.is("region") {
-                if let Some(token) = bv.expect_value() {
-                    data.verify_exists(Item::Region, token);
-                }
-                ignore.push(key.as_str());
-            } else if (name.is("in_de_jure_hierarchy") || name.is("in_de_facto_hierarchy"))
-                && (key.is("filter") || key.is("continue"))
-            {
-                if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger(block, data, scopes, &[]);
-                }
-                ignore.push(key.as_str());
-            } else if name.is("claim") && (key.is("pressed") || key.is("explicit")) {
-                bv.expect_value(); // TODO: check yes/no/all
-                ignore.push(key.as_str());
-            }
-        }
-    }
-    validate_trigger(block, data, scopes, &ignore);
+pub fn validate_trigger_iterator(name: &Token, block: &Block, data: &Everything, scopes: Scopes) {
+    let caller = match name.as_str() {
+        "in_list" | "in_global_list" | "in_local_list" => Caller::AnyInList,
+        "relation" => Caller::AnyRelationType,
+        "court_position_holder" => Caller::AnyCourtPositionType,
+        "pool_character" => Caller::AnyProvince,
+        "character_struggle" => Caller::AnyInvolvement,
+        "county_in_region" => Caller::AnyRegion,
+        "in_de_jure_hierarchy" | "in_de_facto_hierarchy" => Caller::AnyHierarchy,
+        "claim" => Caller::AnyClaim,
+        _ => Caller::AnyList,
+    };
+    validate_trigger(caller, block, data, scopes);
 }
 
 pub fn validate_character_trigger(block: &Block, data: &Everything) {
-    validate_trigger(block, data, Scopes::Character, &[]);
-}
-
-fn validate_trigger_if(block: &Block, data: &Everything, mut scopes: Scopes) -> Scopes {
-    for (key, _, bv) in block.iter_items() {
-        if let Some(key) = key {
-            if key.is("limit") {
-                if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger(block, data, scopes, &[]);
-                }
-            }
-        }
-    }
-    validate_trigger(block, data, scopes, &["limit"])
-}
-
-fn validate_trigger_else(block: &Block, data: &Everything, mut scopes: Scopes) -> Scopes {
-    for (key, _, bv) in block.iter_items() {
-        if let Some(key) = key {
-            if key.is("limit") {
-                advice_info(
-                    key,
-                    ErrorKey::Tidying,
-                    "`limit` in a trigger_else block is confusing",
-                    "consider making it a trigger_else_if block",
-                );
-                if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger(block, data, scopes, &[]);
-                }
-            }
-        }
-    }
-    validate_trigger(block, data, scopes, &["limit"])
-}
-
-fn validate_custom_description(block: &Block, data: &Everything, mut scopes: Scopes) -> Scopes {
-    for (key, _, bv) in block.iter_items() {
-        if let Some(key) = key {
-            if key.is("text") {
-                // TODO: validate trigger_localization
-                bv.expect_value();
-            } else if key.is("subject") || key.is("object") {
-                if let Some(token) = bv.expect_value() {
-                    (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
-                }
-            }
-        }
-    }
-    validate_trigger(block, data, scopes, &["text", "subject", "object"])
-}
-
-fn validate_custom_tooltip(block: &Block, data: &Everything, mut scopes: Scopes) -> Scopes {
-    for (key, _, bv) in block.iter_items() {
-        if let Some(key) = key {
-            if key.is("text") {
-                if let Some(token) = bv.expect_value() {
-                    data.localization.verify_exists(token);
-                }
-            } else if key.is("subject") {
-                if let Some(token) = bv.expect_value() {
-                    (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
-                }
-            }
-        }
-    }
-    validate_trigger(block, data, scopes, &["text", "subject"])
-}
-
-fn validate_calc_true_if(block: &Block, data: &Everything, scopes: Scopes) -> Scopes {
-    for (key, _, bv) in block.iter_items() {
-        if let Some(key) = key {
-            if key.is("amount") {
-                if let Some(token) = bv.expect_value() {
-                    if token.as_str().parse::<i32>().is_err() {
-                        warn(token, ErrorKey::Validation, "expected a number");
-                    }
-                }
-            }
-        }
-    }
-    validate_trigger(block, data, scopes, &["amount"])
+    validate_normal_trigger(block, data, Scopes::Character);
 }
 
 pub fn validate_target(
@@ -623,7 +704,7 @@ fn validate_trigger_keys(
 
         "and" | "or" | "not" | "nor" | "nand" | "all_false" | "any_false" => {
             if let Some(block) = bv.expect_block() {
-                scopes = validate_trigger(block, data, scopes, &[]);
+                scopes = validate_normal_trigger(block, data, scopes);
             }
         }
 

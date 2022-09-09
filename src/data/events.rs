@@ -14,7 +14,7 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
-use crate::trigger::validate_trigger;
+use crate::trigger::validate_normal_trigger;
 use crate::validate::{
     validate_cooldown, validate_theme_background, validate_theme_icon, validate_theme_sound,
 };
@@ -252,12 +252,12 @@ impl Event {
         vd.field_bool("hidden");
         vd.field_bool("major");
         vd.field_validated_block("major_trigger", |b, data| {
-            scopes = validate_trigger(b, data, scopes, &[]);
+            scopes = validate_normal_trigger(b, data, scopes);
         });
 
         vd.field_block("immediate"); // effect
         vd.field_validated_block("trigger", |b, data| {
-            scopes = validate_trigger(b, data, scopes, &[]);
+            scopes = validate_normal_trigger(b, data, scopes);
         });
         vd.field_block("on_trigger_fail"); // effect
         vd.field_block("weight_multiplier"); // modifier
@@ -389,7 +389,7 @@ fn validate_artifact(block: &Block, data: &Everything) {
         ],
     );
     vd.field_validated_block("trigger", |b, data| {
-        validate_trigger(b, data, Scopes::Artifact, &[]);
+        validate_normal_trigger(b, data, Scopes::Artifact);
     });
     vd.warn_remaining();
 }

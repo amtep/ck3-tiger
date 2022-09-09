@@ -11,7 +11,7 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::scope_iterator;
 use crate::token::Token;
-use crate::trigger::validate_trigger;
+use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct ScriptedLists {
@@ -95,7 +95,7 @@ impl List {
         if let Some(token) = vd.field_value("base") {
             if let Some((_, outscope)) = scope_iterator(token, data) {
                 if let Some(block) = vd.field_block("conditions") {
-                    validate_trigger(block, data, outscope, &[]);
+                    validate_normal_trigger(block, data, outscope);
                 }
             } else {
                 error(token, ErrorKey::MissingItem, "no such base list");
