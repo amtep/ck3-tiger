@@ -6,7 +6,7 @@ use std::path::Path;
 
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::{warn, warn_info};
+use crate::errors::{advice_info, warn};
 use crate::fileset::FileKind;
 use crate::parse::pdxfile::parse_pdx;
 
@@ -43,7 +43,7 @@ impl PdxFile {
             .map_err(anyhow::Error::msg)?;
 
         if let Some(bomless) = contents.strip_prefix(BOM_FROM_1252) {
-            warn_info(
+            advice_info(
                 (pathname, kind),
                 ErrorKey::Encoding,
                 "file should not start with a UTF-8 BOM",
