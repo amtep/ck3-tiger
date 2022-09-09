@@ -385,6 +385,9 @@ pub fn validate_trigger_iterator(
                     scopes = validate_trigger(block, data, scopes, &[]);
                 }
                 ignore.push(key.as_str());
+            } else if name.is("claim") && (key.is("pressed") || key.is("explicit")) {
+                bv.expect_value(); // TODO: check yes/no/all
+                ignore.push(key.as_str());
             }
         }
     }

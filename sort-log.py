@@ -10,7 +10,6 @@ text = open(fname).read()
 SEPARATOR = "\n--------------------\n\n"
 
 items = text.split(SEPARATOR)
-print( len(items))
 
 if fname.endswith("event_targets.log"):
     header = items[0]
@@ -32,3 +31,23 @@ elif fname.endswith("triggers.log"):
     items.insert(0, header[0])
 
     print(SEPARATOR.join(items))
+
+elif fname.endswith("modifiers.log"):
+    items = text.split("\n\n")
+    sortable = []
+    for item in items:
+        lines = item.splitlines()
+        if len(lines) == 3:
+            if lines[0].startswith("Printing "):
+                del lines[0]
+            elif lines[1].startswith("Extra "):
+                del lines[1]
+        if not lines:
+            continue
+        lines = [ lines[1], lines[0] ]
+        sortable.append(lines)
+    sortable.sort()
+    for lines in sortable:
+        print(lines[1])
+        print(lines[0])
+        print()

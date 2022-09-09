@@ -285,6 +285,9 @@ impl ScriptValue {
         } else if it_name.is("relation") {
             vd.req_field("type");
             vd.field_value_item("type", Item::Relation)
+        } else if it_name.is("claim") {
+            vd.field_choice("explicit", &["yes", "no", "all"]);
+            vd.field_choice("pressed", &["yes", "no", "all"]);
         }
         Self::validate_inner(vd, data, scopes);
     }

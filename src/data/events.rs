@@ -434,6 +434,7 @@ fn validate_portrait(v: &BlockOrValue, data: &Everything) {
             vd.field_validated_blocks("triggered_outfit", validate_triggered_outfit);
             // TODO: is this only useful when animation is prisondungeon ?
             vd.field_bool("override_imprisonment_visuals");
+            vd.field_bool("animate_if_dead");
             vd.warn_remaining();
         }
     }

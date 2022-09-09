@@ -26,6 +26,7 @@ mod desc;
 mod fileset;
 mod helpers;
 mod item;
+mod modif;
 mod parse;
 mod pdxfile;
 mod rivers;

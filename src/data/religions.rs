@@ -38,6 +38,9 @@ impl Religions {
                     if other.key.loc.kind >= key.loc.kind {
                         dup_error(key, &other.key, "faith");
                     }
+                } else {
+                    let key = format!("{}_opinion", faith);
+                    self.modifier_keys.push(key);
                 }
                 let pagan = block.get_field_bool("pagan_roots").unwrap_or(false);
                 self.faiths.insert(
