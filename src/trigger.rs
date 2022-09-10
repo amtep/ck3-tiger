@@ -651,6 +651,14 @@ pub fn validate_target(
                 scopes &= inscope;
             }
             part_scopes = Scopes::Value;
+        } else if data.scriptvalues.exists(part.as_str()) {
+            // TODO: validate inscope of the script value against part_scopes
+            if !last {
+                let msg = format!("`{}` only makes sense as the last part", part);
+                warn(part, ErrorKey::Scopes, &msg);
+                return (scopes, Scopes::all());
+            }
+            part_scopes = Scopes::Value;
         // TODO: warn if trying to use iterator here
         } else {
             let msg = format!("unknown token `{}`", part);
