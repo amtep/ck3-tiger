@@ -35,29 +35,29 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn req_field(&mut self, name: &'a str) -> bool {
-        self.known_fields.push(name);
-        let found = self.block.get_key(name).is_some();
-        if !found {
+    pub fn req_field(&mut self, name: &str) -> bool {
+        if let Some(key) = self.block.get_key(name) {
+            self.known_fields.push(key.as_str());
+            true
+        } else {
             error(
                 self.block,
                 ErrorKey::Validation,
                 &format!("required field `{}` missing", name),
             );
+            false
         }
-        found
     }
 
-    pub fn field_check<F>(&mut self, name: &'a str, mut f: F) -> bool
+    pub fn field_check<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BlockOrValue),
     {
-        self.known_fields.push(name);
-
         let mut found = None;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
+                    self.known_fields.push(key.as_str());
                     if let Some(other) = found {
                         dup_assign_error(key, other);
                     }
@@ -76,7 +76,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
-    pub fn field(&mut self, name: &'a str) -> Option<&BlockOrValue> {
+    pub fn field(&mut self, name: &str) -> Option<&BlockOrValue> {
         if self.field_check(name, |_| ()) {
             self.block.get_field(name)
         } else {
@@ -84,13 +84,12 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn field_any_cmp(&mut self, name: &'a str) -> Option<&BlockOrValue> {
-        self.known_fields.push(name);
-
+    pub fn field_any_cmp(&mut self, name: &str) -> Option<&BlockOrValue> {
         let mut found = None;
         for (k, _, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
+                    self.known_fields.push(key.as_str());
                     if let Some((other, _)) = found {
                         dup_assign_error(key, other);
                     }
@@ -105,7 +104,7 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn field_value(&mut self, name: &'a str) -> Option<&Token> {
+    pub fn field_value(&mut self, name: &str) -> Option<&Token> {
         if self.field_check(name, |bv| _ = bv.expect_value()) {
             self.block.get_field_value(name)
         } else {
@@ -113,7 +112,7 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn field_value_item(&mut self, name: &'a str, itype: Item) {
+    pub fn field_value_item(&mut self, name: &str, itype: Item) {
         self.field_check(name, |bv| {
             if let Some(token) = bv.expect_value() {
                 self.data.verify_exists(itype, token);
@@ -121,7 +120,7 @@ impl<'a> Validator<'a> {
         });
     }
 
-    pub fn field_block(&mut self, name: &'a str) -> Option<&Block> {
+    pub fn field_block(&mut self, name: &str) -> Option<&Block> {
         if self.field_check(name, |bv| _ = bv.expect_block()) {
             self.block.get_field_block(name)
         } else {
@@ -129,7 +128,7 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn field_bool(&mut self, name: &'a str) -> bool {
+    pub fn field_bool(&mut self, name: &str) -> bool {
         self.field_check(name, |v| match v {
             BlockOrValue::Token(t) if t.is("yes") || t.is("no") => (),
             BlockOrValue::Token(t) => {
@@ -141,7 +140,7 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_integer(&mut self, name: &'a str) -> bool {
+    pub fn field_integer(&mut self, name: &str) -> bool {
         self.field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
                 if t.as_str().parse::<i32>().is_err() {
@@ -154,7 +153,7 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_numeric(&mut self, name: &'a str) -> bool {
+    pub fn field_numeric(&mut self, name: &str) -> bool {
         self.field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
                 if t.as_str().parse::<f64>().is_err() {
@@ -167,13 +166,13 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_script_value(&mut self, name: &'a str, scopes: Scopes) {
+    pub fn field_script_value(&mut self, name: &str, scopes: Scopes) {
         self.field_check(name, |bv| {
             _ = ScriptValue::validate_bv(bv, self.data, scopes);
         });
     }
 
-    pub fn field_choice(&mut self, name: &'a str, choices: &[&str]) -> bool {
+    pub fn field_choice(&mut self, name: &str, choices: &[&str]) -> bool {
         self.field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
                 if !choices.contains(&t.as_str()) {
@@ -187,7 +186,7 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_list(&mut self, name: &'a str) -> bool {
+    pub fn field_list(&mut self, name: &str) -> bool {
         self.field_check(name, |v| match v {
             BlockOrValue::Token(t) => {
                 error(t, ErrorKey::Validation, "expected block, found value");
@@ -213,13 +212,12 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_values(&mut self, name: &'a str) -> Vec<&Token> {
-        self.known_fields.push(name);
-
+    pub fn field_values(&mut self, name: &str) -> Vec<&Token> {
         let mut vec = Vec::new();
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
+                    self.known_fields.push(key.as_str());
                     if !matches!(cmp, Comparator::Eq) {
                         error(
                             key,
@@ -239,12 +237,11 @@ impl<'a> Validator<'a> {
         vec
     }
 
-    pub fn field_values_items(&mut self, name: &'a str, itype: Item) {
-        self.known_fields.push(name);
-
+    pub fn field_values_items(&mut self, name: &str, itype: Item) {
         for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
+                    self.known_fields.push(key.as_str());
                     if !matches!(cmp, Comparator::Eq) {
                         error(
                             key,
@@ -260,13 +257,12 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn fields(&mut self, name: &'a str) -> bool {
-        self.known_fields.push(name);
-
+    pub fn fields(&mut self, name: &str) -> bool {
         let mut found = false;
         for (k, cmp, _) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
+                    self.known_fields.push(key.as_str());
                     if !matches!(cmp, Comparator::Eq) {
                         error(
                             key,
@@ -281,16 +277,15 @@ impl<'a> Validator<'a> {
         found
     }
 
-    pub fn field_validated<F>(&mut self, name: &'a str, mut f: F) -> bool
+    pub fn field_validated<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BlockOrValue, &Everything),
     {
-        self.known_fields.push(name);
-
         let mut found = None;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
+                    self.known_fields.push(key.as_str());
                     if !matches!(cmp, Comparator::Eq) {
                         error(
                             key,
@@ -309,16 +304,15 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
-    pub fn field_validated_bv<F>(&mut self, name: &'a str, mut f: F) -> bool
+    pub fn field_validated_bv<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BlockOrValue, &Everything),
     {
-        self.known_fields.push(name);
-
         let mut found = None;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
+                    self.known_fields.push(key.as_str());
                     if let Some(other) = found {
                         dup_assign_error(key, other);
                     }
@@ -337,16 +331,15 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
-    pub fn field_validated_bvs<F>(&mut self, name: &'a str, mut f: F) -> bool
+    pub fn field_validated_bvs<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BlockOrValue, &Everything),
     {
-        self.known_fields.push(name);
-
         let mut found = false;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
+                    self.known_fields.push(key.as_str());
                     if !matches!(cmp, Comparator::Eq) {
                         error(
                             key,
@@ -362,16 +355,15 @@ impl<'a> Validator<'a> {
         found
     }
 
-    pub fn field_validated_blocks<F>(&mut self, name: &'a str, mut f: F) -> bool
+    pub fn field_validated_blocks<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Block, &Everything),
     {
-        self.known_fields.push(name);
-
         let mut found = false;
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
+                    self.known_fields.push(key.as_str());
                     if !matches!(cmp, Comparator::Eq) {
                         error(
                             key,
@@ -392,16 +384,15 @@ impl<'a> Validator<'a> {
         found
     }
 
-    pub fn field_validated_block<F>(&mut self, name: &'a str, mut f: F) -> bool
+    pub fn field_validated_block<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Block, &Everything),
     {
-        self.known_fields.push(name);
         let mut found = None;
-
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
+                    self.known_fields.push(key.as_str());
                     if let Some(other) = found {
                         dup_assign_error(key, other);
                     }
@@ -425,13 +416,12 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
-    pub fn field_blocks(&mut self, name: &'a str) -> bool {
-        self.known_fields.push(name);
-
+    pub fn field_blocks(&mut self, name: &str) -> bool {
         let mut found = false;
         for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
+                    self.known_fields.push(key.as_str());
                     if !matches!(cmp, Comparator::Eq) {
                         error(
                             key,
@@ -467,9 +457,9 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn advice_field(&mut self, name: &'a str, msg: &str) {
-        self.known_fields.push(name);
+    pub fn advice_field(&mut self, name: &str, msg: &str) {
         if let Some(key) = self.block.get_key(name) {
+            self.known_fields.push(key.as_str());
             advice(key, ErrorKey::Unneeded, msg);
         }
     }
