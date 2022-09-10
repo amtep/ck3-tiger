@@ -4,8 +4,7 @@ use fnv::FnvHashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::fs::read;
 use std::io::{stderr, Stderr, Write};
-use std::path::{Path, PathBuf};
-use std::rc::Rc;
+use std::path::PathBuf;
 use unicode_width::UnicodeWidthChar;
 
 use crate::block::{Block, BlockOrValue};
@@ -40,18 +39,6 @@ pub trait ErrorLoc {
     fn into_loc(self) -> Loc;
 }
 
-impl ErrorLoc for (PathBuf, FileKind) {
-    fn into_loc(self) -> Loc {
-        Loc::for_file(Rc::new(self.0), self.1)
-    }
-}
-
-impl ErrorLoc for (&Path, FileKind) {
-    fn into_loc(self) -> Loc {
-        Loc::for_file(Rc::new(self.0.to_path_buf()), self.1)
-    }
-}
-
 impl ErrorLoc for BlockOrValue {
     fn into_loc(self) -> Loc {
         match self {
@@ -72,13 +59,13 @@ impl ErrorLoc for &BlockOrValue {
 
 impl ErrorLoc for FileEntry {
     fn into_loc(self) -> Loc {
-        Loc::for_file(Rc::new(self.path().to_path_buf()), self.kind())
+        Loc::for_entry(&self)
     }
 }
 
 impl ErrorLoc for &FileEntry {
     fn into_loc(self) -> Loc {
-        Loc::for_file(Rc::new(self.path().to_path_buf()), self.kind())
+        Loc::for_entry(self)
     }
 }
 

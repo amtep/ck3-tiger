@@ -49,7 +49,7 @@ impl FileHandler for Relations {
             return;
         }
 
-        let block = match PdxFile::read(entry.path(), entry.kind(), fullpath) {
+        let block = match PdxFile::read(entry, fullpath) {
             Ok(block) => block,
             Err(e) => {
                 error_info(

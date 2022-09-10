@@ -83,7 +83,7 @@ impl FileHandler for ProvinceHistories {
             return;
         }
 
-        let block = match PdxFile::read_cp1252(entry.path(), entry.kind(), fullpath) {
+        let block = match PdxFile::read_cp1252(entry, fullpath) {
             Ok(block) => block,
             Err(e) => {
                 error_info(

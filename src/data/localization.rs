@@ -249,7 +249,7 @@ impl FileHandler for Localization {
             }
             match read_to_string(fullpath) {
                 Ok(content) => {
-                    for loca in parse_loca(entry.path(), entry.kind(), &content) {
+                    for loca in parse_loca(entry, &content) {
                         let hash = self.locas.entry(filelang).or_default();
                         if let Some(other) = hash.get(loca.key.as_str()) {
                             if other.key.loc.kind == entry.kind() {

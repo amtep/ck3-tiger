@@ -37,7 +37,7 @@ pub struct FileEntry {
 }
 
 impl FileEntry {
-    fn new(path: PathBuf, kind: FileKind) -> Self {
+    pub fn new(path: PathBuf, kind: FileKind) -> Self {
         assert!(path.file_name().is_some());
         Self { path, kind }
     }

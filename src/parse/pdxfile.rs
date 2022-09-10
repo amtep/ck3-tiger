@@ -1,13 +1,11 @@
 use anyhow::{bail, Result};
 use fnv::FnvHashMap;
 use std::mem::swap;
-use std::path::{Path, PathBuf};
-use std::rc::Rc;
 
 use crate::block::{Block, BlockOrValue, Comparator};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, warn_info};
-use crate::fileset::FileKind;
+use crate::fileset::FileEntry;
 use crate::token::{Loc, Token};
 
 #[derive(Copy, Clone, Debug)]
@@ -61,7 +59,6 @@ struct ParseLevel {
 }
 
 struct Parser {
-    pathname: Rc<PathBuf>,
     current: ParseLevel,
     stack: Vec<ParseLevel>,
     brace_error: bool,
@@ -261,10 +258,7 @@ impl Parser {
         // since its structure is unclear. Validating such a file would
         // just produce a cascade of irrelevant errors.
         if self.brace_error {
-            bail!(
-                "Could not parse {} due to brace mismatch",
-                self.pathname.display()
-            );
+            bail!("Could not parse file due to brace mismatch");
         }
         Ok(self.current.block)
     }
@@ -272,14 +266,11 @@ impl Parser {
 
 #[allow(clippy::module_name_repetitions)]
 #[allow(clippy::too_many_lines)] // many lines are natural for state machines
-pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block> {
-    let pathname = Rc::new(pathname.to_path_buf());
-    let mut loc = Loc::new(pathname.clone(), kind);
-    let block_loc = Loc::for_file(pathname.clone(), kind);
+pub fn parse_pdx(entry: &FileEntry, content: &str) -> Result<Block> {
+    let mut loc = Loc::for_entry(entry);
     let mut parser = Parser {
-        pathname,
         current: ParseLevel {
-            block: Block::new(block_loc),
+            block: Block::new(loc.clone()),
             key: None,
             comp: None,
             tag: None,
@@ -291,6 +282,8 @@ pub fn parse_pdx(pathname: &Path, kind: FileKind, content: &str) -> Result<Block
         calculation: 0.0,
         calculation_op: CalculationOp::Add,
     };
+    loc.line = 1;
+    loc.column = 1;
     let mut state = State::Neutral;
     let mut token_start = loc.clone();
     let mut calculation_start = loc.clone();

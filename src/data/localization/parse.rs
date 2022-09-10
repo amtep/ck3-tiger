@@ -1,6 +1,4 @@
 use std::iter::Peekable;
-use std::path::Path;
-use std::rc::Rc;
 use std::str::Chars;
 
 use crate::data::localization::{
@@ -8,7 +6,7 @@ use crate::data::localization::{
 };
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
-use crate::fileset::FileKind;
+use crate::fileset::FileEntry;
 use crate::token::{Loc, Token};
 
 fn is_key_char(c: char) -> bool {
@@ -710,13 +708,12 @@ impl<'a> Iterator for LocaReader<'a> {
 }
 
 #[allow(clippy::module_name_repetitions)]
-pub fn parse_loca<'a>(pathname: &Path, kind: FileKind, content: &'a str) -> LocaReader<'a> {
+pub fn parse_loca<'a>(entry: &FileEntry, content: &'a str) -> LocaReader<'a> {
     // lang can be unwrapped here because we wouldn't be called to parse a bad filename
-    let lang = get_file_lang(pathname.file_name().unwrap()).unwrap();
-    let parser = LocaParser::new(
-        Loc::new(Rc::new(pathname.to_path_buf()), kind),
-        content,
-        lang,
-    );
+    let lang = get_file_lang(entry.path().file_name().unwrap()).unwrap();
+    let mut loc = Loc::for_entry(entry);
+    loc.line = 1;
+    loc.column = 1;
+    let parser = LocaParser::new(loc, content, lang);
     LocaReader { parser }
 }

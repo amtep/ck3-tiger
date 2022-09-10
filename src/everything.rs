@@ -179,7 +179,8 @@ impl Everything {
     }
 
     fn _read_config(path: &Path) -> Result<Block> {
-        PdxFile::read_no_bom(path, FileKind::Mod, path)
+        let entry = FileEntry::new(path.to_path_buf(), FileKind::Mod);
+        PdxFile::read_no_bom(&entry, path)
     }
 
     pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {

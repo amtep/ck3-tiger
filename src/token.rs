@@ -4,7 +4,7 @@ use std::fmt::{Display, Error, Formatter};
 use std::path::PathBuf;
 use std::rc::Rc;
 
-use crate::fileset::FileKind;
+use crate::fileset::{FileEntry, FileKind};
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Loc {
@@ -19,17 +19,6 @@ pub struct Loc {
 }
 
 impl Loc {
-    pub fn new(pathname: Rc<PathBuf>, kind: FileKind) -> Self {
-        Loc {
-            pathname,
-            kind,
-            line: 1,
-            column: 1,
-            offset: 0,
-            link: None,
-        }
-    }
-
     pub fn for_file(pathname: Rc<PathBuf>, kind: FileKind) -> Self {
         Loc {
             pathname,
@@ -39,6 +28,10 @@ impl Loc {
             offset: 0,
             link: None,
         }
+    }
+
+    pub fn for_entry(entry: &FileEntry) -> Self {
+        Self::for_file(Rc::new(entry.path().to_path_buf()), entry.kind())
     }
 
     pub fn marker(&self) -> String {
