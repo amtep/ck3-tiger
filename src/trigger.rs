@@ -32,8 +32,17 @@ pub enum Caller {
     AnyHierarchy,
 }
 
-pub fn validate_normal_trigger(block: &Block, data: &Everything, scopes: Scopes) -> Scopes {
-    validate_trigger(Caller::Normal, block, data, scopes)
+pub fn validate_normal_trigger(
+    block: &Block,
+    data: &Everything,
+    scopes: Scopes,
+    tooltipped: bool,
+) -> Scopes {
+    validate_trigger(Caller::Normal, block, data, scopes, tooltipped)
+}
+
+pub fn validate_character_trigger(block: &Block, data: &Everything, tooltipped: bool) {
+    validate_normal_trigger(block, data, Scopes::Character, tooltipped);
 }
 
 pub fn validate_trigger(
@@ -41,6 +50,7 @@ pub fn validate_trigger(
     block: &Block,
     data: &Everything,
     mut scopes: Scopes,
+    tooltipped: bool,
 ) -> Scopes {
     let mut seen_if = false;
 
@@ -49,7 +59,7 @@ pub fn validate_trigger(
             if key.is("limit") {
                 if caller == Caller::If {
                     if let Some(block) = bv.expect_block() {
-                        scopes = validate_normal_trigger(block, data, scopes);
+                        scopes = validate_normal_trigger(block, data, scopes, tooltipped);
                     }
                 } else {
                     warn(key, ErrorKey::Validation, "can only use `limit` in `trigger_if` or `trigger_else_if` or `trigger_else`");
@@ -58,7 +68,7 @@ pub fn validate_trigger(
             }
             if key.is("trigger_if") {
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger(Caller::If, block, data, scopes);
+                    scopes = validate_trigger(Caller::If, block, data, scopes, tooltipped);
                 }
                 seen_if = true;
                 continue;
@@ -71,7 +81,7 @@ pub fn validate_trigger(
                     );
                 }
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger(Caller::If, block, data, scopes);
+                    scopes = validate_trigger(Caller::If, block, data, scopes, tooltipped);
                 }
                 continue;
             } else if key.is("trigger_else") {
@@ -83,7 +93,7 @@ pub fn validate_trigger(
                     );
                 }
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger(Caller::If, block, data, scopes);
+                    scopes = validate_trigger(Caller::If, block, data, scopes, tooltipped);
                 }
                 seen_if = false;
                 continue;
@@ -207,7 +217,7 @@ pub fn validate_trigger(
                     continue;
                 }
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_normal_trigger(block, data, scopes);
+                    scopes = validate_normal_trigger(block, data, scopes, false);
                 }
                 continue;
             }
@@ -302,7 +312,7 @@ pub fn validate_trigger(
                             scopes &= inscope;
                         }
                         if let Some(b) = bv.get_block() {
-                            validate_trigger_iterator(&it_name, b, data, outscope);
+                            validate_trigger_iterator(&it_name, b, data, outscope, tooltipped);
                         } else {
                             error(bv, ErrorKey::Validation, "expected block, found value");
                         }
@@ -313,21 +323,22 @@ pub fn validate_trigger(
 
             if key.is("custom_description") {
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger(Caller::CustomDescription, block, data, scopes);
+                    scopes =
+                        validate_trigger(Caller::CustomDescription, block, data, scopes, false);
                 }
                 continue;
             }
 
             if key.is("custom_tooltip") {
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger(Caller::CustomTooltip, block, data, scopes);
+                    scopes = validate_trigger(Caller::CustomTooltip, block, data, scopes, false);
                 }
                 continue;
             }
 
             if key.is("calc_true_if") {
                 if let Some(block) = bv.expect_block() {
-                    scopes = validate_trigger(Caller::CalcTrueIf, block, data, scopes);
+                    scopes = validate_trigger(Caller::CalcTrueIf, block, data, scopes, tooltipped);
                 }
                 continue;
             }
@@ -346,7 +357,7 @@ pub fn validate_trigger(
                 continue;
             }
 
-            let (scopes2, handled) = validate_trigger_keys(key, bv, data, scopes);
+            let (scopes2, handled) = validate_trigger_keys(key, bv, data, scopes, tooltipped);
             if handled {
                 continue;
             }
@@ -517,7 +528,9 @@ pub fn validate_trigger(
                     BlockOrValue::Token(t) => {
                         (scopes, _) = validate_target(t, data, scopes, part_scopes);
                     }
-                    BlockOrValue::Block(b) => _ = validate_normal_trigger(b, data, part_scopes),
+                    BlockOrValue::Block(b) => {
+                        _ = validate_normal_trigger(b, data, part_scopes, tooltipped)
+                    }
                 }
             }
         } else {
@@ -540,7 +553,13 @@ pub fn validate_trigger(
     scopes
 }
 
-pub fn validate_trigger_iterator(name: &Token, block: &Block, data: &Everything, scopes: Scopes) {
+fn validate_trigger_iterator(
+    name: &Token,
+    block: &Block,
+    data: &Everything,
+    scopes: Scopes,
+    tooltipped: bool,
+) {
     let caller = match name.as_str() {
         "in_list" | "in_global_list" | "in_local_list" => Caller::AnyInList,
         "relation" => Caller::AnyRelationType,
@@ -552,14 +571,11 @@ pub fn validate_trigger_iterator(name: &Token, block: &Block, data: &Everything,
         "claim" => Caller::AnyClaim,
         _ => Caller::AnyList,
     };
-    validate_trigger(caller, block, data, scopes);
+    // TODO: recommend custom = for iterators?
+    validate_trigger(caller, block, data, scopes, tooltipped);
 }
 
-pub fn validate_character_trigger(block: &Block, data: &Everything) {
-    validate_normal_trigger(block, data, Scopes::Character);
-}
-
-pub fn validate_target(
+fn validate_target(
     token: &Token,
     data: &Everything,
     mut scopes: Scopes,
@@ -688,6 +704,7 @@ fn validate_trigger_keys(
     bv: &BlockOrValue,
     data: &Everything,
     mut scopes: Scopes,
+    tooltipped: bool,
 ) -> (Scopes, bool) {
     let match_key: &str = &key.as_str().to_lowercase();
     match match_key {
@@ -712,7 +729,7 @@ fn validate_trigger_keys(
 
         "and" | "or" | "not" | "nor" | "nand" | "all_false" | "any_false" => {
             if let Some(block) = bv.expect_block() {
-                scopes = validate_normal_trigger(block, data, scopes);
+                scopes = validate_normal_trigger(block, data, scopes, tooltipped);
             }
         }
 
@@ -854,16 +871,18 @@ fn validate_trigger_keys(
                 } else {
                     (scopes, _) = validate_target(token, data, scopes, Scopes::non_primitive());
 
-                    if let Some(firstpart) = token.as_str().strip_suffix(".holder") {
-                        advice_info(
-                            key,
-                            ErrorKey::Tooltip,
-                            &format!(
-                                "could rewrite this as `{} = {{ is_title_created = yes }}`",
-                                firstpart
-                            ),
-                            "it gives a nicer tooltip",
-                        );
+                    if tooltipped {
+                        if let Some(firstpart) = token.as_str().strip_suffix(".holder") {
+                            advice_info(
+                                key,
+                                ErrorKey::Tooltip,
+                                &format!(
+                                    "could rewrite this as `{} = {{ is_title_created = yes }}`",
+                                    firstpart
+                                ),
+                                "it gives a nicer tooltip",
+                            );
+                        }
                     }
                 }
             }

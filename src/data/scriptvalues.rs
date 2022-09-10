@@ -264,10 +264,10 @@ impl ScriptValue {
             }
         } else if it_name.is("in_de_facto_hierarchy") || it_name.is("in_de_jure_hierarchy") {
             if let Some(block) = vd.field_block("filter") {
-                scopes = validate_normal_trigger(block, data, scopes);
+                scopes = validate_normal_trigger(block, data, scopes, false);
             }
             if let Some(block) = vd.field_block("continue") {
-                scopes = validate_normal_trigger(block, data, scopes);
+                scopes = validate_normal_trigger(block, data, scopes, false);
             }
         } else if it_name.is("county_in_region") {
             vd.field_value_item("region", Item::Region);

@@ -76,6 +76,7 @@ impl Trigger {
         }
 
         // TODO: remember the deduced scope
-        _ = validate_normal_trigger(&self.block, data, Scopes::all());
+        // TODO: figure out what to do about the "tooltipped" parameter
+        _ = validate_normal_trigger(&self.block, data, Scopes::all(), true);
     }
 }

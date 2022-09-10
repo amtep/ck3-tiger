@@ -29,7 +29,7 @@ pub fn validate_desc_map_block(
                     validate_desc_map_block(b, data, f, true);
                 } else if triggered && key.is("trigger") {
                     // TODO: pass in correct scopes
-                    validate_normal_trigger(b, data, Scopes::all());
+                    validate_normal_trigger(b, data, Scopes::all(), false);
                 } else {
                     warn(key, ErrorKey::Validation, "unexpected key in description");
                 }

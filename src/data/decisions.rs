@@ -125,9 +125,15 @@ impl Decision {
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
-        vd.field_validated_block("is_shown", validate_character_trigger);
-        vd.field_validated_block("is_valid_showing_failures_only", validate_character_trigger);
-        vd.field_validated_block("is_valid", validate_character_trigger);
+        vd.field_validated_block("is_shown", |b, data| {
+            validate_character_trigger(b, data, false)
+        });
+        vd.field_validated_block("is_valid_showing_failures_only", |b, data| {
+            validate_character_trigger(b, data, true)
+        });
+        vd.field_validated_block("is_valid", |b, data| {
+            validate_character_trigger(b, data, true)
+        });
 
         // cost can have multiple definitions and they will be combined
         // however, two costs of the same type are not summed
@@ -137,9 +143,13 @@ impl Decision {
         check_cost(&self.block.get_field_blocks("minimum_cost"));
 
         vd.field_block("effect");
-        vd.field_validated_block("ai_potential", validate_character_trigger);
+        vd.field_validated_block("ai_potential", |b, data| {
+            validate_character_trigger(b, data, false)
+        });
         vd.field_block("ai_will_do");
-        vd.field_validated_block("should_create_alert", validate_character_trigger);
+        vd.field_validated_block("should_create_alert", |b, data| {
+            validate_character_trigger(b, data, false)
+        });
         vd.field("widget");
         vd.warn_remaining();
     }

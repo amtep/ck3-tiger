@@ -87,7 +87,7 @@ impl List {
         if let Some(token) = vd.field_value("base") {
             if let Some((_, outscope)) = scope_iterator(token, data) {
                 if let Some(block) = vd.field_block("conditions") {
-                    validate_normal_trigger(block, data, outscope);
+                    validate_normal_trigger(block, data, outscope, true);
                 }
             } else {
                 error(token, ErrorKey::MissingItem, "no such base list");

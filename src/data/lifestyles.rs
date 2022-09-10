@@ -84,15 +84,15 @@ impl Lifestyle {
         let mut vd = Validator::new(&self.block, data);
 
         if let Some(block) = vd.field_block("is_highlighted") {
-            validate_normal_trigger(block, data, Scopes::Character);
+            validate_normal_trigger(block, data, Scopes::Character, false);
         }
 
         if let Some(block) = vd.field_block("is_valid") {
-            validate_normal_trigger(block, data, Scopes::Character);
+            validate_normal_trigger(block, data, Scopes::Character, true);
         }
 
         if let Some(block) = vd.field_block("is_valid_showing_failures_only") {
-            validate_normal_trigger(block, data, Scopes::Character);
+            validate_normal_trigger(block, data, Scopes::Character, true);
         }
 
         if let Some(token) = vd.field_value("icon") {

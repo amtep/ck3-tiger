@@ -244,12 +244,12 @@ impl Event {
         vd.field_bool("hidden");
         vd.field_bool("major");
         vd.field_validated_block("major_trigger", |b, data| {
-            scopes = validate_normal_trigger(b, data, scopes);
+            scopes = validate_normal_trigger(b, data, scopes, false);
         });
 
         vd.field_block("immediate"); // effect
         vd.field_validated_block("trigger", |b, data| {
-            scopes = validate_normal_trigger(b, data, scopes);
+            scopes = validate_normal_trigger(b, data, scopes, false);
         });
         vd.field_block("on_trigger_fail"); // effect
         vd.field_block("weight_multiplier"); // modifier
@@ -381,7 +381,7 @@ fn validate_artifact(block: &Block, data: &Everything) {
         ],
     );
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, Scopes::Artifact);
+        validate_normal_trigger(b, data, Scopes::Artifact, false);
     });
     vd.warn_remaining();
 }
