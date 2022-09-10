@@ -14,8 +14,6 @@ use crate::validate::validate_color;
 #[derive(Clone, Debug, Default)]
 pub struct Terrains {
     terrains: FnvHashMap<String, Terrain>,
-    modif_char_keys: Vec<String>,
-    modif_prov_keys: Vec<String>,
 }
 
 impl Terrains {
@@ -24,42 +22,6 @@ impl Terrains {
             if other.key.loc.kind >= key.loc.kind {
                 dup_error(&key, &other.key, "terrain");
             }
-        } else {
-            let m = format!("{}_advantage", key);
-            self.modif_char_keys.push(m);
-            let m = format!("{}_attrition_mult", key);
-            self.modif_char_keys.push(m);
-            let m = format!("{}_cancel_negative_supply", key);
-            self.modif_char_keys.push(m);
-            let m = format!("{}_max_combat_roll", key);
-            self.modif_char_keys.push(m);
-            let m = format!("{}_min_combat_roll", key);
-            self.modif_char_keys.push(m);
-
-            let m = format!("{}_construction_gold_cost", key);
-            self.modif_prov_keys.push(m);
-            let m = format!("{}_construction_piety_cost", key);
-            self.modif_prov_keys.push(m);
-            let m = format!("{}_construction_prestige_cost", key);
-            self.modif_prov_keys.push(m);
-            let m = format!("{}_development_growth", key);
-            self.modif_prov_keys.push(m);
-            let m = format!("{}_development_growth_factor", key);
-            self.modif_prov_keys.push(m);
-            let m = format!("{}_holding_construction_gold_cost", key);
-            self.modif_prov_keys.push(m);
-            let m = format!("{}_holding_construction_piety_cost", key);
-            self.modif_prov_keys.push(m);
-            let m = format!("{}_holding_construction_prestige_cost", key);
-            self.modif_prov_keys.push(m);
-            let m = format!("{}_levy_size", key);
-            self.modif_prov_keys.push(m);
-            let m = format!("{}_supply_limit", key);
-            self.modif_prov_keys.push(m);
-            let m = format!("{}_supply_limit_mult", key);
-            self.modif_prov_keys.push(m);
-            let m = format!("{}_tax_mult", key);
-            self.modif_prov_keys.push(m);
         }
         self.terrains
             .insert(key.to_string(), Terrain::new(key, block.clone()));
@@ -73,14 +35,6 @@ impl Terrains {
         for item in self.terrains.values() {
             item.validate(data);
         }
-    }
-
-    pub fn iter_modif_char_keys(&self) -> impl Iterator<Item = &String> {
-        self.modif_char_keys.iter()
-    }
-
-    pub fn iter_modif_prov_keys(&self) -> impl Iterator<Item = &String> {
-        self.modif_prov_keys.iter()
     }
 }
 
@@ -140,13 +94,11 @@ impl Terrain {
 }
 
 pub fn validate_combat_modifier(block: &Block, data: &Everything) {
-    let mut vd = Validator::new(block, data);
-    validate_modifs(block, data, ModifKinds::Terrain, &mut vd);
-    vd.warn_remaining();
+    let vd = Validator::new(block, data);
+    validate_modifs(block, data, ModifKinds::Terrain, vd);
 }
 
 pub fn validate_province_modifier(block: &Block, data: &Everything) {
-    let mut vd = Validator::new(block, data);
-    validate_modifs(block, data, ModifKinds::Province, &mut vd);
-    vd.warn_remaining();
+    let vd = Validator::new(block, data);
+    validate_modifs(block, data, ModifKinds::Province, vd);
 }

@@ -28,6 +28,7 @@ pub enum ErrorKey {
     Tooltip,
     Tidying,
     Rivers,
+    Modifiers,
 
     PrincesOfDarkness,
 }

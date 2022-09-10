@@ -1,11 +1,16 @@
 #![allow(non_upper_case_globals)]
 
 use bitflags::bitflags;
+use std::fmt::{Display, Formatter};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::errorkey::ErrorKey;
+use crate::errors::{error, warn};
 use crate::everything::Everything;
+use crate::item::Item;
 use crate::scopes::Scopes;
+use crate::token::Token;
 
 bitflags! {
     pub struct ModifKinds: u8 {
@@ -18,6 +23,40 @@ bitflags! {
     }
 }
 
+impl ModifKinds {
+    pub fn require(self, other: Self, token: &Token) {
+        if !self.intersects(other) {
+            let msg = format!("`{}` is a modifier for {}", token, self);
+            error(token, ErrorKey::Modifiers, &msg);
+        }
+    }
+}
+
+impl Display for ModifKinds {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        let mut vec = Vec::new();
+        if self.contains(ModifKinds::Character) {
+            vec.push("character");
+        }
+        if self.contains(ModifKinds::Province) {
+            vec.push("province");
+        }
+        if self.contains(ModifKinds::County) {
+            vec.push("county");
+        }
+        if self.contains(ModifKinds::Terrain) {
+            vec.push("terrain");
+        }
+        if self.contains(ModifKinds::Culture) {
+            vec.push("culture");
+        }
+        if self.contains(ModifKinds::Scheme) {
+            vec.push("scheme");
+        }
+        write!(f, "{}", vec.join(", "))
+    }
+}
+
 /// LAST UPDATED VERSION 1.7.0
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
@@ -25,8 +64,10 @@ pub fn validate_modifs<'a>(
     _block: &Block,
     data: &'a Everything,
     kinds: ModifKinds,
-    vd: &mut Validator<'a>,
+    mut vd: Validator<'a>,
 ) {
+    // TODO: if a modif is for a wrong ModifKind, say so instead of "unknown token"
+
     if kinds.intersects(ModifKinds::Character) {
         // TODO: <scheme>_scheme_power_add
         // TODO: <scheme>_scheme_power_mult
@@ -101,24 +142,9 @@ pub fn validate_modifs<'a>(
         vd.field_numeric("same_heritage_county_advantage_add");
         vd.field_numeric("winter_advantage");
 
-        for key in data.terrains.iter_modif_char_keys() {
-            // <terrain>_advantage
-            // <terrain>_attrition_mult
-            // <terrain>_cancel_negative_supply
-            // <terrain>_max_combat_roll
-            // <terrain>_min_combat_roll
-            vd.field_numeric(key);
-        }
         vd.field_numeric("max_combat_roll");
         vd.field_numeric("min_combat_roll");
 
-        for key in data.religions.iter_modif_keys() {
-            // <faith>_opinion
-            // <religion>_opinion
-            vd.field_numeric(key);
-        }
-        // TODO: <religious_family>_opinion
-        // TODO: <culture>_opinion
         vd.field_numeric("attraction_opinion");
         vd.field_numeric("child_except_player_heir_opinion");
         vd.field_numeric("child_opinion");
@@ -154,7 +180,6 @@ pub fn validate_modifs<'a>(
         vd.field_numeric("spouse_opinion");
         vd.field_numeric("twin_opinion");
         vd.field_numeric("vassal_opinion");
-        // TODO: <government>_opinion
         // TODO: <government>_opinion_same_faith
         // TODO: <government>_vassal_opinion
 
@@ -313,10 +338,6 @@ pub fn validate_modifs<'a>(
         vd.field_numeric("monthly_county_control_change_add_even_if_baron");
         vd.field_numeric("monthly_county_control_change_factor_even_if_baron");
 
-        for key in data.lifestyles.iter_modif_keys() {
-            // monthly_<lifestyle>_xp_gain_mult
-            vd.field_numeric(key);
-        }
         vd.field_numeric("monthly_lifestyle_xp_gain_mult");
 
         vd.field_numeric("monthly_dynasty_prestige");
@@ -451,21 +472,6 @@ pub fn validate_modifs<'a>(
         vd.field_numeric("tribal_holding_holding_build_prestige_cost");
         vd.field_numeric("tribal_holding_holding_build_speed");
         vd.field_numeric("defender_holding_advantage");
-        for key in data.terrains.iter_modif_prov_keys() {
-            // <terrain>_construction_gold_cost
-            // <terrain>_construction_piety_cost
-            // <terrain>_construction_prestige_cost
-            // <terrain>_development_growth
-            // <terrain>_development_growth_factor
-            // <terrain>_holding_construction_gold_cost
-            // <terrain>_holding_construction_piety_cost
-            // <terrain>_holding_construction_prestige_cost
-            // <terrain>_levy_size
-            // <terrain>_supply_limit
-            // <terrain>_supply_limit_mult
-            // <terrain>_tax_mult
-            vd.field_numeric(key);
-        }
         vd.field_numeric("development_growth");
         vd.field_numeric("development_growth_factor");
         vd.field_numeric("fort_level");
@@ -508,4 +514,90 @@ pub fn validate_modifs<'a>(
         vd.field_numeric("scheme_secrecy");
         vd.field_numeric("scheme_success_chance");
     }
+
+    'outer: for (token, bv) in vd.unknown_keys() {
+        for terrain_sfx in &[
+            "_advantage",
+            "_attrition_mult",
+            "_cancel_negative_supply",
+            "_max_combat_roll",
+            "_min_combat_roll",
+        ] {
+            if let Some(terrain) = token.as_str().strip_suffix(terrain_sfx) {
+                data.verify_exists_implied(Item::Terrain, terrain, token);
+                kinds.require(ModifKinds::Character, token);
+                if let Some(value) = bv.expect_value() {
+                    if value.as_str().parse::<f64>().is_err() {
+                        error(value, ErrorKey::Validation, "expected number");
+                    }
+                }
+                continue 'outer;
+            }
+        }
+
+        for terrain_sfx in &[
+            "_construction_gold_cost",
+            "_construction_piety_cost",
+            "_construction_prestige_cost",
+            "_development_growth",
+            "_development_growth_factor",
+            "_holding_construction_gold_cost",
+            "_holding_construction_piety_cost",
+            "_holding_construction_prestige_cost",
+            "_levy_size",
+            "_supply_limit",
+            "_supply_limit_mult",
+            "_tax_mult",
+        ] {
+            if let Some(terrain) = token.as_str().strip_suffix(terrain_sfx) {
+                data.verify_exists_implied(Item::Terrain, terrain, token);
+                kinds.require(
+                    ModifKinds::Character | ModifKinds::County | ModifKinds::Province,
+                    token,
+                );
+                if let Some(value) = bv.expect_value() {
+                    if value.as_str().parse::<f64>().is_err() {
+                        error(value, ErrorKey::Validation, "expected number");
+                    }
+                }
+                continue 'outer;
+            }
+        }
+
+        if let Some(x) = token.as_str().strip_suffix("_xp_gain_mult") {
+            if let Some(lifestyle) = x.strip_prefix("monthly_") {
+                data.verify_exists_implied(Item::Lifestyle, lifestyle, token);
+                kinds.require(ModifKinds::Character, token);
+                if let Some(value) = bv.expect_value() {
+                    if value.as_str().parse::<f64>().is_err() {
+                        error(value, ErrorKey::Validation, "expected number");
+                    }
+                }
+                continue;
+            }
+        }
+
+        if let Some(something) = token.as_str().strip_suffix("_opinion") {
+            if !data.item_exists(Item::Religion, something)
+                && !data.item_exists(Item::Faith, something)
+                && !data.item_exists(Item::Culture, something)
+                && !data.item_exists(Item::ReligiousFamily, something)
+                && !data.item_exists(Item::Government, something)
+            {
+                error(token, ErrorKey::MissingItem, "unknown opinion type (not faith, religion, religious family, culture, or government)");
+            }
+            kinds.require(ModifKinds::Character, token);
+            if let Some(value) = bv.expect_value() {
+                if value.as_str().parse::<f64>().is_err() {
+                    error(value, ErrorKey::Validation, "expected number");
+                }
+            }
+            continue;
+        }
+
+        let msg = format!("unknown field `{}`", token);
+        warn(token, ErrorKey::Validation, &msg);
+    }
+
+    vd.warn_remaining();
 }

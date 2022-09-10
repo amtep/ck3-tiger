@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
+use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
@@ -11,6 +12,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::validate::validate_prefix_reference_token;
 
@@ -214,13 +216,16 @@ impl Character {
         // without an effect block around it.
         vd.field_integer("add_gold");
 
-        for effect in data.lifestyles.iter_effect_keys() {
-            vd.field_numeric(effect);
-        }
-
         vd.field_blocks("effect");
 
         for (token, bv) in vd.unknown_keys() {
+            if let Some(x) = token.as_str().strip_suffix("_perk_points") {
+                if let Some(lifestyle) = x.strip_prefix("add_") {
+                    data.verify_exists_implied(Item::Lifestyle, lifestyle, token);
+                    ScriptValue::validate_bv(bv, data, Scopes::Character);
+                    continue;
+                }
+            }
             if let Some(relation) = token.as_str().strip_prefix("set_relation_") {
                 data.verify_exists_implied(Item::Relation, relation, token);
                 if let Some(value) = bv.expect_value() {

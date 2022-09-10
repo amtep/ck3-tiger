@@ -16,7 +16,6 @@ use crate::validate::validate_color;
 pub struct Religions {
     religions: FnvHashMap<String, Religion>,
     faiths: FnvHashMap<String, Faith>,
-    modif_keys: Vec<String>,
 }
 
 impl Religions {
@@ -25,9 +24,6 @@ impl Religions {
             if other.key.loc.kind >= key.loc.kind {
                 dup_error(key, &other.key, "religion");
             }
-        } else {
-            let key = format!("{}_opinion", key);
-            self.modif_keys.push(key);
         }
         self.religions
             .insert(key.to_string(), Religion::new(key.clone(), block.clone()));
@@ -38,10 +34,9 @@ impl Religions {
                     if other.key.loc.kind >= key.loc.kind {
                         dup_error(key, &other.key, "faith");
                     }
-                } else {
-                    let key = format!("{}_opinion", faith);
-                    self.modif_keys.push(key);
                 }
+                // TODO: make a much more general check of overlap among
+                // faith, religion, religious family, culture, government type
                 if self.religion_exists(faith.as_str()) {
                     warn_info(
                         key,
@@ -77,10 +72,6 @@ impl Religions {
 
     pub fn religion_exists(&self, key: &str) -> bool {
         self.religions.contains_key(key)
-    }
-
-    pub fn iter_modif_keys(&self) -> impl Iterator<Item = &String> {
-        self.modif_keys.iter()
     }
 
     pub fn is_modded_faith(&self, item: &Token) -> bool {

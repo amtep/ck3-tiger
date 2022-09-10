@@ -14,8 +14,6 @@ use crate::trigger::validate_normal_trigger;
 #[derive(Clone, Debug, Default)]
 pub struct Lifestyles {
     lifestyles: FnvHashMap<String, Lifestyle>,
-    modif_keys: Vec<String>,
-    effect_keys: Vec<String>,
 }
 
 impl Lifestyles {
@@ -24,11 +22,6 @@ impl Lifestyles {
             if other.key.loc.kind >= key.loc.kind {
                 dup_error(key, &other.key, "lifestyle");
             }
-        } else {
-            let modifier = format!("monthly_{}_xp_gain_mult", key);
-            self.modif_keys.push(modifier);
-            let effect = format!("add_{}_perk_points", key);
-            self.effect_keys.push(effect);
         }
 
         self.lifestyles
@@ -37,14 +30,6 @@ impl Lifestyles {
 
     pub fn exists(&self, key: &str) -> bool {
         self.lifestyles.contains_key(key)
-    }
-
-    pub fn iter_modif_keys(&self) -> impl Iterator<Item = &String> {
-        self.modif_keys.iter()
-    }
-
-    pub fn iter_effect_keys(&self) -> impl Iterator<Item = &String> {
-        self.effect_keys.iter()
     }
 
     pub fn validate(&self, data: &Everything) {

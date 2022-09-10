@@ -80,16 +80,11 @@ impl Trait {
         Self { key, block }
     }
 
-    fn validate_modifiers<'a>(block: &Block, data: &'a Everything, vd: &mut Validator<'a>) {
-        validate_modifs(block, data, ModifKinds::Character, vd);
-    }
-
     fn validate_culture_modifier(block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
         vd.field_value("parameter"); // TODO: check cultural parameter exists
-        Self::validate_modifiers(block, data, &mut vd);
-        // vd.warn_remaining(); TODO: re-enable when modifs are complete
+        validate_modifs(block, data, ModifKinds::Character, vd);
     }
 
     fn validate_triggered_opinion(block: &Block, data: &Everything) {
@@ -181,7 +176,6 @@ impl Trait {
         vd.field_values("flag");
         vd.field_bool("shown_in_encyclopedia");
 
-        Self::validate_modifiers(&self.block, data, &mut vd);
-        // vd.warn_remaining(); TODO: re-enable when modifs are complete
+        validate_modifs(&self.block, data, ModifKinds::Character, vd);
     }
 }
