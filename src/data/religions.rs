@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::warn;
+use crate::errors::{warn, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::dup_error;
@@ -41,6 +41,14 @@ impl Religions {
                 } else {
                     let key = format!("{}_opinion", faith);
                     self.modif_keys.push(key);
+                }
+                if self.religion_exists(faith.as_str()) {
+                    warn_info(
+                        key,
+                        ErrorKey::NameConflict,
+                        "faith should not have the same name as religion",
+                        "modifiers like <faith>_opinion and <religion>_opinion become confused",
+                    );
                 }
                 let pagan = block.get_field_bool("pagan_roots").unwrap_or(false);
                 self.faiths.insert(
