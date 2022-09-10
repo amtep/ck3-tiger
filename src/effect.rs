@@ -4,9 +4,11 @@ use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
-use crate::scopes::{scope_iterator, Scopes};
+use crate::item::Item;
+use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::tables::effects::{scope_effect, Effect};
 use crate::trigger::{validate_normal_trigger, validate_target};
+use crate::validate::validate_prefix_reference;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ListType {
@@ -127,7 +129,7 @@ pub fn validate_effect<'a>(
         }
     }
 
-    for (key, bv) in vd.unknown_keys() {
+    'outer: for (key, bv) in vd.unknown_keys() {
         if let Some((inscopes, effect)) = scope_effect(key, data) {
             if !inscopes.intersects(scopes | Scopes::None) {
                 let msg = format!(
@@ -230,8 +232,90 @@ pub fn validate_effect<'a>(
             }
         }
 
-        let msg = format!("unknown effect `{}`", key);
-        warn(key, ErrorKey::Validation, &msg);
+        if data.item_exists(Item::ScriptedEffect, key.as_str()) || data.events.effect_exists(key) {
+            // TODO: validate macros
+            if let Some(token) = bv.get_value() {
+                if !token.is("yes") {
+                    warn(token, ErrorKey::Validation, "expected just effect = yes");
+                }
+            }
+            // If it's a block, then it should contain macro arguments
+            continue;
+        }
+
+        // Check if it's a target = { target_scope } block.
+        // The logic here is similar to logic in triggers and script values,
+        // but not quite the same :(
+        let part_vec = key.split('.');
+        let mut part_scopes = scopes;
+        for i in 0..part_vec.len() {
+            let first = i == 0;
+            let part = &part_vec[i];
+
+            if let Some((prefix, arg)) = part.split_once(':') {
+                if let Some((inscope, outscope)) = scope_prefix(prefix.as_str()) {
+                    if inscope == Scopes::None && !first {
+                        let msg = format!("`{}:` makes no sense except as first part", prefix);
+                        warn(part, ErrorKey::Validation, &msg);
+                    }
+                    if !inscope.intersects(part_scopes | Scopes::None) {
+                        let msg = format!(
+                            "{}: is for {} but scope seems to be {}",
+                            prefix, inscope, part_scopes
+                        );
+                        warn(part, ErrorKey::Scopes, &msg);
+                    } else if first && inscope != Scopes::None {
+                        scopes &= inscope;
+                    }
+                    validate_prefix_reference(&prefix, &arg, data);
+                    part_scopes = outscope;
+                } else {
+                    let msg = format!("unknown prefix `{}:`", prefix);
+                    error(part, ErrorKey::Validation, &msg);
+                    continue 'outer;
+                }
+            } else if part.is("root")
+                || part.is("prev")
+                || part.is("this")
+                || part.is("ROOT")
+                || part.is("PREV")
+                || part.is("THIS")
+            {
+                if !first {
+                    let msg = format!("`{}` makes no sense except as first part", part);
+                    warn(part, ErrorKey::Validation, &msg);
+                }
+                if part.is("this") {
+                    part_scopes = scopes;
+                } else {
+                    part_scopes = Scopes::all();
+                }
+            } else if let Some((inscope, outscope)) = scope_to_scope(part.as_str()) {
+                if inscope == Scopes::None && !first {
+                    let msg = format!("`{}` makes no sense except as first part", part);
+                    warn(part, ErrorKey::Validation, &msg);
+                }
+                if !inscope.intersects(part_scopes | Scopes::None) {
+                    let msg = format!(
+                        "{} is for {} but scope seems to be {}",
+                        part, inscope, part_scopes
+                    );
+                    warn(part, ErrorKey::Scopes, &msg);
+                } else if first && inscope != Scopes::None {
+                    scopes &= inscope;
+                }
+                part_scopes = outscope;
+            // TODO: warn if trying to use iterator or effect here
+            } else {
+                let msg = format!("unknown token `{}`", part);
+                error(part, ErrorKey::Validation, &msg);
+                continue 'outer;
+            }
+        }
+
+        if let Some(block) = bv.expect_block() {
+            _ = validate_normal_effect(block, data, part_scopes, tooltipped);
+        }
     }
 
     vd.warn_remaining();
