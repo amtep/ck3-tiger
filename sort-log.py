@@ -5,7 +5,7 @@ import sys
 
 fname = sys.argv[1]
 
-text = open(fname).read()
+text = open(fname, encoding="windows-1252").read()
 
 SEPARATOR = "\n--------------------\n\n"
 
@@ -30,6 +30,15 @@ elif fname.endswith("triggers.log"):
     items.insert(0, header[1])
     items.insert(0, header[0])
 
+    print(SEPARATOR.join(items))
+
+elif fname.endswith("effects.log"):
+    header = items[0]
+    del items[0]
+
+    items.sort()
+
+    items.insert(0, header)
     print(SEPARATOR.join(items))
 
 elif fname.endswith("modifiers.log"):

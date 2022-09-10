@@ -5,10 +5,8 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{advice_info, error, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::scopes::{
-    scope_iterator, scope_prefix, scope_to_scope, scope_trigger_bool, scope_trigger_item,
-    scope_trigger_target, scope_value, Scopes,
-};
+use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, scope_value, Scopes};
+use crate::tables::triggers::{scope_trigger_bool, scope_trigger_item, scope_trigger_target};
 use crate::token::Token;
 use crate::validate::{validate_days_months_years, validate_prefix_reference};
 
@@ -575,7 +573,7 @@ fn validate_trigger_iterator(
     validate_trigger(caller, block, data, scopes, tooltipped);
 }
 
-fn validate_target(
+pub fn validate_target(
     token: &Token,
     data: &Everything,
     mut scopes: Scopes,

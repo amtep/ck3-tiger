@@ -4,9 +4,9 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
-use crate::data::scriptvalues::ScriptValue;
+use crate::effect::{validate_effect, validate_normal_effect, ListType};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
+use crate::errors::error;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -204,40 +204,23 @@ impl Character {
             // TODO: also check that they were a spouse
             data.characters.verify_exists_gender(token, gender.flip());
         }
-        vd.field_blocks("add_secret");
-        vd.field_value("give_nickname");
-        vd.field_blocks("create_alliance");
 
         vd.field_value_item("dynasty", Item::Dynasty);
         vd.field_value_item("dynasty_house", Item::House);
 
-        vd.field_integer("set_immortal_age");
-        // At this point it seems that just about any effect can be here
-        // without an effect block around it.
-        vd.field_integer("add_gold");
+        vd.field_validated_blocks("effect", |b, data| {
+            _ = validate_normal_effect(b, data, Scopes::Character, false)
+        });
 
-        vd.field_blocks("effect");
-
-        for (token, bv) in vd.unknown_keys() {
-            if let Some(x) = token.as_str().strip_suffix("_perk_points") {
-                if let Some(lifestyle) = x.strip_prefix("add_") {
-                    data.verify_exists_implied(Item::Lifestyle, lifestyle, token);
-                    ScriptValue::validate_bv(bv, data, Scopes::Character);
-                    continue;
-                }
-            }
-            if let Some(relation) = token.as_str().strip_prefix("set_relation_") {
-                data.verify_exists_implied(Item::Relation, relation, token);
-                if let Some(value) = bv.expect_value() {
-                    validate_prefix_reference_token(value, data, "character");
-                }
-            } else {
-                let msg = format!("unknown field `{}`", token);
-                warn(token, ErrorKey::Validation, &msg);
-            }
-        }
-
-        vd.warn_remaining();
+        validate_effect(
+            "",
+            ListType::None,
+            block,
+            data,
+            Scopes::Character,
+            vd,
+            false,
+        );
     }
 
     fn validate(&self, data: &Everything) {

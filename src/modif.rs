@@ -595,7 +595,7 @@ pub fn validate_modifs<'a>(
             continue;
         }
 
-        let msg = format!("unknown field `{}`", token);
+        let msg = format!("unknown modifier `{}`", token);
         warn(token, ErrorKey::Validation, &msg);
     }
 
