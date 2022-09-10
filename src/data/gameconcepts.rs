@@ -56,16 +56,8 @@ impl FileHandler for GameConcepts {
         }
 
         let block = match PdxFile::read(entry, fullpath) {
-            Ok(block) => block,
-            Err(e) => {
-                error_info(
-                    entry,
-                    ErrorKey::ReadError,
-                    "could not read file",
-                    &format!("{:#}", e),
-                );
-                return;
-            }
+            Some(block) => block,
+            None => return,
         };
 
         for def in block.iter_definitions_warn() {

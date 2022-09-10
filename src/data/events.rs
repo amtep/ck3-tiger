@@ -134,16 +134,8 @@ impl FileHandler for Events {
         }
 
         let block = match PdxFile::read(entry, fullpath) {
-            Ok(block) => block,
-            Err(e) => {
-                error_info(
-                    entry,
-                    ErrorKey::ReadError,
-                    "could not read file",
-                    &format!("{:#}", e),
-                );
-                return;
-            }
+            Some(block) => block,
+            None => return,
         };
 
         let mut namespaces = Vec::new();

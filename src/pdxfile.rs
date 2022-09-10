@@ -1,4 +1,3 @@
-use anyhow::Result;
 use encoding::all::WINDOWS_1252;
 use encoding::{DecoderTrap, Encoding};
 use std::fs::{read, read_to_string};
@@ -6,7 +5,7 @@ use std::path::Path;
 
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, warn};
+use crate::errors::{advice_info, error_info, warn};
 use crate::fileset::FileEntry;
 use crate::parse::pdxfile::parse_pdx;
 
@@ -17,13 +16,44 @@ const BOM_FROM_1252: &str = "\u{00ef}\u{00bb}\u{00bf}";
 pub struct PdxFile;
 
 impl PdxFile {
-    pub fn read_no_bom(entry: &FileEntry, fullpath: &Path) -> Result<Block> {
-        let contents = read_to_string(fullpath)?;
+    fn read_utf8(entry: &FileEntry, fullpath: &Path) -> Option<String> {
+        match read_to_string(fullpath) {
+            Ok(contents) => Some(contents),
+            Err(e) => {
+                error_info(
+                    entry,
+                    ErrorKey::ReadError,
+                    "could not read file",
+                    &format!("{:#}", e),
+                );
+                None
+            }
+        }
+    }
+
+    fn read_1252(entry: &FileEntry, fullpath: &Path) -> Option<String> {
+        let bytes = match read(fullpath) {
+            Ok(bytes) => bytes,
+            Err(e) => {
+                error_info(
+                    entry,
+                    ErrorKey::ReadError,
+                    "could not read file",
+                    &format!("{:#}", e),
+                );
+                return None;
+            }
+        };
+        WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).ok()
+    }
+
+    pub fn read_no_bom(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
+        let contents = Self::read_utf8(entry, fullpath)?;
         parse_pdx(entry, &contents)
     }
 
-    pub fn read(entry: &FileEntry, fullpath: &Path) -> Result<Block> {
-        let contents = read_to_string(fullpath)?;
+    pub fn read(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
+        let contents = Self::read_utf8(entry, fullpath)?;
         if let Some(bomless) = contents.strip_prefix('\u{feff}') {
             parse_pdx(entry, bomless)
         } else {
@@ -36,11 +66,8 @@ impl PdxFile {
         }
     }
 
-    pub fn read_cp1252(entry: &FileEntry, fullpath: &Path) -> Result<Block> {
-        let bytes = read(fullpath)?;
-        let contents = WINDOWS_1252
-            .decode(&bytes, DecoderTrap::Strict)
-            .map_err(anyhow::Error::msg)?;
+    pub fn read_cp1252(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
+        let contents = Self::read_1252(entry, fullpath)?;
 
         if let Some(bomless) = contents.strip_prefix(BOM_FROM_1252) {
             advice_info(

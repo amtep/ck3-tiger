@@ -4,8 +4,6 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::desc::{validate_desc, validate_desc_map};
-use crate::errorkey::ErrorKey;
-use crate::errors::error_info;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -61,16 +59,8 @@ impl FileHandler for Traits {
         }
 
         let block = match PdxFile::read(entry, fullpath) {
-            Ok(block) => block,
-            Err(e) => {
-                error_info(
-                    entry,
-                    ErrorKey::ReadError,
-                    "could not read file",
-                    &format!("{:#}", e),
-                );
-                return;
-            }
+            Some(block) => block,
+            None => return,
         };
 
         for (key, b) in block.iter_pure_definitions_warn() {

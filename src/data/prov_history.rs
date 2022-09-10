@@ -2,12 +2,12 @@ use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue, Date, DefinitionItem};
+use crate::block::{Block, BlockOrValue, Date};
 use crate::data::provinces::ProvId;
 use crate::data::religions::Religions;
 use crate::data::titles::Titles;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn};
+use crate::errors::warn;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -84,40 +84,19 @@ impl FileHandler for ProvinceHistories {
         }
 
         let block = match PdxFile::read_cp1252(entry, fullpath) {
-            Ok(block) => block,
-            Err(e) => {
-                error_info(
-                    entry,
-                    ErrorKey::ReadError,
-                    "could not read file",
-                    &format!("{:#}", e),
-                );
-                return;
-            }
+            Some(block) => block,
+            None => return,
         };
 
-        for def in block.iter_definitions_warn() {
-            match def {
-                DefinitionItem::Keyword(key) => error_info(
+        for (key, b) in block.iter_pure_definitions_warn() {
+            if let Ok(id) = key.as_str().parse() {
+                self.load_history(id, key, b);
+            } else {
+                warn(
                     key,
                     ErrorKey::Validation,
-                    "unexpected token",
-                    "Did you forget an = ?",
-                ),
-                DefinitionItem::Assignment(key, _) => {
-                    error(key, ErrorKey::Validation, "unexpected assignment");
-                }
-                DefinitionItem::Definition(key, b) => {
-                    if let Ok(id) = key.as_str().parse() {
-                        self.load_history(id, key, b);
-                    } else {
-                        warn(
-                            key,
-                            ErrorKey::Validation,
-                            "unexpected key, expected only province ids",
-                        );
-                    }
-                }
+                    "unexpected key, expected only province ids",
+                );
             }
         }
     }

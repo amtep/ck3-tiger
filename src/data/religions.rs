@@ -2,9 +2,9 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, DefinitionItem};
+use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn};
+use crate::errors::warn;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::dup_error;
@@ -95,33 +95,12 @@ impl FileHandler for Religions {
         }
 
         let block = match PdxFile::read(entry, fullpath) {
-            Ok(block) => block,
-            Err(e) => {
-                error_info(
-                    entry,
-                    ErrorKey::ReadError,
-                    "could not read file",
-                    &format!("{:#}", e),
-                );
-                return;
-            }
+            Some(block) => block,
+            None => return,
         };
 
-        for def in block.iter_definitions_warn() {
-            match def {
-                DefinitionItem::Assignment(key, _) => {
-                    error(key, ErrorKey::Validation, "unknown assignment");
-                }
-                DefinitionItem::Keyword(key) => error_info(
-                    key,
-                    ErrorKey::Validation,
-                    "unexpected token",
-                    "Did you forget an = ?",
-                ),
-                DefinitionItem::Definition(key, b) => {
-                    self.load_item(key, b);
-                }
-            }
+        for (key, b) in block.iter_pure_definitions_warn() {
+            self.load_item(key, b);
         }
     }
 }

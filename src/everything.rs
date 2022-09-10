@@ -46,10 +46,7 @@ pub enum FilesError {
         source: walkdir::Error,
     },
     #[error("Could not read config file at {path}")]
-    ConfigUnreadable {
-        path: PathBuf,
-        source: anyhow::Error,
-    },
+    ConfigUnreadable { path: PathBuf },
 }
 
 #[derive(Clone, Debug)]
@@ -141,10 +138,10 @@ impl Everything {
 
         let config_file = mod_root.join("mod-validator.conf");
         let config = if config_file.is_file() {
-            Self::_read_config(&config_file).map_err(|e| FilesError::ConfigUnreadable {
-                path: config_file,
-                source: e,
-            })?
+            Self::_read_config(&config_file).map_or(
+                Err(FilesError::ConfigUnreadable { path: config_file }),
+                |c| Ok(c),
+            )?
         } else {
             Block::new(Loc::for_file(Rc::new(config_file), FileKind::Mod))
         };
@@ -178,7 +175,7 @@ impl Everything {
         })
     }
 
-    fn _read_config(path: &Path) -> Result<Block> {
+    fn _read_config(path: &Path) -> Option<Block> {
         let entry = FileEntry::new(path.to_path_buf(), FileKind::Mod);
         PdxFile::read_no_bom(&entry, path)
     }

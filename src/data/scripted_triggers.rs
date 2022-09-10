@@ -2,8 +2,6 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::Block;
-use crate::errorkey::ErrorKey;
-use crate::errors::error_info;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -50,16 +48,8 @@ impl FileHandler for Triggers {
         }
 
         let block = match PdxFile::read(entry, fullpath) {
-            Ok(block) => block,
-            Err(e) => {
-                error_info(
-                    entry,
-                    ErrorKey::ReadError,
-                    "could not read file",
-                    &format!("{:#}", e),
-                );
-                return;
-            }
+            Some(block) => block,
+            None => return,
         };
 
         for (key, b) in block.iter_pure_definitions_warn() {

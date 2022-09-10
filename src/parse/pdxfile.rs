@@ -1,4 +1,3 @@
-use anyhow::{bail, Result};
 use fnv::FnvHashMap;
 use std::mem::swap;
 
@@ -242,7 +241,7 @@ impl Parser {
         }
     }
 
-    fn eof(mut self) -> Result<Block> {
+    fn eof(mut self) -> Option<Block> {
         self.end_assign();
         while let Some(mut prev_level) = self.stack.pop() {
             self.brace_error = true;
@@ -258,15 +257,21 @@ impl Parser {
         // since its structure is unclear. Validating such a file would
         // just produce a cascade of irrelevant errors.
         if self.brace_error {
-            bail!("Could not parse file due to brace mismatch");
+            error(
+                self.current.block,
+                ErrorKey::ParseError,
+                "Could not parse file due to brace mismatch",
+            );
+            None
+        } else {
+            Some(self.current.block)
         }
-        Ok(self.current.block)
     }
 }
 
 #[allow(clippy::module_name_repetitions)]
 #[allow(clippy::too_many_lines)] // many lines are natural for state machines
-pub fn parse_pdx(entry: &FileEntry, content: &str) -> Result<Block> {
+pub fn parse_pdx(entry: &FileEntry, content: &str) -> Option<Block> {
     let mut loc = Loc::for_entry(entry);
     let mut parser = Parser {
         current: ParseLevel {
