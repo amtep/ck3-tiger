@@ -8,7 +8,7 @@ use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, scope_value, Scopes};
 use crate::tables::triggers::{scope_trigger_bool, scope_trigger_item, scope_trigger_target};
 use crate::token::Token;
-use crate::validate::{validate_days_months_years, validate_prefix_reference};
+use crate::validate::{validate_days_weeks_months_years, validate_prefix_reference};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Caller {
@@ -1279,7 +1279,7 @@ fn validate_trigger_keys(
         "time_in_prison" | "time_in_prison_type" | "time_since_death" => {
             scopes.expect_scope(key, Scopes::Character);
             if let Some(block) = bv.expect_block() {
-                validate_days_months_years(block, data, scopes);
+                validate_days_weeks_months_years(block, data, scopes);
             }
         }
 

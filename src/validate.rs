@@ -42,11 +42,15 @@ pub fn validate_theme_sound(block: &Block, data: &Everything) {
     vd.warn_remaining();
 }
 
-pub fn validate_days_months_years(block: &Block, data: &Everything, scopes: Scopes) {
+pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, scopes: Scopes) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
 
     if let Some(bv) = vd.field_any_cmp("days") {
+        ScriptValue::validate_bv(bv, data, scopes);
+        count += 1;
+    }
+    if let Some(bv) = vd.field_any_cmp("weeks") {
         ScriptValue::validate_bv(bv, data, scopes);
         count += 1;
     }
@@ -63,7 +67,7 @@ pub fn validate_days_months_years(block: &Block, data: &Everything, scopes: Scop
         error(
             block,
             ErrorKey::Validation,
-            "must have 1 of days, months, or years",
+            "must have 1 of days, weeks, months, or years",
         );
     }
 
