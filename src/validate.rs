@@ -3,7 +3,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
-use crate::errors::error;
+use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
@@ -276,5 +276,24 @@ pub fn validate_inside_iterator(
     } else if let Some(token) = block.get_key("province") {
         let msg = format!("`province` is only for `{}_pool_character`", listtype);
         error(token, ErrorKey::Validation, &msg);
+    }
+
+    if vd.field_bool("only_if_dead") {
+        if scopes != Scopes::Character {
+            warn(
+                block.get_key("only_if_dead").unwrap(),
+                ErrorKey::Validation,
+                "`only_if_dead` is only for lists of characters",
+            );
+        }
+    }
+    if vd.field_bool("even_if_dead") {
+        if scopes != Scopes::Character {
+            warn(
+                block.get_key("even_if_dead").unwrap(),
+                ErrorKey::Validation,
+                "`even_if_dead` is only for lists of characters",
+            );
+        }
     }
 }

@@ -118,31 +118,33 @@ pub enum Effect {
 }
 
 pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)> {
+    let lwname = name.as_str().to_lowercase();
+
     for (from, s, effect) in SCOPE_EFFECT {
-        if name.is(s) {
+        if lwname == *s {
             return Some((Scopes::from_bits_truncate(*from), *effect));
         }
     }
-    if let Some(x) = name.as_str().strip_suffix("_perk_points") {
+    if let Some(x) = lwname.strip_suffix("_perk_points") {
         if let Some(lifestyle) = x.strip_prefix("add_") {
             data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
             return Some((Scopes::Character, Effect::Integer));
         }
     }
-    if let Some(x) = name.as_str().strip_suffix("_xp") {
+    if let Some(x) = lwname.strip_suffix("_xp") {
         if let Some(lifestyle) = x.strip_prefix("add_") {
             data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
             return Some((Scopes::Character, Effect::Value));
         }
     }
-    if let Some(relation) = name.as_str().strip_prefix("set_relation_") {
+    if let Some(relation) = lwname.strip_prefix("set_relation_") {
         data.verify_exists_implied(Item::Relation, relation, name);
         return Some((
             Scopes::Character,
             Effect::Special(SpecialEffect::SetRelation),
         ));
     }
-    if let Some(relation) = name.as_str().strip_prefix("remove_relation_") {
+    if let Some(relation) = lwname.strip_prefix("remove_relation_") {
         data.verify_exists_implied(Item::Relation, relation, name);
         return Some((Scopes::Character, Effect::Scope(Scopes::Character)));
     }
@@ -433,7 +435,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     ),
     (
         Character,
-        "consume_revoke_title_reasons",
+        "consume_revoke_title_reason",
         Scope(Scopes::Character),
     ),
     (Culture, "copy_all_traditions_from", Scope(Scopes::Culture)),
@@ -511,7 +513,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (None, "destroy_artifact", Scope(Scopes::Artifact)),
     (
         None,
-        "destroy_artifact_character_memory",
+        "destroy_character_memory",
         Scope(Scopes::CharacterMemory),
     ),
     (Faction, "destroy_faction", Yes),
@@ -714,7 +716,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (Province, "remove_holding", Yes),
     (
         Character,
-        "remove_rook",
+        "remove_hook",
         ItemTarget("type", Item::Hook, "target", Scopes::Character),
     ),
     (
@@ -1025,7 +1027,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (None, "start_struggle", Special(StartStruggle)),
     (None, "start_tutorial_lesson", Unchecked),
     (Character, "start_war", Special(StartWar)),
-    (Character, "store_localized_text_in_death", Effect::Bool),
+    (Character, "store_localized_text_in_death", Unchecked),
     (Character, "stress_impact", Special(Stress)),
     (None, "switch", Special(Switch)),
     (

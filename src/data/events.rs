@@ -387,6 +387,8 @@ fn validate_event_option(block: &Block, data: &Everything) {
         validate_target(token, data, Scopes::Character, Scopes::Character);
     }
 
+    vd.field_bool("show_unlock_reason"); // TODO: what does this do?
+
     validate_effect(
         "option",
         ListType::None,
