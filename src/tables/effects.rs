@@ -230,12 +230,12 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
         "add_personal_artifact_claim",
         Scope(Scopes::Artifact),
     ),
-    (Character, "add_piety", Effect::Value),
+    (Character, "add_piety", Effect::ScriptValue),
     (Character, "add_piety_experience", Effect::Value),
     (Character, "add_piety_level", Effect::Value),
     (Character, "add_piety_no_experience", Effect::Value),
     (Character, "add_pressed_claim", Scope(Scopes::LandedTitle)),
-    (Character, "add_prestige", Effect::Value),
+    (Character, "add_prestige", Effect::ScriptValue),
     (Character, "add_prestige_experience", Effect::Value),
     (Character, "add_prestige_level", Effect::Value),
     (Character, "add_prestige_no_experience", Effect::Value),
@@ -536,7 +536,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (Character, "end_pregnancy", Yes),
     (Scheme, "end_scheme", Yes),
     (StoryCycle, "end_story", Yes),
-    (Struggle, "end_struggle", Yes),
+    (Struggle, "end_struggle", Unchecked), // not clear how this parameter is used
     (War, "end_war", Special(EndWar)),
     (Artifact, "equip_artifact_to_owner", Yes),
     (Artifact, "equip_artifact_to_owner_replace", Yes),
@@ -1074,7 +1074,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
         Special(VassalContract),
     ),
     (Character, "visit_court_of", Scope(Scopes::Character)),
-    (Character, "while", Special(While)),
+    (None, "while", Special(While)),
     (CombatSide, "win_combat", Effect::Bool),
     // TODO special: add_<lifestyle>_perk_points
     // TODO special: add_<lifestyle>_xp

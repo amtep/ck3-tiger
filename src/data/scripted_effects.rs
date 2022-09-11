@@ -2,10 +2,12 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::Block;
+use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -67,5 +69,10 @@ impl Effect {
         Self { key, block }
     }
 
-    pub fn validate(&self, _data: &Everything) {}
+    pub fn validate(&self, data: &Everything) {
+        if self.block.source.is_none() {
+            // TODO: figure out if tooltipped
+            validate_normal_effect(&self.block, data, Scopes::all(), true);
+        }
+    }
 }

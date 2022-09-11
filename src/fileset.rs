@@ -271,6 +271,7 @@ impl<'a> Iterator for Files<'a> {
     }
 }
 
+/// LAST UPDATED VERSION 1.7.0
 const COMMON_DIRS: &[&str] = &[
     "common/achievements",
     "common/activities",

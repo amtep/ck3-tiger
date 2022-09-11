@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::data::scriptvalues::ScriptValue;
@@ -8,7 +10,7 @@ use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::tables::effects::{scope_effect, Effect};
 use crate::trigger::{validate_normal_trigger, validate_target};
-use crate::validate::validate_prefix_reference;
+use crate::validate::{validate_inside_iterator, validate_prefix_reference};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ListType {
@@ -17,6 +19,18 @@ pub enum ListType {
     Every,
     Ordered,
     Random,
+}
+
+impl Display for ListType {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        match self {
+            ListType::None => write!(f, ""),
+            ListType::Any => write!(f, "any"),
+            ListType::Every => write!(f, "every"),
+            ListType::Ordered => write!(f, "ordered"),
+            ListType::Random => write!(f, "random"),
+        }
+    }
 }
 
 pub fn validate_normal_effect<'a>(
@@ -36,8 +50,21 @@ pub fn validate_effect<'a>(
     data: &'a Everything,
     mut scopes: Scopes,
     mut vd: Validator<'a>,
-    tooltipped: bool,
+    mut tooltipped: bool,
 ) -> Scopes {
+    // undocumented
+    if let Some(key) = block.get_key("custom") {
+        vd.field_value_item("custom", Item::Localization);
+        if list_type == ListType::None {
+            warn(
+                key,
+                ErrorKey::Validation,
+                "`custom` can only be used in lists",
+            );
+        }
+        tooltipped = false;
+    }
+
     if let Some(b) = vd.field_block("limit") {
         if caller == "if" || caller == "else_if" || caller == "else" || list_type != ListType::None
         {
@@ -50,6 +77,18 @@ pub fn validate_effect<'a>(
             );
         }
     }
+
+    vd.field_validated_blocks("alternative_limit", |b, data| {
+        if list_type != ListType::None {
+            scopes = validate_normal_trigger(b, data, scopes, false);
+        } else {
+            warn(
+                b,
+                ErrorKey::Validation,
+                "`alternative_limit` can only be used in lists",
+            );
+        }
+    });
 
     if let Some(bv) = vd.field("order_by") {
         if list_type == ListType::Ordered {
@@ -129,6 +168,16 @@ pub fn validate_effect<'a>(
         }
     }
 
+    validate_inside_iterator(
+        caller,
+        &list_type.to_string(),
+        block,
+        data,
+        scopes,
+        &mut vd,
+        tooltipped,
+    );
+
     'outer: for (key, bv) in vd.unknown_keys() {
         if let Some((inscopes, effect)) = scope_effect(key, data) {
             if !inscopes.intersects(scopes | Scopes::None) {
@@ -162,7 +211,7 @@ pub fn validate_effect<'a>(
                     }
                 }
                 Effect::Value | Effect::ScriptValue | Effect::NonNegativeValue => {
-                    if let Some(token) = bv.expect_value() {
+                    if let Some(token) = bv.get_value() {
                         if let Ok(number) = token.as_str().parse::<i32>() {
                             if effect == Effect::NonNegativeValue && number < 0 {
                                 let msg = format!("{} does not take negative numbers", key);
@@ -217,15 +266,7 @@ pub fn validate_effect<'a>(
                     };
                     if let Some(b) = bv.expect_block() {
                         let vd = Validator::new(b, data);
-                        validate_effect(
-                            it_name.as_str(),
-                            ltype,
-                            block,
-                            data,
-                            outscope,
-                            vd,
-                            tooltipped,
-                        );
+                        validate_effect(it_name.as_str(), ltype, b, data, outscope, vd, tooltipped);
                     }
                     continue;
                 }

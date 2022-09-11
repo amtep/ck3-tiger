@@ -5,6 +5,7 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
+use crate::effect::validate_normal_effect;
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
 use crate::everything::Everything;
@@ -142,7 +143,9 @@ impl Decision {
         vd.field_validated_blocks("minimum_cost", validate_cost);
         check_cost(&self.block.get_field_blocks("minimum_cost"));
 
-        vd.field_block("effect");
+        vd.field_validated_block("effect", |b, data| {
+            validate_normal_effect(b, data, Scopes::Character, true);
+        });
         vd.field_validated_block("ai_potential", |b, data| {
             validate_character_trigger(b, data, false)
         });

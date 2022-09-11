@@ -8,6 +8,7 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::trigger::{validate_normal_trigger, validate_target};
 
 pub fn validate_theme_background(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
@@ -158,4 +159,122 @@ pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted:
     }
     let msg = format!("should start with `{}:` here", wanted);
     error(token, ErrorKey::Validation, &msg);
+}
+
+// This checks the special fields for certain iterators, like type = in every_relation.
+// It doesn't check the generic ones like "limit" or the ordering ones for ordered_*.
+pub fn validate_inside_iterator(
+    name: &str,
+    listtype: &str,
+    block: &Block,
+    data: &Everything,
+    scopes: Scopes,
+    vd: &mut Validator,
+    tooltipped: bool,
+) {
+    if name == "in_list" || name == "in_local_list" || name == "in_global_list" {
+        let have_list = vd.field_value("list").is_some();
+        let have_var = vd.field_value("variable").is_some();
+        if have_list == have_var {
+            error(
+                block,
+                ErrorKey::Validation,
+                "must have one of `list =` or `variable =`",
+            );
+        }
+    } else {
+        if let Some(token) = vd.field_value("list") {
+            let msg = format!(
+                "`list =` is only for `{}_in_list`, `{}_in_local_list`, or `{}_in_global_list`",
+                listtype, listtype, listtype
+            );
+            error(token, ErrorKey::Validation, &msg);
+        }
+        if let Some(token) = vd.field_value("variable") {
+            let msg = format!(
+                "`variable =` is only for `{}_in_list`, `{}_in_local_list`, or `{}_in_global_list`",
+                listtype, listtype, listtype
+            );
+            error(token, ErrorKey::Validation, &msg);
+        }
+    }
+
+    if let Some(block) = vd.field_block("filter") {
+        if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
+            validate_normal_trigger(block, data, scopes, tooltipped);
+        } else {
+            let msg = format!(
+                "`filter` is only for `{}_in_de_facto_hierarchy` or `{}_in_de_jure_hierarchy`",
+                listtype, listtype
+            );
+            error(block.get_key("filter").unwrap(), ErrorKey::Validation, &msg);
+        }
+    }
+    if let Some(block) = vd.field_block("continue") {
+        if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
+            validate_normal_trigger(block, data, scopes, tooltipped);
+        } else {
+            let msg = format!(
+                "`continue` is only for `{}_in_de_facto_hierarchy` or `{}_in_de_jure_hierarchy`",
+                listtype, listtype
+            );
+            error(
+                block.get_key("continue").unwrap(),
+                ErrorKey::Validation,
+                &msg,
+            );
+        }
+    }
+
+    if name == "county_in_region" {
+        vd.req_field("region");
+        vd.field_value_item("region", Item::Region);
+    } else if let Some(token) = block.get_key("region") {
+        let msg = format!("`region` is only for `{}_county_in_region`", listtype);
+        error(token, ErrorKey::Validation, &msg);
+    }
+
+    if name == "court_position_holder" {
+        vd.field_value_item("type", Item::CourtPosition);
+    } else if name == "relation" {
+        vd.req_field("type");
+        vd.field_value_item("type", Item::Relation);
+    } else if let Some(token) = block.get_key("type") {
+        let msg = format!(
+            "`type` is only for `{}_court_position_holder` or `{}_relation`",
+            listtype, listtype
+        );
+        error(token, ErrorKey::Validation, &msg);
+    }
+
+    if vd.field_choice("explicit", &["yes", "no", "all"]) {
+        if name != "claim" {
+            let msg = format!("`explicit` is only for `{}_claim`", listtype);
+            error(
+                block.get_key("explicit").unwrap(),
+                ErrorKey::Validation,
+                &msg,
+            );
+        }
+    }
+    if vd.field_choice("pressed", &["yes", "no", "all"]) {
+        if name != "claim" {
+            let msg = format!("`pressed` is only for `{}_claim`", listtype);
+            error(
+                block.get_key("pressed").unwrap(),
+                ErrorKey::Validation,
+                &msg,
+            );
+        }
+    }
+
+    if name == "pool_character" {
+        vd.req_field("province");
+        if let Some(token) = block.get_field_value("province") {
+            _ = validate_target(token, data, scopes, Scopes::Province);
+        }
+    } else if let Some(token) = block.get_key("province") {
+        let msg = format!("`province` is only for `{}_pool_character`", listtype);
+        error(token, ErrorKey::Validation, &msg);
+    }
 }

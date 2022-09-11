@@ -6,15 +6,17 @@ use crate::block::{Block, BlockOrValue, DefinitionItem};
 use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
 use crate::desc::validate_desc;
+use crate::effect::{validate_effect, validate_normal_effect, ListType};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::{validate_character_trigger, validate_normal_trigger, validate_target};
 use crate::validate::{
     validate_cooldown, validate_theme_background, validate_theme_icon, validate_theme_sound,
 };
@@ -247,11 +249,15 @@ impl Event {
             scopes = validate_normal_trigger(b, data, scopes, false);
         });
 
-        vd.field_block("immediate"); // effect
+        vd.field_validated_block("immediate", |b, data| {
+            scopes = validate_normal_effect(b, data, scopes, true);
+        });
         vd.field_validated_block("trigger", |b, data| {
             scopes = validate_normal_trigger(b, data, scopes, false);
         });
-        vd.field_block("on_trigger_fail"); // effect
+        vd.field_validated_block("on_trigger_fail", |b, data| {
+            scopes = validate_normal_effect(b, data, scopes, false);
+        });
         vd.field_block("weight_multiplier"); // modifier
 
         if let Some(bv) = vd.field("title") {
@@ -304,7 +310,10 @@ impl Event {
         }
         vd.field_validated_blocks("option", validate_event_option);
 
-        vd.field_block("after"); // effect
+        vd.field_validated_block("after", |b, data| {
+            // TODO: check if this block is tooltipped
+            scopes = validate_normal_effect(b, data, scopes, false);
+        });
         vd.field_validated_block("cooldown", validate_cooldown);
         vd.field_value("soundeffect");
         vd.field_bool("orphan");
@@ -319,36 +328,74 @@ fn validate_event_option(block: &Block, data: &Everything) {
     // TODO: warn if they use desc, first_valid, random_valid, or triggered_desc directly
     // in the name or tooltip.
 
-    // TODO: actually validate the whole option
-    if let Some(bv) = block.get_field("name") {
-        match bv {
-            BlockOrValue::Token(t) => {
-                data.localization.verify_exists(t);
-            }
-            BlockOrValue::Block(b) => {
-                if let Some(text) = b.get_field("text") {
-                    validate_desc(text, data);
-                } else {
-                    warn(b, ErrorKey::Validation, "event option name with no text");
+    let mut vd = Validator::new(block, data);
+    vd.field_validated_bvs("name", |bv, data| match bv {
+        BlockOrValue::Token(t) => {
+            data.localization.verify_exists(t);
+        }
+        BlockOrValue::Block(b) => {
+            if let Some(trigger) = b.get_field("trigger") {
+                if let Some(trigger) = trigger.expect_block() {
+                    validate_character_trigger(trigger, data, false);
                 }
             }
-        }
-    }
-    // TODO: see if you can have multiple custom_tooltip in one block (and they all work)
-    if let Some(bv) = block.get_field("custom_tooltip") {
-        match bv {
-            BlockOrValue::Token(t) => {
-                data.localization.verify_exists(t);
-            }
-            BlockOrValue::Block(b) => {
-                if let Some(text) = b.get_field("text") {
-                    validate_desc(text, data);
-                } else {
-                    warn(b, ErrorKey::Validation, "event option tooltip with no text");
-                }
+            if let Some(text) = b.get_field("text") {
+                validate_desc(text, data);
+            } else {
+                warn(b, ErrorKey::Validation, "event option name with no text");
             }
         }
+    });
+    vd.field_validated_bvs("custom_tooltip", |bv, data| match bv {
+        BlockOrValue::Token(t) => {
+            data.localization.verify_exists(t);
+        }
+        BlockOrValue::Block(b) => {
+            if let Some(text) = b.get_field("text") {
+                validate_desc(text, data);
+            } else {
+                warn(b, ErrorKey::Validation, "event option tooltip with no text");
+            }
+        }
+    });
+
+    vd.field_validated_block("trigger", |b, data| {
+        validate_normal_trigger(b, data, Scopes::Character, false);
+    });
+
+    vd.field_validated_block("show_as_unavailable", |b, data| {
+        validate_normal_trigger(b, data, Scopes::Character, false);
+    });
+
+    vd.field_validated_bv("flavor", validate_desc);
+
+    // "this option is available because you have the ... trait"
+    vd.field_values_items("trait", Item::Trait);
+    vd.field_values_items("skill", Item::Skill);
+
+    // TODO: check what this is. script value? modifier?
+    vd.field("ai_chance");
+
+    // TODO: check what this does.
+    vd.field_bool("exclusive");
+
+    // If fallback = yes, the option is shown despite its trigger,
+    // if there would otherwise be no other option
+    vd.field_bool("fallback");
+
+    if let Some(token) = vd.field_value("highlight_portrait") {
+        validate_target(token, data, Scopes::Character, Scopes::Character);
     }
+
+    validate_effect(
+        "option",
+        ListType::None,
+        block,
+        data,
+        Scopes::Character,
+        vd,
+        true,
+    );
 }
 
 fn validate_court_scene(block: &Block, data: &Everything) {
@@ -391,7 +438,9 @@ fn validate_triggered_animation(block: &Block, data: &Everything) {
 
     vd.req_field("trigger");
     vd.req_field("animation");
-    vd.field_block("trigger");
+    vd.field_validated_block("trigger", |b, data| {
+        validate_character_trigger(b, data, false);
+    });
     vd.field_value("animation");
     vd.warn_remaining();
 }
@@ -400,7 +449,9 @@ fn validate_triggered_outfit(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
 
     // trigger is apparently optional
-    vd.field_block("trigger");
+    vd.field_validated_block("trigger", |b, data| {
+        validate_character_trigger(b, data, false);
+    });
     // TODO: check that at least one of these is set?
     vd.field_list("outfit_tags");
     vd.field_bool("remove_default_outfit");
@@ -416,7 +467,9 @@ fn validate_portrait(v: &BlockOrValue, data: &Everything) {
 
             vd.req_field("character");
             vd.field_value("character");
-            vd.field_block("trigger"); // trigger
+            vd.field_validated_block("trigger", |b, data| {
+                validate_character_trigger(b, data, false);
+            });
             vd.field_value("animation");
             vd.field("scripted_animation");
             vd.field_validated_blocks("triggered_animation", validate_triggered_animation);

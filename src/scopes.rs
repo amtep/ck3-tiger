@@ -60,6 +60,10 @@ impl Scopes {
     pub fn non_primitive() -> Scopes {
         Scopes::all() ^ (Scopes::None | Scopes::Value | Scopes::Bool | Scopes::Flag)
     }
+
+    pub fn all_but_none() -> Scopes {
+        Scopes::all() ^ Scopes::None
+    }
 }
 
 /// LAST UPDATED VERSION 1.7.0
@@ -219,6 +223,8 @@ impl Display for Scopes {
             write!(f, "any scope")
         } else if *self == Scopes::non_primitive() {
             write!(f, "non-primitive scope")
+        } else if *self == Scopes::all_but_none() {
+            write!(f, "any except none scope")
         } else {
             let mut vec = Vec::new();
             if self.contains(Scopes::None) {
@@ -908,7 +914,7 @@ const SCOPE_ITERATOR: &[(u32, &str, u32)] = &[
     (Character, "player_heir", Character),
     (GreatHolyWar, "pledged_attacker", Character),
     (GreatHolyWar, "pledged_defender", Character),
-    (None, "pool_character", Character), // TODO figure out how province is supplied
+    (None, "pool_character", Character),
     (Character, "pool_guest", Character),
     (Character, "potential_marriage_option", Character),
     (Character, "powerful_vassal", Character),

@@ -13,7 +13,7 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, scope_value, Scopes};
 use crate::token::Token;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::validate_prefix_reference;
+use crate::validate::{validate_inside_iterator, validate_prefix_reference};
 
 #[derive(Clone, Debug, Default)]
 pub struct ScriptValues {
@@ -237,7 +237,10 @@ impl ScriptValue {
         mut scopes: Scopes,
     ) {
         let mut vd = Validator::new(block, data);
-        vd.field_block("limit"); // TODO: validate trigger
+        vd.field_validated_block("limit", |block, data| {
+            validate_normal_trigger(block, data, scopes, false);
+        });
+        // TODO: accept these fields for all list types, and warn if it's the wrong one
         if it_type.is("ordered") {
             vd.field_validated_bv("order_by", |bv, data| {
                 scopes = Self::validate_bv(bv, data, scopes);
@@ -252,35 +255,16 @@ impl ScriptValue {
             vd.field_block("weight"); // TODO: validate modifier
         }
 
-        if it_name.is("in_list") || it_name.is("in_local_list") || it_name.is("in_global_list") {
-            let have_list = vd.field_value("list").is_some();
-            let have_var = vd.field_value("variable").is_some();
-            if have_list == have_var {
-                error(
-                    block,
-                    ErrorKey::Validation,
-                    "must have one of `list =` or `variable =`",
-                );
-            }
-        } else if it_name.is("in_de_facto_hierarchy") || it_name.is("in_de_jure_hierarchy") {
-            if let Some(block) = vd.field_block("filter") {
-                scopes = validate_normal_trigger(block, data, scopes, false);
-            }
-            if let Some(block) = vd.field_block("continue") {
-                scopes = validate_normal_trigger(block, data, scopes, false);
-            }
-        } else if it_name.is("county_in_region") {
-            vd.field_value_item("region", Item::Region);
-        } else if it_name.is("court_position_holder") {
-            vd.req_field("type");
-            vd.field_value("type");
-        } else if it_name.is("relation") {
-            vd.req_field("type");
-            vd.field_value_item("type", Item::Relation)
-        } else if it_name.is("claim") {
-            vd.field_choice("explicit", &["yes", "no", "all"]);
-            vd.field_choice("pressed", &["yes", "no", "all"]);
-        }
+        validate_inside_iterator(
+            it_name.as_str(),
+            it_type.as_str(),
+            block,
+            data,
+            scopes,
+            &mut vd,
+            false,
+        );
+
         Self::validate_inner(vd, data, scopes);
     }
 
