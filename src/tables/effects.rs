@@ -555,7 +555,12 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (Character, "force_character_skill_recalculation", Yes),
     (Character, "force_vote_as", Special(ForceVote)),
     (Province, "generate_building", Yes),
-    (LandedTitle | Dynasty | DynastyHouse, "generate_coa", Yes),
+    // not sure what the argument to generate_coa means
+    (
+        LandedTitle | Dynasty | DynastyHouse,
+        "generate_coa",
+        Unchecked,
+    ),
     (Culture, "get_all_innovations_from", Scope(Scopes::Culture)),
     (
         Culture,
@@ -796,11 +801,16 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (Character, "return_to_court", Yes),
     (Secret, "reveal_to", Scope(Scopes::Character)),
     (Character, "reverse_add_opinion", Special(AddOpinion)),
-    // not clear whether scoped character is liege or holder
+    // Docs are incorrect on this one. And "recipient" is the one getting fired.
     (
         Character,
         "revoke_court_position",
-        Item(Item::CourtPosition),
+        ItemTarget(
+            "court_position",
+            Item::CourtPosition,
+            "recipient",
+            Scopes::Character,
+        ),
     ),
     (LandedTitle, "revoke_lease", Yes),
     (None, "round_global_variable", Special(RoundVariable)),
