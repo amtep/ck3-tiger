@@ -88,7 +88,7 @@ impl Rivers {
     pub fn validate(&self, _data: &Everything) {
         // TODO: check image width and height against world defines
 
-        if self.color_type.unwrap() != ColorType::Indexed {
+        if self.color_type != Some(ColorType::Indexed) {
             error(
                 self.entry.as_ref().unwrap(),
                 ErrorKey::ImageFormat,
