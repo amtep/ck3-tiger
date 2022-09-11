@@ -8,6 +8,7 @@ use crate::errors::{warn, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 use crate::validate::validate_color;
@@ -188,16 +189,17 @@ fn validate_localization(block: &Block, data: &Everything) {
 }
 
 fn validate_holy_order_names(block: &Block, data: &Everything) {
-    if let Some(holy) = block.get_field_block("holy_order_names") {
-        for b in holy.get_sub_blocks() {
-            if let Some(name) = b.get_field_value("name") {
-                data.localization.verify_exists(name);
-            }
-        }
-    }
+    let mut vd = Validator::new(block, data);
 
-    // TODO
-    // It's a list of sub-blocks, each one having a name key and optional coat_of_arms key
+    for b in vd.blocks() {
+        let mut vd = Validator::new(b, data);
+        vd.req_field("name");
+        vd.field_value_item("name", Item::Localization);
+        vd.field_value("coat_of_arms"); // TODO
+        vd.warn_remaining();
+    }
+    // TODO: warn_remaining should explain the structure of the holy order blocks here
+    vd.warn_remaining();
 }
 
 #[derive(Clone, Debug)]
