@@ -10,15 +10,19 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::{validate_normal_trigger, validate_target};
 
-pub fn validate_theme_background(block: &Block, data: &Everything) {
-    let mut vd = Validator::new(block, data);
+pub fn validate_theme_background(bv: &BlockOrValue, data: &Everything) {
+    if let Some(block) = bv.get_block() {
+        let mut vd = Validator::new(block, data);
 
-    vd.field_block("trigger");
-    // TODO: verify the background is defined
-    vd.field_value("event_background");
-    // TODO: check if `reference` actually works or is a mistake in vanilla
-    vd.field_value("reference");
-    vd.warn_remaining();
+        vd.field_block("trigger");
+        // TODO: verify the background is defined
+        vd.field_value("event_background");
+        // TODO: check if `reference` actually works or is a mistake in vanilla
+        vd.field_value("reference");
+        vd.warn_remaining();
+    } else {
+        // TODO: verify the background is defined
+    }
 }
 
 pub fn validate_theme_icon(block: &Block, data: &Everything) {

@@ -297,7 +297,7 @@ impl Event {
         if evtype == "court_event" {
             vd.advice_field("override_background", "not needed for court_event");
         } else {
-            vd.field_validated_blocks("override_background", validate_theme_background);
+            vd.field_validated_bvs("override_background", validate_theme_background);
         }
         vd.field_validated_blocks("override_icon", validate_theme_icon);
         vd.field_validated_blocks("override_sound", validate_theme_sound);
