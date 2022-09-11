@@ -2,6 +2,7 @@ use std::fmt::{Display, Formatter};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
@@ -36,11 +37,11 @@ impl Display for ListType {
 pub fn validate_normal_effect<'a>(
     block: &Block,
     data: &'a Everything,
-    scopes: Scopes,
+    sc: &mut ScopeContext,
     tooltipped: bool,
-) -> Scopes {
+) {
     let vd = Validator::new(block, data);
-    validate_effect("", ListType::None, block, data, scopes, vd, tooltipped)
+    validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
 }
 
 pub fn validate_effect<'a>(
@@ -48,10 +49,10 @@ pub fn validate_effect<'a>(
     list_type: ListType,
     block: &Block,
     data: &'a Everything,
-    mut scopes: Scopes,
+    mut sc: &mut ScopeContext,
     mut vd: Validator<'a>,
     mut tooltipped: bool,
-) -> Scopes {
+) {
     // undocumented
     if let Some(key) = block.get_key("custom") {
         vd.field_value_item("custom", Item::Localization);
@@ -68,7 +69,7 @@ pub fn validate_effect<'a>(
     if let Some(b) = vd.field_block("limit") {
         if caller == "if" || caller == "else_if" || caller == "else" || list_type != ListType::None
         {
-            scopes = validate_normal_trigger(b, data, scopes, tooltipped);
+            validate_normal_trigger(b, data, sc, tooltipped);
         } else {
             warn(
                 block.get_key("limit").unwrap(),
@@ -80,7 +81,7 @@ pub fn validate_effect<'a>(
 
     vd.field_validated_blocks("alternative_limit", |b, data| {
         if list_type != ListType::None {
-            scopes = validate_normal_trigger(b, data, scopes, false);
+            validate_normal_trigger(b, data, sc, false);
         } else {
             warn(
                 b,
@@ -92,7 +93,7 @@ pub fn validate_effect<'a>(
 
     if let Some(bv) = vd.field("order_by") {
         if list_type == ListType::Ordered {
-            scopes = ScriptValue::validate_bv(bv, data, scopes);
+            ScriptValue::validate_bv(bv, data, sc);
         } else {
             warn(
                 block.get_key("order_by").unwrap(),
@@ -132,7 +133,7 @@ pub fn validate_effect<'a>(
 
     if let Some(bv) = vd.field("max") {
         if list_type == ListType::Ordered {
-            scopes = ScriptValue::validate_bv(bv, data, scopes);
+            ScriptValue::validate_bv(bv, data, sc);
         } else {
             warn(
                 block.get_key("max").unwrap(),
@@ -173,22 +174,14 @@ pub fn validate_effect<'a>(
         &list_type.to_string(),
         block,
         data,
-        scopes,
+        sc,
         &mut vd,
         tooltipped,
     );
 
     'outer: for (key, bv) in vd.unknown_keys() {
         if let Some((inscopes, effect)) = scope_effect(key, data) {
-            if !inscopes.intersects(scopes | Scopes::None) {
-                let msg = format!(
-                    "effect is for {} but scope seems to be {}",
-                    inscopes, scopes
-                );
-                warn(key, ErrorKey::Scopes, &msg);
-            } else if inscopes != Scopes::None {
-                scopes &= inscopes;
-            }
+            sc.expect(inscopes, key.clone());
             match effect {
                 Effect::Yes => {
                     if let Some(token) = bv.expect_value() {
@@ -200,7 +193,7 @@ pub fn validate_effect<'a>(
                 }
                 Effect::Bool => {
                     if let Some(token) = bv.expect_value() {
-                        (scopes, _) = validate_target(token, data, scopes, Scopes::Bool);
+                        validate_target(token, data, sc, Scopes::Bool);
                     }
                 }
                 Effect::Integer => {
@@ -219,11 +212,11 @@ pub fn validate_effect<'a>(
                             }
                         }
                     }
-                    scopes = ScriptValue::validate_bv(bv, data, scopes);
+                    ScriptValue::validate_bv(bv, data, sc);
                 }
                 Effect::Scope(outscopes) => {
                     if let Some(token) = bv.expect_value() {
-                        (scopes, _) = validate_target(token, data, scopes, outscopes);
+                        validate_target(token, data, sc, outscopes);
                     }
                 }
                 Effect::Item(itype) => {
@@ -243,31 +236,25 @@ pub fn validate_effect<'a>(
                 || it_type.is("every")
                 || it_type.is("random")
             {
-                if let Some((inscope, outscope)) = scope_iterator(&it_name, data) {
+                if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
                     if it_type.is("any") {
                         let msg = "cannot use `any_` lists in an effect";
                         error(key, ErrorKey::Validation, msg);
                         continue;
                     }
-                    if !inscope.intersects(scopes | Scopes::None) {
-                        let msg = format!(
-                            "iterator is for {} but scope seems to be {}",
-                            inscope, scopes
-                        );
-                        warn(key, ErrorKey::Scopes, &msg);
-                    } else if inscope != Scopes::None {
-                        scopes &= inscope;
-                    }
+                    sc.expect(inscopes, key.clone());
                     let ltype = match it_type.as_str() {
                         "every" => ListType::Every,
                         "ordered" => ListType::Ordered,
                         "random" => ListType::Random,
                         _ => unreachable!(),
                     };
+                    sc.open_scope(outscope, key.clone());
                     if let Some(b) = bv.expect_block() {
                         let vd = Validator::new(b, data);
-                        validate_effect(it_name.as_str(), ltype, b, data, outscope, vd, tooltipped);
+                        validate_effect(it_name.as_str(), ltype, b, data, sc, vd, tooltipped);
                     }
+                    sc.close();
                     continue;
                 }
             }
@@ -288,31 +275,24 @@ pub fn validate_effect<'a>(
         // The logic here is similar to logic in triggers and script values,
         // but not quite the same :(
         let part_vec = key.split('.');
-        let mut part_scopes = scopes;
+        sc.open_builder();
         for i in 0..part_vec.len() {
             let first = i == 0;
             let part = &part_vec[i];
 
             if let Some((prefix, arg)) = part.split_once(':') {
-                if let Some((inscope, outscope)) = scope_prefix(prefix.as_str()) {
-                    if inscope == Scopes::None && !first {
+                if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
+                    if inscopes == Scopes::None && !first {
                         let msg = format!("`{}:` makes no sense except as first part", prefix);
                         warn(part, ErrorKey::Validation, &msg);
                     }
-                    if !inscope.intersects(part_scopes | Scopes::None) {
-                        let msg = format!(
-                            "{}: is for {} but scope seems to be {}",
-                            prefix, inscope, part_scopes
-                        );
-                        warn(part, ErrorKey::Scopes, &msg);
-                    } else if first && inscope != Scopes::None {
-                        scopes &= inscope;
-                    }
+                    sc.expect(inscopes, prefix.clone());
                     validate_prefix_reference(&prefix, &arg, data);
-                    part_scopes = outscope;
+                    sc.replace(outscope, part.clone());
                 } else {
                     let msg = format!("unknown prefix `{}:`", prefix);
                     error(part, ErrorKey::Validation, &msg);
+                    sc.close();
                     continue 'outer;
                 }
             } else if part.is("root")
@@ -326,39 +306,34 @@ pub fn validate_effect<'a>(
                     let msg = format!("`{}` makes no sense except as first part", part);
                     warn(part, ErrorKey::Validation, &msg);
                 }
-                if part.is("this") {
-                    part_scopes = scopes;
+                if part.is("root") || part.is("ROOT") {
+                    sc.replace_root();
+                } else if part.is("prev") || part.is("PREV") {
+                    sc.replace_prev();
                 } else {
-                    part_scopes = Scopes::all();
+                    sc.replace_this();
                 }
-            } else if let Some((inscope, outscope)) = scope_to_scope(part.as_str()) {
-                if inscope == Scopes::None && !first {
+            } else if let Some((inscopes, outscope)) = scope_to_scope(part.as_str()) {
+                if inscopes == Scopes::None && !first {
                     let msg = format!("`{}` makes no sense except as first part", part);
                     warn(part, ErrorKey::Validation, &msg);
                 }
-                if !inscope.intersects(part_scopes | Scopes::None) {
-                    let msg = format!(
-                        "{} is for {} but scope seems to be {}",
-                        part, inscope, part_scopes
-                    );
-                    warn(part, ErrorKey::Scopes, &msg);
-                } else if first && inscope != Scopes::None {
-                    scopes &= inscope;
-                }
-                part_scopes = outscope;
+                sc.expect(inscopes, part.clone());
+                sc.replace(outscope, part.clone());
             // TODO: warn if trying to use iterator or effect here
             } else {
                 let msg = format!("unknown token `{}`", part);
                 error(part, ErrorKey::Validation, &msg);
+                sc.close();
                 continue 'outer;
             }
         }
 
         if let Some(block) = bv.expect_block() {
-            _ = validate_normal_effect(block, data, part_scopes, tooltipped);
+            validate_normal_effect(block, data, &mut sc, tooltipped);
         }
+        sc.close();
     }
 
     vd.warn_remaining();
-    scopes
 }

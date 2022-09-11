@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
+use crate::context::ScopeContext;
 use crate::effect::{validate_effect, validate_normal_effect, ListType};
 use crate::errorkey::ErrorKey;
 use crate::errors::error;
@@ -152,7 +153,12 @@ impl Character {
         Gender::from_female_bool(self.block.get_field_bool("female").unwrap_or(false))
     }
 
-    pub fn validate_history(block: &Block, parent: &Block, data: &Everything) {
+    pub fn validate_history(
+        block: &Block,
+        parent: &Block,
+        data: &Everything,
+        sc: &mut ScopeContext,
+    ) {
         let mut vd = Validator::new(block, data);
         vd.field_value_item("name", Item::Localization);
 
@@ -209,22 +215,15 @@ impl Character {
         vd.field_value_item("dynasty_house", Item::House);
 
         vd.field_validated_blocks("effect", |b, data| {
-            _ = validate_normal_effect(b, data, Scopes::Character, false)
+            validate_normal_effect(b, data, sc, false);
         });
 
-        validate_effect(
-            "",
-            ListType::None,
-            block,
-            data,
-            Scopes::Character,
-            vd,
-            false,
-        );
+        validate_effect("", ListType::None, block, data, sc, vd, false);
     }
 
     fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
+        let mut sc = ScopeContext::new(Scopes::Character, self.key.clone());
 
         vd.req_field("name");
         vd.field_value_item("name", Item::Localization);
@@ -264,7 +263,7 @@ impl Character {
         vd.field_numeric("fertility");
         vd.field_block("portrait_override");
 
-        vd.validate_history_blocks(|b, data| Self::validate_history(b, &self.block, data));
+        vd.validate_history_blocks(|b, data| Self::validate_history(b, &self.block, data, &mut sc));
         vd.warn_remaining();
     }
 }

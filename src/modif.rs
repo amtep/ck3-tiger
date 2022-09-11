@@ -5,11 +5,11 @@ use std::fmt::{Display, Formatter};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::scopes::Scopes;
 use crate::token::Token;
 
 bitflags! {
@@ -64,6 +64,7 @@ pub fn validate_modifs<'a>(
     _block: &Block,
     data: &'a Everything,
     kinds: ModifKinds,
+    sc: &mut ScopeContext,
     mut vd: Validator<'a>,
 ) {
     // TODO: if a modif is for a wrong ModifKind, say so instead of "unknown token"
@@ -109,15 +110,15 @@ pub fn validate_modifs<'a>(
         vd.field_numeric("ai_amenity_spending");
         vd.field_numeric("ai_amenity_target_baseline");
 
-        vd.field_script_value("ai_boldness", Scopes::None);
-        vd.field_script_value("ai_compassion", Scopes::None);
-        vd.field_script_value("ai_energy", Scopes::None);
-        vd.field_script_value("ai_greed", Scopes::None);
-        vd.field_script_value("ai_honor", Scopes::None);
-        vd.field_script_value("ai_rationality", Scopes::None);
-        vd.field_script_value("ai_sociability", Scopes::None);
-        vd.field_script_value("ai_vengefulness", Scopes::None);
-        vd.field_script_value("ai_zeal", Scopes::None);
+        vd.field_script_value("ai_boldness", sc);
+        vd.field_script_value("ai_compassion", sc);
+        vd.field_script_value("ai_energy", sc);
+        vd.field_script_value("ai_greed", sc);
+        vd.field_script_value("ai_honor", sc);
+        vd.field_script_value("ai_rationality", sc);
+        vd.field_script_value("ai_sociability", sc);
+        vd.field_script_value("ai_vengefulness", sc);
+        vd.field_script_value("ai_zeal", sc);
 
         vd.field_numeric("ai_war_chance");
         vd.field_numeric("ai_war_cooldown");

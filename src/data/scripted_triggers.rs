@@ -6,9 +6,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
-use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct Triggers {
@@ -69,14 +67,5 @@ impl Trigger {
         Self { key, block }
     }
 
-    pub fn validate(&self, data: &Everything) {
-        if self.block.source.is_some() {
-            // Can't check triggers that have macro parameters
-            return;
-        }
-
-        // TODO: remember the deduced scope
-        // TODO: figure out what to do about the "tooltipped" parameter
-        _ = validate_normal_trigger(&self.block, data, Scopes::all(), true);
-    }
+    pub fn validate(&self, _data: &Everything) {}
 }

@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::desc::{validate_desc, validate_desc_map};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
@@ -10,6 +11,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxFile;
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -80,11 +82,11 @@ impl Trait {
         Self { key, block }
     }
 
-    fn validate_culture_modifier(block: &Block, data: &Everything) {
+    fn validate_culture_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
 
         vd.field_value("parameter"); // TODO: check cultural parameter exists
-        validate_modifs(block, data, ModifKinds::Character, vd);
+        validate_modifs(block, data, ModifKinds::Character, sc, vd);
     }
 
     fn validate_triggered_opinion(block: &Block, data: &Everything) {
@@ -103,23 +105,24 @@ impl Trait {
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
+        let mut sc = ScopeContext::new(Scopes::Character, self.key.clone());
 
         if let Some(bv) = vd.field("name") {
-            validate_desc(bv, data);
+            validate_desc(bv, data, &mut sc);
         } else {
             let loca = format!("trait_{}", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
         if let Some(bv) = vd.field("desc") {
-            validate_desc(bv, data);
+            validate_desc(bv, data, &mut sc);
         } else {
             let loca = format!("trait_{}_desc", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
         if let Some(bv) = vd.field("icon") {
-            validate_desc_map(bv, data, |name, data| {
+            validate_desc_map(bv, data, &mut sc, |name, data| {
                 let path = format!("gfx/interface/icons/traits/{}", name);
                 data.fileset.verify_exists_implied(&path, name);
             });
@@ -128,7 +131,9 @@ impl Trait {
             data.fileset.verify_exists_implied(&path, &self.key);
         }
 
-        vd.field_validated_blocks("culture_modifier", Self::validate_culture_modifier);
+        vd.field_validated_blocks("culture_modifier", |b, data| {
+            Self::validate_culture_modifier(b, data, &mut sc)
+        });
         vd.field_validated_blocks("triggered_opinion", Self::validate_triggered_opinion);
 
         vd.field_list("opposites");
@@ -176,6 +181,6 @@ impl Trait {
         vd.field_values("flag");
         vd.field_bool("shown_in_encyclopedia");
 
-        validate_modifs(&self.block, data, ModifKinds::Character, vd);
+        validate_modifs(&self.block, data, ModifKinds::Character, &mut sc, vd);
     }
 }

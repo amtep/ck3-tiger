@@ -21,6 +21,7 @@ pub mod everything;
 pub mod modfile;
 
 mod block;
+mod context;
 mod data;
 mod desc;
 mod effect;

@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, DefinitionItem};
+use crate::context::ScopeContext;
 use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
 use crate::desc::validate_desc;
@@ -16,7 +17,7 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
-use crate::trigger::{validate_character_trigger, validate_normal_trigger, validate_target};
+use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{
     validate_cooldown, validate_theme_background, validate_theme_icon, validate_theme_sound,
 };
@@ -231,13 +232,16 @@ impl Event {
             .get_field_value("type")
             .map_or("character_event", |t| t.as_str());
 
-        let mut scopes = Scopes::Character;
+        let mut sc = ScopeContext::new(Scopes::Character, self.key.clone());
         if evtype == "empty" {
-            scopes = Scopes::None;
+            sc = ScopeContext::new(
+                Scopes::None,
+                self.block.get_field_value("type").unwrap().clone(),
+            );
         }
         if let Some(token) = vd.field_value("scope") {
             if let Some(scope) = scope_from_snake_case(token.as_str()) {
-                scopes = scope;
+                sc = ScopeContext::new(scope, token.clone());
             } else {
                 warn(token, ErrorKey::Scopes, "unknown scope type");
             }
@@ -246,34 +250,34 @@ impl Event {
         vd.field_bool("hidden");
         vd.field_bool("major");
         vd.field_validated_block("major_trigger", |b, data| {
-            scopes = validate_normal_trigger(b, data, scopes, false);
+            validate_normal_trigger(b, data, &mut sc, false);
         });
 
         vd.field_validated_block("immediate", |b, data| {
-            scopes = validate_normal_effect(b, data, scopes, true);
+            validate_normal_effect(b, data, &mut sc, true);
         });
         vd.field_validated_block("trigger", |b, data| {
-            scopes = validate_normal_trigger(b, data, scopes, false);
+            validate_normal_trigger(b, data, &mut sc, false);
         });
         vd.field_validated_block("on_trigger_fail", |b, data| {
-            scopes = validate_normal_effect(b, data, scopes, false);
+            validate_normal_effect(b, data, &mut sc, false);
         });
         vd.field_block("weight_multiplier"); // modifier
 
         if let Some(bv) = vd.field("title") {
-            validate_desc(bv, data);
+            validate_desc(bv, data, &mut sc);
         }
 
         if let Some(bv) = vd.field("desc") {
-            validate_desc(bv, data);
+            validate_desc(bv, data, &mut sc);
         }
 
         if evtype == "letter_event" {
             if let Some(bv) = vd.field("opening") {
-                validate_desc(bv, data);
+                validate_desc(bv, data, &mut sc);
             }
             vd.req_field("sender");
-            vd.field_validated("sender", validate_portrait);
+            vd.field_validated("sender", |bv, data| validate_portrait(bv, data, &mut sc));
         } else {
             vd.advice_field("opening", "only needed for letter_event");
             vd.advice_field("sender", "only needed for letter_event");
@@ -282,14 +286,24 @@ impl Event {
             vd.advice_field("left_portrait", "not needed for court_event");
             vd.advice_field("right_portrait", "not needed for court_event");
         } else {
-            vd.field_validated("left_portrait", validate_portrait);
-            vd.field_validated("right_portrait", validate_portrait);
+            vd.field_validated("left_portrait", |bv, data| {
+                validate_portrait(bv, data, &mut sc)
+            });
+            vd.field_validated("right_portrait", |bv, data| {
+                validate_portrait(bv, data, &mut sc)
+            });
         }
-        vd.field_validated("lower_left_portrait", validate_portrait);
-        vd.field_validated("lower_center_portrait", validate_portrait);
-        vd.field_validated("lower_right_portrait", validate_portrait);
+        vd.field_validated("lower_left_portrait", |bv, data| {
+            validate_portrait(bv, data, &mut sc)
+        });
+        vd.field_validated("lower_center_portrait", |bv, data| {
+            validate_portrait(bv, data, &mut sc)
+        });
+        vd.field_validated("lower_right_portrait", |bv, data| {
+            validate_portrait(bv, data, &mut sc)
+        });
         // TODO: check that artifacts are not in the same position as a character
-        vd.field_validated_blocks("artifact", validate_artifact);
+        vd.field_validated_blocks("artifact", |b, data| validate_artifact(b, data, &mut sc));
         vd.field_validated_block("court_scene", validate_court_scene);
         // TODO: check defined event themes
         vd.field_value("theme");
@@ -308,13 +322,13 @@ impl Event {
         if !self.block.get_field_bool("hidden").unwrap_or(false) {
             vd.req_field("option");
         }
-        vd.field_validated_blocks("option", validate_event_option);
+        vd.field_validated_blocks("option", |b, data| validate_event_option(b, data, &mut sc));
 
         vd.field_validated_block("after", |b, data| {
             // TODO: check if this block is tooltipped
-            scopes = validate_normal_effect(b, data, scopes, false);
+            validate_normal_effect(b, data, &mut sc, false);
         });
-        vd.field_validated_block("cooldown", validate_cooldown);
+        vd.field_validated_block("cooldown", |b, data| validate_cooldown(b, data, &mut sc));
         vd.field_value("soundeffect");
         vd.field_bool("orphan");
         // TODO: validate widget
@@ -324,7 +338,7 @@ impl Event {
     }
 }
 
-fn validate_event_option(block: &Block, data: &Everything) {
+fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     // TODO: warn if they use desc, first_valid, random_valid, or triggered_desc directly
     // in the name or tooltip.
 
@@ -336,11 +350,11 @@ fn validate_event_option(block: &Block, data: &Everything) {
         BlockOrValue::Block(b) => {
             if let Some(trigger) = b.get_field("trigger") {
                 if let Some(trigger) = trigger.expect_block() {
-                    validate_character_trigger(trigger, data, false);
+                    validate_normal_trigger(trigger, data, sc, false);
                 }
             }
             if let Some(text) = b.get_field("text") {
-                validate_desc(text, data);
+                validate_desc(text, data, sc);
             } else {
                 warn(b, ErrorKey::Validation, "event option name with no text");
             }
@@ -352,7 +366,7 @@ fn validate_event_option(block: &Block, data: &Everything) {
         }
         BlockOrValue::Block(b) => {
             if let Some(text) = b.get_field("text") {
-                validate_desc(text, data);
+                validate_desc(text, data, sc);
             } else {
                 warn(b, ErrorKey::Validation, "event option tooltip with no text");
             }
@@ -360,14 +374,14 @@ fn validate_event_option(block: &Block, data: &Everything) {
     });
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, Scopes::Character, false);
+        validate_normal_trigger(b, data, sc, false);
     });
 
     vd.field_validated_block("show_as_unavailable", |b, data| {
-        validate_normal_trigger(b, data, Scopes::Character, false);
+        validate_normal_trigger(b, data, sc, false);
     });
 
-    vd.field_validated_bv("flavor", validate_desc);
+    vd.field_validated_bv("flavor", |b, data| validate_desc(b, data, sc));
 
     // "this option is available because you have the ... trait"
     vd.field_values_items("trait", Item::Trait);
@@ -384,20 +398,12 @@ fn validate_event_option(block: &Block, data: &Everything) {
     vd.field_bool("fallback");
 
     if let Some(token) = vd.field_value("highlight_portrait") {
-        validate_target(token, data, Scopes::Character, Scopes::Character);
+        validate_target(token, data, sc, Scopes::Character);
     }
 
     vd.field_bool("show_unlock_reason"); // TODO: what does this do?
 
-    validate_effect(
-        "option",
-        ListType::None,
-        block,
-        data,
-        Scopes::Character,
-        vd,
-        true,
-    );
+    validate_effect("option", ListType::None, block, data, sc, vd, true);
 }
 
 fn validate_court_scene(block: &Block, data: &Everything) {
@@ -415,7 +421,7 @@ fn validate_court_scene(block: &Block, data: &Everything) {
     vd.warn_remaining();
 }
 
-fn validate_artifact(block: &Block, data: &Everything) {
+fn validate_artifact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
     vd.req_field("target");
@@ -430,29 +436,29 @@ fn validate_artifact(block: &Block, data: &Everything) {
         ],
     );
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, Scopes::Artifact, false);
+        validate_normal_trigger(b, data, sc, false);
     });
     vd.warn_remaining();
 }
 
-fn validate_triggered_animation(block: &Block, data: &Everything) {
+fn validate_triggered_animation(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
     vd.req_field("trigger");
     vd.req_field("animation");
     vd.field_validated_block("trigger", |b, data| {
-        validate_character_trigger(b, data, false);
+        validate_normal_trigger(b, data, sc, false);
     });
     vd.field_value("animation");
     vd.warn_remaining();
 }
 
-fn validate_triggered_outfit(block: &Block, data: &Everything) {
+fn validate_triggered_outfit(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
     // trigger is apparently optional
     vd.field_validated_block("trigger", |b, data| {
-        validate_character_trigger(b, data, false);
+        validate_normal_trigger(b, data, sc, false);
     });
     // TODO: check that at least one of these is set?
     vd.field_list("outfit_tags");
@@ -461,7 +467,7 @@ fn validate_triggered_outfit(block: &Block, data: &Everything) {
     vd.warn_remaining();
 }
 
-fn validate_portrait(v: &BlockOrValue, data: &Everything) {
+fn validate_portrait(v: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
     match v {
         BlockOrValue::Token(_) => (),
         BlockOrValue::Block(b) => {
@@ -470,15 +476,19 @@ fn validate_portrait(v: &BlockOrValue, data: &Everything) {
             vd.req_field("character");
             vd.field_value("character");
             vd.field_validated_block("trigger", |b, data| {
-                validate_character_trigger(b, data, false);
+                validate_normal_trigger(b, data, sc, false);
             });
             vd.field_value("animation");
             vd.field("scripted_animation");
-            vd.field_validated_blocks("triggered_animation", validate_triggered_animation);
+            vd.field_validated_blocks("triggered_animation", |b, data| {
+                validate_triggered_animation(b, data, sc)
+            });
             vd.field_list("outfit_tags");
             vd.field_bool("remove_default_outfit");
             vd.field_bool("hide_info");
-            vd.field_validated_blocks("triggered_outfit", validate_triggered_outfit);
+            vd.field_validated_blocks("triggered_outfit", |b, data| {
+                validate_triggered_outfit(b, data, sc)
+            });
             // TODO: is this only useful when animation is prisondungeon ?
             vd.field_bool("override_imprisonment_visuals");
             vd.field_bool("animate_if_dead");

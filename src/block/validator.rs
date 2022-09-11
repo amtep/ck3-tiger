@@ -1,11 +1,11 @@
 use crate::block::{Block, BlockOrValue, Comparator, Date, Token};
+use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice, error, warn};
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;
-use crate::scopes::Scopes;
 
 #[derive(Debug)]
 pub struct Validator<'a> {
@@ -166,9 +166,9 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_script_value(&mut self, name: &str, scopes: Scopes) {
+    pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) {
         self.field_check(name, |bv| {
-            _ = ScriptValue::validate_bv(bv, self.data, scopes);
+            _ = ScriptValue::validate_bv(bv, self.data, sc);
         });
     }
 

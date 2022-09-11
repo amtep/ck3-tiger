@@ -2,11 +2,13 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -71,6 +73,9 @@ impl Interaction {
     pub fn validate(&self, data: &Everything) {
         // TODO: actually validate the fields
 
+        // You're expected to use scope:actor and scope:recipient instead of root
+        let mut sc = ScopeContext::new(Scopes::None, self.key.clone());
+
         if let Some(name) = self.block.get_field_value("icon") {
             let pathname = format!("gfx/interface/icons/character_interactions/{}.dds", name);
             data.fileset.verify_exists_implied(&pathname, name);
@@ -96,16 +101,16 @@ impl Interaction {
             data.fileset.verify_exists(pathname);
         }
         if let Some(desc) = self.block.get_field("desc") {
-            validate_desc(desc, data);
+            validate_desc(desc, data, &mut sc);
         }
         if let Some(desc) = self.block.get_field("prompt") {
-            validate_desc(desc, data);
+            validate_desc(desc, data, &mut sc);
         }
         if let Some(desc) = self.block.get_field("notification_text") {
-            validate_desc(desc, data);
+            validate_desc(desc, data, &mut sc);
         }
         if let Some(desc) = self.block.get_field("on_decline_summary") {
-            validate_desc(desc, data);
+            validate_desc(desc, data, &mut sc);
         }
         if let Some(key) = self.block.get_field_value("answer_accept_key") {
             data.localization.verify_exists(key);

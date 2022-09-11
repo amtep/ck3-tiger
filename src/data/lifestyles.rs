@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -82,17 +83,18 @@ impl Lifestyle {
         data.localization.verify_exists_implied(&loca, &self.key);
 
         let mut vd = Validator::new(&self.block, data);
+        let mut sc = ScopeContext::new(Scopes::Character, self.key.clone());
 
         if let Some(block) = vd.field_block("is_highlighted") {
-            validate_normal_trigger(block, data, Scopes::Character, false);
+            validate_normal_trigger(block, data, &mut sc, false);
         }
 
         if let Some(block) = vd.field_block("is_valid") {
-            validate_normal_trigger(block, data, Scopes::Character, true);
+            validate_normal_trigger(block, data, &mut sc, true);
         }
 
         if let Some(block) = vd.field_block("is_valid_showing_failures_only") {
-            validate_normal_trigger(block, data, Scopes::Character, true);
+            validate_normal_trigger(block, data, &mut sc, true);
         }
 
         if let Some(token) = vd.field_value("icon") {

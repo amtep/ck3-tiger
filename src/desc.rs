@@ -1,14 +1,15 @@
 use crate::block::{Block, BlockOrValue, DefinitionItem};
+use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
 use crate::everything::Everything;
-use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::validate_normal_trigger;
 
 pub fn validate_desc_map_block(
     block: &Block,
     data: &Everything,
+    sc: &mut ScopeContext,
     f: &impl Fn(&Token, &Everything),
     triggered: bool,
 ) {
@@ -24,12 +25,11 @@ pub fn validate_desc_map_block(
             }
             DefinitionItem::Definition(key, b) => {
                 if key.is("desc") || key.is("first_valid") || key.is("random_valid") {
-                    validate_desc_map_block(b, data, f, false);
+                    validate_desc_map_block(b, data, sc, f, false);
                 } else if key.is("triggered_desc") {
-                    validate_desc_map_block(b, data, f, true);
+                    validate_desc_map_block(b, data, sc, f, true);
                 } else if triggered && key.is("trigger") {
-                    // TODO: pass in correct scopes
-                    validate_normal_trigger(b, data, Scopes::all(), false);
+                    validate_normal_trigger(b, data, sc, false);
                 } else {
                     warn(key, ErrorKey::Validation, "unexpected key in description");
                 }
@@ -38,7 +38,12 @@ pub fn validate_desc_map_block(
     }
 }
 
-pub fn validate_desc_map(bv: &BlockOrValue, data: &Everything, f: impl Fn(&Token, &Everything)) {
+pub fn validate_desc_map(
+    bv: &BlockOrValue,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    f: impl Fn(&Token, &Everything),
+) {
     match bv {
         BlockOrValue::Token(t) => {
             if !t.as_str().contains(' ') {
@@ -46,13 +51,13 @@ pub fn validate_desc_map(bv: &BlockOrValue, data: &Everything, f: impl Fn(&Token
             }
         }
         BlockOrValue::Block(b) => {
-            validate_desc_map_block(b, data, &f, false);
+            validate_desc_map_block(b, data, sc, &f, false);
         }
     }
 }
 
-pub fn validate_desc(bv: &BlockOrValue, data: &Everything) {
-    validate_desc_map(bv, data, |token, data| {
+pub fn validate_desc(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
+    validate_desc_map(bv, data, sc, |token, data| {
         data.localization.verify_exists(token);
     });
 }

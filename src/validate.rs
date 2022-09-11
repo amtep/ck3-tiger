@@ -1,6 +1,7 @@
-/// A module for validation functions that are useful for more than one data module.
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
+/// A module for validation functions that are useful for more than one data module.
+use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
@@ -42,24 +43,24 @@ pub fn validate_theme_sound(block: &Block, data: &Everything) {
     vd.warn_remaining();
 }
 
-pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, scopes: Scopes) {
+pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
 
     if let Some(bv) = vd.field_any_cmp("days") {
-        ScriptValue::validate_bv(bv, data, scopes);
+        ScriptValue::validate_bv(bv, data, sc);
         count += 1;
     }
     if let Some(bv) = vd.field_any_cmp("weeks") {
-        ScriptValue::validate_bv(bv, data, scopes);
+        ScriptValue::validate_bv(bv, data, sc);
         count += 1;
     }
     if let Some(bv) = vd.field_any_cmp("months") {
-        ScriptValue::validate_bv(bv, data, scopes);
+        ScriptValue::validate_bv(bv, data, sc);
         count += 1;
     }
     if let Some(bv) = vd.field_any_cmp("years") {
-        ScriptValue::validate_bv(bv, data, scopes);
+        ScriptValue::validate_bv(bv, data, sc);
         count += 1;
     }
 
@@ -75,20 +76,20 @@ pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, scopes
 }
 
 // Very similar to validate_years_months_days, but requires = instead of allowing comparators
-pub fn validate_cooldown(block: &Block, data: &Everything) {
+pub fn validate_cooldown(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
 
     if let Some(bv) = vd.field("days") {
-        ScriptValue::validate_bv(bv, data, Scopes::Character);
+        ScriptValue::validate_bv(bv, data, sc);
         count += 1;
     }
     if let Some(bv) = vd.field("months") {
-        ScriptValue::validate_bv(bv, data, Scopes::Character);
+        ScriptValue::validate_bv(bv, data, sc);
         count += 1;
     }
     if let Some(bv) = vd.field("years") {
-        ScriptValue::validate_bv(bv, data, Scopes::Character);
+        ScriptValue::validate_bv(bv, data, sc);
         count += 1;
     }
 
@@ -176,7 +177,7 @@ pub fn validate_inside_iterator(
     listtype: &str,
     block: &Block,
     data: &Everything,
-    scopes: Scopes,
+    sc: &mut ScopeContext,
     vd: &mut Validator,
     tooltipped: bool,
 ) {
@@ -209,7 +210,7 @@ pub fn validate_inside_iterator(
 
     if let Some(block) = vd.field_block("filter") {
         if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
-            validate_normal_trigger(block, data, scopes, tooltipped);
+            validate_normal_trigger(block, data, sc, tooltipped);
         } else {
             let msg = format!(
                 "`filter` is only for `{}_in_de_facto_hierarchy` or `{}_in_de_jure_hierarchy`",
@@ -220,7 +221,7 @@ pub fn validate_inside_iterator(
     }
     if let Some(block) = vd.field_block("continue") {
         if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
-            validate_normal_trigger(block, data, scopes, tooltipped);
+            validate_normal_trigger(block, data, sc, tooltipped);
         } else {
             let msg = format!(
                 "`continue` is only for `{}_in_de_facto_hierarchy` or `{}_in_de_jure_hierarchy`",
@@ -279,7 +280,7 @@ pub fn validate_inside_iterator(
     if name == "pool_character" {
         vd.req_field("province");
         if let Some(token) = block.get_field_value("province") {
-            _ = validate_target(token, data, scopes, Scopes::Province);
+            validate_target(token, data, sc, Scopes::Province);
         }
     } else if let Some(token) = block.get_key("province") {
         let msg = format!("`province` is only for `{}_pool_character`", listtype);
@@ -287,7 +288,7 @@ pub fn validate_inside_iterator(
     }
 
     if vd.field_bool("only_if_dead") {
-        if scopes != Scopes::Character {
+        if !sc.can_be(Scopes::Character) {
             warn(
                 block.get_key("only_if_dead").unwrap(),
                 ErrorKey::Validation,
@@ -296,7 +297,7 @@ pub fn validate_inside_iterator(
         }
     }
     if vd.field_bool("even_if_dead") {
-        if scopes != Scopes::Character {
+        if !sc.can_be(Scopes::Character) {
             warn(
                 block.get_key("even_if_dead").unwrap(),
                 ErrorKey::Validation,

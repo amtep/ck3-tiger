@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::effect::validate_normal_effect;
@@ -14,7 +15,7 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::trigger::validate_character_trigger;
+use crate::trigger::validate_normal_trigger;
 use crate::validate::validate_cooldown;
 
 #[derive(Clone, Debug, Default)]
@@ -78,6 +79,7 @@ impl Decision {
 
     fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
+        let mut sc = ScopeContext::new(Scopes::Character, self.key.clone());
 
         vd.req_field("picture");
         if let Some(token) = vd.field_value("picture") {
@@ -94,81 +96,81 @@ impl Decision {
         if self.block.get_field_bool("ai_goal").unwrap_or(false) {
             vd.advice_field("ai_check_interval", "not needed if ai_goal = yes");
         }
-        vd.field_validated_block("cooldown", validate_cooldown);
+        vd.field_validated_block("cooldown", |b, data| validate_cooldown(b, data, &mut sc));
 
         // kind of looks like a filename but it isn't.
         vd.field_value("confirm_click_sound");
 
         if let Some(bv) = vd.field("selection_tooltip") {
-            validate_desc(bv, data);
+            validate_desc(bv, data, &mut sc);
         } else {
             let loca = format!("{}_tooltip", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
         if let Some(bv) = vd.field("title") {
-            validate_desc(bv, data);
+            validate_desc(bv, data, &mut sc);
         } else {
             data.localization.verify_exists(&self.key);
         }
 
         if let Some(bv) = vd.field("desc") {
-            validate_desc(bv, data);
+            validate_desc(bv, data, &mut sc);
         } else {
             let loca = format!("{}_desc", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
         if let Some(bv) = vd.field("confirm_text") {
-            validate_desc(bv, data);
+            validate_desc(bv, data, &mut sc);
         } else {
             let loca = format!("{}_confirm", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
         vd.field_validated_block("is_shown", |b, data| {
-            validate_character_trigger(b, data, false)
+            validate_normal_trigger(b, data, &mut sc, false)
         });
         vd.field_validated_block("is_valid_showing_failures_only", |b, data| {
-            validate_character_trigger(b, data, true)
+            validate_normal_trigger(b, data, &mut sc, true)
         });
         vd.field_validated_block("is_valid", |b, data| {
-            validate_character_trigger(b, data, true)
+            validate_normal_trigger(b, data, &mut sc, true)
         });
 
         // cost can have multiple definitions and they will be combined
         // however, two costs of the same type are not summed
-        vd.field_validated_blocks("cost", validate_cost);
+        vd.field_validated_blocks("cost", |b, data| validate_cost(b, data, &mut sc));
         check_cost(&self.block.get_field_blocks("cost"));
-        vd.field_validated_blocks("minimum_cost", validate_cost);
+        vd.field_validated_blocks("minimum_cost", |b, data| validate_cost(b, data, &mut sc));
         check_cost(&self.block.get_field_blocks("minimum_cost"));
 
         vd.field_validated_block("effect", |b, data| {
-            validate_normal_effect(b, data, Scopes::Character, true);
+            validate_normal_effect(b, data, &mut sc, true);
         });
         vd.field_validated_block("ai_potential", |b, data| {
-            validate_character_trigger(b, data, false)
+            validate_normal_trigger(b, data, &mut sc, false)
         });
         vd.field_block("ai_will_do");
         vd.field_validated_block("should_create_alert", |b, data| {
-            validate_character_trigger(b, data, false)
+            validate_normal_trigger(b, data, &mut sc, false)
         });
         vd.field("widget");
         vd.warn_remaining();
     }
 }
 
-fn validate_cost(block: &Block, data: &Everything) {
+fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     // These can all be script values
     vd.field_validated_bv("gold", |bv, data| {
-        ScriptValue::validate_bv(bv, data, Scopes::Character);
+        ScriptValue::validate_bv(bv, data, sc);
     });
     vd.field_validated_bv("prestige", |bv, data| {
-        ScriptValue::validate_bv(bv, data, Scopes::Character);
+        ScriptValue::validate_bv(bv, data, sc);
     });
     vd.field_validated_bv("piety", |bv, data| {
-        ScriptValue::validate_bv(bv, data, Scopes::Character);
+        ScriptValue::validate_bv(bv, data, sc);
     });
     vd.warn_remaining();
 }

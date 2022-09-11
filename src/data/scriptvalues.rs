@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
+use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
@@ -67,67 +68,61 @@ impl FileHandler for ScriptValues {
 pub struct ScriptValue {
     key: Token,
     bv: BlockOrValue,
-    /// TODO: calculate possible scopes for each script value
-    scopes: Scopes,
 }
 
 impl ScriptValue {
     pub fn new(key: Token, bv: BlockOrValue) -> Self {
-        Self {
-            key,
-            bv,
-            scopes: Scopes::all(),
-        }
+        Self { key, bv }
     }
 
-    fn validate_inner(mut vd: Validator, data: &Everything, mut scopes: Scopes) -> Scopes {
+    fn validate_inner(mut vd: Validator, data: &Everything, sc: &mut ScopeContext) {
         vd.field_value_item("desc", Item::Localization);
         vd.field_value_item("format", Item::Localization);
         vd.field_validated("value", |bv, data| {
-            scopes = Self::validate_bv(bv, data, scopes);
+            Self::validate_bv(bv, data, sc);
         });
         vd.warn_past_known(
             "value",
             "Setting value here will overwrite the previous calculations",
         );
         vd.field_validated_bvs("add", |bv, data| {
-            scopes = Self::validate_bv(bv, data, scopes);
+            Self::validate_bv(bv, data, sc);
         });
         vd.field_validated_bvs("subtract", |bv, data| {
-            scopes = Self::validate_bv(bv, data, scopes);
+            Self::validate_bv(bv, data, sc);
         });
         vd.field_validated_bvs("multiply", |bv, data| {
-            scopes = Self::validate_bv(bv, data, scopes);
+            Self::validate_bv(bv, data, sc);
         });
         // TODO: warn if not sure that divide by zero is impossible?
         vd.field_validated_bvs("divide", |bv, data| {
-            scopes = Self::validate_bv(bv, data, scopes);
+            Self::validate_bv(bv, data, sc);
         });
         vd.field_validated_bvs("modulo", |bv, data| {
-            scopes = Self::validate_bv(bv, data, scopes);
+            Self::validate_bv(bv, data, sc);
         });
         vd.field_validated_bvs("min", |bv, data| {
-            scopes = Self::validate_bv(bv, data, scopes);
+            Self::validate_bv(bv, data, sc);
         });
         vd.field_validated_bvs("max", |bv, data| {
-            scopes = Self::validate_bv(bv, data, scopes);
+            Self::validate_bv(bv, data, sc);
         });
         vd.field_bool("round");
         vd.field_bool("ceiling");
         vd.field_bool("floor");
         vd.field_validated_blocks("fixed_range", |b, data| {
-            scopes = Self::validate_minmax_range(b, data, scopes);
+            Self::validate_minmax_range(b, data, sc);
         });
         vd.field_validated_blocks("integer_range", |b, data| {
-            scopes = Self::validate_minmax_range(b, data, scopes);
+            Self::validate_minmax_range(b, data, sc);
         });
         // TODO: check that these actually follow each other
-        vd.field_validated_blocks("if", |b, data| scopes = Self::validate_if(b, data, scopes));
+        vd.field_validated_blocks("if", |b, data| Self::validate_if(b, data, sc));
         vd.field_validated_blocks("else_if", |b, data| {
-            scopes = Self::validate_if(b, data, scopes);
+            Self::validate_if(b, data, sc);
         });
         vd.field_validated_blocks("else", |b, data| {
-            scopes = Self::validate_block(b, data, scopes);
+            Self::validate_block(b, data, sc);
         });
 
         'outer: for (key, bv) in vd.unknown_keys() {
@@ -142,91 +137,82 @@ impl ScriptValue {
                     || it_type.is("random")
                     || it_type.is("any")
                 {
-                    if let Some((inscope, outscope)) = scope_iterator(&it_name, data) {
+                    if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
                         if it_type.is("any") {
                             let msg = format!("cannot use `{}` in a script value", key);
                             error(key, ErrorKey::Validation, &msg);
                         }
-                        if !inscope.intersects(scopes | Scopes::None) {
-                            let msg = format!(
-                                "iterator is for {} but scope seems to be {}",
-                                inscope, scopes
-                            );
-                            warn(key, ErrorKey::Scopes, &msg);
-                        } else if inscope != Scopes::None {
-                            scopes &= inscope;
-                        }
+                        sc.expect(inscopes, key.clone());
+                        sc.open_scope(outscope, key.clone());
                         Self::validate_iterator(
                             &it_type,
                             &it_name,
                             bv.get_block().unwrap(),
                             data,
-                            outscope,
+                            sc,
                         );
+                        sc.close();
                         continue;
                     }
                 }
             }
 
             let mut first = true;
-            let mut part_scopes = scopes;
+            sc.open_builder();
             for part in key.split('.') {
                 if let Some((prefix, arg)) = part.split_once(':') {
-                    if let Some((inscope, outscope)) = scope_prefix(prefix.as_str()) {
-                        if inscope == Scopes::None && !first {
+                    if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
+                        if inscopes == Scopes::None && !first {
                             let msg = format!("`{}:` makes no sense except as first part", prefix);
                             warn(&part, ErrorKey::Validation, &msg);
                         }
-                        if !inscope.intersects(part_scopes | Scopes::None) {
-                            let msg = format!(
-                                "{}: is for {} but scope seems to be {}",
-                                prefix, inscope, part_scopes
-                            );
-                            warn(&part, ErrorKey::Scopes, &msg);
-                        } else if first && inscope != Scopes::None {
-                            scopes &= inscope;
-                        }
+                        sc.expect(inscopes, prefix.clone());
                         validate_prefix_reference(&prefix, &arg, data);
-                        part_scopes = outscope;
+                        sc.replace(outscope, part);
                     } else {
                         let msg = format!("unknown prefix `{}:`", prefix);
                         error(part, ErrorKey::Validation, &msg);
+                        sc.close();
                         continue 'outer;
                     }
-                } else if part.is("root") || part.is("prev") || part.is("this") {
+                } else if part.is("root")
+                    || part.is("prev")
+                    || part.is("this")
+                    || part.is("ROOT")
+                    || part.is("PREV")
+                    || part.is("THIS")
+                {
                     if !first {
                         let msg = format!("`{}` makes no sense except as first part", part);
                         warn(&part, ErrorKey::Validation, &msg);
                     }
-                    // TODO: accurate scope analysis for root, prev, this
-                    part_scopes = Scopes::all();
-                } else if let Some((inscope, outscope)) = scope_to_scope(part.as_str()) {
-                    if inscope == Scopes::None && !first {
+                    if part.is("root") || part.is("ROOT") {
+                        sc.replace_root();
+                    } else if part.is("prev") || part.is("PREV") {
+                        sc.replace_prev();
+                    } else {
+                        sc.replace_this();
+                    }
+                } else if let Some((inscopes, outscope)) = scope_to_scope(part.as_str()) {
+                    if inscopes == Scopes::None && !first {
                         let msg = format!("`{}` makes no sense except as first part", part);
                         warn(&part, ErrorKey::Validation, &msg);
                     }
-                    if !inscope.intersects(part_scopes | Scopes::None) {
-                        let msg = format!(
-                            "{} is for {} but scope seems to be {}",
-                            part, inscope, part_scopes
-                        );
-                        warn(&part, ErrorKey::Scopes, &msg);
-                    } else if first && inscope != Scopes::None {
-                        scopes &= inscope;
-                    }
-                    part_scopes = outscope;
+                    sc.expect(inscopes, part.clone());
+                    sc.replace(outscope, part);
                 // TODO: warn if trying to use iterator here
                 } else {
                     let msg = format!("unknown token `{}`", part);
                     error(part, ErrorKey::Validation, &msg);
+                    sc.close();
                     continue 'outer;
                 }
                 first = false;
             }
-            Self::validate_block(bv.get_block().unwrap(), data, part_scopes);
+            Self::validate_block(bv.get_block().unwrap(), data, sc);
+            sc.close();
         }
         vd.warn_remaining();
-        scopes
     }
 
     fn validate_iterator(
@@ -234,21 +220,21 @@ impl ScriptValue {
         it_name: &Token,
         block: &Block,
         data: &Everything,
-        mut scopes: Scopes,
+        sc: &mut ScopeContext,
     ) {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block("limit", |block, data| {
-            validate_normal_trigger(block, data, scopes, false);
+            validate_normal_trigger(block, data, sc, false);
         });
         // TODO: accept these fields for all list types, and warn if it's the wrong one
         if it_type.is("ordered") {
             vd.field_validated_bv("order_by", |bv, data| {
-                scopes = Self::validate_bv(bv, data, scopes);
+                Self::validate_bv(bv, data, sc);
             });
             vd.field_integer("position");
             vd.field_integer("min");
             vd.field_validated_bv("max", |bv, data| {
-                scopes = Self::validate_bv(bv, data, scopes);
+                Self::validate_bv(bv, data, sc);
             });
             vd.field_bool("check_range_bounds");
         } else if it_type.is("random") {
@@ -260,53 +246,52 @@ impl ScriptValue {
             it_type.as_str(),
             block,
             data,
-            scopes,
+            sc,
             &mut vd,
             false,
         );
 
-        Self::validate_inner(vd, data, scopes);
+        Self::validate_inner(vd, data, sc);
     }
 
-    fn validate_minmax_range(block: &Block, data: &Everything, mut scopes: Scopes) -> Scopes {
+    fn validate_minmax_range(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
         vd.req_field("min");
         vd.req_field("max");
         vd.field_validated_bvs("min", |bv, data| {
-            scopes = Self::validate_bv(bv, data, scopes);
+            Self::validate_bv(bv, data, sc);
         });
         vd.field_validated_bvs("max", |bv, data| {
-            scopes = Self::validate_bv(bv, data, scopes);
+            Self::validate_bv(bv, data, sc);
         });
         vd.warn_remaining();
-        scopes
     }
 
-    fn validate_if(block: &Block, data: &Everything, scopes: Scopes) -> Scopes {
+    fn validate_if(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
         vd.field_block("limit"); // TODO: validate trigger
-        Self::validate_inner(vd, data, scopes)
+        Self::validate_inner(vd, data, sc)
     }
 
-    fn validate_block(block: &Block, data: &Everything, scopes: Scopes) -> Scopes {
+    fn validate_block(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let vd = Validator::new(block, data);
-        Self::validate_inner(vd, data, scopes)
+        Self::validate_inner(vd, data, sc)
     }
 
-    pub fn validate_value(t: &Token, data: &Everything, mut scopes: Scopes) -> Scopes {
+    pub fn validate_value(t: &Token, data: &Everything, sc: &mut ScopeContext) {
         if t.as_str().parse::<i32>().is_ok() || t.as_str().parse::<f64>().is_ok() {
             // numeric literal is always valid
         } else {
             let part_vec = t.split('.');
-            let mut part_scopes = scopes;
+            sc.open_builder();
             for i in 0..part_vec.len() {
                 let first = i == 0;
                 let last = i + 1 == part_vec.len();
                 let part = &part_vec[i];
 
                 if let Some((prefix, arg)) = part.split_once(':') {
-                    if let Some((inscope, outscope)) = scope_prefix(prefix.as_str()) {
-                        if inscope == Scopes::None && !first {
+                    if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
+                        if inscopes == Scopes::None && !first {
                             let msg = format!("`{}:` makes no sense except as first part", prefix);
                             warn(part, ErrorKey::Validation, &msg);
                         }
@@ -315,23 +300,22 @@ impl ScriptValue {
                                 format!("expected a numeric formula instead of `{}:` ", prefix);
                             warn(part, ErrorKey::Validation, &msg);
                         }
-                        if !inscope.intersects(part_scopes | Scopes::None) {
-                            let msg = format!(
-                                "{}: is for {} but scope seems to be {}",
-                                prefix, inscope, part_scopes
-                            );
-                            warn(part, ErrorKey::Scopes, &msg);
-                        } else if first && inscope != Scopes::None {
-                            scopes &= inscope;
-                        }
+                        sc.expect(inscopes, prefix.clone());
                         validate_prefix_reference(&prefix, &arg, data);
-                        part_scopes = outscope;
+                        sc.replace(outscope, part.clone());
                     } else {
                         let msg = format!("unknown prefix `{}:`", prefix);
                         error(part, ErrorKey::Validation, &msg);
-                        return scopes;
+                        sc.close();
+                        return;
                     }
-                } else if part.is("root") || part.is("prev") || part.is("this") {
+                } else if part.is("root")
+                    || part.is("prev")
+                    || part.is("this")
+                    || part.is("ROOT")
+                    || part.is("PREV")
+                    || part.is("THIS")
+                {
                     if !first {
                         let msg = format!("`{}` makes no sense except as first part", part);
                         warn(part, ErrorKey::Validation, &msg);
@@ -339,10 +323,15 @@ impl ScriptValue {
                         let msg = format!("`{}` makes no sense as script value", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
-                    // TODO: accurate scope analysis for root, prev, this
-                    part_scopes = Scopes::all();
-                } else if let Some((inscope, outscope)) = scope_to_scope(part.as_str()) {
-                    if inscope == Scopes::None && !first {
+                    if part.is("root") || part.is("ROOT") {
+                        sc.replace_root();
+                    } else if part.is("prev") || part.is("PREV") {
+                        sc.replace_prev();
+                    } else {
+                        sc.replace_this();
+                    }
+                } else if let Some((inscopes, outscope)) = scope_to_scope(part.as_str()) {
+                    if inscopes == Scopes::None && !first {
                         let msg = format!("`{}` makes no sense except as first part", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
@@ -350,46 +339,32 @@ impl ScriptValue {
                         let msg = format!("expected a numeric formula instead of `{}` ", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
-                    if !inscope.intersects(part_scopes | Scopes::None) {
-                        let msg = format!(
-                            "{} is for {} but scope seems to be {}",
-                            part, inscope, part_scopes
-                        );
-                        warn(part, ErrorKey::Scopes, &msg);
-                    } else if first && inscope != Scopes::None {
-                        scopes &= inscope;
-                    }
-                    part_scopes = outscope;
+                    sc.expect(inscopes, part.clone());
+                    sc.replace(outscope, part.clone());
                 } else if last {
-                    if let Some(inscope) = scope_value(part, data) {
-                        if inscope == Scopes::None && !first {
+                    if let Some(inscopes) = scope_value(part, data) {
+                        if inscopes == Scopes::None && !first {
                             let msg = format!("`{}` makes no sense except as first part", part);
                             warn(part, ErrorKey::Validation, &msg);
-                        } else if !inscope.intersects(part_scopes | Scopes::None) {
-                            let msg = format!(
-                                "{} is for {} but scope seems to be {}",
-                                part, inscope, part_scopes
-                            );
-                            warn(part, ErrorKey::Scopes, &msg);
-                        } else if first && inscope != Scopes::None {
-                            scopes &= inscope;
                         }
+                        sc.expect(inscopes, part.clone());
+                        sc.replace(Scopes::Value, part.clone());
                     } else {
                         data.verify_exists(Item::ScriptValue, part);
                     }
                 } else {
                     let msg = format!("unknown token `{}`", part);
                     error(part, ErrorKey::Validation, &msg);
-                    return scopes;
+                    sc.close();
+                    return;
                 }
             }
         }
-        scopes
     }
 
-    pub fn validate_bv(bv: &BlockOrValue, data: &Everything, mut scopes: Scopes) -> Scopes {
+    pub fn validate_bv(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
         match bv {
-            BlockOrValue::Token(t) => Self::validate_value(t, data, scopes),
+            BlockOrValue::Token(t) => Self::validate_value(t, data, sc),
             BlockOrValue::Block(b) => {
                 let mut vd = Validator::new(b, data);
                 if let Some((None, _, _)) = b.iter_items().next() {
@@ -397,28 +372,26 @@ impl ScriptValue {
                     let vec = vd.values();
                     if vec.len() == 2 {
                         for v in vec {
-                            scopes = Self::validate_value(v, data, scopes);
+                            Self::validate_value(v, data, sc);
                         }
                     } else {
                         warn(b, ErrorKey::Validation, "invalid script value range");
                     }
                     vd.warn_remaining();
-                    scopes
                 } else {
-                    Self::validate_inner(vd, data, scopes)
+                    Self::validate_inner(vd, data, sc);
                 }
             }
         }
     }
 
-    pub fn validate(&self, data: &Everything) {
+    pub fn validate(&self, _data: &Everything) {
         // For some reason, script values can be set to bools as well
         if let Some(token) = self.bv.get_value() {
             if token.is("yes") || token.is("no") {
                 return;
             }
         }
-        // TODO: record calculated scope
-        Self::validate_bv(&self.bv, data, self.scopes);
+        // TODO: validate these when we have rootless scope contexts
     }
 }
