@@ -67,7 +67,10 @@ impl ScopeContext {
     }
 
     pub fn replace_prev(&mut self) {
-        self.entry = ScopeEntry::Backref(2);
+        match self.entry {
+            ScopeEntry::Scope(_, _) => self.entry = ScopeEntry::Backref(2),
+            ScopeEntry::Backref(r) => self.entry = ScopeEntry::Backref(r + 1),
+        }
     }
 
     pub fn replace_this(&mut self) {
