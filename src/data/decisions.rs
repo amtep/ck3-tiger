@@ -81,7 +81,7 @@ impl Decision {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
-        vd.req_field("picture");
+        vd.req_field_warn("picture");
         if let Some(token) = vd.field_value("picture") {
             data.fileset.verify_exists(token);
         }

@@ -49,6 +49,20 @@ impl<'a> Validator<'a> {
         }
     }
 
+    pub fn req_field_warn(&mut self, name: &str) -> bool {
+        if let Some(key) = self.block.get_key(name) {
+            self.known_fields.push(key.as_str());
+            true
+        } else {
+            warn(
+                self.block,
+                ErrorKey::Validation,
+                &format!("required field `{}` missing", name),
+            );
+            false
+        }
+    }
+
     pub fn field_check<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BlockOrValue),

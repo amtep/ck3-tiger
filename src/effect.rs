@@ -530,7 +530,7 @@ fn validate_effect_control(
             validate_effect("custom_tooltip", ListType::None, block, data, sc, vd, false);
         }
         ControlEffect::If => {
-            vd.req_field("limit");
+            vd.req_field_warn("limit");
             validate_effect("if", ListType::None, block, data, sc, vd, tooltipped);
         }
         ControlEffect::Else => {
