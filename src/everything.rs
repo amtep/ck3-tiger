@@ -247,8 +247,10 @@ impl Everything {
         self.fileset.validate(self);
         self.localization.validate(self);
         self.scripted_lists.validate(self);
-        // scriptvalues go early because they update their scope context info
+        // scripted items go early because they update their scope context info
         self.scriptvalues.validate(self);
+        self.triggers.validate(self);
+        self.effects.validate(self);
         self.terrains.validate(self);
         self.events.validate(self);
         self.decisions.validate(self);
@@ -263,8 +265,6 @@ impl Everything {
         self.characters.validate(self);
         self.namelists.validate(self);
         self.relations.validate(self);
-        self.triggers.validate(self);
-        self.effects.validate(self);
         self.traits.validate(self);
         self.lifestyles.validate(self);
     }
