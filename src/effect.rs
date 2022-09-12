@@ -1,15 +1,16 @@
 use std::fmt::{Display, Formatter};
 
 use crate::block::validator::Validator;
-use crate::block::Block;
+use crate::block::{Block, BlockOrValue};
 use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
+use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
-use crate::tables::effects::{scope_effect, Effect};
+use crate::tables::effects::{scope_effect, ControlEffect, Effect};
 use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{validate_inside_iterator, validate_prefix_reference};
 
@@ -67,7 +68,11 @@ pub fn validate_effect<'a>(
     }
 
     if let Some(b) = vd.field_block("limit") {
-        if caller == "if" || caller == "else_if" || caller == "else" || list_type != ListType::None
+        if caller == "if"
+            || caller == "else_if"
+            || caller == "else"
+            || caller == "while"
+            || list_type != ListType::None
         {
             validate_normal_trigger(b, data, sc, tooltipped);
         } else {
@@ -169,15 +174,103 @@ pub fn validate_effect<'a>(
         }
     }
 
-    validate_inside_iterator(
-        caller,
-        &list_type.to_string(),
-        block,
-        data,
-        sc,
-        &mut vd,
-        tooltipped,
-    );
+    if list_type != ListType::None {
+        validate_inside_iterator(
+            caller,
+            &list_type.to_string(),
+            block,
+            data,
+            sc,
+            &mut vd,
+            tooltipped,
+        );
+    }
+
+    if let Some(token) = vd.field_value("text") {
+        if caller == "custom_description" {
+            // TODO: verify effect localization
+        } else if caller == "custom_tooltip" {
+            data.verify_exists(Item::Localization, token);
+        } else {
+            warn(
+                block.get_key("text").unwrap(),
+                ErrorKey::Validation,
+                "`text` can only be used in `custom_description` or `custom_tooltip`",
+            );
+        }
+    }
+
+    if let Some(token) = vd.field_value("subject") {
+        if caller == "custom_description" || caller == "custom_tooltip" {
+            validate_target(token, data, sc, Scopes::non_primitive())
+        } else {
+            warn(
+                block.get_key("subject").unwrap(),
+                ErrorKey::Validation,
+                "`subject` can only be used in `custom_description` or `custom_tooltip`",
+            );
+        }
+    }
+
+    if let Some(token) = vd.field_value("object") {
+        if caller == "custom_description" {
+            validate_target(token, data, sc, Scopes::non_primitive())
+        } else {
+            warn(
+                block.get_key("object").unwrap(),
+                ErrorKey::Validation,
+                "`object` can only be used in `custom_description`",
+            );
+        }
+    }
+
+    if let Some(bv) = vd.field("value") {
+        if caller == "custom_description" {
+            ScriptValue::validate_bv(bv, data, sc);
+        } else {
+            warn(
+                block.get_key("value").unwrap(),
+                ErrorKey::Validation,
+                "`value` can only be used in `custom_description`",
+            );
+        }
+    }
+
+    if let Some(bv) = vd.field("count") {
+        if caller == "while" {
+            ScriptValue::validate_bv(bv, data, sc);
+        } else {
+            warn(
+                block.get_key("count").unwrap(),
+                ErrorKey::Validation,
+                "`count` can only be used in `while`",
+            );
+        }
+    }
+
+    if let Some(bv) = vd.field("chance") {
+        if caller == "random" {
+            ScriptValue::validate_bv(bv, data, sc);
+        } else {
+            warn(
+                block.get_key("chance").unwrap(),
+                ErrorKey::Validation,
+                "`chance` can only be used in `random`",
+            );
+        }
+    }
+
+    vd.field_validated_blocks("modifier", |_b, data| {
+        if caller == "random" {
+            // TODO
+        } else {
+            warn(
+                block.get_key("modifier").unwrap(),
+                ErrorKey::Validation,
+                "`modifier` can only be used in `random`",
+            );
+        }
+    });
 
     'outer: for (key, bv) in vd.unknown_keys() {
         if let Some((inscopes, effect)) = scope_effect(key, data) {
@@ -224,8 +317,77 @@ pub fn validate_effect<'a>(
                         data.verify_exists(itype, token);
                     }
                 }
+                Effect::Target(key, outscopes) => {
+                    if let Some(block) = bv.expect_block() {
+                        let mut vd = Validator::new(block, data);
+                        vd.req_field(key);
+                        if let Some(token) = vd.field_value(key) {
+                            validate_target(token, data, sc, outscopes);
+                        }
+                        vd.warn_remaining()
+                    }
+                }
+                Effect::TargetValue(key, outscopes, valuekey) => {
+                    if let Some(block) = bv.expect_block() {
+                        let mut vd = Validator::new(block, data);
+                        vd.req_field(key);
+                        vd.req_field(valuekey);
+                        if let Some(token) = vd.field_value(key) {
+                            validate_target(token, data, sc, outscopes);
+                        }
+                        if let Some(bv) = vd.field(valuekey) {
+                            ScriptValue::validate_bv(bv, data, sc);
+                        }
+                        vd.warn_remaining()
+                    }
+                }
+                Effect::ItemTarget(ikey, itype, tkey, outscopes) => {
+                    if let Some(block) = bv.expect_block() {
+                        let mut vd = Validator::new(block, data);
+                        if let Some(token) = vd.field_value(ikey) {
+                            data.verify_exists(itype, token);
+                        }
+                        if let Some(token) = vd.field_value(tkey) {
+                            validate_target(token, data, sc, outscopes);
+                        }
+                        vd.warn_remaining()
+                    }
+                }
+                Effect::ItemValue(key, itype) => {
+                    if let Some(block) = bv.expect_block() {
+                        let mut vd = Validator::new(block, data);
+                        vd.req_field(key);
+                        vd.req_field("value");
+                        if let Some(token) = vd.field_value(key) {
+                            data.verify_exists(itype, token);
+                        }
+                        if let Some(bv) = vd.field("value") {
+                            ScriptValue::validate_bv(bv, data, sc);
+                        }
+                        vd.warn_remaining()
+                    }
+                }
+                Effect::Desc => (),             // TODO
+                Effect::Gender => (),           // TODO
+                Effect::Sexuality => (),        // TODO
+                Effect::HoldingType => (),      // TODO
+                Effect::Special(special) => (), // TODO
+                Effect::Control(ControlEffect::CustomTooltip) => match bv {
+                    BlockOrValue::Token(t) => data.verify_exists(Item::Localization, t),
+                    BlockOrValue::Block(b) => validate_effect_control(
+                        ControlEffect::CustomTooltip,
+                        b,
+                        data,
+                        sc,
+                        tooltipped,
+                    ),
+                },
+                Effect::Control(control) => {
+                    if let Some(block) = bv.expect_block() {
+                        validate_effect_control(control, block, data, sc, tooltipped);
+                    }
+                }
                 Effect::Unchecked => (),
-                _ => (),
             }
             continue;
         }
@@ -340,4 +502,107 @@ pub fn validate_effect<'a>(
     }
 
     vd.warn_remaining();
+}
+
+fn validate_effect_control(
+    control: ControlEffect,
+    block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    tooltipped: bool,
+) {
+    let mut vd = Validator::new(block, data);
+    match control {
+        ControlEffect::CustomDescription => {
+            vd.req_field("text");
+            validate_effect(
+                "custom_description",
+                ListType::None,
+                block,
+                data,
+                sc,
+                vd,
+                false,
+            );
+        }
+        ControlEffect::CustomTooltip => {
+            vd.req_field("text");
+            validate_effect("custom_tooltip", ListType::None, block, data, sc, vd, false);
+        }
+        ControlEffect::If => {
+            vd.req_field("limit");
+            validate_effect("if", ListType::None, block, data, sc, vd, tooltipped);
+        }
+        ControlEffect::Else => {
+            validate_effect("else", ListType::None, block, data, sc, vd, tooltipped);
+        }
+        ControlEffect::InterfaceMessage => {
+            vd.field_value("type");
+            if let Some(bv) = vd.field("title") {
+                validate_desc(bv, data, sc);
+            }
+            if let Some(bv) = vd.field("desc") {
+                validate_desc(bv, data, sc);
+            }
+            if let Some(bv) = vd.field("tooltip") {
+                validate_desc(bv, data, sc);
+            }
+            // TODO: Scopes::Faith isn't documented. Verify that it actually works.
+            if let Some(token) = vd.field_value("left_icon") {
+                validate_target(
+                    token,
+                    data,
+                    sc,
+                    Scopes::Character | Scopes::LandedTitle | Scopes::Artifact | Scopes::Faith,
+                );
+            }
+            if let Some(token) = vd.field_value("right_icon") {
+                validate_target(
+                    token,
+                    data,
+                    sc,
+                    Scopes::Character | Scopes::LandedTitle | Scopes::Artifact | Scopes::Faith,
+                );
+            }
+            if let Some(token) = vd.field_value("goto") {
+                validate_target(
+                    token,
+                    data,
+                    sc,
+                    Scopes::Character | Scopes::LandedTitle | Scopes::Province,
+                );
+            }
+            validate_effect(
+                "send_interface_message",
+                ListType::None,
+                block,
+                data,
+                sc,
+                vd,
+                true,
+            );
+        }
+        ControlEffect::HiddenEffect => {
+            validate_effect("hidden_effect", ListType::None, block, data, sc, vd, false);
+        }
+        ControlEffect::Random => {
+            // TODO: need to parse modifiers first
+            // validate_effect("random", ListType::None, block, data, sc, vd, false);
+        }
+        ControlEffect::RandomList => (), // TODO
+        ControlEffect::ShowAsTooltip => {
+            validate_effect("show_as_tooltip", ListType::None, block, data, sc, vd, true);
+        }
+        ControlEffect::Switch => (), // TODO
+        ControlEffect::While => {
+            if !(block.get_key("limit").is_some() || block.get_key("count").is_some()) {
+                warn(
+                    block,
+                    ErrorKey::Validation,
+                    "`while` needs one of `limit` or `count`",
+                );
+            }
+            validate_effect("while", ListType::None, block, data, sc, vd, tooltipped);
+        }
+    }
 }

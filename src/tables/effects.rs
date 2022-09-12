@@ -3,11 +3,28 @@ use crate::item::Item;
 use crate::scopes::*;
 use crate::token::Token;
 
+use ControlEffect::*;
 use Effect::*;
 use SpecialEffect::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ControlEffect {
+    CustomDescription,
+    CustomTooltip,
+    Else,
+    If,
+    InterfaceMessage,
+    HiddenEffect,
+    Random,
+    RandomList,
+    ShowAsTooltip,
+    Switch,
+    While,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum SpecialEffect {
+    ActivateCatalyst,
     ArtifactHistory,
     ArtifactTitleHistory,
     AddCharacterFlag,
@@ -42,17 +59,13 @@ pub enum SpecialEffect {
     CreateInspiration,
     CreateStory,
     CreateTitleChange,
-    CustomDescription,
-    CustomTooltip,
     Death,
     DivideWarChest,
     Duel,
-    If,
     EndWar,
     FactionStartWar,
     AddToScheme,
     ForceVote,
-    HiddenEffect,
     Imprison,
     JoinFactionForced,
     MakePregnant,
@@ -60,8 +73,6 @@ pub enum SpecialEffect {
     OpenInteraction,
     OpenView,
     PayIncome,
-    Random,
-    RandomList,
     ReforgeArtifact,
     RemoveGuest,
     RemoveOpinion,
@@ -70,7 +81,6 @@ pub enum SpecialEffect {
     RunInteraction,
     SaveOpinion,
     SaveValue,
-    InterfaceMessage,
     SetCoa,
     SetCultureName,
     SetVariable,
@@ -80,19 +90,16 @@ pub enum SpecialEffect {
     ArtifactOwner,
     SetTraitRank,
     SetupCb,
-    ShowAsTooltip,
     SpawnActivity,
     SpawnArmy,
     StartGhw,
     StartStruggle,
     StartWar,
     Stress,
-    Switch,
     TriggerEvent,
     CreateImportantAction,
     CreateSuggestion,
     VassalContract,
-    While,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -114,6 +121,7 @@ pub enum Effect {
     Sexuality,
     HoldingType,
     Special(SpecialEffect),
+    Control(ControlEffect),
     Unchecked, // so special that we just accept whatever argument
 }
 
@@ -163,7 +171,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (
         Struggle,
         "activate_struggle_catalyst",
-        ItemTarget("catalyst", Item::Catalyst, "character", Scopes::Character),
+        Special(ActivateCatalyst),
     ),
     (
         Character,
@@ -490,14 +498,14 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
         "create_title_and_vassal_change",
         Special(CreateTitleChange),
     ),
-    (None, "custom_description", Special(CustomDescription)),
+    (None, "custom_description", Control(CustomDescription)),
     (
         None,
         "custom_description_no_bullet",
-        Special(CustomDescription),
+        Control(CustomDescription),
     ),
-    (None, "custom_label", Special(CustomTooltip)),
-    (None, "custom_tooltip", Special(CustomTooltip)),
+    (None, "custom_label", Control(CustomTooltip)),
+    (None, "custom_tooltip", Control(CustomTooltip)),
     (Faith, "deactivate_holy_site", Item(Item::HolySite)),
     (Character, "death", Special(Death)),
     (None, "debug_log", Unchecked),
@@ -528,8 +536,8 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
         Scope(Scopes::TitleAndVassalChange),
     ),
     (None, "duel", Special(Duel)),
-    (None, "else", Special(If)),
-    (None, "else_if", Special(If)),
+    (None, "else", Control(Else)),
+    (None, "else_if", Control(If)),
     (
         Character,
         "end_inspiration_sponsorship",
@@ -569,9 +577,9 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     ),
     (Character, "get_title", Scope(Scopes::LandedTitle)),
     (Character, "give_nickname", Item(Item::Nickname)),
-    (None, "hidden_effect", Special(HiddenEffect)),
-    (None, "hidden_effect_new_artifact", Special(HiddenEffect)),
-    (None, "if", Special(If)),
+    (None, "hidden_effect", Control(HiddenEffect)),
+    (None, "hidden_effect_new_artifact", Control(HiddenEffect)),
+    (None, "if", Control(If)),
     (Character, "imprison", Special(Imprison)),
     (Inspiration, "invest_gold", NonNegativeValue),
     (
@@ -662,8 +670,8 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (Character, "play_sound_effect", Unchecked),
     (GreatHolyWar, "pledge_attacker", Scope(Scopes::Character)),
     (GreatHolyWar, "pledge_defender", Scope(Scopes::Character)),
-    (None, "random", Special(Random)),
-    (None, "random_list", Special(RandomList)),
+    (None, "random", Control(Random)),
+    (None, "random_list", Control(RandomList)),
     (None, "random_log_scopes", Effect::Bool),
     (Character, "recruit_courtier", Scope(Scopes::Character)),
     (Province, "refill_garrison", Yes),
@@ -831,9 +839,9 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (
         Character,
         "send_interface_message",
-        Special(InterfaceMessage),
+        Control(InterfaceMessage),
     ),
-    (Character, "send_interface_toast", Special(InterfaceMessage)),
+    (Character, "send_interface_toast", Control(InterfaceMessage)),
     (Character, "set_absolute_country_control", Effect::Bool),
     (Character, "set_age", ScriptValue),
     (LandedTitle, "set_always_follows_primary_heir", Yes),
@@ -1021,7 +1029,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (None, "setup_claim_cb", Special(SetupCb)),
     (None, "setup_de_jure_cb", Special(SetupCb)),
     (None, "setup_invasion_cb", Special(SetupCb)),
-    (None, "show_as_tooltip", Special(ShowAsTooltip)),
+    (None, "show_as_tooltip", Control(ShowAsTooltip)),
     (Province, "spawn_activity", Special(SpawnActivity)),
     (Character, "spawn_army", Special(SpawnArmy)),
     (Secret, "spend_by", Scope(Scopes::Character)),
@@ -1039,7 +1047,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (Character, "start_war", Special(StartWar)),
     (Character, "store_localized_text_in_death", Unchecked),
     (Character, "stress_impact", Special(Stress)),
-    (None, "switch", Special(Switch)),
+    (None, "switch", Control(Switch)),
     (
         LandedTitle,
         "title_create_faction",
@@ -1086,7 +1094,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
         Special(VassalContract),
     ),
     (Character, "visit_court_of", Scope(Scopes::Character)),
-    (None, "while", Special(While)),
+    (None, "while", Control(While)),
     (CombatSide, "win_combat", Effect::Bool),
     // TODO special: add_<lifestyle>_perk_points
     // TODO special: add_<lifestyle>_xp

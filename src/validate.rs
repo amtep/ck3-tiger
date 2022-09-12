@@ -305,4 +305,18 @@ pub fn validate_inside_iterator(
             );
         }
     }
+
+    if vd.field_choice("involvement", &["involved", "interloper"]) {
+        if name != "character_struggle" {
+            let msg = format!(
+                "`involvement` is only for `{}_character_struggle`",
+                listtype
+            );
+            error(
+                block.get_key("involvement").unwrap(),
+                ErrorKey::Validation,
+                &msg,
+            );
+        }
+    }
 }
