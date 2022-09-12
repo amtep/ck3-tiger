@@ -154,7 +154,7 @@ impl ScriptValue {
                             let msg = format!("cannot use `{}` in a script value", key);
                             error(key, ErrorKey::Validation, &msg);
                         }
-                        sc.expect(inscopes, key.clone());
+                        sc.expect(inscopes, key);
                         sc.open_scope(outscope, key.clone());
                         Self::validate_iterator(
                             &it_type,
@@ -178,7 +178,7 @@ impl ScriptValue {
                             let msg = format!("`{}:` makes no sense except as first part", prefix);
                             warn(&part, ErrorKey::Validation, &msg);
                         }
-                        sc.expect(inscopes, prefix.clone());
+                        sc.expect(inscopes, &prefix);
                         validate_prefix_reference(&prefix, &arg, data);
                         sc.replace(outscope, part);
                     } else {
@@ -210,7 +210,7 @@ impl ScriptValue {
                         let msg = format!("`{}` makes no sense except as first part", part);
                         warn(&part, ErrorKey::Validation, &msg);
                     }
-                    sc.expect(inscopes, part.clone());
+                    sc.expect(inscopes, &part);
                     sc.replace(outscope, part);
                 // TODO: warn if trying to use iterator here
                 } else {
@@ -312,7 +312,7 @@ impl ScriptValue {
                                 format!("expected a numeric formula instead of `{}:` ", prefix);
                             warn(part, ErrorKey::Validation, &msg);
                         }
-                        sc.expect(inscopes, prefix.clone());
+                        sc.expect(inscopes, &prefix);
                         validate_prefix_reference(&prefix, &arg, data);
                         sc.replace(outscope, part.clone());
                     } else {
@@ -351,7 +351,7 @@ impl ScriptValue {
                         let msg = format!("expected a numeric formula instead of `{}` ", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
-                    sc.expect(inscopes, part.clone());
+                    sc.expect(inscopes, part);
                     sc.replace(outscope, part.clone());
                 } else if last {
                     if let Some(inscopes) = scope_value(part, data) {
@@ -359,7 +359,7 @@ impl ScriptValue {
                             let msg = format!("`{}` makes no sense except as first part", part);
                             warn(part, ErrorKey::Validation, &msg);
                         }
-                        sc.expect(inscopes, part.clone());
+                        sc.expect(inscopes, part);
                         sc.replace(Scopes::Value, part.clone());
                     } else {
                         data.verify_exists(Item::ScriptValue, part);

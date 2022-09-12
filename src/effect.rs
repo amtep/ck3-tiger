@@ -181,7 +181,7 @@ pub fn validate_effect<'a>(
 
     'outer: for (key, bv) in vd.unknown_keys() {
         if let Some((inscopes, effect)) = scope_effect(key, data) {
-            sc.expect(inscopes, key.clone());
+            sc.expect(inscopes, key);
             match effect {
                 Effect::Yes => {
                     if let Some(token) = bv.expect_value() {
@@ -242,7 +242,7 @@ pub fn validate_effect<'a>(
                         error(key, ErrorKey::Validation, msg);
                         continue;
                     }
-                    sc.expect(inscopes, key.clone());
+                    sc.expect(inscopes, key);
                     let ltype = match it_type.as_str() {
                         "every" => ListType::Every,
                         "ordered" => ListType::Ordered,
@@ -286,7 +286,7 @@ pub fn validate_effect<'a>(
                         let msg = format!("`{}:` makes no sense except as first part", prefix);
                         warn(part, ErrorKey::Validation, &msg);
                     }
-                    sc.expect(inscopes, prefix.clone());
+                    sc.expect(inscopes, &prefix);
                     validate_prefix_reference(&prefix, &arg, data);
                     sc.replace(outscope, part.clone());
                 } else {
@@ -318,7 +318,7 @@ pub fn validate_effect<'a>(
                     let msg = format!("`{}` makes no sense except as first part", part);
                     warn(part, ErrorKey::Validation, &msg);
                 }
-                sc.expect(inscopes, part.clone());
+                sc.expect(inscopes, part);
                 sc.replace(outscope, part.clone());
             // TODO: warn if trying to use iterator or effect here
             } else {

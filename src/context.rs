@@ -154,29 +154,29 @@ impl ScopeContext {
         }
     }
 
-    fn _expect_check(e: &mut ScopeEntry, scopes: Scopes, token: Token) {
+    fn _expect_check(e: &mut ScopeEntry, scopes: Scopes, token: &Token) {
         match e {
             ScopeEntry::Scope(ref mut s, ref mut t) => {
                 if s.intersects(scopes) {
                     // if s is narrowed by the scopes info, remember its token
                     if (*s & scopes) != *s {
                         *s &= scopes;
-                        *t = token;
+                        *t = token.clone();
                     }
                 } else {
                     let msg = format!("`{}` is for {} but scope seems to be {}", token, scopes, s);
                     let msg2 = format!("scope was deduced from `{}` here", t);
-                    warn2(&token, ErrorKey::Scopes, &msg, t.clone(), &msg2);
+                    warn2(token, ErrorKey::Scopes, &msg, &*t, &msg2);
                     // Suppress future warnings about the same problem
                     *s |= scopes;
-                    *t = token;
+                    *t = token.clone();
                 }
             }
             _ => unreachable!(),
         }
     }
 
-    fn _expect(&mut self, scopes: Scopes, token: Token, mut back: usize) {
+    fn _expect(&mut self, scopes: Scopes, token: &Token, mut back: usize) {
         // go N steps back and check/modify that scope. If the scope is itself
         // a back reference, go that much further back.
 
@@ -205,7 +205,7 @@ impl ScopeContext {
         }
     }
 
-    pub fn expect(&mut self, scopes: Scopes, token: Token) {
+    pub fn expect(&mut self, scopes: Scopes, token: &Token) {
         // The None scope is special, it means the scope isn't used or inspected
         if scopes == Scopes::None {
             return;
@@ -221,14 +221,14 @@ impl ScopeContext {
         // Compare restrictions on `root`
         match other.root {
             ScopeEntry::Scope(scopes, ref token) => {
-                Self::_expect_check(&mut self.root, scopes, token.clone())
+                Self::_expect_check(&mut self.root, scopes, token)
             }
             _ => unreachable!(),
         }
 
         // Compare restrictions on `this`
         let (scopes, token) = other.scopes_token();
-        self.expect(scopes, token.clone());
+        self.expect(scopes, token);
 
         // TODO: walk back up the chain and compare all prev scopes too
         // Describing the results in error messages will be hard though.

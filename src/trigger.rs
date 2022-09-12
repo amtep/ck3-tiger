@@ -297,7 +297,7 @@ pub fn validate_trigger(
                             error(key, ErrorKey::Validation, &msg);
                             continue;
                         }
-                        sc.expect(inscopes, key.clone());
+                        sc.expect(inscopes, key);
                         if let Some(b) = bv.get_block() {
                             sc.open_scope(outscope, key.clone());
                             validate_trigger_iterator(&it_name, b, data, sc, tooltipped);
@@ -332,7 +332,7 @@ pub fn validate_trigger(
             }
 
             if let Some((inscopes, item)) = scope_trigger_item(key.as_str()) {
-                sc.expect(inscopes, key.clone());
+                sc.expect(inscopes, key);
                 if let Some(token) = bv.expect_value() {
                     data.verify_exists(item, token);
                 }
@@ -369,7 +369,7 @@ pub fn validate_trigger(
                             let msg = format!("`{}:` makes no sense except as first part", prefix);
                             warn(part, ErrorKey::Validation, &msg);
                         }
-                        sc.expect(inscopes, prefix.clone());
+                        sc.expect(inscopes, &prefix);
                         validate_prefix_reference(&prefix, &arg, data);
                         sc.replace(outscope, part.clone());
                     } else {
@@ -401,7 +401,7 @@ pub fn validate_trigger(
                         let msg = format!("`{}` makes no sense except as first part", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
-                    sc.expect(inscopes, part.clone());
+                    sc.expect(inscopes, part);
                     sc.replace(outscope, part.clone());
                 } else if let Some(inscopes) = scope_value(part, data) {
                     if !last {
@@ -414,7 +414,7 @@ pub fn validate_trigger(
                         let msg = format!("`{}` makes no sense except as only part", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
-                    sc.expect(inscopes, part.clone());
+                    sc.expect(inscopes, part);
                     sc.replace(Scopes::Value, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_trigger_target(part, data) {
                     if !last {
@@ -423,7 +423,7 @@ pub fn validate_trigger(
                         sc.close();
                         continue 'outer;
                     }
-                    sc.expect(inscopes, part.clone());
+                    sc.expect(inscopes, part);
                     sc.replace(outscope, part.clone());
                 } else if let Some(inscopes) = scope_trigger_bool(part.as_str()) {
                     if !last {
@@ -436,7 +436,7 @@ pub fn validate_trigger(
                         let msg = format!("`{}` makes no sense except as only part", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
-                    sc.expect(inscopes, part.clone());
+                    sc.expect(inscopes, part);
                     sc.replace(Scopes::Bool, part.clone());
                 } else if data.scriptvalues.exists(part.as_str()) {
                     if !last {
@@ -554,7 +554,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
                     let msg = format!("`{}:` makes no sense except as first part", prefix);
                     warn(part, ErrorKey::Validation, &msg);
                 }
-                sc.expect(inscopes, prefix.clone());
+                sc.expect(inscopes, &prefix);
                 validate_prefix_reference(&prefix, &arg, data);
                 sc.replace(outscope, part.clone());
             } else {
@@ -586,7 +586,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
                 let msg = format!("`{}` makes no sense except as first part", part);
                 warn(part, ErrorKey::Validation, &msg);
             }
-            sc.expect(inscopes, part.clone());
+            sc.expect(inscopes, part);
             sc.replace(outscope, part.clone());
         } else if let Some(inscopes) = scope_value(part, data) {
             if !last {
@@ -599,7 +599,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
                 let msg = format!("`{}` makes no sense except as first part", part);
                 warn(part, ErrorKey::Validation, &msg);
             }
-            sc.expect(inscopes, part.clone());
+            sc.expect(inscopes, part);
             sc.replace(Scopes::Value, part.clone());
         } else if data.scriptvalues.exists(part.as_str()) {
             // TODO: validate inscope of the script value against sc
@@ -652,14 +652,14 @@ fn validate_trigger_keys(
         }
 
         "ai_diplomacy_stance" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_ai_diplomacy_stance(block, data, sc);
             }
         }
 
         "ai_values_divergence" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Character);
             }
@@ -672,59 +672,59 @@ fn validate_trigger_keys(
         }
 
         "amenity_level" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_amenity_level(block, data, sc);
             }
         }
 
         "aptitude" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_aptitude(block, data, sc);
             }
         }
 
         "all_court_artifact_slots" | "all_inventory_artifact_slots" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "can_add_hook" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_can_add_hook(block, data, sc);
             }
         }
 
         "can_be_employed_as" | "can_employ_court_position_type" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "can_create_faction" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_type_target(block, data, Item::Faction, sc, Scopes::Character);
             }
         }
 
         "can_declare_war" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_can_declare_war(block, data, sc);
             }
         }
 
         "can_join_or_create_faction_against" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_can_join_or_create_faction_against(block, data, sc);
             }
         }
 
         "can_start_scheme" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_type_target(block, data, Item::Scheme, sc, Scopes::Character);
             }
@@ -735,28 +735,28 @@ fn validate_trigger_keys(
         }
 
         "can_title_create_faction" => {
-            sc.expect(Scopes::LandedTitle, key.clone());
+            sc.expect(Scopes::LandedTitle, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_type_target(block, data, Item::Faction, sc, Scopes::Character);
             }
         }
 
         "county_opinion_target" => {
-            sc.expect(Scopes::LandedTitle, key.clone());
+            sc.expect(Scopes::LandedTitle, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Character);
             }
         }
 
         "create_faction_type_chance" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_create_faction_type_chance(block, data, sc);
             }
         }
 
         "cultural_acceptance" => {
-            sc.expect(Scopes::Culture, key.clone());
+            sc.expect(Scopes::Culture, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Culture);
             }
@@ -771,34 +771,34 @@ fn validate_trigger_keys(
         }
 
         "de_jure_drift_progress" => {
-            sc.expect(Scopes::LandedTitle, key.clone());
+            sc.expect(Scopes::LandedTitle, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::LandedTitle);
             }
         }
 
         "death_reason" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "diplomacy_diff" | "intrigue_diff" | "learning_diff" | "martial_diff" | "prowess_diff"
         | "stewardship_diff" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_skill_diff(block, data, sc);
             }
         }
 
         "dread_modified_ai_boldness" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_dread_modified_ai_boldness(block, data, sc);
             }
         }
 
         "employs_court_position" | "is_court_position_employer" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
@@ -827,14 +827,14 @@ fn validate_trigger_keys(
         }
 
         "faith_hostility_level" => {
-            sc.expect(Scopes::Faith, key.clone());
+            sc.expect(Scopes::Faith, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Faith);
             }
         }
 
         "faith_hostility_level_comparison" => {
-            sc.expect(Scopes::Faith, key.clone());
+            sc.expect(Scopes::Faith, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_faith_hostility_level_comparison(block, data, sc);
             }
@@ -850,19 +850,19 @@ fn validate_trigger_keys(
         }
 
         "government_allows" | "government_disallows" | "government_has_flag" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "has_all_innovations" => {
-            sc.expect(Scopes::Culture, key.clone());
+            sc.expect(Scopes::Culture, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_has_all_innovations(block, data, sc);
             }
         }
 
         "has_building_with_flag" => {
-            sc.expect(Scopes::Province, key.clone());
+            sc.expect(Scopes::Province, key);
             match bv {
                 BlockOrValue::Block(block) => {
                     validate_trigger_has_building_with_flag(block, data, sc);
@@ -874,7 +874,7 @@ fn validate_trigger_keys(
         }
 
         "has_cb_on" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_has_cb_on(block, data, sc);
             }
@@ -888,7 +888,7 @@ fn validate_trigger_keys(
         | "has_court_type"
         | "has_trait_with_flag"
         | "highest_skill" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
@@ -917,85 +917,85 @@ fn validate_trigger_keys(
         }
 
         "has_dread_level_towards" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_has_dread_level_towards(block, data, sc);
             }
         }
 
         "has_election_vote_of" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_has_election_vote_of(block, data, sc);
             }
         }
 
         "has_focus" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "has_gene" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_has_gene(block, data, sc);
             }
         }
 
         "has_government" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "has_hook_of_type" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_has_hook_of_type(block, data, sc);
             }
         }
 
         "has_memory_category" | "has_memory_type" => {
-            sc.expect(Scopes::CharacterMemory, key.clone());
+            sc.expect(Scopes::CharacterMemory, key);
             bv.expect_value();
         }
 
         "has_nickname" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "has_opinion_modifier" | "reverse_has_opinion_modifier" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_has_opinion_modifier(block, data, sc);
             }
         }
 
         "has_order_of_succession" => {
-            sc.expect(Scopes::LandedTitle, key.clone());
+            sc.expect(Scopes::LandedTitle, key);
             // The only known value for this is "election"
             bv.expect_value();
         }
 
         "has_perk" | "has_realm_law" | "has_realm_law_flag" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "has_relation_flag" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_has_relation_flag(block, data, sc);
             }
         }
 
         "has_sexuality" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "has_trait_rank" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_has_trait_rank(block, data, sc);
             }
@@ -1004,38 +1004,38 @@ fn validate_trigger_keys(
         "important_action_is_valid_but_invisible"
         | "important_action_is_visible"
         | "in_activity_type" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "is_character_interaction_potentially_accepted"
         | "is_character_interaction_shown"
         | "is_character_interaction_valid" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_is_character_interaction(block, data, sc);
             }
         }
 
         "is_connected_to" => {
-            sc.expect(Scopes::LandedTitle, key.clone());
+            sc.expect(Scopes::LandedTitle, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_is_connected_to(block, data, sc);
             }
         }
 
         "is_council_task_valid" | "is_in_prison_type" | "is_performing_council_task" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "is_in_family" => {
-            sc.expect(Scopes::Religion, key.clone());
+            sc.expect(Scopes::Religion, key);
             bv.expect_value();
         }
 
         "is_scheming_against" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_is_scheming_against(block, data, sc);
             }
@@ -1050,28 +1050,28 @@ fn validate_trigger_keys(
         }
 
         "join_faction_chance" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Faction);
             }
         }
 
         "join_scheme_chance" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_join_scheme_chance(block, data, sc);
             }
         }
 
         "knows_language" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "max_number_maa_soldiers_of_base_type"
         | "number_maa_regiments_of_base_type"
         | "number_maa_soldiers_of_base_type" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_type_value(block, data, "type", Item::MenAtArmsBase, sc);
             }
@@ -1080,21 +1080,21 @@ fn validate_trigger_keys(
         "max_number_maa_soldiers_of_type"
         | "number_maa_regiments_of_type"
         | "number_maa_soldiers_of_type" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_type_value(block, data, "type", Item::MenAtArms, sc);
             }
         }
 
         "morph_gene_attribute" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_morph_gene_attribute(block, data, sc);
             }
         }
 
         "morph_gene_value" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_morph_gene_value(block, data, sc);
             }
@@ -1105,56 +1105,56 @@ fn validate_trigger_keys(
         | "number_of_opposing_traits"
         | "number_of_personality_traits_in_common"
         | "number_of_traits_in_common" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Character);
             }
         }
 
         "number_of_election_votes" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_number_of_election_votes(block, data, sc);
             }
         }
 
         "number_of_sinful_traits_in_common" | "number_of_virtue_traits_in_common" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Character);
             }
         }
 
         "opinion" | "reverse_opinion" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Character);
             }
         }
 
         "perks_in_tree" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_perks_in_tree(block, data, sc);
             }
         }
 
         "place_in_line_of_succession" => {
-            sc.expect(Scopes::LandedTitle, key.clone());
+            sc.expect(Scopes::LandedTitle, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Character);
             }
         }
 
         "player_heir_position" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Character);
             }
         }
 
         "realm_to_title_distance_squared" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_realm_to_title_distance_squared(block, data, sc);
             }
@@ -1177,7 +1177,7 @@ fn validate_trigger_keys(
         }
 
         "squared_distance" => {
-            sc.expect(Scopes::LandedTitle | Scopes::Province, key.clone());
+            sc.expect(Scopes::LandedTitle | Scopes::Province, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(
                     block,
@@ -1189,35 +1189,35 @@ fn validate_trigger_keys(
         }
 
         "time_to_hook_expiry" | "trait_compatibility" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Character);
             }
         }
 
         "title_join_faction_chance" => {
-            sc.expect(Scopes::LandedTitle, key.clone());
+            sc.expect(Scopes::LandedTitle, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_type_value(block, data, "faction", Item::Faction, sc);
             }
         }
 
         "recent_history" => {
-            sc.expect(Scopes::LandedTitle, key.clone());
+            sc.expect(Scopes::LandedTitle, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_recent_history(block, data, sc);
             }
         }
 
         "tier_difference" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Character);
             }
         }
 
         "time_in_prison" | "time_in_prison_type" | "time_since_death" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_days_weeks_months_years(block, data, sc);
             }
@@ -1230,7 +1230,7 @@ fn validate_trigger_keys(
         }
 
         "title_create_faction_type_chance" => {
-            sc.expect(Scopes::LandedTitle, key.clone());
+            sc.expect(Scopes::LandedTitle, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_create_faction_type_chance(block, data, sc);
             }
@@ -1239,19 +1239,19 @@ fn validate_trigger_keys(
         "vassal_contract_has_flag"
         | "vassal_contract_obligation_level_can_be_decreased"
         | "vassal_contract_obligation_level_can_be_increased" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
 
         "war_contribution" => {
-            sc.expect(Scopes::War, key.clone());
+            sc.expect(Scopes::War, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_target_value(block, data, sc, Scopes::Character);
             }
         }
 
         "yields_alliance" => {
-            sc.expect(Scopes::Character, key.clone());
+            sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_yields_alliance(block, data, sc);
             }
