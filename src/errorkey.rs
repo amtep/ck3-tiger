@@ -29,6 +29,7 @@ pub enum ErrorKey {
     Tidying,
     Rivers,
     Modifiers,
+    Macro,
 
     PrincesOfDarkness,
 }

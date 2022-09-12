@@ -260,7 +260,7 @@ pub fn validate_effect<'a>(
         }
     }
 
-    vd.field_validated_blocks("modifier", |_b, data| {
+    vd.field_validated_blocks("modifier", |_b, _data| {
         if caller == "random" {
             // TODO
         } else {

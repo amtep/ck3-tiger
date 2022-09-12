@@ -92,12 +92,17 @@ impl Token {
         let mut pos = 0;
         let mut vec = Vec::new();
         let mut loc = self.loc.clone();
+        let mut lines = 0;
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             if c == ch {
                 vec.push(Token::new(self.s[pos..i].to_string(), loc.clone()));
                 pos = i + 1;
                 loc.offset = self.loc.offset + i + 1;
                 loc.column = self.loc.column + cols + 1;
+                loc.line = self.loc.line + lines;
+            }
+            if c == '\n' {
+                lines += 1;
             }
         }
         vec.push(Token::new(self.s[pos..].to_string(), loc));

@@ -18,9 +18,9 @@ use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::relations::Relations;
 use crate::data::religions::Religions;
-use crate::data::scripted_effects::Effects;
+use crate::data::scripted_effects::{Effect, Effects};
 use crate::data::scripted_lists::ScriptedLists;
-use crate::data::scripted_triggers::Triggers;
+use crate::data::scripted_triggers::{Trigger, Triggers};
 use crate::data::scriptvalues::ScriptValues;
 use crate::data::terrain::Terrains;
 use crate::data::titles::Titles;
@@ -323,6 +323,26 @@ impl Everything {
                     error(token, ErrorKey::MissingItem, &msg);
                 }
             }
+        }
+    }
+
+    pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
+        if let Some(trigger) = self.triggers.get(key.as_str()) {
+            Some(trigger)
+        } else if let Some(trigger) = self.events.get_trigger(key) {
+            Some(trigger)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_effect(&self, key: &Token) -> Option<&Effect> {
+        if let Some(effect) = self.effects.get(key.as_str()) {
+            Some(effect)
+        } else if let Some(effect) = self.events.get_effect(key) {
+            Some(effect)
+        } else {
+            None
         }
     }
 }

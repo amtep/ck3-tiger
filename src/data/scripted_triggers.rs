@@ -32,6 +32,10 @@ impl Triggers {
         self.triggers.contains_key(key)
     }
 
+    pub fn get(&self, key: &str) -> Option<&Trigger> {
+        self.triggers.get(key)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.triggers.values() {
             item.validate(data);
@@ -94,6 +98,23 @@ impl Trigger {
     pub fn validate_scope_compatibility(&self, their_sc: &mut ScopeContext) {
         if let Some(our_sc) = self.sc.borrow().as_ref() {
             their_sc.expect_compatibility(our_sc);
+        }
+    }
+
+    pub fn macro_parms(&self) -> Vec<&str> {
+        self.block.macro_parms()
+    }
+
+    pub fn validate_macro_expansion(
+        &self,
+        args: Vec<(&str, Token)>,
+        data: &Everything,
+        sc: &mut ScopeContext,
+        tooltipped: bool,
+    ) {
+        if let Some(block) = self.block.expand_macro(args) {
+            // TODO: avoid duplicate error messages when invoking a macro trigger many times
+            validate_normal_trigger(&block, data, sc, tooltipped);
         }
     }
 }

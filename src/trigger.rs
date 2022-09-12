@@ -270,6 +270,15 @@ pub fn validate_trigger(
                 }
                 continue;
             }
+            if key.is("value") {
+                if caller == Caller::CustomDescription {
+                    ScriptValue::validate_bv(bv, data, sc);
+                } else {
+                    let msg = format!("can only use `{} =` in `custom_description`", key);
+                    warn(key, ErrorKey::Validation, &msg);
+                }
+                continue;
+            }
 
             if key.is("amount") {
                 if caller == Caller::CalcTrueIf {
@@ -344,20 +353,50 @@ pub fn validate_trigger(
                 continue;
             }
 
-            // TODO: check macro substitutions
-            // TODO: check scope types inside trigger
-            if data.triggers.exists(key.as_str()) || data.events.trigger_exists(key) {
-                if let Some(token) = bv.get_value() {
-                    if !(token.is("yes") || token.is("no")) {
-                        warn(token, ErrorKey::Validation, "expected yes or no");
+            if let Some(trigger) = data.get_trigger(key) {
+                match bv {
+                    BlockOrValue::Token(token) => {
+                        if !(token.is("yes") || token.is("no")) {
+                            warn(token, ErrorKey::Validation, "expected yes or no");
+                        }
+                        if !trigger.macro_parms().is_empty() {
+                            error(token, ErrorKey::Macro, "expected macro arguments");
+                        }
+                        if data.triggers.exists(key.as_str()) {
+                            data.triggers.validate_scope_compatibility(key.as_str(), sc);
+                        } else {
+                            data.events.validate_trigger_scope_compatibility(key, sc);
+                        }
                     }
-                    if data.triggers.exists(key.as_str()) {
-                        data.triggers.validate_scope_compatibility(key.as_str(), sc);
-                    } else {
-                        data.events.validate_trigger_scope_compatibility(key, sc);
+                    BlockOrValue::Block(block) => {
+                        let parms = trigger.macro_parms();
+                        if parms.is_empty() {
+                            error(
+                                block,
+                                ErrorKey::Macro,
+                                "trigger does not need macro arguments",
+                            );
+                        } else {
+                            let mut vec = Vec::new();
+                            let mut vd = Validator::new(block, data);
+                            for parm in &parms {
+                                vd.req_field(parm);
+                                if let Some(token) = vd.field_value(parm) {
+                                    vec.push(token.clone());
+                                }
+                            }
+                            let args = parms.into_iter().zip(vec.into_iter()).collect();
+                            trigger.validate_macro_expansion(args, data, sc, tooltipped);
+                            vd.warn_remaining();
+                        }
                     }
                 }
-                // if it's a block instead, then it should contain macro arguments
+                continue;
+            }
+
+            // `10 < scriptvalue` is a valid trigger
+            if key.as_str().parse::<f64>().is_ok() {
+                ScriptValue::validate_bv(bv, data, sc);
                 continue;
             }
 

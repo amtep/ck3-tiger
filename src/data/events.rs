@@ -89,9 +89,19 @@ impl Events {
         self.triggers.contains_key(&index)
     }
 
+    pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
+        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        self.triggers.get(&index)
+    }
+
     pub fn effect_exists(&self, key: &Token) -> bool {
         let index = (key.loc.pathname.to_path_buf(), key.to_string());
         self.effects.contains_key(&index)
+    }
+
+    pub fn get_effect(&self, key: &Token) -> Option<&Effect> {
+        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        self.effects.get(&index)
     }
 
     pub fn exists(&self, key: &str) -> bool {

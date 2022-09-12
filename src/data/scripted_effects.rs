@@ -32,6 +32,10 @@ impl Effects {
         self.effects.contains_key(key)
     }
 
+    pub fn get(&self, key: &str) -> Option<&Effect> {
+        self.effects.get(key)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.effects.values() {
             item.validate(data);

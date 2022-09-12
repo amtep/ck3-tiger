@@ -218,7 +218,11 @@ impl Parser {
         if let Some(mut prev_level) = self.stack.pop() {
             swap(&mut self.current, &mut prev_level);
             if self.stack.is_empty() && prev_level.contains_macro_parms {
-                let s = content[prev_level.block.loc.offset..=loc.offset].to_string();
+                // skip the { } in constructing s
+                let s = content[prev_level.block.loc.offset + 1..loc.offset].to_string();
+                let mut loc = prev_level.block.loc.clone();
+                loc.offset += 1;
+                loc.column += 1;
                 let token = Token::new(s, prev_level.block.loc.clone());
                 prev_level.block.source = Some(token);
             } else {
@@ -271,7 +275,7 @@ impl Parser {
 }
 
 #[allow(clippy::too_many_lines)] // many lines are natural for state machines
-fn parse(blockloc: Loc, inputs: &[&Token]) -> Option<Block> {
+fn parse(blockloc: Loc, inputs: &[Token]) -> Option<Block> {
     let mut parser = Parser {
         current: ParseLevel {
             block: Block::new(blockloc.clone()),
@@ -506,5 +510,9 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Option<Block> {
     let mut loc = blockloc.clone();
     loc.line = 1;
     loc.column = 1;
-    parse(blockloc, &[&Token::new(content.to_string(), loc)])
+    parse(blockloc, &[Token::new(content.to_string(), loc)])
+}
+
+pub fn parse_pdx_macro(inputs: &[Token]) -> Option<Block> {
+    parse(inputs[0].loc.clone(), inputs)
 }
