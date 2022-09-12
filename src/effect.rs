@@ -266,6 +266,11 @@ pub fn validate_effect<'a>(
                 if !token.is("yes") {
                     warn(token, ErrorKey::Validation, "expected just effect = yes");
                 }
+                if data.item_exists(Item::ScriptedEffect, key.as_str()) {
+                    data.effects.validate_scope_compatibility(key.as_str(), sc);
+                } else {
+                    data.events.validate_effect_scope_compatibility(key, sc);
+                }
             }
             // If it's a block, then it should contain macro arguments
             continue;

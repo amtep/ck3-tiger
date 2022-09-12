@@ -1,12 +1,16 @@
 use fnv::FnvHashMap;
+use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
+use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct Triggers {
@@ -31,6 +35,12 @@ impl Triggers {
     pub fn validate(&self, data: &Everything) {
         for item in self.triggers.values() {
             item.validate(data);
+        }
+    }
+
+    pub fn validate_scope_compatibility(&self, key: &str, sc: &mut ScopeContext) {
+        if let Some(item) = self.triggers.get(key) {
+            item.validate_scope_compatibility(sc);
         }
     }
 }
@@ -60,12 +70,30 @@ impl FileHandler for Triggers {
 pub struct Trigger {
     pub key: Token,
     block: Block,
+    sc: RefCell<Option<ScopeContext>>,
 }
 
 impl Trigger {
     pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+        Self {
+            key,
+            block,
+            sc: RefCell::new(None),
+        }
     }
 
-    pub fn validate(&self, _data: &Everything) {}
+    pub fn validate(&self, data: &Everything) {
+        if self.block.source.is_none() {
+            let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            // TODO: decide what to do about "tooltipped" true vs false
+            validate_normal_trigger(&self.block, data, &mut sc, false);
+            self.sc.replace(Some(sc));
+        }
+    }
+
+    pub fn validate_scope_compatibility(&self, their_sc: &mut ScopeContext) {
+        if let Some(our_sc) = self.sc.borrow().as_ref() {
+            their_sc.expect_compatibility(our_sc);
+        }
+    }
 }

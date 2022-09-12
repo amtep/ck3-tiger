@@ -351,6 +351,11 @@ pub fn validate_trigger(
                     if !(token.is("yes") || token.is("no")) {
                         warn(token, ErrorKey::Validation, "expected yes or no");
                     }
+                    if data.triggers.exists(key.as_str()) {
+                        data.triggers.validate_scope_compatibility(key.as_str(), sc);
+                    } else {
+                        data.events.validate_trigger_scope_compatibility(key, sc);
+                    }
                 }
                 // if it's a block instead, then it should contain macro arguments
                 continue;
