@@ -129,13 +129,13 @@ impl Decision {
         }
 
         vd.field_validated_block("is_shown", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false)
+            validate_normal_trigger(b, data, &mut sc, false);
         });
         vd.field_validated_block("is_valid_showing_failures_only", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, true)
+            validate_normal_trigger(b, data, &mut sc, true);
         });
         vd.field_validated_block("is_valid", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, true)
+            validate_normal_trigger(b, data, &mut sc, true);
         });
 
         // cost can have multiple definitions and they will be combined
@@ -149,11 +149,11 @@ impl Decision {
             validate_normal_effect(b, data, &mut sc, true);
         });
         vd.field_validated_block("ai_potential", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false)
+            validate_normal_trigger(b, data, &mut sc, false);
         });
         vd.field_block("ai_will_do");
         vd.field_validated_block("should_create_alert", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false)
+            validate_normal_trigger(b, data, &mut sc, false);
         });
         vd.field("widget");
         vd.warn_remaining();

@@ -221,7 +221,7 @@ impl ScopeContext {
         // Compare restrictions on `root`
         match other.root {
             ScopeEntry::Scope(scopes, ref token) => {
-                Self::_expect_check(&mut self.root, scopes, token)
+                Self::_expect_check(&mut self.root, scopes, token);
             }
             _ => unreachable!(),
         }
@@ -237,8 +237,6 @@ impl ScopeContext {
 
 impl Drop for ScopeContext {
     fn drop(&mut self) {
-        if self.prev.is_some() {
-            panic!("scope chain not properly unwound");
-        }
+        assert!(self.prev.is_none(), "scope chain not properly unwound");
     }
 }

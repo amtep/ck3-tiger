@@ -208,6 +208,15 @@ pub struct Event {
     block: Block,
 }
 
+const EVENT_TYPES: &[&str] = &[
+    "letter_event",
+    "character_event",
+    "court_event",
+    "duel_event",
+    "fullscreen_event",
+    "empty",
+];
+
 impl Event {
     pub fn new(key: Token, block: Block) -> Self {
         Self { key, block }
@@ -216,17 +225,7 @@ impl Event {
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
 
-        vd.field_choice(
-            "type",
-            &[
-                "letter_event",
-                "character_event",
-                "court_event",
-                "duel_event",
-                "fullscreen_event",
-                "empty",
-            ],
-        );
+        vd.field_choice("type", EVENT_TYPES);
         let evtype = self
             .block
             .get_field_value("type")
@@ -287,20 +286,20 @@ impl Event {
             vd.advice_field("right_portrait", "not needed for court_event");
         } else {
             vd.field_validated("left_portrait", |bv, data| {
-                validate_portrait(bv, data, &mut sc)
+                validate_portrait(bv, data, &mut sc);
             });
             vd.field_validated("right_portrait", |bv, data| {
-                validate_portrait(bv, data, &mut sc)
+                validate_portrait(bv, data, &mut sc);
             });
         }
         vd.field_validated("lower_left_portrait", |bv, data| {
-            validate_portrait(bv, data, &mut sc)
+            validate_portrait(bv, data, &mut sc);
         });
         vd.field_validated("lower_center_portrait", |bv, data| {
-            validate_portrait(bv, data, &mut sc)
+            validate_portrait(bv, data, &mut sc);
         });
         vd.field_validated("lower_right_portrait", |bv, data| {
-            validate_portrait(bv, data, &mut sc)
+            validate_portrait(bv, data, &mut sc);
         });
         // TODO: check that artifacts are not in the same position as a character
         vd.field_validated_blocks("artifact", |b, data| validate_artifact(b, data, &mut sc));
@@ -481,13 +480,13 @@ fn validate_portrait(v: &BlockOrValue, data: &Everything, sc: &mut ScopeContext)
             vd.field_value("animation");
             vd.field("scripted_animation");
             vd.field_validated_blocks("triggered_animation", |b, data| {
-                validate_triggered_animation(b, data, sc)
+                validate_triggered_animation(b, data, sc);
             });
             vd.field_list("outfit_tags");
             vd.field_bool("remove_default_outfit");
             vd.field_bool("hide_info");
             vd.field_validated_blocks("triggered_outfit", |b, data| {
-                validate_triggered_outfit(b, data, sc)
+                validate_triggered_outfit(b, data, sc);
             });
             // TODO: is this only useful when animation is prisondungeon ?
             vd.field_bool("override_imprisonment_visuals");

@@ -49,7 +49,7 @@ pub fn validate_effect<'a>(
     list_type: ListType,
     block: &Block,
     data: &'a Everything,
-    mut sc: &mut ScopeContext,
+    sc: &mut ScopeContext,
     mut vd: Validator<'a>,
     mut tooltipped: bool,
 ) {
@@ -276,9 +276,8 @@ pub fn validate_effect<'a>(
         // but not quite the same :(
         let part_vec = key.split('.');
         sc.open_builder();
-        for i in 0..part_vec.len() {
+        for (i, part) in part_vec.iter().enumerate() {
             let first = i == 0;
-            let part = &part_vec[i];
 
             if let Some((prefix, arg)) = part.split_once(':') {
                 if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
@@ -309,7 +308,7 @@ pub fn validate_effect<'a>(
                 if part.is("root") || part.is("ROOT") {
                     sc.replace_root();
                 } else if part.is("prev") || part.is("PREV") {
-                    sc.replace_prev(&part);
+                    sc.replace_prev(part);
                 } else {
                     sc.replace_this();
                 }
@@ -330,7 +329,7 @@ pub fn validate_effect<'a>(
         }
 
         if let Some(block) = bv.expect_block() {
-            validate_normal_effect(block, data, &mut sc, tooltipped);
+            validate_normal_effect(block, data, sc, tooltipped);
         }
         sc.close();
     }

@@ -132,7 +132,7 @@ impl Trait {
         }
 
         vd.field_validated_blocks("culture_modifier", |b, data| {
-            Self::validate_culture_modifier(b, data, &mut sc)
+            Self::validate_culture_modifier(b, data, &mut sc);
         });
         vd.field_validated_blocks("triggered_opinion", Self::validate_triggered_opinion);
 

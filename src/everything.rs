@@ -138,10 +138,8 @@ impl Everything {
 
         let config_file = mod_root.join("mod-validator.conf");
         let config = if config_file.is_file() {
-            Self::_read_config(&config_file).map_or(
-                Err(FilesError::ConfigUnreadable { path: config_file }),
-                |c| Ok(c),
-            )?
+            Self::_read_config(&config_file)
+                .ok_or(FilesError::ConfigUnreadable { path: config_file })?
         } else {
             Block::new(Loc::for_file(Rc::new(config_file), FileKind::Mod))
         };

@@ -96,6 +96,7 @@ use crate::item::Item::*;
 
 impl Item {
     pub fn path(self) -> &'static str {
+        #[allow(clippy::match_same_arms)]
         match self {
             Amenity => "common/court_amenities/",
             Artifact => "common/artifacts/types",

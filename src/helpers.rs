@@ -20,6 +20,6 @@ pub fn dup_assign_error(key: &Token, other: &Token) {
         ErrorKey::Duplicate,
         &format!("`{}` is redefined in a following line", other),
         key,
-        &format!("the other one is here"),
+        "the other one is here",
     );
 }

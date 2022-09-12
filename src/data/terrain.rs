@@ -81,10 +81,10 @@ impl Terrain {
         vd.field_validated_block("color", validate_color);
 
         vd.field_validated_block("attacker_modifier", |b, data| {
-            validate_combat_modifier(b, data, &mut sc)
+            validate_combat_modifier(b, data, &mut sc);
         });
         vd.field_validated_block("defender_modifier", |b, data| {
-            validate_combat_modifier(b, data, &mut sc)
+            validate_combat_modifier(b, data, &mut sc);
         });
         vd.field_block("attacker_combat_effects"); // TODO
         vd.field_block("defender_combat_effects"); // TODO
@@ -95,7 +95,7 @@ impl Terrain {
         vd.field_numeric("audio_parameter"); // ??
 
         vd.field_validated_block("province_modifier", |b, data| {
-            validate_province_modifier(b, data, &mut sc)
+            validate_province_modifier(b, data, &mut sc);
         });
 
         vd.warn_remaining();

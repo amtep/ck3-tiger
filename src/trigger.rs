@@ -392,7 +392,7 @@ pub fn validate_trigger(
                     if part.is("root") || part.is("ROOT") {
                         sc.replace_root();
                     } else if part.is("prev") || part.is("PREV") {
-                        sc.replace_prev(&part);
+                        sc.replace_prev(part);
                     } else {
                         sc.replace_this();
                     }
@@ -577,7 +577,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             if part.is("root") || part.is("ROOT") {
                 sc.replace_root();
             } else if part.is("prev") || part.is("PREV") {
-                sc.replace_prev(&part);
+                sc.replace_prev(part);
             } else {
                 sc.replace_this();
             }
@@ -1326,14 +1326,6 @@ fn validate_trigger_recent_history(_block: &Block, _data: &Everything, _sc: &mut
     // TODO
 }
 
-fn validate_trigger_join_faction_chance(
-    _block: &Block,
-    _data: &Everything,
-    _sc: &mut ScopeContext,
-) {
-    // TODO
-}
-
 fn validate_trigger_has_all_innovations(
     _block: &Block,
     _data: &Everything,
@@ -1394,10 +1386,6 @@ fn validate_trigger_ai_diplomacy_stance(
     // TODO
 }
 
-fn validate_trigger_can_create_faction(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
-    // TODO
-}
-
 fn validate_trigger_amenity_level(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
     // TODO
 }
@@ -1408,20 +1396,6 @@ fn validate_trigger_aptitude(_block: &Block, _data: &Everything, _sc: &mut Scope
 
 fn validate_trigger_can_add_hook(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
     // TODO
-}
-
-fn validate_trigger_can_start_scheme(block: &Block, data: &Everything, sc: &mut ScopeContext) {
-    let mut vd = Validator::new(block, data);
-
-    vd.req_field("type");
-    vd.req_field("target");
-    vd.field_value("type");
-    // TODO: validate scheme type
-    if let Some(token) = vd.field_value("target") {
-        validate_target(token, data, sc, Scopes::Character);
-    }
-
-    vd.warn_remaining();
 }
 
 fn validate_trigger_can_declare_war(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
@@ -1541,18 +1515,6 @@ fn validate_trigger_morph_gene_attribute(
 }
 
 fn validate_trigger_morph_gene_value(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
-    // TODO
-}
-
-fn validate_trigger_number_maa_of_base_type(
-    _block: &Block,
-    _data: &Everything,
-    _sc: &mut ScopeContext,
-) {
-    // TODO
-}
-
-fn validate_trigger_number_maa_of_type(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
     // TODO
 }
 

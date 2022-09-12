@@ -282,12 +282,12 @@ impl ScriptValue {
     fn validate_if(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
         vd.field_block("limit"); // TODO: validate trigger
-        Self::validate_inner(vd, data, sc)
+        Self::validate_inner(vd, data, sc);
     }
 
     fn validate_block(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let vd = Validator::new(block, data);
-        Self::validate_inner(vd, data, sc)
+        Self::validate_inner(vd, data, sc);
     }
 
     pub fn validate_value(t: &Token, data: &Everything, sc: &mut ScopeContext) {
