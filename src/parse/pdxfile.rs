@@ -1,5 +1,6 @@
 use fnv::FnvHashMap;
 use std::mem::swap;
+use std::mem::take;
 
 use crate::block::{Block, BlockOrValue, Comparator};
 use crate::errorkey::ErrorKey;
@@ -102,7 +103,7 @@ impl Parser {
     }
 
     fn calculation_result(&mut self) -> f64 {
-        std::mem::take(&mut self.calculation)
+        take(&mut self.calculation)
     }
 
     fn token(&mut self, token: Token) {
@@ -269,13 +270,11 @@ impl Parser {
     }
 }
 
-#[allow(clippy::module_name_repetitions)]
 #[allow(clippy::too_many_lines)] // many lines are natural for state machines
-pub fn parse_pdx(entry: &FileEntry, content: &str) -> Option<Block> {
-    let mut loc = Loc::for_entry(entry);
+fn parse(blockloc: Loc, inputs: &[&Token]) -> Option<Block> {
     let mut parser = Parser {
         current: ParseLevel {
-            block: Block::new(loc.clone()),
+            block: Block::new(blockloc.clone()),
             key: None,
             comp: None,
             tag: None,
@@ -287,202 +286,225 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Option<Block> {
         calculation: 0.0,
         calculation_op: CalculationOp::Add,
     };
-    loc.line = 1;
-    loc.column = 1;
     let mut state = State::Neutral;
-    let mut token_start = loc.clone();
-    let mut calculation_start = loc.clone();
+    let mut token_start = blockloc.clone();
+    let mut calculation_start = blockloc;
+    let mut current_id = String::new();
 
-    for (i, c) in content.char_indices() {
-        loc.offset = i;
-        let next_i = i + c.len_utf8();
+    for token in inputs {
+        let content = token.as_str();
+        let mut loc = token.loc.clone();
+        let loc_start = loc.offset;
 
-        match state {
-            State::Neutral => {
-                if c.is_whitespace() {
-                } else if c == '"' {
-                    state = State::QString;
-                } else if c == '#' {
-                    state = State::Comment;
-                } else if c.is_comparator_char() {
-                    state = State::Comparator;
-                } else if c == '@' {
-                    // @ can start tokens but is special
-                    calculation_start = loc.clone();
-                    state = State::Id;
-                } else if c == '$' {
-                    parser.current.contains_macro_parms = true;
-                    state = State::Id;
-                } else if c.is_id_char() {
-                    state = State::Id;
-                } else if c == '{' {
-                    parser.open_brace(loc.clone());
-                } else if c == '}' {
-                    parser.close_brace(loc.clone(), content);
-                } else {
-                    Parser::unknown_char(c, loc.clone());
-                }
-                token_start = loc.clone();
-            }
-            State::Comment => {
-                if c == '\n' {
-                    state = State::Neutral;
-                }
-            }
-            State::QString => {
-                if c == '"' {
-                    state = State::Id;
-                } else if c == '\n' {
-                    let s = content[token_start.offset..next_i].replace('"', "");
-                    let token = Token::new(s, token_start.clone());
-                    warn(token, ErrorKey::ParseError, "Quoted string not closed");
-                }
-            }
-            State::Id => {
-                if c == '"' {
-                    // The quoted string actually becomes part of this id
-                    state = State::QString;
-                } else if c == '$' {
-                    parser.current.contains_macro_parms = true;
-                } else if c.is_id_char() {
-                } else if c == '[' && loc.offset == token_start.offset + 1 {
-                    state = State::Calculation;
-                    parser.calculation_start();
-                } else {
-                    let id = content[token_start.offset..i].replace('"', "");
-                    let token = Token::new(id, token_start.clone());
-                    parser.token(token);
+        for (i, c) in content.char_indices() {
+            loc.offset = loc_start + i;
 
-                    if c.is_comparator_char() {
-                        state = State::Comparator;
-                    } else if c.is_whitespace() {
-                        state = State::Neutral;
+            match state {
+                State::Neutral => {
+                    current_id.clear();
+                    if c.is_whitespace() {
+                    } else if c == '"' {
+                        state = State::QString;
                     } else if c == '#' {
                         state = State::Comment;
-                    } else if c == '{' {
-                        parser.open_brace(loc.clone());
-                        state = State::Neutral;
-                    } else if c == '}' {
-                        parser.close_brace(loc.clone(), content);
-                        state = State::Neutral;
-                    } else {
-                        Parser::unknown_char(c, loc.clone());
-                        state = State::Neutral;
-                    }
-                    token_start = loc.clone();
-                }
-            }
-            State::Calculation => {
-                if c.is_whitespace() {
-                } else if c == '+' {
-                    parser.calculation_op(CalculationOp::Add);
-                } else if c == '/' {
-                    parser.calculation_op(CalculationOp::Divide);
-                } else if c.is_id_char() {
-                    state = State::CalculationId;
-                } else if c == ']' {
-                    let token = Token::new(
-                        parser.calculation_result().to_string(),
-                        calculation_start.clone(),
-                    );
-                    parser.token(token);
-                    state = State::Neutral;
-                }
-                token_start = loc.clone();
-            }
-            State::CalculationId => {
-                if c.is_id_char() {
-                } else if c.is_whitespace() || c == '+' || c == '/' {
-                    let id = content[token_start.offset..i].to_string();
-                    let token = Token::new(id, token_start.clone());
-                    parser.calculation_next(&token);
-                    state = State::Calculation;
-                    if c == '+' {
-                        parser.calculation_op(CalculationOp::Add);
-                    } else if c == '/' {
-                        parser.calculation_op(CalculationOp::Divide);
-                    }
-                } else if c == ']' {
-                    let id = content[token_start.offset..i].to_string();
-                    let token = Token::new(id, token_start.clone());
-                    parser.calculation_next(&token);
-
-                    let token = Token::new(
-                        parser.calculation_result().to_string(),
-                        calculation_start.clone(),
-                    );
-                    parser.token(token);
-                    state = State::Neutral;
-                } else {
-                    Parser::unknown_char(c, loc.clone());
-                    state = State::Neutral;
-                }
-            }
-            State::Comparator => {
-                if c.is_comparator_char() {
-                } else {
-                    let s = content[token_start.offset..i].to_string();
-                    let token = Token::new(s, token_start.clone());
-                    parser.comparator(token);
-
-                    if c == '"' {
-                        state = State::QString;
+                    } else if c.is_comparator_char() {
+                        state = State::Comparator;
+                        current_id.push(c);
                     } else if c == '@' {
                         // @ can start tokens but is special
                         calculation_start = loc.clone();
+                        current_id.push(c);
                         state = State::Id;
                     } else if c == '$' {
                         parser.current.contains_macro_parms = true;
                         state = State::Id;
+                        current_id.push(c);
                     } else if c.is_id_char() {
                         state = State::Id;
-                    } else if c.is_whitespace() {
-                        state = State::Neutral;
-                    } else if c == '#' {
-                        state = State::Comment;
+                        current_id.push(c);
                     } else if c == '{' {
                         parser.open_brace(loc.clone());
-                        state = State::Neutral;
                     } else if c == '}' {
                         parser.close_brace(loc.clone(), content);
-                        state = State::Neutral;
                     } else {
                         Parser::unknown_char(c, loc.clone());
+                    }
+                    token_start = loc.clone();
+                }
+                State::Comment => {
+                    if c == '\n' {
+                        state = State::Neutral;
+                    }
+                }
+                State::QString => {
+                    if c == '"' {
+                        state = State::Id;
+                    } else if c == '\n' {
+                        let token = Token::new(take(&mut current_id), token_start.clone());
+                        warn(token, ErrorKey::ParseError, "Quoted string not closed");
+                    } else {
+                        current_id.push(c);
+                    }
+                }
+                State::Id => {
+                    if c == '"' {
+                        // The quoted string actually becomes part of this id
+                        state = State::QString;
+                    } else if c == '$' {
+                        parser.current.contains_macro_parms = true;
+                        current_id.push(c);
+                    } else if c.is_id_char() {
+                        current_id.push(c);
+                    } else if c == '[' && loc.offset == token_start.offset + 1 {
+                        state = State::Calculation;
+                        parser.calculation_start();
+                    } else {
+                        let token = Token::new(take(&mut current_id), token_start.clone());
+                        parser.token(token);
+
+                        if c.is_comparator_char() {
+                            current_id.push(c);
+                            state = State::Comparator;
+                        } else if c.is_whitespace() {
+                            state = State::Neutral;
+                        } else if c == '#' {
+                            state = State::Comment;
+                        } else if c == '{' {
+                            parser.open_brace(loc.clone());
+                            state = State::Neutral;
+                        } else if c == '}' {
+                            parser.close_brace(loc.clone(), content);
+                            state = State::Neutral;
+                        } else {
+                            Parser::unknown_char(c, loc.clone());
+                            state = State::Neutral;
+                        }
+                        token_start = loc.clone();
+                    }
+                }
+                State::Calculation => {
+                    current_id.clear();
+                    if c.is_whitespace() {
+                    } else if c == '+' {
+                        parser.calculation_op(CalculationOp::Add);
+                    } else if c == '/' {
+                        parser.calculation_op(CalculationOp::Divide);
+                    } else if c.is_id_char() {
+                        state = State::CalculationId;
+                        current_id.push(c);
+                    } else if c == ']' {
+                        let token = Token::new(
+                            parser.calculation_result().to_string(),
+                            calculation_start.clone(),
+                        );
+                        parser.token(token);
                         state = State::Neutral;
                     }
                     token_start = loc.clone();
                 }
-            }
-        }
+                State::CalculationId => {
+                    if c.is_id_char() {
+                        current_id.push(c);
+                    } else if c.is_whitespace() || c == '+' || c == '/' {
+                        let token = Token::new(take(&mut current_id), token_start.clone());
+                        parser.calculation_next(&token);
+                        state = State::Calculation;
+                        if c == '+' {
+                            parser.calculation_op(CalculationOp::Add);
+                        } else if c == '/' {
+                            parser.calculation_op(CalculationOp::Divide);
+                        }
+                    } else if c == ']' {
+                        let token = Token::new(take(&mut current_id), token_start.clone());
+                        parser.calculation_next(&token);
 
-        if c == '\n' {
-            loc.line += 1;
-            loc.column = 1;
-        } else {
-            loc.column += 1;
+                        let token = Token::new(
+                            parser.calculation_result().to_string(),
+                            calculation_start.clone(),
+                        );
+                        parser.token(token);
+                        state = State::Neutral;
+                    } else {
+                        Parser::unknown_char(c, loc.clone());
+                        current_id.clear();
+                        state = State::Neutral;
+                    }
+                }
+                State::Comparator => {
+                    if c.is_comparator_char() {
+                        current_id.push(c);
+                    } else {
+                        let token = Token::new(take(&mut current_id), token_start.clone());
+                        parser.comparator(token);
+
+                        if c == '"' {
+                            state = State::QString;
+                        } else if c == '@' {
+                            // @ can start tokens but is special
+                            calculation_start = loc.clone();
+                            current_id.push(c);
+                            state = State::Id;
+                        } else if c == '$' {
+                            parser.current.contains_macro_parms = true;
+                            state = State::Id;
+                            current_id.push(c);
+                        } else if c.is_id_char() {
+                            state = State::Id;
+                            current_id.push(c);
+                        } else if c.is_whitespace() {
+                            state = State::Neutral;
+                        } else if c == '#' {
+                            state = State::Comment;
+                        } else if c == '{' {
+                            parser.open_brace(loc.clone());
+                            state = State::Neutral;
+                        } else if c == '}' {
+                            parser.close_brace(loc.clone(), content);
+                            state = State::Neutral;
+                        } else {
+                            Parser::unknown_char(c, loc.clone());
+                            state = State::Neutral;
+                        }
+                        token_start = loc.clone();
+                    }
+                }
+            }
+
+            if c == '\n' {
+                loc.line += 1;
+                loc.column = 1;
+            } else {
+                loc.column += 1;
+            }
         }
     }
 
     // Deal with state at end of file
     match state {
         State::QString => {
-            let s = content[token_start.offset..].to_string();
-            let token = Token::new(s, token_start);
+            let token = Token::new(current_id, token_start);
             error(&token, ErrorKey::ParseError, "Quoted string not closed");
             parser.token(token);
         }
         State::Id => {
-            let s = content[token_start.offset..].to_string();
-            let token = Token::new(s, token_start);
+            let token = Token::new(current_id, token_start);
             parser.token(token);
         }
         State::Comparator => {
-            let s = content[token_start.offset..].to_string();
-            let token = Token::new(s, token_start);
+            let token = Token::new(current_id, token_start);
             parser.comparator(token);
         }
         _ => (),
     }
 
     parser.eof()
+}
+
+#[allow(clippy::module_name_repetitions)]
+pub fn parse_pdx(entry: &FileEntry, content: &str) -> Option<Block> {
+    let blockloc = Loc::for_entry(entry);
+    let mut loc = blockloc.clone();
+    loc.line = 1;
+    loc.column = 1;
+    parse(blockloc, &[&Token::new(content.to_string(), loc)])
 }
