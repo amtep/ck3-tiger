@@ -406,6 +406,9 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
     // TODO: check what this does.
     vd.field_bool("exclusive");
 
+    // TODO: check what this does.
+    vd.field_bool("is_cancel_option");
+
     // If fallback = yes, the option is shown despite its trigger,
     // if there would otherwise be no other option
     vd.field_bool("fallback");
