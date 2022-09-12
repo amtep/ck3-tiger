@@ -74,7 +74,7 @@ impl Interaction {
         // TODO: actually validate the fields
 
         // You're expected to use scope:actor and scope:recipient instead of root
-        let mut sc = ScopeContext::new(Scopes::None, self.key.clone());
+        let mut sc = ScopeContext::new_root(Scopes::None, self.key.clone());
 
         if let Some(name) = self.block.get_field_value("icon") {
             let pathname = format!("gfx/interface/icons/character_interactions/{}.dds", name);

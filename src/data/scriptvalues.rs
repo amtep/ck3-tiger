@@ -1,4 +1,5 @@
 use fnv::FnvHashMap;
+use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
@@ -41,6 +42,12 @@ impl ScriptValues {
             item.validate(data);
         }
     }
+
+    pub fn validate_scope_compatibility(&self, key: &str, sc: &mut ScopeContext) {
+        if let Some(item) = self.scriptvalues.get(key) {
+            item.validate_scope_compatibility(sc);
+        }
+    }
 }
 
 impl FileHandler for ScriptValues {
@@ -68,11 +75,16 @@ impl FileHandler for ScriptValues {
 pub struct ScriptValue {
     key: Token,
     bv: BlockOrValue,
+    sc: RefCell<Option<ScopeContext>>,
 }
 
 impl ScriptValue {
     pub fn new(key: Token, bv: BlockOrValue) -> Self {
-        Self { key, bv }
+        Self {
+            key,
+            bv,
+            sc: RefCell::new(None),
+        }
     }
 
     fn validate_inner(mut vd: Validator, data: &Everything, sc: &mut ScopeContext) {
@@ -189,7 +201,7 @@ impl ScriptValue {
                     if part.is("root") || part.is("ROOT") {
                         sc.replace_root();
                     } else if part.is("prev") || part.is("PREV") {
-                        sc.replace_prev();
+                        sc.replace_prev(&part);
                     } else {
                         sc.replace_this();
                     }
@@ -326,7 +338,7 @@ impl ScriptValue {
                     if part.is("root") || part.is("ROOT") {
                         sc.replace_root();
                     } else if part.is("prev") || part.is("PREV") {
-                        sc.replace_prev();
+                        sc.replace_prev(part);
                     } else {
                         sc.replace_this();
                     }
@@ -359,6 +371,7 @@ impl ScriptValue {
                     return;
                 }
             }
+            sc.close();
         }
     }
 
@@ -385,13 +398,23 @@ impl ScriptValue {
         }
     }
 
-    pub fn validate(&self, _data: &Everything) {
+    pub fn validate(&self, data: &Everything) {
         // For some reason, script values can be set to bools as well
         if let Some(token) = self.bv.get_value() {
             if token.is("yes") || token.is("no") {
                 return;
             }
         }
-        // TODO: validate these when we have rootless scope contexts
+        // TODO: if scripted values call each other, the system of scope contexts might
+        // not settle down with just one loop over them.
+        let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+        Self::validate_bv(&self.bv, data, &mut sc);
+        self.sc.replace(Some(sc));
+    }
+
+    pub fn validate_scope_compatibility(&self, their_sc: &mut ScopeContext) {
+        if let Some(our_sc) = self.sc.borrow().as_ref() {
+            their_sc.expect_compatibility(our_sc);
+        }
     }
 }

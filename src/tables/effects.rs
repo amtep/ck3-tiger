@@ -507,7 +507,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (
         Activity,
         "decline_invitation_for_character",
-        Scope(Scopes::Activity),
+        Scope(Scopes::Character),
     ),
     (Character, "depose", Yes),
     (None, "destroy_artifact", Scope(Scopes::Artifact)),

@@ -223,7 +223,7 @@ impl Character {
 
     fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new(Scopes::Character, self.key.clone());
+        let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
         vd.req_field("name");
         vd.field_value_item("name", Item::Localization);

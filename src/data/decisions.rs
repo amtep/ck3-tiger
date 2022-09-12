@@ -79,7 +79,7 @@ impl Decision {
 
     fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new(Scopes::Character, self.key.clone());
+        let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
         vd.req_field("picture");
         if let Some(token) = vd.field_value("picture") {

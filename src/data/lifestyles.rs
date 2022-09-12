@@ -83,7 +83,7 @@ impl Lifestyle {
         data.localization.verify_exists_implied(&loca, &self.key);
 
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new(Scopes::Character, self.key.clone());
+        let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
         if let Some(block) = vd.field_block("is_highlighted") {
             validate_normal_trigger(block, data, &mut sc, false);

@@ -309,7 +309,7 @@ pub fn validate_effect<'a>(
                 if part.is("root") || part.is("ROOT") {
                     sc.replace_root();
                 } else if part.is("prev") || part.is("PREV") {
-                    sc.replace_prev();
+                    sc.replace_prev(&part);
                 } else {
                     sc.replace_this();
                 }

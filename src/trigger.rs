@@ -392,7 +392,7 @@ pub fn validate_trigger(
                     if part.is("root") || part.is("ROOT") {
                         sc.replace_root();
                     } else if part.is("prev") || part.is("PREV") {
-                        sc.replace_prev();
+                        sc.replace_prev(&part);
                     } else {
                         sc.replace_this();
                     }
@@ -420,6 +420,7 @@ pub fn validate_trigger(
                     if !last {
                         let msg = format!("`{}` should be the last part", part);
                         error(part, ErrorKey::Validation, &msg);
+                        sc.close();
                         continue 'outer;
                     }
                     sc.expect(inscopes, part.clone());
@@ -428,6 +429,7 @@ pub fn validate_trigger(
                     if !last {
                         let msg = format!("`{}` should be the last part", part);
                         warn(part, ErrorKey::Validation, &msg);
+                        sc.close();
                         continue 'outer;
                     }
                     if inscopes == Scopes::None && !first {
@@ -443,7 +445,8 @@ pub fn validate_trigger(
                         sc.close();
                         continue 'outer;
                     }
-                    // TODO: check script value's scoping
+                    data.scriptvalues
+                        .validate_scope_compatibility(part.as_str(), sc);
                     sc.replace(Scopes::Value, part.clone());
                 // TODO: warn if trying to use iterator here
                 } else {
@@ -479,11 +482,15 @@ pub fn validate_trigger(
             } else {
                 match bv {
                     BlockOrValue::Token(t) => {
-                        validate_target(t, data, sc, sc.scopes());
+                        let scopes = sc.scopes();
+                        sc.close();
+                        validate_target(t, data, sc, scopes);
                     }
-                    BlockOrValue::Block(b) => validate_normal_trigger(b, data, sc, tooltipped),
+                    BlockOrValue::Block(b) => {
+                        validate_normal_trigger(b, data, sc, tooltipped);
+                        sc.close();
+                    }
                 }
-                sc.close();
             }
         } else {
             match bv {
@@ -570,7 +577,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             if part.is("root") || part.is("ROOT") {
                 sc.replace_root();
             } else if part.is("prev") || part.is("PREV") {
-                sc.replace_prev();
+                sc.replace_prev(&part);
             } else {
                 sc.replace_this();
             }
@@ -585,6 +592,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             if !last {
                 let msg = format!("`{}` only makes sense as the last part", part);
                 warn(part, ErrorKey::Scopes, &msg);
+                sc.close();
                 return;
             }
             if inscopes == Scopes::None && !first {
@@ -598,6 +606,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             if !last {
                 let msg = format!("`{}` only makes sense as the last part", part);
                 warn(part, ErrorKey::Scopes, &msg);
+                sc.close();
                 return;
             }
             sc.replace(Scopes::Value, part.clone());

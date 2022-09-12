@@ -105,7 +105,7 @@ impl Trait {
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new(Scopes::Character, self.key.clone());
+        let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
         if let Some(bv) = vd.field("name") {
             validate_desc(bv, data, &mut sc);

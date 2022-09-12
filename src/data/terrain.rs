@@ -74,7 +74,7 @@ impl Terrain {
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new(Scopes::None, self.key.clone());
+        let mut sc = ScopeContext::new_root(Scopes::None, self.key.clone());
         vd.req_field("color");
 
         vd.field_numeric("movement_speed");

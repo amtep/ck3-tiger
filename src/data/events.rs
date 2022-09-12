@@ -232,16 +232,16 @@ impl Event {
             .get_field_value("type")
             .map_or("character_event", |t| t.as_str());
 
-        let mut sc = ScopeContext::new(Scopes::Character, self.key.clone());
+        let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
         if evtype == "empty" {
-            sc = ScopeContext::new(
+            sc = ScopeContext::new_root(
                 Scopes::None,
                 self.block.get_field_value("type").unwrap().clone(),
             );
         }
         if let Some(token) = vd.field_value("scope") {
             if let Some(scope) = scope_from_snake_case(token.as_str()) {
-                sc = ScopeContext::new(scope, token.clone());
+                sc = ScopeContext::new_root(scope, token.clone());
             } else {
                 warn(token, ErrorKey::Scopes, "unknown scope type");
             }
