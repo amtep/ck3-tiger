@@ -379,6 +379,8 @@ pub fn validate_trigger(
                                 vd.req_field(parm);
                                 if let Some(token) = vd.field_value(parm) {
                                     vec.push(token.clone());
+                                } else {
+                                    continue 'outer;
                                 }
                             }
                             let args = parms.into_iter().zip(vec.into_iter()).collect();
