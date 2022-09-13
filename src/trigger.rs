@@ -362,11 +362,7 @@ pub fn validate_trigger(
                         if !trigger.macro_parms().is_empty() {
                             error(token, ErrorKey::Macro, "expected macro arguments");
                         }
-                        if data.triggers.exists(key.as_str()) {
-                            data.triggers.validate_scope_compatibility(key.as_str(), sc);
-                        } else {
-                            data.events.validate_trigger_scope_compatibility(key, sc);
-                        }
+                        trigger.validate_scope_compatibility(sc);
                     }
                     BlockOrValue::Block(block) => {
                         let parms = trigger.macro_parms();

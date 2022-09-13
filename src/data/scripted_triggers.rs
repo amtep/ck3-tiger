@@ -41,12 +41,6 @@ impl Triggers {
             item.validate(data);
         }
     }
-
-    pub fn validate_scope_compatibility(&self, key: &str, sc: &mut ScopeContext) {
-        if let Some(item) = self.triggers.get(key) {
-            item.validate_scope_compatibility(sc);
-        }
-    }
 }
 
 impl FileHandler for Triggers {

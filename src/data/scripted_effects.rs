@@ -41,12 +41,6 @@ impl Effects {
             item.validate(data);
         }
     }
-
-    pub fn validate_scope_compatibility(&self, key: &str, sc: &mut ScopeContext) {
-        if let Some(item) = self.effects.get(key) {
-            item.validate_scope_compatibility(sc);
-        }
-    }
 }
 
 impl FileHandler for Effects {
@@ -98,6 +92,23 @@ impl Effect {
     pub fn validate_scope_compatibility(&self, their_sc: &mut ScopeContext) {
         if let Some(our_sc) = self.sc.borrow().as_ref() {
             their_sc.expect_compatibility(our_sc);
+        }
+    }
+
+    pub fn macro_parms(&self) -> Vec<&str> {
+        self.block.macro_parms()
+    }
+
+    pub fn validate_macro_expansion(
+        &self,
+        args: Vec<(&str, Token)>,
+        data: &Everything,
+        sc: &mut ScopeContext,
+        tooltipped: bool,
+    ) {
+        if let Some(block) = self.block.expand_macro(args) {
+            // TODO: avoid duplicate error messages when invoking a macro effect many times
+            validate_normal_effect(&block, data, sc, tooltipped);
         }
     }
 }

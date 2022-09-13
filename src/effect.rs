@@ -6,7 +6,7 @@ use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
+use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
@@ -422,19 +422,40 @@ pub fn validate_effect<'a>(
             }
         }
 
-        if data.item_exists(Item::ScriptedEffect, key.as_str()) || data.events.effect_exists(key) {
-            // TODO: validate macros
-            if let Some(token) = bv.get_value() {
-                if !token.is("yes") {
-                    warn(token, ErrorKey::Validation, "expected just effect = yes");
+        if let Some(effect) = data.get_effect(key) {
+            match bv {
+                BlockOrValue::Token(token) => {
+                    if !effect.macro_parms().is_empty() {
+                        error(token, ErrorKey::Macro, "expected macro arguments");
+                    } else if !token.is("yes") {
+                        warn(token, ErrorKey::Validation, "expected just effect = yes");
+                    }
+                    effect.validate_scope_compatibility(sc);
                 }
-                if data.item_exists(Item::ScriptedEffect, key.as_str()) {
-                    data.effects.validate_scope_compatibility(key.as_str(), sc);
-                } else {
-                    data.events.validate_effect_scope_compatibility(key, sc);
+                BlockOrValue::Block(block) => {
+                    let parms = effect.macro_parms();
+                    if parms.is_empty() {
+                        error_info(
+                            block,
+                            ErrorKey::Macro,
+                            "effect does not need macro arguments",
+                            "you can just use it as effect = yes",
+                        );
+                    } else {
+                        let mut vec = Vec::new();
+                        let mut vd = Validator::new(block, data);
+                        for parm in &parms {
+                            vd.req_field(parm);
+                            if let Some(token) = vd.field_value(parm) {
+                                vec.push(token.clone());
+                            }
+                        }
+                        let args = parms.into_iter().zip(vec.into_iter()).collect();
+                        effect.validate_macro_expansion(args, data, sc, tooltipped);
+                        vd.warn_remaining();
+                    }
                 }
             }
-            // If it's a block, then it should contain macro arguments
             continue;
         }
 

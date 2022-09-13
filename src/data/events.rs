@@ -127,20 +127,6 @@ impl Events {
             item.validate(data);
         }
     }
-
-    pub fn validate_trigger_scope_compatibility(&self, key: &Token, sc: &mut ScopeContext) {
-        let index = (key.loc.pathname.to_path_buf(), key.to_string());
-        if let Some(item) = self.triggers.get(&index) {
-            item.validate_scope_compatibility(sc);
-        }
-    }
-
-    pub fn validate_effect_scope_compatibility(&self, key: &Token, sc: &mut ScopeContext) {
-        let index = (key.loc.pathname.to_path_buf(), key.to_string());
-        if let Some(item) = self.effects.get(&index) {
-            item.validate_scope_compatibility(sc);
-        }
-    }
 }
 
 impl FileHandler for Events {
