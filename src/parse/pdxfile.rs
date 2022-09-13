@@ -516,3 +516,61 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Option<Block> {
 pub fn parse_pdx_macro(inputs: &[Token]) -> Option<Block> {
     parse(inputs[0].loc.clone(), inputs)
 }
+
+// Simplified parsing just to get the macro arguments
+pub fn split_macros(content: &Token) -> Vec<Token> {
+    #[derive(Eq, PartialEq)]
+    enum State {
+        Normal,
+        InQString,
+        InComment,
+    }
+    let mut state = State::Normal;
+    let mut vec = Vec::new();
+    let mut loc = content.loc.clone();
+    let mut last_loc = loc.clone();
+    let mut last_pos = 0;
+    for (i, c) in content.as_str().char_indices() {
+        loc.offset = content.loc.offset + i;
+        match state {
+            State::InComment => {
+                if c == '\n' {
+                    state = State::Normal;
+                }
+            }
+            State::InQString => {
+                if c == '\n' || c == '"' {
+                    state = State::Normal;
+                }
+            }
+            State::Normal => {
+                if c == '#' {
+                    state = State::InComment;
+                } else if c == '"' {
+                    state = State::InQString;
+                } else if c == '$' {
+                    vec.push(Token::new(
+                        content.as_str()[last_pos..i].to_string(),
+                        last_loc,
+                    ));
+                    last_loc = loc.clone();
+                    // Skip the current '$'
+                    last_loc.column += 1;
+                    last_loc.offset += 1;
+                    last_pos = i + 1;
+                }
+            }
+        }
+        if c == '\n' {
+            loc.column = 1;
+            loc.line += 1;
+        } else {
+            loc.column += 1;
+        }
+    }
+    vec.push(Token::new(
+        content.as_str()[last_pos..].to_string(),
+        last_loc,
+    ));
+    vec
+}

@@ -6,7 +6,7 @@ pub mod validator;
 
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info};
-use crate::parse::pdxfile::parse_pdx_macro;
+use crate::parse::pdxfile::{parse_pdx_macro, split_macros};
 use crate::token::{Loc, Token};
 
 #[allow(clippy::module_name_repetitions)]
@@ -321,15 +321,14 @@ impl Block {
         found.cloned()
     }
 
-    // TODO: strip comments from source first
-    pub fn macro_parms(&self) -> Vec<&str> {
+    pub fn macro_parms(&self) -> Vec<String> {
         let mut vec = Vec::new();
         if let Some(source) = &self.source {
             let mut odd = false;
-            for part in source.as_str().split('$') {
+            for part in split_macros(source) {
                 odd = !odd;
                 if !odd {
-                    vec.push(part);
+                    vec.push(part.into_string());
                 }
             }
             vec.sort();
@@ -338,18 +337,17 @@ impl Block {
         vec
     }
 
-    // TODO: strip comments from source first
-    pub fn expand_macro(&self, args: Vec<(&str, Token)>) -> Option<Block> {
+    pub fn expand_macro(&self, args: Vec<(String, Token)>) -> Option<Block> {
         if let Some(source) = &self.source {
             let mut content = Vec::new();
             let mut odd = false;
-            for part in source.split('$') {
+            for part in split_macros(source) {
                 odd = !odd;
                 if odd {
                     content.push(part);
                 } else {
                     for (arg, val) in &args {
-                        if part.is(arg) {
+                        if part.is(&arg) {
                             content.push(val.clone());
                         }
                     }

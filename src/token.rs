@@ -122,6 +122,10 @@ impl Token {
         }
         None
     }
+
+    pub fn into_string(self) -> String {
+        self.s
+    }
 }
 
 /// Tokens are compared for equality regardless of their loc.

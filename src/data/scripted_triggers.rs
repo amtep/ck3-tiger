@@ -97,7 +97,7 @@ impl Trigger {
         }
     }
 
-    pub fn macro_parms(&self) -> Vec<&str> {
+    pub fn macro_parms(&self) -> Vec<String> {
         self.block.macro_parms()
     }
 
@@ -113,7 +113,7 @@ impl Trigger {
     // TODO: avoid duplicate error messages when invoking a macro effect many times
     pub fn validate_macro_expansion(
         &self,
-        args: Vec<(&str, Token)>,
+        args: Vec<(String, Token)>,
         data: &Everything,
         sc: &mut ScopeContext,
         tooltipped: bool,

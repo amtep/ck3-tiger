@@ -445,8 +445,8 @@ pub fn validate_effect<'a>(
                         let mut vec = Vec::new();
                         let mut vd = Validator::new(block, data);
                         for parm in &parms {
-                            vd.req_field(parm);
-                            if let Some(token) = vd.field_value(parm) {
+                            vd.req_field(parm.as_str());
+                            if let Some(token) = vd.field_value(parm.as_str()) {
                                 vec.push(token.clone());
                             } else {
                                 continue 'outer;
