@@ -12,7 +12,7 @@ use crate::errors::error;
 use crate::everything::Everything;
 use crate::token::{Loc, Token};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FileKind {
     Vanilla,
     Mod,

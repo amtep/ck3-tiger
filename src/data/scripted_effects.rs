@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
-use crate::token::Token;
+use crate::token::{Loc, Token};
 
 #[derive(Clone, Debug, Default)]
 pub struct Effects {
@@ -69,6 +69,7 @@ pub struct Effect {
     pub key: Token,
     block: Block,
     sc: RefCell<Option<ScopeContext>>,
+    cache: RefCell<FnvHashMap<Loc, ScopeContext>>,
 }
 
 impl Effect {
@@ -77,6 +78,7 @@ impl Effect {
             key,
             block,
             sc: RefCell::new(None),
+            cache: RefCell::new(FnvHashMap::default()),
         }
     }
 
@@ -99,6 +101,16 @@ impl Effect {
         self.block.macro_parms()
     }
 
+    pub fn cached_compat(&self, loc: &Loc, sc: &mut ScopeContext) -> bool {
+        if let Some(our_sc) = self.cache.borrow().get(loc) {
+            sc.expect_compatibility(our_sc);
+            true
+        } else {
+            false
+        }
+    }
+
+    // TODO: avoid duplicate error messages when invoking a macro effect many times
     pub fn validate_macro_expansion(
         &self,
         args: Vec<(&str, Token)>,
@@ -106,9 +118,21 @@ impl Effect {
         sc: &mut ScopeContext,
         tooltipped: bool,
     ) {
-        if let Some(block) = self.block.expand_macro(args) {
-            // TODO: avoid duplicate error messages when invoking a macro effect many times
-            validate_normal_effect(&block, data, sc, tooltipped);
+        // arg[0].1.loc gives us the unique location of this macro call.
+        // Every invocation is treated as different even if the args are the same,
+        // because we want to point to the correct one when reporting errors.
+        let loc = args[0].1.loc.clone();
+
+        if !self.cached_compat(&loc, sc) {
+            if let Some(block) = self.block.expand_macro(args) {
+                let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+                // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
+                // that dummy context instead of macro-expanding again.
+                self.cache.borrow_mut().insert(loc.clone(), our_sc.clone());
+                validate_normal_effect(&block, data, &mut our_sc, tooltipped);
+                sc.expect_compatibility(&our_sc);
+                self.cache.borrow_mut().insert(loc, our_sc);
+            }
         }
     }
 }

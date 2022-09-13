@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use crate::fileset::{FileEntry, FileKind};
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
     pub pathname: Rc<PathBuf>,
     pub kind: FileKind,

@@ -321,6 +321,7 @@ impl Block {
         found.cloned()
     }
 
+    // TODO: strip comments from source first
     pub fn macro_parms(&self) -> Vec<&str> {
         let mut vec = Vec::new();
         if let Some(source) = &self.source {
@@ -337,6 +338,7 @@ impl Block {
         vec
     }
 
+    // TODO: strip comments from source first
     pub fn expand_macro(&self, args: Vec<(&str, Token)>) -> Option<Block> {
         if let Some(source) = &self.source {
             let mut content = Vec::new();
