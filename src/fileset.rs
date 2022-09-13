@@ -292,6 +292,7 @@ const COMMON_DIRS: &[&str] = &[
     "common/character_backgrounds",
     "common/character_interaction_categories",
     "common/character_interactions",
+    "common/character_memory_types",
     "common/coat_of_arms/coat_of_arms",
     "common/coat_of_arms/dynamic_definitions",
     "common/coat_of_arms/options",

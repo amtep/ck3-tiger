@@ -1035,7 +1035,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (Secret, "spend_by", Scope(Scopes::Character)),
     (Character, "sponsor_inspiration", Scope(Scopes::Inspiration)),
     (Character, "start_default_task", Yes),
-    (GreatHolyWar, "start_ghw_war", Yes),
+    (GreatHolyWar, "start_ghw_war", Item(Item::CasusBelli)),
     (Faith, "start_great_holy_war", Special(StartGhw)),
     (
         Character,
