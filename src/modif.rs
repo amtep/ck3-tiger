@@ -70,11 +70,6 @@ pub fn validate_modifs<'a>(
     // TODO: if a modif is for a wrong ModifKind, say so instead of "unknown token"
 
     if kinds.intersects(ModifKinds::Character) {
-        // TODO: <scheme>_scheme_power_add
-        // TODO: <scheme>_scheme_power_mult
-        // TODO: <scheme>_scheme_resistance_add
-        // TODO: <scheme>_scheme_resistance_mult
-        // TODO: max_<scheme>_schemes_add
         vd.field_numeric("hostile_scheme_power_add");
         vd.field_numeric("hostile_scheme_power_mult");
         vd.field_numeric("hostile_scheme_resistance_add");
@@ -568,6 +563,36 @@ pub fn validate_modifs<'a>(
         if let Some(x) = token.as_str().strip_suffix("_xp_gain_mult") {
             if let Some(lifestyle) = x.strip_prefix("monthly_") {
                 data.verify_exists_implied(Item::Lifestyle, lifestyle, token);
+                kinds.require(ModifKinds::Character, token);
+                if let Some(value) = bv.expect_value() {
+                    if value.as_str().parse::<f64>().is_err() {
+                        error(value, ErrorKey::Validation, "expected number");
+                    }
+                }
+                continue;
+            }
+        }
+
+        for scheme_sfx in &[
+            "_scheme_power_add",
+            "_scheme_power_mult",
+            "_scheme_resistance_add",
+            "_scheme_resistance_mult",
+        ] {
+            if let Some(scheme) = token.as_str().strip_suffix(scheme_sfx) {
+                data.verify_exists_implied(Item::Scheme, scheme, token);
+                kinds.require(ModifKinds::Character, token);
+                if let Some(value) = bv.expect_value() {
+                    if value.as_str().parse::<f64>().is_err() {
+                        error(value, ErrorKey::Validation, "expected number");
+                    }
+                }
+                continue 'outer;
+            }
+        }
+        if let Some(x) = token.as_str().strip_suffix("_schemes_add") {
+            if let Some(scheme) = x.strip_prefix("max_") {
+                data.verify_exists_implied(Item::Scheme, scheme, token);
                 kinds.require(ModifKinds::Character, token);
                 if let Some(value) = bv.expect_value() {
                     if value.as_str().parse::<f64>().is_err() {
