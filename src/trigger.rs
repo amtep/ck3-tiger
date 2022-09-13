@@ -837,9 +837,16 @@ fn validate_trigger_keys(
             }
         }
 
-        "employs_court_position" | "is_court_position_employer" => {
+        "employs_court_position" => {
             sc.expect(Scopes::Character, key);
             bv.expect_value();
+        }
+
+        "is_court_position_employer" => {
+            sc.expect(Scopes::Character, key);
+            // undocumented, but it expects court_position = Item::CourtPosition
+            // and who = target character
+            bv.expect_block();
         }
 
         "exists" => {

@@ -5,6 +5,7 @@ use thiserror::Error;
 
 use crate::block::Block;
 use crate::data::characters::Characters;
+use crate::data::courtpos_categories::CourtPositionCategories;
 use crate::data::decisions::Decisions;
 use crate::data::dynasties::Dynasties;
 use crate::data::events::Events;
@@ -106,6 +107,8 @@ pub struct Everything {
     pub lifestyles: Lifestyles,
 
     pub terrains: Terrains,
+
+    pub courtpos_categories: CourtPositionCategories,
 }
 
 impl Everything {
@@ -170,6 +173,7 @@ impl Everything {
             traits: Traits::default(),
             lifestyles: Lifestyles::default(),
             terrains: Terrains::default(),
+            courtpos_categories: CourtPositionCategories::default(),
         })
     }
 
@@ -241,6 +245,7 @@ impl Everything {
         self.fileset.handle(&mut self.traits);
         self.fileset.handle(&mut self.lifestyles);
         self.fileset.handle(&mut self.terrains);
+        self.fileset.handle(&mut self.courtpos_categories);
     }
 
     pub fn validate_all(&mut self) {
@@ -267,6 +272,7 @@ impl Everything {
         self.relations.validate(self);
         self.traits.validate(self);
         self.lifestyles.validate(self);
+        self.courtpos_categories.validate(self);
     }
 
     pub fn check_rivers(&mut self) {
@@ -283,6 +289,7 @@ impl Everything {
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Character => self.characters.exists(key),
+            Item::CourtPositionCategory => self.courtpos_categories.exists(key),
             Item::Decision => self.decisions.exists(key),
             Item::Dynasty => self.dynasties.exists(key),
             Item::Event => self.events.exists(key),
