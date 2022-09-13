@@ -1,4 +1,5 @@
 pub mod characters;
+pub mod courtpos;
 pub mod courtpos_categories;
 pub mod decisions;
 pub mod dynasties;

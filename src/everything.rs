@@ -5,6 +5,7 @@ use thiserror::Error;
 
 use crate::block::Block;
 use crate::data::characters::Characters;
+use crate::data::courtpos::CourtPositions;
 use crate::data::courtpos_categories::CourtPositionCategories;
 use crate::data::decisions::Decisions;
 use crate::data::dynasties::Dynasties;
@@ -109,6 +110,7 @@ pub struct Everything {
     pub terrains: Terrains,
 
     pub courtpos_categories: CourtPositionCategories,
+    pub courtpos: CourtPositions,
 }
 
 impl Everything {
@@ -174,6 +176,7 @@ impl Everything {
             lifestyles: Lifestyles::default(),
             terrains: Terrains::default(),
             courtpos_categories: CourtPositionCategories::default(),
+            courtpos: CourtPositions::default(),
         })
     }
 
@@ -246,6 +249,7 @@ impl Everything {
         self.fileset.handle(&mut self.lifestyles);
         self.fileset.handle(&mut self.terrains);
         self.fileset.handle(&mut self.courtpos_categories);
+        self.fileset.handle(&mut self.courtpos);
     }
 
     pub fn validate_all(&mut self) {
@@ -273,6 +277,7 @@ impl Everything {
         self.traits.validate(self);
         self.lifestyles.validate(self);
         self.courtpos_categories.validate(self);
+        self.courtpos.validate(self);
     }
 
     pub fn check_rivers(&mut self) {

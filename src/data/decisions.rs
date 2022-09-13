@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
-use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::effect::validate_normal_effect;
 use crate::errorkey::ErrorKey;
@@ -16,7 +15,7 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::validate_cooldown;
+use crate::validate::{validate_cooldown, validate_cost};
 
 #[derive(Clone, Debug, Default)]
 pub struct Decisions {
@@ -158,21 +157,6 @@ impl Decision {
         vd.field("widget");
         vd.warn_remaining();
     }
-}
-
-fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
-    let mut vd = Validator::new(block, data);
-    // These can all be script values
-    vd.field_validated_bv("gold", |bv, data| {
-        ScriptValue::validate_bv(bv, data, sc);
-    });
-    vd.field_validated_bv("prestige", |bv, data| {
-        ScriptValue::validate_bv(bv, data, sc);
-    });
-    vd.field_validated_bv("piety", |bv, data| {
-        ScriptValue::validate_bv(bv, data, sc);
-    });
-    vd.warn_remaining();
 }
 
 fn check_cost(blocks: &[&Block]) {

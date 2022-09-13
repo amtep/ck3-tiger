@@ -320,3 +320,19 @@ pub fn validate_inside_iterator(
         }
     }
 }
+
+pub fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    // These can all be script values
+    vd.field_validated_bv("gold", |bv, data| {
+        ScriptValue::validate_bv(bv, data, sc);
+    });
+    vd.field_validated_bv("prestige", |bv, data| {
+        ScriptValue::validate_bv(bv, data, sc);
+    });
+    vd.field_validated_bv("piety", |bv, data| {
+        ScriptValue::validate_bv(bv, data, sc);
+    });
+    vd.field_bool("round");
+    vd.warn_remaining();
+}
