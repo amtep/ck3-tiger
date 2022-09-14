@@ -1,0 +1,95 @@
+on:
+  push:
+    tags:
+      - v[0-9]+*
+
+name: Release
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: linux
+            extension:
+            archive: tar.gz
+          - os: windows-latest
+            name: windows
+            extension: .exe
+            archive: zip
+    name: ${{ matrix.name }} build
+    runs-on: ${{ matrix.os }}
+    steps:
+
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          version=v$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          pkgdir="ck3-tiger-${{ matrix.name }}-$version"
+          echo "::set-output name=version::$version"
+          echo "::set-output name=pkgdir::$pkgdir"
+
+      - name: Verify version against tag
+        shell: bash
+        run: |
+          test "${{ github.ref_name }}" = "${{ steps.version.outputs.version }}"
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: Create output dir
+        shell: bash
+        run: |
+          mkdir ${{ steps.version.outputs.pkgdir }}
+          cp -p README.md TODO.md IDEAS.md LICENSE target/release/ck3-tiger${{ matrix.extension }} ${{ steps.version.outputs.pkgdir }}
+
+      - name: Archive .zip
+        uses: vimtor/action-zip@v1
+        if: ${{ matrix.archive == 'zip' }}
+        with:
+          files: ${{ steps.version.outputs.pkgdir }}/
+          dest: ${{ steps.version.outputs.pkgdir }}.zip
+
+      - name: Archive .tar.gz
+        if: ${{ matrix.archive == 'tar.gz' }}
+        run: tar cfvz ${{ steps.version.outputs.pkgdir }}.tar.gz  ${{ steps.version.outputs.pkgdir }}/
+
+      - name: Upload Archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: archives
+          path: ${{ steps.version.outputs.pkgdir }}.${{ matrix.archive }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Archives
+        uses: actions/download-artifact@v3
+        with:
+          name: archives
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: '*.zip,*.tar.gz'
