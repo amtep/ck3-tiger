@@ -1,6 +1,6 @@
 use strum_macros::{Display, EnumString};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Display, EnumString)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Display, EnumString, Hash)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ErrorKey {
     Config,

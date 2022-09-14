@@ -1,6 +1,6 @@
 use encoding::all::{UTF_8, WINDOWS_1252};
 use encoding::{DecoderTrap, Encoding};
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 use std::fmt::{Debug, Display, Formatter};
 use std::fs::read;
 use std::io::{stderr, Stderr, Write};
@@ -130,6 +130,10 @@ struct Errors {
 
     /// Minimum error level to log
     minimum_level: ErrorLevel,
+
+    /// Errors that have already been logged (to avoid duplication, which is common
+    /// when validating macro expanded triggers and effects)
+    seen: FnvHashSet<(Loc, ErrorKey, String, Option<Loc>)>,
 }
 
 // TODO: allow a message to have multiple tokens, and print the relevant lines as a stack
@@ -222,6 +226,12 @@ impl Errors {
             return;
         }
         let loc = eloc.into_loc();
+        let index = (loc.clone(), key, msg.to_string(), None);
+        if self.seen.contains(&index) {
+            return;
+        } else {
+            self.seen.insert(index);
+        }
         if !self.will_log(&loc, key) {
             return;
         }
@@ -243,6 +253,12 @@ impl Errors {
         }
         let loc = eloc.into_loc();
         let loc2 = eloc2.into_loc();
+        let index = (loc.clone(), key, msg.to_string(), Some(loc2.clone()));
+        if self.seen.contains(&index) {
+            return;
+        } else {
+            self.seen.insert(index);
+        }
         if !self.will_log(&loc, key) {
             return;
         }

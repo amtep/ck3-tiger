@@ -37,4 +37,3 @@
 * If you try to use scripted triggers in music files it will crash on startup
 * scripted_triggers in the dynasty legacy tracks too, though individual perks are fine
 * gfx: if a template is in modifiers the string should be somewhere in the genes
-* history processing crashes is a character is their own parent
