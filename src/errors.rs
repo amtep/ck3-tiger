@@ -3,7 +3,7 @@ use encoding::{DecoderTrap, Encoding};
 use fnv::{FnvHashMap, FnvHashSet};
 use std::fmt::{Debug, Display, Formatter};
 use std::fs::read;
-use std::io::{stderr, Stderr, Write};
+use std::io::{stdout, Stderr, Stdout, Write};
 use std::path::PathBuf;
 use unicode_width::UnicodeWidthChar;
 
@@ -178,7 +178,7 @@ impl Errors {
     #[allow(unused_must_use)] // If logging errors fails, there's not much we can do
     pub fn log(&mut self, loc: &Loc, level: ErrorLevel, msg: &str, info: Option<&str>) {
         if self.outfile.is_none() {
-            self.outfile = Some(Box::new(stderr()));
+            self.outfile = Some(Box::new(stdout()));
         }
         if let Some(line) = self.get_line(loc) {
             let line_marker = loc.line_marker();
@@ -412,6 +412,12 @@ pub trait ErrorLogger: Write {
 }
 
 impl ErrorLogger for Stderr {
+    fn get_logs(&self) -> Option<String> {
+        None
+    }
+}
+
+impl ErrorLogger for Stdout {
     fn get_logs(&self) -> Option<String> {
         None
     }

@@ -114,9 +114,9 @@ fn main() -> Result<()> {
         minimum_level(ErrorLevel::Info);
     }
 
-    println!("This validator was made for Crusader Kings version 1.7.0.");
-    println!("If you are using a newer version of Crusader Kings, it may be inaccurate.");
-    println!("!! Currently it's inaccurate anyway because it's in alpha state.");
+    eprintln!("This validator was made for Crusader Kings version 1.7.0.");
+    eprintln!("If you are using a newer version of Crusader Kings, it may be inaccurate.");
+    eprintln!("!! Currently it's inaccurate anyway because it's in alpha state.");
 
     let modfile = ModFile::read(&args.modpath)?;
     let modpath = modfile.modpath();

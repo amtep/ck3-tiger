@@ -1,7 +1,6 @@
 # TODO
 
 ## Changes
-* Print the validation errors to stdout instead of stderr. They are normal output.
 * Possibly a new format:
 ```
 file FILENAME
