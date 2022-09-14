@@ -90,6 +90,7 @@ impl ScriptValue {
     fn validate_inner(mut vd: Validator, data: &Everything, sc: &mut ScopeContext) {
         vd.field_value_item("desc", Item::Localization);
         vd.field_value_item("format", Item::Localization);
+        vd.field_value("save_temporary_scope_as");
         vd.field_validated("value", |bv, data| {
             Self::validate_bv(bv, data, sc);
         });
