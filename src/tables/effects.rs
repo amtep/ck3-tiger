@@ -118,8 +118,6 @@ pub enum Effect {
     ItemValue(&'static str, Item),
     Desc,
     Gender, // male/female/random
-    Sexuality,
-    HoldingType,
     Special(SpecialEffect),
     Control(ControlEffect),
     Unchecked, // so special that we just accept whatever argument
@@ -961,7 +959,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
         Special(SetGhwTarget),
     ),
     (Culture, "set_heritage_from", Scope(Scopes::Culture)),
-    (Province, "set_holding_type", HoldingType),
+    (Province, "set_holding_type", Item(Item::Holding)),
     (Character, "set_house", Scope(Scopes::DynastyHouse)),
     (DynastyHouse, "set_house_name", Item(Item::Localization)),
     (
@@ -1011,7 +1009,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     ),
     (Character, "set_reserved_gold_maximum", Effect::Value),
     (Secret, "set_secret_owner", Scope(Scopes::Character)),
-    (Character, "set_sexuality", Sexuality),
+    (Character, "set_sexuality", Item(Item::Sexuality)),
     (Artifact, "set_should_decay", Effect::Bool),
     (Faction, "set_special_character", Scope(Scopes::Character)),
     (Faction, "set_special_title", Scope(Scopes::LandedTitle)),

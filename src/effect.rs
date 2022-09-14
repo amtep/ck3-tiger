@@ -369,8 +369,6 @@ pub fn validate_effect<'a>(
                 }
                 Effect::Desc => (),             // TODO
                 Effect::Gender => (),           // TODO
-                Effect::Sexuality => (),        // TODO
-                Effect::HoldingType => (),      // TODO
                 Effect::Special(special) => (), // TODO
                 Effect::Control(ControlEffect::CustomTooltip) => match bv {
                     BlockOrValue::Token(t) => data.verify_exists(Item::Localization, t),

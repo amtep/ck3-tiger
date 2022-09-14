@@ -17,8 +17,6 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::validate::validate_prefix_reference_token;
 
-const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual"];
-
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Gender {
     Male,
@@ -258,7 +256,7 @@ impl Character {
         vd.field_value_item("dynasty_house", Item::House);
 
         vd.field_value("give_nickname");
-        vd.field_choice("sexuality", SEXUALITIES);
+        vd.field_value_item("sexuality", Item::Sexuality);
         vd.field_numeric("health");
         vd.field_numeric("fertility");
         vd.field_block("portrait_override");

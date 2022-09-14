@@ -316,6 +316,7 @@ impl Everything {
             Item::ScriptedList => self.scripted_lists.exists(key),
             Item::ScriptedTrigger => self.triggers.exists(key),
             Item::ScriptValue => self.scriptvalues.exists(key),
+            Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
             Item::Terrain => self.terrains.exists(key),
             Item::Title => self.titles.exists(key),
@@ -395,3 +396,5 @@ const SKILLS: &[&str] = &[
     "prowess",
     "stewardship",
 ];
+
+const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual"];
