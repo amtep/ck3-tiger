@@ -59,7 +59,7 @@ fn find_steamapps_directory() -> Option<PathBuf> {
         let key = RegKey::predef(HKEY_LOCAL_MACHINE)
             .open_subkey(STEAM_WINDOWS_KEY)
             .ok()?;
-        let on_windows = key.get_value("InstallPath").ok()?;
+        let on_windows: String = key.get_value("InstallPath").ok()?;
         let on_windows = PathBuf::from(on_windows).join("steamapps");
         if on_windows.is_dir() {
             return Some(on_windows);
