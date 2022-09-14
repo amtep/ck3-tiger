@@ -45,6 +45,42 @@ pub struct LocaEntry {
     orig: Option<Token>, // original unparsed value, with enclosing " stripped
 }
 
+impl LocaEntry {
+    // returns false to abort expansion in case of an error
+    fn expand_macros<'a>(
+        &'a self,
+        vec: &mut Vec<&'a Token>,
+        from: &'a FnvHashMap<String, LocaEntry>,
+        count: &mut usize,
+    ) -> bool {
+        if *count > 250 {
+            return false;
+        }
+        *count += 1;
+
+        if let LocaValue::Macro(v) = &self.value {
+            for macrovalue in v {
+                match macrovalue {
+                    MacroValue::Text(ref token) => vec.push(token),
+                    MacroValue::Keyword(k, _) => {
+                        if let Some(entry) = from.get(k.as_str()) {
+                            if !entry.expand_macros(vec, from, count) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            true
+        } else if let Some(orig) = &self.orig {
+            vec.push(orig);
+            true
+        } else {
+            false
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub enum LocaValue {
     // If the LocaValue is a Macro type, then it should be re-parsed after the macro values
@@ -327,34 +363,16 @@ impl FileHandler for Localization {
         for lang in self.locas.values_mut() {
             let orig_lang = lang.clone();
             for mut entry in lang.values_mut() {
-                let mut recursion_count = 0u8;
-                'outer: while let LocaValue::Macro(ref v) = entry.value {
+                if matches!(entry.value, LocaValue::Macro(_)) {
+                    let mut count = 0;
                     let mut new_line: Vec<&Token> = Vec::new();
-                    for macrovalue in v {
-                        match macrovalue {
-                            MacroValue::Text(token) => new_line.push(token),
-                            MacroValue::Keyword(k, _) => {
-                                if let Some(entry) = orig_lang.get(k.as_str()) {
-                                    if let Some(orig) = &entry.orig {
-                                        new_line.push(orig);
-                                    } else {
-                                        break 'outer;
-                                    }
-                                } else {
-                                    break 'outer;
-                                }
-                            }
-                        }
-                    }
-                    let mut value = ValueParser::new(new_line).parse_value();
-                    entry.value = if value.len() == 1 {
-                        std::mem::take(&mut value[0])
-                    } else {
-                        LocaValue::Concat(value)
-                    };
-                    recursion_count += 1;
-                    if recursion_count >= 250 {
-                        break;
+                    if entry.expand_macros(&mut new_line, &orig_lang, &mut count) {
+                        let mut value = ValueParser::new(new_line).parse_value();
+                        entry.value = if value.len() == 1 {
+                            std::mem::take(&mut value[0])
+                        } else {
+                            LocaValue::Concat(value)
+                        };
                     }
                 }
             }
