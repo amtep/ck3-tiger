@@ -367,8 +367,18 @@ pub fn validate_effect<'a>(
                         vd.warn_remaining()
                     }
                 }
-                Effect::Desc => (),             // TODO
-                Effect::Gender => (),           // TODO
+                Effect::Desc => validate_desc(bv, data, sc),
+                Effect::Gender => {
+                    if let Some(token) = bv.expect_value() {
+                        if !(token.is("male") || token.is("female") || token.is("random")) {
+                            warn(
+                                token,
+                                ErrorKey::Validation,
+                                "expected `male`, `female`, or `random`",
+                            );
+                        }
+                    }
+                }
                 Effect::Special(special) => (), // TODO
                 Effect::Control(ControlEffect::CustomTooltip) => match bv {
                     BlockOrValue::Token(t) => data.verify_exists(Item::Localization, t),
