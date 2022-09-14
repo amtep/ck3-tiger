@@ -333,6 +333,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
             Scopes::Character,
         ),
     ),
+    (None, "assert_if", Unchecked),
     (Army, "assign_commander", Scope(Scopes::Character)),
     (Character, "assign_council_task", Special(AssignCouncilTask)),
     (
