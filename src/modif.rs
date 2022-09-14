@@ -84,23 +84,6 @@ pub fn validate_modifs<'a>(
         vd.field_numeric("owned_personal_scheme_success_chance_add");
         vd.field_numeric("owned_scheme_secrecy_add");
         vd.field_numeric("scheme_discovery_chance_mult");
-        // TODO: scheme_power_against_<relation>_add
-        // TODO: scheme_power_against_<relation>_mult
-
-        // TODO: <maa_base_type>_damage_add
-        // TODO: <maa_base_type>_damage_mult
-        // TODO: <maa_base_type>_maintenance_mult
-        // TODO: <maa_base_type>_max_size_add
-        // TODO: <maa_base_type>_max_size_mult
-        // TODO: <maa_base_type>_pursuit_add
-        // TODO: <maa_base_type>_pursuit_mult
-        // TODO: <maa_base_type>_recruitment_cost_mult
-        // TODO: <maa_base_type>_screen_add
-        // TODO: <maa_base_type>_screen_mult
-        // TODO: <maa_base_type>_siege_value_add
-        // TODO: <maa_base_type>_siege_value_mult
-        // TODO: <maa_base_type>_toughness_add
-        // TODO: <maa_base_type>_toughness_mult
 
         vd.field_numeric("ai_amenity_spending");
         vd.field_numeric("ai_amenity_target_baseline");
@@ -176,15 +159,9 @@ pub fn validate_modifs<'a>(
         vd.field_numeric("spouse_opinion");
         vd.field_numeric("twin_opinion");
         vd.field_numeric("vassal_opinion");
-        // TODO: <government>_opinion_same_faith
-        // TODO: <government>_vassal_opinion
 
         vd.field_numeric("character_capital_county_monthly_development_growth_add");
 
-        // TODO: <government>_levy_contribution_add
-        // TODO: <government>_levy_contribution_mult
-        // TODO: <government>_tax_contribution_add
-        // TODO: <government>_tax_contribution_mult
         vd.field_numeric("cowed_vassal_levy_contribution_add");
         vd.field_numeric("cowed_vassal_levy_contribution_mult");
         vd.field_numeric("cowed_vassal_tax_contribution_add");
@@ -603,6 +580,29 @@ pub fn validate_modifs<'a>(
             }
         }
 
+        if let Some(x) = token.as_str().strip_prefix("scheme_power_against_") {
+            if let Some(relation) = x.strip_suffix("_add") {
+                data.verify_exists_implied(Item::Relation, relation, token);
+                kinds.require(ModifKinds::Character, token);
+                if let Some(value) = bv.expect_value() {
+                    if value.as_str().parse::<f64>().is_err() {
+                        error(value, ErrorKey::Validation, "expected number");
+                    }
+                }
+                continue;
+            }
+            if let Some(relation) = x.strip_suffix("_mult") {
+                data.verify_exists_implied(Item::Relation, relation, token);
+                kinds.require(ModifKinds::Character, token);
+                if let Some(value) = bv.expect_value() {
+                    if value.as_str().parse::<f64>().is_err() {
+                        error(value, ErrorKey::Validation, "expected number");
+                    }
+                }
+                continue;
+            }
+        }
+
         if let Some(something) = token.as_str().strip_suffix("_opinion") {
             if !data.item_exists(Item::Religion, something)
                 && !data.item_exists(Item::Faith, something)
@@ -619,6 +619,54 @@ pub fn validate_modifs<'a>(
                 }
             }
             continue;
+        }
+
+        for maa_sfx in &[
+            "_damage_add",
+            "_damage_mult",
+            "_maintenance_mult",
+            "_max_size_add",
+            "_max_size_mult",
+            "_pursuit_add",
+            "_pursuit_mult",
+            "_recruitment_cost_mult",
+            "_screen_add",
+            "_screen_mult",
+            "_siege_value_add",
+            "_siege_value_mult",
+            "_toughness_add",
+            "_toughness_mult",
+        ] {
+            if let Some(maa_base) = token.as_str().strip_suffix(maa_sfx) {
+                data.verify_exists_implied(Item::MenAtArmsBase, maa_base, token);
+                kinds.require(ModifKinds::Character, token);
+                if let Some(value) = bv.expect_value() {
+                    if value.as_str().parse::<f64>().is_err() {
+                        error(value, ErrorKey::Validation, "expected number");
+                    }
+                }
+                continue 'outer;
+            }
+        }
+
+        for sfx in &[
+            "_opinion_same_faith",
+            "_vassal_opinion",
+            "_levy_contribution_add",
+            "_levy_contribution_mult",
+            "_tax_contribution_add",
+            "_tax_contribution_mult",
+        ] {
+            if let Some(government) = token.as_str().strip_suffix(sfx) {
+                data.verify_exists_implied(Item::Government, government, token);
+                kinds.require(ModifKinds::Character, token);
+                if let Some(value) = bv.expect_value() {
+                    if value.as_str().parse::<f64>().is_err() {
+                        error(value, ErrorKey::Validation, "expected number");
+                    }
+                }
+                continue 'outer;
+            }
         }
 
         let msg = format!("unknown modifier `{}`", token);
