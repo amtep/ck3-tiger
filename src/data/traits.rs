@@ -155,6 +155,7 @@ impl Trait {
         vd.field_bool("lifestyle");
         vd.field_bool("personality");
         vd.field_bool("health_trait");
+        vd.field_bool("court_type_trait");
         vd.field_bool("genetic");
         vd.field_bool("physical");
         vd.field_bool("good");
