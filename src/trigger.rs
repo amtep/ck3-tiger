@@ -339,6 +339,11 @@ pub fn validate_trigger(
                 }
                 continue;
             }
+            if key.is("weighted_calc_true_if") {
+                bv.expect_block();
+                // TODO
+                continue;
+            }
 
             if let Some((inscopes, item)) = scope_trigger_item(key.as_str()) {
                 sc.expect(inscopes, key);

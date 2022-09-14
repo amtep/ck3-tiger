@@ -1,4 +1,4 @@
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 
@@ -7,7 +7,7 @@ use crate::block::{Block, Date};
 use crate::context::ScopeContext;
 use crate::effect::{validate_effect, validate_normal_effect, ListType};
 use crate::errorkey::ErrorKey;
-use crate::errors::error;
+use crate::errors::{error, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -95,6 +95,43 @@ impl Characters {
             }
         }
     }
+
+    // Check the ancestors of `ch` to see if `ch` is among them.
+    // If a cycle is found, return a `Vec` with the ancestry from `ch` up to `ch`.
+    pub fn _check_ancestors<'a>(
+        &'a self,
+        item: &'a Character,
+        ch: &str,
+        checking: &mut FnvHashSet<&'a str>,
+    ) -> Vec<String> {
+        let first = checking.is_empty();
+        if item.key.is(ch) && !first {
+            // Found a cycle
+            return vec![ch.to_string()];
+        }
+
+        if checking.contains(&item.key.as_str()) {
+            // not necessarily a cycle, could just be a shared ancestor
+            return Vec::new();
+        }
+        checking.insert(item.key.as_str());
+
+        let mut cycle_vec = Vec::new();
+        if let Some(token) = item.block.get_field_value("father") {
+            if let Some(parent) = self.characters.get(token.as_str()) {
+                cycle_vec = self._check_ancestors(parent, ch, checking);
+            }
+        }
+        if let Some(token) = item.block.get_field_value("mother") {
+            if let Some(parent) = self.characters.get(token.as_str()) {
+                cycle_vec = self._check_ancestors(parent, ch, checking);
+            }
+        }
+        if !cycle_vec.is_empty() && !first {
+            cycle_vec.insert(0, item.key.to_string());
+        }
+        return cycle_vec;
+    }
 }
 
 impl FileHandler for Characters {
@@ -124,6 +161,23 @@ impl FileHandler for Characters {
 
         for (key, b) in block.iter_pure_definitions_warn() {
             self.load_item(key, b);
+        }
+    }
+
+    fn finalize(&mut self) {
+        // Find loops in the ancestry tree. These will crash the game.
+        for item in self.characters.values() {
+            let mut checking = FnvHashSet::default();
+            let cycle_vec = self._check_ancestors(item, item.key.as_str(), &mut checking);
+            if !cycle_vec.is_empty() {
+                let info = format!("via {}", cycle_vec.join(", "));
+                warn_info(
+                    &item.key,
+                    ErrorKey::Crash,
+                    "character is their own ancestor",
+                    &info,
+                );
+            }
         }
     }
 }
