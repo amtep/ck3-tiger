@@ -302,10 +302,13 @@ impl Everything {
             Item::File => self.fileset.exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),
             Item::House => self.houses.exists(key),
+            Item::Holding => HOLDING_TYPES.contains(&key),
             Item::Interaction => self.interactions.exists(key),
             Item::Lifestyle => self.lifestyles.exists(key),
             Item::Localization => self.localization.exists(key),
+            Item::MenAtArmsBase => MEN_AT_ARMS_BASE.contains(&key),
             Item::NameList => self.namelists.exists(key),
+            Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces.exists(key),
             Item::Relation => self.relations.exists(key),
             Item::Religion => self.religions.religion_exists(key),
@@ -313,6 +316,7 @@ impl Everything {
             Item::ScriptedList => self.scripted_lists.exists(key),
             Item::ScriptedTrigger => self.triggers.exists(key),
             Item::ScriptValue => self.scriptvalues.exists(key),
+            Item::Skill => SKILLS.contains(&key),
             Item::Terrain => self.terrains.exists(key),
             Item::Title => self.titles.exists(key),
             Item::Trait => self.traits.exists(key),
@@ -358,3 +362,36 @@ impl Everything {
         }
     }
 }
+
+/// LAST UPDATED VERSION 1.7.0
+const HOLDING_TYPES: &[&str] = &[
+    "castle_holding",
+    "city_holding",
+    "church_holding",
+    "tribal_holding",
+];
+
+/// LAST UPDATED VERSION 1.7.0
+const MEN_AT_ARMS_BASE: &[&str] = &[
+    "archers",
+    "heavy_infantry",
+    "heavy_cavalry",
+    "elephant_cavalry",
+    "archer_cavalry",
+    "light_cavalry",
+    "skirmishers",
+    "pikemen",
+    "camel_cavalry",
+    "siege_weapon",
+];
+
+const PRISON_TYPES: &[&str] = &["dungeon", "house_arrest"];
+
+const SKILLS: &[&str] = &[
+    "diplomacy",
+    "intrigue",
+    "learning",
+    "martial",
+    "prowess",
+    "stewardship",
+];
