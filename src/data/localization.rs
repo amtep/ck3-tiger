@@ -20,6 +20,7 @@ pub struct Localization {
     check_langs: Vec<&'static str>,
     warned_dirs: Vec<String>,
     locas: FnvHashMap<&'static str, FnvHashMap<String, LocaEntry>>,
+    mod_langs: Vec<&'static str>,
 }
 
 // LAST UPDATED VERSION 1.7.0
@@ -131,7 +132,7 @@ impl Localization {
         if key.is_empty() {
             return;
         }
-        for lang in &self.check_langs {
+        for lang in &self.mod_langs {
             let hash = self.locas.get(lang);
             if hash.is_none() || !hash.unwrap().contains_key(key) {
                 error(
@@ -238,6 +239,14 @@ impl FileHandler for Localization {
 
         if KNOWN_LANGUAGES.contains(&&*lang) && !self.check_langs.contains(&&*lang) {
             return;
+        }
+
+        if entry.kind() == FileKind::Mod && !self.mod_langs.contains(&&*lang) {
+            for known in KNOWN_LANGUAGES {
+                if known == lang {
+                    self.mod_langs.push(known);
+                }
+            }
         }
 
         if let Some(filelang) = get_file_lang(entry.filename()) {
@@ -359,6 +368,7 @@ impl Default for Localization {
             check_langs: Vec::from(KNOWN_LANGUAGES),
             warned_dirs: Vec::default(),
             locas: FnvHashMap::default(),
+            mod_langs: Vec::default(),
         }
     }
 }
