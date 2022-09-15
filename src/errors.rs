@@ -119,7 +119,7 @@ struct Errors {
     /// Whether to log errors in vanilla CK3 files
     show_vanilla: bool,
 
-    /// Skip logging errors with these keys for these files
+    /// Skip logging errors with these keys for these files and directories
     ignore_keys_for: FnvHashMap<PathBuf, Vec<ErrorKey>>,
 
     /// Skip logging errors with these keys
@@ -165,12 +165,10 @@ impl Errors {
         {
             return false;
         }
-        if let Some(true) = self
-            .ignore_keys_for
-            .get(&*loc.pathname)
-            .map(|v| v.contains(&key))
-        {
-            return false;
+        for (path, keys) in self.ignore_keys_for.iter() {
+            if loc.pathname.starts_with(path) && keys.contains(&key) {
+                return false;
+            }
         }
         true
     }
