@@ -556,11 +556,11 @@ impl<'a> Validator<'a> {
 
     pub fn validate_history_blocks<F>(&mut self, mut f: F)
     where
-        F: FnMut(&Block, &Everything),
+        F: FnMut(Date, &Block, &Everything),
     {
         for (k, cmp, v) in &self.block.v {
             if let Some(key) = k {
-                if Date::try_from(key).is_ok() {
+                if let Ok(date) = Date::try_from(key) {
                     self.known_fields.push(key.as_str());
                     if !matches!(cmp, Comparator::Eq) {
                         error(
@@ -573,7 +573,7 @@ impl<'a> Validator<'a> {
                         BlockOrValue::Token(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
                         }
-                        BlockOrValue::Block(s) => f(s, self.data),
+                        BlockOrValue::Block(s) => f(date, s, self.data),
                     }
                 }
             }

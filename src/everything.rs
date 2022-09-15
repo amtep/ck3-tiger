@@ -25,6 +25,7 @@ use crate::data::scripted_lists::ScriptedLists;
 use crate::data::scripted_triggers::{Trigger, Triggers};
 use crate::data::scriptvalues::ScriptValues;
 use crate::data::terrain::Terrains;
+use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
 use crate::errorkey::ErrorKey;
@@ -111,6 +112,8 @@ pub struct Everything {
 
     pub courtpos_categories: CourtPositionCategories,
     pub courtpos: CourtPositions,
+
+    pub title_history: TitleHistories,
 }
 
 impl Everything {
@@ -177,6 +180,7 @@ impl Everything {
             terrains: Terrains::default(),
             courtpos_categories: CourtPositionCategories::default(),
             courtpos: CourtPositions::default(),
+            title_history: TitleHistories::default(),
         })
     }
 
@@ -250,6 +254,7 @@ impl Everything {
         self.fileset.handle(&mut self.terrains);
         self.fileset.handle(&mut self.courtpos_categories);
         self.fileset.handle(&mut self.courtpos);
+        self.fileset.handle(&mut self.title_history);
     }
 
     pub fn validate_all(&mut self) {
@@ -278,6 +283,7 @@ impl Everything {
         self.lifestyles.validate(self);
         self.courtpos_categories.validate(self);
         self.courtpos.validate(self);
+        self.title_history.validate(self);
     }
 
     pub fn check_rivers(&mut self) {

@@ -7,7 +7,7 @@ use crate::block::{Block, Date};
 use crate::context::ScopeContext;
 use crate::effect::{validate_effect, validate_normal_effect, ListType};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn_info};
+use crate::errors::{error, warn, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -84,6 +84,21 @@ impl Characters {
 
     pub fn exists(&self, key: &str) -> bool {
         self.characters.contains_key(key)
+    }
+
+    pub fn is_alive(&self, item: &Token, date: Date) -> bool {
+        if let Some(item) = self.characters.get(item.as_str()) {
+            item.is_alive(date)
+        } else {
+            false
+        }
+    }
+
+    pub fn verify_alive(&self, item: &Token, date: Date) {
+        if !self.is_alive(item, date) {
+            let msg = format!("{} is not alive on {}", item, date);
+            warn(item, ErrorKey::History, &msg);
+        }
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -205,6 +220,12 @@ impl Character {
         Gender::from_female_bool(self.block.get_field_bool("female").unwrap_or(false))
     }
 
+    pub fn is_alive(&self, date: Date) -> bool {
+        // TODO: figure out if we need to account for deaths triggered in effect { } blocks
+        self.block.get_field_at_date("birth", date).is_some()
+            && !self.block.get_field_at_date("death", date).is_some()
+    }
+
     pub fn validate_history(
         block: &Block,
         parent: &Block,
@@ -315,7 +336,9 @@ impl Character {
         vd.field_numeric("fertility");
         vd.field_block("portrait_override");
 
-        vd.validate_history_blocks(|b, data| Self::validate_history(b, &self.block, data, &mut sc));
+        vd.validate_history_blocks(|_date, b, data| {
+            Self::validate_history(b, &self.block, data, &mut sc)
+        });
         vd.warn_remaining();
     }
 }

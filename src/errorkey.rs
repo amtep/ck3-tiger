@@ -30,6 +30,7 @@ pub enum ErrorKey {
     Rivers,
     Modifiers,
     Macro,
+    History,
 
     PrincesOfDarkness,
 }

@@ -133,7 +133,7 @@ impl ProvinceHistory {
         vd.field_value("duchy_capital_building"); // TODO: check if duchy capital
     }
 
-    fn validate_history(block: &Block, data: &Everything) {
+    fn validate_history(_date: Date, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         Self::validate_common(&mut vd, data);
         vd.warn_remaining();

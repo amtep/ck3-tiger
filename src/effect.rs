@@ -379,7 +379,7 @@ pub fn validate_effect<'a>(
                         }
                     }
                 }
-                Effect::Special(special) => (), // TODO
+                Effect::Special(_special) => (), // TODO
                 Effect::Control(ControlEffect::CustomTooltip) => match bv {
                     BlockOrValue::Token(t) => data.verify_exists(Item::Localization, t),
                     BlockOrValue::Block(b) => validate_effect_control(

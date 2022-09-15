@@ -19,5 +19,6 @@ pub mod scripted_lists;
 pub mod scripted_triggers;
 pub mod scriptvalues;
 pub mod terrain;
+pub mod title_history;
 pub mod titles;
 pub mod traits;

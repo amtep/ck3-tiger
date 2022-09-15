@@ -10,6 +10,7 @@ use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -20,7 +21,7 @@ pub struct Titles {
 }
 
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
-enum Tier {
+pub enum Tier {
     Barony,
     County,
     Duchy,
@@ -185,6 +186,7 @@ impl Title {
     }
 
     pub fn validate(&self, data: &Everything) {
+        data.verify_exists(Item::TitleHistory, &self.key);
         data.localization.verify_exists(&self.key);
         // TODO: figure out when to recommend adding _adj or _pre titles
         // The _adj key is optional

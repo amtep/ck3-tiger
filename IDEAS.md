@@ -27,7 +27,6 @@
 * Check that `heightmap.png` is not newer than `indirection_heightmap.png` and `packed_heightmap.png`
 
 ## History
-* In history files, setting `liege =` to a title that has no holder at that date will not set the vassal
 * bookmarked characters need to have a static COA for their highest landed title, because if it's random it will be blank on the bookmark selection view
 
 ## Gfx

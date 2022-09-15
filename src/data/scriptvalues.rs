@@ -6,7 +6,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
+use crate::errors::{error, warn, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -90,6 +90,10 @@ impl ScriptValue {
     fn validate_inner(mut vd: Validator, data: &Everything, sc: &mut ScopeContext) {
         vd.field_value_item("desc", Item::Localization);
         vd.field_value_item("format", Item::Localization);
+        if let Some(token) = vd.field_value("save_temporary_scope_as") {
+            // TODO: warn on the key not the token
+            warn_info(token, ErrorKey::Validation, "`save_temporary_scope_as` does not work in script value", "but you can put it in an `if = { limit = { save_temporary_scope_as = ... } }` block inside a script value");
+        }
         vd.field_validated("value", |bv, data| {
             Self::validate_bv(bv, data, sc);
         });
