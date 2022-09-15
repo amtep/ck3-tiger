@@ -227,6 +227,7 @@ impl Character {
     }
 
     pub fn validate_history(
+        date: Date,
         block: &Block,
         parent: &Block,
         data: &Everything,
@@ -246,7 +247,14 @@ impl Character {
             validate_prefix_reference_token(token, data, "faith");
         }
 
-        vd.field_value_item("employer", Item::Character);
+        if let Some(token) = vd.field_value("employer") {
+            if !token.is("0") {
+                data.verify_exists(Item::Character, token);
+                if data.item_exists(Item::Character, token.as_str()) {
+                    data.characters.verify_alive(token, date);
+                }
+            }
+        }
         vd.field_value("culture");
         vd.field_value("set_culture");
         vd.field_values_items("trait", Item::Trait);
@@ -269,15 +277,27 @@ impl Character {
         let gender = Gender::from_female_bool(parent.get_field_bool("female").unwrap_or(false));
         for token in vd.field_values("add_spouse") {
             data.characters.verify_exists_gender(token, gender.flip());
+            if data.item_exists(Item::Character, token.as_str()) {
+                data.characters.verify_alive(token, date);
+            }
         }
         for token in vd.field_values("add_matrilineal_spouse") {
             data.characters.verify_exists_gender(token, gender.flip());
+            if data.item_exists(Item::Character, token.as_str()) {
+                data.characters.verify_alive(token, date);
+            }
         }
         for token in vd.field_values("add_same_sex_spouse") {
             data.characters.verify_exists_gender(token, gender);
+            if data.item_exists(Item::Character, token.as_str()) {
+                data.characters.verify_alive(token, date);
+            }
         }
         for token in vd.field_values("add_concubine") {
             data.characters.verify_exists_gender(token, gender.flip());
+            if data.item_exists(Item::Character, token.as_str()) {
+                data.characters.verify_alive(token, date);
+            }
         }
         for token in vd.field_values("remove_spouse") {
             // TODO: also check that they were a spouse
@@ -286,6 +306,15 @@ impl Character {
 
         vd.field_value_item("dynasty", Item::Dynasty);
         vd.field_value_item("dynasty_house", Item::House);
+
+        vd.field_value_item("give_nickname", Item::Nickname);
+
+        vd.field_numeric("add_prestige");
+        vd.field_numeric("add_piety");
+        vd.field_numeric("add_gold");
+
+        // TODO: check if they have an employer at this date?
+        vd.field_value_item("give_council_position", Item::CouncilPosition);
 
         vd.field_validated_blocks("effect", |b, data| {
             validate_normal_effect(b, data, sc, false);
@@ -336,8 +365,8 @@ impl Character {
         vd.field_numeric("fertility");
         vd.field_block("portrait_override");
 
-        vd.validate_history_blocks(|_date, b, data| {
-            Self::validate_history(b, &self.block, data, &mut sc)
+        vd.validate_history_blocks(|date, b, data| {
+            Self::validate_history(date, b, &self.block, data, &mut sc)
         });
         vd.warn_remaining();
     }
