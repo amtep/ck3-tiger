@@ -77,6 +77,10 @@ impl CourtPosition {
     }
 
     pub fn validate(&self, data: &Everything) {
+        data.verify_exists(Item::Localization, &self.key);
+        let loca = format!("{}_desc", self.key);
+        data.verify_exists_implied(Item::Localization, &loca, &self.key);
+
         let mut vd = Validator::new(&self.block, data);
         vd.req_field("skill");
         vd.field_value_item("skill", Item::Skill);
