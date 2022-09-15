@@ -78,7 +78,7 @@ impl From<&FileEntry> for Token {
 
 /// A trait for a submodule that can process files.
 pub trait FileHandler {
-    /// The `FileHandler` can read settings it needs from the mod-validator config.
+    /// The `FileHandler` can read settings it needs from the ck3-tiger config.
     fn config(&mut self, _config: &Block) {}
 
     /// Which files this handler is interested in.
@@ -106,7 +106,7 @@ pub struct Fileset {
     /// A list of directories that should not be read from vanilla.
     replace_paths: Vec<PathBuf>,
 
-    /// The mod-validator config
+    /// The ck3-tiger config
     config: Option<Block>,
 
     /// The CK3 and mod files in arbitrary order (will be empty after `finalize`)

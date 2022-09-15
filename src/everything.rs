@@ -144,7 +144,7 @@ impl Everything {
             })?;
         fileset.finalize();
 
-        let config_file = mod_root.join("mod-validator.conf");
+        let config_file = mod_root.join("ck3-tiger.conf");
         let config = if config_file.is_file() {
             Self::_read_config(&config_file)
                 .ok_or(FilesError::ConfigUnreadable { path: config_file })?
