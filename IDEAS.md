@@ -3,7 +3,6 @@
 ## General
 * root.set_variable doesn't work; an effect can't be chained to a scope. Has to be `root = { set_variable ... }`
 * Some code (in scripted_lists and in lifestyles) is not allowed to use scripted content in its triggers
-* warn about certain triggers (gold, piety, prestige, title_held_years) if they are used with = rather than a more general comparator
 * Many effects and triggers have a target field. It almost never makes sense to have who = this or target = this as the target. It's worth warning about especially in macros.
 
 ## Advice
@@ -28,6 +27,7 @@
 
 ## History
 * bookmarked characters need to have a static COA for their highest landed title, because if it's random it will be blank on the bookmark selection view
+* title history: Warn if one character gets multiple different lieges on the same day
 
 ## Gfx
 * CK3 needs all of its bones to be oriented y+ in rest position

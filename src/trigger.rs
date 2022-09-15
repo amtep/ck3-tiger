@@ -405,6 +405,7 @@ pub fn validate_trigger(
 
             let part_vec = key.split('.');
             sc.open_builder();
+            let mut warn_against_eq = None;
             for i in 0..part_vec.len() {
                 let first = i == 0;
                 let last = i + 1 == part_vec.len();
@@ -461,6 +462,9 @@ pub fn validate_trigger(
                         let msg = format!("`{}` makes no sense except as only part", part);
                         warn(part, ErrorKey::Validation, &msg);
                     }
+                    if WARN_AGAINST_EQ.contains(&part.as_str()) {
+                        warn_against_eq = Some(part);
+                    }
                     sc.expect(inscopes, part);
                     sc.replace(Scopes::Value, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_trigger_target(part, data) {
@@ -504,7 +508,12 @@ pub fn validate_trigger(
                 }
             }
 
-            if !matches!(cmp, Comparator::Eq) {
+            if matches!(cmp, Comparator::Eq) {
+                if let Some(token) = warn_against_eq {
+                    let msg = format!("`{} =` means exactly equal to that amount, which is usually not what you want", token);
+                    warn(token, ErrorKey::Logic, &msg);
+                }
+            } else {
                 if sc.can_be(Scopes::Value) {
                     sc.close();
                     ScriptValue::validate_bv(bv, data, sc);
@@ -1587,3 +1596,37 @@ fn validate_trigger_realm_to_title_distance_squared(
 fn validate_trigger_yields_alliance(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
     // TODO
 }
+
+// LAST UPDATED VERSION 1.7.0
+const WARN_AGAINST_EQ: &[&str] = &[
+    "gold",
+    "prestige",
+    "piety",
+    "dynasty_prestige",
+    "title_held_years",
+    "years_as_ruler",
+    "culture_age",
+    "ghw_war_chest_gold",
+    "ghw_war_chest_piety",
+    "ghw_war_chest_prestige",
+    "available_loot",
+    "long_term_gold",
+    "long_term_gold_maximum",
+    "reserved_gold",
+    "reserved_gold_maximum",
+    "short_term_gold",
+    "short_term_gold_maximum",
+    "war_chest_gold",
+    "war_chest_gold_maximum",
+    "yearly_character_balance",
+    "yearly_character_expenses",
+    "yearly_character_income",
+    "inspiration_gold_invested",
+    "monthly_character_income",
+    "monthly_character_income_long_term",
+    "monthly_character_income_reserved",
+    "monthly_character_income_short_term",
+    "monthly_character_income_war_chest",
+    "monthly_income",
+    "num_total_troops",
+];

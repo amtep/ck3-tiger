@@ -31,6 +31,7 @@ pub enum ErrorKey {
     Modifiers,
     Macro,
     History,
+    Logic,
 
     PrincesOfDarkness,
 }
