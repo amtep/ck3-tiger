@@ -319,6 +319,40 @@ pub fn validate_inside_iterator(
             );
         }
     }
+
+    // Undocumented
+    if vd.field_bool("invert") {
+        if name != "connected_county" {
+            let msg = format!("`invert` is only for `{}_connected_county`", listtype);
+            error(block.get_key("invert").unwrap(), ErrorKey::Validation, &msg);
+        }
+    }
+    if vd.field_numeric("max_naval_distance") {
+        if name != "connected_county" {
+            let msg = format!(
+                "`max_naval_distance` is only for `{}_connected_county`",
+                listtype
+            );
+            error(
+                block.get_key("max_naval_distance").unwrap(),
+                ErrorKey::Validation,
+                &msg,
+            );
+        }
+    }
+    if vd.field_bool("allow_one_county_land_gap") {
+        if name != "connected_county" {
+            let msg = format!(
+                "`allow_one_county_land_gap` is only for `{}_connected_county`",
+                listtype
+            );
+            error(
+                block.get_key("allow_one_county_land_gap").unwrap(),
+                ErrorKey::Validation,
+                &msg,
+            );
+        }
+    }
 }
 
 pub fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
