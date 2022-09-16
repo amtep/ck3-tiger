@@ -11,6 +11,7 @@ This project still in its beginning stages. It will warn about some things that 
 * Missing items: is every game object that you refer to actually defined somewhere?
 * Missing loca: do you have all the localizations you need for your mod?
 * Scope consistency checking: are you using culture effects on cultures and character effects on characters, etc?
+* History: Are spouses, employers, and lieges alive on the relevant dates? Is no one their own grandfather?
 * Special: rivers.png check
 
 It doesn't load all the game files yet, but it hits the major ones (events, decisions, history, localization, scripted triggers and effects) and many minor ones.
