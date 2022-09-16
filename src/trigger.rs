@@ -367,7 +367,7 @@ pub fn validate_trigger(
                         if !trigger.macro_parms().is_empty() {
                             error(token, ErrorKey::Macro, "expected macro arguments");
                         }
-                        trigger.validate_scope_compatibility(sc);
+                        trigger.validate_call(&key.loc, data, sc, tooltipped);
                     }
                     BlockOrValue::Block(block) => {
                         let parms = trigger.macro_parms();
