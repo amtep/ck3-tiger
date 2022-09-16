@@ -13,7 +13,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, scope_value, Scopes};
-use crate::token::Token;
+use crate::token::{Loc, Token};
 use crate::trigger::validate_normal_trigger;
 use crate::validate::{validate_inside_iterator, validate_prefix_reference};
 
@@ -43,9 +43,9 @@ impl ScriptValues {
         }
     }
 
-    pub fn validate_scope_compatibility(&self, key: &str, sc: &mut ScopeContext) {
-        if let Some(item) = self.scriptvalues.get(key) {
-            item.validate_scope_compatibility(sc);
+    pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
+        if let Some(item) = self.scriptvalues.get(key.as_str()) {
+            item.validate_call(&key.loc, data, sc);
         }
     }
 }
@@ -75,7 +75,7 @@ impl FileHandler for ScriptValues {
 pub struct ScriptValue {
     key: Token,
     bv: BlockOrValue,
-    sc: RefCell<Option<ScopeContext>>,
+    cache: RefCell<FnvHashMap<Loc, ScopeContext>>,
 }
 
 impl ScriptValue {
@@ -83,7 +83,7 @@ impl ScriptValue {
         Self {
             key,
             bv,
-            sc: RefCell::new(None),
+            cache: RefCell::new(FnvHashMap::default()),
         }
     }
 
@@ -402,6 +402,15 @@ impl ScriptValue {
         }
     }
 
+    pub fn cached_compat(&self, loc: &Loc, sc: &mut ScopeContext) -> bool {
+        if let Some(our_sc) = self.cache.borrow().get(loc) {
+            sc.expect_compatibility(our_sc);
+            true
+        } else {
+            false
+        }
+    }
+
     pub fn validate(&self, data: &Everything) {
         // For some reason, script values can be set to bools as well
         if let Some(token) = self.bv.get_value() {
@@ -409,16 +418,17 @@ impl ScriptValue {
                 return;
             }
         }
-        // TODO: if scripted values call each other, the system of scope contexts might
-        // not settle down with just one loop over them.
         let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
-        Self::validate_bv(&self.bv, data, &mut sc);
-        self.sc.replace(Some(sc));
+        self.validate_call(&self.key.loc, data, &mut sc);
     }
 
-    pub fn validate_scope_compatibility(&self, their_sc: &mut ScopeContext) {
-        if let Some(our_sc) = self.sc.borrow().as_ref() {
-            their_sc.expect_compatibility(our_sc);
+    pub fn validate_call(&self, loc: &Loc, data: &Everything, sc: &mut ScopeContext) {
+        if !self.cached_compat(loc, sc) {
+            let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            self.cache.borrow_mut().insert(loc.clone(), our_sc.clone());
+            Self::validate_bv(&self.bv, data, &mut our_sc);
+            sc.expect_compatibility(&our_sc);
+            self.cache.borrow_mut().insert(loc.clone(), our_sc);
         }
     }
 }
