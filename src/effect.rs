@@ -438,7 +438,7 @@ pub fn validate_effect<'a>(
                     } else if !token.is("yes") {
                         warn(token, ErrorKey::Validation, "expected just effect = yes");
                     }
-                    effect.validate_scope_compatibility(sc);
+                    effect.validate_call(&key.loc, data, sc, tooltipped);
                 }
                 BlockOrValue::Block(block) => {
                     let parms = effect.macro_parms();

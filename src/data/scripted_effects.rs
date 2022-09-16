@@ -68,7 +68,6 @@ impl FileHandler for Effects {
 pub struct Effect {
     pub key: Token,
     block: Block,
-    sc: RefCell<Option<ScopeContext>>,
     cache: RefCell<FnvHashMap<Loc, ScopeContext>>,
 }
 
@@ -77,7 +76,6 @@ impl Effect {
         Self {
             key,
             block,
-            sc: RefCell::new(None),
             cache: RefCell::new(FnvHashMap::default()),
         }
     }
@@ -85,15 +83,23 @@ impl Effect {
     pub fn validate(&self, data: &Everything) {
         if self.block.source.is_none() {
             let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
-            // TODO: decide what to do about "tooltipped" true vs false
-            validate_normal_effect(&self.block, data, &mut sc, false);
-            self.sc.replace(Some(sc));
+            self.validate_call(&self.key.loc, data, &mut sc, false);
         }
     }
 
-    pub fn validate_scope_compatibility(&self, their_sc: &mut ScopeContext) {
-        if let Some(our_sc) = self.sc.borrow().as_ref() {
-            their_sc.expect_compatibility(our_sc);
+    pub fn validate_call(
+        &self,
+        loc: &Loc,
+        data: &Everything,
+        sc: &mut ScopeContext,
+        tooltipped: bool,
+    ) {
+        if !self.cached_compat(loc, sc) {
+            let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            self.cache.borrow_mut().insert(loc.clone(), our_sc.clone());
+            validate_normal_effect(&self.block, data, &mut our_sc, tooltipped);
+            sc.expect_compatibility(&our_sc);
+            self.cache.borrow_mut().insert(loc.clone(), our_sc);
         }
     }
 
@@ -110,7 +116,6 @@ impl Effect {
         }
     }
 
-    // TODO: avoid duplicate error messages when invoking a macro effect many times
     pub fn validate_macro_expansion(
         &self,
         args: Vec<(String, Token)>,

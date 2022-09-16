@@ -68,7 +68,6 @@ impl FileHandler for Triggers {
 pub struct Trigger {
     pub key: Token,
     block: Block,
-    sc: RefCell<Option<ScopeContext>>,
     cache: RefCell<FnvHashMap<Loc, ScopeContext>>,
 }
 
@@ -77,7 +76,6 @@ impl Trigger {
         Self {
             key,
             block,
-            sc: RefCell::new(None),
             cache: RefCell::new(FnvHashMap::default()),
         }
     }
