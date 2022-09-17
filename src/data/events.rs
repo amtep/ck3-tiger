@@ -106,7 +106,7 @@ impl Events {
     }
 
     pub fn exists(&self, key: &str) -> bool {
-        self.events.contains_key(key)
+        self.events.contains_key(key) || self.error_events.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {
