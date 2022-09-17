@@ -12,6 +12,7 @@ use crate::data::dynasties::Dynasties;
 use crate::data::events::Events;
 use crate::data::gameconcepts::GameConcepts;
 use crate::data::houses::Houses;
+use crate::data::interaction_cats::InteractionCategories;
 use crate::data::interactions::Interactions;
 use crate::data::lifestyles::Lifestyles;
 use crate::data::localization::Localization;
@@ -73,6 +74,7 @@ pub struct Everything {
 
     /// Processed character interaction files
     pub interactions: Interactions,
+    pub interaction_cats: InteractionCategories,
 
     /// Processed map data
     pub provinces: Provinces,
@@ -162,6 +164,7 @@ impl Everything {
             events: Events::default(),
             decisions: Decisions::default(),
             interactions: Interactions::default(),
+            interaction_cats: InteractionCategories::default(),
             provinces: Provinces::default(),
             province_histories: ProvinceHistories::default(),
             gameconcepts: GameConcepts::default(),
@@ -236,6 +239,7 @@ impl Everything {
         self.fileset.handle(&mut self.events);
         self.fileset.handle(&mut self.decisions);
         self.fileset.handle(&mut self.interactions);
+        self.fileset.handle(&mut self.interaction_cats);
         self.fileset.handle(&mut self.provinces);
         self.fileset.handle(&mut self.province_histories);
         self.fileset.handle(&mut self.gameconcepts);
@@ -269,6 +273,7 @@ impl Everything {
         self.events.validate(self);
         self.decisions.validate(self);
         self.interactions.validate(self);
+        self.interaction_cats.validate(self);
         self.provinces.validate(self);
         self.province_histories.validate(self);
         self.gameconcepts.validate(self);
@@ -310,6 +315,7 @@ impl Everything {
             Item::House => self.houses.exists(key),
             Item::Holding => HOLDING_TYPES.contains(&key),
             Item::Interaction => self.interactions.exists(key),
+            Item::InteractionCategory => self.interaction_cats.exists(key),
             Item::Lifestyle => self.lifestyles.exists(key),
             Item::Localization => self.localization.exists(key),
             Item::MenAtArmsBase => MEN_AT_ARMS_BASE.contains(&key),

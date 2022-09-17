@@ -6,6 +6,7 @@ pub mod dynasties;
 pub mod events;
 pub mod gameconcepts;
 pub mod houses;
+pub mod interaction_cats;
 pub mod interactions;
 pub mod lifestyles;
 pub mod localization;
