@@ -7,7 +7,7 @@ use crate::context::ScopeContext;
 use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
 use crate::desc::validate_desc;
-use crate::effect::{validate_effect, validate_normal_effect, ListType};
+use crate::effect::{validate_effect, validate_normal_effect};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn, warn_info};
 use crate::everything::Everything;
@@ -19,7 +19,7 @@ use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{
-    validate_cooldown, validate_theme_background, validate_theme_icon, validate_theme_sound,
+    validate_cooldown, validate_theme_background, validate_theme_icon, validate_theme_sound, ListType,
 };
 
 #[derive(Clone, Debug, Default)]

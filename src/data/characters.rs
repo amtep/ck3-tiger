@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
 use crate::context::ScopeContext;
-use crate::effect::{validate_effect, validate_normal_effect, ListType};
+use crate::effect::{validate_effect, validate_normal_effect};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, warn_info};
 use crate::everything::Everything;
@@ -15,7 +15,7 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::validate::validate_prefix_reference_token;
+use crate::validate::{validate_prefix_reference_token, ListType};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Gender {

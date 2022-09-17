@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 /// A module for validation functions that are useful for more than one data module.
@@ -10,6 +12,27 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::{validate_normal_trigger, validate_target};
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum ListType {
+    None,
+    Any,
+    Every,
+    Ordered,
+    Random,
+}
+
+impl Display for ListType {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        match self {
+            ListType::None => write!(f, ""),
+            ListType::Any => write!(f, "any"),
+            ListType::Every => write!(f, "every"),
+            ListType::Ordered => write!(f, "ordered"),
+            ListType::Random => write!(f, "random"),
+        }
+    }
+}
 
 pub fn validate_theme_background(bv: &BlockOrValue, data: &Everything) {
     if let Some(block) = bv.get_block() {
@@ -170,8 +193,124 @@ pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted:
     error(token, ErrorKey::Validation, &msg);
 }
 
-// This checks the special fields for certain iterators, like type = in every_relation.
-// It doesn't check the generic ones like "limit" or the ordering ones for ordered_*.
+/// This checks the fields that are only used in iterators.
+/// It does not check "limit" because that is shared with the if/else blocks.
+/// Returns true iff the iterator took care of its own tooltips
+pub fn validate_iterator_fields(
+    list_type: ListType,
+    block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    vd: &mut Validator,
+) -> bool {
+    let mut has_tooltip = false;
+    // undocumented
+    if let Some(key) = block.get_key("custom") {
+        vd.field_value_item("custom", Item::Localization);
+        if list_type == ListType::None {
+            warn(
+                key,
+                ErrorKey::Validation,
+                "`custom` can only be used in lists",
+            );
+        }
+        has_tooltip = true;
+    }
+
+    vd.field_validated_blocks("alternative_limit", |b, data| {
+        if list_type != ListType::None {
+            validate_normal_trigger(b, data, sc, false);
+        } else {
+            warn(
+                b,
+                ErrorKey::Validation,
+                "`alternative_limit` can only be used in lists",
+            );
+        }
+    });
+
+    if let Some(bv) = vd.field("order_by") {
+        if list_type == ListType::Ordered {
+            ScriptValue::validate_bv(bv, data, sc);
+        } else {
+            warn(
+                block.get_key("order_by").unwrap(),
+                ErrorKey::Validation,
+                "`order_by` can only be used in `ordered_` lists",
+            );
+        }
+    }
+
+    if let Some(token) = vd.field_value("position") {
+        if list_type == ListType::Ordered {
+            if token.as_str().parse::<i32>().is_err() {
+                warn(token, ErrorKey::Validation, "expected an integer");
+            }
+        } else {
+            warn(
+                block.get_key("position").unwrap(),
+                ErrorKey::Validation,
+                "`position` can only be used in `ordered_` lists",
+            );
+        }
+    }
+
+    if let Some(token) = vd.field_value("min") {
+        if list_type == ListType::Ordered {
+            if token.as_str().parse::<i32>().is_err() {
+                warn(token, ErrorKey::Validation, "expected an integer");
+            }
+        } else {
+            warn(
+                block.get_key("min").unwrap(),
+                ErrorKey::Validation,
+                "`min` can only be used in `ordered_` lists",
+            );
+        }
+    }
+
+    if let Some(bv) = vd.field("max") {
+        if list_type == ListType::Ordered {
+            ScriptValue::validate_bv(bv, data, sc);
+        } else {
+            warn(
+                block.get_key("max").unwrap(),
+                ErrorKey::Validation,
+                "`max` can only be used in `ordered_` lists",
+            );
+        }
+    }
+
+    if let Some(token) = vd.field_value("check_range_bounds") {
+        if list_type == ListType::Ordered {
+            if !(token.is("yes") || token.is("no")) {
+                warn(token, ErrorKey::Validation, "expected yes or no");
+            }
+        } else {
+            warn(
+                block.get_key("check_range_bounds").unwrap(),
+                ErrorKey::Validation,
+                "`check_range_bounds` can only be used in `ordered_` lists",
+            );
+        }
+    }
+
+    if let Some(_b) = vd.field_block("weight") {
+        if list_type == ListType::Random {
+            // TODO
+        } else {
+            warn(
+                block.get_key("weight").unwrap(),
+                ErrorKey::Validation,
+                "`weight` can only be used in `random_` lists",
+            );
+        }
+    }
+    has_tooltip
+}
+
+/// This checks the special fields for certain iterators, like type = in every_relation.
+/// It doesn't check the generic ones like "limit" or the ordering ones for ordered_*.
 pub fn validate_inside_iterator(
     name: &str,
     listtype: &str,

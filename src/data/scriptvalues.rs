@@ -15,7 +15,7 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, scope_value, Scopes};
 use crate::token::{Loc, Token};
 use crate::trigger::validate_normal_trigger;
-use crate::validate::{validate_inside_iterator, validate_prefix_reference};
+use crate::validate::{validate_inside_iterator, validate_prefix_reference, ListType, validate_iterator_fields};
 
 #[derive(Clone, Debug, Default)]
 pub struct ScriptValues {
@@ -242,20 +242,8 @@ impl ScriptValue {
         vd.field_validated_block("limit", |block, data| {
             validate_normal_trigger(block, data, sc, false);
         });
-        // TODO: accept these fields for all list types, and warn if it's the wrong one
-        if it_type.is("ordered") {
-            vd.field_validated_bv("order_by", |bv, data| {
-                Self::validate_bv(bv, data, sc);
-            });
-            vd.field_integer("position");
-            vd.field_integer("min");
-            vd.field_validated_bv("max", |bv, data| {
-                Self::validate_bv(bv, data, sc);
-            });
-            vd.field_bool("check_range_bounds");
-        } else if it_type.is("random") {
-            vd.field_block("weight"); // TODO: validate modifier
-        }
+
+        validate_iterator_fields(ListType::Any, block, data, sc, &mut vd);
 
         validate_inside_iterator(
             it_name.as_str(),

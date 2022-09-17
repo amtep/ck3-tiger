@@ -1,5 +1,3 @@
-use std::fmt::{Display, Formatter};
-
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 use crate::context::ScopeContext;
@@ -12,28 +10,7 @@ use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::tables::effects::{scope_effect, ControlEffect, Effect};
 use crate::trigger::{validate_normal_trigger, validate_target};
-use crate::validate::{validate_inside_iterator, validate_prefix_reference};
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum ListType {
-    None,
-    Any,
-    Every,
-    Ordered,
-    Random,
-}
-
-impl Display for ListType {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
-        match self {
-            ListType::None => write!(f, ""),
-            ListType::Any => write!(f, "any"),
-            ListType::Every => write!(f, "every"),
-            ListType::Ordered => write!(f, "ordered"),
-            ListType::Random => write!(f, "random"),
-        }
-    }
-}
+use crate::validate::{validate_inside_iterator, validate_prefix_reference, ListType, validate_iterator_fields};
 
 pub fn validate_normal_effect<'a>(
     block: &Block,
@@ -54,19 +31,6 @@ pub fn validate_effect<'a>(
     mut vd: Validator<'a>,
     mut tooltipped: bool,
 ) {
-    // undocumented
-    if let Some(key) = block.get_key("custom") {
-        vd.field_value_item("custom", Item::Localization);
-        if list_type == ListType::None {
-            warn(
-                key,
-                ErrorKey::Validation,
-                "`custom` can only be used in lists",
-            );
-        }
-        tooltipped = false;
-    }
-
     if let Some(b) = vd.field_block("limit") {
         if caller == "if"
             || caller == "else_if"
@@ -84,94 +48,8 @@ pub fn validate_effect<'a>(
         }
     }
 
-    vd.field_validated_blocks("alternative_limit", |b, data| {
-        if list_type != ListType::None {
-            validate_normal_trigger(b, data, sc, false);
-        } else {
-            warn(
-                b,
-                ErrorKey::Validation,
-                "`alternative_limit` can only be used in lists",
-            );
-        }
-    });
-
-    if let Some(bv) = vd.field("order_by") {
-        if list_type == ListType::Ordered {
-            ScriptValue::validate_bv(bv, data, sc);
-        } else {
-            warn(
-                block.get_key("order_by").unwrap(),
-                ErrorKey::Validation,
-                "`order_by` can only be used in `ordered_` lists",
-            );
-        }
-    }
-
-    if let Some(token) = vd.field_value("position") {
-        if list_type == ListType::Ordered {
-            if token.as_str().parse::<i32>().is_err() {
-                warn(token, ErrorKey::Validation, "expected an integer");
-            }
-        } else {
-            warn(
-                block.get_key("position").unwrap(),
-                ErrorKey::Validation,
-                "`position` can only be used in `ordered_` lists",
-            );
-        }
-    }
-
-    if let Some(token) = vd.field_value("min") {
-        if list_type == ListType::Ordered {
-            if token.as_str().parse::<i32>().is_err() {
-                warn(token, ErrorKey::Validation, "expected an integer");
-            }
-        } else {
-            warn(
-                block.get_key("min").unwrap(),
-                ErrorKey::Validation,
-                "`min` can only be used in `ordered_` lists",
-            );
-        }
-    }
-
-    if let Some(bv) = vd.field("max") {
-        if list_type == ListType::Ordered {
-            ScriptValue::validate_bv(bv, data, sc);
-        } else {
-            warn(
-                block.get_key("max").unwrap(),
-                ErrorKey::Validation,
-                "`max` can only be used in `ordered_` lists",
-            );
-        }
-    }
-
-    if let Some(token) = vd.field_value("check_range_bounds") {
-        if list_type == ListType::Ordered {
-            if !(token.is("yes") || token.is("no")) {
-                warn(token, ErrorKey::Validation, "expected yes or no");
-            }
-        } else {
-            warn(
-                block.get_key("check_range_bounds").unwrap(),
-                ErrorKey::Validation,
-                "`check_range_bounds` can only be used in `ordered_` lists",
-            );
-        }
-    }
-
-    if let Some(_b) = vd.field_block("weight") {
-        if list_type == ListType::Random {
-            // TODO
-        } else {
-            warn(
-                block.get_key("weight").unwrap(),
-                ErrorKey::Validation,
-                "`weight` can only be used in `random_` lists",
-            );
-        }
+    if validate_iterator_fields(list_type, block, data, sc, &mut vd) {
+        tooltipped = false;
     }
 
     if list_type != ListType::None {
