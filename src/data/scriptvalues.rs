@@ -393,7 +393,7 @@ impl ScriptValue {
 
     pub fn cached_compat(&self, loc: &Loc, sc: &mut ScopeContext) -> bool {
         if let Some(our_sc) = self.cache.borrow().get(loc) {
-            sc.expect_compatibility(our_sc);
+            sc.expect_compatibility(our_sc, &self.key);
             true
         } else {
             false
@@ -416,7 +416,7 @@ impl ScriptValue {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
             self.cache.borrow_mut().insert(loc.clone(), our_sc.clone());
             Self::validate_bv(&self.bv, data, &mut our_sc);
-            sc.expect_compatibility(&our_sc);
+            sc.expect_compatibility(&our_sc, &self.key);
             self.cache.borrow_mut().insert(loc.clone(), our_sc);
         }
     }

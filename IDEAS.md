@@ -4,11 +4,14 @@
 * root.set_variable doesn't work; an effect can't be chained to a scope. Has to be `root = { set_variable ... }`
 * Some code (in scripted_lists and in lifestyles) is not allowed to use scripted content in its triggers
 * Many effects and triggers have a target field. It almost never makes sense to have who = this or target = this as the target. It's worth warning about especially in macros.
+* When using a scripted trigger in an effect, don't just say unknown token. Say this is a trigger and it should be in a limit field.
+* Certain script values are referenced in code; check that they are defined and have the right scopes.
 
 ## Advice
 * for `current_date >= 1200.1.1` suggest `current_year >= 1200`
 * for `current_date < 1201.1.1` suggest `current_year < 1200`
 * for both in one block, suggest current_year = 1200
+* keep in mind that in empty scope, current_year doesn't work
 
 ## GUI
 * ck3 crashes if you have multiple objects with `resizeparent` in one parent

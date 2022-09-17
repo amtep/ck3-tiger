@@ -133,7 +133,7 @@ struct Errors {
 
     /// Errors that have already been logged (to avoid duplication, which is common
     /// when validating macro expanded triggers and effects)
-    seen: FnvHashSet<(Loc, ErrorKey, String, Option<Loc>)>,
+    seen: FnvHashSet<(Loc, ErrorKey, String, Option<Loc>, Option<Loc>)>,
 }
 
 // TODO: allow a message to have multiple tokens, and print the relevant lines as a stack
@@ -235,7 +235,7 @@ impl Errors {
             return;
         }
         let loc = eloc.into_loc();
-        let index = (loc.clone(), key, msg.to_string(), None);
+        let index = (loc.clone(), key, msg.to_string(), None, None);
         if self.seen.contains(&index) {
             return;
         }
@@ -262,7 +262,7 @@ impl Errors {
         }
         let loc = eloc.into_loc();
         let loc2 = eloc2.into_loc();
-        let index = (loc.clone(), key, msg.to_string(), Some(loc2.clone()));
+        let index = (loc.clone(), key, msg.to_string(), Some(loc2.clone()), None);
         if self.seen.contains(&index) {
             return;
         }
@@ -272,6 +272,44 @@ impl Errors {
         }
         self.log(&loc, level, key, msg, None);
         self.log(&loc2, ErrorLevel::Info, key, msg2, None);
+        writeln!(self.outfile.as_mut().unwrap()).unwrap();
+    }
+
+    #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
+    pub fn push3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
+        &mut self,
+        eloc: E,
+        level: ErrorLevel,
+        key: ErrorKey,
+        msg: &str,
+        eloc2: E2,
+        msg2: &str,
+        eloc3: E3,
+        msg3: &str,
+    ) {
+        if level < self.minimum_level {
+            return;
+        }
+        let loc = eloc.into_loc();
+        let loc2 = eloc2.into_loc();
+        let loc3 = eloc3.into_loc();
+        let index = (
+            loc.clone(),
+            key,
+            msg.to_string(),
+            Some(loc2.clone()),
+            Some(loc3.clone()),
+        );
+        if self.seen.contains(&index) {
+            return;
+        }
+        self.seen.insert(index);
+        if !self.will_log(&loc, key) {
+            return;
+        }
+        self.log(&loc, level, key, msg, None);
+        self.log(&loc2, ErrorLevel::Info, key, msg2, None);
+        self.log(&loc3, ErrorLevel::Info, key, msg3, None);
         writeln!(self.outfile.as_mut().unwrap()).unwrap();
     }
 
@@ -368,6 +406,18 @@ pub fn error2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2
     Errors::get_mut().push2(eloc, ErrorLevel::Error, key, msg, eloc2, msg2);
 }
 
+pub fn error3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
+    eloc: E,
+    key: ErrorKey,
+    msg: &str,
+    eloc2: E2,
+    msg2: &str,
+    eloc3: E3,
+    msg3: &str,
+) {
+    Errors::get_mut().push3(eloc, ErrorLevel::Error, key, msg, eloc2, msg2, eloc3, msg3);
+}
+
 pub fn error_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     Errors::get_mut().push(eloc, ErrorLevel::Error, key, msg, Some(info));
 }
@@ -378,6 +428,27 @@ pub fn warn<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
 
 pub fn warn2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
     Errors::get_mut().push2(eloc, ErrorLevel::Warning, key, msg, eloc2, msg2);
+}
+
+pub fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
+    eloc: E,
+    key: ErrorKey,
+    msg: &str,
+    eloc2: E2,
+    msg2: &str,
+    eloc3: E3,
+    msg3: &str,
+) {
+    Errors::get_mut().push3(
+        eloc,
+        ErrorLevel::Warning,
+        key,
+        msg,
+        eloc2,
+        msg2,
+        eloc3,
+        msg3,
+    );
 }
 
 pub fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {

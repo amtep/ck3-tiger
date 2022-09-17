@@ -98,7 +98,7 @@ impl Effect {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
             self.cache.borrow_mut().insert(loc.clone(), our_sc.clone());
             validate_normal_effect(&self.block, data, &mut our_sc, tooltipped);
-            sc.expect_compatibility(&our_sc);
+            sc.expect_compatibility(&our_sc, &self.key);
             self.cache.borrow_mut().insert(loc.clone(), our_sc);
         }
     }
@@ -109,7 +109,7 @@ impl Effect {
 
     pub fn cached_compat(&self, loc: &Loc, sc: &mut ScopeContext) -> bool {
         if let Some(our_sc) = self.cache.borrow().get(loc) {
-            sc.expect_compatibility(our_sc);
+            sc.expect_compatibility(our_sc, &self.key);
             true
         } else {
             false
@@ -135,7 +135,7 @@ impl Effect {
                 // that dummy context instead of macro-expanding again.
                 self.cache.borrow_mut().insert(loc.clone(), our_sc.clone());
                 validate_normal_effect(&block, data, &mut our_sc, tooltipped);
-                sc.expect_compatibility(&our_sc);
+                sc.expect_compatibility(&our_sc, &self.key);
                 self.cache.borrow_mut().insert(loc, our_sc);
             }
         }

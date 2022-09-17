@@ -1,5 +1,5 @@
 use crate::errorkey::ErrorKey;
-use crate::errors::{warn, warn2};
+use crate::errors::{warn, warn2, warn3};
 use crate::scopes::Scopes;
 use crate::token::Token;
 
@@ -176,6 +176,29 @@ impl ScopeContext {
         }
     }
 
+    fn _expect_check3(e: &mut ScopeEntry, scopes: Scopes, token: &Token, key: &Token) {
+        match e {
+            ScopeEntry::Scope(ref mut s, ref mut t) => {
+                if s.intersects(scopes) {
+                    // if s is narrowed by the scopes info, remember its token
+                    if (*s & scopes) != *s {
+                        *s &= scopes;
+                        *t = token.clone();
+                    }
+                } else {
+                    let msg = format!("`{}` expects {} but scope seems to be {}", key, scopes, s);
+                    let msg2 = format!("expected scope was deduced from `{}` here", token);
+                    let msg3 = format!("actual scope was deduced from `{}` here", t);
+                    warn3(key, ErrorKey::Scopes, &msg, token, &msg2, &*t, &msg3);
+                    // Suppress future warnings about the same problem
+                    *s |= scopes;
+                    *t = token.clone();
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
+
     fn _expect(&mut self, scopes: Scopes, token: &Token, mut back: usize) {
         // go N steps back and check/modify that scope. If the scope is itself
         // a back reference, go that much further back.
@@ -205,6 +228,34 @@ impl ScopeContext {
         }
     }
 
+    fn _expect3(&mut self, scopes: Scopes, token: &Token, mut back: usize, key: &Token) {
+        // go N steps back and check/modify that scope. If the scope is itself
+        // a back reference, go that much further back.
+
+        let mut ptr = &mut self.prev;
+        loop {
+            if let Some(ref mut entry) = *ptr {
+                if back == 0 {
+                    match entry.this {
+                        ScopeEntry::Scope(_, _) => {
+                            Self::_expect_check3(&mut entry.this, scopes, token, key);
+                            return;
+                        }
+                        ScopeEntry::Backref(r) => back = r + 1,
+                        ScopeEntry::Rootref => {
+                            Self::_expect_check3(&mut self.root, scopes, token, key);
+                            return;
+                        }
+                    }
+                }
+                ptr = &mut entry.prev;
+                back -= 1;
+            } else {
+                // TODO: warning of some kind?
+                return;
+            }
+        }
+    }
     pub fn expect(&mut self, scopes: Scopes, token: &Token) {
         // The None scope is special, it means the scope isn't used or inspected
         if scopes == Scopes::None {
@@ -217,18 +268,53 @@ impl ScopeContext {
         }
     }
 
-    pub fn expect_compatibility(&mut self, other: &ScopeContext) {
+    pub fn expect3(&mut self, scopes: Scopes, token: &Token, key: &Token) {
+        // The None scope is special, it means the scope isn't used or inspected
+        if scopes == Scopes::None {
+            return;
+        }
+        match self.this {
+            ScopeEntry::Scope(_, _) => Self::_expect_check3(&mut self.this, scopes, token, key),
+            ScopeEntry::Backref(r) => self._expect3(scopes, token, r, key),
+            ScopeEntry::Rootref => Self::_expect_check3(&mut self.root, scopes, token, key),
+        }
+    }
+
+    pub fn expect_compatibility(&mut self, other: &ScopeContext, key: &Token) {
         // Compare restrictions on `root`
         match other.root {
             ScopeEntry::Scope(scopes, ref token) => {
-                Self::_expect_check(&mut self.root, scopes, token);
+                match self.root {
+                    ScopeEntry::Scope(ref mut s, ref mut t) => {
+                        if s.intersects(scopes) {
+                            // if s is narrowed by the scopes info, remember its token
+                            if (*s & scopes) != *s {
+                                *s &= scopes;
+                                *t = token.clone();
+                            }
+                        } else {
+                            let msg = format!(
+                                "`{}` expects root to be {} but root scope seems to be {}",
+                                key, scopes, s
+                            );
+                            let msg2 =
+                                format!("expected root scope was deduced from `{}` here", token);
+                            let msg3 = format!("actual root scope was deduced from `{}` here", t);
+                            warn3(key, ErrorKey::Scopes, &msg, token, &msg2, &*t, &msg3);
+                            // Suppress future warnings about the same problem
+                            *s |= scopes;
+                            *t = token.clone();
+                        }
+                    }
+                    _ => unreachable!(),
+                }
             }
             _ => unreachable!(),
         }
 
         // Compare restrictions on `this`
         let (scopes, token) = other.scopes_token();
-        self.expect(scopes, token);
+        self.expect3(scopes, token, key);
 
         // TODO: walk back up the chain and compare all prev scopes too
         // Describing the results in error messages will be hard though.

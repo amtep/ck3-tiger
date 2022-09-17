@@ -1,13 +1,6 @@
 # TODO
 
 ## Changes
-* Possibly a new format:
-```
-file FILENAME
-line LINENR      code
-                 ^
-ERROR: error message
-```
 
 ## Bugs
 
