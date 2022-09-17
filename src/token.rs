@@ -49,16 +49,11 @@ impl Loc {
     }
 
     pub fn line_marker(&self) -> String {
-        if self.line == 0 {
-            format!("[{}] {}: ", self.kind, self.pathname.display())
-        } else {
-            format!(
-                "[{}] {}:{}: ",
-                self.kind,
-                self.pathname.display(),
-                self.line
-            )
-        }
+        format!("line {}", self.line)
+    }
+
+    pub fn file_marker(&self) -> String {
+        format!("[{}] file {}", self.kind, self.pathname.display())
     }
 
     pub fn filename(&self) -> Cow<str> {

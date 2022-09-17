@@ -173,41 +173,52 @@ impl Errors {
         true
     }
 
-    #[allow(unused_must_use)] // If logging errors fails, there's not much we can do
-    pub fn log(&mut self, loc: &Loc, level: ErrorLevel, msg: &str, info: Option<&str>) {
+    pub fn log(
+        &mut self,
+        loc: &Loc,
+        level: ErrorLevel,
+        key: ErrorKey,
+        msg: &str,
+        info: Option<&str>,
+    ) {
         if self.outfile.is_none() {
             self.outfile = Some(Box::new(stdout()));
         }
+        writeln!(self.outfile.as_mut().unwrap(), "{}", loc.file_marker()).unwrap();
         if let Some(line) = self.get_line(loc) {
             let line_marker = loc.line_marker();
-            writeln!(self.outfile.as_mut().unwrap(), "{}{}", line_marker, line);
-            let mut spacing = String::new();
-            for c in line.chars().take(loc.column.saturating_sub(1)) {
-                if c == '\t' {
-                    spacing.push('\t');
-                } else {
-                    for _ in 0..c.width().unwrap_or(0) {
-                        spacing.push(' ');
+            if loc.line > 0 {
+                writeln!(self.outfile.as_mut().unwrap(), "{} {}", line_marker, line).unwrap();
+                let mut spacing = String::new();
+                for c in line.chars().take(loc.column.saturating_sub(1)) {
+                    if c == '\t' {
+                        spacing.push('\t');
+                    } else {
+                        for _ in 0..c.width().unwrap_or(0) {
+                            spacing.push(' ');
+                        }
                     }
                 }
+                writeln!(
+                    self.outfile.as_mut().unwrap(),
+                    "{} {}^",
+                    line_marker,
+                    spacing
+                )
+                .unwrap();
             }
-            writeln!(
-                self.outfile.as_mut().unwrap(),
-                "{}{}^",
-                line_marker,
-                spacing
-            );
         }
         // TODO: get terminal column width and do line wrapping of msg and info
         writeln!(
             self.outfile.as_mut().unwrap(),
-            "{}{}: {}",
-            loc.marker(),
+            "{} ({}): {}",
             level,
+            key,
             msg
-        );
+        )
+        .unwrap();
         if let Some(info) = info {
-            writeln!(self.outfile.as_mut().unwrap(), "  {}", info);
+            writeln!(self.outfile.as_mut().unwrap(), "  {}", info).unwrap();
         }
     }
 
@@ -232,7 +243,8 @@ impl Errors {
         if !self.will_log(&loc, key) {
             return;
         }
-        self.log(&loc, level, msg, info);
+        self.log(&loc, level, key, msg, info);
+        writeln!(self.outfile.as_mut().unwrap()).unwrap();
     }
 
     #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
@@ -258,8 +270,9 @@ impl Errors {
         if !self.will_log(&loc, key) {
             return;
         }
-        self.log(&loc, level, msg, None);
-        self.log(&loc2, ErrorLevel::Info, msg2, None);
+        self.log(&loc, level, key, msg, None);
+        self.log(&loc2, ErrorLevel::Info, key, msg2, None);
+        writeln!(self.outfile.as_mut().unwrap()).unwrap();
     }
 
     pub fn get_mut() -> &'static mut Self {
