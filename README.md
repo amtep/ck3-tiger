@@ -53,10 +53,12 @@ Then run `cargo build --release` in the project's directory, then run the progra
 
 ## Sample output
 <pre>
-[CK3] events/dlc/fp1/fp1_shieldmaiden_events.txt:666:           any_scheme_agent = { this = scope:prospective_shieldmaiden }
-[CK3] events/dlc/fp1/fp1_shieldmaiden_events.txt:666:           ^
-[CK3] events/dlc/fp1/fp1_shieldmaiden_events.txt:666:3: WARNING: `any_scheme_agent` is for scheme but scope seems to be character
-[CK3] events/dlc/fp1/fp1_shieldmaiden_events.txt:656:   has_trait = shieldmaiden
-[CK3] events/dlc/fp1/fp1_shieldmaiden_events.txt:656:   ^
-[CK3] events/dlc/fp1/fp1_shieldmaiden_events.txt:656:2: INFO: scope was deduced from `has_trait` here
+[CK3] file events/dlc/fp1/fp1_shieldmaiden_events.txt
+line 666                any_scheme_agent = { this = scope:prospective_shieldmaiden }
+line 666                ^
+WARNING (scopes): `any_scheme_agent` is for scheme but scope seems to be character
+[CK3] file events/dlc/fp1/fp1_shieldmaiden_events.txt
+line 656        has_trait = shieldmaiden
+line 656        ^
+INFO (scopes): scope was deduced from `has_trait` here
 </pre>
