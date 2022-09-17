@@ -100,7 +100,6 @@ impl Trait {
         vd.field_bool("ignore_opinion_value_if_same_trait");
         vd.field_bool("male_only");
         vd.field_bool("female_only");
-        vd.warn_remaining();
     }
 
     pub fn validate(&self, data: &Everything) {

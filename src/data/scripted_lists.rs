@@ -92,7 +92,5 @@ impl List {
                 error(token, ErrorKey::MissingItem, "no such base list");
             }
         }
-
-        vd.warn_remaining();
     }
 }

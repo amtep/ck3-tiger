@@ -107,7 +107,5 @@ impl Lifestyle {
 
         vd.field_numeric("xp_per_level");
         vd.field_numeric("base_xp_gain");
-
-        vd.warn_remaining();
     }
 }

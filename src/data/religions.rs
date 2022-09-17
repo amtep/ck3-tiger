@@ -160,7 +160,6 @@ impl Religion {
         vd.field_list("holy_order_maa");
         vd.field_validated_block("localization", validate_localization);
         vd.field_blocks("faiths");
-        vd.warn_remaining();
     }
 }
 
@@ -170,7 +169,6 @@ fn validate_traits(block: &Block, data: &Everything) {
     // or even wrathful = { modifier = modifier_key scale = 2 }
     vd.req_field("virtues");
     vd.req_field("sins");
-    vd.warn_remaining();
 }
 
 fn validate_localization(block: &Block, data: &Everything) {
@@ -185,7 +183,6 @@ fn validate_localization(block: &Block, data: &Everything) {
             }
         }
     }
-    vd.warn_remaining();
 }
 
 fn validate_holy_order_names(block: &Block, data: &Everything) {
@@ -196,10 +193,8 @@ fn validate_holy_order_names(block: &Block, data: &Everything) {
         vd.req_field("name");
         vd.field_value_item("name", Item::Localization);
         vd.field_value("coat_of_arms"); // TODO
-        vd.warn_remaining();
     }
-    // TODO: warn_remaining should explain the structure of the holy order blocks here
-    vd.warn_remaining();
+    // TODO: if any items remaining, should explain the structure of the holy order blocks here
 }
 
 #[derive(Clone, Debug)]

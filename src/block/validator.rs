@@ -616,10 +616,14 @@ impl<'a> Validator<'a> {
         vec
     }
 
-    // TODO: make this execute on drop, and provide another function
-    // to tell it not to warn. This way, there's less risk of a function
-    // just forgetting to call warn_remaining.
-    pub fn warn_remaining(&self) {
+    pub fn no_warn_remaining(&mut self) {
+        self.accepted_keys = true;
+        self.accepted_tokens = true;
+        self.accepted_blocks = true;
+    }
+
+    pub fn warn_remaining(&mut self) -> bool {
+        let mut warned = false;
         for (k, _, v) in &self.block.v {
             match k {
                 Some(key) => {
@@ -629,6 +633,7 @@ impl<'a> Validator<'a> {
                             ErrorKey::Validation,
                             &format!("unknown field `{}`", key),
                         );
+                        warned = true;
                     }
                 }
                 None => match v {
@@ -639,6 +644,7 @@ impl<'a> Validator<'a> {
                                 ErrorKey::Validation,
                                 "found loose value, expected only `key =`",
                             );
+                            warned = true;
                         }
                     }
                     BlockOrValue::Block(s) => {
@@ -648,10 +654,19 @@ impl<'a> Validator<'a> {
                                 ErrorKey::Validation,
                                 "found sub-block, expected only `key =`",
                             );
+                            warned = true;
                         }
                     }
                 },
             }
         }
+        self.no_warn_remaining();
+        warned
+    }
+}
+
+impl<'a> Drop for Validator<'a> {
+    fn drop(&mut self) {
+        self.warn_remaining();
     }
 }

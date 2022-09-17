@@ -368,6 +368,5 @@ impl Character {
         vd.validate_history_blocks(|date, b, data| {
             Self::validate_history(date, b, &self.block, data, &mut sc);
         });
-        vd.warn_remaining();
     }
 }

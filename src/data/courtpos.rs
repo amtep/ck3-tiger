@@ -201,16 +201,13 @@ impl CourtPosition {
             validate_normal_effect(block, data, &mut sc, false);
         }
 
-        vd.field_script_value_rooted("candiate_scope", Scopes::None);
-
-        vd.warn_remaining();
+        vd.field_script_value_rooted("candidate_score", Scopes::None);
     }
 }
 
 fn validate_breakpoints(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.req_tokens_integers_exactly(4);
-    vd.warn_remaining();
 }
 
 fn validate_scaling_employer_modifiers(block: &Block, data: &Everything) {
@@ -229,5 +226,4 @@ fn validate_scaling_employer_modifiers(block: &Block, data: &Everything) {
             validate_modifs(b, data, ModifKinds::Character, &mut sc, vd);
         });
     }
-    vd.warn_remaining();
 }

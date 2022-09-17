@@ -155,7 +155,6 @@ impl Decision {
             validate_normal_trigger(b, data, &mut sc, false);
         });
         vd.field("widget");
-        vd.warn_remaining();
     }
 }
 

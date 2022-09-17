@@ -204,7 +204,6 @@ pub fn validate_effect<'a>(
                         if let Some(token) = vd.field_value(key) {
                             validate_target(token, data, sc, outscopes);
                         }
-                        vd.warn_remaining();
                     }
                 }
                 Effect::TargetValue(key, outscopes, valuekey) => {
@@ -218,7 +217,6 @@ pub fn validate_effect<'a>(
                         if let Some(bv) = vd.field(valuekey) {
                             ScriptValue::validate_bv(bv, data, sc);
                         }
-                        vd.warn_remaining();
                     }
                 }
                 Effect::ItemTarget(ikey, itype, tkey, outscopes) => {
@@ -230,7 +228,6 @@ pub fn validate_effect<'a>(
                         if let Some(token) = vd.field_value(tkey) {
                             validate_target(token, data, sc, outscopes);
                         }
-                        vd.warn_remaining();
                     }
                 }
                 Effect::ItemValue(key, itype) => {
@@ -244,7 +241,6 @@ pub fn validate_effect<'a>(
                         if let Some(bv) = vd.field("value") {
                             ScriptValue::validate_bv(bv, data, sc);
                         }
-                        vd.warn_remaining();
                     }
                 }
                 Effect::Desc => validate_desc(bv, data, sc),
@@ -342,7 +338,6 @@ pub fn validate_effect<'a>(
                         }
                         let args = parms.into_iter().zip(vec.into_iter()).collect();
                         effect.validate_macro_expansion(args, data, sc, tooltipped);
-                        vd.warn_remaining();
                     }
                 }
             }
@@ -411,8 +406,6 @@ pub fn validate_effect<'a>(
         }
         sc.close();
     }
-
-    vd.warn_remaining();
 }
 
 fn validate_effect_control(
@@ -499,12 +492,19 @@ fn validate_effect_control(
         ControlEffect::Random => {
             // TODO: need to parse modifiers first
             // validate_effect("random", ListType::None, block, data, sc, vd, false);
+            vd.no_warn_remaining();
         }
-        ControlEffect::RandomList => (), // TODO
+        ControlEffect::RandomList => {
+            // TODO
+            vd.no_warn_remaining();
+        }
         ControlEffect::ShowAsTooltip => {
             validate_effect("show_as_tooltip", ListType::None, block, data, sc, vd, true);
         }
-        ControlEffect::Switch => (), // TODO
+        ControlEffect::Switch => {
+            // TODO
+            vd.no_warn_remaining();
+        }
         ControlEffect::While => {
             if !(block.get_key("limit").is_some() || block.get_key("count").is_some()) {
                 warn(

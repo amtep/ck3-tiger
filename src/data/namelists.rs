@@ -100,8 +100,6 @@ impl List {
 
         vd.field_choice("grammar_transform", &["french"]);
         vd.field_bool("dynasty_name_first");
-
-        vd.warn_remaining();
     }
 }
 
@@ -115,9 +113,7 @@ fn validate_name_list(block: &Block, data: &Everything) {
         for token in vd.values() {
             data.verify_exists(Item::Localization, token);
         }
-        vd.warn_remaining();
     }
-    vd.warn_remaining();
 }
 
 fn validate_mercenary_names(block: &Block, data: &Everything) {
@@ -127,9 +123,7 @@ fn validate_mercenary_names(block: &Block, data: &Everything) {
         vd.req_field("name");
         vd.field_value_item("name", Item::Localization);
         vd.field_value("coat_of_arms");
-        vd.warn_remaining();
     }
-    vd.warn_remaining();
 }
 
 fn validate_dynasty_names(block: &Block, data: &Everything) {
@@ -142,7 +136,5 @@ fn validate_dynasty_names(block: &Block, data: &Everything) {
         for token in vd.values() {
             data.verify_exists(Item::Localization, token);
         }
-        vd.warn_remaining();
     }
-    vd.warn_remaining();
 }

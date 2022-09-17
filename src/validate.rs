@@ -43,7 +43,6 @@ pub fn validate_theme_background(bv: &BlockOrValue, data: &Everything) {
         vd.field_value("event_background");
         // TODO: check if `reference` actually works or is a mistake in vanilla
         vd.field_value("reference");
-        vd.warn_remaining();
     } else {
         // TODO: verify the background is defined
     }
@@ -55,7 +54,6 @@ pub fn validate_theme_icon(block: &Block, data: &Everything) {
     vd.field_block("trigger");
     // TODO: verify the file exists
     vd.field_value("reference"); // file
-    vd.warn_remaining();
 }
 
 pub fn validate_theme_sound(block: &Block, data: &Everything) {
@@ -63,7 +61,6 @@ pub fn validate_theme_sound(block: &Block, data: &Everything) {
 
     vd.field_block("trigger");
     vd.field_value("reference"); // event:/ resource reference
-    vd.warn_remaining();
 }
 
 pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -94,8 +91,6 @@ pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &m
             "must have 1 of days, weeks, months, or years",
         );
     }
-
-    vd.warn_remaining();
 }
 
 // Very similar to validate_years_months_days, but requires = instead of allowing comparators
@@ -123,8 +118,6 @@ pub fn validate_cooldown(block: &Block, data: &Everything, sc: &mut ScopeContext
             "must have 1 of days, months, or years",
         );
     }
-
-    vd.warn_remaining();
 }
 
 pub fn validate_color(block: &Block, _data: &Everything) {
@@ -507,5 +500,4 @@ pub fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         ScriptValue::validate_bv(bv, data, sc);
     });
     vd.field_bool("round");
-    vd.warn_remaining();
 }

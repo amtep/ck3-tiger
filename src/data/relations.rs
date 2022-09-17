@@ -98,7 +98,5 @@ impl Relation {
         vd.field_value("secret");
         vd.field_bool("special_guest");
         vd.field_bool("hidden");
-
-        vd.warn_remaining();
     }
 }

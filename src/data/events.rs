@@ -344,7 +344,6 @@ impl Event {
         // TODO: validate widget
         vd.field("widget");
         vd.field_block("widgets");
-        vd.warn_remaining();
     }
 }
 
@@ -431,7 +430,6 @@ fn validate_court_scene(block: &Block, data: &Everything) {
     vd.field("scripted_animation");
     // TODO: validate roles
     vd.field_blocks("roles");
-    vd.warn_remaining();
 }
 
 fn validate_artifact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -451,7 +449,6 @@ fn validate_artifact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_validated_block("trigger", |b, data| {
         validate_normal_trigger(b, data, sc, false);
     });
-    vd.warn_remaining();
 }
 
 fn validate_triggered_animation(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -463,7 +460,6 @@ fn validate_triggered_animation(block: &Block, data: &Everything, sc: &mut Scope
         validate_normal_trigger(b, data, sc, false);
     });
     vd.field_value("animation");
-    vd.warn_remaining();
 }
 
 fn validate_triggered_outfit(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -477,7 +473,6 @@ fn validate_triggered_outfit(block: &Block, data: &Everything, sc: &mut ScopeCon
     vd.field_list("outfit_tags");
     vd.field_bool("remove_default_outfit");
     vd.field_bool("hide_info");
-    vd.warn_remaining();
 }
 
 fn validate_portrait(v: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
@@ -505,7 +500,6 @@ fn validate_portrait(v: &BlockOrValue, data: &Everything, sc: &mut ScopeContext)
             // TODO: is this only useful when animation is prisondungeon ?
             vd.field_bool("override_imprisonment_visuals");
             vd.field_bool("animate_if_dead");
-            vd.warn_remaining();
         }
     }
 }

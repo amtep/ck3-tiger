@@ -3,13 +3,16 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
+use crate::context::ScopeContext;
 use crate::data::titles::Tier;
+use crate::effect::validate_normal_effect;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn, warn2};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -128,7 +131,7 @@ impl TitleHistory {
         }
     }
 
-    pub fn validate_history(date: Date, block: &Block, data: &Everything) {
+    pub fn validate_history(&self, date: Date, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         vd.field_numeric("change_development_level");
         if let Some(token) = vd.field_value("holder") {
@@ -150,13 +153,20 @@ impl TitleHistory {
         }
 
         vd.field_value_item("government", Item::Government);
+
+        vd.field_block("succession_laws"); // TODO
+        vd.field_bool("remove_succession_laws");
+
+        if let Some(block) = vd.field_block("effect") {
+            let mut sc = ScopeContext::new_root(Scopes::LandedTitle, self.key.clone());
+            validate_normal_effect(block, data, &mut sc, false);
+        }
     }
 
     pub fn validate(&self, data: &Everything) {
         data.verify_exists(Item::Title, &self.key);
 
         let mut vd = Validator::new(&self.block, data);
-        vd.validate_history_blocks(Self::validate_history);
-        vd.warn_remaining();
+        vd.validate_history_blocks(|date, block, data| self.validate_history(date, block, data));
     }
 }

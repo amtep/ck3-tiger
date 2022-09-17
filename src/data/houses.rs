@@ -80,6 +80,5 @@ impl House {
         vd.field_value_item("motto", Item::Localization);
         vd.field_value_item("dynasty", Item::Dynasty);
         vd.field_value("forced_coa_religiongroup");
-        vd.warn_remaining();
     }
 }

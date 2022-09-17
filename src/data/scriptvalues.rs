@@ -230,7 +230,6 @@ impl ScriptValue {
             Self::validate_block(bv.get_block().unwrap(), data, sc);
             sc.close();
         }
-        vd.warn_remaining();
     }
 
     fn validate_iterator(
@@ -270,7 +269,6 @@ impl ScriptValue {
         vd.field_validated_bvs("max", |bv, data| {
             Self::validate_bv(bv, data, sc);
         });
-        vd.warn_remaining();
     }
 
     fn validate_if(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -386,7 +384,6 @@ impl ScriptValue {
                     } else {
                         warn(b, ErrorKey::Validation, "invalid script value range");
                     }
-                    vd.warn_remaining();
                 } else {
                     Self::validate_inner(vd, data, sc);
                 }

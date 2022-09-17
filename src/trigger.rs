@@ -390,7 +390,6 @@ pub fn validate_trigger(
                             }
                             let args = parms.into_iter().zip(vec.into_iter()).collect();
                             trigger.validate_macro_expansion(args, data, sc, tooltipped);
-                            vd.warn_remaining();
                         }
                     }
                 }
@@ -1342,8 +1341,6 @@ fn validate_trigger_target_value(
     if let Some(bv) = vd.field_any_cmp("value") {
         ScriptValue::validate_bv(bv, data, sc);
     }
-
-    vd.warn_remaining();
 }
 
 fn validate_trigger_type_value(
@@ -1361,8 +1358,6 @@ fn validate_trigger_type_value(
     if let Some(bv) = vd.field_any_cmp("value") {
         ScriptValue::validate_bv(bv, data, sc);
     }
-
-    vd.warn_remaining();
 }
 
 fn validate_trigger_type_target(
@@ -1380,8 +1375,6 @@ fn validate_trigger_type_target(
     if let Some(token) = vd.field_value("target") {
         validate_target(token, data, sc, outscopes);
     }
-
-    vd.warn_remaining();
 }
 
 fn validate_trigger_recent_history(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {

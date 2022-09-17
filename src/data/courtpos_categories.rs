@@ -73,6 +73,5 @@ impl Category {
         let mut vd = Validator::new(&self.block, data);
         vd.req_field("name");
         vd.field_value_item("name", Item::Localization);
-        vd.warn_remaining();
     }
 }

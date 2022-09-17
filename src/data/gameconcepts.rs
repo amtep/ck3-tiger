@@ -94,7 +94,6 @@ impl Concept {
         fn validate_framesize(block: &Block, data: &Everything) {
             let mut vd = Validator::new(block, data);
             vd.req_tokens_integers_exactly(2);
-            vd.warn_remaining();
         }
 
         let loca = format!("game_concept_{}", self.key);
@@ -127,6 +126,5 @@ impl Concept {
         }
         vd.field_value("requires_dlc_flag");
         vd.field_bool("shown_in_encyclopedia");
-        vd.warn_remaining();
     }
 }

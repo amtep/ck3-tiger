@@ -636,6 +636,4 @@ pub fn validate_modifs<'a>(
         let msg = format!("unknown modifier `{}`", token);
         warn(token, ErrorKey::Validation, &msg);
     }
-
-    vd.warn_remaining();
 }

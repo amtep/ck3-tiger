@@ -97,8 +97,6 @@ impl Terrain {
         vd.field_validated_block("province_modifier", |b, data| {
             validate_province_modifier(b, data, &mut sc);
         });
-
-        vd.warn_remaining();
     }
 }
 

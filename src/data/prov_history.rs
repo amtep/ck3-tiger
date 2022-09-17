@@ -136,7 +136,6 @@ impl ProvinceHistory {
     fn validate_history(_date: Date, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         Self::validate_common(&mut vd, data);
-        vd.warn_remaining();
     }
 
     fn validate(&self, data: &Everything) {
@@ -146,6 +145,5 @@ impl ProvinceHistory {
         Self::validate_common(&mut vd, data);
         vd.field_value("terrain");
         vd.validate_history_blocks(Self::validate_history);
-        vd.warn_remaining();
     }
 }
