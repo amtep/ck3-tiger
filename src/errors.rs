@@ -165,7 +165,7 @@ impl Errors {
         {
             return false;
         }
-        for (path, keys) in self.ignore_keys_for.iter() {
+        for (path, keys) in &self.ignore_keys_for {
             if loc.pathname.starts_with(path) && keys.contains(&key) {
                 return false;
             }
@@ -227,9 +227,8 @@ impl Errors {
         let index = (loc.clone(), key, msg.to_string(), None);
         if self.seen.contains(&index) {
             return;
-        } else {
-            self.seen.insert(index);
         }
+        self.seen.insert(index);
         if !self.will_log(&loc, key) {
             return;
         }
@@ -254,9 +253,8 @@ impl Errors {
         let index = (loc.clone(), key, msg.to_string(), Some(loc2.clone()));
         if self.seen.contains(&index) {
             return;
-        } else {
-            self.seen.insert(index);
         }
+        self.seen.insert(index);
         if !self.will_log(&loc, key) {
             return;
         }

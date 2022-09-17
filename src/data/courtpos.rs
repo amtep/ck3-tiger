@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
-use crate::data::scriptvalues::ScriptValue;
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
@@ -87,21 +86,9 @@ impl CourtPosition {
         vd.field_integer("max_available_positions");
         vd.field_value_item("category", Item::CourtPositionCategory);
         vd.field_choice("minimum_rank", &["county", "duchy", "kingdom", "empire"]);
-        if let Some(bv) = vd.field("opinion") {
-            let mut sc = ScopeContext::new_root(
-                Scopes::None,
-                self.block.get_key("opinion").unwrap().clone(),
-            );
-            ScriptValue::validate_bv(bv, data, &mut sc);
-        }
+        vd.field_script_value_rooted("opinion", Scopes::None);
         vd.field_validated_block("aptitude_level_breakpoints", validate_breakpoints);
-        if let Some(bv) = vd.field("aptitude") {
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block.get_key("aptitude").unwrap().clone(),
-            );
-            ScriptValue::validate_bv(bv, data, &mut sc);
-        }
+        vd.field_script_value_rooted("aptitude", Scopes::Character);
         if let Some(block) = vd.field_block("is_shown") {
             let mut sc = ScopeContext::new_root(
                 Scopes::Character,
@@ -214,13 +201,7 @@ impl CourtPosition {
             validate_normal_effect(block, data, &mut sc, false);
         }
 
-        if let Some(bv) = vd.field("candidate_score") {
-            let mut sc = ScopeContext::new_root(
-                Scopes::None,
-                self.block.get_key("candidate_score").unwrap().clone(),
-            );
-            ScriptValue::validate_bv(bv, data, &mut sc);
-        }
+        vd.field_script_value_rooted("candiate_scope", Scopes::None);
 
         vd.warn_remaining();
     }

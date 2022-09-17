@@ -347,7 +347,7 @@ impl Block {
                     content.push(part);
                 } else {
                     for (arg, val) in &args {
-                        if part.is(&arg) {
+                        if part.is(arg) {
                             content.push(val.clone());
                         }
                     }

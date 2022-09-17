@@ -496,7 +496,7 @@ pub fn validate_trigger(
                         sc.close();
                         continue 'outer;
                     }
-                    data.scriptvalues.validate_call(&part, data, sc);
+                    data.scriptvalues.validate_call(part, data, sc);
                     sc.replace(Scopes::Value, part.clone());
                 // TODO: warn if trying to use iterator here
                 } else {

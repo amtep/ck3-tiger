@@ -85,6 +85,67 @@ impl Rivers {
         self.rivers_buf[idx]
     }
 
+    fn validate_segments(
+        &self,
+        river_segments: Vec<RiverSegment>,
+        mut specials: FnvHashMap<(u32, u32), bool>,
+    ) {
+        for segment in river_segments {
+            match segment {
+                RiverSegment::Single(c) => {
+                    let special_neighbors = self.special_neighbors(c);
+                    if special_neighbors.len() > 1 {
+                        let msg =
+                            format!("({}, {}) river pixel connects two special pixels", c.0, c.1);
+                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                    } else if special_neighbors.is_empty() {
+                        let msg = format!("({}, {}) orphan river pixel", c.0, c.1);
+                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                    } else {
+                        let s = special_neighbors[0];
+                        if specials[&s] {
+                            let msg = format!(
+                                "({}, {}) pixel terminates multiple river segments",
+                                s.0, s.1
+                            );
+                            error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                        } else {
+                            specials.insert(s, true);
+                        }
+                    }
+                }
+                RiverSegment::Stream(c1, c2) => {
+                    let mut special_neighbors = self.special_neighbors(c1);
+                    special_neighbors.append(&mut self.special_neighbors(c2));
+                    if special_neighbors.is_empty() {
+                        let msg = format!(
+                            "({}, {}) - ({}, {}) orphan river segment",
+                            c1.0, c1.1, c2.0, c2.1
+                        );
+                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                    } else if special_neighbors.len() > 1 {
+                        let msg = format!(
+                            "({}, {}) - ({}, {}) river segment has two terminators",
+                            c1.0, c1.1, c2.0, c2.1
+                        );
+                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                    } else {
+                        let s = special_neighbors[0];
+                        if specials[&s] {
+                            let msg = format!(
+                                "({}, {}) pixel terminates multiple river segments",
+                                s.0, s.1
+                            );
+                            error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                        } else {
+                            specials.insert(s, true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     pub fn validate(&self, _data: &Everything) {
         // TODO: check image width and height against world defines
 
@@ -200,62 +261,8 @@ impl Rivers {
                 }
             }
         }
-        if bad_problem {
-            return;
-        }
-        for segment in river_segments {
-            match segment {
-                RiverSegment::Single(c) => {
-                    let special_neighbors = self.special_neighbors(c);
-                    if special_neighbors.len() > 1 {
-                        let msg =
-                            format!("({}, {}) river pixel connects two special pixels", c.0, c.1);
-                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
-                    } else if special_neighbors.is_empty() {
-                        let msg = format!("({}, {}) orphan river pixel", c.0, c.1);
-                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
-                    } else {
-                        let s = special_neighbors[0];
-                        if specials[&s] {
-                            let msg = format!(
-                                "({}, {}) pixel terminates multiple river segments",
-                                s.0, s.1
-                            );
-                            error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
-                        } else {
-                            specials.insert(s, true);
-                        }
-                    }
-                }
-                RiverSegment::Stream(c1, c2) => {
-                    let mut special_neighbors = self.special_neighbors(c1);
-                    special_neighbors.append(&mut self.special_neighbors(c2));
-                    if special_neighbors.is_empty() {
-                        let msg = format!(
-                            "({}, {}) - ({}, {}) orphan river segment",
-                            c1.0, c1.1, c2.0, c2.1
-                        );
-                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
-                    } else if special_neighbors.len() > 1 {
-                        let msg = format!(
-                            "({}, {}) - ({}, {}) river segment has two terminators",
-                            c1.0, c1.1, c2.0, c2.1
-                        );
-                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
-                    } else {
-                        let s = special_neighbors[0];
-                        if specials[&s] {
-                            let msg = format!(
-                                "({}, {}) pixel terminates multiple river segments",
-                                s.0, s.1
-                            );
-                            error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
-                        } else {
-                            specials.insert(s, true);
-                        }
-                    }
-                }
-            }
+        if !bad_problem {
+            self.validate_segments(river_segments, specials);
         }
     }
 }

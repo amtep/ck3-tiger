@@ -309,8 +309,8 @@ pub fn validate_iterator_fields(
     has_tooltip
 }
 
-/// This checks the special fields for certain iterators, like type = in every_relation.
-/// It doesn't check the generic ones like "limit" or the ordering ones for ordered_*.
+/// This checks the special fields for certain iterators, like `type =` in `every_relation`.
+/// It doesn't check the generic ones like `limit` or the ordering ones for `ordered_*`.
 pub fn validate_inside_iterator(
     name: &str,
     listtype: &str,

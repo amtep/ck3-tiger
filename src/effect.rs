@@ -82,7 +82,7 @@ pub fn validate_effect<'a>(
 
     if let Some(token) = vd.field_value("subject") {
         if caller == "custom_description" || caller == "custom_tooltip" {
-            validate_target(token, data, sc, Scopes::non_primitive())
+            validate_target(token, data, sc, Scopes::non_primitive());
         } else {
             warn(
                 block.get_key("subject").unwrap(),
@@ -94,7 +94,7 @@ pub fn validate_effect<'a>(
 
     if let Some(token) = vd.field_value("object") {
         if caller == "custom_description" {
-            validate_target(token, data, sc, Scopes::non_primitive())
+            validate_target(token, data, sc, Scopes::non_primitive());
         } else {
             warn(
                 block.get_key("object").unwrap(),
@@ -204,7 +204,7 @@ pub fn validate_effect<'a>(
                         if let Some(token) = vd.field_value(key) {
                             validate_target(token, data, sc, outscopes);
                         }
-                        vd.warn_remaining()
+                        vd.warn_remaining();
                     }
                 }
                 Effect::TargetValue(key, outscopes, valuekey) => {
@@ -218,7 +218,7 @@ pub fn validate_effect<'a>(
                         if let Some(bv) = vd.field(valuekey) {
                             ScriptValue::validate_bv(bv, data, sc);
                         }
-                        vd.warn_remaining()
+                        vd.warn_remaining();
                     }
                 }
                 Effect::ItemTarget(ikey, itype, tkey, outscopes) => {
@@ -230,7 +230,7 @@ pub fn validate_effect<'a>(
                         if let Some(token) = vd.field_value(tkey) {
                             validate_target(token, data, sc, outscopes);
                         }
-                        vd.warn_remaining()
+                        vd.warn_remaining();
                     }
                 }
                 Effect::ItemValue(key, itype) => {
@@ -244,7 +244,7 @@ pub fn validate_effect<'a>(
                         if let Some(bv) = vd.field("value") {
                             ScriptValue::validate_bv(bv, data, sc);
                         }
-                        vd.warn_remaining()
+                        vd.warn_remaining();
                     }
                 }
                 Effect::Desc => validate_desc(bv, data, sc),

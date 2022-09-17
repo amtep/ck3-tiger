@@ -4,6 +4,7 @@
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::module_name_repetitions)]
+#![allow(clippy::similar_names)]
 // When we do wildcards in `use`, it's deliberate
 #![allow(clippy::enum_glob_use)]
 #![allow(clippy::wildcard_imports)]

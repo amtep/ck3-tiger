@@ -145,7 +145,7 @@ impl Characters {
         if !cycle_vec.is_empty() && !first {
             cycle_vec.insert(0, item.key.to_string());
         }
-        return cycle_vec;
+        cycle_vec
     }
 }
 
@@ -223,7 +223,7 @@ impl Character {
     pub fn is_alive(&self, date: Date) -> bool {
         // TODO: figure out if we need to account for deaths triggered in effect { } blocks
         self.block.get_field_at_date("birth", date).is_some()
-            && !self.block.get_field_at_date("death", date).is_some()
+            && self.block.get_field_at_date("death", date).is_none()
     }
 
     pub fn validate_history(
@@ -366,7 +366,7 @@ impl Character {
         vd.field_block("portrait_override");
 
         vd.validate_history_blocks(|date, b, data| {
-            Self::validate_history(date, b, &self.block, data, &mut sc)
+            Self::validate_history(date, b, &self.block, data, &mut sc);
         });
         vd.warn_remaining();
     }
