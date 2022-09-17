@@ -10,7 +10,9 @@ use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::tables::effects::{scope_effect, ControlEffect, Effect};
 use crate::trigger::{validate_normal_trigger, validate_target};
-use crate::validate::{validate_inside_iterator, validate_prefix_reference, ListType, validate_iterator_fields};
+use crate::validate::{
+    validate_inside_iterator, validate_iterator_fields, validate_prefix_reference, ListType,
+};
 
 pub fn validate_normal_effect<'a>(
     block: &Block,

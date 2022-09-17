@@ -15,7 +15,9 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, scope_value, Scopes};
 use crate::token::{Loc, Token};
 use crate::trigger::validate_normal_trigger;
-use crate::validate::{validate_inside_iterator, validate_prefix_reference, ListType, validate_iterator_fields};
+use crate::validate::{
+    validate_inside_iterator, validate_iterator_fields, validate_prefix_reference, ListType,
+};
 
 #[derive(Clone, Debug, Default)]
 pub struct ScriptValues {
@@ -273,7 +275,9 @@ impl ScriptValue {
 
     fn validate_if(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
-        vd.field_block("limit"); // TODO: validate trigger
+        vd.field_validated_block("limit", |block, data| {
+            validate_normal_trigger(block, data, sc, false);
+        });
         Self::validate_inner(vd, data, sc);
     }
 

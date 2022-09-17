@@ -19,7 +19,8 @@ use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{
-    validate_cooldown, validate_theme_background, validate_theme_icon, validate_theme_sound, ListType,
+    validate_cooldown, validate_theme_background, validate_theme_icon, validate_theme_sound,
+    ListType,
 };
 
 #[derive(Clone, Debug, Default)]
