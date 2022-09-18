@@ -1,5 +1,4 @@
 use fnv::FnvHashMap;
-use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 
 use crate::block::Block;
@@ -8,9 +7,10 @@ use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
-use crate::token::{Loc, Token};
+use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
 pub struct Effects {
@@ -68,7 +68,7 @@ impl FileHandler for Effects {
 pub struct Effect {
     pub key: Token,
     block: Block,
-    cache: RefCell<FnvHashMap<Loc, ScopeContext>>,
+    cache: MacroCache<ScopeContext>,
 }
 
 impl Effect {
@@ -76,30 +76,30 @@ impl Effect {
         Self {
             key,
             block,
-            cache: RefCell::new(FnvHashMap::default()),
+            cache: MacroCache::default(),
         }
     }
 
     pub fn validate(&self, data: &Everything) {
         if self.block.source.is_none() {
             let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
-            self.validate_call(&self.key.loc, data, &mut sc, false);
+            self.validate_call(&self.key, data, &mut sc, false);
         }
     }
 
     pub fn validate_call(
         &self,
-        loc: &Loc,
+        key: &Token,
         data: &Everything,
         sc: &mut ScopeContext,
         tooltipped: bool,
     ) {
-        if !self.cached_compat(loc, sc) {
+        if !self.cached_compat(key, &[], sc) {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
-            self.cache.borrow_mut().insert(loc.clone(), our_sc.clone());
+            self.cache.insert(key, &[], our_sc.clone());
             validate_normal_effect(&self.block, data, &mut our_sc, tooltipped);
-            sc.expect_compatibility(&our_sc, &self.key);
-            self.cache.borrow_mut().insert(loc.clone(), our_sc);
+            sc.expect_compatibility(&our_sc, key);
+            self.cache.insert(key, &[], our_sc);
         }
     }
 
@@ -107,36 +107,36 @@ impl Effect {
         self.block.macro_parms()
     }
 
-    pub fn cached_compat(&self, loc: &Loc, sc: &mut ScopeContext) -> bool {
-        if let Some(our_sc) = self.cache.borrow().get(loc) {
-            sc.expect_compatibility(our_sc, &self.key);
-            true
-        } else {
-            false
-        }
+    pub fn cached_compat(
+        &self,
+        key: &Token,
+        args: &[(String, Token)],
+        sc: &mut ScopeContext,
+    ) -> bool {
+        self.cache.perform(key, args, |our_sc| {
+            sc.expect_compatibility(our_sc, key);
+        })
     }
 
     pub fn validate_macro_expansion(
         &self,
+        key: &Token,
         args: Vec<(String, Token)>,
         data: &Everything,
         sc: &mut ScopeContext,
         tooltipped: bool,
     ) {
-        // arg[0].1.loc gives us the unique location of this macro call.
         // Every invocation is treated as different even if the args are the same,
         // because we want to point to the correct one when reporting errors.
-        let loc = args[0].1.loc.clone();
-
-        if !self.cached_compat(&loc, sc) {
-            if let Some(block) = self.block.expand_macro(args) {
+        if !self.cached_compat(key, &args, sc) {
+            if let Some(block) = self.block.expand_macro(&args) {
                 let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
-                self.cache.borrow_mut().insert(loc.clone(), our_sc.clone());
+                self.cache.insert(key, &args, our_sc.clone());
                 validate_normal_effect(&block, data, &mut our_sc, tooltipped);
-                sc.expect_compatibility(&our_sc, &self.key);
-                self.cache.borrow_mut().insert(loc, our_sc);
+                sc.expect_compatibility(&our_sc, key);
+                self.cache.insert(key, &args, our_sc);
             }
         }
     }

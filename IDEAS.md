@@ -12,6 +12,7 @@
 * for `current_date < 1201.1.1` suggest `current_year < 1200`
 * for both in one block, suggest current_year = 1200
 * keep in mind that in empty scope, current_year doesn't work
+* `50 = 0` in random_list is invalid, suggest `50 = {}` instead
 
 ## GUI
 * ck3 crashes if you have multiple objects with `resizeparent` in one parent

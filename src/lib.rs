@@ -32,6 +32,7 @@ mod effect;
 mod fileset;
 mod helpers;
 mod item;
+mod macrocache;
 mod modif;
 mod parse;
 mod pdxfile;

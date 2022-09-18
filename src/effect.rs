@@ -314,7 +314,7 @@ pub fn validate_effect<'a>(
                     } else if !token.is("yes") {
                         warn(token, ErrorKey::Validation, "expected just effect = yes");
                     }
-                    effect.validate_call(&key.loc, data, sc, tooltipped);
+                    effect.validate_call(key, data, sc, tooltipped);
                 }
                 BlockOrValue::Block(block) => {
                     let parms = effect.macro_parms();
@@ -337,7 +337,7 @@ pub fn validate_effect<'a>(
                             }
                         }
                         let args = parms.into_iter().zip(vec.into_iter()).collect();
-                        effect.validate_macro_expansion(args, data, sc, tooltipped);
+                        effect.validate_macro_expansion(key, args, data, sc, tooltipped);
                     }
                 }
             }

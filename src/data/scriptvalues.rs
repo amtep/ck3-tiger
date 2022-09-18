@@ -47,7 +47,7 @@ impl ScriptValues {
 
     pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
         if let Some(item) = self.scriptvalues.get(key.as_str()) {
-            item.validate_call(&key.loc, data, sc);
+            item.validate_call(key, data, sc);
         }
     }
 }
@@ -391,9 +391,9 @@ impl ScriptValue {
         }
     }
 
-    pub fn cached_compat(&self, loc: &Loc, sc: &mut ScopeContext) -> bool {
-        if let Some(our_sc) = self.cache.borrow().get(loc) {
-            sc.expect_compatibility(our_sc, &self.key);
+    pub fn cached_compat(&self, key: &Token, sc: &mut ScopeContext) -> bool {
+        if let Some(our_sc) = self.cache.borrow().get(&key.loc) {
+            sc.expect_compatibility(our_sc, key);
             true
         } else {
             false
@@ -408,16 +408,18 @@ impl ScriptValue {
             }
         }
         let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
-        self.validate_call(&self.key.loc, data, &mut sc);
+        self.validate_call(&self.key, data, &mut sc);
     }
 
-    pub fn validate_call(&self, loc: &Loc, data: &Everything, sc: &mut ScopeContext) {
-        if !self.cached_compat(loc, sc) {
+    pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
+        if !self.cached_compat(key, sc) {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
-            self.cache.borrow_mut().insert(loc.clone(), our_sc.clone());
+            self.cache
+                .borrow_mut()
+                .insert(key.loc.clone(), our_sc.clone());
             Self::validate_bv(&self.bv, data, &mut our_sc);
-            sc.expect_compatibility(&our_sc, &self.key);
-            self.cache.borrow_mut().insert(loc.clone(), our_sc);
+            sc.expect_compatibility(&our_sc, key);
+            self.cache.borrow_mut().insert(key.loc.clone(), our_sc);
         }
     }
 }

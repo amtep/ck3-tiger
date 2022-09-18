@@ -337,7 +337,7 @@ impl Block {
         vec
     }
 
-    pub fn expand_macro(&self, args: Vec<(String, Token)>) -> Option<Block> {
+    pub fn expand_macro(&self, args: &[(String, Token)]) -> Option<Block> {
         if let Some(source) = &self.source {
             let mut content = Vec::new();
             let mut odd = false;
@@ -346,7 +346,7 @@ impl Block {
                 if odd {
                     content.push(part);
                 } else {
-                    for (arg, val) in &args {
+                    for (arg, val) in args {
                         if part.is(arg) {
                             content.push(val.clone());
                         }

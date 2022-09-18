@@ -367,7 +367,7 @@ pub fn validate_trigger(
                         if !trigger.macro_parms().is_empty() {
                             error(token, ErrorKey::Macro, "expected macro arguments");
                         }
-                        trigger.validate_call(&key.loc, data, sc, tooltipped);
+                        trigger.validate_call(key, data, sc, tooltipped);
                     }
                     BlockOrValue::Block(block) => {
                         let parms = trigger.macro_parms();
@@ -389,7 +389,7 @@ pub fn validate_trigger(
                                 }
                             }
                             let args = parms.into_iter().zip(vec.into_iter()).collect();
-                            trigger.validate_macro_expansion(args, data, sc, tooltipped);
+                            trigger.validate_macro_expansion(key, args, data, sc, tooltipped);
                         }
                     }
                 }
