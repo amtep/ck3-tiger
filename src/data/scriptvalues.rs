@@ -140,7 +140,7 @@ impl ScriptValue {
             Self::validate_if(b, data, sc);
         });
         vd.field_validated_blocks("else", |b, data| {
-            Self::validate_block(b, data, sc);
+            Self::validate_else(b, data, sc);
         });
 
         'outer: for (key, bv) in vd.unknown_keys() {
@@ -272,6 +272,15 @@ impl ScriptValue {
     }
 
     fn validate_if(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+        let mut vd = Validator::new(block, data);
+        vd.req_field_warn("limit");
+        vd.field_validated_block("limit", |block, data| {
+            validate_normal_trigger(block, data, sc, false);
+        });
+        Self::validate_inner(vd, data, sc);
+    }
+
+    fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block("limit", |block, data| {
             validate_normal_trigger(block, data, sc, false);
