@@ -34,6 +34,21 @@ impl Display for ListType {
     }
 }
 
+impl TryFrom<&str> for ListType {
+    type Error = std::fmt::Error;
+
+    fn try_from(from: &str) -> Result<Self, Self::Error> {
+        match from {
+            "" => Ok(ListType::None),
+            "any" => Ok(ListType::Any),
+            "every" => Ok(ListType::Every),
+            "ordered" => Ok(ListType::Ordered),
+            "random" => Ok(ListType::Random),
+            _ => Err(Self::Error::default()),
+        }
+    }
+}
+
 pub fn validate_theme_background(bv: &BlockOrValue, data: &Everything) {
     if let Some(block) = bv.get_block() {
         let mut vd = Validator::new(block, data);

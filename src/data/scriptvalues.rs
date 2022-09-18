@@ -244,7 +244,8 @@ impl ScriptValue {
             validate_normal_trigger(block, data, sc, false);
         });
 
-        validate_iterator_fields(ListType::Any, block, data, sc, &mut vd);
+        let ltype = ListType::try_from(it_type.as_str()).unwrap();
+        validate_iterator_fields(ltype, block, data, sc, &mut vd);
 
         validate_inside_iterator(
             it_name.as_str(),

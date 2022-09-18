@@ -153,6 +153,44 @@ pub fn validate_effect<'a>(
     });
 
     'outer: for (key, bv) in vd.unknown_keys() {
+        if let Some(effect) = data.get_effect(key) {
+            match bv {
+                BlockOrValue::Token(token) => {
+                    if !effect.macro_parms().is_empty() {
+                        error(token, ErrorKey::Macro, "expected macro arguments");
+                    } else if !token.is("yes") {
+                        warn(token, ErrorKey::Validation, "expected just effect = yes");
+                    }
+                    effect.validate_call(key, data, sc, tooltipped);
+                }
+                BlockOrValue::Block(block) => {
+                    let parms = effect.macro_parms();
+                    if parms.is_empty() {
+                        error_info(
+                            block,
+                            ErrorKey::Macro,
+                            "effect does not need macro arguments",
+                            "you can just use it as effect = yes",
+                        );
+                    } else {
+                        let mut vec = Vec::new();
+                        let mut vd = Validator::new(block, data);
+                        for parm in &parms {
+                            vd.req_field(parm.as_str());
+                            if let Some(token) = vd.field_value(parm.as_str()) {
+                                vec.push(token.clone());
+                            } else {
+                                continue 'outer;
+                            }
+                        }
+                        let args = parms.into_iter().zip(vec.into_iter()).collect();
+                        effect.validate_macro_expansion(key, args, data, sc, tooltipped);
+                    }
+                }
+            }
+            continue;
+        }
+
         if let Some((inscopes, effect)) = scope_effect(key, data) {
             sc.expect(inscopes, key);
             match effect {
@@ -289,12 +327,7 @@ pub fn validate_effect<'a>(
                         continue;
                     }
                     sc.expect(inscopes, key);
-                    let ltype = match it_type.as_str() {
-                        "every" => ListType::Every,
-                        "ordered" => ListType::Ordered,
-                        "random" => ListType::Random,
-                        _ => unreachable!(),
-                    };
+                    let ltype = ListType::try_from(it_type.as_str()).unwrap();
                     sc.open_scope(outscope, key.clone());
                     if let Some(b) = bv.expect_block() {
                         let vd = Validator::new(b, data);
@@ -304,44 +337,6 @@ pub fn validate_effect<'a>(
                     continue;
                 }
             }
-        }
-
-        if let Some(effect) = data.get_effect(key) {
-            match bv {
-                BlockOrValue::Token(token) => {
-                    if !effect.macro_parms().is_empty() {
-                        error(token, ErrorKey::Macro, "expected macro arguments");
-                    } else if !token.is("yes") {
-                        warn(token, ErrorKey::Validation, "expected just effect = yes");
-                    }
-                    effect.validate_call(key, data, sc, tooltipped);
-                }
-                BlockOrValue::Block(block) => {
-                    let parms = effect.macro_parms();
-                    if parms.is_empty() {
-                        error_info(
-                            block,
-                            ErrorKey::Macro,
-                            "effect does not need macro arguments",
-                            "you can just use it as effect = yes",
-                        );
-                    } else {
-                        let mut vec = Vec::new();
-                        let mut vd = Validator::new(block, data);
-                        for parm in &parms {
-                            vd.req_field(parm.as_str());
-                            if let Some(token) = vd.field_value(parm.as_str()) {
-                                vec.push(token.clone());
-                            } else {
-                                continue 'outer;
-                            }
-                        }
-                        let args = parms.into_iter().zip(vec.into_iter()).collect();
-                        effect.validate_macro_expansion(key, args, data, sc, tooltipped);
-                    }
-                }
-            }
-            continue;
         }
 
         // Check if it's a target = { target_scope } block.
