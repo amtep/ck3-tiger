@@ -67,6 +67,8 @@ impl LocaEntry {
                             if !entry.expand_macros(vec, from, count) {
                                 return false;
                             }
+                        } else {
+                            return false;
                         }
                     }
                 }
