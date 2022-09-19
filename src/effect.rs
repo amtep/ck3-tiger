@@ -218,8 +218,14 @@ pub fn validate_effect<'a>(
                     if let Some(token) = bv.get_value() {
                         if let Ok(number) = token.as_str().parse::<i32>() {
                             if effect == Effect::NonNegativeValue && number < 0 {
-                                let msg = format!("{} does not take negative numbers", key);
-                                warn(token, ErrorKey::Validation, &msg);
+                                if key.is("add_gold") {
+                                    let msg = "add_gold does not take negative numbers";
+                                    let info = "try remove_short_term_gold instead";
+                                    warn_info(token, ErrorKey::Range, &msg, info);
+                                } else {
+                                    let msg = format!("{} does not take negative numbers", key);
+                                    warn(token, ErrorKey::Range, &msg);
+                                }
                             }
                         }
                     }
