@@ -125,6 +125,9 @@ struct Errors {
     /// Skip logging errors with these keys
     ignore_keys: Vec<ErrorKey>,
 
+    /// Skip logging errors for these files and directories (regardless of key)
+    ignore_paths: Vec<PathBuf>,
+
     /// Error logs are written here (initially stderr)
     outfile: Option<Box<dyn ErrorLogger>>,
 
@@ -167,6 +170,11 @@ impl Errors {
         }
         for (path, keys) in &self.ignore_keys_for {
             if loc.pathname.starts_with(path) && keys.contains(&key) {
+                return false;
+            }
+        }
+        for path in &self.ignore_paths {
+            if loc.pathname.starts_with(path) {
                 return false;
             }
         }
@@ -479,8 +487,14 @@ pub fn ignore_key_for(path: PathBuf, key: ErrorKey) {
         .push(key);
 }
 
+/// Ignore this key for all files
 pub fn ignore_key(key: ErrorKey) {
     Errors::get_mut().ignore_keys.push(key);
+}
+
+/// Ignore this path for all keys
+pub fn ignore_path(path: PathBuf) {
+    Errors::get_mut().ignore_paths.push(path);
 }
 
 pub fn will_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {

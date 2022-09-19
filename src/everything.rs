@@ -30,7 +30,7 @@ use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, ignore_key, ignore_key_for, warn};
+use crate::errors::{error, ignore_key, ignore_key_for, ignore_path, warn};
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
@@ -199,9 +199,6 @@ impl Everything {
     pub fn load_errorkey_config(&self) {
         for block in self.config.get_field_blocks("ignore") {
             let keynames = block.get_field_values("key");
-            if keynames.is_empty() {
-                continue;
-            }
 
             let mut keys = Vec::new();
             for keyname in keynames {
@@ -219,6 +216,10 @@ impl Everything {
             if pathnames.is_empty() {
                 for key in keys {
                     ignore_key(key);
+                }
+            } else if keys.is_empty() {
+                for path in pathnames {
+                    ignore_path(PathBuf::from(path.as_str()));
                 }
             } else {
                 for pathname in pathnames {
