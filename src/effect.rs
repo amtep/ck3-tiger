@@ -4,7 +4,7 @@ use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn};
+use crate::errors::{error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};

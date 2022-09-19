@@ -38,6 +38,14 @@ or
 ck3-tiger "<i>path/to/</i>Paradox Interactive/Crusader Kings III/mod/YourMod.mod"
 </pre>
 
+(Note that the quote marks around the path are important because of the spaces in it.)
+
+If you want the output in a file, you can redirect it like this:
+<pre>
+ck3-tiger <i>path/to/your/</i>descriptor.mod ><i>filename</i>
+</pre>
+
+
 ## How to configure
 You can place a file `ck3-tiger.conf` in your mod directory. You can use it to select which languages to check localizations for, and to suppress messages about things you don't want to fix.
 
