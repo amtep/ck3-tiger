@@ -238,6 +238,7 @@ impl Character {
 
         vd.field_value("birth"); // TODO: can be "yes" or a date
         vd.field("death"); // TODO: can be "yes" or { death_reason = }
+                           // note that killer = character_id is used without character: prefix here
 
         // religion and faith both mean faith here
         vd.field_value_item("religion", Item::Faith);

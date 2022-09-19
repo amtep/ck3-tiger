@@ -561,7 +561,7 @@ const SCOPE_VALUE: &[(u32, &str)] = &[
     (None, "current_tooltip_depth"),
     (Character, "current_weight"),
     (Character, "current_weight_for_portrait"),
-    (None, "current_year"),
+    (ALL_BUT_NONE, "current_year"), // should be None scope, but current_year is buggy
     (Character, "days_as_ruler"),
     (Character, "days_in_prison"),
     (Character, "days_of_continuous_peace"),

@@ -16,6 +16,7 @@
 * keep in mind that in empty scope, current_year doesn't work
 * `50 = 0` in random_list is invalid, suggest `50 = {}` instead
 * when a target is invalid, check if the user forgot to put a faith: or culture: prefix
+* sometimes you want an any_ list with empty trigger. User might try any_... = yes, but it should be any_... = {}
 
 ## GUI
 * ck3 crashes if you have multiple objects with `resizeparent` in one parent
@@ -31,10 +32,12 @@
 ## Maps
 * Check resolution and graphics format for all the pngs in map_data
 * Check that `heightmap.png` is not newer than `indirection_heightmap.png` and `packed_heightmap.png`
+* map dimensions should be multiple of 32x32
 
 ## History
 * bookmarked characters need to have a static COA for their highest landed title, because if it's random it will be blank on the bookmark selection view
 * title history: Warn if one character gets multiple different lieges on the same day
+* warn if a character is born twice or dies twice
 
 ## Gfx
 * CK3 needs all of its bones to be oriented y+ in rest position

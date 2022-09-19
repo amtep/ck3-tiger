@@ -464,7 +464,16 @@ pub fn validate_trigger(
                     if WARN_AGAINST_EQ.contains(&part.as_str()) {
                         warn_against_eq = Some(part);
                     }
-                    sc.expect(inscopes, part);
+                    if part.is("current_year") && sc.scopes() == Scopes::None {
+                        warn_info(
+                            part,
+                            ErrorKey::Bugs,
+                            "current_year does not work in empty scope",
+                            "try using current_date, or dummy_male.current_year",
+                        );
+                    } else {
+                        sc.expect(inscopes, part);
+                    }
                     sc.replace(Scopes::Value, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_trigger_target(part, data) {
                     if !last {
@@ -653,7 +662,16 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
                 let msg = format!("`{}` makes no sense except as first part", part);
                 warn(part, ErrorKey::Validation, &msg);
             }
-            sc.expect(inscopes, part);
+            if part.is("current_year") && sc.scopes() == Scopes::None {
+                warn_info(
+                    part,
+                    ErrorKey::Bugs,
+                    "current_year does not work in empty scope",
+                    "try using current_date, or dummy_male.current_year",
+                );
+            } else {
+                sc.expect(inscopes, part);
+            }
             sc.replace(Scopes::Value, part.clone());
         } else if data.scriptvalues.exists(part.as_str()) {
             // TODO: validate inscope of the script value against sc

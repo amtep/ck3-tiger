@@ -363,7 +363,16 @@ impl ScriptValue {
                             let msg = format!("`{}` makes no sense except as first part", part);
                             warn(part, ErrorKey::Validation, &msg);
                         }
-                        sc.expect(inscopes, part);
+                        if part.is("current_year") && sc.scopes() == Scopes::None {
+                            warn_info(
+                                part,
+                                ErrorKey::Bugs,
+                                "current_year does not work in empty scope",
+                                "try using current_date, or dummy_male.current_year",
+                            );
+                        } else {
+                            sc.expect(inscopes, part);
+                        }
                         sc.replace(Scopes::Value, part.clone());
                     } else {
                         data.verify_exists(Item::ScriptValue, part);
