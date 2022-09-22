@@ -189,12 +189,10 @@ impl Localization {
                     self.check_game_concepts(value, data);
                 }
             }
-            // TODO: The is_lowercase here is a heuristic. We should be checking that it's
-            // not a known function like [GetGameVersionInfo]
-            LocaValue::Code(chain, _)
+            LocaValue::Code(chain, Some(fmt))
                 if chain.codes.len() == 1
                     && chain.codes[0].arguments.is_empty()
-                    && chain.codes[0].name.as_str().chars().all(char::is_lowercase) =>
+                    && fmt.as_str().contains('E') =>
             {
                 data.verify_exists(Item::GameConcept, &chain.codes[0].name);
             }
