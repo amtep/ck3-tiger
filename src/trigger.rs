@@ -327,8 +327,11 @@ pub fn validate_trigger(
             }
 
             if key.is("custom_tooltip") {
-                if let Some(block) = bv.expect_block() {
-                    validate_trigger(Caller::CustomTooltip, block, data, sc, false);
+                match bv {
+                    BlockOrValue::Token(t) => data.verify_exists(Item::Localization, t),
+                    BlockOrValue::Block(b) => {
+                        validate_trigger(Caller::CustomTooltip, b, data, sc, false)
+                    }
                 }
                 continue;
             }
