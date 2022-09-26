@@ -22,8 +22,11 @@ const STEAM_MAC: &str = "Library/Application Support/Steam/steamapps";
 #[cfg(windows)]
 const STEAM_WINDOWS_KEY: &str = r"SOFTWARE\Wow6432Node\Valve\Steam";
 
-// CK3 directory under steam library dir
+/// CK3 directory under steam library dir
 const CK3_GAME_DIR: &str = "steamapps/common/Crusader Kings III/game";
+
+/// A file that should be present if this is a CK3 game directory
+const CK3_SIGNATURE_FILE: &str = "events/witch_events.txt";
 
 #[derive(Parser)]
 struct Cli {
@@ -98,12 +101,33 @@ fn find_ck3_directory() -> Option<PathBuf> {
 fn main() -> Result<()> {
     let mut args = Cli::parse();
 
+    eprintln!("This validator was made for Crusader Kings version 1.7.0.");
+    eprintln!("If you are using a newer version of Crusader Kings, it may be inaccurate.");
+    eprintln!("!! Currently it's inaccurate anyway because it's in alpha state.");
+
     if args.ck3.is_none() {
         args.ck3 = find_ck3_directory();
     }
-    if args.ck3.is_none() {
+    if let Some(ref mut ck3) = args.ck3 {
+        eprintln!("Using CK3 game directory: {}", ck3.display());
+        let mut sig = ck3.clone();
+        sig.push(CK3_SIGNATURE_FILE);
+        if !sig.is_file() {
+            eprintln!("That does not look like a CK3 game directory.");
+            ck3.push("game");
+            eprintln!("Trying: {}", ck3.display());
+            sig = ck3.clone();
+            sig.push(CK3_SIGNATURE_FILE);
+            if sig.is_file() {
+                eprintln!("Ok.");
+            } else {
+                bail!("Cannot find CK3 game directory. Please supply it as the --ck3 option.");
+            }
+        }
+    } else {
         bail!("Cannot find CK3 game directory. Please supply it as the --ck3 option.");
     }
+
     set_vanilla_root(args.ck3.as_ref().unwrap().clone());
 
     if args.show_vanilla {
@@ -114,16 +138,16 @@ fn main() -> Result<()> {
         minimum_level(ErrorLevel::Info);
     }
 
-    eprintln!("This validator was made for Crusader Kings version 1.7.0.");
-    eprintln!("If you are using a newer version of Crusader Kings, it may be inaccurate.");
-    eprintln!("!! Currently it's inaccurate anyway because it's in alpha state.");
-
+    if args.modpath.is_dir() {
+        args.modpath.push("descriptor.mod");
+    }
     let modfile = ModFile::read(&args.modpath)?;
     let modpath = modfile.modpath();
     if !modpath.exists() {
         eprintln!("Looking for mod in {}", modpath.display());
         bail!("Cannot find mod directory. Please make sure the .mod file is correct.");
     }
+    eprintln!("Using mod directory: {}", modpath.display());
     set_mod_root(modpath.clone());
 
     let mut everything = Everything::new(&args.ck3.unwrap(), &modpath, modfile.replace_paths())?;
