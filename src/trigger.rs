@@ -1610,7 +1610,7 @@ fn validate_trigger_yields_alliance(_block: &Block, _data: &Everything, _sc: &mu
     // TODO
 }
 
-// LAST UPDATED VERSION 1.7.0
+// LAST UPDATED VERSION 1.8.1
 const WARN_AGAINST_EQ: &[&str] = &[
     "gold",
     "prestige",

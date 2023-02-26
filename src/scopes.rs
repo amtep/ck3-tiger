@@ -9,7 +9,7 @@ use crate::everything::Everything;
 use crate::token::Token;
 
 bitflags! {
-    /// LAST UPDATED VERSION 1.7.0
+    /// LAST UPDATED VERSION 1.8.1
     /// See `event_scopes.log` from the game data dumps.
     /// Keep in sync with the module constants below.
     pub struct Scopes: u32 {
@@ -66,7 +66,7 @@ impl Scopes {
     }
 }
 
-/// LAST UPDATED VERSION 1.7.0
+/// LAST UPDATED VERSION 1.8.1
 /// See `event_scopes.log` from the game data dumps.
 pub const None: u32 = 0x0000_0001;
 pub const Value: u32 = 0x0000_0002;
@@ -334,7 +334,7 @@ impl Display for Scopes {
     }
 }
 
-/// LAST UPDATED VERSION 1.7.0
+/// LAST UPDATED VERSION 1.8.1
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(u32, &str, u32)] = &[
@@ -475,7 +475,7 @@ const SCOPE_TO_SCOPE: &[(u32, &str, u32)] = &[
     (None, "yes", Bool),
 ];
 
-/// LAST UPDATED VERSION 1.7.0
+/// LAST UPDATED VERSION 1.8.1
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
@@ -483,6 +483,7 @@ const SCOPE_FROM_PREFIX: &[(u32, &str, u32)] = &[
     (Character, "aptitude", Value),
     (None, "array_define", Value),
     (None, "character", Character),
+    (Value, "compare_complex_value", Value),
     (Character, "council_task", CouncilTask),
     (Character, "court_position", Character),
     (Character, "cp", Character), // councillor
@@ -505,7 +506,7 @@ const SCOPE_FROM_PREFIX: &[(u32, &str, u32)] = &[
     (Character, "vassal_contract_obligation_level", Value),
 ];
 
-/// LAST UPDATED VERSION 1.7.0
+/// LAST UPDATED VERSION 1.8.1
 /// See `triggers.log` from the game data dumps
 /// These are 'triggers' that return a value.
 const SCOPE_VALUE: &[(u32, &str)] = &[
@@ -730,7 +731,7 @@ const SCOPE_VALUE: &[(u32, &str)] = &[
 // TODO Special:
 // <legacy>_track_perks
 
-/// LAST UPDATED VERSION 1.7.0
+/// LAST UPDATED VERSION 1.8.1
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.

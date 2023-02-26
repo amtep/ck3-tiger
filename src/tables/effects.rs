@@ -157,7 +157,7 @@ pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)>
     std::option::Option::None
 }
 
-/// LAST UPDATED VERSION 1.7.0
+/// LAST UPDATED VERSION 1.8.1
 /// See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (

@@ -293,7 +293,7 @@ impl Faith {
     }
 }
 
-// LAST UPDATED VERSION 1.7.0
+// LAST UPDATED VERSION 1.8.1
 // Taken from the Faith.random_ values in `data_types_uncategorized.txt`
 const CUSTOM_RELIGION_LOCAS: &[&str] = &[
     "AltPriestTermPlural",

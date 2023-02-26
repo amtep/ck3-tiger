@@ -43,7 +43,7 @@ pub fn scope_trigger_item(name: &str) -> Option<(Scopes, Item)> {
     std::option::Option::None
 }
 
-/// LAST UPDATED VERSION 1.7.0
+/// LAST UPDATED VERSION 1.8.1
 /// See `triggers.log` from the game data dumps
 /// These are the triggers that do a simple comparison with a target scope item
 const SCOPE_TRIGGER_TARGET: &[(u32, &str, u32)] = &[
@@ -226,7 +226,7 @@ const SCOPE_TRIGGER_TARGET: &[(u32, &str, u32)] = &[
     (War, "was_called", Character),
 ];
 
-/// LAST UPDATED VERSION 1.7.0
+/// LAST UPDATED VERSION 1.8.1
 /// See `triggers.log` from the game data dumps
 /// These are the triggers that take a simple yes or no
 const SCOPE_TRIGGER_BOOL: &[(u32, &str)] = &[
@@ -401,7 +401,7 @@ const SCOPE_TRIGGER_BOOL: &[(u32, &str)] = &[
     (Character, "vassal_contract_is_blocked_from_modification"),
 ];
 
-/// LAST UPDATED VERSION 1.7.0
+/// LAST UPDATED VERSION 1.8.1
 /// See `triggers.log` from the game data dumps
 /// These are the triggers that compare to an item type
 const SCOPE_TRIGGER_ITEM: &[(u32, &str, Item)] = &[
@@ -487,6 +487,7 @@ const SCOPE_TRIGGER_ITEM: &[(u32, &str, Item)] = &[
         "has_province_modifier_duration_remaining",
         Item::Modifier,
     ),
+    (None, "has_reward_item", Item::RewardItem),
     (Scheme, "has_scheme_modifier", Item::Modifier),
     (
         Struggle,

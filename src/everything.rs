@@ -325,6 +325,7 @@ impl Everything {
             Item::Province => self.provinces.exists(key),
             Item::Relation => self.relations.exists(key),
             Item::Religion => self.religions.religion_exists(key),
+            Item::RewardItem => REWARD_ITEMS.contains(&key),
             Item::ScriptedEffect => self.effects.exists(key),
             Item::ScriptedList => self.scripted_lists.exists(key),
             Item::ScriptedTrigger => self.triggers.exists(key),
@@ -377,7 +378,7 @@ impl Everything {
     }
 }
 
-/// LAST UPDATED VERSION 1.7.0
+/// LAST UPDATED VERSION 1.8.1
 const HOLDING_TYPES: &[&str] = &[
     "castle_holding",
     "city_holding",
@@ -385,7 +386,7 @@ const HOLDING_TYPES: &[&str] = &[
     "tribal_holding",
 ];
 
-/// LAST UPDATED VERSION 1.7.0
+/// LAST UPDATED VERSION 1.8.1
 const MEN_AT_ARMS_BASE: &[&str] = &[
     "archers",
     "heavy_infantry",
@@ -399,8 +400,13 @@ const MEN_AT_ARMS_BASE: &[&str] = &[
     "siege_weapon",
 ];
 
+/// LAST UPDATED VERSION 1.8.1
+const REWARD_ITEMS: &[&str] = &["newsletter_crown"];
+
+/// LAST UPDATED VERSION 1.8.1
 const PRISON_TYPES: &[&str] = &["dungeon", "house_arrest"];
 
+/// LAST UPDATED VERSION 1.8.1
 const SKILLS: &[&str] = &[
     "diplomacy",
     "intrigue",
@@ -410,4 +416,5 @@ const SKILLS: &[&str] = &[
     "stewardship",
 ];
 
+/// LAST UPDATED VERSION 1.8.1
 const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual"];
