@@ -122,16 +122,18 @@ impl<'a> LocaParser<'a> {
     }
 
     fn unexpected_char(&mut self, expected: &str) {
-        // TODO: handle EOF better
-        error(
-            &self.loc,
-            ErrorKey::Localization,
-            &format!(
-                "Unexpected character `{}`, {}",
-                self.chars.peek().unwrap_or(&' '),
-                expected
+        match self.chars.peek() {
+            None => error(
+                &self.loc,
+                ErrorKey::Localization,
+                &format!("Unexpected end of file, {}", expected),
             ),
-        );
+            Some(c) => error(
+                &self.loc,
+                ErrorKey::Localization,
+                &format!("Unexpected character `{}`, {}", c, expected),
+            ),
+        };
     }
 
     // Look ahead to the last `"` on the line
