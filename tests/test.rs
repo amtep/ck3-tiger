@@ -34,29 +34,41 @@ fn test_mod_1() {
 
     // TODO: check for absence of duplicate event warning for non-dup.0001
 
-    assert!(errors.contains("bad_loca_name.yml: ERROR: could not determine language from filename"));
-
-    assert!(
-        errors.contains("decision.txt:2:1: ERROR: missing english localization key my_decision\n")
-    );
-    assert!(errors
-        .contains("decision.txt:2:1: ERROR: missing english localization key my_decision_tooltip"));
-    assert!(errors
-        .contains("decision.txt:2:1: ERROR: missing english localization key my_decision_desc"));
-    assert!(errors
-        .contains("decision.txt:2:1: ERROR: missing english localization key my_decision_confirm"));
-
-    assert!(errors
-        .contains("decision.txt:8:13: ERROR: missing english localization key my_decision_also"));
     assert!(errors.contains(
-        "decision.txt:9:12: ERROR: missing english localization key my_decision2_description"
+        "[MOD] file localization/english/bad_loca_name.yml
+ERROR (filename): could not determine language from filename"
+    ));
+
+    assert!(errors
+        .contains("ERROR (missing-localization): missing english localization key my_decision\n"));
+    assert!(errors.contains(
+        "ERROR (missing-localization): missing english localization key my_decision_tooltip"
+    ));
+    assert!(errors.contains(
+        "ERROR (missing-localization): missing english localization key my_decision_desc"
+    ));
+    assert!(errors.contains(
+        "ERROR (missing-localization): missing english localization key my_decision_confirm"
+    ));
+
+    assert!(errors.contains(
+        "ERROR (missing-localization): missing english localization key my_decision_also"
+    ));
+    assert!(errors.contains(
+        "ERROR (missing-localization): missing english localization key my_decision2_description"
+    ));
+    assert!(errors.contains(
+        "ERROR (missing-localization): missing english localization key totally_different"
     ));
     assert!(errors
-        .contains("decision.txt:10:25: ERROR: missing english localization key totally_different"));
-    assert!(errors
-        .contains("decision.txt:11:20: ERROR: missing english localization key my_decision2_c"));
+        .contains("ERROR (missing-localization): missing english localization key my_decision2_c"));
 
-    assert!(errors.contains("decision.txt:7:15: ERROR: referenced file does not exist"));
+    assert!(errors.contains(
+        "[MOD] file common/decisions/decision.txt
+line 3     picture = \"\"
+line 3               ^
+ERROR (missing-file): referenced file does not exist"
+    ));
 }
 
 #[test]
@@ -64,11 +76,16 @@ fn test_mod_2() {
     let errors = check_mod_helper("mod2");
 
     assert!(errors.contains(
-        "interaction.txt:1:1: ERROR: missing english localization key test_interaction\n"
+        "ERROR (missing-localization): missing english localization key test_interaction"
     ));
     assert!(errors.contains(
-        "interaction.txt:3:5: ERROR: missing english localization key test_interaction_extra_icon"
+        "ERROR (missing-localization): missing english localization key test_interaction_extra_icon"
     ));
-    assert!(errors.contains("interaction.txt:3:18: ERROR: referenced file does not exist"));
-    assert!(errors.contains("interaction.txt:2:12: ERROR: file gfx/interface/icons/character_interactions/missing_icon.dds does not exist"));
+    assert!(errors.contains(
+        "[MOD] file common/character_interactions/interaction.txt
+line 3     extra_icon = \"gfx/also_missing\"
+line 3                  ^
+ERROR (missing-file): referenced file does not exist"
+    ));
+    assert!(errors.contains("ERROR (missing-file): file gfx/interface/icons/character_interactions/missing_icon.dds does not exist"));
 }
