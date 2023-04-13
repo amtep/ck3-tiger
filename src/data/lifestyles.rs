@@ -52,11 +52,7 @@ impl FileHandler for Lifestyles {
             return;
         }
 
-        let block = match PdxFile::read(entry, fullpath) {
-            Some(block) => block,
-            None => return,
-        };
-
+        let Some(block) = PdxFile::read(entry, fullpath) else { return };
         for (key, b) in block.iter_pure_definitions_warn() {
             self.load_item(key, b);
         }
@@ -98,7 +94,7 @@ impl Lifestyle {
         }
 
         if let Some(token) = vd.field_value("icon") {
-            let pathname = format!("gfx/interface/icons/lifestyles/{}.dds", token);
+            let pathname = format!("gfx/interface/icons/lifestyles/{token}.dds");
             data.fileset.verify_exists_implied(&pathname, token);
         } else {
             let pathname = format!("gfx/interface/icons/lifestyles/{}.dds", self.key);

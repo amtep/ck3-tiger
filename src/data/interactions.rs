@@ -48,11 +48,7 @@ impl FileHandler for Interactions {
             return;
         }
 
-        let block = match PdxFile::read(entry, fullpath) {
-            Some(block) => block,
-            None => return,
-        };
-
+        let Some(block) = PdxFile::read(entry, fullpath) else { return };
         for (key, block) in block.iter_pure_definitions_warn() {
             self.load_interaction(key.clone(), block);
         }
@@ -77,7 +73,7 @@ impl Interaction {
         let mut sc = ScopeContext::new_root(Scopes::None, self.key.clone());
 
         if let Some(name) = self.block.get_field_value("icon") {
-            let pathname = format!("gfx/interface/icons/character_interactions/{}.dds", name);
+            let pathname = format!("gfx/interface/icons/character_interactions/{name}.dds");
             data.fileset.verify_exists_implied(&pathname, name);
         }
 

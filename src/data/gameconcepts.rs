@@ -55,10 +55,7 @@ impl FileHandler for GameConcepts {
             return;
         }
 
-        let block = match PdxFile::read(entry, fullpath) {
-            Some(block) => block,
-            None => return,
-        };
+        let Some(block) = PdxFile::read(entry, fullpath) else { return };
 
         for def in block.iter_definitions_warn() {
             match def {
@@ -105,7 +102,7 @@ impl Concept {
         vd.field_list("alias");
         if let Some(aliases) = self.block.get_field_list("alias") {
             for alias in aliases {
-                let loca = format!("game_concept_{}", alias);
+                let loca = format!("game_concept_{alias}");
                 data.localization.verify_exists_implied(&loca, &alias);
             }
         }

@@ -70,7 +70,7 @@ impl Characters {
     pub fn verify_exists_gender(&self, item: &Token, gender: Gender) {
         if let Some(ch) = self.characters.get(item.as_str()) {
             if gender != ch.gender() {
-                let msg = format!("character is not {}", gender);
+                let msg = format!("character is not {gender}");
                 error(item, ErrorKey::WrongGender, &msg);
             }
         } else {
@@ -96,7 +96,7 @@ impl Characters {
 
     pub fn verify_alive(&self, item: &Token, date: Date) {
         if !self.is_alive(item, date) {
-            let msg = format!("{} is not alive on {}", item, date);
+            let msg = format!("{item} is not alive on {date}");
             warn(item, ErrorKey::History, &msg);
         }
     }
@@ -169,10 +169,7 @@ impl FileHandler for Characters {
             return;
         }
 
-        let block = match PdxFile::read(entry, fullpath) {
-            Some(block) => block,
-            None => return,
-        };
+        let Some(block) = PdxFile::read(entry, fullpath) else { return };
 
         for (key, b) in block.iter_pure_definitions_warn() {
             self.load_item(key, b);

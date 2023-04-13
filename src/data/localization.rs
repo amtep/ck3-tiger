@@ -135,20 +135,16 @@ pub enum CodeArg {
 }
 
 fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
-    for lang in KNOWN_LANGUAGES {
-        // Deliberate discrepancy here between the check and the error msg below.
-        // `l_{}.yml` works, but `_l_{}.yml` is still recommended.
-        //
-        // Using to_string_lossy is ok here because non-unicode sequences will
-        // never match the suffix anyway.
-        if filename
+    // Deliberate discrepancy here between the check and the error msg below.
+    // `l_{}.yml` works, but `_l_{}.yml` is still recommended.
+    //
+    // Using to_string_lossy is ok here because non-unicode sequences will
+    // never match the suffix anyway.
+    KNOWN_LANGUAGES.into_iter().find(|&lang| {
+        filename
             .to_string_lossy()
-            .ends_with(&format!("l_{}.yml", lang))
-        {
-            return Some(lang);
-        }
-    }
-    None
+            .ends_with(&format!("l_{lang}.yml"))
+    })
 }
 
 impl Localization {
@@ -176,7 +172,7 @@ impl Localization {
                 error(
                     token,
                     ErrorKey::MissingLocalization,
-                    &format!("missing {} localization key {}", lang, key),
+                    &format!("missing {lang} localization key {key}"),
                 );
             }
         }
@@ -219,8 +215,8 @@ impl FileHandler for Localization {
             let check = block.get_field_values("check");
             let skip = block.get_field_values("skip");
             for lang in &KNOWN_LANGUAGES {
-                if check.iter().any(|t| t.is(*lang))
-                    || (check.is_empty() && skip.iter().all(|t| !t.is(*lang)))
+                if check.iter().any(|t| t.is(lang))
+                    || (check.is_empty() && skip.iter().all(|t| !t.is(lang)))
                 {
                     langs.push(lang);
                 }
@@ -304,7 +300,7 @@ impl FileHandler for Localization {
                         hash.insert(loca.key.to_string(), loca);
                     }
                 }
-                Err(e) => eprintln!("{:#}", e),
+                Err(e) => eprintln!("{e:#}"),
             }
         } else {
             error_info(

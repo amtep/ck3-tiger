@@ -126,12 +126,12 @@ impl<'a> LocaParser<'a> {
             None => error(
                 &self.loc,
                 ErrorKey::Localization,
-                &format!("Unexpected end of file, {}", expected),
+                &format!("Unexpected end of file, {expected}"),
             ),
             Some(c) => error(
                 &self.loc,
                 ErrorKey::Localization,
-                &format!("Unexpected character `{}`, {}", c, expected),
+                &format!("Unexpected character `{c}`, {expected}"),
             ),
         };
     }
@@ -439,7 +439,7 @@ impl<'a> ValueParser<'a> {
         error(
             &self.loc,
             ErrorKey::Localization,
-            &format!("Unexpected character `{}`, {}", c, expected),
+            &format!("Unexpected character `{c}`, {expected}"),
         );
     }
 

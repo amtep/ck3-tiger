@@ -99,7 +99,7 @@ impl Titles {
         for (k, v) in block.iter_pure_definitions() {
             if let Ok(tier) = Tier::try_from(k) {
                 if tier >= parent_tier {
-                    let msg = format!("can't put a {} inside a {}", tier, parent_tier);
+                    let msg = format!("can't put a {tier} inside a {parent_tier}");
                     error(k, ErrorKey::Validation, &msg);
                 }
                 let capital_of = if capital { Some(key.clone()) } else { None };
@@ -137,11 +137,7 @@ impl FileHandler for Titles {
             return;
         }
 
-        let block = match PdxFile::read(entry, fullpath) {
-            Some(block) => block,
-            None => return,
-        };
-
+        let Some(block) = PdxFile::read(entry, fullpath) else { return };
         for (key, block) in block.iter_pure_definitions_warn() {
             if Tier::try_from(key).is_ok() {
                 self.load_item(key.clone(), block, None);

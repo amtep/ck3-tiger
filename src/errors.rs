@@ -153,7 +153,7 @@ impl Errors {
             FileKind::Vanilla => self.vanilla_root.join(&*loc.pathname),
             FileKind::Mod => self.mod_root.join(&*loc.pathname),
         };
-        let bytes = read(&pathname).ok()?;
+        let bytes = read(pathname).ok()?;
         let contents = match UTF_8.decode(&bytes, DecoderTrap::Strict) {
             Ok(contents) => contents,
             Err(_) => WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).ok()?,
@@ -192,11 +192,20 @@ impl Errors {
         if self.outfile.is_none() {
             self.outfile = Some(Box::new(stdout()));
         }
-        writeln!(self.outfile.as_mut().unwrap(), "{}", loc.file_marker()).unwrap();
+        writeln!(
+            self.outfile.as_mut().expect("outfile"),
+            "{}",
+            loc.file_marker()
+        )
+        .expect("writeln");
         if let Some(line) = self.get_line(loc) {
             let line_marker = loc.line_marker();
             if loc.line > 0 {
-                writeln!(self.outfile.as_mut().unwrap(), "{} {}", line_marker, line).unwrap();
+                writeln!(
+                    self.outfile.as_mut().expect("outfile"),
+                    "{line_marker} {line}"
+                )
+                .expect("writeln");
                 let mut spacing = String::new();
                 for c in line.chars().take(loc.column.saturating_sub(1)) {
                     if c == '\t' {
@@ -208,25 +217,20 @@ impl Errors {
                     }
                 }
                 writeln!(
-                    self.outfile.as_mut().unwrap(),
-                    "{} {}^",
-                    line_marker,
-                    spacing
+                    self.outfile.as_mut().expect("outfile"),
+                    "{line_marker} {spacing}^",
                 )
-                .unwrap();
+                .expect("writeln");
             }
         }
         // TODO: get terminal column width and do line wrapping of msg and info
         writeln!(
-            self.outfile.as_mut().unwrap(),
-            "{} ({}): {}",
-            level,
-            key,
-            msg
+            self.outfile.as_mut().expect("outfile"),
+            "{level} ({key}): {msg}"
         )
-        .unwrap();
+        .expect("writeln");
         if let Some(info) = info {
-            writeln!(self.outfile.as_mut().unwrap(), "  {}", info).unwrap();
+            writeln!(self.outfile.as_mut().expect("outfile"), "  {info}").expect("writeln");
         }
     }
 
@@ -252,7 +256,7 @@ impl Errors {
             return;
         }
         self.log(&loc, level, key, msg, info);
-        writeln!(self.outfile.as_mut().unwrap()).unwrap();
+        writeln!(self.outfile.as_mut().expect("outfile")).expect("writeln");
     }
 
     #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
@@ -280,7 +284,7 @@ impl Errors {
         }
         self.log(&loc, level, key, msg, None);
         self.log(&loc2, ErrorLevel::Info, key, msg2, None);
-        writeln!(self.outfile.as_mut().unwrap()).unwrap();
+        writeln!(self.outfile.as_mut().expect("outfile")).expect("writeln");
     }
 
     #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
@@ -318,7 +322,7 @@ impl Errors {
         self.log(&loc, level, key, msg, None);
         self.log(&loc2, ErrorLevel::Info, key, msg2, None);
         self.log(&loc3, ErrorLevel::Info, key, msg3, None);
-        writeln!(self.outfile.as_mut().unwrap()).unwrap();
+        writeln!(self.outfile.as_mut().expect("outfile")).expect("writeln");
     }
 
     pub fn get_mut() -> &'static mut Self {
@@ -355,7 +359,7 @@ pub fn log_to(outfile: Box<dyn ErrorLogger>) {
 /// # Panics
 /// Can panic if it is called without a previous `log_to()` call.
 pub fn take_log_to() -> Box<dyn ErrorLogger> {
-    Errors::get_mut().outfile.take().unwrap()
+    Errors::get_mut().outfile.take().expect("outfile")
 }
 
 pub fn pause_logging() {

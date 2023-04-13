@@ -24,7 +24,7 @@ impl PdxFile {
                     entry,
                     ErrorKey::ReadError,
                     "could not read file",
-                    &format!("{:#}", e),
+                    &format!("{e:#}"),
                 );
                 None
             }
@@ -39,7 +39,7 @@ impl PdxFile {
                     entry,
                     ErrorKey::ReadError,
                     "could not read file",
-                    &format!("{:#}", e),
+                    &format!("{e:#}"),
                 );
                 return None;
             }

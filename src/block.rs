@@ -435,7 +435,7 @@ impl<'a> Iterator for IterDefinitions<'a> {
                         error(
                             key,
                             ErrorKey::Validation,
-                            &format!("expected `{} =`, found `{}`", key, cmp),
+                            &format!("expected `{key} =`, found `{cmp}`"),
                         );
                     }
                     continue;
@@ -516,7 +516,7 @@ impl<'a> Iterator for IterBlockValueDefinitions<'a> {
                         error(
                             key,
                             ErrorKey::Validation,
-                            &format!("expected `{} =`, found `{}`", key, cmp),
+                            &format!("expected `{key} =`, found `{cmp}`"),
                         );
                     }
                     continue;

@@ -54,10 +54,7 @@ impl FileHandler for Decisions {
             return;
         }
 
-        let block = match PdxFile::read(entry, fullpath) {
-            Some(block) => block,
-            None => return,
-        };
+        let Some(block) = PdxFile::read(entry, fullpath) else { return };
 
         for (key, block) in block.iter_pure_definitions_warn() {
             self.load_decision(key.clone(), block);

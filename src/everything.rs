@@ -205,7 +205,7 @@ impl Everything {
                 let key = match keyname.as_str().parse() {
                     Ok(key) => key,
                     Err(e) => {
-                        warn(keyname, ErrorKey::Config, &format!("{:#}", e));
+                        warn(keyname, ErrorKey::Config, &format!("{e:#}"));
                         continue;
                     }
                 };

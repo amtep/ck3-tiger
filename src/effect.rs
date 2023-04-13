@@ -197,7 +197,7 @@ pub fn validate_effect<'a>(
                 Effect::Yes => {
                     if let Some(token) = bv.expect_value() {
                         if !token.is("yes") {
-                            let msg = format!("expected just `{} = yes`", key);
+                            let msg = format!("expected just `{key} = yes`");
                             warn(token, ErrorKey::Validation, &msg);
                         }
                     }
@@ -221,9 +221,9 @@ pub fn validate_effect<'a>(
                                 if key.is("add_gold") {
                                     let msg = "add_gold does not take negative numbers";
                                     let info = "try remove_short_term_gold instead";
-                                    warn_info(token, ErrorKey::Range, &msg, info);
+                                    warn_info(token, ErrorKey::Range, msg, info);
                                 } else {
-                                    let msg = format!("{} does not take negative numbers", key);
+                                    let msg = format!("{key} does not take negative numbers");
                                     warn(token, ErrorKey::Range, &msg);
                                 }
                             }
@@ -356,14 +356,14 @@ pub fn validate_effect<'a>(
             if let Some((prefix, arg)) = part.split_once(':') {
                 if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                     if inscopes == Scopes::None && !first {
-                        let msg = format!("`{}:` makes no sense except as first part", prefix);
+                        let msg = format!("`{prefix}:` makes no sense except as first part");
                         warn(part, ErrorKey::Validation, &msg);
                     }
                     sc.expect(inscopes, &prefix);
                     validate_prefix_reference(&prefix, &arg, data);
                     sc.replace(outscope, part.clone());
                 } else {
-                    let msg = format!("unknown prefix `{}:`", prefix);
+                    let msg = format!("unknown prefix `{prefix}:`");
                     error(part, ErrorKey::Validation, &msg);
                     sc.close();
                     continue 'outer;
@@ -376,7 +376,7 @@ pub fn validate_effect<'a>(
                 || part.is("THIS")
             {
                 if !first {
-                    let msg = format!("`{}` makes no sense except as first part", part);
+                    let msg = format!("`{part}` makes no sense except as first part");
                     warn(part, ErrorKey::Validation, &msg);
                 }
                 if part.is("root") || part.is("ROOT") {
@@ -388,14 +388,14 @@ pub fn validate_effect<'a>(
                 }
             } else if let Some((inscopes, outscope)) = scope_to_scope(part.as_str()) {
                 if inscopes == Scopes::None && !first {
-                    let msg = format!("`{}` makes no sense except as first part", part);
+                    let msg = format!("`{part}` makes no sense except as first part");
                     warn(part, ErrorKey::Validation, &msg);
                 }
                 sc.expect(inscopes, part);
                 sc.replace(outscope, part.clone());
             // TODO: warn if trying to use iterator or effect here
             } else {
-                let msg = format!("unknown token `{}`", part);
+                let msg = format!("unknown token `{part}`");
                 error(part, ErrorKey::Validation, &msg);
                 sc.close();
                 continue 'outer;

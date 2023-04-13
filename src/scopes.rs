@@ -52,7 +52,7 @@ impl Scopes {
         if self.intersects(expect) {
             *self &= expect;
         } else {
-            let msg = format!("{} is for {} but scope seems to be {}", key, expect, self);
+            let msg = format!("{key} is for {expect} but scope seems to be {self}");
             warn(key, ErrorKey::Scopes, &msg);
         }
     }

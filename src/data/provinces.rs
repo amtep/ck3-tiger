@@ -107,7 +107,7 @@ impl Provinces {
     pub fn verify_exists_implied(&self, key: &str, item: &Token) {
         if let Ok(provid) = key.parse::<ProvId>() {
             if !self.provinces.contains_key(&provid) {
-                let msg = format!("province {} not defined in map_data/definition.csv", provid);
+                let msg = format!("province {provid} not defined in map_data/definition.csv");
                 error(item, ErrorKey::MissingItem, &msg);
             }
         } else {
@@ -144,7 +144,7 @@ impl FileHandler for Provinces {
                             error(
                                 entry,
                                 ErrorKey::ReadError,
-                                &format!("could not read file: {:#}", e),
+                                &format!("could not read file: {e:#}"),
                             );
                             return;
                         }
@@ -218,10 +218,7 @@ impl FileHandler for Provinces {
                     }
                 }
                 "default.map" => {
-                    let block = match PdxFile::read(entry, fullpath) {
-                        Some(block) => block,
-                        None => return,
-                    };
+                    let Some(block) = PdxFile::read(entry, fullpath) else { return };
                     self.load_impassable(&block);
                 }
                 _ => (),
@@ -254,7 +251,7 @@ impl FileHandler for Provinces {
                     warn(
                         &province.comment,
                         ErrorKey::Validation,
-                        &format!("color was already used for id {}", k),
+                        &format!("color was already used for id {k}"),
                     );
                 } else {
                     seen_colors.insert(province.color, i);
@@ -263,7 +260,7 @@ impl FileHandler for Provinces {
                 error(
                     definition_csv,
                     ErrorKey::Validation,
-                    &format!("province ids must be sequential, but {} is missing", i),
+                    &format!("province ids must be sequential, but {i} is missing"),
                 );
                 return;
             }
@@ -373,7 +370,7 @@ impl Province {
 
         if csv.len() < 5 {
             error(
-                &line,
+                line,
                 ErrorKey::ParseError,
                 "too few fields for this line, expected 5",
             );

@@ -138,7 +138,7 @@ pub fn validate_trigger(
 
             if key.is("list") || key.is("variable") {
                 if caller != Caller::AnyInList {
-                    let msg = format!("can only use `{} =` in `any_in_list`, `any_in_global_list`, or `any_in_local_list`", key);
+                    let msg = format!("can only use `{key} =` in `any_in_list`, `any_in_global_list`, or `any_in_local_list`");
                     warn(key, ErrorKey::Validation, &msg);
                     continue;
                 }
@@ -154,7 +154,7 @@ pub fn validate_trigger(
                 } else if caller == Caller::AnyCourtPositionType {
                     bv.expect_value(); // TODO
                 } else {
-                    let msg = format!("can only use `{} =` in `any_relation` list", key);
+                    let msg = format!("can only use `{key} =` in `any_relation` list");
                     warn(key, ErrorKey::Validation, &msg);
                 }
                 continue;
@@ -162,7 +162,7 @@ pub fn validate_trigger(
 
             if key.is("province") {
                 if caller != Caller::AnyProvince {
-                    let msg = format!("can only use `{} =` in `any_pool_character` list", key);
+                    let msg = format!("can only use `{key} =` in `any_pool_character` list");
                     warn(key, ErrorKey::Validation, &msg);
                     continue;
                 }
@@ -174,7 +174,7 @@ pub fn validate_trigger(
 
             if key.is("even_if_dead") || key.is("only_if_dead") {
                 if caller < Caller::AnyList || !sc.can_be(Scopes::Character) {
-                    let msg = format!("can only use `{} =` in a character list", key);
+                    let msg = format!("can only use `{key} =` in a character list");
                     warn(key, ErrorKey::Validation, &msg);
                     continue;
                 }
@@ -185,7 +185,7 @@ pub fn validate_trigger(
 
             if key.is("involvement") {
                 if caller != Caller::AnyInvolvement {
-                    let msg = format!("can only use `{} =` in `any_character_struggle` list", key);
+                    let msg = format!("can only use `{key} =` in `any_character_struggle` list");
                     warn(key, ErrorKey::Validation, &msg);
                     continue;
                 }
@@ -195,7 +195,7 @@ pub fn validate_trigger(
 
             if key.is("region") {
                 if caller != Caller::AnyRegion {
-                    let msg = format!("can only use `{} =` in `any_county_in_region` list", key);
+                    let msg = format!("can only use `{key} =` in `any_county_in_region` list");
                     warn(key, ErrorKey::Validation, &msg);
                     continue;
                 }
@@ -207,7 +207,7 @@ pub fn validate_trigger(
 
             if key.is("filter") || key.is("continue") {
                 if caller != Caller::AnyHierarchy {
-                    let msg = format!("can only use `{} =` in `..._hierarchy` list", key);
+                    let msg = format!("can only use `{key} =` in `..._hierarchy` list");
                     warn(key, ErrorKey::Validation, &msg);
                     continue;
                 }
@@ -219,7 +219,7 @@ pub fn validate_trigger(
 
             if key.is("pressed") || key.is("explicit") {
                 if caller != Caller::AnyClaim {
-                    let msg = format!("can only use `{} =` in `any_claim` list", key);
+                    let msg = format!("can only use `{key} =` in `any_claim` list");
                     warn(key, ErrorKey::Validation, &msg);
                     continue;
                 }
@@ -237,8 +237,7 @@ pub fn validate_trigger(
                     }
                 } else {
                     let msg = format!(
-                        "can only use `{} =` in `custom_description` or `custom_tooltip`",
-                        key
+                        "can only use `{key} =` in `custom_description` or `custom_tooltip`",
                     );
                     warn(key, ErrorKey::Validation, &msg);
                 }
@@ -252,8 +251,7 @@ pub fn validate_trigger(
                     }
                 } else {
                     let msg = format!(
-                        "can only use `{} =` in `custom_description` or `custom_tooltip`",
-                        key
+                        "can only use `{key} =` in `custom_description` or `custom_tooltip`",
                     );
                     warn(key, ErrorKey::Validation, &msg);
                 }
@@ -265,7 +263,7 @@ pub fn validate_trigger(
                         validate_target(token, data, sc, Scopes::non_primitive());
                     }
                 } else {
-                    let msg = format!("can only use `{} =` in `custom_description`", key);
+                    let msg = format!("can only use `{key} =` in `custom_description`");
                     warn(key, ErrorKey::Validation, &msg);
                 }
                 continue;
@@ -274,7 +272,7 @@ pub fn validate_trigger(
                 if caller == Caller::CustomDescription {
                     ScriptValue::validate_bv(bv, data, sc);
                 } else {
-                    let msg = format!("can only use `{} =` in `custom_description`", key);
+                    let msg = format!("can only use `{key} =` in `custom_description`");
                     warn(key, ErrorKey::Validation, &msg);
                 }
                 continue;
@@ -288,7 +286,7 @@ pub fn validate_trigger(
                         }
                     }
                 } else {
-                    let msg = format!("can only use `{} =` in `calc_true_if`", key);
+                    let msg = format!("can only use `{key} =` in `calc_true_if`");
                     warn(key, ErrorKey::Validation, &msg);
                 }
                 continue;
@@ -302,7 +300,7 @@ pub fn validate_trigger(
                 {
                     if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
                         if !it_type.is("any") {
-                            let msg = format!("cannot use `{}_` list in a trigger", key);
+                            let msg = format!("cannot use `{it_type}_` list in a trigger");
                             error(key, ErrorKey::Validation, &msg);
                             continue;
                         }
@@ -330,7 +328,7 @@ pub fn validate_trigger(
                 match bv {
                     BlockOrValue::Token(t) => data.verify_exists(Item::Localization, t),
                     BlockOrValue::Block(b) => {
-                        validate_trigger(Caller::CustomTooltip, b, data, sc, false)
+                        validate_trigger(Caller::CustomTooltip, b, data, sc, false);
                     }
                 }
                 continue;
@@ -416,14 +414,14 @@ pub fn validate_trigger(
                 if let Some((prefix, arg)) = part.split_once(':') {
                     if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                         if inscopes == Scopes::None && !first {
-                            let msg = format!("`{}:` makes no sense except as first part", prefix);
+                            let msg = format!("`{prefix}:` makes no sense except as first part");
                             warn(part, ErrorKey::Validation, &msg);
                         }
                         sc.expect(inscopes, &prefix);
                         validate_prefix_reference(&prefix, &arg, data);
                         sc.replace(outscope, part.clone());
                     } else {
-                        let msg = format!("unknown prefix `{}:`", prefix);
+                        let msg = format!("unknown prefix `{prefix}:`");
                         error(part, ErrorKey::Validation, &msg);
                         sc.close();
                         continue 'outer;
@@ -436,7 +434,7 @@ pub fn validate_trigger(
                     || part.is("THIS")
                 {
                     if !first {
-                        let msg = format!("`{}` makes no sense except as first part", part);
+                        let msg = format!("`{part}` makes no sense except as first part");
                         warn(part, ErrorKey::Validation, &msg);
                     }
                     if part.is("root") || part.is("ROOT") {
@@ -448,20 +446,20 @@ pub fn validate_trigger(
                     }
                 } else if let Some((inscopes, outscope)) = scope_to_scope(part.as_str()) {
                     if inscopes == Scopes::None && !first {
-                        let msg = format!("`{}` makes no sense except as first part", part);
+                        let msg = format!("`{part}` makes no sense except as first part");
                         warn(part, ErrorKey::Validation, &msg);
                     }
                     sc.expect(inscopes, part);
                     sc.replace(outscope, part.clone());
                 } else if let Some(inscopes) = scope_value(part, data) {
                     if !last {
-                        let msg = format!("`{}` should be the last part", part);
+                        let msg = format!("`{part}` should be the last part");
                         warn(part, ErrorKey::Validation, &msg);
                         sc.close();
                         continue 'outer;
                     }
                     if inscopes == Scopes::None && !first {
-                        let msg = format!("`{}` makes no sense except as only part", part);
+                        let msg = format!("`{part}` makes no sense except as only part");
                         warn(part, ErrorKey::Validation, &msg);
                     }
                     if WARN_AGAINST_EQ.contains(&part.as_str()) {
@@ -480,7 +478,7 @@ pub fn validate_trigger(
                     sc.replace(Scopes::Value, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_trigger_target(part, data) {
                     if !last {
-                        let msg = format!("`{}` should be the last part", part);
+                        let msg = format!("`{part}` should be the last part");
                         error(part, ErrorKey::Validation, &msg);
                         sc.close();
                         continue 'outer;
@@ -489,13 +487,13 @@ pub fn validate_trigger(
                     sc.replace(outscope, part.clone());
                 } else if let Some(inscopes) = scope_trigger_bool(part.as_str()) {
                     if !last {
-                        let msg = format!("`{}` should be the last part", part);
+                        let msg = format!("`{part}` should be the last part");
                         warn(part, ErrorKey::Validation, &msg);
                         sc.close();
                         continue 'outer;
                     }
                     if inscopes == Scopes::None && !first {
-                        let msg = format!("`{}` makes no sense except as only part", part);
+                        let msg = format!("`{part}` makes no sense except as only part");
                         warn(part, ErrorKey::Validation, &msg);
                     }
                     sc.expect(inscopes, part);
@@ -511,7 +509,7 @@ pub fn validate_trigger(
                     sc.replace(Scopes::Value, part.clone());
                 // TODO: warn if trying to use iterator here
                 } else {
-                    let msg = format!("unknown token `{}`", part);
+                    let msg = format!("unknown token `{part}`");
                     error(part, ErrorKey::Validation, &msg);
                     sc.close();
                     continue 'outer;
@@ -520,7 +518,7 @@ pub fn validate_trigger(
 
             if matches!(cmp, Comparator::Eq) {
                 if let Some(token) = warn_against_eq {
-                    let msg = format!("`{} =` means exactly equal to that amount, which is usually not what you want", token);
+                    let msg = format!("`{token} =` means exactly equal to that amount, which is usually not what you want");
                     warn(token, ErrorKey::Logic, &msg);
                 }
             } else {
@@ -528,7 +526,7 @@ pub fn validate_trigger(
                     sc.close();
                     ScriptValue::validate_bv(bv, data, sc);
                 } else {
-                    let msg = format!("unexpected comparator {}", cmp);
+                    let msg = format!("unexpected comparator {cmp}");
                     warn(key, ErrorKey::Validation, &msg);
                     sc.close();
                 }
@@ -602,7 +600,7 @@ fn validate_trigger_iterator(
 pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, outscopes: Scopes) {
     if token.as_str().parse::<f64>().is_ok() {
         if !outscopes.intersects(Scopes::Value | Scopes::None) {
-            let msg = format!("expected {}", outscopes);
+            let msg = format!("expected {outscopes}");
             warn(token, ErrorKey::Scopes, &msg);
         }
         return;
@@ -617,14 +615,14 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
         if let Some((prefix, arg)) = part.split_once(':') {
             if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                 if inscopes == Scopes::None && !first {
-                    let msg = format!("`{}:` makes no sense except as first part", prefix);
+                    let msg = format!("`{prefix}:` makes no sense except as first part");
                     warn(part, ErrorKey::Validation, &msg);
                 }
                 sc.expect(inscopes, &prefix);
                 validate_prefix_reference(&prefix, &arg, data);
                 sc.replace(outscope, part.clone());
             } else {
-                let msg = format!("unknown prefix `{}:`", prefix);
+                let msg = format!("unknown prefix `{prefix}:`");
                 error(part, ErrorKey::Validation, &msg);
                 sc.close();
                 return;
@@ -637,7 +635,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             || part.is("THIS")
         {
             if !first {
-                let msg = format!("`{}` makes no sense except as first part", part);
+                let msg = format!("`{part}` makes no sense except as first part");
                 warn(part, ErrorKey::Validation, &msg);
             }
             if part.is("root") || part.is("ROOT") {
@@ -649,20 +647,20 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             }
         } else if let Some((inscopes, outscope)) = scope_to_scope(part.as_str()) {
             if inscopes == Scopes::None && !first {
-                let msg = format!("`{}` makes no sense except as first part", part);
+                let msg = format!("`{part}` makes no sense except as first part");
                 warn(part, ErrorKey::Validation, &msg);
             }
             sc.expect(inscopes, part);
             sc.replace(outscope, part.clone());
         } else if let Some(inscopes) = scope_value(part, data) {
             if !last {
-                let msg = format!("`{}` only makes sense as the last part", part);
+                let msg = format!("`{part}` only makes sense as the last part");
                 warn(part, ErrorKey::Scopes, &msg);
                 sc.close();
                 return;
             }
             if inscopes == Scopes::None && !first {
-                let msg = format!("`{}` makes no sense except as first part", part);
+                let msg = format!("`{part}` makes no sense except as first part");
                 warn(part, ErrorKey::Validation, &msg);
             }
             if part.is("current_year") && sc.scopes() == Scopes::None {
@@ -679,7 +677,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
         } else if data.scriptvalues.exists(part.as_str()) {
             // TODO: validate inscope of the script value against sc
             if !last {
-                let msg = format!("`{}` only makes sense as the last part", part);
+                let msg = format!("`{part}` only makes sense as the last part");
                 warn(part, ErrorKey::Scopes, &msg);
                 sc.close();
                 return;
@@ -687,7 +685,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             sc.replace(Scopes::Value, part.clone());
         // TODO: warn if trying to use iterator here
         } else {
-            let msg = format!("unknown token `{}`", part);
+            let msg = format!("unknown token `{part}`");
             error(part, ErrorKey::Validation, &msg);
             sc.close();
             return;
@@ -897,8 +895,7 @@ fn validate_trigger_keys(
                                 key,
                                 ErrorKey::Tooltip,
                                 &format!(
-                                    "could rewrite this as `{} = {{ is_title_created = yes }}`",
-                                    firstpart
+                                    "could rewrite this as `{firstpart} = {{ is_title_created = yes }}`",
                                 ),
                                 "it gives a nicer tooltip",
                             );

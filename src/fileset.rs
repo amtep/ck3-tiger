@@ -222,7 +222,7 @@ impl Fileset {
             error(
                 t,
                 ErrorKey::MissingFile,
-                &format!("file {} does not exist", file),
+                &format!("file {file} does not exist"),
             );
         }
     }
@@ -262,12 +262,9 @@ impl<'a> Iterator for Files<'a> {
     type Item = &'a FileEntry;
 
     fn next(&mut self) -> Option<Self::Item> {
-        for entry in self.iter.by_ref() {
-            if entry.path.starts_with(self.subpath) {
-                return Some(entry);
-            }
-        }
-        None
+        self.iter
+            .by_ref()
+            .find(|&entry| entry.path.starts_with(self.subpath))
     }
 }
 

@@ -147,10 +147,7 @@ impl FileHandler for Events {
             return;
         }
 
-        let block = match PdxFile::read(entry, fullpath) {
-            Some(block) => block,
-            None => return,
-        };
+        let Some(block) = PdxFile::read(entry, fullpath) else { return };
 
         let mut namespaces = Vec::new();
         let mut expecting = Expecting::Event;
@@ -166,7 +163,7 @@ impl FileHandler for Events {
                     error(
                         key,
                         ErrorKey::Validation,
-                        &format!("`{}` should be used without `=`", key),
+                        &format!("`{key}` should be used without `=`"),
                     );
                 }
                 DefinitionItem::Assignment(key, _) => {

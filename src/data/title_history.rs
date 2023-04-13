@@ -54,7 +54,7 @@ impl TitleHistories {
         if let Some(item) = self.histories.get(key.as_str()) {
             item.verify_has_holder(key, date, data);
         } else {
-            let msg = format!("{} has no title history", key);
+            let msg = format!("{key} has no title history");
             error(key, ErrorKey::MissingItem, &msg);
         }
     }
@@ -70,11 +70,7 @@ impl FileHandler for TitleHistories {
             return;
         }
 
-        let block = match PdxFile::read_cp1252(entry, fullpath) {
-            Some(block) => block,
-            None => return,
-        };
-
+        let Some(block) = PdxFile::read_cp1252(entry, fullpath) else { return };
         for (key, block) in block.iter_pure_definitions_warn() {
             if Tier::try_from(key).is_ok() {
                 self.load_item(key.clone(), block.clone());
@@ -103,7 +99,7 @@ impl TitleHistory {
             // if holder is not a value then we already warned about that
             if let Some(holder) = holder.get_value() {
                 if holder.is("0") {
-                    let msg = format!("{} has no holder at {}", token, date);
+                    let msg = format!("{token} has no holder at {date}");
                     error_info(
                         token,
                         ErrorKey::History,
@@ -111,7 +107,7 @@ impl TitleHistory {
                         "setting the liege will not have effect here",
                     );
                 } else if !data.characters.is_alive(holder, date) {
-                    let msg = format!("holder of {} is not alive at {}", token, date);
+                    let msg = format!("holder of {token} is not alive at {date}");
                     error_info(
                         token,
                         ErrorKey::History,
@@ -121,7 +117,7 @@ impl TitleHistory {
                 }
             }
         } else {
-            let msg = format!("{} has no holder at {}", token, date);
+            let msg = format!("{token} has no holder at {date}");
             error_info(
                 token,
                 ErrorKey::History,

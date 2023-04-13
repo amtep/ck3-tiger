@@ -27,7 +27,7 @@ bitflags! {
 impl ModifKinds {
     pub fn require(self, other: Self, token: &Token) {
         if !self.intersects(other) {
-            let msg = format!("`{}` is a modifier for {}", token, self);
+            let msg = format!("`{token}` is a modifier for {self}");
             error(token, ErrorKey::Modifiers, &msg);
         }
     }
@@ -633,7 +633,7 @@ pub fn validate_modifs<'a>(
             }
         }
 
-        let msg = format!("unknown modifier `{}`", token);
+        let msg = format!("unknown modifier `{token}`");
         warn(token, ErrorKey::Validation, &msg);
     }
 }

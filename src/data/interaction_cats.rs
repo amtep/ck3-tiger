@@ -49,11 +49,7 @@ impl FileHandler for InteractionCategories {
             return;
         }
 
-        let block = match PdxFile::read(entry, fullpath) {
-            Some(block) => block,
-            None => return,
-        };
-
+        let Some(block) = PdxFile::read(entry, fullpath) else { return };
         for (key, block) in block.iter_pure_definitions_warn() {
             self.load_interaction(key.clone(), block);
         }
@@ -70,7 +66,7 @@ impl FileHandler for InteractionCategories {
                         "index needs to be from 0 to the number of categories",
                     );
                 } else if let Some(other) = taken[index as usize] {
-                    let msg = format!("index duplicates the index of {}", other);
+                    let msg = format!("index duplicates the index of {other}");
                     error(&item.key, ErrorKey::Duplicate, &msg);
                 } else {
                     taken[index as usize] = Some(&item.key);

@@ -164,8 +164,8 @@ impl ScopeContext {
                         *t = token.clone();
                     }
                 } else {
-                    let msg = format!("`{}` is for {} but scope seems to be {}", token, scopes, s);
-                    let msg2 = format!("scope was deduced from `{}` here", t);
+                    let msg = format!("`{token}` is for {scopes} but scope seems to be {s}");
+                    let msg2 = format!("scope was deduced from `{t}` here");
                     warn2(token, ErrorKey::Scopes, &msg, &*t, &msg2);
                     // Suppress future warnings about the same problem
                     *s |= scopes;
@@ -186,9 +186,9 @@ impl ScopeContext {
                         *t = token.clone();
                     }
                 } else {
-                    let msg = format!("`{}` expects {} but scope seems to be {}", key, scopes, s);
-                    let msg2 = format!("expected scope was deduced from `{}` here", token);
-                    let msg3 = format!("actual scope was deduced from `{}` here", t);
+                    let msg = format!("`{key}` expects {scopes} but scope seems to be {s}");
+                    let msg2 = format!("expected scope was deduced from `{token}` here");
+                    let msg3 = format!("actual scope was deduced from `{t}` here");
                     warn3(key, ErrorKey::Scopes, &msg, token, &msg2, &*t, &msg3);
                     // Suppress future warnings about the same problem
                     *s |= scopes;
@@ -294,12 +294,10 @@ impl ScopeContext {
                             }
                         } else {
                             let msg = format!(
-                                "`{}` expects root to be {} but root scope seems to be {}",
-                                key, scopes, s
-                            );
+                                "`{key}` expects root to be {scopes} but root scope seems to be {s}");
                             let msg2 =
-                                format!("expected root scope was deduced from `{}` here", token);
-                            let msg3 = format!("actual root scope was deduced from `{}` here", t);
+                                format!("expected root scope was deduced from `{token}` here");
+                            let msg3 = format!("actual root scope was deduced from `{t}` here");
                             warn3(key, ErrorKey::Scopes, &msg, token, &msg2, &*t, &msg3);
                             // Suppress future warnings about the same problem
                             *s |= scopes;

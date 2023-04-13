@@ -94,11 +94,7 @@ impl FileHandler for Religions {
             return;
         }
 
-        let block = match PdxFile::read(entry, fullpath) {
-            Some(block) => block,
-            None => return,
-        };
-
+        let Some(block) = PdxFile::read(entry, fullpath) else { return };
         for (key, b) in block.iter_pure_definitions_warn() {
             self.load_item(key, b);
         }
@@ -137,7 +133,7 @@ impl Religion {
 
         vd.field_blocks("doctrine_selection_pair"); // TODO: validate
         if let Some(icon) = vd.field_value("doctrine_background_icon") {
-            let pathname = format!("gfx/interface/icons/faith_doctrines/{}", icon);
+            let pathname = format!("gfx/interface/icons/faith_doctrines/{icon}");
             data.fileset.verify_exists_implied(&pathname, icon);
         }
         vd.field_value("piety_icon_group");
@@ -148,7 +144,7 @@ impl Religion {
         vd.field_list("custom_faith_icons");
         if let Some(icons) = self.block.get_field_list("custom_faith_icons") {
             for icon in &icons {
-                let pathname = format!("gfx/interface/icons/faith/{}.dds", icon);
+                let pathname = format!("gfx/interface/icons/faith/{icon}.dds");
                 data.fileset.verify_exists_implied(&pathname, icon);
             }
         }
@@ -248,14 +244,14 @@ impl Faith {
             data.fileset.verify_exists_implied(&pathname, &self.key);
         }
         if let Some(icon) = vd.field_value("reformed_icon") {
-            let pathname = format!("gfx/interface/icons/faith/{}.dds", icon);
+            let pathname = format!("gfx/interface/icons/faith/{icon}.dds");
             data.fileset.verify_exists_implied(&pathname, icon);
         }
         vd.field_value("graphical_faith");
         vd.field_value("piety_icon_group");
 
         if let Some(icon) = vd.field_value("doctrine_background_icon") {
-            let pathname = format!("gfx/interface/icons/faith_doctrines/{}", icon);
+            let pathname = format!("gfx/interface/icons/faith_doctrines/{icon}");
             data.fileset.verify_exists_implied(&pathname, icon);
         }
 
@@ -287,7 +283,7 @@ impl Faith {
                     continue;
                 }
             }
-            let msg = format!("faith or religion missing localization for `{}`", s);
+            let msg = format!("faith or religion missing localization for `{s}`");
             warn(&self.key, ErrorKey::MissingLocalization, &msg);
         }
     }

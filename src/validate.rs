@@ -197,7 +197,7 @@ pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted:
             return;
         }
     }
-    let msg = format!("should start with `{}:` here", wanted);
+    let msg = format!("should start with `{wanted}:` here");
     error(token, ErrorKey::Validation, &msg);
 }
 
@@ -341,15 +341,13 @@ pub fn validate_inside_iterator(
     } else {
         if let Some(token) = vd.field_value("list") {
             let msg = format!(
-                "`list =` is only for `{}_in_list`, `{}_in_local_list`, or `{}_in_global_list`",
-                listtype, listtype, listtype
+                "`list =` is only for `{listtype}_in_list`, `{listtype}_in_local_list`, or `{listtype}_in_global_list`",
             );
             error(token, ErrorKey::Validation, &msg);
         }
         if let Some(token) = vd.field_value("variable") {
             let msg = format!(
-                "`variable =` is only for `{}_in_list`, `{}_in_local_list`, or `{}_in_global_list`",
-                listtype, listtype, listtype
+                "`variable =` is only for `{listtype}_in_list`, `{listtype}_in_local_list`, or `{listtype}_in_global_list`",
             );
             error(token, ErrorKey::Validation, &msg);
         }
@@ -360,8 +358,7 @@ pub fn validate_inside_iterator(
             validate_normal_trigger(block, data, sc, tooltipped);
         } else {
             let msg = format!(
-                "`filter` is only for `{}_in_de_facto_hierarchy` or `{}_in_de_jure_hierarchy`",
-                listtype, listtype
+                "`filter` is only for `{listtype}_in_de_facto_hierarchy` or `{listtype}_in_de_jure_hierarchy`",
             );
             error(block.get_key("filter").unwrap(), ErrorKey::Validation, &msg);
         }
@@ -371,8 +368,7 @@ pub fn validate_inside_iterator(
             validate_normal_trigger(block, data, sc, tooltipped);
         } else {
             let msg = format!(
-                "`continue` is only for `{}_in_de_facto_hierarchy` or `{}_in_de_jure_hierarchy`",
-                listtype, listtype
+                "`continue` is only for `{listtype}_in_de_facto_hierarchy` or `{listtype}_in_de_jure_hierarchy`",
             );
             error(
                 block.get_key("continue").unwrap(),
@@ -386,7 +382,7 @@ pub fn validate_inside_iterator(
         vd.req_field("region");
         vd.field_value_item("region", Item::Region);
     } else if let Some(token) = block.get_key("region") {
-        let msg = format!("`region` is only for `{}_county_in_region`", listtype);
+        let msg = format!("`region` is only for `{listtype}_county_in_region`");
         error(token, ErrorKey::Validation, &msg);
     }
 
@@ -397,15 +393,14 @@ pub fn validate_inside_iterator(
         vd.field_value_item("type", Item::Relation);
     } else if let Some(token) = block.get_key("type") {
         let msg = format!(
-            "`type` is only for `{}_court_position_holder` or `{}_relation`",
-            listtype, listtype
+            "`type` is only for `{listtype}_court_position_holder` or `{listtype}_relation`",
         );
         error(token, ErrorKey::Validation, &msg);
     }
 
     if vd.field_choice("explicit", &["yes", "no", "all"]) {
         if name != "claim" {
-            let msg = format!("`explicit` is only for `{}_claim`", listtype);
+            let msg = format!("`explicit` is only for `{listtype}_claim`");
             error(
                 block.get_key("explicit").unwrap(),
                 ErrorKey::Validation,
@@ -415,7 +410,7 @@ pub fn validate_inside_iterator(
     }
     if vd.field_choice("pressed", &["yes", "no", "all"]) {
         if name != "claim" {
-            let msg = format!("`pressed` is only for `{}_claim`", listtype);
+            let msg = format!("`pressed` is only for `{listtype}_claim`");
             error(
                 block.get_key("pressed").unwrap(),
                 ErrorKey::Validation,
@@ -430,7 +425,7 @@ pub fn validate_inside_iterator(
             validate_target(token, data, sc, Scopes::Province);
         }
     } else if let Some(token) = block.get_key("province") {
-        let msg = format!("`province` is only for `{}_pool_character`", listtype);
+        let msg = format!("`province` is only for `{listtype}_pool_character`");
         error(token, ErrorKey::Validation, &msg);
     }
 
@@ -455,10 +450,7 @@ pub fn validate_inside_iterator(
 
     if vd.field_choice("involvement", &["involved", "interloper"]) {
         if name != "character_struggle" {
-            let msg = format!(
-                "`involvement` is only for `{}_character_struggle`",
-                listtype
-            );
+            let msg = format!("`involvement` is only for `{listtype}_character_struggle`",);
             error(
                 block.get_key("involvement").unwrap(),
                 ErrorKey::Validation,
@@ -470,16 +462,13 @@ pub fn validate_inside_iterator(
     // Undocumented
     if vd.field_bool("invert") {
         if name != "connected_county" {
-            let msg = format!("`invert` is only for `{}_connected_county`", listtype);
+            let msg = format!("`invert` is only for `{listtype}_connected_county`");
             error(block.get_key("invert").unwrap(), ErrorKey::Validation, &msg);
         }
     }
     if vd.field_numeric("max_naval_distance") {
         if name != "connected_county" {
-            let msg = format!(
-                "`max_naval_distance` is only for `{}_connected_county`",
-                listtype
-            );
+            let msg = format!("`max_naval_distance` is only for `{listtype}_connected_county`",);
             error(
                 block.get_key("max_naval_distance").unwrap(),
                 ErrorKey::Validation,
@@ -489,10 +478,8 @@ pub fn validate_inside_iterator(
     }
     if vd.field_bool("allow_one_county_land_gap") {
         if name != "connected_county" {
-            let msg = format!(
-                "`allow_one_county_land_gap` is only for `{}_connected_county`",
-                listtype
-            );
+            let msg =
+                format!("`allow_one_county_land_gap` is only for `{listtype}_connected_county`",);
             error(
                 block.get_key("allow_one_county_land_gap").unwrap(),
                 ErrorKey::Validation,

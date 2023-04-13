@@ -62,11 +62,7 @@ impl FileHandler for ScriptValues {
             return;
         }
 
-        let block = match PdxFile::read(entry, fullpath) {
-            Some(block) => block,
-            None => return,
-        };
-
+        let Some(block) = PdxFile::read(entry, fullpath) else { return };
         for (key, bv) in block.iter_bv_definitions_warn() {
             self.load_item(key, bv);
         }
@@ -157,7 +153,7 @@ impl ScriptValue {
                 {
                     if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
                         if it_type.is("any") {
-                            let msg = format!("cannot use `{}` in a script value", key);
+                            let msg = format!("cannot use `{key}` in a script value");
                             error(key, ErrorKey::Validation, &msg);
                         }
                         sc.expect(inscopes, key);
@@ -181,14 +177,14 @@ impl ScriptValue {
                 if let Some((prefix, arg)) = part.split_once(':') {
                     if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                         if inscopes == Scopes::None && !first {
-                            let msg = format!("`{}:` makes no sense except as first part", prefix);
+                            let msg = format!("`{prefix}:` makes no sense except as first part");
                             warn(&part, ErrorKey::Validation, &msg);
                         }
                         sc.expect(inscopes, &prefix);
                         validate_prefix_reference(&prefix, &arg, data);
                         sc.replace(outscope, part);
                     } else {
-                        let msg = format!("unknown prefix `{}:`", prefix);
+                        let msg = format!("unknown prefix `{prefix}:`");
                         error(part, ErrorKey::Validation, &msg);
                         sc.close();
                         continue 'outer;
@@ -201,7 +197,7 @@ impl ScriptValue {
                     || part.is("THIS")
                 {
                     if !first {
-                        let msg = format!("`{}` makes no sense except as first part", part);
+                        let msg = format!("`{part}` makes no sense except as first part");
                         warn(&part, ErrorKey::Validation, &msg);
                     }
                     if part.is("root") || part.is("ROOT") {
@@ -213,14 +209,14 @@ impl ScriptValue {
                     }
                 } else if let Some((inscopes, outscope)) = scope_to_scope(part.as_str()) {
                     if inscopes == Scopes::None && !first {
-                        let msg = format!("`{}` makes no sense except as first part", part);
+                        let msg = format!("`{part}` makes no sense except as first part");
                         warn(&part, ErrorKey::Validation, &msg);
                     }
                     sc.expect(inscopes, &part);
                     sc.replace(outscope, part);
                 // TODO: warn if trying to use iterator here
                 } else {
-                    let msg = format!("unknown token `{}`", part);
+                    let msg = format!("unknown token `{part}`");
                     error(part, ErrorKey::Validation, &msg);
                     sc.close();
                     continue 'outer;
@@ -308,19 +304,18 @@ impl ScriptValue {
                 if let Some((prefix, arg)) = part.split_once(':') {
                     if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                         if inscopes == Scopes::None && !first {
-                            let msg = format!("`{}:` makes no sense except as first part", prefix);
+                            let msg = format!("`{prefix}:` makes no sense except as first part");
                             warn(part, ErrorKey::Validation, &msg);
                         }
                         if last && !outscope.contains(Scopes::Value) {
-                            let msg =
-                                format!("expected a numeric formula instead of `{}:` ", prefix);
+                            let msg = format!("expected a numeric formula instead of `{prefix}:` ");
                             warn(part, ErrorKey::Validation, &msg);
                         }
                         sc.expect(inscopes, &prefix);
                         validate_prefix_reference(&prefix, &arg, data);
                         sc.replace(outscope, part.clone());
                     } else {
-                        let msg = format!("unknown prefix `{}:`", prefix);
+                        let msg = format!("unknown prefix `{prefix}:`");
                         error(part, ErrorKey::Validation, &msg);
                         sc.close();
                         return;
@@ -333,10 +328,10 @@ impl ScriptValue {
                     || part.is("THIS")
                 {
                     if !first {
-                        let msg = format!("`{}` makes no sense except as first part", part);
+                        let msg = format!("`{part}` makes no sense except as first part");
                         warn(part, ErrorKey::Validation, &msg);
                     } else if last {
-                        let msg = format!("`{}` makes no sense as script value", part);
+                        let msg = format!("`{part}` makes no sense as script value");
                         warn(part, ErrorKey::Validation, &msg);
                     }
                     if part.is("root") || part.is("ROOT") {
@@ -348,11 +343,11 @@ impl ScriptValue {
                     }
                 } else if let Some((inscopes, outscope)) = scope_to_scope(part.as_str()) {
                     if inscopes == Scopes::None && !first {
-                        let msg = format!("`{}` makes no sense except as first part", part);
+                        let msg = format!("`{part}` makes no sense except as first part");
                         warn(part, ErrorKey::Validation, &msg);
                     }
                     if last && !outscope.intersects(Scopes::Value | Scopes::Bool) {
-                        let msg = format!("expected a numeric formula instead of `{}` ", part);
+                        let msg = format!("expected a numeric formula instead of `{part}` ");
                         warn(part, ErrorKey::Validation, &msg);
                     }
                     sc.expect(inscopes, part);
@@ -360,7 +355,7 @@ impl ScriptValue {
                 } else if last {
                     if let Some(inscopes) = scope_value(part, data) {
                         if inscopes == Scopes::None && !first {
-                            let msg = format!("`{}` makes no sense except as first part", part);
+                            let msg = format!("`{part}` makes no sense except as first part");
                             warn(part, ErrorKey::Validation, &msg);
                         }
                         if part.is("current_year") && sc.scopes() == Scopes::None {
@@ -378,7 +373,7 @@ impl ScriptValue {
                         data.verify_exists(Item::ScriptValue, part);
                     }
                 } else {
-                    let msg = format!("unknown token `{}`", part);
+                    let msg = format!("unknown token `{part}`");
                     error(part, ErrorKey::Validation, &msg);
                     sc.close();
                     return;

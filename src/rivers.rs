@@ -178,10 +178,8 @@ impl Rivers {
                         if river_neighbors == 1 {
                             specials.insert((x, y), false);
                         } else {
-                            let msg = format!(
-                                "({}, {}) river source (green) not at source of a river",
-                                x, y
-                            );
+                            let msg =
+                                format!("({x}, {y}) river source (green) not at source of a river");
                             error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
                             bad_problem = true;
                         }
@@ -191,8 +189,7 @@ impl Rivers {
                             specials.insert((x, y), false);
                         } else {
                             let msg = format!(
-                                "({}, {}) river tributary (red) not joining another river",
-                                x, y
+                                "({x}, {y}) river tributary (red) not joining another river",
                             );
                             error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
                             bad_problem = true;
@@ -203,8 +200,7 @@ impl Rivers {
                             specials.insert((x, y), false);
                         } else {
                             let msg = format!(
-                                "({}, {}) river split (yellow) not splitting off from a river",
-                                x, y
+                                "({x}, {y}) river split (yellow) not splitting off from a river",
                             );
                             error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
                             bad_problem = true;
@@ -223,7 +219,7 @@ impl Rivers {
                                     }
                                     RiverSegment::Stream(c1, c2) => {
                                         if are_neighbors(c1, (x, y)) && are_neighbors(c2, (x, y)) {
-                                            let msg = format!("({}, {}) river forms a loop", x, y);
+                                            let msg = format!("({x}, {y}) river forms a loop");
                                             error(
                                                 self.entry.as_ref().unwrap(),
                                                 ErrorKey::Rivers,
@@ -249,10 +245,8 @@ impl Rivers {
                                 river_segments.swap_remove(found[1]);
                             }
                         } else {
-                            let msg = format!(
-                                "({}, {}) river pixel has {} neighbors",
-                                x, y, river_neighbors
-                            );
+                            let msg =
+                                format!("({x}, {y}) river pixel has {river_neighbors} neighbors",);
                             error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
                             bad_problem = true;
                         }
@@ -280,7 +274,7 @@ impl FileHandler for Rivers {
                 entry,
                 ErrorKey::ReadError,
                 "could not read image",
-                &format!("{:#}", e),
+                &format!("{e:#}"),
             );
         }
     }

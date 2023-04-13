@@ -73,7 +73,7 @@ impl Parser {
         error(
             token,
             ErrorKey::ParseError,
-            &format!("Unrecognized character {}", c),
+            &format!("Unrecognized character {c}"),
         );
     }
 
@@ -175,17 +175,17 @@ impl Parser {
             error(
                 &token,
                 ErrorKey::ParseError,
-                &format!("Unrecognized comparator '{}'", token),
+                &format!("Unrecognized comparator '{token}'"),
             );
             Comparator::Eq
         });
 
         if self.current.key.is_none() {
-            let msg = format!("Unexpected comparator '{}'", token);
+            let msg = format!("Unexpected comparator '{token}'");
             error(token, ErrorKey::ParseError, &msg);
         } else {
             if self.current.comp.is_some() {
-                let msg = &format!("Double comparator '{}'", token);
+                let msg = &format!("Double comparator '{token}'");
                 error(&token, ErrorKey::ParseError, msg);
             }
             self.current.comp = Some((cmp, token));
@@ -230,7 +230,7 @@ impl Parser {
             }
             self.block_value(prev_level.block);
             if loc.column == 1 && !self.stack.is_empty() {
-                warn_info(&Token::new("}".to_string(), loc),
+                warn_info(Token::new("}".to_string(), loc),
                 ErrorKey::BracePlacement,
                 "possible brace error",
                 "This closing brace is at the start of a line but does not end a top-level item."
@@ -239,7 +239,7 @@ impl Parser {
         } else {
             self.brace_error = true;
             error(
-                &Token::new("}".to_string(), loc),
+                Token::new("}".to_string(), loc),
                 ErrorKey::ParseError,
                 "Unexpected }",
             );

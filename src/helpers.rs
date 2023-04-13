@@ -7,9 +7,9 @@ pub fn dup_error(key: &Token, other: &Token, id: &str) {
     warn2(
         other,
         ErrorKey::Duplicate,
-        &format!("{} is redefined by another {}", id, id),
+        &format!("{id} is redefined by another {id}"),
         key,
-        &format!("the other {} is here", id),
+        &format!("the other {id} is here"),
     );
 }
 
@@ -18,7 +18,7 @@ pub fn dup_assign_error(key: &Token, other: &Token) {
     warn2(
         other,
         ErrorKey::Duplicate,
-        &format!("`{}` is redefined in a following line", other),
+        &format!("`{other}` is redefined in a following line"),
         key,
         "the other one is here",
     );
