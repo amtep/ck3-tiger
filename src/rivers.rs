@@ -206,7 +206,7 @@ impl Rivers {
                             bad_problem = true;
                         }
                     }
-                    3..=11 => {
+                    3..=15 => {
                         if river_neighbors <= 2 {
                             let mut found = Vec::new();
                             for (i, segment) in river_segments.iter_mut().enumerate() {
@@ -251,7 +251,7 @@ impl Rivers {
                             bad_problem = true;
                         }
                     }
-                    12.. => (),
+                    16.. => (),
                 }
             }
         }
