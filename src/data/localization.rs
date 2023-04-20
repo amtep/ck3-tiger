@@ -53,6 +53,7 @@ impl LocaEntry {
         from: &'a FnvHashMap<String, LocaEntry>,
         count: &mut usize,
     ) -> bool {
+        // Are we (probably) stuck in a macro loop?
         if *count > 250 {
             return false;
         }
@@ -118,8 +119,6 @@ pub struct CodeChain {
 
 // Most "codes" are just a name followed by another dot or by the end of the code section.
 // Some have arguments, which can be single-quoted strings, or other code chains.
-// There is apparently a limit of two arguments per call, but we parse more so we can
-// warn about that.
 #[derive(Clone, Debug)]
 pub struct Code {
     name: Token,
@@ -140,11 +139,10 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
     //
     // Using to_string_lossy is ok here because non-unicode sequences will
     // never match the suffix anyway.
-    KNOWN_LANGUAGES.into_iter().find(|&lang| {
-        filename
-            .to_string_lossy()
-            .ends_with(&format!("l_{lang}.yml"))
-    })
+    let filename = filename.to_string_lossy();
+    KNOWN_LANGUAGES
+        .into_iter()
+        .find(|&lang| filename.ends_with(&format!("l_{lang}.yml")))
 }
 
 impl Localization {
