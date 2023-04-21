@@ -5,8 +5,9 @@ use std::path::{Path, PathBuf};
 
 use crate::block::Block;
 use crate::data::localization::parse::{parse_loca, ValueParser};
+use crate::datatype::{validate_datatypes, CodeChain};
 use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, error, error_info, warn_info};
+use crate::errors::{advice_info, error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::dup_error;
@@ -109,30 +110,6 @@ pub enum MacroValue {
     Keyword(Token, Option<Token>),
 }
 
-#[derive(Clone, Debug)]
-pub struct CodeChain {
-    // "codes" is my name for the things separated by dots in gui functions.
-    // They may be "scopes", "promotes", or "functions" according to the game.
-    // I don't understand the difference well enough yet to parse them that way.
-    codes: Vec<Code>,
-}
-
-// Most "codes" are just a name followed by another dot or by the end of the code section.
-// Some have arguments, which can be single-quoted strings, or other code chains.
-#[derive(Clone, Debug)]
-pub struct Code {
-    name: Token,
-    arguments: Vec<CodeArg>,
-}
-
-// Possibly the literals can themselves contain [ ] code blocks.
-// I'll have to test that.
-#[derive(Clone, Debug)]
-pub enum CodeArg {
-    Chain(CodeChain),
-    Literal(Token),
-}
-
 fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
     // Deliberate discrepancy here between the check and the error msg below.
     // `l_{}.yml` works, but `_l_{}.yml` is still recommended.
@@ -176,29 +153,40 @@ impl Localization {
         }
     }
 
-    fn check_game_concepts(&self, value: &LocaValue, data: &Everything) {
+    fn check_loca_code(&self, value: &LocaValue, data: &Everything) {
         match value {
             LocaValue::Concat(v) => {
                 for value in v {
-                    self.check_game_concepts(value, data);
+                    self.check_loca_code(value, data);
                 }
             }
-            LocaValue::Code(chain, Some(fmt))
-                if chain.codes.len() == 1
-                    && chain.codes[0].arguments.is_empty()
-                    && fmt.as_str().contains('E') =>
-            {
-                data.verify_exists(Item::GameConcept, &chain.codes[0].name);
+            // A reference to a game concept
+            LocaValue::Code(chain, Some(fmt)) if fmt.as_str().contains('E') => {
+                if let Some(name) = chain.as_gameconcept() {
+                    data.verify_exists(Item::GameConcept, name);
+                } else {
+                    warn(
+                        fmt,
+                        ErrorKey::ParseError,
+                        &format!("cannot figure out game concept for this |E"),
+                    );
+                }
+            }
+            // Some other code
+            // TODO: check the formatting codes
+            LocaValue::Code(chain, _) => {
+                validate_datatypes(chain, data);
             }
             _ => (),
         }
     }
 
     pub fn validate(&self, data: &Everything) {
-        // Does every `[concept]` reference have a defined game concept?
+        // Does every `[concept|E]` reference have a defined game concept?
+        // Does every other `[code]` block have valid promotes and functions?
         for hash in self.locas.values() {
             for entry in hash.values() {
-                self.check_game_concepts(&entry.value, data);
+                self.check_loca_code(&entry.value, data);
             }
         }
     }

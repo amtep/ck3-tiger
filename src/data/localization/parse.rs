@@ -1,9 +1,8 @@
 use std::iter::Peekable;
 use std::str::Chars;
 
-use crate::data::localization::{
-    get_file_lang, Code, CodeArg, CodeChain, LocaEntry, LocaValue, MacroValue,
-};
+use crate::data::localization::{get_file_lang, LocaEntry, LocaValue, MacroValue};
+use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::fileset::FileEntry;

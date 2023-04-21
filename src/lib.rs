@@ -27,6 +27,7 @@ pub mod modfile;
 mod block;
 mod context;
 mod data;
+mod datatype;
 mod desc;
 mod effect;
 mod fileset;
