@@ -33,6 +33,7 @@ pub enum ErrorKey {
     History,
     Logic,
     Bugs,
+    DataFunctions,
 
     PrincesOfDarkness,
 }

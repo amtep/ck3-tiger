@@ -7,12 +7,24 @@ OUTDIR = "src/tables/include"
 
 SEPARATOR = "\n-----------------------\n\n"
 
-GLOBAL_PROMOTES = ""
-GLOBAL_FUNCTIONS = ""
-GLOBAL_MACROS = ""
-TYPES = ["Unknown"]
-FUNCTIONS = ""
-PROMOTES = ""
+TYPES = []
+GLOBAL_PROMOTES = []
+GLOBAL_FUNCTIONS = []
+GLOBAL_MACROS = []
+FUNCTIONS = []
+PROMOTES = []
+
+# Most promotes and functions have 'Unknown' arg types in the data_type logs.
+# This dictionary replaces those with known arg types in specific cases.
+ARGS_OVERRIDE = {
+    "Multiply_CFixedPoint": "Arg2(CFixedPoint, CFixedPoint)",
+}
+
+# Most functions have 'Unknown' return types in the data_type logs.
+# This dictionary replaces those with known return types in specific cases.
+RTYPE_OVERRIDE = {
+    "GetNullCharacter": "Character",
+}
 
 fnames = sys.argv[1:]
 
@@ -35,63 +47,73 @@ for fname in fnames:
             args = "Arg3(Unknown, Unknown, Unknown)"
         if "Arg3" in lines[0]:
             args = "Arg4(Unknown, Unknown, Unknown, Unknown)"
+        if name in ARGS_OVERRIDE:
+            args = ARGS_OVERRIDE[name]
 
         if "Definition type: Global macro" in item:
-            GLOBAL_MACROS += item
+            GLOBAL_MACROS.append(item)
             continue
 
         if "Definition type: Type" in item:
-            if name not in TYPES:
-                TYPES += [name]
+            typeline = '    %s,\n' % name
+            if typeline not in TYPES:
+                TYPES.append(typeline)
             continue
 
         rtype = lines[-1].split("Return type: ")[1].strip()
         if rtype == "[unregistered]":
             rtype = "Unknown"
+        if rtype == "Unknown" and name in RTYPE_OVERRIDE:
+            rtype = RTYPE_OVERRIDE[name]
 
         if "\nDefinition type: Global promote\n" in item:
-            GLOBAL_PROMOTES += '    ("%s", %s, %s),\n' % (name, args, rtype)
+            GLOBAL_PROMOTES.append('    ("%s", %s, %s),\n' % (name, args, rtype))
         elif "\nDefinition type: Global function\n" in item:
-            GLOBAL_FUNCTIONS += '    ("%s", %s, %s),\n' % (name, args, rtype)
+            GLOBAL_FUNCTIONS.append('    ("%s", %s, %s),\n' % (name, args, rtype))
         elif "\nDefinition type: Function\n" in item:
             type, name = name.split(".")
             if name == "AccessSelf" or name == "Self":
                 rtype = type
-            FUNCTIONS += '    (%s, "%s", %s, %s),\n' % (type, name, args, rtype)
+            FUNCTIONS.append('    (%s, "%s", %s, %s),\n' % (type, name, args, rtype))
         elif "\nDefinition type: Promote\n" in item:
             type, name = name.split(".")
-            PROMOTES += '    (%s, "%s", %s, %s),\n' % (type, name, args, rtype)
+            PROMOTES.append('    (%s, "%s", %s, %s),\n' % (type, name, args, rtype))
         else:
             print(item)
             raise "unknown item"
 
 with open(OUTDIR + "/datatypes.rs", "w") as outf:
-    outf.write("#[derive(Copy, Clone, Debug)]\n");
-    outf.write("enum DataType {\n");
-    outf.write("    " + ",\n    ".join(TYPES) + ",\n")
-    outf.write("}\n");
+    TYPES.sort()
+    outf.write("#[derive(Copy, Clone, Debug, Eq, PartialEq, Display, EnumString)]\n")
+    outf.write("pub enum Datatype {\n")
+    outf.write("    Unknown,\n")
+    outf.write("".join(TYPES))
+    outf.write("}\n")
 
 with open(OUTDIR + "/data_global_promotes.rs", "w") as outf:
-    outf.write("&[\n");
-    outf.write(GLOBAL_PROMOTES)
-    outf.write("]\n");
+    GLOBAL_PROMOTES.sort()
+    outf.write("&[\n")
+    outf.write("".join(GLOBAL_PROMOTES))
+    outf.write("]\n")
 
 with open(OUTDIR + "/data_global_functions.rs", "w") as outf:
-    outf.write("&[\n");
-    outf.write(GLOBAL_FUNCTIONS)
-    outf.write("]\n");
+    GLOBAL_FUNCTIONS.sort()
+    outf.write("&[\n")
+    outf.write("".join(GLOBAL_FUNCTIONS))
+    outf.write("]\n")
 
 with open(OUTDIR + "/data_promotes.rs", "w") as outf:
-    outf.write("&[\n");
-    outf.write(PROMOTES)
-    outf.write("]\n");
+    PROMOTES.sort()
+    outf.write("&[\n")
+    outf.write("".join(PROMOTES))
+    outf.write("]\n")
 
 with open(OUTDIR + "/data_functions.rs", "w") as outf:
-    outf.write("&[\n");
-    outf.write(FUNCTIONS)
-    outf.write("]\n");
+    FUNCTIONS.sort()
+    outf.write("&[\n")
+    outf.write("".join(FUNCTIONS))
+    outf.write("]\n")
 
 # These need further processing
 print("GLOBAL MACROS")
-print(GLOBAL_MACROS)
-
+print("".join(GLOBAL_MACROS))

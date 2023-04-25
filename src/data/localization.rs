@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::Block;
 use crate::data::localization::parse::{parse_loca, ValueParser};
-use crate::datatype::{validate_datatypes, CodeChain};
+use crate::datatype::{validate_datatypes, CodeChain, Datatype};
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice_info, error, error_info, warn, warn_info};
 use crate::everything::Everything;
@@ -175,7 +175,7 @@ impl Localization {
             // Some other code
             // TODO: check the formatting codes
             LocaValue::Code(chain, _) => {
-                validate_datatypes(chain, data);
+                validate_datatypes(chain, data, Datatype::Unknown);
             }
             _ => (),
         }
