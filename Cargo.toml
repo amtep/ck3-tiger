@@ -22,3 +22,13 @@ walkdir = "2"
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.10"
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "criterion"
+harness = false
+
+[profile.bench]
+debug = true
