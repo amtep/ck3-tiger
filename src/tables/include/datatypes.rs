@@ -872,6 +872,7 @@ pub enum Datatype {
     VassalContract,
     VassalContractType,
     VassalConversionWindow,
+    Vec4f,
     ViewerEntity,
     ViewerEntityLodInfo,
     ViewerEntityState,

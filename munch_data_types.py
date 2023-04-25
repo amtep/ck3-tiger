@@ -7,7 +7,8 @@ OUTDIR = "src/tables/include"
 
 SEPARATOR = "\n-----------------------\n\n"
 
-TYPES = []
+# Vec4f is not listed as a datatype but there is a Select_vec4f function so it must exist.
+TYPES = ['    Vec4f,\n']
 GLOBAL_PROMOTES = []
 GLOBAL_FUNCTIONS = []
 GLOBAL_MACROS = []
@@ -17,8 +18,18 @@ PROMOTES = []
 # Most promotes and functions have 'Unknown' arg types in the data_type logs.
 # This dictionary replaces those with known arg types in specific cases.
 ARGS_OVERRIDE = {
-    "Multiply_CFixedPoint": "Arg2(CFixedPoint, CFixedPoint)",
+    "EqualTo_string": "Arg2(CString, CString)",
 }
+
+# UNARY_ARGS are functions that have their argument type in their name
+UNARY_ARGS = ["Abs_", "GetString_", "Negate_"]
+# BINARY_ARGS are binary functions that have their argument type in their name
+BINARY_ARGS = [
+    "Add_", "EqualTo_", "GetNumberAbove_", "GreaterThanOrEqualTo_",
+    "GreaterThan_", "LessThanOrEqualTo_", "LessThan_", "Max_", "Multiply_",
+    "NotEqualTo_", "Subtract_"
+]
+
 
 # Most functions have 'Unknown' return types in the data_type logs.
 # This dictionary replaces those with known return types in specific cases.
@@ -47,6 +58,17 @@ for fname in fnames:
             args = "Arg3(Unknown, Unknown, Unknown)"
         if "Arg3" in lines[0]:
             args = "Arg4(Unknown, Unknown, Unknown, Unknown)"
+        for s in UNARY_ARGS:
+            if name.startswith(s):
+                type = name.split('_')[1]
+                args = 'Arg(%s)' % type
+        for s in BINARY_ARGS:
+            if name.startswith(s):
+                type = name.split('_')[1]
+                args = 'Arg2(%s, %s)' % (type, type)
+        if name.startswith("Select_"):
+            type = name.split('_')[1]
+            args = 'Arg3(bool, %s, %s)' % (type, type)
         if name in ARGS_OVERRIDE:
             args = ARGS_OVERRIDE[name]
 
