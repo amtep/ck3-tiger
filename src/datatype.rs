@@ -1,6 +1,7 @@
 use crate::errorkey::ErrorKey;
 use crate::errors::error;
 use crate::everything::Everything;
+use crate::item::Item;
 use crate::tables::datafunctions::Args;
 use crate::token::Token;
 
@@ -69,49 +70,44 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
     for (i, code) in chain.codes.iter().enumerate() {
         let is_first = i == 0;
         let is_last = i == chain.codes.len() - 1;
-        let args;
-        let rtype;
-        if let Some((xargs, xrtype)) = lookup_global_promote(&code.name) {
-            if !is_first {
-                error(
-                    &code.name,
-                    ErrorKey::DataFunctions,
-                    &format!("{} must be the first in a chain", code.name),
-                );
-                return;
-            }
-            if is_last {
-                error(
-                    &code.name,
-                    ErrorKey::DataFunctions,
-                    &format!("{} can not be last in a chain", code.name),
-                );
-                return;
-            }
-            args = xargs;
-            rtype = xrtype;
-        } else if let Some((xargs, xrtype)) = lookup_global_function(&code.name) {
-            if !(is_first && is_last) {
-                error(
-                    &code.name,
-                    ErrorKey::DataFunctions,
-                    &format!("{} must be used on its own", code.name),
-                );
-                return;
-            }
-            args = xargs;
-            rtype = xrtype;
+        let mut args = Args::NoArgs;
+        let mut rtype = Datatype::Unknown;
+
+        // The data_type logs include all game concepts as global functions.
+        // We don't want them to match here, because those concepts often
+        // overlap with passed-in scopes, which are not functions.
+        let lookup_gf = if data.item_exists(Item::GameConcept, code.name.as_str()) {
+            None
         } else {
-            match lookup_promote(&code.name, curtype) {
+            lookup_global_function(&code.name)
+        };
+        let lookup_gp = lookup_global_promote(&code.name);
+        let lookup_f = lookup_function(&code.name, curtype);
+        let lookup_p = lookup_promote(&code.name, curtype);
+
+        let gf_found = lookup_gf.is_some();
+        let gp_found = lookup_gp.is_some();
+        let f_found = !matches!(lookup_f, LookupResult::NotFound);
+        let p_found = !matches!(lookup_p, LookupResult::NotFound);
+
+        let mut found = false;
+
+        if is_first && is_last {
+            if let Some((xargs, xrtype)) = lookup_gf {
+                found = true;
+                args = xargs;
+                rtype = xrtype;
+            }
+        } else if is_first && !is_last {
+            if let Some((xargs, xrtype)) = lookup_gp {
+                found = true;
+                args = xargs;
+                rtype = xrtype;
+            }
+        } else if !is_first && !is_last {
+            match lookup_p {
                 LookupResult::Found(xargs, xrtype) => {
-                    if is_first {
-                        error(
-                            &code.name,
-                            ErrorKey::DataFunctions,
-                            &format!("{} can not be the first in a chain", code.name),
-                        );
-                        return;
-                    }
+                    found = true;
                     args = xargs;
                     rtype = xrtype;
                 }
@@ -123,43 +119,77 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
                     );
                     return;
                 }
-                LookupResult::NotFound => {
-                    match lookup_function(&code.name, curtype) {
-                        LookupResult::Found(xargs, xrtype) => {
-                            if is_first {
-                                error(
-                                    &code.name,
-                                    ErrorKey::DataFunctions,
-                                    &format!("{} can not be the first in a chain", code.name),
-                                );
-                                return;
-                            }
-                            if !is_last {
-                                error(
-                                    &code.name,
-                                    ErrorKey::DataFunctions,
-                                    &format!("{} must be last in the chain", code.name),
-                                );
-                                return;
-                            }
-                            args = xargs;
-                            rtype = xrtype;
-                        }
-                        LookupResult::WrongType => {
-                            error(
-                                &code.name,
-                                ErrorKey::DataFunctions,
-                                &format!("{} can not follow a {} promote", code.name, curtype),
-                            );
-                            return;
-                        }
-                        LookupResult::NotFound => {
-                            // It's some passed-in scope
-                            args = Args::NoArgs;
-                            rtype = Datatype::Unknown;
-                        }
-                    }
+                LookupResult::NotFound => (),
+            }
+        } else if !is_first && is_last {
+            match lookup_f {
+                LookupResult::Found(xargs, xrtype) => {
+                    found = true;
+                    args = xargs;
+                    rtype = xrtype;
                 }
+                LookupResult::WrongType => {
+                    error(
+                        &code.name,
+                        ErrorKey::DataFunctions,
+                        &format!("{} can not follow a {} promote", code.name, curtype),
+                    );
+                    return;
+                }
+                LookupResult::NotFound => (),
+            }
+        }
+
+        if !found {
+            // Properly reporting these errors is tricky because `code.name`
+            // might be found in any or all of the functions and promotes tables.
+            if is_first && (p_found || f_found) && !gp_found && !gf_found {
+                error(
+                    &code.name,
+                    ErrorKey::DataFunctions,
+                    &format!("{} can not be the first in a chain", code.name),
+                );
+                return;
+            }
+            if is_last && (gp_found || p_found) && !gf_found && !f_found {
+                error(
+                    &code.name,
+                    ErrorKey::DataFunctions,
+                    &format!("{} can not be last in a chain", code.name),
+                );
+                return;
+            }
+            if !is_first && (gp_found || gf_found) && !p_found && !f_found {
+                error(
+                    &code.name,
+                    ErrorKey::DataFunctions,
+                    &format!("{} must be the first in a chain", code.name),
+                );
+                return;
+            }
+            if !is_last && (gf_found || f_found) && !gp_found && !p_found {
+                error(
+                    &code.name,
+                    ErrorKey::DataFunctions,
+                    &format!("{} must be last in the chain", code.name),
+                );
+                return;
+            }
+            // A catch-all condition if none of the above match
+            if gp_found || gf_found || p_found || f_found {
+                error(
+                    &code.name,
+                    ErrorKey::DataFunctions,
+                    &format!("{} is improperly used here", code.name),
+                );
+                return;
+            } else {
+                // If `code.name` is not found at all in the tables, then
+                // it can be some passed-in scope. Unfortunately we don't
+                // have a complete list of those, so accept them all.
+                args = Args::NoArgs;
+                // TODO: this could in theory be reduced to just the scope types
+                rtype = Datatype::Unknown;
             }
         }
 
