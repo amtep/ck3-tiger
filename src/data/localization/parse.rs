@@ -506,6 +506,8 @@ impl<'a> ValueParser<'a> {
                 }
                 v.push(CodeArg::Literal(Token::new(text, loc)));
                 self.next_char();
+            } else if self.peek() == Some(')') {
+                // Empty () means no arguments
             } else {
                 v.push(CodeArg::Chain(self.parse_code_inner()));
             }
