@@ -1,5 +1,6 @@
 #![allow(non_camel_case_types)]
 
+use std::str::FromStr;
 use strum_macros::{Display, EnumString};
 
 use crate::token::Token;
@@ -42,6 +43,15 @@ pub fn lookup_global_promote(lookup_name: &Token) -> Option<(Args, Datatype)> {
             return Some((*args, *rtype));
         }
     }
+
+    // Most datatypes can be used directly as global promotes,
+    // taking their value from the gui context.
+    if let Ok(dtype) = Datatype::from_str(lookup_name.as_str()) {
+        if lookup_name.as_str().chars().next().unwrap().is_uppercase() {
+            return Some((Args::NoArgs, dtype));
+        }
+    }
+
     None
 }
 
