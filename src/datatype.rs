@@ -1,5 +1,5 @@
 use crate::errorkey::ErrorKey;
-use crate::errors::error;
+use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::tables::datafunctions::Args;
@@ -186,9 +186,21 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
             } else {
                 // If `code.name` is not found at all in the tables, then
                 // it can be some passed-in scope. Unfortunately we don't
-                // have a complete list of those, so accept them all.
+                // have a complete list of those, so accept any lowercase id.
+                // TODO: it's in theory possible to build a complete list
+                // of possible scope variable names
+                if code.name.as_str().chars().next().unwrap().is_uppercase() {
+                    // TODO: If there is a Custom of the same name, suggest that
+                    warn(
+                        &code.name,
+                        ErrorKey::DataFunctions,
+                        &format!("unknown datafunction {}", &code.name),
+                    );
+                }
                 args = Args::NoArgs;
                 // TODO: this could in theory be reduced to just the scope types
+                // That would be valuable for checks because it will find
+                // the common mistake of using .Var directly after one.
                 rtype = Datatype::Unknown;
             }
         }
