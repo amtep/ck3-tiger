@@ -8,6 +8,7 @@ use crate::data::characters::Characters;
 use crate::data::courtpos::CourtPositions;
 use crate::data::courtpos_categories::CourtPositionCategories;
 use crate::data::decisions::Decisions;
+use crate::data::defines::Defines;
 use crate::data::dynasties::Dynasties;
 use crate::data::events::Events;
 use crate::data::gameconcepts::GameConcepts;
@@ -65,6 +66,8 @@ pub struct Everything {
     pub localization: Localization,
 
     pub scripted_lists: ScriptedLists,
+
+    pub defines: Defines,
 
     /// Processed event files
     pub events: Events,
@@ -161,6 +164,7 @@ impl Everything {
             config,
             localization: Localization::default(),
             scripted_lists: ScriptedLists::default(),
+            defines: Defines::default(),
             events: Events::default(),
             decisions: Decisions::default(),
             interactions: Interactions::default(),
@@ -237,6 +241,7 @@ impl Everything {
 
         self.fileset.handle(&mut self.localization);
         self.fileset.handle(&mut self.scripted_lists);
+        self.fileset.handle(&mut self.defines);
         self.fileset.handle(&mut self.events);
         self.fileset.handle(&mut self.decisions);
         self.fileset.handle(&mut self.interactions);
@@ -266,6 +271,7 @@ impl Everything {
         self.fileset.validate(self);
         self.localization.validate(self);
         self.scripted_lists.validate(self);
+        self.defines.validate(self);
         // scripted items go early because they update their scope context info
         self.scriptvalues.validate(self);
         self.triggers.validate(self);
@@ -308,6 +314,7 @@ impl Everything {
             Item::Character => self.characters.exists(key),
             Item::CourtPositionCategory => self.courtpos_categories.exists(key),
             Item::Decision => self.decisions.exists(key),
+            Item::Define => self.defines.exists(key),
             Item::Dynasty => self.dynasties.exists(key),
             Item::Event => self.events.exists(key),
             Item::Faith => self.religions.faith_exists(key),
