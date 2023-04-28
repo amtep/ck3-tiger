@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
@@ -50,8 +52,30 @@ fn validate_argument(arg: &CodeArg, _data: &Everything, expect_type: Datatype) {
     match arg {
         CodeArg::Chain(chain) => validate_datatypes(chain, _data, expect_type),
         CodeArg::Literal(token) => {
-            if token.as_str().starts_with('(') {
-                // TODO: parse datatype from string
+            if token.as_str().starts_with('(') && token.as_str().contains(')') {
+                // These unwraps are safe because of the checks in the if condition
+                let dtype = token
+                    .as_str()
+                    .split(')')
+                    .next()
+                    .unwrap()
+                    .strip_prefix('(')
+                    .unwrap();
+                if let Ok(dtype) = Datatype::from_str(dtype) {
+                    if expect_type != Datatype::Unknown && expect_type != dtype {
+                        error(
+                            token,
+                            ErrorKey::DataFunctions,
+                            &format!("expected {}, got {}", expect_type, dtype),
+                        );
+                    }
+                } else {
+                    error(
+                        token,
+                        ErrorKey::DataFunctions,
+                        &format!("unrecognized datatype {}", dtype),
+                    );
+                }
             } else {
                 if expect_type != Datatype::Unknown && expect_type != Datatype::CString {
                     error(
@@ -196,6 +220,7 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
                         ErrorKey::DataFunctions,
                         &format!("unknown datafunction {}", &code.name),
                     );
+                    return;
                 }
                 args = Args::NoArgs;
                 // TODO: this could in theory be reduced to just the scope types
