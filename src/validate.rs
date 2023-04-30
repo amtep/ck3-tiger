@@ -503,3 +503,11 @@ pub fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     });
     vd.field_bool("round");
 }
+
+pub fn validate_traits(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    // TODO: parse these. Can be single tokens ("wrathful") or assignments ("wrathful = 3")
+    // or even wrathful = { modifier = modifier_key scale = 2 }
+    vd.field_block("virtues");
+    vd.field_block("sins");
+}

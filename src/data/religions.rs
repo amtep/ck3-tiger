@@ -11,7 +11,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
-use crate::validate::validate_color;
+use crate::validate::{validate_color, validate_traits};
 
 #[derive(Clone, Debug, Default)]
 pub struct Religions {
@@ -157,14 +157,6 @@ impl Religion {
         vd.field_validated_block("localization", validate_localization);
         vd.field_blocks("faiths");
     }
-}
-
-fn validate_traits(block: &Block, data: &Everything) {
-    let mut vd = Validator::new(block, data);
-    // TODO: parse these. Can be single tokens ("wrathful") or assignments ("wrathful = 3")
-    // or even wrathful = { modifier = modifier_key scale = 2 }
-    vd.req_field("virtues");
-    vd.req_field("sins");
 }
 
 fn validate_localization(block: &Block, data: &Everything) {

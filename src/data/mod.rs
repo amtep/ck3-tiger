@@ -3,6 +3,7 @@ pub mod courtpos;
 pub mod courtpos_categories;
 pub mod decisions;
 pub mod defines;
+pub mod doctrines;
 pub mod dynasties;
 pub mod events;
 pub mod gameconcepts;

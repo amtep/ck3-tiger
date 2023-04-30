@@ -1,4 +1,6 @@
 use anyhow::Result;
+use fnv::FnvHashSet;
+use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use thiserror::Error;
@@ -9,6 +11,7 @@ use crate::data::courtpos::CourtPositions;
 use crate::data::courtpos_categories::CourtPositionCategories;
 use crate::data::decisions::Decisions;
 use crate::data::defines::Defines;
+use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
 use crate::data::events::Events;
 use crate::data::gameconcepts::GameConcepts;
@@ -58,6 +61,8 @@ pub enum FilesError {
 pub struct Everything {
     /// Config from file
     config: Block,
+
+    warned_defines: RefCell<FnvHashSet<String>>,
 
     /// The CK3 and mod files
     pub fileset: Fileset,
@@ -119,6 +124,8 @@ pub struct Everything {
     pub courtpos: CourtPositions,
 
     pub title_history: TitleHistories,
+
+    pub doctrines: Doctrines,
 }
 
 impl Everything {
@@ -162,6 +169,7 @@ impl Everything {
         Ok(Everything {
             fileset,
             config,
+            warned_defines: RefCell::new(FnvHashSet::default()),
             localization: Localization::default(),
             scripted_lists: ScriptedLists::default(),
             defines: Defines::default(),
@@ -188,6 +196,7 @@ impl Everything {
             courtpos_categories: CourtPositionCategories::default(),
             courtpos: CourtPositions::default(),
             title_history: TitleHistories::default(),
+            doctrines: Doctrines::default(),
         })
     }
 
@@ -265,6 +274,7 @@ impl Everything {
         self.fileset.handle(&mut self.courtpos_categories);
         self.fileset.handle(&mut self.courtpos);
         self.fileset.handle(&mut self.title_history);
+        self.fileset.handle(&mut self.doctrines);
     }
 
     pub fn validate_all(&mut self) {
@@ -296,6 +306,7 @@ impl Everything {
         self.courtpos_categories.validate(self);
         self.courtpos.validate(self);
         self.title_history.validate(self);
+        self.doctrines.validate(self);
     }
 
     pub fn check_rivers(&mut self) {
@@ -315,6 +326,8 @@ impl Everything {
             Item::CourtPositionCategory => self.courtpos_categories.exists(key),
             Item::Decision => self.decisions.exists(key),
             Item::Define => self.defines.exists(key),
+            Item::Doctrine => self.doctrines.exists(key),
+            Item::DoctrineParameter => self.doctrines.parameter_exists(key),
             Item::Dynasty => self.dynasties.exists(key),
             Item::Event => self.events.exists(key),
             Item::Faith => self.religions.faith_exists(key),
@@ -382,6 +395,24 @@ impl Everything {
         } else {
             None
         }
+    }
+
+    pub fn get_defined_string(&self, key: &str) -> Option<&Token> {
+        self.defines.get_string(key)
+    }
+
+    pub fn get_defined_string_warn(&self, token: &Token, key: &str) -> Option<&Token> {
+        let result = self.get_defined_string(key);
+        let mut cache = self.warned_defines.borrow_mut();
+        if result.is_none() && !cache.contains(key) {
+            warn(
+                token,
+                ErrorKey::MissingItem,
+                &format!("{} not defined in common/defines/", key),
+            );
+            cache.insert(key.to_string());
+        }
+        result
     }
 }
 
