@@ -118,12 +118,20 @@ impl Trait {
 
         if let Some(bv) = vd.field("icon") {
             validate_desc_map(bv, data, &mut sc, |name, data| {
-                let path = format!("gfx/interface/icons/traits/{}", name);
-                data.fileset.verify_exists_implied(&path, name);
+                if let Some(icon_path) =
+                    data.get_defined_string_warn(&self.key, "NGameIcons::TRAIT_ICON_PATH")
+                {
+                    let path = format!("{icon_path}/{name}");
+                    data.fileset.verify_exists_implied(&path, name);
+                }
             });
         } else {
-            let path = format!("gfx/interface/icons/traits/{}.dds", self.key);
-            data.fileset.verify_exists_implied(&path, &self.key);
+            if let Some(icon_path) =
+                data.get_defined_string_warn(&self.key, "NGameIcons::TRAIT_ICON_PATH")
+            {
+                let path = format!("{icon_path}/{}.dds", self.key);
+                data.fileset.verify_exists_implied(&path, &self.key);
+            }
         }
 
         vd.field_validated_blocks("culture_modifier", |b, data| {

@@ -1,0 +1,102 @@
+NGameIcons = {
+	TRAIT_ICON_PATH = "gfx/interface/icons/traits"
+	STATICMODIFIER_ICON_PATH = "gfx/interface/icons/modifiers"
+	REGIMENTYPE_ICON_PATH = "gfx/interface/icons/regimenttypes"
+	REGIMENTYPE_HORIZONTAL_IMAGE_PATH = "gfx/interface/illustrations/men_at_arms_big"
+	REGIMENTYPE_VERTICAL_IMAGE_PATH = "gfx/interface/illustrations/men_at_arms_small"
+	COMBAT_EFFECT_ICON_PATH = "gfx/interface/icons/combat_effects"
+	BUILDING_TYPE_ICON_PATH = "gfx/interface/icons/building_types"
+	HOLDING_TYPE_ICON_PATH = "gfx/interface/icons/holding_types"
+	HOLDING_TYPE_TAB_ICON_PATH = "gfx/interface/icons/holding_types_tab"
+	COUNCIL_TASK_TYPE_ICON_PATH = "gfx/interface/icons/council_task_types"
+	ACTIVITY_TYPE_ICON_PATH = "gfx/interface/icons/activities"
+	ACTIVITY_TYPE_BACKGROUND_PATH = "gfx/interface/illustrations/activities"
+	IMPORTANT_ACTIONS_TYPE_ICON_PATH = "gfx/interface/icons/alerts"
+	SUGGESTION_TYPE_ICON_PATH = "gfx/interface/icons/suggestion_types"
+	DECISION_ICON_PATH = "gfx/interface/icons/decisions"
+	FAITH_DOCTRINE_ICON_PATH = "gfx/interface/icons/faith_doctrines"
+	FAITH_DOCTRINE_GROUP_ICON_PATH = "gfx/interface/icons/faith_doctrine_groups"
+	CULTURE_ERA_ILLUSTRATION_PATH = "gfx/interface/window_culture/culture_era_illustrations"
+	CULTURE_ERA_FRAME_PATH = "gfx/interface/icons/culture_era_frames"
+	FACTION_TYPE_ICON_PATH = "gfx/interface/icons/faction_type"
+	TERRAIN_ICON_PATH = "gfx/interface/icons/terrain_types"
+	TERRAIN_TYPE_ILLSUTRATION_PATH = "gfx/interface/illustrations/terrain_types"
+	LAW_ICON_PATH = "gfx/interface/icons/laws"
+	PERK_ICON_PATH = "gfx/interface/icons/lifestyles_perks"
+	FOCUS_ICON_PATH = "gfx/interface/icons/focuses"
+	LIFESTYLE_ICON_PATH = "gfx/interface/icons/lifestyles"
+	LIFESTYLE_BIG_ICON_PATH = "gfx/interface/icons/lifestyles_big"
+	LIFESTYLE_BACKGROUND_PATH = "gfx/interface/illustrations/lifestyles_background"
+	LEGACY_ICON_PATH = "gfx/interface/icons/dynasty"
+	LEGACY_TRACK_ICON_PATH = "gfx/interface/illustrations/legacy_tracks"
+	CASUS_BELLI_TYPE_ICON_PATH = "gfx/interface/icons/casus_bellis"
+	FAITH_DOCTRINE_BACKGROUND_PATH = "gfx/interface/icons/faith_doctrines"
+	DEATH_REASON_ICON_PATH = "gfx/interface/icons/death_reason"
+	CHARACTER_INTERACTION_ICON_PATH = "gfx/interface/icons/character_interactions"
+	CHARACTER_INTERACTION_CATEGORY_ICON_PATH = "gfx/interface/icons/character_interaction_category"
+	CHARACTER_INTERACTION_CATEGORY_BACKGROUND_PATH = "gfx/interface/icons/character_interaction_category_background"
+	CHARACTER_INTERACTION_ALERT_PATH = "gfx/interface/icons/alerts_character_interaction"
+	MESSAGE_ICON_PATH = "gfx/interface/icons/message_feed"
+	BOOKMARK_BUTTON_PATH = "gfx/interface/icons/bookmark_buttons"
+	BOOKMARK_BUTTON_BIG_PATH = "gfx/interface/icons/bookmark_big"
+	BOOKMARK_START_BUTTON_PATH = "gfx/interface/bookmarks/start_buttons"
+	SECRET_TYPE_PATH = "gfx/interface/icons/secret_categories"
+	CULTURE_PILLAR_PATH = "gfx/interface/icons/culture_pillars"
+	LIFESTYPE_TREE_BACKGROUND_PATH = "gfx/interface/icons/lifestyle_tree_backgrounds"
+
+	DEFAULT_DEATH_REASON_ICON = "death_natural.dds"
+
+	GOVERNMENT_TYPE_PATH = "gfx/interface/icons/government_types"
+	GOVERNMENT_TYPE_REALM_MASK_PATH = "gfx/interface/icons/realm_masks"
+	GOVERNMENT_TYPE_REALM_FRAME_PATH = "gfx/interface/icons/realm_frames"
+	GOVERNMENT_TYPE_REALM_FRAME_SIZES = { 28 44 62 86 115 }
+
+	BUILDING_LEVEL_ICONS = {
+		"gfx/interface/icons/building_types/building_level_01.dds"
+		"gfx/interface/icons/building_types/building_level_02.dds"
+		"gfx/interface/icons/building_types/building_level_03.dds"
+		"gfx/interface/icons/building_types/building_level_04.dds"
+		"gfx/interface/icons/building_types/building_level_05.dds"
+		"gfx/interface/icons/building_types/building_level_06.dds"
+		"gfx/interface/icons/building_types/building_level_07.dds"
+		"gfx/interface/icons/building_types/building_level_08.dds"
+	}
+	HEALTH_STATE_LEVELS_ICON_FRAMES = {
+		3
+		3
+		2
+		2
+		1
+		1
+	}
+
+	TRAIT_OVERLAY_VIRTUE = "gfx/interface/icons/traits/virtue_big.dds"
+	TRAIT_OVERLAY_SIN = "gfx/interface/icons/traits/sin_big.dds"
+
+	DEFAULT_CULTURE_INNOVATION_TYPE_ICON_PATH = "gfx/interface/icons/culture_innovations/_default.dds"
+	DEFAULT_BOOKMARK_BACKGROUND_PATH = "gfx/interface/bookmarks/_default.dds"
+
+	PIETY_GROUPS = { "christian" "islam" "pagan" "eastern" "judaism" "zoroastrian" }
+	PIETY_GAME_CONCEPT_LEVEL = 1	# Which level of piety is used for the game concept icon
+	PRESTIGE_LEVEL_PATH = "gfx/interface/icons/currencies"
+	DYNASTY_PRESTIGE_LEVEL_PATH = "gfx/interface/icons/currencies"
+	PIETY_LEVEL_PATH = "gfx/interface/icons/currencies"
+	BATTLE_REPORT_VICTORY = "gfx/interface/icons/alerts_reports/report_battle_won.dds"
+	BATTLE_REPORT_DEFEAT = "gfx/interface/icons/alerts_reports/report_battle_lost.dds"
+	WAR_REPORT_VICTORY = "gfx/interface/icons/alerts_reports/report_war_victory.dds"
+	WAR_REPORT_DEFEAT = "gfx/interface/icons/alerts_reports/report_war_defeat.dds"
+	WAR_REPORT_WHITE_PEACE = "gfx/interface/icons/alerts_reports/report_war_white_peace.dds"
+	WAR_REPORT_INVALIDATED = "gfx/interface/icons/alerts_reports/report_war_invalidation.dds"
+	FAITH_ICON_PATH = "gfx/interface/icons/faith"
+	INVENTORY_SLOT_ICON_PATH = "gfx/interface/icons/inventory"
+	INSPIRATION_TYPE_ICON_PATH = "gfx/interface/icons/inspirations"
+	SCHEME_TYPE_ICON_PATH = "gfx/interface/icons/scheme_types"
+	ARTIFACT_ICON_PATH = "gfx/interface/icons/artifact"
+	COURT_AMENITY_ICON_PATH = "gfx/interface/icons/amenities"
+	STRUGGLE_PHASE_TYPE_ICON_PATH = "gfx/interface/icons/struggle_types"
+	STRUGGLE_TYPE_ICON_PATH = "gfx/interface/icons/struggle_types"
+	MAP_MODE_ICON_PATH = "gfx/interface/icons/flat_icons/map_modes"
+	MEMORY_TYPE_ICON_PATH = "gfx/interface/icons/memory_types"
+	DLC_ICON_PATH = "gfx/interface/icons/dlc"
+	DLC_PICTURE_PATH = "gfx/interface/illustrations/dlc"
+}

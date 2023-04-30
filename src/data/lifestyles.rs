@@ -93,12 +93,12 @@ impl Lifestyle {
             validate_normal_trigger(block, data, &mut sc, true);
         }
 
-        if let Some(token) = vd.field_value("icon") {
-            let pathname = format!("gfx/interface/icons/lifestyles/{token}.dds");
-            data.fileset.verify_exists_implied(&pathname, token);
-        } else {
-            let pathname = format!("gfx/interface/icons/lifestyles/{}.dds", self.key);
-            data.fileset.verify_exists_implied(&pathname, &self.key);
+        let icon = vd.field_value("icon").unwrap_or(&self.key);
+        if let Some(icon_path) =
+            data.get_defined_string_warn(&self.key, "NGameIcons::LIFESTYLE_ICON_PATH")
+        {
+            let pathname = format!("{icon_path}/{icon}.dds");
+            data.fileset.verify_exists_implied(&pathname, icon);
         }
 
         vd.field_numeric("xp_per_level");

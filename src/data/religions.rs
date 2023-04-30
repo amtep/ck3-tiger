@@ -133,8 +133,12 @@ impl Religion {
 
         vd.field_blocks("doctrine_selection_pair"); // TODO: validate
         if let Some(icon) = vd.field_value("doctrine_background_icon") {
-            let pathname = format!("gfx/interface/icons/faith_doctrines/{icon}");
-            data.fileset.verify_exists_implied(&pathname, icon);
+            if let Some(icon_path) = data
+                .get_defined_string_warn(&self.key, "NGameIcons::FAITH_DOCTRINE_BACKGROUND_PATH")
+            {
+                let pathname = format!("{icon_path}/{icon}");
+                data.fileset.verify_exists_implied(&pathname, icon);
+            }
         }
         vd.field_value("piety_icon_group");
         vd.field_value("graphical_faith");
@@ -143,9 +147,13 @@ impl Religion {
 
         vd.field_list("custom_faith_icons");
         if let Some(icons) = self.block.get_field_list("custom_faith_icons") {
-            for icon in &icons {
-                let pathname = format!("gfx/interface/icons/faith/{icon}.dds");
-                data.fileset.verify_exists_implied(&pathname, icon);
+            if let Some(icon_path) =
+                data.get_defined_string_warn(&self.key, "NGameIcons::FAITH_ICON_PATH")
+            {
+                for icon in &icons {
+                    let pathname = format!("{icon_path}/{icon}.dds");
+                    data.fileset.verify_exists_implied(&pathname, icon);
+                }
             }
         }
 
@@ -228,23 +236,31 @@ impl Faith {
 
         vd.req_field("color");
         vd.field_validated_block("color", validate_color);
-        if let Some(icon) = vd.field_value("icon") {
-            let pathname = format!("gfx/interface/icons/faith/{}.dds", icon);
+        let icon = vd.field_value("icon").unwrap_or(&self.key);
+        if let Some(icon_path) =
+            data.get_defined_string_warn(&self.key, "NGameIcons::FAITH_ICON_PATH")
+        {
+            let pathname = format!("{icon_path}/{icon}.dds");
             data.fileset.verify_exists_implied(&pathname, icon);
-        } else {
-            let pathname = format!("gfx/interface/icons/faith/{}.dds", self.key);
-            data.fileset.verify_exists_implied(&pathname, &self.key);
         }
         if let Some(icon) = vd.field_value("reformed_icon") {
-            let pathname = format!("gfx/interface/icons/faith/{icon}.dds");
-            data.fileset.verify_exists_implied(&pathname, icon);
+            if let Some(icon_path) =
+                data.get_defined_string_warn(&self.key, "NGameIcons::FAITH_ICON_PATH")
+            {
+                let pathname = format!("{icon_path}/{icon}.dds");
+                data.fileset.verify_exists_implied(&pathname, icon);
+            }
         }
         vd.field_value("graphical_faith");
         vd.field_value("piety_icon_group");
 
         if let Some(icon) = vd.field_value("doctrine_background_icon") {
-            let pathname = format!("gfx/interface/icons/faith_doctrines/{icon}");
-            data.fileset.verify_exists_implied(&pathname, icon);
+            if let Some(icon_path) =
+                data.get_defined_string_warn(&self.key, "NGameIcons::FAITH_DOCTRINE_ICON_PATH")
+            {
+                let pathname = format!("{icon_path}/{icon}");
+                data.fileset.verify_exists_implied(&pathname, icon);
+            }
         }
 
         vd.field_value("religious_head");

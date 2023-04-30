@@ -73,8 +73,12 @@ impl Interaction {
         let mut sc = ScopeContext::new_root(Scopes::None, self.key.clone());
 
         if let Some(name) = self.block.get_field_value("icon") {
-            let pathname = format!("gfx/interface/icons/character_interactions/{name}.dds");
-            data.fileset.verify_exists_implied(&pathname, name);
+            if let Some(icon_path) = data
+                .get_defined_string_warn(&self.key, "NGameIcons::CHARACTER_INTERACTION_ICON_PATH")
+            {
+                let pathname = format!("{icon_path}/{name}.dds");
+                data.fileset.verify_exists_implied(&pathname, name);
+            }
         }
 
         // TODO: The ai_ name check is a heuristic. It would be better to check if the
