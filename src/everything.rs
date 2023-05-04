@@ -20,6 +20,7 @@ use crate::data::interaction_cats::InteractionCategories;
 use crate::data::interactions::Interactions;
 use crate::data::lifestyles::Lifestyles;
 use crate::data::localization::Localization;
+use crate::data::maa::MenAtArmsTypes;
 use crate::data::namelists::Namelists;
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
@@ -126,6 +127,8 @@ pub struct Everything {
     pub title_history: TitleHistories,
 
     pub doctrines: Doctrines,
+
+    pub menatarmstypes: MenAtArmsTypes,
 }
 
 impl Everything {
@@ -197,6 +200,7 @@ impl Everything {
             courtpos: CourtPositions::default(),
             title_history: TitleHistories::default(),
             doctrines: Doctrines::default(),
+            menatarmstypes: MenAtArmsTypes::default(),
         })
     }
 
@@ -275,6 +279,7 @@ impl Everything {
         self.fileset.handle(&mut self.courtpos);
         self.fileset.handle(&mut self.title_history);
         self.fileset.handle(&mut self.doctrines);
+        self.fileset.handle(&mut self.menatarmstypes);
     }
 
     pub fn validate_all(&mut self) {
@@ -307,6 +312,7 @@ impl Everything {
         self.courtpos.validate(self);
         self.title_history.validate(self);
         self.doctrines.validate(self);
+        self.menatarmstypes.validate(self);
     }
 
     pub fn check_rivers(&mut self) {
@@ -339,7 +345,8 @@ impl Everything {
             Item::InteractionCategory => self.interaction_cats.exists(key),
             Item::Lifestyle => self.lifestyles.exists(key),
             Item::Localization => self.localization.exists(key),
-            Item::MenAtArmsBase => MEN_AT_ARMS_BASE.contains(&key),
+            Item::MenAtArms => self.menatarmstypes.exists(&key),
+            Item::MenAtArmsBase => self.menatarmstypes.base_exists(&key),
             Item::NameList => self.namelists.exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces.exists(key),
@@ -422,20 +429,6 @@ const HOLDING_TYPES: &[&str] = &[
     "city_holding",
     "church_holding",
     "tribal_holding",
-];
-
-/// LAST UPDATED VERSION 1.8.1
-const MEN_AT_ARMS_BASE: &[&str] = &[
-    "archers",
-    "heavy_infantry",
-    "heavy_cavalry",
-    "elephant_cavalry",
-    "archer_cavalry",
-    "light_cavalry",
-    "skirmishers",
-    "pikemen",
-    "camel_cavalry",
-    "siege_weapon",
 ];
 
 /// LAST UPDATED VERSION 1.8.1

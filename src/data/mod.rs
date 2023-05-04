@@ -12,6 +12,7 @@ pub mod interaction_cats;
 pub mod interactions;
 pub mod lifestyles;
 pub mod localization;
+pub mod maa;
 pub mod namelists;
 pub mod prov_history;
 pub mod provinces;
