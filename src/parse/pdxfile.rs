@@ -22,6 +22,8 @@ enum State {
 #[derive(Copy, Clone, Debug)]
 enum CalculationOp {
     Add,
+    Subtract,
+    Multiply,
     Divide,
 }
 
@@ -95,6 +97,8 @@ impl Parser {
         {
             match self.calculation_op {
                 CalculationOp::Add => self.calculation += value,
+                CalculationOp::Subtract => self.calculation -= value,
+                CalculationOp::Multiply => self.calculation *= value,
                 CalculationOp::Divide => self.calculation /= value,
             }
         } else {
@@ -391,6 +395,10 @@ fn parse(blockloc: Loc, inputs: &[Token]) -> Option<Block> {
                     if c.is_whitespace() {
                     } else if c == '+' {
                         parser.calculation_op(CalculationOp::Add);
+                    } else if c == '-' {
+                        parser.calculation_op(CalculationOp::Subtract);
+                    } else if c == '*' {
+                        parser.calculation_op(CalculationOp::Multiply);
                     } else if c == '/' {
                         parser.calculation_op(CalculationOp::Divide);
                     } else if c.is_id_char() {
@@ -407,17 +415,21 @@ fn parse(blockloc: Loc, inputs: &[Token]) -> Option<Block> {
                     token_start = loc.clone();
                 }
                 State::CalculationId => {
-                    if c.is_id_char() {
-                        current_id.push(c);
-                    } else if c.is_whitespace() || c == '+' || c == '/' {
+                    if c.is_whitespace() || c == '+' || c == '/' || c == '*' || c == '-' {
                         let token = Token::new(take(&mut current_id), token_start.clone());
                         parser.calculation_next(&token);
                         state = State::Calculation;
                         if c == '+' {
                             parser.calculation_op(CalculationOp::Add);
+                        } else if c == '-' {
+                            parser.calculation_op(CalculationOp::Subtract);
+                        } else if c == '*' {
+                            parser.calculation_op(CalculationOp::Multiply);
                         } else if c == '/' {
                             parser.calculation_op(CalculationOp::Divide);
                         }
+                    } else if c.is_id_char() {
+                        current_id.push(c);
                     } else if c == ']' {
                         let token = Token::new(take(&mut current_id), token_start.clone());
                         parser.calculation_next(&token);
