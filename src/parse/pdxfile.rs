@@ -65,6 +65,7 @@ struct Parser {
     stack: Vec<ParseLevel>,
     brace_error: bool,
     local_macros: FnvHashMap<String, f64>,
+    local_text_macros: FnvHashMap<String, String>,
     calculation_op: CalculationOp,
     calculation: f64,
 }
@@ -130,10 +131,16 @@ impl Parser {
                     if let Ok(value) = token.as_str().parse::<f64>() {
                         self.local_macros.insert(local_macro.to_string(), value);
                     } else {
-                        error(token, ErrorKey::ParseError, "can't parse local value");
+                        self.local_text_macros
+                            .insert(local_macro.to_string(), token.to_string());
                     }
                 } else if let Some(local_macro) = token.as_str().strip_prefix('@') {
                     if let Some(value) = self.local_macros.get(local_macro) {
+                        let token = Token::new(value.to_string(), token.loc);
+                        self.current
+                            .block
+                            .add_key_value(key, comp, BlockOrValue::Token(token));
+                    } else if let Some(value) = self.local_text_macros.get(local_macro) {
                         let token = Token::new(value.to_string(), token.loc);
                         self.current
                             .block
@@ -291,6 +298,7 @@ fn parse(blockloc: Loc, inputs: &[Token]) -> Option<Block> {
         stack: Vec::new(),
         brace_error: false,
         local_macros: FnvHashMap::default(),
+        local_text_macros: FnvHashMap::default(),
         calculation: 0.0,
         calculation_op: CalculationOp::Add,
     };
