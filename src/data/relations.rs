@@ -3,13 +3,16 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
 use crate::errors::error;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
+use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxFile;
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -94,5 +97,17 @@ impl Relation {
         vd.field_value("secret");
         vd.field_bool("special_guest");
         vd.field_bool("hidden");
+
+        if let Some(block) = vd.field_block("modifier") {
+            let mut vd = Validator::new(block, data);
+            let mut sc = ScopeContext::new_root(
+                Scopes::Character,
+                self.block.get_key("modifier").unwrap().clone(),
+            );
+            vd.field_value("name");
+            // TODO: "This cannot use any references to modifiers generated from other database objects,
+            // such as seduce_scheme_power_mult (from schemes) or monthly_diplomacy_lifestyle_xp_gain_mult (from lifestyles)."
+            validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
+        }
     }
 }
