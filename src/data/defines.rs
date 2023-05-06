@@ -22,7 +22,7 @@ impl Defines {
             }
         }
         self.defines
-            .insert(key.to_string(), Define::new(group, name, bv.clone()));
+            .insert(key, Define::new(group, name, bv.clone()));
     }
 
     pub fn exists(&self, key: &str) -> bool {

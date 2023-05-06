@@ -20,7 +20,7 @@ pub enum Args {
 }
 
 impl Args {
-    pub fn nargs(&self) -> usize {
+    pub fn nargs(self) -> usize {
         match self {
             NoArgs => 0,
             Arg(_) => 1,

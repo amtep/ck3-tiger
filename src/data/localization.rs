@@ -168,7 +168,7 @@ impl Localization {
                     warn(
                         fmt,
                         ErrorKey::ParseError,
-                        &format!("cannot figure out game concept for this |E"),
+                        "cannot figure out game concept for this |E",
                     );
                 }
             }

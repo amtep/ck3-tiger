@@ -48,9 +48,9 @@ impl CodeChain {
     }
 }
 
-fn validate_argument(arg: &CodeArg, _data: &Everything, expect_type: Datatype) {
+fn validate_argument(arg: &CodeArg, data: &Everything, expect_type: Datatype) {
     match arg {
-        CodeArg::Chain(chain) => validate_datatypes(chain, _data, expect_type),
+        CodeArg::Chain(chain) => validate_datatypes(chain, data, expect_type),
         CodeArg::Literal(token) => {
             if token.as_str().starts_with('(') && token.as_str().contains(')') {
                 // These unwraps are safe because of the checks in the if condition
@@ -66,14 +66,14 @@ fn validate_argument(arg: &CodeArg, _data: &Everything, expect_type: Datatype) {
                         error(
                             token,
                             ErrorKey::DataFunctions,
-                            &format!("expected {}, got {}", expect_type, dtype),
+                            &format!("expected {expect_type}, got {dtype}"),
                         );
                     }
                 } else {
                     error(
                         token,
                         ErrorKey::DataFunctions,
-                        &format!("unrecognized datatype {}", dtype),
+                        &format!("unrecognized datatype {dtype}"),
                     );
                 }
             } else {
@@ -81,7 +81,7 @@ fn validate_argument(arg: &CodeArg, _data: &Everything, expect_type: Datatype) {
                     error(
                         token,
                         ErrorKey::DataFunctions,
-                        &format!("expected {}, got CString", expect_type),
+                        &format!("expected {expect_type}, got CString"),
                     );
                 }
             }

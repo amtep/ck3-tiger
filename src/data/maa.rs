@@ -92,14 +92,12 @@ impl MenAtArmsType {
         {
             if let Some(icon) = vd.field_value("icon") {
                 let path = format!("{icon_path}/{icon}.dds");
-                data.fileset.verify_exists_implied(&path, &icon);
-            } else {
-                if let Some(base) = vd.field_value("type") {
-                    let base_path = format!("{icon_path}/{base}.dds");
-                    let path = format!("{icon_path}/{}.dds", self.key);
-                    if !data.fileset.exists(&base_path) {
-                        data.fileset.verify_exists_implied(&path, &self.key);
-                    }
+                data.fileset.verify_exists_implied(&path, icon);
+            } else if let Some(base) = vd.field_value("type") {
+                let base_path = format!("{icon_path}/{base}.dds");
+                let path = format!("{icon_path}/{}.dds", self.key);
+                if !data.fileset.exists(&base_path) {
+                    data.fileset.verify_exists_implied(&path, &self.key);
                 }
             }
         }
@@ -159,7 +157,7 @@ fn validate_bonus(block: &Block, data: &Everything) {
 
 fn validate_terrain_bonus(block: &Block, data: &Everything) {
     for (key, block) in block.iter_pure_definitions_warn() {
-        data.verify_exists(Item::Terrain, &key);
+        data.verify_exists(Item::Terrain, key);
         validate_bonus(block, data);
     }
 }
@@ -175,7 +173,7 @@ pub fn validate_winter_bonus(block: &Block, data: &Everything) {
 
 pub fn validate_era_bonus(block: &Block, data: &Everything) {
     for (key, block) in block.iter_pure_definitions_warn() {
-        data.verify_exists(Item::CultureEra, &key);
+        data.verify_exists(Item::CultureEra, key);
         validate_bonus(block, data);
     }
 }

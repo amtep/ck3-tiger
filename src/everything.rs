@@ -345,8 +345,8 @@ impl Everything {
             Item::InteractionCategory => self.interaction_cats.exists(key),
             Item::Lifestyle => self.lifestyles.exists(key),
             Item::Localization => self.localization.exists(key),
-            Item::MenAtArms => self.menatarmstypes.exists(&key),
-            Item::MenAtArmsBase => self.menatarmstypes.base_exists(&key),
+            Item::MenAtArms => self.menatarmstypes.exists(key),
+            Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),
             Item::NameList => self.namelists.exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces.exists(key),
@@ -415,7 +415,7 @@ impl Everything {
             warn(
                 token,
                 ErrorKey::MissingItem,
-                &format!("{} not defined in common/defines/", key),
+                &format!("{key} not defined in common/defines/"),
             );
             cache.insert(key.to_string());
         }

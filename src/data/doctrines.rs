@@ -171,10 +171,10 @@ impl Doctrine {
             data.get_defined_string_warn(&self.key, "NGameIcons::FAITH_DOCTRINE_ICON_PATH");
         if let Some(icon_path) = icon_path {
             if let Some(icon) = vd.field_value("icon") {
-                let path = format!("{}/{}.dds", icon_path, icon);
-                data.fileset.verify_exists_implied(&path, &icon);
+                let path = format!("{icon_path}/{icon}.dds");
+                data.fileset.verify_exists_implied(&path, icon);
             } else if data.doctrines.groups[self.group.as_str()].needs_icon(data) {
-                let path = format!("{}/{}.dds", icon_path, &self.key);
+                let path = format!("{icon_path}/{}.dds", &self.key);
                 data.fileset.verify_exists_implied(&path, &self.key);
             }
         }

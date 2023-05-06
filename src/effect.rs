@@ -16,7 +16,7 @@ use crate::validate::{
 
 pub fn validate_normal_effect<'a>(
     block: &Block,
-    data: &'a Everything,
+    data: &Everything,
     sc: &mut ScopeContext,
     tooltipped: bool,
 ) {

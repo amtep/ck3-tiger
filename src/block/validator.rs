@@ -76,7 +76,7 @@ impl<'a> Validator<'a> {
                     if let Some(other) = found {
                         dup_assign_error(key, other);
                     }
-                    expect_eq(&key, cmp);
+                    expect_eq(key, cmp);
                     f(v);
                     found = Some(key);
                 }
