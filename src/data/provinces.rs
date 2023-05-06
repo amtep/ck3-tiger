@@ -218,7 +218,7 @@ impl FileHandler for Provinces {
                     }
                 }
                 "default.map" => {
-                    let Some(block) = PdxFile::read(entry, fullpath) else { return };
+                    let Some(block) = PdxFile::read_no_bom(entry, fullpath) else { return };
                     self.load_impassable(&block);
                 }
                 _ => (),
