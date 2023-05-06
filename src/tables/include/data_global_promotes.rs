@@ -177,6 +177,7 @@
     ("RIGHT_CHARACTER", NoArgs, Character),
     ("RIGHT_TITLE", NoArgs, Title),
     ("ROOT", NoArgs, Scope),
+    ("Root", NoArgs, Scope),
     ("SCHEME", NoArgs, Scheme),
     ("SCOPE", NoArgs, TopScope),
     ("SECONDARY_ACTOR", NoArgs, Character),

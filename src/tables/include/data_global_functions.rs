@@ -465,7 +465,6 @@
     ("RefreshIllustration", NoArgs, void),
     ("ReleaseMode", NoArgs, bool),
     ("ReturnToMenu", NoArgs, void),
-    ("Root", NoArgs, Scope),
     ("ScaleToFitElementInside", Arg2(Unknown, Unknown), float),
     ("ScaleToFitElementOutside", Arg2(Unknown, Unknown), float),
     ("SelectEnumWithString", Arg2(Unknown, Unknown), void),

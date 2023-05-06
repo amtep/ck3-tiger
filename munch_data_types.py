@@ -16,7 +16,7 @@ FUNCTIONS = []
 PROMOTES = []
 
 # Experimentation shows that Root is accepted as well as ROOT
-GLOBAL_FUNCTIONS.append('    ("Root", NoArgs, Scope),\n')
+GLOBAL_PROMOTES.append('    ("Root", NoArgs, Scope),\n')
 
 # Most promotes and functions have 'Unknown' arg types in the data_type logs.
 # This dictionary replaces those with known arg types in specific cases.
