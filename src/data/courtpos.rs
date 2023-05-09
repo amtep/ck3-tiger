@@ -86,33 +86,21 @@ impl CourtPosition {
         vd.field_script_value_rooted("opinion", Scopes::None);
         vd.field_validated_block("aptitude_level_breakpoints", validate_breakpoints);
         vd.field_script_value_rooted("aptitude", Scopes::Character);
-        if let Some(block) = vd.field_block("is_shown") {
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block.get_key("is_shown").unwrap().clone(),
-            );
+        if let Some((key, block)) = vd.definition("is_shown") {
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
             validate_normal_trigger(block, data, &mut sc, false);
         }
 
-        if let Some(block) = vd.field_block("valid_position") {
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block.get_key("valid_position").unwrap().clone(),
-            );
+        if let Some((key, block)) = vd.definition("valid_position") {
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
             validate_normal_trigger(block, data, &mut sc, true);
         }
-        if let Some(block) = vd.field_block("is_shown_character") {
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block.get_key("is_shown_character").unwrap().clone(),
-            );
+        if let Some((key, block)) = vd.definition("is_shown_character") {
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
             validate_normal_trigger(block, data, &mut sc, false);
         }
-        if let Some(block) = vd.field_block("valid_character") {
-            let mut sc = ScopeContext::new_root(
-                Scopes::None,
-                self.block.get_key("valid_character").unwrap().clone(),
-            );
+        if let Some((key, block)) = vd.definition("valid_character") {
+            let mut sc = ScopeContext::new_root(Scopes::None, key);
             validate_normal_trigger(block, data, &mut sc, true);
         }
 
@@ -131,15 +119,9 @@ impl CourtPosition {
             validate_cost(b, data, &mut sc);
         });
 
-        if let Some(block) = vd.field_block("base_employer_modifier") {
+        if let Some((key, block)) = vd.definition("base_employer_modifier") {
             let vd = Validator::new(block, data);
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block
-                    .get_key("base_employer_modifier")
-                    .unwrap()
-                    .clone(),
-            );
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
             validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
         }
 
@@ -147,54 +129,30 @@ impl CourtPosition {
             validate_scaling_employer_modifiers(block, data);
         }
 
-        if let Some(block) = vd.field_block("modifier") {
+        if let Some((key, block)) = vd.definition("modifier") {
             let vd = Validator::new(block, data);
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block.get_key("modifier").unwrap().clone(),
-            );
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
             validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
         }
 
         vd.field_value_item("custom_employer_modifier_description", Item::Localization);
         vd.field_value_item("custom_employee_modifier_description", Item::Localization);
 
-        if let Some(block) = vd.field_block("search_for_courtier") {
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block.get_key("search_for_courtier").unwrap().clone(),
-            );
+        if let Some((key, block)) = vd.definition("search_for_courtier") {
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
             validate_normal_effect(block, data, &mut sc, false);
         }
 
-        if let Some(block) = vd.field_block("on_court_position_received") {
-            let mut sc = ScopeContext::new_root(
-                Scopes::None,
-                self.block
-                    .get_key("on_court_position_received")
-                    .unwrap()
-                    .clone(),
-            );
+        if let Some((key, block)) = vd.definition("on_court_position_received") {
+            let mut sc = ScopeContext::new_root(Scopes::None, key);
             validate_normal_effect(block, data, &mut sc, false);
         }
-        if let Some(block) = vd.field_block("on_court_position_revoked") {
-            let mut sc = ScopeContext::new_root(
-                Scopes::None,
-                self.block
-                    .get_key("on_court_position_revoked")
-                    .unwrap()
-                    .clone(),
-            );
+        if let Some((key, block)) = vd.definition("on_court_position_revoked") {
+            let mut sc = ScopeContext::new_root(Scopes::None, key);
             validate_normal_effect(block, data, &mut sc, false);
         }
-        if let Some(block) = vd.field_block("on_court_position_invalidated") {
-            let mut sc = ScopeContext::new_root(
-                Scopes::None,
-                self.block
-                    .get_key("on_court_position_invalidated")
-                    .unwrap()
-                    .clone(),
-            );
+        if let Some((key, block)) = vd.definition("on_court_position_invalidated") {
+            let mut sc = ScopeContext::new_root(Scopes::None, key);
             validate_normal_effect(block, data, &mut sc, false);
         }
 
@@ -216,11 +174,10 @@ fn validate_scaling_employer_modifiers(block: &Block, data: &Everything) {
         "aptitude_level_4",
         "aptitude_level_5",
     ] {
-        vd.field_validated_block(field, |b, data| {
-            let mut sc =
-                ScopeContext::new_root(Scopes::Character, block.get_key(field).unwrap().clone());
+        if let Some((key, b)) = vd.definition(field) {
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
             let vd = Validator::new(b, data);
             validate_modifs(b, data, ModifKinds::Character, &mut sc, vd);
-        });
+        };
     }
 }

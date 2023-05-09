@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use crate::errorkey::ErrorKey;
 use crate::errors::{warn, warn2, warn3};
 use crate::scopes::Scopes;
@@ -43,19 +45,19 @@ enum ScopeEntry {
 }
 
 impl ScopeContext {
-    pub fn new_root(root: Scopes, token: Token) -> Self {
+    pub fn new_root<T: Borrow<Token>>(root: Scopes, token: T) -> Self {
         ScopeContext {
             prev: None,
             this: ScopeEntry::Rootref,
-            root: ScopeEntry::Scope(root, token),
+            root: ScopeEntry::Scope(root, token.borrow().to_owned()),
         }
     }
 
-    pub fn new_unrooted(this: Scopes, token: Token) -> Self {
+    pub fn new_unrooted<T: Borrow<Token>>(this: Scopes, token: T) -> Self {
         ScopeContext {
             prev: None,
-            this: ScopeEntry::Scope(this, token.clone()),
-            root: ScopeEntry::Scope(Scopes::all(), token),
+            this: ScopeEntry::Scope(this, token.borrow().to_owned()),
+            root: ScopeEntry::Scope(Scopes::all(), token.borrow().to_owned()),
         }
     }
 

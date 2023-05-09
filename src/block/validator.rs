@@ -399,6 +399,28 @@ impl<'a> Validator<'a> {
         found
     }
 
+    pub fn definition(&mut self, name: &str) -> Option<(&Token, &Block)> {
+        let mut found = None;
+        for (k, cmp, v) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    self.known_fields.push(key.as_str());
+                    if let Some((other, _)) = found {
+                        dup_assign_error(key, other);
+                    }
+                    expect_eq(key, cmp);
+                    match v {
+                        BlockOrValue::Token(t) => {
+                            error(t, ErrorKey::Validation, "expected block, found value");
+                        }
+                        BlockOrValue::Block(s) => found = Some((key, s)),
+                    }
+                }
+            }
+        }
+        found
+    }
+
     pub fn req_tokens_integers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;

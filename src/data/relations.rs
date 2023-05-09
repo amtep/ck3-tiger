@@ -98,12 +98,9 @@ impl Relation {
         vd.field_bool("special_guest");
         vd.field_bool("hidden");
 
-        if let Some(block) = vd.field_block("modifier") {
+        if let Some((key, block)) = vd.definition("modifier") {
             let mut vd = Validator::new(block, data);
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block.get_key("modifier").unwrap().clone(),
-            );
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
             vd.field_value("name");
             // TODO: "This cannot use any references to modifiers generated from other database objects,
             // such as seduce_scheme_power_mult (from schemes) or monthly_diplomacy_lifestyle_xp_gain_mult (from lifestyles)."

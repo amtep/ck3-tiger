@@ -303,12 +303,12 @@ pub fn validate_iterator_fields(
         }
     }
 
-    if let Some(_b) = vd.field_block("weight") {
+    if let Some((key, _b)) = vd.definition("weight") {
         if list_type == ListType::Random {
             // TODO
         } else {
             warn(
-                block.get_key("weight").unwrap(),
+                key,
                 ErrorKey::Validation,
                 "`weight` can only be used in `random_` lists",
             );
@@ -353,28 +353,24 @@ pub fn validate_inside_iterator(
         }
     }
 
-    if let Some(block) = vd.field_block("filter") {
+    if let Some((key, block)) = vd.definition("filter") {
         if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
             validate_normal_trigger(block, data, sc, tooltipped);
         } else {
             let msg = format!(
                 "`filter` is only for `{listtype}_in_de_facto_hierarchy` or `{listtype}_in_de_jure_hierarchy`",
             );
-            error(block.get_key("filter").unwrap(), ErrorKey::Validation, &msg);
+            error(key, ErrorKey::Validation, &msg);
         }
     }
-    if let Some(block) = vd.field_block("continue") {
+    if let Some((key, block)) = vd.definition("continue") {
         if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
             validate_normal_trigger(block, data, sc, tooltipped);
         } else {
             let msg = format!(
                 "`continue` is only for `{listtype}_in_de_facto_hierarchy` or `{listtype}_in_de_jure_hierarchy`",
             );
-            error(
-                block.get_key("continue").unwrap(),
-                ErrorKey::Validation,
-                &msg,
-            );
+            error(key, ErrorKey::Validation, &msg);
         }
     }
 

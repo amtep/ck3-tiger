@@ -33,7 +33,7 @@ pub fn validate_effect<'a>(
     mut vd: Validator<'a>,
     mut tooltipped: bool,
 ) {
-    if let Some(b) = vd.field_block("limit") {
+    if let Some((key, b)) = vd.definition("limit") {
         if caller == "if"
             || caller == "else_if"
             || caller == "else"
@@ -43,7 +43,7 @@ pub fn validate_effect<'a>(
             validate_normal_trigger(b, data, sc, tooltipped);
         } else {
             warn(
-                block.get_key("limit").unwrap(),
+                key,
                 ErrorKey::Validation,
                 "`limit` can only be used in if/else_if or lists",
             );

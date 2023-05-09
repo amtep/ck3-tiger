@@ -203,12 +203,9 @@ impl Doctrine {
             validate_normal_trigger(b, data, &mut sc, true);
         });
 
-        if let Some(block) = vd.field_block("character_modifier") {
+        if let Some((key, block)) = vd.definition("character_modifier") {
             let mut vd = Validator::new(block, data);
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block.get_key("character_modifier").unwrap().clone(),
-            );
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
             if let Some(name) = vd.field_value("name") {
                 data.localization.verify_exists(name);
             }
@@ -216,26 +213,16 @@ impl Doctrine {
         }
 
         // Not documented, but used in vanilla
-        if let Some(block) = vd.field_block("clergy_modifier") {
+        if let Some((key, block)) = vd.definition("clergy_modifier") {
             let vd = Validator::new(block, data);
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block.get_key("clergy_modifier").unwrap().clone(),
-            );
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
             validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
         }
 
         // In the docs but not used in vanilla
-        if let Some(block) = vd.field_block("doctrine_character_modifier") {
+        if let Some((key, block)) = vd.definition("doctrine_character_modifier") {
             let mut vd = Validator::new(block, data);
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block
-                    .get_key("doctrine_character_modifier")
-                    .unwrap()
-                    .clone(),
-            );
-            vd.field_value("doctrine"); // TODO: check that doctrine exists
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
             if let Some(doctrine) = vd.field_value("doctrine") {
                 data.verify_exists(Item::Doctrine, doctrine);
             }
