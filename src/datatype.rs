@@ -207,27 +207,31 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
                     &format!("{} is improperly used here", code.name),
                 );
                 return;
-            } else {
-                // If `code.name` is not found at all in the tables, then
-                // it can be some passed-in scope. Unfortunately we don't
-                // have a complete list of those, so accept any lowercase id.
-                // TODO: it's in theory possible to build a complete list
-                // of possible scope variable names
-                if code.name.as_str().chars().next().unwrap().is_uppercase() {
-                    // TODO: If there is a Custom of the same name, suggest that
-                    warn(
-                        &code.name,
-                        ErrorKey::DataFunctions,
-                        &format!("unknown datafunction {}", &code.name),
-                    );
-                    return;
-                }
-                args = Args::NoArgs;
-                // TODO: this could in theory be reduced to just the scope types
-                // That would be valuable for checks because it will find
-                // the common mistake of using .Var directly after one.
-                rtype = Datatype::Unknown;
             }
+
+            // If `code.name` is not found at all in the tables, then
+            // it can be some passed-in scope. Unfortunately we don't
+            // have a complete list of those, so accept any lowercase id
+            // and warn if it starts with uppercase. This is not a foolproof
+            // check though.
+            // TODO: it's in theory possible to build a complete list
+            // of possible scope variable names
+            if code.name.as_str().chars().next().unwrap().is_uppercase() {
+                // TODO: If there is a Custom of the same name, suggest that
+                warn(
+                    &code.name,
+                    ErrorKey::DataFunctions,
+                    &format!("unknown datafunction {}", &code.name),
+                );
+                return;
+            }
+
+            // If it's a passed-in scope, then set args and rtype appropriately.
+            args = Args::NoArgs;
+            // TODO: this could in theory be reduced to just the scope types.
+            // That would be valuable for checks because it will find
+            // the common mistake of using .Var directly after one.
+            rtype = Datatype::Unknown;
         }
 
         if args.nargs() != code.arguments.len() {
@@ -241,25 +245,26 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
                     code.arguments.len()
                 ),
             );
-        } else {
-            match args {
-                Args::NoArgs => (),
-                Args::Arg(dt1) => validate_argument(&code.arguments[0], data, dt1),
-                Args::Arg2(dt1, dt2) => {
-                    validate_argument(&code.arguments[0], data, dt1);
-                    validate_argument(&code.arguments[1], data, dt2);
-                }
-                Args::Arg3(dt1, dt2, dt3) => {
-                    validate_argument(&code.arguments[0], data, dt1);
-                    validate_argument(&code.arguments[1], data, dt2);
-                    validate_argument(&code.arguments[2], data, dt3);
-                }
-                Args::Arg4(dt1, dt2, dt3, dt4) => {
-                    validate_argument(&code.arguments[0], data, dt1);
-                    validate_argument(&code.arguments[1], data, dt2);
-                    validate_argument(&code.arguments[2], data, dt3);
-                    validate_argument(&code.arguments[3], data, dt4);
-                }
+            return;
+        }
+
+        match args {
+            Args::NoArgs => (),
+            Args::Arg(dt1) => validate_argument(&code.arguments[0], data, dt1),
+            Args::Arg2(dt1, dt2) => {
+                validate_argument(&code.arguments[0], data, dt1);
+                validate_argument(&code.arguments[1], data, dt2);
+            }
+            Args::Arg3(dt1, dt2, dt3) => {
+                validate_argument(&code.arguments[0], data, dt1);
+                validate_argument(&code.arguments[1], data, dt2);
+                validate_argument(&code.arguments[2], data, dt3);
+            }
+            Args::Arg4(dt1, dt2, dt3, dt4) => {
+                validate_argument(&code.arguments[0], data, dt1);
+                validate_argument(&code.arguments[1], data, dt2);
+                validate_argument(&code.arguments[2], data, dt3);
+                validate_argument(&code.arguments[3], data, dt4);
             }
         }
 

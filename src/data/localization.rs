@@ -153,11 +153,11 @@ impl Localization {
         }
     }
 
-    fn check_loca_code(&self, value: &LocaValue, data: &Everything) {
+    fn check_loca_code(value: &LocaValue, data: &Everything) {
         match value {
             LocaValue::Concat(v) => {
                 for value in v {
-                    self.check_loca_code(value, data);
+                    Self::check_loca_code(value, data);
                 }
             }
             // A reference to a game concept
@@ -186,7 +186,7 @@ impl Localization {
         // Does every other `[code]` block have valid promotes and functions?
         for hash in self.locas.values() {
             for entry in hash.values() {
-                self.check_loca_code(&entry.value, data);
+                Self::check_loca_code(&entry.value, data);
             }
         }
     }

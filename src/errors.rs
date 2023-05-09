@@ -105,6 +105,8 @@ impl ErrorLoc for &Block {
     }
 }
 
+type ErrorRecord = (Loc, ErrorKey, String, Option<Loc>, Option<Loc>);
+
 #[derive(Default)]
 struct Errors {
     /// The CK3 game directory
@@ -136,7 +138,7 @@ struct Errors {
 
     /// Errors that have already been logged (to avoid duplication, which is common
     /// when validating macro expanded triggers and effects)
-    seen: FnvHashSet<(Loc, ErrorKey, String, Option<Loc>, Option<Loc>)>,
+    seen: FnvHashSet<ErrorRecord>,
 }
 
 // TODO: allow a message to have multiple tokens, and print the relevant lines as a stack

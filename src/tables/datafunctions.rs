@@ -10,6 +10,7 @@ use crate::token::Token;
 
 include!("include/datatypes.rs");
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Copy, Clone, Debug)]
 pub enum Args {
     NoArgs,

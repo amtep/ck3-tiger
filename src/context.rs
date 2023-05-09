@@ -49,15 +49,15 @@ impl ScopeContext {
         ScopeContext {
             prev: None,
             this: ScopeEntry::Rootref,
-            root: ScopeEntry::Scope(root, token.borrow().to_owned()),
+            root: ScopeEntry::Scope(root, token.borrow().clone()),
         }
     }
 
     pub fn new_unrooted<T: Borrow<Token>>(this: Scopes, token: T) -> Self {
         ScopeContext {
             prev: None,
-            this: ScopeEntry::Scope(this, token.borrow().to_owned()),
-            root: ScopeEntry::Scope(Scopes::all(), token.borrow().to_owned()),
+            this: ScopeEntry::Scope(this, token.borrow().clone()),
+            root: ScopeEntry::Scope(Scopes::all(), token.borrow().clone()),
         }
     }
 

@@ -693,12 +693,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
     }
     if !outscopes.intersects(sc.scopes() | Scopes::None) {
         let part = &part_vec[part_vec.len() - 1];
-        let msg = format!(
-            "`{}` produces {} but expected {}",
-            part,
-            sc.scopes(),
-            outscopes
-        );
+        let msg = format!("`{part}` produces {} but expected {outscopes}", sc.scopes());
         warn(part, ErrorKey::Scopes, &msg);
     }
     sc.close();

@@ -14,7 +14,7 @@ use crate::validate::{
     validate_inside_iterator, validate_iterator_fields, validate_prefix_reference, ListType,
 };
 
-pub fn validate_normal_effect<'a>(
+pub fn validate_normal_effect(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
@@ -363,6 +363,7 @@ fn validate_effect_control(
     tooltipped: bool,
 ) {
     let mut vd = Validator::new(block, data);
+    #[allow(clippy::match_same_arms)] // They only match because they need further coding
     match control {
         ControlEffect::CustomDescription => {
             vd.req_field("text");
