@@ -1,3 +1,6 @@
+use std::borrow::Borrow;
+use std::fmt::Display;
+
 use crate::block::{Block, BlockOrValue, Comparator, Date, Token};
 use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
@@ -64,6 +67,18 @@ impl<'a> Validator<'a> {
         }
     }
 
+    pub fn ban_field<F, S>(&mut self, name: &str, only_for: F)
+    where
+        F: Fn() -> S,
+        S: Borrow<str> + Display,
+    {
+        if let Some(key) = self.block.get_key(name) {
+            self.known_fields.push(key.as_str());
+            let msg = format!("`{name} = ` is only for {}", only_for());
+            error(key, ErrorKey::Validation, &msg);
+        }
+    }
+
     pub fn field_check<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BlockOrValue),
@@ -121,12 +136,12 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn field_value_item(&mut self, name: &str, itype: Item) {
+    pub fn field_value_item(&mut self, name: &str, itype: Item) -> bool {
         self.field_check(name, |bv| {
             if let Some(token) = bv.expect_value() {
                 self.data.verify_exists(itype, token);
             }
-        });
+        })
     }
 
     pub fn field_block(&mut self, name: &str) -> Option<&Block> {

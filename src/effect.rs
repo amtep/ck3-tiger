@@ -24,6 +24,8 @@ pub fn validate_normal_effect<'a>(
     validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
 }
 
+const CALLERS_ALLOW_LIMIT: [&str; 4] = ["if", "else_if", "else", "while"];
+
 pub fn validate_effect<'a>(
     caller: &str,
     list_type: ListType,
@@ -33,26 +35,15 @@ pub fn validate_effect<'a>(
     mut vd: Validator<'a>,
     mut tooltipped: bool,
 ) {
-    if let Some((key, b)) = vd.definition("limit") {
-        if caller == "if"
-            || caller == "else_if"
-            || caller == "else"
-            || caller == "while"
-            || list_type != ListType::None
-        {
+    if CALLERS_ALLOW_LIMIT.contains(&caller) || list_type != ListType::None {
+        if let Some(b) = vd.field_block("limit") {
             validate_normal_trigger(b, data, sc, tooltipped);
-        } else {
-            warn(
-                key,
-                ErrorKey::Validation,
-                "`limit` can only be used in if/else_if or lists",
-            );
         }
+    } else {
+        vd.ban_field("limit", || "if/else_if or lists");
     }
 
-    if validate_iterator_fields(list_type, block, data, sc, &mut vd) {
-        tooltipped = false;
-    }
+    validate_iterator_fields(list_type, sc, &mut vd, &mut tooltipped);
 
     if list_type != ListType::None {
         validate_inside_iterator(
@@ -66,91 +57,46 @@ pub fn validate_effect<'a>(
         );
     }
 
-    if let Some(token) = vd.field_value("text") {
-        if caller == "custom_description" {
-            // TODO: verify effect localization
-        } else if caller == "custom_tooltip" {
-            data.verify_exists(Item::Localization, token);
-        } else {
-            warn(
-                block.get_key("text").unwrap(),
-                ErrorKey::Validation,
-                "`text` can only be used in `custom_description` or `custom_tooltip`",
-            );
+    if caller == "custom_description" || caller == "custom_tooltip" {
+        // TODO: verify role of `text` in custom_description
+        if caller == "custom_tooltip" {
+            vd.field_value_item("text", Item::Localization);
         }
-    }
-
-    if let Some(token) = vd.field_value("subject") {
-        if caller == "custom_description" || caller == "custom_tooltip" {
+        if let Some(token) = vd.field_value("subject") {
             validate_target(token, data, sc, Scopes::non_primitive());
-        } else {
-            warn(
-                block.get_key("subject").unwrap(),
-                ErrorKey::Validation,
-                "`subject` can only be used in `custom_description` or `custom_tooltip`",
-            );
         }
+    } else {
+        vd.ban_field("text", || "`custom_description` or `custom_tooltip`");
+        vd.ban_field("subject", || "`custom_description` or `custom_tooltip`");
     }
 
-    if let Some(token) = vd.field_value("object") {
-        if caller == "custom_description" {
+    if caller == "custom_description" {
+        if let Some(token) = vd.field_value("object") {
             validate_target(token, data, sc, Scopes::non_primitive());
-        } else {
-            warn(
-                block.get_key("object").unwrap(),
-                ErrorKey::Validation,
-                "`object` can only be used in `custom_description`",
-            );
         }
-    }
-
-    if let Some(bv) = vd.field("value") {
-        if caller == "custom_description" {
+        if let Some(bv) = vd.field("value") {
             ScriptValue::validate_bv(bv, data, sc);
-        } else {
-            warn(
-                block.get_key("value").unwrap(),
-                ErrorKey::Validation,
-                "`value` can only be used in `custom_description`",
-            );
         }
+    } else {
+        vd.ban_field("object", || "`custom_description`");
+        vd.ban_field("value", || "`custom_description`");
     }
 
-    if let Some(bv) = vd.field("count") {
-        if caller == "while" {
-            ScriptValue::validate_bv(bv, data, sc);
-        } else {
-            warn(
-                block.get_key("count").unwrap(),
-                ErrorKey::Validation,
-                "`count` can only be used in `while`",
-            );
-        }
+    if caller == "while" {
+        vd.field_script_value("count", sc);
+    } else {
+        vd.ban_field("count", || "`while`");
     }
 
-    if let Some(bv) = vd.field("chance") {
-        if caller == "random" {
-            ScriptValue::validate_bv(bv, data, sc);
-        } else {
-            warn(
-                block.get_key("chance").unwrap(),
-                ErrorKey::Validation,
-                "`chance` can only be used in `random`",
-            );
-        }
-    }
-
-    vd.field_validated_blocks("modifier", |_b, _data| {
-        if caller == "random" {
+    if caller == "random" {
+        vd.field_script_value("chance", sc);
+        vd.field_validated_blocks("modifier", |_b, _data| {
             // TODO
-        } else {
-            warn(
-                block.get_key("modifier").unwrap(),
-                ErrorKey::Validation,
-                "`modifier` can only be used in `random`",
-            );
-        }
-    });
+        });
+    } else {
+        vd.ban_field("chance", || "`random`");
+        vd.ban_field("modifier", || "`random`");
+    }
 
     'outer: for (key, bv) in vd.unknown_keys() {
         if let Some(effect) = data.get_effect(key) {

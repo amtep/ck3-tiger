@@ -241,7 +241,8 @@ impl ScriptValue {
         });
 
         let ltype = ListType::try_from(it_type.as_str()).unwrap();
-        validate_iterator_fields(ltype, block, data, sc, &mut vd);
+        let mut tooltipped = false;
+        validate_iterator_fields(ltype, sc, &mut vd, &mut tooltipped);
 
         validate_inside_iterator(
             it_name.as_str(),

@@ -6,7 +6,7 @@ use crate::block::{Block, BlockOrValue};
 use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
+use crate::errors::error;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
@@ -206,115 +206,42 @@ pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted:
 /// Returns true iff the iterator took care of its own tooltips
 pub fn validate_iterator_fields(
     list_type: ListType,
-    block: &Block,
-    data: &Everything,
     sc: &mut ScopeContext,
     vd: &mut Validator,
-) -> bool {
-    let mut has_tooltip = false;
+    tooltipped: &mut bool,
+) {
     // undocumented
-    if let Some(key) = block.get_key("custom") {
-        vd.field_value_item("custom", Item::Localization);
-        if list_type == ListType::None {
-            warn(
-                key,
-                ErrorKey::Validation,
-                "`custom` can only be used in lists",
-            );
+    if list_type != ListType::None {
+        if vd.field_value_item("custom", Item::Localization) {
+            *tooltipped = false;
         }
-        has_tooltip = true;
-    }
-
-    vd.field_validated_blocks("alternative_limit", |b, data| {
-        if list_type != ListType::None {
+        vd.field_validated_blocks("alternative_limit", |b, data| {
             validate_normal_trigger(b, data, sc, false);
-        } else {
-            warn(
-                b,
-                ErrorKey::Validation,
-                "`alternative_limit` can only be used in lists",
-            );
-        }
-    });
-
-    if let Some(bv) = vd.field("order_by") {
-        if list_type == ListType::Ordered {
-            ScriptValue::validate_bv(bv, data, sc);
-        } else {
-            warn(
-                block.get_key("order_by").unwrap(),
-                ErrorKey::Validation,
-                "`order_by` can only be used in `ordered_` lists",
-            );
-        }
+        });
+    } else {
+        vd.ban_field("custom", || "lists");
+        vd.ban_field("alternative_limit", || "lists");
     }
 
-    if let Some(token) = vd.field_value("position") {
-        if list_type == ListType::Ordered {
-            if token.as_str().parse::<i32>().is_err() {
-                warn(token, ErrorKey::Validation, "expected an integer");
-            }
-        } else {
-            warn(
-                block.get_key("position").unwrap(),
-                ErrorKey::Validation,
-                "`position` can only be used in `ordered_` lists",
-            );
-        }
+    if list_type == ListType::Ordered {
+        vd.field_script_value("order_by", sc);
+        vd.field_integer("position");
+        vd.field_integer("min");
+        vd.field_integer("max");
+        vd.field_bool("check_range_bounds");
+    } else {
+        vd.ban_field("order_by", || "`ordered_` lists");
+        vd.ban_field("position", || "`ordered_` lists");
+        vd.ban_field("min", || "`ordered_` lists");
+        vd.ban_field("max", || "`ordered_` lists");
+        vd.ban_field("check_range_bounds", || "`ordered_` lists");
     }
 
-    if let Some(token) = vd.field_value("min") {
-        if list_type == ListType::Ordered {
-            if token.as_str().parse::<i32>().is_err() {
-                warn(token, ErrorKey::Validation, "expected an integer");
-            }
-        } else {
-            warn(
-                block.get_key("min").unwrap(),
-                ErrorKey::Validation,
-                "`min` can only be used in `ordered_` lists",
-            );
-        }
+    if list_type == ListType::Random {
+        vd.field_block("weight"); // TODO
+    } else {
+        vd.ban_field("weight", || "`random_` lists");
     }
-
-    if let Some(bv) = vd.field("max") {
-        if list_type == ListType::Ordered {
-            ScriptValue::validate_bv(bv, data, sc);
-        } else {
-            warn(
-                block.get_key("max").unwrap(),
-                ErrorKey::Validation,
-                "`max` can only be used in `ordered_` lists",
-            );
-        }
-    }
-
-    if let Some(token) = vd.field_value("check_range_bounds") {
-        if list_type == ListType::Ordered {
-            if !(token.is("yes") || token.is("no")) {
-                warn(token, ErrorKey::Validation, "expected yes or no");
-            }
-        } else {
-            warn(
-                block.get_key("check_range_bounds").unwrap(),
-                ErrorKey::Validation,
-                "`check_range_bounds` can only be used in `ordered_` lists",
-            );
-        }
-    }
-
-    if let Some((key, _b)) = vd.definition("weight") {
-        if list_type == ListType::Random {
-            // TODO
-        } else {
-            warn(
-                key,
-                ErrorKey::Validation,
-                "`weight` can only be used in `random_` lists",
-            );
-        }
-    }
-    has_tooltip
 }
 
 /// This checks the special fields for certain iterators, like `type =` in `every_relation`.
@@ -339,47 +266,34 @@ pub fn validate_inside_iterator(
             );
         }
     } else {
-        if let Some(token) = vd.field_value("list") {
-            let msg = format!(
-                "`list =` is only for `{listtype}_in_list`, `{listtype}_in_local_list`, or `{listtype}_in_global_list`",
-            );
-            error(token, ErrorKey::Validation, &msg);
-        }
-        if let Some(token) = vd.field_value("variable") {
-            let msg = format!(
-                "`variable =` is only for `{listtype}_in_list`, `{listtype}_in_local_list`, or `{listtype}_in_global_list`",
-            );
-            error(token, ErrorKey::Validation, &msg);
-        }
+        let only_for = || {
+            format!(
+                "`{listtype}_in_list`, `{listtype}_in_local_list`, or `{listtype}_in_global_list`"
+            )
+        };
+        vd.ban_field("list", only_for);
+        vd.ban_field("variable", only_for);
     }
 
-    if let Some((key, block)) = vd.definition("filter") {
-        if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
+    if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
+        if let Some(block) = vd.field_block("filter") {
             validate_normal_trigger(block, data, sc, tooltipped);
-        } else {
-            let msg = format!(
-                "`filter` is only for `{listtype}_in_de_facto_hierarchy` or `{listtype}_in_de_jure_hierarchy`",
-            );
-            error(key, ErrorKey::Validation, &msg);
         }
-    }
-    if let Some((key, block)) = vd.definition("continue") {
-        if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
+        if let Some(block) = vd.field_block("continue") {
             validate_normal_trigger(block, data, sc, tooltipped);
-        } else {
-            let msg = format!(
-                "`continue` is only for `{listtype}_in_de_facto_hierarchy` or `{listtype}_in_de_jure_hierarchy`",
-            );
-            error(key, ErrorKey::Validation, &msg);
         }
+    } else {
+        let only_for =
+            || format!("`{listtype}_in_de_facto_hierarchy` or `{listtype}_in_de_jure_hierarchy`");
+        vd.ban_field("filter", only_for);
+        vd.ban_field("continue", only_for);
     }
 
     if name == "county_in_region" {
         vd.req_field("region");
         vd.field_value_item("region", Item::Region);
-    } else if let Some(token) = block.get_key("region") {
-        let msg = format!("`region` is only for `{listtype}_county_in_region`");
-        error(token, ErrorKey::Validation, &msg);
+    } else {
+        vd.ban_field("region", || format!("`{listtype}_county_in_region`"));
     }
 
     if name == "court_position_holder" {
@@ -387,32 +301,18 @@ pub fn validate_inside_iterator(
     } else if name == "relation" {
         vd.req_field("type");
         vd.field_value_item("type", Item::Relation);
-    } else if let Some(token) = block.get_key("type") {
-        let msg = format!(
-            "`type` is only for `{listtype}_court_position_holder` or `{listtype}_relation`",
-        );
-        error(token, ErrorKey::Validation, &msg);
+    } else {
+        vd.ban_field("type", || {
+            format!("`{listtype}_court_position_holder` or `{listtype}_relation`")
+        });
     }
 
-    if vd.field_choice("explicit", &["yes", "no", "all"]) {
-        if name != "claim" {
-            let msg = format!("`explicit` is only for `{listtype}_claim`");
-            error(
-                block.get_key("explicit").unwrap(),
-                ErrorKey::Validation,
-                &msg,
-            );
-        }
-    }
-    if vd.field_choice("pressed", &["yes", "no", "all"]) {
-        if name != "claim" {
-            let msg = format!("`pressed` is only for `{listtype}_claim`");
-            error(
-                block.get_key("pressed").unwrap(),
-                ErrorKey::Validation,
-                &msg,
-            );
-        }
+    if name == "claim" {
+        vd.field_choice("explicit", &["yes", "no", "all"]);
+        vd.field_choice("pressed", &["yes", "no", "all"]);
+    } else {
+        vd.ban_field("explicit", || format!("`{listtype}_claim`"));
+        vd.ban_field("pressed", || format!("`{listtype}_claim`"));
     }
 
     if name == "pool_character" {
@@ -420,68 +320,34 @@ pub fn validate_inside_iterator(
         if let Some(token) = block.get_field_value("province") {
             validate_target(token, data, sc, Scopes::Province);
         }
-    } else if let Some(token) = block.get_key("province") {
-        let msg = format!("`province` is only for `{listtype}_pool_character`");
-        error(token, ErrorKey::Validation, &msg);
+    } else {
+        vd.ban_field("province", || format!("`{listtype}_pool_character`"));
     }
 
-    if vd.field_bool("only_if_dead") {
-        if !sc.can_be(Scopes::Character) {
-            warn(
-                block.get_key("only_if_dead").unwrap(),
-                ErrorKey::Validation,
-                "`only_if_dead` is only for lists of characters",
-            );
-        }
-    }
-    if vd.field_bool("even_if_dead") {
-        if !sc.can_be(Scopes::Character) {
-            warn(
-                block.get_key("even_if_dead").unwrap(),
-                ErrorKey::Validation,
-                "`even_if_dead` is only for lists of characters",
-            );
-        }
+    if sc.can_be(Scopes::Character) {
+        vd.field_bool("only_if_dead");
+        vd.field_bool("even_if_dead");
+    } else {
+        vd.ban_field("only_if_dead", || "lists of characters");
+        vd.ban_field("even_if_dead", || "lists of characters");
     }
 
-    if vd.field_choice("involvement", &["involved", "interloper"]) {
-        if name != "character_struggle" {
-            let msg = format!("`involvement` is only for `{listtype}_character_struggle`",);
-            error(
-                block.get_key("involvement").unwrap(),
-                ErrorKey::Validation,
-                &msg,
-            );
-        }
+    if name == "character_struggle" {
+        vd.field_choice("involvement", &["involved", "interloper"]);
+    } else {
+        vd.ban_field("involvement", || format!("`{listtype}_character_struggle`"));
     }
 
-    // Undocumented
-    if vd.field_bool("invert") {
-        if name != "connected_county" {
-            let msg = format!("`invert` is only for `{listtype}_connected_county`");
-            error(block.get_key("invert").unwrap(), ErrorKey::Validation, &msg);
-        }
-    }
-    if vd.field_numeric("max_naval_distance") {
-        if name != "connected_county" {
-            let msg = format!("`max_naval_distance` is only for `{listtype}_connected_county`",);
-            error(
-                block.get_key("max_naval_distance").unwrap(),
-                ErrorKey::Validation,
-                &msg,
-            );
-        }
-    }
-    if vd.field_bool("allow_one_county_land_gap") {
-        if name != "connected_county" {
-            let msg =
-                format!("`allow_one_county_land_gap` is only for `{listtype}_connected_county`",);
-            error(
-                block.get_key("allow_one_county_land_gap").unwrap(),
-                ErrorKey::Validation,
-                &msg,
-            );
-        }
+    if name == "connected_county" {
+        // Undocumented
+        vd.field_bool("invert");
+        vd.field_numeric("max_naval_distance");
+        vd.field_bool("allow_one_county_land_gap");
+    } else {
+        let only_for = || format!("`{listtype}_connected_county`");
+        vd.ban_field("invert", only_for);
+        vd.ban_field("max_naval_distance", only_for);
+        vd.ban_field("allow_one_county_land_gap", only_for);
     }
 }
 
