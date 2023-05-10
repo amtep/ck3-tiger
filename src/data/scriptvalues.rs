@@ -189,20 +189,17 @@ impl ScriptValue {
                         sc.close();
                         continue 'outer;
                     }
-                } else if part.is("root")
-                    || part.is("prev")
-                    || part.is("this")
-                    || part.is("ROOT")
-                    || part.is("PREV")
-                    || part.is("THIS")
+                } else if part.lowercase_is("root")
+                    || part.lowercase_is("prev")
+                    || part.lowercase_is("this")
                 {
                     if !first {
                         let msg = format!("`{part}` makes no sense except as first part");
                         warn(&part, ErrorKey::Validation, &msg);
                     }
-                    if part.is("root") || part.is("ROOT") {
+                    if part.lowercase_is("root") {
                         sc.replace_root();
-                    } else if part.is("prev") || part.is("PREV") {
+                    } else if part.lowercase_is("prev") {
                         sc.replace_prev(&part);
                     } else {
                         sc.replace_this();
@@ -214,8 +211,8 @@ impl ScriptValue {
                     }
                     sc.expect(inscopes, &part);
                     sc.replace(outscope, part);
-                // TODO: warn if trying to use iterator here
                 } else {
+                    // TODO: warn if trying to use iterator here
                     let msg = format!("unknown token `{part}`");
                     error(part, ErrorKey::Validation, &msg);
                     sc.close();
@@ -321,12 +318,9 @@ impl ScriptValue {
                         sc.close();
                         return;
                     }
-                } else if part.is("root")
-                    || part.is("prev")
-                    || part.is("this")
-                    || part.is("ROOT")
-                    || part.is("PREV")
-                    || part.is("THIS")
+                } else if part.lowercase_is("root")
+                    || part.lowercase_is("prev")
+                    || part.lowercase_is("this")
                 {
                     if !first {
                         let msg = format!("`{part}` makes no sense except as first part");
@@ -335,9 +329,9 @@ impl ScriptValue {
                         let msg = format!("`{part}` makes no sense as script value");
                         warn(part, ErrorKey::Validation, &msg);
                     }
-                    if part.is("root") || part.is("ROOT") {
+                    if part.lowercase_is("root") {
                         sc.replace_root();
-                    } else if part.is("prev") || part.is("PREV") {
+                    } else if part.lowercase_is("prev") {
                         sc.replace_prev(part);
                     } else {
                         sc.replace_this();
