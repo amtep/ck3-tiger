@@ -58,9 +58,10 @@ pub fn validate_effect<'a>(
     }
 
     if caller == "custom_description" || caller == "custom_tooltip" {
-        // TODO: verify role of `text` in custom_description
         if caller == "custom_tooltip" {
             vd.field_value_item("text", Item::Localization);
+        } else {
+            vd.field_value_item("text", Item::TriggerLocalization);
         }
         if let Some(token) = vd.field_value("subject") {
             validate_target(token, data, sc, Scopes::non_primitive());
@@ -74,9 +75,7 @@ pub fn validate_effect<'a>(
         if let Some(token) = vd.field_value("object") {
             validate_target(token, data, sc, Scopes::non_primitive());
         }
-        if let Some(bv) = vd.field("value") {
-            ScriptValue::validate_bv(bv, data, sc);
-        }
+        vd.field_script_value("value", sc);
     } else {
         vd.ban_field("object", || "`custom_description`");
         vd.ban_field("value", || "`custom_description`");

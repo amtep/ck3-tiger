@@ -95,6 +95,7 @@ pub enum Item {
     TitleLawFlag,
     Tradition,
     Trait,
+    TriggerLocalization,
     UnitGfx,
     VassalObligation,
 }
@@ -195,6 +196,7 @@ impl Item {
             TitleLawFlag => "common/laws/",
             Tradition => "common/culture/traditions/",
             Trait => "common/traits/",
+            TriggerLocalization => "common/trigger_localization",
             UnitGfx => "common/culture/cultures/",
             VassalObligation => "common/vassal_contracts/",
         }
@@ -294,6 +296,7 @@ impl Display for Item {
             TitleLawFlag => write!(f, "title law flag"),
             Tradition => write!(f, "tradition"),
             Trait => write!(f, "trait"),
+            TriggerLocalization => write!(f, "trigger localization"),
             UnitGfx => write!(f, "unit gfx"),
             VassalObligation => write!(f, "vassal obligation"),
         }
