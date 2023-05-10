@@ -1,5 +1,5 @@
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BlockOrValue, Comparator};
 use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
@@ -9,7 +9,7 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::tables::effects::{scope_effect, ControlEffect, Effect};
-use crate::trigger::{validate_normal_trigger, validate_target};
+use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger_key_bv};
 use crate::validate::{
     validate_inside_iterator, validate_iterator_fields, validate_prefix_reference, ListType,
 };
@@ -57,6 +57,7 @@ pub fn validate_effect<'a>(
         );
     }
 
+    // custom_description_no_bullet is folded into custom_description by the caller
     if caller == "custom_description" || caller == "custom_tooltip" {
         if caller == "custom_tooltip" {
             vd.field_value_item("text", Item::Localization);
@@ -236,11 +237,8 @@ pub fn validate_effect<'a>(
                 Effect::Gender => {
                     if let Some(token) = bv.expect_value() {
                         if !(token.is("male") || token.is("female") || token.is("random")) {
-                            warn(
-                                token,
-                                ErrorKey::Validation,
-                                "expected `male`, `female`, or `random`",
-                            );
+                            let msg = "expected `male`, `female`, or `random`";
+                            warn(token, ErrorKey::Validation, msg);
                         }
                     }
                 }
@@ -435,7 +433,7 @@ fn validate_effect_control(
         }
         ControlEffect::Random => {
             // TODO: need to parse modifiers first
-            // validate_effect("random", ListType::None, block, data, sc, vd, false);
+            // validate_effect("random", ListType::None, block, data, sc, vd, tooltipped);
             vd.no_warn_remaining();
         }
         ControlEffect::RandomList => {
@@ -446,8 +444,28 @@ fn validate_effect_control(
             validate_effect("show_as_tooltip", ListType::None, block, data, sc, vd, true);
         }
         ControlEffect::Switch => {
-            // TODO
-            vd.no_warn_remaining();
+            vd.req_field("trigger");
+            if let Some(target) = vd.field_value("trigger") {
+                // clone to avoid calling vd again while target is still borrowed
+                let target = target.clone();
+                for (key, bv) in vd.unknown_keys() {
+                    // Pretend the switch was written as a series of trigger = key lines
+                    let synthetic_bv = BlockOrValue::Token(key.clone());
+                    validate_trigger_key_bv(
+                        &target,
+                        Comparator::Eq,
+                        &synthetic_bv,
+                        data,
+                        sc,
+                        tooltipped,
+                    );
+
+                    if let Some(block) = bv.expect_block() {
+                        let vd = Validator::new(block, data);
+                        validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
+                    }
+                }
+            }
         }
         ControlEffect::While => {
             if !(block.get_key("limit").is_some() || block.get_key("count").is_some()) {

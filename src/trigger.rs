@@ -49,7 +49,7 @@ pub fn validate_trigger(
 ) {
     let mut seen_if = false;
 
-    'outer: for (key, cmp, bv) in block.iter_items() {
+    for (key, cmp, bv) in block.iter_items() {
         if let Some(key) = key {
             if key.is("limit") {
                 if caller == Caller::If {
@@ -346,213 +346,7 @@ pub fn validate_trigger(
                 continue;
             }
 
-            if let Some((inscopes, item)) = scope_trigger_item(key.as_str()) {
-                sc.expect(inscopes, key);
-                if let Some(token) = bv.expect_value() {
-                    data.verify_exists(item, token);
-                }
-                continue;
-            }
-
-            let handled = validate_trigger_keys(key, bv, data, sc, tooltipped);
-            if handled {
-                continue;
-            }
-
-            if let Some(trigger) = data.get_trigger(key) {
-                match bv {
-                    BlockOrValue::Token(token) => {
-                        if !(token.is("yes") || token.is("no")) {
-                            warn(token, ErrorKey::Validation, "expected yes or no");
-                        }
-                        if !trigger.macro_parms().is_empty() {
-                            error(token, ErrorKey::Macro, "expected macro arguments");
-                        }
-                        trigger.validate_call(key, data, sc, tooltipped);
-                    }
-                    BlockOrValue::Block(block) => {
-                        let parms = trigger.macro_parms();
-                        if parms.is_empty() {
-                            error(
-                                block,
-                                ErrorKey::Macro,
-                                "trigger does not need macro arguments",
-                            );
-                        } else {
-                            let mut vec = Vec::new();
-                            let mut vd = Validator::new(block, data);
-                            for parm in &parms {
-                                vd.req_field(parm);
-                                if let Some(token) = vd.field_value(parm.as_str()) {
-                                    vec.push(token.clone());
-                                } else {
-                                    continue 'outer;
-                                }
-                            }
-                            let args = parms.into_iter().zip(vec.into_iter()).collect();
-                            trigger.validate_macro_expansion(key, args, data, sc, tooltipped);
-                        }
-                    }
-                }
-                continue;
-            }
-
-            // `10 < scriptvalue` is a valid trigger
-            if key.as_str().parse::<f64>().is_ok() {
-                ScriptValue::validate_bv(bv, data, sc);
-                continue;
-            }
-
-            let part_vec = key.split('.');
-            sc.open_builder();
-            let mut warn_against_eq = None;
-            for i in 0..part_vec.len() {
-                let first = i == 0;
-                let last = i + 1 == part_vec.len();
-                let part = &part_vec[i];
-
-                if let Some((prefix, arg)) = part.split_once(':') {
-                    if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
-                        if inscopes == Scopes::None && !first {
-                            let msg = format!("`{prefix}:` makes no sense except as first part");
-                            warn(part, ErrorKey::Validation, &msg);
-                        }
-                        sc.expect(inscopes, &prefix);
-                        validate_prefix_reference(&prefix, &arg, data);
-                        sc.replace(outscope, part.clone());
-                    } else {
-                        let msg = format!("unknown prefix `{prefix}:`");
-                        error(part, ErrorKey::Validation, &msg);
-                        sc.close();
-                        continue 'outer;
-                    }
-                } else if part.lowercase_is("root")
-                    || part.lowercase_is("prev")
-                    || part.lowercase_is("this")
-                {
-                    if !first {
-                        let msg = format!("`{part}` makes no sense except as first part");
-                        warn(part, ErrorKey::Validation, &msg);
-                    }
-                    if part.lowercase_is("root") {
-                        sc.replace_root();
-                    } else if part.lowercase_is("prev") {
-                        sc.replace_prev(part);
-                    } else {
-                        sc.replace_this();
-                    }
-                } else if let Some((inscopes, outscope)) = scope_to_scope(part.as_str()) {
-                    if inscopes == Scopes::None && !first {
-                        let msg = format!("`{part}` makes no sense except as first part");
-                        warn(part, ErrorKey::Validation, &msg);
-                    }
-                    sc.expect(inscopes, part);
-                    sc.replace(outscope, part.clone());
-                } else if let Some(inscopes) = scope_value(part, data) {
-                    if !last {
-                        let msg = format!("`{part}` should be the last part");
-                        warn(part, ErrorKey::Validation, &msg);
-                        sc.close();
-                        continue 'outer;
-                    }
-                    if inscopes == Scopes::None && !first {
-                        let msg = format!("`{part}` makes no sense except as only part");
-                        warn(part, ErrorKey::Validation, &msg);
-                    }
-                    if WARN_AGAINST_EQ.contains(&part.as_str()) {
-                        warn_against_eq = Some(part);
-                    }
-                    if part.is("current_year") && sc.scopes() == Scopes::None {
-                        warn_info(
-                            part,
-                            ErrorKey::Bugs,
-                            "current_year does not work in empty scope",
-                            "try using current_date, or dummy_male.current_year",
-                        );
-                    } else {
-                        sc.expect(inscopes, part);
-                    }
-                    sc.replace(Scopes::Value, part.clone());
-                } else if let Some((inscopes, outscope)) = scope_trigger_target(part, data) {
-                    if !last {
-                        let msg = format!("`{part}` should be the last part");
-                        error(part, ErrorKey::Validation, &msg);
-                        sc.close();
-                        continue 'outer;
-                    }
-                    sc.expect(inscopes, part);
-                    sc.replace(outscope, part.clone());
-                } else if let Some(inscopes) = scope_trigger_bool(part.as_str()) {
-                    if !last {
-                        let msg = format!("`{part}` should be the last part");
-                        warn(part, ErrorKey::Validation, &msg);
-                        sc.close();
-                        continue 'outer;
-                    }
-                    if inscopes == Scopes::None && !first {
-                        let msg = format!("`{part}` makes no sense except as only part");
-                        warn(part, ErrorKey::Validation, &msg);
-                    }
-                    sc.expect(inscopes, part);
-                    sc.replace(Scopes::Bool, part.clone());
-                } else if data.scriptvalues.exists(part.as_str()) {
-                    if !last {
-                        let msg = "script value should be the last part";
-                        warn(part, ErrorKey::Validation, msg);
-                        sc.close();
-                        continue 'outer;
-                    }
-                    data.scriptvalues.validate_call(part, data, sc);
-                    sc.replace(Scopes::Value, part.clone());
-                // TODO: warn if trying to use iterator here
-                } else {
-                    let msg = format!("unknown token `{part}`");
-                    error(part, ErrorKey::Validation, &msg);
-                    sc.close();
-                    continue 'outer;
-                }
-            }
-
-            if matches!(cmp, Comparator::Eq) {
-                if let Some(token) = warn_against_eq {
-                    let msg = format!("`{token} =` means exactly equal to that amount, which is usually not what you want");
-                    warn(token, ErrorKey::Logic, &msg);
-                }
-            } else {
-                if sc.can_be(Scopes::Value) {
-                    sc.close();
-                    ScriptValue::validate_bv(bv, data, sc);
-                } else {
-                    let msg = format!("unexpected comparator {cmp}");
-                    warn(key, ErrorKey::Validation, &msg);
-                    sc.close();
-                }
-                continue;
-            }
-
-            if sc.must_be(Scopes::Bool) {
-                sc.close();
-                if let Some(_token) = bv.expect_value() {
-                    ScriptValue::validate_bv(bv, data, sc);
-                    // TODO: get outscope from ScriptValue because it can be either Value or Bool.
-                    // Then check if it's Bool here.
-                }
-            } else if sc.must_be(Scopes::Value) {
-                sc.close();
-                ScriptValue::validate_bv(bv, data, sc);
-            } else {
-                match bv {
-                    BlockOrValue::Token(t) => {
-                        let scopes = sc.scopes();
-                        sc.close();
-                        validate_target(t, data, sc, scopes);
-                    }
-                    BlockOrValue::Block(b) => {
-                        validate_normal_trigger(b, data, sc, tooltipped);
-                        sc.close();
-                    }
-                }
-            }
+            validate_trigger_key_bv(key, *cmp, bv, data, sc, tooltipped);
         } else {
             match bv {
                 BlockOrValue::Token(t) => warn_info(
@@ -567,6 +361,223 @@ pub fn validate_trigger(
                     "unexpected block",
                     "did you forget an = ?",
                 ),
+            }
+        }
+    }
+}
+
+pub fn validate_trigger_key_bv(
+    key: &Token,
+    cmp: Comparator,
+    bv: &BlockOrValue,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    tooltipped: bool,
+) {
+    if let Some((inscopes, item)) = scope_trigger_item(key.as_str()) {
+        sc.expect(inscopes, key);
+        if let Some(token) = bv.expect_value() {
+            data.verify_exists(item, token);
+        }
+        return;
+    }
+
+    let handled = validate_trigger_keys(key, bv, data, sc, tooltipped);
+    if handled {
+        return;
+    }
+
+    if let Some(trigger) = data.get_trigger(key) {
+        match bv {
+            BlockOrValue::Token(token) => {
+                if !(token.is("yes") || token.is("no")) {
+                    warn(token, ErrorKey::Validation, "expected yes or no");
+                }
+                if !trigger.macro_parms().is_empty() {
+                    error(token, ErrorKey::Macro, "expected macro arguments");
+                }
+                trigger.validate_call(key, data, sc, tooltipped);
+            }
+            BlockOrValue::Block(block) => {
+                let parms = trigger.macro_parms();
+                if parms.is_empty() {
+                    error(
+                        block,
+                        ErrorKey::Macro,
+                        "trigger does not need macro arguments",
+                    );
+                } else {
+                    let mut vec = Vec::new();
+                    let mut vd = Validator::new(block, data);
+                    for parm in &parms {
+                        vd.req_field(parm);
+                        if let Some(token) = vd.field_value(parm.as_str()) {
+                            vec.push(token.clone());
+                        } else {
+                            return;
+                        }
+                    }
+                    let args = parms.into_iter().zip(vec.into_iter()).collect();
+                    trigger.validate_macro_expansion(key, args, data, sc, tooltipped);
+                }
+            }
+        }
+        return;
+    }
+
+    // `10 < scriptvalue` is a valid trigger
+    if key.as_str().parse::<f64>().is_ok() {
+        ScriptValue::validate_bv(bv, data, sc);
+        return;
+    }
+
+    let part_vec = key.split('.');
+    sc.open_builder();
+    let mut warn_against_eq = None;
+    for i in 0..part_vec.len() {
+        let first = i == 0;
+        let last = i + 1 == part_vec.len();
+        let part = &part_vec[i];
+
+        if let Some((prefix, arg)) = part.split_once(':') {
+            if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
+                if inscopes == Scopes::None && !first {
+                    let msg = format!("`{prefix}:` makes no sense except as first part");
+                    warn(part, ErrorKey::Validation, &msg);
+                }
+                sc.expect(inscopes, &prefix);
+                validate_prefix_reference(&prefix, &arg, data);
+                sc.replace(outscope, part.clone());
+            } else {
+                let msg = format!("unknown prefix `{prefix}:`");
+                error(part, ErrorKey::Validation, &msg);
+                sc.close();
+                return;
+            }
+        } else if part.lowercase_is("root")
+            || part.lowercase_is("prev")
+            || part.lowercase_is("this")
+        {
+            if !first {
+                let msg = format!("`{part}` makes no sense except as first part");
+                warn(part, ErrorKey::Validation, &msg);
+            }
+            if part.lowercase_is("root") {
+                sc.replace_root();
+            } else if part.lowercase_is("prev") {
+                sc.replace_prev(part);
+            } else {
+                sc.replace_this();
+            }
+        } else if let Some((inscopes, outscope)) = scope_to_scope(part.as_str()) {
+            if inscopes == Scopes::None && !first {
+                let msg = format!("`{part}` makes no sense except as first part");
+                warn(part, ErrorKey::Validation, &msg);
+            }
+            sc.expect(inscopes, part);
+            sc.replace(outscope, part.clone());
+        } else if let Some(inscopes) = scope_value(part, data) {
+            if !last {
+                let msg = format!("`{part}` should be the last part");
+                warn(part, ErrorKey::Validation, &msg);
+                sc.close();
+                return;
+            }
+            if inscopes == Scopes::None && !first {
+                let msg = format!("`{part}` makes no sense except as only part");
+                warn(part, ErrorKey::Validation, &msg);
+            }
+            if WARN_AGAINST_EQ.contains(&part.as_str()) {
+                warn_against_eq = Some(part);
+            }
+            if part.is("current_year") && sc.scopes() == Scopes::None {
+                warn_info(
+                    part,
+                    ErrorKey::Bugs,
+                    "current_year does not work in empty scope",
+                    "try using current_date, or dummy_male.current_year",
+                );
+            } else {
+                sc.expect(inscopes, part);
+            }
+            sc.replace(Scopes::Value, part.clone());
+        } else if let Some((inscopes, outscope)) = scope_trigger_target(part, data) {
+            if !last {
+                let msg = format!("`{part}` should be the last part");
+                error(part, ErrorKey::Validation, &msg);
+                sc.close();
+                return;
+            }
+            sc.expect(inscopes, part);
+            sc.replace(outscope, part.clone());
+        } else if let Some(inscopes) = scope_trigger_bool(part.as_str()) {
+            if !last {
+                let msg = format!("`{part}` should be the last part");
+                warn(part, ErrorKey::Validation, &msg);
+                sc.close();
+                return;
+            }
+            if inscopes == Scopes::None && !first {
+                let msg = format!("`{part}` makes no sense except as only part");
+                warn(part, ErrorKey::Validation, &msg);
+            }
+            sc.expect(inscopes, part);
+            sc.replace(Scopes::Bool, part.clone());
+        } else if data.scriptvalues.exists(part.as_str()) {
+            if !last {
+                let msg = "script value should be the last part";
+                warn(part, ErrorKey::Validation, msg);
+                sc.close();
+                return;
+            }
+            data.scriptvalues.validate_call(part, data, sc);
+            sc.replace(Scopes::Value, part.clone());
+        // TODO: warn if trying to use iterator here
+        } else {
+            let msg = format!("unknown token `{part}`");
+            error(part, ErrorKey::Validation, &msg);
+            sc.close();
+            return;
+        }
+    }
+
+    if matches!(cmp, Comparator::Eq) {
+        if let Some(token) = warn_against_eq {
+            let msg = format!("`{token} =` means exactly equal to that amount, which is usually not what you want");
+            warn(token, ErrorKey::Logic, &msg);
+        }
+    } else {
+        if sc.can_be(Scopes::Value) {
+            sc.close();
+            ScriptValue::validate_bv(bv, data, sc);
+        } else {
+            let msg = format!("unexpected comparator {cmp}");
+            warn(key, ErrorKey::Validation, &msg);
+            sc.close();
+        }
+        return;
+    }
+
+    if sc.must_be(Scopes::Bool) {
+        sc.close();
+        if let Some(_token) = bv.expect_value() {
+            ScriptValue::validate_bv(bv, data, sc);
+            // TODO: get outscope from ScriptValue because it can be either Value or Bool.
+            // Then check if it's Bool here.
+        }
+    } else if sc.must_be(Scopes::Value) {
+        sc.close();
+        ScriptValue::validate_bv(bv, data, sc);
+    } else {
+        match bv {
+            BlockOrValue::Token(t) => {
+                let scopes = sc.scopes();
+                sc.close();
+                validate_target(t, data, sc, scopes);
+            }
+            BlockOrValue::Block(b) => {
+                validate_normal_trigger(b, data, sc, tooltipped);
+                sc.close();
             }
         }
     }
@@ -685,9 +696,10 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             return;
         }
     }
-    if !outscopes.intersects(sc.scopes() | Scopes::None) {
+    let final_scopes = sc.scopes();
+    if !outscopes.intersects(final_scopes | Scopes::None) {
         let part = &part_vec[part_vec.len() - 1];
-        let msg = format!("`{part}` produces {} but expected {outscopes}", sc.scopes());
+        let msg = format!("`{part}` produces {final_scopes} but expected {outscopes}");
         warn(part, ErrorKey::Scopes, &msg);
     }
     sc.close();
