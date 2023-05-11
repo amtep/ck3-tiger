@@ -28,7 +28,7 @@ ARGS_OVERRIDE = {
 UNARY_ARGS = ["Abs_", "GetString_", "Negate_"]
 # BINARY_ARGS are binary functions that have their argument type in their name
 BINARY_ARGS = [
-    "Add_", "EqualTo_", "GetNumberAbove_", "GreaterThanOrEqualTo_",
+    "Add_", "EqualTo_", "Divide_", "GetNumberAbove_", "GreaterThanOrEqualTo_",
     "GreaterThan_", "LessThanOrEqualTo_", "LessThan_", "Max_", "Multiply_",
     "NotEqualTo_", "Subtract_"
 ]
@@ -88,6 +88,8 @@ for fname in fnames:
         rtype = lines[-1].split("Return type: ")[1].strip()
         if rtype == "[unregistered]":
             rtype = "Unknown"
+        if rtype == "_null_type_":
+            rtype = "void"
         if rtype == "Unknown" and name in RTYPE_OVERRIDE:
             rtype = RTYPE_OVERRIDE[name]
 
