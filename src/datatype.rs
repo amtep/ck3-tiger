@@ -97,6 +97,12 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
         let mut args = Args::NoArgs;
         let mut rtype = Datatype::Unknown;
 
+        if code.name.is("") {
+            // TODO: find out if the game engine is okay with this
+            warn(&code.name, ErrorKey::DataFunctions, "empty fragment");
+            return;
+        }
+
         // The data_type logs include all game concepts as global functions.
         // We don't want them to match here, because those concepts often
         // overlap with passed-in scopes, which are not functions.
