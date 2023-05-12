@@ -176,13 +176,20 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     })
 }
 
-pub fn scope_to_scope(name: &str) -> Option<(Scopes, Scopes)> {
+pub fn scope_to_scope(name: &Token) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_TO_SCOPE {
-        if *s == name {
+        if name.is(s) {
             return Some((
                 Scopes::from_bits_truncate(*from),
                 Scopes::from_bits_truncate(*to),
             ));
+        }
+    }
+    for (s, version, explanation) in SCOPE_TO_SCOPE_REMOVED {
+        if name.is(s) {
+            let msg = format!("`{name}` was removed in {version}");
+            warn_info(name, ErrorKey::Removed, &msg, explanation);
+            return Some((Scopes::all(), Scopes::all_but_none()));
         }
     }
     std::option::Option::None
@@ -414,13 +421,17 @@ impl Display for Scopes {
     }
 }
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
-    (Character, "activity", Activity),
-    (Activity, "activity_owner", Character),
-    (Activity, "activity_province", Province),
+    (Accolade, "acclaimed_knight", Character),
+    (Character, "accolade", Accolade),
+    (Accolade, "accolade_owner", Character),
+    (Accolade, "accolade_successor", Character),
+    (Activity, "activity_host", Character),
+    (Activity, "activity_location", Province),
+    (Activity, "activity_type", ActivityType),
     (Army, "army_commander", Character),
     (Army, "army_owner", Character),
     (Artifact, "artifact_age", Value),
@@ -453,9 +464,16 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Character | LandedTitle | Province, "culture", Culture),
     (Culture, "culture_head", Character),
     (LandedTitle, "current_heir", Character),
+    (TravelPlan, "current_location", Province),
+    (Character, "current_travel_plan", TravelPlan),
     (LandedTitle, "de_facto_liege", LandedTitle),
     (LandedTitle, "de_jure_liege", LandedTitle),
+    (Character, "default_location", Province),
+    (TravelPlan, "departure_location", Province),
+    (Character, "designated_diarch", Character),
     (Character, "designated_heir", Character),
+    (Character, "diarch", Character),
+    (Character, "diarchy_successor", Character),
     (LandedTitle | Province, "duchy", LandedTitle),
     (None, "dummy_female", Character),
     (None, "dummy_male", Character),
@@ -473,7 +491,12 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
         Faith,
     ),
     (Character, "father", Character),
+    (TravelPlan, "final_destination_province", Province),
     (Faith, "founder", Character),
+    (Accolade, "founder_culture", Culture),
+    (Accolade, "founder_dynasty", Dynasty),
+    (Accolade, "founder_faith", Faith),
+    (Accolade, "founder_house", DynastyHouse),
     (Character, "ghw_beneficiary", Character),
     (GreatHolyWar, "ghw_designated_winner", Character),
     (GreatHolyWar, "ghw_target_character", Character),
@@ -492,6 +515,8 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Character, "inspiration", Inspiration),
     (Inspiration, "inspiration_owner", Character),
     (Inspiration, "inspiration_sponsor", Character),
+    (Character, "intent_target", Character),
+    (Character, "involved_activity", Activity),
     (Character, "joined_faction", Faction),
     (Character, "killer", Character),
     (LandedTitle | Province, "kingdom", LandedTitle),
@@ -505,9 +530,12 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Character, "liege_or_court_owner", Character),
     (Character | Combat | Army, "location", Province),
     (Character, "matchmaker", Character),
+    (MercenaryCompany, "mercenary_company_leader", Character),
     (CharacterMemory, "memory_owner", Character),
     (Character, "mother", Character),
     // named_script_value special
+    (TravelPlan, "next_destination_province", Province),
+    (TravelPlan, "next_location", Province),
     (None, "no", Bool),
     (Character, "player_heir", Character),
     (Character, "pregnancy_assumed_father", Character),
@@ -523,6 +551,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Character, "primary_partner", Character),
     (Character, "primary_spouse", Character),
     (Character, "primary_title", LandedTitle),
+    (Accolade, "primary_type", AccoladeType),
     (Province, "province_owner", Character),
     (Character, "real_father", Character),
     (Character, "realm_priest", Character),
@@ -538,6 +567,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Scheme, "scheme_defender", Character),
     (Scheme, "scheme_owner", Character),
     (Scheme, "scheme_target", Character),
+    (Accolade, "secondary_type", AccoladeType),
     (Secret, "secret_owner", Character),
     (Secret, "secret_target", Character),
     (CombatSide, "side_commander", Character),
@@ -549,17 +579,28 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (HolyOrder, "title", LandedTitle),
     (LandedTitle, "title_capital_county", LandedTitle),
     (LandedTitle, "title_province", Province),
+    (TravelPlan, "travel_leader", Character),
+    (TravelPlan, "travel_plan_activity", Activity),
+    (TravelPlan, "travel_plan_owner", Activity),
     (Character, "top_liege", Character),
     // "value" special
+    (
+        VassalContractObligationLevel,
+        "vassal_contract_type",
+        VassalContract,
+    ),
     (CasusBelli, "war", War),
     (None, "yes", Bool),
 ];
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
+/// TODO: add the Item type here, so that it can be checked for existence.
 const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
+    (None, "accolade_type", AccoladeType),
+    (None, "activity_type", ActivityType),
     (Character, "aptitude", Value),
     (None, "array_define", Value),
     (None, "character", Character),
@@ -568,22 +609,30 @@ const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
     (Character, "court_position", Character),
     (Character, "cp", Character), // councillor
     (None, "culture", Culture),
+    (None, "culture_pillar", CulturePillar),
+    (None, "culture_tradition", CultureTradition),
+    (None, "decision", Decision),
     (None, "define", Value),
+    (None, "doctrine", Doctrine),
     (None, "dynasty", Dynasty),
     (None, "event_id", Flag),
     (None, "faith", Faith),
     (None, "flag", Flag),
     (None, "global_var", ALL),
+    (None, "government_type", GovernmentType),
     (None, "house", DynastyHouse),
     (None, "local_var", ALL),
     (CharacterMemory, "memory_participant", Character),
     (None, "province", Province),
     (None, "religion", Religion),
     (None, "scope", ALL),
+    (Activity, "special_guest", Character),
     (None, "struggle", Struggle),
     (None, "title", LandedTitle),
+    (None, "trait", Trait),
     (ALL, "var", ALL),
-    (Character, "vassal_contract_obligation_level", Value),
+    (None, "vassal_contract", VassalContract),
+    (Character, "vassal_contract_obligation_level", Value), // TODO: not documented since 1.9
 ];
 
 /// LAST UPDATED VERSION 1.8.1
@@ -1125,4 +1174,14 @@ const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
     ("activity_declined", "1.9", ""),
     ("activity_invited", "1.9", ""),
     ("participant", "1.9", ""),
+];
+
+const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
+    ("activity", "1.9", ""),
+    ("activity_owner", "1.9", "replaced by `activity_host`"),
+    (
+        "activity_province",
+        "1.9",
+        "replaced by `activity_location`",
+    ),
 ];

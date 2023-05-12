@@ -336,7 +336,7 @@ pub fn validate_effect<'a>(
                 } else {
                     sc.replace_this();
                 }
-            } else if let Some((inscopes, outscope)) = scope_to_scope(part.as_str()) {
+            } else if let Some((inscopes, outscope)) = scope_to_scope(part) {
                 if inscopes == Scopes::None && !first {
                     let msg = format!("`{part}` makes no sense except as first part");
                     warn(part, ErrorKey::Validation, &msg);
