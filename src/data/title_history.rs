@@ -148,7 +148,7 @@ impl TitleHistory {
             }
         }
 
-        vd.field_value_item("government", Item::Government);
+        vd.field_value_item("government", Item::GovernmentType);
 
         vd.field_block("succession_laws"); // TODO
         vd.field_bool("remove_succession_laws");

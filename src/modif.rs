@@ -21,6 +21,7 @@ bitflags! {
         const Terrain = 0x08;
         const Culture = 0x10;
         const Scheme = 0x20;
+        const TravelPlan = 0x40;
     }
 }
 
@@ -54,11 +55,14 @@ impl Display for ModifKinds {
         if self.contains(ModifKinds::Scheme) {
             vec.push("scheme");
         }
+        if self.contains(ModifKinds::TravelPlan) {
+            vec.push("travel plan");
+        }
         write!(f, "{}", vec.join(", "))
     }
 }
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 pub fn validate_modifs<'a>(
@@ -288,6 +292,7 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("same_culture_mercenary_hire_cost_mult", sc);
 
         vd.field_script_value("hostile_county_attrition", sc);
+        vd.field_script_value("hostile_county_attrition_raiding", sc);
 
         vd.field_bool("ignore_different_faith_opinion");
         vd.field_bool("ignore_negative_culture_opinion");
@@ -295,7 +300,16 @@ pub fn validate_modifs<'a>(
         vd.field_bool("ignore_opinion_of_different_faith");
 
         vd.field_script_value("knight_effectiveness_mult", sc);
+        vd.field_script_value("knight_effectiveness_per_dread", sc);
+        vd.field_script_value("knight_effectiveness_per_tyranny", sc);
         vd.field_script_value("knight_limit", sc);
+
+        vd.field_script_value("levy_attack", sc);
+        vd.field_script_value("levy_maintenance", sc);
+        vd.field_script_value("levy_pursuit", sc);
+        vd.field_script_value("levy_screen", sc);
+        vd.field_script_value("levy_siege", sc);
+        vd.field_script_value("levy_toughness", sc);
 
         vd.field_script_value("levy_reinforcement_rate_different_faith", sc);
         vd.field_script_value("levy_reinforcement_rate_different_faith_even_if_baron", sc);
@@ -305,6 +319,28 @@ pub fn validate_modifs<'a>(
 
         vd.field_script_value("long_reign_bonus_mult", sc);
         vd.field_script_value("max_loot_mult", sc);
+
+        vd.field_script_value("maa_damage_add", sc);
+        vd.field_script_value("maa_damage_mult", sc);
+        vd.field_script_value("maa_pursuit_add", sc);
+        vd.field_script_value("maa_pursuit_mult", sc);
+        vd.field_script_value("maa_screen_add", sc);
+        vd.field_script_value("maa_screen_mult", sc);
+        vd.field_script_value("maa_siege_value_add", sc);
+        vd.field_script_value("maa_siege_value_mult", sc);
+        vd.field_script_value("maa_toughness_add", sc);
+        vd.field_script_value("maa_toughness_mult", sc);
+
+        vd.field_script_value("stationed_maa_damage_add", sc);
+        vd.field_script_value("stationed_maa_damage_mult", sc);
+        vd.field_script_value("stationed_maa_pursuit_add", sc);
+        vd.field_script_value("stationed_maa_pursuit_mult", sc);
+        vd.field_script_value("stationed_maa_screen_add", sc);
+        vd.field_script_value("stationed_maa_screen_mult", sc);
+        vd.field_script_value("stationed_maa_siege_value_add", sc);
+        vd.field_script_value("stationed_maa_siege_value_mult", sc);
+        vd.field_script_value("stationed_maa_toughness_add", sc);
+        vd.field_script_value("stationed_maa_toughness_mult", sc);
 
         vd.field_script_value("men_at_arms_cap", sc);
         vd.field_script_value("men_at_arms_limit", sc);
@@ -345,6 +381,7 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("monthly_war_income_mult", sc);
 
         vd.field_script_value("movement_speed", sc);
+        vd.field_script_value("movement_speed_land_raiding", sc);
         vd.field_script_value("naval_movement_speed_mult", sc);
         vd.field_script_value("raid_speed", sc);
         vd.field_script_value("winter_movement_speed", sc);
@@ -367,8 +404,6 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("piety_level_impact_mult", sc);
         vd.field_script_value("prestige_level_impact_mult", sc);
 
-        vd.field_script_value("random_skills_per_child", sc);
-
         vd.field_script_value("revolting_siege_morale_loss_add", sc);
         vd.field_script_value("revolting_siege_morale_loss_mult", sc);
         vd.field_script_value("siege_morale_loss", sc);
@@ -376,6 +411,8 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("short_reign_duration_mult", sc);
         vd.field_script_value("stress_gain_mult", sc);
         vd.field_script_value("stress_loss_mult", sc);
+        vd.field_script_value("stress_loss_per_piety_level", sc);
+        vd.field_script_value("stress_loss_per_prestige_level", sc);
         vd.field_script_value("supply_capacity_add", sc);
         vd.field_script_value("supply_capacity_mult", sc);
         vd.field_script_value("supply_duration", sc);
@@ -387,6 +424,19 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("tyranny_loss_mult", sc);
         vd.field_script_value("vassal_limit", sc);
         vd.field_script_value("vassal_tax_mult", sc);
+
+        vd.field_script_value("accolade_glory_gain_mult", sc);
+        vd.field_script_value("active_accolades", sc);
+
+        vd.field_script_value("character_travel_safety", sc);
+        vd.field_script_value("character_travel_safety_mult", sc);
+        vd.field_script_value("character_travel_speed", sc);
+        vd.field_script_value("character_travel_speed_mult", sc);
+
+        vd.field_script_value("strife_opinion_gain_mult", sc);
+        vd.field_script_value("strife_opinion_loss_mult", sc);
+
+        vd.field_script_value("travel_companion_opinion", sc);
     }
 
     if kinds.intersects(ModifKinds::Character | ModifKinds::County) {
@@ -399,6 +449,7 @@ pub fn validate_modifs<'a>(
 
     if kinds.intersects(ModifKinds::Character | ModifKinds::Terrain) {
         vd.field_script_value("counter_efficiency", sc);
+        vd.field_script_value("counter_resistance", sc);
         vd.field_script_value("enemy_hard_casualty_modifier", sc);
         vd.field_script_value("hard_casualty_modifier", sc);
         vd.field_script_value("pursue_efficiency", sc);
@@ -465,12 +516,6 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("supply_limit_mult", sc);
         vd.field_script_value("tax_mult", sc);
         vd.field_script_value("supply_limit_mult", sc);
-        vd.field_script_value("world_innovation_camels_development_growth", sc);
-        vd.field_script_value("world_innovation_camels_development_growth_factor", sc);
-        vd.field_script_value("world_innovation_elephants_development_growth", sc);
-        vd.field_script_value("world_innovation_elephants_development_growth_factor", sc);
-        vd.field_script_value("world_steppe_development_growth", sc);
-        vd.field_script_value("world_steppe_development_growth_factor", sc);
     }
 
     if kinds.intersects(ModifKinds::Culture) {
@@ -490,6 +535,13 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("scheme_resistance", sc);
         vd.field_script_value("scheme_secrecy", sc);
         vd.field_script_value("scheme_success_chance", sc);
+    }
+
+    if kinds.intersects(ModifKinds::TravelPlan) {
+        vd.field_script_value("travel_safety", sc);
+        vd.field_script_value("travel_safety_mult", sc);
+        vd.field_script_value("travel_speed", sc);
+        vd.field_script_value("travel_speed_mult", sc);
     }
 
     'outer: for (token, bv) in vd.unknown_keys() {
@@ -512,8 +564,6 @@ pub fn validate_modifs<'a>(
             "_construction_gold_cost",
             "_construction_piety_cost",
             "_construction_prestige_cost",
-            "_development_growth",
-            "_development_growth_factor",
             "_holding_construction_gold_cost",
             "_holding_construction_piety_cost",
             "_holding_construction_prestige_cost",
@@ -539,6 +589,33 @@ pub fn validate_modifs<'a>(
                 kinds.require(ModifKinds::Character, token);
                 ScriptValue::validate_bv(bv, data, sc);
                 continue;
+            }
+        }
+
+        for trait_track_sfx in &["_xp_degradation_mult", "_xp_gain_mult", "_xp_loss_mult"] {
+            if let Some(trait_track) = token.as_str().strip_suffix(trait_track_sfx) {
+                data.verify_exists_implied(Item::TraitTrack, trait_track, token);
+                kinds.require(ModifKinds::Character, token);
+                ScriptValue::validate_bv(bv, data, sc);
+                continue 'outer;
+            }
+        }
+
+        for vassal_stance_sfx in &[
+            "_different_culture_opinion",
+            "_different_faith_opinion",
+            "_levy_contribution_add",
+            "_levy_contribution_mult",
+            "_same_culture_opinion",
+            "_same_faith_opinion",
+            "_tax_contribution_add",
+            "_tax_contribution_mult",
+        ] {
+            if let Some(vassal_stance) = token.as_str().strip_suffix(vassal_stance_sfx) {
+                data.verify_exists_implied(Item::VassalStance, vassal_stance, token);
+                kinds.require(ModifKinds::Character, token);
+                ScriptValue::validate_bv(bv, data, sc);
+                continue 'outer;
             }
         }
 
@@ -580,11 +657,12 @@ pub fn validate_modifs<'a>(
         }
 
         if let Some(something) = token.as_str().strip_suffix("_opinion") {
+            // TODO: add vassal stance item
             if !data.item_exists(Item::Religion, something)
                 && !data.item_exists(Item::Faith, something)
                 && !data.item_exists(Item::Culture, something)
                 && !data.item_exists(Item::ReligiousFamily, something)
-                && !data.item_exists(Item::Government, something)
+                && !data.item_exists(Item::GovernmentType, something)
             {
                 error(token, ErrorKey::MissingItem, "unknown opinion type (not faith, religion, religious family, culture, or government)");
             }
@@ -609,7 +687,10 @@ pub fn validate_modifs<'a>(
             "_toughness_add",
             "_toughness_mult",
         ] {
-            if let Some(maa_base) = token.as_str().strip_suffix(maa_sfx) {
+            if let Some(mut maa_base) = token.as_str().strip_suffix(maa_sfx) {
+                if let Some(real_maa_base) = maa_base.strip_prefix("stationed_") {
+                    maa_base = real_maa_base;
+                }
                 data.verify_exists_implied(Item::MenAtArmsBase, maa_base, token);
                 kinds.require(ModifKinds::Character, token);
                 ScriptValue::validate_bv(bv, data, sc);
@@ -626,8 +707,49 @@ pub fn validate_modifs<'a>(
             "_tax_contribution_mult",
         ] {
             if let Some(government) = token.as_str().strip_suffix(sfx) {
-                data.verify_exists_implied(Item::Government, government, token);
+                data.verify_exists_implied(Item::GovernmentType, government, token);
                 kinds.require(ModifKinds::Character, token);
+                ScriptValue::validate_bv(bv, data, sc);
+                continue 'outer;
+            }
+        }
+
+        for sfx in &["_development_growth", "_development_growth_factor"] {
+            if let Some(something) = token.as_str().strip_suffix(sfx) {
+                if !data.item_exists(Item::Region, something)
+                    && !data.item_exists(Item::Terrain, something)
+                {
+                    error(
+                        token,
+                        ErrorKey::MissingItem,
+                        "unknown terrain or geographical region",
+                    );
+                }
+                kinds.require(
+                    ModifKinds::Character | ModifKinds::Province | ModifKinds::County,
+                    token,
+                );
+                ScriptValue::validate_bv(bv, data, sc);
+                continue 'outer;
+            }
+        }
+
+        for sfx in &[
+            "_build_gold_cost",
+            "_build_piety_cost",
+            "_build_prestige_cost",
+            "_build_speed",
+            "_holding_build_gold_cost",
+            "_holding_build_piety_cost",
+            "_holding_build_prestige_cost",
+            "_holding_build_speed",
+        ] {
+            if let Some(region) = token.as_str().strip_suffix(sfx) {
+                data.verify_exists_implied(Item::Region, region, token);
+                kinds.require(
+                    ModifKinds::Character | ModifKinds::Province | ModifKinds::County,
+                    token,
+                );
                 ScriptValue::validate_bv(bv, data, sc);
                 continue 'outer;
             }

@@ -433,7 +433,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Faith, "change_fervor", ScriptValue),
     (Character, "change_first_name", Special(ChangeName)),
     (None, "change_global_variable", Special(ChangeVariable)),
-    (Character, "change_government", Item(Item::Government)),
+    (Character, "change_government", Item(Item::GovernmentType)),
     (Inspiration, "change_inspiration_progress", Integer),
     (Character, "change_liege", Special(ChangeLiege)),
     (None, "change_local_variable", Special(ChangeVariable)),

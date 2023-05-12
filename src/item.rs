@@ -45,7 +45,7 @@ pub enum Item {
     FaithIcon,
     File,
     GameConcept,
-    Government,
+    GovernmentType,
     GraphicalFaith,
     Holding,
     HolySite,
@@ -95,9 +95,11 @@ pub enum Item {
     TitleLawFlag,
     Tradition,
     Trait,
+    TraitTrack,
     TriggerLocalization,
     UnitGfx,
     VassalObligation,
+    VassalStance,
 }
 
 use crate::item::Item::*;
@@ -146,7 +148,7 @@ impl Item {
             Faction => "common/factions/",
             File => "",
             GameConcept => "common/game_concepts/",
-            Government => "common/governments/",
+            GovernmentType => "common/governments/",
             GraphicalFaith => "common/religion/religions/",
             Holding => "",
             HolySite => "common/religion/holy_sites/",
@@ -196,9 +198,11 @@ impl Item {
             TitleLawFlag => "common/laws/",
             Tradition => "common/culture/traditions/",
             Trait => "common/traits/",
+            TraitTrack => "common/traits/",
             TriggerLocalization => "common/trigger_localization",
             UnitGfx => "common/culture/cultures/",
             VassalObligation => "common/vassal_contracts/",
+            VassalStance => "common/vassal_stances/",
         }
     }
 }
@@ -246,7 +250,7 @@ impl Display for Item {
             FaithIcon => write!(f, "faith icon"),
             File => write!(f, "file"),
             GameConcept => write!(f, "game concept"),
-            Government => write!(f, "government"),
+            GovernmentType => write!(f, "government type"),
             GraphicalFaith => write!(f, "graphical faith"),
             Holding => write!(f, "holding"),
             HolySite => write!(f, "holy site"),
@@ -296,9 +300,11 @@ impl Display for Item {
             TitleLawFlag => write!(f, "title law flag"),
             Tradition => write!(f, "tradition"),
             Trait => write!(f, "trait"),
+            TraitTrack => write!(f, "trait track"),
             TriggerLocalization => write!(f, "trigger localization"),
             UnitGfx => write!(f, "unit gfx"),
             VassalObligation => write!(f, "vassal obligation"),
+            VassalStance => write!(f, "vassal stance"),
         }
     }
 }
