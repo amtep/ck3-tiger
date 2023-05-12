@@ -48,7 +48,7 @@ impl CharExt for char {
     }
 
     fn is_comparator_char(self) -> bool {
-        self == '<' || self == '>' || self == '!' || self == '='
+        self == '<' || self == '>' || self == '!' || self == '=' || self == '?'
     }
 }
 

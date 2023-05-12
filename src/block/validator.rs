@@ -91,7 +91,7 @@ impl<'a> Validator<'a> {
                     if let Some(other) = found {
                         dup_assign_error(key, other);
                     }
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     f(v);
                     found = Some(key);
                 }
@@ -249,7 +249,7 @@ impl<'a> Validator<'a> {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     match v {
                         BlockOrValue::Token(t) => vec.push(t),
                         BlockOrValue::Block(s) => {
@@ -267,7 +267,7 @@ impl<'a> Validator<'a> {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     if let Some(token) = bv.expect_value() {
                         self.data.verify_exists(itype, token);
                     }
@@ -282,7 +282,7 @@ impl<'a> Validator<'a> {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     found = true;
                 }
             }
@@ -299,7 +299,7 @@ impl<'a> Validator<'a> {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     if let Some(other) = found {
                         dup_assign_error(key, other);
                     }
@@ -323,7 +323,7 @@ impl<'a> Validator<'a> {
                     if let Some(other) = found {
                         dup_assign_error(key, other);
                     }
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     f(v, self.data);
                     found = Some(key);
                 }
@@ -341,7 +341,7 @@ impl<'a> Validator<'a> {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     f(v, self.data);
                     found = true;
                 }
@@ -359,7 +359,7 @@ impl<'a> Validator<'a> {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     match v {
                         BlockOrValue::Token(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
@@ -385,7 +385,7 @@ impl<'a> Validator<'a> {
                     if let Some(other) = found {
                         dup_assign_error(key, other);
                     }
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     match v {
                         BlockOrValue::Token(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
@@ -405,7 +405,7 @@ impl<'a> Validator<'a> {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     bv.expect_block();
                     found = true;
                 }
@@ -423,7 +423,7 @@ impl<'a> Validator<'a> {
                     if let Some((other, _)) = found {
                         dup_assign_error(key, other);
                     }
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     match v {
                         BlockOrValue::Token(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
@@ -495,7 +495,7 @@ impl<'a> Validator<'a> {
             if let Some(key) = k {
                 if key.as_str().parse::<i32>().is_ok() {
                     self.known_fields.push(key.as_str());
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     match v {
                         BlockOrValue::Token(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
@@ -514,7 +514,7 @@ impl<'a> Validator<'a> {
             if let Some(key) = k {
                 if key.as_str().parse::<i32>().is_ok() {
                     self.known_fields.push(key.as_str());
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     match v {
                         BlockOrValue::Token(t) => vec.push((key, t)),
                         BlockOrValue::Block(b) => {
@@ -535,7 +535,7 @@ impl<'a> Validator<'a> {
             if let Some(key) = k {
                 if let Ok(date) = Date::try_from(key) {
                     self.known_fields.push(key.as_str());
-                    expect_eq(key, cmp);
+                    expect_eq_qeq(key, cmp);
                     match v {
                         BlockOrValue::Token(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
@@ -626,12 +626,12 @@ impl<'a> Drop for Validator<'a> {
     }
 }
 
-fn expect_eq(key: &Token, cmp: &Comparator) {
-    if !matches!(cmp, Comparator::Eq) {
+fn expect_eq_qeq(key: &Token, cmp: &Comparator) {
+    if !matches!(cmp, Comparator::Eq | Comparator::QEq) {
         error(
             key,
             ErrorKey::Validation,
-            &format!("expected `{key} =`, found `{cmp}`"),
+            &format!("expected `{key} =` or `?=`, found `{cmp}`"),
         );
     }
 }

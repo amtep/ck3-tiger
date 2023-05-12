@@ -541,9 +541,9 @@ pub fn validate_trigger_key_bv(
         }
     }
 
-    if matches!(cmp, Comparator::Eq) {
+    if matches!(cmp, Comparator::Eq | Comparator::QEq) {
         if let Some(token) = warn_against_eq {
-            let msg = format!("`{token} =` means exactly equal to that amount, which is usually not what you want");
+            let msg = format!("`{token} {cmp}` means exactly equal to that amount, which is usually not what you want");
             warn(token, ErrorKey::Logic, &msg);
         }
     } else {

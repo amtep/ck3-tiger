@@ -363,7 +363,8 @@ impl Block {
 #[derive(Copy, Clone, Debug)]
 pub enum Comparator {
     None,
-    Eq, // Eq is also Assign
+    Eq,  // Eq is also Assign
+    QEq, // The ?= operator
     Lt,
     Gt,
     Le,
@@ -375,6 +376,8 @@ impl Comparator {
     pub fn from_str(s: &str) -> Option<Self> {
         if s == "=" {
             Some(Comparator::Eq)
+        } else if s == "?=" {
+            Some(Comparator::QEq)
         } else if s == "<" {
             Some(Comparator::Lt)
         } else if s == ">" {
@@ -399,6 +402,7 @@ impl Display for Comparator {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         match *self {
             Comparator::Eq => write!(f, "="),
+            Comparator::QEq => write!(f, "?="),
             Comparator::Lt => write!(f, "<"),
             Comparator::Gt => write!(f, ">"),
             Comparator::Le => write!(f, "<="),
