@@ -7,6 +7,7 @@
 * When using a scripted trigger in an effect, don't just say unknown token. Say this is a trigger and it should be in a limit field.
 * Certain script values are referenced in code; check that they are defined and have the right scopes.
 * It should be possible to follow scope definitions through on_actions and events and make sure every scope: reference is one that was set in previous code.
+* There are now a bunch of scopes that have "Execute Effects: no" in `event_scopes.log`. Check that those aren't used in effects (especially including the `set_variable` effect).
 
 
 ## Advice

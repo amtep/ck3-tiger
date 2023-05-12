@@ -46,7 +46,7 @@ pub fn scope_trigger_item(name: &str) -> Option<(Scopes, Item)> {
 /// LAST UPDATED VERSION 1.8.1
 /// See `triggers.log` from the game data dumps
 /// These are the triggers that do a simple comparison with a target scope item
-const SCOPE_TRIGGER_TARGET: &[(u32, &str, u32)] = &[
+const SCOPE_TRIGGER_TARGET: &[(u64, &str, u64)] = &[
     (Character, "can_attack_in_hierarchy", Character),
     (Character, "can_be_child_of", Character),
     (Artifact, "can_be_claimed_by", Character),
@@ -229,7 +229,7 @@ const SCOPE_TRIGGER_TARGET: &[(u32, &str, u32)] = &[
 /// LAST UPDATED VERSION 1.8.1
 /// See `triggers.log` from the game data dumps
 /// These are the triggers that take a simple yes or no
-const SCOPE_TRIGGER_BOOL: &[(u32, &str)] = &[
+const SCOPE_TRIGGER_BOOL: &[(u64, &str)] = &[
     (Activity, "activity_has_been_activated"),
     (Character, "allowed_concubines"),
     (Character, "allowed_more_concubines"),
@@ -404,7 +404,7 @@ const SCOPE_TRIGGER_BOOL: &[(u32, &str)] = &[
 /// LAST UPDATED VERSION 1.8.1
 /// See `triggers.log` from the game data dumps
 /// These are the triggers that compare to an item type
-const SCOPE_TRIGGER_ITEM: &[(u32, &str, Item)] = &[
+const SCOPE_TRIGGER_ITEM: &[(u64, &str, Item)] = &[
     (Artifact, "artifact_slot_type", Item::ArtifactSlot),
     (Artifact, "artifact_type", Item::Artifact),
     (Character, "can_execute_decision", Item::Decision),

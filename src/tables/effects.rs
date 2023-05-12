@@ -99,7 +99,7 @@ pub enum SpecialEffect {
     TriggerEvent,
     CreateImportantAction,
     CreateSuggestion,
-    VassalContract,
+    VassalContractSet,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -159,7 +159,7 @@ pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)>
 
 /// LAST UPDATED VERSION 1.8.1
 /// See `effects.log` from the game data dumps
-const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
+const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (
         Activity,
         "accept_invitation_for_character",
@@ -1091,7 +1091,7 @@ const SCOPE_EFFECT: &[(u32, &str, Effect)] = &[
     (
         Character,
         "vassal_contract_set_obligation_level",
-        Special(VassalContract),
+        Special(VassalContractSet),
     ),
     (Character, "visit_court_of", Scope(Scopes::Character)),
     (None, "while", Control(While)),

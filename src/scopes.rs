@@ -12,7 +12,7 @@ bitflags! {
     /// LAST UPDATED VERSION 1.8.1
     /// See `event_scopes.log` from the game data dumps.
     /// Keep in sync with the module constants below.
-    pub struct Scopes: u32 {
+    pub struct Scopes: u64 {
         const None = 0x0000_0001;
         const Value = 0x0000_0002;
         const Bool = 0x0000_0004;
@@ -44,6 +44,19 @@ bitflags! {
         const Inspiration = 0x1000_0000;
         const Struggle = 0x2000_0000;
         const CharacterMemory = 0x4000_0000;
+        const TravelPlan = 0x8000_0000;
+        const Accolade = 0x0000_0001_0000_0000;
+
+        const AccoladeType = 0x0000_0002_0000_0000;
+        const Decision = 0x0000_0004_0000_0000;
+        const Doctrine = 0x0000_0008_0000_0000;
+        const ActivityType = 0x0000_0010_0000_0000;
+        const CultureTradition = 0x0000_0020_0000_0000;
+        const CulturePillar = 0x0000_0040_0000_0000;
+        const GovernmentType = 0x0000_0080_0000_0000;
+        const Trait = 0x0000_0100_0000_0000;
+        const VassalContract = 0x0000_0200_0000_0000;
+        const VassalContractObligationLevel = 0x0000_0400_0000_0000;
     }
 }
 
@@ -66,41 +79,53 @@ impl Scopes {
     }
 }
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 /// See `event_scopes.log` from the game data dumps.
-pub const None: u32 = 0x0000_0001;
-pub const Value: u32 = 0x0000_0002;
-pub const Bool: u32 = 0x0000_0004;
-pub const Flag: u32 = 0x0000_0008;
-pub const Character: u32 = 0x0000_0010;
-pub const LandedTitle: u32 = 0x0000_0020;
-pub const Activity: u32 = 0x0000_0040;
-pub const Secret: u32 = 0x0000_0080;
-pub const Province: u32 = 0x0000_0100;
-pub const Scheme: u32 = 0x0000_0200;
-pub const Combat: u32 = 0x0000_0400;
-pub const CombatSide: u32 = 0x0000_0800;
-pub const TitleAndVassalChange: u32 = 0x0000_1000;
-pub const Faith: u32 = 0x0000_2000;
-pub const GreatHolyWar: u32 = 0x0000_4000;
-pub const Religion: u32 = 0x0000_8000;
-pub const War: u32 = 0x0001_0000;
-pub const StoryCycle: u32 = 0x0002_0000;
-pub const CasusBelli: u32 = 0x0004_0000;
-pub const Dynasty: u32 = 0x0008_0000;
-pub const DynastyHouse: u32 = 0x0010_0000;
-pub const Faction: u32 = 0x0020_0000;
-pub const Culture: u32 = 0x0040_0000;
-pub const Army: u32 = 0x0080_0000;
-pub const HolyOrder: u32 = 0x0100_0000;
-pub const CouncilTask: u32 = 0x0200_0000;
-pub const MercenaryCompany: u32 = 0x0400_0000;
-pub const Artifact: u32 = 0x0800_0000;
-pub const Inspiration: u32 = 0x1000_0000;
-pub const Struggle: u32 = 0x2000_0000;
-pub const CharacterMemory: u32 = 0x4000_0000;
-pub const ALL: u32 = 0x7fff_ffff;
-pub const ALL_BUT_NONE: u32 = 0x7fff_fffe;
+pub const None: u64 = 0x0000_0001;
+pub const Value: u64 = 0x0000_0002;
+pub const Bool: u64 = 0x0000_0004;
+pub const Flag: u64 = 0x0000_0008;
+pub const Character: u64 = 0x0000_0010;
+pub const LandedTitle: u64 = 0x0000_0020;
+pub const Activity: u64 = 0x0000_0040;
+pub const Secret: u64 = 0x0000_0080;
+pub const Province: u64 = 0x0000_0100;
+pub const Scheme: u64 = 0x0000_0200;
+pub const Combat: u64 = 0x0000_0400;
+pub const CombatSide: u64 = 0x0000_0800;
+pub const TitleAndVassalChange: u64 = 0x0000_1000;
+pub const Faith: u64 = 0x0000_2000;
+pub const GreatHolyWar: u64 = 0x0000_4000;
+pub const Religion: u64 = 0x0000_8000;
+pub const War: u64 = 0x0001_0000;
+pub const StoryCycle: u64 = 0x0002_0000;
+pub const CasusBelli: u64 = 0x0004_0000;
+pub const Dynasty: u64 = 0x0008_0000;
+pub const DynastyHouse: u64 = 0x0010_0000;
+pub const Faction: u64 = 0x0020_0000;
+pub const Culture: u64 = 0x0040_0000;
+pub const Army: u64 = 0x0080_0000;
+pub const HolyOrder: u64 = 0x0100_0000;
+pub const CouncilTask: u64 = 0x0200_0000;
+pub const MercenaryCompany: u64 = 0x0400_0000;
+pub const Artifact: u64 = 0x0800_0000;
+pub const Inspiration: u64 = 0x1000_0000;
+pub const Struggle: u64 = 0x2000_0000;
+pub const CharacterMemory: u64 = 0x4000_0000;
+pub const TravelPlan: u64 = 0x8000_0000;
+pub const Accolade: u64 = 0x0000_0001_0000_0000;
+pub const AccoladeType: u64 = 0x0000_0002_0000_0000;
+pub const Decision: u64 = 0x0000_0004_0000_0000;
+pub const Doctrine: u64 = 0x0000_0008_0000_0000;
+pub const ActivityType: u64 = 0x0000_0010_0000_0000;
+pub const CultureTradition: u64 = 0x0000_0020_0000_0000;
+pub const CulturePillar: u64 = 0x0000_0040_0000_0000;
+pub const GovernmentType: u64 = 0x0000_0080_0000_0000;
+pub const Trait: u64 = 0x0000_0100_0000_0000;
+pub const VassalContract: u64 = 0x0000_0200_0000_0000;
+pub const VassalContractObligationLevel: u64 = 0x0000_0400_0000_0000;
+pub const ALL: u64 = 0x7fff_ffff_ffff_ffff;
+pub const ALL_BUT_NONE: u64 = 0x7fff_ffff_ffff_fffe;
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
@@ -135,6 +160,18 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "inspiration" => Scopes::Inspiration,
         "struggle" => Scopes::Struggle,
         "character_memory" => Scopes::CharacterMemory,
+        "travel_plan" => Scopes::TravelPlan,
+        "accolade" => Scopes::Accolade,
+        "accolade_type" => Scopes::AccoladeType,
+        "decision" => Scopes::Decision,
+        "doctrine" => Scopes::Doctrine,
+        "activity_type" => Scopes::ActivityType,
+        "culture_tradition" => Scopes::CultureTradition,
+        "culture_pillar" => Scopes::CulturePillar,
+        "government_type" => Scopes::GovernmentType,
+        "trait" => Scopes::Trait,
+        "vassal_contract" => Scopes::VassalContract,
+        "vassal_contract_obligation_level" => Scopes::VassalContractObligationLevel,
         _ => return std::option::Option::None,
     })
 }
@@ -320,6 +357,42 @@ impl Display for Scopes {
             if self.contains(Scopes::CharacterMemory) {
                 vec.push("character memory");
             }
+            if self.contains(Scopes::TravelPlan) {
+                vec.push("travel plan");
+            }
+            if self.contains(Scopes::Accolade) {
+                vec.push("accolade");
+            }
+            if self.contains(Scopes::AccoladeType) {
+                vec.push("accolade type");
+            }
+            if self.contains(Scopes::Decision) {
+                vec.push("decision");
+            }
+            if self.contains(Scopes::Doctrine) {
+                vec.push("doctrine");
+            }
+            if self.contains(Scopes::ActivityType) {
+                vec.push("activity type");
+            }
+            if self.contains(Scopes::CultureTradition) {
+                vec.push("culture tradition");
+            }
+            if self.contains(Scopes::CulturePillar) {
+                vec.push("culture pillar");
+            }
+            if self.contains(Scopes::GovernmentType) {
+                vec.push("government type");
+            }
+            if self.contains(Scopes::Trait) {
+                vec.push("trait");
+            }
+            if self.contains(Scopes::VassalContract) {
+                vec.push("vassal contract");
+            }
+            if self.contains(Scopes::VassalContractObligationLevel) {
+                vec.push("vassal contract obligation level");
+            }
             for i in 0..vec.len() {
                 write!(f, "{}", vec[i])?;
                 if i + 1 == vec.len() {
@@ -337,7 +410,7 @@ impl Display for Scopes {
 /// LAST UPDATED VERSION 1.8.1
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
-const SCOPE_TO_SCOPE: &[(u32, &str, u32)] = &[
+const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Character, "activity", Activity),
     (Activity, "activity_owner", Character),
     (Activity, "activity_province", Province),
@@ -479,7 +552,7 @@ const SCOPE_TO_SCOPE: &[(u32, &str, u32)] = &[
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
-const SCOPE_FROM_PREFIX: &[(u32, &str, u32)] = &[
+const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
     (Character, "aptitude", Value),
     (None, "array_define", Value),
     (None, "character", Character),
@@ -509,7 +582,7 @@ const SCOPE_FROM_PREFIX: &[(u32, &str, u32)] = &[
 /// LAST UPDATED VERSION 1.8.1
 /// See `triggers.log` from the game data dumps
 /// These are 'triggers' that return a value.
-const SCOPE_VALUE: &[(u32, &str)] = &[
+const SCOPE_VALUE: &[(u64, &str)] = &[
     (LandedTitle, "active_de_jure_drift_progress"),
     (Character, "age"),
     (Character, "ai_boldness"),
@@ -735,7 +808,7 @@ const SCOPE_VALUE: &[(u32, &str)] = &[
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
-const SCOPE_ITERATOR: &[(u32, &str, u32)] = &[
+const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Activity, "activity_declined", Character),
     (Activity, "activity_invited", Character),
     (Character, "alert_creatable_title", LandedTitle),

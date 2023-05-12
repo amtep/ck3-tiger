@@ -5,7 +5,15 @@ import sys
 
 fname = sys.argv[1]
 
-text = open(fname, encoding="windows-1252").read()
+print(fname, file=sys.stderr)
+try:
+    text = open(fname, encoding="utf-8").read()
+except:
+    try:
+        text = open(fname, encoding="windows-1252").read()
+    except:
+        # triggers.log has a stray 0x90 in it
+        text = open(fname, encoding="utf-8", errors="replace").read()
 
 SEPARATOR = "\n--------------------\n\n"
 
