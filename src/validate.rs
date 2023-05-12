@@ -349,6 +349,35 @@ pub fn validate_inside_iterator(
         vd.ban_field("max_naval_distance", only_for);
         vd.ban_field("allow_one_county_land_gap", only_for);
     }
+
+    if name == "activity_phase_location"
+        || name == "activity_phase_location_future"
+        || name == "activity_phase_location_past"
+    {
+        vd.field_bool("unique");
+    } else {
+        let only_for = || format!("the `{listtype}_activity_phase_location` family of iterators");
+        vd.ban_field("unique", only_for);
+    }
+
+    if name == "guest_subset" || name == "guest_subset_current_phase" {
+        vd.field_value("name"); // TODO
+    } else {
+        vd.ban_field("name", || {
+            format!("`{listtype}_guest_subset` and `{listtype}_guest_subset_current_phase`")
+        });
+    }
+    if name == "guest_subset" {
+        vd.field_value("phase"); // TODO
+    } else {
+        vd.ban_field("phase", || format!("`{listtype}_guest_subset`"));
+    }
+
+    if name == "trait_in_category" {
+        vd.field_value("category"); // TODO
+    } else {
+        vd.ban_field("category", || format!("`{listtype}_trait_in_category`"));
+    }
 }
 
 pub fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {

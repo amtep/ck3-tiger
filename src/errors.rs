@@ -433,7 +433,8 @@ pub fn error3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
 }
 
 pub fn error_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
-    Errors::get_mut().push(eloc, ErrorLevel::Error, key, msg, Some(info));
+    let info = if info.is_empty() { None } else { Some(info) };
+    Errors::get_mut().push(eloc, ErrorLevel::Error, key, msg, info);
 }
 
 pub fn warn<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
@@ -466,7 +467,8 @@ pub fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
 }
 
 pub fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
-    Errors::get_mut().push(eloc, ErrorLevel::Warning, key, msg, Some(info));
+    let info = if info.is_empty() { None } else { Some(info) };
+    Errors::get_mut().push(eloc, ErrorLevel::Warning, key, msg, info);
 }
 
 pub fn info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
@@ -474,7 +476,8 @@ pub fn info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
 }
 
 pub fn info_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
-    Errors::get_mut().push(eloc, ErrorLevel::Info, key, msg, Some(info));
+    let info = if info.is_empty() { None } else { Some(info) };
+    Errors::get_mut().push(eloc, ErrorLevel::Info, key, msg, info);
 }
 
 pub fn advice<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
@@ -482,7 +485,8 @@ pub fn advice<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
 }
 
 pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
-    Errors::get_mut().push(eloc, ErrorLevel::Advice, key, msg, Some(info));
+    let info = if info.is_empty() { None } else { Some(info) };
+    Errors::get_mut().push(eloc, ErrorLevel::Advice, key, msg, info);
 }
 
 pub fn ignore_key_for(path: PathBuf, key: ErrorKey) {

@@ -34,6 +34,7 @@ pub enum ErrorKey {
     Logic,
     Bugs,
     DataFunctions,
+    Removed,
 
     PrincesOfDarkness,
 }

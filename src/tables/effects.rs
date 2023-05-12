@@ -27,12 +27,14 @@ pub enum SpecialEffect {
     ActivateCatalyst,
     ArtifactHistory,
     ArtifactTitleHistory,
+    AddActivityLogEntry,
     AddCharacterFlag,
     AddModifier,
     AddFromContribution,
     AddHook,
     AddOpinion,
     AddRandomInnovation,
+    AddTraitXp,
     RelationFlag,
     AddSchemeCooldown,
     AddToList,
@@ -50,6 +52,7 @@ pub enum SpecialEffect {
     ChangeTraitRank,
     CloseView,
     CopyLocalizedText,
+    CreateAccolade,
     CreateAlliance,
     CreateArtifact,
     CreateCharacter,
@@ -60,6 +63,7 @@ pub enum SpecialEffect {
     CreateStory,
     CreateTitleChange,
     Death,
+    DelayTravelPlan,
     DivideWarChest,
     Duel,
     EndWar,
@@ -88,12 +92,15 @@ pub enum SpecialEffect {
     SetRelation,
     KnightStatus,
     ArtifactOwner,
+    SetLocation,
     SetTraitRank,
     SetupCb,
+    SchemeFreeze,
     SpawnActivity,
     SpawnArmy,
     StartGhw,
     StartStruggle,
+    StartTravelPlan,
     StartWar,
     Stress,
     TriggerEvent,
@@ -117,10 +124,12 @@ pub enum Effect {
     ItemTarget(&'static str, Item, &'static str, Scopes),
     ItemValue(&'static str, Item),
     Desc,
-    Gender, // male/female/random
+    Gender,   // male/female/random
+    Timespan, // days/weeks/months/years
     Special(SpecialEffect),
     Control(ControlEffect),
     Unchecked, // so special that we just accept whatever argument
+    Removed(&'static str, &'static str),
 }
 
 pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)> {
@@ -157,9 +166,24 @@ pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)>
     std::option::Option::None
 }
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 /// See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
+    (TravelPlan, "abort_travel_plan", Effect::Bool),
+    (
+        ALL,
+        "accept_invitation_for_character",
+        Removed(
+            "1.9",
+            "replaced by `accept_activity_invite` or `accept_activity_invite_without_travel`",
+        ),
+    ),
+    (Character, "accept_activity_invite", Scope(Scopes::Activity)),
+    (
+        Character,
+        "accept_activity_invite_without_travel",
+        Scope(Scopes::Activity),
+    ),
     (
         Activity,
         "accept_invitation_for_character",
@@ -170,6 +194,11 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         Struggle,
         "activate_struggle_catalyst",
         Special(ActivateCatalyst),
+    ),
+    (
+        Activity,
+        "add_activity_log_entry",
+        Special(AddActivityLogEntry),
     ),
     (
         Character,
@@ -185,13 +214,19 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     ),
     (War, "add_attacker", Scope(Scopes::Character)),
     (Province, "add_building", Item(Item::Building)),
-    (Province, "add_building_slot", Integer),
+    (
+        ALL,
+        "add_building_slot",
+        Removed("1.9", "replaced by the `extra_building_slot` modifier"),
+    ),
     (Character, "add_character_flag", Special(AddCharacterFlag)),
     (Character, "add_character_modifier", Special(AddModifier)),
+    (TravelPlan, "add_companion", Scope(Scopes::Character)),
     (LandedTitle, "add_county_modifier", Special(AddModifier)),
     (Character, "add_courtier", Scope(Scopes::Character)),
     (Culture, "add_culture_tradition", Item(Item::Tradition)),
     (War, "add_defender", Scope(Scopes::Character)),
+    (TravelPlan, "add_destination_progress", Timespan),
     (Character, "add_diplomacy_skill", Effect::Value),
     (Faith, "add_doctrine", Item(Item::Doctrine)),
     (Character, "add_dread", Effect::Value),
@@ -212,6 +247,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "add_from_contribution_defenders",
         Special(AddFromContribution),
     ),
+    (Accolade, "add_glory", Effect::Value),
     (Character, "add_gold", NonNegativeValue),
     (Character, "add_hook", Special(AddHook)),
     (Character, "add_hook_no_toast", Special(AddHook)),
@@ -297,7 +333,17 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     ),
     (LandedTitle, "add_title_law", Item(Item::Law)),
     (LandedTitle, "add_title_law_effects", Item(Item::Law)),
+    (Character, "add_to_activity", Scope(Scopes::Activity)),
+    (
+        Character,
+        "add_to_activity_without_travel",
+        Scope(Scopes::Activity),
+    ),
+    // TODO: figure out the name = parameter for this
+    (Activity, "add_to_current_phase_guest_subset", Unchecked),
     (None, "add_to_global_variable_list", Special(AddToList)),
+    // TODO: figure out the parameters for this
+    (Activity, "add_to_guest_subset", Unchecked),
     (ALL_BUT_NONE, "add_to_list", Unchecked),
     (None, "add_to_local_variable_list", Special(AddToList)),
     (Character, "add_to_scheme", Scope(Scopes::Scheme)),
@@ -305,6 +351,10 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "add_to_variable_list", Special(AddToList)),
     (Character, "add_trait", Item(Item::Trait)),
     (Character, "add_trait_force_tooltip", Item(Item::Trait)),
+    (Character, "add_trait_xp", Special(AddTraitXp)),
+    (Character, "add_travel_option", Unchecked),
+    (TravelPlan, "add_travel_plan_modifier", Special(AddModifier)),
+    (TravelPlan, "add_travel_waypoint", Item(Item::Province)),
     (Character, "add_truce_both_ways", Special(AddTruce)),
     (Character, "add_truce_one_way", Special(AddTruce)),
     (Character, "add_tyranny", Effect::Value),
@@ -351,6 +401,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Province, "begin_create_holding", Special(CreateHolding)),
     (Character, "break_alliance", Scope(Scopes::Character)),
     (Character, "break_betrothal", Scope(Scopes::Character)),
+    (TravelPlan, "cancel_travel_plan", Effect::Bool),
     (
         Character,
         "cancel_truce_both_ways",
@@ -378,6 +429,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "change_development_progress_with_overflow",
         Effect::Value,
     ),
+    (Character, "change_diarchy_swing", ScriptValue),
     (Faith, "change_fervor", ScriptValue),
     (Character, "change_first_name", Special(ChangeName)),
     (None, "change_global_variable", Special(ChangeVariable)),
@@ -386,6 +438,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "change_liege", Special(ChangeLiege)),
     (None, "change_local_variable", Special(ChangeVariable)),
     (Character, "change_prison_type", Item(Item::PrisonType)),
+    (Character, "change_strife_opinion", ScriptValue),
     (Struggle, "change_struggle_phase", Item(Item::StrugglePhase)),
     (Character, "change_target_weight", Effect::Value),
     (
@@ -419,7 +472,9 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "clear_variable_list", Unchecked),
     (None, "close_all_views", Yes),
     (None, "close_view", Special(CloseView)),
-    (Activity, "complete_activity", Effect::Bool),
+    (Activity, "complete_activity", Removed("1.9", "")),
+    (Activity, "complete_activity_intent", Effect::Bool),
+    (Activity, "complete_travel_plan", Effect::Bool),
     (
         Character,
         "consume_banish_reasons",
@@ -459,6 +514,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         Scope(Scopes::LandedTitle),
     ),
     (Character, "copy_traits", Scope(Scopes::Character)),
+    (None, "create_accolade", Special(CreateAccolade)),
     (Character, "create_alliance", Special(CreateAlliance)),
     (Character, "create_artifact", Special(CreateArtifact)),
     (Character, "create_betrothal", Scope(Scopes::Character)),
@@ -512,11 +568,19 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "debug_log_scopes", Effect::Bool),
     (None, "debug_trigger_event", Item(Item::Event)),
     (
-        Activity,
+        ALL,
         "decline_invitation_for_character",
-        Scope(Scopes::Character),
+        Removed("1.9", "replaced by `decline_activity_invite`"),
     ),
+    (
+        Character,
+        "decline_invitation_for_character",
+        Scope(Scopes::Activity),
+    ),
+    (TravelPlan, "delay_travel_plan", Special(DelayTravelPlan)),
     (Character, "depose", Yes),
+    (Character, "depose_diarch", Effect::Bool),
+    (Character, "designate_diarch", Scope(Scopes::Character)),
     (None, "destroy_artifact", Scope(Scopes::Artifact)),
     (
         None,
@@ -525,6 +589,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     ),
     (Faction, "destroy_faction", Yes),
     (None, "destroy_inspiration", Scope(Scopes::Inspiration)),
+    (Character, "destroy_owned_artifact", Scope(Scopes::Artifact)),
     (Character, "destroy_title", Scope(Scopes::LandedTitle)),
     (Secret, "disable_exposure_by", Scope(Scopes::Character)),
     (GreatHolyWar, "divide_war_chest", Special(DivideWarChest)),
@@ -537,6 +602,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "duel", Special(Duel)),
     (None, "else", Control(Else)),
     (None, "else_if", Control(If)),
+    (Character, "end_diarchy", Effect::Bool),
     (
         Character,
         "end_inspiration_sponsorship",
@@ -549,6 +615,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (War, "end_war", Special(EndWar)),
     (Artifact, "equip_artifact_to_owner", Yes),
     (Artifact, "equip_artifact_to_owner_replace", Yes),
+    (None, "error_log", Unchecked),
     (Character, "execute_decision", Item(Item::Decision)),
     (Scheme, "expose_scheme", Yes),
     (Scheme, "expose_scheme_agent", Scope(Scopes::Character)),
@@ -577,15 +644,26 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "get_title", Scope(Scopes::LandedTitle)),
     (Character, "give_nickname", Item(Item::Nickname)),
     (None, "hidden_effect", Control(HiddenEffect)),
-    (None, "hidden_effect_new_artifact", Control(HiddenEffect)),
+    (
+        None,
+        "hidden_effect_new_artifact",
+        Removed("1.9", "replaced by `hidden_effect_new_object`"),
+    ),
+    (None, "hidden_effect_new_object", Control(HiddenEffect)),
     (None, "if", Control(If)),
     (Character, "imprison", Special(Imprison)),
+    (None, "invalidate_activity", Scope(Scopes::Activity)),
+    (Character, "invalidate_diarch_if_needed", Effect::Bool),
     (Inspiration, "invest_gold", NonNegativeValue),
     (
-        Activity,
+        ALL,
         "invite_character_to_activity",
-        Scope(Scopes::Character),
+        Removed(
+            "1.9",
+            "replaced by `invite_to_activity` which works the other way around",
+        ),
     ),
+    (Character, "invite_to_activity", Scope(Scopes::Activity)),
     (Culture, "join_era", Item(Item::CultureEra)),
     (Character, "join_faction", Scope(Scopes::Faction)),
     (Character, "join_faction_forced", Special(JoinFactionForced)),
@@ -604,7 +682,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (LandedTitle, "lease_out_to", Scope(Scopes::HolyOrder)),
     (Culture, "leave_era", Item(Item::CultureEra)),
     (Character, "leave_faction", Scope(Scopes::Faction)),
-    (CombatSide, "lose_combat", Effect::Bool),
+    (ALL, "lose_combat", Removed("1.9", "")),
     (Character, "make_claim_strong", Scope(Scopes::LandedTitle)),
     (Character, "make_claim_weak", Scope(Scopes::LandedTitle)),
     (Character, "make_concubine", Scope(Scopes::Character)),
@@ -626,7 +704,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "make_unprunable", Yes),
     (Character, "marry", Scope(Scopes::Character)),
     (Character, "marry_matrilineal", Scope(Scopes::Character)),
-    (Activity, "move_activity", Scope(Scopes::Province)),
+    (ALL, "move_activity", Removed("1.9", "")),
     (Character, "move_budget_gold", Special(MoveBudget)),
     (Character, "move_to_pool", Yes),
     (Character, "move_to_pool_at", Scope(Scopes::Province)),
@@ -646,6 +724,8 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "pay_long_term_gold",
         TargetValue("target", Scopes::Character, "gold"),
     ),
+    (TravelPlan, "pause_travel_plan", Effect::Bool),
+    (TravelPlan, "pause_travel_plan_mp", Effect::Bool),
     (Character, "pay_long_term_income", Special(PayIncome)),
     (
         Character,
@@ -669,6 +749,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "play_sound_effect", Unchecked),
     (GreatHolyWar, "pledge_attacker", Scope(Scopes::Character)),
     (GreatHolyWar, "pledge_defender", Scope(Scopes::Character)),
+    (Activity, "progress_activity_phase_after", Timespan),
     (None, "random", Control(Random)),
     (None, "random_list", Control(RandomList)),
     (None, "random_log_scopes", Effect::Bool),
@@ -679,6 +760,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "refund_all_perks", Yes),
     (Character, "refund_perks", Item(Item::Lifestyle)),
     (Character, "release_from_prison", Yes),
+    (Accolade, "remove_acclaimed_knight", Yes),
     (
         Character,
         "remove_all_character_modifier_instances",
@@ -705,12 +787,18 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         Item(Item::Modifier),
     ),
     (
+        TravelPlan,
+        "remove_all_travel_plan_modifier_instances",
+        Item(Item::Modifier),
+    ),
+    (
         Artifact,
         "remove_artifact_feature_group",
         Item(Item::ArtifactFeatureGroup),
     ),
     (Artifact, "remove_artifact_modifier", Item(Item::Modifier)),
     (Province, "remove_building", Item(Item::Building)),
+    (TravelPlan, "remove_character", Scope(Scopes::Character)),
     (Character, "remove_character_flag", Unchecked),
     (Character, "remove_character_modifier", Item(Item::Modifier)),
     (Character, "remove_claim", Scope(Scopes::LandedTitle)),
@@ -723,6 +811,15 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Faith, "remove_doctrine", Item(Item::Doctrine)),
     (Dynasty, "remove_dynasty_modifier", Item(Item::Modifier)),
     (Dynasty, "remove_dynasty_perk", Item(Item::DynastyPerk)),
+    (Character, "remove_from_activity", Scope(Scopes::Activity)),
+    // TODO: figure out what to put for name = <subset_key>
+    (
+        Activity,
+        "remove_from_current_phase_guest_subset",
+        Unchecked,
+    ),
+    // TODO: figure out what to put for name = <subset_key> and phase = <phase_key>
+    (Activity, "remove_from_guest_subset", Unchecked),
     (ALL_BUT_NONE, "remove_from_list", Unchecked),
     (None, "remove_global_variable", Unchecked),
     (Province, "remove_holding", Yes),
@@ -788,6 +885,13 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     // remove_title_law_effects -- no idea
     (Character, "remove_trait", Item(Item::Trait)),
     (Character, "remove_trait_force_tooltip", Item(Item::Trait)),
+    // TODO: figure out which item this is
+    (TravelPlan, "remove_travel_option", Unchecked),
+    (
+        TravelPlan,
+        "remove_travel_plan_modifier",
+        Item(Item::Modifier),
+    ),
     (None, "remove_variable", Unchecked),
     (Character, "remove_war_chest_gold", NonNegativeValue),
     (
@@ -795,6 +899,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "replace_court_position",
         Special(ReplaceCourtPosition),
     ),
+    (TravelPlan, "reroute_to_home", Effect::Bool),
     (Character, "reset_beneficiary", Yes),
     (LandedTitle | Dynasty | DynastyHouse, "reset_coa", Yes),
     (Culture, "reset_culture_creation_date", Yes),
@@ -806,6 +911,8 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "resolve_title_and_vassal_change",
         Scope(Scopes::TitleAndVassalChange),
     ),
+    (TravelPlan, "resume_travel_plan", Effect::Bool),
+    (TravelPlan, "resume_travel_plan_mp", Effect::Bool),
     (Character, "return_to_court", Yes),
     (Secret, "reveal_to", Scope(Scopes::Character)),
     (Character, "reverse_add_opinion", Special(AddOpinion)),
@@ -835,7 +942,13 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     ),
     (ALL_BUT_NONE, "save_temporary_scope_as", Unchecked),
     (None, "save_temporary_scope_value_as", Special(SaveValue)),
-    (Scheme, "scheme_freeze_days", Effect::Value),
+    (
+        ALL,
+        "scheme_freeze_days",
+        Removed("1.9", "replaced by `scheme_freeze`"),
+    ),
+    (Scheme, "scheme_freeze", Special(SchemeFreeze)),
+    (Scheme, "scheme_unfreeze", Yes),
     (
         Character,
         "send_interface_message",
@@ -843,6 +956,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     ),
     (Character, "send_interface_toast", Control(InterfaceMessage)),
     (Character, "set_absolute_country_control", Effect::Bool),
+    (Activity, "set_activity_host", Scope(Scopes::Character)),
     (Character, "set_age", ScriptValue),
     (LandedTitle, "set_always_follows_primary_heir", Yes),
     (
@@ -943,6 +1057,10 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (LandedTitle, "set_destroy_if_invalid_heir", Effect::Bool),
     (LandedTitle, "set_destroy_on_gain_same_tier", Effect::Bool),
     (LandedTitle, "set_destroy_on_succession", Effect::Bool),
+    (Character, "set_diarch", Scope(Scopes::Character)),
+    (Character, "set_diarchy_mandate", Unchecked), // TODO
+    (Character, "set_diarchy_swing", ScriptValue),
+    (Character, "set_diarchy_type", Unchecked), // TODO
     (Dynasty, "set_dynasty_name", Item(Item::Localization)),
     (Character, "set_employer", Scope(Scopes::Character)),
     (Culture, "set_ethos_from", Scope(Scopes::Culture)),
@@ -981,6 +1099,8 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (LandedTitle, "set_landless_title", Effect::Bool),
     (Culture, "set_language_from", Scope(Scopes::Culture)),
     (None, "set_local_variable", Special(SetVariable)),
+    (Character, "set_location", Special(SetLocation)),
+    (Character, "set_location_to_default", Effect::Bool),
     (Culture, "set_martial_custom_from", Scope(Scopes::Culture)),
     (Artifact, "set_max_durability", Effect::Value),
     (Character, "set_mother", Scope(Scopes::Character)),
@@ -1019,6 +1139,12 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (LandedTitle, "set_title_prefix", Item(Item::Localization)),
     (Character, "set_to_lowborn", Yes),
     (Character, "set_trait_rank", Special(SetTraitRank)),
+    (TravelPlan, "set_travel_leader", Scope(Scopes::Character)),
+    (
+        TravelPlan,
+        "set_travel_plan_owner",
+        Scope(Scopes::Character),
+    ),
     (None, "set_variable", Special(SetVariable)),
     (
         Character,
@@ -1030,11 +1156,13 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "setup_de_jure_cb", Special(SetupCb)),
     (None, "setup_invasion_cb", Special(SetupCb)),
     (None, "show_as_tooltip", Control(ShowAsTooltip)),
-    (Province, "spawn_activity", Special(SpawnActivity)),
+    (Activity, "skip_activity_phase", Effect::Bool),
+    (ALL, "spawn_activity", Removed("1.9", "")),
     (Character, "spawn_army", Special(SpawnArmy)),
     (Secret, "spend_by", Scope(Scopes::Character)),
     (Character, "sponsor_inspiration", Scope(Scopes::Inspiration)),
     (Character, "start_default_task", Yes),
+    (Character, "start_diarchy", Unchecked), // TODO
     (GreatHolyWar, "start_ghw_war", Item(Item::CasusBelli)),
     (Faith, "start_great_holy_war", Special(StartGhw)),
     (
@@ -1043,6 +1171,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         ItemTarget("type", Item::Scheme, "target", Scopes::Character),
     ),
     (None, "start_struggle", Special(StartStruggle)),
+    (Character, "start_travel_plan", Special(StartTravelPlan)),
     (None, "start_tutorial_lesson", Unchecked),
     (Character, "start_war", Special(StartWar)),
     (Character, "store_localized_text_in_death", Unchecked),
@@ -1095,9 +1224,5 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     ),
     (Character, "visit_court_of", Scope(Scopes::Character)),
     (None, "while", Control(While)),
-    (CombatSide, "win_combat", Effect::Bool),
-    // TODO special: add_<lifestyle>_perk_points
-    // TODO special: add_<lifestyle>_xp
-    // TODO special: remove_relation_<relation>
-    // TODO special: set_relation_<relation>
+    (ALL, "win_combat", Removed("1.9", "")),
 ];

@@ -4,7 +4,7 @@ use bitflags::bitflags;
 use std::fmt::{Display, Formatter};
 
 use crate::errorkey::ErrorKey;
-use crate::errors::warn;
+use crate::errors::{warn, warn_info};
 use crate::everything::Everything;
 use crate::token::Token;
 
@@ -242,6 +242,13 @@ pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes
                 Scopes::from_bits_truncate(*from),
                 Scopes::from_bits_truncate(*to),
             ));
+        }
+    }
+    for (s, version, explanation) in SCOPE_REMOVED_ITERATOR {
+        if name.is(s) {
+            let msg = format!("`{name}` iterators were removed in {version}");
+            warn_info(name, ErrorKey::Removed, &msg, explanation);
+            return Some((Scopes::all(), Scopes::all()));
         }
     }
     if data.scripted_lists.exists(name.as_str()) {
@@ -804,23 +811,33 @@ const SCOPE_VALUE: &[(u64, &str)] = &[
 // TODO Special:
 // <legacy>_track_perks
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
 const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
-    (Activity, "activity_declined", Character),
-    (Activity, "activity_invited", Character),
+    (Activity, "acclaimed_knight", Character),
+    (Activity, "accolade", Character),
+    (None, "accolade_type", AccoladeType),
+    (Character, "active_accolade", Accolade),
+    (None, "activity", Activity),
+    (Activity, "activity_phase_location", Province),
+    (Activity, "activity_phase_location_future", Province),
+    (Activity, "activity_phase_location_past", Province),
+    (None, "activity_type", ActivityType),
     (Character, "alert_creatable_title", LandedTitle),
     (Character, "alert_usurpable_title", LandedTitle),
     (Character, "ally", Character),
     (Character, "ancestor", Character),
     (Character, "army", Army),
+    (Province, "army_in_location", Army),
     (None, "artifact", Artifact),
     (Artifact, "artifact_claimant", Character),
     (Artifact, "artifact_house_claimant", DynastyHouse),
+    (Activity, "attending_character", Character),
     (None, "barony", LandedTitle),
     (Character, "character_artifact", Artifact),
+    (Province, "character_in_location", Character),
     (Character, "character_struggle", Struggle),
     (
         Character,
@@ -862,6 +879,7 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
         "character_to_title_neighboring_kingdom",
         LandedTitle,
     ),
+    (Character, "character_trait", Trait),
     (Character, "character_war", War),
     (None, "character_with_royal_court", Character),
     (Character, "child", Character),
@@ -870,6 +888,7 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Character, "claimed_artifact", Artifact),
     (Character, "close_family_member", Character),
     (Character, "close_or_extended_family_member", Character),
+    (Combat, "combat_side", CombatSide),
     (Character, "concubine", Character),
     (LandedTitle, "connected_county", LandedTitle),
     (Character, "consort", Character),
@@ -889,22 +908,28 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Culture, "culture_empire", LandedTitle),
     (None, "culture_global", Culture),
     (Culture, "culture_kingdom", LandedTitle),
+    (None, "culture_pillar", CulturePillar),
+    (None, "culture_tradition", CultureTradition),
     (Character, "de_jure_claim", LandedTitle),
     (LandedTitle, "de_jure_county", LandedTitle),
     (LandedTitle, "de_jure_county_holder", Character),
     (LandedTitle, "de_jure_top_liege", Character),
+    (None, "decision", Decision),
     (Faith, "defensive_great_holy_wars", GreatHolyWar),
     (LandedTitle, "dejure_vassal_title_holder", Character),
+    (Character, "diarchy_succession_character", Character),
     (Character, "diplomacy_councillor", Character),
     (LandedTitle, "direct_de_facto_vassal_title", LandedTitle),
     (LandedTitle, "direct_de_jure_vassal_title", LandedTitle),
     (Character, "directly_owned_province", Province),
+    (None, "doctrine", Doctrine),
     (None, "duchy", LandedTitle),
     (Dynasty, "dynasty_member", Character),
     (LandedTitle, "election_candidate", Character),
     (Character, "election_title", LandedTitle),
     (LandedTitle, "elector", Character),
     (None, "empire", LandedTitle),
+    (TravelPlan, "entourage_character", Character),
     (Character, "equipped_character_artifact", Artifact),
     (Character, "extended_family_member", Character),
     (Faction, "faction_county_member", LandedTitle),
@@ -918,7 +943,11 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Character, "former_concubine", Character),
     (Character, "former_concubinist", Character),
     (Character, "former_spouse", Character),
+    (TravelPlan, "future_path_location", Province),
     (Character, "general_councillor", Character),
+    (Character, "government_type", GovernmentType),
+    (Activity, "guest_subset", Character),
+    (Activity, "guest_subset_current_phase", Character),
     (Character, "heir", Character),
     // TODO one of these might be reversed
     (Character, "heir_title", LandedTitle),
@@ -940,6 +969,8 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (None, "inspired_character", Character),
     (Struggle, "interloper_ruler", Character),
     (Character, "intrigue_councillor", Character),
+    (Character, "invited_activity", Activity),
+    (Activity, "invited_character", Character),
     (Struggle, "involved_ruler", Character),
     (Character | Artifact, "killed_character", Character),
     (None, "kingdom", LandedTitle),
@@ -950,6 +981,7 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Character, "liege_or_above", Character),
     (None, "living_character", Character),
     (Character, "martial_councillor", Character),
+    (None, "mercenary_company", MercenaryCompany),
     (Character, "memory", CharacterMemory),
     (CharacterMemory, "memory_participant", Character),
     (
@@ -968,15 +1000,17 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
         Character,
     ),
     (LandedTitle, "neighboring_county", LandedTitle),
+    (Province, "neighboring_province", Province),
     (Character, "neighboring_realm_same_rank_owner", Character),
     (Character, "neighboring_top_liege_realm", LandedTitle),
     (Character, "neighboring_top_liege_realm_owner", Character),
+    (None, "open_invite_activity", Activity),
     (Character, "opposite_sex_spouse_candidate", Character),
+    (Trait, "opposite_trait", Trait),
     (Character, "owned_story", StoryCycle),
     (Character, "parent", Character),
     (Culture, "parent_culture", Culture),
     (Culture, "parent_culture_or_above", Culture),
-    (Activity, "participant", Character),
     (LandedTitle, "past_holder", Character),
     (LandedTitle, "past_holder_reversed", Character),
     (Character, "patroned_holy_order", HolyOrder),
@@ -1068,15 +1102,27 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
         "title_to_title_neighboring_kingdom",
         LandedTitle,
     ),
+    (None, "trait", Trait),
+    (None, "trait_in_category", Trait),
     (Character, "traveling_family_member", Character),
     (Character, "truce_holder", Character),
     (Character, "truce_target", Character),
     (Character, "unspent_known_secret", Secret),
     (Character, "vassal", Character),
+    (None, "vassal_contract", VassalContract),
     (Character, "vassal_or_below", Character),
+    (TravelPlan, "visited_location", Province),
     (Character, "war_ally", Character),
     (War, "war_attacker", Character),
     (War, "war_defender", Character),
     (Character, "war_enemy", Character),
     (War, "war_participant", Character),
+];
+
+/// LAST UPDATED VERSION 1.9.0.2
+/// Every entry represents a every_, ordered_, random_, and any_ version.
+const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
+    ("activity_declined", "1.9", ""),
+    ("activity_invited", "1.9", ""),
+    ("participant", "1.9", ""),
 ];

@@ -11,7 +11,8 @@ use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::tables::effects::{scope_effect, ControlEffect, Effect};
 use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger_key_bv};
 use crate::validate::{
-    validate_inside_iterator, validate_iterator_fields, validate_prefix_reference, ListType,
+    validate_days_weeks_months_years, validate_inside_iterator, validate_iterator_fields,
+    validate_prefix_reference, ListType,
 };
 
 pub fn validate_normal_effect(
@@ -242,6 +243,11 @@ pub fn validate_effect<'a>(
                         }
                     }
                 }
+                Effect::Timespan => {
+                    if let Some(block) = bv.expect_block() {
+                        validate_days_weeks_months_years(block, data, sc);
+                    }
+                }
                 Effect::Special(_special) => (), // TODO
                 Effect::Control(ControlEffect::CustomTooltip) => match bv {
                     BlockOrValue::Token(t) => data.verify_exists(Item::Localization, t),
@@ -257,6 +263,10 @@ pub fn validate_effect<'a>(
                     if let Some(block) = bv.expect_block() {
                         validate_effect_control(control, block, data, sc, tooltipped);
                     }
+                }
+                Effect::Removed(version, explanation) => {
+                    let msg = format!("`{key}` was removed in {version}");
+                    warn_info(key, ErrorKey::Removed, &msg, explanation);
                 }
                 Effect::Unchecked => (),
             }
@@ -411,12 +421,8 @@ fn validate_effect_control(
                 );
             }
             if let Some(token) = vd.field_value("goto") {
-                validate_target(
-                    token,
-                    data,
-                    sc,
-                    Scopes::Character | Scopes::LandedTitle | Scopes::Province,
-                );
+                let msg = "`goto` was removed from interface messages in 1.9";
+                warn(token, ErrorKey::Removed, msg);
             }
             validate_effect(
                 "send_interface_message",
