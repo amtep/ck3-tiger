@@ -708,7 +708,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
 /// Validate the keys that don't follow a consistent pattern in what they require from their
 /// block or value.
 /// Returns true iff the key was recognized (and handled)
-/// LAST UPDATED VERSION 1.6.2.2
+/// LAST UPDATED VERSION 1.9.0.2
 /// See `triggers.log` for details
 #[allow(clippy::match_same_arms)] // many of these "same arms" just need further coding
 fn validate_trigger_keys(
@@ -1712,7 +1712,7 @@ fn validate_trigger_yields_alliance(_block: &Block, _data: &Everything, _sc: &mu
     // TODO
 }
 
-// LAST UPDATED VERSION 1.8.1
+// LAST UPDATED VERSION 1.9.0.2
 const WARN_AGAINST_EQ: &[&str] = &[
     "gold",
     "prestige",

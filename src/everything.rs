@@ -447,7 +447,8 @@ const DLC_FEATURES: &[&str] = &[
     "elegance_of_the_empire",
 ];
 
-/// LAST UPDATED VERSION 1.8.1
+// TODO: load this from common/holdings/
+/// LAST UPDATED VERSION 1.9.0.2
 const HOLDING_TYPES: &[&str] = &[
     "castle_holding",
     "city_holding",
@@ -455,13 +456,13 @@ const HOLDING_TYPES: &[&str] = &[
     "tribal_holding",
 ];
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 const REWARD_ITEMS: &[&str] = &["newsletter_crown"];
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 const PRISON_TYPES: &[&str] = &["dungeon", "house_arrest"];
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 const SKILLS: &[&str] = &[
     "diplomacy",
     "intrigue",
@@ -471,7 +472,7 @@ const SKILLS: &[&str] = &[
     "stewardship",
 ];
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual"];
 
 /// LAST UPDATED VERSION 1.9.0.2

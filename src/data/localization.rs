@@ -24,7 +24,7 @@ pub struct Localization {
     mod_langs: Vec<&'static str>,
 }
 
-// LAST UPDATED VERSION 1.8.1
+// LAST UPDATED VERSION 1.9.0.2
 pub const KNOWN_LANGUAGES: [&str; 7] = [
     "english",
     "spanish",

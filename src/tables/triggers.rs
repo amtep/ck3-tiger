@@ -43,7 +43,7 @@ pub fn scope_trigger_item(name: &str) -> Option<(Scopes, Item)> {
     std::option::Option::None
 }
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 /// See `triggers.log` from the game data dumps
 /// These are the triggers that do a simple comparison with a target scope item
 const SCOPE_TRIGGER_TARGET: &[(u64, &str, u64)] = &[
@@ -444,7 +444,7 @@ const SCOPE_TRIGGER_BOOL: &[(u64, &str)] = &[
     (TravelPlan, "was_activity_invalidated"),
 ];
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 /// See `triggers.log` from the game data dumps
 /// These are the triggers that compare to an item type
 const SCOPE_TRIGGER_ITEM: &[(u64, &str, Item)] = &[

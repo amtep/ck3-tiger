@@ -9,7 +9,7 @@ use crate::everything::Everything;
 use crate::token::Token;
 
 bitflags! {
-    /// LAST UPDATED VERSION 1.8.1
+    /// LAST UPDATED VERSION 1.9.0.2
     /// See `event_scopes.log` from the game data dumps.
     /// Keep in sync with the module constants below.
     pub struct Scopes: u64 {

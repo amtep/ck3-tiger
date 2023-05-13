@@ -268,10 +268,18 @@ impl<'a> Iterator for Files<'a> {
     }
 }
 
-/// LAST UPDATED VERSION 1.8.1
+/// LAST UPDATED VERSION 1.9.0.2
 const COMMON_DIRS: &[&str] = &[
+    "common/accolade_icons",
+    "common/accolade_names",
+    "common/accolade_types",
+    "common/achievement_groups.txt", // exception for this file
     "common/achievements",
-    "common/activities",
+    "common/activities/activity_locales",
+    "common/activities/activity_types",
+    "common/activities/guest_invite_rules",
+    "common/activities/intents",
+    "common/activities/pulse_actions",
     "common/ai_goaltypes",
     "common/ai_war_stances",
     "common/artifacts/blueprints",
@@ -282,7 +290,8 @@ const COMMON_DIRS: &[&str] = &[
     "common/artifacts/types",
     "common/artifacts/visuals",
     "common/bookmark_portraits",
-    "common/bookmarks",
+    "common/bookmarks/bookmarks",
+    "common/bookmarks/groups",
     "common/buildings",
     "common/casus_belli_groups",
     "common/casus_belli_types",
@@ -317,6 +326,8 @@ const COMMON_DIRS: &[&str] = &[
     "common/deathreasons",
     "common/decisions",
     "common/defines",
+    "common/diarchies/diarchy_mandates",
+    "common/diarchies/diarchy_types",
     "common/dna_data",
     "common/dynasties",
     "common/dynasty_house_motto_inserts",
@@ -328,6 +339,7 @@ const COMMON_DIRS: &[&str] = &[
     "common/ethnicities",
     "common/event_backgrounds",
     "common/event_themes",
+    "common/event_transitions",
     "common/factions",
     "common/flavorization",
     "common/focuses",
@@ -382,8 +394,10 @@ const COMMON_DIRS: &[&str] = &[
     "common/suggestions",
     "common/terrain_types",
     "common/traits",
+    "common/travel/travel_options",
     "common/trigger_localization",
     "common/tutorial_lesson_chains",
     "common/tutorial_lessons",
     "common/vassal_contracts",
+    "common/vassal_stances",
 ];
