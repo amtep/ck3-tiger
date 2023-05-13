@@ -934,6 +934,22 @@ fn validate_trigger_keys(
             bv.expect_value();
         }
 
+        "has_activity_option" => {
+            sc.expect(Scopes::Activity, key);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_has_activity_option(block, data, sc);
+            }
+        }
+
+        "has_completed_activity_intent" => {
+            sc.expect(Scopes::Character, key);
+            if let Some(block) = bv.get_block() {
+                validate_trigger_has_completed_activity_intent(block, data, sc);
+            } else if let Some(token) = bv.get_value() {
+                data.verify_exists(Item::ActivityIntent, token);
+            }
+        }
+
         "has_all_innovations" => {
             sc.expect(Scopes::Culture, key);
             if let Some(block) = bv.expect_block() {
@@ -973,7 +989,6 @@ fn validate_trigger_keys(
         }
 
         "has_dlc"
-        | "has_dlc_feature"
         | "has_game_rule"
         | "has_global_variable"
         | "has_global_variable_list"
@@ -1062,6 +1077,15 @@ fn validate_trigger_keys(
             bv.expect_value();
         }
 
+        "has_phase" | "has_phase_future" | "has_phase_past" => {
+            sc.expect(Scopes::Activity, key);
+            if let Some(block) = bv.get_block() {
+                validate_trigger_has_phase(block, data, sc);
+            } else if let Some(token) = bv.get_value() {
+                data.verify_exists(Item::ActivityPhase, token);
+            }
+        }
+
         "has_relation_flag" => {
             sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
@@ -1081,9 +1105,14 @@ fn validate_trigger_keys(
             }
         }
 
-        "important_action_is_valid_but_invisible"
-        | "important_action_is_visible"
-        | "in_activity_type" => {
+        "has_trait_xp" => {
+            sc.expect(Scopes::Character, key);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_has_trait_xp(block, data, sc);
+            }
+        }
+
+        "important_action_is_valid_but_invisible" | "important_action_is_visible" => {
             sc.expect(Scopes::Character, key);
             bv.expect_value();
         }
@@ -1114,10 +1143,24 @@ fn validate_trigger_keys(
             bv.expect_value();
         }
 
+        "is_in_guest_subset" => {
+            sc.expect(Scopes::Character, key);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_is_in_guest_subset(block, data, sc);
+            }
+        }
+
         "is_scheming_against" => {
             sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_is_scheming_against(block, data, sc);
+            }
+        }
+
+        "is_special_guest" => {
+            sc.expect(Scopes::Activity, key);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_is_special_guest(block, data, sc);
             }
         }
 
@@ -1296,7 +1339,10 @@ fn validate_trigger_keys(
             }
         }
 
-        "time_in_prison" | "time_in_prison_type" | "time_since_death" => {
+        "time_after_diarch_designated"
+        | "time_in_prison"
+        | "time_in_prison_type"
+        | "time_since_death" => {
             sc.expect(Scopes::Character, key);
             if let Some(block) = bv.expect_block() {
                 validate_days_weeks_months_years(block, data, sc);
@@ -1313,6 +1359,20 @@ fn validate_trigger_keys(
             sc.expect(Scopes::LandedTitle, key);
             if let Some(block) = bv.expect_block() {
                 validate_trigger_create_faction_type_chance(block, data, sc);
+            }
+        }
+
+        "travel_danger_type" => {
+            sc.expect(Scopes::Province, key);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_travel_danger_type(block, data, sc);
+            }
+        }
+
+        "travel_danger_value" => {
+            sc.expect(Scopes::Province, key);
+            if let Some(block) = bv.expect_block() {
+                validate_trigger_travel_danger_value(block, data, sc);
             }
         }
 
@@ -1405,6 +1465,26 @@ fn validate_trigger_has_all_innovations(
     _data: &Everything,
     _sc: &mut ScopeContext,
 ) {
+    // TODO
+}
+
+fn validate_trigger_has_activity_option(
+    _block: &Block,
+    _data: &Everything,
+    _sc: &mut ScopeContext,
+) {
+    // TODO
+}
+
+fn validate_trigger_has_completed_activity_intent(
+    _block: &Block,
+    _data: &Everything,
+    _sc: &mut ScopeContext,
+) {
+    // TODO
+}
+
+fn validate_trigger_has_phase(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
     // TODO
 }
 
@@ -1556,6 +1636,10 @@ fn validate_trigger_has_trait_rank(_block: &Block, _data: &Everything, _sc: &mut
     // TODO
 }
 
+fn validate_trigger_has_trait_xp(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
+    // TODO
+}
+
 fn validate_trigger_is_character_interaction(
     _block: &Block,
     _data: &Everything,
@@ -1565,6 +1649,14 @@ fn validate_trigger_is_character_interaction(
 }
 
 fn validate_trigger_is_connected_to(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
+    // TODO
+}
+
+fn validate_trigger_is_in_guest_subset(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
+    // TODO
+}
+
+fn validate_trigger_is_special_guest(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
     // TODO
 }
 
@@ -1593,6 +1685,18 @@ fn validate_trigger_morph_gene_value(_block: &Block, _data: &Everything, _sc: &m
 }
 
 fn validate_trigger_perks_in_tree(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
+    // TODO
+}
+
+fn validate_trigger_travel_danger_type(_block: &Block, _data: &Everything, _sc: &mut ScopeContext) {
+    // TODO
+}
+
+fn validate_trigger_travel_danger_value(
+    _block: &Block,
+    _data: &Everything,
+    _sc: &mut ScopeContext,
+) {
     // TODO
 }
 
@@ -1633,6 +1737,7 @@ const WARN_AGAINST_EQ: &[&str] = &[
     "yearly_character_expenses",
     "yearly_character_income",
     "inspiration_gold_invested",
+    "memory_age_years",
     "monthly_character_income",
     "monthly_character_income_long_term",
     "monthly_character_income_reserved",
@@ -1640,4 +1745,7 @@ const WARN_AGAINST_EQ: &[&str] = &[
     "monthly_character_income_war_chest",
     "monthly_income",
     "num_total_troops",
+    "next_destination_arrival_days",
+    "years_as_diarch",
+    "years_in_diarchy",
 ];

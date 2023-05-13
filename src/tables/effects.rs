@@ -473,8 +473,8 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "close_all_views", Yes),
     (None, "close_view", Special(CloseView)),
     (Activity, "complete_activity", Removed("1.9", "")),
-    (Activity, "complete_activity_intent", Effect::Bool),
-    (Activity, "complete_travel_plan", Effect::Bool),
+    (Character, "complete_activity_intent", Effect::Bool),
+    (TravelPlan, "complete_travel_plan", Effect::Bool),
     (
         Character,
         "consume_banish_reasons",

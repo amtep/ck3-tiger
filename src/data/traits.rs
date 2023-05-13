@@ -180,7 +180,7 @@ impl Trait {
         vd.field_bool("incapacitating");
         vd.field_bool("disables_combat_leadership");
         vd.field_choice("parent_inheritance_sex", &["male", "female"]);
-        vd.field_values("flag");
+        vd.field_values("flag"); // TODO: insert into Everything db
         vd.field_bool("shown_in_encyclopedia");
 
         validate_modifs(&self.block, data, ModifKinds::Character, &mut sc, vd);

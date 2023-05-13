@@ -328,10 +328,12 @@ impl Everything {
 
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
+            Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::Character => self.characters.exists(key),
             Item::CourtPositionCategory => self.courtpos_categories.exists(key),
             Item::Decision => self.decisions.exists(key),
             Item::Define => self.defines.exists(key),
+            Item::DlcFeature => DLC_FEATURES.contains(&key),
             Item::Doctrine => self.doctrines.exists(key),
             Item::DoctrineParameter => self.doctrines.parameter_exists(key),
             Item::Dynasty => self.dynasties.exists(key),
@@ -362,6 +364,7 @@ impl Everything {
             Item::Terrain => self.terrains.exists(key),
             Item::Title => self.titles.exists(key),
             Item::Trait => self.traits.exists(key),
+            Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
             _ => true,
         }
     }
@@ -423,6 +426,27 @@ impl Everything {
     }
 }
 
+/// LAST UPDATED VERSION 1.9.0.2
+const ACTIVITY_STATES: &[&str] = &["passive", "travel", "active"];
+
+/// LAST UPDATED VERSION 1.9.0.2
+const DLC_FEATURES: &[&str] = &[
+    "garments_of_the_hre",
+    "fashion_of_the_abbasid_court",
+    "the_northern_lords",
+    "hybridize_culture",
+    "diverge_culture",
+    "royal_court",
+    "reform_culture",
+    "court_artifacts",
+    "the_fate_of_iberia",
+    "friends_and_foes",
+    "tours_and_tournaments",
+    "advanced_activities",
+    "accolades",
+    "elegance_of_the_empire",
+];
+
 /// LAST UPDATED VERSION 1.8.1
 const HOLDING_TYPES: &[&str] = &[
     "castle_holding",
@@ -449,3 +473,16 @@ const SKILLS: &[&str] = &[
 
 /// LAST UPDATED VERSION 1.8.1
 const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual"];
+
+/// LAST UPDATED VERSION 1.9.0.2
+const TRAIT_CATEGORIES: &[&str] = &[
+    "personality",
+    "education",
+    "childhood",
+    "commander",
+    "winter_commander",
+    "lifestyle",
+    "court_type",
+    "fame",
+    "health",
+];
