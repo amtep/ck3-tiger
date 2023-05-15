@@ -331,8 +331,10 @@ impl Everything {
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::Character => self.characters.exists(key),
             Item::CourtPositionCategory => self.courtpos_categories.exists(key),
+            Item::DangerType => DANGER_TYPES.contains(&key),
             Item::Decision => self.decisions.exists(key),
             Item::Define => self.defines.exists(key),
+            Item::Dlc => DLC.contains(&key),
             Item::DlcFeature => DLC_FEATURES.contains(&key),
             Item::Doctrine => self.doctrines.exists(key),
             Item::DoctrineParameter => self.doctrines.parameter_exists(key),
@@ -363,6 +365,8 @@ impl Everything {
             Item::Skill => SKILLS.contains(&key),
             Item::Terrain => self.terrains.exists(key),
             Item::Title => self.titles.exists(key),
+            Item::TitleHistory => self.title_history.exists(key),
+            Item::TitleHistoryType => TITLE_HISTORY_TYPES.contains(&key),
             Item::Trait => self.traits.exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
             _ => true,
@@ -430,6 +434,20 @@ impl Everything {
 const ACTIVITY_STATES: &[&str] = &["passive", "travel", "active"];
 
 /// LAST UPDATED VERSION 1.9.0.2
+// TODO: parse it from dlc_metadata/ ? Unfortunately Tours and Tournaments
+// is an exception.
+const DLC: &[&str] = &[
+    "Fashion of the Abbasid Court",
+    "The Northern Lords",
+    "Garments of the Holy Roman Empire",
+    "The Fate of Iberia",
+    "The Royal Court",
+    "Friends and Foes",
+    "tours_and_tournaments",
+    "Elegance of the Empire",
+];
+
+/// LAST UPDATED VERSION 1.9.0.2
 const DLC_FEATURES: &[&str] = &[
     "garments_of_the_hre",
     "fashion_of_the_abbasid_court",
@@ -473,9 +491,31 @@ const SKILLS: &[&str] = &[
 ];
 
 /// LAST UPDATED VERSION 1.9.0.2
-const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual"];
+const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual", "none"];
 
 /// LAST UPDATED VERSION 1.9.0.2
+const TITLE_HISTORY_TYPES: &[&str] = &[
+    "conquest",
+    "conquest_holy_war",
+    "conquest_claim",
+    "conquest_populist",
+    "election",
+    "inheritance",
+    "abdication",
+    "created",
+    "destroyed",
+    "usurped",
+    "granted",
+    "revoked",
+    "independency",
+    "leased_out",
+    "lease_revoked",
+    "returned",
+    "faction_demand",
+    "swear_fealty",
+];
+
+/// LAST UPDATED VERSION 1.9.0.2",
 const TRAIT_CATEGORIES: &[&str] = &[
     "personality",
     "education",
@@ -486,4 +526,17 @@ const TRAIT_CATEGORIES: &[&str] = &[
     "court_type",
     "fame",
     "health",
+];
+
+/// LAST UPDATED VERSION 1.9.0.2",
+const DANGER_TYPES: &[&str] = &[
+    "default",
+    "battle",
+    "raid",
+    "siege",
+    "army",
+    "occupation",
+    "county_control",
+    "county_opinion",
+    "owner_opinion",
 ];

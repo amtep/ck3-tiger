@@ -10,7 +10,6 @@ use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
-use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
@@ -182,7 +181,8 @@ impl Title {
     }
 
     pub fn validate(&self, data: &Everything) {
-        data.verify_exists(Item::TitleHistory, &self.key);
+        // NOTE: There used to be a check that non-barony titles existed in the
+        // title history, but that seems to be optional.
         data.localization.verify_exists(&self.key);
         // TODO: figure out when to recommend adding _adj or _pre titles
         // The _adj key is optional

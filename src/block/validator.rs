@@ -290,6 +290,19 @@ impl<'a> Validator<'a> {
         found
     }
 
+    pub fn fields_any_cmp(&mut self, name: &str) -> bool {
+        let mut found = false;
+        for (k, _cmp, _) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    self.known_fields.push(key.as_str());
+                    found = true;
+                }
+            }
+        }
+        found
+    }
+
     pub fn field_validated<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BlockOrValue, &Everything),

@@ -331,8 +331,8 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "add_targeting_factions_discontent",
         Effect::Value,
     ),
-    (LandedTitle, "add_title_law", Item(Item::Law)),
-    (LandedTitle, "add_title_law_effects", Item(Item::Law)),
+    (LandedTitle, "add_title_law", Item(Item::TitleLaw)),
+    (LandedTitle, "add_title_law_effects", Item(Item::TitleLaw)),
     (Character, "add_to_activity", Scope(Scopes::Activity)),
     (
         Character,

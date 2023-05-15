@@ -7,6 +7,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{warn, warn_info};
 use crate::everything::Everything;
 use crate::token::Token;
+use crate::util::display_choices;
 
 bitflags! {
     /// LAST UPDATED VERSION 1.9.0.2
@@ -74,6 +75,10 @@ impl Scopes {
         Scopes::all() ^ (Scopes::None | Scopes::Value | Scopes::Bool | Scopes::Flag)
     }
 
+    pub fn primitive() -> Scopes {
+        Scopes::Value | Scopes::Bool | Scopes::Flag
+    }
+
     pub fn all_but_none() -> Scopes {
         Scopes::all() ^ Scopes::None
     }
@@ -126,6 +131,7 @@ pub const VassalContract: u64 = 0x0000_0200_0000_0000;
 pub const VassalContractObligationLevel: u64 = 0x0000_0400_0000_0000;
 pub const ALL: u64 = 0x7fff_ffff_ffff_ffff;
 pub const ALL_BUT_NONE: u64 = 0x7fff_ffff_ffff_fffe;
+pub const PRIMITIVE: u64 = 0x0000_000e;
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
@@ -207,40 +213,6 @@ pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
     std::option::Option::None
 }
 
-pub fn scope_value(name: &Token, data: &Everything) -> Option<Scopes> {
-    for (from, s) in SCOPE_VALUE {
-        if name.is(s) {
-            return Some(Scopes::from_bits_truncate(*from));
-        }
-    }
-    if let Some(relation) = name.as_str().strip_prefix("num_of_relation_") {
-        if data.relations.exists(relation) {
-            return Some(Scopes::Character);
-        }
-    } else if let Some(lifestyle) = name.as_str().strip_prefix("perks_in_") {
-        if data.lifestyles.exists(lifestyle) {
-            return Some(Scopes::Character);
-        }
-    } else if let Some(lifestyle) = name.as_str().strip_suffix("_perk_points") {
-        if data.lifestyles.exists(lifestyle) {
-            return Some(Scopes::Character);
-        }
-    } else if let Some(lifestyle) = name.as_str().strip_suffix("_perks") {
-        if data.lifestyles.exists(lifestyle) {
-            return Some(Scopes::Character);
-        }
-    } else if let Some(lifestyle) = name.as_str().strip_suffix("_unlockable_perks") {
-        if data.lifestyles.exists(lifestyle) {
-            return Some(Scopes::Character);
-        }
-    } else if let Some(lifestyle) = name.as_str().strip_suffix("_xp") {
-        if data.lifestyles.exists(lifestyle) {
-            return Some(Scopes::Character);
-        }
-    }
-    std::option::Option::None
-}
-
 /// `name` is without the `every_`, `ordered_`, `random_`, or `any_`
 pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_ITERATOR {
@@ -272,6 +244,8 @@ impl Display for Scopes {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         if *self == Scopes::all() {
             write!(f, "any scope")
+        } else if *self == Scopes::primitive() {
+            write!(f, "any primitive scope")
         } else if *self == Scopes::non_primitive() {
             write!(f, "non-primitive scope")
         } else if *self == Scopes::all_but_none() {
@@ -407,16 +381,7 @@ impl Display for Scopes {
             if self.contains(Scopes::VassalContractObligationLevel) {
                 vec.push("vassal contract obligation level");
             }
-            for i in 0..vec.len() {
-                write!(f, "{}", vec[i])?;
-                if i + 1 == vec.len() {
-                } else if i + 2 == vec.len() {
-                    write!(f, " or ")?;
-                } else {
-                    write!(f, ", ")?;
-                }
-            }
-            Ok(())
+            display_choices(f, &vec)
         }
     }
 }
@@ -636,262 +601,6 @@ const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
     (Character, "vassal_contract_obligation_level", Value),
 ];
 
-/// LAST UPDATED VERSION 1.9.0.2
-/// See `triggers.log` from the game data dumps
-/// These are 'triggers' that return a value.
-const SCOPE_VALUE: &[(u64, &str)] = &[
-    (Accolade, "accolade_rank"),
-    (LandedTitle, "active_de_jure_drift_progress"),
-    (Character, "age"),
-    (Character, "ai_boldness"),
-    (Character, "ai_compassion"),
-    (Character, "ai_energy"),
-    (Character, "ai_greed"),
-    (Character, "ai_honor"),
-    (Character, "ai_rationality"),
-    (Character, "ai_sociability"),
-    (Character, "ai_vengefulness"),
-    (Character, "ai_zeal"),
-    (Army, "army_max_size"),
-    (Army, "army_size"),
-    (Artifact, "artifact_durability"),
-    (Artifact, "artifact_max_durability"),
-    (War, "attacker_war_score"),
-    (Character, "attraction"),
-    (Province, "available_loot"),
-    (Character, "average_amenity_level"),
-    (Faction, "average_faction_opinion"),
-    (Faction, "average_faction_opinion_not_powerful_vassal"),
-    (Faction, "average_faction_opinion_powerful_vassal"),
-    (Inspiration, "base_inspiration_gold_cost"),
-    (Character, "base_weight"),
-    (LandedTitle | Province, "building_levies"),
-    (LandedTitle | Province, "building_max_garrison"),
-    (Province, "building_slots"),
-    (Province, "combined_building_level"),
-    (Character, "council_task_monthly_progress"),
-    (LandedTitle, "county_control"),
-    (LandedTitle, "county_control_rate"),
-    (LandedTitle, "county_control_rate_modifier"),
-    (LandedTitle, "county_holder_opinion"),
-    (LandedTitle, "county_opinion"),
-    (Character, "court_grandeur_base"),
-    (Character, "court_grandeur_current"),
-    (Character, "court_grandeur_current_level"),
-    (Character, "court_grandeur_minimum_expected"),
-    (Character, "court_grandeur_minimum_expected_level"),
-    (Character, "court_positions_currently_avaiable"),
-    (Character, "court_positions_currently_filled"),
-    (Culture, "culture_age"),
-    (Culture, "culture_number_of_counties"),
-    (None, "current_computer_date_day"),
-    (None, "current_computer_date_month"),
-    (None, "current_computer_date_year"),
-    (TravelPlan, "current_danger_value"),
-    (None, "current_day"),
-    (Character, "current_military_strength"),
-    (None, "current_month"),
-    (None, "current_tooltip_depth"),
-    (Character, "current_weight"),
-    (Character, "current_weight_for_portrait"),
-    (ALL_BUT_NONE, "current_year"), // should be None scope, but current_year is buggy
-    (Character, "days_as_ruler"),
-    (Character, "days_in_prison"),
-    (Character, "days_of_continuous_peace"),
-    (Character, "days_of_continuous_war"),
-    (Inspiration, "days_since_creation"),
-    (Character, "days_since_death"),
-    (Character, "days_since_joined_court"),
-    (War, "days_since_max_war_score"),
-    (Inspiration, "days_since_sponsorship"),
-    (TravelPlan, "days_travelled"),
-    (GreatHolyWar, "days_until_ghw_launch"),
-    (Character, "debt_level"),
-    (War, "defender_war_score"),
-    (TravelPlan, "departure_date"),
-    (LandedTitle, "development_level"),
-    (LandedTitle, "development_rate"),
-    (LandedTitle, "development_rate_modifier"),
-    (LandedTitle, "development_towards_level_increase"),
-    (Character, "diarch_aptitude"),
-    (Character, "diarch_loyalty"),
-    (Character, "diarchy_swing"),
-    (Character, "diplomacy"),
-    (Character, "diplomacy_for_portrait"),
-    (Faction, "discontent_per_month"),
-    (Character, "domain_limit"),
-    (Character, "domain_limit_available"),
-    (Character, "domain_limit_percentage"),
-    (Character, "domain_size"),
-    (Character, "domain_size_excluding_grace_period"),
-    (Character, "dread"),
-    (Dynasty, "dynasty_num_unlocked_perks"),
-    (Dynasty, "dynasty_prestige"),
-    (Dynasty, "dynasty_prestige_level"),
-    (Character, "effective_age"),
-    (Faith, "estimated_faith_strength"),
-    (Faction, "faction_discontent"),
-    (Faction, "faction_power"),
-    (Faction, "faction_power_threshold"),
-    (Character, "fertility"),
-    (Faith, "fervor"),
-    (TravelPlan, "final_destination_arrival_date"),
-    (TravelPlan, "final_destination_arrival_days"),
-    (TravelPlan, "final_destination_progress"),
-    (Character, "focus_progress"),
-    (Province, "fort_level"),
-    (Province, "free_building_slots"),
-    (GreatHolyWar, "ghw_attackers_strength"),
-    (GreatHolyWar, "ghw_defenders_strength"),
-    (GreatHolyWar, "ghw_war_chest_gold"),
-    (GreatHolyWar, "ghw_war_chest_piety"),
-    (GreatHolyWar, "ghw_war_chest_prestige"),
-    (Character, "gold"),
-    (Character, "has_had_focus_for_days"),
-    (Character, "health"),
-    (Character, "highest_held_title_tier"),
-    (Faith, "holy_sites_controlled"),
-    (Inspiration, "inspiration_gold_invested"),
-    (Inspiration, "inspiration_progress"),
-    (Character, "intrigue"),
-    (Character, "intrigue_for_portrait"),
-    (Character, "learning"),
-    (Character, "learning_for_portrait"),
-    (Character, "long_term_gold"),
-    (Character, "long_term_gold_maximum"),
-    (Character, "martial"),
-    (Character, "martial_for_portrait"),
-    (Character, "max_active_accolades"),
-    (Character, "max_military_strength"),
-    (Character, "max_number_of_concubines"),
-    (Character, "max_number_of_knights"),
-    (CharacterMemory, "memory_age_years"),
-    (CharacterMemory, "memory_creation_date"),
-    (CharacterMemory, "memory_end_date"),
-    (MercenaryCompany, "mercenary_company_expiration_days"),
-    (Character, "missing_unique_ancestors"),
-    (Character, "monthly_character_balance"),
-    (Character, "monthly_character_expenses"),
-    (Character, "monthly_character_income"),
-    (Character, "monthly_character_income_long_term"),
-    (Character, "monthly_character_income_reserved"),
-    (Character, "monthly_character_income_short_term"),
-    (Character, "monthly_character_income_war_chest"),
-    (Province, "monthly_income"),
-    (Character, "months_as_ruler"),
-    (Faction, "months_until_max_discontent"),
-    (TravelPlan, "next_destination_arrival_date"),
-    (TravelPlan, "next_destination_arrival_days"),
-    (TravelPlan, "next_destination_arrival_progress"),
-    (Character, "num_active_accolades"),
-    (Artifact, "num_artifact_kills"),
-    (Province, "num_buildings"),
-    (Faith, "num_character_followers"),
-    (Faith, "num_county_followers"),
-    (CombatSide, "num_enemies_killed"),
-    (TravelPlan, "num_entourage_characters"),
-    (Activity, "num_future_phases"),
-    (Character, "num_inactive_accolades"),
-    (HolyOrder, "num_leased_titles"),
-    (Character, "num_of_bad_genetic_traits"),
-    (Character, "num_of_good_genetic_traits"),
-    (Character, "num_of_known_languages"),
-    // num_of_relation_<relation>
-    (TravelPlan, "num_options"),
-    (Activity, "num_past_phases"),
-    (Activity, "num_phases"),
-    (Character, "num_sinful_traits"),
-    (Combat, "num_total_troops"),
-    (Character, "num_virtuous_traits"),
-    (Province, "number_of_characters_in_pool"),
-    (Character, "number_of_commander_traits"),
-    (Character, "number_of_concubines"),
-    (Character, "number_of_desired_concubines"),
-    (Faction, "number_of_faction_members_in_council"),
-    (Character, "number_of_fertile_concubines"),
-    (Character, "number_of_knights"),
-    (Character, "number_of_lifestyle_traits"),
-    (Character, "number_of_maa_regiments"),
-    (Character, "number_of_personality_traits"),
-    (Character, "number_of_powerful_vassals"),
-    (Character, "number_of_stationed_maa_regiments"),
-    (Character, "number_of_traits"),
-    (VassalContractObligationLevel, "obligation_level_score"),
-    (CombatSide, "percent_enemies_killed"),
-    (Character, "perk_points"),
-    (Character, "perk_points_assigned"),
-    // perks_in_<lifestyle>
-    (Character, "piety"),
-    (Character, "piety_level"),
-    (Character, "pregnancy_days"),
-    (Character, "prestige"),
-    (Character, "prestige_level"),
-    (Accolade, "primary_tier"),
-    (Character, "prowess"),
-    (Character, "prowess_for_portrait"),
-    (Character, "prowess_no_portrait"),
-    (Army, "raid_loot"),
-    (Character, "ransom_cost"),
-    (Character, "realm_size"),
-    (Character, "reserved_gold"),
-    (Character, "reserved_gold_maximum"),
-    (Scheme, "scheme_duration_days"),
-    (Scheme, "scheme_monthly_progress"),
-    (Scheme, "scheme_number_of_agents"),
-    (Scheme, "scheme_number_of_exposed_agents"),
-    (Scheme, "scheme_power"),
-    (Scheme, "scheme_power_resistance_difference"),
-    (Scheme, "scheme_power_resistance_ratio"),
-    (Scheme, "scheme_progress"),
-    (Scheme, "scheme_resistance"),
-    (Scheme, "scheme_secrecy"),
-    (Scheme, "scheme_success_chance"),
-    (Accolade, "secondary_tier"),
-    (Character, "short_term_gold"),
-    (Character, "short_term_gold_maximum"),
-    (CombatSide, "side_army_size"),
-    (CombatSide, "side_max_army_size"),
-    (CombatSide, "side_soldiers"),
-    (CombatSide, "side_strength"),
-    (Character, "stewardship"),
-    (Character, "stewardship_for_portrait"),
-    (Character, "stress"),
-    (Character, "stress_level"),
-    (Character, "strife_opinion"),
-    (Character, "sub_realm_size"),
-    (Character, "target_weight"),
-    (LandedTitle, "tier"),
-    (LandedTitle, "title_held_years"), // TODO: warn if this is compared with =
-    (Army, "total_army_damage"),
-    (Army, "total_army_pursuit"),
-    (Army, "total_army_screen"),
-    (Army, "total_army_siege_value"),
-    (Army, "total_army_toughness"),
-    (Character, "travel_leader_cost"),
-    (Character, "travel_leader_safety"),
-    (Character, "travel_leader_speed"),
-    (TravelPlan, "travel_safety"),
-    (TravelPlan, "travel_speed"),
-    (CombatSide, "troops_ratio"),
-    (Character, "tyranny"),
-    (Character, "vassal_contract_obligation_level_score"), // TODO: this takes a parameter
-    (Character, "vassal_count"),
-    (Character, "vassal_limit"),
-    (Character, "vassal_limit_available"),
-    (Character, "vassal_limit_percentage"),
-    (Character, "war_chest_gold"),
-    (Character, "war_chest_gold_maximum"),
-    (War, "war_days"),
-    (Combat, "warscore_value"),
-    (Character, "year_of_birth"),
-    (Character, "yearly_character_balance"),
-    (Character, "yearly_character_expenses"),
-    (Character, "yearly_character_income"),
-    (Character, "years_as_diarch"),
-    (Character, "years_as_ruler"),
-    (Character, "years_in_diarchy"),
-    (None, "years_from_game_start"),
-];
 // Special:
 // <lifestyle>_perk_points
 // <lifestyle>_perks

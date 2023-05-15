@@ -42,4 +42,5 @@ mod scopes;
 mod tables;
 mod token;
 mod trigger;
+mod util;
 mod validate;

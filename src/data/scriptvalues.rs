@@ -12,7 +12,8 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, scope_value, Scopes};
+use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
+use crate::tables::triggers::trigger_comparevalue;
 use crate::token::{Loc, Token};
 use crate::trigger::validate_normal_trigger;
 use crate::validate::{
@@ -348,24 +349,25 @@ impl ScriptValue {
                     sc.expect(inscopes, part);
                     sc.replace(outscope, part.clone());
                 } else if last {
-                    if let Some(inscopes) = scope_value(part, data) {
-                        if inscopes == Scopes::None && !first {
-                            let msg = format!("`{part}` makes no sense except as first part");
-                            warn(part, ErrorKey::Validation, &msg);
+                    // TODO: reverse the logic here, first check if scriptvalue or trigger, then complain if !last
+                    if !data.item_exists(Item::ScriptValue, part.as_str()) {
+                        if let Some(inscopes) = trigger_comparevalue(part, data) {
+                            if inscopes == Scopes::None && !first {
+                                let msg = format!("`{part}` makes no sense except as first part");
+                                warn(part, ErrorKey::Validation, &msg);
+                            }
+                            if part.is("current_year") && sc.scopes() == Scopes::None {
+                                warn_info(
+                                    part,
+                                    ErrorKey::Bugs,
+                                    "current_year does not work in empty scope",
+                                    "try using current_date, or dummy_male.current_year",
+                                );
+                            } else {
+                                sc.expect(inscopes, part);
+                            }
+                            sc.replace(Scopes::Value, part.clone());
                         }
-                        if part.is("current_year") && sc.scopes() == Scopes::None {
-                            warn_info(
-                                part,
-                                ErrorKey::Bugs,
-                                "current_year does not work in empty scope",
-                                "try using current_date, or dummy_male.current_year",
-                            );
-                        } else {
-                            sc.expect(inscopes, part);
-                        }
-                        sc.replace(Scopes::Value, part.clone());
-                    } else {
-                        data.verify_exists(Item::ScriptValue, part);
                     }
                 } else {
                     let msg = format!("unknown token `{part}`");
