@@ -225,6 +225,14 @@ const EVENT_TYPES: &[&str] = &[
     "activity_event",
 ];
 
+// TODO: check if mods can add more window types to gui/event_windows/
+const WINDOW_TYPES: &[&str] = &[
+    "character_event",
+    "duel_event",
+    "fullscreen_event",
+    "letter_event",
+];
+
 impl Event {
     pub fn new(key: Token, block: Block) -> Self {
         Self { key, block }
@@ -242,6 +250,15 @@ impl Event {
             error(vd.field_value("type").unwrap(), ErrorKey::Validation, msg);
         } else {
             vd.field_choice("type", EVENT_TYPES);
+        }
+
+        if evtype == "character_event" {
+            vd.field_choice("window", WINDOW_TYPES);
+        } else if evtype == "activity_event" {
+            // TODO: figure out the possible values for this
+            vd.field_value("window");
+        } else {
+            vd.ban_field("window", || "character events");
         }
 
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
@@ -291,11 +308,15 @@ impl Event {
         if evtype == "court_event" {
             vd.advice_field("left_portrait", "not needed for court_event");
             vd.advice_field("right_portrait", "not needed for court_event");
+            vd.advice_field("center_portrait", "not needed for court_event");
         } else {
             vd.field_validated("left_portrait", |bv, data| {
                 validate_portrait(bv, data, &mut sc);
             });
             vd.field_validated("right_portrait", |bv, data| {
+                validate_portrait(bv, data, &mut sc);
+            });
+            vd.field_validated("center_portrait", |bv, data| {
                 validate_portrait(bv, data, &mut sc);
             });
         }

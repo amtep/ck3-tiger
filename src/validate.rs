@@ -108,12 +108,17 @@ pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &m
     }
 }
 
-// Very similar to validate_years_months_days, but requires = instead of allowing comparators
+// Very similar to validate_days_weeks_months_years, but requires = instead of allowing comparators
+// "weeks" is not documented but is used all over vanilla TODO: verify
 pub fn validate_cooldown(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
 
     if let Some(bv) = vd.field("days") {
+        ScriptValue::validate_bv(bv, data, sc);
+        count += 1;
+    }
+    if let Some(bv) = vd.field("weeks") {
         ScriptValue::validate_bv(bv, data, sc);
         count += 1;
     }
@@ -130,7 +135,7 @@ pub fn validate_cooldown(block: &Block, data: &Everything, sc: &mut ScopeContext
         error(
             block,
             ErrorKey::Validation,
-            "must have 1 of days, months, or years",
+            "must have 1 of days, weeks, months, or years",
         );
     }
 }

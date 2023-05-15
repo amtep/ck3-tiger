@@ -132,6 +132,7 @@ impl Trait {
             data.fileset.verify_exists_implied(&path, &self.key);
         }
 
+        vd.field_value_item("category", Item::TraitCategory);
         vd.field_validated_blocks("culture_modifier", |b, data| {
             Self::validate_culture_modifier(b, data, &mut sc);
         });

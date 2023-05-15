@@ -1509,11 +1509,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (None, "nand", Control),
     (TravelPlan, "next_destination_arrival_date", CompareDate),
     (TravelPlan, "next_destination_arrival_days", CompareValue),
-    (
-        TravelPlan,
-        "next_destination_arrival_progress",
-        CompareValue,
-    ),
+    (TravelPlan, "next_destination_progress", CompareValue),
     (None, "nor", Control),
     (None, "not", Control), // TODO: warn about multiple triggers in a NOT ?
     (Character, "num_active_accolades", CompareValue),

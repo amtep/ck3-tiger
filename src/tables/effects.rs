@@ -568,6 +568,11 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "debug_log_scopes", Effect::Bool),
     (None, "debug_trigger_event", Item(Item::Event)),
     (
+        Character,
+        "decline_activity_invite",
+        Scope(Scopes::Activity),
+    ),
+    (
         ALL,
         "decline_invitation_for_character",
         Removed("1.9", "replaced by `decline_activity_invite`"),
