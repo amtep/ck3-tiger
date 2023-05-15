@@ -222,7 +222,7 @@ const EVENT_TYPES: &[&str] = &[
     "court_event",
     "duel_event",
     "fullscreen_event",
-    "empty",
+    "activity_event",
 ];
 
 impl Event {
@@ -233,19 +233,18 @@ impl Event {
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
 
-        vd.field_choice("type", EVENT_TYPES);
         let evtype = self
             .block
             .get_field_value("type")
             .map_or("character_event", |t| t.as_str());
+        if evtype == "empty" {
+            let msg = "`type = empty` has been replaced by `scope = none`";
+            error(vd.field_value("type").unwrap(), ErrorKey::Validation, msg);
+        } else {
+            vd.field_choice("type", EVENT_TYPES);
+        }
 
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
-        if evtype == "empty" {
-            sc = ScopeContext::new_root(
-                Scopes::None,
-                self.block.get_field_value("type").unwrap().clone(),
-            );
-        }
         if let Some(token) = vd.field_value("scope") {
             if let Some(scope) = scope_from_snake_case(token.as_str()) {
                 sc = ScopeContext::new_root(scope, token.clone());
