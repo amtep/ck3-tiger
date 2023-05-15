@@ -245,8 +245,16 @@ impl Fileset {
                     continue 'outer;
                 }
             }
-            // TODO: maybe call out specific common mistakes like scripted_values or on_actions ?
-            error(entry, ErrorKey::Filename, "file in unexpected directory");
+            if entry.path.starts_with("common/scripted_values") {
+                let msg = "file should be in common/script_values/";
+                error(entry, ErrorKey::Filename, msg);
+            } else if entry.path.starts_with("common/on_actions") {
+                let msg = "file should be in common/on_action/";
+                error(entry, ErrorKey::Filename, msg);
+            } else {
+                let msg = "file in unexpected directory";
+                error(entry, ErrorKey::Filename, msg);
+            }
             warned.push(dirname);
         }
     }
