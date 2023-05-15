@@ -338,11 +338,19 @@ impl Event {
         if evtype == "court_event" {
             vd.advice_field("override_background", "not needed for court_event");
         } else {
-            vd.field_validated_bvs("override_background", validate_theme_background);
+            vd.field_validated_bvs("override_background", |b, data| {
+                validate_theme_background(b, data, &mut sc)
+            });
         }
-        vd.field_validated_blocks("override_icon", validate_theme_icon);
-        vd.field_validated_blocks("override_sound", validate_theme_sound);
-        vd.field_validated_blocks("override_transition", validate_theme_transition);
+        vd.field_validated_blocks("override_icon", |b, data| {
+            validate_theme_icon(b, data, &mut sc)
+        });
+        vd.field_validated_blocks("override_sound", |b, data| {
+            validate_theme_sound(b, data, &mut sc)
+        });
+        vd.field_validated_blocks("override_transition", |b, data| {
+            validate_theme_transition(b, data, &mut sc)
+        });
         // Note: override_environment seems to be unused, and themes defined in
         // common/event_themes don't have environments. So I left it out even though
         // it's in the docs.

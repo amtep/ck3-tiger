@@ -49,37 +49,52 @@ impl TryFrom<&str> for ListType {
     }
 }
 
-pub fn validate_theme_background(bv: &BlockOrValue, data: &Everything) {
+pub fn validate_theme_background(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
     if let Some(block) = bv.get_block() {
         let mut vd = Validator::new(block, data);
 
-        vd.field_block("trigger");
-        vd.ban_field("event_background", || "before 1.9");
+        vd.field_validated_block("trigger", |b, data| {
+            validate_normal_trigger(b, data, sc, false)
+        });
+        if vd.field_value("event_background").is_some() {
+            let msg = "`event_background` now causes a crash. It has been replaced by `reference` since 1.9";
+            error(
+                block.get_key("event_background").unwrap(),
+                ErrorKey::Crash,
+                &msg,
+            );
+        }
         vd.field_value("reference");
     } else {
         // TODO: verify the background is defined
     }
 }
 
-pub fn validate_theme_icon(block: &Block, data: &Everything) {
+pub fn validate_theme_icon(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
-    vd.field_block("trigger");
+    vd.field_validated_block("trigger", |b, data| {
+        validate_normal_trigger(b, data, sc, false)
+    });
     // TODO: verify the file exists
     vd.field_value("reference"); // file
 }
 
-pub fn validate_theme_sound(block: &Block, data: &Everything) {
+pub fn validate_theme_sound(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
-    vd.field_block("trigger");
+    vd.field_validated_block("trigger", |b, data| {
+        validate_normal_trigger(b, data, sc, false)
+    });
     vd.field_value("reference"); // event:/ resource reference
 }
 
-pub fn validate_theme_transition(block: &Block, data: &Everything) {
+pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
-    vd.field_block("trigger");
+    vd.field_validated_block("trigger", |b, data| {
+        validate_normal_trigger(b, data, sc, false)
+    });
     vd.field_value("reference"); // TODO: unknown
 }
 
