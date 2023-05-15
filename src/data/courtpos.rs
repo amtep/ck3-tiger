@@ -78,11 +78,11 @@ impl CourtPosition {
         data.verify_exists_implied(Item::Localization, &loca, &self.key);
 
         let mut vd = Validator::new(&self.block, data);
-        vd.req_field("skill");
-        vd.field_value_item("skill", Item::Skill);
+        vd.advice_field("skill", "`skill` was removed in 1.8");
         vd.field_integer("max_available_positions");
         vd.field_value_item("category", Item::CourtPositionCategory);
         vd.field_choice("minimum_rank", &["county", "duchy", "kingdom", "empire"]);
+        vd.field_bool("is_travel_related");
         vd.field_script_value_rooted("opinion", Scopes::None);
         vd.field_validated_block("aptitude_level_breakpoints", validate_breakpoints);
         vd.field_script_value_rooted("aptitude", Scopes::Character);

@@ -223,7 +223,6 @@ impl<'a> Validator<'a> {
                 error(t, ErrorKey::Validation, "expected block, found value");
             }
             BlockOrValue::Block(s) => {
-                let mut vec = Vec::new();
                 for (k, _, v) in &s.v {
                     if let Some(key) = k {
                         warn(
@@ -233,7 +232,32 @@ impl<'a> Validator<'a> {
                         );
                     }
                     match v {
-                        BlockOrValue::Token(t) => vec.push(t.clone()),
+                        BlockOrValue::Token(_) => (),
+                        BlockOrValue::Block(s) => {
+                            error(s, ErrorKey::Validation, "expected value, found block");
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    pub fn field_list_items(&mut self, name: &str, item: Item) -> bool {
+        self.field_check(name, |v| match v {
+            BlockOrValue::Token(t) => {
+                error(t, ErrorKey::Validation, "expected block, found value");
+            }
+            BlockOrValue::Block(s) => {
+                for (k, _, v) in &s.v {
+                    if let Some(key) = k {
+                        warn(
+                            key,
+                            ErrorKey::Validation,
+                            &format!("found key `{key}`, expected only values"),
+                        );
+                    }
+                    match v {
+                        BlockOrValue::Token(t) => self.data.verify_exists(item, t),
                         BlockOrValue::Block(s) => {
                             error(s, ErrorKey::Validation, "expected value, found block");
                         }

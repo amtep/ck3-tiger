@@ -13,6 +13,7 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct Traits {
@@ -85,6 +86,13 @@ impl Trait {
         validate_modifs(block, data, ModifKinds::Character, sc, vd);
     }
 
+    fn validate_faith_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+        let mut vd = Validator::new(block, data);
+
+        vd.field_value("parameter"); // TODO: check faith parameter exists
+        validate_modifs(block, data, ModifKinds::Character, sc, vd);
+    }
+
     fn validate_triggered_opinion(block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -136,9 +144,17 @@ impl Trait {
         vd.field_validated_blocks("culture_modifier", |b, data| {
             Self::validate_culture_modifier(b, data, &mut sc);
         });
+        vd.field_validated_blocks("faith_modifier", |b, data| {
+            Self::validate_faith_modifier(b, data, &mut sc);
+        });
+        vd.field_value_item("culture_succession_prio", Item::CultureParameter);
         vd.field_validated_blocks("triggered_opinion", Self::validate_triggered_opinion);
 
-        vd.field_list("opposites");
+        // TODO: validate these
+        vd.field_block("tracks");
+        vd.field_block("track");
+
+        vd.field_list_items("opposites", Item::Trait);
         if let Some(tokens) = self.block.get_field_list("opposites") {
             for token in tokens {
                 data.verify_exists(Item::Trait, &token);
@@ -148,7 +164,13 @@ impl Trait {
         // TODO: validate as trait = integer assignments
         vd.field_block("compatibility");
 
+        vd.field_validated_block("potential", |b, data| {
+            validate_normal_trigger(b, data, &mut sc, false)
+        });
+
         vd.field_integer("minimum_age");
+        vd.field_integer("maximum_age");
+        vd.field_choice("valid_sex", &["all", "male", "female"]);
         vd.field_bool("education");
         vd.field_integer("ruler_designer_cost");
         vd.field_bool("shown_in_ruler_designer");
@@ -171,18 +193,34 @@ impl Trait {
         vd.field_numeric("opposite_opinion");
         vd.field_numeric("same_faith_opinion");
         vd.field_integer("level");
-        vd.field_integer("inherit_chance");
-        vd.field_integer("both_parent_has_trait_inherit_chance");
-        vd.field_numeric("birth");
-        vd.field_numeric("random_creation");
+        vd.field_integer("inherit_chance"); // TODO: must be 0 - 100
+        vd.field_integer("both_parent_has_trait_inherit_chance"); //TODO: must be 0 - 100
+        vd.field_numeric("birth"); // TODO: must be 0 - 1
+        vd.field_numeric("random_creation"); // TODO: must be 0 - 1
         vd.field_bool("can_inherit");
         vd.field_bool("inherit_from_real_father");
         vd.field_bool("blocks_from_claim_inheritance");
+        vd.field_bool("blocks_from_claim_inheritance_from_dynasty");
         vd.field_bool("incapacitating");
         vd.field_bool("disables_combat_leadership");
-        vd.field_choice("parent_inheritance_sex", &["male", "female"]);
+        vd.field_choice("parent_inheritance_sex", &["male", "female", "all"]);
+        vd.field_choice("child_inheritance_sex", &["male", "female", "all"]);
         vd.field_values("flag"); // TODO: insert into Everything db
         vd.field_bool("shown_in_encyclopedia");
+
+        vd.field_choice("inheritance_blocker", &["none", "dynasty", "all"]);
+        vd.field_choice("claim_inheritance_blocker", &["none", "dynasty", "all"]);
+        vd.field_choice("bastard", &["none", "illegitimate", "legitimate"]);
+
+        vd.field_value("genetic_constraint_all"); // TODO: what is the item here?
+        vd.field_value("genetic_constraint_men"); // TODO: what is the item here?
+        vd.field_value("genetic_constraint_women"); // TODO: what is the item here?
+        vd.field_numeric("portrait_extremity_shift");
+        vd.field_numeric("ugliness_portrait_extremity_shift");
+        vd.field_block("portrait_pose"); // TODO
+
+        vd.field_list_items("trait_exclusive_if_realm_contains", Item::Terrain);
+        vd.field_bool("trait_winter_exclusive");
 
         validate_modifs(&self.block, data, ModifKinds::Character, &mut sc, vd);
     }
