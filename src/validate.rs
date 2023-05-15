@@ -366,7 +366,7 @@ pub fn validate_inside_iterator(
     }
 
     if name == "guest_subset" || name == "guest_subset_current_phase" {
-        vd.field_value("name"); // TODO
+        vd.field_value_item("name", Item::GuestSubset);
     } else {
         vd.ban_field("name", || {
             format!("`{listtype}_guest_subset` and `{listtype}_guest_subset_current_phase`")

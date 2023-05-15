@@ -203,6 +203,18 @@ pub fn validate_trigger(
                 continue;
             }
 
+            if key.is("name") {
+                if caller != "any_guest_subset" && caller != "any_guest_subset_current_phase" {
+                    let msg = format!("can only use `{key} =` in `any_guest_subset` list");
+                    warn(key, ErrorKey::Validation, &msg);
+                    continue;
+                }
+                if let Some(token) = bv.expect_value() {
+                    data.verify_exists(Item::GuestSubset, token);
+                }
+                continue;
+            }
+
             if key.is("text") {
                 if caller == "custom_description" {
                     if let Some(token) = bv.expect_value() {

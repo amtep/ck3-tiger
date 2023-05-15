@@ -2,7 +2,6 @@
 
 ## Changes
 
-* In events, `type = empty` is now `scope = none`
 * In override_background, `event_background` is now `reference`
 
 ## Bugs
