@@ -615,7 +615,7 @@ const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
 const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
-    (Activity, "acclaimed_knight", Character),
+    (Character, "acclaimed_knight", Character),
     (Character, "accolade", Accolade),
     (None, "accolade_type", AccoladeType),
     (Character, "active_accolade", Accolade),
