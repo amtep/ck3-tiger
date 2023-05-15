@@ -20,7 +20,7 @@ use crate::token::Token;
 use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{
     validate_cooldown, validate_theme_background, validate_theme_icon, validate_theme_sound,
-    ListType,
+    validate_theme_transition, ListType,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -342,6 +342,7 @@ impl Event {
         }
         vd.field_validated_blocks("override_icon", validate_theme_icon);
         vd.field_validated_blocks("override_sound", validate_theme_sound);
+        vd.field_validated_blocks("override_transition", validate_theme_transition);
         // Note: override_environment seems to be unused, and themes defined in
         // common/event_themes don't have environments. So I left it out even though
         // it's in the docs.
@@ -514,6 +515,8 @@ fn validate_portrait(v: &BlockOrValue, data: &Everything, sc: &mut ScopeContext)
             vd.field_validated_blocks("triggered_outfit", |b, data| {
                 validate_triggered_outfit(b, data, sc);
             });
+            vd.field_value("camera"); // TODO: figure out valid values
+
             // TODO: is this only useful when animation is prisondungeon ?
             vd.field_bool("override_imprisonment_visuals");
             vd.field_bool("animate_if_dead");

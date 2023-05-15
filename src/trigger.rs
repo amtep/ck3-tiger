@@ -215,6 +215,18 @@ pub fn validate_trigger(
                 continue;
             }
 
+            if key.is("phase") {
+                if caller != "any_guest_subset" {
+                    let msg = format!("can only use `{key} =` in `any_guest_subset` list");
+                    warn(key, ErrorKey::Validation, &msg);
+                    continue;
+                }
+                if let Some(token) = bv.expect_value() {
+                    data.verify_exists(Item::ActivityPhase, token);
+                }
+                continue;
+            }
+
             if key.is("text") {
                 if caller == "custom_description" {
                     if let Some(token) = bv.expect_value() {
@@ -656,19 +668,21 @@ fn match_trigger_bv(
             if name.is("exists") {
                 if let Some(token) = bv.expect_value() {
                     if token.is("yes") || token.is("no") {
-                        // TODO: check scope is not none?
+                        if sc.must_be(Scopes::None) {
+                            let msg = "`exists = {token}` does nothing in None scope";
+                            warn(token, ErrorKey::Scopes, msg);
+                        }
+                    } else if token.as_str().starts_with("flag:") {
+                        // exists = flag:$REASON$ is used in vanilla just to shut up their error.log,
+                        // so accept it silently even though it's a no-op.
                     } else {
                         validate_target(token, data, sc, Scopes::non_primitive());
 
                         if tooltipped {
                             if let Some(firstpart) = token.as_str().strip_suffix(".holder") {
                                 let msg = format!("could rewrite this as `{firstpart} = {{ is_title_created = yes }}`");
-                                advice_info(
-                                    name,
-                                    ErrorKey::Tooltip,
-                                    &msg,
-                                    "it gives a nicer tooltip",
-                                );
+                                let info = "it gives a nicer tooltip";
+                                advice_info(name, ErrorKey::Tooltip, &msg, info);
                             }
                         }
                     }

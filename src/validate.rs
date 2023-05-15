@@ -54,9 +54,7 @@ pub fn validate_theme_background(bv: &BlockOrValue, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
         vd.field_block("trigger");
-        // TODO: verify the background is defined
-        vd.field_value("event_background");
-        // TODO: check if `reference` actually works or is a mistake in vanilla
+        vd.ban_field("event_background", || "before 1.9");
         vd.field_value("reference");
     } else {
         // TODO: verify the background is defined
@@ -76,6 +74,13 @@ pub fn validate_theme_sound(block: &Block, data: &Everything) {
 
     vd.field_block("trigger");
     vd.field_value("reference"); // event:/ resource reference
+}
+
+pub fn validate_theme_transition(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+
+    vd.field_block("trigger");
+    vd.field_value("reference"); // TODO: unknown
 }
 
 pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &mut ScopeContext) {
