@@ -546,7 +546,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (LandedTitle, "title_province", Province),
     (TravelPlan, "travel_leader", Character),
     (TravelPlan, "travel_plan_activity", Activity),
-    (TravelPlan, "travel_plan_owner", Activity),
+    (TravelPlan, "travel_plan_owner", Character),
     (Character, "top_liege", Character),
     // "value" special
     (
