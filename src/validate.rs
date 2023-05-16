@@ -325,7 +325,9 @@ pub fn validate_inside_iterator(
         vd.field_value_item("type", Item::CourtPosition);
     } else if name == "relation" {
         vd.req_field("type");
-        vd.field_value_item("type", Item::Relation);
+        for t in vd.field_values("type") {
+            data.verify_exists(Item::Relation, t);
+        }
     } else {
         vd.ban_field("type", || {
             format!("`{listtype}_court_position_holder` or `{listtype}_relation`")
