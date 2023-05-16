@@ -89,9 +89,10 @@ impl ScriptValue {
     fn validate_inner(mut vd: Validator, data: &Everything, sc: &mut ScopeContext) {
         vd.field_value_item("desc", Item::Localization);
         vd.field_value_item("format", Item::Localization);
-        if let Some(token) = vd.field_value("save_temporary_scope_as") {
-            // TODO: warn on the key not the token
-            warn_info(token, ErrorKey::Validation, "`save_temporary_scope_as` does not work in script value", "but you can put it in an `if = { limit = { save_temporary_scope_as = ... } }` block inside a script value");
+        // save_temporary_scope_as is now allowed in script values
+        vd.field_value("save_temporary_scope_as");
+        if let Some(block) = vd.field_block("save_temporary_opinion_value_as") {
+            warn_info(block, ErrorKey::Validation, "`save_temporary_opinion_value_as` does not work in script value", "but you can put it in an `if = { limit = { save_temporary_opinion_value_as = ... } }` block inside a script value");
         }
         vd.field_validated("value", |bv, data| {
             Self::validate_bv(bv, data, sc);
