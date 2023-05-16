@@ -354,7 +354,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "add_trait_xp", Special(AddTraitXp)),
     (Character, "add_travel_option", Unchecked),
     (TravelPlan, "add_travel_plan_modifier", Special(AddModifier)),
-    (TravelPlan, "add_travel_waypoint", Item(Item::Province)),
+    (TravelPlan, "add_travel_waypoint", Scope(Scopes::Province)),
     (Character, "add_truce_both_ways", Special(AddTruce)),
     (Character, "add_truce_one_way", Special(AddTruce)),
     (Character, "add_tyranny", Effect::Value),
@@ -1019,6 +1019,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "set_color_from_title",
         Scope(Scopes::LandedTitle),
     ),
+    // TODO: target can be province as well as character
     (
         Character,
         "set_council_task",
