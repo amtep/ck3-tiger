@@ -417,6 +417,7 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
     });
 
     vd.field_validated_bv("flavor", |b, data| validate_desc(b, data, sc));
+    vd.field_value("reason");
 
     // "this option is available because you have the ... trait"
     vd.field_values_items("trait", Item::Trait);
