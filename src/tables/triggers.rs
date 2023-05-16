@@ -19,8 +19,9 @@ enum RawTrigger {
     Block(&'static [(&'static str, RawTrigger)]), // trigger takes a block with these fields
     ScopeOrBlock(u64, &'static [(&'static str, RawTrigger)]), // trigger takes a block with these fields
     ItemOrBlock(Item, &'static [(&'static str, RawTrigger)]), // trigger takes a block with these fields
-    ScopeList(u64),    // trigger takes a block of values of this scope type
-    ScopeCompare(u64), // trigger takes a block comparing two scope objects
+    ScopeList(u64),      // trigger takes a block of values of this scope type
+    ScopeCompare(u64),   // trigger takes a block comparing two scope objects
+    CompareToScope(u64), // this is for inside a Block, where a key is compared to a scope object
 
     Control, // this key opens another trigger block
     Special, // this has specific code for validation
@@ -44,6 +45,7 @@ pub enum Trigger {
     ItemOrBlock(Item, Vec<(&'static str, Trigger)>),
     ScopeList(Scopes),
     ScopeCompare(Scopes),
+    CompareToScope(Scopes),
 
     Control,
     Special,
@@ -74,6 +76,9 @@ impl Trigger {
             }
             RawTrigger::ScopeList(s) => Trigger::ScopeList(Scopes::from_bits_truncate(*s)),
             RawTrigger::ScopeCompare(s) => Trigger::ScopeCompare(Scopes::from_bits_truncate(*s)),
+            RawTrigger::CompareToScope(s) => {
+                Trigger::CompareToScope(Scopes::from_bits_truncate(*s))
+            }
             RawTrigger::Control => Trigger::Control,
             RawTrigger::Special => Trigger::Special,
             RawTrigger::UncheckedValue => Trigger::UncheckedValue,
@@ -971,7 +976,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[
             ("trait", Item(Item::Trait)),
             ("*rank", CompareValue),
-            ("?character", Scope(Character)),
+            ("*character", CompareToScope(Character)),
         ]),
     ),
     (Character, "has_trait_with_flag", Item(Item::TraitFlag)),

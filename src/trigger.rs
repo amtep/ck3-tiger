@@ -658,6 +658,12 @@ fn match_trigger_bv(
                 }
             }
         }
+        Trigger::CompareToScope(s) => {
+            must_be_eq = false;
+            if let Some(token) = bv.expect_value() {
+                validate_target(token, data, sc, *s);
+            }
+        }
         Trigger::Control => {
             if let Some(block) = bv.expect_block() {
                 validate_trigger(name.as_str(), false, block, data, sc, tooltipped);
