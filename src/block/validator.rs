@@ -79,6 +79,14 @@ impl<'a> Validator<'a> {
         }
     }
 
+    pub fn replaced_field(&mut self, name: &str, replaced_by: &str) {
+        if let Some(key) = self.block.get_key(name) {
+            self.known_fields.push(key.as_str());
+            let msg = format!("`{name}` has been replaced by {replaced_by}");
+            error(key, ErrorKey::Validation, &msg);
+        }
+    }
+
     pub fn field_check<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BlockOrValue),

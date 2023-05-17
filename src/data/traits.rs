@@ -167,15 +167,17 @@ impl Trait {
         vd.field_integer("minimum_age");
         vd.field_integer("maximum_age");
         vd.field_choice("valid_sex", &["all", "male", "female"]);
-        vd.field_bool("education");
+        vd.replaced_field("education", "`category = education`");
+        vd.replaced_field("childhood", "`category = childhood`");
         vd.field_integer("ruler_designer_cost");
         vd.field_bool("shown_in_ruler_designer");
         vd.field_bool("add_commander_trait");
-        vd.field_bool("fame");
-        vd.field_bool("lifestyle");
-        vd.field_bool("personality");
-        vd.field_bool("health_trait");
-        vd.field_bool("court_type_trait");
+        vd.replaced_field("fame", "`category = fame`");
+        vd.replaced_field("lifestyle", "`category = lifestyle`");
+        vd.replaced_field("personality", "`category = personality`");
+        vd.replaced_field("health_trait", "`category = health`");
+        vd.replaced_field("commander", "`category = commander`");
+        vd.replaced_field("court_type_trait", "`category = court_type`");
         vd.field_bool("genetic");
         vd.field_bool("physical");
         vd.field_bool("good");
@@ -195,12 +197,19 @@ impl Trait {
         vd.field_numeric("random_creation"); // TODO: must be 0 - 1
         vd.field_bool("can_inherit");
         vd.field_bool("inherit_from_real_father");
-        vd.field_bool("blocks_from_claim_inheritance");
-        vd.field_bool("blocks_from_claim_inheritance_from_dynasty");
+        vd.replaced_field(
+            "blocks_from_claim_inheritance",
+            "`claim_inheritance_blocker = all`",
+        );
+        vd.replaced_field(
+            "blocks_from_claim_inheritance_from_dynasty",
+            "`claim_inheritance_blocker = dynasty`",
+        );
         vd.field_bool("incapacitating");
         vd.field_bool("disables_combat_leadership");
         vd.field_choice("parent_inheritance_sex", &["male", "female", "all"]);
         vd.field_choice("child_inheritance_sex", &["male", "female", "all"]);
+        // TODO: check that they are localized as TRAIT_FLAG_DESC_name
         vd.field_values("flag"); // TODO: insert into Everything db
         vd.field_bool("shown_in_encyclopedia");
 
@@ -216,7 +225,7 @@ impl Trait {
         vd.field_block("portrait_pose"); // TODO
 
         vd.field_list_items("trait_exclusive_if_realm_contains", Item::Terrain);
-        vd.field_bool("trait_winter_exclusive");
+        vd.replaced_field("trait_winter_exclusive", "`category = winter_commander`");
 
         validate_modifs(&self.block, data, ModifKinds::Character, &mut sc, vd);
     }
