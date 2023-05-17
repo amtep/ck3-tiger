@@ -101,10 +101,10 @@ for fname in fnames:
             type, name = name.split(".")
             if name == "AccessSelf" or name == "Self":
                 rtype = type
-            FUNCTIONS.append('    (%s, "%s", %s, %s),\n' % (type, name, args, rtype))
+            FUNCTIONS.append('    ("%s", %s, %s, %s),\n' % (name, type, args, rtype))
         elif "\nDefinition type: Promote\n" in item:
             type, name = name.split(".")
-            PROMOTES.append('    (%s, "%s", %s, %s),\n' % (type, name, args, rtype))
+            PROMOTES.append('    ("%s", %s, %s, %s),\n' % (name, type, args, rtype))
         else:
             print(item)
             raise "unknown item"
