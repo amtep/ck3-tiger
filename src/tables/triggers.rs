@@ -158,14 +158,14 @@ use RawTrigger::*;
 /// LAST UPDATED VERSION 1.9.0.2
 /// See `triggers.log` from the game data dumps
 /// special:
-///    <legacy>_track_perks
-///    <lifestyle>_perk_points
-///    <lifestyle>_perks
-///    <lifestyle>_unlockable_perks
-///    <lifestyle>_xp
-///    has_relation_<relation>
-///    has_secret_relation_<relation>
-///    num_of_relation_<relation>
+///    `<legacy>_track_perks`
+///    `<lifestyle>_perk_points`
+///    `<lifestyle>_perks`
+///    `<lifestyle>_unlockable_perks`
+///    `<lifestyle>_xp`
+///    `has_relation_<relation>`
+///    `has_secret_relation_<relation>`
+///    `num_of_relation_<relation>`
 const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Accolade, "accolade_rank", CompareValue),
     (AccoladeType, "accolade_type_tier", Scope(AccoladeType)),

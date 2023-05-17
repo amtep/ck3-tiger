@@ -59,17 +59,21 @@ impl FileHandler for InteractionCategories {
         let mut taken = vec![None; self.categories.len()];
         for item in self.categories.values() {
             if let Some(index) = item.index {
-                if index >= (taken.len() as i64) || index < 0 {
-                    error(
-                        &item.key,
-                        ErrorKey::Range,
-                        "index needs to be from 0 to the number of categories",
-                    );
-                } else if let Some(other) = taken[index as usize] {
-                    let msg = format!("index duplicates the index of {other}");
-                    error(&item.key, ErrorKey::Duplicate, &msg);
+                let bad_range;
+                if let Ok(i_taken) = usize::try_from(index) {
+                    bad_range = i_taken >= taken.len();
+                    if let Some(other) = taken[i_taken] {
+                        let msg = format!("index duplicates the index of {other}");
+                        error(&item.key, ErrorKey::Duplicate, &msg);
+                    } else {
+                        taken[i_taken] = Some(&item.key);
+                    }
                 } else {
-                    taken[index as usize] = Some(&item.key);
+                    bad_range = true;
+                }
+                if bad_range {
+                    let msg = "index needs to be from 0 to the number of categories";
+                    error(&item.key, ErrorKey::Range, msg);
                 }
             }
             // if no index, the item will warn about that in validate
@@ -92,6 +96,8 @@ impl Category {
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
+        vd.req_field("index");
+        vd.req_field("desc");
         vd.field_integer("index");
         vd.field_value_item("desc", Item::Localization);
         vd.field_bool("default");

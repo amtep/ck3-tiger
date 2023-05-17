@@ -313,17 +313,13 @@ impl<'a> LocaParser<'a> {
         // is ambiguous. A loca value ends at the last " on the line.
         // Any # or " before that are part of the value; an # after that
         // introduces a comment.
-        self.loca_end = match self.find_dquote() {
-            Some(i) => i,
-            None => {
-                error(
-                    &self.loc,
-                    ErrorKey::Localization,
-                    "localization entry without ending quote",
-                );
-                return self.error_line(key);
-            }
-        };
+        if let Some(i) = self.find_dquote() {
+            self.loca_end = i;
+        } else {
+            let msg = "localization entry without ending quote";
+            error(&self.loc, ErrorKey::Localization, msg);
+            return self.error_line(key);
+        }
 
         self.value = Vec::new();
         let s = self.content[self.loc.offset..self.loca_end].to_string();

@@ -141,12 +141,8 @@ impl Trait {
         }
 
         vd.field_value_item("category", Item::TraitCategory);
-        vd.field_validated_blocks("culture_modifier", |b, data| {
-            Self::validate_culture_modifier(b, data, &mut sc);
-        });
-        vd.field_validated_blocks("faith_modifier", |b, data| {
-            Self::validate_faith_modifier(b, data, &mut sc);
-        });
+        vd.field_validated_blocks_sc("culture_modifier", &mut sc, Self::validate_culture_modifier);
+        vd.field_validated_blocks_sc("faith_modifier", &mut sc, Self::validate_faith_modifier);
         vd.field_value_item("culture_succession_prio", Item::CultureParameter);
         vd.field_validated_blocks("triggered_opinion", Self::validate_triggered_opinion);
 
@@ -165,7 +161,7 @@ impl Trait {
         vd.field_block("compatibility");
 
         vd.field_validated_block("potential", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false)
+            validate_normal_trigger(b, data, &mut sc, false);
         });
 
         vd.field_integer("minimum_age");

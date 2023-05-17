@@ -287,20 +287,15 @@ impl Event {
         });
         vd.field_block("weight_multiplier"); // modifier
 
-        if let Some(bv) = vd.field("title") {
-            validate_desc(bv, data, &mut sc);
-        }
-
-        if let Some(bv) = vd.field("desc") {
-            validate_desc(bv, data, &mut sc);
-        }
+        vd.field_validated_sc("title", &mut sc, validate_desc);
+        vd.field_validated_sc("desc", &mut sc, validate_desc);
 
         if evtype == "letter_event" {
             if let Some(bv) = vd.field("opening") {
                 validate_desc(bv, data, &mut sc);
             }
             vd.req_field("sender");
-            vd.field_validated("sender", |bv, data| validate_portrait(bv, data, &mut sc));
+            vd.field_validated_sc("sender", &mut sc, validate_portrait);
         } else {
             vd.advice_field("opening", "only needed for letter_event");
             vd.advice_field("sender", "only needed for letter_event");
@@ -330,7 +325,7 @@ impl Event {
             validate_portrait(bv, data, &mut sc);
         });
         // TODO: check that artifacts are not in the same position as a character
-        vd.field_validated_blocks("artifact", |b, data| validate_artifact(b, data, &mut sc));
+        vd.field_validated_blocks_sc("artifact", &mut sc, validate_artifact);
         vd.field_validated_block("court_scene", validate_court_scene);
         // TODO: check defined event themes
         vd.field_value("theme");
@@ -338,19 +333,11 @@ impl Event {
         if evtype == "court_event" {
             vd.advice_field("override_background", "not needed for court_event");
         } else {
-            vd.field_validated_bvs("override_background", |b, data| {
-                validate_theme_background(b, data, &mut sc)
-            });
+            vd.field_validated_bvs_sc("override_background", &mut sc, validate_theme_background);
         }
-        vd.field_validated_blocks("override_icon", |b, data| {
-            validate_theme_icon(b, data, &mut sc)
-        });
-        vd.field_validated_blocks("override_sound", |b, data| {
-            validate_theme_sound(b, data, &mut sc)
-        });
-        vd.field_validated_blocks("override_transition", |b, data| {
-            validate_theme_transition(b, data, &mut sc)
-        });
+        vd.field_validated_blocks_sc("override_icon", &mut sc, validate_theme_icon);
+        vd.field_validated_blocks_sc("override_sound", &mut sc, validate_theme_sound);
+        vd.field_validated_blocks_sc("override_transition", &mut sc, validate_theme_transition);
         // Note: override_environment seems to be unused, and themes defined in
         // common/event_themes don't have environments. So I left it out even though
         // it's in the docs.
@@ -358,13 +345,13 @@ impl Event {
         if !self.block.get_field_bool("hidden").unwrap_or(false) {
             vd.req_field("option");
         }
-        vd.field_validated_blocks("option", |b, data| validate_event_option(b, data, &mut sc));
+        vd.field_validated_blocks_sc("option", &mut sc, validate_event_option);
 
         vd.field_validated_block("after", |b, data| {
             // TODO: check if this block is tooltipped
             validate_normal_effect(b, data, &mut sc, false);
         });
-        vd.field_validated_block("cooldown", |b, data| validate_cooldown(b, data, &mut sc));
+        vd.field_validated_block_sc("cooldown", &mut sc, validate_cooldown);
         vd.field_value("soundeffect");
         vd.field_bool("orphan");
         // TODO: validate widget
@@ -416,7 +403,7 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
         validate_normal_trigger(b, data, sc, false);
     });
 
-    vd.field_validated_bv("flavor", |b, data| validate_desc(b, data, sc));
+    vd.field_validated_sc("flavor", sc, validate_desc);
     vd.field_value("reason");
 
     // "this option is available because you have the ... trait"

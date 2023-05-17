@@ -348,25 +348,11 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
-    pub fn field_validated_bv<F>(&mut self, name: &str, mut f: F) -> bool
+    pub fn field_validated_sc<F>(&mut self, name: &str, sc: &mut ScopeContext, mut f: F) -> bool
     where
-        F: FnMut(&BlockOrValue, &Everything),
+        F: FnMut(&BlockOrValue, &Everything, &mut ScopeContext),
     {
-        let mut found = None;
-        for (k, cmp, v) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    if let Some(other) = found {
-                        dup_assign_error(key, other);
-                    }
-                    expect_eq_qeq(key, cmp);
-                    f(v, self.data);
-                    found = Some(key);
-                }
-            }
-        }
-        found.is_some()
+        self.field_validated(name, |b, data| f(b, data, sc))
     }
 
     pub fn field_validated_bvs<F>(&mut self, name: &str, mut f: F) -> bool
@@ -385,6 +371,13 @@ impl<'a> Validator<'a> {
             }
         }
         found
+    }
+
+    pub fn field_validated_bvs_sc<F>(&mut self, name: &str, sc: &mut ScopeContext, mut f: F) -> bool
+    where
+        F: FnMut(&BlockOrValue, &Everything, &mut ScopeContext),
+    {
+        self.field_validated_bvs(name, |b, data| f(b, data, sc))
     }
 
     pub fn field_validated_blocks<F>(&mut self, name: &str, mut f: F) -> bool
@@ -408,6 +401,18 @@ impl<'a> Validator<'a> {
             }
         }
         found
+    }
+
+    pub fn field_validated_blocks_sc<F>(
+        &mut self,
+        name: &str,
+        sc: &mut ScopeContext,
+        mut f: F,
+    ) -> bool
+    where
+        F: FnMut(&Block, &Everything, &mut ScopeContext),
+    {
+        self.field_validated_blocks(name, |b, data| f(b, data, sc))
     }
 
     pub fn field_validated_block<F>(&mut self, name: &str, mut f: F) -> bool
@@ -434,6 +439,18 @@ impl<'a> Validator<'a> {
             }
         }
         found.is_some()
+    }
+
+    pub fn field_validated_block_sc<F>(
+        &mut self,
+        name: &str,
+        sc: &mut ScopeContext,
+        mut f: F,
+    ) -> bool
+    where
+        F: FnMut(&Block, &Everything, &mut ScopeContext),
+    {
+        self.field_validated_block(name, |b, data| f(b, data, sc))
     }
 
     pub fn field_blocks(&mut self, name: &str) -> bool {

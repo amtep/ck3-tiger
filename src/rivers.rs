@@ -164,6 +164,7 @@ impl Rivers {
                 ErrorKey::ImageFormat,
                 "rivers.png must have an 8-bit palette",
             );
+            return;
         }
 
         let mut river_segments = Vec::new();

@@ -60,7 +60,7 @@ pub fn validate_trigger(
             } else if key.is("trigger_else_if") || key.is("trigger_else") {
                 if !seen_if {
                     let msg = "must follow `trigger_if` or `trigger_else_if`";
-                    error(key, ErrorKey::Validation, &msg);
+                    error(key, ErrorKey::Validation, msg);
                 }
                 if key.is("trigger_else") {
                     seen_if = false;
@@ -72,14 +72,14 @@ pub fn validate_trigger(
             if key.is("percent") {
                 if !in_list {
                     let msg = "can only use `percent =` in an `any_` list";
-                    warn(key, ErrorKey::Validation, &msg);
+                    warn(key, ErrorKey::Validation, msg);
                     continue;
                 }
                 if let Some(token) = bv.get_value() {
                     if let Ok(num) = token.as_str().parse::<f64>() {
                         if num > 1.0 {
                             let msg = "'percent' here needs to be between 0 and 1";
-                            warn(token, ErrorKey::Range, &msg);
+                            warn(token, ErrorKey::Range, msg);
                         }
                     }
                 }
@@ -90,7 +90,7 @@ pub fn validate_trigger(
             if key.is("count") {
                 if !in_list {
                     let msg = "can only use `count =` in an `any_` list";
-                    warn(key, ErrorKey::Validation, &msg);
+                    warn(key, ErrorKey::Validation, msg);
                     continue;
                 }
                 if let Some(token) = bv.get_value() {
@@ -162,8 +162,8 @@ pub fn validate_trigger(
                 }
                 if let Some(token) = bv.expect_value() {
                     if !(token.is("involved") || token.is("interloper")) {
-                        let msg = format!("expected one of `involved` or `interloper`");
-                        error(token, ErrorKey::Validation, &msg);
+                        let msg = "expected one of `involved` or `interloper`";
+                        error(token, ErrorKey::Validation, msg);
                     }
                 }
                 continue;
@@ -707,11 +707,9 @@ fn match_trigger_bv(
         }
     }
 
-    if must_be_eq {
-        if !matches!(cmp, Comparator::Eq | Comparator::QEq) {
-            let msg = format!("unexpected comparator {cmp}");
-            warn(name, ErrorKey::Validation, &msg);
-        }
+    if must_be_eq && !matches!(cmp, Comparator::Eq | Comparator::QEq) {
+        let msg = format!("unexpected comparator {cmp}");
+        warn(name, ErrorKey::Validation, &msg);
     }
 }
 

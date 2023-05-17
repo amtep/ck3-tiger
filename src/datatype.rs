@@ -142,11 +142,8 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
                     rtype = xrtype;
                 }
                 LookupResult::WrongType => {
-                    error(
-                        &code.name,
-                        ErrorKey::DataFunctions,
-                        &format!("{} can not follow a {} promote", code.name, curtype),
-                    );
+                    let msg = format!("{} can not follow a {curtype} promote", code.name);
+                    error(&code.name, ErrorKey::DataFunctions, &msg);
                     return;
                 }
                 LookupResult::NotFound => (),
@@ -159,11 +156,8 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
                     rtype = xrtype;
                 }
                 LookupResult::WrongType => {
-                    error(
-                        &code.name,
-                        ErrorKey::DataFunctions,
-                        &format!("{} can not follow a {} promote", code.name, curtype),
-                    );
+                    let msg = format!("{} can not follow a {curtype} promote", code.name);
+                    error(&code.name, ErrorKey::DataFunctions, &msg);
                     return;
                 }
                 LookupResult::NotFound => (),
@@ -174,44 +168,29 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
             // Properly reporting these errors is tricky because `code.name`
             // might be found in any or all of the functions and promotes tables.
             if is_first && (p_found || f_found) && !gp_found && !gf_found {
-                error(
-                    &code.name,
-                    ErrorKey::DataFunctions,
-                    &format!("{} can not be the first in a chain", code.name),
-                );
+                let msg = format!("{} can not be the first in a chain", code.name);
+                error(&code.name, ErrorKey::DataFunctions, &msg);
                 return;
             }
             if is_last && (gp_found || p_found) && !gf_found && !f_found {
-                error(
-                    &code.name,
-                    ErrorKey::DataFunctions,
-                    &format!("{} can not be last in a chain", code.name),
-                );
+                let msg = format!("{} can not be lastin a chain", code.name);
+                error(&code.name, ErrorKey::DataFunctions, &msg);
                 return;
             }
             if !is_first && (gp_found || gf_found) && !p_found && !f_found {
-                error(
-                    &code.name,
-                    ErrorKey::DataFunctions,
-                    &format!("{} must be the first in a chain", code.name),
-                );
+                let msg = format!("{} must be the first in a chain", code.name);
+                error(&code.name, ErrorKey::DataFunctions, &msg);
                 return;
             }
             if !is_last && (gf_found || f_found) && !gp_found && !p_found {
-                error(
-                    &code.name,
-                    ErrorKey::DataFunctions,
-                    &format!("{} must be last in the chain", code.name),
-                );
+                let msg = format!("{} must be last in the chain", code.name);
+                error(&code.name, ErrorKey::DataFunctions, &msg);
                 return;
             }
             // A catch-all condition if none of the above match
             if gp_found || gf_found || p_found || f_found {
-                error(
-                    &code.name,
-                    ErrorKey::DataFunctions,
-                    &format!("{} is improperly used here", code.name),
-                );
+                let msg = format!("{} is improperly used here", code.name);
+                error(&code.name, ErrorKey::DataFunctions, &msg);
                 return;
             }
 
@@ -224,11 +203,8 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
             // of possible scope variable names
             if code.name.as_str().chars().next().unwrap().is_uppercase() {
                 // TODO: If there is a Custom of the same name, suggest that
-                warn(
-                    &code.name,
-                    ErrorKey::DataFunctions,
-                    &format!("unknown datafunction {}", &code.name),
-                );
+                let msg = format!("unknown datafunction {}", &code.name);
+                warn(&code.name, ErrorKey::DataFunctions, &msg);
                 return;
             }
 
@@ -281,14 +257,11 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
             && expect_type != Datatype::Unknown
             && curtype != expect_type
         {
-            error(
-                &code.name,
-                ErrorKey::DataFunctions,
-                &format!(
-                    "{} returns {} but a {} is needed here",
-                    code.name, curtype, expect_type
-                ),
+            let msg = format!(
+                "{} returns {curtype} but a {expect_type} is needed here",
+                code.name
             );
+            error(&code.name, ErrorKey::DataFunctions, &msg);
             return;
         }
     }

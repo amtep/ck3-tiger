@@ -101,51 +101,30 @@ impl ScriptValue {
             "value",
             "Setting value here will overwrite the previous calculations",
         );
-        vd.field_validated_bvs("add", |bv, data| {
-            Self::validate_bv(bv, data, sc);
-        });
-        vd.field_validated_bvs("subtract", |bv, data| {
-            Self::validate_bv(bv, data, sc);
-        });
-        vd.field_validated_bvs("multiply", |bv, data| {
-            Self::validate_bv(bv, data, sc);
-        });
+        vd.field_validated_bvs_sc("add", sc, Self::validate_bv);
+        vd.field_validated_bvs_sc("subtract", sc, Self::validate_bv);
+        vd.field_validated_bvs_sc("multiply", sc, Self::validate_bv);
         // TODO: warn if not sure that divide by zero is impossible?
-        vd.field_validated_bvs("divide", |bv, data| {
-            Self::validate_bv(bv, data, sc);
-        });
-        vd.field_validated_bvs("modulo", |bv, data| {
-            Self::validate_bv(bv, data, sc);
-        });
-        vd.field_validated_bvs("min", |bv, data| {
-            Self::validate_bv(bv, data, sc);
-        });
-        vd.field_validated_bvs("max", |bv, data| {
-            Self::validate_bv(bv, data, sc);
-        });
+        vd.field_validated_bvs_sc("divide", sc, Self::validate_bv);
+        vd.field_validated_bvs_sc("modulo", sc, Self::validate_bv);
+        vd.field_validated_bvs_sc("min", sc, Self::validate_bv);
+        vd.field_validated_bvs_sc("max", sc, Self::validate_bv);
         vd.field_bool("round");
         vd.field_bool("ceiling");
         vd.field_bool("floor");
-        vd.field_validated_blocks("fixed_range", |b, data| {
-            Self::validate_minmax_range(b, data, sc);
-        });
-        vd.field_validated_blocks("integer_range", |b, data| {
-            Self::validate_minmax_range(b, data, sc);
-        });
+        vd.field_validated_blocks_sc("fixed_range", sc, Self::validate_minmax_range);
+        vd.field_validated_blocks_sc("integer_range", sc, Self::validate_minmax_range);
         // TODO: check that these actually follow each other
-        vd.field_validated_blocks("if", |b, data| Self::validate_if(b, data, sc));
-        vd.field_validated_blocks("else_if", |b, data| {
-            Self::validate_if(b, data, sc);
-        });
-        vd.field_validated_blocks("else", |b, data| {
-            Self::validate_else(b, data, sc);
-        });
+        vd.field_validated_blocks_sc("if", sc, Self::validate_if);
+        vd.field_validated_blocks_sc("else_if", sc, Self::validate_if);
+        vd.field_validated_blocks_sc("else", sc, Self::validate_else);
 
         'outer: for (key, bv) in vd.unknown_keys() {
             if let Some(token) = bv.get_value() {
                 error(token, ErrorKey::Validation, "expected block, found value");
                 continue;
             }
+            let block = bv.get_block().unwrap();
 
             if let Some((it_type, it_name)) = key.split_once('_') {
                 if it_type.is("every")
@@ -155,18 +134,12 @@ impl ScriptValue {
                 {
                     if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
                         if it_type.is("any") {
-                            let msg = format!("cannot use `{key}` in a script value");
-                            error(key, ErrorKey::Validation, &msg);
+                            let msg = "cannot use `any_` iterators in a script value";
+                            error(key, ErrorKey::Validation, msg);
                         }
                         sc.expect(inscopes, key);
                         sc.open_scope(outscope, key.clone());
-                        Self::validate_iterator(
-                            &it_type,
-                            &it_name,
-                            bv.get_block().unwrap(),
-                            data,
-                            sc,
-                        );
+                        Self::validate_iterator(&it_type, &it_name, block, data, sc);
                         sc.close();
                         continue;
                     }
@@ -222,7 +195,7 @@ impl ScriptValue {
                 }
                 first = false;
             }
-            Self::validate_block(bv.get_block().unwrap(), data, sc);
+            Self::validate_block(block, data, sc);
             sc.close();
         }
     }

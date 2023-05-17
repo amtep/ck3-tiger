@@ -54,14 +54,14 @@ pub fn validate_theme_background(bv: &BlockOrValue, data: &Everything, sc: &mut 
         let mut vd = Validator::new(block, data);
 
         vd.field_validated_block("trigger", |b, data| {
-            validate_normal_trigger(b, data, sc, false)
+            validate_normal_trigger(b, data, sc, false);
         });
         if vd.field_value("event_background").is_some() {
             let msg = "`event_background` now causes a crash. It has been replaced by `reference` since 1.9";
             error(
                 block.get_key("event_background").unwrap(),
                 ErrorKey::Crash,
-                &msg,
+                msg,
             );
         }
         vd.field_value("reference");
@@ -74,7 +74,7 @@ pub fn validate_theme_icon(block: &Block, data: &Everything, sc: &mut ScopeConte
     let mut vd = Validator::new(block, data);
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, false)
+        validate_normal_trigger(b, data, sc, false);
     });
     // TODO: verify the file exists
     vd.field_value("reference"); // file
@@ -84,7 +84,7 @@ pub fn validate_theme_sound(block: &Block, data: &Everything, sc: &mut ScopeCont
     let mut vd = Validator::new(block, data);
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, false)
+        validate_normal_trigger(b, data, sc, false);
     });
     vd.field_value("reference"); // event:/ resource reference
 }
@@ -93,7 +93,7 @@ pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut Scop
     let mut vd = Validator::new(block, data);
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, false)
+        validate_normal_trigger(b, data, sc, false);
     });
     vd.field_value("reference"); // TODO: unknown
 }
@@ -284,11 +284,8 @@ pub fn validate_inside_iterator(
         let have_list = vd.field_value("list").is_some();
         let have_var = vd.field_value("variable").is_some();
         if have_list == have_var {
-            error(
-                block,
-                ErrorKey::Validation,
-                "must have one of `list =` or `variable =`",
-            );
+            let msg = "must have one of `list =` or `variable =`";
+            error(block, ErrorKey::Validation, msg);
         }
     } else {
         let only_for = || {
@@ -409,16 +406,9 @@ pub fn validate_inside_iterator(
 
 pub fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    // These can all be script values
-    vd.field_validated_bv("gold", |bv, data| {
-        ScriptValue::validate_bv(bv, data, sc);
-    });
-    vd.field_validated_bv("prestige", |bv, data| {
-        ScriptValue::validate_bv(bv, data, sc);
-    });
-    vd.field_validated_bv("piety", |bv, data| {
-        ScriptValue::validate_bv(bv, data, sc);
-    });
+    vd.field_script_value("gold", sc);
+    vd.field_script_value("prestige", sc);
+    vd.field_script_value("piety", sc);
     vd.field_bool("round");
 }
 
