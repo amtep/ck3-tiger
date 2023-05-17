@@ -17,6 +17,7 @@ use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct Traits {
+    // TODO: track trait flags too
     traits: FnvHashMap<String, Trait>,
     groups: FnvHashSet<String>,
 }
@@ -82,14 +83,14 @@ impl Trait {
     fn validate_culture_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_value("parameter"); // TODO: check cultural parameter exists
+        vd.field_value_item("parameter", Item::CultureParameter);
         validate_modifs(block, data, ModifKinds::Character, sc, vd);
     }
 
     fn validate_faith_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_value("parameter"); // TODO: check faith parameter exists
+        vd.field_value_item("parameter", Item::DoctrineParameter);
         validate_modifs(block, data, ModifKinds::Character, sc, vd);
     }
 
@@ -97,7 +98,7 @@ impl Trait {
         let mut vd = Validator::new(block, data);
 
         vd.field_value("opinion_modifier"); // TODO: validate
-        vd.field_value("parameter"); // TODO: check doctrine parameter exists
+        vd.field_value_item("parameter", Item::DoctrineParameter);
         vd.field_bool("check_missing");
         vd.field_bool("same_faith");
         vd.field_bool("same_dynasty");
@@ -209,8 +210,7 @@ impl Trait {
         vd.field_bool("disables_combat_leadership");
         vd.field_choice("parent_inheritance_sex", &["male", "female", "all"]);
         vd.field_choice("child_inheritance_sex", &["male", "female", "all"]);
-        // TODO: check that they are localized as TRAIT_FLAG_DESC_name
-        vd.field_values("flag"); // TODO: insert into Everything db
+        vd.field_values("flag");
         vd.field_bool("shown_in_encyclopedia");
 
         vd.field_choice("inheritance_blocker", &["none", "dynasty", "all"]);
