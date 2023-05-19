@@ -231,6 +231,7 @@ pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted:
 /// It does not check "limit" because that is shared with the if/else blocks.
 /// Returns true iff the iterator took care of its own tooltips
 pub fn validate_iterator_fields(
+    caller: &str,
     list_type: ListType,
     sc: &mut ScopeContext,
     vd: &mut Validator,
@@ -258,7 +259,9 @@ pub fn validate_iterator_fields(
     } else {
         vd.ban_field("order_by", || "`ordered_` lists");
         vd.ban_field("position", || "`ordered_` lists");
-        vd.ban_field("min", || "`ordered_` lists");
+        if caller != "random_list" {
+            vd.ban_field("min", || "`ordered_` lists and `random_list`");
+        }
         vd.ban_field("max", || "`ordered_` lists");
         vd.ban_field("check_range_bounds", || "`ordered_` lists");
     }
@@ -426,7 +429,10 @@ pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut Scop
     if let Some(target) = vd.field_value("target") {
         validate_target(target, data, sc, Scopes::Character);
     }
-    vd.field_value("value"); // TODO: figure out all the options here and validate them
+    // I guess that "value" and "factor" are run for both the current scope character
+    // and the target character, and then compared.
+    vd.field_script_value("value", sc);
+    vd.field_script_value("factor", sc);
     vd.field_script_value("multiplier", sc);
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
@@ -465,4 +471,18 @@ pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut Sco
     vd.field_script_value("ai_sociability", sc);
     vd.field_script_value("ai_vengefulness", sc);
     vd.field_script_value("ai_zeal", sc);
+}
+
+pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    if let Some(target) = vd.field_value("who") {
+        validate_target(target, data, sc, Scopes::Character);
+    }
+    if let Some(target) = vd.field_value("compatibility_target") {
+        validate_target(target, data, sc, Scopes::Character);
+    }
+    vd.field_script_value("multiplier", sc);
+    //vd.field_validated_sc("desc", sc, validate_desc);
+    vd.field_script_value("min", sc);
+    vd.field_script_value("max", sc);
 }

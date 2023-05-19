@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, Comparator};
 use crate::context::ScopeContext;
@@ -13,9 +15,9 @@ use crate::trigger::{
     validate_normal_trigger, validate_target, validate_trigger, validate_trigger_key_bv,
 };
 use crate::validate::{
-    validate_ai_value_modifier, validate_compare_modifier, validate_days_weeks_months_years,
-    validate_inside_iterator, validate_iterator_fields, validate_opinion_modifier,
-    validate_prefix_reference, ListType,
+    validate_ai_value_modifier, validate_compare_modifier, validate_compatibility_modifier,
+    validate_days_weeks_months_years, validate_inside_iterator, validate_iterator_fields,
+    validate_opinion_modifier, validate_prefix_reference, ListType,
 };
 
 pub fn validate_normal_effect(
@@ -47,7 +49,7 @@ pub fn validate_effect<'a>(
         vd.ban_field("limit", || "if/else_if or lists");
     }
 
-    validate_iterator_fields(list_type, sc, &mut vd, &mut tooltipped);
+    validate_iterator_fields(caller, list_type, sc, &mut vd, &mut tooltipped);
 
     if list_type != ListType::None {
         validate_inside_iterator(
@@ -95,17 +97,43 @@ pub fn validate_effect<'a>(
     if caller == "random" {
         vd.req_field("chance");
         vd.field_script_value("chance", sc);
+    } else {
+        vd.ban_field("chance", || "`random`");
+    }
+
+    if caller == "random" || caller == "random_list" {
         vd.field_validated_blocks("modifier", |b, data| {
             validate_trigger("modifier", false, b, data, sc, false);
         });
         vd.field_validated_blocks_sc("compare_modifier", sc, validate_compare_modifier);
         vd.field_validated_blocks_sc("opinion_modifier", sc, validate_opinion_modifier);
         vd.field_validated_blocks_sc("ai_value_modifier", sc, validate_ai_value_modifier);
+        vd.field_validated_blocks_sc(
+            "compatibility_modifier",
+            sc,
+            validate_compatibility_modifier,
+        );
     } else {
-        vd.ban_field("chance", || "`random`");
-        vd.ban_field("modifier", || "`random`");
-        vd.ban_field("compare_modifier", || "`random`");
-        vd.ban_field("opinion_modifier", || "`random`");
+        vd.ban_field("modifier", || "`random` or `random_list`");
+        vd.ban_field("compare_modifier", || "`random` or `random_list`");
+        vd.ban_field("opinion_modifier", || "`random` or `random_list`");
+        vd.ban_field("ai_value_modifier", || "`random` or `random_list`");
+        vd.ban_field("compatibility", || "`random` or `random_list`");
+    }
+
+    if caller == "random_list" {
+        if let Some(b) = vd.field_block("trigger") {
+            validate_normal_trigger(b, data, sc, false);
+        }
+        vd.field_bool("show_chance");
+        vd.field_validated_sc("desc", sc, validate_desc);
+        vd.field_script_value("min", sc); // used in vanilla
+                                          // TODO: check if "max" also works
+    } else {
+        if caller != "option" {
+            vd.ban_field("trigger", || "`random_list`");
+        }
+        vd.ban_field("show_chance", || "`random_list`");
     }
 
     'outer: for (key, bv) in vd.unknown_keys() {
@@ -354,8 +382,8 @@ pub fn validate_effect<'a>(
                 sc.replace(outscope, part.clone());
             // TODO: warn if trying to use iterator or effect here
             } else {
-                // TODO: this check on caller "random" is temporary until we parse the scripted modifiers
-                if caller != "random" {
+                // TODO: this check on caller is temporary until we parse the scripted modifiers
+                if caller != "random" && caller != "random_list" {
                     let msg = format!("unknown token `{part}`");
                     error(part, ErrorKey::Validation, &msg);
                 }
@@ -453,8 +481,26 @@ fn validate_effect_control(
             validate_effect("random", ListType::None, block, data, sc, vd, tooltipped);
         }
         ControlEffect::RandomList => {
-            // TODO
-            vd.no_warn_remaining();
+            vd.field_integer("pick");
+            vd.field_bool("unique"); // don't know what this does
+            vd.field_validated_sc("desc", sc, validate_desc);
+            for (key, bv) in vd.unknown_keys() {
+                if f64::from_str(key.as_str()).is_err() {
+                    let msg = "expected numeric value";
+                    error(key, ErrorKey::Validation, msg);
+                } else if let Some(block) = bv.expect_block() {
+                    let vd = Validator::new(block, data);
+                    validate_effect(
+                        "random_list",
+                        ListType::None,
+                        block,
+                        data,
+                        sc,
+                        vd,
+                        tooltipped,
+                    );
+                }
+            }
         }
         ControlEffect::ShowAsTooltip => {
             validate_effect("show_as_tooltip", ListType::None, block, data, sc, vd, true);
