@@ -52,6 +52,37 @@ impl CharExt for char {
     }
 }
 
+#[derive(Debug, Default)]
+struct LocalMacros {
+    values: FnvHashMap<String, f64>,
+    text: FnvHashMap<String, String>,
+}
+
+impl LocalMacros {
+    fn get_value(&self, key: &str) -> Option<f64> {
+        // key can be a local macro or a literal numeric value
+        self.values.get(key).copied().or_else(|| key.parse().ok())
+    }
+
+    fn get_as_string(&self, key: &str) -> Option<String> {
+        if let Some(value) = self.values.get(key) {
+            Some(value.to_string())
+        } else if let Some(value) = self.text.get(key) {
+            Some(value.to_string())
+        } else {
+            None
+        }
+    }
+
+    fn insert(&mut self, key: &str, value: &str) {
+        if let Ok(value) = value.parse::<f64>() {
+            self.values.insert(key.to_string(), value);
+        } else {
+            self.text.insert(key.to_string(), value.to_string());
+        }
+    }
+}
+
 struct ParseLevel {
     block: Block,
     key: Option<Token>,
@@ -64,8 +95,7 @@ struct Parser {
     current: ParseLevel,
     stack: Vec<ParseLevel>,
     brace_error: bool,
-    local_macros: FnvHashMap<String, f64>,
-    local_text_macros: FnvHashMap<String, String>,
+    local_macros: LocalMacros,
     calculation_op: CalculationOp,
     calculation: f64,
 }
@@ -90,12 +120,7 @@ impl Parser {
     }
 
     fn calculation_next(&mut self, local_macro: &Token) {
-        if let Some(value) = self
-            .local_macros
-            .get(local_macro.as_str())
-            .copied()
-            .or_else(|| local_macro.as_str().parse::<f64>().ok())
-        {
+        if let Some(value) = self.local_macros.get_value(local_macro.as_str()) {
             match self.calculation_op {
                 CalculationOp::Add => self.calculation += value,
                 CalculationOp::Subtract => self.calculation -= value,
@@ -128,20 +153,10 @@ impl Parser {
         if let Some(key) = self.current.key.take() {
             if let Some((comp, _)) = self.current.comp.take() {
                 if let Some(local_macro) = key.as_str().strip_prefix('@') {
-                    if let Ok(value) = token.as_str().parse::<f64>() {
-                        self.local_macros.insert(local_macro.to_string(), value);
-                    } else {
-                        self.local_text_macros
-                            .insert(local_macro.to_string(), token.to_string());
-                    }
+                    self.local_macros.insert(local_macro, token.as_str());
                 } else if let Some(local_macro) = token.as_str().strip_prefix('@') {
-                    if let Some(value) = self.local_macros.get(local_macro) {
-                        let token = Token::new(value.to_string(), token.loc);
-                        self.current
-                            .block
-                            .add_key_value(key, comp, BlockOrValue::Token(token));
-                    } else if let Some(value) = self.local_text_macros.get(local_macro) {
-                        let token = Token::new(value.to_string(), token.loc);
+                    if let Some(value) = self.local_macros.get_as_string(local_macro) {
+                        let token = Token::new(value, token.loc);
                         self.current
                             .block
                             .add_key_value(key, comp, BlockOrValue::Token(token));
@@ -297,8 +312,7 @@ fn parse(blockloc: Loc, inputs: &[Token]) -> Option<Block> {
         },
         stack: Vec::new(),
         brace_error: false,
-        local_macros: FnvHashMap::default(),
-        local_text_macros: FnvHashMap::default(),
+        local_macros: LocalMacros::default(),
         calculation: 0.0,
         calculation_op: CalculationOp::Add,
     };
