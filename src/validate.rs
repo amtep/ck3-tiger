@@ -5,6 +5,7 @@ use crate::block::{Block, BlockOrValue};
 /// A module for validation functions that are useful for more than one data module.
 use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
+use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
 use crate::errors::error;
 use crate::everything::Everything;
@@ -418,4 +419,50 @@ pub fn validate_traits(block: &Block, data: &Everything) {
     // or even wrathful = { modifier = modifier_key scale = 2 }
     vd.field_block("virtues");
     vd.field_block("sins");
+}
+
+pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    if let Some(target) = vd.field_value("target") {
+        validate_target(target, data, sc, Scopes::Character);
+    }
+    vd.field_value("value"); // TODO: figure out all the options here and validate them
+    vd.field_script_value("multiplier", sc);
+    vd.field_script_value("min", sc);
+    vd.field_script_value("max", sc);
+    vd.field_script_value("step", sc); // What does this do?
+    if let Some(b) = vd.field_block("trigger") {
+        validate_normal_trigger(b, data, sc, false);
+    }
+}
+
+pub fn validate_opinion_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    if let Some(target) = vd.field_value("who") {
+        validate_target(target, data, sc, Scopes::Character);
+    }
+    vd.req_field("opinion_target");
+    if let Some(target) = vd.field_value("opinion_target") {
+        validate_target(target, data, sc, Scopes::Character);
+    }
+    vd.field_script_value("multiplier", sc);
+    vd.field_validated_sc("desc", sc, validate_desc);
+    vd.field_script_value("min", sc);
+    vd.field_script_value("max", sc);
+}
+
+pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    if let Some(target) = vd.field_value("who") {
+        validate_target(target, data, sc, Scopes::Character);
+    }
+    vd.field_script_value("ai_boldness", sc);
+    vd.field_script_value("ai_compassion", sc);
+    vd.field_script_value("ai_energy", sc);
+    vd.field_script_value("ai_greed", sc);
+    vd.field_script_value("ai_honor", sc);
+    vd.field_script_value("ai_rationality", sc);
+    vd.field_script_value("ai_sociability", sc);
+    vd.field_script_value("ai_vengefulness", sc);
+    vd.field_script_value("ai_zeal", sc);
 }

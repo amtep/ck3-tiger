@@ -279,6 +279,29 @@ pub fn validate_trigger(
                 continue;
             }
 
+            if key.is("add") || key.is("factor") {
+                if caller == "modifier" {
+                    ScriptValue::validate_bv(bv, data, sc);
+                } else {
+                    let msg = format!("can only use `{key} =` in `modifier`");
+                    warn(key, ErrorKey::Validation, &msg);
+                }
+                continue;
+            }
+
+            // TODO: undocumented; found in vanilla. Verify that it works.
+            if key.is("trigger") {
+                if caller == "modifier" {
+                    if let Some(block) = bv.expect_block() {
+                        validate_normal_trigger(block, data, sc, false);
+                    }
+                } else {
+                    let msg = format!("can only use `{key} =` in `modifier`");
+                    warn(key, ErrorKey::Validation, &msg);
+                }
+                continue;
+            }
+
             if key.is("amount") {
                 if caller == "calc_true_if" {
                     if let Some(token) = bv.expect_value() {

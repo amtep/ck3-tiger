@@ -9,9 +9,12 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::tables::effects::{scope_effect, ControlEffect, Effect};
-use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger_key_bv};
+use crate::trigger::{
+    validate_normal_trigger, validate_target, validate_trigger, validate_trigger_key_bv,
+};
 use crate::validate::{
-    validate_days_weeks_months_years, validate_inside_iterator, validate_iterator_fields,
+    validate_ai_value_modifier, validate_compare_modifier, validate_days_weeks_months_years,
+    validate_inside_iterator, validate_iterator_fields, validate_opinion_modifier,
     validate_prefix_reference, ListType,
 };
 
@@ -90,13 +93,19 @@ pub fn validate_effect<'a>(
     }
 
     if caller == "random" {
+        vd.req_field("chance");
         vd.field_script_value("chance", sc);
-        vd.field_validated_blocks("modifier", |_b, _data| {
-            // TODO
+        vd.field_validated_blocks("modifier", |b, data| {
+            validate_trigger("modifier", false, b, data, sc, false);
         });
+        vd.field_validated_blocks_sc("compare_modifier", sc, validate_compare_modifier);
+        vd.field_validated_blocks_sc("opinion_modifier", sc, validate_opinion_modifier);
+        vd.field_validated_blocks_sc("ai_value_modifier", sc, validate_ai_value_modifier);
     } else {
         vd.ban_field("chance", || "`random`");
         vd.ban_field("modifier", || "`random`");
+        vd.ban_field("compare_modifier", || "`random`");
+        vd.ban_field("opinion_modifier", || "`random`");
     }
 
     'outer: for (key, bv) in vd.unknown_keys() {
@@ -345,8 +354,11 @@ pub fn validate_effect<'a>(
                 sc.replace(outscope, part.clone());
             // TODO: warn if trying to use iterator or effect here
             } else {
-                let msg = format!("unknown token `{part}`");
-                error(part, ErrorKey::Validation, &msg);
+                // TODO: this check on caller "random" is temporary until we parse the scripted modifiers
+                if caller != "random" {
+                    let msg = format!("unknown token `{part}`");
+                    error(part, ErrorKey::Validation, &msg);
+                }
                 sc.close();
                 continue 'outer;
             }
@@ -438,9 +450,7 @@ fn validate_effect_control(
             validate_effect("hidden_effect", ListType::None, block, data, sc, vd, false);
         }
         ControlEffect::Random => {
-            // TODO: need to parse modifiers first
-            // validate_effect("random", ListType::None, block, data, sc, vd, tooltipped);
-            vd.no_warn_remaining();
+            validate_effect("random", ListType::None, block, data, sc, vd, tooltipped);
         }
         ControlEffect::RandomList => {
             // TODO

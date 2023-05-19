@@ -360,7 +360,7 @@ impl<'a> Validator<'a> {
     where
         F: FnMut(&BlockOrValue, &Everything, &mut ScopeContext),
     {
-        self.field_validated(name, |b, data| f(b, data, sc))
+        self.field_validated(name, |bv, data| f(bv, data, sc))
     }
 
     pub fn field_validated_bvs<F>(&mut self, name: &str, mut f: F) -> bool
