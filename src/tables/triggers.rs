@@ -7,12 +7,13 @@ use crate::token::Token;
 /// constructing bitfield types in const values is not allowed.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum RawTrigger {
-    Boolean,      // trigger = no or trigger = yes
-    CompareValue, // can be a script value
-    SetValue,     // can be a script value; no < or >
-    CompareDate,  // value must be a valid date
-    Scope(u64),   // trigger is compared to a scope object
-    Item(Item),   // value is chosen from an item type
+    Boolean,            // trigger = no or trigger = yes
+    CompareValue,       // can be a script value
+    CompareValueWarnEq, // can be a script value; warn if =
+    SetValue,           // can be a script value; no < or >
+    CompareDate,        // value must be a valid date
+    Scope(u64),         // trigger is compared to a scope object
+    Item(Item),         // value is chosen from an item type
     ScopeOrItem(u64, Item),
     Choice(&'static [&'static str]), // value is chosen from a list given here
     // For Block, if a field name in the array starts with ? it means that field is optional
@@ -34,6 +35,7 @@ enum RawTrigger {
 pub enum Trigger {
     Boolean,
     CompareValue,
+    CompareValueWarnEq,
     SetValue,
     CompareDate,
     Scope(Scopes),
@@ -58,6 +60,7 @@ impl Trigger {
         match raw {
             RawTrigger::Boolean => Trigger::Boolean,
             RawTrigger::CompareValue => Trigger::CompareValue,
+            RawTrigger::CompareValueWarnEq => Trigger::CompareValueWarnEq,
             RawTrigger::SetValue => Trigger::SetValue,
             RawTrigger::CompareDate => Trigger::CompareDate,
             RawTrigger::Scope(s) => Trigger::Scope(Scopes::from_bits_truncate(*s)),
@@ -240,7 +243,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (None, "assert_read", UncheckedValue),
     (War, "attacker_war_score", CompareValue),
     (Character, "attraction", CompareValue),
-    (Province, "available_loot", CompareValue),
+    (Province, "available_loot", CompareValueWarnEq),
     (Character, "average_amenity_level", CompareValue),
     (Faction, "average_faction_opinion", CompareValue),
     (
@@ -411,7 +414,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "cultural_acceptance",
         Block(&[("target", Scope(Culture)), ("value", CompareValue)]),
     ),
-    (Culture, "culture_age", CompareValue),
+    (Culture, "culture_age", CompareValueWarnEq),
     (Culture, "culture_number_of_counties", CompareValue),
     (
         Culture,
@@ -511,7 +514,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     ),
     (Dynasty, "dynasty_can_unlock_relevant_perk", Boolean),
     (Dynasty, "dynasty_num_unlocked_perks", CompareValue),
-    (Dynasty, "dynasty_prestige", CompareValue),
+    (Dynasty, "dynasty_prestige", CompareValueWarnEq),
     (Dynasty, "dynasty_prestige_level", CompareValue),
     (Character, "effective_age", CompareValue),
     (
@@ -549,15 +552,15 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Province, "geographical_region", Item(Item::Region)),
     (GreatHolyWar, "ghw_attackers_strength", CompareValue),
     (GreatHolyWar, "ghw_defenders_strength", CompareValue),
-    (GreatHolyWar, "ghw_war_chest_gold", CompareValue),
-    (GreatHolyWar, "ghw_war_chest_piety", CompareValue),
-    (GreatHolyWar, "ghw_war_chest_prestige", CompareValue),
+    (GreatHolyWar, "ghw_war_chest_gold", CompareValueWarnEq),
+    (GreatHolyWar, "ghw_war_chest_piety", CompareValueWarnEq),
+    (GreatHolyWar, "ghw_war_chest_prestige", CompareValueWarnEq),
     (
         None,
         "global_variable_list_size",
         Block(&[("name", UncheckedValue), ("target", CompareValue)]),
     ),
-    (Character, "gold", CompareValue),
+    (Character, "gold", CompareValueWarnEq),
     (
         Character,
         "government_allows",
@@ -1028,7 +1031,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Item(Item::ImportantAction),
     ),
     (Character, "in_diplomatic_range", Scope(Character)),
-    (Inspiration, "inspiration_gold_invested", CompareValue),
+    (Inspiration, "inspiration_gold_invested", CompareValueWarnEq),
     (Inspiration, "inspiration_progress", CompareValue),
     (Character, "intrigue", CompareValue),
     (
@@ -1434,8 +1437,8 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "local_variable_list_size",
         Block(&[("name", UncheckedValue), ("value", CompareValue)]),
     ),
-    (Character, "long_term_gold", CompareValue),
-    (Character, "long_term_gold_maximum", CompareValue),
+    (Character, "long_term_gold", CompareValueWarnEq),
+    (Character, "long_term_gold_maximum", CompareValueWarnEq),
     (Character, "martial", CompareValue),
     (
         Character,
@@ -1463,7 +1466,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     ),
     (Character, "max_number_of_concubines", CompareValue),
     (Character, "max_number_of_knights", CompareValue),
-    (CharacterMemory, "memory_age_years", CompareValue),
+    (CharacterMemory, "memory_age_years", CompareValueWarnEq),
     (CharacterMemory, "memory_creation_date", CompareDate),
     (CharacterMemory, "memory_end_date", CompareDate),
     (
@@ -1472,28 +1475,32 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         CompareValue,
     ),
     (Character, "missing_unique_ancestors", CompareValue),
-    (Character, "monthly_character_balance", CompareValue),
-    (Character, "monthly_character_expenses", CompareValue),
-    (Character, "monthly_character_income", CompareValue),
+    (Character, "monthly_character_balance", CompareValueWarnEq),
+    (Character, "monthly_character_expenses", CompareValueWarnEq),
+    (Character, "monthly_character_income", CompareValueWarnEq),
     (
         Character,
         "monthly_character_income_long_term",
-        CompareValue,
+        CompareValueWarnEq,
     ),
-    (Character, "monthly_character_income_reserved", CompareValue),
+    (
+        Character,
+        "monthly_character_income_reserved",
+        CompareValueWarnEq,
+    ),
     (
         Character,
         "monthly_character_income_short_term",
-        CompareValue,
+        CompareValueWarnEq,
     ),
     (
         Character,
         "monthly_character_income_war_chest",
-        CompareValue,
+        CompareValueWarnEq,
     ),
-    (Province, "monthly_income", CompareValue),
-    (Character, "months_as_ruler", CompareValue),
-    (Faction, "months_until_max_discontent", CompareValue),
+    (Province, "monthly_income", CompareValueWarnEq),
+    (Character, "months_as_ruler", CompareValueWarnEq),
+    (Faction, "months_until_max_discontent", CompareValueWarnEq),
     (
         Character,
         "morph_gene_attribute",
@@ -1513,7 +1520,11 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     ),
     (None, "nand", Control),
     (TravelPlan, "next_destination_arrival_date", CompareDate),
-    (TravelPlan, "next_destination_arrival_days", CompareValue),
+    (
+        TravelPlan,
+        "next_destination_arrival_days",
+        CompareValueWarnEq,
+    ),
     (TravelPlan, "next_destination_progress", CompareValue),
     (None, "nor", Control),
     (None, "not", Control), // TODO: warn about multiple triggers in a NOT ?
@@ -1534,7 +1545,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Activity, "num_past_phases", CompareValue),
     (Activity, "num_phases", CompareValue),
     (Character, "num_sinful_traits", CompareValue),
-    (Combat, "num_total_troops", CompareValue),
+    (Combat, "num_total_troops", CompareValueWarnEq),
     (Character, "num_virtuous_traits", CompareValue),
     (
         Character,
@@ -1639,7 +1650,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[("tree", Item(Item::PerkTree)), ("value", CompareValue)]),
     ),
     (Struggle, "phase_has_catalyst", Item(Item::Catalyst)),
-    (Character, "piety", CompareValue),
+    (Character, "piety", CompareValueWarnEq),
     (Character, "piety_level", CompareValue),
     (
         LandedTitle,
@@ -1653,7 +1664,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[("target", Scope(Character)), ("value", CompareValue)]),
     ),
     (Character, "pregnancy_days", CompareValue),
-    (Character, "prestige", CompareValue),
+    (Character, "prestige", CompareValueWarnEq),
     (Character, "prestige_level", CompareValue),
     (Accolade, "primary_tier", CompareValue),
     (Character, "prowess", CompareValue),
@@ -1689,8 +1700,8 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     ),
     (None, "release_only", Boolean),
     (Faith, "religion_tag", Item(Item::Religion)),
-    (Character, "reserved_gold", CompareValue),
-    (Character, "reserved_gold_maximum", CompareValue),
+    (Character, "reserved_gold", CompareValueWarnEq),
+    (Character, "reserved_gold_maximum", CompareValueWarnEq),
     (
         Character,
         "reverse_has_opinion_modifier",
@@ -1748,8 +1759,8 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Secret, "secret_type", Item(Item::Secret)),
     (Character, "sex_opposite_of", Scope(Character)),
     (Character, "sex_same_as", Scope(Character)),
-    (Character, "short_term_gold", CompareValue),
-    (Character, "short_term_gold_maximum", CompareValue),
+    (Character, "short_term_gold", CompareValueWarnEq),
+    (Character, "short_term_gold_maximum", CompareValueWarnEq),
     (Artifact, "should_decay", Boolean),
     (
         Character,
@@ -1879,7 +1890,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
             ("value", CompareValue),
         ]),
     ),
-    (LandedTitle, "title_held_years", CompareValue),
+    (LandedTitle, "title_held_years", CompareValueWarnEq),
     (LandedTitle, "title_is_a_faction_member", Boolean),
     (
         LandedTitle,
@@ -1972,27 +1983,27 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "vassal_limit", CompareValue),
     (Character, "vassal_limit_available", CompareValue),
     (Character, "vassal_limit_percentage", CompareValue),
-    (Character, "war_chest_gold", CompareValue),
-    (Character, "war_chest_gold_maximum", CompareValue),
+    (Character, "war_chest_gold", CompareValueWarnEq),
+    (Character, "war_chest_gold_maximum", CompareValueWarnEq),
     (
         War,
         "war_contribution",
         Block(&[("target", Scope(Character)), ("value", CompareValue)]),
     ),
-    (War, "war_days", CompareValue),
+    (War, "war_days", CompareValueWarnEq),
     (Combat, "warscore_value", CompareValue),
     (TravelPlan, "was_activity_completed", Boolean),
     (TravelPlan, "was_activity_invalidated", Boolean),
     (War, "was_called", Scope(Character)),
     (None, "weighted_calc_true_if", Special),
     (Character, "year_of_birth", CompareValue),
-    (Character, "yearly_character_balance", CompareValue),
-    (Character, "yearly_character_expenses", CompareValue),
-    (Character, "yearly_character_income", CompareValue),
-    (Character, "years_as_diarch", CompareValue),
-    (Character, "years_as_ruler", CompareValue),
-    (None, "years_from_game_start", CompareValue),
-    (Character, "years_in_diarchy", CompareValue),
+    (Character, "yearly_character_balance", CompareValueWarnEq),
+    (Character, "yearly_character_expenses", CompareValueWarnEq),
+    (Character, "yearly_character_income", CompareValueWarnEq),
+    (Character, "years_as_diarch", CompareValueWarnEq),
+    (Character, "years_as_ruler", CompareValueWarnEq),
+    (None, "years_from_game_start", CompareValueWarnEq),
+    (Character, "years_in_diarchy", CompareValueWarnEq),
     (
         Character,
         "yields_alliance",

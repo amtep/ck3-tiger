@@ -416,7 +416,6 @@ pub fn validate_trigger_key_bv(
 
     let part_vec = key.split('.');
     sc.open_builder();
-    let mut warn_against_eq = None;
     let mut found_trigger = None;
     for i in 0..part_vec.len() {
         let first = i == 0;
@@ -470,9 +469,6 @@ pub fn validate_trigger_key_bv(
             sc.expect(inscopes, part);
             sc.replace(outscope, part.clone());
         } else if let Some((inscopes, trigger)) = scope_trigger(part, data) {
-            if WARN_AGAINST_EQ.contains(&part.as_str()) {
-                warn_against_eq = Some(part);
-            }
             if !last {
                 let msg = format!("`{part}` should be the last part");
                 warn(part, ErrorKey::Validation, &msg);
@@ -500,13 +496,6 @@ pub fn validate_trigger_key_bv(
             error(part, ErrorKey::Validation, &msg);
             sc.close();
             return;
-        }
-    }
-
-    if let Some(token) = warn_against_eq {
-        if matches!(cmp, Comparator::Eq | Comparator::QEq) {
-            let msg = format!("`{token} {cmp}` means exactly equal to that amount, which is usually not what you want");
-            warn(token, ErrorKey::Logic, &msg);
         }
     }
 
@@ -588,6 +577,7 @@ fn match_trigger_bv(
     tooltipped: bool,
 ) {
     let mut must_be_eq = true;
+    let mut warn_if_eq = false;
 
     match trigger {
         Trigger::Boolean => {
@@ -597,6 +587,11 @@ fn match_trigger_bv(
         }
         Trigger::CompareValue => {
             must_be_eq = false;
+            ScriptValue::validate_bv(bv, data, sc);
+        }
+        Trigger::CompareValueWarnEq => {
+            must_be_eq = false;
+            warn_if_eq = true;
             ScriptValue::validate_bv(bv, data, sc);
         }
         Trigger::SetValue => {
@@ -730,7 +725,12 @@ fn match_trigger_bv(
         }
     }
 
-    if must_be_eq && !matches!(cmp, Comparator::Eq | Comparator::QEq) {
+    if matches!(cmp, Comparator::Eq | Comparator::QEq) {
+        if warn_if_eq {
+            let msg = format!("`{name} {cmp}` means exactly equal to that amount, which is usually not what you want");
+            warn(name, ErrorKey::Logic, &msg);
+        }
+    } else if must_be_eq {
         let msg = format!("unexpected comparator {cmp}");
         warn(name, ErrorKey::Validation, &msg);
     }
@@ -835,42 +835,3 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
     }
     sc.close();
 }
-
-// LAST UPDATED VERSION 1.9.0.2
-const WARN_AGAINST_EQ: &[&str] = &[
-    "gold",
-    "prestige",
-    "piety",
-    "dynasty_prestige",
-    "title_held_years",
-    "years_as_ruler",
-    "culture_age",
-    "ghw_war_chest_gold",
-    "ghw_war_chest_piety",
-    "ghw_war_chest_prestige",
-    "available_loot",
-    "long_term_gold",
-    "long_term_gold_maximum",
-    "reserved_gold",
-    "reserved_gold_maximum",
-    "short_term_gold",
-    "short_term_gold_maximum",
-    "war_chest_gold",
-    "war_chest_gold_maximum",
-    "yearly_character_balance",
-    "yearly_character_expenses",
-    "yearly_character_income",
-    "inspiration_gold_invested",
-    "memory_age_years",
-    "monthly_character_income",
-    "monthly_character_income_long_term",
-    "monthly_character_income_reserved",
-    "monthly_character_income_short_term",
-    "monthly_character_income_war_chest",
-    "monthly_income",
-    "num_total_troops",
-    "next_destination_arrival_days",
-    "years_as_diarch",
-    "years_in_diarchy",
-    "title_held_years",
-];
