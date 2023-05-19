@@ -52,8 +52,8 @@ impl CharExt for char {
     }
 }
 
-#[derive(Debug, Default)]
-struct LocalMacros {
+#[derive(Clone, Debug, Default)]
+pub struct LocalMacros {
     values: FnvHashMap<String, f64>,
     text: FnvHashMap<String, String>,
 }
@@ -250,7 +250,7 @@ impl Parser {
                 loc.offset += 1;
                 loc.column += 1;
                 let token = Token::new(s, prev_level.block.loc.clone());
-                prev_level.block.source = Some(token);
+                prev_level.block.source = Some((token, self.local_macros.clone()));
             } else {
                 self.current.contains_macro_parms |= prev_level.contains_macro_parms;
             }
@@ -301,7 +301,7 @@ impl Parser {
 }
 
 #[allow(clippy::too_many_lines)] // many lines are natural for state machines
-fn parse(blockloc: Loc, inputs: &[Token]) -> Option<Block> {
+fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Option<Block> {
     let mut parser = Parser {
         current: ParseLevel {
             block: Block::new(blockloc.clone()),
@@ -312,7 +312,7 @@ fn parse(blockloc: Loc, inputs: &[Token]) -> Option<Block> {
         },
         stack: Vec::new(),
         brace_error: false,
-        local_macros: LocalMacros::default(),
+        local_macros: local_macros,
         calculation: 0.0,
         calculation_op: CalculationOp::Add,
     };
@@ -544,11 +544,15 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Option<Block> {
     let mut loc = blockloc.clone();
     loc.line = 1;
     loc.column = 1;
-    parse(blockloc, &[Token::new(content.to_string(), loc)])
+    parse(
+        blockloc,
+        &[Token::new(content.to_string(), loc)],
+        LocalMacros::default(),
+    )
 }
 
-pub fn parse_pdx_macro(inputs: &[Token]) -> Option<Block> {
-    parse(inputs[0].loc.clone(), inputs)
+pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Option<Block> {
+    parse(inputs[0].loc.clone(), inputs, local_macros)
 }
 
 // Simplified parsing just to get the macro arguments

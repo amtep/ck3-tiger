@@ -4,8 +4,6 @@
 
 ## Bugs
 
-* Local macros are not found when re-parsing a scripted effect or trigger that has macros
-
 ## Features
 
 * Parse the scripted datafunction macros in `data_binding`

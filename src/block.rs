@@ -6,7 +6,7 @@ pub mod validator;
 
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info};
-use crate::parse::pdxfile::{parse_pdx_macro, split_macros};
+use crate::parse::pdxfile::{parse_pdx_macro, split_macros, LocalMacros};
 use crate::token::{Loc, Token};
 
 #[allow(clippy::module_name_repetitions)]
@@ -70,7 +70,7 @@ pub struct Block {
     pub loc: Loc,
     /// If the block is a top-level block and contains macro substitutions,
     /// this field will hold the original source for re-parsing.
-    pub source: Option<Token>,
+    pub source: Option<(Token, LocalMacros)>,
 }
 
 impl Block {
@@ -323,7 +323,7 @@ impl Block {
 
     pub fn macro_parms(&self) -> Vec<String> {
         let mut vec = Vec::new();
-        if let Some(source) = &self.source {
+        if let Some((source, _)) = &self.source {
             let mut odd = false;
             for part in split_macros(source) {
                 odd = !odd;
@@ -338,7 +338,7 @@ impl Block {
     }
 
     pub fn expand_macro(&self, args: &[(String, Token)]) -> Option<Block> {
-        if let Some(source) = &self.source {
+        if let Some((source, local_macros)) = &self.source {
             let mut content = Vec::new();
             let mut odd = false;
             for part in split_macros(source) {
@@ -353,7 +353,7 @@ impl Block {
                     }
                 }
             }
-            parse_pdx_macro(&content)
+            parse_pdx_macro(&content, local_macros.clone())
         } else {
             None
         }
