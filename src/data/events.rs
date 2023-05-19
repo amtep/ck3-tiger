@@ -29,7 +29,7 @@ pub struct Events {
     triggers: FnvHashMap<(PathBuf, String), Trigger>,
     effects: FnvHashMap<(PathBuf, String), Effect>,
 
-    // These events are known to exist, so don't warn abour them not being found,
+    // These events are known to exist, so don't warn about them not being found,
     // but they had errors on validation.
     error_events: FnvHashMap<String, Token>,
 }

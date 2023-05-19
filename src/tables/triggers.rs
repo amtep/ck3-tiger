@@ -1833,20 +1833,24 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
             ("?years", CompareValue),
         ]),
     ),
+    // TODO: "weeks" is used in vanilla but is not documented. Verify.
     (
         Character,
         "time_in_prison",
         Block(&[
             ("?days", CompareValue),
+            ("?weeks", CompareValue),
             ("?months", CompareValue),
             ("?years", CompareValue),
         ]),
     ),
+    // TODO: "weeks" is used in vanilla but is not documented. Verify.
     (
         Character,
         "time_in_prison_type",
         Block(&[
             ("?days", CompareValue),
+            ("?weeks", CompareValue),
             ("?months", CompareValue),
             ("?years", CompareValue),
         ]),
