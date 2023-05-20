@@ -227,57 +227,6 @@ pub fn validate_effect<'a>(
                         validate_optional_cooldown(&mut vd, sc);
                     }
                 },
-                Effect::SpecialBlock if key.is("switch") => {
-                    if let Some(block) = bv.expect_block() {
-                        let mut vd = Validator::new(block, data);
-                        vd.req_field("trigger");
-                        if let Some(target) = vd.field_value("trigger") {
-                            // clone to avoid calling vd again while target is still borrowed
-                            let target = target.clone();
-                            for (key, bv) in vd.unknown_keys() {
-                                // Pretend the switch was written as a series of trigger = key lines
-                                let synthetic_bv = BlockOrValue::Token(key.clone());
-                                validate_trigger_key_bv(
-                                    &target,
-                                    Comparator::Eq,
-                                    &synthetic_bv,
-                                    data,
-                                    sc,
-                                    tooltipped,
-                                );
-
-                                if let Some(block) = bv.expect_block() {
-                                    let vd = Validator::new(block, data);
-                                    validate_effect(
-                                        "",
-                                        ListType::None,
-                                        block,
-                                        data,
-                                        sc,
-                                        vd,
-                                        tooltipped,
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-                Effect::SpecialBlock if key.is("random_list") => {
-                    if let Some(block) = bv.expect_block() {
-                        let mut vd = Validator::new(block, data);
-                        vd.field_integer("pick");
-                        vd.field_bool("unique"); // don't know what this does
-                        vd.field_validated_sc("desc", sc, validate_desc);
-                        for (key, bv) in vd.unknown_keys() {
-                            if f64::from_str(key.as_str()).is_err() {
-                                let msg = "expected numeric value";
-                                error(key, ErrorKey::Validation, msg);
-                            } else if let Some(block) = bv.expect_block() {
-                                validate_effect_control("random_list", block, data, sc, tooltipped);
-                            }
-                        }
-                    }
-                }
                 Effect::SpecialBlock => {
                     if let Some(block) = bv.expect_block() {
                         validate_effect_special(
@@ -359,7 +308,10 @@ pub fn validate_effect<'a>(
         for (i, part) in part_vec.iter().enumerate() {
             let first = i == 0;
 
-            if let Some((prefix, arg)) = part.split_once(':') {
+            if let Some((prefix, mut arg)) = part.split_once(':') {
+                if prefix.is("event_id") {
+                    arg = key.split_once(':').unwrap().1;
+                }
                 if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                     if inscopes == Scopes::None && !first {
                         let msg = format!("`{prefix}:` makes no sense except as first part");
@@ -368,6 +320,9 @@ pub fn validate_effect<'a>(
                     sc.expect(inscopes, &prefix);
                     validate_prefix_reference(&prefix, &arg, data);
                     sc.replace(outscope, part.clone());
+                    if prefix.is("event_id") {
+                        break; // force last part
+                    }
                 } else {
                     let msg = format!("unknown prefix `{prefix}:`");
                     error(part, ErrorKey::Validation, &msg);
@@ -399,7 +354,7 @@ pub fn validate_effect<'a>(
             // TODO: warn if trying to use iterator or effect here
             } else {
                 // TODO: this check on caller is temporary until we parse the scripted modifiers
-                if caller != "random" && caller != "random_list" {
+                if caller != "random" && caller != "random_list" && caller != "duel" {
                     let msg = format!("unknown token `{part}`");
                     error(part, ErrorKey::Validation, &msg);
                 }
@@ -501,7 +456,7 @@ fn validate_effect_control(
         vd.ban_field("count", || "`while`");
     }
 
-    if caller == "random" || caller == "random_list" {
+    if caller == "random" || caller == "random_list" || caller == "duel" {
         vd.field_validated_blocks("modifier", |b, data| {
             validate_trigger("modifier", false, b, data, sc, false);
         });
@@ -514,14 +469,14 @@ fn validate_effect_control(
             validate_compatibility_modifier,
         );
     } else {
-        vd.ban_field("modifier", || "`random` or `random_list`");
-        vd.ban_field("compare_modifier", || "`random` or `random_list`");
-        vd.ban_field("opinion_modifier", || "`random` or `random_list`");
-        vd.ban_field("ai_value_modifier", || "`random` or `random_list`");
-        vd.ban_field("compatibility", || "`random` or `random_list`");
+        vd.ban_field("modifier", || "`random`, `random_list` or `duel`");
+        vd.ban_field("compare_modifier", || "`random`, `random_list` or `duel`");
+        vd.ban_field("opinion_modifier", || "`random`, `random_list` or `duel`");
+        vd.ban_field("ai_value_modifier", || "`random`, `random_list` or `duel`");
+        vd.ban_field("compatibility", || "`random`, `random_list` or `duel`");
     }
 
-    if caller == "random_list" {
+    if caller == "random_list" || caller == "duel" {
         if let Some(b) = vd.field_block("trigger") {
             validate_normal_trigger(b, data, sc, false);
         }
@@ -531,9 +486,9 @@ fn validate_effect_control(
                                           // TODO: check if "max" also works
     } else {
         if caller != "option" {
-            vd.ban_field("trigger", || "`random_list`");
+            vd.ban_field("trigger", || "`random_list` or `duel`");
         }
-        vd.ban_field("show_chance", || "`random_list`");
+        vd.ban_field("show_chance", || "`random_list` or `duel`");
     }
 
     validate_effect(caller, ListType::None, block, data, sc, vd, tooltipped);
@@ -668,6 +623,89 @@ fn validate_effect_special_bv(
                 vd.field_value_target("artifact", sc, Scopes::Artifact);
             }
         }
+    } else if caller == "open_view" || caller == "open_view_data" {
+        match bv {
+            BlockOrValue::Token(_token) => (), // TODO
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("view");
+                vd.field_value("view"); // TODO
+                vd.field_value("view_message"); // TODO
+                vd.field_value_target("player", sc, Scopes::Character);
+            }
+        }
+    } else if caller == "remove_courtier_or_guest" {
+        match bv {
+            BlockOrValue::Token(token) => validate_target(token, data, sc, Scopes::Character),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("character");
+                vd.field_value_target("character", sc, Scopes::Character);
+                vd.field_value_target("new_location", sc, Scopes::Province);
+            }
+        }
+    } else if caller == "set_coa" {
+        if let Some(token) = bv.expect_value() {
+            if !data.item_exists(Item::Coa, token.as_str()) {
+                let options = Scopes::LandedTitle | Scopes::Dynasty | Scopes::DynastyHouse;
+                validate_target(token, data, sc, sc.scopes() & options);
+            }
+        }
+    } else if caller == "set_global_variable"
+        || caller == "set_local_variable"
+        || caller == "set_variable"
+    {
+        match bv {
+            BlockOrValue::Token(_token) => (),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("name");
+                vd.field_value("name");
+                if let Some(bv) = vd.field("value") {
+                    match bv {
+                        BlockOrValue::Token(token) => {
+                            validate_target(token, data, sc, Scopes::all_but_none())
+                        }
+                        BlockOrValue::Block(_) => ScriptValue::validate_bv(bv, data, sc),
+                    }
+                }
+                validate_optional_cooldown(&mut vd, sc);
+            }
+        }
+    } else if caller == "set_location" {
+        match bv {
+            BlockOrValue::Token(token) => validate_target(token, data, sc, Scopes::Province),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("location");
+                vd.field_value_target("location", sc, Scopes::Province);
+                vd.field_bool("stick_to_location");
+            }
+        }
+    } else if caller == "set_owner" {
+        match bv {
+            BlockOrValue::Token(token) => validate_target(token, data, sc, Scopes::Character),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("target");
+                vd.field_value_target("target", sc, Scopes::Character);
+                vd.field_validated_blocks_sc("history", sc, validate_artifact_history);
+                vd.field_bool("generate_history");
+            }
+        }
+    } else if caller == "trigger_event" {
+        match bv {
+            BlockOrValue::Token(token) => data.verify_exists(Item::Event, token),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.field_value_item("id", Item::Event);
+                vd.field_value_item("on_action", Item::OnAction);
+                vd.field_value_target("saved_event_id", sc, Scopes::Flag);
+                vd.field_date("trigger_on_next_date");
+                vd.field_bool("delayed");
+                validate_optional_cooldown(&mut vd, sc);
+            }
+        }
     }
 }
 
@@ -721,14 +759,14 @@ fn validate_effect_special(
         vd.field_value_target("target", sc, Scopes::Character);
         vd.field_value_item("secret", Item::Secret);
         validate_optional_cooldown(&mut vd, sc);
-    } else if caller == "add_opinion" {
+    } else if caller == "add_opinion" || caller == "reverse_add_opinion" {
         vd.req_field("modifier");
         vd.req_field("target");
         vd.field_value_item("modifier", Item::Modifier);
         vd.field_value_target("target", sc, Scopes::Character);
         vd.field_script_value("opinion", sc); // undocumented
         validate_optional_cooldown(&mut vd, sc);
-    } else if caller == "add_relation_flag" {
+    } else if caller == "add_relation_flag" || caller == "remove_relation_flag" {
         vd.req_field("relation");
         vd.req_field("flag");
         vd.req_field("target");
@@ -749,6 +787,9 @@ fn validate_effect_special(
     } else if caller == "add_to_global_variable_list"
         || caller == "add_to_local_variable_list"
         || caller == "add_to_variable_list"
+        || caller == "remove_list_global_variable"
+        || caller == "remove_list_local_variable"
+        || caller == "remove_list_variable"
     {
         vd.req_field("name");
         vd.req_field("target");
@@ -839,13 +880,15 @@ fn validate_effect_special(
         vd.field_value_target("change", sc, Scopes::TitleAndVassalChange);
         vd.field_bool("take_baronies");
         vd.field_value_target("government_base", sc, Scopes::Character);
-    } else if caller == "change_trait_rank" {
+    } else if caller == "change_trait_rank" || caller == "set_trait_rank" {
         vd.req_field("trait");
         vd.req_field("rank");
         // TODO: check that it's a rankable trait
         vd.field_value_item("trait", Item::Trait);
         vd.field_script_value("rank", sc);
-        vd.field_script_value("max", sc);
+        if caller == "change_trait_rank" {
+            vd.field_script_value("max", sc);
+        }
     } else if caller == "clamp_global_variable"
         || caller == "clamp_local_variable"
         || caller == "clamp_variable"
@@ -867,38 +910,8 @@ fn validate_effect_special(
         vd.field_value_item("primary", Item::AccoladeType);
         vd.field_value_item("secondary", Item::AccoladeType);
         vd.field_value_item("name", Item::Localization);
-    } else if caller == "create_artifact" {
-        vd.field_validated_sc("name", sc, validate_desc);
-        vd.field_validated_sc("description", sc, validate_desc);
-        vd.field_value_item("rarity", Item::ArtifactRarity);
-        vd.field_value_item("type", Item::ArtifactSlot);
-        vd.field_values_items("modifier", Item::Modifier);
-        vd.field_script_value("durability", sc);
-        vd.field_script_value("max_durability", sc);
-        vd.field_bool("decaying");
-        vd.field_validated_blocks("history", |b, data| {
-            let mut vd = Validator::new(b, data);
-            vd.req_field("type");
-            vd.field_value_item("type", Item::ArtifactHistory);
-            vd.field_date("date");
-            vd.field_value_target("actor", sc, Scopes::Character);
-            vd.field_value_target("recipient", sc, Scopes::Character);
-            vd.field_value_target("location", sc, Scopes::Province);
-        });
-        vd.field_value_item("template", Item::ArtifactTemplate);
-        vd.field_value_item("visuals", Item::ArtifactVisual);
-        vd.field_bool("generate_history");
-        vd.field_script_value("quality", sc);
-        vd.field_script_value("wealth", sc);
-        vd.field_value_target("creator", sc, Scopes::Character);
-        vd.field_value_target(
-            "visuals_source",
-            sc,
-            Scopes::LandedTitle | Scopes::Dynasty | Scopes::DynastyHouse,
-        );
-        vd.field_value("save_scope_as");
-        vd.field_value_target("title_history", sc, Scopes::LandedTitle);
-        vd.field_date("title_history_date");
+    } else if caller == "create_artifact" || caller == "reforge_artifact" {
+        validate_artifact(caller, block, data, vd, sc, tooltipped);
     } else if caller == "create_character" {
         vd.field_value("save_scope_as"); // docs say event_target instead of scope
         vd.field_value("save_temporary_scope_as"); // docs say event_target instead of scope
@@ -1008,7 +1021,323 @@ fn validate_effect_special(
         vd.field_bool("gold");
         vd.field_bool("piety");
         vd.field_bool("prestige");
+    } else if caller == "duel" {
+        vd.field_value_item("skill", Item::Skill);
+        vd.field_list_items("skills", Item::Skill);
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_script_value("value", sc);
+        vd.field_value_item("localization", Item::EffectLocalization);
+        validate_random_list("duel", block, data, vd, sc, tooltipped);
+    } else if caller == "faction_start_war" {
+        vd.field_value_target("title", sc, Scopes::LandedTitle);
+    } else if caller == "force_add_to_scheme" {
+        vd.field_value_item("scheme", Item::Scheme);
+        validate_optional_cooldown(&mut vd, sc);
+    } else if caller == "force_vote_as" {
+        vd.field_value_target("target", sc, Scopes::Character);
+        validate_optional_cooldown(&mut vd, sc);
+    } else if caller == "imprison" {
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_value_item("type", Item::PrisonType);
+        // The docs also have a "reason" key, but no indication what it is
+    } else if caller == "join_faction_forced" {
+        vd.field_value_target("faction", sc, Scopes::Faction);
+        vd.field_value_target("forced_by", sc, Scopes::Character);
+        validate_optional_cooldown(&mut vd, sc);
+    } else if caller == "make_pregnant" || caller == "make_pregnant_no_checks" {
+        vd.field_value_target("father", sc, Scopes::Character);
+        vd.field_integer("number_of_children");
+        vd.field_bool("known_bastard");
+    } else if caller == "move_budget_gold" {
+        vd.field_script_value("gold", sc);
+        let choices = &[
+            "budget_war_chest",
+            "budget_reserved",
+            "budget_short_term",
+            "budget_long_term",
+        ];
+        vd.field_choice("from", choices);
+        vd.field_choice("to", choices);
+    } else if caller == "open_interaction_window" || caller == "run_interaction" {
+        vd.req_field("interaction");
+        vd.req_field("actor");
+        vd.req_field("recipient");
+        vd.field_value("interaction"); // TODO
+        vd.field_bool("redirect");
+        vd.field_value_target("actor", sc, Scopes::Character);
+        vd.field_value_target("recipient", sc, Scopes::Character);
+        vd.field_value_target("secondary_actor", sc, Scopes::Character);
+        vd.field_value_target("secondary_recipient", sc, Scopes::Character);
+        if caller == "open_interaction_window" {
+            vd.field_value_target("target_title", sc, Scopes::LandedTitle);
+        }
+        if caller == "run_interaction" {
+            vd.field_choice("execute_threshold", &["accept", "maybe", "decline"]);
+            vd.field_choice("send_threshold", &["accept", "maybe", "decline"]);
+        }
+    } else if caller == "pay_long_term_income"
+        || caller == "pay_reserved_income"
+        || caller == "pay_short_term_income"
+        || caller == "pay_war_chest_income"
+    {
+        vd.req_field("target");
+        validate_optional_cooldown(&mut vd, sc);
+    } else if caller == "random_list" {
+        validate_random_list("random_list", block, data, vd, sc, tooltipped);
+    } else if caller == "remove_opinion" {
+        vd.req_field("target");
+        vd.req_field("modifier");
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_value_item("modifier", Item::Modifier);
+        vd.field_bool("single");
+    } else if caller == "replace_court_position" {
+        vd.req_field("recipient");
+        vd.req_field("court_position");
+        vd.field_value_target("recipient", sc, Scopes::Character);
+        vd.field_value_target("holder", sc, Scopes::Character);
+        vd.field_value_item("court_position", Item::CourtPosition);
+    } else if caller == "round_global_variable"
+        || caller == "round_local_variable"
+        || caller == "round_variable"
+    {
+        vd.req_field("name");
+        vd.req_field("nearest");
+        vd.field_value("name");
+        vd.field_script_value("nearest", sc);
+    } else if caller == "save_opinion_value_as" || caller == "save_temporary_opiion_value_as" {
+        vd.req_field("name");
+        vd.req_field("target");
+        vd.field_value("name");
+        vd.field_value_target("target", sc, Scopes::Character);
+    } else if caller == "save_scope_value_as" || caller == "save_temporary_scope_value_as" {
+        vd.req_field("name");
+        vd.req_field("value");
+        vd.field_value("name");
+        vd.field_script_value_or_flag("value", sc);
+    } else if caller == "scheme_freeze" {
+        vd.req_field("reason");
+        vd.field_value_item("reason", Item::Localization);
+        validate_optional_cooldown(&mut vd, sc);
+    } else if caller == "set_culture_name" {
+        vd.req_field("noun");
+        vd.field_validated_sc("noun", sc, validate_desc);
+        vd.field_validated_sc("collective_noun", sc, validate_desc);
+        vd.field_validated_sc("prefix", sc, validate_desc);
+    } else if caller == "set_death_reason" {
+        vd.req_field("death_reason");
+        vd.field_value_item("death_reason", Item::DeathReason);
+        vd.field_value_target("killer", sc, Scopes::Character);
+        vd.field_value_target("artifact", sc, Scopes::Artifact);
+    } else if caller == "set_great_holy_war_target" || caller == "start_great_holy_war" {
+        vd.req_field("target_character");
+        vd.req_field("target_title");
+        vd.field_value_target("target_character", sc, Scopes::Character);
+        vd.field_value_target("target_title", sc, Scopes::LandedTitle);
+        if caller == "start_great_holy_war" {
+            vd.field_script_value("delay", sc);
+            vd.field_value_target("war", sc, Scopes::War);
+        }
+    } else if caller == "setup_claim_cb"
+        || caller == "setup_de_jure_cb"
+        || caller == "setup_invasion_cb"
+    {
+        vd.req_field("attacker");
+        vd.req_field("defender");
+        vd.req_field("change");
+        vd.field_value_target("attacker", sc, Scopes::Character);
+        vd.field_value_target("defender", sc, Scopes::Character);
+        vd.field_value_target("change", sc, Scopes::TitleAndVassalChange);
+        vd.field_bool("victory");
+        if caller == "setup_claim_cb" {
+            vd.req_field("claimant");
+            vd.field_value_target("claimant", sc, Scopes::Character);
+            vd.field_bool("take_occupied");
+            vd.field_bool("civil_war");
+            vd.field_choice("titles", &["target_titles", "faction_titles"]); // Undocumented
+        } else if caller == "setup_de_jure_cb" {
+            vd.field_value_target("title", sc, Scopes::LandedTitle);
+        } else {
+            vd.field_bool("take_occupied");
+        }
+    } else if caller == "spawn_army" {
+        // TODO: either levies or men_at_arms
+        vd.req_field("location");
+        vd.field_script_value("levies", sc);
+        vd.field_validated_blocks("men_at_arms", |b, data| {
+            let mut vd = Validator::new(b, data);
+            vd.req_field("type");
+            vd.field_value_item("type", Item::MenAtArms);
+            vd.field_script_value("men", sc);
+            vd.field_script_value("stacks", sc);
+        });
+        vd.field_value_target("location", sc, Scopes::Province);
+        vd.field_value_target("origin", sc, Scopes::Province);
+        vd.field_value_target("war", sc, Scopes::War);
+        vd.field_bool("war_keep_on_attacker_victory");
+        vd.field_bool("inheritable");
+        vd.field_bool("uses_supply");
+        vd.field_value_target("army", sc, Scopes::Army);
+        vd.field_value("save_scope_as");
+        vd.field_value("save_temporary_scope_as");
+        vd.field_validated_sc("name", sc, validate_desc);
+    } else if caller == "start_struggle" {
+        vd.req_field("struggle_type");
+        vd.req_field("start_phase");
+        vd.field_value_item("struggle_type", Item::Struggle);
+        vd.field_value_item("start_phase", Item::StrugglePhase);
+    } else if caller == "start_travel_plan" {
+        vd.req_field("destination");
+        for token in vd.field_values("destination") {
+            validate_target(token, data, sc, Scopes::Province);
+        }
+        vd.field_value_target("travel_leader", sc, Scopes::Character);
+        for token in vd.field_values("companion") {
+            validate_target(token, data, sc, Scopes::Character);
+        }
+        vd.field_bool("players_use_planner");
+        vd.field_bool("return_trip");
+        vd.field_value_item("on_arrival_event", Item::Event);
+        vd.field_value_item("on_arrival_on_action", Item::OnAction);
+        vd.field_value_item("on_start_event", Item::Event);
+        vd.field_value_item("on_start_on_action", Item::OnAction);
+        vd.field_value_item("on_travel_planner_cancel_event", Item::Event);
+        vd.field_value_item("on_travel_planner_cancel_on_action", Item::OnAction);
+        vd.field_choice(
+            "on_arrival_destinations",
+            &["all", "first", "last", "all_but_last"],
+        );
+    } else if caller == "start_war" {
+        vd.field_value_item("casus_belli", Item::CasusBelli);
+        vd.field_value_item("cb", Item::CasusBelli);
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_value_target("claimant", sc, Scopes::Character);
+        for token in vd.field_values("target_title") {
+            validate_target(token, data, sc, Scopes::LandedTitle);
+        }
+    } else if caller == "stress_impact" {
+        vd.field_script_value("base", sc);
+        for (token, bv) in vd.unknown_keys() {
+            data.verify_exists(Item::Trait, token);
+            ScriptValue::validate_bv(bv, data, sc);
+        }
+    } else if caller == "switch" {
+        vd.req_field("trigger");
+        if let Some(target) = vd.field_value("trigger") {
+            // clone to avoid calling vd again while target is still borrowed
+            let target = target.clone();
+            for (key, bv) in vd.unknown_keys() {
+                // Pretend the switch was written as a series of trigger = key lines
+                let synthetic_bv = BlockOrValue::Token(key.clone());
+                validate_trigger_key_bv(
+                    &target,
+                    Comparator::Eq,
+                    &synthetic_bv,
+                    data,
+                    sc,
+                    tooltipped,
+                );
+
+                if let Some(block) = bv.expect_block() {
+                    let vd = Validator::new(block, data);
+                    validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
+                }
+            }
+        }
+    } else if caller == "try_create_important_action" {
+        vd.req_field("important_action_type");
+        vd.field_value_item("important_action_type", Item::ImportantAction);
+        vd.field_value("scope_name");
+    } else if caller == "try_create_suggestion" {
+        vd.req_field("suggestion_type");
+        vd.field_value_item("suggestion_type", Item::Suggestion);
+        vd.field_value_target("actor", sc, Scopes::Character);
+        vd.field_value_target("recipient", sc, Scopes::Character);
+        vd.field_value_target("secondary_actor", sc, Scopes::Character);
+        vd.field_value_target("secondary_recipient", sc, Scopes::Character);
+        vd.field_value_target("landed_title", sc, Scopes::LandedTitle);
+    } else if caller == "vassal_contract_set_obligation_level" {
+        vd.req_field("type");
+        vd.req_field("level");
+        vd.field_value_item("type", Item::VassalObligation);
+        if let Some(token) = vd.field_value("level") {
+            if token.as_str().parse::<i32>().is_err()
+                && !data.item_exists(Item::VassalObligationLevel, token.as_str())
+            {
+                validate_target(token, data, sc, Scopes::VassalContractObligationLevel);
+            }
+        }
     } else {
         vd.no_warn_remaining(); // TODO
+    }
+}
+
+fn validate_artifact_history(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    vd.req_field("type");
+    vd.field_value_item("type", Item::ArtifactHistory);
+    vd.field_date("date");
+    vd.field_value_target("actor", sc, Scopes::Character);
+    vd.field_value_target("recipient", sc, Scopes::Character);
+    vd.field_value_target("location", sc, Scopes::Province);
+}
+
+fn validate_artifact(
+    caller: &str,
+    _block: &Block,
+    _data: &Everything,
+    mut vd: Validator,
+    sc: &mut ScopeContext,
+    _tooltipped: bool,
+) {
+    vd.field_validated_sc("name", sc, validate_desc);
+    vd.field_validated_sc("description", sc, validate_desc);
+    vd.field_value_item("rarity", Item::ArtifactRarity);
+    vd.field_value_item("type", Item::ArtifactSlot);
+    vd.field_values_items("modifier", Item::Modifier);
+    vd.field_script_value("durability", sc);
+    vd.field_script_value("max_durability", sc);
+    vd.field_bool("decaying");
+    vd.field_validated_blocks_sc("history", sc, validate_artifact_history);
+    vd.field_value_item("template", Item::ArtifactTemplate);
+    vd.field_value_item("visuals", Item::ArtifactVisual);
+    vd.field_bool("generate_history");
+    vd.field_script_value("quality", sc);
+    vd.field_script_value("wealth", sc);
+    vd.field_value_target("creator", sc, Scopes::Character);
+    vd.field_value_target(
+        "visuals_source",
+        sc,
+        Scopes::LandedTitle | Scopes::Dynasty | Scopes::DynastyHouse,
+    );
+
+    if caller == "create_artifact" {
+        vd.field_value("save_scope_as");
+        vd.field_value_target("title_history", sc, Scopes::LandedTitle);
+        vd.field_date("title_history_date");
+    } else {
+        vd.ban_field("save_scope_as", || "`create_artifact`");
+        vd.ban_field("title_history", || "`create_artifact`");
+        vd.ban_field("title_history_date", || "`create_artifact`");
+    }
+}
+
+fn validate_random_list(
+    caller: &str,
+    _block: &Block,
+    data: &Everything,
+    mut vd: Validator,
+    sc: &mut ScopeContext,
+    tooltipped: bool,
+) {
+    vd.field_integer("pick");
+    vd.field_bool("unique"); // don't know what this does
+    vd.field_validated_sc("desc", sc, validate_desc);
+    for (key, bv) in vd.unknown_keys() {
+        if f64::from_str(key.as_str()).is_err() {
+            let msg = "expected number";
+            error(key, ErrorKey::Validation, msg);
+        } else if let Some(block) = bv.expect_block() {
+            validate_effect_control(caller, block, data, sc, tooltipped);
+        }
     }
 }

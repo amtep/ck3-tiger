@@ -15,7 +15,7 @@ pub struct Defines {
 
 impl Defines {
     pub fn load_item(&mut self, group: Token, name: Token, bv: &BlockOrValue) {
-        let key = format!("{}::{}", &group, &name);
+        let key = format!("{}|{}", &group, &name);
         if let Some(other) = self.defines.get(&key) {
             if other.name.loc.kind >= name.loc.kind {
                 dup_error(&name, &other.name, "define");
@@ -72,7 +72,7 @@ impl Define {
     }
 
     pub fn key(&self) -> String {
-        format!("{}::{}", self.group, self.name)
+        format!("{}|{}", self.group, self.name)
     }
 
     pub fn validate(&self, _data: &Everything) {

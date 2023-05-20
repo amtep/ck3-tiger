@@ -74,7 +74,7 @@ impl Interaction {
 
         if let Some(name) = self.block.get_field_value("icon") {
             if let Some(icon_path) = data
-                .get_defined_string_warn(&self.key, "NGameIcons::CHARACTER_INTERACTION_ICON_PATH")
+                .get_defined_string_warn(&self.key, "NGameIcons|CHARACTER_INTERACTION_ICON_PATH")
             {
                 let pathname = format!("{icon_path}/{name}.dds");
                 data.fileset.verify_exists_implied(&pathname, name);

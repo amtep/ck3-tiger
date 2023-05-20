@@ -114,6 +114,24 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    pub fn fields_check<F>(&mut self, name: &str, mut f: F) -> bool
+    where
+        F: FnMut(&BlockOrValue),
+    {
+        let mut found = false;
+        for (k, cmp, v) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    self.known_fields.push(key.as_str());
+                    expect_eq_qeq(key, cmp);
+                    f(v);
+                    found = true;
+                }
+            }
+        }
+        found
+    }
+
     pub fn field(&mut self, name: &str) -> Option<&BlockOrValue> {
         if self.field_check(name, |_| ()) {
             self.block.get_field(name)
@@ -256,6 +274,27 @@ impl<'a> Validator<'a> {
         self.field_check(name, |bv| {
             let mut sc = ScopeContext::new_root(scopes, self.block.get_key(name).unwrap().clone());
             ScriptValue::validate_bv(bv, self.data, &mut sc);
+        })
+    }
+
+    pub fn field_script_value_or_flag(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
+        self.field_check(name, |bv| {
+            if let Some(token) = bv.get_value() {
+                validate_target(
+                    token,
+                    self.data,
+                    sc,
+                    Scopes::Value | Scopes::Bool | Scopes::Flag,
+                );
+                return;
+            }
+            ScriptValue::validate_bv(bv, self.data, sc);
+        })
+    }
+
+    pub fn fields_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
+        self.fields_check(name, |bv| {
+            ScriptValue::validate_bv(bv, self.data, sc);
         })
     }
 

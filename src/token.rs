@@ -87,6 +87,10 @@ impl Token {
         self.s.to_lowercase() == s
     }
 
+    pub fn starts_with(&self, s: &str) -> bool {
+        self.s.starts_with(s)
+    }
+
     pub fn split(&self, ch: char) -> Vec<Token> {
         let mut pos = 0;
         let mut vec = Vec::new();

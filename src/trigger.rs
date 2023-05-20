@@ -422,7 +422,10 @@ pub fn validate_trigger_key_bv(
         let last = i + 1 == part_vec.len();
         let part = &part_vec[i];
 
-        if let Some((prefix, arg)) = part.split_once(':') {
+        if let Some((prefix, mut arg)) = part.split_once(':') {
+            if prefix.is("event_id") {
+                arg = key.split_once(':').unwrap().1;
+            }
             if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                 if inscopes == Scopes::None && !first {
                     let msg = format!("`{prefix}:` makes no sense except as first part");
@@ -431,6 +434,9 @@ pub fn validate_trigger_key_bv(
                 sc.expect(inscopes, &prefix);
                 validate_prefix_reference(&prefix, &arg, data);
                 sc.replace(outscope, part.clone());
+                if prefix.is("event_id") {
+                    break; // force last part
+                }
             } else {
                 let msg = format!("unknown prefix `{prefix}:`");
                 error(part, ErrorKey::Validation, &msg);
@@ -750,8 +756,10 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
         let first = i == 0;
         let last = i + 1 == part_vec.len();
         let part = &part_vec[i];
-
-        if let Some((prefix, arg)) = part.split_once(':') {
+        if let Some((prefix, mut arg)) = part.split_once(':') {
+            if prefix.is("event_id") {
+                arg = token.split_once(':').unwrap().1;
+            }
             if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                 if inscopes == Scopes::None && !first {
                     let msg = format!("`{prefix}:` makes no sense except as first part");
@@ -760,6 +768,9 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
                 sc.expect(inscopes, &prefix);
                 validate_prefix_reference(&prefix, &arg, data);
                 sc.replace(outscope, part.clone());
+                if prefix.is("event_id") {
+                    break; // force last part
+                }
             } else {
                 let msg = format!("unknown prefix `{prefix}:`");
                 error(part, ErrorKey::Validation, &msg);
@@ -788,6 +799,15 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             }
             sc.expect(inscopes, part);
             sc.replace(outscope, part.clone());
+        } else if data.scriptvalues.exists(part.as_str()) {
+            // TODO: validate inscope of the script value against sc
+            if !last {
+                let msg = format!("`{part}` only makes sense as the last part");
+                warn(part, ErrorKey::Scopes, &msg);
+                sc.close();
+                return;
+            }
+            sc.replace(Scopes::Value, part.clone());
         } else if let Some(inscopes) = trigger_comparevalue(part, data) {
             if !last {
                 let msg = format!("`{part}` only makes sense as the last part");
@@ -808,15 +828,6 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
                 );
             } else {
                 sc.expect(inscopes, part);
-            }
-            sc.replace(Scopes::Value, part.clone());
-        } else if data.scriptvalues.exists(part.as_str()) {
-            // TODO: validate inscope of the script value against sc
-            if !last {
-                let msg = format!("`{part}` only makes sense as the last part");
-                warn(part, ErrorKey::Scopes, &msg);
-                sc.close();
-                return;
             }
             sc.replace(Scopes::Value, part.clone());
         // TODO: warn if trying to use iterator here

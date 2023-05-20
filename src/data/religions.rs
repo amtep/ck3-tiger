@@ -133,8 +133,8 @@ impl Religion {
 
         vd.field_blocks("doctrine_selection_pair"); // TODO: validate
         if let Some(icon) = vd.field_value("doctrine_background_icon") {
-            if let Some(icon_path) = data
-                .get_defined_string_warn(&self.key, "NGameIcons::FAITH_DOCTRINE_BACKGROUND_PATH")
+            if let Some(icon_path) =
+                data.get_defined_string_warn(&self.key, "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH")
             {
                 let pathname = format!("{icon_path}/{icon}");
                 data.fileset.verify_exists_implied(&pathname, icon);
@@ -148,7 +148,7 @@ impl Religion {
         vd.field_list("custom_faith_icons");
         if let Some(icons) = self.block.get_field_list("custom_faith_icons") {
             if let Some(icon_path) =
-                data.get_defined_string_warn(&self.key, "NGameIcons::FAITH_ICON_PATH")
+                data.get_defined_string_warn(&self.key, "NGameIcons|FAITH_ICON_PATH")
             {
                 for icon in &icons {
                     let pathname = format!("{icon_path}/{icon}.dds");
@@ -238,14 +238,14 @@ impl Faith {
         vd.field_validated_block("color", validate_color);
         let icon = vd.field_value("icon").unwrap_or(&self.key);
         if let Some(icon_path) =
-            data.get_defined_string_warn(&self.key, "NGameIcons::FAITH_ICON_PATH")
+            data.get_defined_string_warn(&self.key, "NGameIcons|FAITH_ICON_PATH")
         {
             let pathname = format!("{icon_path}/{icon}.dds");
             data.fileset.verify_exists_implied(&pathname, icon);
         }
         if let Some(icon) = vd.field_value("reformed_icon") {
             if let Some(icon_path) =
-                data.get_defined_string_warn(&self.key, "NGameIcons::FAITH_ICON_PATH")
+                data.get_defined_string_warn(&self.key, "NGameIcons|FAITH_ICON_PATH")
             {
                 let pathname = format!("{icon_path}/{icon}.dds");
                 data.fileset.verify_exists_implied(&pathname, icon);
@@ -256,7 +256,7 @@ impl Faith {
 
         if let Some(icon) = vd.field_value("doctrine_background_icon") {
             if let Some(icon_path) =
-                data.get_defined_string_warn(&self.key, "NGameIcons::FAITH_DOCTRINE_ICON_PATH")
+                data.get_defined_string_warn(&self.key, "NGameIcons|FAITH_DOCTRINE_ICON_PATH")
             {
                 let pathname = format!("{icon_path}/{icon}");
                 data.fileset.verify_exists_implied(&pathname, icon);

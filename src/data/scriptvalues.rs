@@ -13,9 +13,8 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
-use crate::tables::triggers::trigger_comparevalue;
 use crate::token::{Loc, Token};
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{
     validate_inside_iterator, validate_iterator_fields, validate_prefix_reference, ListType,
 };
@@ -149,7 +148,10 @@ impl ScriptValue {
             let mut first = true;
             sc.open_builder();
             for part in key.split('.') {
-                if let Some((prefix, arg)) = part.split_once(':') {
+                if let Some((prefix, mut arg)) = part.split_once(':') {
+                    if prefix.is("event_id") {
+                        arg = key.split_once(':').unwrap().1;
+                    }
                     if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                         if inscopes == Scopes::None && !first {
                             let msg = format!("`{prefix}:` makes no sense except as first part");
@@ -158,6 +160,9 @@ impl ScriptValue {
                         sc.expect(inscopes, &prefix);
                         validate_prefix_reference(&prefix, &arg, data);
                         sc.replace(outscope, part);
+                        if prefix.is("event_id") {
+                            break; // force last part
+                        }
                     } else {
                         let msg = format!("unknown prefix `{prefix}:`");
                         error(part, ErrorKey::Validation, &msg);
@@ -263,100 +268,9 @@ impl ScriptValue {
         Self::validate_inner(vd, data, sc);
     }
 
-    pub fn validate_value(t: &Token, data: &Everything, sc: &mut ScopeContext) {
-        if t.as_str().parse::<i32>().is_ok() || t.as_str().parse::<f64>().is_ok() {
-            // numeric literal is always valid
-        } else {
-            let part_vec = t.split('.');
-            sc.open_builder();
-            for i in 0..part_vec.len() {
-                let first = i == 0;
-                let last = i + 1 == part_vec.len();
-                let part = &part_vec[i];
-
-                if let Some((prefix, arg)) = part.split_once(':') {
-                    if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
-                        if inscopes == Scopes::None && !first {
-                            let msg = format!("`{prefix}:` makes no sense except as first part");
-                            warn(part, ErrorKey::Validation, &msg);
-                        }
-                        if last && !outscope.contains(Scopes::Value) {
-                            let msg = format!("expected a numeric formula instead of `{prefix}:` ");
-                            warn(part, ErrorKey::Validation, &msg);
-                        }
-                        sc.expect(inscopes, &prefix);
-                        validate_prefix_reference(&prefix, &arg, data);
-                        sc.replace(outscope, part.clone());
-                    } else {
-                        let msg = format!("unknown prefix `{prefix}:`");
-                        error(part, ErrorKey::Validation, &msg);
-                        sc.close();
-                        return;
-                    }
-                } else if part.lowercase_is("root")
-                    || part.lowercase_is("prev")
-                    || part.lowercase_is("this")
-                {
-                    if !first {
-                        let msg = format!("`{part}` makes no sense except as first part");
-                        warn(part, ErrorKey::Validation, &msg);
-                    } else if last {
-                        let msg = format!("`{part}` makes no sense as script value");
-                        warn(part, ErrorKey::Validation, &msg);
-                    }
-                    if part.lowercase_is("root") {
-                        sc.replace_root();
-                    } else if part.lowercase_is("prev") {
-                        sc.replace_prev(part);
-                    } else {
-                        sc.replace_this();
-                    }
-                } else if let Some((inscopes, outscope)) = scope_to_scope(part) {
-                    if inscopes == Scopes::None && !first {
-                        let msg = format!("`{part}` makes no sense except as first part");
-                        warn(part, ErrorKey::Validation, &msg);
-                    }
-                    if last && !outscope.intersects(Scopes::Value | Scopes::Bool) {
-                        let msg = format!("expected a numeric formula instead of `{part}` ");
-                        warn(part, ErrorKey::Validation, &msg);
-                    }
-                    sc.expect(inscopes, part);
-                    sc.replace(outscope, part.clone());
-                } else if last {
-                    // TODO: reverse the logic here, first check if scriptvalue or trigger, then complain if !last
-                    if !data.item_exists(Item::ScriptValue, part.as_str()) {
-                        if let Some(inscopes) = trigger_comparevalue(part, data) {
-                            if inscopes == Scopes::None && !first {
-                                let msg = format!("`{part}` makes no sense except as first part");
-                                warn(part, ErrorKey::Validation, &msg);
-                            }
-                            if part.is("current_year") && sc.scopes() == Scopes::None {
-                                warn_info(
-                                    part,
-                                    ErrorKey::Bugs,
-                                    "current_year does not work in empty scope",
-                                    "try using current_date, or dummy_male.current_year",
-                                );
-                            } else {
-                                sc.expect(inscopes, part);
-                            }
-                            sc.replace(Scopes::Value, part.clone());
-                        }
-                    }
-                } else {
-                    let msg = format!("unknown token `{part}`");
-                    error(part, ErrorKey::Validation, &msg);
-                    sc.close();
-                    return;
-                }
-            }
-            sc.close();
-        }
-    }
-
     pub fn validate_bv(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
         match bv {
-            BlockOrValue::Token(t) => Self::validate_value(t, data, sc),
+            BlockOrValue::Token(t) => validate_target(t, data, sc, Scopes::Value | Scopes::Bool),
             BlockOrValue::Block(b) => {
                 let mut vd = Validator::new(b, data);
                 if let Some((None, _, _)) = b.iter_items().next() {
@@ -364,7 +278,7 @@ impl ScriptValue {
                     let vec = vd.values();
                     if vec.len() == 2 {
                         for v in vec {
-                            Self::validate_value(v, data, sc);
+                            validate_target(v, data, sc, Scopes::Value | Scopes::Bool);
                         }
                     } else {
                         warn(b, ErrorKey::Validation, "invalid script value range");

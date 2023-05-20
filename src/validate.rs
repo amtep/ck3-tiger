@@ -215,15 +215,33 @@ pub fn validate_color(block: &Block, _data: &Everything) {
 
 pub fn validate_prefix_reference(prefix: &Token, arg: &Token, data: &Everything) {
     // TODO there are more to match
+    // TODO integrate this to the SCOPE_FROM_PREFIX table
     match prefix.as_str() {
+        "accolade_type" => data.verify_exists(Item::AccoladeType, arg),
+        "activity_type" => data.verify_exists(Item::ActivityType, arg),
         "character" => data.verify_exists(Item::Character, arg),
+        "council_task" => data.verify_exists(Item::CouncilTask, arg),
+        "aptitude" | "court_position" => data.verify_exists(Item::CourtPosition, arg),
+        "cp" => data.verify_exists(Item::CouncilPosition, arg),
+        "culture" => data.verify_exists(Item::Culture, arg),
+        "culture_pillar" => data.verify_exists(Item::CulturePillar, arg),
+        "culture_tradition" => data.verify_exists(Item::CultureTradition, arg),
+        "decision" => data.verify_exists(Item::Decision, arg),
+        "array_define" | "define" => data.verify_exists(Item::Define, arg),
+        "doctrine" => data.verify_exists(Item::Doctrine, arg),
         "dynasty" => data.verify_exists(Item::Dynasty, arg),
         "event_id" => data.verify_exists(Item::Event, arg),
         "faith" => data.verify_exists(Item::Faith, arg),
+        "government_type" => data.verify_exists(Item::GovernmentType, arg),
         "house" => data.verify_exists(Item::House, arg),
+        "mandate_type_qualification" => data.verify_exists(Item::DiarchyMandate, arg),
         "province" => data.verify_exists(Item::Province, arg),
         "religion" => data.verify_exists(Item::Religion, arg),
+        "struggle" => data.verify_exists(Item::Struggle, arg),
         "title" => data.verify_exists(Item::Title, arg),
+        "trait" => data.verify_exists(Item::Trait, arg),
+        "vassal_contract" => data.verify_exists(Item::VassalObligation, arg),
+        "vassal_contract_obligation_level" => data.verify_exists(Item::VassalObligationLevel, arg),
         &_ => (),
     }
 }
@@ -271,8 +289,8 @@ pub fn validate_iterator_fields(
     } else {
         vd.ban_field("order_by", || "`ordered_` lists");
         vd.ban_field("position", || "`ordered_` lists");
-        if caller != "random_list" {
-            vd.ban_field("min", || "`ordered_` lists and `random_list`");
+        if caller != "random_list" && caller != "duel" {
+            vd.ban_field("min", || "`ordered_` lists, `random_list`, and `duel`");
         }
         vd.ban_field("max", || "`ordered_` lists");
         vd.ban_field("check_range_bounds", || "`ordered_` lists");
@@ -438,17 +456,16 @@ pub fn validate_traits(block: &Block, data: &Everything) {
 
 pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    if let Some(target) = vd.field_value("target") {
-        validate_target(target, data, sc, Scopes::Character);
-    }
+    vd.field_value_target("target", sc, Scopes::Character);
     // I guess that "value" and "factor" are run for both the current scope character
     // and the target character, and then compared.
     vd.field_script_value("value", sc);
     vd.field_script_value("factor", sc);
-    vd.field_script_value("multiplier", sc);
+    vd.fields_script_value("multiplier", sc);
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
     vd.field_script_value("step", sc); // What does this do?
+    vd.field_script_value("offset", sc); // What does this do?
     if let Some(b) = vd.field_block("trigger") {
         validate_normal_trigger(b, data, sc, false);
     }
@@ -467,6 +484,7 @@ pub fn validate_opinion_modifier(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_validated_sc("desc", sc, validate_desc);
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
+    vd.field_script_value("step", sc); // What does this do?
 }
 
 pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {

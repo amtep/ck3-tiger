@@ -88,7 +88,7 @@ impl MenAtArmsType {
         vd.field_value_item("type", Item::MenAtArmsBase);
 
         if let Some(icon_path) =
-            data.get_defined_string_warn(&self.key, "NGameIcons::REGIMENTYPE_ICON_PATH")
+            data.get_defined_string_warn(&self.key, "NGameIcons|REGIMENTYPE_ICON_PATH")
         {
             if let Some(icon) = vd.field_value("icon") {
                 let path = format!("{icon_path}/{icon}.dds");

@@ -152,6 +152,9 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
 pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
     match scope_trigger(name, data) {
         Some((s, Trigger::CompareValue)) => Some(s),
+        Some((s, Trigger::CompareValueWarnEq)) => Some(s),
+        Some((s, Trigger::CompareDate)) => Some(s),
+        Some((s, Trigger::SetValue)) => Some(s),
         _ => std::option::Option::None,
     }
 }
