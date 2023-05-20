@@ -147,7 +147,21 @@ impl ScriptValue {
 
             let mut first = true;
             sc.open_builder();
-            for part in key.split('.') {
+            for mut part in key.split('.') {
+                if let Some((new_part, arg)) = part.split_once('(') {
+                    if let Some((arg, _)) = arg.split_once(')') {
+                        let arg = arg.trim();
+                        if new_part.is("vassal_contract_obligation_level_score") {
+                            validate_target(&arg, data, sc, Scopes::VassalContract);
+                        } else if new_part.is("squared_distance") {
+                            validate_target(&arg, data, sc, Scopes::Province);
+                        } else {
+                            warn(arg, ErrorKey::Validation, "unexpected argument")
+                        }
+                        part = new_part;
+                    }
+                }
+
                 if let Some((prefix, mut arg)) = part.split_once(':') {
                     if prefix.is("event_id") {
                         arg = key.split_once(':').unwrap().1;

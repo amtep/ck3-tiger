@@ -126,6 +126,30 @@ impl Token {
         None
     }
 
+    pub fn trim(&self) -> Token {
+        let mut real_start = None;
+        let mut real_end = self.s.len();
+        for (cols, (i, c)) in self.s.char_indices().enumerate() {
+            if c != ' ' {
+                real_start = Some((cols, i));
+                break;
+            }
+        }
+        // looping over the indices is safe here because we're only skipping spaces
+        while real_end > 0 && &self.s[real_end - 1..real_end - 1] == " " {
+            real_end -= 1;
+        }
+        if let Some((cols, i)) = real_start {
+            let mut loc = self.loc.clone();
+            loc.offset += i;
+            loc.column += cols;
+            return Token::new(self.s[i..real_end].to_string(), loc);
+        } else {
+            // all spaces
+            return Token::new("".to_string(), self.loc.clone());
+        }
+    }
+
     pub fn into_string(self) -> String {
         self.s
     }

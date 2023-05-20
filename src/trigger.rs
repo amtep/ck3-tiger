@@ -420,7 +420,23 @@ pub fn validate_trigger_key_bv(
     for i in 0..part_vec.len() {
         let first = i == 0;
         let last = i + 1 == part_vec.len();
-        let part = &part_vec[i];
+        let mut part = &part_vec[i];
+        let store_part; // needed for borrow checker
+
+        if let Some((new_part, arg)) = part.split_once('(') {
+            if let Some((arg, _)) = arg.split_once(')') {
+                let arg = arg.trim();
+                if new_part.is("vassal_contract_obligation_level_score") {
+                    validate_target(&arg, data, sc, Scopes::VassalContract);
+                } else if new_part.is("squared_distance") {
+                    validate_target(&arg, data, sc, Scopes::Province);
+                } else {
+                    warn(arg, ErrorKey::Validation, "unexpected argument")
+                }
+                store_part = new_part;
+                part = &store_part;
+            }
+        }
 
         if let Some((prefix, mut arg)) = part.split_once(':') {
             if prefix.is("event_id") {
@@ -755,7 +771,24 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
     for i in 0..part_vec.len() {
         let first = i == 0;
         let last = i + 1 == part_vec.len();
-        let part = &part_vec[i];
+        let mut part = &part_vec[i];
+        let store_part;
+
+        if let Some((new_part, arg)) = part.split_once('(') {
+            if let Some((arg, _)) = arg.split_once(')') {
+                let arg = arg.trim();
+                if new_part.is("vassal_contract_obligation_level_score") {
+                    validate_target(&arg, data, sc, Scopes::VassalContract);
+                } else if new_part.is("squared_distance") {
+                    validate_target(&arg, data, sc, Scopes::Province);
+                } else {
+                    warn(arg, ErrorKey::Validation, "unexpected argument")
+                }
+                store_part = new_part;
+                part = &store_part;
+            }
+        }
+
         if let Some((prefix, mut arg)) = part.split_once(':') {
             if prefix.is("event_id") {
                 arg = token.split_once(':').unwrap().1;

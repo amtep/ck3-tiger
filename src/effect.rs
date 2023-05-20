@@ -305,8 +305,24 @@ pub fn validate_effect<'a>(
         // but not quite the same :(
         let part_vec = key.split('.');
         sc.open_builder();
-        for (i, part) in part_vec.iter().enumerate() {
+        for (i, mut part) in part_vec.iter().enumerate() {
             let first = i == 0;
+            let stored_part;
+
+            if let Some((new_part, arg)) = part.split_once('(') {
+                if let Some((arg, _)) = arg.split_once(')') {
+                    let arg = arg.trim();
+                    if new_part.is("vassal_contract_obligation_level_score") {
+                        validate_target(&arg, data, sc, Scopes::VassalContract);
+                    } else if new_part.is("squared_distance") {
+                        validate_target(&arg, data, sc, Scopes::Province);
+                    } else {
+                        warn(arg, ErrorKey::Validation, "unexpected argument")
+                    }
+                    stored_part = new_part;
+                    part = &stored_part;
+                }
+            }
 
             if let Some((prefix, mut arg)) = part.split_once(':') {
                 if prefix.is("event_id") {
