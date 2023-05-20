@@ -10,14 +10,15 @@ use crate::errors::{error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
-use crate::tables::effects::{scope_effect, Effect, SpecialEffect};
+use crate::tables::effects::{scope_effect, Effect};
 use crate::trigger::{
     validate_normal_trigger, validate_target, validate_trigger, validate_trigger_key_bv,
 };
 use crate::validate::{
     validate_ai_value_modifier, validate_compare_modifier, validate_compatibility_modifier,
-    validate_days_weeks_months_years, validate_inside_iterator, validate_iterator_fields,
-    validate_opinion_modifier, validate_prefix_reference, ListType,
+    validate_cooldown, validate_days_weeks_months_years, validate_inside_iterator,
+    validate_iterator_fields, validate_opinion_modifier, validate_optional_cooldown,
+    validate_optional_cooldown_int, validate_prefix_reference, ListType,
 };
 
 pub fn validate_normal_effect(
@@ -202,21 +203,31 @@ pub fn validate_effect<'a>(
                         }
                     }
                 }
-                Effect::Desc => validate_desc(bv, data, sc),
-                Effect::Gender => {
+                Effect::Choice(choices) => {
                     if let Some(token) = bv.expect_value() {
-                        if !(token.is("male") || token.is("female") || token.is("random")) {
-                            let msg = "expected `male`, `female`, or `random`";
-                            warn(token, ErrorKey::Validation, msg);
+                        if !choices.contains(&token.as_str()) {
+                            let msg = format!("expected one of {}", choices.join(", "));
+                            error(token, ErrorKey::Validation, &msg);
                         }
                     }
                 }
+                Effect::Desc => validate_desc(bv, data, sc),
                 Effect::Timespan => {
                     if let Some(block) = bv.expect_block() {
                         validate_days_weeks_months_years(block, data, sc);
                     }
                 }
-                Effect::Special(SpecialEffect::Switch) => {
+                Effect::AddModifier => match bv {
+                    BlockOrValue::Token(token) => data.verify_exists(Item::Modifier, token),
+                    BlockOrValue::Block(block) => {
+                        let mut vd = Validator::new(block, data);
+                        vd.req_field("modifier");
+                        vd.field_value_item("modifier", Item::Modifier);
+                        vd.field_validated_sc("desc", sc, validate_desc);
+                        validate_optional_cooldown(&mut vd, sc);
+                    }
+                },
+                Effect::SpecialBlock if key.is("switch") => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
                         vd.req_field("trigger");
@@ -251,7 +262,7 @@ pub fn validate_effect<'a>(
                         }
                     }
                 }
-                Effect::Special(SpecialEffect::RandomList) => {
+                Effect::SpecialBlock if key.is("random_list") => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
                         vd.field_integer("pick");
@@ -267,7 +278,24 @@ pub fn validate_effect<'a>(
                         }
                     }
                 }
-                Effect::Special(_special) => (), // TODO
+                Effect::SpecialBlock => {
+                    if let Some(block) = bv.expect_block() {
+                        validate_effect_special(
+                            &key.as_str().to_lowercase(),
+                            block,
+                            data,
+                            sc,
+                            tooltipped,
+                        );
+                    }
+                }
+                Effect::SpecialBv => validate_effect_special_bv(
+                    &key.as_str().to_lowercase(),
+                    bv,
+                    data,
+                    sc,
+                    tooltipped,
+                ),
                 Effect::ControlOrLabel => match bv {
                     BlockOrValue::Token(t) => data.verify_exists(Item::Localization, t),
                     BlockOrValue::Block(b) => validate_effect_control(
@@ -509,4 +537,478 @@ fn validate_effect_control(
     }
 
     validate_effect(caller, ListType::None, block, data, sc, vd, tooltipped);
+}
+
+fn validate_effect_special_bv(
+    caller: &str,
+    bv: &BlockOrValue,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    _tooltipped: bool,
+) {
+    if caller.starts_with("set_relation_") {
+        match bv {
+            BlockOrValue::Token(token) => validate_target(token, data, sc, Scopes::Character),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("target");
+                vd.req_field("reason");
+                vd.field_value_target("target", sc, Scopes::Character);
+                vd.field_value_item("reason", Item::Localization);
+                vd.field_value_item("copy_reason", Item::Relation);
+                vd.field_value_target("province", sc, Scopes::Province);
+                vd.field_value_target("involved_character", sc, Scopes::Character);
+            }
+        }
+    } else if caller == "activate_struggle_catalyst" {
+        match bv {
+            BlockOrValue::Token(token) => data.verify_exists(Item::Catalyst, token),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("catalyst");
+                vd.req_field("character");
+                vd.field_value_item("catalyst", Item::Catalyst);
+                vd.field_value_target("character", sc, Scopes::Character);
+            }
+        }
+    } else if caller == "add_character_flag" {
+        match bv {
+            BlockOrValue::Token(_token) => (),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("flag");
+                vd.field_values("flag");
+                validate_optional_cooldown(&mut vd, sc);
+            }
+        }
+    } else if caller == "begin_create_holding" {
+        match bv {
+            BlockOrValue::Token(token) => data.verify_exists(Item::Holding, token),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("type");
+                vd.field_value_item("type", Item::Holding);
+                vd.field_validated_block("cost", |b, data| {
+                    let mut vd = Validator::new(b, data);
+                    vd.field_script_value("gold", sc);
+                    vd.field_script_value("prestige", sc);
+                    vd.field_script_value("piety", sc);
+                });
+            }
+        }
+    } else if caller == "change_first_name" {
+        match bv {
+            BlockOrValue::Token(token) => {
+                if !data.item_exists(Item::Localization, token.as_str()) {
+                    validate_target(token, data, sc, Scopes::Flag);
+                }
+            }
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("template_character");
+                vd.field_value_target("template_character", sc, Scopes::Character);
+            }
+        }
+    } else if caller == "close_view" {
+        match bv {
+            BlockOrValue::Token(_token) => (), // TODO
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("view");
+                vd.field_value("view"); // TODO
+                vd.field_value_target("player", sc, Scopes::Character);
+            }
+        }
+    } else if caller == "create_alliance" {
+        match bv {
+            BlockOrValue::Token(token) => validate_target(token, data, sc, Scopes::Character),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("target");
+                vd.field_value_target("target", sc, Scopes::Character);
+                vd.field_value_target("allied_through_owner", sc, Scopes::Character);
+                vd.field_value_target("allied_through_target", sc, Scopes::Character);
+            }
+        }
+    } else if caller == "create_inspiration" {
+        match bv {
+            BlockOrValue::Token(token) => data.verify_exists(Item::Inspiration, token),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("type");
+                vd.req_field("gold");
+                vd.field_value_item("type", Item::Inspiration);
+                vd.field_script_value("gold", sc);
+            }
+        }
+    } else if caller == "create_story" {
+        match bv {
+            BlockOrValue::Token(token) => data.verify_exists(Item::Story, token),
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("type");
+                vd.field_value_item("type", Item::Story);
+                vd.field_value("save_scope_as");
+                vd.field_value("save_temporary_scope_as");
+            }
+        }
+    } else if caller == "death" {
+        match bv {
+            BlockOrValue::Token(token) => {
+                if !token.is("natural") {
+                    let msg = "expected `death = natural`";
+                    warn(token, ErrorKey::Validation, msg);
+                }
+            }
+            BlockOrValue::Block(block) => {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("death_reason");
+                vd.field_value_item("death_reason", Item::DeathReason);
+                vd.field_value_target("killer", sc, Scopes::Character);
+                vd.field_value_target("artifact", sc, Scopes::Artifact);
+            }
+        }
+    }
+}
+
+fn validate_effect_special(
+    caller: &str,
+    block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    tooltipped: bool,
+) {
+    let mut vd = Validator::new(block, data);
+    if caller == "add_activity_log_entry" {
+        vd.req_field("key");
+        vd.req_field("character");
+        vd.field_value_item("key", Item::Localization);
+        vd.field_script_value("score", sc);
+        vd.field_validated_block("tags", |b, data| {
+            let mut vd = Validator::new(b, data);
+            vd.values(); // TODO
+        });
+        vd.field_bool("show_in_conclusion");
+        vd.field_value_target("character", sc, Scopes::Character);
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_value_target("location", sc, Scopes::Province);
+        vd.field_value_target("artifact", sc, Scopes::Artifact);
+        // effects can be put directly in this block
+        validate_effect(caller, ListType::None, block, data, sc, vd, tooltipped);
+    } else if caller == "add_artifact_history" {
+        vd.req_field("type");
+        vd.req_field("recipient");
+        vd.field_value_item("type", Item::ArtifactHistory);
+        vd.field_date("date");
+        vd.field_value_target("actor", sc, Scopes::Character);
+        vd.field_value_target("recipient", sc, Scopes::Character);
+        vd.field_value_target("location", sc, Scopes::Province);
+    } else if caller == "add_artifact_title_history" {
+        vd.req_field("target");
+        vd.req_field("date");
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_date("date");
+    } else if caller == "add_from_contribution_attackers"
+        || caller == "add_from_contribution_defenders"
+    {
+        vd.field_script_value("prestige", sc);
+        vd.field_script_value("gold", sc);
+        vd.field_script_value("piety", sc);
+    } else if caller == "add_hook" || caller == "add_hook_no_toast" {
+        vd.req_field("type");
+        vd.req_field("target");
+        vd.field_value_item("type", Item::Hook);
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_value_item("secret", Item::Secret);
+        validate_optional_cooldown(&mut vd, sc);
+    } else if caller == "add_opinion" {
+        vd.req_field("modifier");
+        vd.req_field("target");
+        vd.field_value_item("modifier", Item::Modifier);
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_script_value("opinion", sc); // undocumented
+        validate_optional_cooldown(&mut vd, sc);
+    } else if caller == "add_relation_flag" {
+        vd.req_field("relation");
+        vd.req_field("flag");
+        vd.req_field("target");
+        vd.field_value_item("relation", Item::Relation);
+        // TODO: check that the flag belongs to the relation
+        vd.field_value("flag");
+        vd.field_value_target("target", sc, Scopes::Character);
+    } else if caller == "add_scheme_cooldown" {
+        vd.req_field("target");
+        vd.req_field("type");
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_value_item("type", Item::Scheme);
+        validate_optional_cooldown_int(&mut vd);
+    } else if caller == "add_scheme_modifier" {
+        vd.req_field("type");
+        vd.field_value_item("type", Item::Scheme);
+        vd.field_integer("days");
+    } else if caller == "add_to_global_variable_list"
+        || caller == "add_to_local_variable_list"
+        || caller == "add_to_variable_list"
+    {
+        vd.req_field("name");
+        vd.req_field("target");
+        vd.field_value("name");
+        for target in vd.field_values("target") {
+            validate_target(target, data, sc, Scopes::all_but_none());
+        }
+    } else if caller == "add_to_guest_subset" {
+        vd.req_field("name");
+        vd.req_field("target");
+        vd.field_value_item("name", Item::GuestSubset);
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_value_item("phase", Item::ActivityPhase);
+    } else if caller == "add_trait_xp" {
+        vd.req_field("trait");
+        vd.req_field("value");
+        vd.field_value_item("trait", Item::Trait);
+        vd.field_value_item("track", Item::TraitTrack);
+        vd.field_script_value("value", sc);
+    } else if caller == "add_truce_both_ways" || caller == "add_truce_one_way" {
+        vd.req_field("character");
+        vd.field_value_target("character", sc, Scopes::Character);
+        vd.field_bool("override");
+        vd.field_choice("result", &["white_peace", "victory", "defeat"]);
+        vd.field_value_item("casus_belli", Item::CasusBelli);
+        vd.field_validated_sc("name", sc, validate_desc);
+        vd.field_value_target("war", sc, Scopes::War);
+        validate_optional_cooldown(&mut vd, sc);
+        if block.has_key("war") && block.has_key("casus_belli") {
+            let msg = "cannot use both `war` and `casus_belli`";
+            error(block, ErrorKey::Validation, msg);
+        }
+    } else if caller == "assign_council_task" {
+        vd.req_field("council_task");
+        vd.req_field("target");
+        vd.field_value_target("council_task", sc, Scopes::Province | Scopes::Character);
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_bool("fire_on_actions");
+    } else if caller == "assign_councillor_type" {
+        vd.req_field("type");
+        vd.req_field("target");
+        vd.field_value_item("type", Item::CouncilPosition);
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_bool("fire_on_actions");
+        vd.field_bool("remove_existing_councillor");
+    } else if caller == "battle_event" {
+        vd.req_field("left_portrait");
+        vd.req_field("right_portrait");
+        vd.req_field("key");
+        if let Some(token) = vd.field_value("key") {
+            let loca = format!("{token}_friendly");
+            data.verify_exists_implied(Item::Localization, &loca, token);
+            let loca = format!("{token}_enemy");
+            data.verify_exists_implied(Item::Localization, &loca, token);
+        }
+        vd.field_value_target("left_portrait", sc, Scopes::Character);
+        vd.field_value_target("right_portrait", sc, Scopes::Character);
+        vd.field_value("type"); // TODO, undocumented
+        vd.field_bool("target_right"); // undocumented
+    } else if caller == "change_cultural_acceptance" {
+        vd.req_field("target");
+        vd.req_field("value");
+        vd.field_value_target("target", sc, Scopes::Culture);
+        vd.field_script_value("value", sc);
+        vd.field_validated_sc("desc", sc, validate_desc);
+    } else if caller == "change_global_variable"
+        || caller == "change_local_variable"
+        || caller == "change_variable"
+    {
+        vd.req_field("name");
+        vd.field_value("name");
+        vd.field_script_value("add", sc);
+        vd.field_script_value("subtract", sc);
+        vd.field_script_value("multiply", sc);
+        vd.field_script_value("divide", sc);
+        vd.field_script_value("modulo", sc);
+        vd.field_script_value("min", sc);
+        vd.field_script_value("max", sc);
+    } else if caller == "change_liege" {
+        vd.req_field("liege");
+        vd.req_field("change");
+        vd.field_value_target("liege", sc, Scopes::Character);
+        vd.field_value_target("change", sc, Scopes::TitleAndVassalChange);
+    } else if caller == "change_title_holder" || caller == "change_title_holder_include_vassals" {
+        vd.req_field("holder");
+        vd.req_field("change");
+        vd.field_value_target("holder", sc, Scopes::Character);
+        vd.field_value_target("change", sc, Scopes::TitleAndVassalChange);
+        vd.field_bool("take_baronies");
+        vd.field_value_target("government_base", sc, Scopes::Character);
+    } else if caller == "change_trait_rank" {
+        vd.req_field("trait");
+        vd.req_field("rank");
+        // TODO: check that it's a rankable trait
+        vd.field_value_item("trait", Item::Trait);
+        vd.field_script_value("rank", sc);
+        vd.field_script_value("max", sc);
+    } else if caller == "clamp_global_variable"
+        || caller == "clamp_local_variable"
+        || caller == "clamp_variable"
+    {
+        vd.req_field("name");
+        vd.field_value("name");
+        vd.field_script_value("min", sc);
+        vd.field_script_value("max", sc);
+    } else if caller == "copy_localized_text" {
+        vd.req_field("key");
+        vd.req_field("target");
+        vd.field_value("key");
+        vd.field_value_target("target", sc, Scopes::Character);
+    } else if caller == "create_accolade" {
+        vd.req_field("knight");
+        vd.req_field("primary");
+        vd.req_field("secondary");
+        vd.field_value_target("knight", sc, Scopes::Character);
+        vd.field_value_item("primary", Item::AccoladeType);
+        vd.field_value_item("secondary", Item::AccoladeType);
+        vd.field_value_item("name", Item::Localization);
+    } else if caller == "create_artifact" {
+        vd.field_validated_sc("name", sc, validate_desc);
+        vd.field_validated_sc("description", sc, validate_desc);
+        vd.field_value_item("rarity", Item::ArtifactRarity);
+        vd.field_value_item("type", Item::ArtifactSlot);
+        vd.field_values_items("modifier", Item::Modifier);
+        vd.field_script_value("durability", sc);
+        vd.field_script_value("max_durability", sc);
+        vd.field_bool("decaying");
+        vd.field_validated_blocks("history", |b, data| {
+            let mut vd = Validator::new(b, data);
+            vd.req_field("type");
+            vd.field_value_item("type", Item::ArtifactHistory);
+            vd.field_date("date");
+            vd.field_value_target("actor", sc, Scopes::Character);
+            vd.field_value_target("recipient", sc, Scopes::Character);
+            vd.field_value_target("location", sc, Scopes::Province);
+        });
+        vd.field_value_item("template", Item::ArtifactTemplate);
+        vd.field_value_item("visuals", Item::ArtifactVisual);
+        vd.field_bool("generate_history");
+        vd.field_script_value("quality", sc);
+        vd.field_script_value("wealth", sc);
+        vd.field_value_target("creator", sc, Scopes::Character);
+        vd.field_value_target(
+            "visuals_source",
+            sc,
+            Scopes::LandedTitle | Scopes::Dynasty | Scopes::DynastyHouse,
+        );
+        vd.field_value("save_scope_as");
+        vd.field_value_target("title_history", sc, Scopes::LandedTitle);
+        vd.field_date("title_history_date");
+    } else if caller == "create_character" {
+        vd.field_value("save_scope_as"); // docs say event_target instead of scope
+        vd.field_value("save_temporary_scope_as"); // docs say event_target instead of scope
+        vd.field_validated_sc("name", sc, validate_desc);
+        vd.field_script_value("age", sc);
+        if let Some(token) = vd.field_value("gender") {
+            if !token.is("male") && !token.is("female") {
+                validate_target(token, data, sc, Scopes::Character);
+            }
+        }
+        vd.field_script_value("gender_female_chance", sc);
+        vd.field_value_target("opposite_gender", sc, Scopes::Character);
+        vd.field_values_items("trait", Item::Trait);
+        vd.field_blocks("random_traits_list"); // TODO
+        vd.field_bool("random_traits");
+        vd.field_script_value("health", sc);
+        vd.field_script_value("fertility", sc);
+        vd.field_value_target("mother", sc, Scopes::Character);
+        vd.field_value_target("father", sc, Scopes::Character);
+        vd.field_value_target("real_father", sc, Scopes::Character);
+        vd.field_value_target("employer", sc, Scopes::Character);
+        vd.field_value_target("location", sc, Scopes::Province);
+        vd.field_value_item("template", Item::CharacterTemplate); // undocumented
+        vd.field_value_target("template_character", sc, Scopes::Character);
+        vd.field_value_item_or_target("faith", sc, Item::Faith, Scopes::Faith);
+        vd.field_block("random_faith"); // TODO
+        vd.field_value_item_or_target(
+            "random_faith_in_religion",
+            sc,
+            Item::Religion,
+            Scopes::Faith,
+        );
+        vd.field_value_item_or_target("culture", sc, Item::Culture, Scopes::Culture);
+        vd.field_block("random_culture"); // TODO
+                                          // TODO: figure out what a culture group is, and whether this key still works at all
+        vd.field_value("random_culture_in_group");
+        vd.field_value_item_or_target("dynasty_house", sc, Item::House, Scopes::DynastyHouse);
+        if let Some(token) = vd.field_value("dynasty") {
+            if !token.is("generate") && !token.is("inherit") && !token.is("none") {
+                validate_target(token, data, sc, Scopes::Dynasty);
+            }
+        }
+        vd.field_script_value("diplomacy", sc);
+        vd.field_script_value("intrigue", sc);
+        vd.field_script_value("martial", sc);
+        vd.field_script_value("learning", sc);
+        vd.field_script_value("prowess", sc);
+        vd.field_script_value("stewardship", sc);
+        if let Some(b) = vd.field_block("after_creation") {
+            sc.open_scope(
+                Scopes::Character,
+                block.get_key("after_creation").unwrap().clone(),
+            );
+            validate_normal_effect(b, data, sc, tooltipped);
+            sc.close();
+        }
+    } else if caller == "create_character_memory" {
+        vd.req_field("type");
+        vd.field_value_item("type", Item::MemoryType);
+        vd.field_validated_block("participants", |b, data| {
+            for (_key, token) in b.iter_assignments_warn() {
+                validate_target(token, data, sc, Scopes::Character);
+            }
+        });
+        vd.field_validated_block_sc("duration", sc, validate_cooldown);
+    } else if caller == "create_dynamic_title" {
+        vd.req_field("tier");
+        vd.req_field("name");
+        vd.field_choice("tier", &["duchy", "kingdom", "empire"]);
+        vd.field_validated_sc("name", sc, validate_desc);
+        vd.field_validated_sc("adjective", sc, validate_desc);
+    } else if caller == "create_holy_order" {
+        vd.req_field("leader");
+        vd.req_field("capital");
+        vd.field_value_target("leader", sc, Scopes::Character);
+        vd.field_value_target("capital", sc, Scopes::LandedTitle);
+        vd.field_value("save_scope_as");
+        vd.field_value("save_temporary_scope_as");
+    } else if caller == "create_title_and_vassal_change" {
+        vd.req_field("type");
+        vd.field_choice(
+            "type",
+            &[
+                "conquest",
+                "independency",
+                "conquest_claim",
+                "granted",
+                "revoked",
+                "conquest_holy_war",
+                "swear_fealty",
+                "created",
+                "usurped",
+                "returned",
+                "leased_out",
+                "conquest_populist",
+                "faction_demand",
+            ],
+        );
+        vd.field_value("save_scope_as");
+        vd.field_bool("add_claim_on_loss");
+    } else if caller == "delay_travel_plan" {
+        vd.field_bool("add");
+        validate_optional_cooldown(&mut vd, sc);
+    } else if caller == "divide_war_chest" {
+        vd.field_bool("defenders");
+        vd.field_script_value("fraction", sc);
+        vd.field_bool("gold");
+        vd.field_bool("piety");
+        vd.field_bool("prestige");
+    } else {
+        vd.no_warn_remaining(); // TODO
+    }
 }

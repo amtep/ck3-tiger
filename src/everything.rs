@@ -329,6 +329,7 @@ impl Everything {
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
+            Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::Character => self.characters.exists(key),
             Item::CourtPositionCategory => self.courtpos_categories.exists(key),
             Item::DangerType => DANGER_TYPES.contains(&key),
@@ -432,6 +433,27 @@ impl Everything {
 
 /// LAST UPDATED VERSION 1.9.0.2
 const ACTIVITY_STATES: &[&str] = &["passive", "travel", "active"];
+
+/// LAST UPDATED VERSION 1.9.0.2
+const ARTIFACT_HISTORY: &[&str] = &[
+    "created_before_history",
+    "created",
+    "prize_created",
+    "discovered",
+    "creator_discovered",
+    "claimed_by_house",
+    "given",
+    "stolen",
+    "inherited",
+    "conquest",
+    "taken_in_siege",
+    "taken_in_battle",
+    "won_in_duel",
+    "purchased",
+    "prize_awarded",
+    "ransomed",
+    "reforged",
+];
 
 /// LAST UPDATED VERSION 1.9.0.2
 // TODO: parse it from dlc_metadata/ ? Unfortunately Tours and Tournaments

@@ -1,5 +1,6 @@
 use std::borrow::Borrow;
 use std::fmt::Display;
+use std::str::FromStr;
 
 use crate::block::{Block, BlockOrValue, Comparator, Date, Token};
 use crate::context::ScopeContext;
@@ -10,6 +11,7 @@ use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;
 use crate::scopes::Scopes;
+use crate::trigger::validate_target;
 
 #[derive(Debug)]
 pub struct Validator<'a> {
@@ -65,6 +67,10 @@ impl<'a> Validator<'a> {
             );
             false
         }
+    }
+
+    pub fn key(&self, name: &str) -> Option<&Token> {
+        self.block.get_key(name)
     }
 
     pub fn ban_field<F, S>(&mut self, name: &str, only_for: F)
@@ -152,6 +158,35 @@ impl<'a> Validator<'a> {
         })
     }
 
+    pub fn field_value_target(
+        &mut self,
+        name: &str,
+        sc: &mut ScopeContext,
+        outscopes: Scopes,
+    ) -> bool {
+        self.field_check(name, |bv| {
+            if let Some(token) = bv.expect_value() {
+                validate_target(token, self.data, sc, outscopes);
+            }
+        })
+    }
+
+    pub fn field_value_item_or_target(
+        &mut self,
+        name: &str,
+        sc: &mut ScopeContext,
+        itype: Item,
+        outscopes: Scopes,
+    ) -> bool {
+        self.field_check(name, |bv| {
+            if let Some(token) = bv.expect_value() {
+                if !self.data.item_exists(itype, token.as_str()) {
+                    validate_target(token, self.data, sc, outscopes);
+                }
+            }
+        })
+    }
+
     pub fn field_block(&mut self, name: &str) -> Option<&Block> {
         if self.field_check(name, |bv| _ = bv.expect_block()) {
             self.block.get_field_block(name)
@@ -198,17 +233,30 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) {
-        self.field_check(name, |bv| {
-            ScriptValue::validate_bv(bv, self.data, sc);
-        });
+    pub fn field_date(&mut self, name: &str) -> bool {
+        self.field_check(name, |v| match v {
+            BlockOrValue::Token(t) => {
+                if Date::from_str(t.as_str()).is_err() {
+                    warn(t, ErrorKey::Validation, "expected date value");
+                }
+            }
+            BlockOrValue::Block(s) => {
+                error(s, ErrorKey::Validation, "expected value, found block");
+            }
+        })
     }
 
-    pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) {
+    pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
+        self.field_check(name, |bv| {
+            ScriptValue::validate_bv(bv, self.data, sc);
+        })
+    }
+
+    pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
         self.field_check(name, |bv| {
             let mut sc = ScopeContext::new_root(scopes, self.block.get_key(name).unwrap().clone());
             ScriptValue::validate_bv(bv, self.data, &mut sc);
-        });
+        })
     }
 
     pub fn field_choice(&mut self, name: &str, choices: &[&str]) -> bool {

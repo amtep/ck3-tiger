@@ -283,6 +283,20 @@ impl Block {
         }
     }
 
+    pub fn iter_assignments(&self) -> IterAssignments {
+        IterAssignments {
+            iter: self.v.iter(),
+            warn: false,
+        }
+    }
+
+    pub fn iter_assignments_warn(&self) -> IterAssignments {
+        IterAssignments {
+            iter: self.v.iter(),
+            warn: true,
+        }
+    }
+
     pub fn iter_bv_definitions_warn(&self) -> IterBlockValueDefinitions {
         IterBlockValueDefinitions {
             iter: self.v.iter(),
@@ -455,6 +469,62 @@ impl<'a> Iterator for IterDefinitions<'a> {
             }
             match v {
                 BlockOrValue::Token(t) => return Some(DefinitionItem::Keyword(t)),
+                BlockOrValue::Block(b) => {
+                    if self.warn {
+                        error_info(
+                            b,
+                            ErrorKey::Validation,
+                            "unexpected block",
+                            "Did you forget an = ?",
+                        );
+                    }
+                }
+            }
+        }
+        None
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct IterAssignments<'a> {
+    iter: std::slice::Iter<'a, BlockItem>,
+    warn: bool,
+}
+
+impl<'a> Iterator for IterAssignments<'a> {
+    type Item = (&'a Token, &'a Token);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for (k, cmp, v) in self.iter.by_ref() {
+            if let Some(key) = k {
+                if !matches!(cmp, Comparator::Eq) {
+                    if self.warn {
+                        let msg = format!("expected `{key} =`, found `{cmp}`");
+                        error(key, ErrorKey::Validation, &msg);
+                    }
+                    continue;
+                }
+                return match v {
+                    BlockOrValue::Token(t) => Some((key, t)),
+                    BlockOrValue::Block(b) => {
+                        if self.warn {
+                            error(b, ErrorKey::Validation, "expected value, found block");
+                        }
+                        None
+                    }
+                };
+            }
+            match v {
+                BlockOrValue::Token(t) => {
+                    if self.warn {
+                        error_info(
+                            t,
+                            ErrorKey::Validation,
+                            "unexpected value",
+                            "Did you forget an = ?",
+                        );
+                    }
+                }
                 BlockOrValue::Block(b) => {
                     if self.warn {
                         error_info(

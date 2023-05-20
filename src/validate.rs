@@ -103,29 +103,16 @@ pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &m
     let mut vd = Validator::new(block, data);
     let mut count = 0;
 
-    if let Some(bv) = vd.field_any_cmp("days") {
-        ScriptValue::validate_bv(bv, data, sc);
-        count += 1;
-    }
-    if let Some(bv) = vd.field_any_cmp("weeks") {
-        ScriptValue::validate_bv(bv, data, sc);
-        count += 1;
-    }
-    if let Some(bv) = vd.field_any_cmp("months") {
-        ScriptValue::validate_bv(bv, data, sc);
-        count += 1;
-    }
-    if let Some(bv) = vd.field_any_cmp("years") {
-        ScriptValue::validate_bv(bv, data, sc);
-        count += 1;
+    for field in &["days", "weeks", "months", "years"] {
+        if let Some(bv) = vd.field_any_cmp(field) {
+            ScriptValue::validate_bv(bv, data, sc);
+            count += 1;
+        }
     }
 
     if count != 1 {
-        error(
-            block,
-            ErrorKey::Validation,
-            "must have 1 of days, weeks, months, or years",
-        );
+        let msg = "must have 1 of days, weeks, months, or years";
+        error(block, ErrorKey::Validation, msg);
     }
 }
 
@@ -135,32 +122,57 @@ pub fn validate_cooldown(block: &Block, data: &Everything, sc: &mut ScopeContext
     let mut vd = Validator::new(block, data);
     let mut count = 0;
 
-    if let Some(bv) = vd.field("days") {
-        ScriptValue::validate_bv(bv, data, sc);
-        count += 1;
-    }
-    if let Some(bv) = vd.field("weeks") {
-        ScriptValue::validate_bv(bv, data, sc);
-        count += 1;
-    }
-    if let Some(bv) = vd.field("months") {
-        ScriptValue::validate_bv(bv, data, sc);
-        count += 1;
-    }
-    if let Some(bv) = vd.field("years") {
-        ScriptValue::validate_bv(bv, data, sc);
-        count += 1;
+    for field in &["days", "weeks", "months", "years"] {
+        if vd.field_script_value(field, sc) {
+            count += 1;
+        }
     }
 
     if count != 1 {
-        error(
-            block,
-            ErrorKey::Validation,
-            "must have 1 of days, weeks, months, or years",
-        );
+        let msg = "must have 1 of days, weeks, months, or years";
+        error(block, ErrorKey::Validation, msg);
     }
 }
 
+// Very similar to validate_cooldown, but validates part of a block that may contain a cooldown
+// Also does not accept scriptvalues (per the documentation)
+pub fn validate_optional_cooldown_int(vd: &mut Validator) {
+    let mut count = 0;
+    let mut found = None;
+
+    for field in &["days", "weeks", "months", "years"] {
+        if vd.field_integer(field) {
+            count += 1;
+            found = Some(field);
+        }
+    }
+
+    if count > 1 {
+        let msg = "must have at most 1 of days, weeks, months, or years";
+        error(vd.key(found.unwrap()).unwrap(), ErrorKey::Validation, msg);
+    }
+}
+
+// Very similar to validate_days_weeks_months_years, but requires = instead of allowing comparators
+pub fn validate_optional_cooldown(vd: &mut Validator, sc: &mut ScopeContext) {
+    let mut count = 0;
+    let mut found = None;
+
+    for field in &["days", "weeks", "months", "years"] {
+        if vd.field_script_value(field, sc) {
+            count += 1;
+            found = Some(field);
+        }
+    }
+
+    if count > 1 {
+        let msg = "must have at most 1 of days, weeks, months, or years";
+        error(vd.key(found.unwrap()).unwrap(), ErrorKey::Validation, msg);
+    }
+}
+
+// Very similar to validate_cooldown, but validates part of a block that may contain a color
+// Also does not accept scriptvalues (per the documentation)
 pub fn validate_color(block: &Block, _data: &Everything) {
     let mut count = 0;
     for (k, _, v) in block.iter_items() {
