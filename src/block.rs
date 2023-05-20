@@ -261,6 +261,10 @@ impl Block {
         None
     }
 
+    pub fn has_key(&self, name: &str) -> bool {
+        self.get_key(name).is_some()
+    }
+
     pub fn iter_items(&self) -> std::slice::Iter<BlockItem> {
         self.v.iter()
     }

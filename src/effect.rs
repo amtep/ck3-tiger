@@ -10,7 +10,7 @@ use crate::errors::{error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
-use crate::tables::effects::{scope_effect, ControlEffect, Effect};
+use crate::tables::effects::{scope_effect, Effect, SpecialEffect};
 use crate::trigger::{
     validate_normal_trigger, validate_target, validate_trigger, validate_trigger_key_bv,
 };
@@ -30,8 +30,6 @@ pub fn validate_normal_effect(
     validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
 }
 
-const CALLERS_ALLOW_LIMIT: [&str; 4] = ["if", "else_if", "else", "while"];
-
 pub fn validate_effect<'a>(
     caller: &str,
     list_type: ListType,
@@ -41,7 +39,13 @@ pub fn validate_effect<'a>(
     mut vd: Validator<'a>,
     mut tooltipped: bool,
 ) {
-    if CALLERS_ALLOW_LIMIT.contains(&caller) || list_type != ListType::None {
+    // `limit` is accepted in `else` blocks even though it's untidy
+    if caller == "if"
+        || caller == "else_if"
+        || caller == "else"
+        || caller == "while"
+        || list_type != ListType::None
+    {
         if let Some(b) = vd.field_block("limit") {
             validate_normal_trigger(b, data, sc, tooltipped);
         }
@@ -61,79 +65,6 @@ pub fn validate_effect<'a>(
             &mut vd,
             tooltipped,
         );
-    }
-
-    // custom_description_no_bullet is folded into custom_description by the caller
-    if caller == "custom_description" || caller == "custom_tooltip" {
-        if caller == "custom_tooltip" {
-            vd.field_value_item("text", Item::Localization);
-        } else {
-            vd.field_value_item("text", Item::TriggerLocalization);
-        }
-        if let Some(token) = vd.field_value("subject") {
-            validate_target(token, data, sc, Scopes::non_primitive());
-        }
-    } else {
-        vd.ban_field("text", || "`custom_description` or `custom_tooltip`");
-        vd.ban_field("subject", || "`custom_description` or `custom_tooltip`");
-    }
-
-    if caller == "custom_description" {
-        if let Some(token) = vd.field_value("object") {
-            validate_target(token, data, sc, Scopes::non_primitive());
-        }
-        vd.field_script_value("value", sc);
-    } else {
-        vd.ban_field("object", || "`custom_description`");
-        vd.ban_field("value", || "`custom_description`");
-    }
-
-    if caller == "while" {
-        vd.field_script_value("count", sc);
-    } else {
-        vd.ban_field("count", || "`while`");
-    }
-
-    if caller == "random" {
-        vd.req_field("chance");
-        vd.field_script_value("chance", sc);
-    } else {
-        vd.ban_field("chance", || "`random`");
-    }
-
-    if caller == "random" || caller == "random_list" {
-        vd.field_validated_blocks("modifier", |b, data| {
-            validate_trigger("modifier", false, b, data, sc, false);
-        });
-        vd.field_validated_blocks_sc("compare_modifier", sc, validate_compare_modifier);
-        vd.field_validated_blocks_sc("opinion_modifier", sc, validate_opinion_modifier);
-        vd.field_validated_blocks_sc("ai_value_modifier", sc, validate_ai_value_modifier);
-        vd.field_validated_blocks_sc(
-            "compatibility_modifier",
-            sc,
-            validate_compatibility_modifier,
-        );
-    } else {
-        vd.ban_field("modifier", || "`random` or `random_list`");
-        vd.ban_field("compare_modifier", || "`random` or `random_list`");
-        vd.ban_field("opinion_modifier", || "`random` or `random_list`");
-        vd.ban_field("ai_value_modifier", || "`random` or `random_list`");
-        vd.ban_field("compatibility", || "`random` or `random_list`");
-    }
-
-    if caller == "random_list" {
-        if let Some(b) = vd.field_block("trigger") {
-            validate_normal_trigger(b, data, sc, false);
-        }
-        vd.field_bool("show_chance");
-        vd.field_validated_sc("desc", sc, validate_desc);
-        vd.field_script_value("min", sc); // used in vanilla
-                                          // TODO: check if "max" also works
-    } else {
-        if caller != "option" {
-            vd.ban_field("trigger", || "`random_list`");
-        }
-        vd.ban_field("show_chance", || "`random_list`");
     }
 
     'outer: for (key, bv) in vd.unknown_keys() {
@@ -186,7 +117,7 @@ pub fn validate_effect<'a>(
                         }
                     }
                 }
-                Effect::Bool => {
+                Effect::Boolean => {
                     if let Some(token) = bv.expect_value() {
                         validate_target(token, data, sc, Scopes::Bool);
                     }
@@ -198,7 +129,7 @@ pub fn validate_effect<'a>(
                         }
                     }
                 }
-                Effect::Value | Effect::ScriptValue | Effect::NonNegativeValue => {
+                Effect::ScriptValue | Effect::NonNegativeValue => {
                     if let Some(token) = bv.get_value() {
                         if let Ok(number) = token.as_str().parse::<i32>() {
                             if effect == Effect::NonNegativeValue && number < 0 {
@@ -285,20 +216,77 @@ pub fn validate_effect<'a>(
                         validate_days_weeks_months_years(block, data, sc);
                     }
                 }
+                Effect::Special(SpecialEffect::Switch) => {
+                    if let Some(block) = bv.expect_block() {
+                        let mut vd = Validator::new(block, data);
+                        vd.req_field("trigger");
+                        if let Some(target) = vd.field_value("trigger") {
+                            // clone to avoid calling vd again while target is still borrowed
+                            let target = target.clone();
+                            for (key, bv) in vd.unknown_keys() {
+                                // Pretend the switch was written as a series of trigger = key lines
+                                let synthetic_bv = BlockOrValue::Token(key.clone());
+                                validate_trigger_key_bv(
+                                    &target,
+                                    Comparator::Eq,
+                                    &synthetic_bv,
+                                    data,
+                                    sc,
+                                    tooltipped,
+                                );
+
+                                if let Some(block) = bv.expect_block() {
+                                    let vd = Validator::new(block, data);
+                                    validate_effect(
+                                        "",
+                                        ListType::None,
+                                        block,
+                                        data,
+                                        sc,
+                                        vd,
+                                        tooltipped,
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+                Effect::Special(SpecialEffect::RandomList) => {
+                    if let Some(block) = bv.expect_block() {
+                        let mut vd = Validator::new(block, data);
+                        vd.field_integer("pick");
+                        vd.field_bool("unique"); // don't know what this does
+                        vd.field_validated_sc("desc", sc, validate_desc);
+                        for (key, bv) in vd.unknown_keys() {
+                            if f64::from_str(key.as_str()).is_err() {
+                                let msg = "expected numeric value";
+                                error(key, ErrorKey::Validation, msg);
+                            } else if let Some(block) = bv.expect_block() {
+                                validate_effect_control("random_list", block, data, sc, tooltipped);
+                            }
+                        }
+                    }
+                }
                 Effect::Special(_special) => (), // TODO
-                Effect::Control(ControlEffect::CustomTooltip) => match bv {
+                Effect::ControlOrLabel => match bv {
                     BlockOrValue::Token(t) => data.verify_exists(Item::Localization, t),
                     BlockOrValue::Block(b) => validate_effect_control(
-                        ControlEffect::CustomTooltip,
+                        &key.as_str().to_lowercase(),
                         b,
                         data,
                         sc,
                         tooltipped,
                     ),
                 },
-                Effect::Control(control) => {
+                Effect::Control => {
                     if let Some(block) = bv.expect_block() {
-                        validate_effect_control(control, block, data, sc, tooltipped);
+                        validate_effect_control(
+                            &key.as_str().to_lowercase(),
+                            block,
+                            data,
+                            sc,
+                            tooltipped,
+                        );
                     }
                 }
                 Effect::Removed(version, explanation) => {
@@ -400,144 +388,125 @@ pub fn validate_effect<'a>(
 }
 
 fn validate_effect_control(
-    control: ControlEffect,
+    caller: &str,
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    tooltipped: bool,
+    mut tooltipped: bool,
 ) {
     let mut vd = Validator::new(block, data);
-    #[allow(clippy::match_same_arms)] // They only match because they need further coding
-    match control {
-        ControlEffect::CustomDescription => {
-            vd.req_field("text");
-            validate_effect(
-                "custom_description",
-                ListType::None,
-                block,
-                data,
-                sc,
-                vd,
-                false,
-            );
-        }
-        ControlEffect::CustomTooltip => {
-            vd.req_field("text");
-            validate_effect("custom_tooltip", ListType::None, block, data, sc, vd, false);
-        }
-        ControlEffect::If => {
-            vd.req_field_warn("limit");
-            validate_effect("if", ListType::None, block, data, sc, vd, tooltipped);
-        }
-        ControlEffect::Else => {
-            validate_effect("else", ListType::None, block, data, sc, vd, tooltipped);
-        }
-        ControlEffect::InterfaceMessage => {
-            vd.field_value("type");
-            if let Some(bv) = vd.field("title") {
-                validate_desc(bv, data, sc);
-            }
-            if let Some(bv) = vd.field("desc") {
-                validate_desc(bv, data, sc);
-            }
-            if let Some(bv) = vd.field("tooltip") {
-                validate_desc(bv, data, sc);
-            }
-            // TODO: Scopes::Faith isn't documented. Verify that it actually works.
-            if let Some(token) = vd.field_value("left_icon") {
-                validate_target(
-                    token,
-                    data,
-                    sc,
-                    Scopes::Character | Scopes::LandedTitle | Scopes::Artifact | Scopes::Faith,
-                );
-            }
-            if let Some(token) = vd.field_value("right_icon") {
-                validate_target(
-                    token,
-                    data,
-                    sc,
-                    Scopes::Character | Scopes::LandedTitle | Scopes::Artifact | Scopes::Faith,
-                );
-            }
-            if let Some(token) = vd.field_value("goto") {
-                let msg = "`goto` was removed from interface messages in 1.9";
-                warn(token, ErrorKey::Removed, msg);
-            }
-            validate_effect(
-                "send_interface_message",
-                ListType::None,
-                block,
-                data,
-                sc,
-                vd,
-                true,
-            );
-        }
-        ControlEffect::HiddenEffect => {
-            validate_effect("hidden_effect", ListType::None, block, data, sc, vd, false);
-        }
-        ControlEffect::Random => {
-            validate_effect("random", ListType::None, block, data, sc, vd, tooltipped);
-        }
-        ControlEffect::RandomList => {
-            vd.field_integer("pick");
-            vd.field_bool("unique"); // don't know what this does
-            vd.field_validated_sc("desc", sc, validate_desc);
-            for (key, bv) in vd.unknown_keys() {
-                if f64::from_str(key.as_str()).is_err() {
-                    let msg = "expected numeric value";
-                    error(key, ErrorKey::Validation, msg);
-                } else if let Some(block) = bv.expect_block() {
-                    let vd = Validator::new(block, data);
-                    validate_effect(
-                        "random_list",
-                        ListType::None,
-                        block,
-                        data,
-                        sc,
-                        vd,
-                        tooltipped,
-                    );
-                }
-            }
-        }
-        ControlEffect::ShowAsTooltip => {
-            validate_effect("show_as_tooltip", ListType::None, block, data, sc, vd, true);
-        }
-        ControlEffect::Switch => {
-            vd.req_field("trigger");
-            if let Some(target) = vd.field_value("trigger") {
-                // clone to avoid calling vd again while target is still borrowed
-                let target = target.clone();
-                for (key, bv) in vd.unknown_keys() {
-                    // Pretend the switch was written as a series of trigger = key lines
-                    let synthetic_bv = BlockOrValue::Token(key.clone());
-                    validate_trigger_key_bv(
-                        &target,
-                        Comparator::Eq,
-                        &synthetic_bv,
-                        data,
-                        sc,
-                        tooltipped,
-                    );
 
-                    if let Some(block) = bv.expect_block() {
-                        let vd = Validator::new(block, data);
-                        validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
-                    }
-                }
-            }
+    if caller == "if" || caller == "else_if" {
+        vd.req_field_warn("limit");
+    }
+
+    if caller == "custom_description"
+        || caller == "custom_description_no_bullet"
+        || caller == "custom_tooltip"
+        || caller == "custom_label"
+    {
+        vd.req_field("text");
+        if caller == "custom_tooltip" || caller == "custom_label" {
+            vd.field_value_item("text", Item::Localization);
+        } else {
+            vd.field_value_item("text", Item::TriggerLocalization);
         }
-        ControlEffect::While => {
-            if !(block.get_key("limit").is_some() || block.get_key("count").is_some()) {
-                warn(
-                    block,
-                    ErrorKey::Validation,
-                    "`while` needs one of `limit` or `count`",
-                );
-            }
-            validate_effect("while", ListType::None, block, data, sc, vd, tooltipped);
+        if let Some(token) = vd.field_value("subject") {
+            validate_target(token, data, sc, Scopes::non_primitive());
+        }
+        tooltipped = false;
+    } else {
+        vd.ban_field("text", || "`custom_description` or `custom_tooltip`");
+        vd.ban_field("subject", || "`custom_description` or `custom_tooltip`");
+    }
+
+    if caller == "custom_description" || caller == "custom_description_no_bullet" {
+        if let Some(token) = vd.field_value("object") {
+            validate_target(token, data, sc, Scopes::non_primitive());
+        }
+        vd.field_script_value("value", sc);
+    } else {
+        vd.ban_field("object", || "`custom_description`");
+        vd.ban_field("value", || "`custom_description`");
+    }
+
+    if caller == "hidden_effect" || caller == "hidden_effect_new_object" {
+        tooltipped = false;
+    } else if caller == "show_as_tooltip" {
+        tooltipped = true;
+    }
+
+    if caller == "random" {
+        vd.req_field("chance");
+        vd.field_script_value("chance", sc);
+    } else {
+        vd.ban_field("chance", || "`random`");
+    }
+
+    if caller == "send_interface_message" || caller == "send_interface_toast" {
+        vd.field_value("type");
+        vd.field_validated_sc("title", sc, validate_desc);
+        vd.field_validated_sc("desc", sc, validate_desc);
+        vd.field_validated_sc("tooltip", sc, validate_desc);
+        let icon_scopes =
+            Scopes::Character | Scopes::LandedTitle | Scopes::Artifact | Scopes::Faith;
+        if let Some(token) = vd.field_value("left_icon") {
+            validate_target(token, data, sc, icon_scopes);
+        }
+        if let Some(token) = vd.field_value("right_icon") {
+            validate_target(token, data, sc, icon_scopes);
+        }
+        if let Some(token) = vd.field_value("goto") {
+            let msg = "`goto` was removed from interface messages in 1.9";
+            warn(token, ErrorKey::Removed, msg);
         }
     }
+
+    if caller == "while" {
+        if !(block.has_key("limit") || block.has_key("count")) {
+            let msg = "`while` needs one of `limit` or `count`";
+            warn(block, ErrorKey::Validation, msg);
+        }
+
+        vd.field_script_value("count", sc);
+    } else {
+        vd.ban_field("count", || "`while`");
+    }
+
+    if caller == "random" || caller == "random_list" {
+        vd.field_validated_blocks("modifier", |b, data| {
+            validate_trigger("modifier", false, b, data, sc, false);
+        });
+        vd.field_validated_blocks_sc("compare_modifier", sc, validate_compare_modifier);
+        vd.field_validated_blocks_sc("opinion_modifier", sc, validate_opinion_modifier);
+        vd.field_validated_blocks_sc("ai_value_modifier", sc, validate_ai_value_modifier);
+        vd.field_validated_blocks_sc(
+            "compatibility_modifier",
+            sc,
+            validate_compatibility_modifier,
+        );
+    } else {
+        vd.ban_field("modifier", || "`random` or `random_list`");
+        vd.ban_field("compare_modifier", || "`random` or `random_list`");
+        vd.ban_field("opinion_modifier", || "`random` or `random_list`");
+        vd.ban_field("ai_value_modifier", || "`random` or `random_list`");
+        vd.ban_field("compatibility", || "`random` or `random_list`");
+    }
+
+    if caller == "random_list" {
+        if let Some(b) = vd.field_block("trigger") {
+            validate_normal_trigger(b, data, sc, false);
+        }
+        vd.field_bool("show_chance");
+        vd.field_validated_sc("desc", sc, validate_desc);
+        vd.field_script_value("min", sc); // used in vanilla
+                                          // TODO: check if "max" also works
+    } else {
+        if caller != "option" {
+            vd.ban_field("trigger", || "`random_list`");
+        }
+        vd.ban_field("show_chance", || "`random_list`");
+    }
+
+    validate_effect(caller, ListType::None, block, data, sc, vd, tooltipped);
 }
