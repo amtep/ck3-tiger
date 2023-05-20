@@ -136,7 +136,7 @@ impl Token {
             }
         }
         // looping over the indices is safe here because we're only skipping spaces
-        while real_end > 0 && &self.s[real_end - 1..real_end - 1] == " " {
+        while real_end > 0 && &self.s[real_end - 1..real_end] == " " {
             real_end -= 1;
         }
         if let Some((cols, i)) = real_start {
