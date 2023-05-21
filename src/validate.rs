@@ -466,6 +466,7 @@ pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_script_value("max", sc);
     vd.field_script_value("step", sc); // What does this do?
     vd.field_script_value("offset", sc); // What does this do?
+    vd.field_validated_sc("desc", sc, validate_desc);
     if let Some(b) = vd.field_block("trigger") {
         validate_normal_trigger(b, data, sc, false);
     }
@@ -485,6 +486,9 @@ pub fn validate_opinion_modifier(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
     vd.field_script_value("step", sc); // What does this do?
+    if let Some(b) = vd.field_block("trigger") {
+        validate_normal_trigger(b, data, sc, false);
+    }
 }
 
 pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -515,11 +519,28 @@ pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mu
     //vd.field_validated_sc("desc", sc, validate_desc);
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
+    if let Some(b) = vd.field_block("trigger") {
+        validate_normal_trigger(b, data, sc, false);
+    }
 }
 
 pub fn validate_ai_will_do(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_script_value("base", sc);
+    validate_modifiers(&mut vd, block, data, sc, false);
+}
+
+pub fn validate_modifiers(
+    vd: &mut Validator,
+    block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    tooltipped: bool,
+) {
+    vd.field_validated_blocks("first_valid", |b, data| {
+        let mut vd = Validator::new(b, data);
+        validate_modifiers(&mut vd, block, data, sc, tooltipped);
+    });
     vd.field_validated_blocks("modifier", |b, data| {
         validate_trigger("modifier", false, b, data, sc, false);
     });

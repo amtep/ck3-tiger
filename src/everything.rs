@@ -28,6 +28,7 @@ use crate::data::relations::Relations;
 use crate::data::religions::Religions;
 use crate::data::scripted_effects::{Effect, Effects};
 use crate::data::scripted_lists::ScriptedLists;
+use crate::data::scripted_modifiers::ScriptedModifiers;
 use crate::data::scripted_triggers::{Trigger, Triggers};
 use crate::data::scriptvalues::ScriptValues;
 use crate::data::terrain::Terrains;
@@ -80,6 +81,8 @@ pub struct Everything {
 
     /// Processed decision files
     pub decisions: Decisions,
+
+    pub scripted_modifiers: ScriptedModifiers,
 
     /// Processed character interaction files
     pub interactions: Interactions,
@@ -178,6 +181,7 @@ impl Everything {
             defines: Defines::default(),
             events: Events::default(),
             decisions: Decisions::default(),
+            scripted_modifiers: ScriptedModifiers::default(),
             interactions: Interactions::default(),
             interaction_cats: InteractionCategories::default(),
             provinces: Provinces::default(),
@@ -257,6 +261,7 @@ impl Everything {
         self.fileset.handle(&mut self.defines);
         self.fileset.handle(&mut self.events);
         self.fileset.handle(&mut self.decisions);
+        self.fileset.handle(&mut self.scripted_modifiers);
         self.fileset.handle(&mut self.interactions);
         self.fileset.handle(&mut self.interaction_cats);
         self.fileset.handle(&mut self.provinces);
@@ -289,6 +294,7 @@ impl Everything {
         self.defines.validate(self);
         // scripted items go early because they update their scope context info
         self.scriptvalues.validate(self);
+        self.scripted_modifiers.validate(self);
         self.triggers.validate(self);
         self.effects.validate(self);
         self.terrains.validate(self);
@@ -360,6 +366,7 @@ impl Everything {
             Item::RewardItem => REWARD_ITEMS.contains(&key),
             Item::ScriptedEffect => self.effects.exists(key),
             Item::ScriptedList => self.scripted_lists.exists(key),
+            Item::ScriptedModifier => self.scripted_modifiers.exists(key),
             Item::ScriptedTrigger => self.triggers.exists(key),
             Item::ScriptValue => self.scriptvalues.exists(key),
             Item::Sexuality => SEXUALITIES.contains(&key),

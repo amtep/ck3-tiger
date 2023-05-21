@@ -4,6 +4,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, Comparator, Date};
 use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
+use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice_info, error, warn, warn_info};
 use crate::everything::Everything;
@@ -282,6 +283,16 @@ pub fn validate_trigger(
             if key.is("add") || key.is("factor") {
                 if caller == "modifier" {
                     ScriptValue::validate_bv(bv, data, sc);
+                } else {
+                    let msg = format!("can only use `{key} =` in `modifier`");
+                    warn(key, ErrorKey::Validation, &msg);
+                }
+                continue;
+            }
+
+            if key.is("desc") {
+                if caller == "modifier" {
+                    validate_desc(bv, data, sc);
                 } else {
                     let msg = format!("can only use `{key} =` in `modifier`");
                     warn(key, ErrorKey::Validation, &msg);

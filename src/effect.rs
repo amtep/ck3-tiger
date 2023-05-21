@@ -11,13 +11,10 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::tables::effects::{scope_effect, Effect};
-use crate::trigger::{
-    validate_normal_trigger, validate_target, validate_trigger, validate_trigger_key_bv,
-};
+use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger_key_bv};
 use crate::validate::{
-    validate_ai_value_modifier, validate_compare_modifier, validate_compatibility_modifier,
     validate_cooldown, validate_days_weeks_months_years, validate_inside_iterator,
-    validate_iterator_fields, validate_opinion_modifier, validate_optional_cooldown,
+    validate_iterator_fields, validate_modifiers, validate_optional_cooldown,
     validate_optional_cooldown_int, validate_prefix_reference, ListType,
 };
 
@@ -101,6 +98,52 @@ pub fn validate_effect<'a>(
                         }
                         let args = parms.into_iter().zip(vec.into_iter()).collect();
                         effect.validate_macro_expansion(key, args, data, sc, tooltipped);
+                    }
+                }
+            }
+            continue;
+        }
+
+        if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
+            if caller != "random" && caller != "random_list" && caller != "duel" {
+                error(
+                    key,
+                    ErrorKey::Validation,
+                    "cannot use scripted modifier here",
+                );
+                continue;
+            }
+            match bv {
+                BlockOrValue::Token(token) => {
+                    if !modifier.macro_parms().is_empty() {
+                        error(token, ErrorKey::Macro, "expected macro arguments");
+                    } else if !token.is("yes") {
+                        warn(token, ErrorKey::Validation, "expected just modifier = yes");
+                    }
+                    modifier.validate_call(key, data, sc, tooltipped);
+                }
+                BlockOrValue::Block(block) => {
+                    let parms = modifier.macro_parms();
+                    if parms.is_empty() {
+                        error_info(
+                            block,
+                            ErrorKey::Macro,
+                            "modifier does not need macro arguments",
+                            "you can just use it as modifier = yes",
+                        );
+                    } else {
+                        let mut vec = Vec::new();
+                        let mut vd = Validator::new(block, data);
+                        for parm in &parms {
+                            vd.req_field(parm.as_str());
+                            if let Some(token) = vd.field_value(parm.as_str()) {
+                                vec.push(token.clone());
+                            } else {
+                                continue 'outer;
+                            }
+                        }
+                        let args = parms.into_iter().zip(vec.into_iter()).collect();
+                        modifier.validate_macro_expansion(key, args, data, sc, tooltipped);
                     }
                 }
             }
@@ -369,11 +412,8 @@ pub fn validate_effect<'a>(
                 sc.replace(outscope, part.clone());
             // TODO: warn if trying to use iterator or effect here
             } else {
-                // TODO: this check on caller is temporary until we parse the scripted modifiers
-                if caller != "random" && caller != "random_list" && caller != "duel" {
-                    let msg = format!("unknown token `{part}`");
-                    error(part, ErrorKey::Validation, &msg);
-                }
+                let msg = format!("unknown token `{part}`");
+                error(part, ErrorKey::Validation, &msg);
                 sc.close();
                 continue 'outer;
             }
@@ -473,17 +513,7 @@ fn validate_effect_control(
     }
 
     if caller == "random" || caller == "random_list" || caller == "duel" {
-        vd.field_validated_blocks("modifier", |b, data| {
-            validate_trigger("modifier", false, b, data, sc, false);
-        });
-        vd.field_validated_blocks_sc("compare_modifier", sc, validate_compare_modifier);
-        vd.field_validated_blocks_sc("opinion_modifier", sc, validate_opinion_modifier);
-        vd.field_validated_blocks_sc("ai_value_modifier", sc, validate_ai_value_modifier);
-        vd.field_validated_blocks_sc(
-            "compatibility_modifier",
-            sc,
-            validate_compatibility_modifier,
-        );
+        validate_modifiers(&mut vd, block, data, sc, tooltipped);
     } else {
         vd.ban_field("modifier", || "`random`, `random_list` or `duel`");
         vd.ban_field("compare_modifier", || "`random`, `random_list` or `duel`");
