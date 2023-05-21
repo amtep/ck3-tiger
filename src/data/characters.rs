@@ -1,9 +1,10 @@
 use fnv::{FnvHashMap, FnvHashSet};
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, Date};
+use crate::block::{Block, BlockOrValue, Date};
 use crate::context::ScopeContext;
 use crate::effect::{validate_effect, validate_normal_effect};
 use crate::errorkey::ErrorKey;
@@ -233,9 +234,14 @@ impl Character {
         let mut vd = Validator::new(block, data);
         vd.field_value_item("name", Item::Localization);
 
-        vd.field_value("birth"); // TODO: can be "yes" or a date
-        vd.field("death"); // TODO: can be "yes" or { death_reason = }
-                           // note that killer = character_id is used without character: prefix here
+        if let Some(token) = vd.field_value("birth") {
+            if !token.is("yes") && Date::from_str(token.as_str()).is_err() {
+                let msg = "expected `yes` or a date";
+                warn(token, ErrorKey::Validation, msg);
+            }
+        }
+
+        vd.field_validated("death", validate_history_death);
 
         // religion and faith both mean faith here
         vd.field_value_item("religion", Item::Faith);
@@ -366,5 +372,21 @@ impl Character {
         vd.validate_history_blocks(|date, b, data| {
             Self::validate_history(date, b, &self.block, data, &mut sc);
         });
+    }
+}
+
+fn validate_history_death(bv: &BlockOrValue, data: &Everything) {
+    match bv {
+        BlockOrValue::Token(token) => {
+            if !token.is("yes") {
+                data.verify_exists(Item::DeathReason, token);
+            }
+        }
+        BlockOrValue::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("death_reason");
+            vd.field_value_item("death_reason", Item::DeathReason);
+            vd.field_value_item("killer", Item::Character);
+        }
     }
 }
