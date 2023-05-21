@@ -2,9 +2,7 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, DefinitionItem};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
+use crate::block::Block;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -57,21 +55,8 @@ impl FileHandler for GameConcepts {
 
         let Some(block) = PdxFile::read(entry, fullpath) else { return };
 
-        for def in block.iter_definitions_warn() {
-            match def {
-                DefinitionItem::Keyword(key) => error_info(
-                    key,
-                    ErrorKey::Validation,
-                    "unexpected token",
-                    "Did you forget an = ?",
-                ),
-                DefinitionItem::Assignment(key, _) => {
-                    error(key, ErrorKey::Validation, "unexpected assignment");
-                }
-                DefinitionItem::Definition(key, b) => {
-                    self.load_item(key.clone(), b);
-                }
-            }
+        for (key, b) in block.iter_pure_definitions_warn() {
+            self.load_item(key.clone(), b);
         }
     }
 }
@@ -121,7 +106,7 @@ impl Concept {
             vd.advice_field("framesize", "not needed without texture");
             vd.advice_field("frame", "not needed without texture");
         }
-        vd.field_value("requires_dlc_flag");
+        vd.field_value_item("requires_dlc_flag", Item::DlcFeature);
         vd.field_bool("shown_in_encyclopedia");
     }
 }

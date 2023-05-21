@@ -193,13 +193,13 @@ pub fn validate_effect<'a>(
                         if let Some(token) = vd.field_value(ikey) {
                             data.verify_exists(itype, token);
                         }
-                        if let Some(token) = vd.field_value(ikey.to_uppercase()) {
+                        if let Some(token) = vd.field_value(&ikey.to_uppercase()) {
                             data.verify_exists(itype, token);
                         }
                         if let Some(token) = vd.field_value(tkey) {
                             validate_target(token, data, sc, outscopes);
                         }
-                        if let Some(token) = vd.field_value(tkey.to_uppercase()) {
+                        if let Some(token) = vd.field_value(&tkey.to_uppercase()) {
                             validate_target(token, data, sc, outscopes);
                         }
                     }

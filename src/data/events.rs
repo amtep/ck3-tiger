@@ -20,7 +20,7 @@ use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{
-    validate_cooldown, validate_modifiers_with_base, validate_theme_background,
+    validate_ai_chance, validate_cooldown, validate_modifiers_with_base, validate_theme_background,
     validate_theme_icon, validate_theme_sound, validate_theme_transition, ListType,
 };
 
@@ -513,17 +513,5 @@ fn validate_portrait(v: &BlockOrValue, data: &Everything, sc: &mut ScopeContext)
             vd.field_bool("override_imprisonment_visuals");
             vd.field_bool("animate_if_dead");
         }
-    }
-}
-
-pub fn validate_ai_chance(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
-    match bv {
-        BlockOrValue::Value(t) => {
-            if f64::from_str(t.as_str()).is_err() {
-                let msg = "expected number";
-                warn(t, ErrorKey::Validation, msg);
-            }
-        }
-        BlockOrValue::Block(b) => validate_modifiers_with_base(b, data, sc),
     }
 }

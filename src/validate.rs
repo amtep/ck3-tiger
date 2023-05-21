@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
@@ -620,5 +621,17 @@ pub fn validate_scripted_modifier_calls(
             let msg = "unknown field `{key}`";
             warn(key, ErrorKey::Validation, msg);
         }
+    }
+}
+
+pub fn validate_ai_chance(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
+    match bv {
+        BlockOrValue::Value(t) => {
+            if f64::from_str(t.as_str()).is_err() {
+                let msg = "expected number";
+                warn(t, ErrorKey::Validation, msg);
+            }
+        }
+        BlockOrValue::Block(b) => validate_modifiers_with_base(b, data, sc),
     }
 }
