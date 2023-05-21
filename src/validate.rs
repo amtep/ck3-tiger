@@ -12,7 +12,7 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::trigger::{validate_normal_trigger, validate_target};
+use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ListType {
@@ -515,4 +515,20 @@ pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mu
     //vd.field_validated_sc("desc", sc, validate_desc);
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
+}
+
+pub fn validate_ai_will_do(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    vd.field_script_value("base", sc);
+    vd.field_validated_blocks("modifier", |b, data| {
+        validate_trigger("modifier", false, b, data, sc, false);
+    });
+    vd.field_validated_blocks_sc("compare_modifier", sc, validate_compare_modifier);
+    vd.field_validated_blocks_sc("opinion_modifier", sc, validate_opinion_modifier);
+    vd.field_validated_blocks_sc("ai_value_modifier", sc, validate_ai_value_modifier);
+    vd.field_validated_blocks_sc(
+        "compatibility_modifier",
+        sc,
+        validate_compatibility_modifier,
+    );
 }
