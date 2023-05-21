@@ -26,7 +26,7 @@ use crate::validate::{
 
 #[derive(Clone, Debug, Default)]
 pub struct Events {
-    events: FnvHashMap<String, Event>,
+    events: FnvHashMap<(String, u16), Event>,
     triggers: FnvHashMap<(PathBuf, String), Trigger>,
     effects: FnvHashMap<(PathBuf, String), Effect>,
 
@@ -37,36 +37,33 @@ pub struct Events {
 
 impl Events {
     fn load_event(&mut self, key: &Token, block: &Block, namespaces: &[&str]) {
-        let mut namespace_ok = false;
         if namespaces.is_empty() {
-            error(
-                key,
-                ErrorKey::EventNamespace,
-                "Event files must start with a namespace declaration",
-            );
-        } else if let Some((key_a, key_b)) = key.as_str().split_once('.') {
-            if key_b.chars().all(|c| c.is_ascii_digit()) {
+            let msg = "Event files must start with a namespace declaration";
+            error(key, ErrorKey::EventNamespace, msg);
+            return;
+        }
+        if let Some((key_a, key_b)) = key.as_str().split_once('.') {
+            if let Ok(id) = u16::from_str(key_b) {
                 if namespaces.contains(&key_a) {
-                    namespace_ok = true;
+                    if let Some(other) = self.get_event(key.as_str()) {
+                        dup_error(key, &other.key, "event");
+                    }
+                    self.events.insert(
+                        (key_a.to_string(), id),
+                        Event::new(key.clone(), block.clone()),
+                    );
+                    return;
                 } else {
                     warn_info(key, ErrorKey::EventNamespace, "Event name should start with namespace", "If the event doesn't match its namespace, the game can't properly find the event when triggering it.");
                 }
             } else {
-                warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
+                warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.");
             }
         } else {
-            warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of digits.");
+            warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.");
         }
 
-        if namespace_ok {
-            if let Some(other) = self.events.get(key.as_str()) {
-                dup_error(key, &other.key, "event");
-            }
-            self.events
-                .insert(key.to_string(), Event::new(key.clone(), block.clone()));
-        } else {
-            self.error_events.insert(key.to_string(), key.clone());
-        }
+        self.error_events.insert(key.to_string(), key.clone());
     }
 
     fn load_scripted_trigger(&mut self, key: Token, block: &Block) {
@@ -106,8 +103,24 @@ impl Events {
         self.effects.get(&index)
     }
 
+    pub fn get_event(&self, key: &str) -> Option<&Event> {
+        if let Some((namespace, id)) = key.split_once('.') {
+            if let Ok(id) = u16::from_str(id) {
+                return self.events.get(&(namespace.to_string(), id));
+            }
+        }
+        None
+    }
+
     pub fn exists(&self, key: &str) -> bool {
-        self.events.contains_key(key) || self.error_events.contains_key(key)
+        if let Some((namespace, id)) = key.split_once('.') {
+            if let Ok(id) = u16::from_str(id) {
+                if self.events.contains_key(&(namespace.to_string(), id)) {
+                    return true;
+                }
+            }
+        }
+        self.error_events.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {
