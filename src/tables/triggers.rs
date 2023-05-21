@@ -20,6 +20,7 @@ enum RawTrigger {
     Block(&'static [(&'static str, RawTrigger)]), // trigger takes a block with these fields
     ScopeOrBlock(u64, &'static [(&'static str, RawTrigger)]), // trigger takes a block with these fields
     ItemOrBlock(Item, &'static [(&'static str, RawTrigger)]), // trigger takes a block with these fields
+    CompareValueOrBlock(&'static [(&'static str, RawTrigger)]), // can be part of a scope chain but also a standalone trigger
     ScopeList(u64),      // trigger takes a block of values of this scope type
     ScopeCompare(u64),   // trigger takes a block comparing two scope objects
     CompareToScope(u64), // this is for inside a Block, where a key is compared to a scope object
@@ -45,6 +46,7 @@ pub enum Trigger {
     Block(Vec<(&'static str, Trigger)>),
     ScopeOrBlock(Scopes, Vec<(&'static str, Trigger)>),
     ItemOrBlock(Item, Vec<(&'static str, Trigger)>),
+    CompareValueOrBlock(Vec<(&'static str, Trigger)>),
     ScopeList(Scopes),
     ScopeCompare(Scopes),
     CompareToScope(Scopes),
@@ -76,6 +78,9 @@ impl Trigger {
             ),
             RawTrigger::ItemOrBlock(i, fields) => {
                 Trigger::ItemOrBlock(*i, Trigger::from_raw_fields(fields))
+            }
+            RawTrigger::CompareValueOrBlock(fields) => {
+                Trigger::CompareValueOrBlock(Trigger::from_raw_fields(fields))
             }
             RawTrigger::ScopeList(s) => Trigger::ScopeList(Scopes::from_bits_truncate(*s)),
             RawTrigger::ScopeCompare(s) => Trigger::ScopeCompare(Scopes::from_bits_truncate(*s)),
@@ -155,6 +160,7 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
         Some((s, Trigger::CompareValueWarnEq)) => Some(s),
         Some((s, Trigger::CompareDate)) => Some(s),
         Some((s, Trigger::SetValue)) => Some(s),
+        Some((s, Trigger::CompareValueOrBlock(_))) => Some(s),
         _ => std::option::Option::None,
     }
 }
@@ -1547,9 +1553,17 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (TravelPlan, "num_options", CompareValue),
     (Activity, "num_past_phases", CompareValue),
     (Activity, "num_phases", CompareValue),
-    (Character, "num_sinful_traits", CompareValue),
+    (
+        Character,
+        "num_sinful_traits",
+        CompareValueOrBlock(&[("value", CompareValue), ("faith", Scope(Faith))]),
+    ),
     (Combat, "num_total_troops", CompareValueWarnEq),
-    (Character, "num_virtuous_traits", CompareValue),
+    (
+        Character,
+        "num_virtuous_traits",
+        CompareValueOrBlock(&[("value", CompareValue), ("faith", Scope(Faith))]),
+    ),
     (
         Character,
         "number_maa_regiments_of_base_type",

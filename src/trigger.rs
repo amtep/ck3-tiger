@@ -682,6 +682,15 @@ fn match_trigger_bv(
             BlockOrValue::Value(token) => data.verify_exists(*i, token),
             BlockOrValue::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped),
         },
+        Trigger::CompareValueOrBlock(fields) => match bv {
+            BlockOrValue::Value(t) => {
+                validate_target(t, data, sc, Scopes::Value);
+                must_be_eq = false;
+            }
+            BlockOrValue::Block(b) => {
+                match_trigger_fields(fields, b, data, sc, tooltipped);
+            }
+        },
         Trigger::ScopeList(s) => {
             if let Some(block) = bv.expect_block() {
                 let mut vd = Validator::new(block, data);
