@@ -104,20 +104,16 @@ impl CourtPosition {
             validate_normal_trigger(block, data, &mut sc, true);
         }
 
-        vd.field_validated_block("revoke_cost", |b, data| {
+        if let Some((key, block)) = vd.definition("revoke_cost") {
             // guessing that root is the liege here
-            let mut sc = ScopeContext::new_root(
-                Scopes::Character,
-                self.block.get_key("revoke_cost").unwrap().clone(),
-            );
-            validate_cost(b, data, &mut sc);
-        });
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
+            validate_cost(block, data, &mut sc);
+        };
 
-        vd.field_validated_block("salary", |b, data| {
-            let mut sc =
-                ScopeContext::new_root(Scopes::None, self.block.get_key("salary").unwrap().clone());
-            validate_cost(b, data, &mut sc);
-        });
+        if let Some((key, block)) = vd.definition("salary") {
+            let mut sc = ScopeContext::new_root(Scopes::None, key);
+            validate_cost(block, data, &mut sc);
+        };
 
         if let Some((key, block)) = vd.definition("base_employer_modifier") {
             let vd = Validator::new(block, data);

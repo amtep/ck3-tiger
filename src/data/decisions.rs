@@ -92,7 +92,7 @@ impl Decision {
         if self.block.get_field_bool("ai_goal").unwrap_or(false) {
             vd.advice_field("ai_check_interval", "not needed if ai_goal = yes");
         }
-        vd.field_validated_block("cooldown", |b, data| validate_cooldown(b, data, &mut sc));
+        vd.field_validated_block_sc("cooldown", &mut sc, validate_cooldown);
 
         // kind of looks like a filename but it isn't.
         vd.field_value("confirm_click_sound");
