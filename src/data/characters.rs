@@ -259,18 +259,34 @@ impl Character {
                 }
             }
         }
-        vd.field_value("culture");
-        vd.field_value("set_culture");
+
+        vd.field_value_item("culture", Item::Culture);
+        if let Some(token) = vd.field_value("set_culture") {
+            validate_prefix_reference_token(token, data, "culture");
+        }
+
         vd.field_values_items("trait", Item::Trait);
         vd.field_values_items("add_trait", Item::Trait);
         vd.field_values_items("remove_trait", Item::Trait);
-        vd.fields("add_character_flag"); // TODO: can be flag name or { flag = }
+
+        vd.field_validated_bvs("add_character_flag", |bv, data| {
+            match bv {
+                BlockOrValue::Token(_) => (), // flag name
+                BlockOrValue::Block(b) => {
+                    let mut vd = Validator::new(b, data);
+                    vd.req_field("flag");
+                    vd.field_value("flag"); // flag name
+                }
+            }
+        });
+
         for token in vd.field_values("add_pressed_claim") {
             validate_prefix_reference_token(token, data, "title");
         }
         for token in vd.field_values("remove_claim") {
             validate_prefix_reference_token(token, data, "title");
         }
+
         if let Some(token) = vd.field_value("capital") {
             data.verify_exists(Item::Title, token);
             if !token.as_str().starts_with("c_") {
@@ -334,7 +350,7 @@ impl Character {
         vd.req_field("name");
         vd.field_value_item("name", Item::Localization);
 
-        vd.field_value("dna");
+        vd.field_value_item("dna", Item::Dna);
         vd.field_bool("female");
         vd.field_integer("martial");
         vd.field_integer("prowess");
@@ -358,16 +374,16 @@ impl Character {
         vd.field_value_item("religion", Item::Faith);
         vd.field_value_item("faith", Item::Faith);
 
-        vd.field_value("culture");
+        vd.field_value_item("culture", Item::Culture);
 
         vd.field_value_item("dynasty", Item::Dynasty);
         vd.field_value_item("dynasty_house", Item::House);
 
-        vd.field_value("give_nickname");
+        vd.field_value_item("give_nickname", Item::Nickname);
         vd.field_value_item("sexuality", Item::Sexuality);
         vd.field_numeric("health");
         vd.field_numeric("fertility");
-        vd.definition("portrait_override");
+        vd.definition("portrait_override"); // undocumented
 
         vd.validate_history_blocks(|date, b, data| {
             Self::validate_history(date, b, &self.block, data, &mut sc);
