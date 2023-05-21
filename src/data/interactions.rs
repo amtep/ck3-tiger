@@ -81,7 +81,6 @@ impl Interaction {
 
         vd.field_numeric("interface_priority");
         vd.field_bool("common_interaction");
-        vd.req_field("category");
         vd.field_value_item("category", Item::InteractionCategory);
 
         if let Some(icon_path) =
@@ -223,7 +222,11 @@ impl Interaction {
             validate_normal_trigger(b, data, &mut sc, true);
         };
         vd.field_validated_sc("ai_intermediary_accept", &mut sc, validate_ai_chance);
-        vd.field_validated_sc("ai_accept", &mut sc, validate_ai_chance);
+        if let Some((k, b)) = vd.definition("ai_accept") {
+            // This seems to be in character scope
+            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
+            validate_modifiers_with_base(b, data, &mut sc);
+        }
         if let Some((k, b)) = vd.definition("ai_will_do") {
             // This seems to be in character scope
             let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
@@ -262,9 +265,11 @@ impl Interaction {
 
         vd.field_choice("target_type", &["artifact", "title", "none"]);
         vd.field_value("target_filter"); // TODO
-        vd.field_validated_block("can_be_picked", |b, data| {
+        if let Some((k, b)) = vd.definition("can_be_picked") {
+            // root is the character being picked
+            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
             validate_normal_trigger(b, data, &mut sc, true);
-        });
+        };
         vd.field_validated_block("can_be_picked_title", |b, data| {
             validate_normal_trigger(b, data, &mut sc, true);
         });
