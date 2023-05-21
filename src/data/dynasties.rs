@@ -73,6 +73,6 @@ impl Dynasty {
         vd.field_value_item("prefix", Item::Localization);
         vd.field_value_item("motto", Item::Localization);
         vd.field_value_item("culture", Item::Culture);
-        vd.field_value("forced_coa_religiongroup");
+        vd.field_value("forced_coa_religiongroup"); // TODO: figure out the values
     }
 }

@@ -1929,7 +1929,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Province,
         "travel_danger_value",
-        Block(&[("travel_plan", Scope(TravelPlan)), ("value", CompareValue)]),
+        Block(&[("target", Scope(TravelPlan)), ("value", CompareValue)]),
     ),
     (Character, "travel_leader_cost", CompareValue),
     (Character, "travel_leader_safety", CompareValue),

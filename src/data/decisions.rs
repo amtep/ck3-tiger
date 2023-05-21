@@ -11,6 +11,7 @@ use crate::errors::warn;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -78,12 +79,8 @@ impl Decision {
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
         vd.req_field_warn("picture");
-        if let Some(token) = vd.field_value("picture") {
-            data.fileset.verify_exists(token);
-        }
-        if let Some(token) = vd.field_value("extra_picture") {
-            data.fileset.verify_exists(token);
-        }
+        vd.field_value_item("picture", Item::File);
+        vd.field_value_item("extra_picture", Item::File);
         vd.field_bool("major");
         vd.field_integer("sort_order");
         vd.field_bool("is_invisible");
@@ -151,7 +148,7 @@ impl Decision {
         vd.field_validated_block("should_create_alert", |b, data| {
             validate_normal_trigger(b, data, &mut sc, false);
         });
-        vd.field("widget");
+        vd.field("widget"); // TODO
     }
 }
 
@@ -163,31 +160,22 @@ fn check_cost(blocks: &[&Block]) {
         for cost in blocks {
             if let Some(gold) = cost.get_field("gold") {
                 if seen_gold {
-                    warn(
-                        gold,
-                        ErrorKey::Conflict,
-                        "This value of the gold cost overrides the previously set cost.",
-                    );
+                    let msg = "This value of the gold cost overrides the previously set cost.";
+                    warn(gold, ErrorKey::Conflict, msg);
                 }
                 seen_gold = true;
             }
             if let Some(prestige) = cost.get_field("prestige") {
                 if seen_prestige {
-                    warn(
-                        prestige,
-                        ErrorKey::Conflict,
-                        "This value of the prestige cost overrides the previously set cost.",
-                    );
+                    let msg = "This value of the prestige cost overrides the previously set cost.";
+                    warn(prestige, ErrorKey::Conflict, msg);
                 }
                 seen_prestige = true;
             }
             if let Some(piety) = cost.get_field("piety") {
                 if seen_piety {
-                    warn(
-                        piety,
-                        ErrorKey::Conflict,
-                        "This value of the piety cost overrides the previously set cost.",
-                    );
+                    let msg = "This value of the piety cost overrides the previously set cost.";
+                    warn(piety, ErrorKey::Conflict, msg);
                 }
                 seen_piety = true;
             }

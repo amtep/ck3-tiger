@@ -506,6 +506,11 @@ pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut Sco
     vd.field_script_value("ai_sociability", sc);
     vd.field_script_value("ai_vengefulness", sc);
     vd.field_script_value("ai_zeal", sc);
+    vd.field_script_value("min", sc);
+    vd.field_script_value("max", sc);
+    if let Some(b) = vd.field_block("trigger") {
+        validate_normal_trigger(b, data, sc, false);
+    }
 }
 
 pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -528,6 +533,8 @@ pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mu
 pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_script_value("base", sc);
+    vd.field_script_value("add", sc);
+    vd.field_script_value("factor", sc);
     validate_modifiers(&mut vd, block, data, sc, false);
     validate_scripted_modifier_calls(vd, data, sc, false);
 }
@@ -610,8 +617,8 @@ pub fn validate_scripted_modifier_calls(
         if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
             validate_scripted_modifier_call(key, bv, modifier, data, sc, tooltipped);
         } else {
-            let msg = "cannot use scripted modifier here";
-            error(key, ErrorKey::Validation, msg);
+            let msg = "unknown field `{key}`";
+            warn(key, ErrorKey::Validation, msg);
         }
     }
 }

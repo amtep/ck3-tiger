@@ -117,7 +117,7 @@ impl DoctrineGroup {
         if let Some(icon_path) =
             data.get_defined_string_warn(&self.key, "NGameIcons|FAITH_DOCTRINE_GROUP_ICON_PATH")
         {
-            let path = format!("{}/{}.dds", icon_path, &self.key);
+            let path = format!("{icon_path}/{}.dds", &self.key);
             return !data.fileset.exists(&path);
         }
         true
@@ -206,9 +206,7 @@ impl Doctrine {
         if let Some((key, block)) = vd.definition("character_modifier") {
             let mut vd = Validator::new(block, data);
             let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            if let Some(name) = vd.field_value("name") {
-                data.localization.verify_exists(name);
-            }
+            vd.field_value_item("name", Item::Localization);
             validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
         }
 
@@ -223,9 +221,7 @@ impl Doctrine {
         if let Some((key, block)) = vd.definition("doctrine_character_modifier") {
             let mut vd = Validator::new(block, data);
             let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            if let Some(doctrine) = vd.field_value("doctrine") {
-                data.verify_exists(Item::Doctrine, doctrine);
-            }
+            vd.field_value_item("doctrine", Item::Doctrine);
             validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
         }
 
