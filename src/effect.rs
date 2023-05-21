@@ -15,7 +15,8 @@ use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger_
 use crate::validate::{
     validate_cooldown, validate_days_weeks_months_years, validate_inside_iterator,
     validate_iterator_fields, validate_modifiers, validate_optional_cooldown,
-    validate_optional_cooldown_int, validate_prefix_reference, ListType,
+    validate_optional_cooldown_int, validate_prefix_reference, validate_scripted_modifier_call,
+    ListType,
 };
 
 pub fn validate_normal_effect(
@@ -106,47 +107,11 @@ pub fn validate_effect<'a>(
 
         if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
             if caller != "random" && caller != "random_list" && caller != "duel" {
-                error(
-                    key,
-                    ErrorKey::Validation,
-                    "cannot use scripted modifier here",
-                );
+                let msg = "cannot use scripted modifier here";
+                error(key, ErrorKey::Validation, msg);
                 continue;
             }
-            match bv {
-                BlockOrValue::Token(token) => {
-                    if !modifier.macro_parms().is_empty() {
-                        error(token, ErrorKey::Macro, "expected macro arguments");
-                    } else if !token.is("yes") {
-                        warn(token, ErrorKey::Validation, "expected just modifier = yes");
-                    }
-                    modifier.validate_call(key, data, sc, tooltipped);
-                }
-                BlockOrValue::Block(block) => {
-                    let parms = modifier.macro_parms();
-                    if parms.is_empty() {
-                        error_info(
-                            block,
-                            ErrorKey::Macro,
-                            "modifier does not need macro arguments",
-                            "you can just use it as modifier = yes",
-                        );
-                    } else {
-                        let mut vec = Vec::new();
-                        let mut vd = Validator::new(block, data);
-                        for parm in &parms {
-                            vd.req_field(parm.as_str());
-                            if let Some(token) = vd.field_value(parm.as_str()) {
-                                vec.push(token.clone());
-                            } else {
-                                continue 'outer;
-                            }
-                        }
-                        let args = parms.into_iter().zip(vec.into_iter()).collect();
-                        modifier.validate_macro_expansion(key, args, data, sc, tooltipped);
-                    }
-                }
-            }
+            validate_scripted_modifier_call(key, bv, modifier, data, sc, tooltipped);
             continue;
         }
 

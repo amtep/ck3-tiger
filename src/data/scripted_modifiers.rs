@@ -11,7 +11,7 @@ use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::validate::validate_modifiers;
+use crate::validate::{validate_modifiers, validate_scripted_modifier_calls};
 
 #[derive(Clone, Debug, Default)]
 pub struct ScriptedModifiers {
@@ -99,6 +99,7 @@ impl ScriptedModifier {
             self.cache.insert(key, &[], our_sc.clone());
             let mut vd = Validator::new(&self.block, data);
             validate_modifiers(&mut vd, &self.block, data, &mut our_sc, tooltipped);
+            validate_scripted_modifier_calls(vd, data, &mut our_sc, tooltipped);
             sc.expect_compatibility(&our_sc, key);
             self.cache.insert(key, &[], our_sc);
         }
@@ -137,6 +138,7 @@ impl ScriptedModifier {
                 self.cache.insert(key, &args, our_sc.clone());
                 let mut vd = Validator::new(&block, data);
                 validate_modifiers(&mut vd, &block, data, &mut our_sc, tooltipped);
+                validate_scripted_modifier_calls(vd, data, &mut our_sc, tooltipped);
                 sc.expect_compatibility(&our_sc, key);
                 self.cache.insert(key, &args, our_sc);
             }

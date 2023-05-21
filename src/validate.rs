@@ -4,10 +4,11 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 /// A module for validation functions that are useful for more than one data module.
 use crate::context::ScopeContext;
+use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
-use crate::errors::error;
+use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
@@ -297,7 +298,7 @@ pub fn validate_iterator_fields(
     }
 
     if list_type == ListType::Random {
-        vd.field_block("weight"); // TODO
+        vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
     } else {
         vd.ban_field("weight", || "`random_` lists");
     }
@@ -524,10 +525,11 @@ pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mu
     }
 }
 
-pub fn validate_ai_will_do(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_script_value("base", sc);
     validate_modifiers(&mut vd, block, data, sc, false);
+    validate_scripted_modifier_calls(vd, data, sc, false);
 }
 
 pub fn validate_modifiers(
@@ -552,4 +554,64 @@ pub fn validate_modifiers(
         sc,
         validate_compatibility_modifier,
     );
+}
+
+pub fn validate_scripted_modifier_call(
+    key: &Token,
+    bv: &BlockOrValue,
+    modifier: &ScriptedModifier,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    tooltipped: bool,
+) {
+    match bv {
+        BlockOrValue::Token(token) => {
+            if !modifier.macro_parms().is_empty() {
+                error(token, ErrorKey::Macro, "expected macro arguments");
+            } else if !token.is("yes") {
+                warn(token, ErrorKey::Validation, "expected just modifier = yes");
+            }
+            modifier.validate_call(key, data, sc, tooltipped);
+        }
+        BlockOrValue::Block(block) => {
+            let parms = modifier.macro_parms();
+            if parms.is_empty() {
+                error_info(
+                    block,
+                    ErrorKey::Macro,
+                    "modifier does not need macro arguments",
+                    "you can just use it as modifier = yes",
+                );
+            } else {
+                let mut vec = Vec::new();
+                let mut vd = Validator::new(block, data);
+                for parm in &parms {
+                    vd.req_field(parm.as_str());
+                    if let Some(token) = vd.field_value(parm.as_str()) {
+                        vec.push(token.clone());
+                    } else {
+                        return;
+                    }
+                }
+                let args = parms.into_iter().zip(vec.into_iter()).collect();
+                modifier.validate_macro_expansion(key, args, data, sc, tooltipped);
+            }
+        }
+    }
+}
+
+pub fn validate_scripted_modifier_calls(
+    mut vd: Validator,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    tooltipped: bool,
+) {
+    for (key, bv) in vd.unknown_keys() {
+        if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
+            validate_scripted_modifier_call(key, bv, modifier, data, sc, tooltipped);
+        } else {
+            let msg = "cannot use scripted modifier here";
+            error(key, ErrorKey::Validation, msg);
+        }
+    }
 }

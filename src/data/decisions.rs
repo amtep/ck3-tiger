@@ -15,7 +15,7 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::{validate_ai_will_do, validate_cooldown, validate_cost};
+use crate::validate::{validate_cooldown, validate_cost, validate_modifiers_with_base};
 
 #[derive(Clone, Debug, Default)]
 pub struct Decisions {
@@ -147,7 +147,7 @@ impl Decision {
         vd.field_validated_block("ai_potential", |b, data| {
             validate_normal_trigger(b, data, &mut sc, false);
         });
-        vd.field_validated_block_sc("ai_will_do", &mut sc, validate_ai_will_do);
+        vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
         vd.field_validated_block("should_create_alert", |b, data| {
             validate_normal_trigger(b, data, &mut sc, false);
         });
