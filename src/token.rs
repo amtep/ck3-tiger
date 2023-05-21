@@ -143,10 +143,10 @@ impl Token {
             let mut loc = self.loc.clone();
             loc.offset += i;
             loc.column += cols;
-            return Token::new(self.s[i..real_end].to_string(), loc);
+            Token::new(self.s[i..real_end].to_string(), loc)
         } else {
             // all spaces
-            return Token::new("".to_string(), self.loc.clone());
+            Token::new("".to_string(), self.loc.clone())
         }
     }
 

@@ -317,7 +317,7 @@ pub fn validate_effect<'a>(
                     } else if new_part.is("squared_distance") {
                         validate_target(&arg, data, sc, Scopes::Province);
                     } else {
-                        warn(arg, ErrorKey::Validation, "unexpected argument")
+                        warn(arg, ErrorKey::Validation, "unexpected argument");
                     }
                     stored_part = new_part;
                     part = &stored_part;
