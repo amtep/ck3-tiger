@@ -206,7 +206,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "all_court_artifact_slots",
         Choice(&["empty", "full"]),
     ),
-    (Character, "all_false", Control),
+    (None, "all_false", Control),
     (
         Character,
         "all_inventory_artifact_slots",
