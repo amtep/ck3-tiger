@@ -1016,11 +1016,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "start_diarchy", Unchecked), // TODO
     (GreatHolyWar, "start_ghw_war", Item(Item::CasusBelli)),
     (Faith, "start_great_holy_war", SpecialBlock),
-    (
-        Character,
-        "start_scheme",
-        ItemTarget("type", Item::Scheme, "target", Scopes::Character),
-    ),
+    (Character, "start_scheme", SpecialBlock),
     (None, "start_struggle", SpecialBlock),
     (Character, "start_travel_plan", SpecialBlock),
     (None, "start_tutorial_lesson", Unchecked),

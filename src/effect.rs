@@ -1197,6 +1197,12 @@ fn validate_effect_special(
         vd.field_value("save_scope_as");
         vd.field_value("save_temporary_scope_as");
         vd.field_validated_sc("name", sc, validate_desc);
+    } else if caller == "start_scheme" {
+        vd.req_field("type");
+        vd.req_field("target");
+        vd.field_value_item("type", Item::Scheme);
+        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_value_target("artifact", sc, Scopes::Artifact);
     } else if caller == "start_struggle" {
         vd.req_field("struggle_type");
         vd.req_field("start_phase");
