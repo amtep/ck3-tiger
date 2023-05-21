@@ -284,7 +284,7 @@ impl ScriptValue {
 
     pub fn validate_bv(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
         match bv {
-            BlockOrValue::Token(t) => validate_target(t, data, sc, Scopes::Value | Scopes::Bool),
+            BlockOrValue::Value(t) => validate_target(t, data, sc, Scopes::Value | Scopes::Bool),
             BlockOrValue::Block(b) => {
                 let mut vd = Validator::new(b, data);
                 if let Some((None, _, _)) = b.iter_items().next() {

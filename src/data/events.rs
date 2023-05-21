@@ -366,7 +366,7 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
 
     let mut vd = Validator::new(block, data);
     vd.field_validated_bvs("name", |bv, data| match bv {
-        BlockOrValue::Token(t) => {
+        BlockOrValue::Value(t) => {
             data.localization.verify_exists(t);
         }
         BlockOrValue::Block(b) => {
@@ -383,7 +383,7 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
         }
     });
     vd.field_validated_bvs("custom_tooltip", |bv, data| match bv {
-        BlockOrValue::Token(t) => {
+        BlockOrValue::Value(t) => {
             data.localization.verify_exists(t);
         }
         BlockOrValue::Block(b) => {
@@ -491,7 +491,7 @@ fn validate_triggered_outfit(block: &Block, data: &Everything, sc: &mut ScopeCon
 
 fn validate_portrait(v: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
     match v {
-        BlockOrValue::Token(_) => (),
+        BlockOrValue::Value(_) => (),
         BlockOrValue::Block(b) => {
             let mut vd = Validator::new(b, data);
 

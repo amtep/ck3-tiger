@@ -42,7 +42,7 @@ pub trait ErrorLoc {
 impl ErrorLoc for BlockOrValue {
     fn into_loc(self) -> Loc {
         match self {
-            BlockOrValue::Token(t) => t.into_loc(),
+            BlockOrValue::Value(t) => t.into_loc(),
             BlockOrValue::Block(s) => s.into_loc(),
         }
     }
@@ -51,7 +51,7 @@ impl ErrorLoc for BlockOrValue {
 impl ErrorLoc for &BlockOrValue {
     fn into_loc(self) -> Loc {
         match self {
-            BlockOrValue::Token(t) => t.into_loc(),
+            BlockOrValue::Value(t) => t.into_loc(),
             BlockOrValue::Block(s) => s.into_loc(),
         }
     }

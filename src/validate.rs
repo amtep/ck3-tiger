@@ -181,7 +181,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
             error(key, ErrorKey::Validation, "expected color value");
         } else {
             match v {
-                BlockOrValue::Token(t) => {
+                BlockOrValue::Value(t) => {
                     if let Ok(i) = t.as_str().parse::<isize>() {
                         if !(0..=255).contains(&i) {
                             error(
@@ -565,7 +565,7 @@ pub fn validate_scripted_modifier_call(
     tooltipped: bool,
 ) {
     match bv {
-        BlockOrValue::Token(token) => {
+        BlockOrValue::Value(token) => {
             if !modifier.macro_parms().is_empty() {
                 error(token, ErrorKey::Macro, "expected macro arguments");
             } else if !token.is("yes") {

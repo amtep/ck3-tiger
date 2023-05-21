@@ -271,7 +271,7 @@ impl Character {
 
         vd.field_validated_bvs("add_character_flag", |bv, data| {
             match bv {
-                BlockOrValue::Token(_) => (), // flag name
+                BlockOrValue::Value(_) => (), // flag name
                 BlockOrValue::Block(b) => {
                     let mut vd = Validator::new(b, data);
                     vd.req_field("flag");
@@ -393,7 +393,7 @@ impl Character {
 
 fn validate_history_death(bv: &BlockOrValue, data: &Everything) {
     match bv {
-        BlockOrValue::Token(token) => {
+        BlockOrValue::Value(token) => {
             if !token.is("yes") {
                 data.verify_exists(Item::DeathReason, token);
             }

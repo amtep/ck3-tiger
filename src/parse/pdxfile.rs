@@ -159,17 +159,17 @@ impl Parser {
                         let token = Token::new(value, token.loc);
                         self.current
                             .block
-                            .add_key_value(key, comp, BlockOrValue::Token(token));
+                            .add_key_value(key, comp, BlockOrValue::Value(token));
                     } else {
                         error(token, ErrorKey::ParseError, "local value not defined");
                     }
                 } else {
                     self.current
                         .block
-                        .add_key_value(key, comp, BlockOrValue::Token(token));
+                        .add_key_value(key, comp, BlockOrValue::Value(token));
                 }
             } else {
-                self.current.block.add_value(BlockOrValue::Token(key));
+                self.current.block.add_value(BlockOrValue::Value(key));
                 self.current.key = Some(token);
             }
         } else {
@@ -188,7 +188,7 @@ impl Parser {
                     .block
                     .add_key_value(key, comp, BlockOrValue::Block(block));
             } else {
-                self.current.block.add_value(BlockOrValue::Token(key));
+                self.current.block.add_value(BlockOrValue::Value(key));
                 self.current.block.add_value(BlockOrValue::Block(block));
             }
         } else {
@@ -223,7 +223,7 @@ impl Parser {
             if let Some((_, comp_token)) = self.current.comp.take() {
                 error(comp_token, ErrorKey::ParseError, "Comparator without value");
             }
-            self.current.block.add_value(BlockOrValue::Token(key));
+            self.current.block.add_value(BlockOrValue::Value(key));
         }
     }
 

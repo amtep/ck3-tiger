@@ -12,28 +12,28 @@ use crate::token::{Loc, Token};
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
 pub enum BlockOrValue {
-    Token(Token),
+    Value(Token),
     Block(Block),
 }
 
 impl BlockOrValue {
     pub fn get_block(&self) -> Option<&Block> {
         match self {
-            BlockOrValue::Token(_) => None,
+            BlockOrValue::Value(_) => None,
             BlockOrValue::Block(b) => Some(b),
         }
     }
 
     pub fn get_value(&self) -> Option<&Token> {
         match self {
-            BlockOrValue::Token(t) => Some(t),
+            BlockOrValue::Value(t) => Some(t),
             BlockOrValue::Block(_) => None,
         }
     }
 
     pub fn expect_block(&self) -> Option<&Block> {
         match self {
-            BlockOrValue::Token(_) => {
+            BlockOrValue::Value(_) => {
                 error(self, ErrorKey::Validation, "expected block, found value");
                 None
             }
@@ -43,7 +43,7 @@ impl BlockOrValue {
 
     pub fn expect_value(&self) -> Option<&Token> {
         match self {
-            BlockOrValue::Token(t) => Some(t),
+            BlockOrValue::Value(t) => Some(t),
             BlockOrValue::Block(_) => {
                 error(self, ErrorKey::Validation, "expected value, found block");
                 None
@@ -53,7 +53,7 @@ impl BlockOrValue {
 
     pub fn into_value(self) -> Option<Token> {
         match self {
-            BlockOrValue::Token(t) => Some(t),
+            BlockOrValue::Value(t) => Some(t),
             BlockOrValue::Block(_) => None,
         }
     }
@@ -105,7 +105,7 @@ impl Block {
             if let Some(key) = k {
                 if key.is(name) {
                     match v {
-                        BlockOrValue::Token(t) => return Some(t),
+                        BlockOrValue::Value(t) => return Some(t),
                         BlockOrValue::Block(_) => (),
                     }
                 }
@@ -130,7 +130,7 @@ impl Block {
             if let Some(key) = k {
                 if key.is(name) {
                     match v {
-                        BlockOrValue::Token(t) => vec.push(t.clone()),
+                        BlockOrValue::Value(t) => vec.push(t.clone()),
                         BlockOrValue::Block(_) => (),
                     }
                 }
@@ -145,7 +145,7 @@ impl Block {
             if let Some(key) = k {
                 if key.is(name) {
                     match v {
-                        BlockOrValue::Token(_) => (),
+                        BlockOrValue::Value(_) => (),
                         BlockOrValue::Block(s) => return Some(s),
                     }
                 }
@@ -161,7 +161,7 @@ impl Block {
             if let Some(key) = k {
                 if key.is(name) {
                     match v {
-                        BlockOrValue::Token(_) => (),
+                        BlockOrValue::Value(_) => (),
                         BlockOrValue::Block(s) => vec.push(s),
                     }
                 }
@@ -176,7 +176,7 @@ impl Block {
             if let Some(key) = k {
                 if key.is(name) {
                     match v {
-                        BlockOrValue::Token(_) => (),
+                        BlockOrValue::Value(_) => (),
                         BlockOrValue::Block(s) => {
                             return Some(s.get_values());
                         }
@@ -204,7 +204,7 @@ impl Block {
         for (k, _, v) in &self.v {
             if k.is_none() {
                 match v {
-                    BlockOrValue::Token(t) => vec.push(t.clone()),
+                    BlockOrValue::Value(t) => vec.push(t.clone()),
                     BlockOrValue::Block(_) => (),
                 }
             }
@@ -218,7 +218,7 @@ impl Block {
         for (k, _, v) in &self.v {
             if k.is_none() {
                 match v {
-                    BlockOrValue::Token(_) => (),
+                    BlockOrValue::Value(_) => (),
                     BlockOrValue::Block(b) => vec.push(b.clone()),
                 }
             }
@@ -233,7 +233,7 @@ impl Block {
             if let Some(key) = k {
                 if matches!(cmp, Comparator::Eq) {
                     match v {
-                        BlockOrValue::Token(t) => vec.push((key, t)),
+                        BlockOrValue::Value(t) => vec.push((key, t)),
                         BlockOrValue::Block(_) => (),
                     }
                 }
@@ -463,12 +463,12 @@ impl<'a> Iterator for IterDefinitions<'a> {
                     continue;
                 }
                 return match v {
-                    BlockOrValue::Token(t) => Some(DefinitionItem::Assignment(key, t)),
+                    BlockOrValue::Value(t) => Some(DefinitionItem::Assignment(key, t)),
                     BlockOrValue::Block(b) => Some(DefinitionItem::Definition(key, b)),
                 };
             }
             match v {
-                BlockOrValue::Token(t) => return Some(DefinitionItem::Keyword(t)),
+                BlockOrValue::Value(t) => return Some(DefinitionItem::Keyword(t)),
                 BlockOrValue::Block(b) => {
                     if self.warn {
                         error_info(
@@ -505,7 +505,7 @@ impl<'a> Iterator for IterAssignments<'a> {
                     continue;
                 }
                 return match v {
-                    BlockOrValue::Token(t) => Some((key, t)),
+                    BlockOrValue::Value(t) => Some((key, t)),
                     BlockOrValue::Block(b) => {
                         if self.warn {
                             error(b, ErrorKey::Validation, "expected value, found block");
@@ -515,7 +515,7 @@ impl<'a> Iterator for IterAssignments<'a> {
                 };
             }
             match v {
-                BlockOrValue::Token(t) => {
+                BlockOrValue::Value(t) => {
                     if self.warn {
                         error_info(
                             t,
@@ -602,7 +602,7 @@ impl<'a> Iterator for IterBlockValueDefinitions<'a> {
                 return Some((key, bv));
             }
             match bv {
-                BlockOrValue::Token(t) => {
+                BlockOrValue::Value(t) => {
                     if self.warn {
                         error_info(
                             t,

@@ -60,7 +60,7 @@ impl Provinces {
                     || key.is("river_provinces")
                     || key.is("impassable_mountains")
                 {
-                    if let BlockOrValue::Token(t) = v {
+                    if let BlockOrValue::Value(t) = v {
                         if t.is("LIST") {
                             expecting = Expecting::List;
                         } else if t.is("RANGE") {

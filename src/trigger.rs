@@ -355,7 +355,7 @@ pub fn validate_trigger(
             validate_trigger_key_bv(key, *cmp, bv, data, sc, tooltipped);
         } else {
             match bv {
-                BlockOrValue::Token(t) => warn_info(
+                BlockOrValue::Value(t) => warn_info(
                     t,
                     ErrorKey::Validation,
                     "unexpected token",
@@ -383,7 +383,7 @@ pub fn validate_trigger_key_bv(
     // Scripted trigger?
     if let Some(trigger) = data.get_trigger(key) {
         match bv {
-            BlockOrValue::Token(token) => {
+            BlockOrValue::Value(token) => {
                 if !(token.is("yes") || token.is("no")) {
                     warn(token, ErrorKey::Validation, "expected yes or no");
                 }
@@ -551,7 +551,7 @@ pub fn validate_trigger_key_bv(
     }
 
     match bv {
-        BlockOrValue::Token(t) => {
+        BlockOrValue::Value(t) => {
             let scopes = sc.scopes();
             sc.close();
             validate_target(t, data, sc, scopes);
@@ -675,11 +675,11 @@ fn match_trigger_bv(
             }
         }
         Trigger::ScopeOrBlock(s, fields) => match bv {
-            BlockOrValue::Token(token) => validate_target(token, data, sc, *s),
+            BlockOrValue::Value(token) => validate_target(token, data, sc, *s),
             BlockOrValue::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped),
         },
         Trigger::ItemOrBlock(i, fields) => match bv {
-            BlockOrValue::Token(token) => data.verify_exists(*i, token),
+            BlockOrValue::Value(token) => data.verify_exists(*i, token),
             BlockOrValue::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped),
         },
         Trigger::ScopeList(s) => {
@@ -746,7 +746,7 @@ fn match_trigger_bv(
                 }
             } else if name.is("custom_tooltip") {
                 match bv {
-                    BlockOrValue::Token(t) => data.verify_exists(Item::Localization, t),
+                    BlockOrValue::Value(t) => data.verify_exists(Item::Localization, t),
                     BlockOrValue::Block(b) => {
                         validate_trigger(name.as_str(), false, b, data, sc, false);
                     }

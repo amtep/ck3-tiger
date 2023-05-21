@@ -45,7 +45,7 @@ pub fn validate_desc_map(
     f: impl Fn(&Token, &Everything),
 ) {
     match bv {
-        BlockOrValue::Token(t) => {
+        BlockOrValue::Value(t) => {
             if !t.as_str().contains(' ') {
                 f(t, data);
             }

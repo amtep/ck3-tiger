@@ -215,8 +215,8 @@ impl<'a> Validator<'a> {
 
     pub fn field_bool(&mut self, name: &str) -> bool {
         self.field_check(name, |v| match v {
-            BlockOrValue::Token(t) if t.is("yes") || t.is("no") => (),
-            BlockOrValue::Token(t) => {
+            BlockOrValue::Value(t) if t.is("yes") || t.is("no") => (),
+            BlockOrValue::Value(t) => {
                 error(t, ErrorKey::Validation, "expected yes or no");
             }
             BlockOrValue::Block(s) => {
@@ -227,7 +227,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_integer(&mut self, name: &str) -> bool {
         self.field_check(name, |v| match v {
-            BlockOrValue::Token(t) => {
+            BlockOrValue::Value(t) => {
                 if t.as_str().parse::<i32>().is_err() {
                     error(t, ErrorKey::Validation, "expected integer");
                 }
@@ -240,7 +240,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_numeric(&mut self, name: &str) -> bool {
         self.field_check(name, |v| match v {
-            BlockOrValue::Token(t) => {
+            BlockOrValue::Value(t) => {
                 if t.as_str().parse::<f64>().is_err() {
                     error(t, ErrorKey::Validation, "expected number");
                 }
@@ -253,7 +253,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_date(&mut self, name: &str) -> bool {
         self.field_check(name, |v| match v {
-            BlockOrValue::Token(t) => {
+            BlockOrValue::Value(t) => {
                 if Date::from_str(t.as_str()).is_err() {
                     warn(t, ErrorKey::Validation, "expected date value");
                 }
@@ -300,7 +300,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_choice(&mut self, name: &str, choices: &[&str]) -> bool {
         self.field_check(name, |v| match v {
-            BlockOrValue::Token(t) => {
+            BlockOrValue::Value(t) => {
                 if !choices.contains(&t.as_str()) {
                     let msg = format!("expected one of {}", choices.join(", "));
                     error(t, ErrorKey::Validation, &msg);
@@ -314,7 +314,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_list(&mut self, name: &str) -> bool {
         self.field_check(name, |v| match v {
-            BlockOrValue::Token(t) => {
+            BlockOrValue::Value(t) => {
                 error(t, ErrorKey::Validation, "expected block, found value");
             }
             BlockOrValue::Block(s) => {
@@ -327,7 +327,7 @@ impl<'a> Validator<'a> {
                         );
                     }
                     match v {
-                        BlockOrValue::Token(_) => (),
+                        BlockOrValue::Value(_) => (),
                         BlockOrValue::Block(s) => {
                             error(s, ErrorKey::Validation, "expected value, found block");
                         }
@@ -339,7 +339,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_list_items(&mut self, name: &str, item: Item) -> bool {
         self.field_check(name, |v| match v {
-            BlockOrValue::Token(t) => {
+            BlockOrValue::Value(t) => {
                 error(t, ErrorKey::Validation, "expected block, found value");
             }
             BlockOrValue::Block(s) => {
@@ -352,7 +352,7 @@ impl<'a> Validator<'a> {
                         );
                     }
                     match v {
-                        BlockOrValue::Token(t) => self.data.verify_exists(item, t),
+                        BlockOrValue::Value(t) => self.data.verify_exists(item, t),
                         BlockOrValue::Block(s) => {
                             error(s, ErrorKey::Validation, "expected value, found block");
                         }
@@ -370,7 +370,7 @@ impl<'a> Validator<'a> {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
                     match v {
-                        BlockOrValue::Token(t) => vec.push(t),
+                        BlockOrValue::Value(t) => vec.push(t),
                         BlockOrValue::Block(s) => {
                             error(s, ErrorKey::Validation, "expected value, found block");
                         }
@@ -486,7 +486,7 @@ impl<'a> Validator<'a> {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
                     match v {
-                        BlockOrValue::Token(t) => {
+                        BlockOrValue::Value(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
                         }
                         BlockOrValue::Block(s) => f(s, self.data),
@@ -524,7 +524,7 @@ impl<'a> Validator<'a> {
                     }
                     expect_eq_qeq(key, cmp);
                     match v {
-                        BlockOrValue::Token(t) => {
+                        BlockOrValue::Value(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
                         }
                         BlockOrValue::Block(s) => f(s, self.data),
@@ -574,7 +574,7 @@ impl<'a> Validator<'a> {
                     }
                     expect_eq_qeq(key, cmp);
                     match v {
-                        BlockOrValue::Token(t) => {
+                        BlockOrValue::Value(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
                         }
                         BlockOrValue::Block(s) => found = Some((key, s)),
@@ -590,7 +590,7 @@ impl<'a> Validator<'a> {
         let mut found = 0;
         for (k, _, v) in &self.block.v {
             if k.is_none() {
-                if let BlockOrValue::Token(t) = v {
+                if let BlockOrValue::Value(t) = v {
                     if t.as_str().parse::<i32>().is_ok() {
                         found += 1;
                     } else {
@@ -617,7 +617,7 @@ impl<'a> Validator<'a> {
         let mut vec = Vec::new();
         for (k, _, v) in &self.block.v {
             if k.is_none() {
-                if let BlockOrValue::Token(t) = v {
+                if let BlockOrValue::Value(t) = v {
                     vec.push(t);
                 }
             }
@@ -646,7 +646,7 @@ impl<'a> Validator<'a> {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
                     match v {
-                        BlockOrValue::Token(t) => {
+                        BlockOrValue::Value(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
                         }
                         BlockOrValue::Block(s) => vec.push((key, s)),
@@ -665,7 +665,7 @@ impl<'a> Validator<'a> {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
                     match v {
-                        BlockOrValue::Token(t) => vec.push((key, t)),
+                        BlockOrValue::Value(t) => vec.push((key, t)),
                         BlockOrValue::Block(b) => {
                             error(b, ErrorKey::Validation, "expected value, found block");
                         }
@@ -686,7 +686,7 @@ impl<'a> Validator<'a> {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
                     match v {
-                        BlockOrValue::Token(t) => {
+                        BlockOrValue::Value(t) => {
                             error(t, ErrorKey::Validation, "expected block, found value");
                         }
                         BlockOrValue::Block(s) => f(date, s, self.data),
@@ -741,7 +741,7 @@ impl<'a> Validator<'a> {
                     }
                 }
                 None => match v {
-                    BlockOrValue::Token(t) => {
+                    BlockOrValue::Value(t) => {
                         if !self.accepted_tokens {
                             warn(
                                 t,
