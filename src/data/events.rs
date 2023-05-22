@@ -112,6 +112,12 @@ impl Events {
         None
     }
 
+    pub fn check_scope(&self, token: &Token, sc: &mut ScopeContext) {
+        if let Some(event) = self.get_event(token.as_str()) {
+            sc.expect(event.expects_scope, token);
+        }
+    }
+
     pub fn exists(&self, key: &str) -> bool {
         if let Some((namespace, id)) = key.split_once('.') {
             if let Ok(id) = u16::from_str(id) {
@@ -222,6 +228,7 @@ impl FileHandler for Events {
 pub struct Event {
     key: Token,
     block: Block,
+    expects_scope: Scopes,
 }
 
 const EVENT_TYPES: &[&str] = &[
@@ -243,7 +250,17 @@ const WINDOW_TYPES: &[&str] = &[
 
 impl Event {
     pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+        let expects_scope = if let Some(token) = block.get_field_value("scope") {
+            scope_from_snake_case(token.as_str()).unwrap_or(Scopes::non_primitive())
+        } else {
+            Scopes::Character
+        };
+
+        Self {
+            key,
+            block,
+            expects_scope,
+        }
     }
 
     pub fn validate(&self, data: &Everything) {

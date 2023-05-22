@@ -712,7 +712,10 @@ fn validate_effect_special_bv(
         }
     } else if caller == "trigger_event" {
         match bv {
-            BlockOrValue::Value(token) => data.verify_exists(Item::Event, token),
+            BlockOrValue::Value(token) => {
+                data.verify_exists(Item::Event, token);
+                data.events.check_scope(token, sc);
+            }
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.field_item("id", Item::Event);
@@ -721,6 +724,9 @@ fn validate_effect_special_bv(
                 vd.field_date("trigger_on_next_date");
                 vd.field_bool("delayed");
                 validate_optional_cooldown(&mut vd, sc);
+                if let Some(token) = block.get_field_value("id") {
+                    data.events.check_scope(token, sc);
+                }
             }
         }
     }
@@ -1234,6 +1240,16 @@ fn validate_effect_special(
             "on_arrival_destinations",
             &["all", "first", "last", "all_but_last"],
         );
+        // Root for these events is travel plan owner
+        if let Some(token) = block.get_field_value("on_arrival_event") {
+            data.events.check_scope(token, sc);
+        }
+        if let Some(token) = block.get_field_value("on_start_event") {
+            data.events.check_scope(token, sc);
+        }
+        if let Some(token) = block.get_field_value("on_travel_planner_cancel_event") {
+            data.events.check_scope(token, sc);
+        }
     } else if caller == "start_war" {
         vd.field_item("casus_belli", Item::CasusBelli);
         vd.field_item("cb", Item::CasusBelli);
