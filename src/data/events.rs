@@ -334,7 +334,7 @@ impl Event {
         // TODO: check that artifacts are not in the same position as a character
         vd.field_validated_blocks_sc("artifact", &mut sc, validate_artifact);
         vd.field_validated_block_sc("court_scene", &mut sc, validate_court_scene);
-        vd.field_value_item("theme", Item::EventTheme);
+        vd.field_item("theme", Item::EventTheme);
         // TODO: warn if more than one of each is defined with no trigger
         if evtype == "court_event" {
             vd.advice_field("override_background", "not needed for court_event");
@@ -412,7 +412,7 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
     // if there would otherwise be no other option
     vd.field_bool("fallback");
 
-    vd.field_value_target("highlight_portrait", sc, Scopes::Character);
+    vd.field_target("highlight_portrait", sc, Scopes::Character);
     vd.field_bool("show_unlock_reason");
 
     validate_effect("option", ListType::None, block, data, sc, vd, true);
@@ -422,18 +422,18 @@ fn validate_court_scene(block: &Block, data: &Everything, sc: &mut ScopeContext)
     let mut vd = Validator::new(block, data);
 
     vd.req_field("button_position_character");
-    vd.field_value_target("button_position_character", sc, Scopes::Character);
+    vd.field_target("button_position_character", sc, Scopes::Character);
     vd.field_bool("court_event_force_open");
     vd.field_bool("show_timeout_info");
     vd.field_bool("should_pause_time");
-    vd.field_value_target("court_owner", sc, Scopes::Character);
+    vd.field_target("court_owner", sc, Scopes::Character);
     vd.field("scripted_animation");
     vd.field_validated_blocks("roles", |b, data| {
         for (key, block) in b.iter_pure_definitions_warn() {
             validate_target(key, data, sc, Scopes::Character);
             let mut vd = Validator::new(block, data);
             vd.req_field("group");
-            vd.field_value_item("group", Item::CourtSceneGroup);
+            vd.field_item("group", Item::CourtSceneGroup);
             vd.field_value("animation"); // TODO
             vd.field_validated_blocks("triggered_animation", |b, data| {
                 validate_triggered_animation(b, data, sc);
@@ -447,7 +447,7 @@ fn validate_artifact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
 
     vd.req_field("target");
     vd.req_field("position");
-    vd.field_value_target("target", sc, Scopes::Artifact);
+    vd.field_target("target", sc, Scopes::Artifact);
     vd.field_choice(
         "position",
         &[
@@ -492,7 +492,7 @@ fn validate_portrait(v: &BlockOrValue, data: &Everything, sc: &mut ScopeContext)
             let mut vd = Validator::new(b, data);
 
             vd.req_field("character");
-            vd.field_value_target("character", sc, Scopes::Character);
+            vd.field_target("character", sc, Scopes::Character);
             vd.field_validated_block("trigger", |b, data| {
                 validate_normal_trigger(b, data, sc, false);
             });

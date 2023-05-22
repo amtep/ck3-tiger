@@ -72,7 +72,7 @@ impl Relation {
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        vd.field_value_item("corresponding", Item::Relation);
+        vd.field_item("corresponding", Item::Relation);
         vd.field_bool("title_grant_target");
         vd.field_list("opposites");
         if let Some(list) = self.block.get_field_list("opposites") {

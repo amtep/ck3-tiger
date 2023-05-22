@@ -83,14 +83,14 @@ impl Trait {
     fn validate_culture_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_value_item("parameter", Item::CultureParameter);
+        vd.field_item("parameter", Item::CultureParameter);
         validate_modifs(block, data, ModifKinds::Character, sc, vd);
     }
 
     fn validate_faith_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_value_item("parameter", Item::DoctrineParameter);
+        vd.field_item("parameter", Item::DoctrineParameter);
         validate_modifs(block, data, ModifKinds::Character, sc, vd);
     }
 
@@ -98,7 +98,7 @@ impl Trait {
         let mut vd = Validator::new(block, data);
 
         vd.field_value("opinion_modifier"); // TODO: validate
-        vd.field_value_item("parameter", Item::DoctrineParameter);
+        vd.field_item("parameter", Item::DoctrineParameter);
         vd.field_bool("check_missing");
         vd.field_bool("same_faith");
         vd.field_bool("same_dynasty");
@@ -141,10 +141,10 @@ impl Trait {
             data.fileset.verify_exists_implied(&path, &self.key);
         }
 
-        vd.field_value_item("category", Item::TraitCategory);
+        vd.field_item("category", Item::TraitCategory);
         vd.field_validated_blocks_sc("culture_modifier", &mut sc, Self::validate_culture_modifier);
         vd.field_validated_blocks_sc("faith_modifier", &mut sc, Self::validate_faith_modifier);
-        vd.field_value_item("culture_succession_prio", Item::CultureParameter);
+        vd.field_item("culture_succession_prio", Item::CultureParameter);
         vd.field_validated_blocks("triggered_opinion", Self::validate_triggered_opinion);
 
         // TODO: validate these

@@ -80,7 +80,7 @@ impl CourtPosition {
         let mut vd = Validator::new(&self.block, data);
         vd.advice_field("skill", "`skill` was removed in 1.8");
         vd.field_integer("max_available_positions");
-        vd.field_value_item("category", Item::CourtPositionCategory);
+        vd.field_item("category", Item::CourtPositionCategory);
         vd.field_choice("minimum_rank", &["county", "duchy", "kingdom", "empire"]);
         vd.field_bool("is_travel_related");
         vd.field_script_value_rooted("opinion", Scopes::None);
@@ -131,8 +131,8 @@ impl CourtPosition {
             validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
         }
 
-        vd.field_value_item("custom_employer_modifier_description", Item::Localization);
-        vd.field_value_item("custom_employee_modifier_description", Item::Localization);
+        vd.field_item("custom_employer_modifier_description", Item::Localization);
+        vd.field_item("custom_employee_modifier_description", Item::Localization);
 
         if let Some((key, block)) = vd.definition("search_for_courtier") {
             let mut sc = ScopeContext::new_root(Scopes::Character, key);

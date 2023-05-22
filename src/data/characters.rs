@@ -232,7 +232,7 @@ impl Character {
         sc: &mut ScopeContext,
     ) {
         let mut vd = Validator::new(block, data);
-        vd.field_value_item("name", Item::Localization);
+        vd.field_item("name", Item::Localization);
 
         if let Some(token) = vd.field_value("birth") {
             if !token.is("yes") && Date::from_str(token.as_str()).is_err() {
@@ -244,8 +244,8 @@ impl Character {
         vd.field_validated("death", validate_history_death);
 
         // religion and faith both mean faith here
-        vd.field_value_item("religion", Item::Faith);
-        vd.field_value_item("faith", Item::Faith);
+        vd.field_item("religion", Item::Faith);
+        vd.field_item("faith", Item::Faith);
 
         if let Some(token) = vd.field_value("set_character_faith") {
             validate_prefix_reference_token(token, data, "faith");
@@ -260,7 +260,7 @@ impl Character {
             }
         }
 
-        vd.field_value_item("culture", Item::Culture);
+        vd.field_item("culture", Item::Culture);
         if let Some(token) = vd.field_value("set_culture") {
             validate_prefix_reference_token(token, data, "culture");
         }
@@ -324,17 +324,17 @@ impl Character {
             data.characters.verify_exists_gender(token, gender.flip());
         }
 
-        vd.field_value_item("dynasty", Item::Dynasty);
-        vd.field_value_item("dynasty_house", Item::House);
+        vd.field_item("dynasty", Item::Dynasty);
+        vd.field_item("dynasty_house", Item::House);
 
-        vd.field_value_item("give_nickname", Item::Nickname);
+        vd.field_item("give_nickname", Item::Nickname);
 
         vd.field_numeric("add_prestige");
         vd.field_numeric("add_piety");
         vd.field_numeric("add_gold");
 
         // TODO: check if they have an employer at this date?
-        vd.field_value_item("give_council_position", Item::CouncilPosition);
+        vd.field_item("give_council_position", Item::CouncilPosition);
 
         vd.field_validated_blocks("effect", |b, data| {
             validate_normal_effect(b, data, sc, false);
@@ -348,9 +348,9 @@ impl Character {
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
         vd.req_field("name");
-        vd.field_value_item("name", Item::Localization);
+        vd.field_item("name", Item::Localization);
 
-        vd.field_value_item("dna", Item::Dna);
+        vd.field_item("dna", Item::Dna);
         vd.field_bool("female");
         vd.field_integer("martial");
         vd.field_integer("prowess");
@@ -371,16 +371,16 @@ impl Character {
         vd.field_bool("disallow_random_traits");
 
         // religion and faith both mean faith here
-        vd.field_value_item("religion", Item::Faith);
-        vd.field_value_item("faith", Item::Faith);
+        vd.field_item("religion", Item::Faith);
+        vd.field_item("faith", Item::Faith);
 
-        vd.field_value_item("culture", Item::Culture);
+        vd.field_item("culture", Item::Culture);
 
-        vd.field_value_item("dynasty", Item::Dynasty);
-        vd.field_value_item("dynasty_house", Item::House);
+        vd.field_item("dynasty", Item::Dynasty);
+        vd.field_item("dynasty_house", Item::House);
 
-        vd.field_value_item("give_nickname", Item::Nickname);
-        vd.field_value_item("sexuality", Item::Sexuality);
+        vd.field_item("give_nickname", Item::Nickname);
+        vd.field_item("sexuality", Item::Sexuality);
         vd.field_numeric("health");
         vd.field_numeric("fertility");
         vd.definition("portrait_override"); // undocumented
@@ -401,8 +401,8 @@ fn validate_history_death(bv: &BlockOrValue, data: &Everything) {
         BlockOrValue::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.req_field("death_reason");
-            vd.field_value_item("death_reason", Item::DeathReason);
-            vd.field_value_item("killer", Item::Character);
+            vd.field_item("death_reason", Item::DeathReason);
+            vd.field_item("killer", Item::Character);
         }
     }
 }

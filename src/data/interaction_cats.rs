@@ -99,7 +99,7 @@ impl Category {
         vd.req_field("index");
         vd.req_field("desc");
         vd.field_integer("index");
-        vd.field_value_item("desc", Item::Localization);
+        vd.field_item("desc", Item::Localization);
         vd.field_bool("default");
     }
 }

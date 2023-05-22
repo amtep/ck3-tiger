@@ -187,7 +187,7 @@ fn validate_holy_order_names(block: &Block, data: &Everything) {
     for b in vd.blocks() {
         let mut vd = Validator::new(b, data);
         vd.req_field("name");
-        vd.field_value_item("name", Item::Localization);
+        vd.field_item("name", Item::Localization);
         vd.field_value("coat_of_arms"); // TODO
     }
     // TODO: if any items remaining, should explain the structure of the holy order blocks here

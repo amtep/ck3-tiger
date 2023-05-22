@@ -79,8 +79,8 @@ impl Decision {
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
         vd.req_field_warn("picture");
-        vd.field_value_item("picture", Item::File);
-        vd.field_value_item("extra_picture", Item::File);
+        vd.field_item("picture", Item::File);
+        vd.field_item("extra_picture", Item::File);
         vd.field_bool("major");
         vd.field_integer("sort_order");
         vd.field_bool("is_invisible");

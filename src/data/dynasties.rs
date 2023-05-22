@@ -69,10 +69,10 @@ impl Dynasty {
         let mut vd = Validator::new(&self.block, data);
 
         vd.req_field("name");
-        vd.field_value_item("name", Item::Localization);
-        vd.field_value_item("prefix", Item::Localization);
-        vd.field_value_item("motto", Item::Localization);
-        vd.field_value_item("culture", Item::Culture);
+        vd.field_item("name", Item::Localization);
+        vd.field_item("prefix", Item::Localization);
+        vd.field_item("motto", Item::Localization);
+        vd.field_item("culture", Item::Culture);
         vd.field_value("forced_coa_religiongroup"); // TODO: figure out the values
     }
 }

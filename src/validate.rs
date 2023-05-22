@@ -271,7 +271,7 @@ pub fn validate_iterator_fields(
 ) {
     // undocumented
     if list_type != ListType::None {
-        if vd.field_value_item("custom", Item::Localization) {
+        if vd.field_item("custom", Item::Localization) {
             *tooltipped = false;
         }
         vd.field_validated_blocks("alternative_limit", |b, data| {
@@ -349,13 +349,13 @@ pub fn validate_inside_iterator(
 
     if name == "county_in_region" {
         vd.req_field("region");
-        vd.field_value_item("region", Item::Region);
+        vd.field_item("region", Item::Region);
     } else {
         vd.ban_field("region", || format!("`{listtype}_county_in_region`"));
     }
 
     if name == "court_position_holder" {
-        vd.field_value_item("type", Item::CourtPosition);
+        vd.field_item("type", Item::CourtPosition);
     } else if name == "relation" {
         vd.req_field("type");
         for t in vd.field_values("type") {
@@ -421,7 +421,7 @@ pub fn validate_inside_iterator(
     }
 
     if name == "guest_subset" || name == "guest_subset_current_phase" {
-        vd.field_value_item("name", Item::GuestSubset);
+        vd.field_item("name", Item::GuestSubset);
     } else {
         vd.ban_field("name", || {
             format!("`{listtype}_guest_subset` and `{listtype}_guest_subset_current_phase`")
@@ -458,7 +458,7 @@ pub fn validate_traits(block: &Block, data: &Everything) {
 
 pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    vd.field_value_target("target", sc, Scopes::Character);
+    vd.field_target("target", sc, Scopes::Character);
     // I guess that "value" and "factor" are run for both the current scope character
     // and the target character, and then compared.
     vd.field_script_value("value", sc);

@@ -85,7 +85,7 @@ impl MenAtArmsType {
         let mut vd = Validator::new(&self.block, data);
 
         vd.req_field("type");
-        vd.field_value_item("type", Item::MenAtArmsBase);
+        vd.field_item("type", Item::MenAtArmsBase);
 
         if let Some(icon_path) =
             data.get_defined_string_warn(&self.key, "NGameIcons|REGIMENTYPE_ICON_PATH")

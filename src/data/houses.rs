@@ -71,10 +71,10 @@ impl House {
         vd.req_field("name");
         vd.req_field("dynasty");
 
-        vd.field_value_item("name", Item::Localization);
-        vd.field_value_item("prefix", Item::Localization);
-        vd.field_value_item("motto", Item::Localization);
-        vd.field_value_item("dynasty", Item::Dynasty);
+        vd.field_item("name", Item::Localization);
+        vd.field_item("prefix", Item::Localization);
+        vd.field_item("motto", Item::Localization);
+        vd.field_item("dynasty", Item::Dynasty);
         vd.field_value("forced_coa_religiongroup");
     }
 }

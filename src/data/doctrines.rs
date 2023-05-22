@@ -206,7 +206,7 @@ impl Doctrine {
         if let Some((key, block)) = vd.definition("character_modifier") {
             let mut vd = Validator::new(block, data);
             let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            vd.field_value_item("name", Item::Localization);
+            vd.field_item("name", Item::Localization);
             validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
         }
 
@@ -221,7 +221,7 @@ impl Doctrine {
         if let Some((key, block)) = vd.definition("doctrine_character_modifier") {
             let mut vd = Validator::new(block, data);
             let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            vd.field_value_item("doctrine", Item::Doctrine);
+            vd.field_item("doctrine", Item::Doctrine);
             validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
         }
 

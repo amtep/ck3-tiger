@@ -92,7 +92,7 @@ impl Concept {
             }
         }
 
-        vd.field_value_item("parent", Item::GameConcept);
+        vd.field_item("parent", Item::GameConcept);
         if let Some(token) = vd.field_value("texture") {
             // TODO: check the file's resolution and check it against framesize and frame keys
             if !token.is("piety") {
@@ -106,7 +106,7 @@ impl Concept {
             vd.advice_field("framesize", "not needed without texture");
             vd.advice_field("frame", "not needed without texture");
         }
-        vd.field_value_item("requires_dlc_flag", Item::DlcFeature);
+        vd.field_item("requires_dlc_flag", Item::DlcFeature);
         vd.field_bool("shown_in_encyclopedia");
     }
 }

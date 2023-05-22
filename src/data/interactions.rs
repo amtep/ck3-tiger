@@ -81,7 +81,7 @@ impl Interaction {
 
         vd.field_numeric("interface_priority");
         vd.field_bool("common_interaction");
-        vd.field_value_item("category", Item::InteractionCategory);
+        vd.field_item("category", Item::InteractionCategory);
 
         if let Some(icon_path) =
             data.get_defined_string_warn(&self.key, "NGameIcons|CHARACTER_INTERACTION_ICON_PATH")
@@ -106,7 +106,7 @@ impl Interaction {
         vd.field_validated_block("is_highlighted", |b, data| {
             validate_normal_trigger(b, data, &mut sc, false);
         });
-        vd.field_value_item("highlighted_reason", Item::Localization);
+        vd.field_item("highlighted_reason", Item::Localization);
 
         vd.field_value("special_interaction");
         vd.field_value("special_ai_interaction");
@@ -117,7 +117,7 @@ impl Interaction {
         vd.field_integer("ai_max_reply_days");
 
         vd.field_value("interface"); // TODO
-        vd.field_value_item("scheme", Item::Scheme);
+        vd.field_item("scheme", Item::Scheme);
         vd.field_bool("popup_on_receive");
         vd.field_bool("pause_on_receive");
         vd.field_bool("force_notification");
@@ -239,24 +239,24 @@ impl Interaction {
         vd.field_validated_sc("intermediary_notification_text", &mut sc, validate_desc);
         vd.field_validated_sc("notification_text", &mut sc, validate_desc);
         vd.field_validated_sc("on_decline_summary", &mut sc, validate_desc);
-        vd.field_value_item("answer_block_key", Item::Localization);
-        vd.field_value_item("answer_accept_key", Item::Localization);
-        vd.field_value_item("answer_reject_key", Item::Localization);
-        vd.field_value_item("answer_acknowledge_key", Item::Localization);
-        vd.field_value_item("options_heading", Item::Localization);
-        vd.field_value_item("pre_answer_maybe_breakdown_key", Item::Localization);
-        vd.field_value_item("pre_answer_no_breakdown_key", Item::Localization);
-        vd.field_value_item("pre_answer_yes_breakdown_key", Item::Localization);
-        vd.field_value_item("pre_answer_maybe_key", Item::Localization);
-        vd.field_value_item("pre_answer_no_key", Item::Localization);
-        vd.field_value_item("pre_answer_yes_key", Item::Localization);
-        vd.field_value_item("intermediary_breakdown_maybe", Item::Localization);
-        vd.field_value_item("intermediary_breakdown_no", Item::Localization);
-        vd.field_value_item("intermediary_breakdown_yes", Item::Localization);
-        vd.field_value_item("intermediary_answer_accept_key", Item::Localization);
-        vd.field_value_item("intermediary_answer_reject_key", Item::Localization);
-        vd.field_value_item("reply_item_key", Item::Localization);
-        vd.field_value_item("send_name", Item::Localization);
+        vd.field_item("answer_block_key", Item::Localization);
+        vd.field_item("answer_accept_key", Item::Localization);
+        vd.field_item("answer_reject_key", Item::Localization);
+        vd.field_item("answer_acknowledge_key", Item::Localization);
+        vd.field_item("options_heading", Item::Localization);
+        vd.field_item("pre_answer_maybe_breakdown_key", Item::Localization);
+        vd.field_item("pre_answer_no_breakdown_key", Item::Localization);
+        vd.field_item("pre_answer_yes_breakdown_key", Item::Localization);
+        vd.field_item("pre_answer_maybe_key", Item::Localization);
+        vd.field_item("pre_answer_no_key", Item::Localization);
+        vd.field_item("pre_answer_yes_key", Item::Localization);
+        vd.field_item("intermediary_breakdown_maybe", Item::Localization);
+        vd.field_item("intermediary_breakdown_no", Item::Localization);
+        vd.field_item("intermediary_breakdown_yes", Item::Localization);
+        vd.field_item("intermediary_answer_accept_key", Item::Localization);
+        vd.field_item("intermediary_answer_reject_key", Item::Localization);
+        vd.field_item("reply_item_key", Item::Localization);
+        vd.field_item("send_name", Item::Localization);
 
         vd.field_bool("needs_recipient_to_open");
         vd.field_bool("show_effects_in_notification");
@@ -295,7 +295,7 @@ impl Interaction {
             let mut vd = Validator::new(b, data);
             vd.req_field("localization");
             vd.req_field("flag");
-            vd.field_value_item("localization", Item::Localization);
+            vd.field_item("localization", Item::Localization);
             vd.field_value("flag");
             vd.field_validated_block("is_shown", |b, data| {
                 validate_normal_trigger(b, data, &mut sc, false);

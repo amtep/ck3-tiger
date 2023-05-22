@@ -168,7 +168,7 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn field_value_item(&mut self, name: &str, itype: Item) -> bool {
+    pub fn field_item(&mut self, name: &str, itype: Item) -> bool {
         self.field_check(name, |bv| {
             if let Some(token) = bv.expect_value() {
                 self.data.verify_exists(itype, token);
@@ -176,12 +176,7 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_value_target(
-        &mut self,
-        name: &str,
-        sc: &mut ScopeContext,
-        outscopes: Scopes,
-    ) -> bool {
+    pub fn field_target(&mut self, name: &str, sc: &mut ScopeContext, outscopes: Scopes) -> bool {
         self.field_check(name, |bv| {
             if let Some(token) = bv.expect_value() {
                 validate_target(token, self.data, sc, outscopes);
@@ -189,7 +184,7 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_value_item_or_target(
+    pub fn field_item_or_target(
         &mut self,
         name: &str,
         sc: &mut ScopeContext,

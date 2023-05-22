@@ -236,7 +236,7 @@ pub fn validate_effect<'a>(
                     BlockOrValue::Block(block) => {
                         let mut vd = Validator::new(block, data);
                         vd.req_field("modifier");
-                        vd.field_value_item("modifier", Item::Modifier);
+                        vd.field_item("modifier", Item::Modifier);
                         vd.field_validated_sc("desc", sc, validate_desc);
                         validate_optional_cooldown(&mut vd, sc);
                     }
@@ -417,9 +417,9 @@ fn validate_effect_control(
     {
         vd.req_field("text");
         if caller == "custom_tooltip" || caller == "custom_label" {
-            vd.field_value_item("text", Item::Localization);
+            vd.field_item("text", Item::Localization);
         } else {
-            vd.field_value_item("text", Item::TriggerLocalization);
+            vd.field_item("text", Item::TriggerLocalization);
         }
         if let Some(token) = vd.field_value("subject") {
             validate_target(token, data, sc, Scopes::non_primitive());
@@ -525,11 +525,11 @@ fn validate_effect_special_bv(
                 let mut vd = Validator::new(block, data);
                 vd.req_field("target");
                 vd.req_field("reason");
-                vd.field_value_target("target", sc, Scopes::Character);
-                vd.field_value_item("reason", Item::Localization);
-                vd.field_value_item("copy_reason", Item::Relation);
-                vd.field_value_target("province", sc, Scopes::Province);
-                vd.field_value_target("involved_character", sc, Scopes::Character);
+                vd.field_target("target", sc, Scopes::Character);
+                vd.field_item("reason", Item::Localization);
+                vd.field_item("copy_reason", Item::Relation);
+                vd.field_target("province", sc, Scopes::Province);
+                vd.field_target("involved_character", sc, Scopes::Character);
             }
         }
     } else if caller == "activate_struggle_catalyst" {
@@ -539,8 +539,8 @@ fn validate_effect_special_bv(
                 let mut vd = Validator::new(block, data);
                 vd.req_field("catalyst");
                 vd.req_field("character");
-                vd.field_value_item("catalyst", Item::Catalyst);
-                vd.field_value_target("character", sc, Scopes::Character);
+                vd.field_item("catalyst", Item::Catalyst);
+                vd.field_target("character", sc, Scopes::Character);
             }
         }
     } else if caller == "add_character_flag" {
@@ -559,7 +559,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("type");
-                vd.field_value_item("type", Item::Holding);
+                vd.field_item("type", Item::Holding);
                 vd.field_validated_block("cost", |b, data| {
                     let mut vd = Validator::new(b, data);
                     vd.field_script_value("gold", sc);
@@ -578,7 +578,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("template_character");
-                vd.field_value_target("template_character", sc, Scopes::Character);
+                vd.field_target("template_character", sc, Scopes::Character);
             }
         }
     } else if caller == "close_view" {
@@ -588,7 +588,7 @@ fn validate_effect_special_bv(
                 let mut vd = Validator::new(block, data);
                 vd.req_field("view");
                 vd.field_value("view"); // TODO
-                vd.field_value_target("player", sc, Scopes::Character);
+                vd.field_target("player", sc, Scopes::Character);
             }
         }
     } else if caller == "create_alliance" {
@@ -597,9 +597,9 @@ fn validate_effect_special_bv(
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("target");
-                vd.field_value_target("target", sc, Scopes::Character);
-                vd.field_value_target("allied_through_owner", sc, Scopes::Character);
-                vd.field_value_target("allied_through_target", sc, Scopes::Character);
+                vd.field_target("target", sc, Scopes::Character);
+                vd.field_target("allied_through_owner", sc, Scopes::Character);
+                vd.field_target("allied_through_target", sc, Scopes::Character);
             }
         }
     } else if caller == "create_inspiration" {
@@ -609,7 +609,7 @@ fn validate_effect_special_bv(
                 let mut vd = Validator::new(block, data);
                 vd.req_field("type");
                 vd.req_field("gold");
-                vd.field_value_item("type", Item::Inspiration);
+                vd.field_item("type", Item::Inspiration);
                 vd.field_script_value("gold", sc);
             }
         }
@@ -619,7 +619,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("type");
-                vd.field_value_item("type", Item::Story);
+                vd.field_item("type", Item::Story);
                 vd.field_value("save_scope_as");
                 vd.field_value("save_temporary_scope_as");
             }
@@ -635,9 +635,9 @@ fn validate_effect_special_bv(
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("death_reason");
-                vd.field_value_item("death_reason", Item::DeathReason);
-                vd.field_value_target("killer", sc, Scopes::Character);
-                vd.field_value_target("artifact", sc, Scopes::Artifact);
+                vd.field_item("death_reason", Item::DeathReason);
+                vd.field_target("killer", sc, Scopes::Character);
+                vd.field_target("artifact", sc, Scopes::Artifact);
             }
         }
     } else if caller == "open_view" || caller == "open_view_data" {
@@ -648,7 +648,7 @@ fn validate_effect_special_bv(
                 vd.req_field("view");
                 vd.field_value("view"); // TODO
                 vd.field_value("view_message"); // TODO
-                vd.field_value_target("player", sc, Scopes::Character);
+                vd.field_target("player", sc, Scopes::Character);
             }
         }
     } else if caller == "remove_courtier_or_guest" {
@@ -657,8 +657,8 @@ fn validate_effect_special_bv(
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("character");
-                vd.field_value_target("character", sc, Scopes::Character);
-                vd.field_value_target("new_location", sc, Scopes::Province);
+                vd.field_target("character", sc, Scopes::Character);
+                vd.field_target("new_location", sc, Scopes::Province);
             }
         }
     } else if caller == "set_coa" {
@@ -695,7 +695,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("location");
-                vd.field_value_target("location", sc, Scopes::Province);
+                vd.field_target("location", sc, Scopes::Province);
                 vd.field_bool("stick_to_location");
             }
         }
@@ -705,7 +705,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("target");
-                vd.field_value_target("target", sc, Scopes::Character);
+                vd.field_target("target", sc, Scopes::Character);
                 vd.field_validated_blocks_sc("history", sc, validate_artifact_history);
                 vd.field_bool("generate_history");
             }
@@ -715,9 +715,9 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(token) => data.verify_exists(Item::Event, token),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
-                vd.field_value_item("id", Item::Event);
-                vd.field_value_item("on_action", Item::OnAction);
-                vd.field_value_target("saved_event_id", sc, Scopes::Flag);
+                vd.field_item("id", Item::Event);
+                vd.field_item("on_action", Item::OnAction);
+                vd.field_target("saved_event_id", sc, Scopes::Flag);
                 vd.field_date("trigger_on_next_date");
                 vd.field_bool("delayed");
                 validate_optional_cooldown(&mut vd, sc);
@@ -737,31 +737,31 @@ fn validate_effect_special(
     if caller == "add_activity_log_entry" {
         vd.req_field("key");
         vd.req_field("character");
-        vd.field_value_item("key", Item::Localization);
+        vd.field_item("key", Item::Localization);
         vd.field_script_value("score", sc);
         vd.field_validated_block("tags", |b, data| {
             let mut vd = Validator::new(b, data);
             vd.values(); // TODO
         });
         vd.field_bool("show_in_conclusion");
-        vd.field_value_target("character", sc, Scopes::Character);
-        vd.field_value_target("target", sc, Scopes::Character);
-        vd.field_value_target("location", sc, Scopes::Province);
-        vd.field_value_target("artifact", sc, Scopes::Artifact);
+        vd.field_target("character", sc, Scopes::Character);
+        vd.field_target("target", sc, Scopes::Character);
+        vd.field_target("location", sc, Scopes::Province);
+        vd.field_target("artifact", sc, Scopes::Artifact);
         // effects can be put directly in this block
         validate_effect(caller, ListType::None, block, data, sc, vd, tooltipped);
     } else if caller == "add_artifact_history" {
         vd.req_field("type");
         vd.req_field("recipient");
-        vd.field_value_item("type", Item::ArtifactHistory);
+        vd.field_item("type", Item::ArtifactHistory);
         vd.field_date("date");
-        vd.field_value_target("actor", sc, Scopes::Character);
-        vd.field_value_target("recipient", sc, Scopes::Character);
-        vd.field_value_target("location", sc, Scopes::Province);
+        vd.field_target("actor", sc, Scopes::Character);
+        vd.field_target("recipient", sc, Scopes::Character);
+        vd.field_target("location", sc, Scopes::Province);
     } else if caller == "add_artifact_title_history" {
         vd.req_field("target");
         vd.req_field("date");
-        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_target("target", sc, Scopes::Character);
         vd.field_date("date");
     } else if caller == "add_from_contribution_attackers"
         || caller == "add_from_contribution_defenders"
@@ -772,34 +772,34 @@ fn validate_effect_special(
     } else if caller == "add_hook" || caller == "add_hook_no_toast" {
         vd.req_field("type");
         vd.req_field("target");
-        vd.field_value_item("type", Item::Hook);
-        vd.field_value_target("target", sc, Scopes::Character);
-        vd.field_value_item("secret", Item::Secret);
+        vd.field_item("type", Item::Hook);
+        vd.field_target("target", sc, Scopes::Character);
+        vd.field_item("secret", Item::Secret);
         validate_optional_cooldown(&mut vd, sc);
     } else if caller == "add_opinion" || caller == "reverse_add_opinion" {
         vd.req_field("modifier");
         vd.req_field("target");
-        vd.field_value_item("modifier", Item::Modifier);
-        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_item("modifier", Item::Modifier);
+        vd.field_target("target", sc, Scopes::Character);
         vd.field_script_value("opinion", sc); // undocumented
         validate_optional_cooldown(&mut vd, sc);
     } else if caller == "add_relation_flag" || caller == "remove_relation_flag" {
         vd.req_field("relation");
         vd.req_field("flag");
         vd.req_field("target");
-        vd.field_value_item("relation", Item::Relation);
+        vd.field_item("relation", Item::Relation);
         // TODO: check that the flag belongs to the relation
         vd.field_value("flag");
-        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_target("target", sc, Scopes::Character);
     } else if caller == "add_scheme_cooldown" {
         vd.req_field("target");
         vd.req_field("type");
-        vd.field_value_target("target", sc, Scopes::Character);
-        vd.field_value_item("type", Item::Scheme);
+        vd.field_target("target", sc, Scopes::Character);
+        vd.field_item("type", Item::Scheme);
         validate_optional_cooldown_int(&mut vd);
     } else if caller == "add_scheme_modifier" {
         vd.req_field("type");
-        vd.field_value_item("type", Item::Scheme);
+        vd.field_item("type", Item::Scheme);
         vd.field_integer("days");
     } else if caller == "add_to_global_variable_list"
         || caller == "add_to_local_variable_list"
@@ -817,23 +817,23 @@ fn validate_effect_special(
     } else if caller == "add_to_guest_subset" {
         vd.req_field("name");
         vd.req_field("target");
-        vd.field_value_item("name", Item::GuestSubset);
-        vd.field_value_target("target", sc, Scopes::Character);
-        vd.field_value_item("phase", Item::ActivityPhase);
+        vd.field_item("name", Item::GuestSubset);
+        vd.field_target("target", sc, Scopes::Character);
+        vd.field_item("phase", Item::ActivityPhase);
     } else if caller == "add_trait_xp" {
         vd.req_field("trait");
         vd.req_field("value");
-        vd.field_value_item("trait", Item::Trait);
-        vd.field_value_item("track", Item::TraitTrack);
+        vd.field_item("trait", Item::Trait);
+        vd.field_item("track", Item::TraitTrack);
         vd.field_script_value("value", sc);
     } else if caller == "add_truce_both_ways" || caller == "add_truce_one_way" {
         vd.req_field("character");
-        vd.field_value_target("character", sc, Scopes::Character);
+        vd.field_target("character", sc, Scopes::Character);
         vd.field_bool("override");
         vd.field_choice("result", &["white_peace", "victory", "defeat"]);
-        vd.field_value_item("casus_belli", Item::CasusBelli);
+        vd.field_item("casus_belli", Item::CasusBelli);
         vd.field_validated_sc("name", sc, validate_desc);
-        vd.field_value_target("war", sc, Scopes::War);
+        vd.field_target("war", sc, Scopes::War);
         validate_optional_cooldown(&mut vd, sc);
         if block.has_key("war") && block.has_key("casus_belli") {
             let msg = "cannot use both `war` and `casus_belli`";
@@ -842,14 +842,14 @@ fn validate_effect_special(
     } else if caller == "assign_council_task" {
         vd.req_field("council_task");
         vd.req_field("target");
-        vd.field_value_target("council_task", sc, Scopes::Province | Scopes::Character);
-        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_target("council_task", sc, Scopes::Province | Scopes::Character);
+        vd.field_target("target", sc, Scopes::Character);
         vd.field_bool("fire_on_actions");
     } else if caller == "assign_councillor_type" {
         vd.req_field("type");
         vd.req_field("target");
-        vd.field_value_item("type", Item::CouncilPosition);
-        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_item("type", Item::CouncilPosition);
+        vd.field_target("target", sc, Scopes::Character);
         vd.field_bool("fire_on_actions");
         vd.field_bool("remove_existing_councillor");
     } else if caller == "battle_event" {
@@ -862,14 +862,14 @@ fn validate_effect_special(
             let loca = format!("{token}_enemy");
             data.verify_exists_implied(Item::Localization, &loca, token);
         }
-        vd.field_value_target("left_portrait", sc, Scopes::Character);
-        vd.field_value_target("right_portrait", sc, Scopes::Character);
+        vd.field_target("left_portrait", sc, Scopes::Character);
+        vd.field_target("right_portrait", sc, Scopes::Character);
         vd.field_value("type"); // TODO, undocumented
         vd.field_bool("target_right"); // undocumented
     } else if caller == "change_cultural_acceptance" {
         vd.req_field("target");
         vd.req_field("value");
-        vd.field_value_target("target", sc, Scopes::Culture);
+        vd.field_target("target", sc, Scopes::Culture);
         vd.field_script_value("value", sc);
         vd.field_validated_sc("desc", sc, validate_desc);
     } else if caller == "change_global_variable"
@@ -888,20 +888,20 @@ fn validate_effect_special(
     } else if caller == "change_liege" {
         vd.req_field("liege");
         vd.req_field("change");
-        vd.field_value_target("liege", sc, Scopes::Character);
-        vd.field_value_target("change", sc, Scopes::TitleAndVassalChange);
+        vd.field_target("liege", sc, Scopes::Character);
+        vd.field_target("change", sc, Scopes::TitleAndVassalChange);
     } else if caller == "change_title_holder" || caller == "change_title_holder_include_vassals" {
         vd.req_field("holder");
         vd.req_field("change");
-        vd.field_value_target("holder", sc, Scopes::Character);
-        vd.field_value_target("change", sc, Scopes::TitleAndVassalChange);
+        vd.field_target("holder", sc, Scopes::Character);
+        vd.field_target("change", sc, Scopes::TitleAndVassalChange);
         vd.field_bool("take_baronies");
-        vd.field_value_target("government_base", sc, Scopes::Character);
+        vd.field_target("government_base", sc, Scopes::Character);
     } else if caller == "change_trait_rank" || caller == "set_trait_rank" {
         vd.req_field("trait");
         vd.req_field("rank");
         // TODO: check that it's a rankable trait
-        vd.field_value_item("trait", Item::Trait);
+        vd.field_item("trait", Item::Trait);
         vd.field_script_value("rank", sc);
         if caller == "change_trait_rank" {
             vd.field_script_value("max", sc);
@@ -918,15 +918,15 @@ fn validate_effect_special(
         vd.req_field("key");
         vd.req_field("target");
         vd.field_value("key");
-        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_target("target", sc, Scopes::Character);
     } else if caller == "create_accolade" {
         vd.req_field("knight");
         vd.req_field("primary");
         vd.req_field("secondary");
-        vd.field_value_target("knight", sc, Scopes::Character);
-        vd.field_value_item("primary", Item::AccoladeType);
-        vd.field_value_item("secondary", Item::AccoladeType);
-        vd.field_value_item("name", Item::Localization);
+        vd.field_target("knight", sc, Scopes::Character);
+        vd.field_item("primary", Item::AccoladeType);
+        vd.field_item("secondary", Item::AccoladeType);
+        vd.field_item("name", Item::Localization);
     } else if caller == "create_artifact" || caller == "reforge_artifact" {
         validate_artifact(caller, block, data, vd, sc, tooltipped);
     } else if caller == "create_character" {
@@ -940,32 +940,32 @@ fn validate_effect_special(
             }
         }
         vd.field_script_value("gender_female_chance", sc);
-        vd.field_value_target("opposite_gender", sc, Scopes::Character);
+        vd.field_target("opposite_gender", sc, Scopes::Character);
         vd.field_values_items("trait", Item::Trait);
         vd.field_blocks("random_traits_list"); // TODO
         vd.field_bool("random_traits");
         vd.field_script_value("health", sc);
         vd.field_script_value("fertility", sc);
-        vd.field_value_target("mother", sc, Scopes::Character);
-        vd.field_value_target("father", sc, Scopes::Character);
-        vd.field_value_target("real_father", sc, Scopes::Character);
-        vd.field_value_target("employer", sc, Scopes::Character);
-        vd.field_value_target("location", sc, Scopes::Province);
-        vd.field_value_item("template", Item::CharacterTemplate); // undocumented
-        vd.field_value_target("template_character", sc, Scopes::Character);
-        vd.field_value_item_or_target("faith", sc, Item::Faith, Scopes::Faith);
+        vd.field_target("mother", sc, Scopes::Character);
+        vd.field_target("father", sc, Scopes::Character);
+        vd.field_target("real_father", sc, Scopes::Character);
+        vd.field_target("employer", sc, Scopes::Character);
+        vd.field_target("location", sc, Scopes::Province);
+        vd.field_item("template", Item::CharacterTemplate); // undocumented
+        vd.field_target("template_character", sc, Scopes::Character);
+        vd.field_item_or_target("faith", sc, Item::Faith, Scopes::Faith);
         vd.field_block("random_faith"); // TODO
-        vd.field_value_item_or_target(
+        vd.field_item_or_target(
             "random_faith_in_religion",
             sc,
             Item::Religion,
             Scopes::Faith,
         );
-        vd.field_value_item_or_target("culture", sc, Item::Culture, Scopes::Culture);
+        vd.field_item_or_target("culture", sc, Item::Culture, Scopes::Culture);
         vd.field_block("random_culture"); // TODO
                                           // TODO: figure out what a culture group is, and whether this key still works at all
         vd.field_value("random_culture_in_group");
-        vd.field_value_item_or_target("dynasty_house", sc, Item::House, Scopes::DynastyHouse);
+        vd.field_item_or_target("dynasty_house", sc, Item::House, Scopes::DynastyHouse);
         if let Some(token) = vd.field_value("dynasty") {
             if !token.is("generate") && !token.is("inherit") && !token.is("none") {
                 validate_target(token, data, sc, Scopes::Dynasty);
@@ -987,7 +987,7 @@ fn validate_effect_special(
         }
     } else if caller == "create_character_memory" {
         vd.req_field("type");
-        vd.field_value_item("type", Item::MemoryType);
+        vd.field_item("type", Item::MemoryType);
         vd.field_validated_block("participants", |b, data| {
             for (_key, token) in b.iter_assignments_warn() {
                 validate_target(token, data, sc, Scopes::Character);
@@ -1003,8 +1003,8 @@ fn validate_effect_special(
     } else if caller == "create_holy_order" {
         vd.req_field("leader");
         vd.req_field("capital");
-        vd.field_value_target("leader", sc, Scopes::Character);
-        vd.field_value_target("capital", sc, Scopes::LandedTitle);
+        vd.field_target("leader", sc, Scopes::Character);
+        vd.field_target("capital", sc, Scopes::LandedTitle);
         vd.field_value("save_scope_as");
         vd.field_value("save_temporary_scope_as");
     } else if caller == "create_title_and_vassal_change" {
@@ -1039,30 +1039,30 @@ fn validate_effect_special(
         vd.field_bool("piety");
         vd.field_bool("prestige");
     } else if caller == "duel" {
-        vd.field_value_item("skill", Item::Skill);
+        vd.field_item("skill", Item::Skill);
         vd.field_list_items("skills", Item::Skill);
-        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_target("target", sc, Scopes::Character);
         vd.field_script_value("value", sc);
-        vd.field_value_item("localization", Item::EffectLocalization);
+        vd.field_item("localization", Item::EffectLocalization);
         validate_random_list("duel", block, data, vd, sc, tooltipped);
     } else if caller == "faction_start_war" {
-        vd.field_value_target("title", sc, Scopes::LandedTitle);
+        vd.field_target("title", sc, Scopes::LandedTitle);
     } else if caller == "force_add_to_scheme" {
-        vd.field_value_item("scheme", Item::Scheme);
+        vd.field_item("scheme", Item::Scheme);
         validate_optional_cooldown(&mut vd, sc);
     } else if caller == "force_vote_as" {
-        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_target("target", sc, Scopes::Character);
         validate_optional_cooldown(&mut vd, sc);
     } else if caller == "imprison" {
-        vd.field_value_target("target", sc, Scopes::Character);
-        vd.field_value_item("type", Item::PrisonType);
+        vd.field_target("target", sc, Scopes::Character);
+        vd.field_item("type", Item::PrisonType);
         // The docs also have a "reason" key, but no indication what it is
     } else if caller == "join_faction_forced" {
-        vd.field_value_target("faction", sc, Scopes::Faction);
-        vd.field_value_target("forced_by", sc, Scopes::Character);
+        vd.field_target("faction", sc, Scopes::Faction);
+        vd.field_target("forced_by", sc, Scopes::Character);
         validate_optional_cooldown(&mut vd, sc);
     } else if caller == "make_pregnant" || caller == "make_pregnant_no_checks" {
-        vd.field_value_target("father", sc, Scopes::Character);
+        vd.field_target("father", sc, Scopes::Character);
         vd.field_integer("number_of_children");
         vd.field_bool("known_bastard");
     } else if caller == "move_budget_gold" {
@@ -1081,12 +1081,12 @@ fn validate_effect_special(
         vd.req_field("recipient");
         vd.field_value("interaction"); // TODO
         vd.field_bool("redirect");
-        vd.field_value_target("actor", sc, Scopes::Character);
-        vd.field_value_target("recipient", sc, Scopes::Character);
-        vd.field_value_target("secondary_actor", sc, Scopes::Character);
-        vd.field_value_target("secondary_recipient", sc, Scopes::Character);
+        vd.field_target("actor", sc, Scopes::Character);
+        vd.field_target("recipient", sc, Scopes::Character);
+        vd.field_target("secondary_actor", sc, Scopes::Character);
+        vd.field_target("secondary_recipient", sc, Scopes::Character);
         if caller == "open_interaction_window" {
-            vd.field_value_target("target_title", sc, Scopes::LandedTitle);
+            vd.field_target("target_title", sc, Scopes::LandedTitle);
         }
         if caller == "run_interaction" {
             vd.field_choice("execute_threshold", &["accept", "maybe", "decline"]);
@@ -1104,15 +1104,15 @@ fn validate_effect_special(
     } else if caller == "remove_opinion" {
         vd.req_field("target");
         vd.req_field("modifier");
-        vd.field_value_target("target", sc, Scopes::Character);
-        vd.field_value_item("modifier", Item::Modifier);
+        vd.field_target("target", sc, Scopes::Character);
+        vd.field_item("modifier", Item::Modifier);
         vd.field_bool("single");
     } else if caller == "replace_court_position" {
         vd.req_field("recipient");
         vd.req_field("court_position");
-        vd.field_value_target("recipient", sc, Scopes::Character);
-        vd.field_value_target("holder", sc, Scopes::Character);
-        vd.field_value_item("court_position", Item::CourtPosition);
+        vd.field_target("recipient", sc, Scopes::Character);
+        vd.field_target("holder", sc, Scopes::Character);
+        vd.field_item("court_position", Item::CourtPosition);
     } else if caller == "round_global_variable"
         || caller == "round_local_variable"
         || caller == "round_variable"
@@ -1125,7 +1125,7 @@ fn validate_effect_special(
         vd.req_field("name");
         vd.req_field("target");
         vd.field_value("name");
-        vd.field_value_target("target", sc, Scopes::Character);
+        vd.field_target("target", sc, Scopes::Character);
     } else if caller == "save_scope_value_as" || caller == "save_temporary_scope_value_as" {
         vd.req_field("name");
         vd.req_field("value");
@@ -1133,13 +1133,13 @@ fn validate_effect_special(
         vd.field_script_value_or_flag("value", sc);
     } else if caller == "scheme_freeze" {
         vd.req_field("reason");
-        vd.field_value_item("reason", Item::Localization);
+        vd.field_item("reason", Item::Localization);
         validate_optional_cooldown(&mut vd, sc);
     } else if caller == "set_council_task" {
         vd.req_field("task_type");
         vd.req_field("target");
-        vd.field_value_item("task_type", Item::CouncilTask);
-        vd.field_value_target("target", sc, Scopes::Character | Scopes::Province);
+        vd.field_item("task_type", Item::CouncilTask);
+        vd.field_target("target", sc, Scopes::Character | Scopes::Province);
     } else if caller == "set_culture_name" {
         vd.req_field("noun");
         vd.field_validated_sc("noun", sc, validate_desc);
@@ -1147,17 +1147,17 @@ fn validate_effect_special(
         vd.field_validated_sc("prefix", sc, validate_desc);
     } else if caller == "set_death_reason" {
         vd.req_field("death_reason");
-        vd.field_value_item("death_reason", Item::DeathReason);
-        vd.field_value_target("killer", sc, Scopes::Character);
-        vd.field_value_target("artifact", sc, Scopes::Artifact);
+        vd.field_item("death_reason", Item::DeathReason);
+        vd.field_target("killer", sc, Scopes::Character);
+        vd.field_target("artifact", sc, Scopes::Artifact);
     } else if caller == "set_great_holy_war_target" || caller == "start_great_holy_war" {
         vd.req_field("target_character");
         vd.req_field("target_title");
-        vd.field_value_target("target_character", sc, Scopes::Character);
-        vd.field_value_target("target_title", sc, Scopes::LandedTitle);
+        vd.field_target("target_character", sc, Scopes::Character);
+        vd.field_target("target_title", sc, Scopes::LandedTitle);
         if caller == "start_great_holy_war" {
             vd.field_script_value("delay", sc);
-            vd.field_value_target("war", sc, Scopes::War);
+            vd.field_target("war", sc, Scopes::War);
         }
     } else if caller == "setup_claim_cb"
         || caller == "setup_de_jure_cb"
@@ -1166,18 +1166,18 @@ fn validate_effect_special(
         vd.req_field("attacker");
         vd.req_field("defender");
         vd.req_field("change");
-        vd.field_value_target("attacker", sc, Scopes::Character);
-        vd.field_value_target("defender", sc, Scopes::Character);
-        vd.field_value_target("change", sc, Scopes::TitleAndVassalChange);
+        vd.field_target("attacker", sc, Scopes::Character);
+        vd.field_target("defender", sc, Scopes::Character);
+        vd.field_target("change", sc, Scopes::TitleAndVassalChange);
         vd.field_bool("victory");
         if caller == "setup_claim_cb" {
             vd.req_field("claimant");
-            vd.field_value_target("claimant", sc, Scopes::Character);
+            vd.field_target("claimant", sc, Scopes::Character);
             vd.field_bool("take_occupied");
             vd.field_bool("civil_war");
             vd.field_choice("titles", &["target_titles", "faction_titles"]); // Undocumented
         } else if caller == "setup_de_jure_cb" {
-            vd.field_value_target("title", sc, Scopes::LandedTitle);
+            vd.field_target("title", sc, Scopes::LandedTitle);
         } else {
             vd.field_bool("take_occupied");
         }
@@ -1188,57 +1188,57 @@ fn validate_effect_special(
         vd.field_validated_blocks("men_at_arms", |b, data| {
             let mut vd = Validator::new(b, data);
             vd.req_field("type");
-            vd.field_value_item("type", Item::MenAtArms);
+            vd.field_item("type", Item::MenAtArms);
             vd.field_script_value("men", sc);
             vd.field_script_value("stacks", sc);
         });
-        vd.field_value_target("location", sc, Scopes::Province);
-        vd.field_value_target("origin", sc, Scopes::Province);
-        vd.field_value_target("war", sc, Scopes::War);
+        vd.field_target("location", sc, Scopes::Province);
+        vd.field_target("origin", sc, Scopes::Province);
+        vd.field_target("war", sc, Scopes::War);
         vd.field_bool("war_keep_on_attacker_victory");
         vd.field_bool("inheritable");
         vd.field_bool("uses_supply");
-        vd.field_value_target("army", sc, Scopes::Army);
+        vd.field_target("army", sc, Scopes::Army);
         vd.field_value("save_scope_as");
         vd.field_value("save_temporary_scope_as");
         vd.field_validated_sc("name", sc, validate_desc);
     } else if caller == "start_scheme" {
         vd.req_field("type");
         vd.req_field("target");
-        vd.field_value_item("type", Item::Scheme);
-        vd.field_value_target("target", sc, Scopes::Character);
-        vd.field_value_target("artifact", sc, Scopes::Artifact);
+        vd.field_item("type", Item::Scheme);
+        vd.field_target("target", sc, Scopes::Character);
+        vd.field_target("artifact", sc, Scopes::Artifact);
     } else if caller == "start_struggle" {
         vd.req_field("struggle_type");
         vd.req_field("start_phase");
-        vd.field_value_item("struggle_type", Item::Struggle);
-        vd.field_value_item("start_phase", Item::StrugglePhase);
+        vd.field_item("struggle_type", Item::Struggle);
+        vd.field_item("start_phase", Item::StrugglePhase);
     } else if caller == "start_travel_plan" {
         vd.req_field("destination");
         for token in vd.field_values("destination") {
             validate_target(token, data, sc, Scopes::Province);
         }
-        vd.field_value_target("travel_leader", sc, Scopes::Character);
+        vd.field_target("travel_leader", sc, Scopes::Character);
         for token in vd.field_values("companion") {
             validate_target(token, data, sc, Scopes::Character);
         }
         vd.field_bool("players_use_planner");
         vd.field_bool("return_trip");
-        vd.field_value_item("on_arrival_event", Item::Event);
-        vd.field_value_item("on_arrival_on_action", Item::OnAction);
-        vd.field_value_item("on_start_event", Item::Event);
-        vd.field_value_item("on_start_on_action", Item::OnAction);
-        vd.field_value_item("on_travel_planner_cancel_event", Item::Event);
-        vd.field_value_item("on_travel_planner_cancel_on_action", Item::OnAction);
+        vd.field_item("on_arrival_event", Item::Event);
+        vd.field_item("on_arrival_on_action", Item::OnAction);
+        vd.field_item("on_start_event", Item::Event);
+        vd.field_item("on_start_on_action", Item::OnAction);
+        vd.field_item("on_travel_planner_cancel_event", Item::Event);
+        vd.field_item("on_travel_planner_cancel_on_action", Item::OnAction);
         vd.field_choice(
             "on_arrival_destinations",
             &["all", "first", "last", "all_but_last"],
         );
     } else if caller == "start_war" {
-        vd.field_value_item("casus_belli", Item::CasusBelli);
-        vd.field_value_item("cb", Item::CasusBelli);
-        vd.field_value_target("target", sc, Scopes::Character);
-        vd.field_value_target("claimant", sc, Scopes::Character);
+        vd.field_item("casus_belli", Item::CasusBelli);
+        vd.field_item("cb", Item::CasusBelli);
+        vd.field_target("target", sc, Scopes::Character);
+        vd.field_target("claimant", sc, Scopes::Character);
         for token in vd.field_values("target_title") {
             validate_target(token, data, sc, Scopes::LandedTitle);
         }
@@ -1273,20 +1273,20 @@ fn validate_effect_special(
         }
     } else if caller == "try_create_important_action" {
         vd.req_field("important_action_type");
-        vd.field_value_item("important_action_type", Item::ImportantAction);
+        vd.field_item("important_action_type", Item::ImportantAction);
         vd.field_value("scope_name");
     } else if caller == "try_create_suggestion" {
         vd.req_field("suggestion_type");
-        vd.field_value_item("suggestion_type", Item::Suggestion);
-        vd.field_value_target("actor", sc, Scopes::Character);
-        vd.field_value_target("recipient", sc, Scopes::Character);
-        vd.field_value_target("secondary_actor", sc, Scopes::Character);
-        vd.field_value_target("secondary_recipient", sc, Scopes::Character);
-        vd.field_value_target("landed_title", sc, Scopes::LandedTitle);
+        vd.field_item("suggestion_type", Item::Suggestion);
+        vd.field_target("actor", sc, Scopes::Character);
+        vd.field_target("recipient", sc, Scopes::Character);
+        vd.field_target("secondary_actor", sc, Scopes::Character);
+        vd.field_target("secondary_recipient", sc, Scopes::Character);
+        vd.field_target("landed_title", sc, Scopes::LandedTitle);
     } else if caller == "vassal_contract_set_obligation_level" {
         vd.req_field("type");
         vd.req_field("level");
-        vd.field_value_item("type", Item::VassalObligation);
+        vd.field_item("type", Item::VassalObligation);
         if let Some(token) = vd.field_value("level") {
             if token.as_str().parse::<i32>().is_err()
                 && !data.item_exists(Item::VassalObligationLevel, token.as_str())
@@ -1302,11 +1302,11 @@ fn validate_effect_special(
 fn validate_artifact_history(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.req_field("type");
-    vd.field_value_item("type", Item::ArtifactHistory);
+    vd.field_item("type", Item::ArtifactHistory);
     vd.field_date("date");
-    vd.field_value_target("actor", sc, Scopes::Character);
-    vd.field_value_target("recipient", sc, Scopes::Character);
-    vd.field_value_target("location", sc, Scopes::Province);
+    vd.field_target("actor", sc, Scopes::Character);
+    vd.field_target("recipient", sc, Scopes::Character);
+    vd.field_target("location", sc, Scopes::Province);
 }
 
 fn validate_artifact(
@@ -1319,20 +1319,20 @@ fn validate_artifact(
 ) {
     vd.field_validated_sc("name", sc, validate_desc);
     vd.field_validated_sc("description", sc, validate_desc);
-    vd.field_value_item("rarity", Item::ArtifactRarity);
-    vd.field_value_item("type", Item::ArtifactSlot);
+    vd.field_item("rarity", Item::ArtifactRarity);
+    vd.field_item("type", Item::ArtifactSlot);
     vd.field_values_items("modifier", Item::Modifier);
     vd.field_script_value("durability", sc);
     vd.field_script_value("max_durability", sc);
     vd.field_bool("decaying");
     vd.field_validated_blocks_sc("history", sc, validate_artifact_history);
-    vd.field_value_item("template", Item::ArtifactTemplate);
-    vd.field_value_item("visuals", Item::ArtifactVisual);
+    vd.field_item("template", Item::ArtifactTemplate);
+    vd.field_item("visuals", Item::ArtifactVisual);
     vd.field_bool("generate_history");
     vd.field_script_value("quality", sc);
     vd.field_script_value("wealth", sc);
-    vd.field_value_target("creator", sc, Scopes::Character);
-    vd.field_value_target(
+    vd.field_target("creator", sc, Scopes::Character);
+    vd.field_target(
         "visuals_source",
         sc,
         Scopes::LandedTitle | Scopes::Dynasty | Scopes::DynastyHouse,
@@ -1340,7 +1340,7 @@ fn validate_artifact(
 
     if caller == "create_artifact" {
         vd.field_value("save_scope_as");
-        vd.field_value_target("title_history", sc, Scopes::LandedTitle);
+        vd.field_target("title_history", sc, Scopes::LandedTitle);
         vd.field_date("title_history_date");
     } else {
         vd.ban_field("save_scope_as", || "`create_artifact`");

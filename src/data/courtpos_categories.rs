@@ -69,6 +69,6 @@ impl Category {
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
         vd.req_field("name");
-        vd.field_value_item("name", Item::Localization);
+        vd.field_item("name", Item::Localization);
     }
 }
