@@ -536,19 +536,14 @@ pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut S
     vd.field_script_value("base", sc);
     vd.field_script_value("add", sc);
     vd.field_script_value("factor", sc);
-    validate_modifiers(&mut vd, block, data, sc);
+    validate_modifiers(&mut vd, sc);
     validate_scripted_modifier_calls(vd, data, sc);
 }
 
-pub fn validate_modifiers(
-    vd: &mut Validator,
-    block: &Block,
-    _data: &Everything,
-    sc: &mut ScopeContext,
-) {
+pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     vd.field_validated_blocks("first_valid", |b, data| {
         let mut vd = Validator::new(b, data);
-        validate_modifiers(&mut vd, block, data, sc);
+        validate_modifiers(&mut vd, sc);
     });
     vd.field_validated_blocks("modifier", |b, data| {
         validate_trigger("modifier", false, b, data, sc, false);

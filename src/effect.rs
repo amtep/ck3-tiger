@@ -484,7 +484,7 @@ fn validate_effect_control(
     }
 
     if caller == "random" || caller == "random_list" || caller == "duel" {
-        validate_modifiers(&mut vd, block, data, sc);
+        validate_modifiers(&mut vd, sc);
     } else {
         vd.ban_field("modifier", || "`random`, `random_list` or `duel`");
         vd.ban_field("compare_modifier", || "`random`, `random_list` or `duel`");

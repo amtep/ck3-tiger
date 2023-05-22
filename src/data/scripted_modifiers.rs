@@ -92,7 +92,7 @@ impl ScriptedModifier {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
             self.cache.insert(key, &[], our_sc.clone());
             let mut vd = Validator::new(&self.block, data);
-            validate_modifiers(&mut vd, &self.block, data, &mut our_sc);
+            validate_modifiers(&mut vd, &mut our_sc);
             validate_scripted_modifier_calls(vd, data, &mut our_sc);
             sc.expect_compatibility(&our_sc, key);
             self.cache.insert(key, &[], our_sc);
@@ -130,7 +130,7 @@ impl ScriptedModifier {
                 // that dummy context instead of macro-expanding again.
                 self.cache.insert(key, &args, our_sc.clone());
                 let mut vd = Validator::new(&block, data);
-                validate_modifiers(&mut vd, &block, data, &mut our_sc);
+                validate_modifiers(&mut vd, &mut our_sc);
                 validate_scripted_modifier_calls(vd, data, &mut our_sc);
                 sc.expect_compatibility(&our_sc, key);
                 self.cache.insert(key, &args, our_sc);
