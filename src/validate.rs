@@ -536,8 +536,8 @@ pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut S
     vd.field_script_value("base", sc);
     vd.field_script_value("add", sc);
     vd.field_script_value("factor", sc);
-    validate_modifiers(&mut vd, block, data, sc, false);
-    validate_scripted_modifier_calls(vd, data, sc, false);
+    validate_modifiers(&mut vd, block, data, sc);
+    validate_scripted_modifier_calls(vd, data, sc);
 }
 
 pub fn validate_modifiers(
@@ -545,11 +545,10 @@ pub fn validate_modifiers(
     block: &Block,
     _data: &Everything,
     sc: &mut ScopeContext,
-    tooltipped: bool,
 ) {
     vd.field_validated_blocks("first_valid", |b, data| {
         let mut vd = Validator::new(b, data);
-        validate_modifiers(&mut vd, block, data, sc, tooltipped);
+        validate_modifiers(&mut vd, block, data, sc);
     });
     vd.field_validated_blocks("modifier", |b, data| {
         validate_trigger("modifier", false, b, data, sc, false);
@@ -570,7 +569,6 @@ pub fn validate_scripted_modifier_call(
     modifier: &ScriptedModifier,
     data: &Everything,
     sc: &mut ScopeContext,
-    tooltipped: bool,
 ) {
     match bv {
         BlockOrValue::Value(token) => {
@@ -579,7 +577,7 @@ pub fn validate_scripted_modifier_call(
             } else if !token.is("yes") {
                 warn(token, ErrorKey::Validation, "expected just modifier = yes");
             }
-            modifier.validate_call(key, data, sc, tooltipped);
+            modifier.validate_call(key, data, sc);
         }
         BlockOrValue::Block(block) => {
             let parms = modifier.macro_parms();
@@ -602,7 +600,7 @@ pub fn validate_scripted_modifier_call(
                     }
                 }
                 let args = parms.into_iter().zip(vec.into_iter()).collect();
-                modifier.validate_macro_expansion(key, args, data, sc, tooltipped);
+                modifier.validate_macro_expansion(key, args, data, sc);
             }
         }
     }
@@ -612,11 +610,10 @@ pub fn validate_scripted_modifier_calls(
     mut vd: Validator,
     data: &Everything,
     sc: &mut ScopeContext,
-    tooltipped: bool,
 ) {
     for (key, bv) in vd.unknown_keys() {
         if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
-            validate_scripted_modifier_call(key, bv, modifier, data, sc, tooltipped);
+            validate_scripted_modifier_call(key, bv, modifier, data, sc);
         } else {
             let msg = "unknown field `{key}`";
             warn(key, ErrorKey::Validation, msg);

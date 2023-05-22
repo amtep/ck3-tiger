@@ -111,7 +111,7 @@ pub fn validate_effect<'a>(
                 error(key, ErrorKey::Validation, msg);
                 continue;
             }
-            validate_scripted_modifier_call(key, bv, modifier, data, sc, tooltipped);
+            validate_scripted_modifier_call(key, bv, modifier, data, sc);
             continue;
         }
 
@@ -484,7 +484,7 @@ fn validate_effect_control(
     }
 
     if caller == "random" || caller == "random_list" || caller == "duel" {
-        validate_modifiers(&mut vd, block, data, sc, tooltipped);
+        validate_modifiers(&mut vd, block, data, sc);
     } else {
         vd.ban_field("modifier", || "`random`, `random_list` or `duel`");
         vd.ban_field("compare_modifier", || "`random`, `random_list` or `duel`");
