@@ -134,16 +134,15 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
         data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
         return Some((Scopes::Character, Trigger::CompareValue));
     }
-    if let Some(lifestyle) = name_lc.strip_suffix("_perks") {
-        if let Some(legacy) = name_lc.strip_suffix("_track_perks") {
-            data.verify_exists_implied(Item::DynastyLegacy, legacy, name);
-            return Some((Scopes::Dynasty, Trigger::CompareValue));
-        } else {
-            data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
-            return Some((Scopes::Character, Trigger::CompareValue));
-        }
-    }
     if let Some(lifestyle) = name_lc.strip_suffix("_unlockable_perks") {
+        data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
+        return Some((Scopes::Character, Trigger::CompareValue));
+    }
+    if let Some(legacy) = name_lc.strip_suffix("_track_perks") {
+        data.verify_exists_implied(Item::DynastyLegacy, legacy, name);
+        return Some((Scopes::Dynasty, Trigger::CompareValue));
+    }
+    if let Some(lifestyle) = name_lc.strip_suffix("_perks") {
         data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
         return Some((Scopes::Character, Trigger::CompareValue));
     }

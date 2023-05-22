@@ -22,6 +22,7 @@ use crate::data::lifestyles::Lifestyles;
 use crate::data::localization::Localization;
 use crate::data::maa::MenAtArmsTypes;
 use crate::data::namelists::Namelists;
+use crate::data::on_actions::OnActions;
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::relations::Relations;
@@ -83,6 +84,7 @@ pub struct Everything {
     pub decisions: Decisions,
 
     pub scripted_modifiers: ScriptedModifiers,
+    pub on_actions: OnActions,
 
     /// Processed character interaction files
     pub interactions: Interactions,
@@ -182,6 +184,7 @@ impl Everything {
             events: Events::default(),
             decisions: Decisions::default(),
             scripted_modifiers: ScriptedModifiers::default(),
+            on_actions: OnActions::default(),
             interactions: Interactions::default(),
             interaction_cats: InteractionCategories::default(),
             provinces: Provinces::default(),
@@ -262,6 +265,7 @@ impl Everything {
         self.fileset.handle(&mut self.events);
         self.fileset.handle(&mut self.decisions);
         self.fileset.handle(&mut self.scripted_modifiers);
+        self.fileset.handle(&mut self.on_actions);
         self.fileset.handle(&mut self.interactions);
         self.fileset.handle(&mut self.interaction_cats);
         self.fileset.handle(&mut self.provinces);
@@ -294,9 +298,10 @@ impl Everything {
         self.defines.validate(self);
         // scripted items go early because they update their scope context info
         self.scriptvalues.validate(self);
-        self.scripted_modifiers.validate(self);
         self.triggers.validate(self);
         self.effects.validate(self);
+        self.scripted_modifiers.validate(self);
+        self.on_actions.validate(self);
         self.terrains.validate(self);
         self.events.validate(self);
         self.decisions.validate(self);
