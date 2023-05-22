@@ -860,12 +860,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "set_color_from_title",
         Scope(Scopes::LandedTitle),
     ),
-    // TODO: target can be province as well as character
-    (
-        Character,
-        "set_council_task",
-        ItemTarget("task_type", Item::CouncilTask, "target", Scopes::Character),
-    ),
+    (Character, "set_council_task", SpecialBlock),
     (LandedTitle, "set_county_culture", Scope(Scopes::Culture)),
     (LandedTitle, "set_county_faith", Scope(Scopes::Faith)),
     (Character, "set_court_language", Item(Item::Language)),

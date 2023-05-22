@@ -1135,6 +1135,11 @@ fn validate_effect_special(
         vd.req_field("reason");
         vd.field_value_item("reason", Item::Localization);
         validate_optional_cooldown(&mut vd, sc);
+    } else if caller == "set_council_task" {
+        vd.req_field("task_type");
+        vd.req_field("target");
+        vd.field_value_item("task_type", Item::CouncilTask);
+        vd.field_value_target("target", sc, Scopes::Character | Scopes::Province);
     } else if caller == "set_culture_name" {
         vd.req_field("noun");
         vd.field_validated_sc("noun", sc, validate_desc);
