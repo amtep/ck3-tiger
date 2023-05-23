@@ -64,22 +64,22 @@ fn validate_argument(arg: &CodeArg, data: &Everything, expect_type: Datatype) {
                 if dtype == "hex" {
                     if expect_type != Datatype::Unknown && expect_type != Datatype::int32 {
                         let msg = format!("expected {expect_type}, got {dtype}");
-                        error(token, ErrorKey::DataFunctions, &msg);
+                        error(token, ErrorKey::Datafunctions, &msg);
                     }
                 } else if let Ok(dtype) = Datatype::from_str(dtype) {
                     if expect_type != Datatype::Unknown && expect_type != dtype {
                         let msg = format!("expected {expect_type}, got {dtype}");
-                        error(token, ErrorKey::DataFunctions, &msg);
+                        error(token, ErrorKey::Datafunctions, &msg);
                     }
                 } else {
                     let msg = format!("unrecognized datatype {dtype}");
-                    error(token, ErrorKey::DataFunctions, &msg);
+                    error(token, ErrorKey::Datafunctions, &msg);
                 }
             } else {
                 if expect_type != Datatype::Unknown && expect_type != Datatype::CString {
                     error(
                         token,
-                        ErrorKey::DataFunctions,
+                        ErrorKey::Datafunctions,
                         &format!("expected {expect_type}, got CString"),
                     );
                 }
@@ -104,7 +104,7 @@ pub fn validate_datatypes(
 
         if code.name.is("") {
             // TODO: find out if the game engine is okay with this
-            warn(&code.name, ErrorKey::DataFunctions, "empty fragment");
+            warn(&code.name, ErrorKey::Datafunctions, "empty fragment");
             return;
         }
 
@@ -148,7 +148,7 @@ pub fn validate_datatypes(
                 }
                 LookupResult::WrongType => {
                     let msg = format!("{} can not follow a {curtype} promote", code.name);
-                    error(&code.name, ErrorKey::DataFunctions, &msg);
+                    error(&code.name, ErrorKey::Datafunctions, &msg);
                     return;
                 }
                 LookupResult::NotFound => (),
@@ -162,7 +162,7 @@ pub fn validate_datatypes(
                 }
                 LookupResult::WrongType => {
                     let msg = format!("{} can not follow a {curtype} promote", code.name);
-                    error(&code.name, ErrorKey::DataFunctions, &msg);
+                    error(&code.name, ErrorKey::Datafunctions, &msg);
                     return;
                 }
                 LookupResult::NotFound => (),
@@ -174,33 +174,33 @@ pub fn validate_datatypes(
             // might be found in any or all of the functions and promotes tables.
             if is_first && (p_found || f_found) && !gp_found && !gf_found {
                 let msg = format!("{} can not be the first in a chain", code.name);
-                error(&code.name, ErrorKey::DataFunctions, &msg);
+                error(&code.name, ErrorKey::Datafunctions, &msg);
                 return;
             }
             if is_last && (gp_found || p_found) && !gf_found && !f_found && !expect_promote {
                 let msg = format!("{} can not be last in a chain", code.name);
-                error(&code.name, ErrorKey::DataFunctions, &msg);
+                error(&code.name, ErrorKey::Datafunctions, &msg);
                 return;
             }
             if expect_promote && (gf_found || f_found) {
                 let msg = format!("{} can not be used in this field", code.name);
-                error(&code.name, ErrorKey::DataFunctions, &msg);
+                error(&code.name, ErrorKey::Datafunctions, &msg);
                 return;
             }
             if !is_first && (gp_found || gf_found) && !p_found && !f_found {
                 let msg = format!("{} must be the first in a chain", code.name);
-                error(&code.name, ErrorKey::DataFunctions, &msg);
+                error(&code.name, ErrorKey::Datafunctions, &msg);
                 return;
             }
             if !is_last && (gf_found || f_found) && !gp_found && !p_found {
                 let msg = format!("{} must be last in the chain", code.name);
-                error(&code.name, ErrorKey::DataFunctions, &msg);
+                error(&code.name, ErrorKey::Datafunctions, &msg);
                 return;
             }
             // A catch-all condition if none of the above match
             if gp_found || gf_found || p_found || f_found {
                 let msg = format!("{} is improperly used here", code.name);
-                error(&code.name, ErrorKey::DataFunctions, &msg);
+                error(&code.name, ErrorKey::Datafunctions, &msg);
                 return;
             }
 
@@ -214,7 +214,7 @@ pub fn validate_datatypes(
             if code.name.as_str().chars().next().unwrap().is_uppercase() {
                 // TODO: If there is a Custom of the same name, suggest that
                 let msg = format!("unknown datafunction {}", &code.name);
-                warn(&code.name, ErrorKey::DataFunctions, &msg);
+                warn(&code.name, ErrorKey::Datafunctions, &msg);
                 return;
             }
 
@@ -229,7 +229,7 @@ pub fn validate_datatypes(
         if args.nargs() != code.arguments.len() {
             error(
                 &code.name,
-                ErrorKey::DataFunctions,
+                ErrorKey::Datafunctions,
                 &format!(
                     "{} takes {} arguments but was given {} here",
                     code.name,
@@ -271,7 +271,7 @@ pub fn validate_datatypes(
                 "{} returns {curtype} but a {expect_type} is needed here",
                 code.name
             );
-            error(&code.name, ErrorKey::DataFunctions, &msg);
+            error(&code.name, ErrorKey::Datafunctions, &msg);
             return;
         }
     }

@@ -510,7 +510,7 @@ impl<'a> ValueParser<'a> {
         if self.peek() == Some(')') {
             self.next_char();
         } else {
-            self.unexpected_char("expected `)`", ErrorKey::DataFunctions);
+            self.unexpected_char("expected `)`", ErrorKey::Datafunctions);
         }
         v
     }
@@ -564,7 +564,7 @@ impl<'a> ValueParser<'a> {
             self.next_char();
             self.value.push(LocaValue::Code(chain, format));
         } else {
-            self.unexpected_char("expected `]`", ErrorKey::DataFunctions);
+            self.unexpected_char("expected `]`", ErrorKey::Datafunctions);
             self.value.push(LocaValue::Error);
         }
     }
