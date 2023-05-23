@@ -428,14 +428,11 @@ impl<'a> ValueParser<'a> {
         }
     }
 
-    fn unexpected_char(&mut self, expected: &str) {
+    fn unexpected_char(&mut self, expected: &str, errorkey: ErrorKey) {
         // TODO: handle EOF better
         let c = self.peek().unwrap_or(' ');
-        error(
-            &self.loc,
-            ErrorKey::Localization,
-            &format!("Unexpected character `{c}`, {expected}"),
-        );
+        let msg = format!("Unexpected character `{c}`, {expected}");
+        error(&self.loc, errorkey, &msg);
     }
 
     fn get_key(&mut self) -> Token {
@@ -516,7 +513,7 @@ impl<'a> ValueParser<'a> {
         if self.peek() == Some(')') {
             self.next_char();
         } else {
-            self.unexpected_char("expected `)`");
+            self.unexpected_char("expected `)`", ErrorKey::DataFunctions);
         }
         v
     }
@@ -570,7 +567,7 @@ impl<'a> ValueParser<'a> {
             self.next_char();
             self.value.push(LocaValue::Code(chain, format));
         } else {
-            self.unexpected_char("expected `]`");
+            self.unexpected_char("expected `]`", ErrorKey::DataFunctions);
             self.value.push(LocaValue::Error);
         }
     }
@@ -629,12 +626,12 @@ impl<'a> ValueParser<'a> {
                 let key = self.get_key();
                 self.value.push(LocaValue::Icon(key));
             } else {
-                self.unexpected_char("expected icon name");
+                self.unexpected_char("expected icon name", ErrorKey::Localization);
                 self.value.push(LocaValue::Error);
                 return;
             }
         } else {
-            self.unexpected_char("expected icon name");
+            self.unexpected_char("expected icon name", ErrorKey::Localization);
             self.value.push(LocaValue::Error);
             return;
         }
@@ -642,7 +639,7 @@ impl<'a> ValueParser<'a> {
         if self.peek() == Some('!') {
             self.next_char();
         } else {
-            self.unexpected_char("expected `!`");
+            self.unexpected_char("expected `!`", ErrorKey::Localization);
             self.value.push(LocaValue::Error);
         }
     }

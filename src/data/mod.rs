@@ -7,6 +7,7 @@ pub mod doctrines;
 pub mod dynasties;
 pub mod events;
 pub mod gameconcepts;
+pub mod gui;
 pub mod houses;
 pub mod interaction_cats;
 pub mod interactions;

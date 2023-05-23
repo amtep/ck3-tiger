@@ -15,6 +15,7 @@ use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
 use crate::data::events::Events;
 use crate::data::gameconcepts::GameConcepts;
+use crate::data::gui::Gui;
 use crate::data::houses::Houses;
 use crate::data::interaction_cats::InteractionCategories;
 use crate::data::interactions::Interactions;
@@ -134,6 +135,8 @@ pub struct Everything {
     pub doctrines: Doctrines,
 
     pub menatarmstypes: MenAtArmsTypes,
+
+    pub gui: Gui,
 }
 
 impl Everything {
@@ -208,6 +211,7 @@ impl Everything {
             title_history: TitleHistories::default(),
             doctrines: Doctrines::default(),
             menatarmstypes: MenAtArmsTypes::default(),
+            gui: Gui::default(),
         })
     }
 
@@ -289,6 +293,7 @@ impl Everything {
         self.fileset.handle(&mut self.title_history);
         self.fileset.handle(&mut self.doctrines);
         self.fileset.handle(&mut self.menatarmstypes);
+        self.fileset.handle(&mut self.gui);
     }
 
     pub fn validate_all(&mut self) {
@@ -324,6 +329,7 @@ impl Everything {
         self.title_history.validate(self);
         self.doctrines.validate(self);
         self.menatarmstypes.validate(self);
+        self.gui.validate(self);
     }
 
     pub fn check_rivers(&mut self) {

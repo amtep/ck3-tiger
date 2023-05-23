@@ -145,6 +145,7 @@ impl OnAction {
     }
 }
 
+/// LAST UPDATED VERSION 1.9.0.4
 const ON_ACTION_ROOTS: &[(&str, Scopes)] = &[
     // TODO Special:
     // `<relation>_quarterly_pulse`

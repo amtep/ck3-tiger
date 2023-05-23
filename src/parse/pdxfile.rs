@@ -45,6 +45,9 @@ impl CharExt for char {
             || self == '/'
             || self == '|'
             || self == '\''
+            || self == '%' // added for parsing .gui files
+            || self == '[' // added for parsing .gui files
+            || self == ']' // added for parsing .gui files
     }
 
     fn is_comparator_char(self) -> bool {
@@ -128,7 +131,8 @@ impl Parser {
                 CalculationOp::Divide => self.calculation /= value,
             }
         } else {
-            error(local_macro, ErrorKey::ParseError, "local value not defined");
+            let msg = format!("local value {local_macro} not defined");
+            error(local_macro, ErrorKey::ParseError, &msg);
         }
     }
 
@@ -155,13 +159,20 @@ impl Parser {
                 if let Some(local_macro) = key.as_str().strip_prefix('@') {
                     self.local_macros.insert(local_macro, token.as_str());
                 } else if let Some(local_macro) = token.as_str().strip_prefix('@') {
-                    if let Some(value) = self.local_macros.get_as_string(local_macro) {
-                        let token = Token::new(value, token.loc);
+                    // Check for a '!' to avoid looking up macros in gui code that uses @icon! syntax
+                    if !token.as_str().contains('!') {
+                        if let Some(value) = self.local_macros.get_as_string(local_macro) {
+                            let token = Token::new(value, token.loc);
+                            self.current
+                                .block
+                                .add_key_value(key, comp, BlockOrValue::Value(token));
+                        } else {
+                            error(token, ErrorKey::ParseError, "local value not defined");
+                        }
+                    } else {
                         self.current
                             .block
                             .add_key_value(key, comp, BlockOrValue::Value(token));
-                    } else {
-                        error(token, ErrorKey::ParseError, "local value not defined");
                     }
                 } else {
                     self.current
@@ -383,11 +394,14 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Option<B
                     } else if c == '$' {
                         parser.current.contains_macro_parms = true;
                         current_id.push(c);
-                    } else if c.is_id_char() {
-                        current_id.push(c);
-                    } else if c == '[' && loc.offset == token_start.offset + 1 {
+                    } else if c == '['
+                        && loc.offset == token_start.offset + 1
+                        && current_id.starts_with('@')
+                    {
                         state = State::Calculation;
                         parser.calculation_start();
+                    } else if c.is_id_char() {
+                        current_id.push(c);
                     } else {
                         let token = Token::new(take(&mut current_id), token_start.clone());
                         parser.token(token);
@@ -423,9 +437,6 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Option<B
                         parser.calculation_op(CalculationOp::Multiply);
                     } else if c == '/' {
                         parser.calculation_op(CalculationOp::Divide);
-                    } else if c.is_id_char() {
-                        state = State::CalculationId;
-                        current_id.push(c);
                     } else if c == ']' {
                         let token = Token::new(
                             parser.calculation_result().to_string(),
@@ -433,6 +444,9 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Option<B
                         );
                         parser.token(token);
                         state = State::Neutral;
+                    } else if c.is_id_char() {
+                        state = State::CalculationId;
+                        current_id.push(c);
                     }
                     token_start = loc.clone();
                 }
@@ -450,8 +464,6 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Option<B
                         } else if c == '/' {
                             parser.calculation_op(CalculationOp::Divide);
                         }
-                    } else if c.is_id_char() {
-                        current_id.push(c);
                     } else if c == ']' {
                         let token = Token::new(take(&mut current_id), token_start.clone());
                         parser.calculation_next(&token);
@@ -462,6 +474,8 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Option<B
                         );
                         parser.token(token);
                         state = State::Neutral;
+                    } else if c.is_id_char() {
+                        current_id.push(c);
                     } else {
                         Parser::unknown_char(c, loc.clone());
                         current_id.clear();

@@ -14,7 +14,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::token::Token;
 
-mod parse;
+pub mod parse;
 
 #[derive(Clone, Debug)]
 pub struct Localization {
@@ -175,7 +175,7 @@ impl Localization {
             // Some other code
             // TODO: check the formatting codes
             LocaValue::Code(chain, _) => {
-                validate_datatypes(chain, data, Datatype::Unknown);
+                validate_datatypes(chain, data, Datatype::Unknown, false);
             }
             _ => (),
         }

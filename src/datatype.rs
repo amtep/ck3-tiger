@@ -50,7 +50,7 @@ impl CodeChain {
 
 fn validate_argument(arg: &CodeArg, data: &Everything, expect_type: Datatype) {
     match arg {
-        CodeArg::Chain(chain) => validate_datatypes(chain, data, expect_type),
+        CodeArg::Chain(chain) => validate_datatypes(chain, data, expect_type, false),
         CodeArg::Literal(token) => {
             if token.as_str().starts_with('(') && token.as_str().contains(')') {
                 // These unwraps are safe because of the checks in the if condition
@@ -61,20 +61,19 @@ fn validate_argument(arg: &CodeArg, data: &Everything, expect_type: Datatype) {
                     .unwrap()
                     .strip_prefix('(')
                     .unwrap();
-                if let Ok(dtype) = Datatype::from_str(dtype) {
+                if dtype == "hex" {
+                    if expect_type != Datatype::Unknown && expect_type != Datatype::int32 {
+                        let msg = format!("expected {expect_type}, got {dtype}");
+                        error(token, ErrorKey::DataFunctions, &msg);
+                    }
+                } else if let Ok(dtype) = Datatype::from_str(dtype) {
                     if expect_type != Datatype::Unknown && expect_type != dtype {
-                        error(
-                            token,
-                            ErrorKey::DataFunctions,
-                            &format!("expected {expect_type}, got {dtype}"),
-                        );
+                        let msg = format!("expected {expect_type}, got {dtype}");
+                        error(token, ErrorKey::DataFunctions, &msg);
                     }
                 } else {
-                    error(
-                        token,
-                        ErrorKey::DataFunctions,
-                        &format!("unrecognized datatype {dtype}"),
-                    );
+                    let msg = format!("unrecognized datatype {dtype}");
+                    error(token, ErrorKey::DataFunctions, &msg);
                 }
             } else {
                 if expect_type != Datatype::Unknown && expect_type != Datatype::CString {
@@ -89,7 +88,13 @@ fn validate_argument(arg: &CodeArg, data: &Everything, expect_type: Datatype) {
     }
 }
 
-pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Datatype) {
+// `expect_promote` is true if the chain is expected to end on a promote rather than on a function.
+pub fn validate_datatypes(
+    chain: &CodeChain,
+    data: &Everything,
+    expect_type: Datatype,
+    expect_promote: bool,
+) {
     let mut curtype = Datatype::Unknown;
     for (i, code) in chain.codes.iter().enumerate() {
         let is_first = i == 0;
@@ -122,19 +127,19 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
 
         let mut found = false;
 
-        if is_first && is_last {
+        if is_first && is_last && !expect_promote {
             if let Some((xargs, xrtype)) = lookup_gf {
                 found = true;
                 args = xargs;
                 rtype = xrtype;
             }
-        } else if is_first && !is_last {
+        } else if is_first && (!is_last || expect_promote) {
             if let Some((xargs, xrtype)) = lookup_gp {
                 found = true;
                 args = xargs;
                 rtype = xrtype;
             }
-        } else if !is_first && !is_last {
+        } else if !is_first && (!is_last || expect_promote) {
             match lookup_p {
                 LookupResult::Found(xargs, xrtype) => {
                     found = true;
@@ -148,7 +153,7 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
                 }
                 LookupResult::NotFound => (),
             }
-        } else if !is_first && is_last {
+        } else if !is_first && is_last && !expect_promote {
             match lookup_f {
                 LookupResult::Found(xargs, xrtype) => {
                     found = true;
@@ -172,8 +177,13 @@ pub fn validate_datatypes(chain: &CodeChain, data: &Everything, expect_type: Dat
                 error(&code.name, ErrorKey::DataFunctions, &msg);
                 return;
             }
-            if is_last && (gp_found || p_found) && !gf_found && !f_found {
-                let msg = format!("{} can not be lastin a chain", code.name);
+            if is_last && (gp_found || p_found) && !gf_found && !f_found && !expect_promote {
+                let msg = format!("{} can not be last in a chain", code.name);
+                error(&code.name, ErrorKey::DataFunctions, &msg);
+                return;
+            }
+            if expect_promote && (gf_found || f_found) {
+                let msg = format!("{} can not be used in this field", code.name);
                 error(&code.name, ErrorKey::DataFunctions, &msg);
                 return;
             }
