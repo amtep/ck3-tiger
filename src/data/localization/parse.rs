@@ -27,7 +27,6 @@ struct LocaParser<'a> {
     expecting_language: bool,
     loca_end: usize,
     value: Vec<LocaValue>,
-    value_loc: Loc,
 }
 
 impl<'a> LocaParser<'a> {
@@ -39,7 +38,6 @@ impl<'a> LocaParser<'a> {
         } else {
             warn(&loc, ErrorKey::Encoding, "Expected UTF-8 BOM encoding");
         }
-        let value_loc = loc.clone();
         LocaParser {
             loc,
             content,
@@ -48,7 +46,6 @@ impl<'a> LocaParser<'a> {
             expecting_language: true,
             value: Vec::new(),
             loca_end: 0,
-            value_loc,
         }
     }
 
