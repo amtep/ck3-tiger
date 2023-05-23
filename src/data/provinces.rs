@@ -154,22 +154,16 @@ impl FileHandler for Provinces {
                         if csv[0].is("-1") {
                             seen_terminator = true;
                         } else if seen_terminator {
-                            warn(
-                                &csv[0],
-                                ErrorKey::ParseError,
-                                "the line with all `-1;` should be the last line in the file",
-                            );
+                            let msg = "the line with all `-1;` should be the last line in the file";
+                            warn(&csv[0], ErrorKey::ParseError, msg);
                             break;
                         } else {
                             self.adjacencies.extend(Adjacency::parse(&csv));
                         }
                     }
                     if !seen_terminator {
-                        error(
-                            entry,
-                            ErrorKey::ParseError,
-                            "CK3 needs a line with all `-1;` at the end of this file",
-                        );
+                        let msg = "CK3 needs a line with all `-1;` at the end of this file";
+                        error(entry, ErrorKey::ParseError, msg);
                     }
                 }
                 "definition.csv" => {
@@ -177,11 +171,9 @@ impl FileHandler for Provinces {
                     let content = match read_csv(fullpath) {
                         Ok(content) => content,
                         Err(e) => {
-                            error(
-                                entry,
-                                ErrorKey::ReadError,
-                                &format!("could not read `{}`: {:#}", entry.path().display(), e),
-                            );
+                            let msg =
+                                format!("could not read `{}`: {:#}", entry.path().display(), e);
+                            error(entry, ErrorKey::ReadError, &msg);
                             return;
                         }
                     };
@@ -193,11 +185,8 @@ impl FileHandler for Provinces {
                     let img = match image::open(fullpath) {
                         Ok(img) => img,
                         Err(e) => {
-                            error(
-                                entry,
-                                ErrorKey::ReadError,
-                                &format!("could not read `{}`: {:#}", entry.path().display(), e),
-                            );
+                            let msg = format!("could not read `{}`: {e:#}", entry.path().display());
+                            error(entry, ErrorKey::ReadError, &msg);
                             return;
                         }
                     };
@@ -206,15 +195,12 @@ impl FileHandler for Provinces {
                             self.colors.insert(*pixel);
                         }
                     } else {
-                        error(
-                            entry,
-                            ErrorKey::ImageFormat,
-                            &format!(
-                                "`{}` has wrong color format `{:?}`, should be Rgb8",
-                                entry.path().display(),
-                                img.color()
-                            ),
+                        let msg = format!(
+                            "`{}` has wrong color format `{:?}`, should be Rgb8",
+                            entry.path().display(),
+                            img.color()
                         );
+                        error(entry, ErrorKey::ImageFormat, &msg);
                     }
                 }
                 "default.map" => {
@@ -242,38 +228,26 @@ impl FileHandler for Provinces {
                     continue;
                 }
                 if !self.colors.contains(&province.color) {
-                    warn(
-                        &province.comment,
-                        ErrorKey::Validation,
-                        "color is not in the provinces.png",
-                    );
+                    let msg = "color is not in the provinces.png";
+                    warn(&province.comment, ErrorKey::Validation, msg);
                 } else if let Some(k) = seen_colors.get(&province.color) {
-                    warn(
-                        &province.comment,
-                        ErrorKey::Validation,
-                        &format!("color was already used for id {k}"),
-                    );
+                    let msg = format!("color was already used for id {k}");
+                    warn(&province.comment, ErrorKey::Validation, &msg);
                 } else {
                     seen_colors.insert(province.color, i);
                 }
             } else {
-                error(
-                    definition_csv,
-                    ErrorKey::Validation,
-                    &format!("province ids must be sequential, but {i} is missing"),
-                );
+                let msg = format!("province ids must be sequential, but {i} is missing");
+                error(definition_csv, ErrorKey::Validation, &msg);
                 return;
             }
         }
         if seen_colors.len() < self.colors.len() {
-            warn(
-                definition_csv,
-                ErrorKey::Validation,
-                &format!(
-                    "provinces.png contains {} colors with no provinces assigned",
-                    self.colors.len() - seen_colors.len()
-                ),
+            let msg = format!(
+                "provinces.png contains {} colors with no provinces assigned",
+                self.colors.len() - seen_colors.len()
             );
+            warn(definition_csv, ErrorKey::Validation, &msg);
         }
     }
 }
@@ -317,11 +291,8 @@ impl Adjacency {
         let line = csv[0].loc.clone();
 
         if csv.len() != 9 {
-            error(
-                &csv[0],
-                ErrorKey::ParseError,
-                "wrong number of fields for this line, expected 9",
-            );
+            let msg = "wrong number of fields for this line, expected 9";
+            error(&csv[0], ErrorKey::ParseError, msg);
             return None;
         }
 
@@ -369,11 +340,8 @@ impl Province {
         let line = csv[0].loc.clone();
 
         if csv.len() < 5 {
-            error(
-                line,
-                ErrorKey::ParseError,
-                "too few fields for this line, expected 5",
-            );
+            let msg = "too few fields for this line, expected 5";
+            error(line, ErrorKey::ParseError, msg);
             return None;
         }
 

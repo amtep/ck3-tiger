@@ -77,11 +77,8 @@ fn validate_argument(arg: &CodeArg, data: &Everything, expect_type: Datatype) {
                 }
             } else {
                 if expect_type != Datatype::Unknown && expect_type != Datatype::CString {
-                    error(
-                        token,
-                        ErrorKey::Datafunctions,
-                        &format!("expected {expect_type}, got CString"),
-                    );
+                    let msg = format!("expected {expect_type}, got CString");
+                    error(token, ErrorKey::Datafunctions, &msg);
                 }
             }
         }
@@ -110,7 +107,7 @@ pub fn validate_datatypes(
 
         let mut store_replacement;
         while let Some(binding) = data.data_bindings.get(code.name.as_str()) {
-            if let Some(replacement) = binding.replace(&code) {
+            if let Some(replacement) = binding.replace(code) {
                 store_replacement = replacement;
                 code = &store_replacement;
             } else {

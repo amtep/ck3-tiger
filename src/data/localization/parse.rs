@@ -344,7 +344,7 @@ impl<'a> LocaParser<'a> {
             None | Some('#' | '\n') => (),
             _ => {
                 let msg = "content after final `\"` on line";
-                warn(&self.loc, ErrorKey::Localization, &msg);
+                warn(&self.loc, ErrorKey::Localization, msg);
             }
         }
 

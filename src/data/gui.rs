@@ -25,8 +25,7 @@ impl Gui {
         if let Some(guifile) = self.files.get_mut(&filename) {
             guifile.push(GuiWidget::new(key, block));
         } else {
-            let mut guifile = Vec::new();
-            guifile.push(GuiWidget::new(key, block));
+            let mut guifile = vec![GuiWidget::new(key, block)];
             self.files.insert(filename, guifile);
         }
     }

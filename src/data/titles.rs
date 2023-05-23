@@ -115,6 +115,10 @@ impl Titles {
         self.titles.contains_key(key)
     }
 
+    pub fn get(&self, key: &str) -> Option<Rc<Title>> {
+        self.titles.get(key).cloned()
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.titles.values() {
             item.validate(data);
@@ -165,7 +169,7 @@ impl FileHandler for Titles {
 pub struct Title {
     key: Token,
     block: Block,
-    tier: Tier,
+    pub tier: Tier,
     capital_of: Option<Token>, // for baronies
 }
 

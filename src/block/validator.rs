@@ -390,20 +390,6 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn fields(&mut self, name: &str) -> bool {
-        let mut found = false;
-        for (k, cmp, _) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    expect_eq_qeq(key, cmp);
-                    found = true;
-                }
-            }
-        }
-        found
-    }
-
     pub fn fields_any_cmp(&mut self, name: &str) -> bool {
         let mut found = false;
         for (k, _cmp, _) in &self.block.v {

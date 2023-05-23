@@ -142,7 +142,11 @@ impl TitleHistory {
         if let Some(token) = vd.field_value("liege") {
             if !token.is("0") {
                 data.verify_exists(Item::Title, token);
-                if data.item_exists(Item::Title, token.as_str()) {
+                if let Some(title) = data.titles.get(token.as_str()) {
+                    if title.tier <= self.tier {
+                        let msg = format!("liege must be higher tier than {}", self.key);
+                        error(token, ErrorKey::Validation, &msg);
+                    }
                     data.title_history.verify_has_holder(token, date, data);
                 }
             }

@@ -681,7 +681,7 @@ fn validate_effect_special_bv(
                 if let Some(bv) = vd.field("value") {
                     match bv {
                         BlockOrValue::Value(token) => {
-                            validate_target(token, data, sc, Scopes::all_but_none())
+                            validate_target(token, data, sc, Scopes::all_but_none());
                         }
                         BlockOrValue::Block(_) => ScriptValue::validate_bv(bv, data, sc),
                     }
