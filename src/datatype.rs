@@ -4,7 +4,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::tables::datafunctions::Args;
+pub use crate::tables::datafunctions::Args;
 use crate::token::Token;
 
 pub use crate::tables::datafunctions::{
@@ -96,7 +96,7 @@ pub fn validate_datatypes(
     expect_promote: bool,
 ) {
     let mut curtype = Datatype::Unknown;
-    for (i, code) in chain.codes.iter().enumerate() {
+    for (i, mut code) in chain.codes.iter().enumerate() {
         let is_first = i == 0;
         let is_last = i == chain.codes.len() - 1;
         let mut args = Args::NoArgs;
@@ -106,6 +106,16 @@ pub fn validate_datatypes(
             // TODO: find out if the game engine is okay with this
             warn(&code.name, ErrorKey::Datafunctions, "empty fragment");
             return;
+        }
+
+        let mut store_replacement;
+        while let Some(binding) = data.data_bindings.get(code.name.as_str()) {
+            if let Some(replacement) = binding.replace(&code) {
+                store_replacement = replacement;
+                code = &store_replacement;
+            } else {
+                return;
+            }
         }
 
         // The data_type logs include all game concepts as global functions.
@@ -204,13 +214,10 @@ pub fn validate_datatypes(
                 return;
             }
 
-            // If `code.name` is not found at all in the tables, then
-            // it can be some passed-in scope. Unfortunately we don't
-            // have a complete list of those, so accept any lowercase id
-            // and warn if it starts with uppercase. This is not a foolproof
-            // check though.
-            // TODO: it's in theory possible to build a complete list
-            // of possible scope variable names
+            // If `code.name` is not found at all in the tables, then it can be some passed-in scope.
+            // Unfortunately we don't have a complete list of those, so accept any lowercase id and
+            // warn if it starts with uppercase. This is not a foolproof check though.
+            // TODO: it's in theory possible to build a complete list of possible scope variable names
             if code.name.as_str().chars().next().unwrap().is_uppercase() {
                 // TODO: If there is a Custom of the same name, suggest that
                 let msg = format!("unknown datafunction {}", &code.name);

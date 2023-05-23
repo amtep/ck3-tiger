@@ -9,6 +9,7 @@ use crate::block::Block;
 use crate::data::characters::Characters;
 use crate::data::courtpos::CourtPositions;
 use crate::data::courtpos_categories::CourtPositionCategories;
+use crate::data::data_binding::DataBindings;
 use crate::data::decisions::Decisions;
 use crate::data::defines::Defines;
 use crate::data::doctrines::Doctrines;
@@ -137,6 +138,7 @@ pub struct Everything {
     pub menatarmstypes: MenAtArmsTypes,
 
     pub gui: Gui,
+    pub data_bindings: DataBindings,
 }
 
 impl Everything {
@@ -212,6 +214,7 @@ impl Everything {
             doctrines: Doctrines::default(),
             menatarmstypes: MenAtArmsTypes::default(),
             gui: Gui::default(),
+            data_bindings: DataBindings::default(),
         })
     }
 
@@ -294,6 +297,7 @@ impl Everything {
         self.fileset.handle(&mut self.doctrines);
         self.fileset.handle(&mut self.menatarmstypes);
         self.fileset.handle(&mut self.gui);
+        self.fileset.handle(&mut self.data_bindings);
     }
 
     pub fn validate_all(&mut self) {
@@ -330,6 +334,7 @@ impl Everything {
         self.doctrines.validate(self);
         self.menatarmstypes.validate(self);
         self.gui.validate(self);
+        self.data_bindings.validate(self);
     }
 
     pub fn check_rivers(&mut self) {

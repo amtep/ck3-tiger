@@ -1,6 +1,7 @@
 pub mod characters;
 pub mod courtpos;
 pub mod courtpos_categories;
+pub mod data_binding;
 pub mod decisions;
 pub mod defines;
 pub mod doctrines;
