@@ -716,14 +716,12 @@ pub fn validate_modifs<'a>(
 
         for sfx in &["_development_growth", "_development_growth_factor"] {
             if let Some(something) = token.as_str().strip_suffix(sfx) {
+                // TODO: if a region, also check that it has set generate_modifiers = yes
                 if !data.item_exists(Item::Region, something)
                     && !data.item_exists(Item::Terrain, something)
                 {
-                    error(
-                        token,
-                        ErrorKey::MissingItem,
-                        "unknown terrain or geographical region",
-                    );
+                    let msg = "unknown terrain or geographical region";
+                    error(token, ErrorKey::MissingItem, msg);
                 }
                 kinds.require(
                     ModifKinds::Character | ModifKinds::Province | ModifKinds::County,
