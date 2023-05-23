@@ -346,11 +346,8 @@ impl<'a> LocaParser<'a> {
         match self.chars.peek() {
             None | Some('#' | '\n') => (),
             _ => {
-                warn(
-                    &self.loc,
-                    ErrorKey::Localization,
-                    "content after final `\"` on line",
-                );
+                let msg = "content after final `\"` on line";
+                warn(&self.loc, ErrorKey::Localization, &msg);
             }
         }
 
@@ -593,10 +590,17 @@ impl<'a> ValueParser<'a> {
                     self.next_char();
                 } else if !at_end && c == ':' {
                     // #indent_newline:2 parsing
+                    // #color:{1.0,1.0,1.0} parsing
                     text.push(c);
                     self.next_char();
+                    let mut in_braces = false; // only one level of braces
                     while let Some(c) = self.peek() {
-                        if c.is_ascii_digit() {
+                        if c.is_ascii_digit() || in_braces || c == '{' {
+                            if c == '{' {
+                                in_braces = true;
+                            } else if c == '}' {
+                                in_braces = false;
+                            }
                             text.push(c);
                             self.next_char();
                         } else {
@@ -605,11 +609,8 @@ impl<'a> ValueParser<'a> {
                     }
                     at_end = true;
                 } else {
-                    warn(
-                        loc,
-                        ErrorKey::Localization,
-                        "#markup should be followed by a space",
-                    );
+                    let msg = "#markup should be followed by a space";
+                    warn(loc, ErrorKey::Localization, msg);
                     self.value.push(LocaValue::Error);
                     return;
                 }
