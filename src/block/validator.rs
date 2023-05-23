@@ -307,53 +307,31 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_list(&mut self, name: &str) -> bool {
-        self.field_check(name, |v| match v {
-            BlockOrValue::Value(t) => {
-                error(t, ErrorKey::Validation, "expected block, found value");
-            }
-            BlockOrValue::Block(s) => {
-                for (k, _, v) in &s.v {
+    pub fn field_validated_list<F>(&mut self, name: &str, mut f: F) -> bool
+    where
+        F: FnMut(&Token, &Everything),
+    {
+        self.field_check(name, |bv| {
+            if let Some(block) = bv.expect_block() {
+                for (k, _, bv) in &block.v {
                     if let Some(key) = k {
-                        warn(
-                            key,
-                            ErrorKey::Validation,
-                            &format!("found key `{key}`, expected only values"),
-                        );
-                    }
-                    match v {
-                        BlockOrValue::Value(_) => (),
-                        BlockOrValue::Block(s) => {
-                            error(s, ErrorKey::Validation, "expected value, found block");
-                        }
+                        let msg = format!("found key `{key}`, expected only values");
+                        warn(key, ErrorKey::Validation, &msg);
+                    } else if let Some(token) = bv.expect_value() {
+                        f(token, self.data);
                     }
                 }
             }
         })
     }
 
+    pub fn field_list(&mut self, name: &str) -> bool {
+        self.field_validated_list(name, |_, _| ())
+    }
+
     pub fn field_list_items(&mut self, name: &str, item: Item) -> bool {
-        self.field_check(name, |v| match v {
-            BlockOrValue::Value(t) => {
-                error(t, ErrorKey::Validation, "expected block, found value");
-            }
-            BlockOrValue::Block(s) => {
-                for (k, _, v) in &s.v {
-                    if let Some(key) = k {
-                        warn(
-                            key,
-                            ErrorKey::Validation,
-                            &format!("found key `{key}`, expected only values"),
-                        );
-                    }
-                    match v {
-                        BlockOrValue::Value(t) => self.data.verify_exists(item, t),
-                        BlockOrValue::Block(s) => {
-                            error(s, ErrorKey::Validation, "expected value, found block");
-                        }
-                    }
-                }
-            }
+        self.field_validated_list(name, |token, data| {
+            data.verify_exists(item, token);
         })
     }
 

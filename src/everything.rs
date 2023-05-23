@@ -27,6 +27,7 @@ use crate::data::namelists::Namelists;
 use crate::data::on_actions::OnActions;
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
+use crate::data::regions::Regions;
 use crate::data::relations::Relations;
 use crate::data::religions::Religions;
 use crate::data::scripted_effects::{Effect, Effects};
@@ -127,6 +128,7 @@ pub struct Everything {
     pub lifestyles: Lifestyles,
 
     pub terrains: Terrains,
+    pub regions: Regions,
 
     pub courtpos_categories: CourtPositionCategories,
     pub courtpos: CourtPositions,
@@ -208,6 +210,7 @@ impl Everything {
             traits: Traits::default(),
             lifestyles: Lifestyles::default(),
             terrains: Terrains::default(),
+            regions: Regions::default(),
             courtpos_categories: CourtPositionCategories::default(),
             courtpos: CourtPositions::default(),
             title_history: TitleHistories::default(),
@@ -291,6 +294,7 @@ impl Everything {
         self.fileset.handle(&mut self.traits);
         self.fileset.handle(&mut self.lifestyles);
         self.fileset.handle(&mut self.terrains);
+        self.fileset.handle(&mut self.regions);
         self.fileset.handle(&mut self.courtpos_categories);
         self.fileset.handle(&mut self.courtpos);
         self.fileset.handle(&mut self.title_history);
@@ -312,6 +316,7 @@ impl Everything {
         self.scripted_modifiers.validate(self);
         self.on_actions.validate(self);
         self.terrains.validate(self);
+        self.regions.validate(self);
         self.events.validate(self);
         self.decisions.validate(self);
         self.interactions.validate(self);
@@ -377,6 +382,7 @@ impl Everything {
             Item::NameList => self.namelists.exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces.exists(key),
+            Item::Region => self.regions.exists(key),
             Item::Relation => self.relations.exists(key),
             Item::Religion => self.religions.religion_exists(key),
             Item::RewardItem => REWARD_ITEMS.contains(&key),

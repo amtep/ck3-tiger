@@ -19,6 +19,7 @@ pub mod namelists;
 pub mod on_actions;
 pub mod prov_history;
 pub mod provinces;
+pub mod regions;
 pub mod relations;
 pub mod religions;
 pub mod scripted_effects;
