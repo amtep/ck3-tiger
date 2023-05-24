@@ -1,6 +1,7 @@
 use anyhow::Result;
-use fnv::FnvHashSet;
+use fnv::{FnvHashMap, FnvHashSet};
 use std::cell::RefCell;
+use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use thiserror::Error;
@@ -8,7 +9,7 @@ use thiserror::Error;
 use crate::block::Block;
 use crate::data::characters::Characters;
 use crate::data::courtpos::CourtPositions;
-use crate::data::courtpos_categories::CourtPositionCategories;
+use crate::data::courtpos_categories::CourtPositionCategory;
 use crate::data::data_binding::DataBindings;
 use crate::data::decisions::Decisions;
 use crate::data::defines::Defines;
@@ -43,6 +44,7 @@ use crate::data::traits::Traits;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, ignore_key, ignore_key_for, ignore_path, warn};
 use crate::fileset::{FileEntry, FileKind, Fileset};
+use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::rivers::Rivers;
@@ -64,7 +66,35 @@ pub enum FilesError {
     ConfigUnreadable { path: PathBuf },
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Default)]
+pub struct Db {
+    database: FnvHashMap<(Item, String), DbEntry>,
+}
+
+impl Db {
+    pub fn db_add(&mut self, item: Item, key: Token, block: Block, kind: Box<dyn DbKind>) {
+        let index = (item, key.to_string());
+        if let Some(other) = self.database.get(&index) {
+            if other.key.loc.kind >= key.loc.kind {
+                dup_error(&key, &other.key, &item.to_string());
+            }
+        }
+        self.database.insert(index, DbEntry { key, block, kind });
+    }
+}
+
+#[derive(Debug)]
+pub struct DbEntry {
+    key: Token,
+    block: Block,
+    kind: Box<dyn DbKind>,
+}
+
+pub trait DbKind: Debug {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything);
+}
+
+#[derive(Debug)]
 pub struct Everything {
     /// Config from file
     config: Block,
@@ -73,6 +103,8 @@ pub struct Everything {
 
     /// The CK3 and mod files
     pub fileset: Fileset,
+
+    database: Db,
 
     /// Processed localization files
     pub localization: Localization,
@@ -131,7 +163,6 @@ pub struct Everything {
     pub terrains: Terrains,
     pub regions: Regions,
 
-    pub courtpos_categories: CourtPositionCategories,
     pub courtpos: CourtPositions,
 
     pub title_history: TitleHistories,
@@ -187,6 +218,7 @@ impl Everything {
             fileset,
             config,
             warned_defines: RefCell::new(FnvHashSet::default()),
+            database: Db::default(),
             localization: Localization::default(),
             scripted_lists: ScriptedLists::default(),
             defines: Defines::default(),
@@ -213,7 +245,6 @@ impl Everything {
             lifestyles: Lifestyles::default(),
             terrains: Terrains::default(),
             regions: Regions::default(),
-            courtpos_categories: CourtPositionCategories::default(),
             courtpos: CourtPositions::default(),
             title_history: TitleHistories::default(),
             doctrines: Doctrines::default(),
@@ -268,6 +299,40 @@ impl Everything {
         }
     }
 
+    fn validate_db(&self) {
+        // Sort the entries to create a diffable error output
+        let mut vec: Vec<&DbEntry> = self.database.database.values().collect();
+        vec.sort_by(|entry_a, entry_b| entry_a.key.loc.cmp(&entry_b.key.loc));
+        for entry in vec {
+            entry.kind.validate(&entry.key, &entry.block, &self);
+        }
+    }
+
+    fn exists_in_db(&self, item: Item, key: &str) -> bool {
+        // TODO: figure out how to avoid the to_string() here
+        let index = (item, key.to_string());
+        self.database.database.contains_key(&index)
+    }
+
+    /// A helper function for categories of items that follow the usual pattern of
+    /// `.txt` files containing a block with definitions
+    pub fn load_pdx_items<F>(&mut self, item: Item, subpath: &str, boxed_new: F)
+    where
+        F: Fn(&Token, &Block) -> Box<dyn DbKind>,
+    {
+        let subpath = PathBuf::from(subpath);
+        for entry in self.fileset.get_files_under(&subpath) {
+            if entry.filename().to_string_lossy().ends_with(".txt") {
+                if let Some(block) = PdxFile::read(entry, &self.fileset.fullpath(entry)) {
+                    for (key, block) in block.iter_pure_definitions_warn() {
+                        let kind = boxed_new(key, block);
+                        self.database.db_add(item, key.clone(), block.clone(), kind);
+                    }
+                }
+            }
+        }
+    }
+
     pub fn load_all(&mut self) {
         self.load_errorkey_config();
         self.fileset.config(self.config.clone());
@@ -298,7 +363,11 @@ impl Everything {
         self.fileset.handle(&mut self.lifestyles);
         self.fileset.handle(&mut self.terrains);
         self.fileset.handle(&mut self.regions);
-        self.fileset.handle(&mut self.courtpos_categories);
+        self.load_pdx_items(
+            Item::CourtPositionCategory,
+            "common/court_positions/categories",
+            CourtPositionCategory::boxed_new,
+        );
         self.fileset.handle(&mut self.courtpos);
         self.fileset.handle(&mut self.title_history);
         self.fileset.handle(&mut self.doctrines);
@@ -337,7 +406,6 @@ impl Everything {
         self.relations.validate(self);
         self.traits.validate(self);
         self.lifestyles.validate(self);
-        self.courtpos_categories.validate(self);
         self.courtpos.validate(self);
         self.title_history.validate(self);
         self.doctrines.validate(self);
@@ -345,6 +413,7 @@ impl Everything {
         // self.themes.validate(self);  these are validated through the events that use them
         self.gui.validate(self);
         self.data_bindings.validate(self);
+        self.validate_db();
     }
 
     pub fn check_rivers(&mut self) {
@@ -363,7 +432,7 @@ impl Everything {
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::Character => self.characters.exists(key),
-            Item::CourtPositionCategory => self.courtpos_categories.exists(key),
+            Item::CourtPositionCategory => self.exists_in_db(itype, key),
             Item::DangerType => DANGER_TYPES.contains(&key),
             Item::Decision => self.decisions.exists(key),
             Item::Define => self.defines.exists(key),

@@ -4,7 +4,7 @@ use strum_macros::IntoStaticStr;
 /// "items" are all the things that can be looked up in string-indexed databases.
 /// There is some overlap with scopes, but the difference is that scopes are runtime values
 /// while items are always strings.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord)]
 #[strum(serialize_all = "snake_case")]
 pub enum Item {
     Amenity,

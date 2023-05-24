@@ -1,5 +1,5 @@
 use std::borrow::Borrow;
-use std::fmt::Display;
+use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
 use crate::block::{Block, BlockOrValue, Comparator, Date, Token};
@@ -13,7 +13,6 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::trigger::validate_target;
 
-#[derive(Debug)]
 pub struct Validator<'a> {
     // The block being validated
     block: &'a Block,
@@ -27,6 +26,18 @@ pub struct Validator<'a> {
     accepted_blocks: bool,
     // Whether unknown keys are expected
     accepted_keys: bool,
+}
+
+impl<'a> Debug for Validator<'a> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        f.debug_struct("Validator")
+            .field("block", &self.block)
+            .field("known_fields", &self.known_fields)
+            .field("accepted_tokens", &self.accepted_tokens)
+            .field("accepted_blocks", &self.accepted_blocks)
+            .field("accepted_keys", &self.accepted_keys)
+            .finish()
+    }
 }
 
 impl<'a> Validator<'a> {
