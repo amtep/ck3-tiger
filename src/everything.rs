@@ -8,7 +8,7 @@ use thiserror::Error;
 
 use crate::block::Block;
 use crate::data::characters::Characters;
-use crate::data::courtpos::CourtPositions;
+use crate::data::courtpos::CourtPosition;
 use crate::data::courtpos_categories::CourtPositionCategory;
 use crate::data::data_binding::DataBindings;
 use crate::data::decisions::Decisions;
@@ -163,8 +163,6 @@ pub struct Everything {
     pub terrains: Terrains,
     pub regions: Regions,
 
-    pub courtpos: CourtPositions,
-
     pub title_history: TitleHistories,
 
     pub doctrines: Doctrines,
@@ -245,7 +243,6 @@ impl Everything {
             lifestyles: Lifestyles::default(),
             terrains: Terrains::default(),
             regions: Regions::default(),
-            courtpos: CourtPositions::default(),
             title_history: TitleHistories::default(),
             doctrines: Doctrines::default(),
             menatarmstypes: MenAtArmsTypes::default(),
@@ -368,7 +365,11 @@ impl Everything {
             "common/court_positions/categories",
             CourtPositionCategory::boxed_new,
         );
-        self.fileset.handle(&mut self.courtpos);
+        self.load_pdx_items(
+            Item::CourtPosition,
+            "common/court_positions/types",
+            CourtPosition::boxed_new,
+        );
         self.fileset.handle(&mut self.title_history);
         self.fileset.handle(&mut self.doctrines);
         self.fileset.handle(&mut self.menatarmstypes);
@@ -406,7 +407,6 @@ impl Everything {
         self.relations.validate(self);
         self.traits.validate(self);
         self.lifestyles.validate(self);
-        self.courtpos.validate(self);
         self.title_history.validate(self);
         self.doctrines.validate(self);
         self.menatarmstypes.validate(self);
@@ -432,7 +432,7 @@ impl Everything {
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::Character => self.characters.exists(key),
-            Item::CourtPositionCategory => self.exists_in_db(itype, key),
+            Item::CourtPosition | Item::CourtPositionCategory => self.exists_in_db(itype, key),
             Item::DangerType => DANGER_TYPES.contains(&key),
             Item::Decision => self.decisions.exists(key),
             Item::Define => self.defines.exists(key),
