@@ -350,7 +350,12 @@ impl Event {
         // TODO: check that artifacts are not in the same position as a character
         vd.field_validated_blocks_sc("artifact", &mut sc, validate_artifact);
         vd.field_validated_block_sc("court_scene", &mut sc, validate_court_scene);
-        vd.field_item("theme", Item::EventTheme);
+        if let Some(token) = vd.field_value("theme") {
+            data.verify_exists(Item::EventTheme, token);
+            if let Some(theme) = data.themes.get(token.as_str()) {
+                theme.validate(data, &mut sc);
+            }
+        }
         // TODO: warn if more than one of each is defined with no trigger
         if evtype == "court_event" {
             vd.advice_field("override_background", "not needed for court_event");

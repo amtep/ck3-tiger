@@ -14,6 +14,7 @@ use crate::data::decisions::Decisions;
 use crate::data::defines::Defines;
 use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
+use crate::data::event_themes::Themes;
 use crate::data::events::Events;
 use crate::data::gameconcepts::GameConcepts;
 use crate::data::gui::Gui;
@@ -138,6 +139,7 @@ pub struct Everything {
     pub doctrines: Doctrines,
 
     pub menatarmstypes: MenAtArmsTypes,
+    pub themes: Themes,
 
     pub gui: Gui,
     pub data_bindings: DataBindings,
@@ -216,6 +218,7 @@ impl Everything {
             title_history: TitleHistories::default(),
             doctrines: Doctrines::default(),
             menatarmstypes: MenAtArmsTypes::default(),
+            themes: Themes::default(),
             gui: Gui::default(),
             data_bindings: DataBindings::default(),
         })
@@ -300,6 +303,7 @@ impl Everything {
         self.fileset.handle(&mut self.title_history);
         self.fileset.handle(&mut self.doctrines);
         self.fileset.handle(&mut self.menatarmstypes);
+        self.fileset.handle(&mut self.themes);
         self.fileset.handle(&mut self.gui);
         self.fileset.handle(&mut self.data_bindings);
     }
@@ -338,6 +342,7 @@ impl Everything {
         self.title_history.validate(self);
         self.doctrines.validate(self);
         self.menatarmstypes.validate(self);
+        // self.themes.validate(self);  these are validated through the events that use them
         self.gui.validate(self);
         self.data_bindings.validate(self);
     }
@@ -368,6 +373,7 @@ impl Everything {
             Item::DoctrineParameter => self.doctrines.parameter_exists(key),
             Item::Dynasty => self.dynasties.exists(key),
             Item::Event => self.events.exists(key),
+            Item::EventTheme => self.themes.exists(key),
             Item::Faith => self.religions.faith_exists(key),
             Item::File => self.fileset.exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),

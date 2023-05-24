@@ -6,6 +6,7 @@ pub mod decisions;
 pub mod defines;
 pub mod doctrines;
 pub mod dynasties;
+pub mod event_themes;
 pub mod events;
 pub mod gameconcepts;
 pub mod gui;
