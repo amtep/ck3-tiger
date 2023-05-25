@@ -560,7 +560,7 @@ fn validate_effect_special_bv(
                 let mut vd = Validator::new(block, data);
                 vd.req_field("type");
                 vd.field_item("type", Item::Holding);
-                vd.field_validated_block("cost", |b, data| {
+                vd.field_validated_block("refund_cost", |b, data| {
                     let mut vd = Validator::new(b, data);
                     vd.field_script_value("gold", sc);
                     vd.field_script_value("prestige", sc);
