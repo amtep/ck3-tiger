@@ -747,8 +747,13 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "remove_short_term_gold", NonNegativeValue),
     (Faction, "remove_special_character", Yes),
     (Faction, "remove_special_title", Yes),
-    // remove_title_law -- no idea
-    // remove_title_law_effects -- no idea
+    // docs say these next two are scope None, but that does not make sense.
+    (LandedTitle, "remove_title_law", Item(Item::TitleLaw)),
+    (
+        LandedTitle,
+        "remove_title_law_effects",
+        Item(Item::TitleLaw),
+    ),
     (Character, "remove_trait", Item(Item::Trait)),
     (Character, "remove_trait_force_tooltip", Item(Item::Trait)),
     // TODO: figure out which item this is
