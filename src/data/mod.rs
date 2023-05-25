@@ -8,6 +8,7 @@ pub mod doctrines;
 pub mod dynasties;
 pub mod event_themes;
 pub mod events;
+pub mod factions;
 pub mod gameconcepts;
 pub mod gui;
 pub mod houses;

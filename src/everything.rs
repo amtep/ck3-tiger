@@ -17,6 +17,7 @@ use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
 use crate::data::event_themes::Themes;
 use crate::data::events::Events;
+use crate::data::factions::Faction;
 use crate::data::gameconcepts::GameConcepts;
 use crate::data::gui::Gui;
 use crate::data::houses::Houses;
@@ -382,6 +383,7 @@ impl Everything {
             "common/scripted_rules/",
             ScriptedRule::boxed_new,
         );
+        self.load_pdx_items(Item::Faction, "common/factions/", Faction::boxed_new);
     }
 
     pub fn validate_all(&mut self) {
@@ -435,10 +437,13 @@ impl Everything {
 
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
+            Item::CourtPosition
+            | Item::CourtPositionCategory
+            | Item::ScriptedRule
+            | Item::Faction => self.exists_in_db(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::Character => self.characters.exists(key),
-            Item::CourtPosition | Item::CourtPositionCategory => self.exists_in_db(itype, key),
             Item::DangerType => DANGER_TYPES.contains(&key),
             Item::Decision => self.decisions.exists(key),
             Item::Define => self.defines.exists(key),
