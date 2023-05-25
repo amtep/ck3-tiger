@@ -742,7 +742,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "remove_scheme_cooldown_against",
         ItemTarget("scheme", Item::Scheme, "target", Scopes::Character),
     ),
-    (Scheme, "remove_province_modifier", Item(Item::Modifier)),
+    (Scheme, "remove_scheme_modifier", Item(Item::Modifier)),
     (Secret, "remove_secret", Yes),
     (Character, "remove_short_term_gold", NonNegativeValue),
     (Faction, "remove_special_character", Yes),
