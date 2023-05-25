@@ -6,6 +6,6 @@
 
 ## Features
 
-* Parse the scripted datafunction macros in `data_binding`
+* Parse and validate #tooltip: directives in localization
 * The validations in IDEAS.md
 * Hundreds of TODO comments in the code

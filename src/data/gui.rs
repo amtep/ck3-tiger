@@ -130,7 +130,7 @@ impl FileHandler for Gui {
             return;
         }
 
-        let Some(block) = PdxFile::read_no_bom(entry, fullpath) else { return };
+        let Some(block) = PdxFile::read_optional_bom(entry, fullpath) else { return };
 
         let mut expecting = Expecting::Widget;
 

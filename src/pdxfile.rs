@@ -66,6 +66,15 @@ impl PdxFile {
         }
     }
 
+    pub fn read_optional_bom(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
+        let contents = Self::read_utf8(entry, fullpath)?;
+        if let Some(bomless) = contents.strip_prefix('\u{feff}') {
+            parse_pdx(entry, bomless)
+        } else {
+            parse_pdx(entry, &contents)
+        }
+    }
+
     pub fn read_cp1252(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         let contents = Self::read_1252(entry, fullpath)?;
 
