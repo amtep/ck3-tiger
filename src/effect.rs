@@ -767,7 +767,7 @@ fn validate_effect_special(
     } else if caller == "add_artifact_title_history" {
         vd.req_field("target");
         vd.req_field("date");
-        vd.field_target("target", sc, Scopes::Character);
+        vd.field_target("target", sc, Scopes::LandedTitle);
         vd.field_date("date");
     } else if caller == "add_from_contribution_attackers"
         || caller == "add_from_contribution_defenders"

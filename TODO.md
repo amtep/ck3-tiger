@@ -6,6 +6,7 @@
 
 ## False positives
 
+* Event themes also have a `transition` field
 * In geographical regions, the requirement to define regions before use seems to not be true anymore
 * fields `graphical` and `color` for geographical regions
 * New province modifier `travel_danger`
