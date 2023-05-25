@@ -35,6 +35,7 @@ use crate::data::religions::Religions;
 use crate::data::scripted_effects::{Effect, Effects};
 use crate::data::scripted_lists::ScriptedLists;
 use crate::data::scripted_modifiers::ScriptedModifiers;
+use crate::data::scripted_rules::ScriptedRule;
 use crate::data::scripted_triggers::{Trigger, Triggers};
 use crate::data::scriptvalues::ScriptValues;
 use crate::data::terrain::Terrains;
@@ -376,6 +377,11 @@ impl Everything {
         self.fileset.handle(&mut self.themes);
         self.fileset.handle(&mut self.gui);
         self.fileset.handle(&mut self.data_bindings);
+        self.load_pdx_items(
+            Item::ScriptedRule,
+            "common/scripted_rules/",
+            ScriptedRule::boxed_new,
+        );
     }
 
     pub fn validate_all(&mut self) {
