@@ -111,6 +111,7 @@ impl DataBinding {
                     if code.codes.len() == 1 {
                         replace = Some(code.codes[0].clone());
                     } else {
+                        // TODO: this is not true
                         let msg = "macro replacement should be a single call";
                         error(rep, ErrorKey::Datafunctions, msg);
                     }
