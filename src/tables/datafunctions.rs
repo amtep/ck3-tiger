@@ -46,12 +46,9 @@ pub fn lookup_global_promote(lookup_name: &Token) -> Option<(Args, Datatype)> {
         return Some((args, rtype));
     }
 
-    // Most datatypes can be used directly as global promotes,
-    // taking their value from the gui context.
+    // Datatypes can be used directly as global promotes, taking their value from the gui context.
     if let Ok(dtype) = Datatype::from_str(lookup_name.as_str()) {
-        if lookup_name.as_str().chars().next().unwrap().is_uppercase() {
-            return Some((Args::NoArgs, dtype));
-        }
+        return Some((Args::NoArgs, dtype));
     }
 
     None
