@@ -120,5 +120,13 @@ impl Theme {
             // TODO: figure out a way to get a list of all available sounds
             vd.field_value("reference");
         });
+        // `transition` is not documented but presumably works the same way
+        vd.field_validated_blocks("transition", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_block("trigger", |b, data| {
+                validate_normal_trigger(b, data, sc, false);
+            });
+            vd.field_item("reference", Item::EventTransition);
+        });
     }
 }

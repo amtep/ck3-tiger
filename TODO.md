@@ -9,7 +9,6 @@
 
 * scripted relations now have a `flags` field with named flags, instead of numeric flags
 * ai_value_modifier can have `dread_modified_ai_boldness` that takes a block
-* Event themes also have a `transition` field
 * In geographical regions, the requirement to define regions before use seems to not be true anymore
 * fields `graphical` and `color` for geographical regions
 * New province modifier `travel_danger`
