@@ -7,7 +7,6 @@
 
 ## False positives
 
-* In localization, `##` means a literal `#`
 * scripted relations now have a `flags` field with named flags, instead of numeric flags
 * ai_value_modifier can have `dread_modified_ai_boldness` that takes a block
 * Event themes also have a `transition` field

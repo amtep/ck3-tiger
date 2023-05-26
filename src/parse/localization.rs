@@ -562,7 +562,12 @@ impl<'a> ValueParser<'a> {
         let loc = self.loc.clone();
         let mut text = "#".to_string();
         self.next_char(); // skip the #
-        if self.peek() == Some('!') {
+        if self.peek() == Some('#') {
+            // double # means a literal #
+            self.next_char();
+            // text already contains the #
+            self.value.push(LocaValue::Text(Token::new(text, loc)));
+        } else if self.peek() == Some('!') {
             text.push('!');
             self.next_char();
             self.value.push(LocaValue::MarkupEnd(Token::new(text, loc)));
