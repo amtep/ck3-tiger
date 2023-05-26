@@ -1,6 +1,6 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
-use crate::everything::{DbKind, Everything};
+use crate::everything::{Db, DbKind, Everything};
 use crate::item::Item;
 use crate::token::Token;
 
@@ -8,8 +8,8 @@ use crate::token::Token;
 pub struct CourtPositionCategory {}
 
 impl CourtPositionCategory {
-    pub fn boxed_new(_key: &Token, _block: &Block) -> Box<dyn DbKind> {
-        Box::new(Self {})
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CourtPositionCategory, key, block, Box::new(Self {}));
     }
 }
 

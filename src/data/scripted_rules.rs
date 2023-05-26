@@ -2,7 +2,8 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
-use crate::everything::{DbKind, Everything};
+use crate::everything::{Db, DbKind, Everything};
+use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::validate_normal_trigger;
@@ -11,8 +12,8 @@ use crate::trigger::validate_normal_trigger;
 pub struct ScriptedRule {}
 
 impl ScriptedRule {
-    pub fn boxed_new(_key: &Token, _block: &Block) -> Box<dyn DbKind> {
-        Box::new(Self {})
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::ScriptedRule, key, block, Box::new(Self {}));
     }
 }
 

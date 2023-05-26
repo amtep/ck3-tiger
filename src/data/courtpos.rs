@@ -2,7 +2,7 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::effect::validate_normal_effect;
-use crate::everything::{DbKind, Everything};
+use crate::everything::{Db, DbKind, Everything};
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
@@ -14,8 +14,8 @@ use crate::validate::validate_cost;
 pub struct CourtPosition {}
 
 impl CourtPosition {
-    pub fn boxed_new(_key: &Token, _block: &Block) -> Box<dyn DbKind> {
-        Box::new(Self {})
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CourtPosition, key, block, Box::new(Self {}));
     }
 }
 

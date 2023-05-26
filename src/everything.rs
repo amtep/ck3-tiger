@@ -31,7 +31,7 @@ use crate::data::on_actions::OnActions;
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::regions::Regions;
-use crate::data::relations::Relations;
+use crate::data::relations::Relation;
 use crate::data::religions::Religions;
 use crate::data::scripted_effects::{Effect, Effects};
 use crate::data::scripted_lists::ScriptedLists;
@@ -74,7 +74,7 @@ pub struct Db {
 }
 
 impl Db {
-    pub fn db_add(&mut self, item: Item, key: Token, block: Block, kind: Box<dyn DbKind>) {
+    pub fn add(&mut self, item: Item, key: Token, block: Block, kind: Box<dyn DbKind>) {
         let index = (item, key.to_string());
         if let Some(other) = self.database.get(&index) {
             if other.key.loc.kind >= key.loc.kind {
@@ -149,9 +149,6 @@ pub struct Everything {
 
     /// Cultural name lists
     pub namelists: Namelists,
-
-    /// Scripted relations
-    pub relations: Relations,
 
     pub scriptvalues: ScriptValues,
 
@@ -237,7 +234,6 @@ impl Everything {
             houses: Houses::default(),
             characters: Characters::default(),
             namelists: Namelists::default(),
-            relations: Relations::default(),
             scriptvalues: ScriptValues::default(),
             triggers: Triggers::default(),
             effects: Effects::default(),
@@ -315,17 +311,16 @@ impl Everything {
 
     /// A helper function for categories of items that follow the usual pattern of
     /// `.txt` files containing a block with definitions
-    pub fn load_pdx_items<F>(&mut self, item: Item, subpath: &str, boxed_new: F)
+    pub fn load_pdx_items<F>(&mut self, subpath: &str, add: F)
     where
-        F: Fn(&Token, &Block) -> Box<dyn DbKind>,
+        F: Fn(&mut Db, Token, Block),
     {
         let subpath = PathBuf::from(subpath);
         for entry in self.fileset.get_files_under(&subpath) {
             if entry.filename().to_string_lossy().ends_with(".txt") {
                 if let Some(block) = PdxFile::read(entry, &self.fileset.fullpath(entry)) {
                     for (key, block) in block.iter_pure_definitions_warn() {
-                        let kind = boxed_new(key, block);
-                        self.database.db_add(item, key.clone(), block.clone(), kind);
+                        add(&mut self.database, key.clone(), block.clone());
                     }
                 }
             }
@@ -354,7 +349,6 @@ impl Everything {
         self.fileset.handle(&mut self.houses);
         self.fileset.handle(&mut self.characters);
         self.fileset.handle(&mut self.namelists);
-        self.fileset.handle(&mut self.relations);
         self.fileset.handle(&mut self.scriptvalues);
         self.fileset.handle(&mut self.triggers);
         self.fileset.handle(&mut self.effects);
@@ -363,27 +357,19 @@ impl Everything {
         self.fileset.handle(&mut self.terrains);
         self.fileset.handle(&mut self.regions);
         self.load_pdx_items(
-            Item::CourtPositionCategory,
             "common/court_positions/categories",
-            CourtPositionCategory::boxed_new,
+            CourtPositionCategory::add,
         );
-        self.load_pdx_items(
-            Item::CourtPosition,
-            "common/court_positions/types",
-            CourtPosition::boxed_new,
-        );
+        self.load_pdx_items("common/court_positions/types", CourtPosition::add);
         self.fileset.handle(&mut self.title_history);
         self.fileset.handle(&mut self.doctrines);
         self.fileset.handle(&mut self.menatarmstypes);
         self.fileset.handle(&mut self.themes);
         self.fileset.handle(&mut self.gui);
         self.fileset.handle(&mut self.data_bindings);
-        self.load_pdx_items(
-            Item::ScriptedRule,
-            "common/scripted_rules/",
-            ScriptedRule::boxed_new,
-        );
-        self.load_pdx_items(Item::Faction, "common/factions/", Faction::boxed_new);
+        self.load_pdx_items("common/scripted_rules/", ScriptedRule::add);
+        self.load_pdx_items("common/factions/", Faction::add);
+        self.load_pdx_items("common/scripted_relations/", Relation::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -412,7 +398,6 @@ impl Everything {
         self.houses.validate(self);
         self.characters.validate(self);
         self.namelists.validate(self);
-        self.relations.validate(self);
         self.traits.validate(self);
         self.lifestyles.validate(self);
         self.title_history.validate(self);
@@ -439,8 +424,9 @@ impl Everything {
         match itype {
             Item::CourtPosition
             | Item::CourtPositionCategory
-            | Item::ScriptedRule
-            | Item::Faction => self.exists_in_db(itype, key),
+            | Item::Faction
+            | Item::Relation
+            | Item::ScriptedRule => self.exists_in_db(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::Character => self.characters.exists(key),
@@ -469,7 +455,6 @@ impl Everything {
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces.exists(key),
             Item::Region => self.regions.exists(key),
-            Item::Relation => self.relations.exists(key),
             Item::Religion => self.religions.religion_exists(key),
             Item::RewardItem => REWARD_ITEMS.contains(&key),
             Item::ScriptedEffect => self.effects.exists(key),
