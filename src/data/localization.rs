@@ -4,7 +4,6 @@ use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
 use crate::block::Block;
-use crate::data::localization::parse::{parse_loca, ValueParser};
 use crate::datatype::{validate_datatypes, CodeChain, Datatype};
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice_info, error, error_info, warn, warn_info};
@@ -12,9 +11,8 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::dup_error;
 use crate::item::Item;
+use crate::parse::localization::{parse_loca, ValueParser};
 use crate::token::Token;
-
-pub mod parse;
 
 #[derive(Clone, Debug)]
 pub struct Localization {
@@ -47,6 +45,10 @@ pub struct LocaEntry {
 }
 
 impl LocaEntry {
+    pub fn new(key: Token, value: LocaValue, orig: Option<Token>) -> Self {
+        Self { key, value, orig }
+    }
+
     // returns false to abort expansion in case of an error
     fn expand_macros<'a>(
         &'a self,
@@ -276,7 +278,7 @@ impl FileHandler for Localization {
             }
             match read_to_string(fullpath) {
                 Ok(content) => {
-                    for loca in parse_loca(entry, &content) {
+                    for loca in parse_loca(entry, &content, filelang) {
                         let hash = self.locas.entry(filelang).or_default();
                         if let Some(other) = hash.get(loca.key.as_str()) {
                             if other.key.loc.kind == entry.kind() && other.orig != loca.orig {

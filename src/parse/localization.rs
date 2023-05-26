@@ -1,7 +1,7 @@
 use std::iter::Peekable;
 use std::str::Chars;
 
-use crate::data::localization::{get_file_lang, LocaEntry, LocaValue, MacroValue};
+use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
@@ -97,11 +97,7 @@ impl<'a> LocaParser<'a> {
     #[allow(clippy::unnecessary_wraps)]
     fn error_line(&mut self, key: Token) -> Option<LocaEntry> {
         self.skip_line();
-        Some(LocaEntry {
-            key,
-            value: LocaValue::Error,
-            orig: None,
-        })
+        Some(LocaEntry::new(key, LocaValue::Error, None))
     }
 
     fn get_key(&mut self) -> Token {
@@ -354,11 +350,7 @@ impl<'a> LocaParser<'a> {
         } else {
             LocaValue::Concat(std::mem::take(&mut self.value))
         };
-        Some(LocaEntry {
-            key,
-            value,
-            orig: Some(token),
-        })
+        Some(LocaEntry::new(key, value, Some(token)))
     }
 }
 
@@ -701,10 +693,7 @@ impl<'a> Iterator for LocaReader<'a> {
     }
 }
 
-#[allow(clippy::module_name_repetitions)]
-pub fn parse_loca<'a>(entry: &FileEntry, content: &'a str) -> LocaReader<'a> {
-    // lang can be unwrapped here because we wouldn't be called to parse a bad filename
-    let lang = get_file_lang(entry.path().file_name().unwrap()).unwrap();
+pub fn parse_loca<'a>(entry: &FileEntry, content: &'a str, lang: &'static str) -> LocaReader<'a> {
     let mut loc = Loc::for_entry(entry);
     loc.line = 1;
     loc.column = 1;

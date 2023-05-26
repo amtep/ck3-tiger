@@ -2,7 +2,6 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::{Block, BlockOrValue};
-use crate::data::localization::parse::ValueParser;
 use crate::data::localization::LocaValue;
 use crate::datatype::{validate_datatypes, Datatype};
 use crate::errorkey::ErrorKey;
@@ -10,6 +9,7 @@ use crate::errors::{advice, error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 

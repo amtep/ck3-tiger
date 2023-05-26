@@ -3,7 +3,6 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
-use crate::data::localization::parse::ValueParser;
 use crate::data::localization::LocaValue;
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::errorkey::ErrorKey;
@@ -11,6 +10,7 @@ use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
