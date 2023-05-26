@@ -52,18 +52,10 @@ pub fn validate_effect<'a>(
         vd.ban_field("limit", || "if/else_if or lists");
     }
 
-    validate_iterator_fields(caller, list_type, sc, &mut vd, &mut tooltipped);
+    validate_iterator_fields(caller, list_type, data, sc, &mut vd, &mut tooltipped);
 
     if list_type != ListType::None {
-        validate_inside_iterator(
-            caller,
-            &list_type.to_string(),
-            block,
-            data,
-            sc,
-            &mut vd,
-            tooltipped,
-        );
+        validate_inside_iterator(caller, list_type, block, data, sc, &mut vd, tooltipped);
     }
 
     'outer: for (key, bv) in vd.unknown_keys() {
@@ -421,9 +413,7 @@ fn validate_effect_control(
         } else {
             vd.field_item("text", Item::TriggerLocalization);
         }
-        if let Some(token) = vd.field_value("subject") {
-            validate_target(token, data, sc, Scopes::non_primitive());
-        }
+        vd.field_target("subject", sc, Scopes::non_primitive());
         tooltipped = false;
     } else {
         vd.ban_field("text", || "`custom_description` or `custom_tooltip`");
@@ -431,9 +421,7 @@ fn validate_effect_control(
     }
 
     if caller == "custom_description" || caller == "custom_description_no_bullet" {
-        if let Some(token) = vd.field_value("object") {
-            validate_target(token, data, sc, Scopes::non_primitive());
-        }
+        vd.field_target("object", sc, Scopes::non_primitive());
         vd.field_script_value("value", sc);
     } else {
         vd.ban_field("object", || "`custom_description`");
@@ -480,7 +468,7 @@ fn validate_effect_control(
 
         vd.field_script_value("count", sc);
     } else {
-        vd.ban_field("count", || "`while`");
+        vd.ban_field("count", || "`while` and `any_` lists");
     }
 
     if caller == "random" || caller == "random_list" || caller == "duel" {

@@ -265,6 +265,7 @@ pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted:
 pub fn validate_iterator_fields(
     caller: &str,
     list_type: ListType,
+    data: &Everything,
     sc: &mut ScopeContext,
     vd: &mut Validator,
     tooltipped: &mut bool,
@@ -274,12 +275,45 @@ pub fn validate_iterator_fields(
         if vd.field_item("custom", Item::Localization) {
             *tooltipped = false;
         }
+    } else {
+        vd.ban_field("custom", || "lists");
+    }
+
+    // undocumented
+    if list_type != ListType::None && list_type != ListType::Any {
         vd.field_validated_blocks("alternative_limit", |b, data| {
             validate_normal_trigger(b, data, sc, false);
         });
     } else {
-        vd.ban_field("custom", || "lists");
-        vd.ban_field("alternative_limit", || "lists");
+        vd.ban_field("alternative_limit", || {
+            "`every_`, `ordered_`, and `random_` lists"
+        });
+    }
+
+    if list_type == ListType::Any {
+        if let Some(bv) = vd.field_any_cmp("percent") {
+            if let Some(token) = bv.get_value() {
+                if let Ok(num) = token.as_str().parse::<f64>() {
+                    if num > 1.0 {
+                        let msg = "'percent' here needs to be between 0 and 1";
+                        warn(token, ErrorKey::Range, msg);
+                    }
+                }
+            }
+            ScriptValue::validate_bv(bv, data, sc);
+        };
+
+        if let Some(bv) = vd.field_any_cmp("count") {
+            match bv {
+                BlockOrValue::Value(token) if token.is("all") => (),
+                bv => ScriptValue::validate_bv(bv, data, sc),
+            }
+        };
+    } else {
+        vd.ban_field("percent", || "`any_` lists");
+        if caller != "while" {
+            vd.ban_field("count", || "`while` and `any_` lists");
+        }
     }
 
     if list_type == ListType::Ordered {
@@ -309,7 +343,7 @@ pub fn validate_iterator_fields(
 /// It doesn't check the generic ones like `limit` or the ordering ones for `ordered_*`.
 pub fn validate_inside_iterator(
     name: &str,
-    listtype: &str,
+    listtype: ListType,
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
@@ -357,7 +391,7 @@ pub fn validate_inside_iterator(
     if name == "court_position_holder" {
         vd.field_item("type", Item::CourtPosition);
     } else if name == "relation" {
-        vd.req_field("type");
+        vd.req_field("type"); // without a type, it won't match any relationship
         for t in vd.field_values("type") {
             data.verify_exists(Item::Relation, t);
         }
@@ -436,7 +470,7 @@ pub fn validate_inside_iterator(
     if name == "trait_in_category" {
         vd.field_value("category"); // TODO
     } else {
-        vd.ban_field("category", || format!("`{listtype}_trait_in_category`"));
+        // Don't ban, because it's a valid trigger
     }
 }
 

@@ -13,7 +13,9 @@ use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::tables::triggers::{scope_trigger, trigger_comparevalue, Trigger};
 use crate::token::Token;
 use crate::util::stringify_choices;
-use crate::validate::validate_prefix_reference;
+use crate::validate::{
+    validate_inside_iterator, validate_iterator_fields, validate_prefix_reference, ListType,
+};
 
 pub fn validate_normal_trigger(
     block: &Block,
@@ -32,7 +34,7 @@ pub fn validate_trigger(
     sc: &mut ScopeContext,
     mut tooltipped: bool,
 ) {
-    let mut seen_if = false;
+    let mut vd = Validator::new(block, data);
 
     if caller == "custom_description"
         || caller == "custom_tooltip"
@@ -41,334 +43,104 @@ pub fn validate_trigger(
         tooltipped = false;
     }
 
-    for (key, cmp, bv) in block.iter_items() {
-        if let Some(key) = key {
-            if key.is("limit") {
-                // limit blocks are accepted in trigger_else even though it doesn't make sense
-                if caller == "trigger_if" || caller == "trigger_else_if" || caller == "trigger_else"
-                {
-                    if let Some(block) = bv.expect_block() {
-                        validate_normal_trigger(block, data, sc, tooltipped);
-                    }
-                } else {
-                    warn(key, ErrorKey::Validation, "can only use `limit` in `trigger_if` or `trigger_else_if` or `trigger_else`");
-                }
-                continue;
-            }
-
-            if key.is("trigger_if") {
-                seen_if = true;
-            } else if key.is("trigger_else_if") || key.is("trigger_else") {
-                if !seen_if {
-                    let msg = "must follow `trigger_if` or `trigger_else_if`";
-                    error(key, ErrorKey::Validation, msg);
-                }
-                if key.is("trigger_else") {
-                    seen_if = false;
-                }
-            } else {
-                seen_if = false;
-            }
-
-            if key.is("percent") {
-                if !in_list {
-                    let msg = "can only use `percent =` in an `any_` list";
-                    warn(key, ErrorKey::Validation, msg);
-                    continue;
-                }
-                if let Some(token) = bv.get_value() {
-                    if let Ok(num) = token.as_str().parse::<f64>() {
-                        if num > 1.0 {
-                            let msg = "'percent' here needs to be between 0 and 1";
-                            warn(token, ErrorKey::Range, msg);
-                        }
-                    }
-                }
-                ScriptValue::validate_bv(bv, data, sc);
-                continue;
-            }
-
-            if key.is("count") {
-                if !in_list {
-                    let msg = "can only use `count =` in an `any_` list";
-                    warn(key, ErrorKey::Validation, msg);
-                    continue;
-                }
-                if let Some(token) = bv.get_value() {
-                    if token.is("all") {
-                        continue;
-                    }
-                }
-                ScriptValue::validate_bv(bv, data, sc);
-                continue;
-            }
-
-            if key.is("list") || key.is("variable") {
-                if caller != "any_in_list"
-                    && caller != "any_in_global_list"
-                    && caller != "any_in_local_list"
-                {
-                    let msg = format!("can only use `{key} =` in `any_in_list`, `any_in_global_list`, or `any_in_local_list`");
-                    warn(key, ErrorKey::Validation, &msg);
-                    continue;
-                }
-                bv.expect_value(); // TODO
-                continue;
-            }
-
-            if key.is("type") {
-                if caller == "any_relation" {
-                    if let Some(token) = bv.expect_value() {
-                        data.verify_exists(Item::Relation, token);
-                    }
-                } else if caller == "any_court_position_holder" {
-                    if let Some(token) = bv.expect_value() {
-                        data.verify_exists(Item::CourtPosition, token);
-                    }
-                } else {
-                    let msg = format!("can only use `{key} =` in `any_relation` list");
-                    warn(key, ErrorKey::Validation, &msg);
-                }
-                continue;
-            }
-
-            if key.is("province") {
-                if caller != "any_pool_character" {
-                    let msg = format!("can only use `{key} =` in `any_pool_character` list");
-                    warn(key, ErrorKey::Validation, &msg);
-                    continue;
-                }
-                if let Some(token) = bv.expect_value() {
-                    validate_target(token, data, sc, Scopes::Province);
-                }
-                continue;
-            }
-
-            if key.is("even_if_dead") || key.is("only_if_dead") {
-                if !in_list || !sc.can_be(Scopes::Character) {
-                    let msg = format!("can only use `{key} =` in a character list");
-                    warn(key, ErrorKey::Validation, &msg);
-                    continue;
-                }
-                // TODO Might be literal yes/no expected, might be any bool value
-                bv.expect_value();
-                continue;
-            }
-
-            if key.is("involvement") {
-                if caller != "any_character_struggle" {
-                    let msg = format!("can only use `{key} =` in `any_character_struggle` list");
-                    warn(key, ErrorKey::Validation, &msg);
-                    continue;
-                }
-                if let Some(token) = bv.expect_value() {
-                    if !(token.is("involved") || token.is("interloper")) {
-                        let msg = "expected one of `involved` or `interloper`";
-                        error(token, ErrorKey::Validation, msg);
-                    }
-                }
-                continue;
-            }
-
-            if key.is("region") {
-                if caller != "any_county_in_region" {
-                    let msg = format!("can only use `{key} =` in `any_county_in_region` list");
-                    warn(key, ErrorKey::Validation, &msg);
-                    continue;
-                }
-                if let Some(token) = bv.expect_value() {
-                    data.verify_exists(Item::Region, token);
-                }
-                continue;
-            }
-
-            if key.is("filter") || key.is("continue") {
-                if caller != "any_in_de_jure_hierarchy" && caller != "any_in_de_facto_hierarchy" {
-                    let msg = format!("can only use `{key} =` in `..._hierarchy` list");
-                    warn(key, ErrorKey::Validation, &msg);
-                    continue;
-                }
-                if let Some(block) = bv.expect_block() {
-                    validate_normal_trigger(block, data, sc, false);
-                }
-                continue;
-            }
-
-            if key.is("pressed") || key.is("explicit") {
-                if caller != "any_claim" {
-                    let msg = format!("can only use `{key} =` in `any_claim` list");
-                    warn(key, ErrorKey::Validation, &msg);
-                    continue;
-                }
-                bv.expect_value(); // TODO: check yes/no/all
-                continue;
-            }
-
-            if key.is("name") {
-                if caller != "any_guest_subset" && caller != "any_guest_subset_current_phase" {
-                    let msg = format!("can only use `{key} =` in `any_guest_subset` list");
-                    warn(key, ErrorKey::Validation, &msg);
-                    continue;
-                }
-                if let Some(token) = bv.expect_value() {
-                    data.verify_exists(Item::GuestSubset, token);
-                }
-                continue;
-            }
-
-            if key.is("phase") {
-                if caller != "any_guest_subset" {
-                    let msg = format!("can only use `{key} =` in `any_guest_subset` list");
-                    warn(key, ErrorKey::Validation, &msg);
-                    continue;
-                }
-                if let Some(token) = bv.expect_value() {
-                    data.verify_exists(Item::ActivityPhase, token);
-                }
-                continue;
-            }
-
-            if key.is("text") {
-                if caller == "custom_description" {
-                    if let Some(token) = bv.expect_value() {
-                        data.verify_exists(Item::TriggerLocalization, token);
-                    }
-                } else if caller == "custom_tooltip" {
-                    if let Some(token) = bv.expect_value() {
-                        data.localization.verify_exists(token);
-                    }
-                } else {
-                    let msg = format!(
-                        "can only use `{key} =` in `custom_description` or `custom_tooltip`",
-                    );
-                    warn(key, ErrorKey::Validation, &msg);
-                }
-                continue;
-            }
-
-            if key.is("subject") {
-                if caller == "custom_description" || caller == "custom_tooltip" {
-                    if let Some(token) = bv.expect_value() {
-                        validate_target(token, data, sc, Scopes::non_primitive());
-                    }
-                } else {
-                    let msg = format!(
-                        "can only use `{key} =` in `custom_description` or `custom_tooltip`",
-                    );
-                    warn(key, ErrorKey::Validation, &msg);
-                }
-                continue;
-            }
-            if key.is("object") {
-                if caller == "custom_description" {
-                    if let Some(token) = bv.expect_value() {
-                        validate_target(token, data, sc, Scopes::non_primitive());
-                    }
-                } else {
-                    let msg = format!("can only use `{key} =` in `custom_description`");
-                    warn(key, ErrorKey::Validation, &msg);
-                }
-                continue;
-            }
-            if key.is("value") {
-                if caller == "custom_description" {
-                    ScriptValue::validate_bv(bv, data, sc);
-                } else {
-                    let msg = format!("can only use `{key} =` in `custom_description`");
-                    warn(key, ErrorKey::Validation, &msg);
-                }
-                continue;
-            }
-
-            if key.is("add") || key.is("factor") {
-                if caller == "modifier" {
-                    ScriptValue::validate_bv(bv, data, sc);
-                } else {
-                    let msg = format!("can only use `{key} =` in `modifier`");
-                    warn(key, ErrorKey::Validation, &msg);
-                }
-                continue;
-            }
-
-            if key.is("desc") {
-                if caller == "modifier" {
-                    validate_desc(bv, data, sc);
-                } else {
-                    let msg = format!("can only use `{key} =` in `modifier`");
-                    warn(key, ErrorKey::Validation, &msg);
-                }
-                continue;
-            }
-
-            // TODO: undocumented; found in vanilla. Verify that it works.
-            if key.is("trigger") {
-                if caller == "modifier" {
-                    if let Some(block) = bv.expect_block() {
-                        validate_normal_trigger(block, data, sc, false);
-                    }
-                } else {
-                    let msg = format!("can only use `{key} =` in `modifier`");
-                    warn(key, ErrorKey::Validation, &msg);
-                }
-                continue;
-            }
-
-            if key.is("amount") {
-                if caller == "calc_true_if" {
-                    if let Some(token) = bv.expect_value() {
-                        if token.as_str().parse::<i32>().is_err() {
-                            warn(token, ErrorKey::Validation, "expected a number");
-                        }
-                    }
-                } else {
-                    let msg = format!("can only use `{key} =` in `calc_true_if`");
-                    warn(key, ErrorKey::Validation, &msg);
-                }
-                continue;
-            }
-
-            if let Some((it_type, it_name)) = key.split_once('_') {
-                if it_type.is("any")
-                    || it_type.is("ordered")
-                    || it_type.is("every")
-                    || it_type.is("random")
-                {
-                    if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
-                        if !it_type.is("any") {
-                            let msg = format!("cannot use `{it_type}_` list in a trigger");
-                            error(key, ErrorKey::Validation, &msg);
-                            continue;
-                        }
-                        sc.expect(inscopes, key);
-                        if let Some(b) = bv.get_block() {
-                            sc.open_scope(outscope, key.clone());
-                            validate_trigger(key.as_str(), true, b, data, sc, tooltipped);
-                            sc.close();
-                        } else {
-                            error(bv, ErrorKey::Validation, "expected block, found value");
-                        }
-                        continue;
-                    }
-                }
-            }
-
-            validate_trigger_key_bv(key, *cmp, bv, data, sc, tooltipped);
+    // limit blocks are accepted in trigger_else even though it doesn't make sense
+    if caller == "trigger_if" || caller == "trigger_else_if" || caller == "trigger_else" {
+        if let Some(b) = vd.field_block("limit") {
+            validate_normal_trigger(b, data, sc, tooltipped);
         } else {
-            match bv {
-                BlockOrValue::Value(t) => warn_info(
-                    t,
-                    ErrorKey::Validation,
-                    "unexpected token",
-                    "did you forget an = ?",
-                ),
-                BlockOrValue::Block(b) => warn_info(
-                    b,
-                    ErrorKey::Validation,
-                    "unexpected block",
-                    "did you forget an = ?",
-                ),
+            vd.ban_field("limit", || {
+                "`trigger_if`, `trigger_else_if` or `trigger_else`"
+            });
+        }
+    }
+
+    let list_type = if in_list {
+        ListType::Any
+    } else {
+        ListType::None
+    };
+    validate_iterator_fields(caller, list_type, data, sc, &mut vd, &mut tooltipped);
+
+    if list_type != ListType::None {
+        validate_inside_iterator(caller, list_type, block, data, sc, &mut vd, tooltipped);
+    }
+
+    // TODO: the custom_description and custom_tooltip logic is duplicated for effects
+    if caller == "custom_description" || caller == "custom_tooltip" {
+        vd.req_field("text");
+        if caller == "custom_tooltip" {
+            vd.field_item("text", Item::Localization);
+        } else {
+            vd.field_item("text", Item::TriggerLocalization);
+        }
+        vd.field_target("subject", sc, Scopes::non_primitive());
+    } else {
+        vd.ban_field("text", || "`custom_description` or `custom_tooltip`");
+        vd.ban_field("subject", || "`custom_description` or `custom_tooltip`");
+    }
+
+    if caller == "custom_description" {
+        vd.field_target("object", sc, Scopes::non_primitive());
+        vd.field_script_value("value", sc);
+    } else {
+        vd.ban_field("object", || "`custom_description`");
+        vd.ban_field("value", || "`custom_description`");
+    }
+
+    if caller == "modifier" {
+        vd.fields_script_value("add", sc);
+        vd.fields_script_value("factor", sc);
+        vd.field_validated_sc("desc", sc, validate_desc);
+        if let Some(block) = vd.field_block("trigger") {
+            validate_normal_trigger(block, data, sc, false);
+        }
+    } else {
+        vd.ban_field("add", || "`modifier` or script values");
+        vd.ban_field("factor", || "`modifier` blocks");
+        vd.ban_field("desc", || "`modifier` blocks");
+        vd.ban_field("trigger", || "`modifier` blocks");
+    }
+
+    if caller == "calc_true_if" {
+        vd.req_field("amount");
+        if let Some(bv) = vd.field_any_cmp("amount") {
+            if let Some(token) = bv.expect_value() {
+                if token.as_str().parse::<i32>().is_err() {
+                    error(token, ErrorKey::Validation, "expected integer");
+                }
             }
         }
+    } else if !in_list {
+        vd.ban_field("amount", || "`calc_true_if`");
+    }
+
+    for (key, cmp, bv) in vd.unknown_keys_any_cmp() {
+        if let Some((it_type, it_name)) = key.split_once('_') {
+            if it_type.is("any")
+                || it_type.is("ordered")
+                || it_type.is("every")
+                || it_type.is("random")
+            {
+                if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
+                    if !it_type.is("any") {
+                        let msg = format!("cannot use `{it_type}_` list in a trigger");
+                        error(key, ErrorKey::Validation, &msg);
+                        continue;
+                    }
+                    sc.expect(inscopes, key);
+                    if let Some(b) = bv.get_block() {
+                        sc.open_scope(outscope, key.clone());
+                        validate_trigger(it_name.as_str(), true, b, data, sc, tooltipped);
+                        sc.close();
+                    } else {
+                        error(bv, ErrorKey::Validation, "expected block, found value");
+                    }
+                    continue;
+                }
+            }
+        }
+
+        validate_trigger_key_bv(key, cmp, bv, data, sc, tooltipped);
     }
 }
 

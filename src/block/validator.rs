@@ -700,10 +700,24 @@ impl<'a> Validator<'a> {
     pub fn unknown_keys(&mut self) -> Vec<(&Token, &BlockOrValue)> {
         self.accepted_keys = true;
         let mut vec = Vec::new();
-        for (k, _, bv) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
+                expect_eq_qeq(key, cmp);
                 if !self.known_fields.contains(&key.as_str()) {
                     vec.push((key, bv));
+                }
+            }
+        }
+        vec
+    }
+
+    pub fn unknown_keys_any_cmp(&mut self) -> Vec<(&Token, Comparator, &BlockOrValue)> {
+        self.accepted_keys = true;
+        let mut vec = Vec::new();
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if !self.known_fields.contains(&key.as_str()) {
+                    vec.push((key, *cmp, bv));
                 }
             }
         }
