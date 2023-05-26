@@ -7,7 +7,6 @@
 
 ## False positives
 
-* scripted relations now have a `flags` field with named flags, instead of numeric flags
 * ai_value_modifier can have `dread_modified_ai_boldness` that takes a block
 * In geographical regions, the requirement to define regions before use seems to not be true anymore
 * fields `graphical` and `color` for geographical regions
@@ -24,5 +23,6 @@
 ## Features
 
 * If a datafunction is not found, but it does exist with a case-insensitive search, offer that version as an info hint
+* Check that relation flags actually belong to the relation they are used with
 * The validations in IDEAS.md
 * Hundreds of TODO comments in the code

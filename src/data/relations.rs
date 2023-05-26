@@ -1,8 +1,6 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
-use crate::errorkey::ErrorKey;
-use crate::errors::error;
 use crate::everything::{Db, DbKind, Everything};
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
@@ -14,6 +12,11 @@ pub struct Relation {}
 
 impl Relation {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        if let Some(list) = block.get_field_list("flags") {
+            for token in list {
+                db.add_flag(Item::RelationFlag, token);
+            }
+        }
         db.add(Item::Relation, key, block, Box::new(Self {}));
     }
 }
@@ -27,12 +30,7 @@ impl DbKind for Relation {
         vd.field_list_items("relation_aliases", Item::Relation);
         vd.field_integer("opinion");
         vd.field_numeric("fertility");
-        for (key, _) in vd.integer_values() {
-            let val = key.as_str().parse::<i32>().unwrap();
-            if !(0..=15).contains(&val) {
-                error(key, ErrorKey::Validation, "flag value out of range");
-            }
-        }
+        vd.field_list("flags");
         vd.field_value("secret");
         vd.field_bool("special_guest");
         vd.field_bool("hidden");

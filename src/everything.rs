@@ -71,6 +71,7 @@ pub enum FilesError {
 #[derive(Debug, Default)]
 pub struct Db {
     database: FnvHashMap<(Item, String), DbEntry>,
+    flags: FnvHashMap<(Item, String), Token>,
 }
 
 impl Db {
@@ -82,6 +83,26 @@ impl Db {
             }
         }
         self.database.insert(index, DbEntry { key, block, kind });
+    }
+
+    pub fn add_flag(&mut self, item: Item, key: Token) {
+        let index = (item, key.to_string());
+        self.flags.insert(index, key);
+    }
+
+    fn validate(&self, data: &Everything) {
+        // Sort the entries to create a diffable error output
+        let mut vec: Vec<&DbEntry> = self.database.values().collect();
+        vec.sort_by(|entry_a, entry_b| entry_a.key.loc.cmp(&entry_b.key.loc));
+        for entry in vec {
+            entry.kind.validate(&entry.key, &entry.block, data);
+        }
+    }
+
+    fn exists(&self, item: Item, key: &str) -> bool {
+        // TODO: figure out how to avoid the to_string() here
+        let index = (item, key.to_string());
+        self.database.contains_key(&index) || self.flags.contains_key(&index)
     }
 }
 
@@ -294,21 +315,6 @@ impl Everything {
         }
     }
 
-    fn validate_db(&self) {
-        // Sort the entries to create a diffable error output
-        let mut vec: Vec<&DbEntry> = self.database.database.values().collect();
-        vec.sort_by(|entry_a, entry_b| entry_a.key.loc.cmp(&entry_b.key.loc));
-        for entry in vec {
-            entry.kind.validate(&entry.key, &entry.block, &self);
-        }
-    }
-
-    fn exists_in_db(&self, item: Item, key: &str) -> bool {
-        // TODO: figure out how to avoid the to_string() here
-        let index = (item, key.to_string());
-        self.database.database.contains_key(&index)
-    }
-
     /// A helper function for categories of items that follow the usual pattern of
     /// `.txt` files containing a block with definitions
     pub fn load_pdx_items<F>(&mut self, subpath: &str, add: F)
@@ -406,7 +412,7 @@ impl Everything {
         // self.themes.validate(self);  these are validated through the events that use them
         self.gui.validate(self);
         self.data_bindings.validate(self);
-        self.validate_db();
+        self.database.validate(self);
     }
 
     pub fn check_rivers(&mut self) {
@@ -426,7 +432,8 @@ impl Everything {
             | Item::CourtPositionCategory
             | Item::Faction
             | Item::Relation
-            | Item::ScriptedRule => self.exists_in_db(itype, key),
+            | Item::RelationFlag
+            | Item::ScriptedRule => self.database.exists(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::Character => self.characters.exists(key),
