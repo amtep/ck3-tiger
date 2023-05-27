@@ -43,6 +43,7 @@ use crate::data::terrain::Terrain;
 use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
+use crate::dds::DdsFiles;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, ignore_key, ignore_key_for, ignore_path, warn};
 use crate::fileset::{FileEntry, FileKind, Fileset};
@@ -146,6 +147,8 @@ pub struct Everything {
 
     /// The CK3 and mod files
     pub fileset: Fileset,
+
+    pub dds: DdsFiles,
 
     database: Db,
 
@@ -251,6 +254,7 @@ impl Everything {
 
         Ok(Everything {
             fileset,
+            dds: DdsFiles::default(),
             config,
             warned_defines: RefCell::new(FnvHashSet::default()),
             database: Db::default(),
@@ -352,6 +356,7 @@ impl Everything {
         self.load_errorkey_config();
         self.fileset.config(self.config.clone());
 
+        self.fileset.handle(&mut self.dds);
         self.fileset.handle(&mut self.localization);
         self.fileset.handle(&mut self.scripted_lists);
         self.fileset.handle(&mut self.defines);

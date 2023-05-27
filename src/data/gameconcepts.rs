@@ -3,6 +3,8 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::errorkey::ErrorKey;
+use crate::errors::warn;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -99,9 +101,26 @@ impl Concept {
                 data.fileset.verify_exists(token);
             }
         }
-        if self.block.get_field_value("texture").is_some() {
+        if let Some(texture) = self.block.get_field_value("texture") {
             vd.field_validated_block("framesize", validate_framesize);
-            vd.field_value("frame");
+            vd.field_integer("frame");
+            if self.block.has_key("framesize") != self.block.has_key("frame") {
+                let msg = "`framesize` and `frame` should be specified together";
+                warn(&self.key, ErrorKey::Validation, msg);
+            }
+            if let Some(frame) = self.block.get_field_integer("frame") {
+                if let Some(b) = self.block.get_field_block("framesize") {
+                    let tokens = b.get_values();
+                    if tokens.len() == 2 {
+                        if let Ok(width) = tokens[0].as_str().parse::<u32>() {
+                            if let Ok(height) = tokens[1].as_str().parse::<u32>() {
+                                data.dds
+                                    .validate_frame(texture, width, height, frame as u32);
+                            }
+                        }
+                    }
+                }
+            }
         } else {
             vd.advice_field("framesize", "not needed without texture");
             vd.advice_field("frame", "not needed without texture");
