@@ -315,12 +315,12 @@ pub fn validate_effect<'a>(
             let first = i == 0;
             let stored_part;
 
-            if let Some((new_part, arg)) = part.split_once('(') {
+            if let Some((new_part, arg)) = part.split_after('(') {
                 if let Some((arg, _)) = arg.split_once(')') {
                     let arg = arg.trim();
-                    if new_part.is("vassal_contract_obligation_level_score") {
+                    if new_part.is("vassal_contract_obligation_level_score(") {
                         validate_target(&arg, data, sc, Scopes::VassalContract);
-                    } else if new_part.is("squared_distance") {
+                    } else if new_part.is("squared_distance(") {
                         validate_target(&arg, data, sc, Scopes::Province);
                     } else {
                         warn(arg, ErrorKey::Validation, "unexpected argument");

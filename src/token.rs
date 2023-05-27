@@ -126,6 +126,22 @@ impl Token {
         None
     }
 
+    /// Split the token at the first instance of ch, such that ch is part of the first returned token.
+    pub fn split_after(&self, ch: char) -> Option<(Token, Token)> {
+        for (cols, (i, c)) in self.s.char_indices().enumerate() {
+            if c == ch {
+                let chlen = ch.len_utf8();
+                let token1 = Token::new(self.s[..i + chlen].to_string(), self.loc.clone());
+                let mut loc = self.loc.clone();
+                loc.offset += i + chlen;
+                loc.column += cols + chlen;
+                let token2 = Token::new(self.s[i + chlen..].to_string(), loc);
+                return Some((token1, token2));
+            }
+        }
+        None
+    }
+
     pub fn trim(&self) -> Token {
         let mut real_start = None;
         let mut real_end = self.s.len();

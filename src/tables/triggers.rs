@@ -177,6 +177,7 @@ use RawTrigger::*;
 ///    `has_relation_<relation>`
 ///    `has_secret_relation_<relation>`
 ///    `num_of_relation_<relation>`
+/// A key ends with '(' if it is the version that takes a parenthesized argument in script.
 const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Accolade, "accolade_rank", CompareValue),
     (AccoladeType, "accolade_type_tier", Scope(AccoladeType)),
@@ -1807,6 +1808,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
             ("value", CompareValue),
         ]),
     ),
+    (LandedTitle | Province, "squared_distance(", CompareValue),
     (Character, "stewardship", CompareValue),
     (
         Character,
@@ -1992,9 +1994,9 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     ),
     (
         Character,
-        "vassal_contract_obligation_level_score",
+        "vassal_contract_obligation_level_score(",
         CompareValue,
-    ), // TODO: this takes a parameter
+    ),
     (Character, "vassal_count", CompareValue),
     (Character, "vassal_limit", CompareValue),
     (Character, "vassal_limit_available", CompareValue),
