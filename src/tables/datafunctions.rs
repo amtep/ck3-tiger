@@ -3,7 +3,8 @@
 use std::str::FromStr;
 use strum_macros::{Display, EnumString};
 
-use crate::token::Token;
+use crate::everything::Everything;
+use crate::item::Item;
 
 // Validate the "code" blocks in localization files and in the gui files.
 // The include/ files are converted from the game's data_type_* output files.
@@ -40,26 +41,22 @@ pub enum LookupResult {
     Found(Args, Datatype),
 }
 
-pub fn lookup_global_promote(lookup_name: &Token) -> Option<(Args, Datatype)> {
-    if let Ok(idx) =
-        GLOBAL_PROMOTES.binary_search_by_key(&lookup_name.as_str(), |(name, _, _)| name)
-    {
+pub fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
+    if let Ok(idx) = GLOBAL_PROMOTES.binary_search_by_key(&lookup_name, |(name, _, _)| name) {
         let (_name, args, rtype) = GLOBAL_PROMOTES[idx];
         return Some((args, rtype));
     }
 
     // Datatypes can be used directly as global promotes, taking their value from the gui context.
-    if let Ok(dtype) = Datatype::from_str(lookup_name.as_str()) {
+    if let Ok(dtype) = Datatype::from_str(lookup_name) {
         return Some((Args::NoArgs, dtype));
     }
 
     None
 }
 
-pub fn lookup_global_function(lookup_name: &Token) -> Option<(Args, Datatype)> {
-    if let Ok(idx) =
-        GLOBAL_FUNCTIONS.binary_search_by_key(&lookup_name.as_str(), |(name, _, _)| name)
-    {
+pub fn lookup_global_function(lookup_name: &str) -> Option<(Args, Datatype)> {
+    if let Ok(idx) = GLOBAL_FUNCTIONS.binary_search_by_key(&lookup_name, |(name, _, _)| name) {
         let (_name, args, rtype) = GLOBAL_FUNCTIONS[idx];
         return Some((args, rtype));
     }
@@ -67,18 +64,17 @@ pub fn lookup_global_function(lookup_name: &Token) -> Option<(Args, Datatype)> {
 }
 
 fn lookup_promote_or_function(
-    lookup_name: &Token,
+    lookup_name: &str,
     ltype: Datatype,
     global: &[(&str, Datatype, Args, Datatype)],
 ) -> LookupResult {
-    let lname = lookup_name.as_str();
-    let start = global.partition_point(|(name, _, _, _)| name < &lname);
+    let start = global.partition_point(|(name, _, _, _)| name < &lookup_name);
     let mut found_any = false;
     let mut possible_args = None;
     let mut possible_rtype = None;
     for i in start..global.len() {
         let (name, intype, args, rtype) = global[i];
-        if lname != name {
+        if lookup_name != name {
             break;
         }
         found_any = true;
@@ -105,12 +101,56 @@ fn lookup_promote_or_function(
     }
 }
 
-pub fn lookup_promote(lookup_name: &Token, ltype: Datatype) -> LookupResult {
+pub fn lookup_promote(lookup_name: &str, ltype: Datatype) -> LookupResult {
     lookup_promote_or_function(lookup_name, ltype, PROMOTES)
 }
 
-pub fn lookup_function(lookup_name: &Token, ltype: Datatype) -> LookupResult {
+pub fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {
     lookup_promote_or_function(lookup_name, ltype, FUNCTIONS)
+}
+
+/// Find an alternative datafunction to suggest when lookup_name has not been found.
+/// This is a fairly expensive lookup.
+/// Currently it only looks for different-case variants.
+/// TODO: make it consider misspellings as well
+pub fn lookup_alternative(
+    lookup_name: &str,
+    data: &Everything,
+    first: std::primitive::bool,
+    last: std::primitive::bool,
+) -> Option<&'static str> {
+    let lc = lookup_name.to_lowercase();
+    if first {
+        for (name, _, _) in GLOBAL_PROMOTES {
+            if name.to_lowercase() == lc {
+                return Some(name);
+            }
+        }
+        if last {
+            for (name, _, _) in GLOBAL_FUNCTIONS {
+                if data.item_exists(Item::GameConcept, name) {
+                    continue;
+                }
+                if name.to_lowercase() == lc {
+                    return Some(name);
+                }
+            }
+        }
+    } else {
+        for (name, _, _, _) in PROMOTES {
+            if name.to_lowercase() == lc {
+                return Some(name);
+            }
+        }
+        if last {
+            for (name, _, _, _) in FUNCTIONS {
+                if name.to_lowercase() == lc {
+                    return Some(name);
+                }
+            }
+        }
+    }
+    None
 }
 
 use Args::*;

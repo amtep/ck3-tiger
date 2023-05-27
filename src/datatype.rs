@@ -2,15 +2,15 @@ use std::borrow::Cow;
 use std::str::FromStr;
 
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
+use crate::errors::{error, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
 pub use crate::tables::datafunctions::Args;
 use crate::token::Token;
 
 pub use crate::tables::datafunctions::{
-    lookup_function, lookup_global_function, lookup_global_promote, lookup_promote, Datatype,
-    LookupResult,
+    lookup_alternative, lookup_function, lookup_global_function, lookup_global_promote,
+    lookup_promote, Datatype, LookupResult,
 };
 
 #[derive(Clone, Debug)]
@@ -140,11 +140,11 @@ pub fn validate_datatypes(
         let lookup_gf = if data.item_exists(Item::GameConcept, code.name.as_str()) {
             None
         } else {
-            lookup_global_function(&code.name)
+            lookup_global_function(code.name.as_str())
         };
-        let lookup_gp = lookup_global_promote(&code.name);
-        let lookup_f = lookup_function(&code.name, curtype);
-        let lookup_p = lookup_promote(&code.name, curtype);
+        let lookup_gp = lookup_global_promote(code.name.as_str());
+        let lookup_f = lookup_function(code.name.as_str(), curtype);
+        let lookup_p = lookup_promote(code.name.as_str(), curtype);
 
         let gf_found = lookup_gf.is_some();
         let gp_found = lookup_gp.is_some();
@@ -237,7 +237,17 @@ pub fn validate_datatypes(
             if code.name.as_str().chars().next().unwrap().is_uppercase() {
                 // TODO: If there is a Custom of the same name, suggest that
                 let msg = format!("unknown datafunction {}", &code.name);
-                warn(&code.name, ErrorKey::Datafunctions, &msg);
+                if let Some(alternative) = lookup_alternative(
+                    code.name.as_str(),
+                    data,
+                    is_first,
+                    is_last && !expect_promote,
+                ) {
+                    let info = format!("did you mean {alternative}?");
+                    warn_info(&code.name, ErrorKey::Datafunctions, &msg, &info);
+                } else {
+                    warn(&code.name, ErrorKey::Datafunctions, &msg);
+                }
                 return;
             }
 
