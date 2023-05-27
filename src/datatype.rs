@@ -43,6 +43,15 @@ impl CodeChain {
     pub fn as_gameconcept(&self) -> Option<&Token> {
         if self.codes.len() == 1 && self.codes[0].arguments.is_empty() {
             Some(&self.codes[0].name)
+        } else if self.codes.len() == 1
+            && self.codes[0].name.is("Concept")
+            && self.codes[0].arguments.len() == 2
+        {
+            if let CodeArg::Literal(token) = &self.codes[0].arguments[0] {
+                Some(token)
+            } else {
+                None
+            }
         } else {
             None
         }

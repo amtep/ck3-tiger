@@ -4,8 +4,6 @@
 
 ## False positives
 
-* Parse `[Concept('A', 'B')|E]` in localization
-
 ## Features
 
 * If a datafunction is not found, but it does exist with a case-insensitive search, offer that version as an info hint
