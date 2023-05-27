@@ -210,8 +210,8 @@ pub fn validate_color(block: &Block, _data: &Everything) {
             }
         }
     }
-    if count != 3 {
-        error(block, ErrorKey::Validation, "expected 3 color values");
+    if count != 3 && count != 4 {
+        error(block, ErrorKey::Validation, "expected 3 or 4 color values");
     }
 }
 

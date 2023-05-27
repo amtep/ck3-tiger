@@ -1,80 +1,33 @@
-use fnv::FnvHashMap;
-use std::path::{Path, PathBuf};
-
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
-use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::everything::{Db, DbKind, Everything};
+use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::validate::validate_color;
 
-#[derive(Clone, Debug, Default)]
-pub struct Terrains {
-    terrains: FnvHashMap<String, Terrain>,
-}
-
-impl Terrains {
-    pub fn load_item(&mut self, key: Token, block: &Block) {
-        if let Some(other) = self.terrains.get(key.as_str()) {
-            if other.key.loc.kind >= key.loc.kind {
-                dup_error(&key, &other.key, "terrain");
-            }
-        }
-        self.terrains
-            .insert(key.to_string(), Terrain::new(key, block.clone()));
-    }
-
-    pub fn exists(&self, key: &str) -> bool {
-        self.terrains.contains_key(key)
-    }
-
-    pub fn validate(&self, data: &Everything) {
-        for item in self.terrains.values() {
-            item.validate(data);
-        }
-    }
-}
-
-impl FileHandler for Terrains {
-    fn subpath(&self) -> PathBuf {
-        PathBuf::from("common/terrain_types")
-    }
-
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
-        if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
-        }
-
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, block) in block.iter_pure_definitions_warn() {
-            self.load_item(key.clone(), block);
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
-pub struct Terrain {
-    key: Token,
-    block: Block,
-}
+pub struct Terrain {}
 
 impl Terrain {
-    pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::Terrain, key, block, Box::new(Self {}));
     }
+}
 
-    pub fn validate(&self, data: &Everything) {
-        let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new_root(Scopes::None, self.key.clone());
+impl DbKind for Terrain {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(&block, data);
+        let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+
         vd.req_field("color");
 
         vd.field_numeric("movement_speed");
         vd.field_validated_block("color", validate_color);
+        vd.field_validated_block("travel_danger_color", validate_color);
+        vd.field_script_value("travel_danger_score", &mut sc);
 
         vd.field_validated_block("attacker_modifier", |b, data| {
             validate_combat_modifier(b, data, &mut sc);

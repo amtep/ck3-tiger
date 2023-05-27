@@ -516,6 +516,7 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("supply_limit_mult", sc);
         vd.field_script_value("tax_mult", sc);
         vd.field_script_value("supply_limit_mult", sc);
+        vd.field_script_value("travel_danger", sc);
     }
 
     if kinds.intersects(ModifKinds::Culture) {
@@ -714,7 +715,11 @@ pub fn validate_modifs<'a>(
             }
         }
 
-        for sfx in &["_development_growth", "_development_growth_factor"] {
+        for sfx in &[
+            "_development_growth",
+            "_development_growth_factor",
+            "_travel_danger",
+        ] {
             if let Some(something) = token.as_str().strip_suffix(sfx) {
                 // TODO: if a region, also check that it has set generate_modifiers = yes
                 if !data.item_exists(Item::Region, something)

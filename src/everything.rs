@@ -39,7 +39,7 @@ use crate::data::scripted_modifiers::ScriptedModifiers;
 use crate::data::scripted_rules::ScriptedRule;
 use crate::data::scripted_triggers::{Trigger, Triggers};
 use crate::data::scriptvalues::ScriptValues;
-use crate::data::terrain::Terrains;
+use crate::data::terrain::Terrain;
 use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
@@ -180,7 +180,6 @@ pub struct Everything {
 
     pub lifestyles: Lifestyles,
 
-    pub terrains: Terrains,
     pub regions: Regions,
 
     pub title_history: TitleHistories,
@@ -260,7 +259,6 @@ impl Everything {
             effects: Effects::default(),
             traits: Traits::default(),
             lifestyles: Lifestyles::default(),
-            terrains: Terrains::default(),
             regions: Regions::default(),
             title_history: TitleHistories::default(),
             doctrines: Doctrines::default(),
@@ -360,7 +358,6 @@ impl Everything {
         self.fileset.handle(&mut self.effects);
         self.fileset.handle(&mut self.traits);
         self.fileset.handle(&mut self.lifestyles);
-        self.fileset.handle(&mut self.terrains);
         self.fileset.handle(&mut self.regions);
         self.load_pdx_items(
             "common/court_positions/categories",
@@ -376,6 +373,7 @@ impl Everything {
         self.load_pdx_items("common/scripted_rules/", ScriptedRule::add);
         self.load_pdx_items("common/factions/", Faction::add);
         self.load_pdx_items("common/scripted_relations/", Relation::add);
+        self.load_pdx_items("common/terrain_types/", Terrain::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -389,7 +387,6 @@ impl Everything {
         self.effects.validate(self);
         self.scripted_modifiers.validate(self);
         self.on_actions.validate(self);
-        self.terrains.validate(self);
         self.regions.validate(self);
         self.events.validate(self);
         self.decisions.validate(self);
@@ -433,7 +430,8 @@ impl Everything {
             | Item::Faction
             | Item::Relation
             | Item::RelationFlag
-            | Item::ScriptedRule => self.database.exists(itype, key),
+            | Item::ScriptedRule
+            | Item::Terrain => self.database.exists(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::Character => self.characters.exists(key),
@@ -471,7 +469,6 @@ impl Everything {
             Item::ScriptValue => self.scriptvalues.exists(key),
             Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
-            Item::Terrain => self.terrains.exists(key),
             Item::Title => self.titles.exists(key),
             Item::TitleHistory => self.title_history.exists(key),
             Item::TitleHistoryType => TITLE_HISTORY_TYPES.contains(&key),
