@@ -318,7 +318,8 @@ pub fn validate_iterator_fields(
 
     if list_type == ListType::Ordered {
         vd.field_script_value("order_by", sc);
-        vd.field_integer("position");
+        // position can be compared to a var
+        vd.field_target("position", sc, Scopes::Value);
         vd.field_integer("min");
         vd.field_integer("max");
         vd.field_bool("check_range_bounds");
