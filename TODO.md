@@ -5,7 +5,6 @@
 ## False positives
 
 * Parse `[Concept('A', 'B')|E]` in localization
-* Parse and validate #tooltip: directives in localization
 
 ## Features
 

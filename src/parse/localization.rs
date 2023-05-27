@@ -559,7 +559,7 @@ impl<'a> ValueParser<'a> {
     }
 
     fn parse_markup(&mut self) {
-        let loc = self.loc.clone();
+        let mut loc = self.loc.clone();
         let mut text = "#".to_string();
         self.next_char(); // skip the #
         if self.peek() == Some('#') {
@@ -574,8 +574,14 @@ impl<'a> ValueParser<'a> {
         } else {
             // TODO This may have become complicated enough to need its own state machine
             let mut at_end = false;
+            let mut is_tooltip = false;
             while let Some(c) = self.peek() {
-                if c.is_whitespace() {
+                if c == ':' && text == "#tooltip" && !is_tooltip {
+                    self.next_char();
+                    is_tooltip = true;
+                    text = "".to_string();
+                    loc = self.loc.clone();
+                } else if c.is_whitespace() {
                     self.next_char();
                     break;
                 } else if !at_end && (is_key_char(c) || c == ';') {
@@ -609,7 +615,11 @@ impl<'a> ValueParser<'a> {
                     return;
                 }
             }
-            self.value.push(LocaValue::Markup(Token::new(text, loc)));
+            if is_tooltip {
+                self.value.push(LocaValue::Tooltip(Token::new(text, loc)));
+            } else {
+                self.value.push(LocaValue::Markup(Token::new(text, loc)));
+            }
         }
     }
 
