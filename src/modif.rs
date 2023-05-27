@@ -8,7 +8,7 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
+use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::token::Token;
@@ -572,6 +572,7 @@ pub fn validate_modifs<'a>(
             "_supply_limit",
             "_supply_limit_mult",
             "_tax_mult",
+            "_travel_danger",
         ] {
             if let Some(terrain) = token.as_str().strip_suffix(terrain_sfx) {
                 data.verify_exists_implied(Item::Terrain, terrain, token);
@@ -715,11 +716,7 @@ pub fn validate_modifs<'a>(
             }
         }
 
-        for sfx in &[
-            "_development_growth",
-            "_development_growth_factor",
-            "_travel_danger",
-        ] {
+        for sfx in &["_development_growth", "_development_growth_factor"] {
             if let Some(something) = token.as_str().strip_suffix(sfx) {
                 // TODO: if a region, also check that it has set generate_modifiers = yes
                 if !data.item_exists(Item::Region, something)
@@ -727,6 +724,14 @@ pub fn validate_modifs<'a>(
                 {
                     let msg = "unknown terrain or geographical region";
                     error(token, ErrorKey::MissingItem, msg);
+                }
+                if data.item_exists(Item::Region, something) {
+                    if !data.item_has_property(Item::Region, something, "generates_modifiers") {
+                        let msg =
+                            format!("region {something} does not have generates_modifiers = yes");
+                        let info = format!("so the modifier {token} does not exist");
+                        error_info(token, ErrorKey::Validation, &msg, &info);
+                    }
                 }
                 kinds.require(
                     ModifKinds::Character | ModifKinds::Province | ModifKinds::County,

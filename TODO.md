@@ -4,8 +4,6 @@
 
 ## False positives
 
-* In geographical regions, the requirement to define regions before use seems to not be true anymore
-* fields `graphical` and `color` for geographical regions
 * `position` can take a variable
 * When squared_distance has a () argument, it produces a Value
 * Parse `[Concept('A', 'B')|E]` in localization

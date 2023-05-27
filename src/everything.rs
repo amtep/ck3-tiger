@@ -30,7 +30,7 @@ use crate::data::namelists::Namelists;
 use crate::data::on_actions::OnActions;
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
-use crate::data::regions::Regions;
+use crate::data::regions::Region;
 use crate::data::relations::Relation;
 use crate::data::religions::Religions;
 use crate::data::scripted_effects::{Effect, Effects};
@@ -104,6 +104,17 @@ impl Db {
         let index = (item, key.to_string());
         self.database.contains_key(&index) || self.flags.contains_key(&index)
     }
+
+    pub fn has_property(&self, item: Item, key: &str, property: &str, data: &Everything) -> bool {
+        let index = (item, key.to_string());
+        if let Some(entry) = self.database.get(&index) {
+            entry
+                .kind
+                .has_property(property, &entry.key, &entry.block, data)
+        } else {
+            false
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -115,6 +126,15 @@ pub struct DbEntry {
 
 pub trait DbKind: Debug {
     fn validate(&self, key: &Token, block: &Block, data: &Everything);
+    fn has_property(
+        &self,
+        _property: &str,
+        _key: &Token,
+        _block: &Block,
+        _data: &Everything,
+    ) -> bool {
+        false
+    }
 }
 
 #[derive(Debug)]
@@ -179,8 +199,6 @@ pub struct Everything {
     pub traits: Traits,
 
     pub lifestyles: Lifestyles,
-
-    pub regions: Regions,
 
     pub title_history: TitleHistories,
 
@@ -259,7 +277,6 @@ impl Everything {
             effects: Effects::default(),
             traits: Traits::default(),
             lifestyles: Lifestyles::default(),
-            regions: Regions::default(),
             title_history: TitleHistories::default(),
             doctrines: Doctrines::default(),
             menatarmstypes: MenAtArmsTypes::default(),
@@ -358,7 +375,6 @@ impl Everything {
         self.fileset.handle(&mut self.effects);
         self.fileset.handle(&mut self.traits);
         self.fileset.handle(&mut self.lifestyles);
-        self.fileset.handle(&mut self.regions);
         self.load_pdx_items(
             "common/court_positions/categories",
             CourtPositionCategory::add,
@@ -374,6 +390,7 @@ impl Everything {
         self.load_pdx_items("common/factions/", Faction::add);
         self.load_pdx_items("common/scripted_relations/", Relation::add);
         self.load_pdx_items("common/terrain_types/", Terrain::add);
+        self.load_pdx_items("map_data/geographical_regions/", Region::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -387,7 +404,6 @@ impl Everything {
         self.effects.validate(self);
         self.scripted_modifiers.validate(self);
         self.on_actions.validate(self);
-        self.regions.validate(self);
         self.events.validate(self);
         self.decisions.validate(self);
         self.interactions.validate(self);
@@ -423,6 +439,10 @@ impl Everything {
             .check_pod_faiths(&self.religions, &self.titles);
     }
 
+    pub fn item_has_property(&self, itype: Item, key: &str, property: &str) -> bool {
+        self.database.has_property(itype, key, property, &self)
+    }
+
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::CourtPosition
@@ -430,6 +450,7 @@ impl Everything {
             | Item::Faction
             | Item::Relation
             | Item::RelationFlag
+            | Item::Region
             | Item::ScriptedRule
             | Item::Terrain => self.database.exists(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
@@ -459,7 +480,6 @@ impl Everything {
             Item::NameList => self.namelists.exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces.exists(key),
-            Item::Region => self.regions.exists(key),
             Item::Religion => self.religions.religion_exists(key),
             Item::RewardItem => REWARD_ITEMS.contains(&key),
             Item::ScriptedEffect => self.effects.exists(key),
