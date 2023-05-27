@@ -1,6 +1,7 @@
 use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
+use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 use crate::data::localization::LocaValue;
 use crate::datatype::{validate_datatypes, Datatype};
@@ -18,6 +19,7 @@ pub struct Gui {
     files: FnvHashMap<PathBuf, Vec<GuiWidget>>,
     templates: FnvHashMap<String, GuiTemplate>,
     types: FnvHashMap<String, GuiType>,
+    layers: FnvHashMap<String, GuiLayer>,
 }
 
 impl Gui {
@@ -96,6 +98,14 @@ impl Gui {
             .insert(key.to_string(), GuiTemplate::new(key, block));
     }
 
+    pub fn load_layer(&mut self, key: Token, block: Block) {
+        if let Some(other) = self.layers.get(key.as_str()) {
+            dup_error(&key, &other.key, "gui layer");
+        }
+        self.layers
+            .insert(key.to_string(), GuiLayer::new(key, block));
+    }
+
     pub fn validate(&self, data: &Everything) {
         for items in self.files.values() {
             for item in items {
@@ -124,6 +134,8 @@ impl FileHandler for Gui {
             TypesBody,
             Template,
             TemplateBody(&'a Token),
+            Layer,
+            LayerBody(&'a Token),
         }
 
         if !entry.filename().to_string_lossy().ends_with(".gui") {
@@ -146,10 +158,13 @@ impl FileHandler for Gui {
                             );
                         }
                     } else if let Some(token) = bv.expect_value() {
-                        if token.lowercase_is("template") {
+                        // TODO: figure out how local the local_template is
+                        if token.lowercase_is("template") || token.lowercase_is("local_template") {
                             expecting = Expecting::Template;
                         } else if token.lowercase_is("types") {
                             expecting = Expecting::Types;
+                        } else if token.lowercase_is("layer") {
+                            expecting = Expecting::Layer;
                         } else {
                             let msg = format!("unexpected value `{token}`");
                             error(token, ErrorKey::ParseError, &msg);
@@ -195,6 +210,27 @@ impl FileHandler for Gui {
                         error(key, ErrorKey::ParseError, &msg);
                     } else if let Some(block) = bv.expect_block() {
                         self.load_template(token.clone(), block.clone());
+                    }
+                    expecting = Expecting::Widget;
+                }
+                Expecting::Layer => {
+                    if let Some(key) = k {
+                        let msg = format!("unexpected assignment `{key} {cmp}`");
+                        let info = format!("After `layer {key}` there shouldn't be an `{cmp}`");
+                        error_info(key, ErrorKey::ParseError, &msg, &info);
+                        expecting = Expecting::Widget;
+                    } else if let Some(token) = bv.expect_value() {
+                        expecting = Expecting::LayerBody(token);
+                    } else {
+                        expecting = Expecting::Widget;
+                    }
+                }
+                Expecting::LayerBody(token) => {
+                    if let Some(key) = k {
+                        let msg = format!("unexpected assignment `{key} {cmp}`");
+                        error(key, ErrorKey::ParseError, &msg);
+                    } else if let Some(block) = bv.expect_block() {
+                        self.load_layer(token.clone(), block.clone());
                     }
                     expecting = Expecting::Widget;
                 }
@@ -249,6 +285,23 @@ impl GuiType {
 
     pub fn validate(&self, data: &Everything) {
         validate_gui(&self.block, data);
+    }
+}
+
+#[derive(Clone, Debug)]
+struct GuiLayer {
+    key: Token,
+    block: Block,
+}
+
+impl GuiLayer {
+    pub fn new(key: Token, block: Block) -> Self {
+        Self { key, block }
+    }
+
+    pub fn validate(&self, data: &Everything) {
+        let mut vd = Validator::new(&self.block, data);
+        vd.field_value("priority");
     }
 }
 

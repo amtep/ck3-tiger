@@ -15,8 +15,6 @@
 * `position` can take a variable
 * When squared_distance has a () argument, it produces a Value
 * Parse `[Concept('A', 'B')|E]` in localization
-* parse `local_template` in gui files
-* parse `layer` in gui files
 * Parse and validate #tooltip: directives in localization
 
 ## Features
