@@ -107,7 +107,7 @@ pub fn validate_datatypes(
                     error(&codes[i].name, ErrorKey::Macro, &msg);
                     return;
                 }
-                codes.to_mut().splice(i..i+1, replacement.codes);
+                codes.to_mut().splice(i..i + 1, replacement.codes);
             } else {
                 return;
             }
@@ -271,6 +271,13 @@ pub fn validate_datatypes(
                 validate_argument(&code.arguments[1], data, dt2);
                 validate_argument(&code.arguments[2], data, dt3);
                 validate_argument(&code.arguments[3], data, dt4);
+            }
+            Args::Arg5(dt1, dt2, dt3, dt4, dt5) => {
+                validate_argument(&code.arguments[0], data, dt1);
+                validate_argument(&code.arguments[1], data, dt2);
+                validate_argument(&code.arguments[2], data, dt3);
+                validate_argument(&code.arguments[3], data, dt4);
+                validate_argument(&code.arguments[4], data, dt5);
             }
         }
 

@@ -18,6 +18,7 @@ pub enum Args {
     Arg2(Datatype, Datatype),
     Arg3(Datatype, Datatype, Datatype),
     Arg4(Datatype, Datatype, Datatype, Datatype),
+    Arg5(Datatype, Datatype, Datatype, Datatype, Datatype),
 }
 
 impl Args {
@@ -28,6 +29,7 @@ impl Args {
             Arg2(_, _) => 2,
             Arg3(_, _, _) => 3,
             Arg4(_, _, _, _) => 4,
+            Arg5(_, _, _, _, _) => 5,
         }
     }
 }

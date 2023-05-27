@@ -60,6 +60,8 @@ for fname in fnames:
             args = "Arg3(Unknown, Unknown, Unknown)"
         if "Arg3" in lines[0]:
             args = "Arg4(Unknown, Unknown, Unknown, Unknown)"
+        if "Arg4" in lines[0]:
+            args = "Arg5(Unknown, Unknown, Unknown, Unknown, Unknown)"
         for s in UNARY_ARGS:
             if name.startswith(s):
                 type = name.split('_')[1]

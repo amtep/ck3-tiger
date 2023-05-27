@@ -166,7 +166,7 @@
     ("GetAllTravelOptions", NoArgs, Unknown),
     ("GetAllVassalContractTypes", NoArgs, Unknown),
     ("GetAllVassalStances", NoArgs, Unknown),
-    ("GetAnimatedBookmarkPortrait", Arg4(Unknown, Unknown, Unknown, Unknown), Unknown),
+    ("GetAnimatedBookmarkPortrait", Arg5(Unknown, Unknown, Unknown, Unknown, Unknown), Unknown),
     ("GetAnimationTooltip", Arg2(Unknown, Unknown), CString),
     ("GetArtifactType", Arg(Unknown), Unknown),
     ("GetArtifactVisualType", Arg(Unknown), Unknown),
