@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::str::FromStr;
 
 use crate::errorkey::ErrorKey;
@@ -93,9 +94,28 @@ pub fn validate_datatypes(
     expect_promote: bool,
 ) {
     let mut curtype = Datatype::Unknown;
-    for (i, mut code) in chain.codes.iter().enumerate() {
+    let mut codes = Cow::from(&chain.codes[..]);
+    let mut macro_count = 0;
+    // Have to loop with `while` instead of `for` because the array can mutate during the loop because of macro substitution
+    let mut i = 0;
+    while i < codes.len() {
+        while let Some(binding) = data.data_bindings.get(codes[i].name.as_str()) {
+            if let Some(replacement) = binding.replace(&codes[i]) {
+                macro_count += 1;
+                if macro_count > 255 {
+                    let msg = format!("substituted data bindings {macro_count} times, giving up");
+                    error(&codes[i].name, ErrorKey::Macro, &msg);
+                    return;
+                }
+                codes.to_mut().splice(i..i+1, replacement.codes);
+            } else {
+                return;
+            }
+        }
+
+        let code = &codes[i];
         let is_first = i == 0;
-        let is_last = i == chain.codes.len() - 1;
+        let is_last = i == codes.len() - 1;
         let mut args = Args::NoArgs;
         let mut rtype = Datatype::Unknown;
 
@@ -103,16 +123,6 @@ pub fn validate_datatypes(
             // TODO: find out if the game engine is okay with this
             warn(&code.name, ErrorKey::Datafunctions, "empty fragment");
             return;
-        }
-
-        let mut store_replacement;
-        while let Some(binding) = data.data_bindings.get(code.name.as_str()) {
-            if let Some(replacement) = binding.replace(code) {
-                store_replacement = replacement;
-                code = &store_replacement;
-            } else {
-                return;
-            }
         }
 
         // The data_type logs include all game concepts as global functions.
@@ -278,5 +288,7 @@ pub fn validate_datatypes(
             error(&code.name, ErrorKey::Datafunctions, &msg);
             return;
         }
+
+        i += 1;
     }
 }

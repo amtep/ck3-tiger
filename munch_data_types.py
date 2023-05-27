@@ -11,7 +11,6 @@ SEPARATOR = "\n-----------------------\n\n"
 TYPES = ['    Vec4f,\n']
 GLOBAL_PROMOTES = []
 GLOBAL_FUNCTIONS = []
-GLOBAL_MACROS = []
 FUNCTIONS = []
 PROMOTES = []
 
@@ -76,7 +75,7 @@ for fname in fnames:
             args = ARGS_OVERRIDE[name]
 
         if "Definition type: Global macro" in item:
-            GLOBAL_MACROS.append(item)
+            // macros are parsed directly from data_binding
             continue
 
         if "Definition type: Type" in item:
@@ -140,7 +139,3 @@ with open(OUTDIR + "/data_functions.rs", "w") as outf:
     outf.write("&[\n")
     outf.write("".join(FUNCTIONS))
     outf.write("]\n")
-
-# These need further processing
-print("GLOBAL MACROS")
-print("".join(GLOBAL_MACROS))

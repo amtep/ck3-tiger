@@ -83,7 +83,7 @@ pub struct DataBinding {
     key: Token,
     block: Block,
     params: Vec<Token>,
-    replace: Option<Code>,
+    replace: Option<CodeChain>,
 }
 
 impl DataBinding {
@@ -107,14 +107,8 @@ impl DataBinding {
             let to_parse = vec![&open_bracket, rep, &close_bracket];
             let valuevec = ValueParser::new(to_parse).parse_value();
             if valuevec.len() == 1 {
-                if let LocaValue::Code(code, _) = &valuevec[0] {
-                    if code.codes.len() == 1 {
-                        replace = Some(code.codes[0].clone());
-                    } else {
-                        // TODO: this is not true
-                        let msg = "macro replacement should be a single call";
-                        error(rep, ErrorKey::Datafunctions, msg);
-                    }
+                if let LocaValue::Code(chain, _) = &valuevec[0] {
+                    replace = Some(chain.clone());
                 } else {
                     let msg = "could not parse macro replacement";
                     error(rep, ErrorKey::Datafunctions, msg);
@@ -132,23 +126,27 @@ impl DataBinding {
         }
     }
 
-    pub fn replace(&self, call: &Code) -> Option<Code> {
-        if let Some(rep) = &self.replace {
-            if call.arguments.len() != self.params.len() {
-                let msg = "wrong number of arguments for macro";
-                warn(&call.name, ErrorKey::Datafunctions, msg);
-                return None;
-            }
-            let mut result = Code {
-                name: rep.name.clone(),
-                arguments: Vec::new(),
-            };
-            for arg in &rep.arguments {
-                if let Some(replacement) = self.replace_param(arg, call) {
-                    result.arguments.push(replacement);
-                } else {
-                    return None;
+    pub fn replace(&self, call: &Code) -> Option<CodeChain> {
+        if call.arguments.len() != self.params.len() {
+            let msg = "wrong number of arguments for macro";
+            error(&call.name, ErrorKey::Datafunctions, msg);
+            return None;
+        }
+        if let Some(replacement) = &self.replace {
+            let mut result = CodeChain { codes: Vec::new() };
+            for code in &replacement.codes {
+                let mut new_code = Code {
+                    name: code.name.clone(),
+                    arguments: Vec::new(),
+                };
+                for arg in &code.arguments {
+                    if let Some(replacement) = self.replace_param(arg, call) {
+                        new_code.arguments.push(replacement);
+                    } else {
+                        return None;
+                    }
                 }
+                result.codes.push(new_code);
             }
             Some(result)
         } else {
