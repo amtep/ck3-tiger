@@ -532,6 +532,14 @@ pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut Sco
     if let Some(target) = vd.field_value("who") {
         validate_target(target, data, sc, Scopes::Character);
     }
+    // TODO: verify that this actually works. It's only used 1 time in vanilla.
+    if let Some(block) = vd.field_block("dread_modified_ai_boldness") {
+        let mut vd = Validator::new(block, data);
+        vd.req_field("dreaded_character");
+        vd.req_field("value");
+        vd.field_target("dreaded_character", sc, Scopes::Character);
+        vd.field_script_value("value", sc);
+    }
     vd.field_script_value("ai_boldness", sc);
     vd.field_script_value("ai_compassion", sc);
     vd.field_script_value("ai_energy", sc);

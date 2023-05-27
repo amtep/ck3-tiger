@@ -4,7 +4,6 @@
 
 ## False positives
 
-* ai_value_modifier can have `dread_modified_ai_boldness` that takes a block
 * In geographical regions, the requirement to define regions before use seems to not be true anymore
 * fields `graphical` and `color` for geographical regions
 * `position` can take a variable
