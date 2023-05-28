@@ -129,14 +129,23 @@ impl Interaction {
         vd.field_bool("can_send_despite_rejection");
         vd.field_bool("ignores_pending_interaction_block");
 
-        vd.field_validated_block_sc("cooldown", &mut sc, validate_cooldown);
-        vd.field_validated_block_sc("cooldown_against_recipient", &mut sc, validate_cooldown);
-        vd.field_validated_block_sc("category_cooldown", &mut sc, validate_cooldown);
-        vd.field_validated_block_sc(
-            "category_cooldown_against_recipient",
-            &mut sc,
-            validate_cooldown,
-        );
+        // The cooldowns seem to be in actor scope
+        if let Some((k, b)) = vd.definition("cooldown") {
+            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
+            validate_cooldown(b, data, &mut sc);
+        };
+        if let Some((k, b)) = vd.definition("cooldown_against_recipient") {
+            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
+            validate_cooldown(b, data, &mut sc);
+        };
+        if let Some((k, b)) = vd.definition("category_cooldown") {
+            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
+            validate_cooldown(b, data, &mut sc);
+        };
+        if let Some((k, b)) = vd.definition("category_cooldown_against_recipient") {
+            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
+            validate_cooldown(b, data, &mut sc);
+        };
 
         // TODO: The ai_ name check is a heuristic. It would be better to check if the
         // is_shown trigger requires scope:actor to be is_ai = yes. But that's a long way off.
