@@ -625,13 +625,13 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             sc.expect(inscopes, part);
             sc.replace(outscope, part.clone());
         } else if data.scriptvalues.exists(part.as_str()) {
-            // TODO: validate inscope of the script value against sc
             if !last {
                 let msg = format!("`{part}` only makes sense as the last part");
                 warn(part, ErrorKey::Scopes, &msg);
                 sc.close();
                 return;
             }
+            data.scriptvalues.validate_call(part, data, sc);
             sc.replace(Scopes::Value, part.clone());
         } else if let Some(inscopes) = trigger_comparevalue(part, data) {
             if !last {
