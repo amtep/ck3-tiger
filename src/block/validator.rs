@@ -220,13 +220,11 @@ impl<'a> Validator<'a> {
     }
 
     pub fn field_bool(&mut self, name: &str) -> bool {
-        self.field_check(name, |v| match v {
-            BlockOrValue::Value(t) if t.is("yes") || t.is("no") => (),
-            BlockOrValue::Value(t) => {
-                error(t, ErrorKey::Validation, "expected yes or no");
-            }
-            BlockOrValue::Block(s) => {
-                error(s, ErrorKey::Validation, "expected value, found block");
+        self.field_check(name, |bv| {
+            if let Some(token) = bv.expect_value() {
+                if !token.is("yes") && !token.is("no") {
+                    error(token, ErrorKey::Validation, "expected yes or no");
+                }
             }
         })
     }
@@ -296,15 +294,12 @@ impl<'a> Validator<'a> {
     }
 
     pub fn field_choice(&mut self, name: &str, choices: &[&str]) -> bool {
-        self.field_check(name, |v| match v {
-            BlockOrValue::Value(t) => {
-                if !choices.contains(&t.as_str()) {
+        self.field_check(name, |bv| {
+            if let Some(token) = bv.expect_value() {
+                if !choices.contains(&token.as_str()) {
                     let msg = format!("expected one of {}", choices.join(", "));
-                    error(t, ErrorKey::Validation, &msg);
+                    error(token, ErrorKey::Validation, &msg);
                 }
-            }
-            BlockOrValue::Block(s) => {
-                error(s, ErrorKey::Validation, "expected value, found block");
             }
         })
     }
@@ -339,16 +334,13 @@ impl<'a> Validator<'a> {
 
     pub fn field_values(&mut self, name: &str) -> Vec<&Token> {
         let mut vec = Vec::new();
-        for (k, cmp, v) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
-                    match v {
-                        BlockOrValue::Value(t) => vec.push(t),
-                        BlockOrValue::Block(s) => {
-                            error(s, ErrorKey::Validation, "expected value, found block");
-                        }
+                    if let Some(token) = bv.expect_value() {
+                        vec.push(token);
                     }
                 }
             }
@@ -441,16 +433,13 @@ impl<'a> Validator<'a> {
         F: FnMut(&Block, &Everything),
     {
         let mut found = false;
-        for (k, cmp, v) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
-                    match v {
-                        BlockOrValue::Value(t) => {
-                            error(t, ErrorKey::Validation, "expected block, found value");
-                        }
-                        BlockOrValue::Block(s) => f(s, self.data),
+                    if let Some(block) = bv.expect_block() {
+                        f(block, self.data);
                     }
                     found = true;
                 }
@@ -476,7 +465,7 @@ impl<'a> Validator<'a> {
         F: FnMut(&Block, &Everything),
     {
         let mut found = None;
-        for (k, cmp, v) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
@@ -484,11 +473,8 @@ impl<'a> Validator<'a> {
                         dup_assign_error(key, other);
                     }
                     expect_eq_qeq(key, cmp);
-                    match v {
-                        BlockOrValue::Value(t) => {
-                            error(t, ErrorKey::Validation, "expected block, found value");
-                        }
-                        BlockOrValue::Block(s) => f(s, self.data),
+                    if let Some(block) = bv.expect_block() {
+                        f(block, self.data);
                     }
                     found = Some(key);
                 }
@@ -534,11 +520,8 @@ impl<'a> Validator<'a> {
                         dup_assign_error(key, other);
                     }
                     expect_eq_qeq(key, cmp);
-                    match bv {
-                        BlockOrValue::Value(t) => {
-                            error(t, ErrorKey::Validation, "expected block, found value");
-                        }
-                        BlockOrValue::Block(b) => found = Some((key, b)),
+                    if let Some(block) = bv.expect_block() {
+                        found = Some((key, block));
                     }
                 }
             }
@@ -565,9 +548,9 @@ impl<'a> Validator<'a> {
     pub fn req_tokens_integers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
-        for (k, _, v) in &self.block.v {
+        for (k, _, bv) in &self.block.v {
             if k.is_none() {
-                if let BlockOrValue::Value(t) = v {
+                if let BlockOrValue::Value(t) = bv {
                     if t.as_str().parse::<i32>().is_ok() {
                         found += 1;
                     } else {
@@ -592,9 +575,9 @@ impl<'a> Validator<'a> {
     pub fn values(&mut self) -> Vec<&Token> {
         self.accepted_tokens = true;
         let mut vec = Vec::new();
-        for (k, _, v) in &self.block.v {
+        for (k, _, bv) in &self.block.v {
             if k.is_none() {
-                if let BlockOrValue::Value(t) = v {
+                if let BlockOrValue::Value(t) = bv {
                     vec.push(t);
                 }
             }
@@ -605,9 +588,9 @@ impl<'a> Validator<'a> {
     pub fn blocks(&mut self) -> Vec<&Block> {
         self.accepted_blocks = true;
         let mut vec = Vec::new();
-        for (k, _, v) in &self.block.v {
+        for (k, _, bv) in &self.block.v {
             if k.is_none() {
-                if let BlockOrValue::Block(b) = v {
+                if let BlockOrValue::Block(b) = bv {
                     vec.push(b);
                 }
             }
@@ -617,16 +600,13 @@ impl<'a> Validator<'a> {
 
     pub fn integer_blocks(&mut self) -> Vec<(&Token, &Block)> {
         let mut vec = Vec::new();
-        for (k, cmp, v) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.as_str().parse::<i32>().is_ok() {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
-                    match v {
-                        BlockOrValue::Value(t) => {
-                            error(t, ErrorKey::Validation, "expected block, found value");
-                        }
-                        BlockOrValue::Block(s) => vec.push((key, s)),
+                    if let Some(block) = bv.expect_block() {
+                        vec.push((key, block));
                     }
                 }
             }
@@ -636,16 +616,13 @@ impl<'a> Validator<'a> {
 
     pub fn integer_values(&mut self) -> Vec<(&Token, &Token)> {
         let mut vec = Vec::new();
-        for (k, cmp, v) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.as_str().parse::<i32>().is_ok() {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
-                    match v {
-                        BlockOrValue::Value(t) => vec.push((key, t)),
-                        BlockOrValue::Block(b) => {
-                            error(b, ErrorKey::Validation, "expected value, found block");
-                        }
+                    if let Some(token) = bv.expect_value() {
+                        vec.push((key, token));
                     }
                 }
             }
@@ -657,16 +634,13 @@ impl<'a> Validator<'a> {
     where
         F: FnMut(Date, &Block, &Everything),
     {
-        for (k, cmp, v) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if let Ok(date) = Date::try_from(key) {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
-                    match v {
-                        BlockOrValue::Value(t) => {
-                            error(t, ErrorKey::Validation, "expected block, found value");
-                        }
-                        BlockOrValue::Block(s) => f(date, s, self.data),
+                    if let Some(block) = bv.expect_block() {
+                        f(date, block, self.data);
                     }
                 }
             }
