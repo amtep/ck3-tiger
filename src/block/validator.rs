@@ -232,40 +232,31 @@ impl<'a> Validator<'a> {
     }
 
     pub fn field_integer(&mut self, name: &str) -> bool {
-        self.field_check(name, |v| match v {
-            BlockOrValue::Value(t) => {
-                if t.as_str().parse::<i32>().is_err() {
-                    error(t, ErrorKey::Validation, "expected integer");
+        self.field_check(name, |bv| {
+            if let Some(token) = bv.expect_value() {
+                if token.as_str().parse::<i32>().is_err() {
+                    error(token, ErrorKey::Validation, "expected integer");
                 }
-            }
-            BlockOrValue::Block(s) => {
-                error(s, ErrorKey::Validation, "expected value, found block");
             }
         })
     }
 
     pub fn field_numeric(&mut self, name: &str) -> bool {
-        self.field_check(name, |v| match v {
-            BlockOrValue::Value(t) => {
-                if t.as_str().parse::<f64>().is_err() {
-                    error(t, ErrorKey::Validation, "expected number");
+        self.field_check(name, |bv| {
+            if let Some(token) = bv.expect_value() {
+                if token.as_str().parse::<f64>().is_err() {
+                    error(token, ErrorKey::Validation, "expected number");
                 }
-            }
-            BlockOrValue::Block(s) => {
-                error(s, ErrorKey::Validation, "expected value, found block");
             }
         })
     }
 
     pub fn field_date(&mut self, name: &str) -> bool {
-        self.field_check(name, |v| match v {
-            BlockOrValue::Value(t) => {
-                if Date::from_str(t.as_str()).is_err() {
-                    warn(t, ErrorKey::Validation, "expected date value");
+        self.field_check(name, |bv| {
+            if let Some(token) = bv.expect_value() {
+                if Date::from_str(token.as_str()).is_err() {
+                    warn(token, ErrorKey::Validation, "expected date value");
                 }
-            }
-            BlockOrValue::Block(s) => {
-                error(s, ErrorKey::Validation, "expected value, found block");
             }
         })
     }
