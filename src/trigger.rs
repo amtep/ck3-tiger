@@ -314,6 +314,12 @@ pub fn validate_trigger_key_bv(
         if sc.can_be(Scopes::Value) {
             sc.close();
             ScriptValue::validate_bv(bv, data, sc);
+        } else if matches!(cmp, Comparator::Ne) {
+            let scopes = sc.scopes();
+            sc.close();
+            if let Some(token) = bv.expect_value() {
+                validate_target(token, data, sc, scopes);
+            }
         } else {
             let msg = format!("unexpected comparator {cmp}");
             warn(key, ErrorKey::Validation, &msg);
