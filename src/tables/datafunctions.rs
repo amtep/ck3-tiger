@@ -109,7 +109,7 @@ pub fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {
     lookup_promote_or_function(lookup_name, ltype, FUNCTIONS)
 }
 
-/// Find an alternative datafunction to suggest when lookup_name has not been found.
+/// Find an alternative datafunction to suggest when `lookup_name` has not been found.
 /// This is a fairly expensive lookup.
 /// Currently it only looks for different-case variants.
 /// TODO: make it consider misspellings as well

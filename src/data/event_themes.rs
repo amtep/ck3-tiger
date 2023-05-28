@@ -86,9 +86,8 @@ impl Theme {
         // Check if the passed-in scope type has already been validated for
         if self.validated_scopes.borrow().contains(sc.scopes()) {
             return;
-        } else {
-            *self.validated_scopes.borrow_mut() |= sc.scopes();
         }
+        *self.validated_scopes.borrow_mut() |= sc.scopes();
 
         let mut vd = Validator::new(&self.block, data);
 

@@ -445,7 +445,7 @@ impl Everything {
     }
 
     pub fn item_has_property(&self, itype: Item, key: &str, property: &str) -> bool {
-        self.database.has_property(itype, key, property, &self)
+        self.database.has_property(itype, key, property, self)
     }
 
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {

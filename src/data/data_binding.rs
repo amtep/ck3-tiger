@@ -202,7 +202,7 @@ impl DataBinding {
                 }
                 Some(CodeArg::Chain(result))
             }
-            _ => Some(arg.clone()),
+            CodeArg::Literal(_) => Some(arg.clone()),
         }
     }
 

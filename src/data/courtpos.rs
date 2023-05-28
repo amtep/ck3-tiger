@@ -21,11 +21,11 @@ impl CourtPosition {
 
 impl DbKind for CourtPosition {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        data.verify_exists(Item::Localization, &key);
-        let loca = format!("{}_desc", key);
-        data.verify_exists_implied(Item::Localization, &loca, &key);
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
 
-        let mut vd = Validator::new(&block, data);
+        let mut vd = Validator::new(block, data);
         vd.advice_field("skill", "`skill` was removed in 1.8");
         vd.field_integer("max_available_positions");
         vd.field_item("category", Item::CourtPositionCategory);

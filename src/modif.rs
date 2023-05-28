@@ -725,13 +725,12 @@ pub fn validate_modifs<'a>(
                     let msg = "unknown terrain or geographical region";
                     error(token, ErrorKey::MissingItem, msg);
                 }
-                if data.item_exists(Item::Region, something) {
-                    if !data.item_has_property(Item::Region, something, "generates_modifiers") {
-                        let msg =
-                            format!("region {something} does not have generates_modifiers = yes");
-                        let info = format!("so the modifier {token} does not exist");
-                        error_info(token, ErrorKey::Validation, &msg, &info);
-                    }
+                if data.item_exists(Item::Region, something)
+                    && !data.item_has_property(Item::Region, something, "generates_modifiers")
+                {
+                    let msg = format!("region {something} does not have generates_modifiers = yes");
+                    let info = format!("so the modifier {token} does not exist");
+                    error_info(token, ErrorKey::Validation, &msg, &info);
                 }
                 kinds.require(
                     ModifKinds::Character | ModifKinds::Province | ModifKinds::County,

@@ -116,7 +116,7 @@ pub fn validate_datatypes(
                     error(&codes[i].name, ErrorKey::Macro, &msg);
                     return;
                 }
-                codes.to_mut().splice(i..i + 1, replacement.codes);
+                codes.to_mut().splice(i..=i, replacement.codes);
             } else {
                 return;
             }

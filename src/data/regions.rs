@@ -38,7 +38,7 @@ impl DbKind for Region {
     }
 
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
-        let mut vd = Validator::new(&block, data);
+        let mut vd = Validator::new(block, data);
         vd.field_bool("generate_modifiers");
         vd.field_bool("graphical");
         vd.field_validated_block("color", validate_color);

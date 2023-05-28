@@ -671,8 +671,8 @@ pub fn validate_ai_chance(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeCo
     }
 }
 
-/// Validate the left-hand part of a target = { target_scope } block.
-/// The caller is expected to have done sc.open_builder() before calling and then do sc.close() after calling.
+/// Validate the left-hand part of a `target = { target_scope }` block.
+/// The caller is expected to have done `sc.open_builder()` before calling and then do `sc.close()` after calling.
 /// Returns true iff validation was complete.
 pub fn validate_scope_chain(token: &Token, data: &Everything, sc: &mut ScopeContext) -> bool {
     let mut first = true;

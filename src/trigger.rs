@@ -574,7 +574,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
                 } else if new_part.is("squared_distance(") {
                     validate_target(&arg, data, sc, Scopes::Province);
                 } else {
-                    warn(arg, ErrorKey::Validation, "unexpected argument")
+                    warn(arg, ErrorKey::Validation, "unexpected argument");
                 }
                 store_part = new_part;
                 part = &store_part;

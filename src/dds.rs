@@ -13,10 +13,10 @@ const DDS_HEIGHT_OFFSET: usize = 12;
 const DDS_WIDTH_OFFSET: usize = 16;
 
 fn from_le32(buffer: &[u8], offset: usize) -> u32 {
-    buffer[offset] as u32
-        | ((buffer[offset + 1] as u32) << 8)
-        | ((buffer[offset + 2] as u32) << 16)
-        | ((buffer[offset + 3] as u32) << 24)
+    u32::from(buffer[offset])
+        | (u32::from(buffer[offset + 1]) << 8)
+        | (u32::from(buffer[offset + 2]) << 16)
+        | (u32::from(buffer[offset + 3]) << 24)
 }
 
 #[derive(Clone, Debug, Default)]
@@ -41,22 +41,17 @@ impl DdsFiles {
     }
 
     pub fn validate_frame(&self, key: &Token, width: u32, height: u32, frame: u32) {
+        // Note: `frame` is 1-based
         if let Some(info) = self.dds_files.get(key.as_str()) {
             if info.height != height {
                 let msg = format!("texture does not match frame height of {height}");
                 warn(key, ErrorKey::ImageFormat, &msg);
-                return;
-            }
-            if width == 0 || (info.width % width) != 0 {
+            } else if width == 0 || (info.width % width) != 0 {
                 let msg = format!("texture is not a multiple of frame width {width}");
                 warn(key, ErrorKey::ImageFormat, &msg);
-                return;
-            }
-            // `frame` is 1-based
-            if frame * width > info.width {
+            } else if frame * width > info.width {
                 let msg = format!("texture is not large enough for frame index {frame}");
                 warn(key, ErrorKey::ImageFormat, &msg);
-                return;
             }
         }
     }
@@ -94,8 +89,8 @@ pub struct DdsInfo {
 
 impl DdsInfo {
     pub fn new(header: &[u8]) -> Self {
-        let height = from_le32(&header, DDS_HEIGHT_OFFSET);
-        let width = from_le32(&header, DDS_WIDTH_OFFSET);
+        let height = from_le32(header, DDS_HEIGHT_OFFSET);
+        let width = from_le32(header, DDS_WIDTH_OFFSET);
         Self { width, height }
     }
 }

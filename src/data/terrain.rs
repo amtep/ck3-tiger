@@ -19,7 +19,7 @@ impl Terrain {
 
 impl DbKind for Terrain {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        let mut vd = Validator::new(&block, data);
+        let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
 
         vd.req_field("color");

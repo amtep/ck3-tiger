@@ -162,7 +162,7 @@ impl Token {
             Token::new(self.s[i..real_end].to_string(), loc)
         } else {
             // all spaces
-            Token::new("".to_string(), self.loc.clone())
+            Token::new(String::new(), self.loc.clone())
         }
     }
 

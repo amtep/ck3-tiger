@@ -579,7 +579,7 @@ impl<'a> ValueParser<'a> {
                 if c == ':' && text == "#tooltip" && !is_tooltip {
                     self.next_char();
                     is_tooltip = true;
-                    text = "".to_string();
+                    text = String::new();
                     loc = self.loc.clone();
                 } else if c.is_whitespace() {
                     self.next_char();
