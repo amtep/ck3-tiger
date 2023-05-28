@@ -9,13 +9,13 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
+use crate::scopes::{scope_iterator, Scopes};
 use crate::tables::effects::{scope_effect, Effect};
 use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger_key_bv};
 use crate::validate::{
     validate_cooldown, validate_days_weeks_months_years, validate_inside_iterator,
     validate_iterator_fields, validate_modifiers, validate_optional_cooldown,
-    validate_optional_cooldown_int, validate_prefix_reference, validate_scripted_modifier_call,
+    validate_optional_cooldown_int, validate_scope_chain, validate_scripted_modifier_call,
     ListType,
 };
 
@@ -307,83 +307,11 @@ pub fn validate_effect<'a>(
         }
 
         // Check if it's a target = { target_scope } block.
-        // The logic here is similar to logic in triggers and script values,
-        // but not quite the same :(
-        let part_vec = key.split('.');
         sc.open_builder();
-        for (i, mut part) in part_vec.iter().enumerate() {
-            let first = i == 0;
-            let stored_part;
-
-            if let Some((new_part, arg)) = part.split_after('(') {
-                if let Some((arg, _)) = arg.split_once(')') {
-                    let arg = arg.trim();
-                    if new_part.is("vassal_contract_obligation_level_score(") {
-                        validate_target(&arg, data, sc, Scopes::VassalContract);
-                    } else if new_part.is("squared_distance(") {
-                        validate_target(&arg, data, sc, Scopes::Province);
-                    } else {
-                        warn(arg, ErrorKey::Validation, "unexpected argument");
-                    }
-                    stored_part = new_part;
-                    part = &stored_part;
-                }
+        if validate_scope_chain(key, data, sc) {
+            if let Some(block) = bv.expect_block() {
+                validate_normal_effect(block, data, sc, tooltipped);
             }
-
-            if let Some((prefix, mut arg)) = part.split_once(':') {
-                if prefix.is("event_id") {
-                    arg = key.split_once(':').unwrap().1;
-                }
-                if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
-                    if inscopes == Scopes::None && !first {
-                        let msg = format!("`{prefix}:` makes no sense except as first part");
-                        warn(part, ErrorKey::Validation, &msg);
-                    }
-                    sc.expect(inscopes, &prefix);
-                    validate_prefix_reference(&prefix, &arg, data);
-                    sc.replace(outscope, part.clone());
-                    if prefix.is("event_id") {
-                        break; // force last part
-                    }
-                } else {
-                    let msg = format!("unknown prefix `{prefix}:`");
-                    error(part, ErrorKey::Validation, &msg);
-                    sc.close();
-                    continue 'outer;
-                }
-            } else if part.lowercase_is("root")
-                || part.lowercase_is("prev")
-                || part.lowercase_is("this")
-            {
-                if !first {
-                    let msg = format!("`{part}` makes no sense except as first part");
-                    warn(part, ErrorKey::Validation, &msg);
-                }
-                if part.lowercase_is("root") {
-                    sc.replace_root();
-                } else if part.lowercase_is("prev") {
-                    sc.replace_prev(part);
-                } else {
-                    sc.replace_this();
-                }
-            } else if let Some((inscopes, outscope)) = scope_to_scope(part) {
-                if inscopes == Scopes::None && !first {
-                    let msg = format!("`{part}` makes no sense except as first part");
-                    warn(part, ErrorKey::Validation, &msg);
-                }
-                sc.expect(inscopes, part);
-                sc.replace(outscope, part.clone());
-            // TODO: warn if trying to use iterator or effect here
-            } else {
-                let msg = format!("unknown token `{part}`");
-                error(part, ErrorKey::Validation, &msg);
-                sc.close();
-                continue 'outer;
-            }
-        }
-
-        if let Some(block) = bv.expect_block() {
-            validate_normal_effect(block, data, sc, tooltipped);
         }
         sc.close();
     }

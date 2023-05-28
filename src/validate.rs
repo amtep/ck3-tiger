@@ -12,7 +12,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::scopes::Scopes;
+use crate::scopes::{scope_prefix, scope_to_scope, Scopes};
 use crate::token::Token;
 use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger};
 
@@ -669,4 +669,56 @@ pub fn validate_ai_chance(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeCo
         }
         BlockOrValue::Block(b) => validate_modifiers_with_base(b, data, sc),
     }
+}
+
+/// Validate the left-hand part of a target = { target_scope } block.
+/// The caller is expected to have done sc.open_builder() before calling and then do sc.close() after calling.
+/// Returns true iff validation was complete.
+pub fn validate_scope_chain(token: &Token, data: &Everything, sc: &mut ScopeContext) -> bool {
+    let mut first = true;
+    for part in token.split('.') {
+        if let Some((prefix, arg)) = part.split_once(':') {
+            if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
+                if inscopes == Scopes::None && !first {
+                    let msg = format!("`{prefix}:` makes no sense except as first part");
+                    warn(&part, ErrorKey::Validation, &msg);
+                }
+                sc.expect(inscopes, &prefix);
+                validate_prefix_reference(&prefix, &arg, data);
+                sc.replace(outscope, part.clone());
+            } else {
+                let msg = format!("unknown prefix `{prefix}:`");
+                error(part, ErrorKey::Validation, &msg);
+                return false;
+            }
+        } else if part.lowercase_is("root")
+            || part.lowercase_is("prev")
+            || part.lowercase_is("this")
+        {
+            if !first {
+                let msg = format!("`{part}` makes no sense except as first part");
+                warn(&part, ErrorKey::Validation, &msg);
+            }
+            if part.lowercase_is("root") {
+                sc.replace_root();
+            } else if part.lowercase_is("prev") {
+                sc.replace_prev(&part);
+            } else {
+                sc.replace_this();
+            }
+        } else if let Some((inscopes, outscope)) = scope_to_scope(&part) {
+            if inscopes == Scopes::None && !first {
+                let msg = format!("`{part}` makes no sense except as first part");
+                warn(&part, ErrorKey::Validation, &msg);
+            }
+            sc.expect(inscopes, &part);
+            sc.replace(outscope, part);
+        } else {
+            let msg = format!("unknown token `{part}`");
+            error(part, ErrorKey::Validation, &msg);
+            return false;
+        }
+        first = false;
+    }
+    true
 }

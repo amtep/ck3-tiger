@@ -12,11 +12,11 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
+use crate::scopes::{scope_iterator, Scopes};
 use crate::token::{Loc, Token};
 use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{
-    validate_inside_iterator, validate_iterator_fields, validate_prefix_reference, ListType,
+    validate_inside_iterator, validate_iterator_fields, validate_scope_chain, ListType,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -118,7 +118,7 @@ impl ScriptValue {
         vd.field_validated_blocks_sc("else_if", sc, Self::validate_if);
         vd.field_validated_blocks_sc("else", sc, Self::validate_else);
 
-        'outer: for (key, bv) in vd.unknown_keys() {
+        for (key, bv) in vd.unknown_keys() {
             if let Some(token) = bv.get_value() {
                 error(token, ErrorKey::Validation, "expected block, found value");
                 continue;
@@ -145,76 +145,11 @@ impl ScriptValue {
                 }
             }
 
-            let mut first = true;
+            // Check for target = { script_value }
             sc.open_builder();
-            for mut part in key.split('.') {
-                if let Some((new_part, arg)) = part.split_after('(') {
-                    if let Some((arg, _)) = arg.split_once(')') {
-                        let arg = arg.trim();
-                        if new_part.is("vassal_contract_obligation_level_score(") {
-                            validate_target(&arg, data, sc, Scopes::VassalContract);
-                        } else if new_part.is("squared_distance(") {
-                            validate_target(&arg, data, sc, Scopes::Province);
-                        } else {
-                            warn(arg, ErrorKey::Validation, "unexpected argument");
-                        }
-                        part = new_part;
-                    }
-                }
-
-                if let Some((prefix, mut arg)) = part.split_once(':') {
-                    if prefix.is("event_id") {
-                        arg = key.split_once(':').unwrap().1;
-                    }
-                    if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
-                        if inscopes == Scopes::None && !first {
-                            let msg = format!("`{prefix}:` makes no sense except as first part");
-                            warn(&part, ErrorKey::Validation, &msg);
-                        }
-                        sc.expect(inscopes, &prefix);
-                        validate_prefix_reference(&prefix, &arg, data);
-                        sc.replace(outscope, part);
-                        if prefix.is("event_id") {
-                            break; // force last part
-                        }
-                    } else {
-                        let msg = format!("unknown prefix `{prefix}:`");
-                        error(part, ErrorKey::Validation, &msg);
-                        sc.close();
-                        continue 'outer;
-                    }
-                } else if part.lowercase_is("root")
-                    || part.lowercase_is("prev")
-                    || part.lowercase_is("this")
-                {
-                    if !first {
-                        let msg = format!("`{part}` makes no sense except as first part");
-                        warn(&part, ErrorKey::Validation, &msg);
-                    }
-                    if part.lowercase_is("root") {
-                        sc.replace_root();
-                    } else if part.lowercase_is("prev") {
-                        sc.replace_prev(&part);
-                    } else {
-                        sc.replace_this();
-                    }
-                } else if let Some((inscopes, outscope)) = scope_to_scope(&part) {
-                    if inscopes == Scopes::None && !first {
-                        let msg = format!("`{part}` makes no sense except as first part");
-                        warn(&part, ErrorKey::Validation, &msg);
-                    }
-                    sc.expect(inscopes, &part);
-                    sc.replace(outscope, part);
-                } else {
-                    // TODO: warn if trying to use iterator here
-                    let msg = format!("unknown token `{part}`");
-                    error(part, ErrorKey::Validation, &msg);
-                    sc.close();
-                    continue 'outer;
-                }
-                first = false;
+            if validate_scope_chain(key, data, sc) {
+                Self::validate_block(block, data, sc);
             }
-            Self::validate_block(block, data, sc);
             sc.close();
         }
     }
