@@ -8,8 +8,7 @@ use thiserror::Error;
 
 use crate::block::Block;
 use crate::data::characters::Characters;
-use crate::data::courtpos::CourtPosition;
-use crate::data::courtpos_categories::CourtPositionCategory;
+use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
 use crate::data::data_binding::DataBindings;
 use crate::data::decisions::Decisions;
 use crate::data::defines::Defines;
