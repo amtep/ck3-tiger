@@ -786,14 +786,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Province, "has_free_building_slot", Boolean),
     (Character, "has_free_council_slot", Boolean),
     (None, "has_game_rule", Item(Item::GameRule)),
-    (
-        Character,
-        "has_gene",
-        Block(&[
-            ("category", Item(Item::GeneCategory)),
-            ("template", Item(Item::GeneTemplate)),
-        ]),
-    ),
+    (Character, "has_gene", Special),
     (None, "has_global_variable", UncheckedValue),
     (None, "has_global_variable_list", UncheckedValue),
     (Character, "has_government", Item(Item::GovernmentType)),

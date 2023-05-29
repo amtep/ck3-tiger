@@ -1,8 +1,11 @@
+use fnv::FnvHashMap;
+
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::{Db, DbKind, Everything};
+use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::token::Token;
 
@@ -98,11 +101,23 @@ impl DbKind for AgePresetGene {
 }
 
 #[derive(Clone, Debug)]
-pub struct MorphGene {}
+pub struct MorphGene {
+    templates: FnvHashMap<String, Token>,
+}
 
 impl MorphGene {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::GeneCategory, key, block, Box::new(Self {}));
+        let mut templates = FnvHashMap::default();
+        for (key, _block) in block.iter_pure_definitions() {
+            if key.is("ugliness_feature_categories") {
+                continue;
+            }
+            if let Some(other) = templates.get(key.as_str()) {
+                dup_error(key, other, "morph gene template");
+            }
+            templates.insert(key.to_string(), key.clone());
+        }
+        db.add(Item::GeneCategory, key, block, Box::new(Self { templates }));
     }
 }
 
@@ -118,6 +133,16 @@ impl DbKind for MorphGene {
                 validate_morph_gene(block, data);
             }
         }
+    }
+
+    fn has_property(
+        &self,
+        property: &str,
+        _key: &Token,
+        _block: &Block,
+        _data: &Everything,
+    ) -> bool {
+        self.templates.contains_key(property)
     }
 }
 

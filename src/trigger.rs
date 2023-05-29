@@ -506,7 +506,7 @@ fn match_trigger_bv(
             }
         }
         Trigger::Special => {
-            // exists, switch, time_of_year, custom_tooltip and weighted_calc_true_if
+            // exists, has_gene, switch, time_of_year, custom_tooltip and weighted_calc_true_if
             if name.is("exists") {
                 if let Some(token) = bv.expect_value() {
                     if token.is("yes") || token.is("no") {
@@ -534,6 +534,24 @@ fn match_trigger_bv(
                     BlockOrValue::Value(t) => data.verify_exists(Item::Localization, t),
                     BlockOrValue::Block(b) => {
                         validate_trigger(name.as_str(), false, b, data, sc, false);
+                    }
+                }
+            } else if name.is("has_gene") {
+                if let Some(block) = bv.expect_block() {
+                    let mut vd = Validator::new(block, data);
+                    vd.field_item("category", Item::GeneCategory);
+                    if let Some(category) = block.get_field_value("category") {
+                        if let Some(template) = vd.field_value("template") {
+                            if !data.item_has_property(
+                                Item::GeneCategory,
+                                category.as_str(),
+                                template.as_str(),
+                            ) {
+                                let msg =
+                                    format!("gene {category} does not have template {template}");
+                                error(template, ErrorKey::MissingItem, &msg);
+                            }
+                        }
                     }
                 }
             }
