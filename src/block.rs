@@ -51,6 +51,17 @@ impl BlockOrValue {
         }
     }
 
+    pub fn is_value(&self) -> bool {
+        match self {
+            BlockOrValue::Value(_) => true,
+            BlockOrValue::Block(_) => false,
+        }
+    }
+
+    pub fn is_block(&self) -> bool {
+        !self.is_value()
+    }
+
     pub fn into_value(self) -> Option<Token> {
         match self {
             BlockOrValue::Value(t) => Some(t),

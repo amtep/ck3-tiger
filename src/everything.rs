@@ -19,6 +19,7 @@ use crate::data::event_themes::Themes;
 use crate::data::events::Events;
 use crate::data::factions::Faction;
 use crate::data::gameconcepts::GameConcepts;
+use crate::data::genes::Gene;
 use crate::data::gui::Gui;
 use crate::data::houses::Houses;
 use crate::data::interaction_cats::InteractionCategories;
@@ -398,6 +399,7 @@ impl Everything {
         self.load_pdx_items("common/terrain_types/", Terrain::add);
         self.load_pdx_items("map_data/geographical_regions/", Region::add);
         self.load_pdx_items("common/scripted_guis/", ScriptedGui::add);
+        self.load_pdx_items("common/genes/", Gene::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -455,9 +457,12 @@ impl Everything {
             Item::CourtPosition
             | Item::CourtPositionCategory
             | Item::Faction
+            | Item::GeneAgePreset
+            | Item::GeneCategory
             | Item::Relation
             | Item::RelationFlag
             | Item::Region
+            | Item::ScriptedGui
             | Item::ScriptedRule
             | Item::Terrain => self.database.exists(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),

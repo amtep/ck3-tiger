@@ -10,6 +10,7 @@ pub mod event_themes;
 pub mod events;
 pub mod factions;
 pub mod gameconcepts;
+pub mod genes;
 pub mod gui;
 pub mod houses;
 pub mod interaction_cats;

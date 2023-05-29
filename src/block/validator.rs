@@ -57,13 +57,25 @@ impl<'a> Validator<'a> {
             self.known_fields.push(key.as_str());
             true
         } else {
-            error(
-                self.block,
-                ErrorKey::Validation,
-                &format!("required field `{name}` missing"),
-            );
+            let msg = format!("required field `{name}` missing");
+            error(self.block, ErrorKey::Validation, &msg);
             false
         }
+    }
+
+    pub fn req_field_one_of(&mut self, names: &[&str]) -> bool {
+        let mut count = 0;
+        for name in names {
+            if let Some(key) = self.block.get_key(name) {
+                self.known_fields.push(key.as_str());
+                count += 1;
+            }
+        }
+        if count != 1 {
+            let msg = format!("expected exactly 1 of {}", names.join(", "));
+            error(self.block, ErrorKey::Validation, &msg);
+        }
+        count == 1
     }
 
     pub fn req_field_warn(&mut self, name: &str) -> bool {
