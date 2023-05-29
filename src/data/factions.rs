@@ -1,7 +1,6 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 use crate::context::ScopeContext;
-use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::effect::validate_normal_effect;
 use crate::everything::{Db, DbKind, Everything};
@@ -57,26 +56,27 @@ impl DbKind for Faction {
         if let Some(block) = vd.field_block("leader_leaves") {
             validate_normal_effect(block, data, &mut sc, false);
         }
-        if let Some((key, block)) = vd.definition("ai_join_score") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            validate_modifiers_with_base(block, data, &mut sc);
-        }
-        if let Some((key, block)) = vd.definition("ai_create_score") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            validate_modifiers_with_base(block, data, &mut sc);
-        }
-        if let Some((key, block)) = vd.definition("county_join_score") {
-            let mut sc = ScopeContext::new_root(Scopes::LandedTitle, key);
-            validate_modifiers_with_base(block, data, &mut sc);
-        }
-        if let Some((key, block)) = vd.definition("county_create_score") {
-            let mut sc = ScopeContext::new_root(Scopes::LandedTitle, key);
-            validate_modifiers_with_base(block, data, &mut sc);
-        }
-        if let Some((key, bv)) = vd.definition_or_assignment("county_power") {
-            let mut sc = ScopeContext::new_root(Scopes::LandedTitle, key);
-            ScriptValue::validate_bv(bv, data, &mut sc);
-        }
+        vd.field_validated_block_rooted(
+            "ai_join_score",
+            Scopes::Character,
+            validate_modifiers_with_base,
+        );
+        vd.field_validated_block_rooted(
+            "ai_create_score",
+            Scopes::Character,
+            validate_modifiers_with_base,
+        );
+        vd.field_validated_block_rooted(
+            "county_join_score",
+            Scopes::LandedTitle,
+            validate_modifiers_with_base,
+        );
+        vd.field_validated_block_rooted(
+            "county_create_score",
+            Scopes::LandedTitle,
+            validate_modifiers_with_base,
+        );
+        vd.field_script_value_rooted("county_power", Scopes::LandedTitle);
         if let Some(block) = vd.field_block("ai_demand_chance") {
             validate_modifiers_with_base(block, data, &mut sc);
         }
@@ -92,39 +92,62 @@ impl DbKind for Faction {
         if let Some(block) = vd.field_block("is_valid") {
             validate_normal_trigger(block, data, &mut sc, false);
         }
-        if let Some((key, block)) = vd.definition("is_character_valid") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, false);
-        }
-        if let Some((key, block)) = vd.definition("is_county_valid") {
-            let mut sc = ScopeContext::new_root(Scopes::LandedTitle, key);
-            validate_normal_trigger(block, data, &mut sc, false);
-        }
-        // TODO: check player_can_join before deciding if these triggers are tooltipped
-        if let Some((key, block)) = vd.definition("can_character_join") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, true);
-        }
-        if let Some((key, block)) = vd.definition("can_character_create") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, true);
-        }
-        if let Some((key, block)) = vd.definition("can_character_create_ui") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, true);
-        }
-        if let Some((key, block)) = vd.definition("can_character_become_leader") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, false);
-        }
-        if let Some((key, block)) = vd.definition("can_county_join") {
-            let mut sc = ScopeContext::new_root(Scopes::LandedTitle, key);
-            validate_normal_trigger(block, data, &mut sc, false);
-        }
-        if let Some((key, block)) = vd.definition("can_county_create") {
-            let mut sc = ScopeContext::new_root(Scopes::LandedTitle, key);
-            validate_normal_trigger(block, data, &mut sc, false);
-        }
+        vd.field_validated_block_rooted(
+            "is_character_valid",
+            Scopes::Character,
+            |block, data, sc| {
+                validate_normal_trigger(block, data, sc, false);
+            },
+        );
+        vd.field_validated_block_rooted(
+            "is_county_valid",
+            Scopes::LandedTitle,
+            |block, data, sc| {
+                validate_normal_trigger(block, data, sc, false);
+            },
+        );
+        vd.field_validated_block_rooted(
+            "can_character_join",
+            Scopes::Character,
+            |block, data, sc| {
+                validate_normal_trigger(block, data, sc, true);
+            },
+        );
+        vd.field_validated_block_rooted(
+            "can_character_create",
+            Scopes::Character,
+            |block, data, sc| {
+                validate_normal_trigger(block, data, sc, true);
+            },
+        );
+        vd.field_validated_block_rooted(
+            "can_character_create_ui",
+            Scopes::Character,
+            |block, data, sc| {
+                validate_normal_trigger(block, data, sc, true);
+            },
+        );
+        vd.field_validated_block_rooted(
+            "can_character_become_leader",
+            Scopes::Character,
+            |block, data, sc| {
+                validate_normal_trigger(block, data, sc, false);
+            },
+        );
+        vd.field_validated_block_rooted(
+            "can_county_join",
+            Scopes::LandedTitle,
+            |block, data, sc| {
+                validate_normal_trigger(block, data, sc, false);
+            },
+        );
+        vd.field_validated_block_rooted(
+            "can_county_create",
+            Scopes::LandedTitle,
+            |block, data, sc| {
+                validate_normal_trigger(block, data, sc, false);
+            },
+        );
 
         vd.field_bool("character_allow_create");
         vd.field_bool("character_allow_join");

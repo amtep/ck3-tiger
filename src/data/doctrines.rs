@@ -203,27 +203,32 @@ impl Doctrine {
             validate_normal_trigger(b, data, &mut sc, true);
         });
 
-        if let Some((key, block)) = vd.definition("character_modifier") {
-            let mut vd = Validator::new(block, data);
-            let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            vd.field_item("name", Item::Localization);
-            validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
-        }
+        vd.field_validated_block_rooted(
+            "character_modifier",
+            Scopes::Character,
+            |block, data, sc| {
+                let mut vd = Validator::new(block, data);
+                vd.field_item("name", Item::Localization);
+                validate_modifs(block, data, ModifKinds::Character, sc, vd);
+            },
+        );
 
         // Not documented, but used in vanilla
-        if let Some((key, block)) = vd.definition("clergy_modifier") {
+        vd.field_validated_block_rooted("clergy_modifier", Scopes::Character, |block, data, sc| {
             let vd = Validator::new(block, data);
-            let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
-        }
+            validate_modifs(block, data, ModifKinds::Character, sc, vd);
+        });
 
         // In the docs but not used in vanilla
-        if let Some((key, block)) = vd.definition("doctrine_character_modifier") {
-            let mut vd = Validator::new(block, data);
-            let mut sc = ScopeContext::new_root(Scopes::Character, key);
-            vd.field_item("doctrine", Item::Doctrine);
-            validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
-        }
+        vd.field_validated_block_rooted(
+            "doctrine_character_modifier",
+            Scopes::Character,
+            |block, data, sc| {
+                let mut vd = Validator::new(block, data);
+                vd.field_item("doctrine", Item::Doctrine);
+                validate_modifs(block, data, ModifKinds::Character, sc, vd);
+            },
+        );
 
         vd.field_validated_block("traits", validate_traits);
     }

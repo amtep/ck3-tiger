@@ -130,22 +130,18 @@ impl Interaction {
         vd.field_bool("ignores_pending_interaction_block");
 
         // The cooldowns seem to be in actor scope
-        if let Some((k, b)) = vd.definition("cooldown") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
-            validate_cooldown(b, data, &mut sc);
-        };
-        if let Some((k, b)) = vd.definition("cooldown_against_recipient") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
-            validate_cooldown(b, data, &mut sc);
-        };
-        if let Some((k, b)) = vd.definition("category_cooldown") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
-            validate_cooldown(b, data, &mut sc);
-        };
-        if let Some((k, b)) = vd.definition("category_cooldown_against_recipient") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
-            validate_cooldown(b, data, &mut sc);
-        };
+        vd.field_validated_block_rooted("cooldown", Scopes::Character, validate_cooldown);
+        vd.field_validated_block_rooted(
+            "cooldown_against_recipient",
+            Scopes::Character,
+            validate_cooldown,
+        );
+        vd.field_validated_block_rooted("category_cooldown", Scopes::Character, validate_cooldown);
+        vd.field_validated_block_rooted(
+            "category_cooldown_against_recipient",
+            Scopes::Character,
+            validate_cooldown,
+        );
 
         // TODO: The ai_ name check is a heuristic. It would be better to check if the
         // is_shown trigger requires scope:actor to be is_ai = yes. But that's a long way off.
@@ -225,22 +221,24 @@ impl Interaction {
         });
 
         vd.field_integer("ai_frequency"); // months
-        if let Some((k, b)) = vd.definition("ai_potential") {
-            // This seems to be in character scope
-            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
-            validate_normal_trigger(b, data, &mut sc, true);
-        };
+
+        // This seems to be in character scope
+        vd.field_validated_block_rooted("ai_potential", Scopes::Character, |block, data, sc| {
+            validate_normal_trigger(block, data, sc, true);
+        });
         vd.field_validated_sc("ai_intermediary_accept", &mut sc, validate_ai_chance);
-        if let Some((k, b)) = vd.definition("ai_accept") {
-            // This seems to be in character scope
-            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
-            validate_modifiers_with_base(b, data, &mut sc);
-        }
-        if let Some((k, b)) = vd.definition("ai_will_do") {
-            // This seems to be in character scope
-            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
-            validate_modifiers_with_base(b, data, &mut sc);
-        };
+
+        // These seem to be in character scope
+        vd.field_validated_block_rooted(
+            "ai_accept",
+            Scopes::Character,
+            validate_modifiers_with_base,
+        );
+        vd.field_validated_block_rooted(
+            "ai_will_do",
+            Scopes::Character,
+            validate_modifiers_with_base,
+        );
 
         vd.field_validated_sc("desc", &mut sc, validate_desc);
         vd.field_choice("greeting", &["negative", "positive"]);
@@ -274,11 +272,11 @@ impl Interaction {
 
         vd.field_choice("target_type", &["artifact", "title", "none"]);
         vd.field_value("target_filter"); // TODO
-        if let Some((k, b)) = vd.definition("can_be_picked") {
-            // root is the character being picked
-            let mut sc = ScopeContext::new_root(Scopes::Character, k.clone());
-            validate_normal_trigger(b, data, &mut sc, true);
-        };
+
+        // root is the character being picked
+        vd.field_validated_block_rooted("can_be_picked", Scopes::Character, |block, data, sc| {
+            validate_normal_trigger(block, data, sc, true);
+        });
         vd.field_validated_block("can_be_picked_title", |b, data| {
             validate_normal_trigger(b, data, &mut sc, true);
         });

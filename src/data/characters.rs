@@ -383,7 +383,7 @@ impl Character {
         vd.field_item("sexuality", Item::Sexuality);
         vd.field_numeric("health");
         vd.field_numeric("fertility");
-        vd.definition("portrait_override"); // undocumented
+        vd.field_block("portrait_override"); // undocumented
 
         vd.validate_history_blocks(|date, b, data| {
             Self::validate_history(date, b, &self.block, data, &mut sc);

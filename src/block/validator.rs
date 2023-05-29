@@ -503,6 +503,29 @@ impl<'a> Validator<'a> {
         self.field_validated_block(name, |b, data| f(b, data, sc))
     }
 
+    pub fn field_validated_block_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F) -> bool
+    where
+        F: FnMut(&Block, &Everything, &mut ScopeContext),
+    {
+        let mut found = None;
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    self.known_fields.push(key.as_str());
+                    if let Some(other) = found {
+                        dup_assign_error(key, other);
+                    }
+                    expect_eq_qeq(key, cmp);
+                    if let Some(block) = bv.expect_block() {
+                        let mut sc = ScopeContext::new_root(scopes, key);
+                        f(block, self.data, &mut sc);
+                    }
+                    found = Some(key);
+                }
+            }
+        }
+        found.is_some()
+    }
     pub fn field_blocks(&mut self, name: &str) -> bool {
         let mut found = false;
         for (k, cmp, bv) in &self.block.v {
@@ -518,41 +541,6 @@ impl<'a> Validator<'a> {
         found
     }
 
-    pub fn definition(&mut self, name: &str) -> Option<(&Token, &Block)> {
-        let mut found = None;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    if let Some((other, _)) = found {
-                        dup_assign_error(key, other);
-                    }
-                    expect_eq_qeq(key, cmp);
-                    if let Some(block) = bv.expect_block() {
-                        found = Some((key, block));
-                    }
-                }
-            }
-        }
-        found
-    }
-
-    pub fn definition_or_assignment(&mut self, name: &str) -> Option<(&Token, &BlockOrValue)> {
-        let mut found = None;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    if let Some((other, _)) = found {
-                        dup_assign_error(key, other);
-                    }
-                    expect_eq_qeq(key, cmp);
-                    found = Some((key, bv));
-                }
-            }
-        }
-        found
-    }
     pub fn req_tokens_integers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
