@@ -1,3 +1,4 @@
+pub mod amenities;
 pub mod characters;
 pub mod courtpos;
 pub mod data_binding;

@@ -7,7 +7,6 @@ use strum_macros::IntoStaticStr;
 #[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord)]
 #[strum(serialize_all = "snake_case")]
 pub enum Item {
-    Amenity,
     AccoladeCategory,
     AccoladeParameter,
     AccoladeType,
@@ -18,6 +17,7 @@ pub enum Item {
     ActivityPhase,
     ActivityState,
     ActivityType,
+    Amenity,
     Artifact,
     ArtifactCategory,
     ArtifactFeature,

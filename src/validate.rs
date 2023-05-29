@@ -646,8 +646,8 @@ pub fn validate_scripted_modifier_calls(
         if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
             validate_scripted_modifier_call(key, bv, modifier, data, sc);
         } else {
-            let msg = "unknown field `{key}`";
-            warn(key, ErrorKey::Validation, msg);
+            let msg = format!("unknown field `{key}`");
+            warn(key, ErrorKey::Validation, &msg);
         }
     }
 }

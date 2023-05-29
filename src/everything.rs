@@ -7,6 +7,7 @@ use std::rc::Rc;
 use thiserror::Error;
 
 use crate::block::Block;
+use crate::data::amenities::Amenity;
 use crate::data::characters::Characters;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
 use crate::data::data_binding::DataBindings;
@@ -399,6 +400,7 @@ impl Everything {
         self.load_pdx_items("map_data/geographical_regions/", Region::add);
         self.load_pdx_items("common/scripted_guis/", ScriptedGui::add);
         self.load_pdx_items("common/genes/", Gene::add);
+        self.load_pdx_items("common/court_amenities/", Amenity::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -453,7 +455,8 @@ impl Everything {
 
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
-            Item::CourtPosition
+            Item::Amenity
+            | Item::CourtPosition
             | Item::CourtPositionCategory
             | Item::Faction
             | Item::GeneAgePreset
