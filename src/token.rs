@@ -4,6 +4,8 @@ use std::fmt::{Display, Error, Formatter};
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use crate::errorkey::ErrorKey;
+use crate::errors::error;
 use crate::fileset::{FileEntry, FileKind};
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -168,6 +170,32 @@ impl Token {
 
     pub fn into_string(self) -> String {
         self.s
+    }
+
+    pub fn expect_number(&self) -> Option<f64> {
+        if let Ok(v) = self.s.parse::<f64>() {
+            Some(v)
+        } else {
+            error(self, ErrorKey::Validation, "expected number");
+            None
+        }
+    }
+
+    pub fn is_number(&self) -> bool {
+        self.s.parse::<f64>().is_ok()
+    }
+
+    pub fn expect_integer(&self) -> Option<i64> {
+        if let Ok(v) = self.s.parse::<i64>() {
+            Some(v)
+        } else {
+            error(self, ErrorKey::Validation, "expected integer");
+            None
+        }
+    }
+
+    pub fn is_integer(&self) -> bool {
+        self.s.parse::<i64>().is_ok()
     }
 }
 

@@ -244,9 +244,7 @@ impl<'a> Validator<'a> {
     pub fn field_integer(&mut self, name: &str) -> bool {
         self.field_check(name, |bv| {
             if let Some(token) = bv.expect_value() {
-                if token.as_str().parse::<i32>().is_err() {
-                    error(token, ErrorKey::Validation, "expected integer");
-                }
+                token.expect_integer();
             }
         })
     }
@@ -254,9 +252,7 @@ impl<'a> Validator<'a> {
     pub fn field_numeric(&mut self, name: &str) -> bool {
         self.field_check(name, |bv| {
             if let Some(token) = bv.expect_value() {
-                if token.as_str().parse::<f64>().is_err() {
-                    error(token, ErrorKey::Validation, "expected number");
-                }
+                token.expect_number();
             }
         })
     }
@@ -563,10 +559,8 @@ impl<'a> Validator<'a> {
         for (k, _, bv) in &self.block.v {
             if k.is_none() {
                 if let BlockOrValue::Value(t) = bv {
-                    if t.as_str().parse::<i32>().is_ok() {
+                    if let Some(_) = t.expect_integer() {
                         found += 1;
-                    } else {
-                        error(t, ErrorKey::Validation, "expected integer");
                     }
                 }
             }
@@ -614,7 +608,7 @@ impl<'a> Validator<'a> {
         let mut vec = Vec::new();
         for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
-                if key.as_str().parse::<i32>().is_ok() {
+                if key.is_integer() {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
                     if let Some(block) = bv.expect_block() {
@@ -630,7 +624,7 @@ impl<'a> Validator<'a> {
         let mut vec = Vec::new();
         for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
-                if key.as_str().parse::<i32>().is_ok() {
+                if key.is_integer() {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
                     if let Some(token) = bv.expect_value() {

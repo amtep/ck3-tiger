@@ -1,5 +1,4 @@
 use std::fmt::{Display, Formatter};
-use std::str::FromStr;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
@@ -183,21 +182,15 @@ pub fn validate_color(block: &Block, _data: &Everything) {
         } else {
             match v {
                 BlockOrValue::Value(t) => {
-                    if let Ok(i) = t.as_str().parse::<isize>() {
+                    if let Ok(i) = t.as_str().parse::<i64>() {
                         if !(0..=255).contains(&i) {
-                            error(
-                                t,
-                                ErrorKey::Validation,
-                                "color values should be between 0 and 255",
-                            );
+                            let msg = "color values should be between 0 and 255";
+                            error(t, ErrorKey::Validation, msg);
                         }
                     } else if let Ok(f) = t.as_str().parse::<f64>() {
+                        let msg = "color values should be between 0.0 and 1.0";
                         if !(0.0..=1.0).contains(&f) {
-                            error(
-                                t,
-                                ErrorKey::Validation,
-                                "color values should be between 0.0 and 1.0",
-                            );
+                            error(t, ErrorKey::Validation, msg);
                         }
                     } else {
                         error(t, ErrorKey::Validation, "expected color value");
@@ -661,12 +654,7 @@ pub fn validate_scripted_modifier_calls(
 
 pub fn validate_ai_chance(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
     match bv {
-        BlockOrValue::Value(t) => {
-            if f64::from_str(t.as_str()).is_err() {
-                let msg = "expected number";
-                warn(t, ErrorKey::Validation, msg);
-            }
-        }
+        BlockOrValue::Value(t) => _ = t.expect_number(),
         BlockOrValue::Block(b) => validate_modifiers_with_base(b, data, sc),
     }
 }

@@ -105,9 +105,7 @@ pub fn validate_trigger(
         vd.req_field("amount");
         if let Some(bv) = vd.field_any_cmp("amount") {
             if let Some(token) = bv.expect_value() {
-                if token.as_str().parse::<i32>().is_err() {
-                    error(token, ErrorKey::Validation, "expected integer");
-                }
+                token.expect_integer();
             }
         }
     } else if !in_list {
@@ -192,7 +190,7 @@ pub fn validate_trigger_key_bv(
     }
 
     // `10 < scriptvalue` is a valid trigger
-    if key.as_str().parse::<f64>().is_ok() {
+    if key.is_number() {
         ScriptValue::validate_bv(bv, data, sc);
         return;
     }
@@ -557,7 +555,7 @@ fn match_trigger_bv(
 }
 
 pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, outscopes: Scopes) {
-    if token.as_str().parse::<f64>().is_ok() {
+    if token.is_number() {
         if !outscopes.intersects(Scopes::Value | Scopes::None) {
             let msg = format!("expected {outscopes}");
             warn(token, ErrorKey::Scopes, &msg);

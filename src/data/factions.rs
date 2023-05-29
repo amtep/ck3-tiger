@@ -4,8 +4,6 @@ use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::effect::validate_normal_effect;
-use crate::errorkey::ErrorKey;
-use crate::errors::warn;
 use crate::everything::{Db, DbKind, Everything};
 use crate::item::Item;
 use crate::scopes::Scopes;
@@ -87,11 +85,7 @@ impl DbKind for Faction {
         }
         if let Some(bv) = vd.field("power_threshold") {
             match bv {
-                BlockOrValue::Value(t) => {
-                    if t.as_str().parse::<i32>().is_err() {
-                        warn(t, ErrorKey::Validation, "expected integer value");
-                    }
-                }
+                BlockOrValue::Value(t) => _ = t.expect_integer(),
                 BlockOrValue::Block(b) => validate_modifiers_with_base(b, data, &mut sc),
             }
         }

@@ -125,15 +125,13 @@ pub fn validate_effect<'a>(
                 }
                 Effect::Integer => {
                     if let Some(token) = bv.expect_value() {
-                        if token.as_str().parse::<i32>().is_err() {
-                            warn(token, ErrorKey::Validation, "expected integer");
-                        }
+                        token.expect_integer();
                     }
                 }
                 Effect::ScriptValue | Effect::NonNegativeValue => {
                     if let Some(token) = bv.get_value() {
-                        if let Ok(number) = token.as_str().parse::<i32>() {
-                            if effect == Effect::NonNegativeValue && number < 0 {
+                        if let Ok(number) = token.as_str().parse::<f64>() {
+                            if effect == Effect::NonNegativeValue && number < 0.0 {
                                 if key.is("add_gold") {
                                     let msg = "add_gold does not take negative numbers";
                                     let info = "try remove_short_term_gold instead";
@@ -1220,8 +1218,7 @@ fn validate_effect_special(
         vd.req_field("level");
         vd.field_item("type", Item::VassalObligation);
         if let Some(token) = vd.field_value("level") {
-            if token.as_str().parse::<i32>().is_err()
-                && !data.item_exists(Item::VassalObligationLevel, token.as_str())
+            if !token.is_integer() && !data.item_exists(Item::VassalObligationLevel, token.as_str())
             {
                 validate_target(token, data, sc, Scopes::VassalContractObligationLevel);
             }

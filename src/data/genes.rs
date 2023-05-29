@@ -178,7 +178,7 @@ fn validate_curve_range(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
     for token in vd.values() {
-        if let Ok(v) = token.as_str().parse::<f64>() {
+        if let Some(v) = token.expect_number() {
             count += 1;
             if count == 1 {
                 if v < 0.0 || v > 1.0 {
@@ -189,8 +189,6 @@ fn validate_curve_range(block: &Block, data: &Everything) {
                     error(token, ErrorKey::Range, "expected number from -1.0 to 1.0");
                 }
             }
-        } else {
-            error(token, ErrorKey::Validation, "expected number");
         }
     }
     if count != 2 {
@@ -207,13 +205,11 @@ fn validate_hsv_curve_range(block: &Block, data: &Everything) {
             warn(key, ErrorKey::Validation, "unknown field");
         } else if !found_first {
             if let Some(token) = bv.expect_value() {
-                if let Ok(v) = token.as_str().parse::<f64>() {
+                if let Some(v) = token.expect_number() {
                     found_first = true;
                     if v < 0.0 || v > 1.0 {
                         error(token, ErrorKey::Range, "expected number from 0.0 to 1.0");
                     }
-                } else {
-                    error(token, ErrorKey::Validation, "expected number");
                 }
             }
         } else if !found_second {
@@ -222,13 +218,11 @@ fn validate_hsv_curve_range(block: &Block, data: &Everything) {
                 let mut count = 0;
                 let mut vd = Validator::new(block, data);
                 for token in vd.values() {
-                    if let Ok(v) = token.as_str().parse::<f64>() {
+                    if let Some(v) = token.expect_number() {
                         count += 1;
                         if v < -1.0 || v > 1.0 {
                             error(token, ErrorKey::Range, "expected number from -1.0 to 1.0");
                         }
-                    } else {
-                        error(token, ErrorKey::Validation, "expected number");
                     }
                 }
                 if count != 3 {
@@ -243,13 +237,11 @@ fn validate_gene_range(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
     for token in vd.values() {
-        if let Ok(v) = token.as_str().parse::<f64>() {
+        if let Some(v) = token.expect_number() {
             count += 1;
             if v < 0.0 || v > 1.0 {
                 error(token, ErrorKey::Range, "expected number from 0.0 to 1.0");
             }
-        } else {
-            error(token, ErrorKey::Validation, "expected number");
         }
     }
     if count != 2 {
