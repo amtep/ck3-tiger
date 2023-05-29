@@ -34,6 +34,7 @@ use crate::data::regions::Region;
 use crate::data::relations::Relation;
 use crate::data::religions::Religions;
 use crate::data::scripted_effects::{Effect, Effects};
+use crate::data::scripted_guis::ScriptedGui;
 use crate::data::scripted_lists::ScriptedLists;
 use crate::data::scripted_modifiers::ScriptedModifiers;
 use crate::data::scripted_rules::ScriptedRule;
@@ -396,6 +397,7 @@ impl Everything {
         self.load_pdx_items("common/scripted_relations/", Relation::add);
         self.load_pdx_items("common/terrain_types/", Terrain::add);
         self.load_pdx_items("map_data/geographical_regions/", Region::add);
+        self.load_pdx_items("common/scripted_guis/", ScriptedGui::add);
     }
 
     pub fn validate_all(&mut self) {
