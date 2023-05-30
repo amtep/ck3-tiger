@@ -177,6 +177,8 @@ impl Doctrine {
                 let path = format!("{icon_path}/{}.dds", &self.key);
                 data.fileset.verify_exists_implied(&path, &self.key);
             }
+        } else {
+            vd.field_value("icon");
         }
 
         if let Some(bv) = vd.field("name") {

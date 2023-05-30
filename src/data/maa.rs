@@ -93,13 +93,15 @@ impl MenAtArmsType {
             if let Some(icon) = vd.field_value("icon") {
                 let path = format!("{icon_path}/{icon}.dds");
                 data.fileset.verify_exists_implied(&path, icon);
-            } else if let Some(base) = vd.field_value("type") {
+            } else if let Some(base) = self.block.get_field_value("type") {
                 let base_path = format!("{icon_path}/{base}.dds");
                 let path = format!("{icon_path}/{}.dds", self.key);
                 if !data.fileset.exists(&base_path) {
                     data.fileset.verify_exists_implied(&path, &self.key);
                 }
             }
+        } else {
+            vd.field_value("icon");
         }
 
         // TODO: "Mutually exclusive with being unlocked by innovation"

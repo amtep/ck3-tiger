@@ -8,6 +8,7 @@ use thiserror::Error;
 
 use crate::block::Block;
 use crate::data::amenities::Amenity;
+use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::characters::Characters;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
 use crate::data::data_binding::DataBindings;
@@ -401,6 +402,8 @@ impl Everything {
         self.load_pdx_items("common/scripted_guis/", ScriptedGui::add);
         self.load_pdx_items("common/genes/", Gene::add);
         self.load_pdx_items("common/court_amenities/", Amenity::add);
+        self.load_pdx_items("common/casus_belli_groups/", CasusBelliGroup::add);
+        self.load_pdx_items("common/casus_belli_types/", CasusBelli::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -456,6 +459,8 @@ impl Everything {
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Amenity
+            | Item::CasusBelli
+            | Item::CasusBelliGroup
             | Item::CourtPosition
             | Item::CourtPositionCategory
             | Item::Faction
