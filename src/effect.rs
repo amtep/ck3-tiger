@@ -692,6 +692,10 @@ fn validate_effect_special(
         vd.field_script_value("prestige", sc);
         vd.field_script_value("gold", sc);
         vd.field_script_value("piety", sc);
+        vd.field_validated_block("opinion", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("modifier", Item::OpinionModifier);
+        });
     } else if caller == "add_hook" || caller == "add_hook_no_toast" {
         vd.req_field("type");
         vd.req_field("target");
@@ -702,7 +706,7 @@ fn validate_effect_special(
     } else if caller == "add_opinion" || caller == "reverse_add_opinion" {
         vd.req_field("modifier");
         vd.req_field("target");
-        vd.field_item("modifier", Item::Modifier);
+        vd.field_item("modifier", Item::OpinionModifier);
         vd.field_target("target", sc, Scopes::Character);
         vd.field_script_value("opinion", sc); // undocumented
         validate_optional_cooldown(&mut vd, sc);
