@@ -456,7 +456,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (GreatHolyWar, "divide_war_chest", SpecialBlock),
     (Character, "divorce", Scope(Scopes::Character)),
     (
-        Character,
+        GreatHolyWar,
         "do_ghw_title_handout",
         Scope(Scopes::TitleAndVassalChange),
     ),
