@@ -1012,12 +1012,23 @@ fn validate_effect_special(
             vd.field_choice("execute_threshold", &["accept", "maybe", "decline"]);
             vd.field_choice("send_threshold", &["accept", "maybe", "decline"]);
         }
+    } else if caller == "pay_long_term_gold"
+        || caller == "pay_reserved_gold"
+        || caller == "pay_short_term_gold"
+        || caller == "pay_war_chest_gold"
+    {
+        vd.req_field("target");
+        vd.field_target("target", sc, Scopes::Character);
+        vd.field_script_value("gold", sc);
+        // undocumented; it means multiply the gold amount by (whose?) yearly income
+        vd.field_bool("yearly_income");
     } else if caller == "pay_long_term_income"
         || caller == "pay_reserved_income"
         || caller == "pay_short_term_income"
         || caller == "pay_war_chest_income"
     {
         vd.req_field("target");
+        vd.field_target("target", sc, Scopes::Character);
         validate_optional_cooldown(&mut vd, sc);
     } else if caller == "random_list" {
         validate_random_list("random_list", block, data, vd, sc, tooltipped);
@@ -1085,7 +1096,7 @@ fn validate_effect_special(
     {
         vd.req_field("attacker");
         vd.req_field("defender");
-        vd.req_field("change");
+        // vd.req_field("change"); is optional if you just want it to set scope:cb_prestige_factor
         vd.field_target("attacker", sc, Scopes::Character);
         vd.field_target("defender", sc, Scopes::Character);
         vd.field_target("change", sc, Scopes::TitleAndVassalChange);
