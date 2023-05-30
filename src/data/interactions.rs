@@ -284,12 +284,12 @@ impl Interaction {
             validate_normal_trigger(b, data, &mut sc, true);
         });
 
-        vd.field_validated_block("cost", |b, data| {
+        vd.field_validated_block_rooted("cost", Scopes::Character, |b, data, sc| {
             let mut vd = Validator::new(b, data);
-            vd.field_script_value("piety", &mut sc);
-            vd.field_script_value("prestige", &mut sc);
-            vd.field_script_value("gold", &mut sc);
-            vd.field_script_value("renown", &mut sc);
+            vd.field_script_value("piety", sc);
+            vd.field_script_value("prestige", sc);
+            vd.field_script_value("gold", sc);
+            vd.field_script_value("renown", sc);
         });
 
         vd.field_validated_block("ai_set_target", |b, data| {
