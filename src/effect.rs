@@ -1112,7 +1112,8 @@ fn validate_effect_special(
             vd.field_choice("titles", &["target_titles", "faction_titles"]); // Undocumented
         } else if caller == "setup_de_jure_cb" {
             vd.field_target("title", sc, Scopes::LandedTitle);
-        } else {
+        } else if caller == "setup_invasion_cb" {
+            vd.field_value("titles"); // list name
             vd.field_bool("take_occupied");
         }
     } else if caller == "spawn_army" {
