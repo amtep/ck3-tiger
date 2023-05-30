@@ -339,11 +339,11 @@ impl Everything {
 
     /// A helper function for categories of items that follow the usual pattern of
     /// `.txt` files containing a block with definitions
-    pub fn load_pdx_items<F>(&mut self, subpath: &str, add: F)
+    pub fn load_pdx_items<F>(&mut self, itype: Item, add: F)
     where
         F: Fn(&mut Db, Token, Block),
     {
-        let subpath = PathBuf::from(subpath);
+        let subpath = PathBuf::from(itype.path());
         for entry in self.fileset.get_files_under(&subpath) {
             if entry.filename().to_string_lossy().ends_with(".txt") {
                 if let Some(block) = PdxFile::read(entry, &self.fileset.fullpath(entry)) {
@@ -383,27 +383,24 @@ impl Everything {
         self.fileset.handle(&mut self.effects);
         self.fileset.handle(&mut self.traits);
         self.fileset.handle(&mut self.lifestyles);
-        self.load_pdx_items(
-            "common/court_positions/categories",
-            CourtPositionCategory::add,
-        );
-        self.load_pdx_items("common/court_positions/types", CourtPosition::add);
+        self.load_pdx_items(Item::CourtPositionCategory, CourtPositionCategory::add);
+        self.load_pdx_items(Item::CourtPosition, CourtPosition::add);
         self.fileset.handle(&mut self.title_history);
         self.fileset.handle(&mut self.doctrines);
         self.fileset.handle(&mut self.menatarmstypes);
         self.fileset.handle(&mut self.themes);
         self.fileset.handle(&mut self.gui);
         self.fileset.handle(&mut self.data_bindings);
-        self.load_pdx_items("common/scripted_rules/", ScriptedRule::add);
-        self.load_pdx_items("common/factions/", Faction::add);
-        self.load_pdx_items("common/scripted_relations/", Relation::add);
-        self.load_pdx_items("common/terrain_types/", Terrain::add);
-        self.load_pdx_items("map_data/geographical_regions/", Region::add);
-        self.load_pdx_items("common/scripted_guis/", ScriptedGui::add);
-        self.load_pdx_items("common/genes/", Gene::add);
-        self.load_pdx_items("common/court_amenities/", Amenity::add);
-        self.load_pdx_items("common/casus_belli_groups/", CasusBelliGroup::add);
-        self.load_pdx_items("common/casus_belli_types/", CasusBelli::add);
+        self.load_pdx_items(Item::ScriptedRule, ScriptedRule::add);
+        self.load_pdx_items(Item::Faction, Faction::add);
+        self.load_pdx_items(Item::Relation, Relation::add);
+        self.load_pdx_items(Item::Terrain, Terrain::add);
+        self.load_pdx_items(Item::Region, Region::add);
+        self.load_pdx_items(Item::ScriptedGui, ScriptedGui::add);
+        self.load_pdx_items(Item::GeneCategory, Gene::add);
+        self.load_pdx_items(Item::Amenity, Amenity::add);
+        self.load_pdx_items(Item::CasusBelliGroup, CasusBelliGroup::add);
+        self.load_pdx_items(Item::CasusBelli, CasusBelli::add);
     }
 
     pub fn validate_all(&mut self) {
