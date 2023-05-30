@@ -155,6 +155,13 @@ pub fn validate_effect<'a>(
                         data.verify_exists(itype, token);
                     }
                 }
+                Effect::ScopeOrItem(outscopes, itype) => {
+                    if let Some(token) = bv.expect_value() {
+                        if !data.item_exists(itype, token.as_str()) {
+                            validate_target(token, data, sc, outscopes);
+                        }
+                    }
+                }
                 Effect::Target(key, outscopes) => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);

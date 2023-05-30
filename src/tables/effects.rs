@@ -14,6 +14,7 @@ pub enum Effect {
     NonNegativeValue, // warn if literal negative
     Scope(Scopes),
     Item(Item),
+    ScopeOrItem(Scopes, Item),
     Target(&'static str, Scopes),
     TargetValue(&'static str, Scopes, &'static str),
     ItemTarget(&'static str, Item, &'static str, Scopes),
@@ -61,7 +62,7 @@ pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)>
     std::option::Option::None
 }
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.1
 /// See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (TravelPlan, "abort_travel_plan", Boolean),
@@ -84,6 +85,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "accept_invitation_for_character",
         Scope(Scopes::Character),
     ),
+    (Accolade, "activate_accolade", Yes),
     (Faith, "activate_holy_site", Item(Item::HolySite)),
     (Struggle, "activate_struggle_catalyst", SpecialBv),
     (Activity, "add_activity_log_entry", SpecialBlock),
@@ -225,11 +227,24 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "add_to_scheme", Scope(Scopes::Scheme)),
     (ALL_BUT_NONE, "add_to_temporary_list", Unchecked),
     (None, "add_to_variable_list", SpecialBlock),
-    (Character, "add_trait", Item(Item::Trait)),
-    (Character, "add_trait_force_tooltip", Item(Item::Trait)),
+    (
+        Character,
+        "add_trait",
+        ScopeOrItem(Scopes::Trait, Item::Trait),
+    ),
+    (
+        Character,
+        "add_trait_force_tooltip",
+        ScopeOrItem(Scopes::Trait, Item::Trait),
+    ),
     (Character, "add_trait_xp", SpecialBlock),
     (Character, "add_travel_option", Unchecked),
     (TravelPlan, "add_travel_plan_modifier", AddModifier),
+    (
+        Province,
+        "add_travel_point_of_interest",
+        Item(Item::PointOfInterest),
+    ),
     (TravelPlan, "add_travel_waypoint", Scope(Scopes::Province)),
     (Character, "add_truce_both_ways", SpecialBlock),
     (Character, "add_truce_one_way", SpecialBlock),
@@ -417,6 +432,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "custom_description_no_bullet", Control),
     (None, "custom_label", ControlOrLabel),
     (None, "custom_tooltip", ControlOrLabel),
+    (Accolade, "deactivate_accolade", Yes),
     (Faith, "deactivate_holy_site", Item(Item::HolySite)),
     (Character, "death", SpecialBv),
     (None, "debug_log", Unchecked),
@@ -555,17 +571,25 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "make_pregnant", SpecialBlock),
     (Character, "make_pregnant_no_checks", SpecialBlock),
     (StoryCycle, "make_story_owner", Scope(Scopes::Character)),
-    (Character, "make_trait_active", Item(Item::Trait)),
+    (
+        Character,
+        "make_trait_active",
+        ScopeOrItem(Scopes::Trait, Item::Trait),
+    ),
     (
         Character,
         "make_trait_active_force_tooltip",
-        Item(Item::Trait),
+        ScopeOrItem(Scopes::Trait, Item::Trait),
     ),
-    (Character, "make_trait_inactive", Item(Item::Trait)),
+    (
+        Character,
+        "make_trait_inactive",
+        ScopeOrItem(Scopes::Trait, Item::Trait),
+    ),
     (
         Character,
         "make_trait_inactive_force_tooltip",
-        Item(Item::Trait),
+        ScopeOrItem(Scopes::Trait, Item::Trait),
     ),
     (Character, "make_unprunable", Yes),
     (Character, "marry", Scope(Scopes::Character)),
@@ -603,7 +627,11 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "random", Control),
     (None, "random_list", SpecialBlock),
     (None, "random_log_scopes", Boolean),
-    (Character, "recruit_courtier", Scope(Scopes::Character)),
+    (
+        ALL,
+        "recruit_courtier",
+        Removed("1.9.1", "replaced by `add_courtier`"),
+    ),
     (Province, "refill_garrison", Yes),
     (Province, "refill_levy", Yes),
     (Artifact, "reforge_artifact", SpecialBlock),
@@ -738,14 +766,27 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "remove_title_law_effects",
         Item(Item::TitleLaw),
     ),
-    (Character, "remove_trait", Item(Item::Trait)),
-    (Character, "remove_trait_force_tooltip", Item(Item::Trait)),
+    (
+        Character,
+        "remove_trait",
+        ScopeOrItem(Scopes::Trait, Item::Trait),
+    ),
+    (
+        Character,
+        "remove_trait_force_tooltip",
+        ScopeOrItem(Scopes::Trait, Item::Trait),
+    ),
     // TODO: figure out which item this is
     (TravelPlan, "remove_travel_option", Unchecked),
     (
         TravelPlan,
         "remove_travel_plan_modifier",
         Item(Item::Modifier),
+    ),
+    (
+        Province,
+        "remove_travel_point_of_interest",
+        Item(Item::PointOfInterest),
     ),
     (None, "remove_variable", Unchecked),
     (Character, "remove_war_chest_gold", NonNegativeValue),
@@ -924,7 +965,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (
         Character,
         "set_knight_status",
-        Choice(&["force", "forbid", "default"]),
+        Choice(&["force", "forbid", "default", "allow"]),
     ),
     (Character, "set_known_bastard_on_pregnancy", Boolean),
     (LandedTitle, "set_landless_title", Boolean),

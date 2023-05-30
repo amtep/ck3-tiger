@@ -158,6 +158,7 @@
     ("GetTraitForIndex", Arg(Unknown), Trait),
     ("GetTraitGroup", Arg(Unknown), TraitGroup),
     ("GetTravelOption", Arg(Unknown), TravelOption),
+    ("GetTravelPointOfInterestType", Arg(Unknown), TravelPointOfInterestType),
     ("GetTutorial", NoArgs, Tutorial),
     ("GetVariableSystem", NoArgs, VariableSystem),
     ("GetVassalContractType", Arg(Unknown), VassalContractType),

@@ -293,6 +293,8 @@ impl Event {
             }
         }
 
+        vd.field_value("content_source"); // TODO
+
         vd.field_bool("hidden");
         vd.field_bool("major");
         vd.field_validated_block("major_trigger", |b, data| {
@@ -486,11 +488,12 @@ fn validate_triggered_animation(block: &Block, data: &Everything, sc: &mut Scope
     let mut vd = Validator::new(block, data);
 
     vd.req_field("trigger");
-    vd.req_field("animation");
+    vd.req_field_one_of(&["animation", "scripted_animation"]);
     vd.field_validated_block("trigger", |b, data| {
         validate_normal_trigger(b, data, sc, false);
     });
     vd.field_value("animation"); // TODO
+    vd.field_value("scripted_animation"); // TODO
 }
 
 fn validate_triggered_outfit(block: &Block, data: &Everything, sc: &mut ScopeContext) {

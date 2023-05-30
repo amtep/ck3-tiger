@@ -276,7 +276,7 @@ impl<'a> Iterator for Files<'a> {
     }
 }
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.1
 const COMMON_DIRS: &[&str] = &[
     "common/accolade_icons",
     "common/accolade_names",
@@ -402,6 +402,7 @@ const COMMON_DIRS: &[&str] = &[
     "common/suggestions",
     "common/terrain_types",
     "common/traits",
+    "common/travel/point_of_interest_types",
     "common/travel/travel_options",
     "common/trigger_localization",
     "common/tutorial_lesson_chains",

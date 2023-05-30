@@ -77,7 +77,7 @@ for fname in fnames:
             args = ARGS_OVERRIDE[name]
 
         if "Definition type: Global macro" in item:
-            // macros are parsed directly from data_binding
+            # macros are parsed directly from data_binding
             continue
 
         if "Definition type: Type" in item:

@@ -101,8 +101,8 @@ fn find_ck3_directory() -> Option<PathBuf> {
 fn main() -> Result<()> {
     let mut args = Cli::parse();
 
-    // LAST UPDATED VERSION 1.9.0.2
-    eprintln!("This validator was made for Crusader Kings version 1.9.0.2 (Lance).");
+    // LAST UPDATED VERSION 1.9.1
+    eprintln!("This validator was made for Crusader Kings version 1.9.1 (Lance).");
     eprintln!("If you are using a newer version of Crusader Kings, it may be inaccurate.");
     eprintln!("!! Currently it's inaccurate anyway because it's in alpha state.");
 

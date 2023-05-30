@@ -166,7 +166,7 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
 
 use RawTrigger::*;
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.1
 /// See `triggers.log` from the game data dumps
 /// special:
 ///    `<legacy>_track_perks`
@@ -1001,6 +1001,11 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "has_travel_plan_modifier",
         Item(Item::TravelPlanModifier),
     ),
+    (
+        Province,
+        "has_travel_point_of_interest",
+        Item(Item::PointOfInterest),
+    ),
     (Character, "has_truce", Scope(Character)),
     (Culture, "has_unit_gfx", Item(Item::UnitGfx)),
     (Character, "has_usable_hook", Scope(Character)),
@@ -1296,6 +1301,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "is_pool_character", Boolean),
     (Character, "is_pool_guest", Boolean),
     (Character, "is_pool_guest_of", Scope(Character)),
+    (Character, "is_potential_knight", Boolean),
     (Character, "is_powerful_vassal", Boolean),
     (Character, "is_powerful_vassal_of", Scope(Character)),
     (Character, "is_pregnant", Boolean),
@@ -1923,8 +1929,8 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "trait_compatibility",
         Block(&[("target", Scope(Character)), ("value", CompareValue)]),
     ),
-    (Faith, "trait_is_sin", Item(Item::Trait)),
-    (Faith, "trait_is_virtue", Item(Item::Trait)),
+    (Faith, "trait_is_sin", ScopeOrItem(Trait, Item::Trait)),
+    (Faith, "trait_is_virtue", ScopeOrItem(Trait, Item::Trait)),
     (
         Province,
         "travel_danger_type",

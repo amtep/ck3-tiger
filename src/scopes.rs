@@ -610,7 +610,7 @@ const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
 // TODO Special:
 // <legacy>_track_perks
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.1
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
@@ -848,6 +848,8 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Character, "sibling", Character),
     (CombatSide, "side_commander", Character),
     (CombatSide, "side_knight", Character),
+    (None, "special_building_province", Province),
+    (Activity, "special_guest", Character),
     (Character, "sponsored_inspiration", Inspiration),
     (Character, "spouse", Character),
     (Character, "spouse_candidate", Character),
