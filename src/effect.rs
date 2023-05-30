@@ -1198,16 +1198,18 @@ fn validate_effect_special(
             // clone to avoid calling vd again while target is still borrowed
             let target = target.clone();
             for (key, bv) in vd.unknown_keys() {
-                // Pretend the switch was written as a series of trigger = key lines
-                let synthetic_bv = BlockOrValue::Value(key.clone());
-                validate_trigger_key_bv(
-                    &target,
-                    Comparator::Eq,
-                    &synthetic_bv,
-                    data,
-                    sc,
-                    tooltipped,
-                );
+                if !key.is("fallback") {
+                    // Pretend the switch was written as a series of trigger = key lines
+                    let synthetic_bv = BlockOrValue::Value(key.clone());
+                    validate_trigger_key_bv(
+                        &target,
+                        Comparator::Eq,
+                        &synthetic_bv,
+                        data,
+                        sc,
+                        tooltipped,
+                    );
+                }
 
                 if let Some(block) = bv.expect_block() {
                     let vd = Validator::new(block, data);
