@@ -37,4 +37,6 @@ pub enum ErrorKey {
     Removed,
 
     PrincesOfDarkness,
+
+    Internal,
 }

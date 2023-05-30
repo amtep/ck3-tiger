@@ -643,6 +643,9 @@ fn validate_effect_special_bv(
                 }
             }
         }
+    } else {
+        let msg = format!("internal error, unhandled effect {caller}");
+        error(bv, ErrorKey::Internal, &msg);
     }
 }
 
@@ -1052,7 +1055,7 @@ fn validate_effect_special(
         vd.req_field("nearest");
         vd.field_value("name");
         vd.field_script_value("nearest", sc);
-    } else if caller == "save_opinion_value_as" || caller == "save_temporary_opiion_value_as" {
+    } else if caller == "save_opinion_value_as" || caller == "save_temporary_opinion_value_as" {
         vd.req_field("name");
         vd.req_field("target");
         vd.field_value("name");
@@ -1235,7 +1238,9 @@ fn validate_effect_special(
             }
         }
     } else {
-        vd.no_warn_remaining(); // TODO
+        let msg = format!("internal error, unhandled effect {caller}");
+        error(block, ErrorKey::Internal, &msg);
+        vd.no_warn_remaining();
     }
 }
 

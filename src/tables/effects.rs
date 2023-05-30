@@ -582,7 +582,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     ),
     (None, "open_interaction_window", SpecialBlock),
     (None, "open_view", SpecialBlock),
-    (ALL_BUT_NONE, "open_view_data", SpecialBlock),
+    (ALL_BUT_NONE, "open_view_data", SpecialBv),
     (None, "pan_camera_to_province", Scope(Scopes::Province)),
     (None, "pan_camera_to_title", Scope(Scopes::LandedTitle)),
     (TravelPlan, "pause_travel_plan", Boolean),
