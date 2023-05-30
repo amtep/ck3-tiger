@@ -16,7 +16,7 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::{validate_cooldown, validate_cost, validate_modifiers_with_base};
+use crate::validate::{validate_cost, validate_duration, validate_modifiers_with_base};
 
 #[derive(Clone, Debug, Default)]
 pub struct Decisions {
@@ -89,7 +89,7 @@ impl Decision {
         if self.block.get_field_bool("ai_goal").unwrap_or(false) {
             vd.advice_field("ai_check_interval", "not needed if ai_goal = yes");
         }
-        vd.field_validated_block_sc("cooldown", &mut sc, validate_cooldown);
+        vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
 
         // kind of looks like a filename but it isn't.
         vd.field_value("confirm_click_sound");

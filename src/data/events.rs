@@ -20,7 +20,7 @@ use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{
-    validate_ai_chance, validate_cooldown, validate_modifiers_with_base, validate_theme_background,
+    validate_ai_chance, validate_duration, validate_modifiers_with_base, validate_theme_background,
     validate_theme_icon, validate_theme_sound, validate_theme_transition, ListType,
 };
 
@@ -378,7 +378,7 @@ impl Event {
             // TODO: check if this block is tooltipped
             validate_normal_effect(b, data, &mut sc, false);
         });
-        vd.field_validated_block_sc("cooldown", &mut sc, validate_cooldown);
+        vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
         vd.field_value("soundeffect");
         vd.field_bool("orphan");
         // TODO: validate widget

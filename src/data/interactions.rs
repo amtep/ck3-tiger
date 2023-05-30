@@ -16,7 +16,7 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::{validate_ai_chance, validate_cooldown, validate_modifiers_with_base};
+use crate::validate::{validate_ai_chance, validate_duration, validate_modifiers_with_base};
 
 #[derive(Clone, Debug, Default)]
 pub struct Interactions {
@@ -130,17 +130,17 @@ impl Interaction {
         vd.field_bool("ignores_pending_interaction_block");
 
         // The cooldowns seem to be in actor scope
-        vd.field_validated_block_rooted("cooldown", Scopes::Character, validate_cooldown);
+        vd.field_validated_block_rooted("cooldown", Scopes::Character, validate_duration);
         vd.field_validated_block_rooted(
             "cooldown_against_recipient",
             Scopes::Character,
-            validate_cooldown,
+            validate_duration,
         );
-        vd.field_validated_block_rooted("category_cooldown", Scopes::Character, validate_cooldown);
+        vd.field_validated_block_rooted("category_cooldown", Scopes::Character, validate_duration);
         vd.field_validated_block_rooted(
             "category_cooldown_against_recipient",
             Scopes::Character,
-            validate_cooldown,
+            validate_duration,
         );
 
         // TODO: The ai_ name check is a heuristic. It would be better to check if the

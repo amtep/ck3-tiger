@@ -13,9 +13,9 @@ use crate::scopes::{scope_iterator, Scopes};
 use crate::tables::effects::{scope_effect, Effect};
 use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger_key_bv};
 use crate::validate::{
-    validate_cooldown, validate_days_weeks_months_years, validate_inside_iterator,
-    validate_iterator_fields, validate_modifiers, validate_optional_cooldown,
-    validate_optional_cooldown_int, validate_scope_chain, validate_scripted_modifier_call,
+    validate_days_weeks_months_years, validate_duration, validate_inside_iterator,
+    validate_iterator_fields, validate_modifiers, validate_optional_duration,
+    validate_optional_duration_int, validate_scope_chain, validate_scripted_modifier_call,
     ListType,
 };
 
@@ -228,7 +228,7 @@ pub fn validate_effect<'a>(
                         vd.req_field("modifier");
                         vd.field_item("modifier", Item::Modifier);
                         vd.field_validated_sc("desc", sc, validate_desc);
-                        validate_optional_cooldown(&mut vd, sc);
+                        validate_optional_duration(&mut vd, sc);
                     }
                 },
                 Effect::SpecialBlock => {
@@ -464,7 +464,7 @@ fn validate_effect_special_bv(
                 let mut vd = Validator::new(block, data);
                 vd.req_field("flag");
                 vd.field_values("flag");
-                validate_optional_cooldown(&mut vd, sc);
+                validate_optional_duration(&mut vd, sc);
             }
         }
     } else if caller == "begin_create_holding" {
@@ -600,7 +600,7 @@ fn validate_effect_special_bv(
                         BlockOrValue::Block(_) => ScriptValue::validate_bv(bv, data, sc),
                     }
                 }
-                validate_optional_cooldown(&mut vd, sc);
+                validate_optional_duration(&mut vd, sc);
             }
         }
     } else if caller == "set_location" {
@@ -637,7 +637,7 @@ fn validate_effect_special_bv(
                 vd.field_target("saved_event_id", sc, Scopes::Flag);
                 vd.field_date("trigger_on_next_date");
                 vd.field_bool("delayed");
-                validate_optional_cooldown(&mut vd, sc);
+                validate_optional_duration(&mut vd, sc);
                 if let Some(token) = block.get_field_value("id") {
                     data.events.check_scope(token, sc);
                 }
@@ -702,14 +702,14 @@ fn validate_effect_special(
         vd.field_item("type", Item::Hook);
         vd.field_target("target", sc, Scopes::Character);
         vd.field_item("secret", Item::Secret);
-        validate_optional_cooldown(&mut vd, sc);
+        validate_optional_duration(&mut vd, sc);
     } else if caller == "add_opinion" || caller == "reverse_add_opinion" {
         vd.req_field("modifier");
         vd.req_field("target");
         vd.field_item("modifier", Item::OpinionModifier);
         vd.field_target("target", sc, Scopes::Character);
         vd.field_script_value("opinion", sc); // undocumented
-        validate_optional_cooldown(&mut vd, sc);
+        validate_optional_duration(&mut vd, sc);
     } else if caller == "add_relation_flag" || caller == "remove_relation_flag" {
         vd.req_field("relation");
         vd.req_field("flag");
@@ -723,7 +723,7 @@ fn validate_effect_special(
         vd.req_field("type");
         vd.field_target("target", sc, Scopes::Character);
         vd.field_item("type", Item::Scheme);
-        validate_optional_cooldown_int(&mut vd);
+        validate_optional_duration_int(&mut vd);
     } else if caller == "add_scheme_modifier" {
         vd.req_field("type");
         vd.field_item("type", Item::Scheme);
@@ -761,7 +761,7 @@ fn validate_effect_special(
         vd.field_item("casus_belli", Item::CasusBelli);
         vd.field_validated_sc("name", sc, validate_desc);
         vd.field_target("war", sc, Scopes::War);
-        validate_optional_cooldown(&mut vd, sc);
+        validate_optional_duration(&mut vd, sc);
         if block.has_key("war") && block.has_key("casus_belli") {
             let msg = "cannot use both `war` and `casus_belli`";
             error(block, ErrorKey::Validation, msg);
@@ -920,7 +920,7 @@ fn validate_effect_special(
                 validate_target(token, data, sc, Scopes::Character);
             }
         });
-        vd.field_validated_block_sc("duration", sc, validate_cooldown);
+        vd.field_validated_block_sc("duration", sc, validate_duration);
     } else if caller == "create_dynamic_title" {
         vd.req_field("tier");
         vd.req_field("name");
@@ -958,7 +958,7 @@ fn validate_effect_special(
         vd.field_bool("add_claim_on_loss");
     } else if caller == "delay_travel_plan" {
         vd.field_bool("add");
-        validate_optional_cooldown(&mut vd, sc);
+        validate_optional_duration(&mut vd, sc);
     } else if caller == "divide_war_chest" {
         vd.field_bool("defenders");
         vd.field_script_value("fraction", sc);
@@ -976,10 +976,10 @@ fn validate_effect_special(
         vd.field_target("title", sc, Scopes::LandedTitle);
     } else if caller == "force_add_to_scheme" {
         vd.field_item("scheme", Item::Scheme);
-        validate_optional_cooldown(&mut vd, sc);
+        validate_optional_duration(&mut vd, sc);
     } else if caller == "force_vote_as" {
         vd.field_target("target", sc, Scopes::Character);
-        validate_optional_cooldown(&mut vd, sc);
+        validate_optional_duration(&mut vd, sc);
     } else if caller == "imprison" {
         vd.field_target("target", sc, Scopes::Character);
         vd.field_item("type", Item::PrisonType);
@@ -987,7 +987,7 @@ fn validate_effect_special(
     } else if caller == "join_faction_forced" {
         vd.field_target("faction", sc, Scopes::Faction);
         vd.field_target("forced_by", sc, Scopes::Character);
-        validate_optional_cooldown(&mut vd, sc);
+        validate_optional_duration(&mut vd, sc);
     } else if caller == "make_pregnant" || caller == "make_pregnant_no_checks" {
         vd.field_target("father", sc, Scopes::Character);
         vd.field_integer("number_of_children");
@@ -1036,7 +1036,7 @@ fn validate_effect_special(
     {
         vd.req_field("target");
         vd.field_target("target", sc, Scopes::Character);
-        validate_optional_cooldown(&mut vd, sc);
+        validate_optional_duration(&mut vd, sc);
     } else if caller == "random_list" {
         validate_random_list("random_list", block, data, vd, sc, tooltipped);
     } else if caller == "remove_opinion" {
@@ -1072,7 +1072,7 @@ fn validate_effect_special(
     } else if caller == "scheme_freeze" {
         vd.req_field("reason");
         vd.field_item("reason", Item::Localization);
-        validate_optional_cooldown(&mut vd, sc);
+        validate_optional_duration(&mut vd, sc);
     } else if caller == "set_council_task" {
         vd.req_field("task_type");
         vd.req_field("target");

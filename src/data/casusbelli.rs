@@ -8,7 +8,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::{validate_cooldown, validate_cost};
+use crate::validate::{validate_cost, validate_duration};
 
 #[derive(Clone, Debug)]
 pub struct CasusBelli {}
@@ -38,12 +38,12 @@ impl DbKind for CasusBelli {
         vd.field_validated_block_rooted(
             "attacker_ticking_warscore_delay",
             Scopes::Character,
-            validate_cooldown,
+            validate_duration,
         );
         vd.field_validated_block_rooted(
             "defender_ticking_warscore_delay",
             Scopes::Character,
-            validate_cooldown,
+            validate_duration,
         );
         vd.field_numeric("attacker_ticking_warscore");
         vd.field_numeric("defender_ticking_warscore");

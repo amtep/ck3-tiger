@@ -12,7 +12,7 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::{validate_cooldown, validate_modifiers_with_base};
+use crate::validate::{validate_duration, validate_modifiers_with_base};
 
 #[derive(Clone, Debug, Default)]
 pub struct OnActions {
@@ -87,7 +87,7 @@ impl OnAction {
         vd.field_validated_block_sc("weight_multiplier", &mut sc, validate_modifiers_with_base);
         vd.field_validated_blocks("events", |b, data| {
             let mut vd = Validator::new(b, data);
-            vd.field_validated_blocks_sc("delay", &mut sc, validate_cooldown);
+            vd.field_validated_blocks_sc("delay", &mut sc, validate_duration);
             for token in vd.values() {
                 data.verify_exists(Item::Event, token);
                 data.events.check_scope(token, &mut sc);
@@ -97,7 +97,7 @@ impl OnAction {
             let mut vd = Validator::new(b, data);
             vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
             vd.field_script_value("chance_of_no_event", &mut sc);
-            vd.field_validated_blocks_sc("delay", &mut sc, validate_cooldown); // undocumented
+            vd.field_validated_blocks_sc("delay", &mut sc, validate_duration); // undocumented
             for (_key, token) in vd.integer_values() {
                 if token.is("0") {
                     continue;
@@ -116,7 +116,7 @@ impl OnAction {
         });
         vd.field_validated_blocks("on_actions", |b, data| {
             let mut vd = Validator::new(b, data);
-            vd.field_validated_blocks_sc("delay", &mut sc, validate_cooldown);
+            vd.field_validated_blocks_sc("delay", &mut sc, validate_duration);
             for token in vd.values() {
                 data.verify_exists(Item::OnAction, token);
             }

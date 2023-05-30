@@ -119,7 +119,7 @@ pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &m
 
 // Very similar to validate_days_weeks_months_years, but requires = instead of allowing comparators
 // "weeks" is not documented but is used all over vanilla TODO: verify
-pub fn validate_cooldown(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
 
@@ -135,9 +135,9 @@ pub fn validate_cooldown(block: &Block, data: &Everything, sc: &mut ScopeContext
     }
 }
 
-// Very similar to validate_cooldown, but validates part of a block that may contain a cooldown
+// Very similar to validate_duration, but validates part of a block that may contain a duration
 // Also does not accept scriptvalues (per the documentation)
-pub fn validate_optional_cooldown_int(vd: &mut Validator) {
+pub fn validate_optional_duration_int(vd: &mut Validator) {
     let mut count = 0;
     let mut found = None;
 
@@ -155,7 +155,7 @@ pub fn validate_optional_cooldown_int(vd: &mut Validator) {
 }
 
 // Very similar to validate_days_weeks_months_years, but requires = instead of allowing comparators
-pub fn validate_optional_cooldown(vd: &mut Validator, sc: &mut ScopeContext) {
+pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
     let mut count = 0;
     let mut found = None;
 
@@ -172,8 +172,7 @@ pub fn validate_optional_cooldown(vd: &mut Validator, sc: &mut ScopeContext) {
     }
 }
 
-// Very similar to validate_cooldown, but validates part of a block that may contain a color
-// Also does not accept scriptvalues (per the documentation)
+// Does not accept scriptvalues (per the documentation)
 pub fn validate_color(block: &Block, _data: &Everything) {
     let mut count = 0;
     for (k, _, v) in block.iter_items() {
