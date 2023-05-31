@@ -1,3 +1,4 @@
+use fnv::FnvHashMap;
 use std::borrow::Borrow;
 
 use crate::errorkey::ErrorKey;
@@ -11,12 +12,20 @@ use crate::token::Token;
 pub struct ScopeContext {
     prev: Option<Box<ScopeHistory>>,
 
-    // Normally, `this` starts as a `ScopeEntry::Rootref`, but there are cases where the
-    // relationship to root is not known.
+    /// Normally, `this` starts as a `ScopeEntry::Rootref`, but there are cases where the
+    /// relationship to root is not known.
     this: ScopeEntry,
 
-    // root is always a ScopeEntry::Scope
+    /// root is always a `ScopeEntry::Scope`
     root: ScopeEntry,
+
+    /// Names of named scopes; the values are indices into the `named` vector.
+    /// Names should only be added, never removed, and indices should stay consistent.
+    /// This is because the indices are also used by `ScopeEntry::Named` values throughout this `ScopeContext`.
+    names: FnvHashMap<String, usize>,
+
+    /// Named scope values are `ScopeEntry::Scope` or `ScopeEntry::Named` or `ScopeEntry::Rootref`.
+    named: Vec<ScopeEntry>,
 }
 
 #[derive(Clone, Debug)]
@@ -42,6 +51,9 @@ enum ScopeEntry {
     /// `Token` is the token that's the reason why we think the `Scopes` value is what it is.
     /// It's usually the token that was the cause of the latest narrowing.
     Scope(Scopes, Token),
+
+    /// The current scope takes its value from a named scope. The `usize` is an index into the `ScopeContext::named` vector.
+    Named(usize, Token),
 }
 
 impl ScopeContext {
@@ -50,6 +62,8 @@ impl ScopeContext {
             prev: None,
             this: ScopeEntry::Rootref,
             root: ScopeEntry::Scope(root, token.borrow().clone()),
+            names: FnvHashMap::default(),
+            named: Vec::new(),
         }
     }
 
@@ -58,6 +72,26 @@ impl ScopeContext {
             prev: None,
             this: ScopeEntry::Scope(this, token.borrow().clone()),
             root: ScopeEntry::Scope(Scopes::all(), token.borrow().clone()),
+            names: FnvHashMap::default(),
+            named: Vec::new(),
+        }
+    }
+
+    pub fn define_scope(&mut self, name: &str, token: Token, scopes: Scopes) {
+        if let Some(&idx) = self.names.get(name) {
+            self.named[idx] = ScopeEntry::Scope(scopes, token);
+        } else {
+            self.names.insert(name.to_string(), self.named.len());
+            self.named.push(ScopeEntry::Scope(scopes, token));
+        }
+    }
+
+    pub fn save_current_scope(&mut self, name: &str) {
+        if let Some(&idx) = self.names.get(name) {
+            self.named[idx] = self._resolve_backrefs().clone();
+        } else {
+            self.names.insert(name.to_string(), self.named.len());
+            self.named.push(self._resolve_backrefs().clone());
         }
     }
 
@@ -93,7 +127,7 @@ impl ScopeContext {
 
     pub fn replace_prev(&mut self, token: &Token) {
         match self.this {
-            ScopeEntry::Scope(_, _) => self.this = ScopeEntry::Backref(1),
+            ScopeEntry::Scope(_, _) | ScopeEntry::Named(_, _) => self.this = ScopeEntry::Backref(1),
             ScopeEntry::Backref(r) => self.this = ScopeEntry::Backref(r + 1),
             ScopeEntry::Rootref => {
                 warn(token, ErrorKey::Scopes, "trying to take prev of root");
@@ -103,6 +137,22 @@ impl ScopeContext {
 
     pub fn replace_this(&mut self) {
         self.this = ScopeEntry::Backref(0);
+    }
+
+    pub fn replace_named_scope(&mut self, name: &str, token: &Token) {
+        self.this = ScopeEntry::Named(self._named_index(name, token), token.clone());
+    }
+
+    fn _named_index(&mut self, name: &str, token: &Token) -> usize {
+        if let Some(&idx) = self.names.get(name) {
+            idx
+        } else {
+            let idx = self.named.len();
+            self.names.insert(name.to_string(), idx);
+            self.named
+                .push(ScopeEntry::Scope(Scopes::all(), token.clone()));
+            idx
+        }
     }
 
     pub fn can_be(&self, scopes: Scopes) -> bool {
@@ -117,14 +167,56 @@ impl ScopeContext {
         self.scopes_token().0
     }
 
+    fn _resolve_root(&self) -> (Scopes, &Token) {
+        match self.root {
+            ScopeEntry::Scope(s, ref t) => (s, t),
+            _ => unreachable!(),
+        }
+    }
+
+    // Resolve a `ScopeEntry` until it's either a `ScopeEntry::Scope` or a `ScopeEntry::Rootref`
+    fn _resolve_named(&self, idx: usize) -> (Scopes, &Token) {
+        match self.named[idx] {
+            ScopeEntry::Scope(s, ref t) => (s, t),
+            ScopeEntry::Rootref => self._resolve_root(),
+            ScopeEntry::Named(idx, _) => self._resolve_named(idx),
+            _ => unreachable!(),
+        }
+    }
+
+    fn _resolve_backrefs(&self) -> &ScopeEntry {
+        match self.this {
+            ScopeEntry::Backref(r) => self._resolve_backrefs_inner(r),
+            _ => &self.this,
+        }
+    }
+
+    fn _resolve_backrefs_inner(&self, mut back: usize) -> &ScopeEntry {
+        let mut ptr = &self.prev;
+        loop {
+            if let Some(entry) = ptr {
+                if back == 0 {
+                    match entry.this {
+                        ScopeEntry::Backref(r) => back = r + 1,
+                        _ => return &entry.this,
+                    }
+                }
+                ptr = &entry.prev;
+                back -= 1;
+            } else {
+                // We went further back up the scope chain than we know about.
+                // TODO: do something sensible here
+                return &self.this;
+            }
+        }
+    }
+
     fn scopes_token(&self) -> (Scopes, &Token) {
         match self.this {
             ScopeEntry::Scope(s, ref t) => (s, t),
             ScopeEntry::Backref(r) => self._scopes_token(r),
-            ScopeEntry::Rootref => match self.root {
-                ScopeEntry::Scope(s, ref t) => (s, t),
-                _ => unreachable!(),
-            },
+            ScopeEntry::Rootref => self._resolve_root(),
+            ScopeEntry::Named(idx, _) => self._resolve_named(idx),
         }
     }
 
@@ -136,10 +228,8 @@ impl ScopeContext {
                     match entry.this {
                         ScopeEntry::Scope(s, ref t) => return (s, t),
                         ScopeEntry::Backref(r) => back = r + 1,
-                        ScopeEntry::Rootref => match self.root {
-                            ScopeEntry::Scope(s, ref t) => return (s, t),
-                            _ => unreachable!(),
-                        },
+                        ScopeEntry::Rootref => return self._resolve_root(),
+                        ScopeEntry::Named(idx, _) => return self._resolve_named(idx),
                     }
                 }
                 ptr = &entry.prev;
@@ -178,7 +268,13 @@ impl ScopeContext {
         }
     }
 
-    fn _expect_check3(e: &mut ScopeEntry, scopes: Scopes, token: &Token, key: &Token) {
+    fn _expect_check3(
+        e: &mut ScopeEntry,
+        scopes: Scopes,
+        token: &Token,
+        key: &Token,
+        report: &str,
+    ) {
         match e {
             ScopeEntry::Scope(ref mut s, ref mut t) => {
                 if s.intersects(scopes) {
@@ -188,9 +284,11 @@ impl ScopeContext {
                         *t = token.clone();
                     }
                 } else {
-                    let msg = format!("`{key}` expects {scopes} but scope seems to be {s}");
-                    let msg2 = format!("expected scope was deduced from `{token}` here");
-                    let msg3 = format!("actual scope was deduced from `{t}` here");
+                    let msg = format!(
+                        "`{key}` expects {report} to be {scopes} but {report} seems to be {s}"
+                    );
+                    let msg2 = format!("expected {report} was deduced from `{token}` here");
+                    let msg3 = format!("actual {report} was deduced from `{t}` here");
                     warn3(key, ErrorKey::Scopes, &msg, token, &msg2, &*t, &msg3);
                     // Suppress future warnings about the same problem
                     *s |= scopes;
@@ -198,6 +296,50 @@ impl ScopeContext {
                 }
             }
             _ => unreachable!(),
+        }
+    }
+
+    // TODO: find a way to report the chain of Named tokens to the user
+    fn _expect_named(&mut self, mut idx: usize, scopes: Scopes, token: &Token) {
+        // TODO: avoid infinite recursion if named scopes reference each other in a cycle
+        loop {
+            match self.named[idx] {
+                ScopeEntry::Scope(_, _) => {
+                    Self::_expect_check(&mut self.named[idx], scopes, token);
+                    return;
+                }
+                ScopeEntry::Rootref => {
+                    Self::_expect_check(&mut self.root, scopes, token);
+                    return;
+                }
+                ScopeEntry::Named(i, _) => idx = i,
+                _ => unreachable!(),
+            }
+        }
+    }
+
+    fn _expect_named3(
+        &mut self,
+        mut idx: usize,
+        scopes: Scopes,
+        token: &Token,
+        key: &Token,
+        report: &str,
+    ) {
+        // TODO: avoid infinite recursion if named scopes reference each other in a cycle
+        loop {
+            match self.named[idx] {
+                ScopeEntry::Scope(_, _) => {
+                    Self::_expect_check3(&mut self.named[idx], scopes, token, key, report);
+                    return;
+                }
+                ScopeEntry::Rootref => {
+                    Self::_expect_check3(&mut self.root, scopes, token, key, report);
+                    return;
+                }
+                ScopeEntry::Named(i, _) => idx = i,
+                _ => unreachable!(),
+            }
         }
     }
 
@@ -219,6 +361,10 @@ impl ScopeContext {
                             Self::_expect_check(&mut self.root, scopes, token);
                             return;
                         }
+                        ScopeEntry::Named(idx, _) => {
+                            self._expect_named(idx, scopes, token);
+                            return;
+                        }
                     }
                 }
                 ptr = &mut entry.prev;
@@ -230,7 +376,14 @@ impl ScopeContext {
         }
     }
 
-    fn _expect3(&mut self, scopes: Scopes, token: &Token, mut back: usize, key: &Token) {
+    fn _expect3(
+        &mut self,
+        scopes: Scopes,
+        token: &Token,
+        mut back: usize,
+        key: &Token,
+        report: &str,
+    ) {
         // go N steps back and check/modify that scope. If the scope is itself
         // a back reference, go that much further back.
 
@@ -240,12 +393,16 @@ impl ScopeContext {
                 if back == 0 {
                     match entry.this {
                         ScopeEntry::Scope(_, _) => {
-                            Self::_expect_check3(&mut entry.this, scopes, token, key);
+                            Self::_expect_check3(&mut entry.this, scopes, token, key, report);
                             return;
                         }
                         ScopeEntry::Backref(r) => back = r + 1,
                         ScopeEntry::Rootref => {
-                            Self::_expect_check3(&mut self.root, scopes, token, key);
+                            Self::_expect_check3(&mut self.root, scopes, token, key, report);
+                            return;
+                        }
+                        ScopeEntry::Named(idx, ref _t) => {
+                            self._expect_named3(idx, scopes, token, key, report);
                             return;
                         }
                     }
@@ -258,6 +415,7 @@ impl ScopeContext {
             }
         }
     }
+
     pub fn expect(&mut self, scopes: Scopes, token: &Token) {
         // The None scope is special, it means the scope isn't used or inspected
         if scopes == Scopes::None {
@@ -267,6 +425,7 @@ impl ScopeContext {
             ScopeEntry::Scope(_, _) => Self::_expect_check(&mut self.this, scopes, token),
             ScopeEntry::Backref(r) => self._expect(scopes, token, r),
             ScopeEntry::Rootref => Self::_expect_check(&mut self.root, scopes, token),
+            ScopeEntry::Named(idx, ref _t) => self._expect_named(idx, scopes, token),
         }
     }
 
@@ -276,9 +435,14 @@ impl ScopeContext {
             return;
         }
         match self.this {
-            ScopeEntry::Scope(_, _) => Self::_expect_check3(&mut self.this, scopes, token, key),
-            ScopeEntry::Backref(r) => self._expect3(scopes, token, r, key),
-            ScopeEntry::Rootref => Self::_expect_check3(&mut self.root, scopes, token, key),
+            ScopeEntry::Scope(_, _) => {
+                Self::_expect_check3(&mut self.this, scopes, token, key, "scope")
+            }
+            ScopeEntry::Backref(r) => self._expect3(scopes, token, r, key, "scope"),
+            ScopeEntry::Rootref => {
+                Self::_expect_check3(&mut self.root, scopes, token, key, "scope")
+            }
+            ScopeEntry::Named(idx, ref _t) => self._expect_named3(idx, scopes, token, key, "scope"),
         }
     }
 
@@ -286,28 +450,7 @@ impl ScopeContext {
         // Compare restrictions on `root`
         match other.root {
             ScopeEntry::Scope(scopes, ref token) => {
-                match self.root {
-                    ScopeEntry::Scope(ref mut s, ref mut t) => {
-                        if s.intersects(scopes) {
-                            // if s is narrowed by the scopes info, remember its token
-                            if (*s & scopes) != *s {
-                                *s &= scopes;
-                                *t = token.clone();
-                            }
-                        } else {
-                            let msg = format!(
-                                "`{key}` expects root to be {scopes} but root scope seems to be {s}");
-                            let msg2 =
-                                format!("expected root scope was deduced from `{token}` here");
-                            let msg3 = format!("actual root scope was deduced from `{t}` here");
-                            warn3(key, ErrorKey::Scopes, &msg, token, &msg2, &*t, &msg3);
-                            // Suppress future warnings about the same problem
-                            *s |= scopes;
-                            *t = token.clone();
-                        }
-                    }
-                    _ => unreachable!(),
-                }
+                Self::_expect_check3(&mut self.root, scopes, token, key, "root");
             }
             _ => unreachable!(),
         }
@@ -315,6 +458,17 @@ impl ScopeContext {
         // Compare restrictions on `this`
         let (scopes, token) = other.scopes_token();
         self.expect3(scopes, token, key);
+
+        // Compare restrictions on named scopes
+        for (name, &oidx) in other.names.iter() {
+            // Don't do anything if our scope doesn't have that name; this will change when we get strict name checking.
+            if self.names.contains_key(name) {
+                let (s, t) = other._resolve_named(oidx);
+                let idx = self._named_index(name, key);
+                let report = format!("scope:{name}");
+                self._expect_named3(idx, s, t, key, &report);
+            }
+        }
 
         // TODO: walk back up the chain and compare all prev scopes too
         // Describing the results in error messages will be hard though.
