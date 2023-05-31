@@ -776,7 +776,7 @@ fn validate_effect_special(
     } else if caller == "assign_council_task" {
         vd.req_field("council_task");
         vd.req_field("target");
-        vd.field_target("council_task", sc, Scopes::Province | Scopes::Character);
+        vd.field_target("council_task", sc, Scopes::CouncilTask);
         vd.field_target("target", sc, Scopes::Character);
         vd.field_bool("fire_on_actions");
     } else if caller == "assign_councillor_type" {
