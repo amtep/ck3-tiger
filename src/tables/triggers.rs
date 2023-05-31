@@ -796,7 +796,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Province, "has_holding_type", Item(Item::Holding)),
     (LandedTitle, "has_holy_site_flag", Item(Item::HolySiteFlag)),
     (Character, "has_hook", Scope(Character)),
-    (Character, "has_hook_from_secret", Scope(Character)),
+    (Character, "has_hook_from_secret", Scope(Secret)),
     (
         Character,
         "has_hook_of_type",
