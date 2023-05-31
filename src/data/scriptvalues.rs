@@ -89,7 +89,9 @@ impl ScriptValue {
         vd.field_item("desc", Item::Localization);
         vd.field_item("format", Item::Localization);
         // save_temporary_scope_as is now allowed in script values
-        vd.field_value("save_temporary_scope_as");
+        if let Some(name) = vd.field_value("save_temporary_scope_as") {
+            sc.save_current_scope(name.as_str());
+        }
         if let Some(block) = vd.field_block("save_temporary_opinion_value_as") {
             warn_info(block, ErrorKey::Validation, "`save_temporary_opinion_value_as` does not work in script value", "but you can put it in an `if = { limit = { save_temporary_opinion_value_as = ... } }` block inside a script value");
         }

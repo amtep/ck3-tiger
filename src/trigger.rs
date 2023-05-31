@@ -230,7 +230,11 @@ pub fn validate_trigger_key_bv(
                 }
                 sc.expect(inscopes, &prefix);
                 validate_prefix_reference(&prefix, &arg, data);
-                sc.replace(outscope, part.clone());
+                if prefix.is("scope") {
+                    sc.replace_named_scope(arg.as_str(), part);
+                } else {
+                    sc.replace(outscope, part.clone());
+                }
                 if prefix.is("event_id") {
                     break; // force last part
                 }
@@ -506,7 +510,6 @@ fn match_trigger_bv(
             }
         }
         Trigger::Special => {
-            // exists, has_gene, switch, time_of_year, custom_tooltip and weighted_calc_true_if
             if name.is("exists") {
                 if let Some(token) = bv.expect_value() {
                     if token.is("yes") || token.is("no") {
@@ -514,7 +517,10 @@ fn match_trigger_bv(
                             let msg = "`exists = {token}` does nothing in None scope";
                             warn(token, ErrorKey::Scopes, msg);
                         }
-                    } else if token.as_str().starts_with("flag:") {
+                    } else if (token.starts_with("scope:") && !token.as_str().contains("."))
+                        || token.starts_with("flag:")
+                    {
+                        // exists = scope:name is used to check if that scope name was set
                         // exists = flag:$REASON$ is used in vanilla just to shut up their error.log,
                         // so accept it silently even though it's a no-op.
                     } else {
@@ -554,7 +560,40 @@ fn match_trigger_bv(
                         }
                     }
                 }
+            } else if name.is("save_temporary_opinion_value_as") {
+                if let Some(block) = bv.expect_block() {
+                    let mut vd = Validator::new(block, data);
+                    vd.req_field("name");
+                    vd.req_field("target");
+                    vd.field_target("target", sc, Scopes::Character);
+                    if let Some(name) = vd.field_value("name") {
+                        sc.define_name(name.as_str(), name.clone(), Scopes::Value);
+                    }
+                }
+            } else if name.is("save_temporary_scope_value_as") {
+                if let Some(block) = bv.expect_block() {
+                    let mut vd = Validator::new(block, data);
+                    vd.req_field("name");
+                    vd.req_field("value");
+                    if let Some(bv) = vd.field("value") {
+                        match bv {
+                            BlockOrValue::Value(token) => {
+                                validate_target(token, data, sc, Scopes::primitive())
+                            }
+                            BlockOrValue::Block(_) => ScriptValue::validate_bv(bv, data, sc),
+                        }
+                    }
+                    // TODO: figure out the scope type of `value` and use that
+                    if let Some(name) = vd.field_value("name") {
+                        sc.define_name(name.as_str(), name.clone(), Scopes::primitive());
+                    }
+                }
+            } else if name.is("save_temporary_scope_as") {
+                if let Some(name) = bv.expect_value() {
+                    sc.save_current_scope(name.as_str());
+                }
             }
+            // TODO: switch, time_of_year, weighted_calc_true_if
         }
         Trigger::UncheckedValue => {
             bv.expect_value();
@@ -614,7 +653,11 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
                 }
                 sc.expect(inscopes, &prefix);
                 validate_prefix_reference(&prefix, &arg, data);
-                sc.replace(outscope, part.clone());
+                if prefix.is("scope") {
+                    sc.replace_named_scope(arg.as_str(), part);
+                } else {
+                    sc.replace(outscope, part.clone());
+                }
                 if prefix.is("event_id") {
                     break; // force last part
                 }

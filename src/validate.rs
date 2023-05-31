@@ -672,7 +672,11 @@ pub fn validate_scope_chain(token: &Token, data: &Everything, sc: &mut ScopeCont
                 }
                 sc.expect(inscopes, &prefix);
                 validate_prefix_reference(&prefix, &arg, data);
-                sc.replace(outscope, part.clone());
+                if prefix.is("scope") {
+                    sc.replace_named_scope(arg.as_str(), &part);
+                } else {
+                    sc.replace(outscope, part.clone());
+                }
             } else {
                 let msg = format!("unknown prefix `{prefix}:`");
                 error(part, ErrorKey::Validation, &msg);

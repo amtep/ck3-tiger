@@ -23,6 +23,7 @@ pub enum Effect {
     Timespan, // days/weeks/months/years
     AddModifier,
     SpecialBlock,
+    SpecialValue,
     SpecialBv,
     Control,
     ControlOrLabel,
@@ -825,10 +826,10 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "round_variable", SpecialBlock),
     (None, "run_interaction", SpecialBlock),
     (Character, "save_opinion_value_as", SpecialBlock),
-    (ALL_BUT_NONE, "save_scope_as", Unchecked),
+    (ALL_BUT_NONE, "save_scope_as", SpecialValue),
     (None, "save_scope_value_as", SpecialBlock),
     (Character, "save_temporary_opinion_value_as", SpecialBlock),
-    (ALL_BUT_NONE, "save_temporary_scope_as", Unchecked),
+    (ALL_BUT_NONE, "save_temporary_scope_as", SpecialValue),
     (None, "save_temporary_scope_value_as", SpecialBlock),
     (
         ALL,

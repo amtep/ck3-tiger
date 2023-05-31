@@ -25,6 +25,7 @@ pub struct ScopeContext {
     names: FnvHashMap<String, usize>,
 
     /// Named scope values are `ScopeEntry::Scope` or `ScopeEntry::Named` or `ScopeEntry::Rootref`.
+    /// Invariant: there are no cycles in the array via `ScopeEntry::Named` entries.
     named: Vec<ScopeEntry>,
 }
 
@@ -77,8 +78,9 @@ impl ScopeContext {
         }
     }
 
-    pub fn define_scope(&mut self, name: &str, token: Token, scopes: Scopes) {
+    pub fn define_name(&mut self, name: &str, token: Token, scopes: Scopes) {
         if let Some(&idx) = self.names.get(name) {
+            self._break_chains_to(idx);
             self.named[idx] = ScopeEntry::Scope(scopes, token);
         } else {
             self.names.insert(name.to_string(), self.named.len());
@@ -88,10 +90,33 @@ impl ScopeContext {
 
     pub fn save_current_scope(&mut self, name: &str) {
         if let Some(&idx) = self.names.get(name) {
-            self.named[idx] = self._resolve_backrefs().clone();
+            self._break_chains_to(idx);
+            let entry = self._resolve_backrefs();
+            // Check against `scope:foo = { save_scope_as = foo }`
+            if let ScopeEntry::Named(i, _) = entry {
+                if *i == idx {
+                    // Leave the scope as its original value
+                    return;
+                }
+            }
+            self.named[idx] = entry.clone();
         } else {
             self.names.insert(name.to_string(), self.named.len());
             self.named.push(self._resolve_backrefs().clone());
+        }
+    }
+
+    /// Cut `idx` out of any `ScopeEntry::Named` chains
+    fn _break_chains_to(&mut self, idx: usize) {
+        for i in 0..self.named.len() {
+            if i == idx {
+                continue;
+            }
+            if let ScopeEntry::Named(ni, _) = self.named[i] {
+                if ni == idx {
+                    self.named[i] = self.named[idx].clone();
+                }
+            }
         }
     }
 
@@ -206,7 +231,7 @@ impl ScopeContext {
             } else {
                 // We went further back up the scope chain than we know about.
                 // TODO: do something sensible here
-                return &self.this;
+                return &self.root;
             }
         }
     }
@@ -301,7 +326,6 @@ impl ScopeContext {
 
     // TODO: find a way to report the chain of Named tokens to the user
     fn _expect_named(&mut self, mut idx: usize, scopes: Scopes, token: &Token) {
-        // TODO: avoid infinite recursion if named scopes reference each other in a cycle
         loop {
             match self.named[idx] {
                 ScopeEntry::Scope(_, _) => {
@@ -326,7 +350,6 @@ impl ScopeContext {
         key: &Token,
         report: &str,
     ) {
-        // TODO: avoid infinite recursion if named scopes reference each other in a cycle
         loop {
             match self.named[idx] {
                 ScopeEntry::Scope(_, _) => {
