@@ -576,7 +576,7 @@ impl<'a> ValueParser<'a> {
             let mut at_end = false;
             let mut is_tooltip = false;
             while let Some(c) = self.peek() {
-                if c == ':' && text == "#tooltip" && !is_tooltip {
+                if c == ':' && text.to_lowercase() == "#tooltip" && !is_tooltip {
                     self.next_char();
                     is_tooltip = true;
                     text = String::new();
