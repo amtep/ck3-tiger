@@ -526,6 +526,38 @@ impl<'a> Validator<'a> {
         }
         found.is_some()
     }
+
+    pub fn field_validated_block_rerooted<F>(
+        &mut self,
+        name: &str,
+        sc: &ScopeContext,
+        scopes: Scopes,
+        mut f: F,
+    ) -> bool
+    where
+        F: FnMut(&Block, &Everything, &mut ScopeContext),
+    {
+        let mut found = None;
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    self.known_fields.push(key.as_str());
+                    if let Some(other) = found {
+                        dup_assign_error(key, other);
+                    }
+                    expect_eq_qeq(key, cmp);
+                    if let Some(block) = bv.expect_block() {
+                        let mut sc = sc.clone();
+                        sc.change_root(scopes, key);
+                        f(block, self.data, &mut sc);
+                    }
+                    found = Some(key);
+                }
+            }
+        }
+        found.is_some()
+    }
+
     pub fn field_blocks(&mut self, name: &str) -> bool {
         let mut found = false;
         for (k, cmp, bv) in &self.block.v {

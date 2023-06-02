@@ -78,6 +78,10 @@ impl ScopeContext {
         }
     }
 
+    pub fn change_root<T: Borrow<Token>>(&mut self, root: Scopes, token: T) {
+        self.root = ScopeEntry::Scope(root, token.borrow().clone());
+    }
+
     pub fn define_name(&mut self, name: &str, token: Token, scopes: Scopes) {
         if let Some(&idx) = self.names.get(name) {
             self._break_chains_to(idx);
