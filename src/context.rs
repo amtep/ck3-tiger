@@ -282,9 +282,6 @@ impl ScopeContext {
                     let msg = format!("`{token}` is for {scopes} but scope seems to be {s}");
                     let msg2 = format!("scope was deduced from `{t}` here");
                     warn2(token, ErrorKey::Scopes, &msg, &*t, &msg2);
-                    // Suppress future warnings about the same problem
-                    *s |= scopes;
-                    *t = token.clone();
                 }
             }
             _ => unreachable!(),
@@ -313,9 +310,6 @@ impl ScopeContext {
                     let msg2 = format!("expected {report} was deduced from `{token}` here");
                     let msg3 = format!("actual {report} was deduced from `{t}` here");
                     warn3(key, ErrorKey::Scopes, &msg, token, &msg2, &*t, &msg3);
-                    // Suppress future warnings about the same problem
-                    *s |= scopes;
-                    *t = token.clone();
                 }
             }
             _ => unreachable!(),
