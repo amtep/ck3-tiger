@@ -234,6 +234,9 @@ impl Errors {
         if let Some(info) = info {
             writeln!(self.outfile.as_mut().expect("outfile"), "  {info}").expect("writeln");
         }
+        if let Some(link) = &loc.link {
+            self.log(link, level, key, "from here", None);
+        }
     }
 
     #[allow(clippy::similar_names)] // eloc and loc are perfectly clear

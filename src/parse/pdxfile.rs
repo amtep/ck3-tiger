@@ -1,6 +1,6 @@
 use fnv::FnvHashMap;
-use std::mem::swap;
-use std::mem::take;
+use std::mem::{swap, take};
+use std::rc::Rc;
 
 use crate::block::{Block, BlockOrValue, Comparator};
 use crate::errorkey::ErrorKey;
@@ -570,7 +570,7 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Option<Bl
 }
 
 // Simplified parsing just to get the macro arguments
-pub fn split_macros(content: &Token) -> Vec<Token> {
+pub fn split_macros(content: &Token, link: Option<&Token>) -> Vec<Token> {
     #[derive(Eq, PartialEq)]
     enum State {
         Normal,
@@ -580,6 +580,9 @@ pub fn split_macros(content: &Token) -> Vec<Token> {
     let mut state = State::Normal;
     let mut vec = Vec::new();
     let mut loc = content.loc.clone();
+    if let Some(link) = link {
+        loc.link = Some(Rc::new(link.loc.clone()));
+    }
     let mut last_loc = loc.clone();
     let mut last_pos = 0;
     for (i, c) in content.as_str().char_indices() {

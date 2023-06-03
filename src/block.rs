@@ -354,7 +354,7 @@ impl Block {
         let mut vec = Vec::new();
         if let Some((source, _)) = &self.source {
             let mut odd = false;
-            for part in split_macros(source) {
+            for part in split_macros(source, None) {
                 odd = !odd;
                 if !odd {
                     vec.push(part.into_string());
@@ -366,11 +366,11 @@ impl Block {
         vec
     }
 
-    pub fn expand_macro(&self, args: &[(String, Token)]) -> Option<Block> {
+    pub fn expand_macro(&self, args: &[(String, Token)], link: &Token) -> Option<Block> {
         if let Some((source, local_macros)) = &self.source {
             let mut content = Vec::new();
             let mut odd = false;
-            for part in split_macros(source) {
+            for part in split_macros(source, Some(link)) {
                 odd = !odd;
                 if odd {
                     content.push(part);

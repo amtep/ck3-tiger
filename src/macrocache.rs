@@ -10,7 +10,8 @@ struct MacroKey {
 }
 
 impl MacroKey {
-    pub fn new(loc: Loc, args: &[(String, Token)]) -> Self {
+    pub fn new(mut loc: Loc, args: &[(String, Token)]) -> Self {
+        loc.link = None;
         let mut args: Vec<(String, String)> = args
             .iter()
             .map(|(parm, arg)| (parm.clone(), arg.to_string()))
