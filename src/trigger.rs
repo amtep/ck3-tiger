@@ -255,7 +255,7 @@ pub fn validate_trigger_key_bv(
             if part.lowercase_is("root") {
                 sc.replace_root();
             } else if part.lowercase_is("prev") {
-                sc.replace_prev(part);
+                sc.replace_prev();
             } else {
                 sc.replace_this();
             }
@@ -678,7 +678,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             if part.lowercase_is("root") {
                 sc.replace_root();
             } else if part.lowercase_is("prev") {
-                sc.replace_prev(part);
+                sc.replace_prev();
             } else {
                 sc.replace_this();
             }

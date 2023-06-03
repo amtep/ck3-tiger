@@ -2,7 +2,7 @@ use fnv::FnvHashMap;
 use std::borrow::Borrow;
 
 use crate::errorkey::ErrorKey;
-use crate::errors::{warn, warn2, warn3};
+use crate::errors::{warn2, warn3};
 use crate::scopes::Scopes;
 use crate::token::Token;
 
@@ -42,7 +42,7 @@ enum ScopeEntry {
     /// to it (such as narrowing of scope types) need to be propagated back to the
     /// real origin of that scope.
     ///
-    /// The backref number is 0 for 'this', 1 for 'prev', +1 for each extra 'prev'.
+    /// The backref number is 0 for 'this', 1 for 'prev'
     Backref(usize),
 
     /// A Rootref is for when the current scope is made with `root`. Most of the time,
@@ -154,14 +154,8 @@ impl ScopeContext {
         self.this = ScopeEntry::Rootref;
     }
 
-    pub fn replace_prev(&mut self, token: &Token) {
-        match self.this {
-            ScopeEntry::Scope(_, _) | ScopeEntry::Named(_, _) => self.this = ScopeEntry::Backref(1),
-            ScopeEntry::Backref(r) => self.this = ScopeEntry::Backref(r + 1),
-            ScopeEntry::Rootref => {
-                warn(token, ErrorKey::Scopes, "trying to take prev of root");
-            }
-        }
+    pub fn replace_prev(&mut self) {
+        self.this = ScopeEntry::Backref(1);
     }
 
     pub fn replace_this(&mut self) {

@@ -693,7 +693,7 @@ pub fn validate_scope_chain(token: &Token, data: &Everything, sc: &mut ScopeCont
             if part.lowercase_is("root") {
                 sc.replace_root();
             } else if part.lowercase_is("prev") {
-                sc.replace_prev(&part);
+                sc.replace_prev();
             } else {
                 sc.replace_this();
             }
