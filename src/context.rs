@@ -234,7 +234,7 @@ impl ScopeContext {
         }
     }
 
-    fn scopes_token(&self) -> (Scopes, &Token) {
+    pub fn scopes_token(&self) -> (Scopes, &Token) {
         match self.this {
             ScopeEntry::Scope(s, ref t) => (s, t),
             ScopeEntry::Backref(r) => self._scopes_token(r),

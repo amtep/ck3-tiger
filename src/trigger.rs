@@ -6,7 +6,7 @@ use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, error, warn, warn_info};
+use crate::errors::{advice_info, error, warn, warn2, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
@@ -728,11 +728,16 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             return;
         }
     }
-    let final_scopes = sc.scopes();
+    let (final_scopes, because) = sc.scopes_token();
     if !outscopes.intersects(final_scopes | Scopes::None) {
         let part = &part_vec[part_vec.len() - 1];
         let msg = format!("`{part}` produces {final_scopes} but expected {outscopes}");
-        warn(part, ErrorKey::Scopes, &msg);
+        if part != because {
+            let msg2 = format!("scope was deduced from `{because}` here");
+            warn2(part, ErrorKey::Scopes, &msg, because, &msg2);
+        } else {
+            warn(part, ErrorKey::Scopes, &msg);
+        }
     }
     sc.close();
 }
