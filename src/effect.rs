@@ -433,6 +433,7 @@ fn validate_effect_control(
         vd.field_bool("show_chance");
         vd.field_validated_sc("desc", sc, validate_desc);
         vd.field_script_value("min", sc); // used in vanilla
+        vd.field_script_value("max", sc); // used in vanilla
                                           // TODO: check if "max" also works
     } else {
         if caller != "option" {
@@ -1129,7 +1130,7 @@ fn validate_effect_special(
         validate_optional_duration(&mut vd, sc);
     } else if caller == "set_council_task" {
         vd.req_field("task_type");
-        vd.req_field("target");
+        // TODO: figure out for which task types `target` is required
         vd.field_item("task_type", Item::CouncilTask);
         vd.field_target("target", sc, Scopes::Character | Scopes::Province);
     } else if caller == "set_culture_name" {

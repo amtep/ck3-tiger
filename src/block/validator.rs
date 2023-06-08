@@ -58,7 +58,7 @@ impl<'a> Validator<'a> {
             true
         } else {
             let msg = format!("required field `{name}` missing");
-            error(self.block, ErrorKey::Validation, &msg);
+            error(self.block, ErrorKey::FieldMissing, &msg);
             false
         }
     }
@@ -73,7 +73,12 @@ impl<'a> Validator<'a> {
         }
         if count != 1 {
             let msg = format!("expected exactly 1 of {}", names.join(", "));
-            error(self.block, ErrorKey::Validation, &msg);
+            let key = if count == 0 {
+                ErrorKey::FieldMissing
+            } else {
+                ErrorKey::Validation
+            };
+            error(self.block, key, &msg);
         }
         count == 1
     }
@@ -85,7 +90,7 @@ impl<'a> Validator<'a> {
         } else {
             warn(
                 self.block,
-                ErrorKey::Validation,
+                ErrorKey::FieldMissing,
                 &format!("required field `{name}` missing"),
             );
             false

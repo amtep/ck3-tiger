@@ -113,7 +113,12 @@ pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &m
 
     if count != 1 {
         let msg = "must have 1 of days, weeks, months, or years";
-        error(block, ErrorKey::Validation, msg);
+        let key = if count == 0 {
+            ErrorKey::FieldMissing
+        } else {
+            ErrorKey::Validation
+        };
+        error(block, key, msg);
     }
 }
 
@@ -131,7 +136,12 @@ pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext
 
     if count != 1 {
         let msg = "must have 1 of days, weeks, months, or years";
-        error(block, ErrorKey::Validation, msg);
+        let key = if count == 0 {
+            ErrorKey::FieldMissing
+        } else {
+            ErrorKey::Validation
+        };
+        error(block, key, msg);
     }
 }
 
@@ -320,8 +330,8 @@ pub fn validate_iterator_fields(
         vd.ban_field("position", || "`ordered_` lists");
         if caller != "random_list" && caller != "duel" {
             vd.ban_field("min", || "`ordered_` lists, `random_list`, and `duel`");
+            vd.ban_field("max", || "`ordered_` lists, `random_list`, and `duel`");
         }
-        vd.ban_field("max", || "`ordered_` lists");
         vd.ban_field("check_range_bounds", || "`ordered_` lists");
     }
 
@@ -344,12 +354,7 @@ pub fn validate_inside_iterator(
     tooltipped: bool,
 ) {
     if name == "in_list" || name == "in_local_list" || name == "in_global_list" {
-        let have_list = vd.field_value("list").is_some();
-        let have_var = vd.field_value("variable").is_some();
-        if have_list == have_var {
-            let msg = "must have one of `list =` or `variable =`";
-            error(block, ErrorKey::Validation, msg);
-        }
+        vd.req_field_one_of(&["list", "variable"]);
     } else {
         let only_for = || {
             format!(

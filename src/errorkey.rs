@@ -35,6 +35,7 @@ pub enum ErrorKey {
     Bugs,
     Datafunctions,
     Removed,
+    FieldMissing,
 
     PrincesOfDarkness,
 

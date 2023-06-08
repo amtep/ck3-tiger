@@ -1708,7 +1708,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         LandedTitle,
         "recent_history",
         Block(&[
-            ("type", Item(Item::TitleHistoryType)),
+            ("?type", Item(Item::TitleHistoryType)),
             ("?days", SetValue),
             ("?months", SetValue),
             ("?years", SetValue),
