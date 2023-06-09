@@ -56,6 +56,10 @@ impl<'a> Validator<'a> {
         }
     }
 
+    pub fn set_case_sensitive(&mut self, cs: bool) {
+        self.case_sensitive = cs;
+    }
+
     pub fn req_field(&mut self, name: &str) -> bool {
         let found = self.check_key(name);
         if !found {

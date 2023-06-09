@@ -166,6 +166,7 @@ pub fn validate_effect<'a>(
                 Effect::Target(key, outscopes) => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
+                        vd.set_case_sensitive(false);
                         vd.req_field(key);
                         if let Some(token) = vd.field_value(key) {
                             validate_target(token, data, sc, outscopes);
@@ -175,6 +176,7 @@ pub fn validate_effect<'a>(
                 Effect::TargetValue(key, outscopes, valuekey) => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
+                        vd.set_case_sensitive(false);
                         vd.req_field(key);
                         vd.req_field(valuekey);
                         vd.field_target(key, sc, outscopes);
@@ -184,6 +186,7 @@ pub fn validate_effect<'a>(
                 Effect::ItemTarget(ikey, itype, tkey, outscopes) => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
+                        vd.set_case_sensitive(false);
                         if let Some(token) = vd.field_value(ikey) {
                             data.verify_exists(itype, token);
                         }
@@ -201,6 +204,7 @@ pub fn validate_effect<'a>(
                 Effect::ItemValue(key, itype) => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
+                        vd.set_case_sensitive(false);
                         vd.req_field(key);
                         vd.req_field("value");
                         vd.field_item(key, itype);
@@ -225,6 +229,7 @@ pub fn validate_effect<'a>(
                     BlockOrValue::Value(token) => data.verify_exists(Item::Modifier, token),
                     BlockOrValue::Block(block) => {
                         let mut vd = Validator::new(block, data);
+                        vd.set_case_sensitive(false);
                         vd.req_field("modifier");
                         vd.field_item("modifier", Item::Modifier);
                         vd.field_validated_sc("desc", sc, validate_desc);
@@ -464,6 +469,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(token) => validate_target(token, data, sc, Scopes::Character),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("target");
                 vd.req_field("reason");
                 vd.field_target("target", sc, Scopes::Character);
@@ -478,6 +484,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(token) => data.verify_exists(Item::Catalyst, token),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("catalyst");
                 vd.req_field("character");
                 vd.field_item("catalyst", Item::Catalyst);
@@ -489,6 +496,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(_token) => (),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("flag");
                 vd.field_values("flag");
                 validate_optional_duration(&mut vd, sc);
@@ -499,10 +507,12 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(token) => data.verify_exists(Item::Holding, token),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("type");
                 vd.field_item("type", Item::Holding);
                 vd.field_validated_block("refund_cost", |b, data| {
                     let mut vd = Validator::new(b, data);
+                    vd.set_case_sensitive(false);
                     vd.field_script_value("gold", sc);
                     vd.field_script_value("prestige", sc);
                     vd.field_script_value("piety", sc);
@@ -518,6 +528,7 @@ fn validate_effect_special_bv(
             }
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("template_character");
                 vd.field_target("template_character", sc, Scopes::Character);
             }
@@ -527,6 +538,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(_token) => (), // TODO
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("view");
                 vd.field_value("view"); // TODO
                 vd.field_target("player", sc, Scopes::Character);
@@ -537,6 +549,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(token) => validate_target(token, data, sc, Scopes::Character),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("target");
                 vd.field_target("target", sc, Scopes::Character);
                 vd.field_target("allied_through_owner", sc, Scopes::Character);
@@ -548,6 +561,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(token) => data.verify_exists(Item::Inspiration, token),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("type");
                 vd.req_field("gold");
                 vd.field_item("type", Item::Inspiration);
@@ -559,6 +573,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(token) => data.verify_exists(Item::Story, token),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("type");
                 vd.field_item("type", Item::Story);
                 if let Some(name) = vd.field_value("save_scope_as") {
@@ -579,6 +594,7 @@ fn validate_effect_special_bv(
             }
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("death_reason");
                 vd.field_item("death_reason", Item::DeathReason);
                 vd.field_target("killer", sc, Scopes::Character);
@@ -590,6 +606,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(_token) => (), // TODO
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("view");
                 vd.field_value("view"); // TODO
                 vd.field_value("view_message"); // TODO
@@ -601,6 +618,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(token) => validate_target(token, data, sc, Scopes::Character),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("character");
                 vd.field_target("character", sc, Scopes::Character);
                 vd.field_target("new_location", sc, Scopes::Province);
@@ -621,6 +639,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(_token) => (),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("name");
                 vd.field_value("name");
                 vd.field_validated("value", |bv, data| match bv {
@@ -637,6 +656,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(token) => validate_target(token, data, sc, Scopes::Province),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("location");
                 vd.field_target("location", sc, Scopes::Province);
                 vd.field_bool("stick_to_location");
@@ -647,6 +667,7 @@ fn validate_effect_special_bv(
             BlockOrValue::Value(token) => validate_target(token, data, sc, Scopes::Character),
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.req_field("target");
                 vd.field_target("target", sc, Scopes::Character);
                 vd.field_validated_blocks_sc("history", sc, validate_artifact_history);
@@ -661,6 +682,7 @@ fn validate_effect_special_bv(
             }
             BlockOrValue::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_case_sensitive(false);
                 vd.field_item("id", Item::Event);
                 vd.field_item("on_action", Item::OnAction);
                 vd.field_target("saved_event_id", sc, Scopes::Flag);
@@ -686,6 +708,7 @@ fn validate_effect_special(
     tooltipped: bool,
 ) {
     let mut vd = Validator::new(block, data);
+    vd.set_case_sensitive(false);
     if caller == "add_activity_log_entry" {
         vd.req_field("key");
         vd.req_field("character");
@@ -1244,6 +1267,7 @@ fn validate_effect_special(
             ScriptValue::validate_bv(bv, data, sc);
         }
     } else if caller == "switch" {
+        vd.set_case_sensitive(true);
         vd.req_field("trigger");
         if let Some(target) = vd.field_value("trigger") {
             // clone to avoid calling vd again while target is still borrowed
@@ -1299,6 +1323,7 @@ fn validate_effect_special(
 
 fn validate_artifact_history(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
+    vd.set_case_sensitive(false);
     vd.req_field("type");
     vd.field_item("type", Item::ArtifactHistory);
     vd.field_date("date");
