@@ -11,6 +11,7 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 use crate::validate::{validate_duration, validate_modifiers_with_base};
 
@@ -82,7 +83,7 @@ impl OnAction {
             }
         }
         vd.field_validated_block("trigger", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block_sc("weight_multiplier", &mut sc, validate_modifiers_with_base);
         vd.field_validated_blocks("events", |b, data| {
@@ -139,7 +140,7 @@ impl OnAction {
             }
         });
         vd.field_validated_block("effect", |b, data| {
-            validate_normal_effect(b, data, &mut sc, false);
+            validate_normal_effect(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_item("fallback", Item::OnAction);
     }

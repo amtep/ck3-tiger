@@ -4,6 +4,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::warn;
 use crate::everything::Everything;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 
 pub fn validate_desc_map_block(
@@ -29,7 +30,7 @@ pub fn validate_desc_map_block(
                 } else if key.is("triggered_desc") {
                     validate_desc_map_block(b, data, sc, f, true);
                 } else if triggered && key.is("trigger") {
-                    validate_normal_trigger(b, data, sc, false);
+                    validate_normal_trigger(b, data, sc, Tooltipped::No);
                 } else {
                     warn(key, ErrorKey::Validation, "unexpected key in description");
                 }

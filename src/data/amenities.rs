@@ -7,6 +7,7 @@ use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 use crate::validate::validate_cost;
 
@@ -60,6 +61,6 @@ fn validate_amenity_setting(key: &Token, block: &Block, data: &Everything) {
     vd.field_script_value_rooted("ai_will_do", Scopes::Character);
 
     vd.field_validated_block_rooted("can_pick", Scopes::Character, |block, data, sc| {
-        validate_normal_trigger(block, data, sc, true);
+        validate_normal_trigger(block, data, sc, Tooltipped::Yes);
     });
 }

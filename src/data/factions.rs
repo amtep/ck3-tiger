@@ -7,6 +7,7 @@ use crate::everything::{Db, DbKind, Everything};
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 use crate::validate::validate_modifiers_with_base;
 
@@ -37,20 +38,20 @@ impl DbKind for Faction {
         vd.field_validated_sc("short_effect_desc", &mut sc, validate_desc);
 
         vd.field_validated_block("demand", |block, data| {
-            validate_normal_effect(block, data, &mut sc, false);
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("update_effect", |block, data| {
-            validate_normal_effect(block, data, &mut sc, false);
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
         // docs say "on_declaration"
         vd.field_validated_block("on_war_start", |block, data| {
-            validate_normal_effect(block, data, &mut sc, false);
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("character_leaves", |block, data| {
-            validate_normal_effect(block, data, &mut sc, false);
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("leader_leaves", |block, data| {
-            validate_normal_effect(block, data, &mut sc, false);
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block_rooted(
             "ai_join_score",
@@ -80,62 +81,62 @@ impl DbKind for Faction {
             BlockOrValue::Block(b) => validate_modifiers_with_base(b, data, &mut sc),
         });
         vd.field_validated_block("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, false);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block_rooted(
             "is_character_valid",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, false);
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_validated_block_rooted(
             "is_county_valid",
             Scopes::LandedTitle,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, false);
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_validated_block_rooted(
             "can_character_join",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, true);
+                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
         vd.field_validated_block_rooted(
             "can_character_create",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, true);
+                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
         vd.field_validated_block_rooted(
             "can_character_create_ui",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, true);
+                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
         vd.field_validated_block_rooted(
             "can_character_become_leader",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, false);
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_validated_block_rooted(
             "can_county_join",
             Scopes::LandedTitle,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, false);
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_validated_block_rooted(
             "can_county_create",
             Scopes::LandedTitle,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, false);
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
 
@@ -161,10 +162,10 @@ impl DbKind for Faction {
 
         // undocumented fields follow
         vd.field_validated_block("on_creation", |block, data| {
-            validate_normal_effect(block, data, &mut sc, false);
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("on_destroy", |block, data| {
-            validate_normal_effect(block, data, &mut sc, false);
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
     }
 }

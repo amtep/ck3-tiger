@@ -10,6 +10,7 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
@@ -82,13 +83,13 @@ impl Lifestyle {
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
         vd.field_validated_block("is_highlighted", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, false);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, true);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block("is_valid_showing_failures_only", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, true);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         let icon = vd.field_value("icon").unwrap_or(&self.key);

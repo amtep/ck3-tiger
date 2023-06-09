@@ -13,6 +13,7 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_prefix, scope_to_scope, Scopes};
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -56,7 +57,7 @@ pub fn validate_theme_background(bv: &BlockOrValue, data: &Everything, sc: &mut 
         let mut vd = Validator::new(block, data);
 
         vd.field_validated_block("trigger", |b, data| {
-            validate_normal_trigger(b, data, sc, false);
+            validate_normal_trigger(b, data, sc, Tooltipped::No);
         });
         if vd.field_value("event_background").is_some() {
             let msg = "`event_background` now causes a crash. It has been replaced by `reference` since 1.9";
@@ -76,7 +77,7 @@ pub fn validate_theme_icon(block: &Block, data: &Everything, sc: &mut ScopeConte
     let mut vd = Validator::new(block, data);
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, false);
+        validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
     // TODO: verify the file exists
     vd.field_value("reference"); // file
@@ -86,7 +87,7 @@ pub fn validate_theme_sound(block: &Block, data: &Everything, sc: &mut ScopeCont
     let mut vd = Validator::new(block, data);
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, false);
+        validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
     vd.field_value("reference"); // event:/ resource reference
 }
@@ -95,7 +96,7 @@ pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut Scop
     let mut vd = Validator::new(block, data);
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, false);
+        validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
     vd.field_value("reference"); // TODO: unknown
 }
@@ -266,12 +267,12 @@ pub fn validate_iterator_fields(
     data: &Everything,
     sc: &mut ScopeContext,
     vd: &mut Validator,
-    tooltipped: &mut bool,
+    tooltipped: &mut Tooltipped,
 ) {
     // undocumented
     if list_type != ListType::None {
         if vd.field_item("custom", Item::Localization) {
-            *tooltipped = false;
+            *tooltipped = Tooltipped::No;
         }
     } else {
         vd.ban_field("custom", || "lists");
@@ -280,7 +281,7 @@ pub fn validate_iterator_fields(
     // undocumented
     if list_type != ListType::None && list_type != ListType::Any {
         vd.field_validated_blocks("alternative_limit", |b, data| {
-            validate_normal_trigger(b, data, sc, false);
+            validate_normal_trigger(b, data, sc, *tooltipped);
         });
     } else {
         vd.ban_field("alternative_limit", || {
@@ -347,7 +348,7 @@ pub fn validate_inside_iterator(
     data: &Everything,
     sc: &mut ScopeContext,
     vd: &mut Validator,
-    tooltipped: bool,
+    tooltipped: Tooltipped,
 ) {
     if name == "in_list" || name == "in_local_list" || name == "in_global_list" {
         vd.req_field_one_of(&["list", "variable"]);
@@ -498,7 +499,7 @@ pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_script_value("offset", sc); // What does this do?
     vd.field_validated_sc("desc", sc, validate_desc);
     vd.field_validated_block("trigger", |block, data| {
-        validate_normal_trigger(block, data, sc, false);
+        validate_normal_trigger(block, data, sc, Tooltipped::No);
     });
 }
 
@@ -517,7 +518,7 @@ pub fn validate_opinion_modifier(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_script_value("max", sc);
     vd.field_script_value("step", sc); // What does this do?
     vd.field_validated_block("trigger", |block, data| {
-        validate_normal_trigger(block, data, sc, false);
+        validate_normal_trigger(block, data, sc, Tooltipped::No);
     });
 }
 
@@ -546,7 +547,7 @@ pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut Sco
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
     vd.field_validated_block("trigger", |block, data| {
-        validate_normal_trigger(block, data, sc, false);
+        validate_normal_trigger(block, data, sc, Tooltipped::No);
     });
 }
 
@@ -563,7 +564,7 @@ pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mu
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
     vd.field_validated_block("trigger", |block, data| {
-        validate_normal_trigger(block, data, sc, false);
+        validate_normal_trigger(block, data, sc, Tooltipped::No);
     });
 }
 
@@ -582,7 +583,7 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
         validate_modifiers(&mut vd, sc);
     });
     vd.field_validated_blocks("modifier", |b, data| {
-        validate_trigger("modifier", false, b, data, sc, false);
+        validate_trigger("modifier", false, b, data, sc, Tooltipped::No);
     });
     vd.field_validated_blocks_sc("compare_modifier", sc, validate_compare_modifier);
     vd.field_validated_blocks_sc("opinion_modifier", sc, validate_opinion_modifier);

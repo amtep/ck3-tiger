@@ -12,6 +12,7 @@ use crate::item::Item;
 use crate::scopes::{scope_iterator, Scopes};
 use crate::tables::effects::{scope_effect, Effect};
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger_key_bv};
 use crate::validate::{
     validate_days_weeks_months_years, validate_duration, validate_inside_iterator,
@@ -24,7 +25,7 @@ pub fn validate_normal_effect(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    tooltipped: bool,
+    tooltipped: Tooltipped,
 ) {
     let vd = Validator::new(block, data);
     validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
@@ -37,7 +38,7 @@ pub fn validate_effect<'a>(
     data: &'a Everything,
     sc: &mut ScopeContext,
     mut vd: Validator<'a>,
-    mut tooltipped: bool,
+    mut tooltipped: Tooltipped,
 ) {
     // `limit` is accepted in `else` blocks even though it's untidy
     if caller == "if"
@@ -47,7 +48,7 @@ pub fn validate_effect<'a>(
         || list_type != ListType::None
     {
         vd.field_validated_block("limit", |block, data| {
-            validate_normal_trigger(block, data, sc, tooltipped);
+            validate_normal_trigger(block, data, sc, Tooltipped::from_effect(tooltipped));
         });
     } else {
         vd.ban_field("limit", || "if/else_if or lists");
@@ -336,7 +337,7 @@ fn validate_effect_control(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    mut tooltipped: bool,
+    mut tooltipped: Tooltipped,
 ) {
     let mut vd = Validator::new(block, data);
 
@@ -353,10 +354,10 @@ fn validate_effect_control(
         if caller == "custom_tooltip" || caller == "custom_label" {
             vd.field_item("text", Item::Localization);
         } else {
-            vd.field_item("text", Item::TriggerLocalization);
+            vd.field_item("text", Item::EffectLocalization);
         }
         vd.field_target("subject", sc, Scopes::non_primitive());
-        tooltipped = false;
+        tooltipped = Tooltipped::No;
     } else {
         vd.ban_field("text", || "`custom_description` or `custom_tooltip`");
         vd.ban_field("subject", || "`custom_description` or `custom_tooltip`");
@@ -371,9 +372,7 @@ fn validate_effect_control(
     }
 
     if caller == "hidden_effect" || caller == "hidden_effect_new_object" {
-        tooltipped = false;
-    } else if caller == "show_as_tooltip" {
-        tooltipped = true;
+        tooltipped = Tooltipped::No;
     }
 
     if caller == "random" {
@@ -425,7 +424,7 @@ fn validate_effect_control(
 
     if caller == "random_list" || caller == "duel" {
         vd.field_validated_block("trigger", |block, data| {
-            validate_normal_trigger(block, data, sc, false);
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
         vd.field_bool("show_chance");
         vd.field_validated_sc("desc", sc, validate_desc);
@@ -447,7 +446,7 @@ fn validate_effect_special_value(
     value: &Token,
     _data: &Everything,
     sc: &mut ScopeContext,
-    _tooltipped: bool,
+    _tooltipped: Tooltipped,
 ) {
     if caller == "save_scope_as" || caller == "save_temporary_scope_as" {
         sc.save_current_scope(value.as_str());
@@ -462,7 +461,7 @@ fn validate_effect_special_bv(
     bv: &BlockOrValue,
     data: &Everything,
     sc: &mut ScopeContext,
-    _tooltipped: bool,
+    _tooltipped: Tooltipped,
 ) {
     if caller.starts_with("set_relation_") {
         match bv {
@@ -705,7 +704,7 @@ fn validate_effect_special(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    tooltipped: bool,
+    tooltipped: Tooltipped,
 ) {
     let mut vd = Validator::new(block, data);
     vd.set_case_sensitive(false);
@@ -1282,7 +1281,7 @@ fn validate_effect_special(
                         &synthetic_bv,
                         data,
                         sc,
-                        tooltipped,
+                        Tooltipped::from_effect(tooltipped),
                     );
                 }
 
@@ -1338,7 +1337,7 @@ fn validate_artifact(
     _data: &Everything,
     mut vd: Validator,
     sc: &mut ScopeContext,
-    _tooltipped: bool,
+    _tooltipped: Tooltipped,
 ) {
     vd.field_validated_sc("name", sc, validate_desc);
     vd.field_validated_sc("description", sc, validate_desc);
@@ -1380,7 +1379,7 @@ fn validate_random_list(
     data: &Everything,
     mut vd: Validator,
     sc: &mut ScopeContext,
-    tooltipped: bool,
+    tooltipped: Tooltipped,
 ) {
     vd.field_integer("pick");
     vd.field_bool("unique"); // don't know what this does

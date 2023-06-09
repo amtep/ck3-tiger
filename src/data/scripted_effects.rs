@@ -11,6 +11,7 @@ use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 
 #[derive(Clone, Debug, Default)]
 pub struct Effects {
@@ -79,7 +80,7 @@ impl Effect {
     pub fn validate(&self, data: &Everything) {
         if self.block.source.is_none() {
             let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
-            self.validate_call(&self.key, data, &mut sc, false);
+            self.validate_call(&self.key, data, &mut sc, Tooltipped::No);
         }
     }
 
@@ -88,7 +89,7 @@ impl Effect {
         key: &Token,
         data: &Everything,
         sc: &mut ScopeContext,
-        tooltipped: bool,
+        tooltipped: Tooltipped,
     ) {
         if !self.cached_compat(key, &[], sc) {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
@@ -120,7 +121,7 @@ impl Effect {
         args: Vec<(String, Token)>,
         data: &Everything,
         sc: &mut ScopeContext,
-        tooltipped: bool,
+        tooltipped: Tooltipped,
     ) {
         // Every invocation is treated as different even if the args are the same,
         // because we want to point to the correct one when reporting errors.

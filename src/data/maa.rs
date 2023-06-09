@@ -13,6 +13,7 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 use crate::validate::validate_cost;
 
@@ -107,7 +108,7 @@ impl MenAtArmsType {
         // TODO: "Mutually exclusive with being unlocked by innovation"
         vd.field_validated_block("can_recruit", |b, data| {
             let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
-            validate_normal_trigger(b, data, &mut sc, true);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::Yes);
         });
 
         vd.field_numeric("pursuit");

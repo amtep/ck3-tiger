@@ -13,6 +13,7 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
@@ -160,7 +161,7 @@ impl Trait {
         vd.field_block("compatibility");
 
         vd.field_validated_block("potential", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_integer("minimum_age");

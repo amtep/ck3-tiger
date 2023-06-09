@@ -18,6 +18,7 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{
     validate_ai_chance, validate_duration, validate_modifiers_with_base, validate_theme_background,
@@ -298,17 +299,17 @@ impl Event {
         vd.field_bool("hidden");
         vd.field_bool("major");
         vd.field_validated_block("major_trigger", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_block("immediate", |b, data| {
-            validate_normal_effect(b, data, &mut sc, true);
+            validate_normal_effect(b, data, &mut sc, Tooltipped::Past);
         });
         vd.field_validated_block("trigger", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("on_trigger_fail", |b, data| {
-            validate_normal_effect(b, data, &mut sc, false);
+            validate_normal_effect(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block_sc("weight_multiplier", &mut sc, validate_modifiers_with_base);
 
@@ -375,8 +376,7 @@ impl Event {
         vd.field_validated_blocks_sc("option", &mut sc, validate_event_option);
 
         vd.field_validated_block("after", |b, data| {
-            // TODO: check if this block is tooltipped
-            validate_normal_effect(b, data, &mut sc, false);
+            validate_normal_effect(b, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
         vd.field_value("soundeffect");
@@ -400,18 +400,18 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
             let mut vd = Validator::new(b, data);
             vd.req_field("text");
             vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, sc, false);
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
             });
             vd.field_validated_sc("text", sc, validate_desc);
         }
     });
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, false);
+        validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
 
     vd.field_validated_block("show_as_unavailable", |b, data| {
-        validate_normal_trigger(b, data, sc, false);
+        validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
 
     vd.field_validated_sc("flavor", sc, validate_desc);
@@ -436,7 +436,15 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
     vd.field_target("highlight_portrait", sc, Scopes::Character);
     vd.field_bool("show_unlock_reason");
 
-    validate_effect("option", ListType::None, block, data, sc, vd, true);
+    validate_effect(
+        "option",
+        ListType::None,
+        block,
+        data,
+        sc,
+        vd,
+        Tooltipped::Yes,
+    );
 }
 
 fn validate_court_scene(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -478,7 +486,7 @@ fn validate_artifact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         ],
     );
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, false);
+        validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
 }
 
@@ -488,7 +496,7 @@ fn validate_triggered_animation(block: &Block, data: &Everything, sc: &mut Scope
     vd.req_field("trigger");
     vd.req_field_one_of(&["animation", "scripted_animation"]);
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, false);
+        validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
     vd.field_value("animation"); // TODO
     vd.field_value("scripted_animation"); // TODO
@@ -499,7 +507,7 @@ fn validate_triggered_outfit(block: &Block, data: &Everything, sc: &mut ScopeCon
 
     // trigger is apparently optional
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, false);
+        validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
     // TODO: check that at least one of these is set?
     vd.field_list("outfit_tags"); // TODO
@@ -516,7 +524,7 @@ fn validate_portrait(v: &BlockOrValue, data: &Everything, sc: &mut ScopeContext)
             vd.req_field("character");
             vd.field_target("character", sc, Scopes::Character);
             vd.field_validated_block("trigger", |b, data| {
-                validate_normal_trigger(b, data, sc, false);
+                validate_normal_trigger(b, data, sc, Tooltipped::No);
             });
             vd.field_value("animation"); // TODO
             vd.field("scripted_animation"); // TODO

@@ -15,6 +15,7 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 use crate::validate::{validate_cost, validate_duration, validate_modifiers_with_base};
 
@@ -122,13 +123,13 @@ impl Decision {
         }
 
         vd.field_validated_block("is_shown", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("is_valid_showing_failures_only", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, true);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block("is_valid", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, true);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::Yes);
         });
 
         // cost can have multiple definitions and they will be combined
@@ -139,14 +140,14 @@ impl Decision {
         check_cost(&self.block.get_field_blocks("minimum_cost"));
 
         vd.field_validated_block("effect", |b, data| {
-            validate_normal_effect(b, data, &mut sc, true);
+            validate_normal_effect(b, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block("ai_potential", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
         vd.field_validated_block("should_create_alert", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field("widget"); // TODO
     }

@@ -42,6 +42,7 @@ mod rivers;
 mod scopes;
 mod tables;
 mod token;
+mod tooltipped;
 mod trigger;
 mod util;
 mod validate;

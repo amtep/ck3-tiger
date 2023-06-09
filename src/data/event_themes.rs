@@ -12,6 +12,7 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
@@ -98,7 +99,7 @@ impl Theme {
         vd.field_validated_blocks("background", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |b, data| {
-                validate_normal_trigger(b, data, sc, false);
+                validate_normal_trigger(b, data, sc, Tooltipped::No);
             });
             vd.field_item("reference", Item::EventBackground);
         });
@@ -106,7 +107,7 @@ impl Theme {
         vd.field_validated_blocks("icon", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |b, data| {
-                validate_normal_trigger(b, data, sc, false);
+                validate_normal_trigger(b, data, sc, Tooltipped::No);
             });
             vd.field_item("reference", Item::File);
         });
@@ -114,7 +115,7 @@ impl Theme {
         vd.field_validated_blocks("sound", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |b, data| {
-                validate_normal_trigger(b, data, sc, false);
+                validate_normal_trigger(b, data, sc, Tooltipped::No);
             });
             // TODO: figure out a way to get a list of all available sounds
             vd.field_value("reference");
@@ -123,7 +124,7 @@ impl Theme {
         vd.field_validated_blocks("transition", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |b, data| {
-                validate_normal_trigger(b, data, sc, false);
+                validate_normal_trigger(b, data, sc, Tooltipped::No);
             });
             vd.field_item("reference", Item::EventTransition);
         });

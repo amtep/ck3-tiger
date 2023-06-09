@@ -7,6 +7,7 @@ use crate::everything::{Db, DbKind, Everything};
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 use crate::validate::{validate_cost, validate_duration};
 
@@ -80,7 +81,8 @@ impl DbKind for CasusBelli {
             "on_invalidated",
         ] {
             vd.field_validated_block(field, |block, data| {
-                validate_normal_effect(block, data, &mut sc, false);
+                // TODO: check which are tooltipped
+                validate_normal_effect(block, data, &mut sc, Tooltipped::No);
             });
         }
 
@@ -94,10 +96,10 @@ impl DbKind for CasusBelli {
         }
 
         vd.field_validated_block("should_invalidate", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, false);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("mutually_exclusive_titles", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, false);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_bool("combine_into_one");
 
@@ -105,45 +107,45 @@ impl DbKind for CasusBelli {
             "allowed_for_character",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, false);
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_validated_block_rooted(
             "allowed_for_character_display_regardless",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, true);
+                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
         vd.field_validated_block_rooted(
             "allowed_against_character",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, false);
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_validated_block_rooted(
             "allowed_against_character_display_regardless",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, true);
+                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
         vd.field_validated_block_rooted("valid_to_start", Scopes::Character, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, false);
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
         vd.field_validated_block_rooted(
             "valid_to_start_display_regardless",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, true);
+                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
         vd.field_validated_block_rooted(
             "is_allowed_claim_title",
             Scopes::LandedTitle,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, true);
+                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
 
@@ -195,7 +197,7 @@ impl DbKind for CasusBelli {
             "ai_can_target_all_titles",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, false);
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_bool("ai");
@@ -236,7 +238,7 @@ impl DbKind for CasusBelliGroup {
             "allowed_for_character",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, false);
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_bool("should_check_for_interface_availability");

@@ -6,6 +6,7 @@ use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 use crate::validate::validate_cost;
 
@@ -51,21 +52,21 @@ impl DbKind for CourtPosition {
         vd.field_validated_block("aptitude_level_breakpoints", validate_breakpoints);
         vd.field_script_value_rooted("aptitude", Scopes::Character);
         vd.field_validated_block_rooted("is_shown", Scopes::Character, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, false);
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
 
         vd.field_validated_block_rooted("valid_position", Scopes::Character, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, true);
+            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_validated_block_rooted(
             "is_shown_character",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, false);
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_validated_block_rooted("valid_character", Scopes::None, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, true);
+            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
         });
 
         // guessing that root is the liege here
@@ -102,7 +103,7 @@ impl DbKind for CourtPosition {
             "search_for_courtier",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_effect(block, data, sc, false);
+                validate_normal_effect(block, data, sc, Tooltipped::No);
             },
         );
 
@@ -110,21 +111,21 @@ impl DbKind for CourtPosition {
             "on_court_position_received",
             Scopes::None,
             |block, data, sc| {
-                validate_normal_effect(block, data, sc, false);
+                validate_normal_effect(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_validated_block_rooted(
             "on_court_position_revoked",
             Scopes::None,
             |block, data, sc| {
-                validate_normal_effect(block, data, sc, false);
+                validate_normal_effect(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_validated_block_rooted(
             "on_court_position_invalidated",
             Scopes::None,
             |block, data, sc| {
-                validate_normal_effect(block, data, sc, false);
+                validate_normal_effect(block, data, sc, Tooltipped::No);
             },
         );
 

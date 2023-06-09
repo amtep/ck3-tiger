@@ -16,6 +16,7 @@ use crate::data::decisions::Decisions;
 use crate::data::defines::Defines;
 use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
+use crate::data::effect_localization::EffectLocalization;
 use crate::data::event_themes::Themes;
 use crate::data::events::Events;
 use crate::data::factions::Faction;
@@ -47,6 +48,7 @@ use crate::data::terrain::Terrain;
 use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
+use crate::data::trigger_localization::TriggerLocalization;
 use crate::dds::DdsFiles;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, ignore_key, ignore_key_for, ignore_path, warn};
@@ -403,6 +405,8 @@ impl Everything {
         self.load_pdx_items(Item::CasusBelliGroup, CasusBelliGroup::add);
         self.load_pdx_items(Item::CasusBelli, CasusBelli::add);
         self.load_pdx_items(Item::Holding, Holding::add);
+        self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
+        self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -462,6 +466,7 @@ impl Everything {
             | Item::CasusBelliGroup
             | Item::CourtPosition
             | Item::CourtPositionCategory
+            | Item::EffectLocalization
             | Item::Faction
             | Item::GeneAgePreset
             | Item::GeneCategory
@@ -472,7 +477,8 @@ impl Everything {
             | Item::Region
             | Item::ScriptedGui
             | Item::ScriptedRule
-            | Item::Terrain => self.database.exists(itype, key),
+            | Item::Terrain
+            | Item::TriggerLocalization => self.database.exists(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::Character => self.characters.exists(key),

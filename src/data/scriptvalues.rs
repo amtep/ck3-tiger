@@ -14,6 +14,7 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_iterator, Scopes};
 use crate::token::{Loc, Token};
+use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{
     validate_inside_iterator, validate_iterator_fields, validate_scope_chain, ListType,
@@ -162,14 +163,22 @@ impl ScriptValue {
     ) {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block("limit", |block, data| {
-            validate_normal_trigger(block, data, sc, false);
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
 
         let ltype = ListType::try_from(it_type.as_str()).unwrap();
-        let mut tooltipped = false;
+        let mut tooltipped = Tooltipped::No;
         validate_iterator_fields("", ltype, data, sc, &mut vd, &mut tooltipped);
 
-        validate_inside_iterator(it_name.as_str(), ltype, block, data, sc, &mut vd, false);
+        validate_inside_iterator(
+            it_name.as_str(),
+            ltype,
+            block,
+            data,
+            sc,
+            &mut vd,
+            Tooltipped::No,
+        );
 
         Self::validate_inner(vd, data, sc);
     }
@@ -190,7 +199,7 @@ impl ScriptValue {
         let mut vd = Validator::new(block, data);
         vd.req_field_warn("limit");
         vd.field_validated_block("limit", |block, data| {
-            validate_normal_trigger(block, data, sc, false);
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
         Self::validate_inner(vd, data, sc);
     }
@@ -198,7 +207,7 @@ impl ScriptValue {
     fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block("limit", |block, data| {
-            validate_normal_trigger(block, data, sc, false);
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
         Self::validate_inner(vd, data, sc);
     }

@@ -14,6 +14,7 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 
 #[derive(Clone, Debug, Default)]
 pub struct TitleHistories {
@@ -159,7 +160,7 @@ impl TitleHistory {
 
         vd.field_validated_block("effect", |block, data| {
             let mut sc = ScopeContext::new_root(Scopes::LandedTitle, self.key.clone());
-            validate_normal_effect(block, data, &mut sc, false);
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
     }
 

@@ -16,6 +16,7 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::validate::{validate_prefix_reference_token, ListType};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -337,10 +338,10 @@ impl Character {
         vd.field_item("give_council_position", Item::CouncilPosition);
 
         vd.field_validated_blocks("effect", |b, data| {
-            validate_normal_effect(b, data, sc, false);
+            validate_normal_effect(b, data, sc, Tooltipped::No);
         });
 
-        validate_effect("", ListType::None, block, data, sc, vd, false);
+        validate_effect("", ListType::None, block, data, sc, vd, Tooltipped::No);
     }
 
     fn validate(&self, data: &Everything) {

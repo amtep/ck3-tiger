@@ -15,6 +15,7 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 use crate::validate::{validate_ai_chance, validate_duration, validate_modifiers_with_base};
 
@@ -106,12 +107,12 @@ impl Interaction {
         // Validate this early, to update the saved scopes in `sc`
         // TODO: figure out when exactly `redirect` is run
         vd.field_validated_block("redirect", |b, data| {
-            validate_normal_effect(b, data, &mut sc, true);
+            validate_normal_effect(b, data, &mut sc, Tooltipped::No);
         });
 
         // Let ai_set_target set scope:target if it wants
         vd.field_validated_block("ai_set_target", |b, data| {
-            validate_normal_effect(b, data, &mut sc, true);
+            validate_normal_effect(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_blocks("ai_targets"); // TODO
         vd.field_block("ai_target_quick_trigger"); // TODO
@@ -142,7 +143,7 @@ impl Interaction {
         }
 
         vd.field_validated_block("is_highlighted", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), false);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
         });
         vd.field_item("highlighted_reason", Item::Localization);
 
@@ -203,39 +204,39 @@ impl Interaction {
             data.localization.verify_exists_implied(&loca, key);
         });
         vd.field_validated_block("should_use_extra_icon", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), false);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
         });
 
         vd.field_validated_block("is_shown", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), false);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
         });
 
         vd.field_validated_block("is_valid", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), true);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
         vd.field_validated_block("is_valid_showing_failures_only", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), true);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
 
         vd.field_validated_block("has_valid_target_showing_failures_only", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), true);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
         vd.field_validated_block("has_valid_target", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), true);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
 
         vd.field_validated_block("can_send", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), true);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
         vd.field_validated_block("can_be_blocked", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), true);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
 
         vd.field_validated_block("populate_actor_list", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), true);
+            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::No);
         });
         vd.field_validated_block("populate_recipient_list", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), true);
+            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::No);
         });
 
         vd.field_block("localization_values"); // TODO
@@ -249,16 +250,16 @@ impl Interaction {
                 sc.define_name(token.as_str(), token.clone(), Scopes::Bool);
             }
             vd.field_validated_block("is_shown", |b, data| {
-                validate_normal_trigger(b, data, &mut sc.clone(), false);
+                validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
             });
             vd.field_validated_block("is_valid", |b, data| {
-                validate_normal_trigger(b, data, &mut sc.clone(), false);
+                validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
             });
             vd.field_validated_block("starts_enabled", |b, data| {
-                validate_normal_trigger(b, data, &mut sc.clone(), false);
+                validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
             });
             vd.field_validated_block("can_be_changed", |b, data| {
-                validate_normal_trigger(b, data, &mut sc.clone(), false);
+                validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
             });
             vd.field_validated_sc("current_description", &mut sc.clone(), validate_desc);
             vd.field_bool("can_invalidate_interaction");
@@ -266,28 +267,28 @@ impl Interaction {
 
         vd.field_bool("send_options_exclusive");
         vd.field_validated_block("on_send", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), true);
+            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
         vd.field_validated_block("on_accept", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), true);
+            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
         vd.field_validated_block("on_decline", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), true);
+            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
         vd.field_validated_block("on_blocked_effect", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), true);
+            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::No);
         });
         vd.field_validated_block("pre_auto_accept", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), true);
+            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::No);
         });
         vd.field_validated_block("on_auto_accept", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), true);
+            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
         vd.field_validated_block("on_intermediary_accept", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), true);
+            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
         vd.field_validated_block("on_intermediary_decline", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), true);
+            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
 
         vd.field_integer("ai_frequency"); // months
@@ -298,7 +299,7 @@ impl Interaction {
             &sc,
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, true);
+                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
         vd.field_validated_sc(
@@ -364,14 +365,14 @@ impl Interaction {
             &sc,
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, true);
+                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
         vd.field_validated_block("can_be_picked_title", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), true);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
         vd.field_validated_block("can_be_picked_artifact", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), true);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
 
         vd.field_validated_block_rerooted("cost", &sc, Scopes::Character, |b, data, sc| {
@@ -392,7 +393,7 @@ fn validate_bool_or_trigger(bv: &BlockOrValue, data: &Everything, sc: &mut Scope
             }
         }
         BlockOrValue::Block(b) => {
-            validate_normal_trigger(b, data, sc, false);
+            validate_normal_trigger(b, data, sc, Tooltipped::No);
         }
     }
 }

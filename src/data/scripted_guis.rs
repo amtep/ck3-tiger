@@ -8,6 +8,7 @@ use crate::everything::{Db, DbKind, Everything};
 use crate::item::Item;
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug)]
@@ -34,13 +35,14 @@ impl DbKind for ScriptedGui {
         vd.field_list("saved_scopes");
 
         vd.field_validated_block("is_shown", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("is_valid", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, false);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("effect", |b, data| {
-            validate_normal_effect(b, data, &mut sc, false);
+            // TODO: whether this is tooltipped depends on whether the gui calls for it
+            validate_normal_effect(b, data, &mut sc, Tooltipped::No);
         });
     }
 }

@@ -12,6 +12,7 @@ use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::tables::triggers::{scope_trigger, trigger_comparevalue, Trigger};
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::util::stringify_choices;
 use crate::validate::{
     validate_inside_iterator, validate_iterator_fields, validate_prefix_reference, ListType,
@@ -21,7 +22,7 @@ pub fn validate_normal_trigger(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    tooltipped: bool,
+    tooltipped: Tooltipped,
 ) {
     validate_trigger("", false, block, data, sc, tooltipped);
 }
@@ -32,7 +33,7 @@ pub fn validate_trigger(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    mut tooltipped: bool,
+    mut tooltipped: Tooltipped,
 ) {
     let mut vd = Validator::new(block, data);
 
@@ -40,7 +41,7 @@ pub fn validate_trigger(
         || caller == "custom_tooltip"
         || block.get_field_value("custom_tooltip").is_some()
     {
-        tooltipped = false;
+        tooltipped = Tooltipped::No;
     }
 
     // limit blocks are accepted in trigger_else even though it doesn't make sense
@@ -92,7 +93,7 @@ pub fn validate_trigger(
         vd.fields_script_value("factor", sc);
         vd.field_validated_sc("desc", sc, validate_desc);
         vd.field_validated_block("trigger", |block, data| {
-            validate_normal_trigger(block, data, sc, false);
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
     } else {
         vd.ban_field("add", || "`modifier` or script values");
@@ -148,7 +149,7 @@ pub fn validate_trigger_key_bv(
     bv: &BlockOrValue,
     data: &Everything,
     sc: &mut ScopeContext,
-    tooltipped: bool,
+    tooltipped: Tooltipped,
 ) {
     // Scripted trigger?
     if let Some(trigger) = data.get_trigger(key) {
@@ -342,7 +343,7 @@ fn match_trigger_fields(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    tooltipped: bool,
+    tooltipped: Tooltipped,
 ) {
     let mut vd = Validator::new(block, data);
     for (field, _) in fields {
@@ -381,7 +382,7 @@ fn match_trigger_bv(
     bv: &BlockOrValue,
     data: &Everything,
     sc: &mut ScopeContext,
-    tooltipped: bool,
+    tooltipped: Tooltipped,
 ) {
     let mut must_be_eq = true;
     let mut warn_if_eq = false;
@@ -500,6 +501,14 @@ fn match_trigger_bv(
         }
         Trigger::Control => {
             if let Some(block) = bv.expect_block() {
+                let mut tooltipped = tooltipped;
+                if name.lowercase_is("all_false")
+                    || name.lowercase_is("not")
+                    || name.lowercase_is("nand")
+                    || name.lowercase_is("nor")
+                {
+                    tooltipped = tooltipped.negated();
+                }
                 validate_trigger(name.as_str(), false, block, data, sc, tooltipped);
             }
         }
@@ -520,7 +529,7 @@ fn match_trigger_bv(
                     } else {
                         validate_target(token, data, sc, Scopes::non_primitive());
 
-                        if tooltipped {
+                        if tooltipped.is_tooltipped() {
                             if let Some(firstpart) = token.as_str().strip_suffix(".holder") {
                                 let msg = format!("could rewrite this as `{firstpart} = {{ is_title_created = yes }}`");
                                 let info = "it gives a nicer tooltip";
@@ -533,7 +542,7 @@ fn match_trigger_bv(
                 match bv {
                     BlockOrValue::Value(t) => data.verify_exists(Item::Localization, t),
                     BlockOrValue::Block(b) => {
-                        validate_trigger(name.as_str(), false, b, data, sc, false);
+                        validate_trigger(name.as_str(), false, b, data, sc, Tooltipped::No);
                     }
                 }
             } else if name.is("has_gene") {
