@@ -22,6 +22,7 @@ use crate::data::factions::Faction;
 use crate::data::gameconcepts::GameConcepts;
 use crate::data::genes::Gene;
 use crate::data::gui::Gui;
+use crate::data::holdings::Holding;
 use crate::data::houses::Houses;
 use crate::data::interaction_cats::InteractionCategories;
 use crate::data::interactions::Interactions;
@@ -401,6 +402,7 @@ impl Everything {
         self.load_pdx_items(Item::Amenity, Amenity::add);
         self.load_pdx_items(Item::CasusBelliGroup, CasusBelliGroup::add);
         self.load_pdx_items(Item::CasusBelli, CasusBelli::add);
+        self.load_pdx_items(Item::Holding, Holding::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -463,6 +465,8 @@ impl Everything {
             | Item::Faction
             | Item::GeneAgePreset
             | Item::GeneCategory
+            | Item::Holding
+            | Item::HoldingFlag
             | Item::Relation
             | Item::RelationFlag
             | Item::Region
@@ -486,7 +490,6 @@ impl Everything {
             Item::File => self.fileset.exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),
             Item::House => self.houses.exists(key),
-            Item::Holding => HOLDING_TYPES.contains(&key),
             Item::Interaction => self.interactions.exists(key),
             Item::InteractionCategory => self.interaction_cats.exists(key),
             Item::Lifestyle => self.lifestyles.exists(key),
@@ -625,15 +628,6 @@ const DLC_FEATURES: &[&str] = &[
     "advanced_activities",
     "accolades",
     "elegance_of_the_empire",
-];
-
-// TODO: load this from common/holdings/
-/// LAST UPDATED VERSION 1.9.0.2
-const HOLDING_TYPES: &[&str] = &[
-    "castle_holding",
-    "city_holding",
-    "church_holding",
-    "tribal_holding",
 ];
 
 /// LAST UPDATED VERSION 1.9.0.2

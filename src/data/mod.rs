@@ -13,6 +13,7 @@ pub mod factions;
 pub mod gameconcepts;
 pub mod genes;
 pub mod gui;
+pub mod holdings;
 pub mod houses;
 pub mod interaction_cats;
 pub mod interactions;

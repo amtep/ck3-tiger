@@ -142,7 +142,7 @@ impl Parser {
 
     fn token(&mut self, token: Token) {
         // Special case parsing of color = hsv { ... }
-        if token.is("hsv") {
+        if token.is("hsv") || token.is("rgb") {
             self.current.tag = Some(token);
             return;
         }
