@@ -27,7 +27,7 @@ use crate::data::holdings::Holding;
 use crate::data::houses::Houses;
 use crate::data::interaction_cats::InteractionCategories;
 use crate::data::interactions::Interactions;
-use crate::data::lifestyles::Lifestyles;
+use crate::data::lifestyles::Lifestyle;
 use crate::data::localization::Localization;
 use crate::data::maa::MenAtArmsTypes;
 use crate::data::namelists::Namelists;
@@ -207,8 +207,6 @@ pub struct Everything {
 
     pub traits: Traits,
 
-    pub lifestyles: Lifestyles,
-
     pub title_history: TitleHistories,
 
     pub doctrines: Doctrines,
@@ -286,7 +284,6 @@ impl Everything {
             triggers: Triggers::default(),
             effects: Effects::default(),
             traits: Traits::default(),
-            lifestyles: Lifestyles::default(),
             title_history: TitleHistories::default(),
             doctrines: Doctrines::default(),
             menatarmstypes: MenAtArmsTypes::default(),
@@ -385,7 +382,7 @@ impl Everything {
         self.fileset.handle(&mut self.triggers);
         self.fileset.handle(&mut self.effects);
         self.fileset.handle(&mut self.traits);
-        self.fileset.handle(&mut self.lifestyles);
+        self.load_pdx_items(Item::Lifestyle, Lifestyle::add);
         self.load_pdx_items(Item::CourtPositionCategory, CourtPositionCategory::add);
         self.load_pdx_items(Item::CourtPosition, CourtPosition::add);
         self.fileset.handle(&mut self.title_history);
@@ -434,7 +431,6 @@ impl Everything {
         self.characters.validate(self);
         self.namelists.validate(self);
         self.traits.validate(self);
-        self.lifestyles.validate(self);
         self.title_history.validate(self);
         self.doctrines.validate(self);
         self.menatarmstypes.validate(self);
@@ -472,6 +468,7 @@ impl Everything {
             | Item::GeneCategory
             | Item::Holding
             | Item::HoldingFlag
+            | Item::Lifestyle
             | Item::Relation
             | Item::RelationFlag
             | Item::Region
@@ -498,7 +495,6 @@ impl Everything {
             Item::House => self.houses.exists(key),
             Item::Interaction => self.interactions.exists(key),
             Item::InteractionCategory => self.interaction_cats.exists(key),
-            Item::Lifestyle => self.lifestyles.exists(key),
             Item::Localization => self.localization.exists(key),
             Item::MenAtArms => self.menatarmstypes.exists(key),
             Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),
