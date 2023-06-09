@@ -596,8 +596,32 @@ fn match_trigger_bv(
                         validate_normal_trigger(block, data, sc, tooltipped);
                     }
                 }
+            } else if name.is("switch") {
+                if let Some(block) = bv.expect_block() {
+                    let mut vd = Validator::new(block, data);
+                    vd.req_field("trigger");
+                    if let Some(target) = vd.field_value("trigger") {
+                        let target = target.clone();
+                        for (key, bv) in vd.unknown_keys() {
+                            if !key.is("fallback") {
+                                let synthetic_bv = BlockOrValue::Value(key.clone());
+                                validate_trigger_key_bv(
+                                    &target,
+                                    Comparator::Eq,
+                                    &synthetic_bv,
+                                    data,
+                                    sc,
+                                    tooltipped,
+                                );
+                            }
+                            if let Some(block) = bv.expect_block() {
+                                validate_normal_trigger(block, data, sc, tooltipped);
+                            }
+                        }
+                    }
+                }
             }
-            // TODO: switch, time_of_year, weighted_calc_true_if
+            // TODO: time_of_year
         }
         Trigger::UncheckedValue => {
             bv.expect_value();
