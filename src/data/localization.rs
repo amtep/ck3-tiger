@@ -33,9 +33,73 @@ pub const KNOWN_LANGUAGES: [&str; 7] = [
     "simp_chinese",
 ];
 
-// LAST UPDATED VERSION 1.7.0
-// These are just the ones that can't be deduced from the vanilla localization files.
-pub const BUILTIN_MACROS: [&str; 2] = ["TRIGGER_AND", "TRIGGER_OR"];
+// LAST UPDATED VERSION 1.9.1
+// Most are deduced from the vanilla localization files, but the known ones are
+// hardcoded here.
+pub const BUILTIN_MACROS: &[&str] = &[
+    "ACTION",
+    "ACTUAL_NEGATION",
+    "ADJUSTMENTS",
+    "BASE_NAME",
+    "BATTLENAME",
+    "BUDGET_CATEGORY",
+    "BUDGET_GOLD",
+    "BUDGET_MAXIMUM",
+    "BUILDING_NAME",
+    "CAP",
+    "CASUALTIES",
+    "CAUSE",
+    "CHAR01",
+    "CHAR02",
+    "COMPANIONS",
+    "CONTROLLER",
+    "DAY",
+    "DLC_NAME",
+    "DURATION_MIN",
+    "DURATION_MAX",
+    "ERRORS",
+    "ERROR_ACTION",
+    "EVENT",
+    "EVENT_TITLE",
+    "EXPENSE_DESC",
+    "FERVOR",
+    "FIRST",
+    "INCOME_DESC",
+    "INTERACTION",
+    "MAX_LEVIES",
+    "MAX_MEN_AT_ARMS",
+    "MAX_NEGATION",
+    "MAX_SUPPLY",
+    "MEN_AT_ARMS",
+    "MISSING_HOLDING",
+    "MOD",
+    "MONTH",
+    "MONTH_SHORT",
+    "MORE_RELATIONS",
+    "MULT",
+    "PERSONALITY",
+    "PING",
+    "PREVIOUS_NAME",
+    "ON_ACCEPT",
+    "ON_DECLINE",
+    "ON_SEND",
+    "OTHER_TRAIT",
+    "REGIMENTS",
+    "REINFORCEMENTS",
+    "RELATION01",
+    "RELATION02",
+    "SECOND",
+    "TIER_KEY",
+    "TRAIT",
+    "TRAIT_AGE",
+    "TRAIT_SEX",
+    "TRIGGER_AND",
+    "TRIGGER_OR",
+    "VALUE",
+    "WHAT",
+    "WHO",
+    "WINLOSE",
+];
 
 #[derive(Clone, Debug)]
 pub struct LocaEntry {
@@ -310,7 +374,7 @@ impl FileHandler for Localization {
         // First build the list of builtin macros by just checking which ones vanilla uses.
         // TODO: scan the character interactions, which can also define macros
         let mut builtins = FnvHashSet::default();
-        builtins.extend(&BUILTIN_MACROS);
+        builtins.extend(BUILTIN_MACROS);
         for lang in self.locas.values() {
             for entry in lang.values() {
                 if entry.key.loc.kind != FileKind::Vanilla {
