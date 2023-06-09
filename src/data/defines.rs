@@ -17,7 +17,7 @@ impl Defines {
     pub fn load_item(&mut self, group: Token, name: Token, bv: &BlockOrValue) {
         let key = format!("{}|{}", &group, &name);
         if let Some(other) = self.defines.get(&key) {
-            if other.name.loc.kind >= name.loc.kind {
+            if other.name.loc.kind >= name.loc.kind && !bv.equivalent(&other.bv) {
                 dup_error(&name, &other.name, "define");
             }
         }

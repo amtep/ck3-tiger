@@ -68,6 +68,25 @@ impl BlockOrValue {
             BlockOrValue::Block(_) => None,
         }
     }
+
+    pub fn equivalent(&self, other: &Self) -> bool {
+        match self {
+            BlockOrValue::Value(t1) => {
+                if let Some(t2) = other.get_value() {
+                    t1.is(t2.as_str())
+                } else {
+                    false
+                }
+            }
+            BlockOrValue::Block(b1) => {
+                if let Some(b2) = other.get_block() {
+                    b1.equivalent(b2)
+                } else {
+                    false
+                }
+            }
+        }
+    }
 }
 
 type BlockItem = (Option<Token>, Comparator, BlockOrValue);
@@ -387,9 +406,33 @@ impl Block {
             None
         }
     }
+
+    pub fn equivalent(&self, other: &Self) -> bool {
+        if self.v.len() != other.v.len() {
+            return false;
+        }
+        for i in 0..self.v.len() {
+            if let Some(ref key1) = self.v[i].0 {
+                if let Some(ref key2) = other.v[i].0 {
+                    if !key1.is(key2.as_str()) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            } else if other.v[i].0.is_some() {
+                return false;
+            }
+
+            if self.v[i].1 != other.v[i].1 || !self.v[i].2.equivalent(&other.v[i].2) {
+                return false;
+            }
+        }
+        true
+    }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Comparator {
     None,
     Eq,  // Eq is also Assign
