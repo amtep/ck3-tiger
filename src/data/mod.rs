@@ -11,6 +11,7 @@ pub mod effect_localization;
 pub mod event_themes;
 pub mod events;
 pub mod factions;
+pub mod focus;
 pub mod gameconcepts;
 pub mod genes;
 pub mod gui;

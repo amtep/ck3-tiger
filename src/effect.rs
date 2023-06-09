@@ -444,12 +444,16 @@ fn validate_effect_control(
 fn validate_effect_special_value(
     caller: &str,
     value: &Token,
-    _data: &Everything,
+    data: &Everything,
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
     if caller == "save_scope_as" || caller == "save_temporary_scope_as" {
         sc.save_current_scope(value.as_str());
+    } else if caller == "set_focus" {
+        if !value.is("no") {
+            data.verify_exists(Item::Focus, value);
+        }
     } else {
         let msg = format!("internal error, unhandled effect {caller}");
         error(value, ErrorKey::Internal, &msg);

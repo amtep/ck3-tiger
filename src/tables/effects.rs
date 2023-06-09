@@ -940,7 +940,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Struggle, "set_faith_as_involved", Scope(Scopes::Faith)),
     (Struggle, "set_faith_as_uninvolved", Scope(Scopes::Faith)),
     (Character, "set_father", Scope(Scopes::Character)),
-    (Character, "set_focus", Item(Item::EducationFocus)),
+    (Character, "set_focus", SpecialValue),
     // set_focus_progress ??
     (None, "set_generated_asexuality_chance", ScriptValue),
     (None, "set_generated_bisexuality_chance", ScriptValue),

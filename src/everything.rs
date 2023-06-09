@@ -20,6 +20,7 @@ use crate::data::effect_localization::EffectLocalization;
 use crate::data::event_themes::Themes;
 use crate::data::events::Events;
 use crate::data::factions::Faction;
+use crate::data::focus::Focus;
 use crate::data::gameconcepts::GameConcepts;
 use crate::data::genes::Gene;
 use crate::data::gui::Gui;
@@ -404,6 +405,7 @@ impl Everything {
         self.load_pdx_items(Item::Holding, Holding::add);
         self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
         self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
+        self.load_pdx_items(Item::Focus, Focus::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -464,6 +466,7 @@ impl Everything {
             | Item::CourtPositionCategory
             | Item::EffectLocalization
             | Item::Faction
+            | Item::Focus
             | Item::GeneAgePreset
             | Item::GeneCategory
             | Item::Holding
