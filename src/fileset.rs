@@ -144,7 +144,8 @@ impl Fileset {
             }
             // unwrap is safe here because WalkDir gives us paths with this prefix.
             let inner_path = entry.path().strip_prefix(path).unwrap();
-            if kind == FileKind::Vanilla && self.replace_paths.iter().any(|p| p == inner_path) {
+            let inner_dir = inner_path.parent().unwrap_or_else(|| Path::new(""));
+            if kind == FileKind::Vanilla && self.replace_paths.iter().any(|p| p == inner_dir) {
                 continue;
             }
             self.files
