@@ -260,12 +260,6 @@ pub fn validate_trigger_key_bv(
                 sc.replace_this();
             }
         } else if data.scriptvalues.exists(part.as_str()) {
-            if !last {
-                let msg = "script value should be the last part";
-                warn(part, ErrorKey::Validation, msg);
-                sc.close();
-                return;
-            }
             data.scriptvalues.validate_call(part, data, sc);
             sc.replace(Scopes::Value, part.clone());
         } else if let Some((inscopes, outscope)) = scope_to_scope(part) {
@@ -590,6 +584,18 @@ fn match_trigger_bv(
                 if let Some(name) = bv.expect_value() {
                     sc.save_current_scope(name.as_str());
                 }
+            } else if name.is("weighted_calc_true_if") {
+                if let Some(block) = bv.expect_block() {
+                    let mut vd = Validator::new(block, data);
+                    if let Some(bv) = vd.field_any_cmp("amount") {
+                        if let Some(token) = bv.expect_value() {
+                            token.expect_number();
+                        }
+                    }
+                    for (_, block) in vd.integer_blocks() {
+                        validate_normal_trigger(block, data, sc, tooltipped);
+                    }
+                }
             }
             // TODO: switch, time_of_year, weighted_calc_true_if
         }
@@ -688,12 +694,6 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
             sc.expect(inscopes, part);
             sc.replace(outscope, part.clone());
         } else if data.scriptvalues.exists(part.as_str()) {
-            if !last {
-                let msg = format!("`{part}` only makes sense as the last part");
-                warn(part, ErrorKey::Scopes, &msg);
-                sc.close();
-                return;
-            }
             data.scriptvalues.validate_call(part, data, sc);
             sc.replace(Scopes::Value, part.clone());
         } else if let Some(inscopes) = trigger_comparevalue(part, data) {
