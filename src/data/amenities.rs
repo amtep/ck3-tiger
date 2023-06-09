@@ -22,11 +22,11 @@ impl Amenity {
 impl DbKind for Amenity {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        if let Some(token) = vd.field_value("default") {
+        vd.field_validated_value("default", |_, token, _| {
             if !block.has_key(token.as_str()) {
                 warn(token, ErrorKey::MissingItem, "default not found in amenity");
             }
-        }
+        });
         for (key, bv) in vd.unknown_keys() {
             if let Some(block) = bv.expect_block() {
                 validate_amenity_setting(key, block, data);

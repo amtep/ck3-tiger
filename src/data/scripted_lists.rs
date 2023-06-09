@@ -81,9 +81,7 @@ impl List {
 
         if let Some(token) = vd.field_value("base") {
             if let Some((_, _outscope)) = scope_iterator(token, data) {
-                if let Some(_block) = vd.field_block("conditions") {
-                    // TODO: validate the trigger after we have rootless `ScopeContext`
-                }
+                vd.field_block("conditions"); // TODO
             } else {
                 error(token, ErrorKey::MissingItem, "no such base list");
             }

@@ -316,9 +316,7 @@ impl Event {
         vd.field_validated_sc("desc", &mut sc, validate_desc);
 
         if evtype == "letter_event" {
-            if let Some(bv) = vd.field("opening") {
-                validate_desc(bv, data, &mut sc);
-            }
+            vd.field_validated_sc("opening", &mut sc, validate_desc);
             vd.req_field("sender");
             vd.field_validated_sc("sender", &mut sc, validate_portrait);
         } else {
@@ -401,9 +399,9 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
         BlockOrValue::Block(b) => {
             let mut vd = Validator::new(b, data);
             vd.req_field("text");
-            if let Some(trigger) = vd.field_block("trigger") {
-                validate_normal_trigger(trigger, data, sc, false);
-            }
+            vd.field_validated_block("trigger", |block, data| {
+                validate_normal_trigger(block, data, sc, false);
+            });
             vd.field_validated_sc("text", sc, validate_desc);
         }
     });

@@ -6,7 +6,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn, warn_info};
+use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -91,9 +91,6 @@ impl ScriptValue {
         // save_temporary_scope_as is now allowed in script values
         if let Some(name) = vd.field_value("save_temporary_scope_as") {
             sc.save_current_scope(name.as_str());
-        }
-        if let Some(block) = vd.field_block("save_temporary_opinion_value_as") {
-            warn_info(block, ErrorKey::Validation, "`save_temporary_opinion_value_as` does not work in script value", "but you can put it in an `if = { limit = { save_temporary_opinion_value_as = ... } }` block inside a script value");
         }
         vd.field_validated("value", |bv, data| {
             Self::validate_bv(bv, data, sc);

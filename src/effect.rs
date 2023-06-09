@@ -46,9 +46,9 @@ pub fn validate_effect<'a>(
         || caller == "while"
         || list_type != ListType::None
     {
-        if let Some(b) = vd.field_block("limit") {
-            validate_normal_trigger(b, data, sc, tooltipped);
-        }
+        vd.field_validated_block("limit", |block, data| {
+            validate_normal_trigger(block, data, sc, tooltipped);
+        });
     } else {
         vd.ban_field("limit", || "if/else_if or lists");
     }
@@ -177,12 +177,8 @@ pub fn validate_effect<'a>(
                         let mut vd = Validator::new(block, data);
                         vd.req_field(key);
                         vd.req_field(valuekey);
-                        if let Some(token) = vd.field_value(key) {
-                            validate_target(token, data, sc, outscopes);
-                        }
-                        if let Some(bv) = vd.field(valuekey) {
-                            ScriptValue::validate_bv(bv, data, sc);
-                        }
+                        vd.field_target(key, sc, outscopes);
+                        vd.field_script_value(valuekey, sc);
                     }
                 }
                 Effect::ItemTarget(ikey, itype, tkey, outscopes) => {
@@ -207,12 +203,8 @@ pub fn validate_effect<'a>(
                         let mut vd = Validator::new(block, data);
                         vd.req_field(key);
                         vd.req_field("value");
-                        if let Some(token) = vd.field_value(key) {
-                            data.verify_exists(itype, token);
-                        }
-                        if let Some(bv) = vd.field("value") {
-                            ScriptValue::validate_bv(bv, data, sc);
-                        }
+                        vd.field_item(key, itype);
+                        vd.field_script_value("value", sc);
                     }
                 }
                 Effect::Choice(choices) => {
@@ -427,9 +419,9 @@ fn validate_effect_control(
     }
 
     if caller == "random_list" || caller == "duel" {
-        if let Some(b) = vd.field_block("trigger") {
-            validate_normal_trigger(b, data, sc, false);
-        }
+        vd.field_validated_block("trigger", |block, data| {
+            validate_normal_trigger(block, data, sc, false);
+        });
         vd.field_bool("show_chance");
         vd.field_validated_sc("desc", sc, validate_desc);
         vd.field_script_value("min", sc); // used in vanilla
@@ -631,14 +623,12 @@ fn validate_effect_special_bv(
                 let mut vd = Validator::new(block, data);
                 vd.req_field("name");
                 vd.field_value("name");
-                if let Some(bv) = vd.field("value") {
-                    match bv {
-                        BlockOrValue::Value(token) => {
-                            validate_target(token, data, sc, Scopes::all_but_none());
-                        }
-                        BlockOrValue::Block(_) => ScriptValue::validate_bv(bv, data, sc),
+                vd.field_validated("value", |bv, data| match bv {
+                    BlockOrValue::Value(token) => {
+                        validate_target(token, data, sc, Scopes::all_but_none());
                     }
-                }
+                    BlockOrValue::Block(_) => ScriptValue::validate_bv(bv, data, sc),
+                });
                 validate_optional_duration(&mut vd, sc);
             }
         }
@@ -948,14 +938,11 @@ fn validate_effect_special(
         vd.field_script_value("learning", sc);
         vd.field_script_value("prowess", sc);
         vd.field_script_value("stewardship", sc);
-        if let Some(b) = vd.field_block("after_creation") {
-            sc.open_scope(
-                Scopes::Character,
-                block.get_key("after_creation").unwrap().clone(),
-            );
-            validate_normal_effect(b, data, sc, tooltipped);
+        vd.field_validated_key_block("after_creation", |key, block, data| {
+            sc.open_scope(Scopes::Character, key.clone());
+            validate_normal_effect(block, data, sc, tooltipped);
             sc.close();
-        }
+        });
     } else if caller == "create_character_memory" {
         vd.req_field("type");
         vd.field_item("type", Item::MemoryType);

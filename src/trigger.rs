@@ -45,13 +45,13 @@ pub fn validate_trigger(
 
     // limit blocks are accepted in trigger_else even though it doesn't make sense
     if caller == "trigger_if" || caller == "trigger_else_if" || caller == "trigger_else" {
-        if let Some(b) = vd.field_block("limit") {
-            validate_normal_trigger(b, data, sc, tooltipped);
-        } else {
-            vd.ban_field("limit", || {
-                "`trigger_if`, `trigger_else_if` or `trigger_else`"
-            });
-        }
+        vd.field_validated_block("limit", |block, data| {
+            validate_normal_trigger(block, data, sc, tooltipped);
+        });
+    } else {
+        vd.ban_field("limit", || {
+            "`trigger_if`, `trigger_else_if` or `trigger_else`"
+        });
     }
 
     let list_type = if in_list {
@@ -91,9 +91,9 @@ pub fn validate_trigger(
         vd.fields_script_value("add", sc);
         vd.fields_script_value("factor", sc);
         vd.field_validated_sc("desc", sc, validate_desc);
-        if let Some(block) = vd.field_block("trigger") {
+        vd.field_validated_block("trigger", |block, data| {
             validate_normal_trigger(block, data, sc, false);
-        }
+        });
     } else {
         vd.ban_field("add", || "`modifier` or script values");
         vd.ban_field("factor", || "`modifier` blocks");
@@ -575,14 +575,12 @@ fn match_trigger_bv(
                     let mut vd = Validator::new(block, data);
                     vd.req_field("name");
                     vd.req_field("value");
-                    if let Some(bv) = vd.field("value") {
-                        match bv {
-                            BlockOrValue::Value(token) => {
-                                validate_target(token, data, sc, Scopes::primitive())
-                            }
-                            BlockOrValue::Block(_) => ScriptValue::validate_bv(bv, data, sc),
+                    vd.field_validated("value", |bv, data| match bv {
+                        BlockOrValue::Value(token) => {
+                            validate_target(token, data, sc, Scopes::primitive())
                         }
-                    }
+                        BlockOrValue::Block(_) => ScriptValue::validate_bv(bv, data, sc),
+                    });
                     // TODO: figure out the scope type of `value` and use that
                     if let Some(name) = vd.field_value("name") {
                         sc.define_name(name.as_str(), name.clone(), Scopes::primitive());

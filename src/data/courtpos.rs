@@ -86,9 +86,9 @@ impl DbKind for CourtPosition {
             },
         );
 
-        if let Some(block) = vd.field_block("scaling_employer_modifiers") {
+        vd.field_validated_block("scaling_employer_modifiers", |block, data| {
             validate_scaling_employer_modifiers(block, data);
-        }
+        });
 
         vd.field_validated_block_rooted("modifier", Scopes::Character, |block, data, sc| {
             let vd = Validator::new(block, data);

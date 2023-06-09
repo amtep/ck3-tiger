@@ -81,17 +81,15 @@ impl Lifestyle {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
-        if let Some(block) = vd.field_block("is_highlighted") {
+        vd.field_validated_block("is_highlighted", |block, data| {
             validate_normal_trigger(block, data, &mut sc, false);
-        }
-
-        if let Some(block) = vd.field_block("is_valid") {
+        });
+        vd.field_validated_block("is_valid", |block, data| {
             validate_normal_trigger(block, data, &mut sc, true);
-        }
-
-        if let Some(block) = vd.field_block("is_valid_showing_failures_only") {
+        });
+        vd.field_validated_block("is_valid_showing_failures_only", |block, data| {
             validate_normal_trigger(block, data, &mut sc, true);
-        }
+        });
 
         let icon = vd.field_value("icon").unwrap_or(&self.key);
         if let Some(icon_path) =

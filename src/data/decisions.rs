@@ -94,29 +94,29 @@ impl Decision {
         // kind of looks like a filename but it isn't.
         vd.field_value("confirm_click_sound");
 
-        if let Some(bv) = vd.field("selection_tooltip") {
+        if !vd.field_validated("selection_tooltip", |bv, data| {
             validate_desc(bv, data, &mut sc);
-        } else {
+        }) {
             let loca = format!("{}_tooltip", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
-        if let Some(bv) = vd.field("title") {
+        if !vd.field_validated("title", |bv, data| {
             validate_desc(bv, data, &mut sc);
-        } else {
+        }) {
             data.localization.verify_exists(&self.key);
         }
 
-        if let Some(bv) = vd.field("desc") {
+        if !vd.field_validated("desc", |bv, data| {
             validate_desc(bv, data, &mut sc);
-        } else {
+        }) {
             let loca = format!("{}_desc", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
-        if let Some(bv) = vd.field("confirm_text") {
+        if !vd.field_validated("confirm_text", |bv, data| {
             validate_desc(bv, data, &mut sc);
-        } else {
+        }) {
             let loca = format!("{}_confirm", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }

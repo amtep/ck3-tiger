@@ -149,36 +149,32 @@ pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext
 // Also does not accept scriptvalues (per the documentation)
 pub fn validate_optional_duration_int(vd: &mut Validator) {
     let mut count = 0;
-    let mut found = None;
 
     for field in &["days", "weeks", "months", "years"] {
-        if vd.field_integer(field) {
+        vd.field_validated_value(field, |key, value, _| {
+            value.expect_integer();
             count += 1;
-            found = Some(field);
-        }
-    }
-
-    if count > 1 {
-        let msg = "must have at most 1 of days, weeks, months, or years";
-        error(vd.key(found.unwrap()).unwrap(), ErrorKey::Validation, msg);
+            if count > 1 {
+                let msg = "must have at most 1 of days, weeks, months, or years";
+                error(key, ErrorKey::Validation, msg);
+            }
+        });
     }
 }
 
 // Very similar to validate_days_weeks_months_years, but requires = instead of allowing comparators
 pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
     let mut count = 0;
-    let mut found = None;
 
     for field in &["days", "weeks", "months", "years"] {
-        if vd.field_script_value(field, sc) {
+        vd.field_validated_key(field, |key, bv, data| {
+            ScriptValue::validate_bv(bv, data, sc);
             count += 1;
-            found = Some(field);
-        }
-    }
-
-    if count > 1 {
-        let msg = "must have at most 1 of days, weeks, months, or years";
-        error(vd.key(found.unwrap()).unwrap(), ErrorKey::Validation, msg);
+            if count > 1 {
+                let msg = "must have at most 1 of days, weeks, months, or years";
+                error(key, ErrorKey::Validation, msg);
+            }
+        });
     }
 }
 
@@ -366,12 +362,12 @@ pub fn validate_inside_iterator(
     }
 
     if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
-        if let Some(block) = vd.field_block("filter") {
+        vd.field_validated_block("filter", |block, data| {
             validate_normal_trigger(block, data, sc, tooltipped);
-        }
-        if let Some(block) = vd.field_block("continue") {
+        });
+        vd.field_validated_block("continue", |block, data| {
             validate_normal_trigger(block, data, sc, tooltipped);
-        }
+        });
     } else {
         let only_for =
             || format!("`{listtype}_in_de_facto_hierarchy` or `{listtype}_in_de_jure_hierarchy`");
@@ -501,9 +497,9 @@ pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_script_value("step", sc); // What does this do?
     vd.field_script_value("offset", sc); // What does this do?
     vd.field_validated_sc("desc", sc, validate_desc);
-    if let Some(b) = vd.field_block("trigger") {
-        validate_normal_trigger(b, data, sc, false);
-    }
+    vd.field_validated_block("trigger", |block, data| {
+        validate_normal_trigger(block, data, sc, false);
+    });
 }
 
 pub fn validate_opinion_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -520,9 +516,9 @@ pub fn validate_opinion_modifier(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
     vd.field_script_value("step", sc); // What does this do?
-    if let Some(b) = vd.field_block("trigger") {
-        validate_normal_trigger(b, data, sc, false);
-    }
+    vd.field_validated_block("trigger", |block, data| {
+        validate_normal_trigger(block, data, sc, false);
+    });
 }
 
 pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -531,13 +527,13 @@ pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut Sco
         validate_target(target, data, sc, Scopes::Character);
     }
     // TODO: verify that this actually works. It's only used 1 time in vanilla.
-    if let Some(block) = vd.field_block("dread_modified_ai_boldness") {
+    vd.field_validated_block("dread_modified_ai_boldness", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.req_field("dreaded_character");
         vd.req_field("value");
         vd.field_target("dreaded_character", sc, Scopes::Character);
         vd.field_script_value("value", sc);
-    }
+    });
     vd.field_script_value("ai_boldness", sc);
     vd.field_script_value("ai_compassion", sc);
     vd.field_script_value("ai_energy", sc);
@@ -549,9 +545,9 @@ pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut Sco
     vd.field_script_value("ai_zeal", sc);
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
-    if let Some(b) = vd.field_block("trigger") {
-        validate_normal_trigger(b, data, sc, false);
-    }
+    vd.field_validated_block("trigger", |block, data| {
+        validate_normal_trigger(block, data, sc, false);
+    });
 }
 
 pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -566,9 +562,9 @@ pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mu
     //vd.field_validated_sc("desc", sc, validate_desc);
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
-    if let Some(b) = vd.field_block("trigger") {
-        validate_normal_trigger(b, data, sc, false);
-    }
+    vd.field_validated_block("trigger", |block, data| {
+        validate_normal_trigger(block, data, sc, false);
+    });
 }
 
 pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut ScopeContext) {

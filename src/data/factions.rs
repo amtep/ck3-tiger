@@ -24,15 +24,11 @@ impl DbKind for Faction {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::Faction, key);
 
-        if let Some(bv) = vd.field("name") {
-            validate_desc(bv, data, &mut sc);
-        } else {
+        if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             data.verify_exists(Item::Localization, key);
         }
 
-        if let Some(bv) = vd.field("description") {
-            validate_desc(bv, data, &mut sc);
-        } else {
+        if !vd.field_validated_sc("description", &mut sc, validate_desc) {
             let loca = format!("{key}_desc");
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
@@ -40,22 +36,22 @@ impl DbKind for Faction {
         vd.req_field("short_effect_desc");
         vd.field_validated_sc("short_effect_desc", &mut sc, validate_desc);
 
-        if let Some(block) = vd.field_block("demand") {
+        vd.field_validated_block("demand", |block, data| {
             validate_normal_effect(block, data, &mut sc, false);
-        }
-        if let Some(block) = vd.field_block("update_effect") {
+        });
+        vd.field_validated_block("update_effect", |block, data| {
             validate_normal_effect(block, data, &mut sc, false);
-        }
+        });
         // docs say "on_declaration"
-        if let Some(block) = vd.field_block("on_war_start") {
+        vd.field_validated_block("on_war_start", |block, data| {
             validate_normal_effect(block, data, &mut sc, false);
-        }
-        if let Some(block) = vd.field_block("character_leaves") {
+        });
+        vd.field_validated_block("character_leaves", |block, data| {
             validate_normal_effect(block, data, &mut sc, false);
-        }
-        if let Some(block) = vd.field_block("leader_leaves") {
+        });
+        vd.field_validated_block("leader_leaves", |block, data| {
             validate_normal_effect(block, data, &mut sc, false);
-        }
+        });
         vd.field_validated_block_rooted(
             "ai_join_score",
             Scopes::Character,
@@ -77,21 +73,15 @@ impl DbKind for Faction {
             validate_modifiers_with_base,
         );
         vd.field_script_value_rooted("county_power", Scopes::LandedTitle);
-        if let Some(block) = vd.field_block("ai_demand_chance") {
-            validate_modifiers_with_base(block, data, &mut sc);
-        }
-        if let Some(block) = vd.field_block("discontent_progress") {
-            validate_modifiers_with_base(block, data, &mut sc);
-        }
-        if let Some(bv) = vd.field("power_threshold") {
-            match bv {
-                BlockOrValue::Value(t) => _ = t.expect_integer(),
-                BlockOrValue::Block(b) => validate_modifiers_with_base(b, data, &mut sc),
-            }
-        }
-        if let Some(block) = vd.field_block("is_valid") {
+        vd.field_validated_block_sc("ai_demand_chance", &mut sc, validate_modifiers_with_base);
+        vd.field_validated_block_sc("discontent_progress", &mut sc, validate_modifiers_with_base);
+        vd.field_validated("power_threshold", |bv, data| match bv {
+            BlockOrValue::Value(t) => _ = t.expect_integer(),
+            BlockOrValue::Block(b) => validate_modifiers_with_base(b, data, &mut sc),
+        });
+        vd.field_validated_block("is_valid", |block, data| {
             validate_normal_trigger(block, data, &mut sc, false);
-        }
+        });
         vd.field_validated_block_rooted(
             "is_character_valid",
             Scopes::Character,
@@ -170,11 +160,11 @@ impl DbKind for Faction {
         vd.field_bool("show_special_title");
 
         // undocumented fields follow
-        if let Some(block) = vd.field_block("on_creation") {
+        vd.field_validated_block("on_creation", |block, data| {
             validate_normal_effect(block, data, &mut sc, false);
-        }
-        if let Some(block) = vd.field_block("on_destroy") {
+        });
+        vd.field_validated_block("on_destroy", |block, data| {
             validate_normal_effect(block, data, &mut sc, false);
-        }
+        });
     }
 }

@@ -111,21 +111,17 @@ impl Trait {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
-        if let Some(bv) = vd.field("name") {
-            validate_desc(bv, data, &mut sc);
-        } else {
+        if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("trait_{}", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
-        if let Some(bv) = vd.field("desc") {
-            validate_desc(bv, data, &mut sc);
-        } else {
+        if !vd.field_validated_sc("desc", &mut sc, validate_desc) {
             let loca = format!("trait_{}_desc", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
-        if let Some(bv) = vd.field("icon") {
+        if !vd.field_validated("icon", |bv, data| {
             validate_desc_map(bv, data, &mut sc, |name, data| {
                 if let Some(icon_path) =
                     data.get_defined_string_warn(&self.key, "NGameIcons|TRAIT_ICON_PATH")
@@ -133,12 +129,14 @@ impl Trait {
                     let path = format!("{icon_path}/{name}");
                     data.fileset.verify_exists_implied(&path, name);
                 }
-            });
-        } else if let Some(icon_path) =
-            data.get_defined_string_warn(&self.key, "NGameIcons|TRAIT_ICON_PATH")
-        {
-            let path = format!("{icon_path}/{}.dds", self.key);
-            data.fileset.verify_exists_implied(&path, &self.key);
+            })
+        }) {
+            if let Some(icon_path) =
+                data.get_defined_string_warn(&self.key, "NGameIcons|TRAIT_ICON_PATH")
+            {
+                let path = format!("{icon_path}/{}.dds", self.key);
+                data.fileset.verify_exists_implied(&path, &self.key);
+            }
         }
 
         vd.field_item("category", Item::TraitCategory);

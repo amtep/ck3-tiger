@@ -157,10 +157,10 @@ impl TitleHistory {
         vd.field_block("succession_laws"); // TODO
         vd.field_bool("remove_succession_laws");
 
-        if let Some(block) = vd.field_block("effect") {
+        vd.field_validated_block("effect", |block, data| {
             let mut sc = ScopeContext::new_root(Scopes::LandedTitle, self.key.clone());
             validate_normal_effect(block, data, &mut sc, false);
-        }
+        });
     }
 
     pub fn validate(&self, data: &Everything) {

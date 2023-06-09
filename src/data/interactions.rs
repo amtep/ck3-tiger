@@ -197,12 +197,11 @@ impl Interaction {
         if !self.key.as_str().starts_with("ai_") {
             data.localization.verify_exists(&self.key);
         }
-        if let Some(extra_icon) = vd.field_value("extra_icon") {
-            data.fileset.verify_exists(extra_icon);
+        vd.field_validated_value("extra_icon", |key, token, data| {
+            data.fileset.verify_exists(token);
             let loca = format!("{}_extra_icon", self.key);
-            data.localization
-                .verify_exists_implied(&loca, vd.key("extra_icon").unwrap());
-        }
+            data.localization.verify_exists_implied(&loca, key);
+        });
         vd.field_validated_block("should_use_extra_icon", |b, data| {
             validate_normal_trigger(b, data, &mut sc.clone(), false);
         });

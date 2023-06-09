@@ -26,6 +26,8 @@ pub struct Validator<'a> {
     accepted_blocks: bool,
     // Whether unknown keys are expected
     accepted_keys: bool,
+    // Whether key comparisons should be done case-sensitively
+    case_sensitive: bool,
 }
 
 impl<'a> Debug for Validator<'a> {
@@ -36,6 +38,7 @@ impl<'a> Debug for Validator<'a> {
             .field("accepted_tokens", &self.accepted_tokens)
             .field("accepted_blocks", &self.accepted_blocks)
             .field("accepted_keys", &self.accepted_keys)
+            .field("case_sensitive", &self.case_sensitive)
             .finish()
     }
 }
@@ -49,25 +52,23 @@ impl<'a> Validator<'a> {
             accepted_tokens: false,
             accepted_blocks: false,
             accepted_keys: false,
+            case_sensitive: true,
         }
     }
 
     pub fn req_field(&mut self, name: &str) -> bool {
-        if let Some(key) = self.block.get_key(name) {
-            self.known_fields.push(key.as_str());
-            true
-        } else {
+        let found = self.check_key(name);
+        if !found {
             let msg = format!("required field `{name}` missing");
             error(self.block, ErrorKey::FieldMissing, &msg);
-            false
         }
+        found
     }
 
     pub fn req_field_one_of(&mut self, names: &[&str]) -> bool {
         let mut count = 0;
         for name in names {
-            if let Some(key) = self.block.get_key(name) {
-                self.known_fields.push(key.as_str());
+            if self.check_key(name) {
                 count += 1;
             }
         }
@@ -84,21 +85,12 @@ impl<'a> Validator<'a> {
     }
 
     pub fn req_field_warn(&mut self, name: &str) -> bool {
-        if let Some(key) = self.block.get_key(name) {
-            self.known_fields.push(key.as_str());
-            true
-        } else {
-            warn(
-                self.block,
-                ErrorKey::FieldMissing,
-                &format!("required field `{name}` missing"),
-            );
-            false
+        let found = self.check_key(name);
+        if !found {
+            let msg = format!("required field `{name}` missing");
+            warn(self.block, ErrorKey::FieldMissing, &msg);
         }
-    }
-
-    pub fn key(&self, name: &str) -> Option<&Token> {
-        self.block.get_key(name)
+        found
     }
 
     pub fn ban_field<F, S>(&mut self, name: &str, only_for: F)
@@ -106,35 +98,49 @@ impl<'a> Validator<'a> {
         F: Fn() -> S,
         S: Borrow<str> + Display,
     {
-        if let Some(key) = self.block.get_key(name) {
-            self.known_fields.push(key.as_str());
+        self.fields_check(name, |key, _| {
             let msg = format!("`{name} = ` is only for {}", only_for());
             error(key, ErrorKey::Validation, &msg);
-        }
+        });
     }
 
     pub fn replaced_field(&mut self, name: &str, replaced_by: &str) {
-        if let Some(key) = self.block.get_key(name) {
-            self.known_fields.push(key.as_str());
+        self.fields_check(name, |key, _| {
             let msg = format!("`{name}` has been replaced by {replaced_by}");
             error(key, ErrorKey::Validation, &msg);
-        }
+        });
     }
 
-    pub fn field_check<F>(&mut self, name: &str, mut f: F) -> bool
+    fn check_key(&mut self, name: &str) -> bool {
+        for (k, _, _) in &self.block.v {
+            if let Some(key) = k {
+                if (self.case_sensitive && key.is(name))
+                    || (!self.case_sensitive && key.lowercase_is(name))
+                {
+                    self.known_fields.push(key.as_str());
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn field_check<F>(&mut self, name: &str, mut f: F) -> bool
     where
-        F: FnMut(&BlockOrValue),
+        F: FnMut(&Token, &BlockOrValue),
     {
         let mut found = None;
-        for (k, cmp, v) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
-                if key.is(name) {
+                if (self.case_sensitive && key.is(name))
+                    || (!self.case_sensitive && key.lowercase_is(name))
+                {
                     self.known_fields.push(key.as_str());
                     if let Some(other) = found {
                         dup_assign_error(key, other);
                     }
                     expect_eq_qeq(key, cmp);
-                    f(v);
+                    f(key, bv);
                     found = Some(key);
                 }
             }
@@ -144,15 +150,17 @@ impl<'a> Validator<'a> {
 
     pub fn fields_check<F>(&mut self, name: &str, mut f: F) -> bool
     where
-        F: FnMut(&BlockOrValue),
+        F: FnMut(&Token, &BlockOrValue),
     {
         let mut found = false;
-        for (k, cmp, v) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
-                if key.is(name) {
+                if (self.case_sensitive && key.is(name))
+                    || (!self.case_sensitive && key.lowercase_is(name))
+                {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, cmp);
-                    f(v);
+                    f(key, bv);
                     found = true;
                 }
             }
@@ -160,19 +168,17 @@ impl<'a> Validator<'a> {
         found
     }
 
-    pub fn field(&mut self, name: &str) -> Option<&BlockOrValue> {
-        if self.field_check(name, |_| ()) {
-            self.block.get_field(name)
-        } else {
-            None
-        }
+    pub fn field(&mut self, name: &str) -> bool {
+        self.field_check(name, |_, _| ())
     }
 
     pub fn field_any_cmp(&mut self, name: &str) -> Option<&BlockOrValue> {
         let mut found = None;
         for (k, _, bv) in &self.block.v {
             if let Some(key) = k {
-                if key.is(name) {
+                if (self.case_sensitive && key.is(name))
+                    || (!self.case_sensitive && key.lowercase_is(name))
+                {
                     self.known_fields.push(key.as_str());
                     if let Some((other, _)) = found {
                         dup_assign_error(key, other);
@@ -189,15 +195,41 @@ impl<'a> Validator<'a> {
     }
 
     pub fn field_value(&mut self, name: &str) -> Option<&Token> {
-        if self.field_check(name, |bv| _ = bv.expect_value()) {
-            self.block.get_field_value(name)
-        } else {
-            None
+        let mut found = None;
+        let mut result = None;
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if (self.case_sensitive && key.is(name))
+                    || (!self.case_sensitive && key.lowercase_is(name))
+                {
+                    self.known_fields.push(key.as_str());
+                    if let Some(other) = found {
+                        dup_assign_error(key, other);
+                    }
+                    expect_eq_qeq(key, cmp);
+                    if let Some(token) = bv.expect_value() {
+                        result = Some(token);
+                    }
+                    found = Some(key);
+                }
+            }
         }
+        result
+    }
+
+    pub fn field_validated_value<F>(&mut self, name: &str, mut f: F) -> bool
+    where
+        F: FnMut(&Token, &Token, &Everything),
+    {
+        self.field_check(name, |k, bv| {
+            if let Some(token) = bv.expect_value() {
+                f(k, token, self.data)
+            }
+        })
     }
 
     pub fn field_item(&mut self, name: &str, itype: Item) -> bool {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 self.data.verify_exists(itype, token);
             }
@@ -205,7 +237,7 @@ impl<'a> Validator<'a> {
     }
 
     pub fn field_target(&mut self, name: &str, sc: &mut ScopeContext, outscopes: Scopes) -> bool {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 validate_target(token, self.data, sc, outscopes);
             }
@@ -219,7 +251,7 @@ impl<'a> Validator<'a> {
         itype: Item,
         outscopes: Scopes,
     ) -> bool {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if !self.data.item_exists(itype, token.as_str()) {
                     validate_target(token, self.data, sc, outscopes);
@@ -228,16 +260,12 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_block(&mut self, name: &str) -> Option<&Block> {
-        if self.field_check(name, |bv| _ = bv.expect_block()) {
-            self.block.get_field_block(name)
-        } else {
-            None
-        }
+    pub fn field_block(&mut self, name: &str) -> bool {
+        self.field_check(name, |_, bv| _ = bv.expect_block())
     }
 
     pub fn field_bool(&mut self, name: &str) -> bool {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if !token.is("yes") && !token.is("no") {
                     error(token, ErrorKey::Validation, "expected yes or no");
@@ -247,7 +275,7 @@ impl<'a> Validator<'a> {
     }
 
     pub fn field_integer(&mut self, name: &str) -> bool {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 token.expect_integer();
             }
@@ -255,7 +283,7 @@ impl<'a> Validator<'a> {
     }
 
     pub fn field_numeric(&mut self, name: &str) -> bool {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 token.expect_number();
             }
@@ -263,7 +291,7 @@ impl<'a> Validator<'a> {
     }
 
     pub fn field_date(&mut self, name: &str) -> bool {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if Date::from_str(token.as_str()).is_err() {
                     warn(token, ErrorKey::Validation, "expected date value");
@@ -273,20 +301,20 @@ impl<'a> Validator<'a> {
     }
 
     pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             ScriptValue::validate_bv(bv, self.data, sc);
         })
     }
 
     pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             let mut sc = ScopeContext::new_root(scopes, self.block.get_key(name).unwrap().clone());
             ScriptValue::validate_bv(bv, self.data, &mut sc);
         })
     }
 
     pub fn field_script_value_or_flag(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             if let Some(token) = bv.get_value() {
                 validate_target(
                     token,
@@ -294,20 +322,20 @@ impl<'a> Validator<'a> {
                     sc,
                     Scopes::Value | Scopes::Bool | Scopes::Flag,
                 );
-                return;
+            } else {
+                ScriptValue::validate_bv(bv, self.data, sc);
             }
-            ScriptValue::validate_bv(bv, self.data, sc);
         })
     }
 
     pub fn fields_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
-        self.fields_check(name, |bv| {
+        self.fields_check(name, |_, bv| {
             ScriptValue::validate_bv(bv, self.data, sc);
         })
     }
 
     pub fn field_choice(&mut self, name: &str, choices: &[&str]) -> bool {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if !choices.contains(&token.as_str()) {
                     let msg = format!("expected one of {}", choices.join(", "));
@@ -321,7 +349,7 @@ impl<'a> Validator<'a> {
     where
         F: FnMut(&Token, &Everything),
     {
-        self.field_check(name, |bv| {
+        self.field_check(name, |_, bv| {
             if let Some(block) = bv.expect_block() {
                 for (k, _, bv) in &block.v {
                     if let Some(key) = k {
@@ -393,7 +421,7 @@ impl<'a> Validator<'a> {
         F: FnMut(&BlockOrValue, &Everything),
     {
         let mut found = None;
-        for (k, cmp, v) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
@@ -401,7 +429,28 @@ impl<'a> Validator<'a> {
                     if let Some(other) = found {
                         dup_assign_error(key, other);
                     }
-                    f(v, self.data);
+                    f(bv, self.data);
+                    found = Some(key);
+                }
+            }
+        }
+        found.is_some()
+    }
+
+    pub fn field_validated_key<F>(&mut self, name: &str, mut f: F) -> bool
+    where
+        F: FnMut(&Token, &BlockOrValue, &Everything),
+    {
+        let mut found = None;
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    self.known_fields.push(key.as_str());
+                    expect_eq_qeq(key, cmp);
+                    if let Some(other) = found {
+                        dup_assign_error(key, other);
+                    }
+                    f(key, bv, self.data);
                     found = Some(key);
                 }
             }
@@ -488,6 +537,29 @@ impl<'a> Validator<'a> {
                     expect_eq_qeq(key, cmp);
                     if let Some(block) = bv.expect_block() {
                         f(block, self.data);
+                    }
+                    found = Some(key);
+                }
+            }
+        }
+        found.is_some()
+    }
+
+    pub fn field_validated_key_block<F>(&mut self, name: &str, mut f: F) -> bool
+    where
+        F: FnMut(&Token, &Block, &Everything),
+    {
+        let mut found = None;
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    self.known_fields.push(key.as_str());
+                    if let Some(other) = found {
+                        dup_assign_error(key, other);
+                    }
+                    expect_eq_qeq(key, cmp);
+                    if let Some(block) = bv.expect_block() {
+                        f(key, block, self.data);
                     }
                     found = Some(key);
                 }
