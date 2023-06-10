@@ -608,6 +608,24 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    pub fn field_validated_blocks_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F)
+    where
+        F: FnMut(&Block, &Everything, &mut ScopeContext),
+    {
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    self.known_fields.push(key.as_str());
+                    expect_eq_qeq(key, cmp);
+                    if let Some(block) = bv.expect_block() {
+                        let mut sc = ScopeContext::new_root(scopes, key);
+                        f(block, self.data, &mut sc);
+                    }
+                }
+            }
+        }
+    }
+
     pub fn field_validated_block_rerooted<F>(
         &mut self,
         name: &str,
@@ -668,6 +686,24 @@ impl<'a> Validator<'a> {
         }
         if found != expect {
             let msg = format!("expected {expect} integers");
+            error(self.block, ErrorKey::Validation, &msg);
+        }
+    }
+
+    pub fn req_tokens_numbers_exactly(&mut self, expect: usize) {
+        self.accepted_tokens = true;
+        let mut found = 0;
+        for (k, _, bv) in &self.block.v {
+            if k.is_none() {
+                if let BlockOrValue::Value(t) = bv {
+                    if let Some(_) = t.expect_number() {
+                        found += 1;
+                    }
+                }
+            }
+        }
+        if found != expect {
+            let msg = format!("expected {expect} numbers");
             error(self.block, ErrorKey::Validation, &msg);
         }
     }

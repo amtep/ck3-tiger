@@ -24,6 +24,7 @@ pub mod localization;
 pub mod maa;
 pub mod namelists;
 pub mod on_actions;
+pub mod perks;
 pub mod prov_history;
 pub mod provinces;
 pub mod regions;

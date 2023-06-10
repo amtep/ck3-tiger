@@ -33,6 +33,7 @@ use crate::data::localization::Localization;
 use crate::data::maa::MenAtArmsTypes;
 use crate::data::namelists::Namelists;
 use crate::data::on_actions::OnActions;
+use crate::data::perks::Perk;
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::regions::Region;
@@ -406,6 +407,7 @@ impl Everything {
         self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
         self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
         self.load_pdx_items(Item::Focus, Focus::add);
+        self.load_pdx_items(Item::Perk, Perk::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -472,6 +474,8 @@ impl Everything {
             | Item::Holding
             | Item::HoldingFlag
             | Item::Lifestyle
+            | Item::Perk
+            | Item::PerkTree
             | Item::Relation
             | Item::RelationFlag
             | Item::Region

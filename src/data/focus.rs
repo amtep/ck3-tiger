@@ -36,6 +36,7 @@ impl DbKind for Focus {
         }
 
         vd.field_bool("education");
+        // TODO: figure out the constraints on focus_id. Do they have to be consecutive?
         vd.req_field("focus_id");
         vd.field_integer("focus_id");
 
