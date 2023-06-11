@@ -4,6 +4,7 @@ pub mod character_templates;
 pub mod characters;
 pub mod courtpos;
 pub mod data_binding;
+pub mod deathreasons;
 pub mod decisions;
 pub mod defines;
 pub mod doctrines;

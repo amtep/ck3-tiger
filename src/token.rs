@@ -4,6 +4,7 @@ use std::fmt::{Display, Error, Formatter};
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use crate::block::Date;
 use crate::errorkey::ErrorKey;
 use crate::errors::error;
 use crate::fileset::{FileEntry, FileKind};
@@ -196,6 +197,19 @@ impl Token {
 
     pub fn is_integer(&self) -> bool {
         self.s.parse::<i64>().is_ok()
+    }
+
+    pub fn expect_date(&self) -> Option<Date> {
+        if let Ok(v) = self.s.parse::<Date>() {
+            Some(v)
+        } else {
+            error(self, ErrorKey::Validation, "expected date");
+            None
+        }
+    }
+
+    pub fn is_date(&self) -> bool {
+        self.s.parse::<Date>().is_ok()
     }
 }
 

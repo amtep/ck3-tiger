@@ -14,6 +14,7 @@ use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
 use crate::data::data_binding::DataBindings;
+use crate::data::deathreasons::DeathReason;
 use crate::data::decisions::Decisions;
 use crate::data::defines::Defines;
 use crate::data::doctrines::Doctrines;
@@ -431,6 +432,7 @@ impl Everything {
         self.load_pdx_items(Item::Perk, Perk::add);
         self.load_pdx_items(Item::OpinionModifier, OpinionModifier::add);
         self.load_pdx_items(Item::CharacterTemplate, CharacterTemplate::add);
+        self.load_pdx_items(Item::DeathReason, DeathReason::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -490,6 +492,7 @@ impl Everything {
             | Item::CharacterTemplate
             | Item::CourtPosition
             | Item::CourtPositionCategory
+            | Item::DeathReason
             | Item::EffectLocalization
             | Item::Faction
             | Item::Focus

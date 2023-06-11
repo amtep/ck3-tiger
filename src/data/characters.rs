@@ -395,7 +395,7 @@ impl Character {
 fn validate_history_death(bv: &BlockOrValue, data: &Everything) {
     match bv {
         BlockOrValue::Value(token) => {
-            if !token.is("yes") {
+            if !token.is("yes") && !token.is_date() {
                 data.verify_exists(Item::DeathReason, token);
             }
         }
