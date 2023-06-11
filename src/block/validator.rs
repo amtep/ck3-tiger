@@ -393,7 +393,7 @@ impl<'a> Validator<'a> {
         vec
     }
 
-    pub fn field_values_items(&mut self, name: &str, itype: Item) {
+    pub fn field_items(&mut self, name: &str, itype: Item) {
         for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {

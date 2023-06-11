@@ -266,9 +266,9 @@ impl Character {
             validate_prefix_reference_token(token, data, "culture");
         }
 
-        vd.field_values_items("trait", Item::Trait);
-        vd.field_values_items("add_trait", Item::Trait);
-        vd.field_values_items("remove_trait", Item::Trait);
+        vd.field_items("trait", Item::Trait);
+        vd.field_items("add_trait", Item::Trait);
+        vd.field_items("remove_trait", Item::Trait);
 
         vd.field_validated_bvs("add_character_flag", |bv, data| {
             match bv {
@@ -359,7 +359,7 @@ impl Character {
         vd.field_integer("intrigue");
         vd.field_integer("stewardship");
         vd.field_integer("learning");
-        vd.field_values_items("trait", Item::Trait);
+        vd.field_items("trait", Item::Trait);
 
         if let Some(ch) = vd.field_value("father") {
             data.characters.verify_exists_gender(ch, Gender::Male);

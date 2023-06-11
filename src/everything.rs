@@ -7,8 +7,10 @@ use std::rc::Rc;
 use thiserror::Error;
 
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::data::amenities::Amenity;
 use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
+use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
 use crate::data::data_binding::DataBindings;
@@ -125,6 +127,15 @@ impl Db {
             false
         }
     }
+
+    pub fn validate_call(&self, item: Item, key: &Token, data: &Everything, sc: &mut ScopeContext) {
+        let index = (item, key.to_string());
+        if let Some(entry) = self.database.get(&index) {
+            entry
+                .kind
+                .validate_call(&entry.key, &entry.block, key, data, sc)
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -145,6 +156,15 @@ pub trait DbKind: Debug {
     ) -> bool {
         false
     }
+    fn validate_call(
+        &self,
+        _key: &Token,
+        _block: &Block,
+        _from: &Token,
+        _data: &Everything,
+        _sc: &mut ScopeContext,
+    ) {
+    }
 }
 
 #[derive(Debug)]
@@ -159,7 +179,7 @@ pub struct Everything {
 
     pub dds: DdsFiles,
 
-    database: Db,
+    pub database: Db,
 
     /// Processed localization files
     pub localization: Localization,
@@ -410,6 +430,7 @@ impl Everything {
         self.load_pdx_items(Item::Focus, Focus::add);
         self.load_pdx_items(Item::Perk, Perk::add);
         self.load_pdx_items(Item::OpinionModifier, OpinionModifier::add);
+        self.load_pdx_items(Item::CharacterTemplate, CharacterTemplate::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -466,6 +487,7 @@ impl Everything {
             Item::Amenity
             | Item::CasusBelli
             | Item::CasusBelliGroup
+            | Item::CharacterTemplate
             | Item::CourtPosition
             | Item::CourtPositionCategory
             | Item::EffectLocalization

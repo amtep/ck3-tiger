@@ -1,5 +1,6 @@
 pub mod amenities;
 pub mod casusbelli;
+pub mod character_templates;
 pub mod characters;
 pub mod courtpos;
 pub mod data_binding;

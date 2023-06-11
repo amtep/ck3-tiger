@@ -17,8 +17,8 @@ use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger_
 use crate::validate::{
     validate_days_weeks_months_years, validate_duration, validate_inside_iterator,
     validate_iterator_fields, validate_modifiers, validate_optional_duration,
-    validate_optional_duration_int, validate_scope_chain, validate_scripted_modifier_call,
-    ListType,
+    validate_optional_duration_int, validate_random_culture, validate_random_faith,
+    validate_random_traits_list, validate_scope_chain, validate_scripted_modifier_call, ListType,
 };
 
 pub fn validate_normal_effect(
@@ -928,8 +928,8 @@ fn validate_effect_special(
         }
         vd.field_script_value("gender_female_chance", sc);
         vd.field_target("opposite_gender", sc, Scopes::Character);
-        vd.field_values_items("trait", Item::Trait);
-        vd.field_blocks("random_traits_list"); // TODO
+        vd.field_items("trait", Item::Trait);
+        vd.field_validated_blocks_sc("random_traits_list", sc, validate_random_traits_list);
         vd.field_bool("random_traits");
         vd.field_script_value("health", sc);
         vd.field_script_value("fertility", sc);
@@ -938,10 +938,16 @@ fn validate_effect_special(
         vd.field_target("real_father", sc, Scopes::Character);
         vd.field_target("employer", sc, Scopes::Character);
         vd.field_target("location", sc, Scopes::Province);
+        if let Some(token) = vd.field_value("template") {
+            // undocumented
+            data.verify_exists(Item::CharacterTemplate, token);
+            data.database
+                .validate_call(Item::CharacterTemplate, token, data, sc);
+        }
         vd.field_item("template", Item::CharacterTemplate); // undocumented
         vd.field_target("template_character", sc, Scopes::Character);
         vd.field_item_or_target("faith", sc, Item::Faith, Scopes::Faith);
-        vd.field_block("random_faith"); // TODO
+        vd.field_validated_block_sc("random_faith", sc, validate_random_faith);
         vd.field_item_or_target(
             "random_faith_in_religion",
             sc,
@@ -949,8 +955,8 @@ fn validate_effect_special(
             Scopes::Faith,
         );
         vd.field_item_or_target("culture", sc, Item::Culture, Scopes::Culture);
-        vd.field_block("random_culture"); // TODO
-                                          // TODO: figure out what a culture group is, and whether this key still works at all
+        vd.field_validated_block_sc("random_culture", sc, validate_random_culture);
+        // TODO: figure out what a culture group is, and whether this key still works at all
         vd.field_value("random_culture_in_group");
         vd.field_item_or_target("dynasty_house", sc, Item::House, Scopes::DynastyHouse);
         if let Some(token) = vd.field_value("dynasty") {
@@ -1347,7 +1353,7 @@ fn validate_artifact(
     vd.field_validated_sc("description", sc, validate_desc);
     vd.field_item("rarity", Item::ArtifactRarity);
     vd.field_item("type", Item::ArtifactSlot);
-    vd.field_values_items("modifier", Item::Modifier);
+    vd.field_items("modifier", Item::Modifier);
     vd.field_script_value("durability", sc);
     vd.field_script_value("max_durability", sc);
     vd.field_bool("decaying");

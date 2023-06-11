@@ -418,8 +418,8 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
     vd.field_value("reason"); // arbitrary string passed to the UI
 
     // "this option is available because you have the ... trait"
-    vd.field_values_items("trait", Item::Trait);
-    vd.field_values_items("skill", Item::Skill);
+    vd.field_items("trait", Item::Trait);
+    vd.field_items("skill", Item::Skill);
 
     vd.field_validated_sc("ai_chance", sc, validate_ai_chance);
 
