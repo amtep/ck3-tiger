@@ -242,8 +242,8 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Army, "army_size", CompareValue),
     (Artifact, "artifact_durability", CompareValue),
     (Artifact, "artifact_max_durability", CompareValue),
-    (Artifact, "artifact_slot_type", Item(Item::ArtifactSlot)),
-    (Artifact, "artifact_type", Item(Item::Artifact)),
+    (Artifact, "artifact_slot_type", Item(Item::ArtifactSlotType)),
+    (Artifact, "artifact_type", Item(Item::ArtifactType)),
     (
         None,
         "assert_if",
@@ -362,7 +362,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[("type", Item(Item::Faction)), ("target", Scope(Character))]),
     ),
     (LandedTitle, "can_title_join_faction", Scope(Faction)),
-    (Artifact, "category", Item(Item::ArtifactCategory)),
+    (Artifact, "category", Choice(&["inventory", "court"])),
     (
         Character,
         "character_has_commander_trait_scope_does_not",

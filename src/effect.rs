@@ -1352,7 +1352,7 @@ fn validate_artifact(
     vd.field_validated_sc("name", sc, validate_desc);
     vd.field_validated_sc("description", sc, validate_desc);
     vd.field_item("rarity", Item::ArtifactRarity);
-    vd.field_item("type", Item::ArtifactSlot);
+    vd.field_item("type", Item::ArtifactType);
     vd.field_items("modifier", Item::Modifier);
     vd.field_script_value("durability", sc);
     vd.field_script_value("max_durability", sc);

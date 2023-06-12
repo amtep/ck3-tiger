@@ -80,7 +80,8 @@ impl Events {
         if let Some(other) = self.effects.get(&index) {
             dup_error(&key, &other.key, "scripted effect");
         }
-        self.effects.insert(index, Effect::new(key, block.clone(), None));
+        self.effects
+            .insert(index, Effect::new(key, block.clone(), None));
     }
 
     pub fn trigger_exists(&self, key: &Token) -> bool {

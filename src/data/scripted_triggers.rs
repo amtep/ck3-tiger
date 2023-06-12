@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
-use crate::scopes::{Scopes, scope_from_snake_case};
+use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
@@ -29,8 +29,10 @@ impl Triggers {
             }
         }
         let scope_override = self.scope_overrides.get(key.as_str()).copied();
-        self.triggers
-            .insert(key.to_string(), Trigger::new(key.clone(), block.clone(), scope_override));
+        self.triggers.insert(
+            key.to_string(),
+            Trigger::new(key.clone(), block.clone(), scope_override),
+        );
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -65,7 +67,8 @@ impl FileHandler for Triggers {
                         }
                     }
                 }
-                self.scope_overrides.insert(key.as_str().to_string(), scopes);
+                self.scope_overrides
+                    .insert(key.as_str().to_string(), scopes);
             }
         }
     }
@@ -164,9 +167,9 @@ impl Trigger {
                 // that dummy context instead of macro-expanding again.
                 self.cache.insert(key, &args, our_sc.clone());
                 validate_normal_trigger(&block, data, &mut our_sc, tooltipped);
-            if let Some(scopes) = self.scope_override {
-                our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
-            }
+                if let Some(scopes) = self.scope_override {
+                    our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
+                }
                 sc.expect_compatibility(&our_sc, key);
                 self.cache.insert(key, &args, our_sc);
             }

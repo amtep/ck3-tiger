@@ -9,6 +9,10 @@ use thiserror::Error;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::data::amenities::Amenity;
+use crate::data::artifacts::{
+    ArtifactFeature, ArtifactFeatureGroup, ArtifactSlot, ArtifactTemplate, ArtifactType,
+    ArtifactVisual,
+};
 use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
@@ -433,6 +437,12 @@ impl Everything {
         self.load_pdx_items(Item::OpinionModifier, OpinionModifier::add);
         self.load_pdx_items(Item::CharacterTemplate, CharacterTemplate::add);
         self.load_pdx_items(Item::DeathReason, DeathReason::add);
+        self.load_pdx_items(Item::ArtifactSlot, ArtifactSlot::add);
+        self.load_pdx_items(Item::ArtifactType, ArtifactType::add);
+        self.load_pdx_items(Item::ArtifactTemplate, ArtifactTemplate::add);
+        self.load_pdx_items(Item::ArtifactVisual, ArtifactVisual::add);
+        self.load_pdx_items(Item::ArtifactFeature, ArtifactFeature::add);
+        self.load_pdx_items(Item::ArtifactFeatureGroup, ArtifactFeatureGroup::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -487,6 +497,13 @@ impl Everything {
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Amenity
+            | Item::ArtifactFeature
+            | Item::ArtifactFeatureGroup
+            | Item::ArtifactSlot
+            | Item::ArtifactSlotType
+            | Item::ArtifactType
+            | Item::ArtifactTemplate
+            | Item::ArtifactVisual
             | Item::CasusBelli
             | Item::CasusBelliGroup
             | Item::CharacterTemplate
@@ -513,6 +530,7 @@ impl Everything {
             | Item::TriggerLocalization => self.database.exists(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
+            Item::ArtifactRarity => ARTIFACT_RARITY.contains(&key),
             Item::Character => self.characters.exists(key),
             Item::DangerType => DANGER_TYPES.contains(&key),
             Item::Decision => self.decisions.exists(key),
@@ -733,3 +751,6 @@ const DANGER_TYPES: &[&str] = &[
     "county_opinion",
     "owner_opinion",
 ];
+
+/// LAST UPDATED VERSION 1.9.1
+const ARTIFACT_RARITY: &[&str] = &["common", "masterwork", "famed", "illustrious"];
