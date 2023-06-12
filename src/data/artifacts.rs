@@ -75,7 +75,7 @@ impl DbKind for Focus {
         });
 
         let icon = vd.field_value("icon").unwrap_or(key);
-        if let Some(icon_path) = data.get_defined_string_warn(icon, "NGameIcons|FOCUS_ICON_PATH") {
+        if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|FOCUS_ICON_PATH") {
             let pathname = format!("{icon_path}/{icon}.dds");
             data.fileset.verify_exists_implied(&pathname, icon);
         }

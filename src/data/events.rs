@@ -72,7 +72,7 @@ impl Events {
             dup_error(&key, &other.key, "scripted trigger");
         }
         self.triggers
-            .insert(index, Trigger::new(key, block.clone()));
+            .insert(index, Trigger::new(key, block.clone(), None));
     }
 
     fn load_scripted_effect(&mut self, key: Token, block: &Block) {
@@ -80,7 +80,7 @@ impl Events {
         if let Some(other) = self.effects.get(&index) {
             dup_error(&key, &other.key, "scripted effect");
         }
-        self.effects.insert(index, Effect::new(key, block.clone()));
+        self.effects.insert(index, Effect::new(key, block.clone(), None));
     }
 
     pub fn trigger_exists(&self, key: &Token) -> bool {

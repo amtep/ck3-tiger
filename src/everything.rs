@@ -721,7 +721,7 @@ const TRAIT_CATEGORIES: &[&str] = &[
     "health",
 ];
 
-/// LAST UPDATED VERSION 1.9.0.2",
+/// LAST UPDATED VERSION 1.9.0.2
 const DANGER_TYPES: &[&str] = &[
     "default",
     "battle",

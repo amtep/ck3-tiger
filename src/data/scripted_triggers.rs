@@ -3,18 +3,21 @@ use std::path::{Path, PathBuf};
 
 use crate::block::Block;
 use crate::context::ScopeContext;
+use crate::errorkey::ErrorKey;
+use crate::errors::warn;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
-use crate::scopes::Scopes;
+use crate::scopes::{Scopes, scope_from_snake_case};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct Triggers {
+    scope_overrides: FnvHashMap<String, Scopes>,
     triggers: FnvHashMap<String, Trigger>,
 }
 
@@ -25,8 +28,9 @@ impl Triggers {
                 dup_error(key, &other.key, "scripted trigger");
             }
         }
+        let scope_override = self.scope_overrides.get(key.as_str()).copied();
         self.triggers
-            .insert(key.to_string(), Trigger::new(key.clone(), block.clone()));
+            .insert(key.to_string(), Trigger::new(key.clone(), block.clone(), scope_override));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -45,6 +49,27 @@ impl Triggers {
 }
 
 impl FileHandler for Triggers {
+    fn config(&mut self, config: &Block) {
+        if let Some(block) = config.get_field_block("scope_override") {
+            for (key, token) in block.iter_assignments() {
+                let mut scopes = Scopes::empty();
+                if token.lowercase_is("all") {
+                    scopes = Scopes::all();
+                } else {
+                    for part in token.split('|') {
+                        if let Some(scope) = scope_from_snake_case(part.as_str()) {
+                            scopes |= scope;
+                        } else {
+                            let msg = format!("unknown scope type `{part}`");
+                            warn(part, ErrorKey::Config, &msg);
+                        }
+                    }
+                }
+                self.scope_overrides.insert(key.as_str().to_string(), scopes);
+            }
+        }
+    }
+
     fn subpath(&self) -> PathBuf {
         PathBuf::from("common/scripted_triggers")
     }
@@ -66,14 +91,16 @@ pub struct Trigger {
     pub key: Token,
     block: Block,
     cache: MacroCache<ScopeContext>,
+    scope_override: Option<Scopes>,
 }
 
 impl Trigger {
-    pub fn new(key: Token, block: Block) -> Self {
+    pub fn new(key: Token, block: Block, scope_override: Option<Scopes>) -> Self {
         Self {
             key,
             block,
             cache: MacroCache::default(),
+            scope_override,
         }
     }
 
@@ -97,6 +124,9 @@ impl Trigger {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
             self.cache.insert(key, &[], our_sc.clone());
             validate_normal_trigger(&self.block, data, &mut our_sc, tooltipped);
+            if let Some(scopes) = self.scope_override {
+                our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
+            }
             sc.expect_compatibility(&our_sc, key);
             self.cache.insert(key, &[], our_sc);
         }
@@ -134,6 +164,9 @@ impl Trigger {
                 // that dummy context instead of macro-expanding again.
                 self.cache.insert(key, &args, our_sc.clone());
                 validate_normal_trigger(&block, data, &mut our_sc, tooltipped);
+            if let Some(scopes) = self.scope_override {
+                our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
+            }
                 sc.expect_compatibility(&our_sc, key);
                 self.cache.insert(key, &args, our_sc);
             }

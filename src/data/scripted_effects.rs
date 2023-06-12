@@ -4,17 +4,20 @@ use std::path::{Path, PathBuf};
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::effect::validate_normal_effect;
+use crate::errorkey::ErrorKey;
+use crate::errors::warn;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
-use crate::scopes::Scopes;
+use crate::scopes::{Scopes, scope_from_snake_case};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 
 #[derive(Clone, Debug, Default)]
 pub struct Effects {
+    scope_overrides: FnvHashMap<String, Scopes>,
     effects: FnvHashMap<String, Effect>,
 }
 
@@ -25,8 +28,9 @@ impl Effects {
                 dup_error(key, &other.key, "scripted effect");
             }
         }
+        let scope_override = self.scope_overrides.get(key.as_str()).copied();
         self.effects
-            .insert(key.to_string(), Effect::new(key.clone(), block.clone()));
+            .insert(key.to_string(), Effect::new(key.clone(), block.clone(), scope_override));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -45,6 +49,28 @@ impl Effects {
 }
 
 impl FileHandler for Effects {
+    fn config(&mut self, config: &Block) {
+        if let Some(block) = config.get_field_block("scope_override") {
+            for (key, token) in block.iter_assignments() {
+                let mut scopes = Scopes::empty();
+                if token.lowercase_is("all") {
+                    scopes = Scopes::all();
+                } else {
+                    for part in token.split('|') {
+                        if let Some(scope) = scope_from_snake_case(part.as_str()
+) {
+                            scopes |= scope;
+                        } else {
+                            let msg = format!("unknown scope type `{part}`");
+                            warn(part, ErrorKey::Config, &msg);
+                        }
+                    }
+                }
+                self.scope_overrides.insert(key.as_str().to_string(), scopes);
+            }
+        }
+    }
+
     fn subpath(&self) -> PathBuf {
         PathBuf::from("common/scripted_effects")
     }
@@ -66,14 +92,16 @@ pub struct Effect {
     pub key: Token,
     block: Block,
     cache: MacroCache<ScopeContext>,
+    scope_override: Option<Scopes>,
 }
 
 impl Effect {
-    pub fn new(key: Token, block: Block) -> Self {
+    pub fn new(key: Token, block: Block, scope_override: Option<Scopes>) -> Self {
         Self {
             key,
             block,
             cache: MacroCache::default(),
+            scope_override,
         }
     }
 
@@ -95,6 +123,9 @@ impl Effect {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
             self.cache.insert(key, &[], our_sc.clone());
             validate_normal_effect(&self.block, data, &mut our_sc, tooltipped);
+            if let Some(scopes) = self.scope_override {
+                our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
+            }
             sc.expect_compatibility(&our_sc, key);
             self.cache.insert(key, &[], our_sc);
         }
@@ -132,6 +163,10 @@ impl Effect {
                 // that dummy context instead of macro-expanding again.
                 self.cache.insert(key, &args, our_sc.clone());
                 validate_normal_effect(&block, data, &mut our_sc, tooltipped);
+            if let Some(scopes) = self.scope_override {
+                our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
+            }
+
                 sc.expect_compatibility(&our_sc, key);
                 self.cache.insert(key, &args, our_sc);
             }
