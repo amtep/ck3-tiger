@@ -1,3 +1,4 @@
+use as_any::AsAny;
 use fnv::FnvHashMap;
 use std::fmt::Debug;
 
@@ -47,6 +48,17 @@ impl Db {
         self.database.contains_key(&index) || self.flags.contains_key(&index)
     }
 
+    pub fn get<T: DbKind>(&self, item: Item, key: &str) -> Option<(&Token, &Block, &T)> {
+        // TODO: figure out how to avoid the to_string() here
+        let index = (item, key.to_string());
+        if let Some(entry) = self.database.get(&index) {
+            if let Some(kind) = entry.kind.as_any().downcast_ref::<T>() {
+                return Some((&entry.key, &entry.block, kind));
+            }
+        }
+        None
+    }
+
     pub fn has_property(&self, item: Item, key: &str, property: &str, data: &Everything) -> bool {
         let index = (item, key.to_string());
         if let Some(entry) = self.database.get(&index) {
@@ -86,7 +98,7 @@ pub struct DbEntry {
     kind: Box<dyn DbKind>,
 }
 
-pub trait DbKind: Debug {
+pub trait DbKind: Debug + AsAny {
     fn validate(&self, key: &Token, block: &Block, data: &Everything);
     fn has_property(
         &self,
