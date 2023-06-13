@@ -735,7 +735,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "remove_local_variable", Unchecked),
     (Character, "remove_localized_text", Unchecked),
     (Character, "remove_long_term_gold", NonNegativeValue),
-    (Character, "remove_nickname", Item(Item::Nickname)),
+    (Character, "remove_nickname", Boolean),
     (Character, "remove_opinion", SpecialBlock),
     (War, "remove_participant", Scope(Scopes::Character)),
     (Character, "remove_perk", Item(Item::Perk)),

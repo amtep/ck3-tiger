@@ -40,6 +40,7 @@ use crate::data::lifestyles::Lifestyle;
 use crate::data::localization::Localization;
 use crate::data::maa::MenAtArmsTypes;
 use crate::data::namelists::Namelists;
+use crate::data::nickname::Nickname;
 use crate::data::on_actions::OnActions;
 use crate::data::opinions::OpinionModifier;
 use crate::data::perks::Perk;
@@ -448,6 +449,7 @@ impl Everything {
         self.load_pdx_items(Item::ArtifactVisual, ArtifactVisual::add);
         self.load_pdx_items(Item::ArtifactFeature, ArtifactFeature::add);
         self.load_pdx_items(Item::ArtifactFeatureGroup, ArtifactFeatureGroup::add);
+        self.load_pdx_items(Item::Nickname, Nickname::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -524,6 +526,7 @@ impl Everything {
             | Item::Holding
             | Item::HoldingFlag
             | Item::Lifestyle
+            | Item::Nickname
             | Item::OpinionModifier
             | Item::Perk
             | Item::PerkTree
