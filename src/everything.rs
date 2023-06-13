@@ -18,6 +18,7 @@ use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
+use crate::data::customloca::CustomLocalization;
 use crate::data::data_binding::DataBindings;
 use crate::data::deathreasons::DeathReason;
 use crate::data::decisions::Decisions;
@@ -143,6 +144,17 @@ impl Db {
                 .validate_call(&entry.key, &entry.block, key, data, sc)
         }
     }
+
+    pub fn validate_variant(&self, item: Item, key: &Token, data: &Everything, variant: &Token) {
+        let index = (item, key.to_string());
+        if let Some(entry) = self.database.get(&index) {
+            entry
+                .kind
+                .validate_variant(&entry.key, &entry.block, data, variant)
+        } else {
+            warn(key, ErrorKey::MissingItem, &format!("{item} not found"));
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -171,6 +183,9 @@ pub trait DbKind: Debug {
         _data: &Everything,
         _sc: &mut ScopeContext,
     ) {
+    }
+
+    fn validate_variant(&self, _key: &Token, _block: &Block, _data: &Everything, _variant: &Token) {
     }
 }
 
@@ -450,6 +465,7 @@ impl Everything {
         self.load_pdx_items(Item::ArtifactFeature, ArtifactFeature::add);
         self.load_pdx_items(Item::ArtifactFeatureGroup, ArtifactFeatureGroup::add);
         self.load_pdx_items(Item::Nickname, Nickname::add);
+        self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -517,6 +533,7 @@ impl Everything {
             | Item::CharacterTemplate
             | Item::CourtPosition
             | Item::CourtPositionCategory
+            | Item::CustomLocalization
             | Item::DeathReason
             | Item::EffectLocalization
             | Item::Faction
@@ -602,6 +619,10 @@ impl Everything {
                 }
             }
         }
+    }
+
+    pub fn validate_variant(&self, itype: Item, key: &Token, variant: &Token) {
+        self.database.validate_variant(itype, key, self, variant);
     }
 
     pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
