@@ -40,6 +40,7 @@ pub enum ErrorKey {
     UnknownField,
     TitleTier,
     Colors,
+    UnusedLocalization,
 
     PrincesOfDarkness,
 

@@ -16,10 +16,13 @@ impl Modifier {
 }
 
 impl DbKind for Modifier {
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
         // There are {key} and {key}_desc locas but both are optional
+        data.localization.mark_used(key.as_str());
+        let loca = format!("{key}_desc");
+        data.localization.mark_used(&loca);
 
         // icon is also optional
         if let Some(icon) = vd.field_value("icon") {

@@ -471,6 +471,8 @@ impl Everything {
         self.assets.validate(self);
         self.coas.validate(self);
         self.database.validate(self);
+
+        self.localization.check_unused(self);
     }
 
     pub fn check_rivers(&mut self) {
@@ -671,6 +673,13 @@ impl Everything {
             | Item::VassalContractFlag
             | Item::VassalObligation
             | Item::VassalObligationLevel => true,
+        }
+    }
+
+    pub fn item_used(&self, itype: Item, key: &str) {
+        match itype {
+            Item::Localization => self.localization.mark_used(key),
+            _ => (),
         }
     }
 

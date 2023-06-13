@@ -1,4 +1,5 @@
 use fnv::{FnvHashMap, FnvHashSet};
+use std::cell::RefCell;
 use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
@@ -20,6 +21,7 @@ pub struct Localization {
     warned_dirs: Vec<String>,
     locas: FnvHashMap<&'static str, FnvHashMap<String, LocaEntry>>,
     mod_langs: Vec<&'static str>,
+    used_locas: RefCell<FnvHashSet<String>>,
 }
 
 // LAST UPDATED VERSION 1.9.2
@@ -116,11 +118,12 @@ impl LocaEntry {
     }
 
     // returns false to abort expansion in case of an error
-    fn expand_macros<'a>(
+    fn expand_macros<'a, 'b>(
         &'a self,
         vec: &mut Vec<&'a Token>,
         from: &'a FnvHashMap<String, LocaEntry>,
         count: &mut usize,
+        used: &'b mut FnvHashSet<String>,
     ) -> bool {
         // Are we (probably) stuck in a macro loop?
         if *count > 250 {
@@ -133,8 +136,9 @@ impl LocaEntry {
                 match macrovalue {
                     MacroValue::Text(ref token) => vec.push(token),
                     MacroValue::Keyword(k, _) => {
+                        used.insert(k.to_string());
                         if let Some(entry) = from.get(k.as_str()) {
-                            if !entry.expand_macros(vec, from, count) {
+                            if !entry.expand_macros(vec, from, count, used) {
                                 return false;
                             }
                         } else {
@@ -210,6 +214,7 @@ impl Localization {
         if key.is_empty() {
             return;
         }
+        self.mark_used(key);
         for lang in &self.mod_langs {
             let hash = self.locas.get(lang);
             if hash.is_none() || !hash.unwrap().contains_key(key) {
@@ -238,10 +243,15 @@ impl Localization {
         if key.is_empty() {
             return;
         }
+        self.mark_used(key);
         if !self.exists_lang(key, lang) {
             let msg = format!("missing {lang} localization key {key}");
             error(token, ErrorKey::MissingLocalization, &msg);
         }
+    }
+
+    pub fn mark_used(&self, key: &str) {
+        self.used_locas.borrow_mut().insert(key.to_string());
     }
 
     fn check_loca_code(value: &LocaValue, data: &Everything, lang: &'static str) {
@@ -321,6 +331,19 @@ impl Localization {
         for (lang, hash) in &self.locas {
             for entry in hash.values() {
                 Self::check_loca_code(&entry.value, data, lang);
+            }
+        }
+    }
+
+    pub fn check_unused(&self, _data: &Everything) {
+        for lang in &self.mod_langs {
+            if let Some(hash) = self.locas.get(lang) {
+                for (key, entry) in hash.iter() {
+                    if !self.used_locas.borrow().contains(key) {
+                        let msg = "localization not used anywhere";
+                        warn(&entry.key, ErrorKey::UnusedLocalization, &msg);
+                    }
+                }
             }
         }
     }
@@ -482,7 +505,12 @@ impl FileHandler for Localization {
                 if matches!(entry.value, LocaValue::Macro(_)) {
                     let mut count = 0;
                     let mut new_line: Vec<&Token> = Vec::new();
-                    if entry.expand_macros(&mut new_line, &orig_lang, &mut count) {
+                    if entry.expand_macros(
+                        &mut new_line,
+                        &orig_lang,
+                        &mut count,
+                        &mut self.used_locas.borrow_mut(),
+                    ) {
                         let mut value = ValueParser::new(new_line).parse_value();
                         entry.value = if value.len() == 1 {
                             std::mem::take(&mut value[0])
@@ -503,6 +531,7 @@ impl Default for Localization {
             warned_dirs: Vec::default(),
             locas: FnvHashMap::default(),
             mod_langs: Vec::default(),
+            used_locas: RefCell::new(FnvHashSet::default()),
         }
     }
 }

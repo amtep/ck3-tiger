@@ -9,7 +9,10 @@ use winreg::enums::HKEY_LOCAL_MACHINE;
 #[cfg(windows)]
 use winreg::RegKey;
 
-use ck3_tiger::errors::{minimum_level, set_mod_root, set_vanilla_root, show_vanilla, ErrorLevel};
+use ck3_tiger::errorkey::ErrorKey;
+use ck3_tiger::errors::{
+    ignore_key, minimum_level, set_mod_root, set_vanilla_root, show_vanilla, ErrorLevel,
+};
 use ck3_tiger::everything::Everything;
 use ck3_tiger::modfile::ModFile;
 
@@ -41,6 +44,9 @@ struct Cli {
     /// Show advice in addition to warnings and errors
     #[clap(long)]
     advice: bool,
+    /// Warn about items that are defined but unused
+    #[clap(long)]
+    unused: bool,
     /// Do checks specific to the Princes of Darkness mod
     #[clap(long)]
     pod: bool,
@@ -137,6 +143,10 @@ fn main() -> Result<()> {
 
     if !args.advice {
         minimum_level(ErrorLevel::Info);
+    }
+
+    if !args.unused {
+        ignore_key(ErrorKey::UnusedLocalization);
     }
 
     if args.modpath.is_dir() {
