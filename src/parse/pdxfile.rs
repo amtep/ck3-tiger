@@ -286,7 +286,9 @@ impl Parser {
     fn eof(mut self) -> Option<Block> {
         self.end_assign();
         while let Some(mut prev_level) = self.stack.pop() {
-            self.brace_error = true;
+            // The pdx parser seems to silently accept these errors, so
+            // emulate it and still use the file.
+            // self.brace_error = true;
             error(
                 &Token::new("{".to_string(), self.current.block.loc.clone()),
                 ErrorKey::ParseError,
