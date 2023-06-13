@@ -220,6 +220,8 @@ impl Faith {
         data.localization.verify_exists_implied(&loca, &self.key);
         let loca = format!("{}_adherent_plural", self.key);
         data.localization.verify_exists_implied(&loca, &self.key);
+        let loca = format!("{}_desc", self.key);
+        data.localization.verify_exists_implied(&loca, &self.key);
 
         if self.pagan {
             let loca = format!("{}_old", self.key);
