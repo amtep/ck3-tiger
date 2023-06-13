@@ -13,6 +13,7 @@ use crate::data::artifacts::{
     ArtifactFeature, ArtifactFeatureGroup, ArtifactSlot, ArtifactTemplate, ArtifactType,
     ArtifactVisual,
 };
+use crate::data::assets::Assets;
 use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
@@ -244,6 +245,8 @@ pub struct Everything {
 
     pub gui: Gui,
     pub data_bindings: DataBindings,
+
+    pub assets: Assets,
 }
 
 impl Everything {
@@ -318,6 +321,7 @@ impl Everything {
             themes: Themes::default(),
             gui: Gui::default(),
             data_bindings: DataBindings::default(),
+            assets: Assets::default(),
         })
     }
 
@@ -419,6 +423,7 @@ impl Everything {
         self.fileset.handle(&mut self.themes);
         self.fileset.handle(&mut self.gui);
         self.fileset.handle(&mut self.data_bindings);
+        self.fileset.handle(&mut self.assets);
         self.load_pdx_items(Item::ScriptedRule, ScriptedRule::add);
         self.load_pdx_items(Item::Faction, Faction::add);
         self.load_pdx_items(Item::Relation, Relation::add);
@@ -476,6 +481,7 @@ impl Everything {
         // self.themes.validate(self);  these are validated through the events that use them
         self.gui.validate(self);
         self.data_bindings.validate(self);
+        self.assets.validate(self);
         self.database.validate(self);
     }
 
@@ -531,6 +537,8 @@ impl Everything {
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::ArtifactRarity => ARTIFACT_RARITY.contains(&key),
+            Item::Asset => self.assets.asset_exists(key),
+            Item::BlendShape => self.assets.blend_shape_exists(key),
             Item::Character => self.characters.exists(key),
             Item::DangerType => DANGER_TYPES.contains(&key),
             Item::Decision => self.decisions.exists(key),
@@ -540,6 +548,7 @@ impl Everything {
             Item::Doctrine => self.doctrines.exists(key),
             Item::DoctrineParameter => self.doctrines.parameter_exists(key),
             Item::Dynasty => self.dynasties.exists(key),
+            Item::Entity => self.assets.entity_exists(key),
             Item::Event => self.events.exists(key),
             Item::EventTheme => self.themes.exists(key),
             Item::Faith => self.religions.faith_exists(key),
@@ -552,6 +561,7 @@ impl Everything {
             Item::MenAtArms => self.menatarmstypes.exists(key),
             Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),
             Item::NameList => self.namelists.exists(key),
+            Item::Pdxmesh => self.assets.mesh_exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces.exists(key),
             Item::Religion => self.religions.religion_exists(key),
@@ -563,6 +573,7 @@ impl Everything {
             Item::ScriptValue => self.scriptvalues.exists(key),
             Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
+            Item::TextureFile => self.assets.texture_exists(&key),
             Item::Title => self.titles.exists(key),
             Item::TitleHistory => self.title_history.exists(key),
             Item::TitleHistoryType => TITLE_HISTORY_TYPES.contains(&key),

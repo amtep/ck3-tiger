@@ -7,6 +7,7 @@ use strum_macros::IntoStaticStr;
 #[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord)]
 #[strum(serialize_all = "snake_case")]
 pub enum Item {
+    AccessoryVariation,
     AccoladeCategory,
     AccoladeParameter,
     AccoladeType,
@@ -29,6 +30,7 @@ pub enum Item {
     ArtifactType,
     ArtifactVisual,
     Asset,
+    BlendShape,
     Building,
     BuildingFlag,
     BuildingGfx,
@@ -67,6 +69,7 @@ pub enum Item {
     DynastyLegacy,
     DynastyPerk,
     EffectLocalization,
+    Entity,
     Event,
     EventBackground,
     EventTheme,
@@ -114,6 +117,7 @@ pub enum Item {
     Nickname,
     OnAction,
     OpinionModifier,
+    Pdxmesh,
     Perk,
     PerkTree,
     PointOfInterest,
@@ -143,6 +147,7 @@ pub enum Item {
     StrugglePhaseParameter,
     Suggestion,
     Terrain,
+    TextureFile,
     Title,
     TitleHistory,
     TitleHistoryType,
@@ -169,6 +174,7 @@ impl Item {
     pub fn path(self) -> &'static str {
         #[allow(clippy::match_same_arms)]
         match self {
+            AccessoryVariation => "gfx/portraits/accessory_variations/",
             AccoladeCategory => "common/accolade_types/",
             AccoladeParameter => "common/accolade_types/",
             AccoladeType => "common/accolade_types/",
@@ -191,6 +197,7 @@ impl Item {
             ArtifactType => "common/artifacts/types/",
             ArtifactVisual => "common/artifacts/visuals/",
             Asset => "gfx/models/",
+            BlendShape => "gfx/models/",
             Building => "common/buildings/",
             BuildingFlag => "common/buildings/",
             BuildingGfx => "common/culture/cultures/",
@@ -229,6 +236,7 @@ impl Item {
             DynastyLegacy => "common/dynasty_legacies/",
             DynastyPerk => "common/dynasty_perks/",
             EffectLocalization => "common/effect_localization/",
+            Entity => "gfx/models/",
             Event => "events/",
             EventBackground => "common/event_backgrounds/",
             EventTheme => "common/event_themes/",
@@ -276,6 +284,7 @@ impl Item {
             Nickname => "common/nicknames/",
             OnAction => "common/on_action/",
             OpinionModifier => "common/opinion_modifiers/",
+            Pdxmesh => "gfx/models/",
             Perk => "common/lifestyle_perks/",
             PerkTree => "common/lifestyle_perks/",
             PointOfInterest => "common/travel/point_of_interest_types/",
@@ -305,6 +314,7 @@ impl Item {
             StrugglePhaseParameter => "common/struggle/struggles/",
             Suggestion => "common/suggestions/",
             Terrain => "common/terrain_types/",
+            TextureFile => "gfx/models/",
             Title => "common/landed_titles/",
             TitleHistory => "history/titles/",
             TitleHistoryType => "",
