@@ -8,12 +8,12 @@ use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice_info, error, warn, warn2, warn_info};
 use crate::everything::Everything;
+use crate::helpers::stringify_choices;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::tables::triggers::{scope_trigger, trigger_comparevalue, Trigger};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::util::stringify_choices;
 use crate::validate::{
     validate_inside_iterator, validate_iterator_fields, validate_prefix_reference, ListType,
 };

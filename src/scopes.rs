@@ -6,8 +6,8 @@ use std::fmt::{Display, Formatter};
 use crate::errorkey::ErrorKey;
 use crate::errors::{warn, warn_info};
 use crate::everything::Everything;
+use crate::helpers::display_choices;
 use crate::token::Token;
-use crate::util::display_choices;
 
 bitflags! {
     /// LAST UPDATED VERSION 1.9.0.2
