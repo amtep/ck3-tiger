@@ -1,7 +1,8 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
-use crate::everything::{Db, DbKind, Everything};
+use crate::db::{Db, DbKind};
+use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;

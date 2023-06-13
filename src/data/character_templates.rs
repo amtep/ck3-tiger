@@ -1,8 +1,9 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
+use crate::db::{Db, DbKind};
 use crate::effect::validate_normal_effect;
-use crate::everything::{Db, DbKind, Everything};
+use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;

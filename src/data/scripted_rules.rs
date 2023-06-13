@@ -1,8 +1,9 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
+use crate::db::{Db, DbKind};
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
-use crate::everything::{Db, DbKind, Everything};
+use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;

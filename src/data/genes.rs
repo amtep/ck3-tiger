@@ -2,9 +2,10 @@ use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
+use crate::db::{Db, DbKind};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
-use crate::everything::{Db, DbKind, Everything};
+use crate::everything::Everything;
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::token::Token;

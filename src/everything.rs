@@ -1,5 +1,5 @@
 use anyhow::Result;
-use fnv::{FnvHashMap, FnvHashSet};
+use fnv::FnvHashSet;
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
@@ -7,7 +7,6 @@ use std::rc::Rc;
 use thiserror::Error;
 
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::data::amenities::Amenity;
 use crate::data::artifacts::{
     ArtifactFeature, ArtifactFeatureGroup, ArtifactSlot, ArtifactTemplate, ArtifactType,
@@ -62,11 +61,11 @@ use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
 use crate::data::trigger_localization::TriggerLocalization;
+use crate::db::Db;
 use crate::dds::DdsFiles;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, ignore_key, ignore_key_for, ignore_path, warn};
 use crate::fileset::{FileEntry, FileKind, Fileset};
-use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::rivers::Rivers;
@@ -86,107 +85,6 @@ pub enum FilesError {
     },
     #[error("Could not read config file at {path}")]
     ConfigUnreadable { path: PathBuf },
-}
-
-#[derive(Debug, Default)]
-pub struct Db {
-    database: FnvHashMap<(Item, String), DbEntry>,
-    flags: FnvHashMap<(Item, String), Token>,
-}
-
-impl Db {
-    pub fn add(&mut self, item: Item, key: Token, block: Block, kind: Box<dyn DbKind>) {
-        let index = (item, key.to_string());
-        if let Some(other) = self.database.get(&index) {
-            if other.key.loc.kind >= key.loc.kind {
-                dup_error(&key, &other.key, &item.to_string());
-            }
-        }
-        self.database.insert(index, DbEntry { key, block, kind });
-    }
-
-    pub fn add_flag(&mut self, item: Item, key: Token) {
-        let index = (item, key.to_string());
-        self.flags.insert(index, key);
-    }
-
-    fn validate(&self, data: &Everything) {
-        // Sort the entries to create a diffable error output
-        let mut vec: Vec<&DbEntry> = self.database.values().collect();
-        vec.sort_by(|entry_a, entry_b| entry_a.key.loc.cmp(&entry_b.key.loc));
-        for entry in vec {
-            entry.kind.validate(&entry.key, &entry.block, data);
-        }
-    }
-
-    fn exists(&self, item: Item, key: &str) -> bool {
-        // TODO: figure out how to avoid the to_string() here
-        let index = (item, key.to_string());
-        self.database.contains_key(&index) || self.flags.contains_key(&index)
-    }
-
-    pub fn has_property(&self, item: Item, key: &str, property: &str, data: &Everything) -> bool {
-        let index = (item, key.to_string());
-        if let Some(entry) = self.database.get(&index) {
-            entry
-                .kind
-                .has_property(property, &entry.key, &entry.block, data)
-        } else {
-            false
-        }
-    }
-
-    pub fn validate_call(&self, item: Item, key: &Token, data: &Everything, sc: &mut ScopeContext) {
-        let index = (item, key.to_string());
-        if let Some(entry) = self.database.get(&index) {
-            entry
-                .kind
-                .validate_call(&entry.key, &entry.block, key, data, sc)
-        }
-    }
-
-    pub fn validate_variant(&self, item: Item, key: &Token, data: &Everything, variant: &Token) {
-        let index = (item, key.to_string());
-        if let Some(entry) = self.database.get(&index) {
-            entry
-                .kind
-                .validate_variant(&entry.key, &entry.block, data, variant)
-        } else {
-            warn(key, ErrorKey::MissingItem, &format!("{item} not found"));
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct DbEntry {
-    key: Token,
-    block: Block,
-    kind: Box<dyn DbKind>,
-}
-
-pub trait DbKind: Debug {
-    fn validate(&self, key: &Token, block: &Block, data: &Everything);
-    fn has_property(
-        &self,
-        _property: &str,
-        _key: &Token,
-        _block: &Block,
-        _data: &Everything,
-    ) -> bool {
-        false
-    }
-    fn validate_call(
-        &self,
-        _key: &Token,
-        _block: &Block,
-        _from: &Token,
-        _data: &Everything,
-        _sc: &mut ScopeContext,
-    ) {
-    }
-
-    fn validate_variant(&self, _key: &Token, _block: &Block, _data: &Everything, _variant: &Token) {
-    }
 }
 
 #[derive(Debug)]
