@@ -27,6 +27,8 @@ impl DbKind for CasusBelli {
 
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::CasusBelli, key);
+        sc.define_name("attacker", key.clone(), Scopes::Character);
+        sc.define_name("defender", key.clone(), Scopes::Character);
 
         vd.field_item("group", Item::CasusBelliGroup);
         let icon = vd.field_value("icon").unwrap_or(key);
@@ -104,51 +106,60 @@ impl DbKind for CasusBelli {
         });
         vd.field_bool("combine_into_one");
 
-        vd.field_validated_block_rooted(
-            "allowed_for_character",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
-            },
-        );
-        vd.field_validated_block_rooted(
-            "allowed_for_character_display_regardless",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
-            },
-        );
-        vd.field_validated_block_rooted(
-            "allowed_against_character",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
-            },
-        );
-        vd.field_validated_block_rooted(
-            "allowed_against_character_display_regardless",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
-            },
-        );
-        vd.field_validated_block_rooted("valid_to_start", Scopes::Character, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+        vd.field_validated_key_block("allowed_for_character", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
+            sc.define_name("attacker", key.clone(), Scopes::Character);
+            sc.define_name("defender", key.clone(), Scopes::Character);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
-        vd.field_validated_block_rooted(
-            "valid_to_start_display_regardless",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+        vd.field_validated_key_block(
+            "allowed_for_character_display_regardless",
+            |key, block, data| {
+                let mut sc = ScopeContext::new_root(Scopes::Character, key);
+                sc.define_name("attacker", key.clone(), Scopes::Character);
+                sc.define_name("defender", key.clone(), Scopes::Character);
+                validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
             },
         );
-        vd.field_validated_block_rooted(
-            "is_allowed_claim_title",
-            Scopes::LandedTitle,
-            |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+
+        vd.field_validated_key_block("allowed_against_character", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
+            sc.define_name("attacker", key.clone(), Scopes::Character);
+            sc.define_name("defender", key.clone(), Scopes::Character);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+        vd.field_validated_key_block(
+            "allowed_against_character_display_regardless",
+            |key, block, data| {
+                let mut sc = ScopeContext::new_root(Scopes::Character, key);
+                sc.define_name("attacker", key.clone(), Scopes::Character);
+                sc.define_name("defender", key.clone(), Scopes::Character);
+                validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
             },
         );
+
+        vd.field_validated_key_block("valid_to_start", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
+            sc.define_name("attacker", key.clone(), Scopes::Character);
+            sc.define_name("defender", key.clone(), Scopes::Character);
+            sc.define_name("target", key.clone(), Scopes::LandedTitle);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+        vd.field_validated_key_block("valid_to_start_display_regardless", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::Character, key);
+            sc.define_name("attacker", key.clone(), Scopes::Character);
+            sc.define_name("defender", key.clone(), Scopes::Character);
+            sc.define_name("target", key.clone(), Scopes::LandedTitle);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
+
+        vd.field_validated_key_block("is_allowed_claim_title", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::LandedTitle, key);
+            sc.define_name("attacker", key.clone(), Scopes::Character);
+            sc.define_name("defender", key.clone(), Scopes::Character);
+            sc.define_name("claimant", key.clone(), Scopes::Character);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
 
         // "claim" and "de_jure" choices are undocumented
         let choices = &[
