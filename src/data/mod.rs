@@ -1,6 +1,7 @@
 pub mod amenities;
 pub mod artifacts;
 pub mod assets;
+pub mod buildings;
 pub mod casusbelli;
 pub mod character_templates;
 pub mod characters;

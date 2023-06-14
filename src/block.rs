@@ -144,6 +144,14 @@ impl Block {
         None
     }
 
+    pub fn field_value_is(&self, name: &str, value: &str) -> bool {
+        if let Some(token) = self.get_field_value(name) {
+            token.is(value)
+        } else {
+            false
+        }
+    }
+
     pub fn get_field_bool(&self, name: &str) -> Option<bool> {
         self.get_field_value(name).map(|t| t.is("yes"))
     }

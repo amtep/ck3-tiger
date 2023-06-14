@@ -13,6 +13,7 @@ use crate::data::artifacts::{
     ArtifactVisual,
 };
 use crate::data::assets::Assets;
+use crate::data::buildings::Building;
 use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
@@ -364,6 +365,7 @@ impl Everything {
         self.load_pdx_items(Item::ArtifactFeatureGroup, ArtifactFeatureGroup::add);
         self.load_pdx_items(Item::Nickname, Nickname::add);
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
+        self.load_pdx_items(Item::Building, Building::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -426,6 +428,8 @@ impl Everything {
             | Item::ArtifactType
             | Item::ArtifactTemplate
             | Item::ArtifactVisual
+            | Item::Building
+            | Item::BuildingFlag
             | Item::CasusBelli
             | Item::CasusBelliGroup
             | Item::CharacterTemplate

@@ -28,7 +28,7 @@ bitflags! {
 impl ModifKinds {
     pub fn require(self, other: Self, token: &Token) {
         if !self.intersects(other) {
-            let msg = format!("`{token}` is a modifier for {self}");
+            let msg = format!("`{token}` is a modifier for {other} but expected {self}");
             error(token, ErrorKey::Modifiers, &msg);
         }
     }
@@ -331,17 +331,6 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("maa_toughness_add", sc);
         vd.field_script_value("maa_toughness_mult", sc);
 
-        vd.field_script_value("stationed_maa_damage_add", sc);
-        vd.field_script_value("stationed_maa_damage_mult", sc);
-        vd.field_script_value("stationed_maa_pursuit_add", sc);
-        vd.field_script_value("stationed_maa_pursuit_mult", sc);
-        vd.field_script_value("stationed_maa_screen_add", sc);
-        vd.field_script_value("stationed_maa_screen_mult", sc);
-        vd.field_script_value("stationed_maa_siege_value_add", sc);
-        vd.field_script_value("stationed_maa_siege_value_mult", sc);
-        vd.field_script_value("stationed_maa_toughness_add", sc);
-        vd.field_script_value("stationed_maa_toughness_mult", sc);
-
         vd.field_script_value("men_at_arms_cap", sc);
         vd.field_script_value("men_at_arms_limit", sc);
         vd.field_script_value("men_at_arms_maintenance", sc);
@@ -463,6 +452,7 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("build_piety_cost", sc);
         vd.field_script_value("build_prestige_cost", sc);
         vd.field_script_value("build_speed", sc);
+        vd.field_script_value("building_slot_add", sc);
         vd.field_script_value("holding_build_gold_cost", sc);
         vd.field_script_value("holding_build_piety_cost", sc);
         vd.field_script_value("holding_build_prestige_cost", sc);
@@ -529,6 +519,16 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("defender_winter_advantage", sc);
         vd.field_script_value("hard_casualty_winter", sc);
         vd.field_script_value("supply_loss_winter", sc);
+        vd.field_script_value("stationed_maa_damage_add", sc);
+        vd.field_script_value("stationed_maa_damage_mult", sc);
+        vd.field_script_value("stationed_maa_pursuit_add", sc);
+        vd.field_script_value("stationed_maa_pursuit_mult", sc);
+        vd.field_script_value("stationed_maa_screen_add", sc);
+        vd.field_script_value("stationed_maa_screen_mult", sc);
+        vd.field_script_value("stationed_maa_siege_value_add", sc);
+        vd.field_script_value("stationed_maa_siege_value_mult", sc);
+        vd.field_script_value("stationed_maa_toughness_add", sc);
+        vd.field_script_value("stationed_maa_toughness_mult", sc);
     }
 
     if kinds.intersects(ModifKinds::Scheme) {
@@ -562,12 +562,12 @@ pub fn validate_modifs<'a>(
         }
 
         for terrain_sfx in &[
-            "_construction_gold_cost",
-            "_construction_piety_cost",
-            "_construction_prestige_cost",
             "_holding_construction_gold_cost",
             "_holding_construction_piety_cost",
             "_holding_construction_prestige_cost",
+            "_construction_gold_cost",
+            "_construction_piety_cost",
+            "_construction_prestige_cost",
             "_levy_size",
             "_supply_limit",
             "_supply_limit_mult",
@@ -690,11 +690,13 @@ pub fn validate_modifs<'a>(
             "_toughness_mult",
         ] {
             if let Some(mut maa_base) = token.as_str().strip_suffix(maa_sfx) {
+                let mut require = ModifKinds::Character;
                 if let Some(real_maa_base) = maa_base.strip_prefix("stationed_") {
                     maa_base = real_maa_base;
+                    require = ModifKinds::Province;
                 }
                 data.verify_exists_implied(Item::MenAtArmsBase, maa_base, token);
-                kinds.require(ModifKinds::Character, token);
+                kinds.require(require, token);
                 ScriptValue::validate_bv(bv, data, sc);
                 continue 'outer;
             }

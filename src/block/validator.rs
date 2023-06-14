@@ -469,6 +469,16 @@ impl<'a> Validator<'a> {
         self.field_validated(name, |bv, data| f(bv, data, sc))
     }
 
+    pub fn field_validated_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F) -> bool
+    where
+        F: FnMut(&BlockOrValue, &Everything, &mut ScopeContext),
+    {
+        self.field_validated_key(name, |key, bv, data| {
+            let mut sc = ScopeContext::new_root(scopes, key);
+            f(bv, data, &mut sc);
+        })
+    }
+
     pub fn field_validated_bvs<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BlockOrValue, &Everything),
