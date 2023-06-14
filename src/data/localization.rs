@@ -252,15 +252,14 @@ impl Localization {
                 }
             }
             // A reference to a game concept
-            LocaValue::Code(chain, Some(fmt)) if fmt.as_str().contains('E') => {
+            LocaValue::Code(chain, Some(fmt))
+                if fmt.as_str().contains('E') || fmt.as_str().contains('e') =>
+            {
                 if let Some(name) = chain.as_gameconcept() {
                     data.verify_exists(Item::GameConcept, name);
                 } else {
-                    warn(
-                        fmt,
-                        ErrorKey::ParseError,
-                        "cannot figure out game concept for this |E",
-                    );
+                    let msg = format!("cannot figure out game concept for this |{fmt}");
+                    warn(fmt, ErrorKey::ParseError, &msg);
                 }
             }
             // Some other code
