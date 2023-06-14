@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 use crate::errorkey::ErrorKey;
-use crate::errors::warn2;
+use crate::errors::{warn, warn2};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -312,8 +312,11 @@ impl Asset {
             self.validate_entity(data);
         } else if self.key.is("skeletal_animation_set") {
             self.validate_animation_set(data);
+        } else if self.key.is("arrowType") {
+            // TODO: arrowType
+        } else {
+            warn(&self.key, ErrorKey::Validation, "unknown asset type");
         }
-        // TODO: arrowType
     }
 }
 
