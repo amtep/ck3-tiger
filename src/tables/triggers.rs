@@ -643,11 +643,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "has_artifact_feature_group",
         Item(Item::ArtifactFeatureGroup),
     ),
-    (
-        Artifact,
-        "has_artifact_modifier",
-        Item(Item::ArtifactModifier),
-    ),
+    (Artifact, "has_artifact_modifier", Item(Item::Modifier)),
     (Character, "has_bad_nickname", Boolean),
     (Character, "has_banish_reason", Scope(Character)),
     (Province, "has_building", Item(Item::Building)),
