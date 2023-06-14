@@ -263,6 +263,7 @@ impl DbKind for Building {
             }
             BlockOrValue::Block(block) => {
                 let mut sc = ScopeContext::new_root(Scopes::Province, key.clone());
+                sc.define_name("holder", key.clone(), Scopes::Character);
                 validate_modifiers_with_base(block, data, &mut sc);
             }
         });

@@ -18,6 +18,7 @@ use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
+use crate::data::cultures::CultureEra;
 use crate::data::customloca::CustomLocalization;
 use crate::data::data_binding::DataBindings;
 use crate::data::deathreasons::DeathReason;
@@ -366,6 +367,7 @@ impl Everything {
         self.load_pdx_items(Item::Nickname, Nickname::add);
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
         self.load_pdx_items(Item::Building, Building::add);
+        self.load_pdx_items(Item::CultureEra, CultureEra::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -436,6 +438,7 @@ impl Everything {
             | Item::CourtPosition
             | Item::CourtPositionCategory
             | Item::CustomLocalization
+            | Item::CultureEra
             | Item::DeathReason
             | Item::EffectLocalization
             | Item::Faction
