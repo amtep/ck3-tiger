@@ -152,7 +152,7 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "ghw" => Scopes::GreatHolyWar, // Warning, this is an exception to the general rule
         "religion" => Scopes::Religion,
         "war" => Scopes::War,
-        "story_cycle" => Scopes::StoryCycle,
+        "story" => Scopes::StoryCycle, // Another exception
         "casus_belli" => Scopes::CasusBelli,
         "dynasty" => Scopes::Dynasty,
         "dynasty_house" => Scopes::DynastyHouse,

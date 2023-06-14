@@ -104,11 +104,9 @@ pub fn validate_trigger(
 
     if caller == "calc_true_if" {
         vd.req_field("amount");
-        if let Some(bv) = vd.field_any_cmp("amount") {
-            if let Some(token) = bv.expect_value() {
-                token.expect_integer();
-            }
-        }
+
+        // TODO: verify these are integers
+        vd.fields_any_cmp("amount");
     } else if !in_list {
         vd.ban_field("amount", || "`calc_true_if`");
     }

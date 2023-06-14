@@ -1,10 +1,13 @@
 use std::borrow::Cow;
 use std::str::FromStr;
 
+use crate::data::customloca::CustomLocalization;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::scopes::Scopes;
+use crate::tables::datafunctions::scope_from_datatype;
 pub use crate::tables::datafunctions::Args;
 use crate::token::Token;
 
@@ -58,9 +61,20 @@ impl CodeChain {
     }
 }
 
-fn validate_argument(arg: &CodeArg, data: &Everything, expect_type: Datatype) {
+fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: &'static str) {
+    data.verify_exists(Item::CustomLocalization, token);
+    if let Some((key, block)) = data
+        .database
+        .get_key_block(Item::CustomLocalization, token.as_str())
+    {
+        let kind = CustomLocalization {};
+        kind.validate_custom_call(key, block, data, token, scopes, lang, "", None);
+    }
+}
+
+fn validate_argument(arg: &CodeArg, data: &Everything, expect_type: Datatype, lang: &'static str) {
     match arg {
-        CodeArg::Chain(chain) => validate_datatypes(chain, data, expect_type, false),
+        CodeArg::Chain(chain) => validate_datatypes(chain, data, expect_type, lang, false),
         CodeArg::Literal(token) => {
             if token.as_str().starts_with('(') && token.as_str().contains(')') {
                 // These unwraps are safe because of the checks in the if condition
@@ -100,6 +114,7 @@ pub fn validate_datatypes(
     chain: &CodeChain,
     data: &Everything,
     expect_type: Datatype,
+    lang: &'static str,
     expect_promote: bool,
 ) {
     let mut curtype = Datatype::Unknown;
@@ -273,30 +288,42 @@ pub fn validate_datatypes(
             return;
         }
 
+        // TODO: validate the Faith customs
+        if curtype != Datatype::Faith && (code.name.is("Custom") && code.arguments.len() == 1)
+            || (code.name.is("Custom2") && code.arguments.len() == 2)
+        {
+            // TODO: for Custom2, get the datatype of the second argument and use it to initialize scope:second
+            if let CodeArg::Literal(ref token) = code.arguments[0] {
+                if let Some(scopes) = scope_from_datatype(curtype) {
+                    validate_custom(token, data, scopes, lang);
+                }
+            }
+        }
+
         match args {
             Args::NoArgs => (),
-            Args::Arg(dt1) => validate_argument(&code.arguments[0], data, dt1),
+            Args::Arg(dt1) => validate_argument(&code.arguments[0], data, dt1, lang),
             Args::Arg2(dt1, dt2) => {
-                validate_argument(&code.arguments[0], data, dt1);
-                validate_argument(&code.arguments[1], data, dt2);
+                validate_argument(&code.arguments[0], data, dt1, lang);
+                validate_argument(&code.arguments[1], data, dt2, lang);
             }
             Args::Arg3(dt1, dt2, dt3) => {
-                validate_argument(&code.arguments[0], data, dt1);
-                validate_argument(&code.arguments[1], data, dt2);
-                validate_argument(&code.arguments[2], data, dt3);
+                validate_argument(&code.arguments[0], data, dt1, lang);
+                validate_argument(&code.arguments[1], data, dt2, lang);
+                validate_argument(&code.arguments[2], data, dt3, lang);
             }
             Args::Arg4(dt1, dt2, dt3, dt4) => {
-                validate_argument(&code.arguments[0], data, dt1);
-                validate_argument(&code.arguments[1], data, dt2);
-                validate_argument(&code.arguments[2], data, dt3);
-                validate_argument(&code.arguments[3], data, dt4);
+                validate_argument(&code.arguments[0], data, dt1, lang);
+                validate_argument(&code.arguments[1], data, dt2, lang);
+                validate_argument(&code.arguments[2], data, dt3, lang);
+                validate_argument(&code.arguments[3], data, dt4, lang);
             }
             Args::Arg5(dt1, dt2, dt3, dt4, dt5) => {
-                validate_argument(&code.arguments[0], data, dt1);
-                validate_argument(&code.arguments[1], data, dt2);
-                validate_argument(&code.arguments[2], data, dt3);
-                validate_argument(&code.arguments[3], data, dt4);
-                validate_argument(&code.arguments[4], data, dt5);
+                validate_argument(&code.arguments[0], data, dt1, lang);
+                validate_argument(&code.arguments[1], data, dt2, lang);
+                validate_argument(&code.arguments[2], data, dt3, lang);
+                validate_argument(&code.arguments[3], data, dt4, lang);
+                validate_argument(&code.arguments[4], data, dt5, lang);
             }
         }
 

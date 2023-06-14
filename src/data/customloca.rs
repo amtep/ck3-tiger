@@ -25,19 +25,8 @@ impl CustomLocalization {
 impl DbKind for CustomLocalization {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        if block.has_key("parent") {
-            vd.field_item("parent", Item::CustomLocalization);
-            vd.req_field("suffix");
-            if let Some(suffix) = vd.field_value("suffix") {
-                if let Some(parent) = block.get_field_value("parent") {
-                    data.validate_variant(Item::CustomLocalization, parent, suffix);
-                }
-            }
-            return;
-        }
 
         let mut sc;
-        vd.req_field("type");
         if let Some(token) = vd.field_value("type") {
             if token.is("all") {
                 sc = ScopeContext::new_root(Scopes::all(), token.clone());
@@ -50,9 +39,18 @@ impl DbKind for CustomLocalization {
         } else {
             sc = ScopeContext::new_root(Scopes::all(), key.clone());
         }
+        vd.field_bool("log_loc_errors");
+
+        if block.has_key("parent") {
+            vd.field_item("parent", Item::CustomLocalization);
+            vd.req_field("suffix");
+            vd.field_value("suffix");
+            // Actual loca existence is checked in validate_custom_call
+            return;
+        }
+        vd.req_field("type");
 
         vd.field_bool("random_valid");
-        vd.field_bool("log_loc_errors");
 
         vd.field_validated_blocks("text", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -65,15 +63,70 @@ impl DbKind for CustomLocalization {
             vd.field_validated_block_sc("weight_multiplier", &mut sc, validate_modifiers_with_base);
 
             vd.req_field("localization_key");
-            vd.field_item("localization_key", Item::Localization);
+            // Actual loca existence is checked in validate_custom_call
+            vd.field_value("localization_key");
             vd.field_bool("fallback");
         });
     }
-    fn validate_variant(&self, _key: &Token, block: &Block, data: &Everything, suffix: &Token) {
-        for block in block.get_field_blocks("text") {
-            if let Some(key) = block.get_field_value("localization_key") {
-                let loca = format!("{key}{suffix}");
-                data.verify_exists_implied(Item::Localization, &loca, suffix);
+}
+
+impl CustomLocalization {
+    pub fn validate_custom_call<'a>(
+        &self,
+        key: &Token,
+        block: &'a Block,
+        data: &Everything,
+        caller: &Token,
+        scopes: Scopes,
+        lang: &'static str,
+        suffix_str: &str,
+        suffix_token: Option<&Token>,
+    ) {
+        if let Some(token) = block.get_field_value("type") {
+            if let Some(this_scopes) = scope_from_snake_case(token.as_str()) {
+                if !scopes.contains(this_scopes) {
+                    let msg = format!(
+                        "custom localization {key} is for {this_scopes} but context is {scopes}"
+                    );
+                    warn(caller, ErrorKey::Scopes, &msg);
+                }
+            }
+        }
+
+        if let Some(parent) = block.get_field_value("parent") {
+            if let Some(suffix) = block.get_field_value("suffix") {
+                if let Some((key, block, kind)) =
+                    data.get_item::<CustomLocalization>(Item::CustomLocalization, parent.as_str())
+                {
+                    let suffix_str = format!("{suffix_str}{suffix}");
+                    let suffix_token = if suffix_token.is_some() {
+                        suffix_token
+                    } else {
+                        Some(suffix)
+                    };
+                    kind.validate_custom_call(
+                        key,
+                        block,
+                        data,
+                        caller,
+                        scopes,
+                        lang,
+                        &suffix_str,
+                        suffix_token,
+                    );
+                }
+            }
+        } else {
+            for block in block.get_field_blocks("text") {
+                if let Some(key) = block.get_field_value("localization_key") {
+                    if let Some(token) = suffix_token {
+                        let loca = format!("{key}{suffix_str}");
+                        data.localization
+                            .verify_exists_implied_lang(&loca, token, lang);
+                    } else {
+                        data.localization.verify_exists_lang(key, lang);
+                    }
+                }
             }
         }
     }

@@ -48,7 +48,8 @@ impl Db {
         self.database.contains_key(&index) || self.flags.contains_key(&index)
     }
 
-    pub fn get<T: DbKind>(&self, item: Item, key: &str) -> Option<(&Token, &Block, &T)> {
+    /// This doesn't work yet :(
+    pub fn get_item<T: DbKind>(&self, item: Item, key: &str) -> Option<(&Token, &Block, &T)> {
         // TODO: figure out how to avoid the to_string() here
         let index = (item, key.to_string());
         if let Some(entry) = self.database.get(&index) {
@@ -57,6 +58,17 @@ impl Db {
             }
         }
         None
+    }
+
+    /// Using this until get_item works
+    pub fn get_key_block(&self, item: Item, key: &str) -> Option<(&Token, &Block)> {
+        // TODO: figure out how to avoid the to_string() here
+        let index = (item, key.to_string());
+        if let Some(entry) = self.database.get(&index) {
+            Some((&entry.key, &entry.block))
+        } else {
+            None
+        }
     }
 
     pub fn has_property(&self, item: Item, key: &str, property: &str, data: &Everything) -> bool {

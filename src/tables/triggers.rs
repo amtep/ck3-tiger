@@ -1220,7 +1220,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Scope(Character),
     ),
     (Character, "is_from_ruler_designer", Boolean),
-    (None, "is_game_view_option", UncheckedValue), // TODO
+    (None, "is_game_view_open", UncheckedValue), // TODO
     (None, "is_gamestate_tutorial_active", Boolean),
     (Character, "is_grandchild_of", Scope(Character)),
     (Character, "is_grandparent_of", Scope(Character)),

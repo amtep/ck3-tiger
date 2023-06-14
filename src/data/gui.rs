@@ -404,7 +404,7 @@ fn validate_field(key: &Token, bv: &BlockOrValue, data: &Everything) {
             };
             if key.is("datacontext") {
                 if let LocaValue::Code(chain, _) = value {
-                    validate_datatypes(&chain, data, Datatype::Unknown, true);
+                    validate_datatypes(&chain, data, Datatype::Unknown, "", true);
                 } else {
                     let msg = "expected whole field to be a single [ ] clause";
                     warn(token, ErrorKey::Validation, msg);
@@ -427,7 +427,7 @@ fn validate_gui_loca(value: LocaValue, data: &Everything) {
             }
         }
         LocaValue::Code(chain, _) => {
-            validate_datatypes(&chain, data, Datatype::Unknown, false);
+            validate_datatypes(&chain, data, Datatype::Unknown, "", false);
         }
         _ => (),
     }

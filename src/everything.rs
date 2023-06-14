@@ -61,7 +61,7 @@ use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
 use crate::data::trigger_localization::TriggerLocalization;
-use crate::db::Db;
+use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, ignore_key, ignore_key_for, ignore_path, warn};
@@ -521,6 +521,10 @@ impl Everything {
 
     pub fn validate_variant(&self, itype: Item, key: &Token, variant: &Token) {
         self.database.validate_variant(itype, key, self, variant);
+    }
+
+    pub fn get_item<T: DbKind>(&self, itype: Item, key: &str) -> Option<(&Token, &Block, &T)> {
+        self.database.get_item(itype, key)
     }
 
     pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {

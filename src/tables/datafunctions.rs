@@ -5,6 +5,7 @@ use strum_macros::{Display, EnumString};
 
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::scopes::Scopes;
 
 // Validate the "code" blocks in localization files and in the gui files.
 // The include/ files are converted from the game's data_type_* output files.
@@ -151,6 +152,50 @@ pub fn lookup_alternative(
         }
     }
     None
+}
+
+pub fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
+    match dtype {
+        Datatype::Character => Some(Scopes::Character),
+        Datatype::Title => Some(Scopes::LandedTitle),
+        Datatype::Activity => Some(Scopes::Activity),
+        Datatype::Secret => Some(Scopes::Secret),
+        Datatype::Province => Some(Scopes::Province),
+        Datatype::Scheme => Some(Scopes::Scheme),
+        Datatype::Combat => Some(Scopes::Combat),
+        Datatype::CombatSide => Some(Scopes::CombatSide),
+        Datatype::Faith => Some(Scopes::Faith),
+        Datatype::GreatHolyWar => Some(Scopes::GreatHolyWar),
+        Datatype::Religion => Some(Scopes::Religion),
+        Datatype::War => Some(Scopes::War),
+        Datatype::Story => Some(Scopes::StoryCycle),
+        Datatype::CasusBelliItem => Some(Scopes::CasusBelli),
+        Datatype::Dynasty => Some(Scopes::Dynasty),
+        Datatype::DynastyHouse => Some(Scopes::DynastyHouse),
+        Datatype::Faction => Some(Scopes::Faction),
+        Datatype::Culture => Some(Scopes::Culture),
+        Datatype::Army => Some(Scopes::Army),
+        Datatype::HolyOrder => Some(Scopes::HolyOrder),
+        Datatype::ActiveCouncilTask => Some(Scopes::CouncilTask),
+        Datatype::MercenaryCompany => Some(Scopes::MercenaryCompany),
+        Datatype::Artifact => Some(Scopes::Artifact),
+        Datatype::Inspiration => Some(Scopes::Inspiration),
+        Datatype::Struggle => Some(Scopes::Struggle),
+        Datatype::CharacterMemory => Some(Scopes::CharacterMemory),
+        Datatype::TravelPlan => Some(Scopes::TravelPlan),
+        Datatype::Accolade => Some(Scopes::Accolade),
+        Datatype::AccoladeType => Some(Scopes::AccoladeType),
+        Datatype::Decision => Some(Scopes::Decision),
+        Datatype::FaithDoctrine => Some(Scopes::Doctrine),
+        Datatype::ActivityType => Some(Scopes::ActivityType),
+        Datatype::CultureTradition => Some(Scopes::CultureTradition),
+        Datatype::CulturePillar => Some(Scopes::CulturePillar),
+        Datatype::GovernmentType => Some(Scopes::GovernmentType),
+        Datatype::Trait => Some(Scopes::Trait),
+        Datatype::VassalContract => Some(Scopes::VassalContract),
+        Datatype::ObligationLevel => Some(Scopes::VassalContractObligationLevel),
+        _ => None,
+    }
 }
 
 use Args::*;

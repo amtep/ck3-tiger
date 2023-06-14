@@ -213,20 +213,42 @@ impl Localization {
         for lang in &self.mod_langs {
             let hash = self.locas.get(lang);
             if hash.is_none() || !hash.unwrap().contains_key(key) {
-                error(
-                    token,
-                    ErrorKey::MissingLocalization,
-                    &format!("missing {lang} localization key {key}"),
-                );
+                let msg = format!("missing {lang} localization key {key}");
+                error(token, ErrorKey::MissingLocalization, &msg);
             }
         }
     }
 
-    fn check_loca_code(value: &LocaValue, data: &Everything) {
+    pub fn exists_lang(&self, key: &str, lang: &'static str) -> bool {
+        if lang.is_empty() {
+            return self.exists(key);
+        }
+        let hash = self.locas.get(lang);
+        if hash.is_none() || !hash.unwrap().contains_key(key) {
+            return false;
+        }
+        true
+    }
+
+    pub fn verify_exists_lang(&self, token: &Token, lang: &'static str) {
+        self.verify_exists_implied_lang(token.as_str(), token, lang);
+    }
+
+    pub fn verify_exists_implied_lang(&self, key: &str, token: &Token, lang: &'static str) {
+        if key.is_empty() {
+            return;
+        }
+        if !self.exists_lang(key, lang) {
+            let msg = format!("missing {lang} localization key {key}");
+            error(token, ErrorKey::MissingLocalization, &msg);
+        }
+    }
+
+    fn check_loca_code(value: &LocaValue, data: &Everything, lang: &'static str) {
         match value {
             LocaValue::Concat(v) => {
                 for value in v {
-                    Self::check_loca_code(value, data);
+                    Self::check_loca_code(value, data, lang);
                 }
             }
             // A reference to a game concept
@@ -244,10 +266,10 @@ impl Localization {
             // Some other code
             // TODO: check the formatting codes
             LocaValue::Code(chain, _) => {
-                validate_datatypes(chain, data, Datatype::Unknown, false);
+                validate_datatypes(chain, data, Datatype::Unknown, lang, false);
             }
             LocaValue::Tooltip(token) => {
-                data.verify_exists(Item::Localization, token);
+                data.localization.verify_exists_lang(token, lang);
             }
             _ => (),
         }
@@ -256,9 +278,9 @@ impl Localization {
     pub fn validate(&self, data: &Everything) {
         // Does every `[concept|E]` reference have a defined game concept?
         // Does every other `[code]` block have valid promotes and functions?
-        for hash in self.locas.values() {
+        for (lang, hash) in self.locas.iter() {
             for entry in hash.values() {
-                Self::check_loca_code(&entry.value, data);
+                Self::check_loca_code(&entry.value, data, lang);
             }
         }
     }
