@@ -182,24 +182,46 @@ pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
 // Does not accept scriptvalues (per the documentation)
 pub fn validate_color(block: &Block, _data: &Everything) {
     let mut count = 0;
+    // Get the color tag, as in color = hsv { 0.5 1.0 1.0 }
+    let tag = block.tag.as_ref().map(|t| t.as_str()).unwrap_or("rgb");
     for (k, _, v) in block.iter_items() {
         if let Some(key) = k {
             error(key, ErrorKey::Validation, "expected color value");
         } else {
             match v {
                 BlockOrValue::Value(t) => {
-                    if let Ok(i) = t.as_str().parse::<i64>() {
-                        if !(0..=255).contains(&i) {
-                            let msg = "color values should be between 0 and 255";
-                            error(t, ErrorKey::Validation, msg);
+                    if tag == "hsv" {
+                        if let Ok(f) = t.as_str().parse::<f64>() {
+                            if !(0.0..=1.0).contains(&f) {
+                                let msg = "hsv values should be between 0.0 and 1.0";
+                                error(t, ErrorKey::Validation, msg);
+                            }
+                        } else {
+                            error(t, ErrorKey::Validation, "expected hsv value");
                         }
-                    } else if let Ok(f) = t.as_str().parse::<f64>() {
-                        let msg = "color values should be between 0.0 and 1.0";
-                        if !(0.0..=1.0).contains(&f) {
-                            error(t, ErrorKey::Validation, msg);
+                    } else if tag == "hsv360" {
+                        if let Ok(i) = t.as_str().parse::<i64>() {
+                            if !(0..=360).contains(&i) {
+                                let msg = "hsv360 values should be between 0 and 360";
+                                error(t, ErrorKey::Validation, msg);
+                            }
+                        } else {
+                            error(t, ErrorKey::Validation, "expected hsv360 value");
                         }
                     } else {
-                        error(t, ErrorKey::Validation, "expected color value");
+                        if let Ok(i) = t.as_str().parse::<i64>() {
+                            if !(0..=255).contains(&i) {
+                                let msg = "color values should be between 0 and 255";
+                                error(t, ErrorKey::Validation, msg);
+                            }
+                        } else if let Ok(f) = t.as_str().parse::<f64>() {
+                            if !(0.0..=1.0).contains(&f) {
+                                let msg = "color values should be between 0.0 and 1.0";
+                                error(t, ErrorKey::Validation, msg);
+                            }
+                        } else {
+                            error(t, ErrorKey::Validation, "expected color value");
+                        }
                     }
                     count += 1;
                 }

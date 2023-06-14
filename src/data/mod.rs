@@ -5,6 +5,7 @@ pub mod buildings;
 pub mod casusbelli;
 pub mod character_templates;
 pub mod characters;
+pub mod colors;
 pub mod courtpos;
 pub mod cultures;
 pub mod customloca;

@@ -377,6 +377,34 @@ impl<'a> Validator<'a> {
         })
     }
 
+    pub fn fields_validated_list<F>(&mut self, name: &str, mut f: F) -> bool
+    where
+        F: FnMut(&Token, &Everything),
+    {
+        self.fields_check(name, |_, bv| {
+            if let Some(block) = bv.expect_block() {
+                for (k, _, bv) in &block.v {
+                    if let Some(key) = k {
+                        let msg = format!("found key `{key}`, expected only values");
+                        warn(key, ErrorKey::Validation, &msg);
+                    } else if let Some(token) = bv.expect_value() {
+                        f(token, self.data);
+                    }
+                }
+            }
+        })
+    }
+
+    pub fn fields_list(&mut self, name: &str) -> bool {
+        self.fields_validated_list(name, |_, _| ())
+    }
+
+    pub fn fields_list_items(&mut self, name: &str, item: Item) -> bool {
+        self.fields_validated_list(name, |token, data| {
+            data.verify_exists(item, token);
+        })
+    }
+
     pub fn field_values(&mut self, name: &str) -> Vec<&Token> {
         let mut vec = Vec::new();
         for (k, cmp, bv) in &self.block.v {

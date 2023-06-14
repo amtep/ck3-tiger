@@ -17,8 +17,9 @@ use crate::data::buildings::Building;
 use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
+use crate::data::colors::NamedColor;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
-use crate::data::cultures::CultureEra;
+use crate::data::cultures::{Culture, CultureEra};
 use crate::data::customloca::CustomLocalization;
 use crate::data::data_binding::DataBindings;
 use crate::data::deathreasons::DeathReason;
@@ -367,7 +368,9 @@ impl Everything {
         self.load_pdx_items(Item::Nickname, Nickname::add);
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
         self.load_pdx_items(Item::Building, Building::add);
+        self.load_pdx_items(Item::Culture, Culture::add);
         self.load_pdx_items(Item::CultureEra, CultureEra::add);
+        self.load_pdx_items(Item::NamedColor, NamedColor::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -432,12 +435,16 @@ impl Everything {
             | Item::ArtifactVisual
             | Item::Building
             | Item::BuildingFlag
+            | Item::BuildingGfx
             | Item::CasusBelli
             | Item::CasusBelliGroup
             | Item::CharacterTemplate
+            | Item::ClothingGfx
+            | Item::CoaGfx
             | Item::CourtPosition
             | Item::CourtPositionCategory
             | Item::CustomLocalization
+            | Item::Culture
             | Item::CultureEra
             | Item::DeathReason
             | Item::EffectLocalization
@@ -448,6 +455,7 @@ impl Everything {
             | Item::Holding
             | Item::HoldingFlag
             | Item::Lifestyle
+            | Item::NamedColor
             | Item::Nickname
             | Item::OpinionModifier
             | Item::Perk
@@ -458,7 +466,8 @@ impl Everything {
             | Item::ScriptedGui
             | Item::ScriptedRule
             | Item::Terrain
-            | Item::TriggerLocalization => self.database.exists(itype, key),
+            | Item::TriggerLocalization
+            | Item::UnitGfx => self.database.exists(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::ArtifactRarity => ARTIFACT_RARITY.contains(&key),
