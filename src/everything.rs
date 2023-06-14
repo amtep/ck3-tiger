@@ -37,6 +37,7 @@ use crate::data::genes::Gene;
 use crate::data::gui::Gui;
 use crate::data::holdings::Holding;
 use crate::data::houses::Houses;
+use crate::data::innovations::Innovation;
 use crate::data::interaction_cats::InteractionCategories;
 use crate::data::interactions::Interactions;
 use crate::data::lifestyles::Lifestyle;
@@ -371,6 +372,7 @@ impl Everything {
         self.load_pdx_items(Item::Culture, Culture::add);
         self.load_pdx_items(Item::CultureEra, CultureEra::add);
         self.load_pdx_items(Item::NamedColor, NamedColor::add);
+        self.load_pdx_items(Item::Innovation, Innovation::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -454,6 +456,8 @@ impl Everything {
             | Item::GeneCategory
             | Item::Holding
             | Item::HoldingFlag
+            | Item::Innovation
+            | Item::InnovationFlag
             | Item::Lifestyle
             | Item::NamedColor
             | Item::Nickname

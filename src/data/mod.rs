@@ -25,6 +25,7 @@ pub mod genes;
 pub mod gui;
 pub mod holdings;
 pub mod houses;
+pub mod innovations;
 pub mod interaction_cats;
 pub mod interactions;
 pub mod lifestyles;
