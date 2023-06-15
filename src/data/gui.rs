@@ -10,6 +10,7 @@ use crate::errors::{advice, error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
@@ -393,6 +394,16 @@ fn validate_field(key: &Token, bv: &BlockOrValue, data: &Everything) {
     if key.is("default_format") {
         bv.expect_value();
         return;
+    }
+    if key.is("texture") {
+        if let Some(token) = bv.expect_value() {
+            // The editor_gui ones aren't in the CK3 installation but do appear
+            // to be available.
+            if !token.starts_with("[") && !token.starts_with("gfx/editor_gui/") {
+                data.verify_exists(Item::File, token);
+                return;
+            }
+        }
     }
     match bv {
         BlockOrValue::Value(token) => {
