@@ -780,3 +780,11 @@ pub fn validate_random_faith(block: &Block, data: &Everything, sc: &mut ScopeCon
         }
     }
 }
+
+pub fn validate_maa_stats(vd: &mut Validator) {
+    vd.field_numeric("pursuit");
+    vd.field_numeric("screen");
+    vd.field_numeric("damage");
+    vd.field_numeric("toughness");
+    vd.field_numeric("siege_value");
+}

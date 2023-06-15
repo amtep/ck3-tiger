@@ -118,6 +118,7 @@ pub fn validate_modifs<'a>(
         vd.field_script_value("attacker_advantage", sc);
         vd.field_script_value("coastal_advantage", sc);
         vd.field_script_value("controlled_province_advantage", sc);
+        vd.field_script_value("uncontrolled_province_advantage", sc);
         vd.field_script_value("defender_advantage", sc);
         vd.field_script_value("enemy_terrain_advantage", sc);
         vd.field_script_value("independent_primary_defender_advantage_add", sc);

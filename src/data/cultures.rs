@@ -6,7 +6,7 @@ use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::validate::validate_color;
+use crate::validate::{validate_color, validate_maa_stats};
 
 #[derive(Clone, Debug)]
 pub struct CultureEra {}
@@ -63,12 +63,7 @@ impl DbKind for CultureEra {
         vd.field_validated_blocks("maa_upgrade", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("men_at_arms", Item::MenAtArms);
-            vd.field_numeric("pursuit");
-            vd.field_numeric("screen");
-            vd.field_numeric("damage");
-            vd.field_numeric("toughness");
-            vd.field_numeric("siege_value");
-            vd.field_integer("siege_tier");
+            validate_maa_stats(&mut vd);
         });
 
         vd.field_items("unlock_building", Item::Building);

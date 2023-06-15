@@ -11,6 +11,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
+use crate::validate::validate_maa_stats;
 
 #[derive(Clone, Debug)]
 pub struct Innovation {}
@@ -91,12 +92,7 @@ impl DbKind for Innovation {
                     error(token, ErrorKey::MissingItem, &msg);
                 }
             }
-            vd.field_numeric("pursuit");
-            vd.field_numeric("screen");
-            vd.field_numeric("damage");
-            vd.field_numeric("toughness");
-            vd.field_numeric("siege_value");
-            vd.field_integer("siege_tier");
+            validate_maa_stats(&mut vd);
         });
     }
 }

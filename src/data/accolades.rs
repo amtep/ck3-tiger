@@ -1,12 +1,14 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
+use crate::data::maa::{validate_terrain_bonus, validate_winter_bonus};
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
 use crate::errors::error;
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -83,5 +85,90 @@ impl DbKind for AccoladeName {
         });
 
         vd.field_script_value("weight", &mut sc);
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct AccoladeType {}
+
+impl AccoladeType {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        if let Some(vec) = block.get_field_list("accolade_categories") {
+            for token in vec {
+                db.add_flag(Item::AccoladeCategory, token);
+            }
+        }
+        if let Some(block) = block.get_field_block("ranks") {
+            for (key, block) in block.iter_pure_definitions() {
+                if key.is_integer() {
+                    if let Some(vec) = block.get_field_list("accolade_parameters") {
+                        for token in vec {
+                            db.add_flag(Item::AccoladeParameter, token);
+                        }
+                    }
+                }
+            }
+        }
+        db.add(Item::AccoladeType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for AccoladeType {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_modifier");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        vd.field_item("adjective", Item::Localization);
+        vd.field_item("noun", Item::Localization);
+        vd.field_list("accolade_categories");
+
+        vd.field_validated_block("potential", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
+
+        vd.field_script_value("weight", &mut sc);
+
+        vd.field_validated_block("ranks", |block, data| {
+            let mut vd = Validator::new(block, data);
+            for (_, block) in vd.integer_blocks() {
+                let mut vd = Validator::new(block, data);
+                vd.field_validated_block("liege_modifier", |block, data| {
+                    let vd = Validator::new(block, data);
+                    validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
+                });
+                vd.field_validated_block("knight_modifier", |block, data| {
+                    let vd = Validator::new(block, data);
+                    validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
+                });
+                vd.field_validated_block("knight_army_modifier", |block, data| {
+                    let vd = Validator::new(block, data);
+                    validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
+                });
+                vd.field_list_items("men_at_arms", Item::MenAtArms);
+                vd.field_validated_block("terrain_bonus", |block, data| {
+                    let mut vd = Validator::new(block, data);
+                    for (key, bv) in vd.unknown_keys() {
+                        if let Some(block) = bv.expect_block() {
+                            data.verify_exists(Item::MenAtArms, key);
+                            validate_terrain_bonus(block, data);
+                        }
+                    }
+                });
+                vd.field_validated_block("winter_bonus", |block, data| {
+                    let mut vd = Validator::new(block, data);
+                    for (key, bv) in vd.unknown_keys() {
+                        if let Some(block) = bv.expect_block() {
+                            data.verify_exists(Item::MenAtArms, key);
+                            validate_winter_bonus(block, data);
+                        }
+                    }
+                });
+                vd.field_list("accolade_parameters");
+            }
+        });
     }
 }

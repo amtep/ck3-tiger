@@ -15,7 +15,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::validate_cost;
+use crate::validate::{validate_cost, validate_maa_stats};
 
 #[derive(Clone, Debug, Default)]
 pub struct MenAtArmsTypes {
@@ -111,13 +111,9 @@ impl MenAtArmsType {
             validate_normal_trigger(b, data, &mut sc, Tooltipped::Yes);
         });
 
-        vd.field_numeric("pursuit");
-        vd.field_numeric("screen");
-        vd.field_numeric("damage");
-        vd.field_numeric("toughness");
-        vd.field_numeric("siege_value");
-        vd.field_bool("fights_in_main_phase");
+        validate_maa_stats(&mut vd);
         vd.field_integer("siege_tier");
+        vd.field_bool("fights_in_main_phase");
 
         vd.field_validated_block("buy_cost", |b, data| {
             let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
@@ -149,39 +145,42 @@ impl MenAtArmsType {
     }
 }
 
-fn validate_bonus(block: &Block, data: &Everything) {
+pub fn validate_terrain_bonus(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    vd.field_numeric("pursuit");
-    vd.field_numeric("screen");
-    vd.field_numeric("damage");
-    vd.field_numeric("toughness");
-    vd.field_numeric("siege_value");
-}
-
-fn validate_terrain_bonus(block: &Block, data: &Everything) {
-    for (key, block) in block.iter_pure_definitions_warn() {
-        data.verify_exists(Item::Terrain, key);
-        validate_bonus(block, data);
+    for (key, bv) in vd.unknown_keys() {
+        if let Some(block) = bv.expect_block() {
+            data.verify_exists(Item::Terrain, key);
+            let mut vd = Validator::new(block, data);
+            validate_maa_stats(&mut vd);
+        }
     }
 }
 
 pub fn validate_winter_bonus(block: &Block, data: &Everything) {
-    for (key, block) in block.iter_pure_definitions_warn() {
-        if !(key.is("harsh_winter") || key.is("normal_winter")) {
-            warn(key, ErrorKey::Validation, "unknown winter type");
+    let mut vd = Validator::new(block, data);
+    for (key, bv) in vd.unknown_keys() {
+        if let Some(block) = bv.expect_block() {
+            if !(key.is("harsh_winter") || key.is("normal_winter")) {
+                warn(key, ErrorKey::Validation, "unknown winter type");
+            }
+            let mut vd = Validator::new(block, data);
+            validate_maa_stats(&mut vd);
         }
-        validate_bonus(block, data);
     }
 }
 
-pub fn validate_era_bonus(block: &Block, data: &Everything) {
-    for (key, block) in block.iter_pure_definitions_warn() {
-        data.verify_exists(Item::CultureEra, key);
-        validate_bonus(block, data);
+fn validate_era_bonus(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    for (key, bv) in vd.unknown_keys() {
+        if let Some(block) = bv.expect_block() {
+            data.verify_exists(Item::CultureEra, key);
+            let mut vd = Validator::new(block, data);
+            validate_maa_stats(&mut vd);
+        }
     }
 }
 
-pub fn validate_counters(block: &Block, data: &Everything) {
+fn validate_counters(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     for key in &data.menatarmstypes.menatarmsbasetypes {
         vd.field_numeric(key);
