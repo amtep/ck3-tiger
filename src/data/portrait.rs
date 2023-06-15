@@ -38,6 +38,11 @@ impl DbKind for PortraitModifierGroup {
             }
         }
 
+        if !caller.is_empty() {
+            let loca = format!("PORTRAIT_MODIFIER_{key}");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
+
         if let Some(token) = vd.field_value("fallback") {
             if !block.has_key(token.as_str()) {
                 let msg = "portrait modifier not defined";
@@ -47,21 +52,25 @@ impl DbKind for PortraitModifierGroup {
         vd.field_validated_blocks("add_accessory_modifiers", |block, data| {
             validate_add_accessory_modifiers(block, data, caller);
         });
-        for (_key, bv) in vd.unknown_keys() {
+        for (key, bv) in vd.unknown_keys() {
             if let Some(block) = bv.expect_block() {
-                validate_portrait_modifier(block, data, caller);
+                validate_portrait_modifier(key, block, data, caller);
             }
         }
     }
 }
 
-fn validate_portrait_modifier(block: &Block, data: &Everything, mut caller: &str) {
+fn validate_portrait_modifier(key: &Token, block: &Block, data: &Everything, mut caller: &str) {
     let mut vd = Validator::new(block, data);
     vd.field_choice("usage", &["customization", "game", "both"]);
     if let Some(token) = block.get_field_value("usage") {
         if token.is("game") {
             caller = "";
         }
+    }
+    if !caller.is_empty() {
+        let loca = format!("PORTRAIT_MODIFIER_{caller}_{key}");
+        data.verify_exists_implied(Item::Localization, &loca, key);
     }
     vd.field_validated_block_rooted("is_valid_custom", Scopes::Character, |block, data, sc| {
         validate_normal_trigger(block, data, sc, Tooltipped::No);
@@ -79,15 +88,6 @@ fn validate_portrait_modifier(block: &Block, data: &Everything, mut caller: &str
             if let Some(category) = block.get_field_value("gene") {
                 if let Some(template) = vd.field_value("template") {
                     Gene::verify_has_template(category.as_str(), template, data);
-                    if !caller.is_empty() {
-                        data.database.validate_property_use(
-                            Item::GeneCategory,
-                            category,
-                            data,
-                            template,
-                            caller,
-                        );
-                    }
                 }
             }
             vd.field_script_value_rooted("value", Scopes::Character);
@@ -110,15 +110,6 @@ fn validate_portrait_modifier(block: &Block, data: &Everything, mut caller: &str
             if let Some(category) = block.get_field_value("gene") {
                 if let Some(template) = vd.field_value("template") {
                     Gene::verify_has_template(category.as_str(), template, data);
-                    if !caller.is_empty() {
-                        data.database.validate_property_use(
-                            Item::GeneCategory,
-                            category,
-                            data,
-                            template,
-                            caller,
-                        );
-                    }
                 }
             }
             vd.field_numeric("value");
