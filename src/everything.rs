@@ -49,6 +49,7 @@ use crate::data::nickname::Nickname;
 use crate::data::on_actions::OnActions;
 use crate::data::opinions::OpinionModifier;
 use crate::data::perks::Perk;
+use crate::data::portrait::PortraitModifierGroup;
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::regions::Region;
@@ -376,6 +377,7 @@ impl Everything {
         self.load_pdx_items(Item::Innovation, Innovation::add);
         self.load_pdx_items(Item::Accessory, Accessory::add);
         self.load_pdx_items(Item::AccessoryVariation, AccessoryVariation::add);
+        self.load_pdx_items(Item::PortraitModifierGroup, PortraitModifierGroup::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -472,6 +474,7 @@ impl Everything {
             | Item::OpinionModifier
             | Item::Perk
             | Item::PerkTree
+            | Item::PortraitModifierGroup
             | Item::Relation
             | Item::RelationFlag
             | Item::Region

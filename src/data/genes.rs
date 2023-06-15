@@ -4,7 +4,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue};
 use crate::db::{Db, DbKind};
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
+use crate::errors::{error, warn, warn2};
 use crate::everything::Everything;
 use crate::helpers::dup_error;
 use crate::item::Item;
@@ -59,6 +59,13 @@ impl Gene {
                 }
             }
             _ => warn(key, ErrorKey::ParseError, "unknown gene type"),
+        }
+    }
+
+    pub fn verify_has_template(category: &str, template: &Token, data: &Everything) {
+        if !data.item_has_property(Item::GeneCategory, category, template.as_str()) {
+            let msg = format!("gene {category} does not have template {template}");
+            error(template, ErrorKey::MissingItem, &msg);
         }
     }
 }
@@ -138,28 +145,83 @@ impl DbKind for MorphGene {
 
     fn has_property(
         &self,
-        property: &str,
         _key: &Token,
         _block: &Block,
+        property: &str,
         _data: &Everything,
     ) -> bool {
         self.templates.contains_key(property)
     }
+
+    fn validate_property_use(
+        &self,
+        _key: &Token,
+        block: &Block,
+        property: &Token,
+        caller: &str,
+        data: &Everything,
+    ) {
+        validate_portrait_modifier_use(block, data, property, caller);
+    }
+}
+
+fn validate_portrait_modifier_use(
+    block: &Block,
+    data: &Everything,
+    property: &Token,
+    caller: &str,
+) {
+    // get template
+    if let Some(block) = block.get_field_block(property.as_str()) {
+        // loop over body types
+        for field in &["male", "female", "boy", "girl"] {
+            // get weighted settings
+            if let Some(block) = block.get_field_block(field) {
+                for (_, token) in block.iter_assignments() {
+                    if token.is("empty") {
+                        continue;
+                    }
+                    let loca = format!("PORTRAIT_MODIFIER_{caller}_{token}");
+                    if !data.item_exists(Item::Localization, &loca) {
+                        let msg = format!("missing localization key {loca}");
+                        warn2(
+                            property,
+                            ErrorKey::MissingLocalization,
+                            &msg,
+                            token,
+                            "this setting",
+                        );
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
-pub struct AccessoryGene {}
+pub struct AccessoryGene {
+    templates: FnvHashMap<String, Token>,
+}
 
 impl AccessoryGene {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for (_key, block) in block.iter_pure_definitions() {
+        let mut templates = FnvHashMap::default();
+        for (key, block) in block.iter_pure_definitions() {
+            if key.is("ugliness_feature_categories") {
+                continue;
+            }
+            if let Some(other) = templates.get(key.as_str()) {
+                dup_error(key, other, "accessory gene template");
+            }
+            templates.insert(key.to_string(), key.clone());
+
             if let Some(tags) = block.get_field_value("set_tags") {
                 for tag in tags.split(',') {
                     db.add_flag(Item::AccessoryTag, tag);
                 }
             }
         }
-        db.add(Item::GeneCategory, key, block, Box::new(Self {}));
+        db.add(Item::GeneCategory, key, block, Box::new(Self { templates }));
     }
 }
 
@@ -168,12 +230,33 @@ impl DbKind for AccessoryGene {
         let mut vd = Validator::new(block, data);
 
         vd.field_bool("inheritable");
-        vd.field_value("group"); // TODO, is it even used? only one example in vanilla
+        vd.field_value("group");
         for (_key, bv) in vd.unknown_keys() {
             if let Some(block) = bv.expect_block() {
                 validate_accessory_gene(block, data);
             }
         }
+    }
+
+    fn has_property(
+        &self,
+        _key: &Token,
+        _block: &Block,
+        property: &str,
+        _data: &Everything,
+    ) -> bool {
+        self.templates.contains_key(property)
+    }
+
+    fn validate_property_use(
+        &self,
+        _key: &Token,
+        block: &Block,
+        property: &Token,
+        caller: &str,
+        data: &Everything,
+    ) {
+        validate_portrait_modifier_use(block, data, property, caller);
     }
 }
 

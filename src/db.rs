@@ -4,8 +4,6 @@ use std::fmt::Debug;
 
 use crate::block::Block;
 use crate::context::ScopeContext;
-use crate::errorkey::ErrorKey;
-use crate::errors::warn;
 use crate::everything::Everything;
 use crate::helpers::dup_error;
 use crate::item::Item;
@@ -95,7 +93,7 @@ impl Db {
         if let Some(entry) = self.database.get(&index) {
             entry
                 .kind
-                .has_property(property, &entry.key, &entry.block, data)
+                .has_property(&entry.key, &entry.block, property, data)
         } else {
             false
         }
@@ -116,8 +114,22 @@ impl Db {
             entry
                 .kind
                 .validate_variant(&entry.key, &entry.block, data, variant)
-        } else {
-            warn(key, ErrorKey::MissingItem, &format!("{item} not found"));
+        }
+    }
+
+    pub fn validate_property_use(
+        &self,
+        item: Item,
+        key: &Token,
+        data: &Everything,
+        property: &Token,
+        caller: &str,
+    ) {
+        let index = (item, key.to_string());
+        if let Some(entry) = self.database.get(&index) {
+            entry
+                .kind
+                .validate_property_use(&entry.key, &entry.block, property, caller, data);
         }
     }
 }
@@ -133,9 +145,9 @@ pub trait DbKind: Debug + AsAny {
     fn validate(&self, key: &Token, block: &Block, data: &Everything);
     fn has_property(
         &self,
-        _property: &str,
         _key: &Token,
         _block: &Block,
+        _property: &str,
         _data: &Everything,
     ) -> bool {
         false
@@ -150,5 +162,14 @@ pub trait DbKind: Debug + AsAny {
     ) {
     }
     fn validate_variant(&self, _key: &Token, _block: &Block, _data: &Everything, _variant: &Token) {
+    }
+    fn validate_property_use(
+        &self,
+        _key: &Token,
+        _block: &Block,
+        _property: &Token,
+        _caller: &str,
+        _data: &Everything,
+    ) {
     }
 }

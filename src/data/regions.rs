@@ -26,9 +26,9 @@ impl Region {
 impl DbKind for Region {
     fn has_property(
         &self,
-        property: &str,
         _key: &Token,
         _block: &Block,
+        property: &str,
         _data: &Everything,
     ) -> bool {
         if property == "generates_modifiers" {

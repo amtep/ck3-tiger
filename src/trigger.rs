@@ -3,6 +3,7 @@ use std::str::FromStr;
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, Comparator, Date};
 use crate::context::ScopeContext;
+use crate::data::genes::Gene;
 use crate::data::scriptvalues::ScriptValue;
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::desc::validate_desc;
@@ -563,15 +564,7 @@ fn match_trigger_bv(
                     vd.field_item("category", Item::GeneCategory);
                     if let Some(category) = block.get_field_value("category") {
                         if let Some(template) = vd.field_value("template") {
-                            if !data.item_has_property(
-                                Item::GeneCategory,
-                                category.as_str(),
-                                template.as_str(),
-                            ) {
-                                let msg =
-                                    format!("gene {category} does not have template {template}");
-                                error(template, ErrorKey::MissingItem, &msg);
-                            }
+                            Gene::verify_has_template(category.as_str(), template, data);
                         }
                     }
                 }
