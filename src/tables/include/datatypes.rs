@@ -5,6 +5,7 @@ pub enum Datatype {
     AIWarCoordinatorWatchWindow,
     AIWatchWindow,
     Accolade,
+    AccoladeHistoryEntry,
     AccoladeRank,
     AccoladeType,
     AccoladeView,
