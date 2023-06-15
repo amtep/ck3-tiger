@@ -49,29 +49,29 @@ impl PdxFile {
 
     pub fn read_no_bom(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         let contents = Self::read_utf8(entry, fullpath)?;
-        parse_pdx(entry, &contents)
+        Some(parse_pdx(entry, &contents))
     }
 
     pub fn read(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         let contents = Self::read_utf8(entry, fullpath)?;
         if let Some(bomless) = contents.strip_prefix('\u{feff}') {
-            parse_pdx(entry, bomless)
+            Some(parse_pdx(entry, bomless))
         } else {
             warn(
                 entry,
                 ErrorKey::Encoding,
                 "file must start with a UTF-8 BOM",
             );
-            parse_pdx(entry, &contents)
+            Some(parse_pdx(entry, &contents))
         }
     }
 
     pub fn read_optional_bom(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         let contents = Self::read_utf8(entry, fullpath)?;
         if let Some(bomless) = contents.strip_prefix('\u{feff}') {
-            parse_pdx(entry, bomless)
+            Some(parse_pdx(entry, bomless))
         } else {
-            parse_pdx(entry, &contents)
+            Some(parse_pdx(entry, &contents))
         }
     }
 
@@ -85,9 +85,9 @@ impl PdxFile {
                 "file should not start with a UTF-8 BOM",
                 "This kind of file is expected to be in Windows-1252 encoding",
             );
-            parse_pdx(entry, bomless)
+            Some(parse_pdx(entry, bomless))
         } else {
-            parse_pdx(entry, &contents)
+            Some(parse_pdx(entry, &contents))
         }
     }
 }

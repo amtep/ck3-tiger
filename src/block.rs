@@ -409,7 +409,7 @@ impl Block {
                     }
                 }
             }
-            parse_pdx_macro(&content, local_macros.clone())
+            Some(parse_pdx_macro(&content, local_macros.clone()))
         } else {
             None
         }

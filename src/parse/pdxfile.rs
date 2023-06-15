@@ -97,7 +97,6 @@ struct ParseLevel {
 struct Parser {
     current: ParseLevel,
     stack: Vec<ParseLevel>,
-    brace_error: bool,
     local_macros: LocalMacros,
     calculation_op: CalculationOp,
     calculation: f64,
@@ -274,7 +273,6 @@ impl Parser {
                 );
             }
         } else {
-            self.brace_error = true;
             error(
                 Token::new("}".to_string(), loc),
                 ErrorKey::ParseError,
@@ -283,12 +281,9 @@ impl Parser {
         }
     }
 
-    fn eof(mut self) -> Option<Block> {
+    fn eof(mut self) -> Block {
         self.end_assign();
         while let Some(mut prev_level) = self.stack.pop() {
-            // The pdx parser seems to silently accept these errors, so
-            // emulate it and still use the file.
-            // self.brace_error = true;
             error(
                 &Token::new("{".to_string(), self.current.block.loc.clone()),
                 ErrorKey::ParseError,
@@ -297,24 +292,12 @@ impl Parser {
             swap(&mut self.current, &mut prev_level);
             self.block_value(prev_level.block);
         }
-        // Brace errors mean we shouldn't try to use the file at all,
-        // since its structure is unclear. Validating such a file would
-        // just produce a cascade of irrelevant errors.
-        if self.brace_error {
-            error(
-                self.current.block,
-                ErrorKey::ParseError,
-                "Could not parse file due to brace mismatch",
-            );
-            None
-        } else {
-            Some(self.current.block)
-        }
+        self.current.block
     }
 }
 
 #[allow(clippy::too_many_lines)] // many lines are natural for state machines
-fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Option<Block> {
+fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
     let mut parser = Parser {
         current: ParseLevel {
             block: Block::new(blockloc.clone()),
@@ -324,7 +307,6 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Option<B
             contains_macro_parms: false,
         },
         stack: Vec::new(),
-        brace_error: false,
         local_macros: local_macros,
         calculation: 0.0,
         calculation_op: CalculationOp::Add,
@@ -555,7 +537,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Option<B
 }
 
 #[allow(clippy::module_name_repetitions)]
-pub fn parse_pdx(entry: &FileEntry, content: &str) -> Option<Block> {
+pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
     let blockloc = Loc::for_entry(entry);
     let mut loc = blockloc.clone();
     loc.line = 1;
@@ -567,7 +549,7 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Option<Block> {
     )
 }
 
-pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Option<Block> {
+pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
     parse(inputs[0].loc.clone(), inputs, local_macros)
 }
 
