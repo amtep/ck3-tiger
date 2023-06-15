@@ -22,7 +22,7 @@ pub struct Localization {
     mod_langs: Vec<&'static str>,
 }
 
-// LAST UPDATED VERSION 1.9.0.2
+// LAST UPDATED VERSION 1.9.2
 pub const KNOWN_LANGUAGES: [&str; 7] = [
     "english",
     "spanish",
@@ -33,7 +33,7 @@ pub const KNOWN_LANGUAGES: [&str; 7] = [
     "simp_chinese",
 ];
 
-// LAST UPDATED VERSION 1.9.1
+// LAST UPDATED VERSION 1.9.2
 // Most are deduced from the vanilla localization files, but the known ones are
 // hardcoded here.
 pub const BUILTIN_MACROS: &[&str] = &[

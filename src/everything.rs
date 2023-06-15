@@ -586,10 +586,10 @@ impl Everything {
     }
 }
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 const ACTIVITY_STATES: &[&str] = &["passive", "travel", "active"];
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 const ARTIFACT_HISTORY: &[&str] = &[
     "created_before_history",
     "created",
@@ -610,7 +610,7 @@ const ARTIFACT_HISTORY: &[&str] = &[
     "reforged",
 ];
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 // TODO: parse it from dlc_metadata/ ? Unfortunately Tours and Tournaments
 // is an exception.
 const DLC: &[&str] = &[
@@ -624,7 +624,7 @@ const DLC: &[&str] = &[
     "Elegance of the Empire",
 ];
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 const DLC_FEATURES: &[&str] = &[
     "garments_of_the_hre",
     "fashion_of_the_abbasid_court",
@@ -642,13 +642,13 @@ const DLC_FEATURES: &[&str] = &[
     "elegance_of_the_empire",
 ];
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 const REWARD_ITEMS: &[&str] = &["newsletter_crown"];
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 const PRISON_TYPES: &[&str] = &["dungeon", "house_arrest"];
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 const SKILLS: &[&str] = &[
     "diplomacy",
     "intrigue",
@@ -658,10 +658,10 @@ const SKILLS: &[&str] = &[
     "stewardship",
 ];
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual", "none"];
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 const TITLE_HISTORY_TYPES: &[&str] = &[
     "conquest",
     "conquest_holy_war",
@@ -683,7 +683,7 @@ const TITLE_HISTORY_TYPES: &[&str] = &[
     "swear_fealty",
 ];
 
-/// LAST UPDATED VERSION 1.9.0.2",
+/// LAST UPDATED VERSION 1.9.2
 const TRAIT_CATEGORIES: &[&str] = &[
     "personality",
     "education",
@@ -696,7 +696,7 @@ const TRAIT_CATEGORIES: &[&str] = &[
     "health",
 ];
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 const DANGER_TYPES: &[&str] = &[
     "default",
     "battle",
@@ -709,5 +709,5 @@ const DANGER_TYPES: &[&str] = &[
     "owner_opinion",
 ];
 
-/// LAST UPDATED VERSION 1.9.1
+/// LAST UPDATED VERSION 1.9.2
 const ARTIFACT_RARITY: &[&str] = &["common", "masterwork", "famed", "illustrious"];

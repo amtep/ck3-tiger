@@ -62,7 +62,7 @@ impl Display for ModifKinds {
     }
 }
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 pub fn validate_modifs<'a>(

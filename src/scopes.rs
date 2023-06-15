@@ -10,7 +10,7 @@ use crate::helpers::display_choices;
 use crate::token::Token;
 
 bitflags! {
-    /// LAST UPDATED VERSION 1.9.0.2
+    /// LAST UPDATED VERSION 1.9.2
     /// See `event_scopes.log` from the game data dumps.
     /// Keep in sync with the module constants below.
     pub struct Scopes: u64 {
@@ -84,7 +84,7 @@ impl Scopes {
     }
 }
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 /// See `event_scopes.log` from the game data dumps.
 pub const None: u64 = 0x0000_0001;
 pub const Value: u64 = 0x0000_0002;
@@ -386,7 +386,7 @@ impl Display for Scopes {
     }
 }
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
@@ -558,7 +558,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (None, "yes", Bool),
 ];
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
@@ -610,7 +610,7 @@ const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
 // TODO Special:
 // <legacy>_track_perks
 
-/// LAST UPDATED VERSION 1.9.1
+/// LAST UPDATED VERSION 1.9.2
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
@@ -920,7 +920,7 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (War, "war_participant", Character),
 ];
 
-/// LAST UPDATED VERSION 1.9.0.2
+/// LAST UPDATED VERSION 1.9.2
 /// Every entry represents a every_, ordered_, random_, and any_ version.
 const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
     ("activity_declined", "1.9", ""),

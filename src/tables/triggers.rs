@@ -166,7 +166,7 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
 
 use RawTrigger::*;
 
-/// LAST UPDATED VERSION 1.9.1
+/// LAST UPDATED VERSION 1.9.2
 /// See `triggers.log` from the game data dumps
 /// special:
 ///    `<legacy>_track_perks`
