@@ -12,22 +12,28 @@ use crate::scopes::Scopes;
 
 include!("include/datatypes.rs");
 
+#[derive(Copy, Clone, Debug)]
+pub enum Arg {
+    DType(Datatype),
+    IType(Item),
+}
+
 #[allow(clippy::enum_variant_names)]
 #[derive(Copy, Clone, Debug)]
 pub enum Args {
     NoArgs,
-    Arg(Datatype),
-    Arg2(Datatype, Datatype),
-    Arg3(Datatype, Datatype, Datatype),
-    Arg4(Datatype, Datatype, Datatype, Datatype),
-    Arg5(Datatype, Datatype, Datatype, Datatype, Datatype),
+    Arg1(Arg),
+    Arg2(Arg, Arg),
+    Arg3(Arg, Arg, Arg),
+    Arg4(Arg, Arg, Arg, Arg),
+    Arg5(Arg, Arg, Arg, Arg, Arg),
 }
 
 impl Args {
     pub fn nargs(self) -> usize {
         match self {
             NoArgs => 0,
-            Arg(_) => 1,
+            Arg1(_) => 1,
             Arg2(_, _) => 2,
             Arg3(_, _, _) => 3,
             Arg4(_, _, _, _) => 4,
@@ -198,6 +204,7 @@ pub fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
     }
 }
 
+use Arg::*;
 use Args::*;
 use Datatype::*;
 

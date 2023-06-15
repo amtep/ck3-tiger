@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::tables::datafunctions::scope_from_datatype;
-pub use crate::tables::datafunctions::Args;
+pub use crate::tables::datafunctions::{Arg, Args};
 use crate::token::Token;
 
 pub use crate::tables::datafunctions::{
@@ -72,40 +72,52 @@ fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: &'sta
     }
 }
 
-fn validate_argument(arg: &CodeArg, data: &Everything, expect_type: Datatype, lang: &'static str) {
-    match arg {
-        CodeArg::Chain(chain) => validate_datatypes(chain, data, expect_type, lang, false),
-        CodeArg::Literal(token) => {
-            if token.as_str().starts_with('(') && token.as_str().contains(')') {
-                // These unwraps are safe because of the checks in the if condition
-                let dtype = token
-                    .as_str()
-                    .split(')')
-                    .next()
-                    .unwrap()
-                    .strip_prefix('(')
-                    .unwrap();
-                if dtype == "hex" {
-                    if expect_type != Datatype::Unknown && expect_type != Datatype::int32 {
-                        let msg = format!("expected {expect_type}, got {dtype}");
-                        error(token, ErrorKey::Datafunctions, &msg);
+fn validate_argument(arg: &CodeArg, data: &Everything, expect_arg: Arg, lang: &'static str) {
+    match expect_arg {
+        Arg::DType(expect_type) => {
+            match arg {
+                CodeArg::Chain(chain) => validate_datatypes(chain, data, expect_type, lang, false),
+                CodeArg::Literal(token) => {
+                    if token.as_str().starts_with('(') && token.as_str().contains(')') {
+                        // These unwraps are safe because of the checks in the if condition
+                        let dtype = token
+                            .as_str()
+                            .split(')')
+                            .next()
+                            .unwrap()
+                            .strip_prefix('(')
+                            .unwrap();
+                        if dtype == "hex" {
+                            if expect_type != Datatype::Unknown && expect_type != Datatype::int32 {
+                                let msg = format!("expected {expect_type}, got {dtype}");
+                                error(token, ErrorKey::Datafunctions, &msg);
+                            }
+                        } else if let Ok(dtype) = Datatype::from_str(dtype) {
+                            if expect_type != Datatype::Unknown && expect_type != dtype {
+                                let msg = format!("expected {expect_type}, got {dtype}");
+                                error(token, ErrorKey::Datafunctions, &msg);
+                            }
+                        } else {
+                            let msg = format!("unrecognized datatype {dtype}");
+                            error(token, ErrorKey::Datafunctions, &msg);
+                        }
+                    } else {
+                        if expect_type != Datatype::Unknown && expect_type != Datatype::CString {
+                            let msg = format!("expected {expect_type}, got CString");
+                            error(token, ErrorKey::Datafunctions, &msg);
+                        }
                     }
-                } else if let Ok(dtype) = Datatype::from_str(dtype) {
-                    if expect_type != Datatype::Unknown && expect_type != dtype {
-                        let msg = format!("expected {expect_type}, got {dtype}");
-                        error(token, ErrorKey::Datafunctions, &msg);
-                    }
-                } else {
-                    let msg = format!("unrecognized datatype {dtype}");
-                    error(token, ErrorKey::Datafunctions, &msg);
-                }
-            } else {
-                if expect_type != Datatype::Unknown && expect_type != Datatype::CString {
-                    let msg = format!("expected {expect_type}, got CString");
-                    error(token, ErrorKey::Datafunctions, &msg);
                 }
             }
         }
+        Arg::IType(itype) => match arg {
+            CodeArg::Chain(chain) => {
+                validate_datatypes(chain, data, Datatype::CString, lang, false)
+            }
+            CodeArg::Literal(token) => {
+                data.verify_exists(itype, token);
+            }
+        },
     }
 }
 
@@ -302,7 +314,7 @@ pub fn validate_datatypes(
 
         match args {
             Args::NoArgs => (),
-            Args::Arg(dt1) => validate_argument(&code.arguments[0], data, dt1, lang),
+            Args::Arg1(dt1) => validate_argument(&code.arguments[0], data, dt1, lang),
             Args::Arg2(dt1, dt2) => {
                 validate_argument(&code.arguments[0], data, dt1, lang);
                 validate_argument(&code.arguments[1], data, dt2, lang);
