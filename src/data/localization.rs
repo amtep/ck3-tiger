@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use crate::block::Block;
 use crate::datatype::{validate_datatypes, CodeChain, Datatype};
 use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, error, error_info, warn, warn_info};
+use crate::errors::{advice_info, error, error_info, warn, warn2, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::dup_error;
@@ -271,6 +271,47 @@ impl Localization {
                 data.localization.verify_exists_lang(token, lang);
             }
             _ => (),
+        }
+    }
+
+    pub fn verify_key_has_options(&self, key: &Token, n: i64) {
+        for lang in &self.mod_langs {
+            if let Some(hash) = self.locas.get(lang) {
+                if let Some(entry) = hash.get(key.as_str()) {
+                    if let Some(ref orig) = entry.orig {
+                        for i in 1..=n {
+                            let find = format!("$OPTION_{i}$");
+                            if !orig.as_str().contains(&find) {
+                                warn2(
+                                    key,
+                                    ErrorKey::Validation,
+                                    &format!("localization is missing {find}"),
+                                    &entry.key,
+                                    "here",
+                                );
+                            }
+                        }
+                        let find = format!("$OPTION_{}$", n + 1);
+                        if orig.as_str().contains(&find) {
+                            warn2(
+                                key,
+                                ErrorKey::Validation,
+                                &format!("localization has too many options"),
+                                &entry.key,
+                                "here",
+                            );
+                        }
+                    } else if n > 0 {
+                        warn2(
+                            key,
+                            ErrorKey::Validation,
+                            "localization is missing $OPTION_1$",
+                            &entry.key,
+                            "here",
+                        );
+                    }
+                }
+            }
         }
     }
 

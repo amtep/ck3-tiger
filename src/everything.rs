@@ -8,6 +8,7 @@ use thiserror::Error;
 
 use crate::block::Block;
 use crate::data::accessory::{Accessory, AccessoryVariation};
+use crate::data::accolades::{AccoladeIcon, AccoladeName};
 use crate::data::amenities::Amenity;
 use crate::data::artifacts::{
     ArtifactFeature, ArtifactFeatureGroup, ArtifactSlot, ArtifactTemplate, ArtifactType,
@@ -378,6 +379,8 @@ impl Everything {
         self.load_pdx_items(Item::Accessory, Accessory::add);
         self.load_pdx_items(Item::AccessoryVariation, AccessoryVariation::add);
         self.load_pdx_items(Item::PortraitModifierGroup, PortraitModifierGroup::add);
+        self.load_pdx_items(Item::AccoladeIcon, AccoladeIcon::add);
+        self.load_pdx_items(Item::AccoladeName, AccoladeName::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -437,6 +440,8 @@ impl Everything {
             | Item::AccessoryVariation
             | Item::AccessoryVariationLayout
             | Item::AccessoryVariationTextures
+            | Item::AccoladeIcon
+            | Item::AccoladeName
             | Item::Amenity
             | Item::ArtifactFeature
             | Item::ArtifactFeatureGroup
