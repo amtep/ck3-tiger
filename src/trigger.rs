@@ -4,6 +4,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, Comparator, Date};
 use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
+use crate::data::trigger_localization::TriggerLocalization;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice_info, error, warn, warn2, warn_info};
@@ -72,7 +73,15 @@ pub fn validate_trigger(
         if caller == "custom_tooltip" {
             vd.field_item("text", Item::Localization);
         } else {
-            vd.field_item("text", Item::TriggerLocalization);
+            if let Some(token) = vd.field_value("text") {
+                data.verify_exists(Item::TriggerLocalization, token);
+                if let Some((key, block)) = data
+                    .database
+                    .get_key_block(Item::TriggerLocalization, token.as_str())
+                {
+                    TriggerLocalization::validate_use(key, block, data, token, tooltipped);
+                }
+            }
         }
         vd.field_target("subject", sc, Scopes::non_primitive());
     } else {
@@ -159,6 +168,11 @@ pub fn validate_trigger_key_bv(
                 if !trigger.macro_parms().is_empty() {
                     error(token, ErrorKey::Macro, "expected macro arguments");
                 }
+                let tooltipped = if token.is("no") {
+                    tooltipped.negated()
+                } else {
+                    tooltipped
+                };
                 trigger.validate_call(key, data, sc, tooltipped);
             }
             BlockOrValue::Block(block) => {

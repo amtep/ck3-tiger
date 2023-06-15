@@ -123,15 +123,15 @@ impl Trigger {
         sc: &mut ScopeContext,
         tooltipped: Tooltipped,
     ) {
-        if !self.cached_compat(key, &[], sc) {
+        if !self.cached_compat(key, &[], tooltipped, sc) {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
-            self.cache.insert(key, &[], our_sc.clone());
+            self.cache.insert(key, &[], tooltipped, our_sc.clone());
             validate_normal_trigger(&self.block, data, &mut our_sc, tooltipped);
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
             }
             sc.expect_compatibility(&our_sc, key);
-            self.cache.insert(key, &[], our_sc);
+            self.cache.insert(key, &[], tooltipped, our_sc);
         }
     }
 
@@ -143,9 +143,10 @@ impl Trigger {
         &self,
         key: &Token,
         args: &[(String, Token)],
+        tooltipped: Tooltipped,
         sc: &mut ScopeContext,
     ) -> bool {
-        self.cache.perform(key, args, |our_sc| {
+        self.cache.perform(key, args, tooltipped, |our_sc| {
             sc.expect_compatibility(our_sc, key);
         })
     }
@@ -160,18 +161,18 @@ impl Trigger {
     ) {
         // Every invocation is treated as different even if the args are the same,
         // because we want to point to the correct one when reporting errors.
-        if !self.cached_compat(key, &args, sc) {
+        if !self.cached_compat(key, &args, tooltipped, sc) {
             if let Some(block) = self.block.expand_macro(&args, key) {
                 let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
-                self.cache.insert(key, &args, our_sc.clone());
+                self.cache.insert(key, &args, tooltipped, our_sc.clone());
                 validate_normal_trigger(&block, data, &mut our_sc, tooltipped);
                 if let Some(scopes) = self.scope_override {
                     our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
                 }
                 sc.expect_compatibility(&our_sc, key);
-                self.cache.insert(key, &args, our_sc);
+                self.cache.insert(key, &args, tooltipped, our_sc);
             }
         }
     }

@@ -18,6 +18,7 @@ pub enum ErrorKey {
     MissingLocalization,
     MissingFile,
     MissingItem,
+    MissingPerspective,
     WrongGender,
     Conflict,
     ImageFormat,

@@ -3,6 +3,7 @@ use std::str::FromStr;
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockOrValue, Comparator};
 use crate::context::ScopeContext;
+use crate::data::effect_localization::EffectLocalization;
 use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
@@ -354,7 +355,15 @@ fn validate_effect_control(
         if caller == "custom_tooltip" || caller == "custom_label" {
             vd.field_item("text", Item::Localization);
         } else {
-            vd.field_item("text", Item::EffectLocalization);
+            if let Some(token) = vd.field_value("text") {
+                data.verify_exists(Item::EffectLocalization, token);
+                if let Some((key, block)) = data
+                    .database
+                    .get_key_block(Item::EffectLocalization, token.as_str())
+                {
+                    EffectLocalization::validate_use(key, block, data, token, tooltipped);
+                }
+            }
         }
         vd.field_target("subject", sc, Scopes::non_primitive());
         tooltipped = Tooltipped::No;

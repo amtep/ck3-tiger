@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 pub enum Tooltipped {
     No,
     Yes,

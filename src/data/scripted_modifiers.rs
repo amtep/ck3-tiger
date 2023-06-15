@@ -11,6 +11,7 @@ use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::validate::{validate_modifiers, validate_scripted_modifier_calls};
 
 #[derive(Clone, Debug, Default)]
@@ -90,12 +91,12 @@ impl ScriptedModifier {
     pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
         if !self.cached_compat(key, &[], sc) {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
-            self.cache.insert(key, &[], our_sc.clone());
+            self.cache.insert(key, &[], Tooltipped::No, our_sc.clone());
             let mut vd = Validator::new(&self.block, data);
             validate_modifiers(&mut vd, &mut our_sc);
             validate_scripted_modifier_calls(vd, data, &mut our_sc);
             sc.expect_compatibility(&our_sc, key);
-            self.cache.insert(key, &[], our_sc);
+            self.cache.insert(key, &[], Tooltipped::No, our_sc);
         }
     }
 
@@ -109,7 +110,7 @@ impl ScriptedModifier {
         args: &[(String, Token)],
         sc: &mut ScopeContext,
     ) -> bool {
-        self.cache.perform(key, args, |our_sc| {
+        self.cache.perform(key, args, Tooltipped::No, |our_sc| {
             sc.expect_compatibility(our_sc, key);
         })
     }
@@ -128,12 +129,13 @@ impl ScriptedModifier {
                 let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
-                self.cache.insert(key, &args, our_sc.clone());
+                self.cache
+                    .insert(key, &args, Tooltipped::No, our_sc.clone());
                 let mut vd = Validator::new(&block, data);
                 validate_modifiers(&mut vd, &mut our_sc);
                 validate_scripted_modifier_calls(vd, data, &mut our_sc);
                 sc.expect_compatibility(&our_sc, key);
-                self.cache.insert(key, &args, our_sc);
+                self.cache.insert(key, &args, Tooltipped::No, our_sc);
             }
         }
     }

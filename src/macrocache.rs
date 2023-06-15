@@ -2,22 +2,28 @@ use fnv::FnvHashMap;
 use std::cell::RefCell;
 
 use crate::token::{Loc, Token};
+use crate::tooltipped::Tooltipped;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 struct MacroKey {
     loc: Loc,                    // the loc of the call site
     args: Vec<(String, String)>, // lexically sorted macro arguments
+    tooltipped: Tooltipped,
 }
 
 impl MacroKey {
-    pub fn new(mut loc: Loc, args: &[(String, Token)]) -> Self {
+    pub fn new(mut loc: Loc, args: &[(String, Token)], tooltipped: Tooltipped) -> Self {
         loc.link = None;
         let mut args: Vec<(String, String)> = args
             .iter()
             .map(|(parm, arg)| (parm.clone(), arg.to_string()))
             .collect();
         args.sort();
-        Self { loc, args }
+        Self {
+            loc,
+            args,
+            tooltipped,
+        }
     }
 }
 
@@ -27,8 +33,14 @@ pub struct MacroCache<T> {
 }
 
 impl<T> MacroCache<T> {
-    pub fn perform(&self, key: &Token, args: &[(String, Token)], mut f: impl FnMut(&T)) -> bool {
-        let key = MacroKey::new(key.loc.clone(), args);
+    pub fn perform(
+        &self,
+        key: &Token,
+        args: &[(String, Token)],
+        tooltipped: Tooltipped,
+        mut f: impl FnMut(&T),
+    ) -> bool {
+        let key = MacroKey::new(key.loc.clone(), args, tooltipped);
         if let Some(x) = self.cache.borrow().get(&key) {
             f(x);
             true
@@ -37,8 +49,8 @@ impl<T> MacroCache<T> {
         }
     }
 
-    pub fn insert(&self, key: &Token, args: &[(String, Token)], value: T) {
-        let key = MacroKey::new(key.loc.clone(), args);
+    pub fn insert(&self, key: &Token, args: &[(String, Token)], tooltipped: Tooltipped, value: T) {
+        let key = MacroKey::new(key.loc.clone(), args, tooltipped);
         self.cache.borrow_mut().insert(key, value);
     }
 }
