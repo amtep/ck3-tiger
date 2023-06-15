@@ -7,7 +7,7 @@ use std::rc::Rc;
 use thiserror::Error;
 
 use crate::block::Block;
-use crate::data::accessory::Accessory;
+use crate::data::accessory::{Accessory, AccessoryVariation};
 use crate::data::amenities::Amenity;
 use crate::data::artifacts::{
     ArtifactFeature, ArtifactFeatureGroup, ArtifactSlot, ArtifactTemplate, ArtifactType,
@@ -375,6 +375,7 @@ impl Everything {
         self.load_pdx_items(Item::NamedColor, NamedColor::add);
         self.load_pdx_items(Item::Innovation, Innovation::add);
         self.load_pdx_items(Item::Accessory, Accessory::add);
+        self.load_pdx_items(Item::AccessoryVariation, AccessoryVariation::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -431,6 +432,9 @@ impl Everything {
         match itype {
             Item::Accessory
             | Item::AccessoryTag
+            | Item::AccessoryVariation
+            | Item::AccessoryVariationLayout
+            | Item::AccessoryVariationTextures
             | Item::Amenity
             | Item::ArtifactFeature
             | Item::ArtifactFeatureGroup

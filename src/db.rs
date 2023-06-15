@@ -28,6 +28,25 @@ impl Db {
         self.database.insert(index, DbEntry { key, block, kind });
     }
 
+    pub fn add_exact_dup_ok(
+        &mut self,
+        item: Item,
+        key: Token,
+        block: Block,
+        kind: Box<dyn DbKind>,
+    ) {
+        let index = (item, key.to_string());
+        if let Some(other) = self.database.get(&index) {
+            if other.block.equivalent(&block) {
+                return;
+            }
+            if other.key.loc.kind >= key.loc.kind {
+                dup_error(&key, &other.key, &item.to_string());
+            }
+        }
+        self.database.insert(index, DbEntry { key, block, kind });
+    }
+
     pub fn add_flag(&mut self, item: Item, key: Token) {
         let index = (item, key.to_string());
         self.flags.insert(index, key);
