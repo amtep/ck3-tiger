@@ -66,7 +66,7 @@
     ("GetBookmark", Arg1(DType(Unknown)), Bookmark),
     ("GetBookmarkGroup", Arg1(DType(Unknown)), BookmarkGroup),
     ("GetBookmarkPortrait", Arg1(DType(Unknown)), BookmarkPortrait),
-    ("GetBuilding", Arg1(DType(Unknown)), Building),
+    ("GetBuilding", Arg1(IType(Item::Building)), Building),
     ("GetCasusBelliType", Arg1(DType(Unknown)), CasusBelliType),
     ("GetCatalystType", Arg1(DType(Unknown)), CatalystType),
     ("GetCharacterInteraction", Arg1(DType(Unknown)), CharacterInteraction),

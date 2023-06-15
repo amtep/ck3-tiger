@@ -193,6 +193,15 @@ impl Interaction {
             validate_duration,
         );
 
+        vd.field_validated_block_rerooted(
+            "ignore_recipient_recieve_cooldown",
+            &sc,
+            Scopes::Character,
+            |block, data, sc| {
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
+            },
+        );
+
         // TODO: The ai_ name check is a heuristic. It would be better to check if the
         // is_shown trigger requires scope:actor to be is_ai = yes. But that's a long way off.
         if !self.key.as_str().starts_with("ai_") {

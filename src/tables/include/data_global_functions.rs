@@ -177,7 +177,7 @@
     ("GetBookmarkPortrait", Arg1(DType(Unknown)), Unknown),
     ("GetBuildVersionDescription", NoArgs, CString),
     ("GetBuildVersionDescriptionWithClickToCopy", NoArgs, CString),
-    ("GetBuilding", Arg1(DType(Unknown)), Unknown),
+    ("GetBuilding", Arg1(IType(Item::Building)), Unknown),
     ("GetCanGoToFrontend", NoArgs, bool),
     ("GetCanGoToFrontendDesc", NoArgs, CString),
     ("GetCasusBelliType", Arg1(DType(Unknown)), Unknown),

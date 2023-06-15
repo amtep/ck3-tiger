@@ -20,7 +20,8 @@ GLOBAL_PROMOTES.append('    ("Root", NoArgs, Scope),\n')
 # Most promotes and functions have 'Unknown' arg types in the data_type logs.
 # This dictionary replaces those with known arg types in specific cases.
 ARGS_OVERRIDE = {
-    "EqualTo_string": "Arg2(DType(CString), DType(CString))",
+    ("GetBuilding", 1): "Arg1(IType(Item::Building))",
+    ("EqualTo_string", 2): "Arg2(DType(CString), DType(CString))",
 }
 
 # UNARY_ARGS are functions that have their argument type in their name
@@ -52,16 +53,22 @@ for fname in fnames:
         name = lines[0].split('(')[0]
 
         args = "NoArgs"
+        nargs = 0
         if "Arg0" in lines[0]:
             args = "Arg1(DType(Unknown))"
+            nargs = 1
         if "Arg1" in lines[0]:
             args = "Arg2(DType(Unknown), DType(Unknown))"
+            nargs = 2
         if "Arg2" in lines[0]:
             args = "Arg3(DType(Unknown), DType(Unknown), DType(Unknown))"
+            nargs = 3
         if "Arg3" in lines[0]:
             args = "Arg4(DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown))"
+            nargs = 4
         if "Arg4" in lines[0]:
             args = "Arg5(DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown))"
+            nargs = 5
         for s in UNARY_ARGS:
             if name.startswith(s):
                 type = name.split('_')[1]
@@ -73,8 +80,8 @@ for fname in fnames:
         if name.startswith("Select_"):
             type = name.split('_')[1]
             args = 'Arg3(DType(bool), DType(%s), DType(%s))' % (type, type)
-        if name in ARGS_OVERRIDE:
-            args = ARGS_OVERRIDE[name]
+        if (name, nargs) in ARGS_OVERRIDE:
+            args = ARGS_OVERRIDE[(name, nargs)]
 
         if "Definition type: Global macro" in item:
             # macros are parsed directly from data_binding
