@@ -152,6 +152,13 @@ pub struct AccessoryGene {}
 
 impl AccessoryGene {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        for (_key, block) in block.iter_pure_definitions() {
+            if let Some(tags) = block.get_field_value("set_tags") {
+                for tag in tags.split(',') {
+                    db.add_flag(Item::AccessoryTag, tag);
+                }
+            }
+        }
         db.add(Item::GeneCategory, key, block, Box::new(Self {}));
     }
 }
@@ -312,6 +319,7 @@ fn validate_accessory_gene(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.req_field("index");
     vd.field_integer("index"); // TODO: verify unique indices
+    vd.field_value("set_tags");
     let choices = &["male", "female", "boy", "girl"];
     for field in choices {
         vd.field_validated(field, |bv, data| {
@@ -326,7 +334,9 @@ fn validate_accessory_gene(block: &Block, data: &Everything) {
                 BlockOrValue::Block(block) => {
                     let mut vd = Validator::new(block, data);
                     for (_weight, token) in vd.integer_values() {
-                        data.verify_exists(Item::GfxPortraitsAccessories, token);
+                        if !token.is("empty") {
+                            data.verify_exists(Item::Accessory, token);
+                        }
                     }
                 }
             }
@@ -348,7 +358,16 @@ fn validate_gene_setting(block: &Block, data: &Everything) {
     });
     vd.field_validated_block("curve", validate_curve);
     vd.field_validated("age", validate_age_field);
-    vd.field_value("required_tags"); // TODO
+    if let Some(token) = vd.field_value("required_tags") {
+        for tag in token.split(',') {
+            if tag.starts_with("not(") {
+                let real_tag = &tag.split('(')[1].split(')')[0];
+                data.verify_exists(Item::AccessoryTag, real_tag);
+            } else {
+                data.verify_exists(Item::AccessoryTag, &tag);
+            }
+        }
+    }
 }
 
 fn validate_gene_decal(block: &Block, data: &Everything) {

@@ -7,6 +7,7 @@ use std::rc::Rc;
 use thiserror::Error;
 
 use crate::block::Block;
+use crate::data::accessory::Accessory;
 use crate::data::amenities::Amenity;
 use crate::data::artifacts::{
     ArtifactFeature, ArtifactFeatureGroup, ArtifactSlot, ArtifactTemplate, ArtifactType,
@@ -373,6 +374,7 @@ impl Everything {
         self.load_pdx_items(Item::CultureEra, CultureEra::add);
         self.load_pdx_items(Item::NamedColor, NamedColor::add);
         self.load_pdx_items(Item::Innovation, Innovation::add);
+        self.load_pdx_items(Item::Accessory, Accessory::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -427,7 +429,9 @@ impl Everything {
 
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
-            Item::Amenity
+            Item::Accessory
+            | Item::AccessoryTag
+            | Item::Amenity
             | Item::ArtifactFeature
             | Item::ArtifactFeatureGroup
             | Item::ArtifactSlot

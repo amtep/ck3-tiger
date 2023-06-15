@@ -7,6 +7,8 @@ use strum_macros::IntoStaticStr;
 #[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord)]
 #[strum(serialize_all = "snake_case")]
 pub enum Item {
+    Accessory,
+    AccessoryTag,
     AccessoryVariation,
     AccoladeCategory,
     AccoladeParameter,
@@ -85,7 +87,6 @@ pub enum Item {
     GeneAgePreset,
     GeneAttribute,
     GeneCategory,
-    GfxPortraitsAccessories,
     GovernmentType,
     GovernmentFlag,
     GraphicalFaith,
@@ -176,6 +177,8 @@ impl Item {
     pub fn path(self) -> &'static str {
         #[allow(clippy::match_same_arms)]
         match self {
+            Accessory => "gfx/portraits/accessories/",
+            AccessoryTag => "gfx/portraits/accessories/",
             AccessoryVariation => "gfx/portraits/accessory_variations/",
             AccoladeCategory => "common/accolade_types/",
             AccoladeParameter => "common/accolade_types/",
@@ -254,7 +257,6 @@ impl Item {
             GeneAgePreset => "common/genes/",
             GeneAttribute => "common/genes/",
             GeneCategory => "common/genes/",
-            GfxPortraitsAccessories => "gfx/portraits/accessories/",
             GovernmentType => "common/governments/",
             GovernmentFlag => "common/governments/",
             GraphicalFaith => "common/religion/religions/",

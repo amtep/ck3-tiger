@@ -1,3 +1,4 @@
+pub mod accessory;
 pub mod amenities;
 pub mod artifacts;
 pub mod assets;
