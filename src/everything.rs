@@ -32,6 +32,7 @@ use crate::data::dna::Dna;
 use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
 use crate::data::effect_localization::EffectLocalization;
+use crate::data::ethnicity::Ethnicity;
 use crate::data::event_themes::Themes;
 use crate::data::events::Events;
 use crate::data::factions::Faction;
@@ -389,6 +390,7 @@ impl Everything {
         self.load_pdx_items(Item::Dna, Dna::add);
         self.load_pdx_items(Item::Bookmark, Bookmark::add);
         self.load_pdx_items(Item::BookmarkGroup, BookmarkGroup::add);
+        self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -479,6 +481,7 @@ impl Everything {
             | Item::DeathReason
             | Item::Dna
             | Item::EffectLocalization
+            | Item::Ethnicity
             | Item::Faction
             | Item::Focus
             | Item::GeneAgePreset
@@ -524,6 +527,7 @@ impl Everything {
             Item::File => self.fileset.exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
+            Item::GeneticConstraint => self.traits.constraint_exists(key),
             Item::House => self.houses.exists(key),
             Item::Interaction => self.interactions.exists(key),
             Item::InteractionCategory => self.interaction_cats.exists(key),
@@ -570,7 +574,6 @@ impl Everything {
             | Item::DiarchyType
             | Item::DynastyLegacy
             | Item::DynastyPerk
-            | Item::Ethnicity
             | Item::EventBackground
             | Item::EventTransition
             | Item::FaithIcon

@@ -21,6 +21,7 @@ pub struct Traits {
     // TODO: track trait flags too
     traits: FnvHashMap<String, Trait>,
     groups: FnvHashSet<String>,
+    constraints: FnvHashSet<String>,
 }
 
 impl Traits {
@@ -33,6 +34,15 @@ impl Traits {
         if let Some(token) = block.get_field_value("group") {
             self.groups.insert(token.to_string());
         }
+        for field in &[
+            "genetic_constraint_all",
+            "genetic_constraint_men",
+            "genetic_constraint_women",
+        ] {
+            if let Some(token) = block.get_field_value(field) {
+                self.constraints.insert(token.to_string());
+            }
+        }
         if let Some(token) = block.get_field_value("group_equivalence") {
             self.groups.insert(token.to_string());
         }
@@ -42,6 +52,10 @@ impl Traits {
 
     pub fn exists(&self, key: &str) -> bool {
         self.traits.contains_key(key) || self.groups.contains(key)
+    }
+
+    pub fn constraint_exists(&self, key: &str) -> bool {
+        self.constraints.contains(key)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -216,9 +230,11 @@ impl Trait {
         vd.field_choice("claim_inheritance_blocker", &["none", "dynasty", "all"]);
         vd.field_choice("bastard", &["none", "illegitimate", "legitimate"]);
 
-        vd.field_value("genetic_constraint_all"); // TODO: what is the item here?
-        vd.field_value("genetic_constraint_men"); // TODO: what is the item here?
-        vd.field_value("genetic_constraint_women"); // TODO: what is the item here?
+        // The ethnicity files refer to these
+        vd.field_value("genetic_constraint_all");
+        vd.field_value("genetic_constraint_men");
+        vd.field_value("genetic_constraint_women");
+
         vd.field_numeric("portrait_extremity_shift");
         vd.field_numeric("ugliness_portrait_extremity_shift");
         vd.field_block("portrait_pose"); // TODO

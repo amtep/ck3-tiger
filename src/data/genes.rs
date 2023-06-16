@@ -101,7 +101,7 @@ impl DbKind for ColorGene {
         call_block: &Block,
     ) {
         let mut vd = Validator::new(call_block, data);
-        vd.req_tokens_integers_exactly(4);
+        vd.req_tokens_numbers_exactly(4);
     }
 }
 

@@ -179,7 +179,17 @@ impl Parser {
                         .add_key_value(key, comp, BlockOrValue::Value(token));
                 }
             } else {
-                self.current.block.add_value(BlockOrValue::Value(key));
+                if let Some(local_macro) = key.as_str().strip_prefix('@') {
+                    if let Some(value) = self.local_macros.get_as_string(local_macro) {
+                        let token = Token::new(value, key.loc);
+                        self.current.block.add_value(BlockOrValue::Value(token));
+                    } else {
+                        error(&key, ErrorKey::ParseError, "local value not defined");
+                        self.current.block.add_value(BlockOrValue::Value(key));
+                    }
+                } else {
+                    self.current.block.add_value(BlockOrValue::Value(key));
+                }
                 self.current.key = Some(token);
             }
         } else {
@@ -233,7 +243,17 @@ impl Parser {
             if let Some((_, comp_token)) = self.current.comp.take() {
                 error(comp_token, ErrorKey::ParseError, "Comparator without value");
             }
-            self.current.block.add_value(BlockOrValue::Value(key));
+            if let Some(local_macro) = key.as_str().strip_prefix('@') {
+                if let Some(value) = self.local_macros.get_as_string(local_macro) {
+                    let token = Token::new(value, key.loc);
+                    self.current.block.add_value(BlockOrValue::Value(token));
+                } else {
+                    error(&key, ErrorKey::ParseError, "local value not defined");
+                    self.current.block.add_value(BlockOrValue::Value(key));
+                }
+            } else {
+                self.current.block.add_value(BlockOrValue::Value(key));
+            }
         }
     }
 
