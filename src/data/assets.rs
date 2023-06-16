@@ -16,6 +16,7 @@ use crate::util::SmartJoin;
 #[derive(Clone, Debug, Default)]
 pub struct Assets {
     assets: FnvHashMap<String, Asset>,
+    attributes: FnvHashSet<String>,
     blend_shapes: FnvHashSet<String>,
     textures: FnvHashMap<String, FileEntry>,
 }
@@ -27,6 +28,15 @@ impl Assets {
                 if key.is("blend_shape") {
                     if let Some(id) = block.get_field_value("id") {
                         self.blend_shapes.insert(id.to_string());
+                    }
+                }
+            }
+        }
+        if key.is("entity") {
+            for (key, block) in block.iter_pure_definitions() {
+                if key.is("attribute") {
+                    if let Some(name) = block.get_field_value("name") {
+                        self.attributes.insert(name.to_string());
                     }
                 }
             }
@@ -64,6 +74,10 @@ impl Assets {
 
     pub fn blend_shape_exists(&self, key: &str) -> bool {
         self.blend_shapes.contains(key)
+    }
+
+    pub fn attribute_exists(&self, key: &str) -> bool {
+        self.attributes.contains(key)
     }
 
     pub fn texture_exists(&self, key: &str) -> bool {

@@ -515,6 +515,7 @@ impl Everything {
             Item::Faith => self.religions.faith_exists(key),
             Item::File => self.fileset.exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),
+            Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::House => self.houses.exists(key),
             Item::Interaction => self.interactions.exists(key),
             Item::InteractionCategory => self.interaction_cats.exists(key),
@@ -567,7 +568,6 @@ impl Everything {
             | Item::EventTransition
             | Item::FaithIcon
             | Item::GameRule
-            | Item::GeneAttribute
             | Item::GovernmentType
             | Item::GovernmentFlag
             | Item::GraphicalFaith
