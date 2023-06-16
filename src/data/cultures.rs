@@ -8,7 +8,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::{validate_color, validate_maa_stats};
+use crate::validate::{validate_color, validate_cost, validate_maa_stats};
 
 #[derive(Clone, Debug)]
 pub struct CultureEra {}
@@ -33,34 +33,7 @@ impl DbKind for CultureEra {
         vd.field_item("invalid_for_government", Item::GovernmentType);
         vd.field_items("custom", Item::Localization);
 
-        vd.field_validated_blocks_rooted(
-            "character_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted("culture_modifier", Scopes::Culture, |block, data, sc| {
-            let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Culture, sc, vd);
-        });
-        vd.field_validated_blocks_rooted(
-            "county_modifier",
-            Scopes::LandedTitle,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::County, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "province_modifier",
-            Scopes::Province,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::Province, sc, vd);
-            },
-        );
+        validate_modifiers(&mut vd);
 
         vd.field_validated_blocks("maa_upgrade", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -171,6 +144,9 @@ impl CulturePillar {
                 }
             }
         }
+        if block.field_value_is("type", "language") {
+            db.add_flag(Item::Language, key.clone());
+        }
         db.add(Item::CulturePillar, key, block, Box::new(Self {}));
     }
 }
@@ -179,8 +155,11 @@ impl DbKind for CulturePillar {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         vd.field_choice("type", &["ethos", "heritage", "language", "martial_custom"]);
-        let loca = format!("{key}_name");
-        data.verify_exists_implied(Item::Localization, &loca, key);
+        vd.field_item("name", Item::Localization);
+        if !block.has_key("name") {
+            let loca = format!("{key}_name");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
         if block.field_value_is("type", "ethos") {
             vd.field_item("desc", Item::Localization);
             if !block.has_key("desc") {
@@ -200,32 +179,13 @@ impl DbKind for CulturePillar {
                 validate_modifs(block, data, ModifKinds::Character, sc, vd);
             },
         );
-        vd.field_validated_blocks_rooted("culture_modifier", Scopes::Culture, |block, data, sc| {
-            let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Culture, sc, vd);
-        });
-        vd.field_validated_blocks_rooted(
-            "county_modifier",
-            Scopes::LandedTitle,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::County, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "province_modifier",
-            Scopes::Province,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::Province, sc, vd);
-            },
-        );
+        validate_modifiers(&mut vd);
 
         vd.field_script_value_rooted("ai_will_do", Scopes::Culture);
-        vd.field_validated_block_rooted("is_shown", Scopes::None, |block, data, sc| {
+        vd.field_validated_block_rooted("is_shown", Scopes::Culture, |block, data, sc| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
-        vd.field_validated_block_rooted("can_pick", Scopes::None, |block, data, sc| {
+        vd.field_validated_block_rooted("can_pick", Scopes::Culture, |block, data, sc| {
             validate_normal_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_validated("color", |bv, data| match bv {
@@ -234,4 +194,89 @@ impl DbKind for CulturePillar {
         });
         vd.field_block("parameters");
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct CultureTradition {}
+
+impl CultureTradition {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        if let Some(block) = block.get_field_block("parameters") {
+            for (key, value) in block.iter_assignments() {
+                if value.is("yes") {
+                    db.add_flag(Item::CultureParameter, key.clone());
+                }
+            }
+        }
+        db.add(Item::CultureTradition, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for CultureTradition {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        vd.field_item("name", Item::Localization);
+        if !block.has_key("name") {
+            let loca = format!("{key}_name");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
+        vd.field_item("desc", Item::Localization);
+        if !block.has_key("desc") {
+            let loca = format!("{key}_desc");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
+        vd.field_block("parameters");
+        vd.field_value("category");
+        vd.field_block("layers"); // TODO
+
+        vd.field_validated_block_rooted("can_pick", Scopes::Culture, |block, data, sc| {
+            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+        });
+        vd.field_validated_block_rooted(
+            "can_pick_for_hybridization",
+            Scopes::Culture,
+            |block, data, sc| {
+                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+            },
+        );
+        validate_modifiers(&mut vd);
+        vd.field_validated_blocks_rooted(
+            "doctrine_character_modifier",
+            Scopes::Character,
+            |block, data, sc| {
+                let mut vd = Validator::new(block, data);
+                vd.field_item("doctrine", Item::Doctrine);
+                vd.field_item("name", Item::Localization);
+                validate_modifs(block, data, ModifKinds::Character, sc, vd);
+            },
+        );
+        vd.field_validated_block_rooted("cost", Scopes::Culture, validate_cost);
+        vd.field_script_value_rooted("ai_will_do", Scopes::Culture);
+        vd.field_validated_block_rooted("is_shown", Scopes::Culture, |block, data, sc| {
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
+        });
+    }
+}
+
+fn validate_modifiers(vd: &mut Validator) {
+    vd.field_validated_blocks_rooted(
+        "character_modifier",
+        Scopes::Character,
+        |block, data, sc| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, sc, vd);
+        },
+    );
+    vd.field_validated_blocks_rooted("culture_modifier", Scopes::Culture, |block, data, sc| {
+        let vd = Validator::new(block, data);
+        validate_modifs(block, data, ModifKinds::Culture, sc, vd);
+    });
+    vd.field_validated_blocks_rooted("county_modifier", Scopes::LandedTitle, |block, data, sc| {
+        let vd = Validator::new(block, data);
+        validate_modifs(block, data, ModifKinds::County, sc, vd);
+    });
+    vd.field_validated_blocks_rooted("province_modifier", Scopes::Province, |block, data, sc| {
+        let vd = Validator::new(block, data);
+        validate_modifs(block, data, ModifKinds::Province, sc, vd);
+    });
 }
