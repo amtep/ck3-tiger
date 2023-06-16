@@ -236,7 +236,7 @@ impl Item {
             CourtType => "common/court_types/",
             Culture => "common/culture/cultures/",
             CultureEra => "common/culture/eras/",
-            CultureParameter => "common/culture/cultures/",
+            CultureParameter => "common/culture/",
             CulturePillar => "common/culture/pillars/",
             CultureTradition => "common/culture/traditions/",
             CustomLocalization => "common/customizable_localization/",

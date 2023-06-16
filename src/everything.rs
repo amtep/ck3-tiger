@@ -22,7 +22,7 @@ use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
 use crate::data::colors::NamedColor;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
-use crate::data::cultures::{Culture, CultureEra};
+use crate::data::cultures::{Culture, CultureEra, CulturePillar};
 use crate::data::customloca::CustomLocalization;
 use crate::data::data_binding::DataBindings;
 use crate::data::deathreasons::DeathReason;
@@ -378,6 +378,7 @@ impl Everything {
         self.load_pdx_items(Item::Building, Building::add);
         self.load_pdx_items(Item::Culture, Culture::add);
         self.load_pdx_items(Item::CultureEra, CultureEra::add);
+        self.load_pdx_items(Item::CulturePillar, CulturePillar::add);
         self.load_pdx_items(Item::NamedColor, NamedColor::add);
         self.load_pdx_items(Item::Innovation, Innovation::add);
         self.load_pdx_items(Item::Accessory, Accessory::add);
@@ -478,6 +479,7 @@ impl Everything {
             | Item::CustomLocalization
             | Item::Culture
             | Item::CultureEra
+            | Item::CulturePillar
             | Item::DeathReason
             | Item::Dna
             | Item::EffectLocalization
@@ -567,7 +569,6 @@ impl Everything {
             | Item::CourtSceneGroup
             | Item::CourtType
             | Item::CultureParameter
-            | Item::CulturePillar
             | Item::CultureTradition
             | Item::DiarchyMandate
             | Item::DiarchyParameter
