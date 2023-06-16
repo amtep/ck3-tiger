@@ -604,15 +604,30 @@ pub fn validate_modifs<'a>(
             }
         }
 
+        for sfx in &[
+            "_levy_contribution_add",
+            "_levy_contribution_mult",
+            "_tax_contribution_add",
+            "_tax_contribution_mult",
+        ] {
+            if let Some(pfx) = token.as_str().strip_suffix(sfx) {
+                if !data.item_exists(Item::VassalStance, pfx)
+                    && !data.item_exists(Item::GovernmentType, pfx)
+                {
+                    let msg = format!("unknown vassal stance or government type `{pfx}`");
+                    error(token, ErrorKey::MissingItem, &msg);
+                }
+                kinds.require(ModifKinds::Character, token);
+                ScriptValue::validate_bv(bv, data, sc);
+                continue 'outer;
+            }
+        }
+
         for vassal_stance_sfx in &[
             "_different_culture_opinion",
             "_different_faith_opinion",
-            "_levy_contribution_add",
-            "_levy_contribution_mult",
             "_same_culture_opinion",
             "_same_faith_opinion",
-            "_tax_contribution_add",
-            "_tax_contribution_mult",
         ] {
             if let Some(vassal_stance) = token.as_str().strip_suffix(vassal_stance_sfx) {
                 data.verify_exists_implied(Item::VassalStance, vassal_stance, token);
@@ -659,21 +674,6 @@ pub fn validate_modifs<'a>(
             }
         }
 
-        if let Some(something) = token.as_str().strip_suffix("_opinion") {
-            // TODO: add vassal stance item
-            if !data.item_exists(Item::Religion, something)
-                && !data.item_exists(Item::Faith, something)
-                && !data.item_exists(Item::Culture, something)
-                && !data.item_exists(Item::ReligiousFamily, something)
-                && !data.item_exists(Item::GovernmentType, something)
-            {
-                error(token, ErrorKey::MissingItem, "unknown opinion type (not faith, religion, religious family, culture, or government)");
-            }
-            kinds.require(ModifKinds::Character, token);
-            ScriptValue::validate_bv(bv, data, sc);
-            continue;
-        }
-
         for maa_sfx in &[
             "_damage_add",
             "_damage_mult",
@@ -703,14 +703,7 @@ pub fn validate_modifs<'a>(
             }
         }
 
-        for sfx in &[
-            "_opinion_same_faith",
-            "_vassal_opinion",
-            "_levy_contribution_add",
-            "_levy_contribution_mult",
-            "_tax_contribution_add",
-            "_tax_contribution_mult",
-        ] {
+        for sfx in &["_opinion_same_faith", "_vassal_opinion"] {
             if let Some(government) = token.as_str().strip_suffix(sfx) {
                 data.verify_exists_implied(Item::GovernmentType, government, token);
                 kinds.require(ModifKinds::Character, token);
@@ -763,6 +756,21 @@ pub fn validate_modifs<'a>(
                 ScriptValue::validate_bv(bv, data, sc);
                 continue 'outer;
             }
+        }
+
+        if let Some(something) = token.as_str().strip_suffix("_opinion") {
+            if !data.item_exists(Item::Religion, something)
+                && !data.item_exists(Item::Faith, something)
+                && !data.item_exists(Item::Culture, something)
+                && !data.item_exists(Item::ReligiousFamily, something)
+                && !data.item_exists(Item::GovernmentType, something)
+                && !data.item_exists(Item::VassalStance, something)
+            {
+                error(token, ErrorKey::MissingItem, "unknown opinion type (not faith, religion, religious family, culture, or government, or vassal stance)");
+            }
+            kinds.require(ModifKinds::Character, token);
+            ScriptValue::validate_bv(bv, data, sc);
+            continue;
         }
 
         let msg = format!("unknown modifier `{token}`");

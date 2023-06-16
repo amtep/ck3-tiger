@@ -21,6 +21,7 @@ GLOBAL_PROMOTES.append('    ("Root", NoArgs, Scope),\n')
 # This dictionary replaces those with known arg types in specific cases.
 ARGS_OVERRIDE = {
     ("GetBuilding", 1): "Arg1(IType(Item::Building))",
+    ("GetVassalStance", 1): "Arg1(IType(Item::VassalStance))",
     ("EqualTo_string", 2): "Arg2(DType(CString), DType(CString))",
 }
 

@@ -363,7 +363,7 @@
     ("GetTravelPointOfInterestType", Arg1(DType(Unknown)), void),
     ("GetVarTimeRemaining", Arg2(DType(Unknown), DType(Unknown)), int32),
     ("GetVassalContractType", Arg1(DType(Unknown)), Unknown),
-    ("GetVassalStance", Arg1(DType(Unknown)), Unknown),
+    ("GetVassalStance", Arg1(IType(Item::VassalStance)), Unknown),
     ("GetViewHistoryTooltip", NoArgs, CString),
     ("GetZoomLevel", NoArgs, int32),
     ("GfxGetSkins", NoArgs, Unknown),

@@ -68,6 +68,7 @@ use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
 use crate::data::trigger_localization::TriggerLocalization;
+use crate::data::vassalstance::VassalStance;
 use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
 use crate::errorkey::ErrorKey;
@@ -382,6 +383,7 @@ impl Everything {
         self.load_pdx_items(Item::AccoladeIcon, AccoladeIcon::add);
         self.load_pdx_items(Item::AccoladeName, AccoladeName::add);
         self.load_pdx_items(Item::AccoladeType, AccoladeType::add);
+        self.load_pdx_items(Item::VassalStance, VassalStance::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -491,7 +493,8 @@ impl Everything {
             | Item::ScriptedRule
             | Item::Terrain
             | Item::TriggerLocalization
-            | Item::UnitGfx => self.database.exists(itype, key),
+            | Item::UnitGfx
+            | Item::VassalStance => self.database.exists(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::ArtifactRarity => ARTIFACT_RARITY.contains(&key),
@@ -519,6 +522,7 @@ impl Everything {
             Item::MenAtArms => self.menatarmstypes.exists(key),
             Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),
             Item::NameList => self.namelists.exists(key),
+            Item::OnAction => self.on_actions.exists(key),
             Item::Pdxmesh => self.assets.mesh_exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces.exists(key),
@@ -537,7 +541,70 @@ impl Everything {
             Item::TitleHistoryType => TITLE_HISTORY_TYPES.contains(&key),
             Item::Trait => self.traits.exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            _ => true,
+            Item::ActivityIntent
+            | Item::ActivityLocale
+            | Item::ActivityOption
+            | Item::ActivityOptionCategory
+            | Item::ActivityPhase
+            | Item::ActivityType
+            | Item::Catalyst
+            | Item::Coa
+            | Item::CouncilPosition
+            | Item::CouncilTask
+            | Item::CourtSceneGroup
+            | Item::CourtType
+            | Item::CultureParameter
+            | Item::CulturePillar
+            | Item::CultureTradition
+            | Item::DiarchyMandate
+            | Item::DiarchyParameter
+            | Item::DiarchyType
+            | Item::Dna
+            | Item::DynastyLegacy
+            | Item::DynastyPerk
+            | Item::Ethnicity
+            | Item::EventBackground
+            | Item::EventTransition
+            | Item::FaithIcon
+            | Item::GameRule
+            | Item::GeneAttribute
+            | Item::GovernmentType
+            | Item::GovernmentFlag
+            | Item::GraphicalFaith
+            | Item::GuestSubset
+            | Item::HolySite
+            | Item::HolySiteFlag
+            | Item::Hook
+            | Item::ImportantAction
+            | Item::Inspiration
+            | Item::Language
+            | Item::Law
+            | Item::LawFlag
+            | Item::MapMode
+            | Item::MemoryCategory
+            | Item::MemoryType
+            | Item::Modifier
+            | Item::Music
+            | Item::PointOfInterest
+            | Item::ReligiousFamily
+            | Item::Scheme
+            | Item::Secret
+            | Item::SpecialBuilding
+            | Item::Story
+            | Item::Struggle
+            | Item::StrugglePhase
+            | Item::StrugglePhaseParameter
+            | Item::Suggestion
+            | Item::TitleLaw
+            | Item::TitleLawFlag
+            | Item::Tradition
+            | Item::TraitFlag
+            | Item::TraitTrack
+            | Item::TravelOption
+            | Item::TravelPlanModifier
+            | Item::VassalContractFlag
+            | Item::VassalObligation
+            | Item::VassalObligationLevel => true,
         }
     }
 

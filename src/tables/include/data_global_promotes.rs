@@ -162,7 +162,7 @@
     ("GetTutorial", NoArgs, Tutorial),
     ("GetVariableSystem", NoArgs, VariableSystem),
     ("GetVassalContractType", Arg1(DType(Unknown)), VassalContractType),
-    ("GetVassalStance", Arg1(DType(Unknown)), VassalStance),
+    ("GetVassalStance", Arg1(IType(Item::VassalStance)), VassalStance),
     ("GuiEditor", NoArgs, GuiEditor),
     ("GuiScope", NoArgs, TopScope),
     ("HISTORY_ENTRY", NoArgs, HistoryEntry),
