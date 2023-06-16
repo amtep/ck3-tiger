@@ -108,12 +108,12 @@ impl Db {
         }
     }
 
-    pub fn validate_variant(&self, item: Item, key: &Token, data: &Everything, variant: &Token) {
+    pub fn validate_use(&self, item: Item, key: &Token, block: &Block, data: &Everything) {
         let index = (item, key.to_string());
         if let Some(entry) = self.database.get(&index) {
             entry
                 .kind
-                .validate_variant(&entry.key, &entry.block, data, variant)
+                .validate_use(&entry.key, &entry.block, data, key, block)
         }
     }
 
@@ -161,8 +161,17 @@ pub trait DbKind: Debug + AsAny {
         _sc: &mut ScopeContext,
     ) {
     }
-    fn validate_variant(&self, _key: &Token, _block: &Block, _data: &Everything, _variant: &Token) {
+
+    fn validate_use(
+        &self,
+        _key: &Token,
+        _block: &Block,
+        _data: &Everything,
+        _call_key: &Token,
+        _call_block: &Block,
+    ) {
     }
+
     fn validate_property_use(
         &self,
         _key: &Token,

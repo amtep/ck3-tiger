@@ -91,6 +91,18 @@ impl DbKind for ColorGene {
         vd.field_value("color"); // TODO
         vd.field_validated_block("blend_range", validate_gene_range);
     }
+
+    fn validate_use(
+        &self,
+        _key: &Token,
+        _block: &Block,
+        data: &Everything,
+        _call_key: &Token,
+        call_block: &Block,
+    ) {
+        let mut vd = Validator::new(call_block, data);
+        vd.req_tokens_integers_exactly(4);
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -105,6 +117,21 @@ impl AgePresetGene {
 impl DbKind for AgePresetGene {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         validate_age(block, data);
+    }
+
+    fn validate_use(
+        &self,
+        _key: &Token,
+        _block: &Block,
+        _data: &Everything,
+        call_key: &Token,
+        _call_block: &Block,
+    ) {
+        warn(
+            call_key,
+            ErrorKey::Validation,
+            "cannot define age preset genes",
+        );
     }
 }
 
@@ -162,6 +189,40 @@ impl DbKind for MorphGene {
         data: &Everything,
     ) {
         validate_portrait_modifier_use(block, data, property, caller);
+    }
+
+    fn validate_use(
+        &self,
+        _key: &Token,
+        _block: &Block,
+        data: &Everything,
+        call_key: &Token,
+        call_block: &Block,
+    ) {
+        let mut vd = Validator::new(call_block, data);
+        let mut count = 0;
+        for token in vd.values() {
+            if count % 2 == 0 {
+                if !token.is("") && !self.templates.contains_key(token.as_str()) {
+                    let msg = format!("Gene template {token} not found in category {call_key}");
+                    error(token, ErrorKey::MissingItem, &msg);
+                }
+            } else if let Some(i) = token.expect_integer() {
+                if !(0..=256).contains(&i) {
+                    warn(token, ErrorKey::Range, "expected value from 0 to 256");
+                }
+            }
+            count += 1;
+            if count > 4 {
+                let msg = "too many values in this gene";
+                error(token, ErrorKey::Validation, msg);
+                break;
+            }
+        }
+        if count < 4 {
+            let msg = "too few values in this gene";
+            error(call_block, ErrorKey::Validation, msg);
+        }
     }
 }
 
@@ -257,6 +318,40 @@ impl DbKind for AccessoryGene {
         data: &Everything,
     ) {
         validate_portrait_modifier_use(block, data, property, caller);
+    }
+
+    fn validate_use(
+        &self,
+        _key: &Token,
+        _block: &Block,
+        data: &Everything,
+        call_key: &Token,
+        call_block: &Block,
+    ) {
+        let mut vd = Validator::new(call_block, data);
+        let mut count = 0;
+        for token in vd.values() {
+            if count % 2 == 0 {
+                if !token.is("") && !self.templates.contains_key(token.as_str()) {
+                    let msg = format!("Gene template {token} not found in category {call_key}");
+                    error(token, ErrorKey::MissingItem, &msg);
+                }
+            } else if let Some(i) = token.expect_integer() {
+                if !(0..=256).contains(&i) {
+                    warn(token, ErrorKey::Range, "expected value from 0 to 256");
+                }
+            }
+            count += 1;
+            if count > 4 {
+                let msg = "too many values in this gene";
+                error(token, ErrorKey::Validation, msg);
+                break;
+            }
+        }
+        if count < 4 {
+            let msg = "too few values in this gene";
+            error(call_block, ErrorKey::Validation, msg);
+        }
     }
 }
 

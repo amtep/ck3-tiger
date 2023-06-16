@@ -27,6 +27,7 @@ use crate::data::data_binding::DataBindings;
 use crate::data::deathreasons::DeathReason;
 use crate::data::decisions::Decisions;
 use crate::data::defines::Defines;
+use crate::data::dna::Dna;
 use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
 use crate::data::effect_localization::EffectLocalization;
@@ -384,6 +385,7 @@ impl Everything {
         self.load_pdx_items(Item::AccoladeName, AccoladeName::add);
         self.load_pdx_items(Item::AccoladeType, AccoladeType::add);
         self.load_pdx_items(Item::VassalStance, VassalStance::add);
+        self.load_pdx_items(Item::Dna, Dna::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -470,6 +472,7 @@ impl Everything {
             | Item::Culture
             | Item::CultureEra
             | Item::DeathReason
+            | Item::Dna
             | Item::EffectLocalization
             | Item::Faction
             | Item::Focus
@@ -560,7 +563,6 @@ impl Everything {
             | Item::DiarchyMandate
             | Item::DiarchyParameter
             | Item::DiarchyType
-            | Item::Dna
             | Item::DynastyLegacy
             | Item::DynastyPerk
             | Item::Ethnicity
@@ -626,8 +628,8 @@ impl Everything {
         }
     }
 
-    pub fn validate_variant(&self, itype: Item, key: &Token, variant: &Token) {
-        self.database.validate_variant(itype, key, self, variant);
+    pub fn validate_use(&self, itype: Item, key: &Token, block: &Block) {
+        self.database.validate_use(itype, key, block, self);
     }
 
     pub fn get_item<T: DbKind>(&self, itype: Item, key: &str) -> Option<(&Token, &Block, &T)> {
