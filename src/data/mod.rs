@@ -36,6 +36,7 @@ pub mod interactions;
 pub mod lifestyles;
 pub mod localization;
 pub mod maa;
+pub mod modifiers;
 pub mod namelists;
 pub mod nickname;
 pub mod on_actions;

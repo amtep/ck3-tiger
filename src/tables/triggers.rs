@@ -836,7 +836,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "has_opinion_modifier",
         Block(&[
             ("target", Scope(Character)),
-            ("modifier", Item(Item::Modifier)),
+            ("modifier", Item(Item::OpinionModifier)),
             ("?value", CompareValue),
         ]),
     ),
@@ -1719,7 +1719,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "reverse_has_opinion_modifier",
         Block(&[
             ("target", Scope(Character)),
-            ("modifier", Item(Item::Modifier)),
+            ("modifier", Item(Item::OpinionModifier)),
             ("?value", CompareValue),
         ]),
     ),

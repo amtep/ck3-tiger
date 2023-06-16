@@ -1121,7 +1121,7 @@ fn validate_effect_special(
         vd.req_field("target");
         vd.req_field("modifier");
         vd.field_target("target", sc, Scopes::Character);
-        vd.field_item("modifier", Item::Modifier);
+        vd.field_item("modifier", Item::OpinionModifier);
         vd.field_bool("single");
     } else if caller == "replace_court_position" {
         vd.req_field("recipient");

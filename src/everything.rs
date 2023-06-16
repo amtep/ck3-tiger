@@ -48,6 +48,7 @@ use crate::data::interactions::Interactions;
 use crate::data::lifestyles::Lifestyle;
 use crate::data::localization::Localization;
 use crate::data::maa::MenAtArmsTypes;
+use crate::data::modifiers::Modifier;
 use crate::data::namelists::Namelists;
 use crate::data::nickname::Nickname;
 use crate::data::on_actions::OnActions;
@@ -393,6 +394,7 @@ impl Everything {
         self.load_pdx_items(Item::Bookmark, Bookmark::add);
         self.load_pdx_items(Item::BookmarkGroup, BookmarkGroup::add);
         self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
+        self.load_pdx_items(Item::Modifier, Modifier::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -497,6 +499,7 @@ impl Everything {
             | Item::InnovationFlag
             | Item::Language
             | Item::Lifestyle
+            | Item::Modifier
             | Item::NamedColor
             | Item::Nickname
             | Item::OpinionModifier
@@ -595,7 +598,6 @@ impl Everything {
             | Item::MapMode
             | Item::MemoryCategory
             | Item::MemoryType
-            | Item::Modifier
             | Item::Music
             | Item::PointOfInterest
             | Item::PortraitAnimation
