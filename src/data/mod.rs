@@ -3,6 +3,7 @@ pub mod accolades;
 pub mod amenities;
 pub mod artifacts;
 pub mod assets;
+pub mod bookmarks;
 pub mod buildings;
 pub mod casusbelli;
 pub mod character_templates;

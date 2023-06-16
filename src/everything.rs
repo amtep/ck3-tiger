@@ -15,6 +15,7 @@ use crate::data::artifacts::{
     ArtifactVisual,
 };
 use crate::data::assets::Assets;
+use crate::data::bookmarks::{Bookmark, BookmarkGroup};
 use crate::data::buildings::Building;
 use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
@@ -386,6 +387,8 @@ impl Everything {
         self.load_pdx_items(Item::AccoladeType, AccoladeType::add);
         self.load_pdx_items(Item::VassalStance, VassalStance::add);
         self.load_pdx_items(Item::Dna, Dna::add);
+        self.load_pdx_items(Item::Bookmark, Bookmark::add);
+        self.load_pdx_items(Item::BookmarkGroup, BookmarkGroup::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -458,6 +461,8 @@ impl Everything {
             | Item::ArtifactType
             | Item::ArtifactTemplate
             | Item::ArtifactVisual
+            | Item::Bookmark
+            | Item::BookmarkGroup
             | Item::Building
             | Item::BuildingFlag
             | Item::BuildingGfx
@@ -588,6 +593,7 @@ impl Everything {
             | Item::Modifier
             | Item::Music
             | Item::PointOfInterest
+            | Item::PortraitAnimation
             | Item::ReligiousFamily
             | Item::Scheme
             | Item::Secret
