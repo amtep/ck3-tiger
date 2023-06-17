@@ -345,6 +345,7 @@ pub fn validate_trigger_key_bv(
             validate_target(t, data, sc, scopes);
         }
         BlockOrValue::Block(b) => {
+            sc.finalize_builder();
             validate_normal_trigger(b, data, sc, tooltipped);
             sc.close();
         }

@@ -319,6 +319,7 @@ pub fn validate_effect<'a>(
         // Check if it's a target = { target_scope } block.
         sc.open_builder();
         if validate_scope_chain(key, data, sc) {
+            sc.finalize_builder();
             if let Some(block) = bv.expect_block() {
                 validate_normal_effect(block, data, sc, tooltipped);
             }

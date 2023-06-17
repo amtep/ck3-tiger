@@ -27,6 +27,9 @@ pub struct ScopeContext {
     /// Named scope values are `ScopeEntry::Scope` or `ScopeEntry::Named` or `ScopeEntry::Rootref`.
     /// Invariant: there are no cycles in the array via `ScopeEntry::Named` entries.
     named: Vec<ScopeEntry>,
+
+    is_builder: bool,
+    is_unrooted: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -65,16 +68,23 @@ impl ScopeContext {
             root: ScopeEntry::Scope(root, token.borrow().clone()),
             names: FnvHashMap::default(),
             named: Vec::new(),
+            is_builder: false,
+            is_unrooted: false,
         }
     }
 
     pub fn new_unrooted<T: Borrow<Token>>(this: Scopes, token: T) -> Self {
         ScopeContext {
-            prev: None,
+            prev: Some(Box::new(ScopeHistory {
+                prev: None,
+                this: ScopeEntry::Scope(this, token.borrow().clone()),
+            })),
             this: ScopeEntry::Scope(this, token.borrow().clone()),
             root: ScopeEntry::Scope(Scopes::all(), token.borrow().clone()),
             names: FnvHashMap::default(),
             named: Vec::new(),
+            is_builder: false,
+            is_unrooted: true,
         }
     }
 
@@ -138,12 +148,18 @@ impl ScopeContext {
             this: self.this.clone(),
         }));
         self.this = ScopeEntry::Backref(0);
+        self.is_builder = true;
+    }
+
+    pub fn finalize_builder(&mut self) {
+        self.is_builder = false;
     }
 
     pub fn close(&mut self) {
         let mut prev = self.prev.take().unwrap();
         self.this = prev.this.clone();
         self.prev = prev.prev.take();
+        self.is_builder = false;
     }
 
     pub fn replace(&mut self, scopes: Scopes, token: Token) {
@@ -474,6 +490,12 @@ impl ScopeContext {
         let (scopes, token) = other.scopes_token();
         self.expect3(scopes, token, key);
 
+        // Compare restrictions on `prev`
+        // In practice, we don't need to go further than one `prev` back, because of how expect_compatibility is used.
+        let (scopes, token) = other._scopes_token(0);
+        let r = if self.is_builder { 1 } else { 0 };
+        self._expect3(scopes, token, r, key, "prev");
+
         // Compare restrictions on named scopes
         for (name, &oidx) in other.names.iter() {
             // Don't do anything if our scope doesn't have that name; this will change when we get strict name checking.
@@ -484,14 +506,18 @@ impl ScopeContext {
                 self._expect_named3(idx, s, t, key, &report);
             }
         }
-
-        // TODO: walk back up the chain and compare all prev scopes too
-        // Describing the results in error messages will be hard though.
     }
 }
 
 impl Drop for ScopeContext {
     fn drop(&mut self) {
-        assert!(self.prev.is_none(), "scope chain not properly unwound");
+        if self.is_unrooted {
+            assert!(
+                self.prev.take().unwrap().prev.is_none(),
+                "unrooted scope chain not properly unwound"
+            );
+        } else {
+            assert!(self.prev.is_none(), "scope chain not properly unwound");
+        }
     }
 }

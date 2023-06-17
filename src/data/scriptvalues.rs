@@ -148,6 +148,7 @@ impl ScriptValue {
             // Check for target = { script_value }
             sc.open_builder();
             if validate_scope_chain(key, data, sc) {
+                sc.finalize_builder();
                 Self::validate_block(block, data, sc);
             }
             sc.close();
