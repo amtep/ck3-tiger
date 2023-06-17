@@ -21,6 +21,9 @@ impl Building {
         for token in block.get_field_values("flag") {
             db.add_flag(Item::BuildingFlag, token);
         }
+        if block.field_value_is("type", "special") {
+            db.add_flag(Item::SpecialBuilding, key.clone());
+        }
         db.add(Item::Building, key, block, Box::new(Self {}));
     }
 }

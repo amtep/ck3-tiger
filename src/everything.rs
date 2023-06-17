@@ -515,6 +515,7 @@ impl Everything {
             | Item::Region
             | Item::ScriptedGui
             | Item::ScriptedRule
+            | Item::SpecialBuilding
             | Item::Terrain
             | Item::TriggerLocalization
             | Item::UnitGfx
@@ -607,7 +608,6 @@ impl Everything {
             | Item::ReligiousFamily
             | Item::Scheme
             | Item::Secret
-            | Item::SpecialBuilding
             | Item::Story
             | Item::Struggle
             | Item::StrugglePhase
