@@ -88,6 +88,10 @@ impl MenAtArmsType {
         vd.req_field("type");
         vd.field_item("type", Item::MenAtArmsBase);
 
+        data.verify_exists(Item::Localization, &self.key);
+        let loca = format!("{}_flavor", &self.key);
+        data.verify_exists_implied(Item::Localization, &loca, &self.key);
+
         if let Some(icon_path) =
             data.get_defined_string_warn(&self.key, "NGameIcons|REGIMENTYPE_ICON_PATH")
         {
