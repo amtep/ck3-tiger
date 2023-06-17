@@ -114,7 +114,6 @@ impl Interaction {
             }
         }
 
-
         // Validate this early, to update the saved scopes in `sc`
         // TODO: figure out when exactly `redirect` is run
         vd.field_validated_block("redirect", |b, data| {

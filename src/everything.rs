@@ -39,6 +39,7 @@ use crate::data::factions::Faction;
 use crate::data::focus::Focus;
 use crate::data::gameconcepts::GameConcepts;
 use crate::data::genes::Gene;
+use crate::data::government::Government;
 use crate::data::gui::Gui;
 use crate::data::holdings::Holding;
 use crate::data::houses::Houses;
@@ -395,6 +396,7 @@ impl Everything {
         self.load_pdx_items(Item::BookmarkGroup, BookmarkGroup::add);
         self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
         self.load_pdx_items(Item::Modifier, Modifier::add);
+        self.load_pdx_items(Item::GovernmentType, Government::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -493,6 +495,8 @@ impl Everything {
             | Item::Focus
             | Item::GeneAgePreset
             | Item::GeneCategory
+            | Item::GovernmentType
+            | Item::GovernmentFlag
             | Item::Holding
             | Item::HoldingFlag
             | Item::Innovation
@@ -584,8 +588,6 @@ impl Everything {
             | Item::EventTransition
             | Item::FaithIcon
             | Item::GameRule
-            | Item::GovernmentType
-            | Item::GovernmentFlag
             | Item::GraphicalFaith
             | Item::GuestSubset
             | Item::HolySite

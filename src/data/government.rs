@@ -1,0 +1,118 @@
+use crate::block::validator::Validator;
+use crate::block::Block;
+use crate::context::ScopeContext;
+use crate::db::{Db, DbKind};
+use crate::desc::validate_desc;
+use crate::everything::Everything;
+use crate::item::Item;
+use crate::modif::{validate_modifs, ModifKinds};
+use crate::scopes::Scopes;
+use crate::token::Token;
+use crate::tooltipped::Tooltipped;
+use crate::trigger::validate_normal_trigger;
+use crate::validate::validate_color;
+
+#[derive(Clone, Debug)]
+pub struct Government {}
+
+impl Government {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        for token in block.get_field_values("flag") {
+            db.add_flag(Item::GovernmentFlag, token.clone());
+        }
+        db.add(Item::GovernmentType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for Government {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_adjective");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+        let loca = format!("{key}_realm");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+        let loca = format!("{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+        if block.has_key("vassal_contract") {
+            let loca = format!("{key}_vassals_label");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
+
+        vd.field_bool("create_cadet_branches");
+        vd.field_bool("religious");
+        vd.field_bool("rulers_should_have_dynasty");
+        vd.field_bool("council");
+        vd.field_integer("fallback");
+        vd.field_bool("always_use_patronym");
+
+        vd.field_validated_block("can_get_government", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+
+        vd.field_item("primary_holding", Item::Holding);
+        vd.field_list_items("valid_holdings", Item::Holding);
+        vd.field_list_items("required_county_holdings", Item::Holding);
+
+        vd.field_list_items("primary_cultures", Item::Culture);
+        vd.field_list_items("primary_heritages", Item::CulturePillar); // TODO: restrict to heritage?
+
+        vd.field_list_items("preferred_religions", Item::Religion);
+
+        vd.field_bool("court_generate_spouses");
+        if let Some(token) = vd.field_value("court_generate_commanders") {
+            if !token.is("yes") && !token.is("no") {
+                token.expect_number();
+            }
+        }
+        vd.field_bool("royal_court");
+        vd.field_numeric("supply_limit_mult_for_others");
+        vd.field_bool("affected_by_development");
+        vd.field_bool("regiments_prestige_as_gold");
+
+        vd.field_validated_block("prestige_opinion_override", |block, data| {
+            let mut vd = Validator::new(block, data);
+            for token in vd.values() {
+                token.expect_number();
+            }
+        });
+
+        vd.field_list_items("vassal_contract", Item::VassalObligation);
+        vd.field_validated_block("ai", validate_ai);
+        vd.field_validated_blocks_rooted(
+            "character_modifier",
+            Scopes::Character,
+            |block, data, sc| {
+                let vd = Validator::new(block, data);
+                validate_modifs(block, data, ModifKinds::Character, sc, vd);
+            },
+        );
+        vd.field_validated_block("color", validate_color);
+
+        // undocumented
+
+        vd.field_values("flag");
+        vd.field_bool("dynasty_named_realms");
+        vd.field_script_value_rooted("opinion_of_liege", Scopes::Character);
+        vd.field_validated_key("opinion_of_liege_desc", |key, bv, data| {
+            let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+            sc.define_name("vassal", key.clone(), Scopes::Character);
+            sc.define_name("liege", key.clone(), Scopes::Character);
+            validate_desc(bv, data, &mut sc);
+        });
+    }
+}
+
+fn validate_ai(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.field_bool("use_lifestyle");
+    vd.field_bool("imprison");
+    vd.field_bool("start_murders");
+    vd.field_bool("arrange_marriage");
+    vd.field_bool("use_goals");
+    vd.field_bool("use_decisions");
+    vd.field_bool("use_scripted_guis");
+    vd.field_bool("perform_religious_reformation");
+}

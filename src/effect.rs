@@ -240,13 +240,7 @@ pub fn validate_effect<'a>(
                 },
                 Effect::SpecialBlock => {
                     if let Some(block) = bv.expect_block() {
-                        validate_effect_special(
-                            key,
-                            block,
-                            data,
-                            sc,
-                            tooltipped,
-                        );
+                        validate_effect_special(key, block, data, sc, tooltipped);
                     }
                 }
                 Effect::SpecialValue => {
