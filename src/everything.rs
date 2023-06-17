@@ -60,7 +60,7 @@ use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::regions::Region;
 use crate::data::relations::Relation;
-use crate::data::religions::Religions;
+use crate::data::religions::{ReligionFamily, Religions};
 use crate::data::scripted_effects::{Effect, Effects};
 use crate::data::scripted_guis::ScriptedGui;
 use crate::data::scripted_lists::ScriptedLists;
@@ -332,6 +332,7 @@ impl Everything {
         self.fileset.handle(&mut self.province_histories);
         self.fileset.handle(&mut self.gameconcepts);
         self.fileset.handle(&mut self.religions);
+        self.load_pdx_items(Item::ReligionFamily, ReligionFamily::add);
         self.fileset.handle(&mut self.titles);
         self.fileset.handle(&mut self.dynasties);
         self.fileset.handle(&mut self.houses);
@@ -512,6 +513,7 @@ impl Everything {
             | Item::PortraitModifierGroup
             | Item::Relation
             | Item::RelationFlag
+            | Item::ReligionFamily
             | Item::Region
             | Item::ScriptedGui
             | Item::ScriptedRule
@@ -605,7 +607,6 @@ impl Everything {
             | Item::Music
             | Item::PointOfInterest
             | Item::PortraitAnimation
-            | Item::ReligiousFamily
             | Item::Scheme
             | Item::Secret
             | Item::Story

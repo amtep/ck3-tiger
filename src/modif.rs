@@ -762,7 +762,7 @@ pub fn validate_modifs<'a>(
             if !data.item_exists(Item::Religion, something)
                 && !data.item_exists(Item::Faith, something)
                 && !data.item_exists(Item::Culture, something)
-                && !data.item_exists(Item::ReligiousFamily, something)
+                && !data.item_exists(Item::ReligionFamily, something)
                 && !data.item_exists(Item::GovernmentType, something)
                 && !data.item_exists(Item::VassalStance, something)
             {

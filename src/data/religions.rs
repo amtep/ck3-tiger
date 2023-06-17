@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::db::{Db, DbKind};
 use crate::errorkey::ErrorKey;
 use crate::errors::{warn, warn_info};
 use crate::everything::Everything;
@@ -296,6 +297,35 @@ impl Faith {
             let msg = format!("faith or religion missing localization for `{s}`");
             warn(&self.key, ErrorKey::MissingLocalization, &msg);
         }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ReligionFamily {}
+
+impl ReligionFamily {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::ReligionFamily, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for ReligionFamily {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        vd.field_item("name", Item::Localization);
+        if !block.has_key("name") {
+            data.verify_exists(Item::Localization, key);
+        }
+
+        vd.field_bool("is_pagan");
+        vd.field_item("graphical_faith", Item::GraphicalFaith);
+        vd.field_value("piety_icon_group"); // TODO
+        if let Some(icon) = vd.field_value("doctrine_background_icon") {
+            let pathname = format!("gfx/interface/icons/faith_doctrines/{icon}");
+            data.verify_exists_implied(Item::File, &pathname, icon);
+        }
+        vd.field_item("hostility_doctrine", Item::Doctrine);
     }
 }
 

@@ -1236,7 +1236,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "is_imprisoned_by", Scope(Character)),
     (Character, "is_in_army", Boolean),
     (Character, "is_in_civil_war", Boolean),
-    (Religion, "is_in_family", Item(Item::ReligiousFamily)),
+    (Religion, "is_in_family", Item(Item::ReligionFamily)),
     (
         Character,
         "is_in_guest_subset",
