@@ -615,7 +615,6 @@ impl Everything {
             | Item::Suggestion
             | Item::TitleLaw
             | Item::TitleLawFlag
-            | Item::Tradition
             | Item::TraitFlag
             | Item::TraitTrack
             | Item::TravelOption
