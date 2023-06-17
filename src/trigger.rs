@@ -324,7 +324,7 @@ pub fn validate_trigger_key_bv(
         if sc.can_be(Scopes::Value) {
             sc.close();
             ScriptValue::validate_bv(bv, data, sc);
-        } else if matches!(cmp, Comparator::Ne) {
+        } else if matches!(cmp, Comparator::Ne | Comparator::EEq) {
             let scopes = sc.scopes();
             sc.close();
             if let Some(token) = bv.expect_value() {
@@ -642,7 +642,7 @@ fn match_trigger_bv(
         }
     }
 
-    if matches!(cmp, Comparator::Eq | Comparator::QEq) {
+    if matches!(cmp, Comparator::Eq | Comparator::QEq | Comparator::EEq) {
         if warn_if_eq {
             let msg = format!("`{name} {cmp}` means exactly equal to that amount, which is usually not what you want");
             warn(name, ErrorKey::Logic, &msg);

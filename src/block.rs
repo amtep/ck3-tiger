@@ -444,6 +444,7 @@ impl Block {
 pub enum Comparator {
     None,
     Eq,  // Eq is also Assign
+    EEq, // The == operator, which means Eq but cannot be used to assign
     QEq, // The ?= operator
     Lt,
     Gt,
@@ -458,6 +459,8 @@ impl Comparator {
             Some(Comparator::Eq)
         } else if s == "?=" {
             Some(Comparator::QEq)
+        } else if s == "==" {
+            Some(Comparator::EEq)
         } else if s == "<" {
             Some(Comparator::Lt)
         } else if s == ">" {
@@ -482,6 +485,7 @@ impl Display for Comparator {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         match *self {
             Comparator::Eq => write!(f, "="),
+            Comparator::EEq => write!(f, "=="),
             Comparator::QEq => write!(f, "?="),
             Comparator::Lt => write!(f, "<"),
             Comparator::Gt => write!(f, ">"),
