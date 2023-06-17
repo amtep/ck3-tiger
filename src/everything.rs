@@ -535,6 +535,7 @@ impl Everything {
             Item::Dynasty => self.dynasties.exists(key),
             Item::Entity => self.assets.entity_exists(key),
             Item::Event => self.events.exists(key),
+            Item::EventNamespace => self.events.namespace_exists(key),
             Item::EventTheme => self.themes.exists(key),
             Item::Faith => self.religions.faith_exists(key),
             Item::File => self.fileset.exists(key),

@@ -28,42 +28,29 @@ use crate::validate::{
 #[derive(Clone, Debug, Default)]
 pub struct Events {
     events: FnvHashMap<(String, u16), Event>,
+    namespaces: FnvHashMap<String, Token>,
     triggers: FnvHashMap<(PathBuf, String), Trigger>,
     effects: FnvHashMap<(PathBuf, String), Effect>,
-
-    // These events are known to exist, so don't warn about them not being found,
-    // but they had errors on validation.
-    error_events: FnvHashMap<String, Token>,
 }
 
 impl Events {
-    fn load_event(&mut self, key: &Token, block: &Block, namespaces: &[&str]) {
-        if namespaces.is_empty() {
-            let msg = "Event files must start with a namespace declaration";
-            error(key, ErrorKey::EventNamespace, msg);
-            return;
-        }
+    fn load_event(&mut self, key: &Token, block: &Block) {
         if let Some((key_a, key_b)) = key.as_str().split_once('.') {
             if let Ok(id) = u16::from_str(key_b) {
-                if namespaces.contains(&key_a) {
-                    if let Some(other) = self.get_event(key.as_str()) {
-                        dup_error(key, &other.key, "event");
-                    }
-                    self.events.insert(
-                        (key_a.to_string(), id),
-                        Event::new(key.clone(), block.clone()),
-                    );
-                    return;
+                if let Some(other) = self.get_event(key.as_str()) {
+                    dup_error(key, &other.key, "event");
                 }
-                warn_info(key, ErrorKey::EventNamespace, "Event name should start with namespace", "If the event doesn't match its namespace, the game can't properly find the event when triggering it.");
+                self.events.insert(
+                    (key_a.to_string(), id),
+                    Event::new(key.clone(), block.clone()),
+                );
+                return;
             } else {
                 warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.");
             }
         } else {
             warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.");
         }
-
-        self.error_events.insert(key.to_string(), key.clone());
     }
 
     fn load_scripted_trigger(&mut self, key: Token, block: &Block) {
@@ -119,6 +106,10 @@ impl Events {
         }
     }
 
+    pub fn namespace_exists(&self, key: &str) -> bool {
+        self.namespaces.contains_key(key)
+    }
+
     pub fn exists(&self, key: &str) -> bool {
         if let Some((namespace, id)) = key.split_once('.') {
             if let Ok(id) = u16::from_str(id) {
@@ -127,7 +118,7 @@ impl Events {
                 }
             }
         }
-        self.error_events.contains_key(key)
+        false
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -170,13 +161,12 @@ impl FileHandler for Events {
 
         let Some(block) = PdxFile::read(entry, fullpath) else { return };
 
-        let mut namespaces = Vec::new();
         let mut expecting = Expecting::Event;
 
         for def in block.iter_definitions_warn() {
             match def {
                 DefinitionItem::Assignment(key, value) if key.is("namespace") => {
-                    namespaces.push(value.as_str());
+                    self.namespaces.insert(value.to_string(), value.clone());
                 }
                 DefinitionItem::Assignment(key, _)
                     if key.is("scripted_trigger") || key.is("scripted_effect") =>
@@ -217,7 +207,7 @@ impl FileHandler for Events {
                         expecting = Expecting::Event;
                     }
                     Expecting::Event => {
-                        self.load_event(key, b, &namespaces);
+                        self.load_event(key, b);
                     }
                 },
             }
@@ -266,6 +256,14 @@ impl Event {
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
+
+        if let Some((namespace, _)) = self.key.as_str().split_once('.') {
+            if !data.item_exists(Item::EventNamespace, namespace) {
+                let msg = format!("event file should start with `namespace = {namespace}`");
+                let info = format!("otherwise the event won't be found in-game");
+                error_info(&self.key, ErrorKey::EventNamespace, &msg, &info);
+            }
+        }
 
         let evtype = self
             .block
