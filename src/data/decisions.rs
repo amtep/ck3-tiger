@@ -79,6 +79,23 @@ impl Decision {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
+        if let Some(block) = self.block.get_field_block("widget") {
+            // Add builtin scopes added by known widget controllers
+            if let Some(controller) = block.get_field_value("controller") {
+                if controller.is("decision_option_list_controller") {
+                    for block in block.get_field_blocks("item") {
+                        if let Some(token) = block.get_field_value("value") {
+                            sc.define_name(token.as_str(), token.clone(), Scopes::Bool);
+                        }
+                    }
+                } else if controller.is("create_holy_order") {
+                    sc.define_name("ruler", controller.clone(), Scopes::Character);
+                } else if controller.is("revoke_holy_order_lease") {
+                    sc.define_name("barony", controller.clone(), Scopes::LandedTitle);
+                }
+            }
+        }
+
         vd.req_field_warn("picture");
         vd.field_item("picture", Item::File);
         vd.field_item("extra_picture", Item::File);

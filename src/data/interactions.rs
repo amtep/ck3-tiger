@@ -89,6 +89,7 @@ impl Interaction {
                 sc.define_name("target", target_type.clone(), Scopes::Artifact);
             } else if target_type.is("title") {
                 sc.define_name("target", target_type.clone(), Scopes::LandedTitle);
+                sc.define_name("landed_title", target_type.clone(), Scopes::LandedTitle);
             }
         } else if let Some(interface) = self.block.get_field_value("interface") {
             if interface.is("interfere_in_war") || interface.is("call_ally") {
@@ -97,6 +98,8 @@ impl Interaction {
                 sc.define_name("target", interface.clone(), Scopes::Secret);
             } else if interface.is("council_task_interaction") {
                 sc.define_name("target", interface.clone(), Scopes::CouncilTask);
+            } else if interface.is("create_claimant_faction_against") {
+                sc.define_name("landed_title", interface.clone(), Scopes::LandedTitle);
             }
         } else if let Some(special) = self.block.get_field_value("special_interaction") {
             if special.is("invite_to_council_interaction") {
