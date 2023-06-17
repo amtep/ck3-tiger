@@ -241,7 +241,7 @@ pub fn validate_effect<'a>(
                 Effect::SpecialBlock => {
                     if let Some(block) = bv.expect_block() {
                         validate_effect_special(
-                            &key.as_str().to_lowercase(),
+                            key,
                             block,
                             data,
                             sc,
@@ -713,12 +713,13 @@ fn validate_effect_special_bv(
 }
 
 fn validate_effect_special(
-    caller: &str,
+    key: &Token,
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
 ) {
+    let caller = key.as_str().to_lowercase();
     let mut vd = Validator::new(block, data);
     vd.set_case_sensitive(false);
     if caller == "add_activity_log_entry" {
@@ -736,7 +737,7 @@ fn validate_effect_special(
         vd.field_target("location", sc, Scopes::Province);
         vd.field_target("artifact", sc, Scopes::Artifact);
         // effects can be put directly in this block
-        validate_effect(caller, ListType::None, block, data, sc, vd, tooltipped);
+        validate_effect(&caller, ListType::None, block, data, sc, vd, tooltipped);
     } else if caller == "add_artifact_history" {
         vd.req_field("type");
         vd.req_field("recipient");
@@ -919,7 +920,7 @@ fn validate_effect_special(
         vd.field_item("secondary", Item::AccoladeType);
         vd.field_item("name", Item::Localization);
     } else if caller == "create_artifact" || caller == "reforge_artifact" {
-        validate_artifact(caller, block, data, vd, sc, tooltipped);
+        validate_artifact(&caller, block, data, vd, sc, tooltipped);
     } else if caller == "create_character" {
         // docs say save_event_target instead of save_scope
         if let Some(name) = vd.field_value("save_scope_as") {
@@ -999,6 +1000,7 @@ fn validate_effect_special(
         vd.field_choice("tier", &["duchy", "kingdom", "empire"]);
         vd.field_validated_sc("name", sc, validate_desc);
         vd.field_validated_sc("adjective", sc, validate_desc);
+        sc.define_name("new_title", key.clone(), Scopes::LandedTitle);
     } else if caller == "create_holy_order" {
         vd.req_field("leader");
         vd.req_field("capital");
@@ -1049,6 +1051,7 @@ fn validate_effect_special(
         vd.field_target("target", sc, Scopes::Character);
         vd.field_script_value("value", sc);
         vd.field_item("localization", Item::EffectLocalization);
+        sc.define_name("duel_value", key.clone(), Scopes::Value);
         validate_random_list("duel", block, data, vd, sc, tooltipped);
     } else if caller == "faction_start_war" {
         vd.field_target("title", sc, Scopes::LandedTitle);

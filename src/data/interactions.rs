@@ -101,8 +101,16 @@ impl Interaction {
         } else if let Some(special) = self.block.get_field_value("special_interaction") {
             if special.is("invite_to_council_interaction") {
                 sc.define_name("target", special.clone(), Scopes::CouncilTask);
+            } else if special.is("end_war_attacker_victory_interaction") {
+                sc.define_name("war", special.clone(), Scopes::War);
             }
         }
+        for block in self.block.get_field_blocks("send_option") {
+            if let Some(token) = block.get_field_value("flag") {
+                sc.define_name(token.as_str(), token.clone(), Scopes::Bool);
+            }
+        }
+
 
         // Validate this early, to update the saved scopes in `sc`
         // TODO: figure out when exactly `redirect` is run
@@ -255,9 +263,7 @@ impl Interaction {
             vd.req_field("localization");
             vd.req_field("flag");
             vd.field_item("localization", Item::Localization);
-            if let Some(token) = vd.field_value("flag") {
-                sc.define_name(token.as_str(), token.clone(), Scopes::Bool);
-            }
+            vd.field_value("flag");
             vd.field_validated_block("is_shown", |b, data| {
                 validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
             });
