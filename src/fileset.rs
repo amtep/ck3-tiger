@@ -177,8 +177,11 @@ impl Fileset {
     }
 
     pub fn get_files_under<'a>(&'a self, subpath: &'a Path) -> Files<'a> {
+        let start = self
+            .ordered_files
+            .partition_point(|entry| entry.path < subpath);
         Files {
-            iter: self.ordered_files.iter(),
+            iter: self.ordered_files.iter().skip(start),
             subpath,
         }
     }
@@ -273,7 +276,7 @@ impl Fileset {
 
 #[derive(Clone, Debug)]
 pub struct Files<'a> {
-    iter: std::slice::Iter<'a, FileEntry>,
+    iter: std::iter::Skip<std::slice::Iter<'a, FileEntry>>,
     subpath: &'a Path,
 }
 
@@ -281,9 +284,12 @@ impl<'a> Iterator for Files<'a> {
     type Item = &'a FileEntry;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter
-            .by_ref()
-            .find(|&entry| entry.path.starts_with(self.subpath))
+        if let Some(entry) = self.iter.next() {
+            if entry.path.starts_with(self.subpath) {
+                return Some(entry);
+            }
+        }
+        None
     }
 }
 
