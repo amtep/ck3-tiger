@@ -1,12 +1,13 @@
 use std::borrow::Cow;
 use std::fmt::{Display, Error, Formatter};
+use std::rc::Rc;
 use std::str::FromStr;
 
 pub mod validator;
 
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info};
-use crate::parse::pdxfile::{parse_pdx_macro, split_macros, LocalMacros};
+use crate::parse::pdxfile::{parse_pdx_macro, LocalMacros};
 use crate::token::{Loc, Token};
 
 /// BV is an item in a Block, either on its own or after a field key.
@@ -101,7 +102,9 @@ pub struct Block {
     pub loc: Loc,
     /// If the block is a top-level block and contains macro substitutions,
     /// this field will hold the original source for re-parsing.
-    pub source: Option<(Token, LocalMacros)>,
+    /// The source has already been split into a vec that alternates content
+    /// with macro parameters.
+    pub source: Option<(Vec<Token>, LocalMacros)>,
 }
 
 impl Block {
@@ -382,10 +385,10 @@ impl Block {
         let mut vec = Vec::new();
         if let Some((source, _)) = &self.source {
             let mut odd = false;
-            for part in split_macros(source, None) {
+            for part in source {
                 odd = !odd;
                 if !odd {
-                    vec.push(part.into_string());
+                    vec.push(part.to_string());
                 }
             }
             vec.sort();
@@ -395,17 +398,21 @@ impl Block {
     }
 
     pub fn expand_macro(&self, args: &[(String, Token)], link: &Token) -> Option<Block> {
+        let link = Rc::new(link.loc.clone());
         if let Some((source, local_macros)) = &self.source {
             let mut content = Vec::new();
             let mut odd = false;
-            for part in split_macros(source, Some(link)) {
+            for part in source {
                 odd = !odd;
                 if odd {
+                    let mut part = part.clone();
+                    part.loc.link = Some(link.clone());
                     content.push(part);
                 } else {
                     for (arg, val) in args {
                         if part.is(arg) {
                             content.push(val.clone());
+                            break;
                         }
                     }
                 }
