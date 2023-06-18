@@ -635,7 +635,7 @@ fn validate_effect_special_bv(
         if let Some(token) = bv.expect_value() {
             if !data.item_exists(Item::Coa, token.as_str()) {
                 let options = Scopes::LandedTitle | Scopes::Dynasty | Scopes::DynastyHouse;
-                validate_target(token, data, sc, sc.scopes() & options);
+                validate_target(token, data, sc, options);
             }
         }
     } else if caller == "set_global_variable"

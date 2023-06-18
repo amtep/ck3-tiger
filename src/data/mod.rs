@@ -8,6 +8,7 @@ pub mod buildings;
 pub mod casusbelli;
 pub mod character_templates;
 pub mod characters;
+pub mod coa;
 pub mod colors;
 pub mod council;
 pub mod courtpos;

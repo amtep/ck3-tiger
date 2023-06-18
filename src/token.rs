@@ -126,6 +126,12 @@ impl Token {
         None
     }
 
+    pub fn combine(&mut self, other: &Token) {
+        // Use the quote mark for combining because it can't become part of a token in normal parsing
+        self.s.push('"');
+        self.s.push_str(&other.s);
+    }
+
     pub fn trim(&self) -> Token {
         let mut real_start = None;
         let mut real_end = self.s.len();

@@ -20,6 +20,7 @@ use crate::data::buildings::Building;
 use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
+use crate::data::coa::Coas;
 use crate::data::colors::NamedColor;
 use crate::data::council::{CouncilPosition, CouncilTask};
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
@@ -178,6 +179,8 @@ pub struct Everything {
     pub data_bindings: DataBindings,
 
     pub assets: Assets,
+
+    pub coas: Coas,
 }
 
 impl Everything {
@@ -253,6 +256,7 @@ impl Everything {
             gui: Gui::default(),
             data_bindings: DataBindings::default(),
             assets: Assets::default(),
+            coas: Coas::default(),
         })
     }
 
@@ -407,6 +411,7 @@ impl Everything {
         self.load_pdx_items(Item::CouncilTask, CouncilTask::add);
         self.load_pdx_items(Item::PoolSelector, PoolSelector::add);
         self.load_pdx_items(Item::HolySite, HolySite::add);
+        self.fileset.handle(&mut self.coas);
     }
 
     pub fn validate_all(&mut self) {
@@ -441,6 +446,7 @@ impl Everything {
         self.gui.validate(self);
         self.data_bindings.validate(self);
         self.assets.validate(self);
+        self.coas.validate(self);
         self.database.validate(self);
     }
 
@@ -543,6 +549,7 @@ impl Everything {
             Item::Asset => self.assets.asset_exists(key),
             Item::BlendShape => self.assets.blend_shape_exists(key),
             Item::Character => self.characters.exists(key),
+            Item::Coa => self.coas.exists(key),
             Item::DangerType => DANGER_TYPES.contains(&key),
             Item::Decision => self.decisions.exists(key),
             Item::Define => self.defines.exists(key),
@@ -595,7 +602,7 @@ impl Everything {
             | Item::ActivityType
             | Item::Catalyst
             | Item::CharacterBackground
-            | Item::Coa
+            | Item::CoaList
             | Item::CourtSceneGroup
             | Item::CourtType
             | Item::DiarchyMandate

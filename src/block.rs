@@ -446,6 +446,52 @@ impl Block {
         }
         true
     }
+
+    /// Create a version of this block where the `tag` is combined with a token that follows it.
+    /// Example: `color1 = list colorlist` becomes `color1 = list"colorlist` (where the `"` character
+    /// is used as the separator because it can't show up in normal parsing).
+    pub fn condense_tag(self, tag: &str) -> Self {
+        let mut other = Block::new(self.loc);
+        let mut reserve: Option<(Token, Comparator, BV)> = None;
+        for (k, cmp, bv) in self.v {
+            if let Some((rkey, rcmp, rbv)) = reserve {
+                if k.is_none() {
+                    if let BV::Value(token) = bv {
+                        if let BV::Value(mut rtoken) = rbv {
+                            // Combine current value with reserved assignment
+                            rtoken.combine(&token);
+                            other.add_key_value(rkey, rcmp, BV::Value(rtoken));
+                        }
+                    } else {
+                        // Can't use current bv, so send the reserve and then this bv separately
+                        other.add_key_value(rkey, rcmp, rbv);
+                        other.add_value(bv);
+                    }
+                    reserve = None;
+                    continue;
+                }
+                other.add_key_value(rkey, rcmp, rbv);
+                reserve = None;
+            }
+            if let Some(key) = k {
+                match bv {
+                    BV::Value(token) => {
+                        if token.is(tag) {
+                            reserve = Some((key, cmp, BV::Value(token)));
+                            continue;
+                        }
+                        other.add_key_value(key, cmp, BV::Value(token));
+                    }
+                    BV::Block(block) => {
+                        other.add_key_value(key, cmp, BV::Block(block.condense_tag(tag)));
+                    }
+                }
+            } else {
+                other.add_value(bv);
+            }
+        }
+        other
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
