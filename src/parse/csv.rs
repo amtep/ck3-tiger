@@ -13,6 +13,7 @@ use crate::token::{Loc, Token};
 #[derive(Clone, Debug)]
 struct CsvParser<'a> {
     loc: Loc,
+    offset: usize,
     content: &'a str,
     header_lines: usize,
     chars: Peekable<Chars<'a>>,
@@ -25,6 +26,7 @@ impl<'a> CsvParser<'a> {
         let chars = content.chars().peekable();
         Self {
             loc,
+            offset: 0,
             content,
             header_lines,
             chars,
@@ -34,7 +36,7 @@ impl<'a> CsvParser<'a> {
     fn next_char(&mut self) {
         // self.loc is always the loc of the peekable char
         if let Some(c) = self.chars.next() {
-            self.loc.offset += c.len_utf8();
+            self.offset += c.len_utf8();
             if c == '\n' {
                 self.loc.line += 1;
                 self.loc.column = 1;
@@ -82,15 +84,17 @@ impl<'a> CsvParser<'a> {
 
         let mut vec = Vec::new();
         let mut loc = self.loc.clone();
+        let mut start_offset = self.offset;
 
         while let Some(c) = self.chars.peek() {
             match c {
                 '#' | '\n' | ';' => {
-                    let s = self.content[loc.offset..self.loc.offset].to_string();
+                    let s = self.content[start_offset..self.offset].to_string();
                     vec.push(Token::new(s, loc));
                     if c == &';' {
                         self.next_char();
                         loc = self.loc.clone();
+                        start_offset = self.offset;
                     } else {
                         break;
                     }

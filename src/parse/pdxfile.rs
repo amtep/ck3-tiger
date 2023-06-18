@@ -87,6 +87,7 @@ impl LocalMacros {
 
 struct ParseLevel {
     block: Block,
+    start: usize,
     key: Option<Token>,
     comp: Option<(Comparator, Token)>,
     tag: Option<Token>,
@@ -256,9 +257,10 @@ impl Parser {
         }
     }
 
-    fn open_brace(&mut self, loc: Loc) {
+    fn open_brace(&mut self, loc: Loc, offset: usize) {
         let mut new_level = ParseLevel {
             block: Block::new(loc),
+            start: offset,
             key: None,
             comp: None,
             tag: None,
@@ -268,15 +270,14 @@ impl Parser {
         self.stack.push(new_level);
     }
 
-    fn close_brace(&mut self, loc: Loc, content: &str) {
+    fn close_brace(&mut self, loc: Loc, content: &str, offset: usize) {
         self.end_assign();
         if let Some(mut prev_level) = self.stack.pop() {
             swap(&mut self.current, &mut prev_level);
             if self.stack.is_empty() && prev_level.contains_macro_parms {
                 // skip the { } in constructing s
-                let s = content[prev_level.block.loc.offset + 1..loc.offset].to_string();
+                let s = content[prev_level.start + 1..offset - 1].to_string();
                 let mut loc = prev_level.block.loc.clone();
-                loc.offset += 1;
                 loc.column += 1;
                 let token = Token::new(s, prev_level.block.loc.clone());
                 prev_level.block.source = Some((split_macros(&token), self.local_macros.clone()));
@@ -320,6 +321,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
     let mut parser = Parser {
         current: ParseLevel {
             block: Block::new(blockloc.clone()),
+            start: 0,
             key: None,
             comp: None,
             tag: None,
@@ -338,11 +340,8 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
     for token in inputs {
         let content = token.as_str();
         let mut loc = token.loc.clone();
-        let loc_start = loc.offset;
 
         for (i, c) in content.char_indices() {
-            loc.offset = loc_start + i;
-
             match state {
                 State::Neutral => {
                     current_id.clear();
@@ -367,9 +366,9 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         state = State::Id;
                         current_id.push(c);
                     } else if c == '{' {
-                        parser.open_brace(loc.clone());
+                        parser.open_brace(loc.clone(), i);
                     } else if c == '}' {
-                        parser.close_brace(loc.clone(), content);
+                        parser.close_brace(loc.clone(), content, i);
                     } else {
                         Parser::unknown_char(c, loc.clone());
                     }
@@ -397,10 +396,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                     } else if c == '$' {
                         parser.current.contains_macro_parms = true;
                         current_id.push(c);
-                    } else if c == '['
-                        && loc.offset == token_start.offset + 1
-                        && current_id.starts_with('@')
-                    {
+                    } else if c == '[' && current_id == "@" {
                         state = State::Calculation;
                         parser.calculation_start();
                     } else if c.is_id_char() {
@@ -417,10 +413,10 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         } else if c == '#' {
                             state = State::Comment;
                         } else if c == '{' {
-                            parser.open_brace(loc.clone());
+                            parser.open_brace(loc.clone(), i);
                             state = State::Neutral;
                         } else if c == '}' {
-                            parser.close_brace(loc.clone(), content);
+                            parser.close_brace(loc.clone(), content, i);
                             state = State::Neutral;
                         } else {
                             Parser::unknown_char(c, loc.clone());
@@ -511,10 +507,10 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         } else if c == '#' {
                             state = State::Comment;
                         } else if c == '{' {
-                            parser.open_brace(loc.clone());
+                            parser.open_brace(loc.clone(), i);
                             state = State::Neutral;
                         } else if c == '}' {
-                            parser.close_brace(loc.clone(), content);
+                            parser.close_brace(loc.clone(), content, i);
                             state = State::Neutral;
                         } else {
                             Parser::unknown_char(c, loc.clone());
@@ -586,7 +582,6 @@ pub fn split_macros(content: &Token) -> Vec<Token> {
     let mut last_loc = loc.clone();
     let mut last_pos = 0;
     for (i, c) in content.as_str().char_indices() {
-        loc.offset = content.loc.offset + i;
         match state {
             State::InComment => {
                 if c == '\n' {
@@ -611,7 +606,6 @@ pub fn split_macros(content: &Token) -> Vec<Token> {
                     last_loc = loc.clone();
                     // Skip the current '$'
                     last_loc.column += 1;
-                    last_loc.offset += 1;
                     last_pos = i + 1;
                 }
             }

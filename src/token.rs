@@ -16,7 +16,6 @@ pub struct Loc {
     /// line 0 means the loc applies to the file as a whole.
     pub line: usize,
     pub column: usize,
-    pub offset: usize,
     /// Used in macro expansions to point to the macro invocation
     pub link: Option<Rc<Loc>>,
 }
@@ -28,7 +27,6 @@ impl Loc {
             kind,
             line: 0,
             column: 0,
-            offset: 0,
             link: None,
         }
     }
@@ -103,7 +101,6 @@ impl Token {
             if c == ch {
                 vec.push(Token::new(self.s[pos..i].to_string(), loc.clone()));
                 pos = i + 1;
-                loc.offset = self.loc.offset + i + 1;
                 loc.column = self.loc.column + cols + 1;
                 loc.line = self.loc.line + lines;
             }
@@ -120,7 +117,6 @@ impl Token {
             if c == ch {
                 let token1 = Token::new(self.s[..i].to_string(), self.loc.clone());
                 let mut loc = self.loc.clone();
-                loc.offset += i + 1;
                 loc.column += cols + 1;
                 let token2 = Token::new(self.s[i + 1..].to_string(), loc);
                 return Some((token1, token2));
@@ -136,7 +132,6 @@ impl Token {
                 let chlen = ch.len_utf8();
                 let token1 = Token::new(self.s[..i + chlen].to_string(), self.loc.clone());
                 let mut loc = self.loc.clone();
-                loc.offset += i + chlen;
                 loc.column += cols + chlen;
                 let token2 = Token::new(self.s[i + chlen..].to_string(), loc);
                 return Some((token1, token2));
@@ -160,7 +155,6 @@ impl Token {
         }
         if let Some((cols, i)) = real_start {
             let mut loc = self.loc.clone();
-            loc.offset += i;
             loc.column += cols;
             Token::new(self.s[i..real_end].to_string(), loc)
         } else {

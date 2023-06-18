@@ -21,6 +21,7 @@ fn is_code_char(c: char) -> bool {
 #[derive(Clone, Debug)]
 struct LocaParser<'a> {
     loc: Loc,
+    offset: usize,
     content: &'a str,
     chars: Peekable<Chars<'a>>,
     language: &'static str,
@@ -30,16 +31,18 @@ struct LocaParser<'a> {
 }
 
 impl<'a> LocaParser<'a> {
-    fn new(mut loc: Loc, content: &'a str, lang: &'static str) -> Self {
+    fn new(loc: Loc, content: &'a str, lang: &'static str) -> Self {
         let mut chars = content.chars().peekable();
+        let mut offset = 0;
         if chars.peek() == Some(&'\u{feff}') {
-            loc.offset += '\u{feff}'.len_utf8();
+            offset += '\u{feff}'.len_utf8();
             chars.next();
         } else {
             warn(&loc, ErrorKey::Encoding, "Expected UTF-8 BOM encoding");
         }
         LocaParser {
             loc,
+            offset,
             content,
             chars,
             language: lang,
@@ -52,7 +55,7 @@ impl<'a> LocaParser<'a> {
     fn next_char(&mut self) {
         // self.loc is always the loc of the peekable char
         if let Some(c) = self.chars.next() {
-            self.loc.offset += c.len_utf8();
+            self.offset += c.len_utf8();
             if c == '\n' {
                 self.loc.line += 1;
                 self.loc.column = 1;
@@ -102,6 +105,7 @@ impl<'a> LocaParser<'a> {
 
     fn get_key(&mut self) -> Token {
         let loc = self.loc.clone();
+        let start_offset = self.offset;
         while let Some(c) = self.chars.peek() {
             if is_key_char(*c) {
                 self.next_char();
@@ -109,7 +113,7 @@ impl<'a> LocaParser<'a> {
                 break;
             }
         }
-        let s = self.content[loc.offset..self.loc.offset].to_string();
+        let s = self.content[start_offset..self.offset].to_string();
         Token::new(s, loc)
     }
 
@@ -130,7 +134,7 @@ impl<'a> LocaParser<'a> {
 
     // Look ahead to the last `"` on the line
     fn find_dquote(&self) -> Option<usize> {
-        let mut offset = self.loc.offset;
+        let mut offset = self.offset;
         let mut dquote_offset = None;
         for c in self.chars.clone() {
             if c == '"' {
@@ -176,9 +180,10 @@ impl<'a> LocaParser<'a> {
         // TODO: vanilla uses $[DATE_MIN.GetStringShort|V]$ which breaks all my assumptions
         let mut v = Vec::new();
         let mut loc = self.loc.clone();
+        let mut offset = self.offset;
         while let Some(&c) = self.chars.peek() {
             if c == '$' {
-                let s = self.content[loc.offset..self.loc.offset].to_string();
+                let s = self.content[offset..self.offset].to_string();
                 v.push(MacroValue::Text(Token::new(s, loc)));
 
                 if let Some(mv) = self.parse_keyword() {
@@ -188,8 +193,9 @@ impl<'a> LocaParser<'a> {
                     return;
                 }
                 loc = self.loc.clone();
-            } else if c == '"' && self.loc.offset == self.loca_end {
-                let s = self.content[loc.offset..self.loc.offset].to_string();
+                offset = self.offset;
+            } else if c == '"' && self.offset == self.loca_end {
+                let s = self.content[offset..self.offset].to_string();
                 v.push(MacroValue::Text(Token::new(s, loc)));
                 self.value.push(LocaValue::Macro(v));
                 self.next_char();
@@ -198,7 +204,7 @@ impl<'a> LocaParser<'a> {
                 self.next_char();
             }
         }
-        let s = self.content[loc.offset..self.loc.offset].to_string();
+        let s = self.content[offset..self.offset].to_string();
         v.push(MacroValue::Text(Token::new(s, loc)));
         self.value.push(LocaValue::Macro(v));
     }
@@ -206,8 +212,9 @@ impl<'a> LocaParser<'a> {
     fn parse_keyword(&mut self) -> Option<MacroValue> {
         self.next_char(); // Skip the $
         let loc = self.loc.clone();
+        let start_offset = self.offset;
         let key = self.get_key();
-        let end_loc = self.loc.clone();
+        let end_offset = self.offset;
         let format = self.parse_format();
         if self.chars.peek() != Some(&'$') {
             // TODO: check if there is a closing $, adapt warning text
@@ -218,7 +225,7 @@ impl<'a> LocaParser<'a> {
             );
             return None;
         }
-        let s = self.content[loc.offset..end_loc.offset].to_string();
+        let s = self.content[start_offset..end_offset].to_string();
         self.next_char();
         Some(MacroValue::Keyword(Token::new(s, loc), format))
     }
@@ -315,7 +322,7 @@ impl<'a> LocaParser<'a> {
         }
 
         self.value = Vec::new();
-        let s = self.content[self.loc.offset..self.loca_end].to_string();
+        let s = self.content[self.offset..self.loca_end].to_string();
         let token = Token::new(s, self.loc.clone());
 
         // We also need to pre-parse because $macros$ can appear anywhere and
@@ -330,7 +337,7 @@ impl<'a> LocaParser<'a> {
         } else {
             let mut parser = ValueParser::new(vec![&token]);
             self.value = parser.parse_value();
-            while self.loc.offset <= self.loca_end {
+            while self.offset <= self.loca_end {
                 self.next_char();
             }
         }
@@ -356,6 +363,7 @@ impl<'a> LocaParser<'a> {
 
 pub struct ValueParser<'a> {
     loc: Loc,
+    offset: usize,
     content: Vec<&'a Token>,
     content_iters: Vec<Peekable<Chars<'a>>>,
     content_idx: usize,
@@ -369,6 +377,7 @@ impl<'a> ValueParser<'a> {
 
         Self {
             loc: content[0].loc.clone(),
+            offset: 0,
             content_iters: content
                 .iter()
                 .map(|t| t.as_str().chars().peekable())
@@ -387,6 +396,7 @@ impl<'a> ValueParser<'a> {
             } else {
                 self.content_idx += 1;
                 self.loc = self.content[self.content_idx].loc.clone();
+                self.offset = 0;
                 self.peek()
             }
         } else {
@@ -398,7 +408,7 @@ impl<'a> ValueParser<'a> {
         // self.peek advances content_idx if needed
         if self.peek().is_some() {
             if let Some(c) = self.content_iters[self.content_idx].next() {
-                self.loc.offset += c.len_utf8();
+                self.offset += c.len_utf8();
                 self.loc.column += 1;
             }
         }
