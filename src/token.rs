@@ -35,20 +35,6 @@ impl Loc {
         Self::for_file(Rc::new(entry.path().to_path_buf()), entry.kind())
     }
 
-    pub fn marker(&self) -> String {
-        if self.line == 0 {
-            format!("[{}] {}: ", self.kind, self.pathname.display())
-        } else {
-            format!(
-                "[{}] {}:{}:{}: ",
-                self.kind,
-                self.pathname.display(),
-                self.line,
-                self.column
-            )
-        }
-    }
-
     pub fn line_marker(&self) -> String {
         format!("line {}", self.line)
     }
