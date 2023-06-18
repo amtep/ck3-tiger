@@ -68,13 +68,24 @@ impl Display for Tier {
 }
 
 impl Titles {
-    pub fn load_item(&mut self, key: Token, block: &Block, capital_of: Option<Token>) {
+    pub fn load_item(
+        &mut self,
+        key: Token,
+        block: &Block,
+        parent: Option<&str>,
+        is_county_capital: bool,
+    ) {
         if let Some(other) = self.titles.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
                 dup_error(&key, &other.key, "title");
             }
         }
-        let title = Rc::new(Title::new(key.clone(), block.clone(), capital_of));
+        let title = Rc::new(Title::new(
+            key.clone(),
+            block.clone(),
+            parent,
+            is_county_capital,
+        ));
         self.titles.insert(key.to_string(), title.clone());
 
         let parent_tier = Tier::try_from(&key).unwrap(); // guaranteed by caller
@@ -94,19 +105,18 @@ impl Titles {
             }
         }
 
-        let mut capital = parent_tier == Tier::County;
+        let mut is_county_capital = parent_tier == Tier::County;
         for (k, v) in block.iter_pure_definitions() {
             if let Ok(tier) = Tier::try_from(k) {
                 if tier >= parent_tier {
                     let msg = format!("can't put a {tier} inside a {parent_tier}");
                     error(k, ErrorKey::Validation, &msg);
                 }
-                let capital_of = if capital { Some(key.clone()) } else { None };
-                self.load_item(k.clone(), v, capital_of);
-                capital = false;
+                self.load_item(k.clone(), v, Some(key.as_str()), is_county_capital);
+                is_county_capital = false;
             }
         }
-        if capital {
+        if is_county_capital {
             error(key, ErrorKey::Validation, "county with no baronies!");
         }
     }
@@ -125,8 +135,8 @@ impl Titles {
         }
     }
 
-    pub fn capital_of(&self, prov: ProvId) -> Option<&Token> {
-        self.baronies.get(&prov).and_then(|b| b.capital_of.as_ref())
+    pub fn capital_of(&self, prov: ProvId) -> Option<&str> {
+        self.baronies.get(&prov).and_then(|b| b.capital_of())
     }
 }
 
@@ -143,7 +153,7 @@ impl FileHandler for Titles {
         let Some(block) = PdxFile::read(entry, fullpath) else { return };
         for (key, block) in block.iter_pure_definitions_warn() {
             if Tier::try_from(key).is_ok() {
-                self.load_item(key.clone(), block, None);
+                self.load_item(key.clone(), block, None, false);
             } else {
                 warn(key, ErrorKey::Validation, "expected title");
             }
@@ -170,17 +180,20 @@ pub struct Title {
     key: Token,
     block: Block,
     pub tier: Tier,
-    capital_of: Option<Token>, // for baronies
+    pub parent: Option<String>,
+    is_county_capital: bool, // for baronies
 }
 
 impl Title {
-    pub fn new(key: Token, block: Block, capital_of: Option<Token>) -> Self {
+    pub fn new(key: Token, block: Block, parent: Option<&str>, is_county_capital: bool) -> Self {
         let tier = Tier::try_from(&key).unwrap(); // guaranteed by caller
+        let parent = parent.map(String::from);
         Self {
             key,
             block,
             tier,
-            capital_of,
+            parent,
+            is_county_capital,
         }
     }
 
@@ -197,6 +210,14 @@ impl Title {
                 data.localization.verify_exists(t);
                 // The _adj key is optional
             }
+        }
+    }
+
+    fn capital_of(&self) -> Option<&str> {
+        if self.is_county_capital {
+            self.parent.as_deref()
+        } else {
+            None
         }
     }
 }

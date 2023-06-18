@@ -37,6 +37,7 @@ pub enum ErrorKey {
     Datafunctions,
     Removed,
     FieldMissing,
+    TitleTier,
 
     PrincesOfDarkness,
 

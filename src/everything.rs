@@ -43,6 +43,7 @@ use crate::data::genes::Gene;
 use crate::data::government::Government;
 use crate::data::gui::Gui;
 use crate::data::holdings::Holding;
+use crate::data::holysites::HolySite;
 use crate::data::hooks::Hook;
 use crate::data::houses::Houses;
 use crate::data::innovations::Innovation;
@@ -405,6 +406,7 @@ impl Everything {
         self.load_pdx_items(Item::CouncilPosition, CouncilPosition::add);
         self.load_pdx_items(Item::CouncilTask, CouncilTask::add);
         self.load_pdx_items(Item::PoolSelector, PoolSelector::add);
+        self.load_pdx_items(Item::HolySite, HolySite::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -509,6 +511,8 @@ impl Everything {
             | Item::GovernmentFlag
             | Item::Holding
             | Item::HoldingFlag
+            | Item::HolySite
+            | Item::HolySiteFlag
             | Item::Hook
             | Item::Innovation
             | Item::InnovationFlag
@@ -605,8 +609,6 @@ impl Everything {
             | Item::GameRule
             | Item::GraphicalFaith
             | Item::GuestSubset
-            | Item::HolySite
-            | Item::HolySiteFlag
             | Item::ImportantAction
             | Item::Inspiration
             | Item::Law

@@ -31,6 +31,7 @@ pub mod genes;
 pub mod government;
 pub mod gui;
 pub mod holdings;
+pub mod holysites;
 pub mod hooks;
 pub mod houses;
 pub mod innovations;
