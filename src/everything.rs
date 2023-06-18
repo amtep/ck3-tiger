@@ -57,6 +57,7 @@ use crate::data::nickname::Nickname;
 use crate::data::on_actions::OnActions;
 use crate::data::opinions::OpinionModifier;
 use crate::data::perks::Perk;
+use crate::data::pool::PoolSelector;
 use crate::data::portrait::PortraitModifierGroup;
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
@@ -403,6 +404,7 @@ impl Everything {
         self.load_pdx_items(Item::Hook, Hook::add);
         self.load_pdx_items(Item::CouncilPosition, CouncilPosition::add);
         self.load_pdx_items(Item::CouncilTask, CouncilTask::add);
+        self.load_pdx_items(Item::PoolSelector, PoolSelector::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -518,6 +520,7 @@ impl Everything {
             | Item::OpinionModifier
             | Item::Perk
             | Item::PerkTree
+            | Item::PoolSelector
             | Item::PortraitModifierGroup
             | Item::Relation
             | Item::RelationFlag
@@ -586,6 +589,7 @@ impl Everything {
             | Item::ActivityPhase
             | Item::ActivityType
             | Item::Catalyst
+            | Item::CharacterBackground
             | Item::Coa
             | Item::CourtSceneGroup
             | Item::CourtType
@@ -611,7 +615,6 @@ impl Everything {
             | Item::MemoryType
             | Item::Music
             | Item::PointOfInterest
-            | Item::PoolSelector
             | Item::PortraitAnimation
             | Item::Scheme
             | Item::Secret

@@ -753,6 +753,13 @@ impl<'a> Validator<'a> {
         });
     }
 
+    pub fn field_list_integers_exactly(&mut self, name: &str, expect: usize) {
+        self.field_validated_block(name, |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_tokens_integers_exactly(expect);
+        });
+    }
+
     pub fn advice_field(&mut self, name: &str, msg: &str) {
         if let Some(key) = self.block.get_key(name) {
             self.known_fields.push(key.as_str());

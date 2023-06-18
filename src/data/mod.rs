@@ -45,6 +45,7 @@ pub mod nickname;
 pub mod on_actions;
 pub mod opinions;
 pub mod perks;
+pub mod pool;
 pub mod portrait;
 pub mod prov_history;
 pub mod provinces;
