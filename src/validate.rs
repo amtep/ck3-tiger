@@ -243,7 +243,7 @@ pub fn validate_prefix_reference(prefix: &Token, arg: &Token, data: &Everything)
         "accolade_type" => data.verify_exists(Item::AccoladeType, arg),
         "activity_type" => data.verify_exists(Item::ActivityType, arg),
         "character" => data.verify_exists(Item::Character, arg),
-        "council_task" => data.verify_exists(Item::CouncilTask, arg),
+        "council_task" => data.verify_exists(Item::CouncilPosition, arg), // sic
         "aptitude" | "court_position" => data.verify_exists(Item::CourtPosition, arg),
         "cp" => data.verify_exists(Item::CouncilPosition, arg),
         "culture" => data.verify_exists(Item::Culture, arg),

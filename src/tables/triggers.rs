@@ -1166,7 +1166,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Character,
         "is_court_position_employer",
         Block(&[
-            ("court_position", Item(Item::CouncilPosition)),
+            ("court_position", Item(Item::CourtPosition)),
             ("who", Scope(Character)),
         ]),
     ),

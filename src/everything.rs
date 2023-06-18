@@ -21,6 +21,7 @@ use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
 use crate::data::colors::NamedColor;
+use crate::data::council::{CouncilPosition, CouncilTask};
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
 use crate::data::cultures::{Culture, CultureEra, CulturePillar, CultureTradition};
 use crate::data::customloca::CustomLocalization;
@@ -400,6 +401,8 @@ impl Everything {
         self.load_pdx_items(Item::Modifier, Modifier::add);
         self.load_pdx_items(Item::GovernmentType, Government::add);
         self.load_pdx_items(Item::Hook, Hook::add);
+        self.load_pdx_items(Item::CouncilPosition, CouncilPosition::add);
+        self.load_pdx_items(Item::CouncilTask, CouncilTask::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -482,6 +485,8 @@ impl Everything {
             | Item::CharacterTemplate
             | Item::ClothingGfx
             | Item::CoaGfx
+            | Item::CouncilPosition
+            | Item::CouncilTask
             | Item::CourtPosition
             | Item::CourtPositionCategory
             | Item::CustomLocalization
@@ -582,8 +587,6 @@ impl Everything {
             | Item::ActivityType
             | Item::Catalyst
             | Item::Coa
-            | Item::CouncilPosition
-            | Item::CouncilTask
             | Item::CourtSceneGroup
             | Item::CourtType
             | Item::DiarchyMandate
@@ -608,6 +611,7 @@ impl Everything {
             | Item::MemoryType
             | Item::Music
             | Item::PointOfInterest
+            | Item::PoolSelector
             | Item::PortraitAnimation
             | Item::Scheme
             | Item::Secret
