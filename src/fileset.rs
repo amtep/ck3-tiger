@@ -209,22 +209,32 @@ impl Fileset {
     pub fn verify_exists(&self, file: &Token) {
         let filepath = PathBuf::from(file.as_str());
         if !self.filenames.contains(&filepath) {
-            error(
-                file,
-                ErrorKey::MissingFile,
-                "referenced file does not exist",
-            );
+            let msg = "referenced file does not exist";
+            error(file, ErrorKey::MissingFile, msg);
+        }
+    }
+
+    pub fn verify_exists_crashes(&self, file: &Token) {
+        let filepath = PathBuf::from(file.as_str());
+        if !self.filenames.contains(&filepath) {
+            let msg = "referenced file does not exist";
+            error(file, ErrorKey::Crash, msg);
         }
     }
 
     pub fn verify_exists_implied(&self, file: &str, t: &Token) {
         let filepath = PathBuf::from(file);
         if !self.filenames.contains(&filepath) {
-            error(
-                t,
-                ErrorKey::MissingFile,
-                &format!("file {file} does not exist"),
-            );
+            let msg = format!("file {file} does not exist");
+            error(t, ErrorKey::MissingFile, &msg);
+        }
+    }
+
+    pub fn verify_exists_implied_crashes(&self, file: &str, t: &Token) {
+        let filepath = PathBuf::from(file);
+        if !self.filenames.contains(&filepath) {
+            let msg = format!("file {file} does not exist");
+            error(t, ErrorKey::Crash, &msg);
         }
     }
 
