@@ -76,20 +76,20 @@ impl DbKind for CouncilPosition {
         );
 
         vd.field_validated_block("valid_position", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No)
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("valid_character", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No)
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_block("on_get_position", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No)
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("on_lose_position", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No)
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("on_fired_from_position", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No)
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_bool("use_for_scheme_power");

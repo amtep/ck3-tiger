@@ -71,10 +71,10 @@ impl DbKind for CustomLocalization {
 }
 
 impl CustomLocalization {
-    pub fn validate_custom_call<'a>(
+    pub fn validate_custom_call(
         &self,
         key: &Token,
-        block: &'a Block,
+        block: &Block,
         data: &Everything,
         caller: &Token,
         scopes: Scopes,

@@ -8,10 +8,11 @@ pub trait SmartJoin {
 impl SmartJoin for Path {
     fn smart_join(&self, with: &str) -> PathBuf {
         let mut result = self.to_path_buf();
-        for component in with.split("/") {
+        for component in with.split('/') {
             if component == "." {
                 continue;
-            } else if component == ".." {
+            }
+            if component == ".." {
                 result.pop();
             } else {
                 result.push(component);

@@ -144,7 +144,7 @@ impl Trait {
                     let path = format!("{icon_path}/{name}");
                     data.fileset.verify_exists_implied(&path, name);
                 }
-            })
+            });
         }) {
             if let Some(icon_path) =
                 data.get_defined_string_warn(&self.key, "NGameIcons|TRAIT_ICON_PATH")

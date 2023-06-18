@@ -576,7 +576,7 @@ impl Everything {
             Item::ScriptValue => self.scriptvalues.exists(key),
             Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
-            Item::TextureFile => self.assets.texture_exists(&key),
+            Item::TextureFile => self.assets.texture_exists(key),
             Item::Title => self.titles.exists(key),
             Item::TitleHistory => self.title_history.exists(key),
             Item::TitleHistoryType => TITLE_HISTORY_TYPES.contains(&key),

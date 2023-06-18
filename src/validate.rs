@@ -183,7 +183,7 @@ pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
 pub fn validate_color(block: &Block, _data: &Everything) {
     let mut count = 0;
     // Get the color tag, as in color = hsv { 0.5 1.0 1.0 }
-    let tag = block.tag.as_ref().map(|t| t.as_str()).unwrap_or("rgb");
+    let tag = block.tag.as_ref().map_or("rgb", Token::as_str);
     for (k, _, v) in block.iter_items() {
         if let Some(key) = k {
             error(key, ErrorKey::Validation, "expected color value");
@@ -243,9 +243,8 @@ pub fn validate_prefix_reference(prefix: &Token, arg: &Token, data: &Everything)
         "accolade_type" => data.verify_exists(Item::AccoladeType, arg),
         "activity_type" => data.verify_exists(Item::ActivityType, arg),
         "character" => data.verify_exists(Item::Character, arg),
-        "council_task" => data.verify_exists(Item::CouncilPosition, arg), // sic
+        "council_task" | "cp" => data.verify_exists(Item::CouncilPosition, arg),
         "aptitude" | "court_position" => data.verify_exists(Item::CourtPosition, arg),
-        "cp" => data.verify_exists(Item::CouncilPosition, arg),
         "culture" => data.verify_exists(Item::Culture, arg),
         "culture_pillar" => data.verify_exists(Item::CulturePillar, arg),
         "culture_tradition" => data.verify_exists(Item::CultureTradition, arg),

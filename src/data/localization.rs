@@ -296,7 +296,7 @@ impl Localization {
                             warn2(
                                 key,
                                 ErrorKey::Validation,
-                                &format!("localization has too many options"),
+                                "localization has too many options",
                                 &entry.key,
                                 "here",
                             );
@@ -318,7 +318,7 @@ impl Localization {
     pub fn validate(&self, data: &Everything) {
         // Does every `[concept|E]` reference have a defined game concept?
         // Does every other `[code]` block have valid promotes and functions?
-        for (lang, hash) in self.locas.iter() {
+        for (lang, hash) in &self.locas {
             for entry in hash.values() {
                 Self::check_loca_code(&entry.value, data, lang);
             }

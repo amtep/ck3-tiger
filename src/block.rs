@@ -391,7 +391,7 @@ impl Block {
                     vec.push(part.as_str());
                 }
             }
-            vec.sort();
+            vec.sort_unstable();
             vec.dedup();
         }
         vec

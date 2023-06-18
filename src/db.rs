@@ -77,7 +77,7 @@ impl Db {
         None
     }
 
-    /// Using this until get_item works
+    /// Using this until `get_item` works
     pub fn get_key_block(&self, item: Item, key: &str) -> Option<(&Token, &Block)> {
         // TODO: figure out how to avoid the to_string() here
         let index = (item, key.to_string());
@@ -104,7 +104,7 @@ impl Db {
         if let Some(entry) = self.database.get(&index) {
             entry
                 .kind
-                .validate_call(&entry.key, &entry.block, key, data, sc)
+                .validate_call(&entry.key, &entry.block, key, data, sc);
         }
     }
 
@@ -113,7 +113,7 @@ impl Db {
         if let Some(entry) = self.database.get(&index) {
             entry
                 .kind
-                .validate_use(&entry.key, &entry.block, data, key, block)
+                .validate_use(&entry.key, &entry.block, data, key, block);
         }
     }
 

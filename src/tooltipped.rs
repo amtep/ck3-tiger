@@ -15,10 +15,7 @@ impl Tooltipped {
     }
 
     pub fn is_tooltipped(self) -> bool {
-        match self {
-            Tooltipped::No => false,
-            _ => true,
-        }
+        !matches!(self, Tooltipped::No)
     }
 
     pub fn negated(self) -> Self {

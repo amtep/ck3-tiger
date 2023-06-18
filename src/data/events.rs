@@ -45,12 +45,9 @@ impl Events {
                     Event::new(key.clone(), block.clone()),
                 );
                 return;
-            } else {
-                warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.");
             }
-        } else {
-            warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.");
         }
+        warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.");
     }
 
     fn load_scripted_trigger(&mut self, key: Token, block: &Block) {
@@ -260,8 +257,8 @@ impl Event {
         if let Some((namespace, _)) = self.key.as_str().split_once('.') {
             if !data.item_exists(Item::EventNamespace, namespace) {
                 let msg = format!("event file should start with `namespace = {namespace}`");
-                let info = format!("otherwise the event won't be found in-game");
-                error_info(&self.key, ErrorKey::EventNamespace, &msg, &info);
+                let info = "otherwise the event won't be found in-game";
+                error_info(&self.key, ErrorKey::EventNamespace, &msg, info);
             }
         }
 

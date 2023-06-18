@@ -20,11 +20,11 @@ impl Lifestyle {
 
 impl DbKind for Lifestyle {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        let loca = format!("{}_name", key);
+        let loca = format!("{key}_name");
         data.localization.verify_exists_implied(&loca, key);
-        let loca = format!("{}_desc", key);
+        let loca = format!("{key}_desc");
         data.localization.verify_exists_implied(&loca, key);
-        let loca = format!("{}_highlight_desc", key);
+        let loca = format!("{key}_highlight_desc");
         data.localization.verify_exists_implied(&loca, key);
 
         let mut vd = Validator::new(block, data);

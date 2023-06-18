@@ -112,7 +112,7 @@ fn validate_argument(arg: &CodeArg, data: &Everything, expect_arg: Arg, lang: &'
         }
         Arg::IType(itype) => match arg {
             CodeArg::Chain(chain) => {
-                validate_datatypes(chain, data, Datatype::CString, lang, false)
+                validate_datatypes(chain, data, Datatype::CString, lang, false);
             }
             CodeArg::Literal(token) => {
                 data.verify_exists(itype, token);

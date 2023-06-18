@@ -25,15 +25,15 @@ impl EffectLocalization {
         tooltipped: Tooltipped,
     ) {
         match tooltipped {
-            Tooltipped::No => return,
+            Tooltipped::No => (),
             Tooltipped::Yes | Tooltipped::Negated => {
                 for field in &["global", "first", "third"] {
                     if block.has_key(field) {
                         return;
                     }
                 }
-                let msg = format!("missing present perspective");
-                warn2(caller, ErrorKey::MissingPerspective, &msg, key, "here");
+                let msg = "missing present perspective";
+                warn2(caller, ErrorKey::MissingPerspective, msg, key, "here");
             }
             Tooltipped::Past => {
                 for field in &["global_past", "first_past", "third_past"] {
@@ -50,8 +50,8 @@ impl EffectLocalization {
                         }
                     }
                 }
-                let msg = format!("missing `_past` perspective");
-                warn2(caller, ErrorKey::MissingPerspective, &msg, key, "here");
+                let msg = "missing `_past` perspective";
+                warn2(caller, ErrorKey::MissingPerspective, msg, key, "here");
             }
         }
     }

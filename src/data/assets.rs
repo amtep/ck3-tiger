@@ -105,9 +105,9 @@ impl FileHandler for Assets {
                     warn2(
                         other,
                         ErrorKey::Duplicate,
-                        &format!("texture file is redefined by another file"),
+                        "texture file is redefined by another file",
                         entry,
-                        &format!("the other file is here"),
+                        "the other file is here",
                     );
                 }
             }

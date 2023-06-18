@@ -159,19 +159,17 @@ impl Parser {
                     self.local_macros.insert(local_macro, token.as_str());
                 } else if let Some(local_macro) = token.as_str().strip_prefix('@') {
                     // Check for a '!' to avoid looking up macros in gui code that uses @icon! syntax
-                    if !token.as_str().contains('!') {
-                        if let Some(value) = self.local_macros.get_as_string(local_macro) {
-                            let token = Token::new(value, token.loc);
-                            self.current
-                                .block
-                                .add_key_value(key, comp, BV::Value(token));
-                        } else {
-                            error(token, ErrorKey::ParseError, "local value not defined");
-                        }
-                    } else {
+                    if token.as_str().contains('!') {
                         self.current
                             .block
                             .add_key_value(key, comp, BV::Value(token));
+                    } else if let Some(value) = self.local_macros.get_as_string(local_macro) {
+                        let token = Token::new(value, token.loc);
+                        self.current
+                            .block
+                            .add_key_value(key, comp, BV::Value(token));
+                    } else {
+                        error(token, ErrorKey::ParseError, "local value not defined");
                     }
                 } else {
                     self.current

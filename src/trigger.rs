@@ -531,7 +531,7 @@ fn match_trigger_bv(
                             let msg = "`exists = {token}` does nothing in None scope";
                             warn(token, ErrorKey::Scopes, msg);
                         }
-                    } else if (token.starts_with("scope:") && !token.as_str().contains("."))
+                    } else if (token.starts_with("scope:") && !token.as_str().contains('.'))
                         || token.starts_with("flag:")
                     {
                         // exists = scope:name is used to check if that scope name was set

@@ -24,7 +24,7 @@ impl TriggerLocalization {
         tooltipped: Tooltipped,
     ) {
         match tooltipped {
-            Tooltipped::No => return,
+            Tooltipped::No => (),
             Tooltipped::Yes | Tooltipped::Past => {
                 for field in &["global", "first", "third"] {
                     if block.has_key(field) {

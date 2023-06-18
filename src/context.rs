@@ -219,7 +219,7 @@ impl ScopeContext {
             ScopeEntry::Scope(s, ref t) => (s, t),
             ScopeEntry::Rootref => self._resolve_root(),
             ScopeEntry::Named(idx, _) => self._resolve_named(idx),
-            _ => unreachable!(),
+            ScopeEntry::Backref(_) => unreachable!(),
         }
     }
 
@@ -345,7 +345,7 @@ impl ScopeContext {
                     return;
                 }
                 ScopeEntry::Named(i, _) => idx = i,
-                _ => unreachable!(),
+                ScopeEntry::Backref(_) => unreachable!(),
             }
         }
     }
@@ -369,7 +369,7 @@ impl ScopeContext {
                     return;
                 }
                 ScopeEntry::Named(i, _) => idx = i,
-                _ => unreachable!(),
+                ScopeEntry::Backref(_) => unreachable!(),
             }
         }
     }
@@ -467,11 +467,11 @@ impl ScopeContext {
         }
         match self.this {
             ScopeEntry::Scope(_, _) => {
-                Self::_expect_check3(&mut self.this, scopes, token, key, "scope")
+                Self::_expect_check3(&mut self.this, scopes, token, key, "scope");
             }
             ScopeEntry::Backref(r) => self._expect3(scopes, token, r, key, "scope"),
             ScopeEntry::Rootref => {
-                Self::_expect_check3(&mut self.root, scopes, token, key, "scope")
+                Self::_expect_check3(&mut self.root, scopes, token, key, "scope");
             }
             ScopeEntry::Named(idx, ref _t) => self._expect_named3(idx, scopes, token, key, "scope"),
         }
@@ -493,11 +493,10 @@ impl ScopeContext {
         // Compare restrictions on `prev`
         // In practice, we don't need to go further than one `prev` back, because of how expect_compatibility is used.
         let (scopes, token) = other._scopes_token(0);
-        let r = if self.is_builder { 1 } else { 0 };
-        self._expect3(scopes, token, r, key, "prev");
+        self._expect3(scopes, token, usize::from(self.is_builder), key, "prev");
 
         // Compare restrictions on named scopes
-        for (name, &oidx) in other.names.iter() {
+        for (name, &oidx) in &other.names {
             // Don't do anything if our scope doesn't have that name; this will change when we get strict name checking.
             if self.names.contains_key(name) {
                 let (s, t) = other._resolve_named(oidx);
