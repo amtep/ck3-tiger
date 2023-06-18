@@ -179,17 +179,14 @@ pub fn validate_trigger_key_bv(
             BV::Block(block) => {
                 let parms = trigger.macro_parms();
                 if parms.is_empty() {
-                    error(
-                        block,
-                        ErrorKey::Macro,
-                        "trigger does not need macro arguments",
-                    );
+                    let msg = "trigger does not need macro arguments";
+                    error(block, ErrorKey::Macro, msg);
                 } else {
                     let mut vec = Vec::new();
                     let mut vd = Validator::new(block, data);
                     for parm in &parms {
                         vd.req_field(parm);
-                        if let Some(token) = vd.field_value(parm.as_str()) {
+                        if let Some(token) = vd.field_value(parm) {
                             vec.push(token.clone());
                         } else {
                             return;

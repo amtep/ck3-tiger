@@ -12,11 +12,11 @@ struct MacroKey {
 }
 
 impl MacroKey {
-    pub fn new(mut loc: Loc, args: &[(String, Token)], tooltipped: Tooltipped) -> Self {
+    pub fn new(mut loc: Loc, args: &[(&str, Token)], tooltipped: Tooltipped) -> Self {
         loc.link = None;
         let mut args: Vec<(String, String)> = args
             .iter()
-            .map(|(parm, arg)| (parm.clone(), arg.to_string()))
+            .map(|(parm, arg)| (parm.to_string(), arg.to_string()))
             .collect();
         args.sort();
         Self {
@@ -36,7 +36,7 @@ impl<T> MacroCache<T> {
     pub fn perform(
         &self,
         key: &Token,
-        args: &[(String, Token)],
+        args: &[(&str, Token)],
         tooltipped: Tooltipped,
         mut f: impl FnMut(&T),
     ) -> bool {
@@ -49,7 +49,7 @@ impl<T> MacroCache<T> {
         }
     }
 
-    pub fn insert(&self, key: &Token, args: &[(String, Token)], tooltipped: Tooltipped, value: T) {
+    pub fn insert(&self, key: &Token, args: &[(&str, Token)], tooltipped: Tooltipped, value: T) {
         let key = MacroKey::new(key.loc.clone(), args, tooltipped);
         self.cache.borrow_mut().insert(key, value);
     }

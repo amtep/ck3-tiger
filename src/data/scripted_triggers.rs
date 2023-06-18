@@ -135,14 +135,14 @@ impl Trigger {
         }
     }
 
-    pub fn macro_parms(&self) -> Vec<String> {
+    pub fn macro_parms(&self) -> Vec<&str> {
         self.block.macro_parms()
     }
 
     pub fn cached_compat(
         &self,
         key: &Token,
-        args: &[(String, Token)],
+        args: &[(&str, Token)],
         tooltipped: Tooltipped,
         sc: &mut ScopeContext,
     ) -> bool {
@@ -154,7 +154,7 @@ impl Trigger {
     pub fn validate_macro_expansion(
         &self,
         key: &Token,
-        args: Vec<(String, Token)>,
+        args: Vec<(&str, Token)>,
         data: &Everything,
         sc: &mut ScopeContext,
         tooltipped: Tooltipped,

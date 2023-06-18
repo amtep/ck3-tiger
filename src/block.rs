@@ -381,14 +381,14 @@ impl Block {
         found.cloned()
     }
 
-    pub fn macro_parms(&self) -> Vec<String> {
+    pub fn macro_parms(&self) -> Vec<&str> {
         let mut vec = Vec::new();
         if let Some((source, _)) = &self.source {
             let mut odd = false;
             for part in source {
                 odd = !odd;
                 if !odd {
-                    vec.push(part.to_string());
+                    vec.push(part.as_str());
                 }
             }
             vec.sort();
@@ -397,7 +397,7 @@ impl Block {
         vec
     }
 
-    pub fn expand_macro(&self, args: &[(String, Token)], link: &Token) -> Option<Block> {
+    pub fn expand_macro(&self, args: &[(&str, Token)], link: &Token) -> Option<Block> {
         let link = Rc::new(link.loc.clone());
         if let Some((source, local_macros)) = &self.source {
             let mut content = Vec::new();

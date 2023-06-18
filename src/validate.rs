@@ -646,8 +646,8 @@ pub fn validate_scripted_modifier_call(
                 let mut vec = Vec::new();
                 let mut vd = Validator::new(block, data);
                 for parm in &parms {
-                    vd.req_field(parm.as_str());
-                    if let Some(token) = vd.field_value(parm.as_str()) {
+                    vd.req_field(parm);
+                    if let Some(token) = vd.field_value(parm) {
                         vec.push(token.clone());
                     } else {
                         return;
