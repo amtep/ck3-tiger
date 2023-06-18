@@ -581,6 +581,7 @@ impl Everything {
             Item::TitleHistory => self.title_history.exists(key),
             Item::TitleHistoryType => TITLE_HISTORY_TYPES.contains(&key),
             Item::Trait => self.traits.exists(key),
+            Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
             Item::ActivityIntent
             | Item::ActivityLocale
@@ -625,7 +626,6 @@ impl Everything {
             | Item::Suggestion
             | Item::TitleLaw
             | Item::TitleLawFlag
-            | Item::TraitFlag
             | Item::TraitTrack
             | Item::TravelOption
             | Item::TravelPlanModifier

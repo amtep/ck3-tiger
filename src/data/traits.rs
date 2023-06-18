@@ -18,10 +18,10 @@ use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct Traits {
-    // TODO: track trait flags too
     traits: FnvHashMap<String, Trait>,
     groups: FnvHashSet<String>,
     constraints: FnvHashSet<String>,
+    flags: FnvHashSet<String>,
 }
 
 impl Traits {
@@ -33,6 +33,9 @@ impl Traits {
         }
         if let Some(token) = block.get_field_value("group") {
             self.groups.insert(token.to_string());
+        }
+        for token in block.get_field_values("flag") {
+            self.flags.insert(token.to_string());
         }
         for field in &[
             "genetic_constraint_all",
@@ -56,6 +59,10 @@ impl Traits {
 
     pub fn constraint_exists(&self, key: &str) -> bool {
         self.constraints.contains(key)
+    }
+
+    pub fn flag_exists(&self, key: &str) -> bool {
+        self.flags.contains(key)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -223,7 +230,11 @@ impl Trait {
         vd.field_bool("disables_combat_leadership");
         vd.field_choice("parent_inheritance_sex", &["male", "female", "all"]);
         vd.field_choice("child_inheritance_sex", &["male", "female", "all"]);
-        vd.field_values("flag");
+        for _token in vd.field_values("flag") {
+            // These are optional
+            // let loca = format!("TRAIT_FLAG_DESC_{token}");
+            // data.verify_exists_implied(Item::Localization, &loca, token);
+        }
         vd.field_bool("shown_in_encyclopedia");
 
         vd.field_choice("inheritance_blocker", &["none", "dynasty", "all"]);
