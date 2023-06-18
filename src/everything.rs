@@ -42,6 +42,7 @@ use crate::data::genes::Gene;
 use crate::data::government::Government;
 use crate::data::gui::Gui;
 use crate::data::holdings::Holding;
+use crate::data::hooks::Hook;
 use crate::data::houses::Houses;
 use crate::data::innovations::Innovation;
 use crate::data::interaction_cats::InteractionCategories;
@@ -398,6 +399,7 @@ impl Everything {
         self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
         self.load_pdx_items(Item::Modifier, Modifier::add);
         self.load_pdx_items(Item::GovernmentType, Government::add);
+        self.load_pdx_items(Item::Hook, Hook::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -500,6 +502,7 @@ impl Everything {
             | Item::GovernmentFlag
             | Item::Holding
             | Item::HoldingFlag
+            | Item::Hook
             | Item::Innovation
             | Item::InnovationFlag
             | Item::Language
@@ -596,7 +599,6 @@ impl Everything {
             | Item::GuestSubset
             | Item::HolySite
             | Item::HolySiteFlag
-            | Item::Hook
             | Item::ImportantAction
             | Item::Inspiration
             | Item::Law

@@ -30,6 +30,7 @@ pub mod genes;
 pub mod government;
 pub mod gui;
 pub mod holdings;
+pub mod hooks;
 pub mod houses;
 pub mod innovations;
 pub mod interaction_cats;
