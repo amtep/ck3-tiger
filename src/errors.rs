@@ -139,10 +139,11 @@ struct Errors {
     /// Errors that have already been logged (to avoid duplication, which is common
     /// when validating macro expanded triggers and effects)
     seen: FnvHashSet<ErrorRecord>,
+
+    filecache: FnvHashMap<PathBuf, String>,
 }
 
 impl Errors {
-    #[allow(clippy::unused_self)] // At some point we will cache files in self
     fn get_line(&mut self, loc: &Loc) -> Option<String> {
         if loc.line == 0 {
             return None;
@@ -151,12 +152,17 @@ impl Errors {
             FileKind::Vanilla => self.vanilla_root.join(&*loc.pathname),
             FileKind::Mod => self.mod_root.join(&*loc.pathname),
         };
-        let bytes = read(pathname).ok()?;
+        if let Some(contents) = self.filecache.get(&pathname) {
+            return contents.lines().nth(loc.line - 1).map(str::to_string);
+        }
+        let bytes = read(&pathname).ok()?;
         let contents = match UTF_8.decode(&bytes, DecoderTrap::Strict) {
             Ok(contents) => contents,
             Err(_) => WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).ok()?,
         };
-        contents.lines().nth(loc.line - 1).map(str::to_string)
+        let line = contents.lines().nth(loc.line - 1).map(str::to_string);
+        self.filecache.insert(pathname, contents);
+        line
     }
 
     pub fn will_log(&self, loc: &Loc, key: ErrorKey) -> bool {
