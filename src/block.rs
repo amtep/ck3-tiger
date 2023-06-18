@@ -9,42 +9,43 @@ use crate::errors::{error, error_info};
 use crate::parse::pdxfile::{parse_pdx_macro, split_macros, LocalMacros};
 use crate::token::{Loc, Token};
 
-#[allow(clippy::module_name_repetitions)]
+/// BV is an item in a Block, either on its own or after a field key.
+/// It is itself either a Block or a single-token Value.
 #[derive(Clone, Debug)]
-pub enum BlockOrValue {
+pub enum BV {
     Value(Token),
     Block(Block),
 }
 
-impl BlockOrValue {
+impl BV {
     pub fn get_block(&self) -> Option<&Block> {
         match self {
-            BlockOrValue::Value(_) => None,
-            BlockOrValue::Block(b) => Some(b),
+            BV::Value(_) => None,
+            BV::Block(b) => Some(b),
         }
     }
 
     pub fn get_value(&self) -> Option<&Token> {
         match self {
-            BlockOrValue::Value(t) => Some(t),
-            BlockOrValue::Block(_) => None,
+            BV::Value(t) => Some(t),
+            BV::Block(_) => None,
         }
     }
 
     pub fn expect_block(&self) -> Option<&Block> {
         match self {
-            BlockOrValue::Value(_) => {
+            BV::Value(_) => {
                 error(self, ErrorKey::Validation, "expected block, found value");
                 None
             }
-            BlockOrValue::Block(b) => Some(b),
+            BV::Block(b) => Some(b),
         }
     }
 
     pub fn expect_value(&self) -> Option<&Token> {
         match self {
-            BlockOrValue::Value(t) => Some(t),
-            BlockOrValue::Block(_) => {
+            BV::Value(t) => Some(t),
+            BV::Block(_) => {
                 error(self, ErrorKey::Validation, "expected value, found block");
                 None
             }
@@ -53,8 +54,8 @@ impl BlockOrValue {
 
     pub fn is_value(&self) -> bool {
         match self {
-            BlockOrValue::Value(_) => true,
-            BlockOrValue::Block(_) => false,
+            BV::Value(_) => true,
+            BV::Block(_) => false,
         }
     }
 
@@ -64,21 +65,21 @@ impl BlockOrValue {
 
     pub fn into_value(self) -> Option<Token> {
         match self {
-            BlockOrValue::Value(t) => Some(t),
-            BlockOrValue::Block(_) => None,
+            BV::Value(t) => Some(t),
+            BV::Block(_) => None,
         }
     }
 
     pub fn equivalent(&self, other: &Self) -> bool {
         match self {
-            BlockOrValue::Value(t1) => {
+            BV::Value(t1) => {
                 if let Some(t2) = other.get_value() {
                     t1.is(t2.as_str())
                 } else {
                     false
                 }
             }
-            BlockOrValue::Block(b1) => {
+            BV::Block(b1) => {
                 if let Some(b2) = other.get_block() {
                     b1.equivalent(b2)
                 } else {
@@ -89,7 +90,7 @@ impl BlockOrValue {
     }
 }
 
-type BlockItem = (Option<Token>, Comparator, BlockOrValue);
+type BlockItem = (Option<Token>, Comparator, BV);
 
 #[derive(Clone, Debug)]
 pub struct Block {
@@ -113,11 +114,11 @@ impl Block {
         }
     }
 
-    pub fn add_value(&mut self, value: BlockOrValue) {
+    pub fn add_value(&mut self, value: BV) {
         self.v.push((None, Comparator::None, value));
     }
 
-    pub fn add_key_value(&mut self, key: Token, cmp: Comparator, value: BlockOrValue) {
+    pub fn add_key_value(&mut self, key: Token, cmp: Comparator, value: BV) {
         self.v.push((Some(key), cmp, value));
     }
 
@@ -135,8 +136,8 @@ impl Block {
             if let Some(key) = k {
                 if key.is(name) {
                     match v {
-                        BlockOrValue::Value(t) => return Some(t),
-                        BlockOrValue::Block(_) => (),
+                        BV::Value(t) => return Some(t),
+                        BV::Block(_) => (),
                     }
                 }
             }
@@ -168,8 +169,8 @@ impl Block {
             if let Some(key) = k {
                 if key.is(name) {
                     match v {
-                        BlockOrValue::Value(t) => vec.push(t.clone()),
-                        BlockOrValue::Block(_) => (),
+                        BV::Value(t) => vec.push(t.clone()),
+                        BV::Block(_) => (),
                     }
                 }
             }
@@ -183,8 +184,8 @@ impl Block {
             if let Some(key) = k {
                 if key.is(name) {
                     match v {
-                        BlockOrValue::Value(_) => (),
-                        BlockOrValue::Block(s) => return Some(s),
+                        BV::Value(_) => (),
+                        BV::Block(s) => return Some(s),
                     }
                 }
             }
@@ -199,8 +200,8 @@ impl Block {
             if let Some(key) = k {
                 if key.is(name) {
                     match v {
-                        BlockOrValue::Value(_) => (),
-                        BlockOrValue::Block(s) => vec.push(s),
+                        BV::Value(_) => (),
+                        BV::Block(s) => vec.push(s),
                     }
                 }
             }
@@ -214,8 +215,8 @@ impl Block {
             if let Some(key) = k {
                 if key.is(name) {
                     match v {
-                        BlockOrValue::Value(_) => (),
-                        BlockOrValue::Block(s) => {
+                        BV::Value(_) => (),
+                        BV::Block(s) => {
                             return Some(s.get_values());
                         }
                     }
@@ -225,7 +226,7 @@ impl Block {
         None
     }
 
-    pub fn get_field(&self, name: &str) -> Option<&BlockOrValue> {
+    pub fn get_field(&self, name: &str) -> Option<&BV> {
         for (k, _, v) in self.v.iter().rev() {
             if let Some(key) = k {
                 if key.is(name) {
@@ -242,8 +243,8 @@ impl Block {
         for (k, _, v) in &self.v {
             if k.is_none() {
                 match v {
-                    BlockOrValue::Value(t) => vec.push(t.clone()),
-                    BlockOrValue::Block(_) => (),
+                    BV::Value(t) => vec.push(t.clone()),
+                    BV::Block(_) => (),
                 }
             }
         }
@@ -256,8 +257,8 @@ impl Block {
         for (k, _, v) in &self.v {
             if k.is_none() {
                 match v {
-                    BlockOrValue::Value(_) => (),
-                    BlockOrValue::Block(b) => vec.push(b.clone()),
+                    BV::Value(_) => (),
+                    BV::Block(b) => vec.push(b.clone()),
                 }
             }
         }
@@ -271,8 +272,8 @@ impl Block {
             if let Some(key) = k {
                 if matches!(cmp, Comparator::Eq) {
                     match v {
-                        BlockOrValue::Value(t) => vec.push((key, t)),
-                        BlockOrValue::Block(_) => (),
+                        BV::Value(t) => vec.push((key, t)),
+                        BV::Block(_) => (),
                     }
                 }
             }
@@ -356,9 +357,9 @@ impl Block {
         }
     }
 
-    pub fn get_field_at_date(&self, name: &str, date: Date) -> Option<BlockOrValue> {
+    pub fn get_field_at_date(&self, name: &str, date: Date) -> Option<BV> {
         let mut found_date: Option<Date> = None;
-        let mut found: Option<&BlockOrValue> = None;
+        let mut found: Option<&BV> = None;
 
         for (k, _, v) in &self.v {
             if let Some(k) = k {
@@ -529,13 +530,13 @@ impl<'a> Iterator for IterDefinitions<'a> {
                     continue;
                 }
                 return match v {
-                    BlockOrValue::Value(t) => Some(DefinitionItem::Assignment(key, t)),
-                    BlockOrValue::Block(b) => Some(DefinitionItem::Definition(key, b)),
+                    BV::Value(t) => Some(DefinitionItem::Assignment(key, t)),
+                    BV::Block(b) => Some(DefinitionItem::Definition(key, b)),
                 };
             }
             match v {
-                BlockOrValue::Value(t) => return Some(DefinitionItem::Keyword(t)),
-                BlockOrValue::Block(b) => {
+                BV::Value(t) => return Some(DefinitionItem::Keyword(t)),
+                BV::Block(b) => {
                     if self.warn {
                         error_info(
                             b,
@@ -571,8 +572,8 @@ impl<'a> Iterator for IterAssignments<'a> {
                     continue;
                 }
                 return match v {
-                    BlockOrValue::Value(t) => Some((key, t)),
-                    BlockOrValue::Block(b) => {
+                    BV::Value(t) => Some((key, t)),
+                    BV::Block(b) => {
                         if self.warn {
                             error(b, ErrorKey::Validation, "expected value, found block");
                         }
@@ -581,7 +582,7 @@ impl<'a> Iterator for IterAssignments<'a> {
                 };
             }
             match v {
-                BlockOrValue::Value(t) => {
+                BV::Value(t) => {
                     if self.warn {
                         error_info(
                             t,
@@ -591,7 +592,7 @@ impl<'a> Iterator for IterAssignments<'a> {
                         );
                     }
                 }
-                BlockOrValue::Block(b) => {
+                BV::Block(b) => {
                     if self.warn {
                         error_info(
                             b,
@@ -650,7 +651,7 @@ pub struct IterBlockValueDefinitions<'a> {
 }
 
 impl<'a> Iterator for IterBlockValueDefinitions<'a> {
-    type Item = (&'a Token, &'a BlockOrValue);
+    type Item = (&'a Token, &'a BV);
 
     fn next(&mut self) -> Option<Self::Item> {
         for (k, cmp, bv) in self.iter.by_ref() {
@@ -668,7 +669,7 @@ impl<'a> Iterator for IterBlockValueDefinitions<'a> {
                 return Some((key, bv));
             }
             match bv {
-                BlockOrValue::Value(t) => {
+                BV::Value(t) => {
                     if self.warn {
                         error_info(
                             t,
@@ -678,7 +679,7 @@ impl<'a> Iterator for IterBlockValueDefinitions<'a> {
                         );
                     }
                 }
-                BlockOrValue::Block(b) => {
+                BV::Block(b) => {
                     if self.warn {
                         error_info(
                             b,

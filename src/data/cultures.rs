@@ -1,5 +1,5 @@
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
@@ -94,8 +94,8 @@ impl DbKind for Culture {
         vd.field_list_items("parents", Item::Culture);
 
         vd.field_validated("color", |bv, data| match bv {
-            BlockOrValue::Value(token) => data.verify_exists(Item::NamedColor, token),
-            BlockOrValue::Block(block) => validate_color(block, data),
+            BV::Value(token) => data.verify_exists(Item::NamedColor, token),
+            BV::Block(block) => validate_color(block, data),
         });
 
         // TODO: check that these pillars are of the right kinds
@@ -189,8 +189,8 @@ impl DbKind for CulturePillar {
             validate_normal_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_validated("color", |bv, data| match bv {
-            BlockOrValue::Value(token) => data.verify_exists(Item::NamedColor, token),
-            BlockOrValue::Block(block) => validate_color(block, data),
+            BV::Value(token) => data.verify_exists(Item::NamedColor, token),
+            BV::Block(block) => validate_color(block, data),
         });
         vd.field_block("parameters");
     }

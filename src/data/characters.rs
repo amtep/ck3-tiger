@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue, Date};
+use crate::block::{Block, Date, BV};
 use crate::context::ScopeContext;
 use crate::effect::{validate_effect, validate_normal_effect};
 use crate::errorkey::ErrorKey;
@@ -272,8 +272,8 @@ impl Character {
 
         vd.field_validated_bvs("add_character_flag", |bv, data| {
             match bv {
-                BlockOrValue::Value(_) => (), // flag name
-                BlockOrValue::Block(b) => {
+                BV::Value(_) => (), // flag name
+                BV::Block(b) => {
                     let mut vd = Validator::new(b, data);
                     vd.req_field("flag");
                     vd.field_value("flag"); // flag name
@@ -392,14 +392,14 @@ impl Character {
     }
 }
 
-fn validate_history_death(bv: &BlockOrValue, data: &Everything) {
+fn validate_history_death(bv: &BV, data: &Everything) {
     match bv {
-        BlockOrValue::Value(token) => {
+        BV::Value(token) => {
             if !token.is("yes") && !token.is_date() {
                 data.verify_exists(Item::DeathReason, token);
             }
         }
-        BlockOrValue::Block(block) => {
+        BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.req_field("death_reason");
             vd.field_item("death_reason", Item::DeathReason);

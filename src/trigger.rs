@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue, Comparator, Date};
+use crate::block::{Block, Comparator, Date, BV};
 use crate::context::ScopeContext;
 use crate::data::genes::Gene;
 use crate::data::scriptvalues::ScriptValue;
@@ -154,7 +154,7 @@ pub fn validate_trigger(
 pub fn validate_trigger_key_bv(
     key: &Token,
     cmp: Comparator,
-    bv: &BlockOrValue,
+    bv: &BV,
     data: &Everything,
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
@@ -162,7 +162,7 @@ pub fn validate_trigger_key_bv(
     // Scripted trigger?
     if let Some(trigger) = data.get_trigger(key) {
         match bv {
-            BlockOrValue::Value(token) => {
+            BV::Value(token) => {
                 if !(token.is("yes") || token.is("no")) {
                     warn(token, ErrorKey::Validation, "expected yes or no");
                 }
@@ -176,7 +176,7 @@ pub fn validate_trigger_key_bv(
                 };
                 trigger.validate_call(key, data, sc, tooltipped);
             }
-            BlockOrValue::Block(block) => {
+            BV::Block(block) => {
                 let parms = trigger.macro_parms();
                 if parms.is_empty() {
                     error(
@@ -339,12 +339,12 @@ pub fn validate_trigger_key_bv(
     }
 
     match bv {
-        BlockOrValue::Value(t) => {
+        BV::Value(t) => {
             let scopes = sc.scopes();
             sc.close();
             validate_target(t, data, sc, scopes);
         }
-        BlockOrValue::Block(b) => {
+        BV::Block(b) => {
             sc.finalize_builder();
             validate_normal_trigger(b, data, sc, tooltipped);
             sc.close();
@@ -393,7 +393,7 @@ fn match_trigger_bv(
     trigger: &Trigger,
     name: &Token,
     cmp: Comparator,
-    bv: &BlockOrValue,
+    bv: &BV,
     data: &Everything,
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
@@ -464,19 +464,19 @@ fn match_trigger_bv(
             }
         }
         Trigger::ScopeOrBlock(s, fields) => match bv {
-            BlockOrValue::Value(token) => validate_target(token, data, sc, *s),
-            BlockOrValue::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped),
+            BV::Value(token) => validate_target(token, data, sc, *s),
+            BV::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped),
         },
         Trigger::ItemOrBlock(i, fields) => match bv {
-            BlockOrValue::Value(token) => data.verify_exists(*i, token),
-            BlockOrValue::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped),
+            BV::Value(token) => data.verify_exists(*i, token),
+            BV::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped),
         },
         Trigger::CompareValueOrBlock(fields) => match bv {
-            BlockOrValue::Value(t) => {
+            BV::Value(t) => {
                 validate_target(t, data, sc, Scopes::Value);
                 must_be_eq = false;
             }
-            BlockOrValue::Block(b) => {
+            BV::Block(b) => {
                 match_trigger_fields(fields, b, data, sc, tooltipped);
             }
         },
@@ -554,8 +554,8 @@ fn match_trigger_bv(
                 }
             } else if name.is("custom_tooltip") {
                 match bv {
-                    BlockOrValue::Value(t) => data.verify_exists(Item::Localization, t),
-                    BlockOrValue::Block(b) => {
+                    BV::Value(t) => data.verify_exists(Item::Localization, t),
+                    BV::Block(b) => {
                         validate_trigger(name.as_str(), false, b, data, sc, Tooltipped::No);
                     }
                 }
@@ -585,10 +585,8 @@ fn match_trigger_bv(
                     vd.req_field("name");
                     vd.req_field("value");
                     vd.field_validated("value", |bv, data| match bv {
-                        BlockOrValue::Value(token) => {
-                            validate_target(token, data, sc, Scopes::primitive())
-                        }
-                        BlockOrValue::Block(_) => ScriptValue::validate_bv(bv, data, sc),
+                        BV::Value(token) => validate_target(token, data, sc, Scopes::primitive()),
+                        BV::Block(_) => ScriptValue::validate_bv(bv, data, sc),
                     });
                     // TODO: figure out the scope type of `value` and use that
                     if let Some(name) = vd.field_value("name") {
@@ -619,7 +617,7 @@ fn match_trigger_bv(
                         let target = target.clone();
                         for (key, bv) in vd.unknown_keys() {
                             if !key.is("fallback") {
-                                let synthetic_bv = BlockOrValue::Value(key.clone());
+                                let synthetic_bv = BV::Value(key.clone());
                                 validate_trigger_key_bv(
                                     &target,
                                     Comparator::Eq,

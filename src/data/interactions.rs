@@ -2,7 +2,7 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::validate_normal_effect;
@@ -402,14 +402,14 @@ impl Interaction {
     }
 }
 
-fn validate_bool_or_trigger(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
+fn validate_bool_or_trigger(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     match bv {
-        BlockOrValue::Value(t) => {
+        BV::Value(t) => {
             if !t.is("yes") && !t.is("no") {
                 warn(t, ErrorKey::Validation, "expected yes or no");
             }
         }
-        BlockOrValue::Block(b) => {
+        BV::Block(b) => {
             validate_normal_trigger(b, data, sc, Tooltipped::No);
         }
     }

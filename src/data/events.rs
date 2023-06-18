@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue, DefinitionItem};
+use crate::block::{Block, DefinitionItem, BV};
 use crate::context::ScopeContext;
 use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
@@ -392,10 +392,10 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
 
     let mut vd = Validator::new(block, data);
     vd.field_validated_bvs("name", |bv, data| match bv {
-        BlockOrValue::Value(t) => {
+        BV::Value(t) => {
             data.localization.verify_exists(t);
         }
-        BlockOrValue::Block(b) => {
+        BV::Block(b) => {
             let mut vd = Validator::new(b, data);
             vd.req_field("text");
             vd.field_validated_block("trigger", |block, data| {
@@ -514,10 +514,10 @@ fn validate_triggered_outfit(block: &Block, data: &Everything, sc: &mut ScopeCon
     vd.field_bool("hide_info");
 }
 
-fn validate_portrait(v: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
+fn validate_portrait(v: &BV, data: &Everything, sc: &mut ScopeContext) {
     match v {
-        BlockOrValue::Value(t) => validate_target(t, data, sc, Scopes::Character),
-        BlockOrValue::Block(b) => {
+        BV::Value(t) => validate_target(t, data, sc, Scopes::Character),
+        BV::Block(b) => {
             let mut vd = Validator::new(b, data);
 
             vd.req_field("character");

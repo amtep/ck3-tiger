@@ -2,7 +2,7 @@ use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::data::localization::LocaValue;
 use crate::datatype::{validate_datatypes, Datatype};
 use crate::errorkey::ErrorKey;
@@ -390,7 +390,7 @@ fn validate_gui(block: &Block, data: &Everything) {
     }
 }
 
-fn validate_field(key: &Token, bv: &BlockOrValue, data: &Everything) {
+fn validate_field(key: &Token, bv: &BV, data: &Everything) {
     if key.is("default_format") {
         bv.expect_value();
         return;
@@ -406,7 +406,7 @@ fn validate_field(key: &Token, bv: &BlockOrValue, data: &Everything) {
         }
     }
     match bv {
-        BlockOrValue::Value(token) => {
+        BV::Value(token) => {
             let mut valuevec = ValueParser::new(vec![token]).parse_value();
             let value = if valuevec.len() == 1 {
                 std::mem::take(&mut valuevec[0])
@@ -424,7 +424,7 @@ fn validate_field(key: &Token, bv: &BlockOrValue, data: &Everything) {
                 validate_gui_loca(value, data);
             }
         }
-        BlockOrValue::Block(block) => {
+        BV::Block(block) => {
             validate_gui(block, data);
         }
     }

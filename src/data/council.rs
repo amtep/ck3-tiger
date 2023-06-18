@@ -1,5 +1,5 @@
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -338,14 +338,14 @@ impl DbKind for CouncilTask {
     }
 }
 
-fn validate_yes_no_trigger(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
+fn validate_yes_no_trigger(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     match bv {
-        BlockOrValue::Value(token) => {
+        BV::Value(token) => {
             if !token.is("yes") && !token.is("no") {
                 error(token, ErrorKey::Validation, "expected yes or no or trigger");
             }
         }
-        BlockOrValue::Block(block) => {
+        BV::Block(block) => {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         }
     }

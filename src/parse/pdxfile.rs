@@ -2,7 +2,7 @@ use fnv::FnvHashMap;
 use std::mem::{swap, take};
 use std::rc::Rc;
 
-use crate::block::{Block, BlockOrValue, Comparator};
+use crate::block::{Block, Comparator, BV};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, warn_info};
 use crate::fileset::FileEntry;
@@ -164,31 +164,31 @@ impl Parser {
                             let token = Token::new(value, token.loc);
                             self.current
                                 .block
-                                .add_key_value(key, comp, BlockOrValue::Value(token));
+                                .add_key_value(key, comp, BV::Value(token));
                         } else {
                             error(token, ErrorKey::ParseError, "local value not defined");
                         }
                     } else {
                         self.current
                             .block
-                            .add_key_value(key, comp, BlockOrValue::Value(token));
+                            .add_key_value(key, comp, BV::Value(token));
                     }
                 } else {
                     self.current
                         .block
-                        .add_key_value(key, comp, BlockOrValue::Value(token));
+                        .add_key_value(key, comp, BV::Value(token));
                 }
             } else {
                 if let Some(local_macro) = key.as_str().strip_prefix('@') {
                     if let Some(value) = self.local_macros.get_as_string(local_macro) {
                         let token = Token::new(value, key.loc);
-                        self.current.block.add_value(BlockOrValue::Value(token));
+                        self.current.block.add_value(BV::Value(token));
                     } else {
                         error(&key, ErrorKey::ParseError, "local value not defined");
-                        self.current.block.add_value(BlockOrValue::Value(key));
+                        self.current.block.add_value(BV::Value(key));
                     }
                 } else {
-                    self.current.block.add_value(BlockOrValue::Value(key));
+                    self.current.block.add_value(BV::Value(key));
                 }
                 self.current.key = Some(token);
             }
@@ -206,13 +206,13 @@ impl Parser {
             if let Some((comp, _)) = self.current.comp.take() {
                 self.current
                     .block
-                    .add_key_value(key, comp, BlockOrValue::Block(block));
+                    .add_key_value(key, comp, BV::Block(block));
             } else {
-                self.current.block.add_value(BlockOrValue::Value(key));
-                self.current.block.add_value(BlockOrValue::Block(block));
+                self.current.block.add_value(BV::Value(key));
+                self.current.block.add_value(BV::Block(block));
             }
         } else {
-            self.current.block.add_value(BlockOrValue::Block(block));
+            self.current.block.add_value(BV::Block(block));
         }
     }
 
@@ -246,13 +246,13 @@ impl Parser {
             if let Some(local_macro) = key.as_str().strip_prefix('@') {
                 if let Some(value) = self.local_macros.get_as_string(local_macro) {
                     let token = Token::new(value, key.loc);
-                    self.current.block.add_value(BlockOrValue::Value(token));
+                    self.current.block.add_value(BV::Value(token));
                 } else {
                     error(&key, ErrorKey::ParseError, "local value not defined");
-                    self.current.block.add_value(BlockOrValue::Value(key));
+                    self.current.block.add_value(BV::Value(key));
                 }
             } else {
-                self.current.block.add_value(BlockOrValue::Value(key));
+                self.current.block.add_value(BV::Value(key));
             }
         }
     }

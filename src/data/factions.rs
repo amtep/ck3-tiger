@@ -1,5 +1,5 @@
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -78,8 +78,8 @@ impl DbKind for Faction {
         vd.field_validated_block_sc("ai_demand_chance", &mut sc, validate_modifiers_with_base);
         vd.field_validated_block_sc("discontent_progress", &mut sc, validate_modifiers_with_base);
         vd.field_validated("power_threshold", |bv, data| match bv {
-            BlockOrValue::Value(t) => _ = t.expect_integer(),
-            BlockOrValue::Block(b) => validate_modifiers_with_base(b, data, &mut sc),
+            BV::Value(t) => _ = t.expect_integer(),
+            BV::Block(b) => validate_modifiers_with_base(b, data, &mut sc),
         });
         vd.field_validated_block("is_valid", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);

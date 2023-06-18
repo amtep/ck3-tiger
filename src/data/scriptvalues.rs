@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
@@ -26,7 +26,7 @@ pub struct ScriptValues {
 }
 
 impl ScriptValues {
-    fn load_item(&mut self, key: &Token, bv: &BlockOrValue) {
+    fn load_item(&mut self, key: &Token, bv: &BV) {
         if let Some(other) = self.scriptvalues.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
                 dup_error(key, &other.key, "script value");
@@ -73,12 +73,12 @@ impl FileHandler for ScriptValues {
 #[derive(Clone, Debug)]
 pub struct ScriptValue {
     key: Token,
-    bv: BlockOrValue,
+    bv: BV,
     cache: RefCell<FnvHashMap<Loc, ScopeContext>>,
 }
 
 impl ScriptValue {
-    pub fn new(key: Token, bv: BlockOrValue) -> Self {
+    pub fn new(key: Token, bv: BV) -> Self {
         Self {
             key,
             bv,
@@ -218,10 +218,10 @@ impl ScriptValue {
         Self::validate_inner(vd, data, sc);
     }
 
-    pub fn validate_bv(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
+    pub fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
         match bv {
-            BlockOrValue::Value(t) => validate_target(t, data, sc, Scopes::Value | Scopes::Bool),
-            BlockOrValue::Block(b) => {
+            BV::Value(t) => validate_target(t, data, sc, Scopes::Value | Scopes::Bool),
+            BV::Block(b) => {
                 let mut vd = Validator::new(b, data);
                 if let Some((None, _, _)) = b.iter_items().next() {
                     // It's a range like { 1 5 }

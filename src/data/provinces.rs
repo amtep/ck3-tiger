@@ -3,7 +3,7 @@ use image::{DynamicImage, Rgb};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
@@ -60,7 +60,7 @@ impl Provinces {
                     || key.is("river_provinces")
                     || key.is("impassable_mountains")
                 {
-                    if let BlockOrValue::Value(t) = v {
+                    if let BV::Value(t) = v {
                         if t.is("LIST") {
                             expecting = Expecting::List;
                         } else if t.is("RANGE") {
@@ -70,7 +70,7 @@ impl Provinces {
                         }
                     }
                 }
-            } else if let BlockOrValue::Block(b) = v {
+            } else if let BV::Block(b) = v {
                 if matches!(expecting, Expecting::Range) {
                     let vec = b.get_values();
                     if vec.len() != 2 {

@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 /// A module for validation functions that are useful for more than one data module.
 use crate::context::ScopeContext;
 use crate::data::scripted_modifiers::ScriptedModifier;
@@ -52,7 +52,7 @@ impl TryFrom<&str> for ListType {
     }
 }
 
-pub fn validate_theme_background(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
+pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     if let Some(block) = bv.get_block() {
         let mut vd = Validator::new(block, data);
 
@@ -189,7 +189,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
             error(key, ErrorKey::Validation, "expected color value");
         } else {
             match v {
-                BlockOrValue::Value(t) => {
+                BV::Value(t) => {
                     if tag == "hsv" {
                         if let Ok(f) = t.as_str().parse::<f64>() {
                             if !(0.0..=1.0).contains(&f) {
@@ -225,7 +225,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
                     }
                     count += 1;
                 }
-                BlockOrValue::Block(b) => {
+                BV::Block(b) => {
                     error(b, ErrorKey::Validation, "expected color value");
                 }
             }
@@ -326,7 +326,7 @@ pub fn validate_iterator_fields(
 
         if let Some(bv) = vd.field_any_cmp("count") {
             match bv {
-                BlockOrValue::Value(token) if token.is("all") => (),
+                BV::Value(token) if token.is("all") => (),
                 bv => ScriptValue::validate_bv(bv, data, sc),
             }
         };
@@ -619,13 +619,13 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
 
 pub fn validate_scripted_modifier_call(
     key: &Token,
-    bv: &BlockOrValue,
+    bv: &BV,
     modifier: &ScriptedModifier,
     data: &Everything,
     sc: &mut ScopeContext,
 ) {
     match bv {
-        BlockOrValue::Value(token) => {
+        BV::Value(token) => {
             if !modifier.macro_parms().is_empty() {
                 error(token, ErrorKey::Macro, "expected macro arguments");
             } else if !token.is("yes") {
@@ -633,7 +633,7 @@ pub fn validate_scripted_modifier_call(
             }
             modifier.validate_call(key, data, sc);
         }
-        BlockOrValue::Block(block) => {
+        BV::Block(block) => {
             let parms = modifier.macro_parms();
             if parms.is_empty() {
                 error_info(
@@ -675,10 +675,10 @@ pub fn validate_scripted_modifier_calls(
     }
 }
 
-pub fn validate_ai_chance(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
+pub fn validate_ai_chance(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     match bv {
-        BlockOrValue::Value(t) => _ = t.expect_number(),
-        BlockOrValue::Block(b) => validate_modifiers_with_base(b, data, sc),
+        BV::Value(t) => _ = t.expect_number(),
+        BV::Block(b) => validate_modifiers_with_base(b, data, sc),
     }
 }
 

@@ -1,7 +1,7 @@
 use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::db::{Db, DbKind};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, warn2};
@@ -355,10 +355,10 @@ impl DbKind for AccessoryGene {
     }
 }
 
-fn validate_age_field(bv: &BlockOrValue, data: &Everything) {
+fn validate_age_field(bv: &BV, data: &Everything) {
     match bv {
-        BlockOrValue::Value(token) => data.verify_exists(Item::GeneAgePreset, token),
-        BlockOrValue::Block(block) => validate_age(block, data),
+        BV::Value(token) => data.verify_exists(Item::GeneAgePreset, token),
+        BV::Block(block) => validate_age(block, data),
     }
 }
 
@@ -472,14 +472,14 @@ fn validate_morph_gene(block: &Block, data: &Everything) {
     for field in choices {
         vd.field_validated(field, |bv, data| {
             match bv {
-                BlockOrValue::Value(token) => {
+                BV::Value(token) => {
                     // TODO: if it refers to another field, check that following the chain of fields eventually reaches a block
                     if !choices.contains(&token.as_str()) {
                         let msg = format!("expected one of {}", choices.join(", "));
                         warn(token, ErrorKey::Validation, &msg);
                     }
                 }
-                BlockOrValue::Block(block) => {
+                BV::Block(block) => {
                     let mut vd = Validator::new(block, data);
                     vd.field_validated_blocks("setting", validate_gene_setting);
                     vd.field_validated_blocks("decal", validate_gene_decal);
@@ -502,14 +502,14 @@ fn validate_accessory_gene(block: &Block, data: &Everything) {
     for field in choices {
         vd.field_validated(field, |bv, data| {
             match bv {
-                BlockOrValue::Value(token) => {
+                BV::Value(token) => {
                     // TODO: if it refers to another field, check that following the chain of fields eventually reaches a block
                     if !choices.contains(&token.as_str()) {
                         let msg = format!("expected one of {}", choices.join(", "));
                         warn(token, ErrorKey::Validation, &msg);
                     }
                 }
-                BlockOrValue::Block(block) => {
+                BV::Block(block) => {
                     let mut vd = Validator::new(block, data);
                     for (_weight, token) in vd.integer_values() {
                         if !token.is("empty") {

@@ -2,7 +2,7 @@ use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::errorkey::ErrorKey;
 use crate::errors::{warn, warn2};
 use crate::everything::Everything;
@@ -266,8 +266,8 @@ impl Asset {
             vd.field_validated_blocks("event", validate_event);
             vd.field_validated_bvs("propagate_state", |bv, data| {
                 match bv {
-                    BlockOrValue::Value(_token) => (), // TODO
-                    BlockOrValue::Block(block) => {
+                    BV::Value(_token) => (), // TODO
+                    BV::Block(block) => {
                         let mut vd = Validator::new(block, data);
                         // TODO
                         for (_key, bv) in vd.unknown_keys() {

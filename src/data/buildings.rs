@@ -1,5 +1,5 @@
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -261,10 +261,10 @@ impl DbKind for Building {
         });
 
         vd.field_validated_key("ai_value", |key, bv, data| match bv {
-            BlockOrValue::Value(token) => {
+            BV::Value(token) => {
                 token.expect_integer();
             }
-            BlockOrValue::Block(block) => {
+            BV::Block(block) => {
                 let mut sc = ScopeContext::new_root(Scopes::Province, key.clone());
                 sc.define_name("holder", key.clone(), Scopes::Character);
                 validate_modifiers_with_base(block, data, &mut sc);
@@ -292,8 +292,8 @@ fn validate_asset(block: &Block, data: &Everything) {
     // TODO: get a list of valid soundeffects from somewhere
     vd.field_validated("soundeffect", |bv, data| {
         match bv {
-            BlockOrValue::Value(_) => (),
-            BlockOrValue::Block(block) => {
+            BV::Value(_) => (),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("soundeffect");
                 vd.field_value("soundeffect");

@@ -1,7 +1,7 @@
 use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
-use crate::block::BlockOrValue;
+use crate::block::BV;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -14,7 +14,7 @@ pub struct Defines {
 }
 
 impl Defines {
-    pub fn load_item(&mut self, group: Token, name: Token, bv: &BlockOrValue) {
+    pub fn load_item(&mut self, group: Token, name: Token, bv: &BV) {
         let key = format!("{}|{}", &group, &name);
         if let Some(other) = self.defines.get(&key) {
             if other.name.loc.kind >= name.loc.kind && !bv.equivalent(&other.bv) {
@@ -63,11 +63,11 @@ impl FileHandler for Defines {
 pub struct Define {
     group: Token,
     name: Token,
-    bv: BlockOrValue,
+    bv: BV,
 }
 
 impl Define {
-    pub fn new(group: Token, name: Token, bv: BlockOrValue) -> Self {
+    pub fn new(group: Token, name: Token, bv: BV) -> Self {
         Self { group, name, bv }
     }
 

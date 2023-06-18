@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
-use crate::block::{Block, BlockOrValue, Comparator, Date, Token};
+use crate::block::{Block, Comparator, Date, Token, BV};
 use crate::context::ScopeContext;
 use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
@@ -131,7 +131,7 @@ impl<'a> Validator<'a> {
 
     fn field_check<F>(&mut self, name: &str, mut f: F) -> bool
     where
-        F: FnMut(&Token, &BlockOrValue),
+        F: FnMut(&Token, &BV),
     {
         let mut found = None;
         for (k, cmp, bv) in &self.block.v {
@@ -154,7 +154,7 @@ impl<'a> Validator<'a> {
 
     pub fn fields_check<F>(&mut self, name: &str, mut f: F) -> bool
     where
-        F: FnMut(&Token, &BlockOrValue),
+        F: FnMut(&Token, &BV),
     {
         let mut found = false;
         for (k, cmp, bv) in &self.block.v {
@@ -176,7 +176,7 @@ impl<'a> Validator<'a> {
         self.field_check(name, |_, _| ())
     }
 
-    pub fn field_any_cmp(&mut self, name: &str) -> Option<&BlockOrValue> {
+    pub fn field_any_cmp(&mut self, name: &str) -> Option<&BV> {
         let mut found = None;
         for (k, _, bv) in &self.block.v {
             if let Some(key) = k {
@@ -450,7 +450,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_validated<F>(&mut self, name: &str, mut f: F) -> bool
     where
-        F: FnMut(&BlockOrValue, &Everything),
+        F: FnMut(&BV, &Everything),
     {
         let mut found = None;
         for (k, cmp, bv) in &self.block.v {
@@ -471,7 +471,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_validated_key<F>(&mut self, name: &str, mut f: F) -> bool
     where
-        F: FnMut(&Token, &BlockOrValue, &Everything),
+        F: FnMut(&Token, &BV, &Everything),
     {
         let mut found = None;
         for (k, cmp, bv) in &self.block.v {
@@ -492,14 +492,14 @@ impl<'a> Validator<'a> {
 
     pub fn field_validated_sc<F>(&mut self, name: &str, sc: &mut ScopeContext, mut f: F) -> bool
     where
-        F: FnMut(&BlockOrValue, &Everything, &mut ScopeContext),
+        F: FnMut(&BV, &Everything, &mut ScopeContext),
     {
         self.field_validated(name, |bv, data| f(bv, data, sc))
     }
 
     pub fn field_validated_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F) -> bool
     where
-        F: FnMut(&BlockOrValue, &Everything, &mut ScopeContext),
+        F: FnMut(&BV, &Everything, &mut ScopeContext),
     {
         self.field_validated_key(name, |key, bv, data| {
             let mut sc = ScopeContext::new_root(scopes, key);
@@ -509,7 +509,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_validated_bvs<F>(&mut self, name: &str, mut f: F) -> bool
     where
-        F: FnMut(&BlockOrValue, &Everything),
+        F: FnMut(&BV, &Everything),
     {
         let mut found = false;
         for (k, cmp, v) in &self.block.v {
@@ -527,7 +527,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_validated_bvs_sc<F>(&mut self, name: &str, sc: &mut ScopeContext, mut f: F) -> bool
     where
-        F: FnMut(&BlockOrValue, &Everything, &mut ScopeContext),
+        F: FnMut(&BV, &Everything, &mut ScopeContext),
     {
         self.field_validated_bvs(name, |b, data| f(b, data, sc))
     }
@@ -715,7 +715,7 @@ impl<'a> Validator<'a> {
         let mut found = 0;
         for (k, _, bv) in &self.block.v {
             if k.is_none() {
-                if let BlockOrValue::Value(t) = bv {
+                if let BV::Value(t) = bv {
                     if let Some(_) = t.expect_integer() {
                         found += 1;
                     }
@@ -733,7 +733,7 @@ impl<'a> Validator<'a> {
         let mut found = 0;
         for (k, _, bv) in &self.block.v {
             if k.is_none() {
-                if let BlockOrValue::Value(t) = bv {
+                if let BV::Value(t) = bv {
                     if let Some(_) = t.expect_number() {
                         found += 1;
                     }
@@ -765,7 +765,7 @@ impl<'a> Validator<'a> {
         let mut vec = Vec::new();
         for (k, _, bv) in &self.block.v {
             if k.is_none() {
-                if let BlockOrValue::Value(t) = bv {
+                if let BV::Value(t) = bv {
                     vec.push(t);
                 }
             }
@@ -778,7 +778,7 @@ impl<'a> Validator<'a> {
         let mut vec = Vec::new();
         for (k, _, bv) in &self.block.v {
             if k.is_none() {
-                if let BlockOrValue::Block(b) = bv {
+                if let BV::Block(b) = bv {
                     vec.push(b);
                 }
             }
@@ -850,7 +850,7 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn unknown_keys(&mut self) -> Vec<(&Token, &BlockOrValue)> {
+    pub fn unknown_keys(&mut self) -> Vec<(&Token, &BV)> {
         self.accepted_keys = true;
         let mut vec = Vec::new();
         for (k, cmp, bv) in &self.block.v {
@@ -864,7 +864,7 @@ impl<'a> Validator<'a> {
         vec
     }
 
-    pub fn unknown_keys_any_cmp(&mut self) -> Vec<(&Token, Comparator, &BlockOrValue)> {
+    pub fn unknown_keys_any_cmp(&mut self) -> Vec<(&Token, Comparator, &BV)> {
         self.accepted_keys = true;
         let mut vec = Vec::new();
         for (k, cmp, bv) in &self.block.v {
@@ -894,7 +894,7 @@ impl<'a> Validator<'a> {
                     }
                 }
                 None => match v {
-                    BlockOrValue::Value(t) => {
+                    BV::Value(t) => {
                         if !self.accepted_tokens {
                             warn(
                                 t,
@@ -904,7 +904,7 @@ impl<'a> Validator<'a> {
                             warned = true;
                         }
                     }
-                    BlockOrValue::Block(s) => {
+                    BV::Block(s) => {
                         if !self.accepted_blocks {
                             warn(
                                 s,

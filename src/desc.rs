@@ -1,4 +1,4 @@
-use crate::block::{Block, BlockOrValue, DefinitionItem};
+use crate::block::{Block, DefinitionItem, BV};
 use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
@@ -40,24 +40,24 @@ pub fn validate_desc_map_block(
 }
 
 pub fn validate_desc_map(
-    bv: &BlockOrValue,
+    bv: &BV,
     data: &Everything,
     sc: &mut ScopeContext,
     f: impl Fn(&Token, &Everything),
 ) {
     match bv {
-        BlockOrValue::Value(t) => {
+        BV::Value(t) => {
             if !t.as_str().contains(' ') {
                 f(t, data);
             }
         }
-        BlockOrValue::Block(b) => {
+        BV::Block(b) => {
             validate_desc_map_block(b, data, sc, &f, false);
         }
     }
 }
 
-pub fn validate_desc(bv: &BlockOrValue, data: &Everything, sc: &mut ScopeContext) {
+pub fn validate_desc(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     validate_desc_map(bv, data, sc, |token, data| {
         data.localization.verify_exists(token);
     });

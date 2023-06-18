@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue, Comparator};
+use crate::block::{Block, Comparator, BV};
 use crate::context::ScopeContext;
 use crate::data::effect_localization::EffectLocalization;
 use crate::data::scriptvalues::ScriptValue;
@@ -64,7 +64,7 @@ pub fn validate_effect<'a>(
     'outer: for (key, bv) in vd.unknown_keys() {
         if let Some(effect) = data.get_effect(key) {
             match bv {
-                BlockOrValue::Value(token) => {
+                BV::Value(token) => {
                     if !effect.macro_parms().is_empty() {
                         error(token, ErrorKey::Macro, "expected macro arguments");
                     } else if !token.is("yes") {
@@ -72,7 +72,7 @@ pub fn validate_effect<'a>(
                     }
                     effect.validate_call(key, data, sc, tooltipped);
                 }
-                BlockOrValue::Block(block) => {
+                BV::Block(block) => {
                     let parms = effect.macro_parms();
                     if parms.is_empty() {
                         error_info(
@@ -228,8 +228,8 @@ pub fn validate_effect<'a>(
                     }
                 }
                 Effect::AddModifier => match bv {
-                    BlockOrValue::Value(token) => data.verify_exists(Item::Modifier, token),
-                    BlockOrValue::Block(block) => {
+                    BV::Value(token) => data.verify_exists(Item::Modifier, token),
+                    BV::Block(block) => {
                         let mut vd = Validator::new(block, data);
                         vd.set_case_sensitive(false);
                         vd.req_field("modifier");
@@ -262,8 +262,8 @@ pub fn validate_effect<'a>(
                     tooltipped,
                 ),
                 Effect::ControlOrLabel => match bv {
-                    BlockOrValue::Value(t) => data.verify_exists(Item::Localization, t),
-                    BlockOrValue::Block(b) => validate_effect_control(
+                    BV::Value(t) => data.verify_exists(Item::Localization, t),
+                    BV::Block(b) => validate_effect_control(
                         &key.as_str().to_lowercase(),
                         b,
                         data,
@@ -466,15 +466,15 @@ fn validate_effect_special_value(
 
 fn validate_effect_special_bv(
     caller: &str,
-    bv: &BlockOrValue,
+    bv: &BV,
     data: &Everything,
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
     if caller.starts_with("set_relation_") {
         match bv {
-            BlockOrValue::Value(token) => validate_target(token, data, sc, Scopes::Character),
-            BlockOrValue::Block(block) => {
+            BV::Value(token) => validate_target(token, data, sc, Scopes::Character),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("target");
@@ -488,8 +488,8 @@ fn validate_effect_special_bv(
         }
     } else if caller == "activate_struggle_catalyst" {
         match bv {
-            BlockOrValue::Value(token) => data.verify_exists(Item::Catalyst, token),
-            BlockOrValue::Block(block) => {
+            BV::Value(token) => data.verify_exists(Item::Catalyst, token),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("catalyst");
@@ -500,8 +500,8 @@ fn validate_effect_special_bv(
         }
     } else if caller == "add_character_flag" {
         match bv {
-            BlockOrValue::Value(_token) => (),
-            BlockOrValue::Block(block) => {
+            BV::Value(_token) => (),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("flag");
@@ -511,8 +511,8 @@ fn validate_effect_special_bv(
         }
     } else if caller == "begin_create_holding" {
         match bv {
-            BlockOrValue::Value(token) => data.verify_exists(Item::Holding, token),
-            BlockOrValue::Block(block) => {
+            BV::Value(token) => data.verify_exists(Item::Holding, token),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("type");
@@ -528,12 +528,12 @@ fn validate_effect_special_bv(
         }
     } else if caller == "change_first_name" {
         match bv {
-            BlockOrValue::Value(token) => {
+            BV::Value(token) => {
                 if !data.item_exists(Item::Localization, token.as_str()) {
                     validate_target(token, data, sc, Scopes::Flag);
                 }
             }
-            BlockOrValue::Block(block) => {
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("template_character");
@@ -542,8 +542,8 @@ fn validate_effect_special_bv(
         }
     } else if caller == "close_view" {
         match bv {
-            BlockOrValue::Value(_token) => (), // TODO
-            BlockOrValue::Block(block) => {
+            BV::Value(_token) => (), // TODO
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("view");
@@ -553,8 +553,8 @@ fn validate_effect_special_bv(
         }
     } else if caller == "create_alliance" {
         match bv {
-            BlockOrValue::Value(token) => validate_target(token, data, sc, Scopes::Character),
-            BlockOrValue::Block(block) => {
+            BV::Value(token) => validate_target(token, data, sc, Scopes::Character),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("target");
@@ -565,8 +565,8 @@ fn validate_effect_special_bv(
         }
     } else if caller == "create_inspiration" {
         match bv {
-            BlockOrValue::Value(token) => data.verify_exists(Item::Inspiration, token),
-            BlockOrValue::Block(block) => {
+            BV::Value(token) => data.verify_exists(Item::Inspiration, token),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("type");
@@ -577,8 +577,8 @@ fn validate_effect_special_bv(
         }
     } else if caller == "create_story" {
         match bv {
-            BlockOrValue::Value(token) => data.verify_exists(Item::Story, token),
-            BlockOrValue::Block(block) => {
+            BV::Value(token) => data.verify_exists(Item::Story, token),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("type");
@@ -593,13 +593,13 @@ fn validate_effect_special_bv(
         }
     } else if caller == "death" {
         match bv {
-            BlockOrValue::Value(token) => {
+            BV::Value(token) => {
                 if !token.is("natural") {
                     let msg = "expected `death = natural`";
                     warn(token, ErrorKey::Validation, msg);
                 }
             }
-            BlockOrValue::Block(block) => {
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("death_reason");
@@ -610,8 +610,8 @@ fn validate_effect_special_bv(
         }
     } else if caller == "open_view" || caller == "open_view_data" {
         match bv {
-            BlockOrValue::Value(_token) => (), // TODO
-            BlockOrValue::Block(block) => {
+            BV::Value(_token) => (), // TODO
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("view");
@@ -622,8 +622,8 @@ fn validate_effect_special_bv(
         }
     } else if caller == "remove_courtier_or_guest" {
         match bv {
-            BlockOrValue::Value(token) => validate_target(token, data, sc, Scopes::Character),
-            BlockOrValue::Block(block) => {
+            BV::Value(token) => validate_target(token, data, sc, Scopes::Character),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("character");
@@ -643,25 +643,25 @@ fn validate_effect_special_bv(
         || caller == "set_variable"
     {
         match bv {
-            BlockOrValue::Value(_token) => (),
-            BlockOrValue::Block(block) => {
+            BV::Value(_token) => (),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("name");
                 vd.field_value("name");
                 vd.field_validated("value", |bv, data| match bv {
-                    BlockOrValue::Value(token) => {
+                    BV::Value(token) => {
                         validate_target(token, data, sc, Scopes::all_but_none());
                     }
-                    BlockOrValue::Block(_) => ScriptValue::validate_bv(bv, data, sc),
+                    BV::Block(_) => ScriptValue::validate_bv(bv, data, sc),
                 });
                 validate_optional_duration(&mut vd, sc);
             }
         }
     } else if caller == "set_location" {
         match bv {
-            BlockOrValue::Value(token) => validate_target(token, data, sc, Scopes::Province),
-            BlockOrValue::Block(block) => {
+            BV::Value(token) => validate_target(token, data, sc, Scopes::Province),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("location");
@@ -671,8 +671,8 @@ fn validate_effect_special_bv(
         }
     } else if caller == "set_owner" {
         match bv {
-            BlockOrValue::Value(token) => validate_target(token, data, sc, Scopes::Character),
-            BlockOrValue::Block(block) => {
+            BV::Value(token) => validate_target(token, data, sc, Scopes::Character),
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.req_field("target");
@@ -683,11 +683,11 @@ fn validate_effect_special_bv(
         }
     } else if caller == "trigger_event" {
         match bv {
-            BlockOrValue::Value(token) => {
+            BV::Value(token) => {
                 data.verify_exists(Item::Event, token);
                 data.events.check_scope(token, sc);
             }
-            BlockOrValue::Block(block) => {
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
                 vd.field_item("id", Item::Event);
@@ -1291,7 +1291,7 @@ fn validate_effect_special(
             for (key, bv) in vd.unknown_keys() {
                 if !key.is("fallback") {
                     // Pretend the switch was written as a series of trigger = key lines
-                    let synthetic_bv = BlockOrValue::Value(key.clone());
+                    let synthetic_bv = BV::Value(key.clone());
                     validate_trigger_key_bv(
                         &target,
                         Comparator::Eq,

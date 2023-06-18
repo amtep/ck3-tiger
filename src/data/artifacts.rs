@@ -1,5 +1,5 @@
 use crate::block::validator::Validator;
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::errorkey::ErrorKey;
@@ -128,7 +128,7 @@ impl DbKind for ArtifactVisual {
 
         let mut unconditional = false;
         vd.field_validated_bvs("icon", |bv, data| match bv {
-            BlockOrValue::Value(icon) => {
+            BV::Value(icon) => {
                 unconditional = true;
                 if let Some(icon_path) =
                     data.get_defined_string_warn(icon, "NGameIcons|ARTIFACT_ICON_PATH")
@@ -137,7 +137,7 @@ impl DbKind for ArtifactVisual {
                     data.verify_exists_implied(Item::File, &pathname, icon);
                 }
             }
-            BlockOrValue::Block(block) => {
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 if !block.has_key("trigger") {
                     unconditional = true;
@@ -162,11 +162,11 @@ impl DbKind for ArtifactVisual {
 
         unconditional = false;
         vd.field_validated_bvs("asset", |bv, data| match bv {
-            BlockOrValue::Value(asset) => {
+            BV::Value(asset) => {
                 unconditional = true;
                 data.verify_exists(Item::Asset, asset);
             }
-            BlockOrValue::Block(block) => {
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 if !block.has_key("trigger") {
                     unconditional = true;

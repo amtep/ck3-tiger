@@ -7,7 +7,7 @@ use std::io::{stdout, Stderr, Stdout, Write};
 use std::path::PathBuf;
 use unicode_width::UnicodeWidthChar;
 
-use crate::block::{Block, BlockOrValue};
+use crate::block::{Block, BV};
 use crate::errorkey::ErrorKey;
 use crate::fileset::{FileEntry, FileKind};
 use crate::token::{Loc, Token};
@@ -39,20 +39,20 @@ pub trait ErrorLoc {
     fn into_loc(self) -> Loc;
 }
 
-impl ErrorLoc for BlockOrValue {
+impl ErrorLoc for BV {
     fn into_loc(self) -> Loc {
         match self {
-            BlockOrValue::Value(t) => t.into_loc(),
-            BlockOrValue::Block(s) => s.into_loc(),
+            BV::Value(t) => t.into_loc(),
+            BV::Block(s) => s.into_loc(),
         }
     }
 }
 
-impl ErrorLoc for &BlockOrValue {
+impl ErrorLoc for &BV {
     fn into_loc(self) -> Loc {
         match self {
-            BlockOrValue::Value(t) => t.into_loc(),
-            BlockOrValue::Block(s) => s.into_loc(),
+            BV::Value(t) => t.into_loc(),
+            BV::Block(s) => s.into_loc(),
         }
     }
 }
