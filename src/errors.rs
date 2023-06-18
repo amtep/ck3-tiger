@@ -141,10 +141,6 @@ struct Errors {
     seen: FnvHashSet<ErrorRecord>,
 }
 
-// TODO: allow a message to have multiple tokens, and print the relevant lines as a stack
-// before the message. This might be implemented by letting Token have something like an
-// `Option<Token>` field to chain them.
-
 impl Errors {
     #[allow(clippy::unused_self)] // At some point we will cache files in self
     fn get_line(&mut self, loc: &Loc) -> Option<String> {
@@ -225,7 +221,6 @@ impl Errors {
                 .expect("writeln");
             }
         }
-        // TODO: get terminal column width and do line wrapping of msg and info
         writeln!(
             self.outfile.as_mut().expect("outfile"),
             "{level} ({key}): {msg}"

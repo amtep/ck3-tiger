@@ -40,6 +40,7 @@ impl<T> MacroCache<T> {
         tooltipped: Tooltipped,
         mut f: impl FnMut(&T),
     ) -> bool {
+        // TODO: find a way to avoid all the cloning for creating a MacroKey just to look it up in the cache
         let key = MacroKey::new(key.loc.clone(), args, tooltipped);
         if let Some(x) = self.cache.borrow().get(&key) {
             f(x);
