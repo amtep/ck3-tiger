@@ -816,17 +816,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "return_to_court", Yes),
     (Secret, "reveal_to", Scope(Scopes::Character)),
     (Character, "reverse_add_opinion", SpecialBlock),
-    // Docs are incorrect on this one. And "recipient" is the one getting fired.
-    (
-        Character,
-        "revoke_court_position",
-        ItemTarget(
-            "court_position",
-            Item::CourtPosition,
-            "recipient",
-            Scopes::Character,
-        ),
-    ),
+    (Character, "revoke_court_position", SpecialBlock),
     (LandedTitle, "revoke_lease", Yes),
     (None, "round_global_variable", SpecialBlock),
     (None, "round_local_variable", SpecialBlock),

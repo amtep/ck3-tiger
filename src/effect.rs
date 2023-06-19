@@ -1131,6 +1131,18 @@ fn validate_effect_special(
         vd.field_target("recipient", sc, Scopes::Character);
         vd.field_target("holder", sc, Scopes::Character);
         vd.field_item("court_position", Item::CourtPosition);
+    } else if caller == "revoke_court_position" {
+        vd.req_field("court_position");
+        if let Some(token) = vd.field_value("recipient") {
+            let msg = "as of 1.9.2 neither `recipient` nor `target` work here";
+            let info = "for court positions with multiple holders (such as bodyguard), an arbitrary one will be revoked";
+            warn_info(token, ErrorKey::Bugs, msg, info);
+        }
+        if let Some(token) = vd.field_value("target") {
+            let msg = "as of 1.9.2 neither `recipient` nor `target` work here";
+            let info = "for court positions with multiple holders (such as bodyguard), an arbitrary one will be revoked";
+            warn_info(token, ErrorKey::Bugs, msg, info);
+        }
     } else if caller == "round_global_variable"
         || caller == "round_local_variable"
         || caller == "round_variable"
