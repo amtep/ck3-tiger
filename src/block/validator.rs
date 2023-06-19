@@ -910,7 +910,11 @@ impl<'a> Validator<'a> {
             match k {
                 Some(key) => {
                     if !self.accepted_keys && !self.known_fields.contains(&key.as_str()) {
-                        warn(key, ErrorKey::Validation, &format!("unknown field `{key}`"));
+                        warn(
+                            key,
+                            ErrorKey::UnknownField,
+                            &format!("unknown field `{key}`"),
+                        );
                         warned = true;
                     }
                 }

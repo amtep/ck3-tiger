@@ -669,7 +669,7 @@ pub fn validate_scripted_modifier_calls(
             validate_scripted_modifier_call(key, bv, modifier, data, sc);
         } else {
             let msg = format!("unknown field `{key}`");
-            warn(key, ErrorKey::Validation, &msg);
+            warn(key, ErrorKey::UnknownField, &msg);
         }
     }
 }
@@ -729,7 +729,7 @@ pub fn validate_scope_chain(token: &Token, data: &Everything, sc: &mut ScopeCont
             sc.replace(outscope, part);
         } else {
             let msg = format!("unknown token `{part}`");
-            error(part, ErrorKey::Validation, &msg);
+            error(part, ErrorKey::UnknownField, &msg);
             return false;
         }
         first = false;

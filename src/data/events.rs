@@ -172,7 +172,11 @@ impl FileHandler for Events {
                     error(key, ErrorKey::Validation, &msg);
                 }
                 DefinitionItem::Assignment(key, _) => {
-                    error(key, ErrorKey::Validation, "unknown setting in event files");
+                    error(
+                        key,
+                        ErrorKey::UnknownField,
+                        "unknown setting in event files",
+                    );
                 }
                 DefinitionItem::Keyword(key)
                     if matches!(expecting, Expecting::Event) && key.is("scripted_trigger") =>

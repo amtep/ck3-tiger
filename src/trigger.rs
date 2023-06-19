@@ -305,7 +305,7 @@ pub fn validate_trigger_key_bv(
         } else {
             // TODO: warn if trying to use iterator here
             let msg = format!("unknown token `{part}`");
-            error(part, ErrorKey::Validation, &msg);
+            error(part, ErrorKey::UnknownField, &msg);
             sc.close();
             return;
         }
@@ -755,7 +755,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
         // TODO: warn if trying to use iterator here
         } else {
             let msg = format!("unknown token `{part}`");
-            error(part, ErrorKey::Validation, &msg);
+            error(part, ErrorKey::UnknownField, &msg);
             sc.close();
             return;
         }

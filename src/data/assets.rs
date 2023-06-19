@@ -330,7 +330,7 @@ impl Asset {
         } else if self.key.is("arrowType") {
             // TODO: arrowType
         } else {
-            warn(&self.key, ErrorKey::Validation, "unknown asset type");
+            warn(&self.key, ErrorKey::UnknownField, "unknown asset type");
         }
     }
 }

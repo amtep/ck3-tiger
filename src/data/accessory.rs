@@ -89,7 +89,7 @@ impl AccessoryVariation {
                 error(key, ErrorKey::FieldMissing, "pattern_layout without a name");
             }
         } else {
-            warn(key, ErrorKey::ParseError, "unknown variation type");
+            warn(key, ErrorKey::UnknownField, "unknown variation type");
         }
     }
 }

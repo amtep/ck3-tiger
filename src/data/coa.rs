@@ -282,6 +282,9 @@ impl CoaTemplateList {
                     Box::new(CoaTexturedEmblemList {}),
                 );
             }
+        } else {
+            let msg = format!("unknown list type {key}");
+            warn(key, ErrorKey::UnknownField, &msg);
         }
     }
 }
