@@ -567,7 +567,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         None,
         "global_variable_list_size",
-        Block(&[("name", UncheckedValue), ("target", CompareValue)]),
+        Block(&[("name", UncheckedValue), ("value", CompareValue)]),
     ),
     (Character, "gold", CompareValueWarnEq),
     (
