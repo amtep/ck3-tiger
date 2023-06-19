@@ -26,7 +26,7 @@ impl TriggerLocalization {
         match tooltipped {
             Tooltipped::No => (),
             Tooltipped::Yes | Tooltipped::Past => {
-                for field in &["global", "first", "third"] {
+                for field in &["global", "first", "third", "none"] {
                     if block.has_key(field) {
                         return;
                     }
@@ -35,7 +35,7 @@ impl TriggerLocalization {
                 warn2(caller, ErrorKey::MissingPerspective, &msg, key, "here");
             }
             Tooltipped::Negated => {
-                for field in &["global_not", "first_not", "third_not"] {
+                for field in &["global_not", "first_not", "third_not", "none_not"] {
                     if block.has_key(field) {
                         return;
                     }
@@ -64,5 +64,7 @@ impl DbKind for TriggerLocalization {
         vd.field_item("first_not", Item::Localization);
         vd.field_item("third", Item::Localization);
         vd.field_item("third_not", Item::Localization);
+        vd.field_item("none", Item::Localization);
+        vd.field_item("none_not", Item::Localization);
     }
 }
