@@ -190,6 +190,13 @@ impl Interaction {
             Scopes::Character,
             validate_duration,
         );
+        // undocumented, but used in marriage interaction
+        vd.field_validated_block_rerooted(
+            "recipient_recieve_cooldown",
+            &sc,
+            Scopes::Character,
+            validate_duration,
+        );
         vd.field_validated_block_rerooted(
             "category_cooldown",
             &sc,
