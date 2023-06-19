@@ -251,11 +251,17 @@ impl Interaction {
             validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
 
-        vd.field_validated_block("populate_actor_list", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::No);
+        vd.field_validated_key_block("populate_actor_list", |key, block, data| {
+            // TODO: this loca check and the one for recipient_secondary have a lot of false positives in vanilla.
+            // Not sure why.
+            let loca = format!("actor_secondary_{}", self.key);
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            validate_normal_effect(block, data, &mut sc.clone(), Tooltipped::No);
         });
-        vd.field_validated_block("populate_recipient_list", |b, data| {
-            validate_normal_effect(b, data, &mut sc.clone(), Tooltipped::No);
+        vd.field_validated_key_block("populate_recipient_list", |key, block, data| {
+            let loca = format!("recipient_secondary_{}", self.key);
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            validate_normal_effect(block, data, &mut sc.clone(), Tooltipped::No);
         });
 
         vd.field_block("localization_values"); // TODO
