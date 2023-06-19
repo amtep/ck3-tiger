@@ -7,7 +7,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_advice, dup_error};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
@@ -26,7 +26,13 @@ impl Coas {
                 for (key, block) in block.iter_pure_definitions_warn() {
                     if let Some(other) = self.templates.get(key.as_str()) {
                         if other.key.loc.kind >= key.loc.kind {
-                            dup_error(&key, &other.key, "coa template");
+                            if let BV::Block(otherblock) = &other.bv {
+                                if otherblock.equivalent(block) {
+                                    dup_advice(&key, &other.key, "coa template");
+                                } else {
+                                    dup_error(&key, &other.key, "coa template");
+                                }
+                            }
                         }
                     }
                     self.templates.insert(
@@ -38,7 +44,11 @@ impl Coas {
         } else {
             if let Some(other) = self.coas.get(key.as_str()) {
                 if other.key.loc.kind >= key.loc.kind {
-                    dup_error(&key, &other.key, "coat of arms");
+                    if other.bv.equivalent(bv) {
+                        dup_advice(&key, &other.key, "coat of arms");
+                    } else {
+                        dup_error(&key, &other.key, "coat of arms");
+                    }
                 }
             }
             self.coas

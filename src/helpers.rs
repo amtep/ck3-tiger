@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use crate::errorkey::ErrorKey;
-use crate::errors::warn2;
+use crate::errors::{advice2, warn2};
 use crate::token::Token;
 
 /// Warns about a redefinition of a database item
@@ -10,6 +10,17 @@ pub fn dup_error(key: &Token, other: &Token, id: &str) {
         other,
         ErrorKey::Duplicate,
         &format!("{id} is redefined by another {id}"),
+        key,
+        &format!("the other {id} is here"),
+    );
+}
+
+/// Warns about a redefinition of a database item, but only at "advice" level
+pub fn dup_advice(key: &Token, other: &Token, id: &str) {
+    advice2(
+        other,
+        ErrorKey::Duplicate,
+        &format!("{id} is redefined by another {id}, which may cause problems if one of them is later changed"),
         key,
         &format!("the other {id} is here"),
     );

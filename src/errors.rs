@@ -488,6 +488,10 @@ pub fn advice<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
     Errors::get_mut().push(eloc, ErrorLevel::Advice, key, msg, None);
 }
 
+pub fn advice2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
+    Errors::get_mut().push2(eloc, ErrorLevel::Advice, key, msg, eloc2, msg2);
+}
+
 pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     let info = if info.is_empty() { None } else { Some(info) };
     Errors::get_mut().push(eloc, ErrorLevel::Advice, key, msg, info);
