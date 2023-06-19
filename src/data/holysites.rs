@@ -7,7 +7,6 @@ use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -52,20 +51,16 @@ impl DbKind for HolySite {
 
         vd.field_values("flag");
 
-        vd.field_validated_blocks_rooted(
-            "character_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                if let Some(token) = vd.field_value("name") {
-                    data.verify_exists(Item::Localization, token);
-                } else {
-                    let loca = format!("holy_site_{key}_effects");
-                    data.verify_exists_implied(Item::Localization, &loca, key);
-                }
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
+        vd.field_validated_blocks("character_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            if let Some(token) = vd.field_value("name") {
+                data.verify_exists(Item::Localization, token);
+            } else {
+                let loca = format!("holy_site_{key}_effects");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+            }
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
 
         // undocumented
 

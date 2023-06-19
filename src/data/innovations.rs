@@ -57,19 +57,19 @@ impl DbKind for Innovation {
         // except the `type` field in `maa_upgrade`
         vd.field_validated_block("character_modifier", |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
+            validate_modifs(block, data, ModifKinds::Character, vd);
         });
         vd.field_validated_block("culture_modifier", |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Culture, &mut sc, vd);
+            validate_modifs(block, data, ModifKinds::Culture, vd);
         });
         vd.field_validated_block("county_modifier", |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::County, &mut sc, vd);
+            validate_modifs(block, data, ModifKinds::County, vd);
         });
         vd.field_validated_block("province_modifier", |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Province, &mut sc, vd);
+            validate_modifs(block, data, ModifKinds::Province, vd);
         });
 
         vd.field_values("flag");

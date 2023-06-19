@@ -138,15 +138,15 @@ impl DbKind for AccoladeType {
                 let mut vd = Validator::new(block, data);
                 vd.field_validated_block("liege_modifier", |block, data| {
                     let vd = Validator::new(block, data);
-                    validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
+                    validate_modifs(block, data, ModifKinds::Character, vd);
                 });
                 vd.field_validated_block("knight_modifier", |block, data| {
                     let vd = Validator::new(block, data);
-                    validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
+                    validate_modifs(block, data, ModifKinds::Character, vd);
                 });
                 vd.field_validated_block("knight_army_modifier", |block, data| {
                     let vd = Validator::new(block, data);
-                    validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
+                    validate_modifs(block, data, ModifKinds::Character, vd);
                 });
                 vd.field_list_items("men_at_arms", Item::MenAtArms);
                 vd.field_validated_block("terrain_bonus", |block, data| {

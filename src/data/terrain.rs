@@ -30,11 +30,13 @@ impl DbKind for Terrain {
         vd.field_validated_block("travel_danger_color", validate_color);
         vd.field_script_value("travel_danger_score", &mut sc);
 
-        vd.field_validated_block("attacker_modifier", |b, data| {
-            validate_combat_modifier(b, data, &mut sc);
+        vd.field_validated_block("attacker_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Terrain, vd);
         });
-        vd.field_validated_block("defender_modifier", |b, data| {
-            validate_combat_modifier(b, data, &mut sc);
+        vd.field_validated_block("defender_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Terrain, vd);
         });
         vd.field_block("attacker_combat_effects"); // TODO
         vd.field_block("defender_combat_effects"); // TODO
@@ -42,20 +44,11 @@ impl DbKind for Terrain {
         vd.field_numeric("combat_width");
         vd.field_bool("is_desert");
         vd.field_bool("is_jungle");
-        vd.field_numeric("audio_parameter"); // ??
+        vd.field_numeric("audio_parameter"); // TODO: ??
 
-        vd.field_validated_block("province_modifier", |b, data| {
-            validate_province_modifier(b, data, &mut sc);
+        vd.field_validated_block("province_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Province, vd);
         });
     }
-}
-
-pub fn validate_combat_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
-    let vd = Validator::new(block, data);
-    validate_modifs(block, data, ModifKinds::Terrain, sc, vd);
-}
-
-pub fn validate_province_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
-    let vd = Validator::new(block, data);
-    validate_modifs(block, data, ModifKinds::Province, sc, vd);
 }

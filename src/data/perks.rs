@@ -66,32 +66,20 @@ impl DbKind for Perk {
             validate_normal_effect(block, data, sc, Tooltipped::Yes);
         });
 
-        vd.field_validated_blocks_rooted(
-            "character_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "doctrine_character_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                vd.field_item("doctrine", Item::Doctrine);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "culture_character_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                vd.field_item("parameter", Item::CultureParameter);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
+        vd.field_validated_blocks("character_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.field_validated_blocks("doctrine_character_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("doctrine", Item::Doctrine);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.field_validated_blocks("culture_character_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("parameter", Item::CultureParameter);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
 
         vd.field_script_value("auto_selection_weight", &mut sc);
     }

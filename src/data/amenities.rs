@@ -43,20 +43,16 @@ fn validate_amenity_setting(key: &Token, block: &Block, data: &Everything) {
 
     vd.field_validated_block_rooted("cost", Scopes::Character, validate_cost);
 
-    vd.field_validated_block_rooted("owner_modifier", Scopes::Character, |block, data, sc| {
+    vd.field_validated_block("owner_modifier", |block, data| {
         let vd = Validator::new(block, data);
-        validate_modifs(block, data, ModifKinds::Character, sc, vd);
+        validate_modifs(block, data, ModifKinds::Character, vd);
     });
     vd.field_item("owner_modifier_description", Item::Localization);
 
-    vd.field_validated_block_rooted(
-        "courtier_guest_modifier",
-        Scopes::Character,
-        |block, data, sc| {
-            let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Character, sc, vd);
-        },
-    );
+    vd.field_validated_block("courtier_guest_modifier", |block, data| {
+        let vd = Validator::new(block, data);
+        validate_modifs(block, data, ModifKinds::Character, vd);
+    });
     vd.field_item("courtier_guest_modifier_description", Item::Localization);
 
     vd.field_script_value_rooted("ai_will_do", Scopes::Character);

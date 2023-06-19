@@ -171,14 +171,10 @@ impl DbKind for CulturePillar {
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
-        vd.field_validated_blocks_rooted(
-            "character_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
+        vd.field_validated_blocks("character_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
         validate_modifiers(&mut vd);
 
         vd.field_script_value_rooted("ai_will_do", Scopes::Culture);
@@ -240,16 +236,12 @@ impl DbKind for CultureTradition {
             },
         );
         validate_modifiers(&mut vd);
-        vd.field_validated_blocks_rooted(
-            "doctrine_character_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                vd.field_item("doctrine", Item::Doctrine);
-                vd.field_item("name", Item::Localization);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
+        vd.field_validated_blocks("doctrine_character_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("doctrine", Item::Doctrine);
+            vd.field_item("name", Item::Localization);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
         vd.field_validated_block_rooted("cost", Scopes::Culture, validate_cost);
         vd.field_script_value_rooted("ai_will_do", Scopes::Culture);
         vd.field_validated_block_rooted("is_shown", Scopes::Culture, |block, data, sc| {
@@ -259,24 +251,20 @@ impl DbKind for CultureTradition {
 }
 
 fn validate_modifiers(vd: &mut Validator) {
-    vd.field_validated_blocks_rooted(
-        "character_modifier",
-        Scopes::Character,
-        |block, data, sc| {
-            let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Character, sc, vd);
-        },
-    );
-    vd.field_validated_blocks_rooted("culture_modifier", Scopes::Culture, |block, data, sc| {
+    vd.field_validated_blocks("character_modifier", |block, data| {
         let vd = Validator::new(block, data);
-        validate_modifs(block, data, ModifKinds::Culture, sc, vd);
+        validate_modifs(block, data, ModifKinds::Character, vd);
     });
-    vd.field_validated_blocks_rooted("county_modifier", Scopes::LandedTitle, |block, data, sc| {
+    vd.field_validated_blocks("culture_modifier", |block, data| {
         let vd = Validator::new(block, data);
-        validate_modifs(block, data, ModifKinds::County, sc, vd);
+        validate_modifs(block, data, ModifKinds::Culture, vd);
     });
-    vd.field_validated_blocks_rooted("province_modifier", Scopes::Province, |block, data, sc| {
+    vd.field_validated_blocks("county_modifier", |block, data| {
         let vd = Validator::new(block, data);
-        validate_modifs(block, data, ModifKinds::Province, sc, vd);
+        validate_modifs(block, data, ModifKinds::County, vd);
+    });
+    vd.field_validated_blocks("province_modifier", |block, data| {
+        let vd = Validator::new(block, data);
+        validate_modifs(block, data, ModifKinds::Province, vd);
     });
 }

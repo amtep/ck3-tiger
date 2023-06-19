@@ -1,11 +1,9 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -18,9 +16,8 @@ impl Modifier {
 }
 
 impl DbKind for Modifier {
-    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
 
         // There are {key} and {key}_desc locas but both are optional
 
@@ -36,6 +33,6 @@ impl DbKind for Modifier {
 
         vd.field_bool("stacking");
         vd.field_bool("hide_effects");
-        validate_modifs(block, data, ModifKinds::all(), &mut sc, vd);
+        validate_modifs(block, data, ModifKinds::all(), vd);
     }
 }

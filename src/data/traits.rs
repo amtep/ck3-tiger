@@ -102,18 +102,18 @@ impl Trait {
         Self { key, block }
     }
 
-    fn validate_culture_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    fn validate_culture_modifier(block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
         vd.field_item("parameter", Item::CultureParameter);
-        validate_modifs(block, data, ModifKinds::Character, sc, vd);
+        validate_modifs(block, data, ModifKinds::Character, vd);
     }
 
-    fn validate_faith_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    fn validate_faith_modifier(block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
         vd.field_item("parameter", Item::DoctrineParameter);
-        validate_modifs(block, data, ModifKinds::Character, sc, vd);
+        validate_modifs(block, data, ModifKinds::Character, vd);
     }
 
     fn validate_triggered_opinion(block: &Block, data: &Everything) {
@@ -162,8 +162,8 @@ impl Trait {
         }
 
         vd.field_item("category", Item::TraitCategory);
-        vd.field_validated_blocks_sc("culture_modifier", &mut sc, Self::validate_culture_modifier);
-        vd.field_validated_blocks_sc("faith_modifier", &mut sc, Self::validate_faith_modifier);
+        vd.field_validated_blocks("culture_modifier", Self::validate_culture_modifier);
+        vd.field_validated_blocks("faith_modifier", Self::validate_faith_modifier);
         vd.field_item("culture_succession_prio", Item::CultureParameter);
         vd.field_validated_blocks("triggered_opinion", Self::validate_triggered_opinion);
 
@@ -253,6 +253,6 @@ impl Trait {
         vd.field_list_items("trait_exclusive_if_realm_contains", Item::Terrain);
         vd.replaced_field("trait_winter_exclusive", "`category = winter_commander`");
 
-        validate_modifs(&self.block, data, ModifKinds::Character, &mut sc, vd);
+        validate_modifs(&self.block, data, ModifKinds::Character, vd);
     }
 }

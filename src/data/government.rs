@@ -81,14 +81,10 @@ impl DbKind for Government {
 
         vd.field_list_items("vassal_contract", Item::VassalObligation);
         vd.field_validated_block("ai", validate_ai);
-        vd.field_validated_blocks_rooted(
-            "character_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
+        vd.field_validated_blocks("character_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
         vd.field_validated_block("color", validate_color);
 
         // undocumented

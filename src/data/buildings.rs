@@ -100,112 +100,71 @@ impl DbKind for Building {
         vd.field_item("next_building", Item::Building);
         vd.field_validated_rooted("effect_desc", Scopes::None, validate_desc);
 
-        vd.field_validated_blocks_rooted(
-            "character_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "character_culture_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                vd.req_field("parameter");
-                vd.field_item("parameter", Item::CultureParameter);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "character_dynasty_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                vd.req_field("county_holder_dynasty_perk");
-                vd.field_item("county_holder_dynasty_perk", Item::DynastyPerk);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
+        vd.field_validated_blocks("character_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.field_validated_blocks("character_culture_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("parameter");
+            vd.field_item("parameter", Item::CultureParameter);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.field_validated_blocks("character_dynasty_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("county_holder_dynasty_perk");
+            vd.field_item("county_holder_dynasty_perk", Item::DynastyPerk);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
 
-        vd.field_validated_blocks_rooted(
-            "province_modifier",
-            Scopes::Province,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::Province, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "province_culture_modifier",
-            Scopes::Province,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                vd.req_field("parameter");
-                vd.field_item("parameter", Item::CultureParameter);
-                validate_modifs(block, data, ModifKinds::Province, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "province_terrain_modifier",
-            Scopes::Province,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                vd.field_item("parameter", Item::CultureParameter);
-                vd.field_item("terrain", Item::Terrain);
-                vd.field_bool("is_coastal");
-                validate_modifs(block, data, ModifKinds::Province, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "province_dynasty_modifier",
-            Scopes::Province,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                vd.req_field("county_holder_dynasty_perk");
-                vd.field_item("county_holder_dynasty_perk", Item::DynastyPerk);
-                validate_modifs(block, data, ModifKinds::Province, sc, vd);
-            },
-        );
+        vd.field_validated_blocks("province_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Province, vd);
+        });
+        vd.field_validated_blocks("province_culture_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("parameter");
+            vd.field_item("parameter", Item::CultureParameter);
+            validate_modifs(block, data, ModifKinds::Province, vd);
+        });
+        vd.field_validated_blocks("province_terrain_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("parameter", Item::CultureParameter);
+            vd.field_item("terrain", Item::Terrain);
+            vd.field_bool("is_coastal");
+            validate_modifs(block, data, ModifKinds::Province, vd);
+        });
+        vd.field_validated_blocks("province_dynasty_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("county_holder_dynasty_perk");
+            vd.field_item("county_holder_dynasty_perk", Item::DynastyPerk);
+            validate_modifs(block, data, ModifKinds::Province, vd);
+        });
 
-        vd.field_validated_blocks_rooted(
-            "county_modifier",
-            Scopes::LandedTitle,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::County, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "county_culture_modifier",
-            Scopes::LandedTitle,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                vd.req_field("parameter");
-                vd.field_item("parameter", Item::CultureParameter);
-                validate_modifs(block, data, ModifKinds::County, sc, vd);
-            },
-        );
+        vd.field_validated_blocks("county_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::County, vd);
+        });
+        vd.field_validated_blocks("county_culture_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("parameter");
+            vd.field_item("parameter", Item::CultureParameter);
+            validate_modifs(block, data, ModifKinds::County, vd);
+        });
 
         if let Some(token) = block.get_field_value("type") {
             if token.is("duchy_capital") {
-                vd.field_validated_blocks_rooted(
-                    "duchy_capital_county_modifier",
-                    Scopes::LandedTitle,
-                    |block, data, sc| {
-                        let vd = Validator::new(block, data);
-                        validate_modifs(block, data, ModifKinds::County, sc, vd);
-                    },
-                );
-                vd.field_validated_blocks_rooted(
+                vd.field_validated_blocks("duchy_capital_county_modifier", |block, data| {
+                    let vd = Validator::new(block, data);
+                    validate_modifs(block, data, ModifKinds::County, vd);
+                });
+                vd.field_validated_blocks(
                     "duchy_capital_county_culture_modifier",
-                    Scopes::LandedTitle,
-                    |block, data, sc| {
+                    |block, data| {
                         let mut vd = Validator::new(block, data);
                         vd.req_field("parameter");
                         vd.field_item("parameter", Item::CultureParameter);
-                        validate_modifs(block, data, ModifKinds::County, sc, vd);
+                        validate_modifs(block, data, ModifKinds::County, vd);
                     },
                 );
             } else {
@@ -225,34 +184,22 @@ impl DbKind for Building {
             });
         }
 
-        vd.field_validated_blocks_rooted(
-            "county_holding_modifier",
-            Scopes::LandedTitle,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                vd.req_field("holding");
-                vd.field_item("holding", Item::Holding);
-                validate_modifs(block, data, ModifKinds::County, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "county_dynasty_modifier",
-            Scopes::LandedTitle,
-            |block, data, sc| {
-                let mut vd = Validator::new(block, data);
-                vd.req_field("county_holder_dynasty_perk");
-                vd.field_item("county_holder_dynasty_perk", Item::DynastyPerk);
-                validate_modifs(block, data, ModifKinds::County, sc, vd);
-            },
-        );
-        vd.field_validated_blocks_rooted(
-            "county_holder_character_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
+        vd.field_validated_blocks("county_holding_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("holding");
+            vd.field_item("holding", Item::Holding);
+            validate_modifs(block, data, ModifKinds::County, vd);
+        });
+        vd.field_validated_blocks("county_dynasty_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("county_holder_dynasty_perk");
+            vd.field_item("county_holder_dynasty_perk", Item::DynastyPerk);
+            validate_modifs(block, data, ModifKinds::County, vd);
+        });
+        vd.field_validated_blocks("county_holder_character_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
 
         vd.field_values("flag");
 

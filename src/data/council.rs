@@ -51,7 +51,7 @@ impl DbKind for CouncilPosition {
             let mut vd = Validator::new(block, data);
             vd.field_item("name", Item::Localization);
             vd.field_script_value("scale", sc);
-            validate_modifs(block, data, ModifKinds::Character, sc, vd);
+            validate_modifs(block, data, ModifKinds::Character, vd);
             count += 1;
             if count > 5 {
                 let msg = "no more than 5 modifier blocks can be specified here";
@@ -66,7 +66,7 @@ impl DbKind for CouncilPosition {
                 let mut vd = Validator::new(block, data);
                 vd.field_item("name", Item::Localization);
                 vd.field_script_value("scale", sc);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
+                validate_modifs(block, data, ModifKinds::Character, vd);
                 count += 1;
                 if count > 5 {
                     let msg = "no more than 5 council_owner_modifier blocks can be specified here";
@@ -210,7 +210,7 @@ impl DbKind for CouncilTask {
                 let mut vd = Validator::new(block, data);
                 vd.field_item("name", Item::Localization);
                 vd.field_script_value("scale", sc);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
+                validate_modifs(block, data, ModifKinds::Character, vd);
             },
         );
         vd.field_validated_blocks_rooted(
@@ -220,7 +220,7 @@ impl DbKind for CouncilTask {
                 let mut vd = Validator::new(block, data);
                 vd.field_item("name", Item::Localization);
                 vd.field_script_value("scale", sc);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
+                validate_modifs(block, data, ModifKinds::Character, vd);
             },
         );
         if block.field_value_is("task_type", "task_type_county") {
@@ -231,7 +231,7 @@ impl DbKind for CouncilTask {
                     let mut vd = Validator::new(block, data);
                     vd.field_item("name", Item::Localization);
                     vd.field_script_value("scale", sc);
-                    validate_modifs(block, data, ModifKinds::County, sc, vd);
+                    validate_modifs(block, data, ModifKinds::County, vd);
                 },
             );
         } else {

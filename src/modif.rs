@@ -11,6 +11,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 bitflags! {
@@ -69,481 +70,510 @@ pub fn validate_modifs<'a>(
     _block: &Block,
     data: &'a Everything,
     kinds: ModifKinds,
-    sc: &mut ScopeContext,
     mut vd: Validator<'a>,
 ) {
     // TODO: if a modif is for a wrong ModifKind, say so instead of "unknown token"
 
     if kinds.intersects(ModifKinds::Character) {
-        vd.field_script_value("hostile_scheme_power_add", sc);
-        vd.field_script_value("hostile_scheme_power_mult", sc);
-        vd.field_script_value("hostile_scheme_resistance_add", sc);
-        vd.field_script_value("hostile_scheme_resistance_mult", sc);
-        vd.field_script_value("max_hostile_schemes_add", sc);
-        vd.field_script_value("owned_hostile_scheme_success_chance_add", sc);
-        vd.field_script_value("personal_scheme_power_add", sc);
-        vd.field_script_value("personal_scheme_power_mult", sc);
-        vd.field_script_value("personal_scheme_resistance_add", sc);
-        vd.field_script_value("personal_scheme_resistance_mult", sc);
-        vd.field_script_value("max_personal_schemes_add", sc);
-        vd.field_script_value("owned_personal_scheme_success_chance_add", sc);
-        vd.field_script_value("owned_scheme_secrecy_add", sc);
-        vd.field_script_value("scheme_discovery_chance_mult", sc);
+        vd.field_script_value_rooted("hostile_scheme_power_add", Scopes::None);
+        vd.field_script_value_rooted("hostile_scheme_power_mult", Scopes::None);
+        vd.field_script_value_rooted("hostile_scheme_resistance_add", Scopes::None);
+        vd.field_script_value_rooted("hostile_scheme_resistance_mult", Scopes::None);
+        vd.field_script_value_rooted("max_hostile_schemes_add", Scopes::None);
+        vd.field_script_value_rooted("owned_hostile_scheme_success_chance_add", Scopes::None);
+        vd.field_script_value_rooted("personal_scheme_power_add", Scopes::None);
+        vd.field_script_value_rooted("personal_scheme_power_mult", Scopes::None);
+        vd.field_script_value_rooted("personal_scheme_resistance_add", Scopes::None);
+        vd.field_script_value_rooted("personal_scheme_resistance_mult", Scopes::None);
+        vd.field_script_value_rooted("max_personal_schemes_add", Scopes::None);
+        vd.field_script_value_rooted("owned_personal_scheme_success_chance_add", Scopes::None);
+        vd.field_script_value_rooted("owned_scheme_secrecy_add", Scopes::None);
+        vd.field_script_value_rooted("scheme_discovery_chance_mult", Scopes::None);
 
-        vd.field_script_value("ai_amenity_spending", sc);
-        vd.field_script_value("ai_amenity_target_baseline", sc);
+        vd.field_script_value_rooted("ai_amenity_spending", Scopes::None);
+        vd.field_script_value_rooted("ai_amenity_target_baseline", Scopes::None);
 
-        vd.field_script_value("ai_boldness", sc);
-        vd.field_script_value("ai_compassion", sc);
-        vd.field_script_value("ai_energy", sc);
-        vd.field_script_value("ai_greed", sc);
-        vd.field_script_value("ai_honor", sc);
-        vd.field_script_value("ai_rationality", sc);
-        vd.field_script_value("ai_sociability", sc);
-        vd.field_script_value("ai_vengefulness", sc);
-        vd.field_script_value("ai_zeal", sc);
+        vd.field_script_value_rooted("ai_boldness", Scopes::None);
+        vd.field_script_value_rooted("ai_compassion", Scopes::None);
+        vd.field_script_value_rooted("ai_energy", Scopes::None);
+        vd.field_script_value_rooted("ai_greed", Scopes::None);
+        vd.field_script_value_rooted("ai_honor", Scopes::None);
+        vd.field_script_value_rooted("ai_rationality", Scopes::None);
+        vd.field_script_value_rooted("ai_sociability", Scopes::None);
+        vd.field_script_value_rooted("ai_vengefulness", Scopes::None);
+        vd.field_script_value_rooted("ai_zeal", Scopes::None);
 
-        vd.field_script_value("ai_war_chance", sc);
-        vd.field_script_value("ai_war_cooldown", sc);
+        vd.field_script_value_rooted("ai_war_chance", Scopes::None);
+        vd.field_script_value_rooted("ai_war_cooldown", Scopes::None);
 
-        vd.field_script_value("army_damage_mult", sc);
-        vd.field_script_value("army_maintenance_mult", sc);
-        vd.field_script_value("army_pursuit_mult", sc);
-        vd.field_script_value("army_screen_mult", sc);
-        vd.field_script_value("army_siege_value_mult", sc);
-        vd.field_script_value("army_toughness_mult", sc);
+        vd.field_script_value_rooted("army_damage_mult", Scopes::None);
+        vd.field_script_value_rooted("army_maintenance_mult", Scopes::None);
+        vd.field_script_value_rooted("army_pursuit_mult", Scopes::None);
+        vd.field_script_value_rooted("army_screen_mult", Scopes::None);
+        vd.field_script_value_rooted("army_siege_value_mult", Scopes::None);
+        vd.field_script_value_rooted("army_toughness_mult", Scopes::None);
 
-        vd.field_script_value("advantage", sc);
-        vd.field_script_value("advantage_against_coreligionists", sc);
-        vd.field_script_value("attacker_advantage", sc);
-        vd.field_script_value("coastal_advantage", sc);
-        vd.field_script_value("controlled_province_advantage", sc);
-        vd.field_script_value("uncontrolled_province_advantage", sc);
-        vd.field_script_value("defender_advantage", sc);
-        vd.field_script_value("enemy_terrain_advantage", sc);
-        vd.field_script_value("independent_primary_defender_advantage_add", sc);
-        vd.field_script_value("led_by_owner_extra_advantage_add", sc);
-        vd.field_script_value("random_advantage", sc);
-        vd.field_script_value("same_heritage_county_advantage_add", sc);
-        vd.field_script_value("winter_advantage", sc);
+        vd.field_script_value_rooted("advantage", Scopes::None);
+        vd.field_script_value_rooted("advantage_against_coreligionists", Scopes::None);
+        vd.field_script_value_rooted("attacker_advantage", Scopes::None);
+        vd.field_script_value_rooted("coastal_advantage", Scopes::None);
+        vd.field_script_value_rooted("controlled_province_advantage", Scopes::None);
+        vd.field_script_value_rooted("uncontrolled_province_advantage", Scopes::None);
+        vd.field_script_value_rooted("defender_advantage", Scopes::None);
+        vd.field_script_value_rooted("enemy_terrain_advantage", Scopes::None);
+        vd.field_script_value_rooted("independent_primary_defender_advantage_add", Scopes::None);
+        vd.field_script_value_rooted("led_by_owner_extra_advantage_add", Scopes::None);
+        vd.field_script_value_rooted("random_advantage", Scopes::None);
+        vd.field_script_value_rooted("same_heritage_county_advantage_add", Scopes::None);
+        vd.field_script_value_rooted("winter_advantage", Scopes::None);
 
-        vd.field_script_value("max_combat_roll", sc);
-        vd.field_script_value("min_combat_roll", sc);
+        vd.field_script_value_rooted("max_combat_roll", Scopes::None);
+        vd.field_script_value_rooted("min_combat_roll", Scopes::None);
 
-        vd.field_script_value("attraction_opinion", sc);
-        vd.field_script_value("child_except_player_heir_opinion", sc);
-        vd.field_script_value("child_opinion", sc);
-        vd.field_script_value("clergy_opinion", sc);
-        vd.field_script_value("close_relative_opinion", sc);
-        vd.field_script_value("councillor_opinion", sc);
-        vd.field_script_value("county_opinion_add_even_if_baron", sc);
-        vd.field_script_value("courtier_and_guest_opinion", sc);
-        vd.field_script_value("courtier_opinion", sc);
-        vd.field_script_value("different_culture_opinion", sc);
-        vd.field_script_value("different_faith_county_opinion_mult", sc);
-        vd.field_script_value("different_faith_county_opinion_mult_even_if_baron", sc);
-        vd.field_script_value("different_faith_liege_opinion", sc);
-        vd.field_script_value("different_faith_opinion", sc);
-        vd.field_script_value("direct_vassal_opinion", sc);
-        vd.field_script_value("dynasty_house_opinion", sc);
-        vd.field_script_value("dynasty_opinion", sc);
-        vd.field_script_value("eligible_child_except_player_heir_opinion", sc);
-        vd.field_script_value("eligible_child_opinion", sc);
-        vd.field_script_value("fellow_vassal_opinion", sc);
-        vd.field_script_value("general_opinion", sc);
-        vd.field_script_value("guest_opinion", sc);
-        vd.field_script_value("independent_ruler_opinion", sc);
-        vd.field_script_value("liege_opinion", sc);
-        vd.field_script_value("player_heir_opinion", sc);
-        vd.field_script_value("powerful_vassal_opinion", sc);
-        vd.field_script_value("prisoner_opinion", sc);
-        vd.field_script_value("realm_priest_opinion", sc);
-        vd.field_script_value("religious_head_opinion", sc);
-        vd.field_script_value("religious_vassal_opinion", sc);
-        vd.field_script_value("same_culture_opinion", sc);
-        vd.field_script_value("same_faith_opinion", sc);
-        vd.field_script_value("spouse_opinion", sc);
-        vd.field_script_value("twin_opinion", sc);
-        vd.field_script_value("vassal_opinion", sc);
+        vd.field_script_value_rooted("attraction_opinion", Scopes::None);
+        vd.field_script_value_rooted("child_except_player_heir_opinion", Scopes::None);
+        vd.field_script_value_rooted("child_opinion", Scopes::None);
+        vd.field_script_value_rooted("clergy_opinion", Scopes::None);
+        vd.field_script_value_rooted("close_relative_opinion", Scopes::None);
+        vd.field_script_value_rooted("councillor_opinion", Scopes::None);
+        vd.field_script_value_rooted("county_opinion_add_even_if_baron", Scopes::None);
+        vd.field_script_value_rooted("courtier_and_guest_opinion", Scopes::None);
+        vd.field_script_value_rooted("courtier_opinion", Scopes::None);
+        vd.field_script_value_rooted("different_culture_opinion", Scopes::None);
+        vd.field_script_value_rooted("different_faith_county_opinion_mult", Scopes::None);
+        vd.field_script_value_rooted(
+            "different_faith_county_opinion_mult_even_if_baron",
+            Scopes::None,
+        );
+        vd.field_script_value_rooted("different_faith_liege_opinion", Scopes::None);
+        vd.field_script_value_rooted("different_faith_opinion", Scopes::None);
+        vd.field_script_value_rooted("direct_vassal_opinion", Scopes::None);
+        vd.field_script_value_rooted("dynasty_house_opinion", Scopes::None);
+        vd.field_script_value_rooted("dynasty_opinion", Scopes::None);
+        vd.field_script_value_rooted("eligible_child_except_player_heir_opinion", Scopes::None);
+        vd.field_script_value_rooted("eligible_child_opinion", Scopes::None);
+        vd.field_script_value_rooted("fellow_vassal_opinion", Scopes::None);
+        vd.field_script_value_rooted("general_opinion", Scopes::None);
+        vd.field_script_value_rooted("guest_opinion", Scopes::None);
+        vd.field_script_value_rooted("independent_ruler_opinion", Scopes::None);
+        vd.field_script_value_rooted("liege_opinion", Scopes::None);
+        vd.field_script_value_rooted("player_heir_opinion", Scopes::None);
+        vd.field_script_value_rooted("powerful_vassal_opinion", Scopes::None);
+        vd.field_script_value_rooted("prisoner_opinion", Scopes::None);
+        vd.field_script_value_rooted("realm_priest_opinion", Scopes::None);
+        vd.field_script_value_rooted("religious_head_opinion", Scopes::None);
+        vd.field_script_value_rooted("religious_vassal_opinion", Scopes::None);
+        vd.field_script_value_rooted("same_culture_opinion", Scopes::None);
+        vd.field_script_value_rooted("same_faith_opinion", Scopes::None);
+        vd.field_script_value_rooted("spouse_opinion", Scopes::None);
+        vd.field_script_value_rooted("twin_opinion", Scopes::None);
+        vd.field_script_value_rooted("vassal_opinion", Scopes::None);
 
-        vd.field_script_value(
+        vd.field_script_value_rooted(
             "character_capital_county_monthly_development_growth_add",
-            sc,
+            Scopes::None,
         );
 
-        vd.field_script_value("cowed_vassal_levy_contribution_add", sc);
-        vd.field_script_value("cowed_vassal_levy_contribution_mult", sc);
-        vd.field_script_value("cowed_vassal_tax_contribution_add", sc);
-        vd.field_script_value("cowed_vassal_tax_contribution_mult", sc);
-        vd.field_script_value("happy_powerful_vassal_levy_contribution_add", sc);
-        vd.field_script_value("happy_powerful_vassal_levy_contribution_mult", sc);
-        vd.field_script_value("happy_powerful_vassal_tax_contribution_add", sc);
-        vd.field_script_value("happy_powerful_vassal_tax_contribution_mult", sc);
-        vd.field_script_value("intimidated_vassal_levy_contribution_add", sc);
-        vd.field_script_value("intimidated_vassal_levy_contribution_mult", sc);
-        vd.field_script_value("intimidated_vassal_tax_contribution_add", sc);
-        vd.field_script_value("intimidated_vassal_tax_contribution_mult", sc);
-        vd.field_script_value("vassal_levy_contribution_add", sc);
-        vd.field_script_value("vassal_levy_contribution_mult", sc);
-        vd.field_script_value("vassal_tax_contribution_add", sc);
-        vd.field_script_value("vassal_tax_contribution_mult", sc);
+        vd.field_script_value_rooted("cowed_vassal_levy_contribution_add", Scopes::None);
+        vd.field_script_value_rooted("cowed_vassal_levy_contribution_mult", Scopes::None);
+        vd.field_script_value_rooted("cowed_vassal_tax_contribution_add", Scopes::None);
+        vd.field_script_value_rooted("cowed_vassal_tax_contribution_mult", Scopes::None);
+        vd.field_script_value_rooted("happy_powerful_vassal_levy_contribution_add", Scopes::None);
+        vd.field_script_value_rooted("happy_powerful_vassal_levy_contribution_mult", Scopes::None);
+        vd.field_script_value_rooted("happy_powerful_vassal_tax_contribution_add", Scopes::None);
+        vd.field_script_value_rooted("happy_powerful_vassal_tax_contribution_mult", Scopes::None);
+        vd.field_script_value_rooted("intimidated_vassal_levy_contribution_add", Scopes::None);
+        vd.field_script_value_rooted("intimidated_vassal_levy_contribution_mult", Scopes::None);
+        vd.field_script_value_rooted("intimidated_vassal_tax_contribution_add", Scopes::None);
+        vd.field_script_value_rooted("intimidated_vassal_tax_contribution_mult", Scopes::None);
+        vd.field_script_value_rooted("vassal_levy_contribution_add", Scopes::None);
+        vd.field_script_value_rooted("vassal_levy_contribution_mult", Scopes::None);
+        vd.field_script_value_rooted("vassal_tax_contribution_add", Scopes::None);
+        vd.field_script_value_rooted("vassal_tax_contribution_mult", Scopes::None);
 
-        vd.field_script_value("court_grandeur_baseline_add", sc);
-        vd.field_script_value("monthly_court_grandeur_change_add", sc);
-        vd.field_script_value("monthly_court_grandeur_change_mult", sc);
+        vd.field_script_value_rooted("court_grandeur_baseline_add", Scopes::None);
+        vd.field_script_value_rooted("monthly_court_grandeur_change_add", Scopes::None);
+        vd.field_script_value_rooted("monthly_court_grandeur_change_mult", Scopes::None);
 
-        vd.field_script_value("cultural_head_acceptance_gain_mult", sc);
-        vd.field_script_value("cultural_head_fascination_add", sc);
-        vd.field_script_value("cultural_head_fascination_mult", sc);
+        vd.field_script_value_rooted("cultural_head_acceptance_gain_mult", Scopes::None);
+        vd.field_script_value_rooted("cultural_head_fascination_add", Scopes::None);
+        vd.field_script_value_rooted("cultural_head_fascination_mult", Scopes::None);
 
-        vd.field_script_value("diplomacy", sc);
-        vd.field_script_value("diplomacy_per_piety_level", sc);
-        vd.field_script_value("diplomacy_per_prestige_level", sc);
-        vd.field_script_value("diplomacy_per_stress_level", sc);
-        vd.field_script_value("diplomacy_scheme_power", sc);
-        vd.field_script_value("diplomacy_scheme_resistance", sc);
-        vd.field_script_value("negate_diplomacy_penalty_add", sc);
-        vd.field_script_value("intrigue", sc);
-        vd.field_script_value("intrigue_per_piety_level", sc);
-        vd.field_script_value("intrigue_per_prestige_level", sc);
-        vd.field_script_value("intrigue_per_stress_level", sc);
-        vd.field_script_value("intrigue_scheme_power", sc);
-        vd.field_script_value("intrigue_scheme_resistance", sc);
-        vd.field_script_value("negate_intrigue_penalty_add", sc);
-        vd.field_script_value("learning", sc);
-        vd.field_script_value("learning_per_piety_level", sc);
-        vd.field_script_value("learning_per_prestige_level", sc);
-        vd.field_script_value("learning_per_stress_level", sc);
-        vd.field_script_value("learning_scheme_power", sc);
-        vd.field_script_value("learning_scheme_resistance", sc);
-        vd.field_script_value("negate_learning_penalty_add", sc);
-        vd.field_script_value("martial", sc);
-        vd.field_script_value("martial_per_piety_level", sc);
-        vd.field_script_value("martial_per_prestige_level", sc);
-        vd.field_script_value("martial_per_stress_level", sc);
-        vd.field_script_value("martial_scheme_power", sc);
-        vd.field_script_value("martial_scheme_resistance", sc);
-        vd.field_script_value("negate_martial_penalty_add", sc);
-        vd.field_script_value("prowess", sc);
-        vd.field_script_value("prowess_no_portrait", sc);
-        vd.field_script_value("prowess_per_piety_level", sc);
-        vd.field_script_value("prowess_per_prestige_level", sc);
-        vd.field_script_value("prowess_per_stress_level", sc);
-        vd.field_script_value("prowess_scheme_power", sc);
-        vd.field_script_value("prowess_scheme_resistance", sc);
-        vd.field_script_value("negate_prowess_penalty_add", sc);
-        vd.field_script_value("stewardship", sc);
-        vd.field_script_value("stewardship_no_portrait", sc);
-        vd.field_script_value("stewardship_per_piety_level", sc);
-        vd.field_script_value("stewardship_per_prestige_level", sc);
-        vd.field_script_value("stewardship_per_stress_level", sc);
-        vd.field_script_value("stewardship_scheme_power", sc);
-        vd.field_script_value("stewardship_scheme_resistance", sc);
-        vd.field_script_value("negate_stewardship_penalty_add", sc);
+        vd.field_script_value_rooted("diplomacy", Scopes::None);
+        vd.field_script_value_rooted("diplomacy_per_piety_level", Scopes::None);
+        vd.field_script_value_rooted("diplomacy_per_prestige_level", Scopes::None);
+        vd.field_script_value_rooted("diplomacy_per_stress_level", Scopes::None);
+        vd.field_script_value_rooted("diplomacy_scheme_power", Scopes::None);
+        vd.field_script_value_rooted("diplomacy_scheme_resistance", Scopes::None);
+        vd.field_script_value_rooted("negate_diplomacy_penalty_add", Scopes::None);
+        vd.field_script_value_rooted("intrigue", Scopes::None);
+        vd.field_script_value_rooted("intrigue_per_piety_level", Scopes::None);
+        vd.field_script_value_rooted("intrigue_per_prestige_level", Scopes::None);
+        vd.field_script_value_rooted("intrigue_per_stress_level", Scopes::None);
+        vd.field_script_value_rooted("intrigue_scheme_power", Scopes::None);
+        vd.field_script_value_rooted("intrigue_scheme_resistance", Scopes::None);
+        vd.field_script_value_rooted("negate_intrigue_penalty_add", Scopes::None);
+        vd.field_script_value_rooted("learning", Scopes::None);
+        vd.field_script_value_rooted("learning_per_piety_level", Scopes::None);
+        vd.field_script_value_rooted("learning_per_prestige_level", Scopes::None);
+        vd.field_script_value_rooted("learning_per_stress_level", Scopes::None);
+        vd.field_script_value_rooted("learning_scheme_power", Scopes::None);
+        vd.field_script_value_rooted("learning_scheme_resistance", Scopes::None);
+        vd.field_script_value_rooted("negate_learning_penalty_add", Scopes::None);
+        vd.field_script_value_rooted("martial", Scopes::None);
+        vd.field_script_value_rooted("martial_per_piety_level", Scopes::None);
+        vd.field_script_value_rooted("martial_per_prestige_level", Scopes::None);
+        vd.field_script_value_rooted("martial_per_stress_level", Scopes::None);
+        vd.field_script_value_rooted("martial_scheme_power", Scopes::None);
+        vd.field_script_value_rooted("martial_scheme_resistance", Scopes::None);
+        vd.field_script_value_rooted("negate_martial_penalty_add", Scopes::None);
+        vd.field_script_value_rooted("prowess", Scopes::None);
+        vd.field_script_value_rooted("prowess_no_portrait", Scopes::None);
+        vd.field_script_value_rooted("prowess_per_piety_level", Scopes::None);
+        vd.field_script_value_rooted("prowess_per_prestige_level", Scopes::None);
+        vd.field_script_value_rooted("prowess_per_stress_level", Scopes::None);
+        vd.field_script_value_rooted("prowess_scheme_power", Scopes::None);
+        vd.field_script_value_rooted("prowess_scheme_resistance", Scopes::None);
+        vd.field_script_value_rooted("negate_prowess_penalty_add", Scopes::None);
+        vd.field_script_value_rooted("stewardship", Scopes::None);
+        vd.field_script_value_rooted("stewardship_no_portrait", Scopes::None);
+        vd.field_script_value_rooted("stewardship_per_piety_level", Scopes::None);
+        vd.field_script_value_rooted("stewardship_per_prestige_level", Scopes::None);
+        vd.field_script_value_rooted("stewardship_per_stress_level", Scopes::None);
+        vd.field_script_value_rooted("stewardship_scheme_power", Scopes::None);
+        vd.field_script_value_rooted("stewardship_scheme_resistance", Scopes::None);
+        vd.field_script_value_rooted("negate_stewardship_penalty_add", Scopes::None);
 
-        vd.field_script_value("diplomatic_range_mult", sc);
+        vd.field_script_value_rooted("diplomatic_range_mult", Scopes::None);
 
-        vd.field_script_value("domain_limit", sc);
-        vd.field_script_value("domain_tax_different_faith_mult", sc);
-        vd.field_script_value("domain_tax_different_faith_mult_even_if_baron", sc);
-        vd.field_script_value("domain_tax_mult", sc);
-        vd.field_script_value("domain_tax_mult_even_if_baron", sc);
-        vd.field_script_value("domain_tax_same_faith_mult", sc);
-        vd.field_script_value("domain_tax_same_faith_mult_even_if_baron", sc);
+        vd.field_script_value_rooted("domain_limit", Scopes::None);
+        vd.field_script_value_rooted("domain_tax_different_faith_mult", Scopes::None);
+        vd.field_script_value_rooted(
+            "domain_tax_different_faith_mult_even_if_baron",
+            Scopes::None,
+        );
+        vd.field_script_value_rooted("domain_tax_mult", Scopes::None);
+        vd.field_script_value_rooted("domain_tax_mult_even_if_baron", Scopes::None);
+        vd.field_script_value_rooted("domain_tax_same_faith_mult", Scopes::None);
+        vd.field_script_value_rooted("domain_tax_same_faith_mult_even_if_baron", Scopes::None);
 
-        vd.field_script_value("dread_baseline_add", sc);
-        vd.field_script_value("dread_decay_add", sc);
-        vd.field_script_value("dread_decay_mult", sc);
-        vd.field_script_value("dread_gain_mult", sc);
-        vd.field_script_value("dread_loss_mult", sc);
-        vd.field_script_value("dread_per_tyranny_add", sc);
-        vd.field_script_value("dread_per_tyranny_mult", sc);
-        vd.field_script_value("monthly_dread", sc);
+        vd.field_script_value_rooted("dread_baseline_add", Scopes::None);
+        vd.field_script_value_rooted("dread_decay_add", Scopes::None);
+        vd.field_script_value_rooted("dread_decay_mult", Scopes::None);
+        vd.field_script_value_rooted("dread_gain_mult", Scopes::None);
+        vd.field_script_value_rooted("dread_loss_mult", Scopes::None);
+        vd.field_script_value_rooted("dread_per_tyranny_add", Scopes::None);
+        vd.field_script_value_rooted("dread_per_tyranny_mult", Scopes::None);
+        vd.field_script_value_rooted("monthly_dread", Scopes::None);
 
-        vd.field_script_value("embarkation_cost_mult", sc);
+        vd.field_script_value_rooted("embarkation_cost_mult", Scopes::None);
 
-        vd.field_script_value("enemy_hostile_scheme_success_chance_add", sc);
-        vd.field_script_value("enemy_personal_scheme_success_chance_add", sc);
+        vd.field_script_value_rooted("enemy_hostile_scheme_success_chance_add", Scopes::None);
+        vd.field_script_value_rooted("enemy_personal_scheme_success_chance_add", Scopes::None);
 
-        vd.field_script_value("faith_conversion_piety_cost_add", sc);
-        vd.field_script_value("faith_conversion_piety_cost_mult", sc);
-        vd.field_script_value("faith_creation_piety_cost_add", sc);
-        vd.field_script_value("faith_creation_piety_cost_mult", sc);
+        vd.field_script_value_rooted("faith_conversion_piety_cost_add", Scopes::None);
+        vd.field_script_value_rooted("faith_conversion_piety_cost_mult", Scopes::None);
+        vd.field_script_value_rooted("faith_creation_piety_cost_add", Scopes::None);
+        vd.field_script_value_rooted("faith_creation_piety_cost_mult", Scopes::None);
 
-        vd.field_script_value("fertility", sc);
-        vd.field_script_value("negate_fertility_penalty_add", sc);
-        vd.field_script_value("genetic_trait_strengthen_chance", sc);
-        vd.field_script_value("inbreeding_chance", sc);
-        vd.field_script_value("health", sc);
-        vd.field_script_value("negate_health_penalty_add", sc);
-        vd.field_script_value("life_expectancy", sc);
-        vd.field_script_value("negative_inactive_inheritance_chance", sc);
-        vd.field_script_value("negative_random_genetic_chance", sc);
-        vd.field_script_value("positive_inactive_inheritance_chance", sc);
-        vd.field_script_value("positive_random_genetic_chance", sc);
-        vd.field_script_value("years_of_fertility", sc);
+        vd.field_script_value_rooted("fertility", Scopes::None);
+        vd.field_script_value_rooted("negate_fertility_penalty_add", Scopes::None);
+        vd.field_script_value_rooted("genetic_trait_strengthen_chance", Scopes::None);
+        vd.field_script_value_rooted("inbreeding_chance", Scopes::None);
+        vd.field_script_value_rooted("health", Scopes::None);
+        vd.field_script_value_rooted("negate_health_penalty_add", Scopes::None);
+        vd.field_script_value_rooted("life_expectancy", Scopes::None);
+        vd.field_script_value_rooted("negative_inactive_inheritance_chance", Scopes::None);
+        vd.field_script_value_rooted("negative_random_genetic_chance", Scopes::None);
+        vd.field_script_value_rooted("positive_inactive_inheritance_chance", Scopes::None);
+        vd.field_script_value_rooted("positive_random_genetic_chance", Scopes::None);
+        vd.field_script_value_rooted("years_of_fertility", Scopes::None);
 
-        vd.field_script_value("holy_order_hire_cost_add", sc);
-        vd.field_script_value("holy_order_hire_cost_mult", sc);
-        vd.field_script_value("mercenary_hire_cost_add", sc);
-        vd.field_script_value("mercenary_hire_cost_mult", sc);
-        vd.field_script_value("same_culture_holy_order_hire_cost_add", sc);
-        vd.field_script_value("same_culture_holy_order_hire_cost_mult", sc);
-        vd.field_script_value("same_culture_mercenary_hire_cost_add", sc);
-        vd.field_script_value("same_culture_mercenary_hire_cost_mult", sc);
+        vd.field_script_value_rooted("holy_order_hire_cost_add", Scopes::None);
+        vd.field_script_value_rooted("holy_order_hire_cost_mult", Scopes::None);
+        vd.field_script_value_rooted("mercenary_hire_cost_add", Scopes::None);
+        vd.field_script_value_rooted("mercenary_hire_cost_mult", Scopes::None);
+        vd.field_script_value_rooted("same_culture_holy_order_hire_cost_add", Scopes::None);
+        vd.field_script_value_rooted("same_culture_holy_order_hire_cost_mult", Scopes::None);
+        vd.field_script_value_rooted("same_culture_mercenary_hire_cost_add", Scopes::None);
+        vd.field_script_value_rooted("same_culture_mercenary_hire_cost_mult", Scopes::None);
 
-        vd.field_script_value("hostile_county_attrition", sc);
-        vd.field_script_value("hostile_county_attrition_raiding", sc);
+        vd.field_script_value_rooted("hostile_county_attrition", Scopes::None);
+        vd.field_script_value_rooted("hostile_county_attrition_raiding", Scopes::None);
 
         vd.field_bool("ignore_different_faith_opinion");
         vd.field_bool("ignore_negative_culture_opinion");
         vd.field_bool("ignore_negative_opinion_of_culture");
         vd.field_bool("ignore_opinion_of_different_faith");
 
-        vd.field_script_value("knight_effectiveness_mult", sc);
-        vd.field_script_value("knight_effectiveness_per_dread", sc);
-        vd.field_script_value("knight_effectiveness_per_tyranny", sc);
-        vd.field_script_value("knight_limit", sc);
+        vd.field_script_value_rooted("knight_effectiveness_mult", Scopes::None);
+        vd.field_script_value_rooted("knight_effectiveness_per_dread", Scopes::None);
+        vd.field_script_value_rooted("knight_effectiveness_per_tyranny", Scopes::None);
+        vd.field_script_value_rooted("knight_limit", Scopes::None);
 
-        vd.field_script_value("levy_attack", sc);
-        vd.field_script_value("levy_maintenance", sc);
-        vd.field_script_value("levy_pursuit", sc);
-        vd.field_script_value("levy_screen", sc);
-        vd.field_script_value("levy_siege", sc);
-        vd.field_script_value("levy_toughness", sc);
+        vd.field_script_value_rooted("levy_attack", Scopes::None);
+        vd.field_script_value_rooted("levy_maintenance", Scopes::None);
+        vd.field_script_value_rooted("levy_pursuit", Scopes::None);
+        vd.field_script_value_rooted("levy_screen", Scopes::None);
+        vd.field_script_value_rooted("levy_siege", Scopes::None);
+        vd.field_script_value_rooted("levy_toughness", Scopes::None);
 
-        vd.field_script_value("levy_reinforcement_rate_different_faith", sc);
-        vd.field_script_value("levy_reinforcement_rate_different_faith_even_if_baron", sc);
-        vd.field_script_value("levy_reinforcement_rate_even_if_baron", sc);
-        vd.field_script_value("levy_reinforcement_rate_same_faith", sc);
-        vd.field_script_value("levy_reinforcement_rate_same_faith_even_if_baron", sc);
+        vd.field_script_value_rooted("levy_reinforcement_rate_different_faith", Scopes::None);
+        vd.field_script_value_rooted(
+            "levy_reinforcement_rate_different_faith_even_if_baron",
+            Scopes::None,
+        );
+        vd.field_script_value_rooted("levy_reinforcement_rate_even_if_baron", Scopes::None);
+        vd.field_script_value_rooted("levy_reinforcement_rate_same_faith", Scopes::None);
+        vd.field_script_value_rooted(
+            "levy_reinforcement_rate_same_faith_even_if_baron",
+            Scopes::None,
+        );
 
-        vd.field_script_value("long_reign_bonus_mult", sc);
-        vd.field_script_value("max_loot_mult", sc);
+        vd.field_script_value_rooted("long_reign_bonus_mult", Scopes::None);
+        vd.field_script_value_rooted("max_loot_mult", Scopes::None);
 
-        vd.field_script_value("maa_damage_add", sc);
-        vd.field_script_value("maa_damage_mult", sc);
-        vd.field_script_value("maa_pursuit_add", sc);
-        vd.field_script_value("maa_pursuit_mult", sc);
-        vd.field_script_value("maa_screen_add", sc);
-        vd.field_script_value("maa_screen_mult", sc);
-        vd.field_script_value("maa_siege_value_add", sc);
-        vd.field_script_value("maa_siege_value_mult", sc);
-        vd.field_script_value("maa_toughness_add", sc);
-        vd.field_script_value("maa_toughness_mult", sc);
+        vd.field_script_value_rooted("maa_damage_add", Scopes::None);
+        vd.field_script_value_rooted("maa_damage_mult", Scopes::None);
+        vd.field_script_value_rooted("maa_pursuit_add", Scopes::None);
+        vd.field_script_value_rooted("maa_pursuit_mult", Scopes::None);
+        vd.field_script_value_rooted("maa_screen_add", Scopes::None);
+        vd.field_script_value_rooted("maa_screen_mult", Scopes::None);
+        vd.field_script_value_rooted("maa_siege_value_add", Scopes::None);
+        vd.field_script_value_rooted("maa_siege_value_mult", Scopes::None);
+        vd.field_script_value_rooted("maa_toughness_add", Scopes::None);
+        vd.field_script_value_rooted("maa_toughness_mult", Scopes::None);
 
-        vd.field_script_value("men_at_arms_cap", sc);
-        vd.field_script_value("men_at_arms_limit", sc);
-        vd.field_script_value("men_at_arms_maintenance", sc);
-        vd.field_script_value("men_at_arms_maintenance_per_dread_mult", sc);
-        vd.field_script_value("men_at_arms_recruitment_cost", sc);
+        vd.field_script_value_rooted("men_at_arms_cap", Scopes::None);
+        vd.field_script_value_rooted("men_at_arms_limit", Scopes::None);
+        vd.field_script_value_rooted("men_at_arms_maintenance", Scopes::None);
+        vd.field_script_value_rooted("men_at_arms_maintenance_per_dread_mult", Scopes::None);
+        vd.field_script_value_rooted("men_at_arms_recruitment_cost", Scopes::None);
 
-        vd.field_script_value("monthly_county_control_change_add_even_if_baron", sc);
-        vd.field_script_value("monthly_county_control_change_factor_even_if_baron", sc);
+        vd.field_script_value_rooted(
+            "monthly_county_control_change_add_even_if_baron",
+            Scopes::None,
+        );
+        vd.field_script_value_rooted(
+            "monthly_county_control_change_factor_even_if_baron",
+            Scopes::None,
+        );
 
-        vd.field_script_value("monthly_lifestyle_xp_gain_mult", sc);
+        vd.field_script_value_rooted("monthly_lifestyle_xp_gain_mult", Scopes::None);
 
-        vd.field_script_value("monthly_dynasty_prestige", sc);
-        vd.field_script_value("monthly_dynasty_prestige_mult", sc);
-        vd.field_script_value("monthly_income_mult", sc);
-        vd.field_script_value("monthly_income_per_stress_level_add", sc);
-        vd.field_script_value("monthly_income_per_stress_level_mult", sc);
-        vd.field_script_value("monthly_piety", sc);
-        vd.field_script_value("monthly_piety_from_buildings_mult", sc);
-        vd.field_script_value("monthly_piety_gain_mult", sc);
-        vd.field_script_value("monthly_piety_gain_per_dread_add", sc);
-        vd.field_script_value("monthly_piety_gain_per_dread_mult", sc);
-        vd.field_script_value("monthly_piety_gain_per_happy_powerful_vassal_add", sc);
-        vd.field_script_value("monthly_piety_gain_per_happy_powerful_vassal_mult", sc);
-        vd.field_script_value("monthly_piety_gain_per_knight_add", sc);
-        vd.field_script_value("monthly_piety_gain_per_knight_mult", sc);
-        vd.field_script_value("monthly_prestige", sc);
-        vd.field_script_value("monthly_prestige_from_buildings_mult", sc);
-        vd.field_script_value("monthly_prestige_gain_mult", sc);
-        vd.field_script_value("monthly_prestige_gain_per_dread_add", sc);
-        vd.field_script_value("monthly_prestige_gain_per_dread_mult", sc);
-        vd.field_script_value("monthly_prestige_gain_per_happy_powerful_vassal_add", sc);
-        vd.field_script_value("monthly_prestige_gain_per_happy_powerful_vassal_mult", sc);
-        vd.field_script_value("monthly_prestige_gain_per_knight_add", sc);
-        vd.field_script_value("monthly_prestige_gain_per_knight_mult", sc);
-        vd.field_script_value("monthly_tyranny", sc);
-        vd.field_script_value("monthly_war_income_add", sc);
-        vd.field_script_value("monthly_war_income_mult", sc);
+        vd.field_script_value_rooted("monthly_dynasty_prestige", Scopes::None);
+        vd.field_script_value_rooted("monthly_dynasty_prestige_mult", Scopes::None);
+        vd.field_script_value_rooted("monthly_income_mult", Scopes::None);
+        vd.field_script_value_rooted("monthly_income_per_stress_level_add", Scopes::None);
+        vd.field_script_value_rooted("monthly_income_per_stress_level_mult", Scopes::None);
+        vd.field_script_value_rooted("monthly_piety", Scopes::None);
+        vd.field_script_value_rooted("monthly_piety_from_buildings_mult", Scopes::None);
+        vd.field_script_value_rooted("monthly_piety_gain_mult", Scopes::None);
+        vd.field_script_value_rooted("monthly_piety_gain_per_dread_add", Scopes::None);
+        vd.field_script_value_rooted("monthly_piety_gain_per_dread_mult", Scopes::None);
+        vd.field_script_value_rooted(
+            "monthly_piety_gain_per_happy_powerful_vassal_add",
+            Scopes::None,
+        );
+        vd.field_script_value_rooted(
+            "monthly_piety_gain_per_happy_powerful_vassal_mult",
+            Scopes::None,
+        );
+        vd.field_script_value_rooted("monthly_piety_gain_per_knight_add", Scopes::None);
+        vd.field_script_value_rooted("monthly_piety_gain_per_knight_mult", Scopes::None);
+        vd.field_script_value_rooted("monthly_prestige", Scopes::None);
+        vd.field_script_value_rooted("monthly_prestige_from_buildings_mult", Scopes::None);
+        vd.field_script_value_rooted("monthly_prestige_gain_mult", Scopes::None);
+        vd.field_script_value_rooted("monthly_prestige_gain_per_dread_add", Scopes::None);
+        vd.field_script_value_rooted("monthly_prestige_gain_per_dread_mult", Scopes::None);
+        vd.field_script_value_rooted(
+            "monthly_prestige_gain_per_happy_powerful_vassal_add",
+            Scopes::None,
+        );
+        vd.field_script_value_rooted(
+            "monthly_prestige_gain_per_happy_powerful_vassal_mult",
+            Scopes::None,
+        );
+        vd.field_script_value_rooted("monthly_prestige_gain_per_knight_add", Scopes::None);
+        vd.field_script_value_rooted("monthly_prestige_gain_per_knight_mult", Scopes::None);
+        vd.field_script_value_rooted("monthly_tyranny", Scopes::None);
+        vd.field_script_value_rooted("monthly_war_income_add", Scopes::None);
+        vd.field_script_value_rooted("monthly_war_income_mult", Scopes::None);
 
-        vd.field_script_value("movement_speed", sc);
-        vd.field_script_value("movement_speed_land_raiding", sc);
-        vd.field_script_value("naval_movement_speed_mult", sc);
-        vd.field_script_value("raid_speed", sc);
-        vd.field_script_value("winter_movement_speed", sc);
+        vd.field_script_value_rooted("movement_speed", Scopes::None);
+        vd.field_script_value_rooted("movement_speed_land_raiding", Scopes::None);
+        vd.field_script_value_rooted("naval_movement_speed_mult", Scopes::None);
+        vd.field_script_value_rooted("raid_speed", Scopes::None);
+        vd.field_script_value_rooted("winter_movement_speed", Scopes::None);
 
         vd.field_bool("no_disembark_penalty");
         vd.field_bool("no_prowess_loss_from_age");
         vd.field_bool("no_water_crossing_penalty");
 
-        vd.field_script_value("opinion_of_different_culture", sc);
-        vd.field_script_value("opinion_of_different_faith", sc);
-        vd.field_script_value("opinion_of_different_faith_liege", sc);
-        vd.field_script_value("opinion_of_female_rulers", sc);
-        vd.field_script_value("opinion_of_liege", sc);
-        vd.field_script_value("opinion_of_male_rulers", sc);
-        vd.field_script_value("opinion_of_parents", sc);
-        vd.field_script_value("opinion_of_same_culture", sc);
-        vd.field_script_value("opinion_of_same_faith", sc);
-        vd.field_script_value("opinion_of_vassal", sc);
+        vd.field_script_value_rooted("opinion_of_different_culture", Scopes::None);
+        vd.field_script_value_rooted("opinion_of_different_faith", Scopes::None);
+        vd.field_script_value_rooted("opinion_of_different_faith_liege", Scopes::None);
+        vd.field_script_value_rooted("opinion_of_female_rulers", Scopes::None);
+        vd.field_script_value_rooted("opinion_of_liege", Scopes::None);
+        vd.field_script_value_rooted("opinion_of_male_rulers", Scopes::None);
+        vd.field_script_value_rooted("opinion_of_parents", Scopes::None);
+        vd.field_script_value_rooted("opinion_of_same_culture", Scopes::None);
+        vd.field_script_value_rooted("opinion_of_same_faith", Scopes::None);
+        vd.field_script_value_rooted("opinion_of_vassal", Scopes::None);
 
-        vd.field_script_value("piety_level_impact_mult", sc);
-        vd.field_script_value("prestige_level_impact_mult", sc);
+        vd.field_script_value_rooted("piety_level_impact_mult", Scopes::None);
+        vd.field_script_value_rooted("prestige_level_impact_mult", Scopes::None);
 
-        vd.field_script_value("revolting_siege_morale_loss_add", sc);
-        vd.field_script_value("revolting_siege_morale_loss_mult", sc);
-        vd.field_script_value("siege_morale_loss", sc);
-        vd.field_script_value("siege_phase_time", sc);
-        vd.field_script_value("short_reign_duration_mult", sc);
-        vd.field_script_value("stress_gain_mult", sc);
-        vd.field_script_value("stress_loss_mult", sc);
-        vd.field_script_value("stress_loss_per_piety_level", sc);
-        vd.field_script_value("stress_loss_per_prestige_level", sc);
-        vd.field_script_value("supply_capacity_add", sc);
-        vd.field_script_value("supply_capacity_mult", sc);
-        vd.field_script_value("supply_duration", sc);
-        vd.field_script_value("title_creation_cost", sc);
-        vd.field_script_value("title_creation_cost_mult", sc);
+        vd.field_script_value_rooted("revolting_siege_morale_loss_add", Scopes::None);
+        vd.field_script_value_rooted("revolting_siege_morale_loss_mult", Scopes::None);
+        vd.field_script_value_rooted("siege_morale_loss", Scopes::None);
+        vd.field_script_value_rooted("siege_phase_time", Scopes::None);
+        vd.field_script_value_rooted("short_reign_duration_mult", Scopes::None);
+        vd.field_script_value_rooted("stress_gain_mult", Scopes::None);
+        vd.field_script_value_rooted("stress_loss_mult", Scopes::None);
+        vd.field_script_value_rooted("stress_loss_per_piety_level", Scopes::None);
+        vd.field_script_value_rooted("stress_loss_per_prestige_level", Scopes::None);
+        vd.field_script_value_rooted("supply_capacity_add", Scopes::None);
+        vd.field_script_value_rooted("supply_capacity_mult", Scopes::None);
+        vd.field_script_value_rooted("supply_duration", Scopes::None);
+        vd.field_script_value_rooted("title_creation_cost", Scopes::None);
+        vd.field_script_value_rooted("title_creation_cost_mult", Scopes::None);
 
-        vd.field_script_value("tolerance_advantage_mod", sc);
-        vd.field_script_value("tyranny_gain_mult", sc);
-        vd.field_script_value("tyranny_loss_mult", sc);
-        vd.field_script_value("vassal_limit", sc);
-        vd.field_script_value("vassal_tax_mult", sc);
+        vd.field_script_value_rooted("tolerance_advantage_mod", Scopes::None);
+        vd.field_script_value_rooted("tyranny_gain_mult", Scopes::None);
+        vd.field_script_value_rooted("tyranny_loss_mult", Scopes::None);
+        vd.field_script_value_rooted("vassal_limit", Scopes::None);
+        vd.field_script_value_rooted("vassal_tax_mult", Scopes::None);
 
-        vd.field_script_value("accolade_glory_gain_mult", sc);
-        vd.field_script_value("active_accolades", sc);
+        vd.field_script_value_rooted("accolade_glory_gain_mult", Scopes::None);
+        vd.field_script_value_rooted("active_accolades", Scopes::None);
 
-        vd.field_script_value("character_travel_safety", sc);
-        vd.field_script_value("character_travel_safety_mult", sc);
-        vd.field_script_value("character_travel_speed", sc);
-        vd.field_script_value("character_travel_speed_mult", sc);
+        vd.field_script_value_rooted("character_travel_safety", Scopes::None);
+        vd.field_script_value_rooted("character_travel_safety_mult", Scopes::None);
+        vd.field_script_value_rooted("character_travel_speed", Scopes::None);
+        vd.field_script_value_rooted("character_travel_speed_mult", Scopes::None);
 
-        vd.field_script_value("strife_opinion_gain_mult", sc);
-        vd.field_script_value("strife_opinion_loss_mult", sc);
+        vd.field_script_value_rooted("strife_opinion_gain_mult", Scopes::None);
+        vd.field_script_value_rooted("strife_opinion_loss_mult", Scopes::None);
 
-        vd.field_script_value("travel_companion_opinion", sc);
+        vd.field_script_value_rooted("travel_companion_opinion", Scopes::None);
     }
 
     if kinds.intersects(ModifKinds::Character | ModifKinds::County) {
-        vd.field_script_value("county_opinion_add", sc);
+        vd.field_script_value_rooted("county_opinion_add", Scopes::None);
     }
 
     if kinds.intersects(ModifKinds::Character | ModifKinds::Province) {
-        vd.field_script_value("monthly_income", sc);
+        vd.field_script_value_rooted("monthly_income", Scopes::None);
     }
 
     if kinds.intersects(ModifKinds::Character | ModifKinds::Terrain) {
-        vd.field_script_value("counter_efficiency", sc);
-        vd.field_script_value("counter_resistance", sc);
-        vd.field_script_value("enemy_hard_casualty_modifier", sc);
-        vd.field_script_value("hard_casualty_modifier", sc);
-        vd.field_script_value("pursue_efficiency", sc);
-        vd.field_script_value("retreat_losses", sc);
+        vd.field_script_value_rooted("counter_efficiency", Scopes::None);
+        vd.field_script_value_rooted("counter_resistance", Scopes::None);
+        vd.field_script_value_rooted("enemy_hard_casualty_modifier", Scopes::None);
+        vd.field_script_value_rooted("hard_casualty_modifier", Scopes::None);
+        vd.field_script_value_rooted("pursue_efficiency", Scopes::None);
+        vd.field_script_value_rooted("retreat_losses", Scopes::None);
     }
 
     if kinds.intersects(ModifKinds::Character | ModifKinds::County | ModifKinds::Province) {
-        vd.field_script_value("additional_fort_level", sc);
-        vd.field_script_value("artifact_decay_reduction_mult", sc);
-        vd.field_script_value("build_gold_cost", sc);
-        vd.field_script_value("build_piety_cost", sc);
-        vd.field_script_value("build_prestige_cost", sc);
-        vd.field_script_value("build_speed", sc);
-        vd.field_script_value("building_slot_add", sc);
-        vd.field_script_value("holding_build_gold_cost", sc);
-        vd.field_script_value("holding_build_piety_cost", sc);
-        vd.field_script_value("holding_build_prestige_cost", sc);
-        vd.field_script_value("holding_build_speed", sc);
-        vd.field_script_value("castle_holding_build_gold_cost", sc);
-        vd.field_script_value("castle_holding_build_piety_cost", sc);
-        vd.field_script_value("castle_holding_build_prestige_cost", sc);
-        vd.field_script_value("castle_holding_build_speed", sc);
-        vd.field_script_value("castle_holding_holding_build_gold_cost", sc);
-        vd.field_script_value("castle_holding_holding_build_piety_cost", sc);
-        vd.field_script_value("castle_holding_holding_build_prestige_cost", sc);
-        vd.field_script_value("castle_holding_holding_build_speed", sc);
-        vd.field_script_value("church_holding_build_gold_cost", sc);
-        vd.field_script_value("church_holding_build_piety_cost", sc);
-        vd.field_script_value("church_holding_build_prestige_cost", sc);
-        vd.field_script_value("church_holding_build_speed", sc);
-        vd.field_script_value("church_holding_holding_build_gold_cost", sc);
-        vd.field_script_value("church_holding_holding_build_piety_cost", sc);
-        vd.field_script_value("church_holding_holding_build_prestige_cost", sc);
-        vd.field_script_value("church_holding_holding_build_speed", sc);
-        vd.field_script_value("city_holding_build_gold_cost", sc);
-        vd.field_script_value("city_holding_build_piety_cost", sc);
-        vd.field_script_value("city_holding_build_prestige_cost", sc);
-        vd.field_script_value("city_holding_build_speed", sc);
-        vd.field_script_value("city_holding_holding_build_gold_cost", sc);
-        vd.field_script_value("city_holding_holding_build_piety_cost", sc);
-        vd.field_script_value("city_holding_holding_build_prestige_cost", sc);
-        vd.field_script_value("city_holding_holding_build_speed", sc);
-        vd.field_script_value("tribal_holding_build_gold_cost", sc);
-        vd.field_script_value("tribal_holding_build_piety_cost", sc);
-        vd.field_script_value("tribal_holding_build_prestige_cost", sc);
-        vd.field_script_value("tribal_holding_build_speed", sc);
-        vd.field_script_value("tribal_holding_holding_build_gold_cost", sc);
-        vd.field_script_value("tribal_holding_holding_build_piety_cost", sc);
-        vd.field_script_value("tribal_holding_holding_build_prestige_cost", sc);
-        vd.field_script_value("tribal_holding_holding_build_speed", sc);
-        vd.field_script_value("defender_holding_advantage", sc);
-        vd.field_script_value("development_growth", sc);
-        vd.field_script_value("development_growth_factor", sc);
-        vd.field_script_value("fort_level", sc);
-        vd.field_script_value("garrison_size", sc);
-        vd.field_script_value("hostile_raid_time", sc);
-        vd.field_script_value("levy_reinforcement_rate", sc);
-        vd.field_script_value("levy_reinforcement_rate_friendly_territory", sc);
-        vd.field_script_value("levy_size", sc);
-        vd.field_script_value("monthly_county_control_change_add", sc);
-        vd.field_script_value("monthly_county_control_change_factor", sc);
-        vd.field_script_value("monthly_county_control_change_at_war_add", sc);
-        vd.field_script_value("monthly_county_control_change_at_war_mult", sc);
-        vd.field_script_value("supply_limit", sc);
-        vd.field_script_value("supply_limit_mult", sc);
-        vd.field_script_value("tax_mult", sc);
-        vd.field_script_value("supply_limit_mult", sc);
-        vd.field_script_value("travel_danger", sc);
+        vd.field_script_value_rooted("additional_fort_level", Scopes::None);
+        vd.field_script_value_rooted("artifact_decay_reduction_mult", Scopes::None);
+        vd.field_script_value_rooted("build_gold_cost", Scopes::None);
+        vd.field_script_value_rooted("build_piety_cost", Scopes::None);
+        vd.field_script_value_rooted("build_prestige_cost", Scopes::None);
+        vd.field_script_value_rooted("build_speed", Scopes::None);
+        vd.field_script_value_rooted("building_slot_add", Scopes::None);
+        vd.field_script_value_rooted("holding_build_gold_cost", Scopes::None);
+        vd.field_script_value_rooted("holding_build_piety_cost", Scopes::None);
+        vd.field_script_value_rooted("holding_build_prestige_cost", Scopes::None);
+        vd.field_script_value_rooted("holding_build_speed", Scopes::None);
+        vd.field_script_value_rooted("castle_holding_build_gold_cost", Scopes::None);
+        vd.field_script_value_rooted("castle_holding_build_piety_cost", Scopes::None);
+        vd.field_script_value_rooted("castle_holding_build_prestige_cost", Scopes::None);
+        vd.field_script_value_rooted("castle_holding_build_speed", Scopes::None);
+        vd.field_script_value_rooted("castle_holding_holding_build_gold_cost", Scopes::None);
+        vd.field_script_value_rooted("castle_holding_holding_build_piety_cost", Scopes::None);
+        vd.field_script_value_rooted("castle_holding_holding_build_prestige_cost", Scopes::None);
+        vd.field_script_value_rooted("castle_holding_holding_build_speed", Scopes::None);
+        vd.field_script_value_rooted("church_holding_build_gold_cost", Scopes::None);
+        vd.field_script_value_rooted("church_holding_build_piety_cost", Scopes::None);
+        vd.field_script_value_rooted("church_holding_build_prestige_cost", Scopes::None);
+        vd.field_script_value_rooted("church_holding_build_speed", Scopes::None);
+        vd.field_script_value_rooted("church_holding_holding_build_gold_cost", Scopes::None);
+        vd.field_script_value_rooted("church_holding_holding_build_piety_cost", Scopes::None);
+        vd.field_script_value_rooted("church_holding_holding_build_prestige_cost", Scopes::None);
+        vd.field_script_value_rooted("church_holding_holding_build_speed", Scopes::None);
+        vd.field_script_value_rooted("city_holding_build_gold_cost", Scopes::None);
+        vd.field_script_value_rooted("city_holding_build_piety_cost", Scopes::None);
+        vd.field_script_value_rooted("city_holding_build_prestige_cost", Scopes::None);
+        vd.field_script_value_rooted("city_holding_build_speed", Scopes::None);
+        vd.field_script_value_rooted("city_holding_holding_build_gold_cost", Scopes::None);
+        vd.field_script_value_rooted("city_holding_holding_build_piety_cost", Scopes::None);
+        vd.field_script_value_rooted("city_holding_holding_build_prestige_cost", Scopes::None);
+        vd.field_script_value_rooted("city_holding_holding_build_speed", Scopes::None);
+        vd.field_script_value_rooted("tribal_holding_build_gold_cost", Scopes::None);
+        vd.field_script_value_rooted("tribal_holding_build_piety_cost", Scopes::None);
+        vd.field_script_value_rooted("tribal_holding_build_prestige_cost", Scopes::None);
+        vd.field_script_value_rooted("tribal_holding_build_speed", Scopes::None);
+        vd.field_script_value_rooted("tribal_holding_holding_build_gold_cost", Scopes::None);
+        vd.field_script_value_rooted("tribal_holding_holding_build_piety_cost", Scopes::None);
+        vd.field_script_value_rooted("tribal_holding_holding_build_prestige_cost", Scopes::None);
+        vd.field_script_value_rooted("tribal_holding_holding_build_speed", Scopes::None);
+        vd.field_script_value_rooted("defender_holding_advantage", Scopes::None);
+        vd.field_script_value_rooted("development_growth", Scopes::None);
+        vd.field_script_value_rooted("development_growth_factor", Scopes::None);
+        vd.field_script_value_rooted("fort_level", Scopes::None);
+        vd.field_script_value_rooted("garrison_size", Scopes::None);
+        vd.field_script_value_rooted("hostile_raid_time", Scopes::None);
+        vd.field_script_value_rooted("levy_reinforcement_rate", Scopes::None);
+        vd.field_script_value_rooted("levy_reinforcement_rate_friendly_territory", Scopes::None);
+        vd.field_script_value_rooted("levy_size", Scopes::None);
+        vd.field_script_value_rooted("monthly_county_control_change_add", Scopes::None);
+        vd.field_script_value_rooted("monthly_county_control_change_factor", Scopes::None);
+        vd.field_script_value_rooted("monthly_county_control_change_at_war_add", Scopes::None);
+        vd.field_script_value_rooted("monthly_county_control_change_at_war_mult", Scopes::None);
+        vd.field_script_value_rooted("supply_limit", Scopes::None);
+        vd.field_script_value_rooted("supply_limit_mult", Scopes::None);
+        vd.field_script_value_rooted("tax_mult", Scopes::None);
+        vd.field_script_value_rooted("supply_limit_mult", Scopes::None);
+        vd.field_script_value_rooted("travel_danger", Scopes::None);
     }
 
     if kinds.intersects(ModifKinds::Culture) {
-        vd.field_script_value("cultural_acceptance_gain_mult", sc);
-        vd.field_script_value("culture_tradition_max_add", sc);
-        vd.field_script_value("mercenary_count_mult", sc);
+        vd.field_script_value_rooted("cultural_acceptance_gain_mult", Scopes::None);
+        vd.field_script_value_rooted("culture_tradition_max_add", Scopes::None);
+        vd.field_script_value_rooted("mercenary_count_mult", Scopes::None);
     }
 
     if kinds.intersects(ModifKinds::Province) {
-        vd.field_script_value("defender_winter_advantage", sc);
-        vd.field_script_value("hard_casualty_winter", sc);
-        vd.field_script_value("supply_loss_winter", sc);
-        vd.field_script_value("stationed_maa_damage_add", sc);
-        vd.field_script_value("stationed_maa_damage_mult", sc);
-        vd.field_script_value("stationed_maa_pursuit_add", sc);
-        vd.field_script_value("stationed_maa_pursuit_mult", sc);
-        vd.field_script_value("stationed_maa_screen_add", sc);
-        vd.field_script_value("stationed_maa_screen_mult", sc);
-        vd.field_script_value("stationed_maa_siege_value_add", sc);
-        vd.field_script_value("stationed_maa_siege_value_mult", sc);
-        vd.field_script_value("stationed_maa_toughness_add", sc);
-        vd.field_script_value("stationed_maa_toughness_mult", sc);
+        vd.field_script_value_rooted("defender_winter_advantage", Scopes::None);
+        vd.field_script_value_rooted("hard_casualty_winter", Scopes::None);
+        vd.field_script_value_rooted("supply_loss_winter", Scopes::None);
+        vd.field_script_value_rooted("stationed_maa_damage_add", Scopes::None);
+        vd.field_script_value_rooted("stationed_maa_damage_mult", Scopes::None);
+        vd.field_script_value_rooted("stationed_maa_pursuit_add", Scopes::None);
+        vd.field_script_value_rooted("stationed_maa_pursuit_mult", Scopes::None);
+        vd.field_script_value_rooted("stationed_maa_screen_add", Scopes::None);
+        vd.field_script_value_rooted("stationed_maa_screen_mult", Scopes::None);
+        vd.field_script_value_rooted("stationed_maa_siege_value_add", Scopes::None);
+        vd.field_script_value_rooted("stationed_maa_siege_value_mult", Scopes::None);
+        vd.field_script_value_rooted("stationed_maa_toughness_add", Scopes::None);
+        vd.field_script_value_rooted("stationed_maa_toughness_mult", Scopes::None);
     }
 
     if kinds.intersects(ModifKinds::Scheme) {
-        vd.field_script_value("scheme_power", sc);
-        vd.field_script_value("scheme_resistance", sc);
-        vd.field_script_value("scheme_secrecy", sc);
-        vd.field_script_value("scheme_success_chance", sc);
+        vd.field_script_value_rooted("scheme_power", Scopes::None);
+        vd.field_script_value_rooted("scheme_resistance", Scopes::None);
+        vd.field_script_value_rooted("scheme_secrecy", Scopes::None);
+        vd.field_script_value_rooted("scheme_success_chance", Scopes::None);
     }
 
     if kinds.intersects(ModifKinds::TravelPlan) {
-        vd.field_script_value("travel_safety", sc);
-        vd.field_script_value("travel_safety_mult", sc);
-        vd.field_script_value("travel_speed", sc);
-        vd.field_script_value("travel_speed_mult", sc);
+        vd.field_script_value_rooted("travel_safety", Scopes::None);
+        vd.field_script_value_rooted("travel_safety_mult", Scopes::None);
+        vd.field_script_value_rooted("travel_speed", Scopes::None);
+        vd.field_script_value_rooted("travel_speed_mult", Scopes::None);
     }
 
     'outer: for (token, bv) in vd.unknown_keys() {
@@ -557,7 +587,8 @@ pub fn validate_modifs<'a>(
             if let Some(terrain) = token.as_str().strip_suffix(terrain_sfx) {
                 data.verify_exists_implied(Item::Terrain, terrain, token);
                 kinds.require(ModifKinds::Character, token);
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue 'outer;
             }
         }
@@ -581,7 +612,8 @@ pub fn validate_modifs<'a>(
                     ModifKinds::Character | ModifKinds::County | ModifKinds::Province,
                     token,
                 );
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue 'outer;
             }
         }
@@ -590,7 +622,8 @@ pub fn validate_modifs<'a>(
             if let Some(lifestyle) = x.strip_prefix("monthly_") {
                 data.verify_exists_implied(Item::Lifestyle, lifestyle, token);
                 kinds.require(ModifKinds::Character, token);
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue;
             }
         }
@@ -599,7 +632,8 @@ pub fn validate_modifs<'a>(
             if let Some(trait_track) = token.as_str().strip_suffix(trait_track_sfx) {
                 data.verify_exists_implied(Item::TraitTrack, trait_track, token);
                 kinds.require(ModifKinds::Character, token);
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue 'outer;
             }
         }
@@ -618,7 +652,8 @@ pub fn validate_modifs<'a>(
                     error(token, ErrorKey::MissingItem, &msg);
                 }
                 kinds.require(ModifKinds::Character, token);
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue 'outer;
             }
         }
@@ -632,7 +667,8 @@ pub fn validate_modifs<'a>(
             if let Some(vassal_stance) = token.as_str().strip_suffix(vassal_stance_sfx) {
                 data.verify_exists_implied(Item::VassalStance, vassal_stance, token);
                 kinds.require(ModifKinds::Character, token);
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue 'outer;
             }
         }
@@ -646,7 +682,8 @@ pub fn validate_modifs<'a>(
             if let Some(scheme) = token.as_str().strip_suffix(scheme_sfx) {
                 data.verify_exists_implied(Item::Scheme, scheme, token);
                 kinds.require(ModifKinds::Character, token);
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue 'outer;
             }
         }
@@ -654,7 +691,8 @@ pub fn validate_modifs<'a>(
             if let Some(scheme) = x.strip_prefix("max_") {
                 data.verify_exists_implied(Item::Scheme, scheme, token);
                 kinds.require(ModifKinds::Character, token);
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue;
             }
         }
@@ -663,13 +701,15 @@ pub fn validate_modifs<'a>(
             if let Some(relation) = x.strip_suffix("_add") {
                 data.verify_exists_implied(Item::Relation, relation, token);
                 kinds.require(ModifKinds::Character, token);
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue;
             }
             if let Some(relation) = x.strip_suffix("_mult") {
                 data.verify_exists_implied(Item::Relation, relation, token);
                 kinds.require(ModifKinds::Character, token);
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue;
             }
         }
@@ -698,7 +738,8 @@ pub fn validate_modifs<'a>(
                 }
                 data.verify_exists_implied(Item::MenAtArmsBase, maa_base, token);
                 kinds.require(require, token);
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue 'outer;
             }
         }
@@ -707,7 +748,8 @@ pub fn validate_modifs<'a>(
             if let Some(government) = token.as_str().strip_suffix(sfx) {
                 data.verify_exists_implied(Item::GovernmentType, government, token);
                 kinds.require(ModifKinds::Character, token);
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue 'outer;
             }
         }
@@ -732,7 +774,8 @@ pub fn validate_modifs<'a>(
                     ModifKinds::Character | ModifKinds::Province | ModifKinds::County,
                     token,
                 );
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue 'outer;
             }
         }
@@ -753,7 +796,8 @@ pub fn validate_modifs<'a>(
                     ModifKinds::Character | ModifKinds::Province | ModifKinds::County,
                     token,
                 );
-                ScriptValue::validate_bv(bv, data, sc);
+                let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+                ScriptValue::validate_bv(bv, data, &mut sc);
                 continue 'outer;
             }
         }
@@ -769,7 +813,8 @@ pub fn validate_modifs<'a>(
                 error(token, ErrorKey::MissingItem, "unknown opinion type (not faith, religion, religious family, culture, or government, or vassal stance)");
             }
             kinds.require(ModifKinds::Character, token);
-            ScriptValue::validate_bv(bv, data, sc);
+            let mut sc = ScopeContext::new_root(Scopes::None, token.clone());
+            ScriptValue::validate_bv(bv, data, &mut sc);
             continue;
         }
 

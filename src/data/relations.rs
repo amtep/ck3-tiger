@@ -4,7 +4,6 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -35,12 +34,12 @@ impl DbKind for Relation {
         vd.field_bool("special_guest");
         vd.field_bool("hidden");
 
-        vd.field_validated_block_rooted("modifier", Scopes::Character, |block, data, sc| {
+        vd.field_validated_block("modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_value("name");
             // TODO: "This cannot use any references to modifiers generated from other database objects,
             // such as seduce_scheme_power_mult (from schemes) or monthly_diplomacy_lifestyle_xp_gain_mult (from lifestyles)."
-            validate_modifs(block, data, ModifKinds::Character, sc, vd);
+            validate_modifs(block, data, ModifKinds::Character, vd);
         });
     }
 }

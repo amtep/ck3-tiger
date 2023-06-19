@@ -72,7 +72,7 @@ impl DbKind for Focus {
         vd.field_script_value("auto_selection_weight", &mut sc);
         vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Character, &mut sc, vd);
+            validate_modifs(block, data, ModifKinds::Character, vd);
         });
 
         let icon = vd.field_value("icon").unwrap_or(key);

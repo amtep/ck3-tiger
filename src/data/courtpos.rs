@@ -79,22 +79,18 @@ impl DbKind for CourtPosition {
             validate_cost(block, data, sc);
         });
 
-        vd.field_validated_block_rooted(
-            "base_employer_modifier",
-            Scopes::Character,
-            |block, data, sc| {
-                let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::Character, sc, vd);
-            },
-        );
+        vd.field_validated_block("base_employer_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
 
         vd.field_validated_block("scaling_employer_modifiers", |block, data| {
             validate_scaling_employer_modifiers(block, data);
         });
 
-        vd.field_validated_block_rooted("modifier", Scopes::Character, |block, data, sc| {
+        vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Character, sc, vd);
+            validate_modifs(block, data, ModifKinds::Character, vd);
         });
 
         vd.field_item("custom_employer_modifier_description", Item::Localization);
@@ -148,9 +144,9 @@ fn validate_scaling_employer_modifiers(block: &Block, data: &Everything) {
         "aptitude_level_4",
         "aptitude_level_5",
     ] {
-        vd.field_validated_block_rooted(field, Scopes::Character, |block, data, sc| {
+        vd.field_validated_block(field, |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Character, sc, vd);
+            validate_modifs(block, data, ModifKinds::Character, vd);
         });
     }
 }
