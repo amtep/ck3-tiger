@@ -386,3 +386,27 @@ where
         });
     });
 }
+
+#[derive(Clone, Debug)]
+pub struct CoaDynamicDefinition {}
+
+impl CoaDynamicDefinition {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CoaDynamicDefinition, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for CoaDynamicDefinition {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        let mut sc = ScopeContext::new_root(Scopes::LandedTitle, key.clone());
+
+        vd.field_validated_blocks("item", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_block("trigger", |block, data| {
+                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            });
+            vd.field_item("coat_of_arms", Item::Coa);
+        });
+    }
+}

@@ -20,7 +20,7 @@ use crate::data::buildings::Building;
 use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
-use crate::data::coa::{CoaTemplateList, Coas};
+use crate::data::coa::{CoaDynamicDefinition, CoaTemplateList, Coas};
 use crate::data::colors::NamedColor;
 use crate::data::council::{CouncilPosition, CouncilTask};
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
@@ -432,6 +432,7 @@ impl Everything {
         self.load_pdx_items(Item::HolySite, HolySite::add);
         self.fileset.handle(&mut self.coas);
         self.load_pdx_items_optional_bom(Item::CoaTemplateList, CoaTemplateList::add);
+        self.load_pdx_items(Item::CoaDynamicDefinition, CoaDynamicDefinition::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -516,6 +517,7 @@ impl Everything {
             | Item::ClothingGfx
             | Item::CoaColorList
             | Item::CoaColoredEmblemList
+            | Item::CoaDynamicDefinition
             | Item::CoaGfx
             | Item::CoaPatternList
             | Item::CoaTemplateList
