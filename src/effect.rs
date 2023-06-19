@@ -458,6 +458,10 @@ fn validate_effect_special_value(
         if !value.is("no") {
             data.verify_exists(Item::Focus, value);
         }
+    } else if caller == "generate_coa" {
+        if !value.is("yes") {
+            data.verify_exists(Item::CoaTemplateList, value);
+        }
     } else {
         let msg = format!("internal error, unhandled effect {caller}");
         error(value, ErrorKey::Internal, &msg);

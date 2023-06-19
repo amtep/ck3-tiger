@@ -20,7 +20,7 @@ use crate::data::buildings::Building;
 use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
-use crate::data::coa::Coas;
+use crate::data::coa::{CoaTemplateList, Coas};
 use crate::data::colors::NamedColor;
 use crate::data::council::{CouncilPosition, CouncilTask};
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
@@ -322,6 +322,25 @@ impl Everything {
         }
     }
 
+    /// Like `load_pdx_items` but does not complain about a missing BOM
+    pub fn load_pdx_items_optional_bom<F>(&mut self, itype: Item, add: F)
+    where
+        F: Fn(&mut Db, Token, Block),
+    {
+        let subpath = PathBuf::from(itype.path());
+        for entry in self.fileset.get_files_under(&subpath) {
+            if entry.filename().to_string_lossy().ends_with(".txt") {
+                if let Some(block) =
+                    PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
+                {
+                    for (key, block) in block.iter_pure_definitions_warn() {
+                        add(&mut self.database, key.clone(), block.clone());
+                    }
+                }
+            }
+        }
+    }
+
     pub fn load_all(&mut self) {
         self.load_errorkey_config();
         self.fileset.config(self.config.clone());
@@ -412,6 +431,7 @@ impl Everything {
         self.load_pdx_items(Item::PoolSelector, PoolSelector::add);
         self.load_pdx_items(Item::HolySite, HolySite::add);
         self.fileset.handle(&mut self.coas);
+        self.load_pdx_items_optional_bom(Item::CoaTemplateList, CoaTemplateList::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -494,7 +514,12 @@ impl Everything {
             | Item::CasusBelliGroup
             | Item::CharacterTemplate
             | Item::ClothingGfx
+            | Item::CoaColorList
+            | Item::CoaColoredEmblemList
             | Item::CoaGfx
+            | Item::CoaPatternList
+            | Item::CoaTemplateList
+            | Item::CoaTexturedEmblemList
             | Item::CouncilPosition
             | Item::CouncilTask
             | Item::CourtPosition
@@ -550,6 +575,7 @@ impl Everything {
             Item::BlendShape => self.assets.blend_shape_exists(key),
             Item::Character => self.characters.exists(key),
             Item::Coa => self.coas.exists(key),
+            Item::CoaTemplate => self.coas.template_exists(key),
             Item::DangerType => DANGER_TYPES.contains(&key),
             Item::Decision => self.decisions.exists(key),
             Item::Define => self.defines.exists(key),
@@ -602,7 +628,6 @@ impl Everything {
             | Item::ActivityType
             | Item::Catalyst
             | Item::CharacterBackground
-            | Item::CoaList
             | Item::CourtSceneGroup
             | Item::CourtType
             | Item::DiarchyMandate

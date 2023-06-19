@@ -516,11 +516,10 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "force_character_skill_recalculation", Yes),
     (Character, "force_vote_as", SpecialBlock),
     (Province, "generate_building", Yes),
-    // not sure what the argument to generate_coa means
     (
         LandedTitle | Dynasty | DynastyHouse,
         "generate_coa",
-        Unchecked,
+        SpecialValue,
     ),
     (Culture, "get_all_innovations_from", Scope(Scopes::Culture)),
     (
