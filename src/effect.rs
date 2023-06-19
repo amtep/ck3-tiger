@@ -1315,7 +1315,11 @@ fn validate_effect_special(
     } else if caller == "try_create_important_action" {
         vd.req_field("important_action_type");
         vd.field_item("important_action_type", Item::ImportantAction);
-        vd.field_value("scope_name");
+        for (_, bv) in vd.unknown_keys() {
+            if let Some(value) = bv.expect_value() {
+                validate_target(value, data, sc, Scopes::all_but_none());
+            }
+        }
     } else if caller == "try_create_suggestion" {
         vd.req_field("suggestion_type");
         vd.field_item("suggestion_type", Item::Suggestion);
