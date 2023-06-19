@@ -622,6 +622,9 @@ fn validate_effect_special_bv(
                 vd.field_value("view"); // TODO
                 vd.field_value("view_message"); // TODO
                 vd.field_target("player", sc, Scopes::Character);
+                if caller == "open_view_data" {
+                    vd.field_target("secondary_actor", sc, Scopes::Character);
+                }
             }
         }
     } else if caller == "remove_courtier_or_guest" {
