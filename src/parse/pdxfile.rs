@@ -146,11 +146,8 @@ impl Parser {
             return;
         }
         if self.stack.is_empty() && self.current.contains_macro_parms {
-            error(
-                &token,
-                ErrorKey::ParseError,
-                "$-substitutions only work inside blocks, not at top level",
-            );
+            let msg = "$-substitutions only work inside blocks, not at top level";
+            error(&token, ErrorKey::ParseError, msg);
             self.current.contains_macro_parms = false;
         }
         if let Some(key) = self.current.key.take() {
@@ -342,25 +339,29 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
         for (i, c) in content.char_indices() {
             match state {
                 State::Neutral => {
-                    current_id.clear();
                     if c.is_whitespace() {
                     } else if c == '"' {
+                        token_start = loc.clone();
                         state = State::QString;
                     } else if c == '#' {
                         state = State::Comment;
                     } else if c.is_comparator_char() {
+                        token_start = loc.clone();
                         state = State::Comparator;
                         current_id.push(c);
                     } else if c == '@' {
                         // @ can start tokens but is special
                         calculation_start = loc.clone();
                         current_id.push(c);
+                        token_start = loc.clone();
                         state = State::Id;
                     } else if c == '$' {
                         parser.current.contains_macro_parms = true;
+                        token_start = loc.clone();
                         state = State::Id;
                         current_id.push(c);
                     } else if c.is_id_char() {
+                        token_start = loc.clone();
                         state = State::Id;
                         current_id.push(c);
                     } else if c == '{' {
@@ -370,7 +371,6 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                     } else {
                         Parser::unknown_char(c, loc.clone());
                     }
-                    token_start = loc.clone();
                 }
                 State::Comment => {
                     if c == '\n' {
@@ -405,6 +405,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
 
                         if c.is_comparator_char() {
                             current_id.push(c);
+                            token_start = loc.clone();
                             state = State::Comparator;
                         } else if c.is_whitespace() {
                             state = State::Neutral;
@@ -420,7 +421,6 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                             Parser::unknown_char(c, loc.clone());
                             state = State::Neutral;
                         }
-                        token_start = loc.clone();
                     }
                 }
                 State::Calculation => {
@@ -442,10 +442,10 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         parser.token(token);
                         state = State::Neutral;
                     } else if c.is_id_char() {
+                        token_start = loc.clone();
                         state = State::CalculationId;
                         current_id.push(c);
                     }
-                    token_start = loc.clone();
                 }
                 State::CalculationId => {
                     if c.is_whitespace() || c == '+' || c == '/' || c == '*' || c == '-' {
@@ -487,17 +487,21 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         parser.comparator(token);
 
                         if c == '"' {
+                            token_start = loc.clone();
                             state = State::QString;
                         } else if c == '@' {
                             // @ can start tokens but is special
                             calculation_start = loc.clone();
                             current_id.push(c);
+                            token_start = loc.clone();
                             state = State::Id;
                         } else if c == '$' {
                             parser.current.contains_macro_parms = true;
+                            token_start = loc.clone();
                             state = State::Id;
                             current_id.push(c);
                         } else if c.is_id_char() {
+                            token_start = loc.clone();
                             state = State::Id;
                             current_id.push(c);
                         } else if c.is_whitespace() {
@@ -514,7 +518,6 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                             Parser::unknown_char(c, loc.clone());
                             state = State::Neutral;
                         }
-                        token_start = loc.clone();
                     }
                 }
             }
