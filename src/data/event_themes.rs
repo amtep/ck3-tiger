@@ -89,3 +89,101 @@ impl DbKind for EventTheme {
         });
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct EventBackground {
+    validated_scopes: RefCell<Scopes>,
+}
+
+impl EventBackground {
+    pub fn new() -> Self {
+        let validated_scopes = RefCell::new(Scopes::empty());
+        Self { validated_scopes }
+    }
+
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::EventBackground, key, block, Box::new(Self::new()));
+    }
+}
+
+impl DbKind for EventBackground {
+    fn validate(&self, _key: &Token, _block: &Block, _data: &Everything) {}
+
+    /// Like `EventTheme`, `EventBackground` are validated through the events (and themes) that use them.
+    fn validate_call(
+        &self,
+        _key: &Token,
+        block: &Block,
+        _caller: &Token,
+        data: &Everything,
+        sc: &mut ScopeContext,
+    ) {
+        if self.validated_scopes.borrow().contains(sc.scopes()) {
+            return;
+        }
+        *self.validated_scopes.borrow_mut() |= sc.scopes();
+
+        let mut vd = Validator::new(block, data);
+        vd.req_field("background");
+        vd.field_validated_blocks("background", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_block("trigger", |block, data| {
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
+            });
+            vd.field_item("reference", Item::File);
+            vd.field_bool("video");
+            vd.field_item("environment", Item::Environment);
+            vd.field_value("ambience");
+            vd.field_item("video_mask", Item::File);
+        });
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct EventTransition {
+    validated_scopes: RefCell<Scopes>,
+}
+
+impl EventTransition {
+    pub fn new() -> Self {
+        let validated_scopes = RefCell::new(Scopes::empty());
+        Self { validated_scopes }
+    }
+
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::EventTransition, key, block, Box::new(Self::new()));
+    }
+}
+
+impl DbKind for EventTransition {
+    fn validate(&self, _key: &Token, _block: &Block, _data: &Everything) {}
+
+    /// Like `EventTheme`, `EventTransition` are validated through the events (and themes) that use them.
+    fn validate_call(
+        &self,
+        _key: &Token,
+        block: &Block,
+        _caller: &Token,
+        data: &Everything,
+        sc: &mut ScopeContext,
+    ) {
+        if self.validated_scopes.borrow().contains(sc.scopes()) {
+            return;
+        }
+        *self.validated_scopes.borrow_mut() |= sc.scopes();
+
+        let mut vd = Validator::new(block, data);
+        vd.req_field("transition");
+        vd.field_validated_blocks("transition", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_block("trigger", |block, data| {
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
+            });
+            vd.field_item("reference", Item::File);
+            vd.field_bool("video");
+            vd.field_value("ambience");
+            vd.field_item("video_mask", Item::File);
+            vd.field_numeric("duration");
+        });
+    }
+}

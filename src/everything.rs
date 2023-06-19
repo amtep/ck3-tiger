@@ -36,7 +36,7 @@ use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
 use crate::data::effect_localization::EffectLocalization;
 use crate::data::ethnicity::Ethnicity;
-use crate::data::event_themes::EventTheme;
+use crate::data::event_themes::{EventBackground, EventTheme, EventTransition};
 use crate::data::events::Events;
 use crate::data::factions::Faction;
 use crate::data::focus::Focus;
@@ -375,6 +375,8 @@ impl Everything {
         self.fileset.handle(&mut self.doctrines);
         self.fileset.handle(&mut self.menatarmstypes);
         self.load_pdx_items(Item::EventTheme, EventTheme::add);
+        self.load_pdx_items(Item::EventBackground, EventBackground::add);
+        self.load_pdx_items(Item::EventTransition, EventTransition::add);
         self.fileset.handle(&mut self.gui);
         self.fileset.handle(&mut self.data_bindings);
         self.fileset.handle(&mut self.assets);
@@ -534,7 +536,9 @@ impl Everything {
             | Item::Dna
             | Item::EffectLocalization
             | Item::Ethnicity
+            | Item::EventBackground
             | Item::EventTheme
+            | Item::EventTransition
             | Item::Faction
             | Item::Focus
             | Item::GeneAgePreset
@@ -635,8 +639,7 @@ impl Everything {
             | Item::DiarchyType
             | Item::DynastyLegacy
             | Item::DynastyPerk
-            | Item::EventBackground
-            | Item::EventTransition
+            | Item::Environment
             | Item::FaithIcon
             | Item::GameRule
             | Item::GraphicalFaith
