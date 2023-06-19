@@ -589,6 +589,18 @@ pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mu
     });
 }
 
+pub fn validate_activity_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    vd.field_target("object", sc, Scopes::Activity);
+    vd.field_target("target", sc, Scopes::Character);
+}
+
+pub fn validate_scheme_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    vd.field_target("object", sc, Scopes::Scheme);
+    vd.field_target("target", sc, Scopes::Character);
+}
+
 pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_script_value("base", sc);
@@ -614,6 +626,10 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
         sc,
         validate_compatibility_modifier,
     );
+
+    // These are special single-use modifiers
+    vd.field_validated_blocks_sc("scheme_modifier", sc, validate_scheme_modifier);
+    vd.field_validated_blocks_sc("activity_modifier", sc, validate_activity_modifier);
 }
 
 pub fn validate_scripted_modifier_call(

@@ -139,6 +139,14 @@ impl TitleHistory {
                 }
             }
         }
+        if let Some(token) = vd.field_value("holder_ignore_head_of_faith_requirement") {
+            if !token.is("0") {
+                data.verify_exists(Item::Character, token);
+                if data.item_exists(Item::Character, token.as_str()) {
+                    data.characters.verify_alive(token, date);
+                }
+            }
+        }
 
         if let Some(token) = vd.field_value("liege") {
             if !token.is("0") {
@@ -153,10 +161,27 @@ impl TitleHistory {
             }
         }
 
+        if let Some(token) = vd.field_value("de_jure_liege") {
+            if !token.is("0") {
+                data.verify_exists(Item::Title, token);
+                if let Some(title) = data.titles.get(token.as_str()) {
+                    if title.tier <= self.tier {
+                        let msg = format!("liege must be higher tier than {}", self.key);
+                        error(token, ErrorKey::Validation, &msg);
+                    }
+                }
+            }
+        }
+
         vd.field_item("government", Item::GovernmentType);
 
         vd.field_block("succession_laws"); // TODO
         vd.field_bool("remove_succession_laws");
+
+        vd.field_item("name", Item::Localization);
+        vd.field_bool("reset_name");
+
+        vd.field_item("insert_title_history", Item::TitleHistory);
 
         vd.field_validated_block("effect", |block, data| {
             let mut sc = ScopeContext::new_root(Scopes::LandedTitle, self.key.clone());

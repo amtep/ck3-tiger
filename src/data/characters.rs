@@ -270,17 +270,6 @@ impl Character {
         vd.field_items("add_trait", Item::Trait);
         vd.field_items("remove_trait", Item::Trait);
 
-        vd.field_validated_bvs("add_character_flag", |bv, data| {
-            match bv {
-                BV::Value(_) => (), // flag name
-                BV::Block(b) => {
-                    let mut vd = Validator::new(b, data);
-                    vd.req_field("flag");
-                    vd.field_value("flag"); // flag name
-                }
-            }
-        });
-
         for token in vd.field_values("add_pressed_claim") {
             validate_prefix_reference_token(token, data, "title");
         }

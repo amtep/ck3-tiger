@@ -795,6 +795,13 @@ fn validate_effect_special(
         vd.req_field("type");
         vd.field_item("type", Item::Scheme);
         vd.field_integer("days");
+    } else if caller == "add_secret" {
+        vd.req_field("type");
+        vd.field_item("type", Item::Secret);
+        vd.field_target("target", sc, Scopes::Character);
+        if let Some(name) = vd.field_value("save_scope_as") {
+            sc.define_name(name.as_str(), name.clone(), Scopes::Secret);
+        }
     } else if caller == "add_to_global_variable_list"
         || caller == "add_to_local_variable_list"
         || caller == "add_to_variable_list"

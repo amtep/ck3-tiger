@@ -6,6 +6,7 @@ use crate::block::{Block, Date, BV};
 use crate::data::provinces::ProvId;
 use crate::data::religions::Religions;
 use crate::data::titles::Titles;
+use crate::effect::validate_normal_effect;
 use crate::errorkey::ErrorKey;
 use crate::errors::warn;
 use crate::everything::Everything;
@@ -13,7 +14,9 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 
 #[derive(Clone, Debug, Default)]
 pub struct ProvinceHistories {
@@ -109,24 +112,25 @@ impl ProvinceHistory {
         Self { key, block }
     }
 
-    fn validate_common(vd: &mut Validator, _data: &Everything) {
-        vd.field_value("culture");
+    fn validate_common(vd: &mut Validator, data: &Everything) {
+        vd.field_item("culture", Item::Culture);
         vd.field_item("religion", Item::Faith);
-        vd.field_choice(
-            "holding",
-            &[
-                "none",
-                "castle_holding",
-                "church_holding",
-                "city_holding",
-                "tribal_holding",
-                "auto",
-            ],
-        );
-        vd.field_list("buildings");
-        vd.field_values("special_building_slot");
-        vd.field_values("special_building");
-        vd.field_value("duchy_capital_building"); // TODO: check if duchy capital
+        vd.field_item("faith", Item::Faith);
+        if let Some(token) = vd.field_value("holding") {
+            if !token.is("auto") && !token.is("none") {
+                data.verify_exists(Item::Holding, token);
+            }
+        }
+        vd.field_list_items("buildings", Item::Building);
+        vd.field_items("special_building_slot", Item::SpecialBuilding);
+        vd.field_items("special_building", Item::SpecialBuilding);
+        // TODO: check if province is duchy capital
+        // TODO: check if building is duchy capital building
+        vd.field_item("duchy_capital_building", Item::Building);
+
+        vd.field_validated_block_rooted("effect", Scopes::Province, |block, data, sc| {
+            validate_normal_effect(block, data, sc, Tooltipped::No);
+        });
     }
 
     fn validate_history(_date: Date, block: &Block, data: &Everything) {
@@ -139,7 +143,7 @@ impl ProvinceHistory {
         // This needs province mappings to be loaded too
         let mut vd = Validator::new(&self.block, data);
         Self::validate_common(&mut vd, data);
-        vd.field_value("terrain");
+        vd.field_value("terrain"); // TODO: this does not seem to be an Item::Terrain
         vd.validate_history_blocks(Self::validate_history);
     }
 }

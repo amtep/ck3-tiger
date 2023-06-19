@@ -194,11 +194,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "add_scheme_cooldown", SpecialBlock),
     (Scheme, "add_scheme_modifier", SpecialBlock),
     (Scheme, "add_scheme_progress", ScriptValue),
-    (
-        Character,
-        "add_secret",
-        ItemTarget("type", Item::Secret, "target", Scopes::Character),
-    ),
+    (Character, "add_secret", SpecialBlock),
     (Secret, "add_secret_participant", Scope(Scopes::Character)),
     (Character, "add_short_term_gold", ScriptValue),
     (

@@ -39,6 +39,7 @@ impl DbKind for Bookmark {
         vd.field_date("start_date");
         vd.field_bool("is_playable");
         vd.field_bool("recommended");
+        vd.field_bool("test_default");
         vd.field_item("group", Item::BookmarkGroup);
         vd.field_script_value("weight", &mut sc);
 
