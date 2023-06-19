@@ -7,6 +7,7 @@ use std::rc::Rc;
 use thiserror::Error;
 
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::data::accessory::{Accessory, AccessoryVariation};
 use crate::data::accolades::{AccoladeIcon, AccoladeName, AccoladeType};
 use crate::data::amenities::Amenity;
@@ -35,7 +36,7 @@ use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
 use crate::data::effect_localization::EffectLocalization;
 use crate::data::ethnicity::Ethnicity;
-use crate::data::event_themes::Themes;
+use crate::data::event_themes::EventTheme;
 use crate::data::events::Events;
 use crate::data::factions::Faction;
 use crate::data::focus::Focus;
@@ -173,7 +174,6 @@ pub struct Everything {
     pub doctrines: Doctrines,
 
     pub menatarmstypes: MenAtArmsTypes,
-    pub themes: Themes,
 
     pub gui: Gui,
     pub data_bindings: DataBindings,
@@ -252,7 +252,6 @@ impl Everything {
             title_history: TitleHistories::default(),
             doctrines: Doctrines::default(),
             menatarmstypes: MenAtArmsTypes::default(),
-            themes: Themes::default(),
             gui: Gui::default(),
             data_bindings: DataBindings::default(),
             assets: Assets::default(),
@@ -375,7 +374,7 @@ impl Everything {
         self.fileset.handle(&mut self.title_history);
         self.fileset.handle(&mut self.doctrines);
         self.fileset.handle(&mut self.menatarmstypes);
-        self.fileset.handle(&mut self.themes);
+        self.load_pdx_items(Item::EventTheme, EventTheme::add);
         self.fileset.handle(&mut self.gui);
         self.fileset.handle(&mut self.data_bindings);
         self.fileset.handle(&mut self.assets);
@@ -463,7 +462,6 @@ impl Everything {
         self.title_history.validate(self);
         self.doctrines.validate(self);
         self.menatarmstypes.validate(self);
-        // self.themes.validate(self);  these are validated through the events that use them
         self.gui.validate(self);
         self.data_bindings.validate(self);
         self.assets.validate(self);
@@ -536,6 +534,7 @@ impl Everything {
             | Item::Dna
             | Item::EffectLocalization
             | Item::Ethnicity
+            | Item::EventTheme
             | Item::Faction
             | Item::Focus
             | Item::GeneAgePreset
@@ -589,7 +588,6 @@ impl Everything {
             Item::Entity => self.assets.entity_exists(key),
             Item::Event => self.events.exists(key),
             Item::EventNamespace => self.events.namespace_exists(key),
-            Item::EventTheme => self.themes.exists(key),
             Item::Faith => self.religions.faith_exists(key),
             Item::File => self.fileset.exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),
@@ -691,6 +689,10 @@ impl Everything {
 
     pub fn validate_use(&self, itype: Item, key: &Token, block: &Block) {
         self.database.validate_use(itype, key, block, self);
+    }
+
+    pub fn validate_call(&self, itype: Item, key: &Token, sc: &mut ScopeContext) {
+        self.database.validate_call(itype, key, self, sc);
     }
 
     pub fn get_item<T: DbKind>(&self, itype: Item, key: &str) -> Option<(&Token, &Block, &T)> {

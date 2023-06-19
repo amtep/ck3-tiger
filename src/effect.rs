@@ -950,8 +950,7 @@ fn validate_effect_special(
         if let Some(token) = vd.field_value("template") {
             // undocumented
             data.verify_exists(Item::CharacterTemplate, token);
-            data.database
-                .validate_call(Item::CharacterTemplate, token, data, sc);
+            data.validate_call(Item::CharacterTemplate, token, sc);
         }
         vd.field_item("template", Item::CharacterTemplate); // undocumented
         vd.field_target("template_character", sc, Scopes::Character);
