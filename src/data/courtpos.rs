@@ -127,6 +127,8 @@ impl DbKind for CourtPosition {
         );
 
         vd.field_script_value_rooted("candidate_score", Scopes::None);
+
+        vd.field_bool("is_powerful_agent"); // undocumented
     }
 }
 
