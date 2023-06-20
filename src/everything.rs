@@ -408,6 +408,7 @@ impl Everything {
         self.load_pdx_items(Item::Nickname, Nickname::add);
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
         self.load_pdx_items(Item::Building, Building::add);
+        Building::finalize(&mut self.database);
         self.load_pdx_items(Item::Culture, Culture::add);
         self.load_pdx_items(Item::CultureEra, CultureEra::add);
         self.load_pdx_items(Item::CulturePillar, CulturePillar::add);

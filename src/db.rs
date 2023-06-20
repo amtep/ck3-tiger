@@ -100,6 +100,13 @@ impl Db {
         }
     }
 
+    pub fn set_property(&mut self, item: Item, key: &str, property: &str) {
+        let index = (item, key.to_string());
+        if let Some(entry) = self.database.get_mut(&index) {
+            entry.kind.set_property(&entry.key, &entry.block, property);
+        }
+    }
+
     pub fn validate_call(&self, item: Item, key: &Token, data: &Everything, sc: &mut ScopeContext) {
         let index = (item, key.to_string());
         if let Some(entry) = self.database.get(&index) {
@@ -132,6 +139,17 @@ impl Db {
                 .kind
                 .validate_property_use(&entry.key, &entry.block, property, caller, data);
         }
+    }
+
+    /// TODO: Returns a Vec for now, should become an iterator.
+    pub fn iter_itype(&self, itype: Item) -> Vec<(&Token, &Block, &Box<dyn DbKind>)> {
+        let mut vec = Vec::new();
+        for ((item, _), entry) in &self.database {
+            if *item == itype {
+                vec.push((&entry.key, &entry.block, &entry.kind));
+            }
+        }
+        vec
     }
 }
 
@@ -182,4 +200,6 @@ pub trait DbKind: Debug + AsAny {
         _data: &Everything,
     ) {
     }
+
+    fn set_property(&mut self, _key: &Token, _block: &Block, _property: &str) {}
 }

@@ -14,9 +14,15 @@ use crate::trigger::validate_normal_trigger;
 use crate::validate::validate_modifiers_with_base;
 
 #[derive(Clone, Debug)]
-pub struct Building {}
+pub struct Building {
+    is_upgrade: bool,
+}
 
 impl Building {
+    pub fn new() -> Self {
+        Self { is_upgrade: false }
+    }
+
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for token in block.get_field_values("flag") {
             db.add_flag(Item::BuildingFlag, token);
@@ -24,7 +30,19 @@ impl Building {
         if block.field_value_is("type", "special") {
             db.add_flag(Item::SpecialBuilding, key.clone());
         }
-        db.add(Item::Building, key, block, Box::new(Self {}));
+        db.add(Item::Building, key, block, Box::new(Self::new()));
+    }
+
+    pub fn finalize(db: &mut Db) {
+        let mut upgrades = Vec::new();
+        for (_, block, _) in db.iter_itype(Item::Building) {
+            if let Some(token) = block.get_field_value("next_building") {
+                upgrades.push(token.to_string());
+            }
+        }
+        for upgrade in upgrades {
+            db.set_property(Item::Building, &upgrade, "is_upgrade");
+        }
     }
 }
 
@@ -40,7 +58,12 @@ impl DbKind for Building {
             data.verify_exists_implied(Item::Localization, &loca, key);
             let loca = format!("building_{key}_desc");
             data.verify_exists_implied(Item::Localization, &loca, key);
-            // TODO: figure out when the building_type_{key} and building_type_{key}_desc locas should exist
+            if !self.is_upgrade {
+                let loca = format!("building_type_{key}");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("building_type_{key}_desc");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+            }
         }
 
         if let Some(icon) = vd.field_value("type_icon") {
@@ -219,6 +242,12 @@ impl DbKind for Building {
         });
 
         vd.field_bool("is_graphical_background");
+    }
+
+    fn set_property(&mut self, _key: &Token, _block: &Block, property: &str) {
+        if property == "is_upgrade" {
+            self.is_upgrade = true;
+        }
     }
 }
 
