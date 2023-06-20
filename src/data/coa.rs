@@ -218,11 +218,11 @@ fn validate_coa_color(bv: &BV, block: Option<&Block>, data: &Everything) {
                 if let Some(block) = block {
                     if !block.has_key(color.as_str()) {
                         let msg = format!("setting to {color} but {color} is not defined");
-                        error(color, ErrorKey::Validation, &msg);
+                        error(color, ErrorKey::Colors, &msg);
                     }
                 } else {
                     let msg = format!("setting to {color} only works in an emblem");
-                    error(color, ErrorKey::Validation, &msg);
+                    error(color, ErrorKey::Colors, &msg);
                 }
             } else {
                 data.verify_exists(Item::NamedColor, color);

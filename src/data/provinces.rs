@@ -229,10 +229,10 @@ impl FileHandler for Provinces {
                 }
                 if !self.colors.contains(&province.color) {
                     let msg = "color is not in the provinces.png";
-                    warn(&province.comment, ErrorKey::Validation, msg);
+                    warn(&province.comment, ErrorKey::Colors, msg);
                 } else if let Some(k) = seen_colors.get(&province.color) {
                     let msg = format!("color was already used for id {k}");
-                    warn(&province.comment, ErrorKey::Validation, &msg);
+                    warn(&province.comment, ErrorKey::Colors, &msg);
                 } else {
                     seen_colors.insert(province.color, i);
                 }
@@ -247,7 +247,7 @@ impl FileHandler for Provinces {
                 "provinces.png contains {} colors with no provinces assigned",
                 self.colors.len() - seen_colors.len()
             );
-            warn(definition_csv, ErrorKey::Validation, &msg);
+            warn(definition_csv, ErrorKey::Colors, &msg);
         }
     }
 }

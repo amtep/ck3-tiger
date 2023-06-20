@@ -39,6 +39,7 @@ pub enum ErrorKey {
     FieldMissing,
     UnknownField,
     TitleTier,
+    Colors,
 
     PrincesOfDarkness,
 

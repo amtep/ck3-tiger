@@ -186,7 +186,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
     let tag = block.tag.as_ref().map_or("rgb", Token::as_str);
     for (k, _, v) in block.iter_items() {
         if let Some(key) = k {
-            error(key, ErrorKey::Validation, "expected color value");
+            error(key, ErrorKey::Colors, "expected color value");
         } else {
             match v {
                 BV::Value(t) => {
@@ -194,45 +194,45 @@ pub fn validate_color(block: &Block, _data: &Everything) {
                         if let Ok(f) = t.as_str().parse::<f64>() {
                             if !(0.0..=1.0).contains(&f) {
                                 let msg = "hsv values should be between 0.0 and 1.0";
-                                error(t, ErrorKey::Validation, msg);
+                                error(t, ErrorKey::Colors, msg);
                             }
                         } else {
-                            error(t, ErrorKey::Validation, "expected hsv value");
+                            error(t, ErrorKey::Colors, "expected hsv value");
                         }
                     } else if tag == "hsv360" {
                         if let Ok(i) = t.as_str().parse::<i64>() {
                             if !(0..=360).contains(&i) {
                                 let msg = "hsv360 values should be between 0 and 360";
-                                error(t, ErrorKey::Validation, msg);
+                                error(t, ErrorKey::Colors, msg);
                             }
                         } else {
-                            error(t, ErrorKey::Validation, "expected hsv360 value");
+                            error(t, ErrorKey::Colors, "expected hsv360 value");
                         }
                     } else {
                         if let Ok(i) = t.as_str().parse::<i64>() {
                             if !(0..=255).contains(&i) {
                                 let msg = "color values should be between 0 and 255";
-                                error(t, ErrorKey::Validation, msg);
+                                error(t, ErrorKey::Colors, msg);
                             }
                         } else if let Ok(f) = t.as_str().parse::<f64>() {
                             if !(0.0..=1.0).contains(&f) {
                                 let msg = "color values should be between 0.0 and 1.0";
-                                error(t, ErrorKey::Validation, msg);
+                                error(t, ErrorKey::Colors, msg);
                             }
                         } else {
-                            error(t, ErrorKey::Validation, "expected color value");
+                            error(t, ErrorKey::Colors, "expected color value");
                         }
                     }
                     count += 1;
                 }
                 BV::Block(b) => {
-                    error(b, ErrorKey::Validation, "expected color value");
+                    error(b, ErrorKey::Colors, "expected color value");
                 }
             }
         }
     }
     if count != 3 && count != 4 {
-        error(block, ErrorKey::Validation, "expected 3 or 4 color values");
+        error(block, ErrorKey::Colors, "expected 3 or 4 color values");
     }
 }
 

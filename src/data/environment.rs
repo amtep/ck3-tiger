@@ -102,34 +102,34 @@ pub fn validate_camera_color(block: &Block, data: &Everything) {
     let tag = block.tag.as_ref().map_or("rgb", Token::as_str);
     if tag != "hsv" {
         let msg = "camera colors should be in hsv";
-        warn(block, ErrorKey::Validation, &msg);
+        warn(block, ErrorKey::Colors, &msg);
         validate_color(block, data);
         return;
     }
 
     for (k, _, v) in block.iter_items() {
         if let Some(key) = k {
-            error(key, ErrorKey::Validation, "expected color value");
+            error(key, ErrorKey::Colors, "expected color value");
         } else {
             match v {
                 BV::Value(t) => {
                     if let Ok(f) = t.as_str().parse::<f64>() {
                         if count <= 1 && !(0.0..=1.0).contains(&f) {
                             let msg = "h and s values should be between 0.0 and 1.0";
-                            error(t, ErrorKey::Validation, msg);
+                            error(t, ErrorKey::Colors, msg);
                         }
                     } else {
-                        error(t, ErrorKey::Validation, "expected hsv value");
+                        error(t, ErrorKey::Colors, "expected hsv value");
                     }
                     count += 1;
                 }
                 BV::Block(b) => {
-                    error(b, ErrorKey::Validation, "expected color value");
+                    error(b, ErrorKey::Colors, "expected color value");
                 }
             }
         }
     }
     if count != 3 {
-        error(block, ErrorKey::Validation, "expected 3 color values");
+        error(block, ErrorKey::Colors, "expected 3 color values");
     }
 }
