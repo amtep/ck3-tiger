@@ -279,13 +279,51 @@ pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted:
     error(token, ErrorKey::Validation, &msg);
 }
 
+/// Check some iterator fields *before* the list scope has opened.
+pub fn precheck_iterator_fields(
+    ltype: ListType,
+    block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+) {
+    match ltype {
+        ListType::Any => {
+            if let Some(bv) = block.get_field("percent") {
+                if let Some(token) = bv.get_value() {
+                    if let Ok(num) = token.as_str().parse::<f64>() {
+                        if num > 1.0 {
+                            let msg = "'percent' here needs to be between 0 and 1";
+                            warn(token, ErrorKey::Range, msg);
+                        }
+                    }
+                }
+                ScriptValue::validate_bv(bv, data, sc);
+            }
+            if let Some(bv) = block.get_field("count") {
+                match bv {
+                    BV::Value(token) if token.is("all") => (),
+                    bv => ScriptValue::validate_bv(bv, data, sc),
+                }
+            };
+        }
+        ListType::Ordered => {
+            for field in &["position", "min", "max"] {
+                if let Some(bv) = block.get_field(field) {
+                    ScriptValue::validate_bv(bv, data, sc);
+                }
+            }
+        }
+        ListType::Random | ListType::Every | ListType::None => (),
+    }
+}
+
 /// This checks the fields that are only used in iterators.
 /// It does not check "limit" because that is shared with the if/else blocks.
 /// Returns true iff the iterator took care of its own tooltips
 pub fn validate_iterator_fields(
     caller: &str,
     list_type: ListType,
-    data: &Everything,
+    _data: &Everything,
     sc: &mut ScopeContext,
     vd: &mut Validator,
     tooltipped: &mut Tooltipped,
@@ -311,24 +349,8 @@ pub fn validate_iterator_fields(
     }
 
     if list_type == ListType::Any {
-        if let Some(bv) = vd.field_any_cmp("percent") {
-            if let Some(token) = bv.get_value() {
-                if let Ok(num) = token.as_str().parse::<f64>() {
-                    if num > 1.0 {
-                        let msg = "'percent' here needs to be between 0 and 1";
-                        warn(token, ErrorKey::Range, msg);
-                    }
-                }
-            }
-            ScriptValue::validate_bv(bv, data, sc);
-        };
-
-        if let Some(bv) = vd.field_any_cmp("count") {
-            match bv {
-                BV::Value(token) if token.is("all") => (),
-                bv => ScriptValue::validate_bv(bv, data, sc),
-            }
-        };
+        vd.field_any_cmp("percent"); // prechecked
+        vd.field_any_cmp("count"); // prechecked
     } else {
         vd.ban_field("percent", || "`any_` lists");
         if caller != "while" {
@@ -338,10 +360,9 @@ pub fn validate_iterator_fields(
 
     if list_type == ListType::Ordered {
         vd.field_script_value("order_by", sc);
-        // position can be compared to a var
-        vd.field_target("position", sc, Scopes::Value);
-        vd.field_integer("min");
-        vd.field_integer("max");
+        vd.field("position"); // prechecked
+        vd.field("min"); // prechecked
+        vd.field("max"); // prechecked
         vd.field_bool("check_range_bounds");
     } else {
         vd.ban_field("order_by", || "`ordered_` lists");

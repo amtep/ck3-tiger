@@ -17,7 +17,8 @@ use crate::tables::triggers::{scope_trigger, trigger_comparevalue, Trigger};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::{
-    validate_inside_iterator, validate_iterator_fields, validate_prefix_reference, ListType,
+    precheck_iterator_fields, validate_inside_iterator, validate_iterator_fields,
+    validate_prefix_reference, ListType,
 };
 
 pub fn validate_normal_trigger(
@@ -136,6 +137,7 @@ pub fn validate_trigger(
                     }
                     sc.expect(inscopes, key);
                     if let Some(b) = bv.get_block() {
+                        precheck_iterator_fields(ListType::Any, b, data, sc);
                         sc.open_scope(outscope, key.clone());
                         validate_trigger(it_name.as_str(), true, b, data, sc, tooltipped);
                         sc.close();

@@ -17,7 +17,8 @@ use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_normal_trigger, validate_target};
 use crate::validate::{
-    validate_inside_iterator, validate_iterator_fields, validate_scope_chain, ListType,
+    precheck_iterator_fields, validate_inside_iterator, validate_iterator_fields,
+    validate_scope_chain, ListType,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -137,8 +138,10 @@ impl ScriptValue {
                             error(key, ErrorKey::Validation, msg);
                         }
                         sc.expect(inscopes, key);
+                        let ltype = ListType::try_from(it_type.as_str()).unwrap();
+                        precheck_iterator_fields(ltype, block, data, sc);
                         sc.open_scope(outscope, key.clone());
-                        Self::validate_iterator(&it_type, &it_name, block, data, sc);
+                        Self::validate_iterator(ltype, &it_name, block, data, sc);
                         sc.close();
                         continue;
                     }
@@ -156,7 +159,7 @@ impl ScriptValue {
     }
 
     fn validate_iterator(
-        it_type: &Token,
+        ltype: ListType,
         it_name: &Token,
         block: &Block,
         data: &Everything,
@@ -167,7 +170,6 @@ impl ScriptValue {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
 
-        let ltype = ListType::try_from(it_type.as_str()).unwrap();
         let mut tooltipped = Tooltipped::No;
         validate_iterator_fields("", ltype, data, sc, &mut vd, &mut tooltipped);
 

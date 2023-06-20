@@ -16,10 +16,11 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger_key_bv};
 use crate::validate::{
-    validate_days_weeks_months_years, validate_duration, validate_inside_iterator,
-    validate_iterator_fields, validate_modifiers, validate_optional_duration,
-    validate_optional_duration_int, validate_random_culture, validate_random_faith,
-    validate_random_traits_list, validate_scope_chain, validate_scripted_modifier_call, ListType,
+    precheck_iterator_fields, validate_days_weeks_months_years, validate_duration,
+    validate_inside_iterator, validate_iterator_fields, validate_modifiers,
+    validate_optional_duration, validate_optional_duration_int, validate_random_culture,
+    validate_random_faith, validate_random_traits_list, validate_scope_chain,
+    validate_scripted_modifier_call, ListType,
 };
 
 pub fn validate_normal_effect(
@@ -305,8 +306,11 @@ pub fn validate_effect<'a>(
                     }
                     sc.expect(inscopes, key);
                     let ltype = ListType::try_from(it_type.as_str()).unwrap();
-                    sc.open_scope(outscope, key.clone());
                     if let Some(b) = bv.expect_block() {
+                        precheck_iterator_fields(ltype, b, data, sc);
+                    }
+                    sc.open_scope(outscope, key.clone());
+                    if let Some(b) = bv.get_block() {
                         let vd = Validator::new(b, data);
                         validate_effect(it_name.as_str(), ltype, b, data, sc, vd, tooltipped);
                     }
