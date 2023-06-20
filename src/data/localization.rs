@@ -338,11 +338,16 @@ impl Localization {
     pub fn check_unused(&self, _data: &Everything) {
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {
+                let mut vec = Vec::new();
                 for (key, entry) in hash.iter() {
                     if !self.used_locas.borrow().contains(key) {
-                        let msg = "localization not used anywhere";
-                        warn(&entry.key, ErrorKey::UnusedLocalization, &msg);
+                        vec.push(entry);
                     }
+                }
+                vec.sort_unstable_by_key(|entry| &entry.key.loc);
+                for entry in vec {
+                    let msg = "localization not used anywhere";
+                    warn(&entry.key, ErrorKey::UnusedLocalization, &msg);
                 }
             }
         }
