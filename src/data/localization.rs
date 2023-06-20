@@ -404,7 +404,7 @@ impl FileHandler for Localization {
                 "Localization files should be in subdirectories according to their language.",
             );
             warned = true;
-        } else if !KNOWN_LANGUAGES.contains(&&*lang) {
+        } else if !KNOWN_LANGUAGES.contains(&&*lang) && lang != "replace" {
             if self.warned_dirs.iter().any(|d| *d == *lang) {
                 warn_info(
                     entry,
