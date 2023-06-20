@@ -75,6 +75,7 @@ use crate::data::scripted_modifiers::ScriptedModifiers;
 use crate::data::scripted_rules::ScriptedRule;
 use crate::data::scripted_triggers::{Trigger, Triggers};
 use crate::data::scriptvalues::ScriptValues;
+use crate::data::struggle::{Catalyst, Struggle};
 use crate::data::terrain::Terrain;
 use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
@@ -437,6 +438,8 @@ impl Everything {
         self.load_pdx_items_optional_bom(Item::CoaTemplateList, CoaTemplateList::add);
         self.load_pdx_items(Item::CoaDynamicDefinition, CoaDynamicDefinition::add);
         self.load_pdx_items(Item::Environment, Environment::add);
+        self.load_pdx_items(Item::Struggle, Struggle::add);
+        self.load_pdx_items(Item::Catalyst, Catalyst::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -518,6 +521,7 @@ impl Everything {
             | Item::BuildingGfx
             | Item::CasusBelli
             | Item::CasusBelliGroup
+            | Item::Catalyst
             | Item::CharacterTemplate
             | Item::ClothingGfx
             | Item::CoaColorList
@@ -575,6 +579,9 @@ impl Everything {
             | Item::ScriptedGui
             | Item::ScriptedRule
             | Item::SpecialBuilding
+            | Item::Struggle
+            | Item::StrugglePhase
+            | Item::StrugglePhaseParameter
             | Item::Terrain
             | Item::TriggerLocalization
             | Item::UnitGfx
@@ -636,7 +643,6 @@ impl Everything {
             | Item::ActivityOptionCategory
             | Item::ActivityPhase
             | Item::ActivityType
-            | Item::Catalyst
             | Item::CharacterBackground
             | Item::CourtSceneGroup
             | Item::CourtType
@@ -662,9 +668,6 @@ impl Everything {
             | Item::Scheme
             | Item::Secret
             | Item::Story
-            | Item::Struggle
-            | Item::StrugglePhase
-            | Item::StrugglePhaseParameter
             | Item::Suggestion
             | Item::TitleLaw
             | Item::TitleLawFlag

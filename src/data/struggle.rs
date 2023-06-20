@@ -1,6 +1,7 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
+use crate::data::scriptvalues::ScriptValue;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_normal_effect;
 use crate::errorkey::ErrorKey;
@@ -18,7 +19,7 @@ pub struct Struggle {}
 impl Struggle {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if let Some(block) = block.get_field_block("phase_list") {
-            for (key, _) in block.iter_pure_definitions() {
+            for (key, block) in block.iter_pure_definitions() {
                 db.add_flag(Item::StrugglePhase, key.clone());
                 for field in &[
                     "war_effects",
@@ -26,7 +27,6 @@ impl Struggle {
                     "faith_effects",
                     "other_effects",
                 ] {
-                    dbg!(field);
                     if let Some(block) = block.get_field_block(field) {
                         for field in &[
                             "common_parameters",
@@ -70,7 +70,8 @@ impl DbKind for Struggle {
             let mut has_one = false;
             let mut has_ending = false;
             let mut vd = Validator::new(block, data);
-            for (_, bv) in vd.unknown_keys() {
+            for (key, bv) in vd.unknown_keys() {
+                data.verify_exists(Item::Localization, key);
                 if let Some(block) = bv.expect_block() {
                     has_one = true;
                     validate_phase(block, data);
@@ -104,8 +105,8 @@ impl DbKind for Struggle {
             validate_normal_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
         });
         vd.field_validated_key_block("on_join", |key, block, data| {
-            let mut sc = sc.clone();
-            sc.define_name("character", key.clone(), Scopes::Character);
+            // Docs say it's Struggle scope but that's wrong.
+            let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
             validate_normal_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
         });
     }
@@ -113,6 +114,7 @@ impl DbKind for Struggle {
 
 fn validate_phase(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
+    vd.field_item("background", Item::File);
     vd.req_field("future_phases");
     vd.field_validated_block("future_phases", |block, data| {
         let mut vd = Validator::new(block, data);
@@ -143,14 +145,17 @@ fn validate_phase(block: &Block, data: &Everything) {
     ] {
         vd.field_validated_block(field, validate_phase_effects);
     }
+
+    vd.field_list_items("ending_decisions", Item::Decision);
 }
 
 fn validate_catalyst_list(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     for (key, bv) in vd.unknown_keys() {
-        if let Some(value) = bv.expect_value() {
+        if bv.expect_value().is_some() {
             data.verify_exists(Item::Catalyst, key);
-            value.expect_integer();
+            let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+            ScriptValue::validate_bv(bv, data, &mut sc);
         }
     }
 }
@@ -194,21 +199,19 @@ fn validate_phase_effects(block: &Block, data: &Everything) {
             validate_modifs(block, data, ModifKinds::County, vd);
         });
     }
-
-    vd.field_list_items("ending_decisions", Item::Decision);
 }
 
 fn validate_struggle_parameters(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     for (key, bv) in vd.unknown_keys() {
-        if let Some(value) = vd.expect_value() {
+        if let Some(value) = bv.expect_value() {
             if !value.is("yes") {
-                msg = format!("expected `{key} = yes`");
+                let msg = format!("expected `{key} = yes`");
                 warn(value, ErrorKey::Validation, &msg);
             }
 
             let loca = format!("struggle_parameter_{key}");
-            data.verify_exists_implied(Item::Localization, loca, key);
+            data.verify_exists_implied(Item::Localization, &loca, key);
         }
     }
 }

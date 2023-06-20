@@ -62,6 +62,7 @@ pub mod scripted_modifiers;
 pub mod scripted_rules;
 pub mod scripted_triggers;
 pub mod scriptvalues;
+pub mod struggle;
 pub mod terrain;
 pub mod title_history;
 pub mod titles;

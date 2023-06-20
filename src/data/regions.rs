@@ -38,8 +38,11 @@ impl DbKind for Region {
         }
     }
 
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+        // TODO: figure out when a region needs to be localized.
+        // Probably when it's tooltipped for geographical_region or when the gui code does GetName
+        data.localization.mark_used(key.as_str());
         vd.field_bool("generate_modifiers");
         vd.field_bool("graphical");
         vd.field_validated_block("color", validate_color);
