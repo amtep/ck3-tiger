@@ -28,11 +28,18 @@ pub fn dup_advice(key: &Token, other: &Token, id: &str) {
 
 /// Warns about a duplicate `key = value` in a database item
 pub fn dup_assign_error(key: &Token, other: &Token) {
+    // Don't trace back macro invocations for duplicate field errors,
+    // because they're just confusing.
+    let mut key = key.clone();
+    key.loc.link = None;
+    let mut other = other.clone();
+    other.loc.link = None;
+
     warn2(
-        other,
+        &other,
         ErrorKey::DuplicateField,
         &format!("`{other}` is redefined in a following line"),
-        key,
+        &key,
         "the other one is here",
     );
 }
