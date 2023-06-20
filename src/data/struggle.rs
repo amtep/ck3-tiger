@@ -1,0 +1,229 @@
+use crate::block::validator::Validator;
+use crate::block::Block;
+use crate::context::ScopeContext;
+use crate::db::{Db, DbKind};
+use crate::effect::validate_normal_effect;
+use crate::errorkey::ErrorKey;
+use crate::errors::warn;
+use crate::everything::Everything;
+use crate::item::Item;
+use crate::modif::{validate_modifs, ModifKinds};
+use crate::scopes::Scopes;
+use crate::token::Token;
+use crate::tooltipped::Tooltipped;
+
+#[derive(Clone, Debug)]
+pub struct Struggle {}
+
+impl Struggle {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        if let Some(block) = block.get_field_block("phase_list") {
+            for (key, _) in block.iter_pure_definitions() {
+                db.add_flag(Item::StrugglePhase, key.clone());
+                for field in &[
+                    "war_effects",
+                    "culture_effects",
+                    "faith_effects",
+                    "other_effects",
+                ] {
+                    dbg!(field);
+                    if let Some(block) = block.get_field_block(field) {
+                        for field in &[
+                            "common_parameters",
+                            "involved_parameters",
+                            "interloper_parameters",
+                            "uninvolved_parameters",
+                        ] {
+                            if let Some(block) = block.get_field_block(field) {
+                                for (key, value) in block.iter_assignments() {
+                                    if value.is("yes") {
+                                        db.add_flag(Item::StrugglePhaseParameter, key.clone());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        db.add(Item::Struggle, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for Struggle {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        let mut sc = ScopeContext::new_root(Scopes::Struggle, key.clone());
+
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        vd.field_list_items("cultures", Item::Culture);
+        vd.field_list_items("faiths", Item::Faith);
+        vd.field_list_items("regions", Item::Region);
+
+        vd.field_numeric_range("involvement_prerequisite_percentage", 0.0, 1.0);
+
+        vd.req_field("phase_list");
+        vd.field_validated_block("phase_list", |block, data| {
+            let mut has_one = false;
+            let mut has_ending = false;
+            let mut vd = Validator::new(block, data);
+            for (_, bv) in vd.unknown_keys() {
+                if let Some(block) = bv.expect_block() {
+                    has_one = true;
+                    validate_phase(block, data);
+                    if let Some(vec) = block.get_field_list("ending_decisions") {
+                        has_ending |= !vec.is_empty();
+                    }
+                }
+                if !has_one {
+                    warn(block, ErrorKey::Validation, "must have at least one phase");
+                }
+                if !has_ending {
+                    warn(
+                        block,
+                        ErrorKey::Validation,
+                        "must have at least one phase with ending_decisions",
+                    );
+                }
+            }
+        });
+
+        vd.req_field("start_phase");
+        vd.field_item("start_phase", Item::StrugglePhase);
+
+        vd.field_validated_block("on_start", |block, data| {
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        });
+        vd.field_validated_block("on_end", |block, data| {
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
+        });
+        vd.field_validated_block("on_change_phase", |block, data| {
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
+        });
+        vd.field_validated_key_block("on_join", |key, block, data| {
+            let mut sc = sc.clone();
+            sc.define_name("character", key.clone(), Scopes::Character);
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
+        });
+    }
+}
+
+fn validate_phase(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.req_field("future_phases");
+    vd.field_validated_block("future_phases", |block, data| {
+        let mut vd = Validator::new(block, data);
+        let mut has_one = false;
+        for (key, bv) in vd.unknown_keys() {
+            if let Some(block) = bv.expect_block() {
+                let mut vd = Validator::new(block, data);
+                has_one = true;
+                data.verify_exists(Item::StrugglePhase, key); // TODO: check that it belongs to this struggle
+                vd.field_bool("default");
+                vd.field_validated_block("catalysts", validate_catalyst_list);
+            }
+        }
+        if !has_one {
+            warn(
+                block,
+                ErrorKey::Validation,
+                "must have at least one future phase",
+            );
+        }
+    });
+
+    for field in &[
+        "war_effects",
+        "culture_effects",
+        "faith_effects",
+        "other_effects",
+    ] {
+        vd.field_validated_block(field, validate_phase_effects);
+    }
+}
+
+fn validate_catalyst_list(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    for (key, bv) in vd.unknown_keys() {
+        if let Some(value) = bv.expect_value() {
+            data.verify_exists(Item::Catalyst, key);
+            value.expect_integer();
+        }
+    }
+}
+
+fn validate_phase_effects(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.field_validated_block("common_parameters", validate_struggle_parameters);
+    vd.field_validated_block("involved_parameters", validate_struggle_parameters);
+    vd.field_validated_block("interloper_parameters", validate_struggle_parameters);
+    vd.field_validated_block("uninvolved_parameters", validate_struggle_parameters);
+
+    for field in &[
+        "involved_character_modifier",
+        "interloper_character_modifier",
+    ] {
+        vd.field_validated_block(field, |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+    }
+
+    for field in &[
+        "involved_doctrine_character_modifier",
+        "interloper_doctrine_character_modifier",
+    ] {
+        vd.field_validated_block(field, |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("doctrine", Item::Doctrine);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+    }
+
+    for field in &[
+        "all_county_modifier",
+        "involved_county_modifier",
+        "interloper_county_modifier",
+        "uninvolved_county_modifier",
+    ] {
+        vd.field_validated_block(field, |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::County, vd);
+        });
+    }
+
+    vd.field_list_items("ending_decisions", Item::Decision);
+}
+
+fn validate_struggle_parameters(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    for (key, bv) in vd.unknown_keys() {
+        if let Some(value) = vd.expect_value() {
+            if !value.is("yes") {
+                msg = format!("expected `{key} = yes`");
+                warn(value, ErrorKey::Validation, &msg);
+            }
+
+            let loca = format!("struggle_parameter_{key}");
+            data.verify_exists_implied(Item::Localization, loca, key);
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Catalyst {}
+
+impl Catalyst {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::Catalyst, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for Catalyst {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut _vd = Validator::new(block, data);
+    }
+}

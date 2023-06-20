@@ -1144,12 +1144,12 @@ fn validate_effect_special(
         vd.req_field("court_position");
         if let Some(token) = vd.field_value("recipient") {
             let msg = "as of 1.9.2 neither `recipient` nor `target` work here";
-            let info = "for court positions with multiple holders (such as bodyguard), an arbitrary one will be revoked";
+            let info = "For court positions with multiple holders (such as bodyguard), an arbitrary one will be revoked";
             warn_info(token, ErrorKey::Bugs, msg, info);
         }
         if let Some(token) = vd.field_value("target") {
             let msg = "as of 1.9.2 neither `recipient` nor `target` work here";
-            let info = "for court positions with multiple holders (such as bodyguard), an arbitrary one will be revoked";
+            let info = "For court positions with multiple holders (such as bodyguard), an arbitrary one will be revoked";
             warn_info(token, ErrorKey::Bugs, msg, info);
         }
     } else if caller == "round_global_variable"
@@ -1183,6 +1183,7 @@ fn validate_effect_special(
         vd.req_field("task_type");
         // TODO: figure out for which task types `target` is required
         vd.field_item("task_type", Item::CouncilTask);
+        // This has been verified as of 1.9.2, it does require a Province here and not a LandedTitle
         vd.field_target("target", sc, Scopes::Character | Scopes::Province);
     } else if caller == "set_culture_name" {
         vd.req_field("noun");

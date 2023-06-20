@@ -405,6 +405,15 @@ fn validate_field(key: &Token, bv: &BV, data: &Everything) {
             }
         }
     }
+    if key.is("tooltip") {
+        if let Some(token) = bv.expect_value() {
+            // The JOMINI_MULTIPLAYER_ ones are probably built in.
+            if !token.starts_with("[") && !token.starts_with("JOMINI_MULTIPLAYER_") {
+                data.verify_exists(Item::Localization, token);
+                return;
+            }
+        }
+    }
     match bv {
         BV::Value(token) => {
             let mut valuevec = ValueParser::new(vec![token]).parse_value();
