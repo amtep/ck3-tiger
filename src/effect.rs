@@ -627,7 +627,8 @@ fn validate_effect_special_bv(
                 vd.field_value("view_message"); // TODO
                 vd.field_target("player", sc, Scopes::Character);
                 if caller == "open_view_data" {
-                    vd.field_target("secondary_actor", sc, Scopes::Character);
+                    vd.field_target("secondary_actor", sc, Scopes::Character); // undocumented
+                    vd.field_target("data", sc, Scopes::all_but_none()); // undocumented
                 }
             }
         }

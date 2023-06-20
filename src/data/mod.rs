@@ -36,6 +36,7 @@ pub mod holdings;
 pub mod holysites;
 pub mod hooks;
 pub mod houses;
+pub mod important_actions;
 pub mod innovations;
 pub mod interaction_cats;
 pub mod interactions;

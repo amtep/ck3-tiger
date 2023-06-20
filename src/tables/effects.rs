@@ -605,7 +605,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         Item(Item::CourtPosition),
     ),
     (None, "open_interaction_window", SpecialBlock),
-    (None, "open_view", SpecialBlock),
+    (None, "open_view", SpecialBv),
     (ALL_BUT_NONE, "open_view_data", SpecialBv),
     (None, "pan_camera_to_province", Scope(Scopes::Province)),
     (None, "pan_camera_to_title", Scope(Scopes::LandedTitle)),

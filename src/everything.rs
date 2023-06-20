@@ -49,6 +49,7 @@ use crate::data::holdings::Holding;
 use crate::data::holysites::HolySite;
 use crate::data::hooks::Hook;
 use crate::data::houses::Houses;
+use crate::data::important_actions::ImportantAction;
 use crate::data::innovations::Innovation;
 use crate::data::interaction_cats::InteractionCategories;
 use crate::data::interactions::Interactions;
@@ -440,6 +441,7 @@ impl Everything {
         self.load_pdx_items(Item::Environment, Environment::add);
         self.load_pdx_items(Item::Struggle, Struggle::add);
         self.load_pdx_items(Item::Catalyst, Catalyst::add);
+        self.load_pdx_items(Item::ImportantAction, ImportantAction::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -560,6 +562,7 @@ impl Everything {
             | Item::HolySite
             | Item::HolySiteFlag
             | Item::Hook
+            | Item::ImportantAction
             | Item::Innovation
             | Item::InnovationFlag
             | Item::Language
@@ -655,7 +658,6 @@ impl Everything {
             | Item::GameRule
             | Item::GraphicalFaith
             | Item::GuestSubset
-            | Item::ImportantAction
             | Item::Inspiration
             | Item::Law
             | Item::LawFlag
