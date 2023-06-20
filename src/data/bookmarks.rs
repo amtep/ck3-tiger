@@ -43,6 +43,10 @@ impl DbKind for Bookmark {
         vd.field_item("group", Item::BookmarkGroup);
         vd.field_script_value("weight", &mut sc);
 
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
         vd.field_validated_blocks("character", |block, data| {
             validate_bookmark_character(block, data, true);
         });
