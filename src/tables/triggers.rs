@@ -968,7 +968,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "has_title", Scope(LandedTitle)),
     (LandedTitle, "has_title_law", Item(Item::TitleLaw)),
     (LandedTitle, "has_title_law_flag", Item(Item::TitleLawFlag)),
-    (Character, "has_trait", Item(Item::Trait)),
+    (Character, "has_trait", ScopeOrItem(Trait, Item::Trait)),
     (Trait, "has_trait_category", Item(Item::TraitCategory)),
     (Trait, "has_trait_flag", Item(Item::TraitFlag)),
     (
