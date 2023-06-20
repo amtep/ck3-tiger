@@ -22,6 +22,7 @@ pub mod dna;
 pub mod doctrines;
 pub mod dynasties;
 pub mod effect_localization;
+pub mod environment;
 pub mod ethnicity;
 pub mod event_themes;
 pub mod events;

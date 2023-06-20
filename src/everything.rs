@@ -35,6 +35,7 @@ use crate::data::dna::Dna;
 use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
 use crate::data::effect_localization::EffectLocalization;
+use crate::data::environment::Environment;
 use crate::data::ethnicity::Ethnicity;
 use crate::data::event_themes::{EventBackground, EventTheme, EventTransition};
 use crate::data::events::Events;
@@ -434,6 +435,7 @@ impl Everything {
         self.fileset.handle(&mut self.coas);
         self.load_pdx_items_optional_bom(Item::CoaTemplateList, CoaTemplateList::add);
         self.load_pdx_items(Item::CoaDynamicDefinition, CoaDynamicDefinition::add);
+        self.load_pdx_items(Item::Environment, Environment::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -535,6 +537,7 @@ impl Everything {
             | Item::DeathReason
             | Item::Dna
             | Item::EffectLocalization
+            | Item::Environment
             | Item::Ethnicity
             | Item::EventBackground
             | Item::EventTheme
@@ -639,7 +642,6 @@ impl Everything {
             | Item::DiarchyType
             | Item::DynastyLegacy
             | Item::DynastyPerk
-            | Item::Environment
             | Item::FaithIcon
             | Item::GameRule
             | Item::GraphicalFaith

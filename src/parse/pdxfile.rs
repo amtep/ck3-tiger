@@ -140,8 +140,13 @@ impl Parser {
     }
 
     fn token(&mut self, token: Token) {
-        // Special case parsing of color = hsv { ... }
-        if token.is("hsv") || token.is("rgb") || token.is("hsv360") {
+        // Special case parsing of color = hsv { ... } and camera positions
+        if token.is("hsv")
+            || token.is("rgb")
+            || token.is("hsv360")
+            || token.is("cylindrical")
+            || token.is("cartesian")
+        {
             self.current.tag = Some(token);
             return;
         }
