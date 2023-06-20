@@ -394,8 +394,7 @@ fn validate_field(key: &Token, bv: &BV, data: &Everything) {
     if key.is("default_format") {
         bv.expect_value();
         return;
-    }
-    if key.is("texture") {
+    } else if key.is("texture") {
         if let Some(token) = bv.expect_value() {
             // The editor_gui ones aren't in the CK3 installation but do appear
             // to be available.
@@ -404,8 +403,7 @@ fn validate_field(key: &Token, bv: &BV, data: &Everything) {
                 return;
             }
         }
-    }
-    if key.is("tooltip") {
+    } else if key.is("tooltip") || key.is("text") {
         if let Some(token) = bv.expect_value() {
             // The JOMINI_MULTIPLAYER_ ones are probably built in.
             if !token.starts_with("[") && !token.starts_with("JOMINI_MULTIPLAYER_") {
