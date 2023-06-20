@@ -154,7 +154,7 @@ impl TitleHistory {
                 if let Some(title) = data.titles.get(token.as_str()) {
                     if title.tier <= self.tier {
                         let msg = format!("liege must be higher tier than {}", self.key);
-                        error(token, ErrorKey::Validation, &msg);
+                        error(token, ErrorKey::TitleTier, &msg);
                     }
                     data.title_history.verify_has_holder(token, date, data);
                 }
@@ -167,7 +167,7 @@ impl TitleHistory {
                 if let Some(title) = data.titles.get(token.as_str()) {
                     if title.tier <= self.tier {
                         let msg = format!("liege must be higher tier than {}", self.key);
-                        error(token, ErrorKey::Validation, &msg);
+                        error(token, ErrorKey::TitleTier, &msg);
                     }
                 }
             }

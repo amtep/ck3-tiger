@@ -110,7 +110,7 @@ impl Titles {
             if let Ok(tier) = Tier::try_from(k) {
                 if tier >= parent_tier {
                     let msg = format!("can't put a {tier} inside a {parent_tier}");
-                    error(k, ErrorKey::Validation, &msg);
+                    error(k, ErrorKey::TitleTier, &msg);
                 }
                 self.load_item(k.clone(), v, Some(key.as_str()), is_county_capital);
                 is_county_capital = false;
