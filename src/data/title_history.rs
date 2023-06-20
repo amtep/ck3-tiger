@@ -28,7 +28,7 @@ impl TitleHistories {
             if other.key.loc.kind >= key.loc.kind {
                 warn2(
                     &other.key,
-                    ErrorKey::Duplicate,
+                    ErrorKey::DuplicateItem,
                     "title has two definition blocks, they will be added together",
                     key,
                     "the other one is here",

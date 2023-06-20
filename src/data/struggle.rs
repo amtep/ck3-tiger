@@ -72,6 +72,8 @@ impl DbKind for Struggle {
             let mut vd = Validator::new(block, data);
             for (key, bv) in vd.unknown_keys() {
                 data.verify_exists(Item::Localization, key);
+                let loca = format!("{key}_desc");
+                data.verify_exists_implied(Item::Localization, &loca, key);
                 if let Some(block) = bv.expect_block() {
                     has_one = true;
                     validate_phase(block, data);

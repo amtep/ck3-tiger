@@ -104,7 +104,7 @@ impl FileHandler for Assets {
                 if other.kind() >= entry.kind() {
                     warn2(
                         other,
-                        ErrorKey::Duplicate,
+                        ErrorKey::DuplicateItem,
                         "texture file is redefined by another file",
                         entry,
                         "the other file is here",

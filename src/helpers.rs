@@ -8,7 +8,7 @@ use crate::token::Token;
 pub fn dup_error(key: &Token, other: &Token, id: &str) {
     warn2(
         other,
-        ErrorKey::Duplicate,
+        ErrorKey::DuplicateItem,
         &format!("{id} is redefined by another {id}"),
         key,
         &format!("the other {id} is here"),
@@ -19,7 +19,7 @@ pub fn dup_error(key: &Token, other: &Token, id: &str) {
 pub fn dup_advice(key: &Token, other: &Token, id: &str) {
     advice2(
         other,
-        ErrorKey::Duplicate,
+        ErrorKey::DuplicateItem,
         &format!("{id} is redefined by another {id}, which may cause problems if one of them is later changed"),
         key,
         &format!("the other {id} is here"),
@@ -30,7 +30,7 @@ pub fn dup_advice(key: &Token, other: &Token, id: &str) {
 pub fn dup_assign_error(key: &Token, other: &Token) {
     warn2(
         other,
-        ErrorKey::Duplicate,
+        ErrorKey::DuplicateField,
         &format!("`{other}` is redefined in a following line"),
         key,
         "the other one is here",

@@ -64,7 +64,7 @@ impl FileHandler for InteractionCategories {
                     bad_range = i_taken >= taken.len();
                     if let Some(other) = taken[i_taken] {
                         let msg = format!("index duplicates the index of {other}");
-                        error(&item.key, ErrorKey::Duplicate, &msg);
+                        error(&item.key, ErrorKey::DuplicateItem, &msg);
                     } else {
                         taken[i_taken] = Some(&item.key);
                     }

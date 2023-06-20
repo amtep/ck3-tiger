@@ -38,7 +38,7 @@ impl Provinces {
             if self.provinces.contains_key(&province.id) {
                 error(
                     &province.comment,
-                    ErrorKey::Duplicate,
+                    ErrorKey::DuplicateItem,
                     "duplicate entry for this province id",
                 );
             }
