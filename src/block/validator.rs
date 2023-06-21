@@ -286,6 +286,18 @@ impl<'a> Validator<'a> {
         })
     }
 
+    pub fn field_integer_range(&mut self, name: &str, low: i64, high: i64) {
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                if let Some(i) = token.expect_integer() {
+                    if !(low..=high).contains(&i) {
+                        let msg = format!("should be between {low} and {high} (inclusive)");
+                        warn(token, ErrorKey::Range, &msg);
+                    }
+                }
+            }
+        });
+    }
     pub fn field_numeric(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {

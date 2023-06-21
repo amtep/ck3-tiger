@@ -69,6 +69,7 @@ use crate::data::provinces::Provinces;
 use crate::data::regions::Region;
 use crate::data::relations::Relation;
 use crate::data::religions::{ReligionFamily, Religions};
+use crate::data::schemes::Scheme;
 use crate::data::scripted_effects::{Effect, Effects};
 use crate::data::scripted_guis::ScriptedGui;
 use crate::data::scripted_lists::ScriptedLists;
@@ -442,6 +443,7 @@ impl Everything {
         self.load_pdx_items(Item::Struggle, Struggle::add);
         self.load_pdx_items(Item::Catalyst, Catalyst::add);
         self.load_pdx_items(Item::ImportantAction, ImportantAction::add);
+        self.load_pdx_items(Item::Scheme, Scheme::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -579,6 +581,7 @@ impl Everything {
             | Item::RelationFlag
             | Item::ReligionFamily
             | Item::Region
+            | Item::Scheme
             | Item::ScriptedGui
             | Item::ScriptedRule
             | Item::SpecialBuilding
@@ -667,7 +670,6 @@ impl Everything {
             | Item::Music
             | Item::PointOfInterest
             | Item::PortraitAnimation
-            | Item::Scheme
             | Item::Secret
             | Item::Story
             | Item::Suggestion

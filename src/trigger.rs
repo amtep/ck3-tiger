@@ -103,6 +103,8 @@ pub fn validate_trigger(
         vd.fields_script_value("add", sc);
         vd.fields_script_value("factor", sc);
         vd.field_validated_sc("desc", sc, validate_desc);
+        // TODO: treating the whole block as case-insensitive seems overkill, but...
+        vd.field_validated_sc("DESC", sc, validate_desc);
         vd.field_validated_block("trigger", |block, data| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });

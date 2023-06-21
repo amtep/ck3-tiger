@@ -822,7 +822,7 @@ fn validate_effect_special(
         vd.req_field("target");
         vd.field_value("name");
         if let Some(target) = vd.field_value("target") {
-              validate_target(target, data, sc, Scopes::all_but_none());
+            validate_target(target, data, sc, Scopes::all_but_none());
         }
     } else if caller == "add_to_guest_subset" {
         vd.req_field("name");
