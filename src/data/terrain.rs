@@ -23,6 +23,45 @@ impl DbKind for Terrain {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
 
+        if !key.is("sea") && !key.is("coastal_sea") {
+            let modif = format!("{key}_advantage");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_construction_gold_cost");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_construction_piety_cost");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_construction_prestige_cost");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_holding_construction_gold_cost");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_holding_construction_piety_cost");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_holding_construction_prestige_cost");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_development_growth");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_development_growth_factor");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_supply_limit");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_supply_limit_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_min_combat_roll");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_max_combat_roll");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_levy_size");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_travel_danger");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_attrition_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_tax_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+            let modif = format!("{key}_cancel_negative_supply");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        }
+
         vd.req_field("color");
 
         vd.field_numeric("movement_speed");

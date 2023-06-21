@@ -24,6 +24,25 @@ impl DbKind for VassalStance {
         let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
         sc.define_name("liege", key.clone(), Scopes::Character);
 
+        let modif = format!("{key}_opinion");
+        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        let modif = format!("{key}_same_faith_opinion");
+        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        let modif = format!("{key}_same_culture_opinion");
+        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        let modif = format!("{key}_different_faith_opinion");
+        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        let modif = format!("{key}_different_culture_opinion");
+        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        let modif = format!("{key}_levy_contribution_add");
+        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        let modif = format!("{key}_levy_contribution_mult");
+        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        let modif = format!("{key}_tax_contribution_add");
+        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        let modif = format!("{key}_tax_contribution_mult");
+        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+
         vd.field_validated_blocks("is_valid", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });

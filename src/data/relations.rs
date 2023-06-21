@@ -23,6 +23,12 @@ impl Relation {
 impl DbKind for Relation {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+
+        // let modif = format!("scheme_power_against_{key}_add");
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        // let modif = format!("scheme_power_against_{key}_mult");
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+
         vd.field_item("corresponding", Item::Relation);
         vd.field_bool("title_grant_target");
         vd.field_list_items("opposites", Item::Relation);

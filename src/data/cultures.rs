@@ -84,6 +84,9 @@ impl DbKind for Culture {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
+        // let modif = format!("{key}_opinion");
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_prefix");
         data.verify_exists_implied(Item::Localization, &loca, key);

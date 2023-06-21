@@ -29,6 +29,21 @@ impl DbKind for Government {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
 
+        // let modif = format!("{key}_levy_contribution_add");
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        // let modif = format!("{key}_levy_contribution_mult");
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        // let modif = format!("{key}_tax_contribution_add");
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        // let modif = format!("{key}_tax_contribution_mult");
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        // let modif = format!("{key}_opinion");
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        // let modif = format!("{key}_vassal_opinion");
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        // let modif = format!("{key}_opinion_same_faith");
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_adjective");
         data.verify_exists_implied(Item::Localization, &loca, key);

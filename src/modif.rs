@@ -10,6 +10,7 @@ use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
+use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::tables::modifs::lookup_modif;
 use crate::token::Token;
@@ -74,6 +75,9 @@ pub fn validate_modifs<'a>(
             kinds.require(mk, key);
             let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
             ScriptValue::validate_bv(bv, data, &mut sc);
+            if !key.is("health") && !key.is("negate_health_penalty_add") {
+                data.verify_exists(Item::ModifierFormat, key);
+            }
         } else {
             let msg = format!("unknown modifier `{key}`");
             warn(key, ErrorKey::UnknownField, &msg);

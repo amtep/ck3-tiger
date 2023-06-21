@@ -27,6 +27,9 @@ impl DbKind for Lifestyle {
         let loca = format!("{key}_highlight_desc");
         data.localization.verify_exists_implied(&loca, key);
 
+        let modif = format!("monthly_{key}_xp_gain_mult");
+        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
 

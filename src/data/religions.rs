@@ -124,6 +124,9 @@ impl Religion {
         let loca = format!("{}_desc", self.key);
         data.localization.verify_exists_implied(&loca, &self.key);
 
+        // let modif = format!("{}_opinion", self.key);
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, &self.key);
+
         let mut vd = Validator::new(&self.block, data);
 
         vd.req_field("family");
@@ -235,6 +238,9 @@ impl Faith {
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
+        // let modif = format!("{}_opinion", self.key);
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, &self.key);
+
         let mut vd = Validator::new(&self.block, data);
 
         vd.req_field("color");
@@ -312,6 +318,9 @@ impl ReligionFamily {
 impl DbKind for ReligionFamily {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+
+        // let modif = format!("{key}_opinion");
+        // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
 
         vd.field_item("name", Item::Localization);
         if !block.has_key("name") {

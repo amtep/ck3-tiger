@@ -133,6 +133,10 @@ impl Trait {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
+        // TODO: $TRAIT_TRACK$_xp_degradation_mult
+        // TODO: $TRAIT_TRACK$_xp_gain_mult
+        // TODO: $TRAIT_TRACK$_xp_loss_mult
+
         if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("trait_{}", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);

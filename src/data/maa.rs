@@ -87,6 +87,57 @@ impl MenAtArmsType {
 
         vd.req_field("type");
         vd.field_item("type", Item::MenAtArmsBase);
+        if let Some(base) = self.block.get_field_value("type") {
+            let modif = format!("stationed_{base}_damage_add");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("stationed_{base}_damage_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("stationed_{base}_pursuit_add");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("stationed_{base}_pursuit_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("stationed_{base}_screen_add");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("stationed_{base}_screen_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("stationed_{base}_toughness_add");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("stationed_{base}_toughness_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("stationed_{base}_siege_value_add");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("stationed_{base}_siege_value_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+
+            let modif = format!("{base}_damage_add");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_damage_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_pursuit_add");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_pursuit_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_screen_add");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_screen_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_toughness_add");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_toughness_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_recruitment_cost_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_siege_value_add");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_siege_value_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_maintenance_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_max_size_add");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+            let modif = format!("{base}_max_size_mult");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, base);
+        }
 
         data.verify_exists(Item::Localization, &self.key);
         let loca = format!("{}_flavor", &self.key);
