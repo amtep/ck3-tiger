@@ -529,11 +529,23 @@ pub fn validate_traits(block: &Block, data: &Everything) {
 
 pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    vd.field_target("target", sc, Scopes::Character);
-    // I guess that "value" and "factor" are run for both the current scope character
-    // and the target character, and then compared.
-    vd.field_script_value("value", sc);
-    vd.field_script_value("factor", sc);
+
+    // `value` and `factor` are evaluated in the scope created by `target`
+    sc.open_builder();
+    let mut valid_target = false;
+    vd.field_validated_value("target", |_, token, data| {
+        valid_target = validate_scope_chain(token, data, sc);
+    });
+    sc.finalize_builder();
+    if valid_target {
+        vd.field_script_value("value", sc);
+        vd.field_script_value("factor", sc);
+    } else {
+        vd.field("value");
+        vd.field("factor");
+    }
+    sc.close();
+
     vd.fields_script_value("multiplier", sc);
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);

@@ -4,7 +4,6 @@
 
 ## False positives
 
-* compare_modifier can take other targets than `Character`. It should evaluate its value in the same scope type as the target.
 * With localization, duplicate keys take the earlier entry not the later entry.
 
 ## Features
