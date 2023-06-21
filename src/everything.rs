@@ -56,6 +56,7 @@ use crate::data::interactions::Interactions;
 use crate::data::lifestyles::Lifestyle;
 use crate::data::localization::Localization;
 use crate::data::maa::MenAtArmsTypes;
+use crate::data::modif::ModifierFormat;
 use crate::data::modifiers::Modifier;
 use crate::data::namelists::Namelists;
 use crate::data::nickname::Nickname;
@@ -444,6 +445,7 @@ impl Everything {
         self.load_pdx_items(Item::Catalyst, Catalyst::add);
         self.load_pdx_items(Item::ImportantAction, ImportantAction::add);
         self.load_pdx_items(Item::Scheme, Scheme::add);
+        self.load_pdx_items(Item::ModifierFormat, ModifierFormat::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -570,6 +572,7 @@ impl Everything {
             | Item::Language
             | Item::Lifestyle
             | Item::Modifier
+            | Item::ModifierFormat
             | Item::NamedColor
             | Item::Nickname
             | Item::OpinionModifier
