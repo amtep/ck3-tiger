@@ -163,10 +163,8 @@ impl DbKind for MorphGene {
         vd.field_list("ugliness_feature_categories"); // TODO: options
         vd.field_bool("can_have_portrait_extremity_shift");
         vd.field_value("group"); // TODO
-        for (_key, bv) in vd.unknown_keys() {
-            if let Some(block) = bv.expect_block() {
-                validate_morph_gene(block, data);
-            }
+        for (_key, block) in vd.unknown_block_fields() {
+            validate_morph_gene(block, data);
         }
     }
 
@@ -292,10 +290,8 @@ impl DbKind for AccessoryGene {
 
         vd.field_bool("inheritable");
         vd.field_value("group");
-        for (_key, bv) in vd.unknown_keys() {
-            if let Some(block) = bv.expect_block() {
-                validate_accessory_gene(block, data);
-            }
+        for (_key, block) in vd.unknown_block_fields() {
+            validate_accessory_gene(block, data);
         }
     }
 

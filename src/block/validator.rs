@@ -24,8 +24,10 @@ pub struct Validator<'a> {
     accepted_tokens: bool,
     // Whether subblocks are expected
     accepted_blocks: bool,
-    // Whether unknown keys are expected
-    accepted_keys: bool,
+    // Whether unknown block fields are expected
+    accepted_block_fields: bool,
+    // Whether unknown value fields are expected
+    accepted_value_fields: bool,
     // Whether key comparisons should be done case-sensitively
     case_sensitive: bool,
 }
@@ -37,7 +39,8 @@ impl<'a> Debug for Validator<'a> {
             .field("known_fields", &self.known_fields)
             .field("accepted_tokens", &self.accepted_tokens)
             .field("accepted_blocks", &self.accepted_blocks)
-            .field("accepted_keys", &self.accepted_keys)
+            .field("accepted_block_fields", &self.accepted_block_fields)
+            .field("accepted_value_fields", &self.accepted_value_fields)
             .field("case_sensitive", &self.case_sensitive)
             .finish()
     }
@@ -51,7 +54,8 @@ impl<'a> Validator<'a> {
             known_fields: Vec::new(),
             accepted_tokens: false,
             accepted_blocks: false,
-            accepted_keys: false,
+            accepted_block_fields: false,
+            accepted_value_fields: false,
             case_sensitive: true,
         }
     }
@@ -896,8 +900,9 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn unknown_keys(&mut self) -> Vec<(&Token, &BV)> {
-        self.accepted_keys = true;
+    pub fn unknown_fields(&mut self) -> Vec<(&Token, &BV)> {
+        self.accepted_block_fields = true;
+        self.accepted_value_fields = true;
         let mut vec = Vec::new();
         for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
@@ -910,8 +915,41 @@ impl<'a> Validator<'a> {
         vec
     }
 
-    pub fn unknown_keys_any_cmp(&mut self) -> Vec<(&Token, Comparator, &BV)> {
-        self.accepted_keys = true;
+    pub fn unknown_block_fields(&mut self) -> Vec<(&Token, &Block)> {
+        self.accepted_block_fields = true;
+        let mut vec = Vec::new();
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if let Some(block) = bv.get_block() {
+                    expect_eq_qeq(key, *cmp);
+                    if !self.known_fields.contains(&key.as_str()) {
+                        vec.push((key, block));
+                    }
+                }
+            }
+        }
+        vec
+    }
+
+    pub fn unknown_value_fields(&mut self) -> Vec<(&Token, &Token)> {
+        self.accepted_value_fields = true;
+        let mut vec = Vec::new();
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if let Some(value) = bv.get_value() {
+                    expect_eq_qeq(key, *cmp);
+                    if !self.known_fields.contains(&key.as_str()) {
+                        vec.push((key, value));
+                    }
+                }
+            }
+        }
+        vec
+    }
+
+    pub fn unknown_fields_any_cmp(&mut self) -> Vec<(&Token, Comparator, &BV)> {
+        self.accepted_block_fields = true;
+        self.accepted_value_fields = true;
         let mut vec = Vec::new();
         for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
@@ -924,43 +962,46 @@ impl<'a> Validator<'a> {
     }
 
     pub fn no_warn_remaining(&mut self) {
-        self.accepted_keys = true;
+        self.accepted_block_fields = true;
+        self.accepted_value_fields = true;
         self.accepted_tokens = true;
         self.accepted_blocks = true;
     }
 
     pub fn warn_remaining(&mut self) -> bool {
         let mut warned = false;
-        for (k, _, v) in &self.block.v {
+        for (k, _, bv) in &self.block.v {
             match k {
-                Some(key) => {
-                    if !self.accepted_keys && !self.known_fields.contains(&key.as_str()) {
-                        warn(
-                            key,
-                            ErrorKey::UnknownField,
-                            &format!("unknown field `{key}`"),
-                        );
-                        warned = true;
-                    }
-                }
-                None => match v {
-                    BV::Value(t) => {
-                        if !self.accepted_tokens {
-                            warn(
-                                t,
-                                ErrorKey::Validation,
-                                "found loose value, expected only `key =`",
-                            );
+                Some(key) => match bv {
+                    BV::Value(_) => {
+                        if !self.accepted_value_fields && !self.known_fields.contains(&key.as_str())
+                        {
+                            let msg = format!("unknown field `{key}`");
+                            warn(key, ErrorKey::UnknownField, &msg);
                             warned = true;
                         }
                     }
-                    BV::Block(s) => {
+                    BV::Block(_) => {
+                        if !self.accepted_block_fields && !self.known_fields.contains(&key.as_str())
+                        {
+                            let msg = format!("unknown field `{key}`");
+                            warn(key, ErrorKey::UnknownField, &msg);
+                            warned = true;
+                        }
+                    }
+                },
+                None => match bv {
+                    BV::Value(t) => {
+                        if !self.accepted_tokens {
+                            let msg = "found loose value, expected only `key =`";
+                            warn(t, ErrorKey::Validation, msg);
+                            warned = true;
+                        }
+                    }
+                    BV::Block(b) => {
                         if !self.accepted_blocks {
-                            warn(
-                                s,
-                                ErrorKey::Validation,
-                                "found sub-block, expected only `key =`",
-                            );
+                            let msg = "found sub-block, expected only `key =`";
+                            warn(b, ErrorKey::Validation, msg);
                             warned = true;
                         }
                     }

@@ -124,7 +124,7 @@ pub fn validate_trigger(
         vd.ban_field("amount", || "`calc_true_if`");
     }
 
-    for (key, cmp, bv) in vd.unknown_keys_any_cmp() {
+    for (key, cmp, bv) in vd.unknown_fields_any_cmp() {
         if let Some((it_type, it_name)) = key.split_once('_') {
             if it_type.is("any")
                 || it_type.is("ordered")
@@ -616,7 +616,7 @@ fn match_trigger_bv(
                     vd.req_field("trigger");
                     if let Some(target) = vd.field_value("trigger") {
                         let target = target.clone();
-                        for (key, bv) in vd.unknown_keys() {
+                        for (key, block) in vd.unknown_block_fields() {
                             if !key.is("fallback") {
                                 let synthetic_bv = BV::Value(key.clone());
                                 validate_trigger_key_bv(
@@ -628,9 +628,7 @@ fn match_trigger_bv(
                                     tooltipped,
                                 );
                             }
-                            if let Some(block) = bv.expect_block() {
-                                validate_normal_trigger(block, data, sc, tooltipped);
-                            }
+                            validate_normal_trigger(block, data, sc, tooltipped);
                         }
                     }
                 }

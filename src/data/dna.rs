@@ -27,11 +27,9 @@ fn validate_portrait_info(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.field_validated_block("genes", |block, data| {
         let mut vd = Validator::new(block, data);
-        for (key, bv) in vd.unknown_keys() {
+        for (key, block) in vd.unknown_block_fields() {
             data.verify_exists(Item::GeneCategory, key);
-            if let Some(block) = bv.expect_block() {
-                data.validate_use(Item::GeneCategory, key, block);
-            }
+            data.validate_use(Item::GeneCategory, key, block);
         }
     });
 }

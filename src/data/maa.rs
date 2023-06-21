@@ -202,36 +202,30 @@ impl MenAtArmsType {
 
 pub fn validate_terrain_bonus(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, bv) in vd.unknown_keys() {
-        if let Some(block) = bv.expect_block() {
-            data.verify_exists(Item::Terrain, key);
-            let mut vd = Validator::new(block, data);
-            validate_maa_stats(&mut vd);
-        }
+    for (key, block) in vd.unknown_block_fields() {
+        data.verify_exists(Item::Terrain, key);
+        let mut vd = Validator::new(block, data);
+        validate_maa_stats(&mut vd);
     }
 }
 
 pub fn validate_winter_bonus(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, bv) in vd.unknown_keys() {
-        if let Some(block) = bv.expect_block() {
-            if !(key.is("harsh_winter") || key.is("normal_winter")) {
-                warn(key, ErrorKey::Validation, "unknown winter type");
-            }
-            let mut vd = Validator::new(block, data);
-            validate_maa_stats(&mut vd);
+    for (key, block) in vd.unknown_block_fields() {
+        if !(key.is("harsh_winter") || key.is("normal_winter")) {
+            warn(key, ErrorKey::Validation, "unknown winter type");
         }
+        let mut vd = Validator::new(block, data);
+        validate_maa_stats(&mut vd);
     }
 }
 
 fn validate_era_bonus(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, bv) in vd.unknown_keys() {
-        if let Some(block) = bv.expect_block() {
-            data.verify_exists(Item::CultureEra, key);
-            let mut vd = Validator::new(block, data);
-            validate_maa_stats(&mut vd);
-        }
+    for (key, block) in vd.unknown_block_fields() {
+        data.verify_exists(Item::CultureEra, key);
+        let mut vd = Validator::new(block, data);
+        validate_maa_stats(&mut vd);
     }
 }
 

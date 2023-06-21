@@ -29,10 +29,8 @@ impl DbKind for Amenity {
                 warn(token, ErrorKey::MissingItem, "default not found in amenity");
             }
         });
-        for (key, bv) in vd.unknown_keys() {
-            if let Some(block) = bv.expect_block() {
-                validate_amenity_setting(key, block, data);
-            }
+        for (key, block) in vd.unknown_block_fields() {
+            validate_amenity_setting(key, block, data);
         }
     }
 }

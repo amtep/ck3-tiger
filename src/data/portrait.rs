@@ -52,10 +52,8 @@ impl DbKind for PortraitModifierGroup {
         vd.field_validated_blocks("add_accessory_modifiers", |block, data| {
             validate_add_accessory_modifiers(block, data, caller);
         });
-        for (key, bv) in vd.unknown_keys() {
-            if let Some(block) = bv.expect_block() {
-                validate_portrait_modifier(key, block, data, caller);
-            }
+        for (key, block) in vd.unknown_block_fields() {
+            validate_portrait_modifier(key, block, data, caller);
         }
     }
 }

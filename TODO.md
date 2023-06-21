@@ -14,5 +14,4 @@
 
 ## Refactoring
 
-* Validator::unknown_keys should be separated into unknown_key_blocks and unknown_key_values
 * ScriptValue::validate_bv should be in its own module just like trigger and effect

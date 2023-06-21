@@ -62,7 +62,7 @@ pub fn validate_effect<'a>(
         validate_inside_iterator(caller, list_type, block, data, sc, &mut vd, tooltipped);
     }
 
-    'outer: for (key, bv) in vd.unknown_keys() {
+    'outer: for (key, bv) in vd.unknown_fields() {
         if let Some(effect) = data.get_effect(key) {
             match bv {
                 BV::Value(token) => {
@@ -1313,7 +1313,7 @@ fn validate_effect_special(
         }
     } else if caller == "stress_impact" {
         vd.field_script_value("base", sc);
-        for (token, bv) in vd.unknown_keys() {
+        for (token, bv) in vd.unknown_fields() {
             data.verify_exists(Item::Trait, token);
             ScriptValue::validate_bv(bv, data, sc);
         }
@@ -1323,7 +1323,7 @@ fn validate_effect_special(
         if let Some(target) = vd.field_value("trigger") {
             // clone to avoid calling vd again while target is still borrowed
             let target = target.clone();
-            for (key, bv) in vd.unknown_keys() {
+            for (key, block) in vd.unknown_block_fields() {
                 if !key.is("fallback") {
                     // Pretend the switch was written as a series of trigger = key lines
                     let synthetic_bv = BV::Value(key.clone());
@@ -1337,19 +1337,15 @@ fn validate_effect_special(
                     );
                 }
 
-                if let Some(block) = bv.expect_block() {
-                    let vd = Validator::new(block, data);
-                    validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
-                }
+                let vd = Validator::new(block, data);
+                validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
             }
         }
     } else if caller == "try_create_important_action" {
         vd.req_field("important_action_type");
         vd.field_item("important_action_type", Item::ImportantAction);
-        for (_, bv) in vd.unknown_keys() {
-            if let Some(value) = bv.expect_value() {
-                validate_target(value, data, sc, Scopes::all_but_none());
-            }
+        for (_, value) in vd.unknown_value_fields() {
+            validate_target(value, data, sc, Scopes::all_but_none());
         }
     } else if caller == "try_create_suggestion" {
         vd.req_field("suggestion_type");
@@ -1440,11 +1436,11 @@ fn validate_random_list(
     vd.field_integer("pick");
     vd.field_bool("unique"); // don't know what this does
     vd.field_validated_sc("desc", sc, validate_desc);
-    for (key, bv) in vd.unknown_keys() {
+    for (key, block) in vd.unknown_block_fields() {
         if f64::from_str(key.as_str()).is_err() {
             let msg = "expected number";
             error(key, ErrorKey::Validation, msg);
-        } else if let Some(block) = bv.expect_block() {
+        } else {
             validate_effect_control(caller, block, data, sc, tooltipped);
         }
     }

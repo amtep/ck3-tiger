@@ -713,7 +713,7 @@ pub fn validate_scripted_modifier_calls(
     data: &Everything,
     sc: &mut ScopeContext,
 ) {
-    for (key, bv) in vd.unknown_keys() {
+    for (key, bv) in vd.unknown_fields() {
         if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
             validate_scripted_modifier_call(key, bv, modifier, data, sc);
         } else {
@@ -789,43 +789,37 @@ pub fn validate_scope_chain(token: &Token, data: &Everything, sc: &mut ScopeCont
 pub fn validate_random_traits_list(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_script_value("count", sc);
-    for (key, bv) in vd.unknown_keys() {
+    for (key, block) in vd.unknown_block_fields() {
         data.verify_exists(Item::Trait, key);
-        if let Some(block) = bv.expect_block() {
-            let mut vd = Validator::new(block, data);
-            vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
-            vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
-            });
-        }
+        let mut vd = Validator::new(block, data);
+        vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
+        vd.field_validated_block("trigger", |block, data| {
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
+        });
     }
 }
 
 pub fn validate_random_culture(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    for (key, bv) in vd.unknown_keys() {
+    for (key, block) in vd.unknown_block_fields() {
         validate_target(key, data, sc, Scopes::Culture);
-        if let Some(block) = bv.expect_block() {
-            let mut vd = Validator::new(block, data);
-            vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
-            vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
-            });
-        }
+        let mut vd = Validator::new(block, data);
+        vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
+        vd.field_validated_block("trigger", |block, data| {
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
+        });
     }
 }
 
 pub fn validate_random_faith(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    for (key, bv) in vd.unknown_keys() {
+    for (key, block) in vd.unknown_block_fields() {
         validate_target(key, data, sc, Scopes::Faith);
-        if let Some(block) = bv.expect_block() {
-            let mut vd = Validator::new(block, data);
-            vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
-            vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
-            });
-        }
+        let mut vd = Validator::new(block, data);
+        vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
+        vd.field_validated_block("trigger", |block, data| {
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
+        });
     }
 }
 

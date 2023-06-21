@@ -119,13 +119,7 @@ impl ScriptValue {
         vd.field_validated_blocks_sc("else_if", sc, Self::validate_if);
         vd.field_validated_blocks_sc("else", sc, Self::validate_else);
 
-        for (key, bv) in vd.unknown_keys() {
-            if let Some(token) = bv.get_value() {
-                error(token, ErrorKey::Validation, "expected block, found value");
-                continue;
-            }
-            let block = bv.get_block().unwrap();
-
+        for (key, block) in vd.unknown_block_fields() {
             if let Some((it_type, it_name)) = key.split_once('_') {
                 if it_type.is("every")
                     || it_type.is("ordered")

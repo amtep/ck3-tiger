@@ -151,20 +151,16 @@ impl DbKind for AccoladeType {
                 vd.field_list_items("men_at_arms", Item::MenAtArms);
                 vd.field_validated_block("terrain_bonus", |block, data| {
                     let mut vd = Validator::new(block, data);
-                    for (key, bv) in vd.unknown_keys() {
-                        if let Some(block) = bv.expect_block() {
-                            data.verify_exists(Item::MenAtArms, key);
-                            validate_terrain_bonus(block, data);
-                        }
+                    for (key, block) in vd.unknown_block_fields() {
+                        data.verify_exists(Item::MenAtArms, key);
+                        validate_terrain_bonus(block, data);
                     }
                 });
                 vd.field_validated_block("winter_bonus", |block, data| {
                     let mut vd = Validator::new(block, data);
-                    for (key, bv) in vd.unknown_keys() {
-                        if let Some(block) = bv.expect_block() {
-                            data.verify_exists(Item::MenAtArms, key);
-                            validate_winter_bonus(block, data);
-                        }
+                    for (key, block) in vd.unknown_block_fields() {
+                        data.verify_exists(Item::MenAtArms, key);
+                        validate_winter_bonus(block, data);
                     }
                 });
                 vd.field_list("accolade_parameters");

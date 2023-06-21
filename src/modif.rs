@@ -70,7 +70,7 @@ pub fn validate_modifs<'a>(
     kinds: ModifKinds,
     mut vd: Validator<'a>,
 ) {
-    for (key, bv) in vd.unknown_keys() {
+    for (key, bv) in vd.unknown_fields() {
         if let Some(mk) = lookup_modif(key, data, true) {
             kinds.require(mk, key);
             let mut sc = ScopeContext::new_root(Scopes::None, key.clone());

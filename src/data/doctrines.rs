@@ -146,9 +146,7 @@ impl DoctrineGroup {
 
         // Any remaining definitions are doctrines, so accept them all.
         // They are validated separately.
-        for (_, bv) in vd.unknown_keys() {
-            bv.expect_block();
-        }
+        vd.unknown_block_fields();
     }
 }
 
@@ -232,16 +230,10 @@ impl Doctrine {
 fn validate_parameters(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
 
-    for (key, _, bv) in block.iter_items() {
-        if let Some(param) = key {
-            if let Some(v) = bv.expect_value() {
-                if v.is("yes") || v.is("no") {
-                    continue;
-                }
-                vd.field_numeric(param.as_str());
-            }
+    for (_, v) in vd.unknown_value_fields() {
+        if v.is("yes") || v.is("no") {
+            continue;
         }
+        v.expect_number();
     }
-    // We've handled all the keys, so register that in the validator
-    _ = vd.unknown_keys();
 }
