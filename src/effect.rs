@@ -802,7 +802,7 @@ fn validate_effect_special(
         validate_optional_duration_int(&mut vd);
     } else if caller == "add_scheme_modifier" {
         vd.req_field("type");
-        vd.field_item("type", Item::Scheme);
+        vd.field_item("type", Item::Modifier);
         vd.field_integer("days");
     } else if caller == "add_secret" {
         vd.req_field("type");
@@ -821,8 +821,8 @@ fn validate_effect_special(
         vd.req_field("name");
         vd.req_field("target");
         vd.field_value("name");
-        for target in vd.field_values("target") {
-            validate_target(target, data, sc, Scopes::all_but_none());
+        if let Some(target) = vd.field_value("target") {
+              validate_target(target, data, sc, Scopes::all_but_none());
         }
     } else if caller == "add_to_guest_subset" {
         vd.req_field("name");
@@ -1073,7 +1073,7 @@ fn validate_effect_special(
     } else if caller == "faction_start_war" {
         vd.field_target("title", sc, Scopes::LandedTitle);
     } else if caller == "force_add_to_scheme" {
-        vd.field_item("scheme", Item::Scheme);
+        vd.field_target("scheme", sc, Scopes::Scheme);
         validate_optional_duration(&mut vd, sc);
     } else if caller == "force_vote_as" {
         vd.field_target("target", sc, Scopes::Character);
