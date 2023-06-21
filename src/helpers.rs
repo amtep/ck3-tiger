@@ -44,12 +44,12 @@ pub fn dup_assign_error(key: &Token, other: &Token) {
     );
 }
 
-pub fn display_choices(f: &mut Formatter, v: &[&str]) -> Result<(), std::fmt::Error> {
+pub fn display_choices(f: &mut Formatter, v: &[&str], joiner: &str) -> Result<(), std::fmt::Error> {
     for i in 0..v.len() {
         write!(f, "{}", v[i])?;
         if i + 1 == v.len() {
         } else if i + 2 == v.len() {
-            write!(f, " or ")?;
+            write!(f, " {joiner} ")?;
         } else {
             write!(f, ", ")?;
         }
@@ -59,17 +59,23 @@ pub fn display_choices(f: &mut Formatter, v: &[&str]) -> Result<(), std::fmt::Er
 
 /// The Choices enum exists to hook into the Display logic of printing to a string
 enum Choices<'a> {
-    Choices(&'a [&'a str]),
+    OrChoices(&'a [&'a str]),
+    AndChoices(&'a [&'a str]),
 }
 
 impl<'a> Display for Choices<'a> {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         match self {
-            Choices::Choices(cs) => display_choices(f, cs),
+            Choices::OrChoices(cs) => display_choices(f, cs, "or"),
+            Choices::AndChoices(cs) => display_choices(f, cs, "and"),
         }
     }
 }
 
 pub fn stringify_choices(v: &[&str]) -> String {
-    format!("{}", Choices::Choices(v))
+    format!("{}", Choices::OrChoices(v))
+}
+
+pub fn stringify_list(v: &[&str]) -> String {
+    format!("{}", Choices::AndChoices(v))
 }

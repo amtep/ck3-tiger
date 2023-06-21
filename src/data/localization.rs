@@ -10,7 +10,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{advice_info, error, error_info, warn, warn2, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, stringify_list};
 use crate::item::Item;
 use crate::parse::localization::{parse_loca, ValueParser};
 use crate::token::Token;
@@ -215,12 +215,16 @@ impl Localization {
             return;
         }
         self.mark_used(key);
+        let mut langs: Vec<&str> = Vec::new();
         for lang in &self.mod_langs {
             let hash = self.locas.get(lang);
             if hash.is_none() || !hash.unwrap().contains_key(key) {
-                let msg = format!("missing {lang} localization key {key}");
-                error(token, ErrorKey::MissingLocalization, &msg);
+                langs.push(lang);
             }
+        }
+        if !langs.is_empty() {
+            let msg = format!("missing {} localization key {key}", stringify_list(&langs));
+            error(token, ErrorKey::MissingLocalization, &msg);
         }
     }
 

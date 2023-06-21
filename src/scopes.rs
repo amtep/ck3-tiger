@@ -381,7 +381,7 @@ impl Display for Scopes {
             if self.contains(Scopes::VassalContractObligationLevel) {
                 vec.push("vassal contract obligation level");
             }
-            display_choices(f, &vec)
+            display_choices(f, &vec, "or")
         }
     }
 }
