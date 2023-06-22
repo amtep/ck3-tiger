@@ -24,6 +24,7 @@ use crate::data::characters::Characters;
 use crate::data::coa::{CoaDynamicDefinition, CoaTemplateList, Coas};
 use crate::data::colors::NamedColor;
 use crate::data::council::{CouncilPosition, CouncilTask};
+use crate::data::court_type::CourtType;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
 use crate::data::cultures::{Culture, CultureEra, CulturePillar, CultureTradition};
 use crate::data::customloca::CustomLocalization;
@@ -452,6 +453,7 @@ impl Everything {
         self.load_pdx_items(Item::MemoryType, MemoryType::add);
         self.load_pdx_items(Item::MapMode, MapMode::add);
         self.load_pdx_items(Item::VassalContract, VassalContract::add);
+        self.load_pdx_items(Item::CourtType, CourtType::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -547,6 +549,7 @@ impl Everything {
             | Item::CouncilTask
             | Item::CourtPosition
             | Item::CourtPositionCategory
+            | Item::CourtType
             | Item::CustomLocalization
             | Item::Culture
             | Item::CultureEra
@@ -666,7 +669,6 @@ impl Everything {
             | Item::ActivityType
             | Item::CharacterBackground
             | Item::CourtSceneGroup
-            | Item::CourtType
             | Item::DiarchyMandate
             | Item::DiarchyParameter
             | Item::DiarchyType
