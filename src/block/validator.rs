@@ -885,21 +885,6 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn warn_past_known(&mut self, name: &str, msg: &str) {
-        let mut past_known = false;
-        for (k, _, _) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    if past_known {
-                        warn(key, ErrorKey::Validation, msg);
-                    }
-                } else if !self.known_fields.contains(&key.as_str()) {
-                    past_known = true;
-                }
-            }
-        }
-    }
-
     pub fn unknown_fields(&mut self) -> Vec<(&Token, &BV)> {
         self.accepted_block_fields = true;
         self.accepted_value_fields = true;

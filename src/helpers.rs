@@ -79,3 +79,10 @@ pub fn stringify_choices(v: &[&str]) -> String {
 pub fn stringify_list(v: &[&str]) -> String {
     format!("{}", Choices::AndChoices(v))
 }
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum TriBool {
+    True,
+    False,
+    Maybe,
+}

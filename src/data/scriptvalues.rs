@@ -9,7 +9,7 @@ use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TriBool};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_iterator, Scopes};
@@ -87,68 +87,126 @@ impl ScriptValue {
         }
     }
 
-    fn validate_inner(mut vd: Validator, data: &Everything, sc: &mut ScopeContext) {
+    fn validate_inner(
+        mut vd: Validator,
+        data: &Everything,
+        sc: &mut ScopeContext,
+        mut have_value: TriBool,
+    ) {
         vd.field_item("desc", Item::Localization);
         vd.field_item("format", Item::Localization);
-        // save_temporary_scope_as is now allowed in script values
-        if let Some(name) = vd.field_value("save_temporary_scope_as") {
-            sc.save_current_scope(name.as_str());
-        }
-        vd.field_validated("value", |bv, data| {
-            Self::validate_bv(bv, data, sc);
-        });
-        vd.warn_past_known(
-            "value",
-            "Setting value here will overwrite the previous calculations",
-        );
-        vd.field_validated_bvs_sc("add", sc, Self::validate_bv);
-        vd.field_validated_bvs_sc("subtract", sc, Self::validate_bv);
-        vd.field_validated_bvs_sc("multiply", sc, Self::validate_bv);
-        // TODO: warn if not sure that divide by zero is impossible?
-        vd.field_validated_bvs_sc("divide", sc, Self::validate_bv);
-        vd.field_validated_bvs_sc("modulo", sc, Self::validate_bv);
-        vd.field_validated_bvs_sc("min", sc, Self::validate_bv);
-        vd.field_validated_bvs_sc("max", sc, Self::validate_bv);
-        vd.field_bool("round");
-        vd.field_bool("ceiling");
-        vd.field_bool("floor");
-        vd.field_validated_blocks_sc("fixed_range", sc, Self::validate_minmax_range);
-        vd.field_validated_blocks_sc("integer_range", sc, Self::validate_minmax_range);
-        // TODO: check that these actually follow each other
-        vd.field_validated_blocks_sc("if", sc, Self::validate_if);
-        vd.field_validated_blocks_sc("else_if", sc, Self::validate_if);
-        vd.field_validated_blocks_sc("else", sc, Self::validate_else);
 
-        for (key, block) in vd.unknown_block_fields() {
-            if let Some((it_type, it_name)) = key.split_once('_') {
-                if it_type.is("every")
-                    || it_type.is("ordered")
-                    || it_type.is("random")
-                    || it_type.is("any")
-                {
-                    if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
-                        if it_type.is("any") {
-                            let msg = "cannot use `any_` iterators in a script value";
-                            error(key, ErrorKey::Validation, msg);
+        let mut seen_if;
+        let mut next_seen_if = false;
+        for (token, bv) in vd.unknown_fields() {
+            seen_if = next_seen_if;
+            next_seen_if = false;
+
+            // save_temporary_scope_as is now allowed in script values
+            if token.is("save_temporary_scope_as") {
+                if let Some(name) = bv.expect_value() {
+                    sc.save_current_scope(name.as_str());
+                }
+            } else if token.is("value") {
+                if have_value == TriBool::True {
+                    let msg = "setting value here will overwrite the previous calculations";
+                    warn(token, ErrorKey::Logic, msg);
+                }
+                have_value = TriBool::True;
+                Self::validate_bv(bv, data, sc);
+            } else if token.is("add") || token.is("subtract") || token.is("min") || token.is("max")
+            {
+                have_value = TriBool::True;
+                Self::validate_bv(bv, data, sc);
+            } else if token.is("multiply") || token.is("divide") || token.is("modulo") {
+                if have_value == TriBool::False {
+                    let msg = format!("nothing to {token} yet");
+                    warn(token, ErrorKey::Logic, &msg);
+                }
+                Self::validate_bv(bv, data, sc);
+            } else if token.is("round") || token.is("ceiling") || token.is("floor") {
+                if have_value == TriBool::False {
+                    let msg = format!("nothing to {token} yet");
+                    warn(token, ErrorKey::Logic, &msg);
+                }
+                if let Some(value) = bv.expect_value() {
+                    if !value.is("yes") && !value.is("no") {
+                        let msg = "expected yes or no";
+                        warn(value, ErrorKey::Validation, msg);
+                    }
+                }
+            } else if token.is("fixed_range") || token.is("integer_range") {
+                if have_value == TriBool::True {
+                    let msg = "using fixed_range here will overwrite the previous calculations";
+                    warn(token, ErrorKey::Logic, msg);
+                }
+                if let Some(block) = bv.expect_block() {
+                    Self::validate_minmax_range(block, data, sc);
+                }
+                have_value = TriBool::True;
+            } else if token.is("if") {
+                if let Some(block) = bv.expect_block() {
+                    Self::validate_if(block, data, sc);
+                }
+                have_value = TriBool::Maybe;
+                next_seen_if = true;
+            } else if token.is("else_if") {
+                if !seen_if {
+                    let msg = "`else_if` without preceding `if`";
+                    warn(token, ErrorKey::Validation, msg);
+                }
+                if let Some(block) = bv.expect_block() {
+                    Self::validate_if(block, data, sc);
+                }
+                have_value = TriBool::Maybe;
+                next_seen_if = true;
+            } else if token.is("else") {
+                if !seen_if {
+                    let msg = "`else` without preceding `if`";
+                    warn(token, ErrorKey::Validation, msg);
+                }
+                if let Some(block) = bv.expect_block() {
+                    Self::validate_else(block, data, sc);
+                }
+                have_value = TriBool::Maybe;
+            } else {
+                if let Some((it_type, it_name)) = token.split_once('_') {
+                    if it_type.is("every")
+                        || it_type.is("ordered")
+                        || it_type.is("random")
+                        || it_type.is("any")
+                    {
+                        if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
+                            if it_type.is("any") {
+                                let msg = "cannot use `any_` iterators in a script value";
+                                error(token, ErrorKey::Validation, msg);
+                            }
+                            sc.expect(inscopes, token);
+                            if let Some(block) = bv.expect_block() {
+                                let ltype = ListType::try_from(it_type.as_str()).unwrap();
+                                precheck_iterator_fields(ltype, block, data, sc);
+                                sc.open_scope(outscope, token.clone());
+                                Self::validate_iterator(ltype, &it_name, block, data, sc);
+                                sc.close();
+                                have_value = TriBool::Maybe;
+                            }
                         }
-                        sc.expect(inscopes, key);
-                        let ltype = ListType::try_from(it_type.as_str()).unwrap();
-                        precheck_iterator_fields(ltype, block, data, sc);
-                        sc.open_scope(outscope, key.clone());
-                        Self::validate_iterator(ltype, &it_name, block, data, sc);
-                        sc.close();
                         continue;
                     }
                 }
-            }
 
-            // Check for target = { script_value }
-            sc.open_builder();
-            if validate_scope_chain(key, data, sc) {
-                sc.finalize_builder();
-                Self::validate_block(block, data, sc);
+                // Check for target = { script_value } or target = compare_value
+                sc.open_builder();
+                if validate_scope_chain(token, data, sc) {
+                    if let Some(block) = bv.expect_block() {
+                        sc.finalize_builder();
+                        let vd = Validator::new(block, data);
+                        Self::validate_inner(vd, data, sc, have_value);
+                        have_value = TriBool::Maybe;
+                    }
+                }
+                sc.close();
             }
-            sc.close();
         }
     }
 
@@ -177,7 +235,7 @@ impl ScriptValue {
             Tooltipped::No,
         );
 
-        Self::validate_inner(vd, data, sc);
+        Self::validate_inner(vd, data, sc, TriBool::Maybe);
     }
 
     fn validate_minmax_range(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -198,7 +256,7 @@ impl ScriptValue {
         vd.field_validated_block("limit", |block, data| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
-        Self::validate_inner(vd, data, sc);
+        Self::validate_inner(vd, data, sc, TriBool::Maybe);
     }
 
     fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -206,12 +264,7 @@ impl ScriptValue {
         vd.field_validated_block("limit", |block, data| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
-        Self::validate_inner(vd, data, sc);
-    }
-
-    fn validate_block(block: &Block, data: &Everything, sc: &mut ScopeContext) {
-        let vd = Validator::new(block, data);
-        Self::validate_inner(vd, data, sc);
+        Self::validate_inner(vd, data, sc, TriBool::Maybe);
     }
 
     pub fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
@@ -230,7 +283,7 @@ impl ScriptValue {
                         warn(b, ErrorKey::Validation, "invalid script value range");
                     }
                 } else {
-                    Self::validate_inner(vd, data, sc);
+                    Self::validate_inner(vd, data, sc, TriBool::False);
                 }
             }
         }
