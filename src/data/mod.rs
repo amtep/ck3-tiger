@@ -43,6 +43,7 @@ pub mod interactions;
 pub mod lifestyles;
 pub mod localization;
 pub mod maa;
+pub mod mapmodes;
 pub mod memories;
 pub mod modif;
 pub mod modifiers;
