@@ -234,7 +234,7 @@ pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes
         return data
             .scripted_lists
             .base(name)
-            .and_then(|name| scope_iterator(name, data));
+            .and_then(|base| scope_iterator(base, data));
     }
     std::option::Option::None
 }

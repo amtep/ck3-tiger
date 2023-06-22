@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
 use crate::errors::error;
 use crate::everything::Everything;
@@ -11,6 +12,8 @@ use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::scope_iterator;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
+use crate::trigger::validate_normal_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct ScriptedLists {
@@ -80,8 +83,11 @@ impl List {
         vd.req_field("conditions");
 
         if let Some(token) = vd.field_value("base") {
-            if let Some((_, _outscope)) = scope_iterator(token, data) {
-                vd.field_block("conditions"); // TODO
+            if let Some((_, outscope)) = scope_iterator(token, data) {
+                let mut sc = ScopeContext::new_root(outscope, token.clone());
+                vd.field_validated_block("conditions", |block, data| {
+                    validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                });
             } else {
                 error(token, ErrorKey::MissingItem, "no such base list");
             }
