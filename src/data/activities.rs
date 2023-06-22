@@ -116,7 +116,8 @@ impl DbKind for ActivityType {
         let mut join_chance_sc = ScopeContext::new_root(Scopes::Character, key.clone());
         join_chance_sc.define_name("host", Scopes::Character, key.clone());
         join_chance_sc.define_name("minimal_travel_time", Scopes::Value, key.clone());
-        join_chance_sc.define_name("activity_start_diff_days", Scopes::Value, key.clone());
+        // docs say activity_start_diff_days
+        join_chance_sc.define_name("estimated_arrival_diff_days", Scopes::Value, key.clone());
         join_chance_sc.define_list("special_guests", Scopes::Character, key.clone());
 
         let mut special_guests_sc = ScopeContext::new_root(Scopes::Character, key.clone());

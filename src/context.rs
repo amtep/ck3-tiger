@@ -2,7 +2,7 @@ use fnv::FnvHashMap;
 use std::borrow::Borrow;
 
 use crate::errorkey::ErrorKey;
-use crate::errors::{warn2, warn3};
+use crate::errors::{warn, warn2, warn3};
 use crate::scopes::Scopes;
 use crate::token::Token;
 
@@ -28,11 +28,16 @@ pub struct ScopeContext {
 
     /// Named scope values are `ScopeEntry::Scope` or `ScopeEntry::Named` or `ScopeEntry::Rootref`.
     /// Invariant: there are no cycles in the array via `ScopeEntry::Named` entries.
-    /// The `bool` value indicates whether this entry is a list.
     named: Vec<ScopeEntry>,
+
+    /// Same indices as `named`, is true iff the named scope is expected to be set on entry to the current scope context.
+    /// Invariant: `named` and `is_input` are the same length.
+    is_input: Vec<bool>,
 
     is_builder: bool,
     is_unrooted: bool,
+
+    strict_scopes: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -72,8 +77,10 @@ impl ScopeContext {
             names: FnvHashMap::default(),
             list_names: FnvHashMap::default(),
             named: Vec::new(),
+            is_input: Vec::new(),
             is_builder: false,
             is_unrooted: false,
+            strict_scopes: true,
         }
     }
 
@@ -88,9 +95,15 @@ impl ScopeContext {
             names: FnvHashMap::default(),
             list_names: FnvHashMap::default(),
             named: Vec::new(),
+            is_input: Vec::new(),
             is_builder: false,
             is_unrooted: true,
+            strict_scopes: true,
         }
+    }
+
+    pub fn set_strict_scopes(&mut self, strict: bool) {
+        self.strict_scopes = strict;
     }
 
     pub fn change_root<T: Borrow<Token>>(&mut self, root: Scopes, token: T) {
@@ -104,6 +117,16 @@ impl ScopeContext {
         } else {
             self.names.insert(name.to_string(), self.named.len());
             self.named.push(ScopeEntry::Scope(scopes, token));
+            self.is_input.push(false);
+        }
+    }
+
+    pub fn exists_scope(&mut self, name: &str, token: Token) {
+        if !self.names.contains_key(name) {
+            let idx = self.named.len();
+            self.names.insert(name.to_string(), idx);
+            self.named.push(ScopeEntry::Scope(Scopes::all(), token));
+            self.is_input.push(false);
         }
     }
 
@@ -114,6 +137,7 @@ impl ScopeContext {
         } else {
             self.list_names.insert(name.to_string(), self.named.len());
             self.named.push(ScopeEntry::Scope(scopes, token));
+            self.is_input.push(false);
         }
     }
 
@@ -132,6 +156,7 @@ impl ScopeContext {
         } else {
             self.names.insert(name.to_string(), self.named.len());
             self.named.push(self._resolve_backrefs().clone());
+            self.is_input.push(false);
         }
     }
 
@@ -142,6 +167,7 @@ impl ScopeContext {
         } else {
             self.list_names.insert(name.to_string(), self.named.len());
             self.named.push(self._resolve_backrefs().clone());
+            self.is_input.push(false);
         }
     }
 
@@ -230,6 +256,14 @@ impl ScopeContext {
             self.names.insert(name.to_string(), idx);
             self.named
                 .push(ScopeEntry::Scope(Scopes::all(), token.clone()));
+            if self.strict_scopes {
+                let msg = format!("scope:{name} might not be available here");
+                warn(token, ErrorKey::StrictScopes, &msg);
+                // Don't treat it as an input scope, because we already warned about it
+                self.is_input.push(false);
+            } else {
+                self.is_input.push(true);
+            }
             idx
         }
     }
@@ -549,12 +583,29 @@ impl ScopeContext {
 
         // Compare restrictions on named scopes
         for (name, &oidx) in &other.names {
-            // Don't do anything if our scope doesn't have that name; this will change when we get strict name checking.
             if self.names.contains_key(name) {
                 let (s, t) = other._resolve_named(oidx);
-                let idx = self._named_index(name, key);
-                let report = format!("scope:{name}");
-                self._expect_named3(idx, s, t, key, &report);
+                if other.is_input[oidx] {
+                    let idx = self._named_index(name, key);
+                    let report = format!("scope:{name}");
+                    self._expect_named3(idx, s, t, key, &report);
+                } else {
+                    // Their scopes now become our scopes.
+                    self.define_name(name, s, t.clone());
+                }
+            } else {
+                if other.is_input[oidx] && self.strict_scopes {
+                    let msg = format!("`{key}` expects scope:{name} to be set");
+                    let msg2 = "here";
+                    let (_, t) = other._resolve_named(oidx);
+                    warn2(key, ErrorKey::StrictScopes, &msg, t, msg2);
+                } else {
+                    // Their scopes now become our scopes.
+                    let (s, t) = other._resolve_named(oidx);
+                    self.names.insert(name.to_string(), self.named.len());
+                    self.named.push(ScopeEntry::Scope(s, t.clone()));
+                    self.is_input.push(other.is_input[oidx]);
+                }
             }
         }
     }

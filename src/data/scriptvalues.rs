@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BV};
+use crate::block::{Block, Comparator, BV};
 use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
@@ -104,7 +104,7 @@ impl ScriptValue {
 
         let mut seen_if;
         let mut next_seen_if = false;
-        for (token, bv) in vd.unknown_fields() {
+        for (token, cmp, bv) in vd.unknown_fields_cmp() {
             seen_if = next_seen_if;
             next_seen_if = false;
 
@@ -210,7 +210,7 @@ impl ScriptValue {
 
                 // Check for target = { script_value } or target = compare_value
                 sc.open_builder();
-                if validate_scope_chain(token, data, sc) {
+                if validate_scope_chain(token, data, sc, matches!(cmp, Comparator::QEq)) {
                     if let Some(block) = bv.expect_block() {
                         sc.finalize_builder();
                         let vd = Validator::new(block, data);
@@ -333,12 +333,14 @@ impl ScriptValue {
             }
         }
         let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+        sc.set_strict_scopes(false);
         self.validate_call(&self.key, data, &mut sc);
     }
 
     pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
         if !self.cached_compat(key, sc) {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            our_sc.set_strict_scopes(false);
             self.cache
                 .borrow_mut()
                 .insert(key.loc.clone(), our_sc.clone());

@@ -130,6 +130,7 @@ impl DbKind for AccoladeType {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
+        sc.define_name("owner", Scopes::Character, key.clone());
         vd.field_script_value("weight", &mut sc);
 
         vd.field_validated_block("ranks", |block, data| {

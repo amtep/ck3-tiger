@@ -47,6 +47,10 @@ struct Cli {
     /// Warn about items that are defined but unused
     #[clap(long)]
     unused: bool,
+    /// Warn about use of named scopes that haven't been defined
+    #[clap(long)]
+    strict_scopes: bool,
+    /// Do checks specific to the Princes of Darkness mod
     /// Do checks specific to the Princes of Darkness mod
     #[clap(long)]
     pod: bool,
@@ -150,6 +154,16 @@ fn main() -> Result<()> {
         eprintln!("Showing warnings for unused localization. There will be many false positives.");
     } else {
         ignore_key(ErrorKey::UnusedLocalization);
+    }
+
+    if args.strict_scopes {
+        eprintln!("Using stricter scope checking. This will generate more positives but will also find more real errors.");
+    } else {
+        ignore_key(ErrorKey::StrictScopes);
+    }
+
+    if args.pod {
+        eprintln!("Doing special checks for the Princes of Darkness mod.");
     }
 
     if args.modpath.is_dir() {

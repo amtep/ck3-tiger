@@ -134,7 +134,12 @@ fn validate_portrait_modifier(key: &Token, block: &Block, data: &Everything, mut
             vd.field_choice("type", &["male", "female", "boy", "girl"]);
         });
     });
-    vd.field_validated_blocks_rooted("weight", Scopes::Character, validate_modifiers_with_base);
+    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+    sc.define_name("age", Scopes::Value, key.clone());
+    sc.define_name("culture", Scopes::Culture, key.clone());
+    sc.define_name("current_weight", Scopes::Value, key.clone());
+    sc.define_name("ruler_designer", Scopes::Bool, key.clone());
+    vd.field_validated_blocks_sc("weight", &mut sc, validate_modifiers_with_base);
 }
 
 fn validate_add_accessory_modifiers(block: &Block, data: &Everything, caller: &str) {

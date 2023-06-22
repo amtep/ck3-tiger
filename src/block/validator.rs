@@ -721,6 +721,35 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    pub fn field_validated_key_block_rooted<F>(
+        &mut self,
+        name: &str,
+        scopes: Scopes,
+        mut f: F,
+    ) -> bool
+    where
+        F: FnMut(&Token, &Block, &Everything, &mut ScopeContext),
+    {
+        let mut found = None;
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    self.known_fields.push(key.as_str());
+                    if let Some(other) = found {
+                        dup_assign_error(key, other);
+                    }
+                    expect_eq_qeq(key, *cmp);
+                    if let Some(block) = bv.expect_block() {
+                        let mut sc = ScopeContext::new_root(scopes, key);
+                        f(key, block, self.data, &mut sc);
+                    }
+                    found = Some(key);
+                }
+            }
+        }
+        found.is_some()
+    }
+
     pub fn field_validated_blocks_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F)
     where
         F: FnMut(&Block, &Everything, &mut ScopeContext),
@@ -940,6 +969,21 @@ impl<'a> Validator<'a> {
                 expect_eq_qeq(key, *cmp);
                 if !self.known_fields.contains(&key.as_str()) {
                     vec.push((key, bv));
+                }
+            }
+        }
+        vec
+    }
+
+    pub fn unknown_fields_cmp(&mut self) -> Vec<(&Token, Comparator, &BV)> {
+        self.accepted_block_fields = true;
+        self.accepted_value_fields = true;
+        let mut vec = Vec::new();
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                expect_eq_qeq(key, *cmp);
+                if !self.known_fields.contains(&key.as_str()) {
+                    vec.push((key, *cmp, bv));
                 }
             }
         }

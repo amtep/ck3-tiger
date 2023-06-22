@@ -66,6 +66,9 @@ impl DbKind for ImportantAction {
         });
 
         vd.field_validated_block("effect", |block, data| {
+            let mut sc = sc.clone();
+            // TODO: The scope context will contain all scopes passed in the try_create_important_action call
+            sc.set_strict_scopes(false);
             // TODO: "only interface effects are allowed"
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });

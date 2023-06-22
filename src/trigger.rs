@@ -266,6 +266,10 @@ pub fn validate_trigger_key_bv(
                 sc.expect(inscopes, &prefix);
                 validate_prefix_reference(&prefix, &arg, data);
                 if prefix.is("scope") {
+                    if last && matches!(cmp, Comparator::QEq) {
+                        // If the comparator is ?=, it's an implicit existence check
+                        sc.exists_scope(arg.as_str(), part.clone());
+                    }
                     sc.replace_named_scope(arg.as_str(), part);
                 } else {
                     sc.replace(outscope, part.clone());
@@ -562,10 +566,13 @@ fn match_trigger_bv(
                             let msg = "`exists = {token}` does nothing in None scope";
                             warn(token, ErrorKey::Scopes, msg);
                         }
-                    } else if (token.starts_with("scope:") && !token.as_str().contains('.'))
-                        || token.starts_with("flag:")
-                    {
+                    } else if token.starts_with("scope:") && !token.as_str().contains('.') {
                         // exists = scope:name is used to check if that scope name was set
+                        sc.exists_scope(
+                            token.as_str().strip_prefix("scope:").unwrap(),
+                            name.clone(),
+                        );
+                    } else if token.starts_with("flag:") {
                         // exists = flag:$REASON$ is used in vanilla just to shut up their error.log,
                         // so accept it silently even though it's a no-op.
                     } else {

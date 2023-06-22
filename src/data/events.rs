@@ -300,6 +300,7 @@ impl Event {
                 warn(token, ErrorKey::Scopes, "unknown scope type");
             }
         }
+        sc.set_strict_scopes(false);
 
         vd.field_value("content_source"); // TODO
 

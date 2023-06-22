@@ -579,7 +579,7 @@ pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut Scop
     sc.open_builder();
     let mut valid_target = false;
     vd.field_validated_value("target", |_, token, data| {
-        valid_target = validate_scope_chain(token, data, sc);
+        valid_target = validate_scope_chain(token, data, sc, false);
     });
     sc.finalize_builder();
     if valid_target {
@@ -778,19 +778,31 @@ pub fn validate_ai_chance(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
 /// Validate the left-hand part of a `target = { target_scope }` block.
 /// The caller is expected to have done `sc.open_builder()` before calling and then do `sc.close()` after calling.
 /// Returns true iff validation was complete.
-pub fn validate_scope_chain(token: &Token, data: &Everything, sc: &mut ScopeContext) -> bool {
-    let mut first = true;
-    for part in token.split('.') {
+/// `qeq` is true if the scope chain is to the left of a ?= operator.
+pub fn validate_scope_chain(
+    token: &Token,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    qeq: bool,
+) -> bool {
+    let part_vec = token.split('.');
+    for i in 0..part_vec.len() {
+        let first = i == 0;
+        let last = i + 1 == part_vec.len();
+        let part = &part_vec[i];
         if let Some((prefix, arg)) = part.split_once(':') {
             if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                 if inscopes == Scopes::None && !first {
                     let msg = format!("`{prefix}:` makes no sense except as first part");
-                    warn(&part, ErrorKey::Validation, &msg);
+                    warn(part, ErrorKey::Validation, &msg);
                 }
                 sc.expect(inscopes, &prefix);
                 validate_prefix_reference(&prefix, &arg, data);
                 if prefix.is("scope") {
-                    sc.replace_named_scope(arg.as_str(), &part);
+                    if last && qeq {
+                        sc.exists_scope(arg.as_str(), part.clone());
+                    }
+                    sc.replace_named_scope(arg.as_str(), part);
                 } else {
                     sc.replace(outscope, part.clone());
                 }
@@ -805,7 +817,7 @@ pub fn validate_scope_chain(token: &Token, data: &Everything, sc: &mut ScopeCont
         {
             if !first {
                 let msg = format!("`{part}` makes no sense except as first part");
-                warn(&part, ErrorKey::Validation, &msg);
+                warn(part, ErrorKey::Validation, &msg);
             }
             if part.lowercase_is("root") {
                 sc.replace_root();
@@ -814,19 +826,18 @@ pub fn validate_scope_chain(token: &Token, data: &Everything, sc: &mut ScopeCont
             } else {
                 sc.replace_this();
             }
-        } else if let Some((inscopes, outscope)) = scope_to_scope(&part) {
+        } else if let Some((inscopes, outscope)) = scope_to_scope(part) {
             if inscopes == Scopes::None && !first {
                 let msg = format!("`{part}` makes no sense except as first part");
-                warn(&part, ErrorKey::Validation, &msg);
+                warn(part, ErrorKey::Validation, &msg);
             }
-            sc.expect(inscopes, &part);
-            sc.replace(outscope, part);
+            sc.expect(inscopes, part);
+            sc.replace(outscope, part.clone());
         } else {
             let msg = format!("unknown token `{part}`");
             error(part, ErrorKey::UnknownField, &msg);
             return false;
         }
-        first = false;
     }
     true
 }

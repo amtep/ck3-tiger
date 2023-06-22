@@ -27,6 +27,7 @@ pub enum ErrorKey {
     ImageFormat,
     Unneeded,
     Scopes,
+    StrictScopes,
     Crash,
     Range,
     Tooltip,

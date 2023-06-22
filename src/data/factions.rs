@@ -49,28 +49,48 @@ impl DbKind for Faction {
         vd.field_validated_block_rooted("character_leaves", Scopes::Faction, |block, data, sc| {
             validate_normal_effect(block, data, sc, Tooltipped::No);
         });
-        vd.field_validated_block_rooted("leader_leaves", Scopes::Faction, |block, data, sc| {
-            validate_normal_effect(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_block_rooted(
+        vd.field_validated_key_block_rooted(
+            "leader_leaves",
+            Scopes::Faction,
+            |key, block, data, sc| {
+                sc.define_name("faction_member", Scopes::Character, key.clone());
+                validate_normal_effect(block, data, sc, Tooltipped::No);
+            },
+        );
+        vd.field_validated_key_block_rooted(
             "ai_join_score",
             Scopes::Character,
-            validate_modifiers_with_base,
+            |key, block, data, sc| {
+                sc.define_name("faction", Scopes::Faction, key.clone());
+                validate_modifiers_with_base(block, data, sc);
+            },
         );
-        vd.field_validated_block_rooted(
+        vd.field_validated_key_block_rooted(
             "ai_create_score",
             Scopes::Character,
-            validate_modifiers_with_base,
+            |key, block, data, sc| {
+                sc.define_name("target", Scopes::Character, key.clone());
+                // TODO: check if it's a claimant faction before setting claimant and title
+                sc.define_name("claimant", Scopes::Character, key.clone());
+                sc.define_name("title", Scopes::LandedTitle, key.clone());
+                validate_modifiers_with_base(block, data, sc);
+            },
         );
-        vd.field_validated_block_rooted(
+        vd.field_validated_key_block_rooted(
             "county_join_score",
             Scopes::LandedTitle,
-            validate_modifiers_with_base,
+            |key, block, data, sc| {
+                sc.define_name("faction", Scopes::Faction, key.clone());
+                validate_modifiers_with_base(block, data, sc);
+            },
         );
-        vd.field_validated_block_rooted(
+        vd.field_validated_key_block_rooted(
             "county_create_score",
             Scopes::LandedTitle,
-            validate_modifiers_with_base,
+            |key, block, data, sc| {
+                sc.define_name("target", Scopes::Character, key.clone());
+                validate_modifiers_with_base(block, data, sc);
+            },
         );
         vd.field_script_value_rooted("county_power", Scopes::LandedTitle);
         vd.field_validated_block_rooted(
@@ -94,38 +114,43 @@ impl DbKind for Faction {
         vd.field_validated_block_rooted("is_valid", Scopes::Faction, |block, data, sc| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
-        vd.field_validated_block_rooted(
+        vd.field_validated_key_block_rooted(
             "is_character_valid",
             Scopes::Character,
-            |block, data, sc| {
+            |key, block, data, sc| {
+                sc.define_name("faction", Scopes::Faction, key.clone());
                 validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
-        vd.field_validated_block_rooted(
+        vd.field_validated_key_block_rooted(
             "is_county_valid",
             Scopes::LandedTitle,
-            |block, data, sc| {
+            |key, block, data, sc| {
+                sc.define_name("faction", Scopes::Faction, key.clone());
                 validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
-        vd.field_validated_block_rooted(
+        vd.field_validated_key_block_rooted(
             "can_character_join",
             Scopes::Character,
-            |block, data, sc| {
+            |key, block, data, sc| {
+                sc.define_name("faction", Scopes::Faction, key.clone());
                 validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
-        vd.field_validated_block_rooted(
+        vd.field_validated_key_block_rooted(
             "can_character_create",
             Scopes::Character,
-            |block, data, sc| {
+            |key, block, data, sc| {
+                sc.define_name("target", Scopes::Character, key.clone());
                 validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
-        vd.field_validated_block_rooted(
+        vd.field_validated_key_block_rooted(
             "can_character_create_ui",
             Scopes::Character,
-            |block, data, sc| {
+            |key, block, data, sc| {
+                sc.define_name("target", Scopes::Character, key.clone());
                 validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
@@ -136,17 +161,19 @@ impl DbKind for Faction {
                 validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
-        vd.field_validated_block_rooted(
+        vd.field_validated_key_block_rooted(
             "can_county_join",
             Scopes::LandedTitle,
-            |block, data, sc| {
+            |key, block, data, sc| {
+                sc.define_name("faction", Scopes::Faction, key.clone());
                 validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );
-        vd.field_validated_block_rooted(
+        vd.field_validated_key_block_rooted(
             "can_county_create",
             Scopes::LandedTitle,
-            |block, data, sc| {
+            |key, block, data, sc| {
+                sc.define_name("target", Scopes::Character, key.clone());
                 validate_normal_trigger(block, data, sc, Tooltipped::No);
             },
         );

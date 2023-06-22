@@ -84,6 +84,7 @@ impl ScriptedModifier {
         // Validate the modifiers that aren't macros
         if self.block.source.is_none() {
             let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            sc.set_strict_scopes(false);
             self.validate_call(&self.key, data, &mut sc);
         }
     }
@@ -91,6 +92,7 @@ impl ScriptedModifier {
     pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
         if !self.cached_compat(key, &[], sc) {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            our_sc.set_strict_scopes(false);
             self.cache.insert(key, &[], Tooltipped::No, our_sc.clone());
             let mut vd = Validator::new(&self.block, data);
             validate_modifiers(&mut vd, &mut our_sc);
@@ -127,6 +129,7 @@ impl ScriptedModifier {
         if !self.cached_compat(key, &args, sc) {
             if let Some(block) = self.block.expand_macro(&args, key) {
                 let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+                our_sc.set_strict_scopes(false);
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
                 self.cache
