@@ -81,9 +81,11 @@ impl Interaction {
         let mut sc = ScopeContext::new_root(Scopes::None, self.key.clone());
         sc.define_name("actor", self.key.clone(), Scopes::Character);
         sc.define_name("recipient", self.key.clone(), Scopes::Character);
+        sc.define_name("hook", self.key.clone(), Scopes::Bool);
         // TODO: figure out when these are available
         sc.define_name("secondary_actor", self.key.clone(), Scopes::Character);
         sc.define_name("secondary_recipient", self.key.clone(), Scopes::Character);
+        // TODO: figure out if there's a better way than exhaustively matching on "interface" and "special_interaction"
         if let Some(target_type) = self.block.get_field_value("target_type") {
             if target_type.is("artifact") {
                 sc.define_name("target", target_type.clone(), Scopes::Artifact);
@@ -104,8 +106,15 @@ impl Interaction {
         } else if let Some(special) = self.block.get_field_value("special_interaction") {
             if special.is("invite_to_council_interaction") {
                 sc.define_name("target", special.clone(), Scopes::CouncilTask);
-            } else if special.is("end_war_attacker_victory_interaction") {
+            } else if special.is("end_war_attacker_victory_interaction")
+                || special.is("end_war_attacker_defeat_interaction")
+                || special.is("end_war_white_peace_interaction")
+            {
                 sc.define_name("war", special.clone(), Scopes::War);
+            } else if special.is("remove_scheme_interaction")
+                || special.is("invite_to_scheme_interaction")
+            {
+                sc.define_name("scheme", special.clone(), Scopes::Scheme);
             }
         }
         for block in self.block.get_field_blocks("send_option") {
