@@ -56,6 +56,7 @@ use crate::data::interactions::Interactions;
 use crate::data::lifestyles::Lifestyle;
 use crate::data::localization::Localization;
 use crate::data::maa::MenAtArmsTypes;
+use crate::data::memories::MemoryType;
 use crate::data::modif::ModifierFormat;
 use crate::data::modifiers::Modifier;
 use crate::data::namelists::Namelists;
@@ -446,6 +447,7 @@ impl Everything {
         self.load_pdx_items(Item::ImportantAction, ImportantAction::add);
         self.load_pdx_items(Item::Scheme, Scheme::add);
         self.load_pdx_items(Item::ModifierFormat, ModifierFormat::add);
+        self.load_pdx_items(Item::MemoryType, MemoryType::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -571,6 +573,8 @@ impl Everything {
             | Item::InnovationFlag
             | Item::Language
             | Item::Lifestyle
+            | Item::MemoryCategory
+            | Item::MemoryType
             | Item::Modifier
             | Item::ModifierFormat
             | Item::NamedColor
@@ -668,8 +672,6 @@ impl Everything {
             | Item::Law
             | Item::LawFlag
             | Item::MapMode
-            | Item::MemoryCategory
-            | Item::MemoryType
             | Item::Music
             | Item::PointOfInterest
             | Item::PortraitAnimation

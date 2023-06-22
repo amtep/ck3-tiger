@@ -1005,12 +1005,23 @@ fn validate_effect_special(
     } else if caller == "create_character_memory" {
         vd.req_field("type");
         vd.field_item("type", Item::MemoryType);
+        // TODO: also check that all participants are specified
         vd.field_validated_block("participants", |b, data| {
-            for (_key, token) in b.iter_assignments_warn() {
+            let mut vd = Validator::new(b, data);
+            let memtype = block.get_field_value("type");
+            for (key, token) in vd.unknown_value_fields() {
+                if let Some(memtype) = memtype {
+                    if !data.item_has_property(Item::MemoryType, memtype.as_str(), key.as_str()) {
+                        let msg =
+                            format!("memory type `{memtype}` does not define participant `{key}`");
+                        warn(key, ErrorKey::Validation, &msg);
+                    }
+                }
                 validate_target(token, data, sc, Scopes::Character);
             }
         });
         vd.field_validated_block_sc("duration", sc, validate_duration);
+        sc.define_name("new_memory", key.clone(), Scopes::CharacterMemory);
     } else if caller == "create_dynamic_title" {
         vd.req_field("tier");
         vd.req_field("name");
