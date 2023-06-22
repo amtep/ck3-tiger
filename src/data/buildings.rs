@@ -85,17 +85,26 @@ impl DbKind for Building {
 
         vd.field_validated_block_rooted("is_enabled", Scopes::Province, |block, data, sc| {
             sc.define_name("holder", key.clone(), Scopes::Character);
-            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+            let tooltipped = if block
+                .get_field_bool("is_graphical_background")
+                .unwrap_or(false)
+            {
+                Tooltipped::FailuresOnly
+            } else {
+                Tooltipped::No
+            };
+            validate_normal_trigger(block, data, sc, tooltipped);
         });
         vd.field_validated_block_rooted(
             "can_construct_potential",
             Scopes::Province,
             |block, data, sc| {
                 sc.define_name("holder", key.clone(), Scopes::Character);
-                // TODO: for buildings that are upgrades, can_construct_potential is added to can_construct_showing_failures_only so it will be tooltipped
-                let tooltipped = block.get_field_bool("show_disabled").unwrap_or(false);
+                // For buildings that are upgrades, can_construct_potential is added to can_construct_showing_failures_only so it will be tooltipped
+                let tooltipped =
+                    block.get_field_bool("show_disabled").unwrap_or(false) || self.is_upgrade;
                 let tooltipped = if tooltipped {
-                    Tooltipped::Yes
+                    Tooltipped::FailuresOnly
                 } else {
                     Tooltipped::No
                 };
@@ -107,7 +116,7 @@ impl DbKind for Building {
             Scopes::Province,
             |block, data, sc| {
                 sc.define_name("holder", key.clone(), Scopes::Character);
-                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+                validate_normal_trigger(block, data, sc, Tooltipped::FailuresOnly);
             },
         );
         vd.field_validated_block_rooted("can_construct", Scopes::Province, |block, data, sc| {

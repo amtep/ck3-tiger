@@ -250,11 +250,11 @@ impl Interaction {
             validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
         vd.field_validated_block("is_valid_showing_failures_only", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::FailuresOnly);
         });
 
         vd.field_validated_block("has_valid_target_showing_failures_only", |b, data| {
-            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
+            validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::FailuresOnly);
         });
         vd.field_validated_block("has_valid_target", |b, data| {
             validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
@@ -292,7 +292,7 @@ impl Interaction {
                 validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
             });
             vd.field_validated_block("is_valid", |b, data| {
-                validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
+                validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::FailuresOnly);
             });
             vd.field_validated_block("starts_enabled", |b, data| {
                 validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);

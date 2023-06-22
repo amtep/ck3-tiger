@@ -40,7 +40,7 @@ impl DbKind for Lifestyle {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block("is_valid_showing_failures_only", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
         });
 
         let icon = vd.field_value("icon").unwrap_or(key);

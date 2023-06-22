@@ -47,10 +47,22 @@ pub fn validate_trigger(
         tooltipped = Tooltipped::No;
     }
 
+    if (tooltipped == Tooltipped::FailuresOnly
+        && (caller == "or" || caller == "nor" || caller == "all_false"))
+        || (tooltipped == Tooltipped::NegatedFailuresOnly && (caller == "and" || caller == "nand"))
+    {
+        let msg = format!(
+            "{} is a too complex trigger to be tooltipped in a trigger that shows failures only.",
+            caller.to_uppercase()
+        );
+        let info = "Try adding a custom_description or custom_tooltip, or simplifying the trigger";
+        warn_info(block, ErrorKey::ComplexTrigger, &msg, info);
+    }
+
     // limit blocks are accepted in trigger_else even though it doesn't make sense
     if caller == "trigger_if" || caller == "trigger_else_if" || caller == "trigger_else" {
         vd.field_validated_block("limit", |block, data| {
-            validate_normal_trigger(block, data, sc, tooltipped);
+            validate_normal_trigger(block, data, sc, tooltipped.no_longer_failures_only());
         });
     } else {
         vd.ban_field("limit", || {
@@ -524,7 +536,14 @@ fn match_trigger_bv(
                 {
                     tooltipped = tooltipped.negated();
                 }
-                validate_trigger(name.as_str(), false, block, data, sc, tooltipped);
+                validate_trigger(
+                    &name.as_str().to_lowercase(),
+                    false,
+                    block,
+                    data,
+                    sc,
+                    tooltipped,
+                );
             }
         }
         Trigger::Special => {

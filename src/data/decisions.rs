@@ -143,7 +143,7 @@ impl Decision {
             validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("is_valid_showing_failures_only", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::Yes);
+            validate_normal_trigger(b, data, &mut sc, Tooltipped::FailuresOnly);
         });
         vd.field_validated_block("is_valid", |b, data| {
             validate_normal_trigger(b, data, &mut sc, Tooltipped::Yes);

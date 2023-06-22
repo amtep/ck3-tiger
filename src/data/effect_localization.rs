@@ -26,7 +26,10 @@ impl EffectLocalization {
     ) {
         match tooltipped {
             Tooltipped::No => (),
-            Tooltipped::Yes | Tooltipped::Negated => {
+            Tooltipped::Yes
+            | Tooltipped::Negated
+            | Tooltipped::NegatedFailuresOnly
+            | Tooltipped::FailuresOnly => {
                 for field in &["global", "first", "third"] {
                     if block.has_key(field) {
                         return;

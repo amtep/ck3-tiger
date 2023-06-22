@@ -50,7 +50,7 @@ pub fn validate_effect<'a>(
         || list_type != ListType::None
     {
         vd.field_validated_block("limit", |block, data| {
-            validate_normal_trigger(block, data, sc, Tooltipped::from_effect(tooltipped));
+            validate_normal_trigger(block, data, sc, tooltipped);
         });
     } else {
         vd.ban_field("limit", || "if/else_if or lists");
@@ -1344,7 +1344,7 @@ fn validate_effect_special(
                         &synthetic_bv,
                         data,
                         sc,
-                        Tooltipped::from_effect(tooltipped),
+                        tooltipped,
                     );
                 }
 

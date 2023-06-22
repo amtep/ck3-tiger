@@ -242,7 +242,7 @@ impl DbKind for CouncilTask {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("is_valid_showing_failures_only", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
         });
         vd.field_validated_block("on_start_task", |block, data| {
             validate_normal_effect(block, data, &mut sc, Tooltipped::Yes);
