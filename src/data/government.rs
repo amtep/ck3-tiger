@@ -94,7 +94,7 @@ impl DbKind for Government {
             }
         });
 
-        vd.field_list_items("vassal_contract", Item::VassalObligation);
+        vd.field_list_items("vassal_contract", Item::VassalContract);
         vd.field_validated_block("ai", validate_ai);
         vd.field_validated_blocks("character_modifier", |block, data| {
             let vd = Validator::new(block, data);

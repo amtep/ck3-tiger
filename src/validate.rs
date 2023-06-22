@@ -262,8 +262,8 @@ pub fn validate_prefix_reference(prefix: &Token, arg: &Token, data: &Everything)
         "struggle" => data.verify_exists(Item::Struggle, arg),
         "title" => data.verify_exists(Item::Title, arg),
         "trait" => data.verify_exists(Item::Trait, arg),
-        "vassal_contract" => data.verify_exists(Item::VassalObligation, arg),
-        "vassal_contract_obligation_level" => data.verify_exists(Item::VassalObligationLevel, arg),
+        "vassal_contract" => data.verify_exists(Item::VassalContract, arg),
+        "vassal_contract_obligation_level" => data.verify_exists(Item::VassalContract, arg),
         &_ => (),
     }
 }

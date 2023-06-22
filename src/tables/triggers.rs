@@ -1637,7 +1637,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[("target", Scope(Character)), ("value", CompareValue)]),
     ),
     (
-        VassalContractObligationLevel,
+        VassalObligationLevel,
         "obligation_level_score",
         CompareValue,
     ),
@@ -1972,12 +1972,12 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "vassal_contract_obligation_level_can_be_decreased",
-        Item(Item::VassalObligation),
+        Item(Item::VassalContract),
     ),
     (
         Character,
         "vassal_contract_obligation_level_can_be_increased",
-        Item(Item::VassalObligation),
+        Item(Item::VassalContract),
     ),
     (
         Character,

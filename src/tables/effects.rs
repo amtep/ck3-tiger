@@ -1072,12 +1072,12 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (
         Character,
         "vassal_contract_decrease_obligation_level",
-        Item(Item::VassalObligation),
+        Item(Item::VassalContract),
     ),
     (
         Character,
         "vassal_contract_increase_obligation_level",
-        Item(Item::VassalObligation),
+        Item(Item::VassalContract),
     ),
     (
         Character,

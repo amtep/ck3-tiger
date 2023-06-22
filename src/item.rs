@@ -185,8 +185,8 @@ pub enum Item {
     TravelPlanModifier,
     TriggerLocalization,
     UnitGfx,
+    VassalContract,
     VassalContractFlag,
-    VassalObligation,
     VassalObligationLevel,
     VassalStance,
 }
@@ -375,8 +375,8 @@ impl Item {
             TravelPlanModifier => "",
             TriggerLocalization => "common/trigger_localization/",
             UnitGfx => "common/culture/cultures/",
+            VassalContract => "common/vassal_contracts/",
             VassalContractFlag => "common/vassal_contracts/",
-            VassalObligation => "common/vassal_contracts/",
             VassalObligationLevel => "common/vassal_contracts/",
             VassalStance => "common/vassal_stances/",
         }

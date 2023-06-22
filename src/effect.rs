@@ -1369,11 +1369,15 @@ fn validate_effect_special(
     } else if caller == "vassal_contract_set_obligation_level" {
         vd.req_field("type");
         vd.req_field("level");
-        vd.field_item("type", Item::VassalObligation);
+        if let Some(token) = vd.field_value("type") {
+            if !data.item_exists(Item::VassalContract, token.as_str()) {
+                validate_target(token, data, sc, Scopes::VassalContract);
+            }
+        }
         if let Some(token) = vd.field_value("level") {
             if !token.is_integer() && !data.item_exists(Item::VassalObligationLevel, token.as_str())
             {
-                validate_target(token, data, sc, Scopes::VassalContractObligationLevel);
+                validate_target(token, data, sc, Scopes::VassalObligationLevel);
             }
         }
     } else {

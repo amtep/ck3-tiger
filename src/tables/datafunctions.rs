@@ -199,7 +199,7 @@ pub fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
         Datatype::GovernmentType => Some(Scopes::GovernmentType),
         Datatype::Trait => Some(Scopes::Trait),
         Datatype::VassalContract => Some(Scopes::VassalContract),
-        Datatype::ObligationLevel => Some(Scopes::VassalContractObligationLevel),
+        Datatype::ObligationLevel => Some(Scopes::VassalObligationLevel),
         _ => None,
     }
 }

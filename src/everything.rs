@@ -86,6 +86,7 @@ use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
 use crate::data::trigger_localization::TriggerLocalization;
+use crate::data::vassalcontract::VassalContract;
 use crate::data::vassalstance::VassalStance;
 use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
@@ -450,6 +451,7 @@ impl Everything {
         self.load_pdx_items(Item::ModifierFormat, ModifierFormat::add);
         self.load_pdx_items(Item::MemoryType, MemoryType::add);
         self.load_pdx_items(Item::MapMode, MapMode::add);
+        self.load_pdx_items(Item::VassalContract, VassalContract::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -601,6 +603,9 @@ impl Everything {
             | Item::Terrain
             | Item::TriggerLocalization
             | Item::UnitGfx
+            | Item::VassalContractFlag
+            | Item::VassalContract
+            | Item::VassalObligationLevel
             | Item::VassalStance => self.database.exists(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
@@ -684,10 +689,7 @@ impl Everything {
             | Item::TitleLawFlag
             | Item::TraitTrack
             | Item::TravelOption
-            | Item::TravelPlanModifier
-            | Item::VassalContractFlag
-            | Item::VassalObligation
-            | Item::VassalObligationLevel => true,
+            | Item::TravelPlanModifier => true,
         }
     }
 

@@ -57,7 +57,7 @@ bitflags! {
         const GovernmentType = 0x0000_0080_0000_0000;
         const Trait = 0x0000_0100_0000_0000;
         const VassalContract = 0x0000_0200_0000_0000;
-        const VassalContractObligationLevel = 0x0000_0400_0000_0000;
+        const VassalObligationLevel = 0x0000_0400_0000_0000;
     }
 }
 
@@ -128,7 +128,7 @@ pub const CulturePillar: u64 = 0x0000_0040_0000_0000;
 pub const GovernmentType: u64 = 0x0000_0080_0000_0000;
 pub const Trait: u64 = 0x0000_0100_0000_0000;
 pub const VassalContract: u64 = 0x0000_0200_0000_0000;
-pub const VassalContractObligationLevel: u64 = 0x0000_0400_0000_0000;
+pub const VassalObligationLevel: u64 = 0x0000_0400_0000_0000;
 pub const ALL: u64 = 0x7fff_ffff_ffff_ffff;
 pub const ALL_BUT_NONE: u64 = 0x7fff_ffff_ffff_fffe;
 pub const PRIMITIVE: u64 = 0x0000_000e;
@@ -177,7 +177,7 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "government_type" => Scopes::GovernmentType,
         "trait" => Scopes::Trait,
         "vassal_contract" => Scopes::VassalContract,
-        "vassal_contract_obligation_level" => Scopes::VassalContractObligationLevel,
+        "vassal_contract_obligation_level" => Scopes::VassalObligationLevel,
         _ => return std::option::Option::None,
     })
 }
@@ -378,8 +378,8 @@ impl Display for Scopes {
             if self.contains(Scopes::VassalContract) {
                 vec.push("vassal contract");
             }
-            if self.contains(Scopes::VassalContractObligationLevel) {
-                vec.push("vassal contract obligation level");
+            if self.contains(Scopes::VassalObligationLevel) {
+                vec.push("vassal obligation level");
             }
             display_choices(f, &vec, "or")
         }
@@ -550,7 +550,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Character, "top_liege", Character),
     // "value" special
     (
-        VassalContractObligationLevel,
+        VassalObligationLevel,
         "vassal_contract_type",
         VassalContract,
     ),
