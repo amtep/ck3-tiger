@@ -138,6 +138,7 @@ fn main() -> Result<()> {
     set_vanilla_root(args.ck3.as_ref().unwrap().clone());
 
     if args.show_vanilla {
+        eprintln!("Showing warnings for base game files too. There will be many false positives in those.");
         show_vanilla(true);
     }
 
@@ -145,7 +146,9 @@ fn main() -> Result<()> {
         minimum_level(ErrorLevel::Info);
     }
 
-    if !args.unused {
+    if args.unused {
+        eprintln!("Showing warnings for unused localization. There will be many false positives.");
+    } else {
         ignore_key(ErrorKey::UnusedLocalization);
     }
 
