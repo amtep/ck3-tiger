@@ -42,7 +42,7 @@ impl DbKind for Region {
         let mut vd = Validator::new(block, data);
         // TODO: figure out when a region needs to be localized.
         // Probably when it's tooltipped for geographical_region or when the gui code does GetName
-        data.localization.mark_used(key.as_str());
+        data.item_used(Item::Localization, key.as_str());
 
         if block.field_value_is("generate_modifiers", "yes") {
             let modif = format!("{key}_development_growth");
