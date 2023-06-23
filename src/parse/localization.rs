@@ -601,11 +601,12 @@ impl<'a> ValueParser<'a> {
                 } else if !at_end && c == ':' {
                     // #indent_newline:2 parsing
                     // #color:{1.0,1.0,1.0} parsing
+                    // #font:TitleFont parsing
                     text.push(c);
                     self.next_char();
                     let mut in_braces = false; // only one level of braces
                     while let Some(c) = self.peek() {
-                        if c.is_ascii_digit() || in_braces || c == '{' {
+                        if c.is_alphanumeric() || in_braces || c == '{' {
                             if c == '{' {
                                 in_braces = true;
                             } else if c == '}' {
