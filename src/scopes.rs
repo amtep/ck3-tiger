@@ -587,6 +587,7 @@ const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
     (None, "government_type", GovernmentType),
     (None, "house", DynastyHouse),
     (None, "local_var", ALL),
+    (None, "list_size", Value),
     (Character, "mandate_type_qualification", Value),
     (CharacterMemory, "memory_participant", Character),
     (None, "province", Province),
