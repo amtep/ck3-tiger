@@ -42,7 +42,6 @@ pub enum ErrorKey {
     UnknownField,
     TitleTier,
     Colors,
-    ComplexTrigger,
     UnusedLocalization,
     NameCollision,
     UnknownList,

@@ -56,7 +56,7 @@ pub fn validate_trigger(
             caller.to_uppercase()
         );
         let info = "Try adding a custom_description or custom_tooltip, or simplifying the trigger";
-        warn_info(block, ErrorKey::ComplexTrigger, &msg, info);
+        warn_info(block, ErrorKey::Tooltip, &msg, info);
     }
 
     // limit blocks are accepted in trigger_else even though it doesn't make sense
