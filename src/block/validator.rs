@@ -339,6 +339,12 @@ impl<'a> Validator<'a> {
         })
     }
 
+    pub fn field_script_value_no_breakdown(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
+        self.field_check(name, |_, bv| {
+            ScriptValue::validate_bv_no_breakdown(bv, self.data, sc);
+        })
+    }
+
     pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
         self.field_check(name, |_, bv| {
             let mut sc = ScopeContext::new_root(scopes, self.block.get_key(name).unwrap().clone());
@@ -541,12 +547,30 @@ impl<'a> Validator<'a> {
         F: FnMut(&BV, &Everything),
     {
         let mut found = false;
-        for (k, cmp, v) in &self.block.v {
+        for (k, cmp, bv) in &self.block.v {
             if let Some(key) = k {
                 if key.is(name) {
                     self.known_fields.push(key.as_str());
                     expect_eq_qeq(key, *cmp);
-                    f(v, self.data);
+                    f(bv, self.data);
+                    found = true;
+                }
+            }
+        }
+        found
+    }
+
+    pub fn field_validated_key_bvs<F>(&mut self, name: &str, mut f: F) -> bool
+    where
+        F: FnMut(&Token, &BV, &Everything),
+    {
+        let mut found = false;
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    self.known_fields.push(key.as_str());
+                    expect_eq_qeq(key, *cmp);
+                    f(key, bv, self.data);
                     found = true;
                 }
             }

@@ -1247,7 +1247,6 @@ fn validate_effect_special(
         }
         vd.field_script_value_or_flag("value", sc);
     } else if caller == "scheme_freeze" {
-        vd.req_field("reason");
         vd.field_item("reason", Item::Localization);
         validate_optional_duration(&mut vd, sc);
     } else if caller == "set_council_task" {

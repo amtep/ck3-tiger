@@ -259,6 +259,7 @@ pub fn validate_prefix_reference(prefix: &Token, arg: &Token, data: &Everything)
         "province" => data.verify_exists(Item::Province, arg),
         "religion" => data.verify_exists(Item::Religion, arg),
         "struggle" => data.verify_exists(Item::Struggle, arg),
+        "special_guest" => data.verify_exists(Item::SpecialGuest, arg),
         "title" => data.verify_exists(Item::Title, arg),
         "trait" => data.verify_exists(Item::Trait, arg),
         "vassal_contract" => data.verify_exists(Item::VassalContract, arg),
@@ -522,6 +523,15 @@ pub fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_script_value("gold", sc);
     vd.field_script_value("prestige", sc);
     vd.field_script_value("piety", sc);
+    vd.field_bool("round");
+}
+
+pub fn validate_cost_with_renown(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    vd.field_script_value("gold", sc);
+    vd.field_script_value("prestige", sc);
+    vd.field_script_value("piety", sc);
+    vd.field_script_value("renown", sc);
     vd.field_bool("round");
 }
 

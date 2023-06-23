@@ -92,9 +92,15 @@ impl ScriptValue {
         data: &Everything,
         sc: &mut ScopeContext,
         mut have_value: TriBool,
+        check_desc: bool,
     ) {
-        vd.field_item("desc", Item::Localization);
-        vd.field_item("format", Item::Localization);
+        if check_desc {
+            vd.field_item("desc", Item::Localization);
+            vd.field_item("format", Item::Localization);
+        } else {
+            vd.field_value("desc");
+            vd.field_value("format");
+        }
 
         let mut seen_if;
         let mut next_seen_if = false;
@@ -107,23 +113,28 @@ impl ScriptValue {
                 if let Some(name) = bv.expect_value() {
                     sc.save_current_scope(name.as_str());
                 }
+            } else if token.is("save_temporary_value_as") {
+                // seen in vanilla
+                if let Some(name) = bv.expect_value() {
+                    sc.define_name(name.as_str(), Scopes::Value, name.clone());
+                }
             } else if token.is("value") {
                 if have_value == TriBool::True {
                     let msg = "setting value here will overwrite the previous calculations";
                     warn(token, ErrorKey::Logic, msg);
                 }
                 have_value = TriBool::True;
-                Self::validate_bv(bv, data, sc);
+                Self::validate_bv_2(bv, data, sc, check_desc);
             } else if token.is("add") || token.is("subtract") || token.is("min") || token.is("max")
             {
                 have_value = TriBool::True;
-                Self::validate_bv(bv, data, sc);
+                Self::validate_bv_2(bv, data, sc, check_desc);
             } else if token.is("multiply") || token.is("divide") || token.is("modulo") {
                 if have_value == TriBool::False {
                     let msg = format!("nothing to {token} yet");
                     warn(token, ErrorKey::Logic, &msg);
                 }
-                Self::validate_bv(bv, data, sc);
+                Self::validate_bv_2(bv, data, sc, check_desc);
             } else if token.is("round") || token.is("ceiling") || token.is("floor") {
                 if have_value == TriBool::False {
                     let msg = format!("nothing to {token} yet");
@@ -141,12 +152,12 @@ impl ScriptValue {
                     warn(token, ErrorKey::Logic, msg);
                 }
                 if let Some(block) = bv.expect_block() {
-                    Self::validate_minmax_range(block, data, sc);
+                    Self::validate_minmax_range(block, data, sc, check_desc);
                 }
                 have_value = TriBool::True;
             } else if token.is("if") {
                 if let Some(block) = bv.expect_block() {
-                    Self::validate_if(block, data, sc);
+                    Self::validate_if(block, data, sc, check_desc);
                 }
                 have_value = TriBool::Maybe;
                 next_seen_if = true;
@@ -156,7 +167,7 @@ impl ScriptValue {
                     warn(token, ErrorKey::Validation, msg);
                 }
                 if let Some(block) = bv.expect_block() {
-                    Self::validate_if(block, data, sc);
+                    Self::validate_if(block, data, sc, check_desc);
                 }
                 have_value = TriBool::Maybe;
                 next_seen_if = true;
@@ -166,7 +177,7 @@ impl ScriptValue {
                     warn(token, ErrorKey::Validation, msg);
                 }
                 if let Some(block) = bv.expect_block() {
-                    Self::validate_else(block, data, sc);
+                    Self::validate_else(block, data, sc, check_desc);
                 }
                 have_value = TriBool::Maybe;
             } else {
@@ -186,7 +197,9 @@ impl ScriptValue {
                                 let ltype = ListType::try_from(it_type.as_str()).unwrap();
                                 precheck_iterator_fields(ltype, block, data, sc);
                                 sc.open_scope(outscope, token.clone());
-                                Self::validate_iterator(ltype, &it_name, block, data, sc);
+                                Self::validate_iterator(
+                                    ltype, &it_name, block, data, sc, check_desc,
+                                );
                                 sc.close();
                                 have_value = TriBool::Maybe;
                             }
@@ -201,7 +214,7 @@ impl ScriptValue {
                     if let Some(block) = bv.expect_block() {
                         sc.finalize_builder();
                         let vd = Validator::new(block, data);
-                        Self::validate_inner(vd, data, sc, have_value);
+                        Self::validate_inner(vd, data, sc, have_value, check_desc);
                         have_value = TriBool::Maybe;
                     }
                 }
@@ -216,6 +229,7 @@ impl ScriptValue {
         block: &Block,
         data: &Everything,
         sc: &mut ScopeContext,
+        check_desc: bool,
     ) {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block("limit", |block, data| {
@@ -235,39 +249,44 @@ impl ScriptValue {
             Tooltipped::No,
         );
 
-        Self::validate_inner(vd, data, sc, TriBool::Maybe);
+        Self::validate_inner(vd, data, sc, TriBool::Maybe, check_desc);
     }
 
-    fn validate_minmax_range(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    fn validate_minmax_range(
+        block: &Block,
+        data: &Everything,
+        sc: &mut ScopeContext,
+        check_desc: bool,
+    ) {
         let mut vd = Validator::new(block, data);
         vd.req_field("min");
         vd.req_field("max");
         vd.field_validated_bvs("min", |bv, data| {
-            Self::validate_bv(bv, data, sc);
+            Self::validate_bv_2(bv, data, sc, check_desc);
         });
         vd.field_validated_bvs("max", |bv, data| {
-            Self::validate_bv(bv, data, sc);
+            Self::validate_bv_2(bv, data, sc, check_desc);
         });
     }
 
-    fn validate_if(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    fn validate_if(block: &Block, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
         let mut vd = Validator::new(block, data);
         vd.req_field_warn("limit");
         vd.field_validated_block("limit", |block, data| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
-        Self::validate_inner(vd, data, sc, TriBool::Maybe);
+        Self::validate_inner(vd, data, sc, TriBool::Maybe, check_desc);
     }
 
-    fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block("limit", |block, data| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
-        Self::validate_inner(vd, data, sc, TriBool::Maybe);
+        Self::validate_inner(vd, data, sc, TriBool::Maybe, check_desc);
     }
 
-    pub fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
+    pub fn validate_bv_2(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
         match bv {
             BV::Value(t) => validate_target(t, data, sc, Scopes::Value | Scopes::Bool),
             BV::Block(b) => {
@@ -283,10 +302,18 @@ impl ScriptValue {
                         warn(b, ErrorKey::Validation, "invalid script value range");
                     }
                 } else {
-                    Self::validate_inner(vd, data, sc, TriBool::False);
+                    Self::validate_inner(vd, data, sc, TriBool::False, check_desc);
                 }
             }
         }
+    }
+
+    pub fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
+        Self::validate_bv_2(bv, data, sc, true);
+    }
+
+    pub fn validate_bv_no_breakdown(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
+        Self::validate_bv_2(bv, data, sc, false);
     }
 
     pub fn cached_compat(&self, key: &Token, sc: &mut ScopeContext) -> bool {

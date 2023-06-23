@@ -107,6 +107,16 @@ impl ScopeContext {
         }
     }
 
+    pub fn define_list(&mut self, name: &str, scopes: Scopes, token: Token) {
+        if let Some(&idx) = self.list_names.get(name) {
+            self._break_chains_to(idx);
+            self.named[idx] = ScopeEntry::Scope(scopes, token);
+        } else {
+            self.list_names.insert(name.to_string(), self.named.len());
+            self.named.push(ScopeEntry::Scope(scopes, token));
+        }
+    }
+
     pub fn save_current_scope(&mut self, name: &str) {
         if let Some(&idx) = self.names.get(name) {
             self._break_chains_to(idx);

@@ -1,5 +1,6 @@
 pub mod accessory;
 pub mod accolades;
+pub mod activities;
 pub mod amenities;
 pub mod artifacts;
 pub mod assets;
@@ -62,6 +63,7 @@ pub mod regions;
 pub mod relations;
 pub mod religions;
 pub mod schemes;
+pub mod scripted_animations;
 pub mod scripted_effects;
 pub mod scripted_guis;
 pub mod scripted_lists;

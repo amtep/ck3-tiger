@@ -10,6 +10,9 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::data::accessory::{Accessory, AccessoryVariation};
 use crate::data::accolades::{AccoladeIcon, AccoladeName, AccoladeType};
+use crate::data::activities::{
+    ActivityIntent, ActivityLocale, ActivityType, GuestInviteRule, PulseAction,
+};
 use crate::data::amenities::Amenity;
 use crate::data::artifacts::{
     ArtifactFeature, ArtifactFeatureGroup, ArtifactSlot, ArtifactTemplate, ArtifactType,
@@ -464,6 +467,11 @@ impl Everything {
         self.load_pdx_items(Item::VassalContract, VassalContract::add);
         self.load_pdx_items(Item::CourtType, CourtType::add);
         self.load_pdx_items(Item::Secret, Secret::add);
+        self.load_pdx_items(Item::ActivityType, ActivityType::add);
+        self.load_pdx_items(Item::ActivityLocale, ActivityLocale::add);
+        self.load_pdx_items(Item::ActivityIntent, ActivityIntent::add);
+        self.load_pdx_items(Item::GuestInviteRule, GuestInviteRule::add);
+        self.load_pdx_items(Item::PulseAction, PulseAction::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -532,6 +540,12 @@ impl Everything {
             | Item::AccoladeName
             | Item::AccoladeParameter
             | Item::AccoladeType
+            | Item::ActivityIntent
+            | Item::ActivityLocale
+            | Item::ActivityOption
+            | Item::ActivityOptionCategory
+            | Item::ActivityPhase
+            | Item::ActivityType
             | Item::Amenity
             | Item::ArtifactFeature
             | Item::ArtifactFeatureGroup
@@ -582,6 +596,8 @@ impl Everything {
             | Item::GeneCategory
             | Item::GovernmentType
             | Item::GovernmentFlag
+            | Item::GuestInviteRule
+            | Item::GuestSubset
             | Item::Holding
             | Item::HoldingFlag
             | Item::HolySite
@@ -604,6 +620,7 @@ impl Everything {
             | Item::PerkTree
             | Item::PoolSelector
             | Item::PortraitModifierGroup
+            | Item::PulseAction
             | Item::Relation
             | Item::RelationFlag
             | Item::ReligionFamily
@@ -613,6 +630,7 @@ impl Everything {
             | Item::ScriptedRule
             | Item::Secret
             | Item::SpecialBuilding
+            | Item::SpecialGuest
             | Item::Struggle
             | Item::StrugglePhase
             | Item::StrugglePhaseParameter
@@ -676,13 +694,7 @@ impl Everything {
             Item::Trait => self.traits.exists(key),
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::ActivityIntent
-            | Item::ActivityLocale
-            | Item::ActivityOption
-            | Item::ActivityOptionCategory
-            | Item::ActivityPhase
-            | Item::ActivityType
-            | Item::CharacterBackground
+            Item::CharacterBackground
             | Item::CourtSceneGroup
             | Item::DiarchyMandate
             | Item::DiarchyParameter
@@ -692,12 +704,13 @@ impl Everything {
             | Item::FaithIcon
             | Item::GameRule
             | Item::GraphicalFaith
-            | Item::GuestSubset
             | Item::Inspiration
             | Item::Law
             | Item::LawFlag
             | Item::PointOfInterest
             | Item::PortraitAnimation
+            | Item::PortraitCamera
+            | Item::ScriptedAnimation
             | Item::Story
             | Item::Suggestion
             | Item::TitleLaw
