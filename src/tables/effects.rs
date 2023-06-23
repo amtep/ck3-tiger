@@ -96,7 +96,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         ItemValue("type", Item::Amenity),
     ),
     (Artifact, "add_artifact_history", SpecialBlock),
-    (Artifact, "add_artifact_modifier", Item(Item::Modifier)),
+    (Artifact, "add_artifact_modifier", SpecialValue),
     (Artifact, "add_artifact_title_history", SpecialBlock),
     (War, "add_attacker", Scope(Scopes::Character)),
     (Province, "add_building", Item(Item::Building)),

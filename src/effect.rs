@@ -228,17 +228,47 @@ pub fn validate_effect<'a>(
                         validate_days_weeks_months_years(block, data, sc);
                     }
                 }
-                Effect::AddModifier => match bv {
-                    BV::Value(token) => data.verify_exists(Item::Modifier, token),
-                    BV::Block(block) => {
-                        let mut vd = Validator::new(block, data);
-                        vd.set_case_sensitive(false);
-                        vd.req_field("modifier");
-                        vd.field_item("modifier", Item::Modifier);
-                        vd.field_validated_sc("desc", sc, validate_desc);
-                        validate_optional_duration(&mut vd, sc);
+                Effect::AddModifier => {
+                    let visible = key.is("add_character_modifier")
+                        || key.is("add_house_modifier")
+                        || key.is("add_dynasty_modifier")
+                        || key.is("add_county_modifier");
+                    match bv {
+                        BV::Value(token) => {
+                            data.verify_exists(Item::Modifier, token);
+                            if visible {
+                                data.verify_exists(Item::Localization, token);
+                            }
+                            data.database.validate_property_use(
+                                Item::Modifier,
+                                token,
+                                data,
+                                key,
+                                "",
+                            );
+                        }
+                        BV::Block(block) => {
+                            let mut vd = Validator::new(block, data);
+                            vd.set_case_sensitive(false);
+                            vd.req_field("modifier");
+                            if let Some(token) = vd.field_value("modifier") {
+                                data.verify_exists(Item::Modifier, token);
+                                if visible && !block.has_key("desc") {
+                                    data.verify_exists(Item::Localization, token);
+                                }
+                                data.database.validate_property_use(
+                                    Item::Modifier,
+                                    token,
+                                    data,
+                                    key,
+                                    "",
+                                );
+                            }
+                            vd.field_validated_sc("desc", sc, validate_desc);
+                            validate_optional_duration(&mut vd, sc);
+                        }
                     }
-                },
+                }
                 Effect::SpecialBlock => {
                     if let Some(block) = bv.expect_block() {
                         validate_effect_special(key, block, data, sc, tooltipped);
@@ -458,22 +488,31 @@ fn validate_effect_special_value(
     value: &Token,
     data: &Everything,
     sc: &mut ScopeContext,
-    _tooltipped: Tooltipped,
+    tooltipped: Tooltipped,
 ) {
-    if caller == "save_scope_as" || caller == "save_temporary_scope_as" {
+    if caller == "add_artifact_modifier" {
+        data.verify_exists(Item::Modifier, value);
+        // TODO: this causes hundreds of warnings. Probably because the tooltip tracking isn't smart enough to figure out
+        // things like "scope:newly_created_artifact does not exist yet at tooltipping time, so the body of the if won't
+        // be tooltipped here".
+        //
+        // if tooltipped.is_tooltipped() {
+        //     data.verify_exists(Item::Localization, value);
+        // }
+    } else if caller == "add_to_list" || caller == "add_to_temporary_list" {
+        sc.define_or_expect_list(value);
+    } else if caller == "generate_coa" {
+        if !value.is("yes") {
+            data.verify_exists(Item::CoaTemplateList, value);
+        }
+    } else if caller == "remove_from_list" {
+        sc.expect_list(value);
+    } else if caller == "save_scope_as" || caller == "save_temporary_scope_as" {
         sc.save_current_scope(value.as_str());
     } else if caller == "set_focus" {
         if !value.is("no") {
             data.verify_exists(Item::Focus, value);
         }
-    } else if caller == "generate_coa" {
-        if !value.is("yes") {
-            data.verify_exists(Item::CoaTemplateList, value);
-        }
-    } else if caller == "add_to_list" || caller == "add_to_temporary_list" {
-        sc.define_or_expect_list(value);
-    } else if caller == "remove_from_list" {
-        sc.expect_list(value);
     } else {
         let msg = format!("internal error, unhandled effect {caller}");
         error(value, ErrorKey::Internal, &msg);
@@ -806,7 +845,11 @@ fn validate_effect_special(
         validate_optional_duration_int(&mut vd);
     } else if caller == "add_scheme_modifier" {
         vd.req_field("type");
-        vd.field_item("type", Item::Modifier);
+        if let Some(token) = vd.field_value("type") {
+            data.verify_exists(Item::Modifier, token);
+            data.database
+                .validate_property_use(Item::Modifier, token, data, key, "");
+        }
         vd.field_integer("days");
     } else if caller == "add_secret" {
         vd.req_field("type");

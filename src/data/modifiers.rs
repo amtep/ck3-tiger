@@ -38,4 +38,31 @@ impl DbKind for Modifier {
         vd.field_bool("hide_effects");
         validate_modifs(block, data, ModifKinds::all(), vd);
     }
+
+    fn validate_property_use(
+        &self,
+        _key: &Token,
+        block: &Block,
+        property: &Token,
+        _caller: &str,
+        data: &Everything,
+    ) {
+        let mut vd = Validator::new(block, data);
+        // skip over the known fields
+        vd.field("icon");
+        vd.field("stacking");
+        vd.field("hide_effects");
+        let kind = match property.as_str() {
+            "add_character_modifier" => ModifKinds::Character,
+            "add_county_modifier" => ModifKinds::County,
+            "add_dynasty_modifier" => ModifKinds::Character,
+            "add_house_modifier" => ModifKinds::Character,
+            "add_province_modifier" => ModifKinds::Province,
+            "add_scheme_modifier" => ModifKinds::Scheme,
+            "add_travel_plan_modifier" => ModifKinds::TravelPlan,
+            _ => ModifKinds::all(),
+        };
+        // TODO: make validate_modifs explain why it expected this kind
+        validate_modifs(block, data, kind, vd);
+    }
 }

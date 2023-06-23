@@ -258,11 +258,18 @@ impl Event {
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
 
+        let mut tooltipped_immediate = Tooltipped::Past;
+        let mut tooltipped = Tooltipped::Yes;
         if let Some((namespace, _)) = self.key.as_str().split_once('.') {
             if !data.item_exists(Item::EventNamespace, namespace) {
                 let msg = format!("event file should start with `namespace = {namespace}`");
                 let info = "otherwise the event won't be found in-game";
                 error_info(&self.key, ErrorKey::EventNamespace, &msg, info);
+            }
+            if namespace == "debug" {
+                // Suppress missing-localization messages caused via these debug events
+                tooltipped_immediate = Tooltipped::No;
+                tooltipped = Tooltipped::No;
             }
         }
 
@@ -303,7 +310,7 @@ impl Event {
         });
 
         vd.field_validated_block("immediate", |b, data| {
-            validate_normal_effect(b, data, &mut sc, Tooltipped::Past);
+            validate_normal_effect(b, data, &mut sc, tooltipped_immediate);
         });
         vd.field_validated_block("trigger", |b, data| {
             validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
@@ -371,10 +378,12 @@ impl Event {
         if !self.block.get_field_bool("hidden").unwrap_or(false) {
             vd.req_field("option");
         }
-        vd.field_validated_blocks_sc("option", &mut sc, validate_event_option);
+        vd.field_validated_blocks("option", |block, data| {
+            validate_event_option(block, data, &mut sc, tooltipped);
+        });
 
         vd.field_validated_block("after", |b, data| {
-            validate_normal_effect(b, data, &mut sc, Tooltipped::Yes);
+            validate_normal_effect(b, data, &mut sc, tooltipped);
         });
         vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
         vd.field_value("soundeffect"); // TODO
@@ -385,7 +394,12 @@ impl Event {
     }
 }
 
-fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+fn validate_event_option(
+    block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    tooltipped: Tooltipped,
+) {
     // TODO: warn if they use desc, first_valid, random_valid, or triggered_desc directly
     // in the name or tooltip.
 
@@ -434,15 +448,7 @@ fn validate_event_option(block: &Block, data: &Everything, sc: &mut ScopeContext
     vd.field_target("highlight_portrait", sc, Scopes::Character);
     vd.field_bool("show_unlock_reason");
 
-    validate_effect(
-        "option",
-        ListType::None,
-        block,
-        data,
-        sc,
-        vd,
-        Tooltipped::Yes,
-    );
+    validate_effect("option", ListType::None, block, data, sc, vd, tooltipped);
 }
 
 fn validate_court_scene(block: &Block, data: &Everything, sc: &mut ScopeContext) {
