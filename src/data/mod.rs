@@ -69,6 +69,7 @@ pub mod scripted_modifiers;
 pub mod scripted_rules;
 pub mod scripted_triggers;
 pub mod scriptvalues;
+pub mod secrets;
 pub mod sound;
 pub mod struggle;
 pub mod terrain;

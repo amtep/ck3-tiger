@@ -820,7 +820,11 @@ fn validate_effect_special(
         vd.req_field("target");
         vd.field_item("type", Item::Hook);
         vd.field_target("target", sc, Scopes::Character);
-        vd.field_item("secret", Item::Secret);
+        if let Some(token) = vd.field_value("secret") {
+            if !data.item_exists(Item::Secret, token.as_str()) {
+                validate_target(token, data, sc, Scopes::Secret);
+            }
+        }
         validate_optional_duration(&mut vd, sc);
     } else if caller == "add_opinion" || caller == "reverse_add_opinion" {
         vd.req_field("modifier");

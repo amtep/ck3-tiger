@@ -82,6 +82,7 @@ use crate::data::scripted_modifiers::ScriptedModifiers;
 use crate::data::scripted_rules::ScriptedRule;
 use crate::data::scripted_triggers::{Trigger, Triggers};
 use crate::data::scriptvalues::ScriptValues;
+use crate::data::secrets::Secret;
 use crate::data::sound::Sounds;
 use crate::data::struggle::{Catalyst, Struggle};
 use crate::data::terrain::Terrain;
@@ -462,6 +463,7 @@ impl Everything {
         self.load_pdx_items(Item::MapMode, MapMode::add);
         self.load_pdx_items(Item::VassalContract, VassalContract::add);
         self.load_pdx_items(Item::CourtType, CourtType::add);
+        self.load_pdx_items(Item::Secret, Secret::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -609,6 +611,7 @@ impl Everything {
             | Item::Scheme
             | Item::ScriptedGui
             | Item::ScriptedRule
+            | Item::Secret
             | Item::SpecialBuilding
             | Item::Struggle
             | Item::StrugglePhase
@@ -695,7 +698,6 @@ impl Everything {
             | Item::LawFlag
             | Item::PointOfInterest
             | Item::PortraitAnimation
-            | Item::Secret
             | Item::Story
             | Item::Suggestion
             | Item::TitleLaw
