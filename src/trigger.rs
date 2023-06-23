@@ -596,7 +596,7 @@ fn match_trigger_bv(
                     vd.req_field("target");
                     vd.field_target("target", sc, Scopes::Character);
                     if let Some(name) = vd.field_value("name") {
-                        sc.define_name(name.as_str(), name.clone(), Scopes::Value);
+                        sc.define_name(name.as_str(), Scopes::Value, name.clone());
                     }
                 }
             } else if name.is("save_temporary_scope_value_as") {
@@ -610,7 +610,7 @@ fn match_trigger_bv(
                     });
                     // TODO: figure out the scope type of `value` and use that
                     if let Some(name) = vd.field_value("name") {
-                        sc.define_name(name.as_str(), name.clone(), Scopes::primitive());
+                        sc.define_name(name.as_str(), Scopes::primitive(), name.clone());
                     }
                 }
             } else if name.is("save_temporary_scope_as") {

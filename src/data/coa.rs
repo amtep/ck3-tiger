@@ -359,9 +359,9 @@ where
 {
     let mut vd = Validator::new(block, data);
     let mut sc = ScopeContext::new_root(Scopes::Character, key.clone()); // TODO: may be unset
-    sc.define_name("faith", key.clone(), Scopes::Faith);
-    sc.define_name("culture", key.clone(), Scopes::Culture);
-    sc.define_name("title", key.clone(), Scopes::LandedTitle); // TODO: may be unset
+    sc.define_name("faith", Scopes::Faith, key.clone());
+    sc.define_name("culture", Scopes::Culture, key.clone());
+    sc.define_name("title", Scopes::LandedTitle, key.clone()); // TODO: may be unset
 
     // TODO: warn about duplicate values in the lists?
 

@@ -27,7 +27,7 @@ impl DbKind for AccoladeIcon {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::AccoladeType, key.clone());
-        sc.define_name("accolade", key.clone(), Scopes::Accolade);
+        sc.define_name("accolade", Scopes::Accolade, key.clone());
 
         if let Some(token) = vd.field_value("texture") {
             let pathname = format!("gfx/interface/icons/knight_badge/icons/{token}");
@@ -53,8 +53,8 @@ impl DbKind for AccoladeName {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("owner", key.clone(), Scopes::Character);
-        sc.define_name("accolade_type", key.clone(), Scopes::AccoladeType);
+        sc.define_name("owner", Scopes::Character, key.clone());
+        sc.define_name("accolade_type", Scopes::AccoladeType, key.clone());
 
         vd.req_field("key");
         vd.req_field("num_options");

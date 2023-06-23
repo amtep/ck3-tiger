@@ -85,13 +85,13 @@ impl Decision {
                 if controller.is("decision_option_list_controller") {
                     for block in block.get_field_blocks("item") {
                         if let Some(token) = block.get_field_value("value") {
-                            sc.define_name(token.as_str(), token.clone(), Scopes::Bool);
+                            sc.define_name(token.as_str(), Scopes::Bool, token.clone());
                         }
                     }
                 } else if controller.is("create_holy_order") {
-                    sc.define_name("ruler", controller.clone(), Scopes::Character);
+                    sc.define_name("ruler", Scopes::Character, controller.clone());
                 } else if controller.is("revoke_holy_order_lease") {
-                    sc.define_name("barony", controller.clone(), Scopes::LandedTitle);
+                    sc.define_name("barony", Scopes::LandedTitle, controller.clone());
                 }
             }
         }

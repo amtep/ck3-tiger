@@ -36,13 +36,13 @@ impl DbKind for VassalContract {
 
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("liege", key.clone(), Scopes::Character);
-        sc.define_name("vassal", key.clone(), Scopes::Character);
+        sc.define_name("liege", Scopes::Character, key.clone());
+        sc.define_name("vassal", Scopes::Character, key.clone());
 
         vd.field_bool("uses_opinion_of_liege");
         if let Some(token) = block.get_field_value("uses_opinion_of_liege") {
             if token.is("yes") {
-                sc.define_name("opinion_of_liege", token.clone(), Scopes::Value);
+                sc.define_name("opinion_of_liege", Scopes::Value, token.clone());
             }
         }
 

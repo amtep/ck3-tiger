@@ -84,7 +84,7 @@ impl DbKind for Building {
         vd.field_validated_blocks("asset", validate_asset);
 
         vd.field_validated_block_rooted("is_enabled", Scopes::Province, |block, data, sc| {
-            sc.define_name("holder", key.clone(), Scopes::Character);
+            sc.define_name("holder", Scopes::Character, key.clone());
             let tooltipped = if block
                 .get_field_bool("is_graphical_background")
                 .unwrap_or(false)
@@ -99,7 +99,7 @@ impl DbKind for Building {
             "can_construct_potential",
             Scopes::Province,
             |block, data, sc| {
-                sc.define_name("holder", key.clone(), Scopes::Character);
+                sc.define_name("holder", Scopes::Character, key.clone());
                 // For buildings that are upgrades, can_construct_potential is added to can_construct_showing_failures_only so it will be tooltipped
                 let tooltipped =
                     block.get_field_bool("show_disabled").unwrap_or(false) || self.is_upgrade;
@@ -115,12 +115,12 @@ impl DbKind for Building {
             "can_construct_showing_failures_only",
             Scopes::Province,
             |block, data, sc| {
-                sc.define_name("holder", key.clone(), Scopes::Character);
+                sc.define_name("holder", Scopes::Character, key.clone());
                 validate_normal_trigger(block, data, sc, Tooltipped::FailuresOnly);
             },
         );
         vd.field_validated_block_rooted("can_construct", Scopes::Province, |block, data, sc| {
-            sc.define_name("holder", key.clone(), Scopes::Character);
+            sc.define_name("holder", Scopes::Character, key.clone());
             validate_normal_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_bool("show_disabled");
@@ -245,7 +245,7 @@ impl DbKind for Building {
             }
             BV::Block(block) => {
                 let mut sc = ScopeContext::new_root(Scopes::Province, key.clone());
-                sc.define_name("holder", key.clone(), Scopes::Character);
+                sc.define_name("holder", Scopes::Character, key.clone());
                 validate_modifiers_with_base(block, data, &mut sc);
             }
         });

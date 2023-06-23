@@ -92,7 +92,7 @@ impl ScopeContext {
         self.root = ScopeEntry::Scope(root, token.borrow().clone());
     }
 
-    pub fn define_name(&mut self, name: &str, token: Token, scopes: Scopes) {
+    pub fn define_name(&mut self, name: &str, scopes: Scopes, token: Token) {
         if let Some(&idx) = self.names.get(name) {
             self._break_chains_to(idx);
             self.named[idx] = ScopeEntry::Scope(scopes, token);

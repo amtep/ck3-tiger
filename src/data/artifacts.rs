@@ -80,7 +80,7 @@ impl DbKind for ArtifactTemplate {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("artifact", key.clone(), Scopes::Artifact);
+        sc.define_name("artifact", Scopes::Artifact, key.clone());
 
         vd.field_validated_block("can_equip", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
@@ -118,7 +118,7 @@ impl DbKind for ArtifactVisual {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("artifact", key.clone(), Scopes::Artifact);
+        sc.define_name("artifact", Scopes::Artifact, key.clone());
 
         vd.field_value("default_type"); // unused
 
@@ -200,9 +200,9 @@ impl DbKind for ArtifactFeature {
         let mut vd = Validator::new(block, data);
         // TODO: it's not clear what the scope is for these triggers
         let mut sc = ScopeContext::new_unrooted(Scopes::Artifact | Scopes::Character, key.clone());
-        sc.define_name("newly_created_artifact", key.clone(), Scopes::Artifact);
-        sc.define_name("owner", key.clone(), Scopes::Character);
-        sc.define_name("wealth", key.clone(), Scopes::Value);
+        sc.define_name("newly_created_artifact", Scopes::Artifact, key.clone());
+        sc.define_name("owner", Scopes::Character, key.clone());
+        sc.define_name("wealth", Scopes::Value, key.clone());
 
         let loca = format!("feature_{key}");
         data.verify_exists_implied(Item::Localization, &loca, key);

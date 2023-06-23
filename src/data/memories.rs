@@ -27,7 +27,7 @@ impl DbKind for MemoryType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::CharacterMemory, key.clone());
-        sc.define_name("owner", key.clone(), Scopes::Character);
+        sc.define_name("owner", Scopes::Character, key.clone());
 
         // undocumented
         if let Some(icon) = vd.field_value("icon") {
@@ -37,7 +37,7 @@ impl DbKind for MemoryType {
 
         vd.field_list("categories");
         vd.field_validated_list("participants", |token, _data| {
-            sc.define_name(token.as_str(), token.clone(), Scopes::Character);
+            sc.define_name(token.as_str(), Scopes::Character, token.clone());
         });
 
         data.verify_exists(Item::Localization, key);

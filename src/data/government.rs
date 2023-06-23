@@ -109,8 +109,8 @@ impl DbKind for Government {
         vd.field_script_value_rooted("opinion_of_liege", Scopes::Character);
         vd.field_validated_key("opinion_of_liege_desc", |key, bv, data| {
             let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
-            sc.define_name("vassal", key.clone(), Scopes::Character);
-            sc.define_name("liege", key.clone(), Scopes::Character);
+            sc.define_name("vassal", Scopes::Character, key.clone());
+            sc.define_name("liege", Scopes::Character, key.clone());
             validate_desc(bv, data, &mut sc);
         });
     }

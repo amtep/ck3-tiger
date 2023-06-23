@@ -34,7 +34,7 @@ impl DbKind for CouncilPosition {
         data.verify_exists_implied(Item::Localization, &loca, key);
         vd.field_validated_key("name", |key, bv, data| {
             let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-            sc.define_name("councillor_liege", key.clone(), Scopes::Character);
+            sc.define_name("councillor_liege", Scopes::Character, key.clone());
             validate_desc(bv, data, &mut sc);
         });
         vd.field_validated_sc("tooltip", &mut sc, validate_desc);
@@ -123,14 +123,14 @@ impl DbKind for CouncilTask {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("councillor", key.clone(), Scopes::Character);
-        sc.define_name("councillor_liege", key.clone(), Scopes::Character);
+        sc.define_name("councillor", Scopes::Character, key.clone());
+        sc.define_name("councillor_liege", Scopes::Character, key.clone());
         if let Some(token) = block.get_field_value("task_type") {
             if token.is("task_type_county") {
-                sc.define_name("province", token.clone(), Scopes::Province);
-                sc.define_name("county", token.clone(), Scopes::LandedTitle);
+                sc.define_name("province", Scopes::Province, token.clone());
+                sc.define_name("county", Scopes::LandedTitle, token.clone());
             } else if token.is("task_type_court") {
-                sc.define_name("target_character", token.clone(), Scopes::Character);
+                sc.define_name("target_character", Scopes::Character, token.clone());
             }
         }
 
