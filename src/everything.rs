@@ -78,6 +78,7 @@ use crate::data::regions::Region;
 use crate::data::relations::Relation;
 use crate::data::religions::{ReligionFamily, Religions};
 use crate::data::schemes::Scheme;
+use crate::data::scripted_animations::ScriptedAnimation;
 use crate::data::scripted_effects::{Effect, Effects};
 use crate::data::scripted_guis::ScriptedGui;
 use crate::data::scripted_lists::ScriptedLists;
@@ -472,6 +473,7 @@ impl Everything {
         self.load_pdx_items(Item::ActivityIntent, ActivityIntent::add);
         self.load_pdx_items(Item::GuestInviteRule, GuestInviteRule::add);
         self.load_pdx_items(Item::PulseAction, PulseAction::add);
+        self.load_pdx_items(Item::ScriptedAnimation, ScriptedAnimation::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -626,6 +628,7 @@ impl Everything {
             | Item::ReligionFamily
             | Item::Region
             | Item::Scheme
+            | Item::ScriptedAnimation
             | Item::ScriptedGui
             | Item::ScriptedRule
             | Item::Secret
@@ -710,7 +713,6 @@ impl Everything {
             | Item::PointOfInterest
             | Item::PortraitAnimation
             | Item::PortraitCamera
-            | Item::ScriptedAnimation
             | Item::Story
             | Item::Suggestion
             | Item::TitleLaw

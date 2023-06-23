@@ -1,10 +1,29 @@
 use crate::block::validator::Validator;
-use crate::block::BV;
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
+use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::scopes::Scopes;
+use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
+
+#[derive(Clone, Debug)]
+pub struct ScriptedAnimation {}
+
+impl ScriptedAnimation {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::ScriptedAnimation, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for ScriptedAnimation {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        validate_scripted_animation(&BV::Block(block.clone()), data, &mut sc);
+    }
+}
 
 pub fn validate_scripted_animation(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     match bv {
