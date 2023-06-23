@@ -43,6 +43,8 @@ pub enum ErrorKey {
     Colors,
     ComplexTrigger,
     UnusedLocalization,
+    NameCollision,
+    UnknownList,
 
     PrincesOfDarkness,
 

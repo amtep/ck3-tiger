@@ -758,11 +758,11 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Character, "hostile_raider", Character),
     (DynastyHouse, "house_claimed_artifact", Artifact),
     (DynastyHouse, "house_member", Character),
-    (LandedTitle, "in_de_facto_hierarchy", LandedTitle), // TODO has continue section
-    (LandedTitle, "in_de_jure_hierarchy", LandedTitle),  // TODO has continue section
-    (None, "in_global_list", ALL),                       // TODO list = name or variable = name
-    (None, "in_list", ALL),                              // TODO list = name or variable = name
-    (None, "in_local_list", ALL),                        // TODO list = name or variable = name
+    (LandedTitle, "in_de_facto_hierarchy", LandedTitle),
+    (LandedTitle, "in_de_jure_hierarchy", LandedTitle),
+    (None, "in_global_list", ALL),
+    (None, "in_list", ALL),
+    (None, "in_local_list", ALL),
     (None, "independent_ruler", Character),
     (None, "inspiration", Inspiration),
     (None, "inspired_character", Character),

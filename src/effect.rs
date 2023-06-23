@@ -470,6 +470,10 @@ fn validate_effect_special_value(
         if !value.is("yes") {
             data.verify_exists(Item::CoaTemplateList, value);
         }
+    } else if caller == "add_to_list" || caller == "add_to_temporary_list" {
+        sc.define_or_expect_list(value);
+    } else if caller == "remove_from_list" {
+        sc.expect_list(value);
     } else {
         let msg = format!("internal error, unhandled effect {caller}");
         error(value, ErrorKey::Internal, &msg);

@@ -183,7 +183,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (AccoladeType, "accolade_type_tier", Scope(AccoladeType)),
     (LandedTitle, "active_de_jure_drift_progress", CompareValue),
     // TODO: warn if this is in an any_ iterator and not at the end
-    (ALL_BUT_NONE, "add_to_temporary_list", UncheckedValue),
+    (ALL_BUT_NONE, "add_to_temporary_list", Special),
     (Character, "age", CompareValue),
     (Character, "ai_boldness", CompareValue),
     (Character, "ai_compassion", CompareValue),
@@ -1245,7 +1245,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
             ("?phase", Item(Item::ActivityPhase)),
         ]),
     ),
-    (None, "is_in_list", UncheckedValue),
+    (None, "is_in_list", Special),
     (Character, "is_in_ongoing_great_holy_war", Boolean),
     (Character, "is_in_pool_at", Scope(Province)),
     (Character, "is_in_prison_type", Item(Item::PrisonType)),

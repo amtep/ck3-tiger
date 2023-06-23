@@ -223,10 +223,10 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (None, "add_to_global_variable_list", SpecialBlock),
     // TODO: figure out the parameters for this
     (Activity, "add_to_guest_subset", SpecialBlock),
-    (ALL_BUT_NONE, "add_to_list", Unchecked),
+    (ALL_BUT_NONE, "add_to_list", SpecialValue),
     (None, "add_to_local_variable_list", SpecialBlock),
     (Character, "add_to_scheme", Scope(Scopes::Scheme)),
-    (ALL_BUT_NONE, "add_to_temporary_list", Unchecked),
+    (ALL_BUT_NONE, "add_to_temporary_list", SpecialValue),
     (None, "add_to_variable_list", SpecialBlock),
     (
         Character,
@@ -702,7 +702,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     ),
     // TODO: figure out what to put for name = <subset_key> and phase = <phase_key>
     (Activity, "remove_from_guest_subset", Unchecked),
-    (ALL_BUT_NONE, "remove_from_list", Unchecked),
+    (ALL_BUT_NONE, "remove_from_list", SpecialValue),
     (None, "remove_global_variable", Unchecked),
     (Province, "remove_holding", Yes),
     (

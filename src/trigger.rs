@@ -651,6 +651,14 @@ fn match_trigger_bv(
                         }
                     }
                 }
+            } else if name.is("add_to_temporary_list") {
+                if let Some(value) = bv.expect_value() {
+                    sc.define_or_expect_list(value);
+                }
+            } else if name.is("is_in_list") {
+                if let Some(value) = bv.expect_value() {
+                    sc.expect_list(value);
+                }
             }
             // TODO: time_of_year
         }

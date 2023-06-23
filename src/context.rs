@@ -22,10 +22,13 @@ pub struct ScopeContext {
     /// Names of named scopes; the values are indices into the `named` vector.
     /// Names should only be added, never removed, and indices should stay consistent.
     /// This is because the indices are also used by `ScopeEntry::Named` values throughout this `ScopeContext`.
+    /// `names` and `list_names` occupy separate namespaces, but index into the same `named` array.
     names: FnvHashMap<String, usize>,
+    list_names: FnvHashMap<String, usize>,
 
     /// Named scope values are `ScopeEntry::Scope` or `ScopeEntry::Named` or `ScopeEntry::Rootref`.
     /// Invariant: there are no cycles in the array via `ScopeEntry::Named` entries.
+    /// The `bool` value indicates whether this entry is a list.
     named: Vec<ScopeEntry>,
 
     is_builder: bool,
@@ -67,6 +70,7 @@ impl ScopeContext {
             this: ScopeEntry::Rootref,
             root: ScopeEntry::Scope(root, token.borrow().clone()),
             names: FnvHashMap::default(),
+            list_names: FnvHashMap::default(),
             named: Vec::new(),
             is_builder: false,
             is_unrooted: false,
@@ -82,6 +86,7 @@ impl ScopeContext {
             this: ScopeEntry::Scope(this, token.borrow().clone()),
             root: ScopeEntry::Scope(Scopes::all(), token.borrow().clone()),
             names: FnvHashMap::default(),
+            list_names: FnvHashMap::default(),
             named: Vec::new(),
             is_builder: false,
             is_unrooted: true,
@@ -117,6 +122,27 @@ impl ScopeContext {
         } else {
             self.names.insert(name.to_string(), self.named.len());
             self.named.push(self._resolve_backrefs().clone());
+        }
+    }
+
+    pub fn define_or_expect_list(&mut self, name: &Token) {
+        if let Some(&idx) = self.list_names.get(name.as_str()) {
+            let (s, t) = self._resolve_named(idx);
+            self.expect(s, &t.clone());
+        } else {
+            self.list_names.insert(name.to_string(), self.named.len());
+            self.named.push(self._resolve_backrefs().clone());
+        }
+    }
+
+    pub fn expect_list(&mut self, name: &Token) {
+        if let Some(&idx) = self.list_names.get(name.as_str()) {
+            let (s, t) = self._resolve_named(idx);
+            self.expect(s, &t.clone());
+        } else {
+            // only with strict scope checking
+            // let msg = format!("unknown list");
+            //warn(name, ErrorKey::UnknownList, &msg);
         }
     }
 
@@ -182,12 +208,28 @@ impl ScopeContext {
         self.this = ScopeEntry::Named(self._named_index(name, token), token.clone());
     }
 
+    pub fn replace_list_entry(&mut self, name: &str, token: &Token) {
+        self.this = ScopeEntry::Named(self._named_list_index(name, token), token.clone());
+    }
+
     fn _named_index(&mut self, name: &str, token: &Token) -> usize {
         if let Some(&idx) = self.names.get(name) {
             idx
         } else {
             let idx = self.named.len();
             self.names.insert(name.to_string(), idx);
+            self.named
+                .push(ScopeEntry::Scope(Scopes::all(), token.clone()));
+            idx
+        }
+    }
+
+    fn _named_list_index(&mut self, name: &str, token: &Token) -> usize {
+        if let Some(&idx) = self.list_names.get(name) {
+            idx
+        } else {
+            let idx = self.named.len();
+            self.list_names.insert(name.to_string(), idx);
             self.named
                 .push(ScopeEntry::Scope(Scopes::all(), token.clone()));
             idx

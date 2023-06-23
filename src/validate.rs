@@ -392,16 +392,23 @@ pub fn validate_inside_iterator(
     vd: &mut Validator,
     tooltipped: Tooltipped,
 ) {
-    if name == "in_list" || name == "in_local_list" || name == "in_global_list" {
+    // Docs say that all three can take either list or variable, but global and local lists must be variable lists.
+    if name == "in_list" {
         vd.req_field_one_of(&["list", "variable"]);
+        if let Some(token) = vd.field_value("list") {
+            sc.define_or_expect_list(token);
+            sc.replace_list_entry(token.as_str(), token);
+        }
+    } else if name == "in_local_list" || name == "in_global_list" {
+        vd.req_field("variable");
+        vd.ban_field("list", || format!("{listtype}_in_list"));
     } else {
-        let only_for = || {
+        vd.ban_field("list", || format!("{listtype}_in_list"));
+        vd.ban_field("variable", || {
             format!(
                 "`{listtype}_in_list`, `{listtype}_in_local_list`, or `{listtype}_in_global_list`"
             )
-        };
-        vd.ban_field("list", only_for);
-        vd.ban_field("variable", only_for);
+        });
     }
 
     if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
