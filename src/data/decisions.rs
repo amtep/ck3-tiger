@@ -109,8 +109,7 @@ impl Decision {
         }
         vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
 
-        // kind of looks like a filename but it isn't.
-        vd.field_value("confirm_click_sound");
+        vd.field_item("confirm_click_sound", Item::Sound);
 
         if !vd.field_validated("selection_tooltip", |bv, data| {
             validate_desc(bv, data, &mut sc);

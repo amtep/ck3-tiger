@@ -359,8 +359,7 @@ fn validate_event(block: &Block, data: &Everything) {
     });
     vd.field_validated_blocks("sound", |block, data| {
         let mut vd = Validator::new(block, data);
-        // TODO: any way to get a list of available soundeffects?
-        vd.field_value("soundeffect"); // event:/ path
+        vd.field_item("soundeffect", Item::Sound);
         vd.field_bool("stop_on_state_change");
     });
     vd.field_value("light"); // TODO

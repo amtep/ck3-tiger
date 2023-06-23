@@ -70,7 +70,7 @@ impl DbKind for ImportantAction {
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
-        vd.field_value("soundeffect");
+        vd.field_item("soundeffect", Item::Sound);
 
         // undocumented
         vd.field_validated_block("unimportant", |block, data| {

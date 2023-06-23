@@ -75,8 +75,7 @@ impl DbKind for EventTheme {
             vd.field_validated_block("trigger", |b, data| {
                 validate_normal_trigger(b, data, sc, Tooltipped::No);
             });
-            // TODO: figure out a way to get a list of all available sounds
-            vd.field_value("reference");
+            vd.field_item("reference", Item::Sound);
         });
 
         // `transition` is not documented but presumably works the same way

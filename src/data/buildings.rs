@@ -274,14 +274,13 @@ fn validate_asset(block: &Block, data: &Everything) {
 
     vd.field_item("illustration", Item::File);
 
-    // TODO: get a list of valid soundeffects from somewhere
     vd.field_validated("soundeffect", |bv, data| {
         match bv {
-            BV::Value(_) => (),
+            BV::Value(token) => data.verify_exists(Item::Sound, token),
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("soundeffect");
-                vd.field_value("soundeffect");
+                vd.field_item("soundeffect", Item::Sound);
                 vd.field_block("soundparameter"); // TODO
             }
         }

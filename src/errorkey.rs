@@ -18,6 +18,7 @@ pub enum ErrorKey {
     EventNamespace,
     MissingLocalization,
     MissingFile,
+    MissingSound,
     MissingItem,
     MissingPerspective,
     WrongGender,

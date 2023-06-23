@@ -67,7 +67,7 @@ pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeConte
                 msg,
             );
         }
-        vd.field_value("reference");
+        vd.field_item("reference", Item::EventBackground);
     } else {
         // TODO: verify the background is defined
     }
@@ -79,8 +79,7 @@ pub fn validate_theme_icon(block: &Block, data: &Everything, sc: &mut ScopeConte
     vd.field_validated_block("trigger", |b, data| {
         validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
-    // TODO: verify the file exists
-    vd.field_value("reference"); // file
+    vd.field_item("reference", Item::File);
 }
 
 pub fn validate_theme_sound(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -89,7 +88,7 @@ pub fn validate_theme_sound(block: &Block, data: &Everything, sc: &mut ScopeCont
     vd.field_validated_block("trigger", |b, data| {
         validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
-    vd.field_value("reference"); // event:/ resource reference
+    vd.field_item("reference", Item::Sound);
 }
 
 pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -98,7 +97,7 @@ pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_validated_block("trigger", |b, data| {
         validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
-    vd.field_value("reference"); // TODO: unknown
+    vd.field_item("reference", Item::EventTransition);
 }
 
 pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &mut ScopeContext) {

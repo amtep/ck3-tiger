@@ -620,7 +620,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "pay_war_chest_gold", SpecialBlock),
     (Character, "pay_war_chest_income", SpecialBlock),
     (Character, "play_music_cue", Item(Item::Music)),
-    (Character, "play_sound_effect", Unchecked),
+    (Character, "play_sound_effect", Item(Item::Sound)),
     (GreatHolyWar, "pledge_attacker", Scope(Scopes::Character)),
     (GreatHolyWar, "pledge_defender", Scope(Scopes::Character)),
     (Activity, "progress_activity_phase_after", Timespan),

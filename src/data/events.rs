@@ -377,7 +377,7 @@ impl Event {
             validate_normal_effect(b, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
-        vd.field_value("soundeffect");
+        vd.field_value("soundeffect"); // TODO
         vd.field_bool("orphan");
         // TODO: validate widget
         vd.field("widget");

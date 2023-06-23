@@ -81,6 +81,7 @@ use crate::data::scripted_modifiers::ScriptedModifiers;
 use crate::data::scripted_rules::ScriptedRule;
 use crate::data::scripted_triggers::{Trigger, Triggers};
 use crate::data::scriptvalues::ScriptValues;
+use crate::data::sound::Sounds;
 use crate::data::struggle::{Catalyst, Struggle};
 use crate::data::terrain::Terrain;
 use crate::data::title_history::TitleHistories;
@@ -188,6 +189,7 @@ pub struct Everything {
     pub data_bindings: DataBindings,
 
     pub assets: Assets,
+    pub sounds: Sounds,
 
     pub coas: Coas,
 }
@@ -264,6 +266,7 @@ impl Everything {
             gui: Gui::default(),
             data_bindings: DataBindings::default(),
             assets: Assets::default(),
+            sounds: Sounds::default(),
             coas: Coas::default(),
         })
     }
@@ -389,6 +392,7 @@ impl Everything {
         self.fileset.handle(&mut self.gui);
         self.fileset.handle(&mut self.data_bindings);
         self.fileset.handle(&mut self.assets);
+        self.fileset.handle(&mut self.sounds);
         self.load_pdx_items(Item::ScriptedRule, ScriptedRule::add);
         self.load_pdx_items(Item::Faction, Faction::add);
         self.load_pdx_items(Item::Relation, Relation::add);
@@ -487,6 +491,7 @@ impl Everything {
         self.gui.validate(self);
         self.data_bindings.validate(self);
         self.assets.validate(self);
+        self.sounds.validate(self);
         self.coas.validate(self);
         self.database.validate(self);
 
@@ -654,6 +659,7 @@ impl Everything {
             Item::ScriptValue => self.scriptvalues.exists(key),
             Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
+            Item::Sound => self.sounds.exists(key),
             Item::TextureFile => self.assets.texture_exists(key),
             Item::Title => self.titles.exists(key),
             Item::TitleHistory => self.title_history.exists(key),
@@ -711,6 +717,7 @@ impl Everything {
             Item::File => self.fileset.verify_exists_implied(key, token),
             Item::Localization => self.localization.verify_exists_implied(key, token),
             Item::Province => self.provinces.verify_exists_implied(key, token),
+            Item::Sound => self.sounds.verify_exists_implied(key, token),
             _ => {
                 if !self.item_exists(itype, key) {
                     let msg = format!("{} {} not defined in {}", itype, key, itype.path());
