@@ -10,6 +10,7 @@ use crate::errors::{error, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::token::{Loc, Token};
 
 #[derive(Clone, Debug, Default)]
@@ -31,8 +32,10 @@ impl Sounds {
         self.sounds.contains_key(key)
     }
 
-    pub fn verify_exists_implied(&self, key: &str, item: &Token) {
-        if !self.sounds.contains_key(key) {
+    pub fn verify_exists_implied(&self, key: &str, item: &Token, data: &Everything) {
+        if let Some(file) = key.strip_prefix("file:/") {
+            data.verify_exists_implied(Item::File, &file, item);
+        } else if !self.sounds.contains_key(key) {
             let msg = if key == item.as_str() {
                 "sound not defined in sounds/GUIDs.txt".to_string()
             } else {

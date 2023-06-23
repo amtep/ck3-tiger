@@ -488,7 +488,7 @@ fn validate_effect_special_value(
     value: &Token,
     data: &Everything,
     sc: &mut ScopeContext,
-    tooltipped: Tooltipped,
+    _tooltipped: Tooltipped,
 ) {
     if caller == "add_artifact_modifier" {
         data.verify_exists(Item::Modifier, value);

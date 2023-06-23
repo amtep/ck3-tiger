@@ -61,6 +61,7 @@ use crate::data::mapmodes::MapMode;
 use crate::data::memories::MemoryType;
 use crate::data::modif::ModifierFormat;
 use crate::data::modifiers::Modifier;
+use crate::data::music::Musics;
 use crate::data::namelists::Namelists;
 use crate::data::nickname::Nickname;
 use crate::data::on_actions::OnActions;
@@ -190,6 +191,7 @@ pub struct Everything {
 
     pub assets: Assets,
     pub sounds: Sounds,
+    pub music: Musics,
 
     pub coas: Coas,
 }
@@ -267,6 +269,7 @@ impl Everything {
             data_bindings: DataBindings::default(),
             assets: Assets::default(),
             sounds: Sounds::default(),
+            music: Musics::default(),
             coas: Coas::default(),
         })
     }
@@ -393,6 +396,7 @@ impl Everything {
         self.fileset.handle(&mut self.data_bindings);
         self.fileset.handle(&mut self.assets);
         self.fileset.handle(&mut self.sounds);
+        self.fileset.handle(&mut self.music);
         self.load_pdx_items(Item::ScriptedRule, ScriptedRule::add);
         self.load_pdx_items(Item::Faction, Faction::add);
         self.load_pdx_items(Item::Relation, Relation::add);
@@ -492,6 +496,7 @@ impl Everything {
         self.data_bindings.validate(self);
         self.assets.validate(self);
         self.sounds.validate(self);
+        self.music.validate(self);
         self.coas.validate(self);
         self.database.validate(self);
 
@@ -645,6 +650,7 @@ impl Everything {
             Item::Localization => self.localization.exists(key),
             Item::MenAtArms => self.menatarmstypes.exists(key),
             Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),
+            Item::Music => self.music.exists(key),
             Item::NameList => self.namelists.exists(key),
             Item::OnAction => self.on_actions.exists(key),
             Item::Pdxmesh => self.assets.mesh_exists(key),
@@ -687,7 +693,6 @@ impl Everything {
             | Item::Inspiration
             | Item::Law
             | Item::LawFlag
-            | Item::Music
             | Item::PointOfInterest
             | Item::PortraitAnimation
             | Item::Secret
@@ -716,8 +721,9 @@ impl Everything {
         match itype {
             Item::File => self.fileset.verify_exists_implied(key, token),
             Item::Localization => self.localization.verify_exists_implied(key, token),
+            Item::Music => self.music.verify_exists_implied(key, token),
             Item::Province => self.provinces.verify_exists_implied(key, token),
-            Item::Sound => self.sounds.verify_exists_implied(key, token),
+            Item::Sound => self.sounds.verify_exists_implied(key, token, self),
             _ => {
                 if !self.item_exists(itype, key) {
                     let msg = format!("{} {} not defined in {}", itype, key, itype.path());
