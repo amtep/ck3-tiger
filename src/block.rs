@@ -459,7 +459,7 @@ impl Block {
                     if let BV::Value(token) = bv {
                         if let BV::Value(mut rtoken) = rbv {
                             // Combine current value with reserved assignment
-                            rtoken.combine(&token);
+                            rtoken.combine(&token, '"');
                             other.add_key_value(rkey, rcmp, BV::Value(rtoken));
                         }
                     } else {

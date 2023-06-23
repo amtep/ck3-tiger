@@ -222,33 +222,41 @@ pub fn validate_trigger_key_bv(
         return;
     }
 
-    let part_vec = key.split('.');
+    let mut new_key = key;
+    let mut store;
+    if let Some((before, after)) = key.split_after('(') {
+        if let Some((arg, after)) = after.split_once(')') {
+            let arg = arg.trim();
+            for part in before.split('.') {
+                if part.as_str().ends_with('(') {
+                    if part.is("vassal_contract_obligation_level_score(") {
+                        validate_target(&arg, data, sc, Scopes::VassalContract);
+                    } else if part.is("squared_distance(") {
+                        validate_target(&arg, data, sc, Scopes::Province);
+                    } else {
+                        warn(&arg, ErrorKey::Validation, "unexpected argument");
+                    }
+                }
+            }
+            store = before;
+            if !after.as_str().is_empty() {
+                store.combine(&after, '.');
+            }
+            new_key = &store;
+        }
+    }
+
+    let part_vec = new_key.split('.');
     sc.open_builder();
     let mut found_trigger = None;
     for i in 0..part_vec.len() {
         let first = i == 0;
         let last = i + 1 == part_vec.len();
-        let mut part = &part_vec[i];
-        let store_part; // needed for borrow checker
-
-        if let Some((new_part, arg)) = part.split_after('(') {
-            if let Some((arg, _)) = arg.split_once(')') {
-                let arg = arg.trim();
-                if new_part.is("vassal_contract_obligation_level_score(") {
-                    validate_target(&arg, data, sc, Scopes::VassalContract);
-                } else if new_part.is("squared_distance(") {
-                    validate_target(&arg, data, sc, Scopes::Province);
-                } else {
-                    warn(arg, ErrorKey::Validation, "unexpected argument");
-                }
-                store_part = new_part;
-                part = &store_part;
-            }
-        }
+        let part = &part_vec[i];
 
         if let Some((prefix, mut arg)) = part.split_once(':') {
             if prefix.is("event_id") {
-                arg = key.split_once(':').unwrap().1;
+                arg = new_key.split_once(':').unwrap().1;
             }
             if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                 if inscopes == Scopes::None && !first {

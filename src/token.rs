@@ -126,9 +126,8 @@ impl Token {
         None
     }
 
-    pub fn combine(&mut self, other: &Token) {
-        // Use the quote mark for combining because it can't become part of a token in normal parsing
-        self.s.push('"');
+    pub fn combine(&mut self, other: &Token, c: char) {
+        self.s.push(c);
         self.s.push_str(&other.s);
     }
 
