@@ -48,3 +48,19 @@ impl DbKind for PoolSelector {
         vd.field_bool("court");
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct CharacterBackground {}
+
+impl CharacterBackground {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CharacterBackground, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for CharacterBackground {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        vd.field_items("trait", Item::Trait);
+    }
+}

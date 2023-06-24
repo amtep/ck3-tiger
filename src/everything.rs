@@ -70,7 +70,7 @@ use crate::data::nickname::Nickname;
 use crate::data::on_actions::OnActions;
 use crate::data::opinions::OpinionModifier;
 use crate::data::perks::Perk;
-use crate::data::pool::PoolSelector;
+use crate::data::pool::{CharacterBackground, PoolSelector};
 use crate::data::portrait::PortraitModifierGroup;
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
@@ -454,6 +454,7 @@ impl Everything {
         self.load_pdx_items(Item::CouncilPosition, CouncilPosition::add);
         self.load_pdx_items(Item::CouncilTask, CouncilTask::add);
         self.load_pdx_items(Item::PoolSelector, PoolSelector::add);
+        self.load_pdx_items(Item::CharacterBackground, CharacterBackground::add);
         self.load_pdx_items(Item::HolySite, HolySite::add);
         self.fileset.handle(&mut self.coas);
         self.load_pdx_items_optional_bom(Item::CoaTemplateList, CoaTemplateList::add);
@@ -566,6 +567,7 @@ impl Everything {
             | Item::CasusBelli
             | Item::CasusBelliGroup
             | Item::Catalyst
+            | Item::CharacterBackground
             | Item::CharacterTemplate
             | Item::ClothingGfx
             | Item::CoaColorList
@@ -699,8 +701,7 @@ impl Everything {
             Item::Trait => self.traits.exists(key),
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::CharacterBackground
-            | Item::CourtSceneGroup
+            Item::CourtSceneGroup
             | Item::DiarchyMandate
             | Item::DiarchyParameter
             | Item::DiarchyType
