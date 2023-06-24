@@ -94,6 +94,7 @@ use crate::data::scripted_triggers::{Trigger, Triggers};
 use crate::data::scriptvalues::ScriptValues;
 use crate::data::secrets::Secret;
 use crate::data::sound::Sounds;
+use crate::data::stories::Story;
 use crate::data::struggle::{Catalyst, Struggle};
 use crate::data::terrain::Terrain;
 use crate::data::title_history::TitleHistories;
@@ -520,6 +521,7 @@ impl Everything {
         self.load_pdx_items(Item::PortraitAnimation, PortraitAnimation::add);
         self.load_pdx_items(Item::GameRule, GameRule::add);
         self.load_pdx_items(Item::TravelOption, TravelOption::add);
+        self.load_pdx_items(Item::Story, Story::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -693,6 +695,7 @@ impl Everything {
             | Item::Secret
             | Item::SpecialBuilding
             | Item::SpecialGuest
+            | Item::Story
             | Item::Struggle
             | Item::StrugglePhase
             | Item::StrugglePhaseParameter
@@ -764,7 +767,6 @@ impl Everything {
             | Item::Law
             | Item::LawFlag
             | Item::PointOfInterest
-            | Item::Story
             | Item::Suggestion
             | Item::TitleLaw
             | Item::TitleLawFlag

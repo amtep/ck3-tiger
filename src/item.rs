@@ -378,7 +378,7 @@ impl Item {
             Sound => "sound/GUIDs.txt",
             SpecialBuilding => "common/buildings/",
             SpecialGuest => "common/activities/activity_types/",
-            Story => "common/story_cycle/",
+            Story => "common/story_cycles/",
             Struggle => "common/struggle/struggles/",
             StrugglePhase => "common/struggle/struggles/",
             StrugglePhaseParameter => "common/struggle/struggles/",

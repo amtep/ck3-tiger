@@ -75,6 +75,7 @@ pub mod scripted_triggers;
 pub mod scriptvalues;
 pub mod secrets;
 pub mod sound;
+pub mod stories;
 pub mod struggle;
 pub mod terrain;
 pub mod title_history;
