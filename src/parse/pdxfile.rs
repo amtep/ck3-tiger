@@ -558,11 +558,17 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
 }
 
 #[allow(clippy::module_name_repetitions)]
-pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
+pub fn parse_pdx(entry: &FileEntry, mut content: &str) -> Block {
     let blockloc = Loc::for_entry(entry);
     let mut loc = blockloc.clone();
     loc.line = 1;
     loc.column = 1;
+    // If the file ends with a ^Z, remove it.
+    // A ^Z anywhere else might be an error, if it interrupts the game reading the file.
+    // TODO: needs testing.
+    if let Some(stripped) = content.strip_suffix('\u{001A}') {
+        content = stripped;
+    }
     parse(
         blockloc,
         &[Token::new(content.to_string(), loc)],
