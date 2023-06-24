@@ -1,6 +1,7 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
+use crate::data::dna::validate_genes;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
@@ -91,4 +92,42 @@ fn validate_bookmark_character(block: &Block, data: &Everything, toplevel: bool)
     vd.field_validated_blocks("character", |block, data| {
         validate_bookmark_character(block, data, false);
     });
+}
+
+#[derive(Clone, Debug)]
+pub struct BookmarkPortrait {}
+
+impl BookmarkPortrait {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::BookmarkPortrait, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for BookmarkPortrait {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        vd.field_choice("type", &["male", "female", "boy", "girl"]);
+        vd.field_value("id"); // TODO
+        vd.field_numeric("age");
+        vd.field_list_integers_exactly("entity", 2);
+        vd.field_validated_block("genes", validate_genes);
+        vd.field_validated_block("override", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_block("portrait_modifier_overrides", |block, data| {
+                let mut vd = Validator::new(block, data);
+                for (key, value) in vd.unknown_value_fields() {
+                    data.verify_exists(Item::PortraitModifierGroup, key);
+                    data.verify_exists(Item::PortraitAccessory, value);
+                }
+            });
+        });
+        vd.field_validated_block("tags", |block, data| {
+            let mut vd = Validator::new(block, data);
+            for block in vd.blocks() {
+                let mut vd = Validator::new(block, data);
+                vd.field_value("hash");
+                vd.field_bool("invert");
+            }
+        });
+    }
 }

@@ -19,7 +19,7 @@ use crate::data::artifacts::{
     ArtifactVisual,
 };
 use crate::data::assets::Assets;
-use crate::data::bookmarks::{Bookmark, BookmarkGroup};
+use crate::data::bookmarks::{Bookmark, BookmarkGroup, BookmarkPortrait};
 use crate::data::buildings::Building;
 use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
@@ -446,6 +446,7 @@ impl Everything {
         self.load_pdx_items(Item::Dna, Dna::add);
         self.load_pdx_items(Item::Bookmark, Bookmark::add);
         self.load_pdx_items(Item::BookmarkGroup, BookmarkGroup::add);
+        self.load_pdx_items_optional_bom(Item::BookmarkPortrait, BookmarkPortrait::add);
         self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
         self.load_pdx_items(Item::Modifier, Modifier::add);
         self.load_pdx_items(Item::GovernmentType, Government::add);
@@ -558,6 +559,7 @@ impl Everything {
             | Item::ArtifactVisual
             | Item::Bookmark
             | Item::BookmarkGroup
+            | Item::BookmarkPortrait
             | Item::Building
             | Item::BuildingFlag
             | Item::BuildingGfx
@@ -711,6 +713,7 @@ impl Everything {
             | Item::Law
             | Item::LawFlag
             | Item::PointOfInterest
+            | Item::PortraitAccessory
             | Item::PortraitAnimation
             | Item::PortraitCamera
             | Item::Story
