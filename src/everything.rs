@@ -743,7 +743,6 @@ impl Everything {
             | Item::Law
             | Item::LawFlag
             | Item::PointOfInterest
-            | Item::PortraitAccessory
             | Item::PortraitAnimation
             | Item::PortraitCamera
             | Item::Story

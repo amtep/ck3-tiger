@@ -117,7 +117,7 @@ impl DbKind for BookmarkPortrait {
                 let mut vd = Validator::new(block, data);
                 for (key, value) in vd.unknown_value_fields() {
                     data.verify_exists(Item::PortraitModifierGroup, key);
-                    data.verify_exists(Item::PortraitAccessory, value);
+                    data.verify_exists(Item::Accessory, value);
                 }
             });
         });
