@@ -803,8 +803,8 @@ impl Everything {
         self.database.validate_use(itype, key, block, self);
     }
 
-    pub fn validate_call(&self, itype: Item, key: &Token, sc: &mut ScopeContext) {
-        self.database.validate_call(itype, key, self, sc);
+    pub fn validate_call(&self, itype: Item, key: &Token, block: &Block, sc: &mut ScopeContext) {
+        self.database.validate_call(itype, key, block, self, sc);
     }
 
     pub fn get_item<T: DbKind>(&self, itype: Item, key: &str) -> Option<(&Token, &Block, &T)> {

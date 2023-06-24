@@ -10,6 +10,9 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
+use crate::validate::{
+    validate_theme_background, validate_theme_icon, validate_theme_sound, validate_theme_transition,
+};
 
 #[derive(Clone, Debug)]
 pub struct EventTheme {
@@ -39,6 +42,7 @@ impl DbKind for EventTheme {
         _key: &Token,
         block: &Block,
         _caller: &Token,
+        _caller_block: &Block,
         data: &Everything,
         sc: &mut ScopeContext,
     ) {
@@ -54,38 +58,11 @@ impl DbKind for EventTheme {
         vd.req_field("icon");
         vd.req_field("sound");
 
-        vd.field_validated_blocks("background", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_validated_block("trigger", |b, data| {
-                validate_normal_trigger(b, data, sc, Tooltipped::No);
-            });
-            vd.field_item("reference", Item::EventBackground);
-        });
-
-        vd.field_validated_blocks("icon", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_validated_block("trigger", |b, data| {
-                validate_normal_trigger(b, data, sc, Tooltipped::No);
-            });
-            vd.field_item("reference", Item::File);
-        });
-
-        vd.field_validated_blocks("sound", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_validated_block("trigger", |b, data| {
-                validate_normal_trigger(b, data, sc, Tooltipped::No);
-            });
-            vd.field_item("reference", Item::Sound);
-        });
-
+        vd.field_validated_bvs_sc("background", sc, validate_theme_background);
+        vd.field_validated_blocks_sc("icon", sc, validate_theme_icon);
+        vd.field_validated_blocks_sc("sound", sc, validate_theme_sound);
         // `transition` is not documented but presumably works the same way
-        vd.field_validated_blocks("transition", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_validated_block("trigger", |b, data| {
-                validate_normal_trigger(b, data, sc, Tooltipped::No);
-            });
-            vd.field_item("reference", Item::EventTransition);
-        });
+        vd.field_validated_blocks_sc("transition", sc, validate_theme_transition);
     }
 }
 
@@ -114,6 +91,7 @@ impl DbKind for EventBackground {
         _key: &Token,
         block: &Block,
         _caller: &Token,
+        _caller_block: &Block,
         data: &Everything,
         sc: &mut ScopeContext,
     ) {
@@ -163,6 +141,7 @@ impl DbKind for EventTransition {
         _key: &Token,
         block: &Block,
         _caller: &Token,
+        _caller_block: &Block,
         data: &Everything,
         sc: &mut ScopeContext,
     ) {

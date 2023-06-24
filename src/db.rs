@@ -111,12 +111,19 @@ impl Db {
         }
     }
 
-    pub fn validate_call(&self, item: Item, key: &Token, data: &Everything, sc: &mut ScopeContext) {
+    pub fn validate_call(
+        &self,
+        item: Item,
+        key: &Token,
+        block: &Block,
+        data: &Everything,
+        sc: &mut ScopeContext,
+    ) {
         let index = (item, key.to_string());
         if let Some(entry) = self.database.get(&index) {
             entry
                 .kind
-                .validate_call(&entry.key, &entry.block, key, data, sc);
+                .validate_call(&entry.key, &entry.block, key, block, data, sc);
         }
     }
 
@@ -180,6 +187,7 @@ pub trait DbKind: Debug + AsAny {
         _key: &Token,
         _block: &Block,
         _from: &Token,
+        _from_block: &Block,
         _data: &Everything,
         _sc: &mut ScopeContext,
     ) {

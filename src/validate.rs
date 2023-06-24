@@ -53,23 +53,32 @@ impl TryFrom<&str> for ListType {
 }
 
 pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
-    if let Some(block) = bv.get_block() {
-        let mut vd = Validator::new(block, data);
-
-        vd.field_validated_block("trigger", |b, data| {
-            validate_normal_trigger(b, data, sc, Tooltipped::No);
-        });
-        if vd.field_value("event_background").is_some() {
-            let msg = "`event_background` now causes a crash. It has been replaced by `reference` since 1.9";
-            error(
-                block.get_key("event_background").unwrap(),
-                ErrorKey::Crash,
-                msg,
-            );
+    match bv {
+        BV::Value(token) => {
+            data.verify_exists(Item::EventBackground, token);
+            let block = Block::new(token.loc.clone());
+            data.validate_call(Item::EventBackground, token, &block, sc);
         }
-        vd.field_item("reference", Item::EventBackground);
-    } else {
-        // TODO: verify the background is defined
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+
+            vd.field_validated_block("trigger", |b, data| {
+                validate_normal_trigger(b, data, sc, Tooltipped::No);
+            });
+            if vd.field_value("event_background").is_some() {
+                let msg = "`event_background` now causes a crash. It has been replaced by `reference` since 1.9";
+                error(
+                    block.get_key("event_background").unwrap(),
+                    ErrorKey::Crash,
+                    msg,
+                );
+            }
+            vd.req_field("reference");
+            if let Some(token) = vd.field_value("reference") {
+                data.verify_exists(Item::EventBackground, token);
+                data.validate_call(Item::EventBackground, token, block, sc);
+            }
+        }
     }
 }
 
@@ -97,7 +106,10 @@ pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_validated_block("trigger", |b, data| {
         validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
-    vd.field_item("reference", Item::EventTransition);
+    if let Some(token) = vd.field_value("reference") {
+        data.verify_exists(Item::EventTransition, token);
+        data.validate_call(Item::EventTransition, token, block, sc);
+    }
 }
 
 pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &mut ScopeContext) {

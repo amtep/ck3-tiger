@@ -360,7 +360,7 @@ impl Event {
         vd.field_validated_block_sc("court_scene", &mut sc, validate_court_scene);
         if let Some(token) = vd.field_value("theme") {
             data.verify_exists(Item::EventTheme, token);
-            data.validate_call(Item::EventTheme, token, &mut sc);
+            data.validate_call(Item::EventTheme, token, &self.block, &mut sc);
         }
         // TODO: warn if more than one of each is defined with no trigger
         if evtype == "court_event" {

@@ -25,7 +25,8 @@ impl CharacterTemplate {
 impl DbKind for CharacterTemplate {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut sc = ScopeContext::new_unrooted(Scopes::all(), key.clone());
-        self.validate_call(key, block, key, data, &mut sc);
+        let b = Block::new(key.loc.clone());
+        self.validate_call(key, block, key, &b, data, &mut sc);
     }
 
     // TODO: lots of duplication between this and "create_character" effect
@@ -34,9 +35,11 @@ impl DbKind for CharacterTemplate {
         _key: &Token,
         block: &Block,
         _from: &Token,
+        from_block: &Block,
         data: &Everything,
         sc: &mut ScopeContext,
     ) {
+        // `from_block` is used to suppress warnings about targets that won't be used
         let mut vd = Validator::new(block, data);
         vd.field_item("name", Item::Localization);
         vd.field_script_value("age", sc);
@@ -49,8 +52,16 @@ impl DbKind for CharacterTemplate {
         vd.field_validated_blocks_sc("random_traits_list", sc, validate_random_traits_list);
         vd.field_bool("random_traits");
         vd.field_script_value("gender_female_chance", sc);
-        vd.field_target("culture", sc, Scopes::Culture);
-        vd.field_target("faith", sc, Scopes::Faith);
+        if from_block.has_key("culture") {
+            vd.field_value("culture");
+        } else {
+            vd.field_target("culture", sc, Scopes::Culture);
+        }
+        if from_block.has_key("faith") {
+            vd.field_value("faith");
+        } else {
+            vd.field_target("faith", sc, Scopes::Faith);
+        }
         vd.field_validated_blocks_sc("random_culture", sc, validate_random_culture);
         vd.field_validated_blocks_sc("random_faith", sc, validate_random_faith);
         vd.field_script_value("health", sc);
