@@ -992,12 +992,15 @@ fn validate_effect_special(
         validate_artifact(&caller, block, data, vd, sc, tooltipped);
     } else if caller == "create_character" {
         // docs say save_event_target instead of save_scope
+        vd.replaced_field("save_event_target_as", "save_scope_as");
+        vd.replaced_field("save_temporary_event_target_as", "save_temporary_scope_as");
         if let Some(name) = vd.field_value("save_scope_as") {
             sc.define_name(name.as_str(), Scopes::Character, name.clone());
         }
         if let Some(name) = vd.field_value("save_temporary_scope_as") {
             sc.define_name(name.as_str(), Scopes::Character, name.clone());
         }
+
         vd.field_validated_sc("name", sc, validate_desc);
         vd.field_script_value("age", sc);
         if let Some(token) = vd.field_value("gender") {
@@ -1015,6 +1018,7 @@ fn validate_effect_special(
         vd.field_target("mother", sc, Scopes::Character);
         vd.field_target("father", sc, Scopes::Character);
         vd.field_target("real_father", sc, Scopes::Character);
+        vd.req_field_one_of(&["location", "employer"]);
         vd.field_target("employer", sc, Scopes::Character);
         vd.field_target("location", sc, Scopes::Province);
         if let Some(token) = vd.field_value("template") {
