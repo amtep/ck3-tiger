@@ -27,6 +27,7 @@ use crate::data::characters::Characters;
 use crate::data::coa::{CoaDynamicDefinition, CoaTemplateList, Coas};
 use crate::data::colors::NamedColor;
 use crate::data::council::{CouncilPosition, CouncilTask};
+use crate::data::court_scene::CourtSceneGroup;
 use crate::data::court_type::CourtType;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
 use crate::data::cultures::{Culture, CultureEra, CulturePillar, CultureTradition};
@@ -476,6 +477,7 @@ impl Everything {
         self.load_pdx_items(Item::GuestInviteRule, GuestInviteRule::add);
         self.load_pdx_items(Item::PulseAction, PulseAction::add);
         self.load_pdx_items(Item::ScriptedAnimation, ScriptedAnimation::add);
+        self.load_pdx_items(Item::CourtSceneGroup, CourtSceneGroup::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -581,6 +583,7 @@ impl Everything {
             | Item::CouncilTask
             | Item::CourtPosition
             | Item::CourtPositionCategory
+            | Item::CourtSceneGroup
             | Item::CourtType
             | Item::CustomLocalization
             | Item::Culture
@@ -701,8 +704,7 @@ impl Everything {
             Item::Trait => self.traits.exists(key),
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::CourtSceneGroup
-            | Item::DiarchyMandate
+            Item::DiarchyMandate
             | Item::DiarchyParameter
             | Item::DiarchyType
             | Item::DynastyLegacy

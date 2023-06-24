@@ -12,6 +12,7 @@ pub mod characters;
 pub mod coa;
 pub mod colors;
 pub mod council;
+pub mod court_scene;
 pub mod court_type;
 pub mod courtpos;
 pub mod cultures;
