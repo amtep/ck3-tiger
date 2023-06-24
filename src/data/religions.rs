@@ -19,10 +19,23 @@ impl Religion {
                 if let Some(token) = block.get_field_value("graphical_faith") {
                     db.add_flag(Item::GraphicalFaith, token.clone());
                 }
+                if let Some(token) = block.get_field_value("icon") {
+                    db.add_flag(Item::FaithIcon, token.clone());
+                } else {
+                    db.add_flag(Item::FaithIcon, faith.clone());
+                }
+                if let Some(token) = block.get_field_value("reformed_icon") {
+                    db.add_flag(Item::FaithIcon, token.clone());
+                }
                 let kind = Box::new(Faith {
                     religion: key.clone(),
                 });
                 db.add(Item::Faith, faith.clone(), block.clone(), kind);
+            }
+        }
+        if let Some(block) = block.get_field_block("custom_faith_icons") {
+            for token in block.get_values() {
+                db.add_flag(Item::FaithIcon, token.clone());
             }
         }
         if let Some(token) = block.get_field_value("graphical_faith") {

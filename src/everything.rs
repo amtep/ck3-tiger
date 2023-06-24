@@ -643,6 +643,7 @@ impl Everything {
             | Item::EventTheme
             | Item::EventTransition
             | Item::Faith
+            | Item::FaithIcon
             | Item::Faction
             | Item::Focus
             | Item::GameRule
@@ -759,7 +760,6 @@ impl Everything {
             | Item::DiarchyType
             | Item::DynastyLegacy
             | Item::DynastyPerk
-            | Item::FaithIcon
             | Item::Inspiration
             | Item::Law
             | Item::LawFlag
