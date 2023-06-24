@@ -1,9 +1,10 @@
 use crate::block::validator::Validator;
-use crate::block::Block;
+use crate::block::{Block, BV};
+use crate::context::ScopeContext;
 use crate::data::genes::Gene;
 use crate::db::{Db, DbKind};
 use crate::errorkey::ErrorKey;
-use crate::errors::warn;
+use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
@@ -54,6 +55,20 @@ impl DbKind for PortraitModifierGroup {
         });
         for (key, block) in vd.unknown_block_fields() {
             validate_portrait_modifier(key, block, data, caller);
+        }
+    }
+
+    fn has_property(
+        &self,
+        _key: &Token,
+        block: &Block,
+        property: &str,
+        _data: &Everything,
+    ) -> bool {
+        if property == "fallback" || property == "add_accessory_modifiers" {
+            false
+        } else {
+            block.get_field_block(property).is_some()
         }
     }
 }
@@ -143,4 +158,115 @@ fn validate_add_accessory_modifiers(block: &Block, data: &Everything, caller: &s
         validate_normal_trigger(block, data, sc, Tooltipped::No);
     });
     vd.field_validated_blocks_rooted("weight", Scopes::Character, validate_modifiers_with_base);
+}
+
+#[derive(Clone, Debug)]
+pub struct PortraitAnimation {}
+
+impl PortraitAnimation {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::PortraitAnimation, key, block, Box::new(Self {}));
+    }
+}
+
+const TYPES: &[&str] = &["male", "female", "boy", "girl"];
+impl DbKind for PortraitAnimation {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        data.verify_exists(Item::Localization, key);
+
+        for field in TYPES {
+            vd.req_field(field);
+            vd.field_validated(field, |bv, data| {
+                match bv {
+                    BV::Value(token) => {
+                        // TODO: check that the chain eventually resolves to a block
+                        if !TYPES.contains(&token.as_str()) {
+                            warn(token, ErrorKey::Validation, "unknown body type");
+                        }
+                    }
+                    BV::Block(block) => {
+                        validate_animation(block, data);
+                    }
+                }
+            });
+        }
+    }
+}
+
+fn validate_animation(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.field_validated_block("default", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_value("head"); // TODO
+        vd.field_value("torso"); // TODO
+    });
+
+    vd.field_validated_blocks("portrait_modifier", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
+        });
+        validate_portrait_modifiers(block, data, vd);
+    });
+
+    for (_key, block) in vd.unknown_block_fields() {
+        let mut vd = Validator::new(block, data);
+        vd.field_validated_block("animation", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_value("head"); // TODO
+            vd.field_value("torso"); // TODO
+        });
+        vd.field_validated_key_block("weight", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+            sc.define_name("age", Scopes::Value, key.clone());
+            sc.define_name("current_weight", Scopes::Value, key.clone());
+            sc.define_name("ai_boldness", Scopes::Value, key.clone());
+            sc.define_name("ai_compassion", Scopes::Value, key.clone());
+            sc.define_name("ai_greed", Scopes::Value, key.clone());
+            sc.define_name("ai_honor", Scopes::Value, key.clone());
+            sc.define_name("ai_rationality", Scopes::Value, key.clone());
+            sc.define_name("ai_vengefulness", Scopes::Value, key.clone());
+            sc.define_name("ai_zeal", Scopes::Value, key.clone());
+            validate_modifiers_with_base(block, data, &mut sc);
+        });
+        vd.field_validated_block("portrait_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_portrait_modifiers(block, data, vd);
+        });
+        vd.field_item("portrait_modifier_pack", Item::PortraitModifierPack);
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct PortraitModifierPack {}
+
+impl PortraitModifierPack {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::PortraitModifierPack, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for PortraitModifierPack {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        vd.field_validated_blocks("portrait_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
+            });
+            validate_portrait_modifiers(block, data, vd);
+        });
+    }
+}
+
+fn validate_portrait_modifiers(_block: &Block, data: &Everything, mut vd: Validator) {
+    for (key, value) in vd.unknown_value_fields() {
+        data.verify_exists(Item::PortraitModifierGroup, key);
+        if !data.item_has_property(Item::PortraitModifierGroup, key.as_str(), value.as_str()) {
+            let msg = format!("portrait modifier {value} not found in group {key}");
+            error(value, ErrorKey::MissingItem, &msg);
+        }
+    }
 }

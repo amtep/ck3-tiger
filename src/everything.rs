@@ -74,7 +74,7 @@ use crate::data::on_actions::OnActions;
 use crate::data::opinions::OpinionModifier;
 use crate::data::perks::Perk;
 use crate::data::pool::{CharacterBackground, PoolSelector};
-use crate::data::portrait::PortraitModifierGroup;
+use crate::data::portrait::{PortraitAnimation, PortraitModifierGroup, PortraitModifierPack};
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::regions::Region;
@@ -332,16 +332,7 @@ impl Everything {
     where
         F: Fn(&mut Db, Token, Block),
     {
-        let subpath = PathBuf::from(itype.path());
-        for entry in self.fileset.get_files_under(&subpath) {
-            if entry.filename().to_string_lossy().ends_with(".txt") {
-                if let Some(block) = PdxFile::read(entry, &self.fileset.fullpath(entry)) {
-                    for (key, block) in block.iter_pure_definitions_warn() {
-                        add(&mut self.database, key.clone(), block.clone());
-                    }
-                }
-            }
-        }
+        self.load_pdx_items_ext(itype, add, ".txt");
     }
 
     /// Like `load_pdx_items` but does not complain about a missing BOM
@@ -355,6 +346,24 @@ impl Everything {
                 if let Some(block) =
                     PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
                 {
+                    for (key, block) in block.iter_pure_definitions_warn() {
+                        add(&mut self.database, key.clone(), block.clone());
+                    }
+                }
+            }
+        }
+    }
+
+    /// A helper function for categories of items that follow the usual pattern of
+    /// `.txt` files containing a block with definitions
+    pub fn load_pdx_items_ext<F>(&mut self, itype: Item, add: F, ext: &str)
+    where
+        F: Fn(&mut Db, Token, Block),
+    {
+        let subpath = PathBuf::from(itype.path());
+        for entry in self.fileset.get_files_under(&subpath) {
+            if entry.filename().to_string_lossy().ends_with(ext) {
+                if let Some(block) = PdxFile::read(entry, &self.fileset.fullpath(entry)) {
                     for (key, block) in block.iter_pure_definitions_warn() {
                         add(&mut self.database, key.clone(), block.clone());
                     }
@@ -461,6 +470,11 @@ impl Everything {
         self.load_pdx_items(Item::Accessory, Accessory::add);
         self.load_pdx_items(Item::AccessoryVariation, AccessoryVariation::add);
         self.load_pdx_items(Item::PortraitModifierGroup, PortraitModifierGroup::add);
+        self.load_pdx_items_ext(
+            Item::PortraitModifierPack,
+            PortraitModifierPack::add,
+            ".modifierpack",
+        );
         self.load_pdx_items(Item::AccoladeIcon, AccoladeIcon::add);
         self.load_pdx_items(Item::AccoladeName, AccoladeName::add);
         self.load_pdx_items(Item::AccoladeType, AccoladeType::add);
@@ -502,6 +516,7 @@ impl Everything {
         self.load_pdx_items(Item::CourtSceneGroup, CourtSceneGroup::add);
         self.load_pdx_items(Item::CourtSceneRole, CourtSceneRole::add);
         self.load_pdx_files_optional_bom(Item::CourtSceneSetting, CourtSceneSetting::add);
+        self.load_pdx_items(Item::PortraitAnimation, PortraitAnimation::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -655,7 +670,9 @@ impl Everything {
             | Item::Perk
             | Item::PerkTree
             | Item::PoolSelector
+            | Item::PortraitAnimation
             | Item::PortraitModifierGroup
+            | Item::PortraitModifierPack
             | Item::PulseAction
             | Item::Relation
             | Item::RelationFlag
@@ -743,7 +760,6 @@ impl Everything {
             | Item::Law
             | Item::LawFlag
             | Item::PointOfInterest
-            | Item::PortraitAnimation
             | Item::PortraitCamera
             | Item::Story
             | Item::Suggestion
