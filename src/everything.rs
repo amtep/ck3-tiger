@@ -27,7 +27,9 @@ use crate::data::characters::Characters;
 use crate::data::coa::{CoaDynamicDefinition, CoaTemplateList, Coas};
 use crate::data::colors::NamedColor;
 use crate::data::council::{CouncilPosition, CouncilTask};
-use crate::data::court_scene::CourtSceneGroup;
+use crate::data::court_scene::{
+    CourtSceneCulture, CourtSceneGroup, CourtSceneRole, CourtSceneSetting,
+};
 use crate::data::court_type::CourtType;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
 use crate::data::cultures::{Culture, CultureEra, CulturePillar, CultureTradition};
@@ -361,6 +363,25 @@ impl Everything {
         }
     }
 
+    /// A helper function for categories of items that are unusual in having each item in one file.
+    pub fn load_pdx_files_optional_bom<F>(&mut self, itype: Item, add: F)
+    where
+        F: Fn(&mut Db, Token, Block),
+    {
+        let subpath = PathBuf::from(itype.path());
+        for entry in self.fileset.get_files_under(&subpath) {
+            let filename = entry.filename().to_string_lossy();
+            if let Some(key) = filename.strip_suffix(".txt") {
+                if let Some(block) =
+                    PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
+                {
+                    let key = Token::new(key.to_string(), Loc::for_entry(entry));
+                    add(&mut self.database, key, block);
+                }
+            }
+        }
+    }
+
     pub fn load_all(&mut self) {
         self.load_errorkey_config();
         self.fileset.config(self.config.clone());
@@ -477,7 +498,10 @@ impl Everything {
         self.load_pdx_items(Item::GuestInviteRule, GuestInviteRule::add);
         self.load_pdx_items(Item::PulseAction, PulseAction::add);
         self.load_pdx_items(Item::ScriptedAnimation, ScriptedAnimation::add);
+        self.load_pdx_items(Item::CourtSceneCulture, CourtSceneCulture::add);
         self.load_pdx_items(Item::CourtSceneGroup, CourtSceneGroup::add);
+        self.load_pdx_items(Item::CourtSceneRole, CourtSceneRole::add);
+        self.load_pdx_files_optional_bom(Item::CourtSceneSetting, CourtSceneSetting::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -583,7 +607,10 @@ impl Everything {
             | Item::CouncilTask
             | Item::CourtPosition
             | Item::CourtPositionCategory
+            | Item::CourtSceneCulture
             | Item::CourtSceneGroup
+            | Item::CourtSceneRole
+            | Item::CourtSceneSetting
             | Item::CourtType
             | Item::CustomLocalization
             | Item::Culture
