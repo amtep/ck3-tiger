@@ -33,11 +33,11 @@ impl Musics {
     }
 
     pub fn exists(&self, key: &str) -> bool {
-        self.musics.contains_key(key)
+        self.musics.contains_key(key) || DLC_MUSIC.contains(&key)
     }
 
     pub fn verify_exists_implied(&self, key: &str, item: &Token) {
-        if !self.musics.contains_key(key) {
+        if !self.exists(key) {
             let msg = if key == item.as_str() {
                 "music not defined in music/ or dlc/*/music/".to_string()
             } else {
@@ -114,3 +114,84 @@ impl Music {
         vd.field_list_numeric_exactly("subsequent_playback_chance", 3);
     }
 }
+
+/// A list of music provided by DLCs, for people who don't have them
+/// LAST UPDATED VERSION 1.9.2.1
+const DLC_MUSIC: &[&str] = &[
+    // FP1
+    "mx_raid",
+    "mx_drakkar",
+    "mx_scandinavia",
+    "mx_thefeast",
+    // EP1
+    "middleeasterncourt_cue",
+    "europeancourt_cue",
+    "indiancourt_cue",
+    "mediterraneancourt_cue",
+    "mep1_mood_01",
+    "mep1_mood_02",
+    "mep1_mood_03",
+    "mep1_mood_04",
+    "group_roco",
+    // FP2
+    "mx_IberiaWar",
+    "mx_Struggle_ending_compromise",
+    "mx_Struggle_ending_conciliation",
+    "mx_Struggle_ending_hostility",
+    "mx_Struggle_Opening",
+    "mx_iberian_moodTrack1",
+    "mx_iberian_moodTrack2",
+    "mx_iberian_moodTrack3",
+    "group_foi",
+    // BP1
+    "mx_BP1Mood_Generic",
+    "mx_BP1Mood_Western",
+    "mx_BP1Mood_MiddleEastern",
+    "group_bp1",
+    // EP2
+    "tournamentwest_cue",
+    "tournamentmena_cue",
+    "tournamentindia_cue",
+    "tournamentend_cue",
+    "tourwest_cue",
+    "tourmena_cue",
+    "tourindia_cue",
+    "tourend_cue",
+    "weddingwest_cue",
+    "weddingmena_cue",
+    "weddingindia_cue",
+    "weddingend_cue",
+    "grandfeast_cue",
+    "murderfeast_cue",
+    "murderfest_cue",
+    "india_arrival_neutral_cue",
+    "india_arrival_suspicious_cue",
+    "india_arrival_welcome_cue",
+    "mena_arrival_neutral_cue",
+    "mena_arrival_suspicious_cue",
+    "mena_arrival_welcome_cue",
+    "west_arrival_neutral_cue",
+    "west_arrival_suspicious_cue",
+    "west_arrival_welcome_cue",
+    "mep2_mood_01",
+    "mep2_mood_02",
+    "mep2_mood_03",
+    "mep2_mood_04",
+    "group_ep2_cuetrack",
+    "group_ep2_moodtrack",
+    "mx_cue_tournament_win",
+    "mx_cue_tournament_lose",
+    "mx_cue_tournament_brawl",
+    "mx_cue_tournament_horse",
+    "mx_cue_tournament_mind",
+    "mx_cue_armorer",
+    "mx_cue_visitor_camp",
+    "mx_cue_farrier",
+    "mx_cue_fletcher",
+    "mx_cue_tourney_grounds",
+    "mx_cue_settlement",
+    "mx_cue_tailor",
+    "mx_cue_tavern",
+    "mx_cue_temple",
+    "mx_cue_weaponsmith",
+];
