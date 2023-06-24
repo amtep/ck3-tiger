@@ -651,6 +651,7 @@ impl Everything {
             | Item::GeneCategory
             | Item::GovernmentType
             | Item::GovernmentFlag
+            | Item::GraphicalFaith
             | Item::GuestInviteRule
             | Item::GuestSubset
             | Item::Holding
@@ -759,7 +760,6 @@ impl Everything {
             | Item::DynastyLegacy
             | Item::DynastyPerk
             | Item::FaithIcon
-            | Item::GraphicalFaith
             | Item::Inspiration
             | Item::Law
             | Item::LawFlag

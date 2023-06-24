@@ -16,15 +16,17 @@ impl Religion {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if let Some(block) = block.get_field_block("faiths") {
             for (faith, block) in block.iter_pure_definitions() {
-                db.add(
-                    Item::Faith,
-                    faith.clone(),
-                    block.clone(),
-                    Box::new(Faith {
-                        religion: key.clone(),
-                    }),
-                );
+                if let Some(token) = block.get_field_value("graphical_faith") {
+                    db.add_flag(Item::GraphicalFaith, token.clone());
+                }
+                let kind = Box::new(Faith {
+                    religion: key.clone(),
+                });
+                db.add(Item::Faith, faith.clone(), block.clone(), kind);
             }
+        }
+        if let Some(token) = block.get_field_value("graphical_faith") {
+            db.add_flag(Item::GraphicalFaith, token.clone());
         }
         db.add(Item::Religion, key, block, Box::new(Self {}));
     }
@@ -257,6 +259,9 @@ pub struct ReligionFamily {}
 
 impl ReligionFamily {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        if let Some(token) = block.get_field_value("graphical_faith") {
+            db.add_flag(Item::GraphicalFaith, token.clone());
+        }
         db.add(Item::ReligionFamily, key, block, Box::new(Self {}));
     }
 }
@@ -274,7 +279,7 @@ impl DbKind for ReligionFamily {
         }
 
         vd.field_bool("is_pagan");
-        vd.field_item("graphical_faith", Item::GraphicalFaith);
+        vd.field_value("graphical_faith");
         vd.field_value("piety_icon_group"); // TODO
         if let Some(icon) = vd.field_value("doctrine_background_icon") {
             let pathname = format!("gfx/interface/icons/faith_doctrines/{icon}");
