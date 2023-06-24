@@ -1,6 +1,5 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::effect::validate_normal_effect;
@@ -24,35 +23,34 @@ impl Faction {
 impl DbKind for Faction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Faction, key);
 
-        if !vd.field_validated_sc("name", &mut sc, validate_desc) {
+        if !vd.field_validated_rooted("name", Scopes::Faction, validate_desc) {
             data.verify_exists(Item::Localization, key);
         }
 
-        if !vd.field_validated_sc("description", &mut sc, validate_desc) {
+        if !vd.field_validated_rooted("description", Scopes::Faction, validate_desc) {
             let loca = format!("{key}_desc");
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
         vd.req_field("short_effect_desc");
-        vd.field_validated_sc("short_effect_desc", &mut sc, validate_desc);
+        vd.field_validated_rooted("short_effect_desc", Scopes::Faction, validate_desc);
 
-        vd.field_validated_block("demand", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        vd.field_validated_block_rooted("demand", Scopes::Faction, |block, data, sc| {
+            validate_normal_effect(block, data, sc, Tooltipped::No);
         });
-        vd.field_validated_block("update_effect", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        vd.field_validated_block_rooted("update_effect", Scopes::Faction, |block, data, sc| {
+            validate_normal_effect(block, data, sc, Tooltipped::No);
         });
         // docs say "on_declaration"
-        vd.field_validated_block("on_war_start", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        vd.field_validated_block_rooted("on_war_start", Scopes::Faction, |block, data, sc| {
+            validate_normal_effect(block, data, sc, Tooltipped::No);
         });
-        vd.field_validated_block("character_leaves", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        vd.field_validated_block_rooted("character_leaves", Scopes::Faction, |block, data, sc| {
+            validate_normal_effect(block, data, sc, Tooltipped::No);
         });
-        vd.field_validated_block("leader_leaves", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        vd.field_validated_block_rooted("leader_leaves", Scopes::Faction, |block, data, sc| {
+            validate_normal_effect(block, data, sc, Tooltipped::No);
         });
         vd.field_validated_block_rooted(
             "ai_join_score",
@@ -75,14 +73,26 @@ impl DbKind for Faction {
             validate_modifiers_with_base,
         );
         vd.field_script_value_rooted("county_power", Scopes::LandedTitle);
-        vd.field_validated_block_sc("ai_demand_chance", &mut sc, validate_modifiers_with_base);
-        vd.field_validated_block_sc("discontent_progress", &mut sc, validate_modifiers_with_base);
-        vd.field_validated("power_threshold", |bv, data| match bv {
-            BV::Value(t) => _ = t.expect_integer(),
-            BV::Block(b) => validate_modifiers_with_base(b, data, &mut sc),
-        });
-        vd.field_validated_block("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        vd.field_validated_block_rooted(
+            "ai_demand_chance",
+            Scopes::Faction,
+            validate_modifiers_with_base,
+        );
+        vd.field_validated_block_rooted(
+            "discontent_progress",
+            Scopes::Faction,
+            validate_modifiers_with_base,
+        );
+        vd.field_validated_rooted(
+            "power_threshold",
+            Scopes::Faction,
+            |bv, data, sc| match bv {
+                BV::Value(t) => _ = t.expect_integer(),
+                BV::Block(b) => validate_modifiers_with_base(b, data, sc),
+            },
+        );
+        vd.field_validated_block_rooted("is_valid", Scopes::Faction, |block, data, sc| {
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
         vd.field_validated_block_rooted(
             "is_character_valid",
@@ -162,11 +172,11 @@ impl DbKind for Faction {
         vd.field_bool("show_special_title");
 
         // undocumented fields follow
-        vd.field_validated_block("on_creation", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        vd.field_validated_block_rooted("on_creation", Scopes::Faction, |block, data, sc| {
+            validate_normal_effect(block, data, sc, Tooltipped::No);
         });
-        vd.field_validated_block("on_destroy", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        vd.field_validated_block_rooted("on_destroy", Scopes::Faction, |block, data, sc| {
+            validate_normal_effect(block, data, sc, Tooltipped::No);
         });
     }
 }
