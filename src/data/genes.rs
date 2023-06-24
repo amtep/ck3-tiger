@@ -33,7 +33,7 @@ impl Gene {
             }
             "morph_genes" => {
                 for (k, b) in block.iter_pure_definitions_warn() {
-                    MorphGene::add(db, k.clone(), b.clone());
+                    MorphGene::add(db, k.clone(), b.clone(), false);
                 }
             }
             "accessory_genes" => {
@@ -46,7 +46,7 @@ impl Gene {
                     match k.as_str() {
                         "morph_genes" => {
                             for (k, b) in b.iter_pure_definitions_warn() {
-                                MorphGene::add(db, k.clone(), b.clone());
+                                MorphGene::add(db, k.clone(), b.clone(), true);
                             }
                         }
                         "accessory_genes" => {
@@ -137,11 +137,12 @@ impl DbKind for AgePresetGene {
 
 #[derive(Clone, Debug)]
 pub struct MorphGene {
+    special_gene: bool,
     templates: FnvHashMap<String, Token>,
 }
 
 impl MorphGene {
-    pub fn add(db: &mut Db, key: Token, block: Block) {
+    pub fn add(db: &mut Db, key: Token, block: Block, special_gene: bool) {
         let mut templates = FnvHashMap::default();
         for (key, _block) in block.iter_pure_definitions() {
             if key.is("ugliness_feature_categories") {
@@ -152,7 +153,15 @@ impl MorphGene {
             }
             templates.insert(key.to_string(), key.clone());
         }
-        db.add(Item::GeneCategory, key, block, Box::new(Self { templates }));
+        db.add(
+            Item::GeneCategory,
+            key,
+            block,
+            Box::new(Self {
+                special_gene,
+                templates,
+            }),
+        );
     }
 }
 
@@ -162,7 +171,13 @@ impl DbKind for MorphGene {
 
         vd.field_list("ugliness_feature_categories"); // TODO: options
         vd.field_bool("can_have_portrait_extremity_shift");
-        vd.field_value("group"); // TODO
+        // TODO value?
+        if let Some(token) = vd.field_value("group") {
+            if self.special_gene {
+                let msg = "adding a group to a gene under special_genes will make the ruler designer crash";
+                error(token, ErrorKey::Crash, msg);
+            }
+        }
         for (_key, block) in vd.unknown_block_fields() {
             validate_morph_gene(block, data);
         }
