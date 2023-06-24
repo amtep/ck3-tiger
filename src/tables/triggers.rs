@@ -781,7 +781,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (GreatHolyWar, "has_forced_defender", Scope(Character)),
     (Province, "has_free_building_slot", Boolean),
     (Character, "has_free_council_slot", Boolean),
-    (None, "has_game_rule", Item(Item::GameRule)),
+    (None, "has_game_rule", Item(Item::GameRuleSetting)),
     (Character, "has_gene", Special),
     (None, "has_global_variable", UncheckedValue),
     (None, "has_global_variable_list", UncheckedValue),

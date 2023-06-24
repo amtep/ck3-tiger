@@ -384,6 +384,17 @@ impl<'a> Validator<'a> {
         })
     }
 
+    pub fn fields_choice(&mut self, name: &str, choices: &[&str]) -> bool {
+        self.fields_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                if !choices.contains(&token.as_str()) {
+                    let msg = format!("expected one of {}", choices.join(", "));
+                    error(token, ErrorKey::Validation, &msg);
+                }
+            }
+        })
+    }
+
     pub fn field_validated_list<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &Everything),

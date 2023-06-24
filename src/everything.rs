@@ -49,6 +49,7 @@ use crate::data::events::Events;
 use crate::data::factions::Faction;
 use crate::data::focus::Focus;
 use crate::data::gameconcepts::GameConcepts;
+use crate::data::gamerules::GameRule;
 use crate::data::genes::Gene;
 use crate::data::government::Government;
 use crate::data::gui::Gui;
@@ -517,6 +518,7 @@ impl Everything {
         self.load_pdx_items(Item::CourtSceneRole, CourtSceneRole::add);
         self.load_pdx_files_optional_bom(Item::CourtSceneSetting, CourtSceneSetting::add);
         self.load_pdx_items(Item::PortraitAnimation, PortraitAnimation::add);
+        self.load_pdx_items(Item::GameRule, GameRule::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -643,6 +645,8 @@ impl Everything {
             | Item::EventTransition
             | Item::Faction
             | Item::Focus
+            | Item::GameRule
+            | Item::GameRuleSetting
             | Item::GeneAgePreset
             | Item::GeneCategory
             | Item::GovernmentType
@@ -754,7 +758,6 @@ impl Everything {
             | Item::DynastyLegacy
             | Item::DynastyPerk
             | Item::FaithIcon
-            | Item::GameRule
             | Item::GraphicalFaith
             | Item::Inspiration
             | Item::Law

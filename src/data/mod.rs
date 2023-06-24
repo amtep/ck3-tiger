@@ -32,6 +32,7 @@ pub mod events;
 pub mod factions;
 pub mod focus;
 pub mod gameconcepts;
+pub mod gamerules;
 pub mod genes;
 pub mod government;
 pub mod gui;
