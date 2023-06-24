@@ -769,8 +769,7 @@ impl Everything {
             | Item::TitleLaw
             | Item::TitleLawFlag
             | Item::TraitTrack
-            | Item::TravelOption
-            | Item::TravelPlanModifier => true,
+            | Item::TravelOption => true,
         }
     }
 

@@ -992,11 +992,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         ]),
     ),
     (TravelPlan, "has_travel_option", Item(Item::TravelOption)),
-    (
-        TravelPlan,
-        "has_travel_plan_modifier",
-        Item(Item::TravelPlanModifier),
-    ),
+    (TravelPlan, "has_travel_plan_modifier", Item(Item::Modifier)),
     (
         Province,
         "has_travel_point_of_interest",
