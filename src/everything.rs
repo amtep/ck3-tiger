@@ -82,7 +82,7 @@ use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::regions::Region;
 use crate::data::relations::Relation;
-use crate::data::religions::{ReligionFamily, Religions};
+use crate::data::religions::{Religion, ReligionFamily};
 use crate::data::schemes::Scheme;
 use crate::data::scripted_animations::ScriptedAnimation;
 use crate::data::scripted_effects::{Effect, Effects};
@@ -171,9 +171,6 @@ pub struct Everything {
 
     /// Processed game concepts
     pub gameconcepts: GameConcepts,
-
-    /// Religions and faiths
-    pub religions: Religions,
 
     /// Landed titles
     pub titles: Titles,
@@ -264,7 +261,6 @@ impl Everything {
             provinces: Provinces::default(),
             province_histories: ProvinceHistories::default(),
             gameconcepts: GameConcepts::default(),
-            religions: Religions::default(),
             titles: Titles::default(),
             dynasties: Dynasties::default(),
             houses: Houses::default(),
@@ -412,7 +408,7 @@ impl Everything {
         self.fileset.handle(&mut self.provinces);
         self.fileset.handle(&mut self.province_histories);
         self.fileset.handle(&mut self.gameconcepts);
-        self.fileset.handle(&mut self.religions);
+        self.load_pdx_items(Item::Religion, Religion::add);
         self.load_pdx_items(Item::ReligionFamily, ReligionFamily::add);
         self.fileset.handle(&mut self.titles);
         self.fileset.handle(&mut self.dynasties);
@@ -544,7 +540,6 @@ impl Everything {
         self.provinces.validate(self);
         self.province_histories.validate(self);
         self.gameconcepts.validate(self);
-        self.religions.validate(self);
         self.titles.validate(self);
         self.dynasties.validate(self);
         self.houses.validate(self);
@@ -572,8 +567,7 @@ impl Everything {
     }
 
     pub fn check_pod(&mut self) {
-        self.province_histories
-            .check_pod_faiths(&self.religions, &self.titles);
+        self.province_histories.check_pod_faiths(self, &self.titles);
     }
 
     pub fn item_has_property(&self, itype: Item, key: &str, property: &str) -> bool {
@@ -648,6 +642,7 @@ impl Everything {
             | Item::EventBackground
             | Item::EventTheme
             | Item::EventTransition
+            | Item::Faith
             | Item::Faction
             | Item::Focus
             | Item::GameRule
@@ -686,6 +681,7 @@ impl Everything {
             | Item::PulseAction
             | Item::Relation
             | Item::RelationFlag
+            | Item::Religion
             | Item::ReligionFamily
             | Item::Region
             | Item::Scheme
@@ -725,7 +721,6 @@ impl Everything {
             Item::Entity => self.assets.entity_exists(key),
             Item::Event => self.events.exists(key),
             Item::EventNamespace => self.events.namespace_exists(key),
-            Item::Faith => self.religions.faith_exists(key),
             Item::File => self.fileset.exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
@@ -742,7 +737,6 @@ impl Everything {
             Item::Pdxmesh => self.assets.mesh_exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces.exists(key),
-            Item::Religion => self.religions.religion_exists(key),
             Item::RewardItem => REWARD_ITEMS.contains(&key),
             Item::ScriptedEffect => self.effects.exists(key),
             Item::ScriptedList => self.scripted_lists.exists(key),

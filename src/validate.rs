@@ -537,10 +537,27 @@ pub fn validate_cost_with_renown(block: &Block, data: &Everything, sc: &mut Scop
 
 pub fn validate_traits(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    // TODO: parse these. Can be single tokens ("wrathful") or assignments ("wrathful = 3")
-    // or even wrathful = { modifier = modifier_key scale = 2 }
-    vd.field_block("virtues");
-    vd.field_block("sins");
+    vd.field_validated_block("virtues", validate_virtues_sins);
+    vd.field_validated_block("sins", validate_virtues_sins);
+}
+
+pub fn validate_virtues_sins(block: &Block, data: &Everything) {
+    // Can be single tokens ("wrathful") or assignments ("wrathful = 3")
+    // or even wrathful = { scale = 2 weight = 2 } whatever that means
+    let mut vd = Validator::new(block, data);
+    for token in vd.values() {
+        data.verify_exists(Item::Trait, token);
+    }
+    for (key, value) in vd.unknown_value_fields() {
+        data.verify_exists(Item::Trait, key);
+        value.expect_number();
+    }
+    for (key, block) in vd.unknown_block_fields() {
+        data.verify_exists(Item::Trait, key);
+        let mut vd = Validator::new(block, data);
+        vd.field_numeric("scale");
+        vd.field_numeric("weight");
+    }
 }
 
 pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {

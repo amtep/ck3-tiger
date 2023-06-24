@@ -1,10 +1,9 @@
-use fnv::{FnvHashMap, FnvHashSet};
+use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date, BV};
 use crate::data::provinces::ProvId;
-use crate::data::religions::Religions;
 use crate::data::titles::Titles;
 use crate::effect::validate_normal_effect;
 use crate::errorkey::ErrorKey;
@@ -45,9 +44,7 @@ impl ProvinceHistories {
         }
     }
 
-    pub fn check_pod_faiths(&self, religions: &Religions, titles: &Titles) {
-        let mut warned = FnvHashSet::default();
-
+    pub fn check_pod_faiths(&self, data: &Everything, titles: &Titles) {
         for bookmark in [
             Date::new(1230, 1, 4),
             Date::new(1230, 1, 5),
@@ -59,13 +56,12 @@ impl ProvinceHistories {
                 if let Some(capital) = titles.capital_of(*provid) {
                     let religion = provhist.block.get_field_at_date("religion", bookmark);
                     if let Some(religion) = religion.and_then(BV::into_value) {
-                        if !religions.is_modded_faith(&religion) && !warned.contains(provid) {
+                        if !data.item_has_property(Item::Faith, religion.as_str(), "is_modded") {
                             let msg = format!(
                                 "Vanilla or unknown religion in prov {} (county {}) at {}",
                                 provhist.key, capital, bookmark
                             );
                             warn(religion, ErrorKey::PrincesOfDarkness, &msg);
-                            warned.insert(provid);
                         }
                     } else {
                         warn(&provhist.key, ErrorKey::PrincesOfDarkness, "no religion");
