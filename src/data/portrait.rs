@@ -270,3 +270,38 @@ fn validate_portrait_modifiers(_block: &Block, data: &Everything, mut vd: Valida
         }
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct PortraitCamera {}
+
+impl PortraitCamera {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::PortraitCamera, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for PortraitCamera {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        vd.field_validated_block("camera", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_list_integers_exactly("position", 3);
+            vd.field_value("position_node"); // TODO
+
+            vd.field_list_integers_exactly("look_at", 3);
+            vd.field_value("look_at_node"); // TODO
+
+            vd.field_integer("fov");
+            vd.field_list_integers_exactly("camera_near_far", 2);
+        });
+
+        if let Some(token) = vd.field_value("unknown") {
+            if token.as_str().contains('/') {
+                data.verify_exists(Item::File, token);
+            } else {
+                data.verify_exists(Item::PortraitCamera, token);
+            }
+        }
+    }
+}

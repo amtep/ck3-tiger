@@ -75,7 +75,9 @@ use crate::data::on_actions::OnActions;
 use crate::data::opinions::OpinionModifier;
 use crate::data::perks::Perk;
 use crate::data::pool::{CharacterBackground, PoolSelector};
-use crate::data::portrait::{PortraitAnimation, PortraitModifierGroup, PortraitModifierPack};
+use crate::data::portrait::{
+    PortraitAnimation, PortraitCamera, PortraitModifierGroup, PortraitModifierPack,
+};
 use crate::data::prov_history::ProvinceHistories;
 use crate::data::provinces::Provinces;
 use crate::data::regions::Region;
@@ -477,6 +479,7 @@ impl Everything {
             PortraitModifierPack::add,
             ".modifierpack",
         );
+        self.load_pdx_items(Item::PortraitCamera, PortraitCamera::add);
         self.load_pdx_items(Item::AccoladeIcon, AccoladeIcon::add);
         self.load_pdx_items(Item::AccoladeName, AccoladeName::add);
         self.load_pdx_items(Item::AccoladeType, AccoladeType::add);
@@ -677,6 +680,7 @@ impl Everything {
             | Item::PerkTree
             | Item::PoolSelector
             | Item::PortraitAnimation
+            | Item::PortraitCamera
             | Item::PortraitModifierGroup
             | Item::PortraitModifierPack
             | Item::PulseAction
@@ -766,7 +770,6 @@ impl Everything {
             | Item::Law
             | Item::LawFlag
             | Item::PointOfInterest
-            | Item::PortraitCamera
             | Item::Story
             | Item::Suggestion
             | Item::TitleLaw
