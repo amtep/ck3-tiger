@@ -497,7 +497,7 @@ fn validate_rules(block: &Block, data: &Everything) {
     }
 }
 
-fn validate_tes(key: &Token, block: &Block, data: &Everything, has_special_option: bool) {
+pub fn validate_tes(key: &Token, block: &Block, data: &Everything, has_special_option: bool) {
     let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
     sc.define_name("host", Scopes::Character, key.clone());
     sc.define_name("owner", Scopes::Character, key.clone());

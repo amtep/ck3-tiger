@@ -80,6 +80,7 @@ pub mod terrain;
 pub mod title_history;
 pub mod titles;
 pub mod traits;
+pub mod travel;
 pub mod trigger_localization;
 pub mod vassalcontract;
 pub mod vassalstance;

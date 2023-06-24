@@ -1269,7 +1269,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "is_married", Boolean),
     (CharacterMemory, "is_memory_of_travel", Scope(TravelPlan)),
     (LandedTitle, "is_mercenary_company", Boolean),
-    (Character, "is_mercenary_in_hire_range", Scope(Character)),
+    (None, "is_mercenary_in_hire_range", Scope(Character)),
     (LandedTitle, "is_neighbor_to_realm", Scope(Character)),
     (Character, "is_nibling_of", Scope(Character)),
     (Character, "is_normal_councillor", Boolean),

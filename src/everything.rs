@@ -97,6 +97,7 @@ use crate::data::terrain::Terrain;
 use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
 use crate::data::traits::Traits;
+use crate::data::travel::TravelOption;
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::data::vassalcontract::VassalContract;
 use crate::data::vassalstance::VassalStance;
@@ -519,6 +520,7 @@ impl Everything {
         self.load_pdx_files_optional_bom(Item::CourtSceneSetting, CourtSceneSetting::add);
         self.load_pdx_items(Item::PortraitAnimation, PortraitAnimation::add);
         self.load_pdx_items(Item::GameRule, GameRule::add);
+        self.load_pdx_items(Item::TravelOption, TravelOption::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -693,6 +695,7 @@ impl Everything {
             | Item::StrugglePhase
             | Item::StrugglePhaseParameter
             | Item::Terrain
+            | Item::TravelOption
             | Item::TriggerLocalization
             | Item::UnitGfx
             | Item::VassalContractFlag
@@ -768,8 +771,7 @@ impl Everything {
             | Item::Suggestion
             | Item::TitleLaw
             | Item::TitleLawFlag
-            | Item::TraitTrack
-            | Item::TravelOption => true,
+            | Item::TraitTrack => true,
         }
     }
 
