@@ -15,6 +15,17 @@ pub fn dup_error(key: &Token, other: &Token, id: &str) {
     );
 }
 
+/// Warns about an exact redefinition of a database item
+pub fn exact_dup_error(key: &Token, other: &Token, id: &str) {
+    warn2(
+        other,
+        ErrorKey::ExactDuplicateItem,
+        &format!("{id} is redefined by an identical {id}"),
+        key,
+        &format!("the other {id} is here"),
+    );
+}
+
 /// Warns about a redefinition of a database item, but only at "advice" level
 pub fn dup_advice(key: &Token, other: &Token, id: &str) {
     advice2(

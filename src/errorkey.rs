@@ -13,6 +13,7 @@ pub enum ErrorKey {
     Encoding,
     Localization,
     DuplicateItem,
+    ExactDuplicateItem,
     DuplicateField,
     NameConflict,
     EventNamespace,

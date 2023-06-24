@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
-use crate::helpers::{dup_advice, dup_error};
+use crate::helpers::{dup_advice, dup_error, exact_dup_error};
 use crate::item::Item;
 use crate::token::Token;
 
@@ -20,7 +20,11 @@ impl Db {
         let index = (item, key.to_string());
         if let Some(other) = self.database.get(&index) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(&key, &other.key, &item.to_string());
+                if other.block.equivalent(&block) {
+                    exact_dup_error(&key, &other.key, &item.to_string());
+                } else {
+                    dup_error(&key, &other.key, &item.to_string());
+                }
             }
         }
         self.database.insert(index, DbEntry { key, block, kind });
