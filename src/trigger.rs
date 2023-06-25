@@ -104,32 +104,26 @@ pub fn validate_trigger(
     }
 
     if caller == "custom_description" {
-        vd.field_target("object", sc, Scopes::non_primitive());
-        vd.field_script_value("value", sc);
+        // object and value are handled in the loop
     } else {
         vd.ban_field("object", || "`custom_description`");
         vd.ban_field("value", || "`custom_description`");
     }
 
     if caller == "modifier" {
-        vd.fields_script_value("add", sc);
-        vd.fields_script_value("factor", sc);
-        vd.field_validated_sc("desc", sc, validate_desc);
-        // TODO: treating the whole block as case-insensitive seems overkill, but...
-        vd.field_validated_sc("DESC", sc, validate_desc);
+        // add, factor and desc are handled in the loop
         vd.field_validated_block("trigger", |block, data| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
     } else {
         vd.ban_field("add", || "`modifier` or script values");
         vd.ban_field("factor", || "`modifier` blocks");
-        vd.ban_field("desc", || "`modifier` blocks");
+        vd.ban_field("desc", || "`modifier` or script values");
         vd.ban_field("trigger", || "`modifier` blocks");
     }
 
     if caller == "calc_true_if" {
         vd.req_field("amount");
-
         // TODO: verify these are integers
         vd.fields_any_cmp("amount");
     } else if !in_list {
@@ -137,6 +131,23 @@ pub fn validate_trigger(
     }
 
     for (key, cmp, bv) in vd.unknown_fields_any_cmp() {
+        if key.is("add") || key.is("factor") || key.is("value") {
+            ScriptValue::validate_bv(bv, data, sc);
+            continue;
+        }
+
+        if key.is("desc") || key.is("DESC") {
+            validate_desc(bv, data, sc);
+            continue;
+        }
+
+        if key.is("object") {
+            if let Some(token) = bv.expect_value() {
+                validate_target(token, data, sc, Scopes::non_primitive());
+            }
+            continue;
+        }
+
         if let Some((it_type, it_name)) = key.split_once('_') {
             if it_type.is("any")
                 || it_type.is("ordered")

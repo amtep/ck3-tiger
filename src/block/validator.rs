@@ -685,6 +685,26 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    pub fn field_validated_key_blocks<F>(&mut self, name: &str, mut f: F) -> bool
+    where
+        F: FnMut(&Token, &Block, &Everything),
+    {
+        let mut found = false;
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if key.is(name) {
+                    self.known_fields.push(key.as_str());
+                    expect_eq_qeq(key, *cmp);
+                    if let Some(block) = bv.expect_block() {
+                        f(key, block, self.data);
+                    }
+                    found = true;
+                }
+            }
+        }
+        found
+    }
+
     pub fn field_validated_block_sc<F>(
         &mut self,
         name: &str,

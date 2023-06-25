@@ -1,5 +1,7 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
+use crate::data::scriptvalues::ScriptValue;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
@@ -49,7 +51,12 @@ impl DbKind for CourtPosition {
         vd.field_item("category", Item::CourtPositionCategory);
         vd.field_choice("minimum_rank", &["county", "duchy", "kingdom", "empire"]);
         vd.field_bool("is_travel_related");
-        vd.field_script_value_rooted("opinion", Scopes::None);
+
+        let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+        sc.define_name("liege", Scopes::Character, key.clone());
+        sc.define_name("employee", Scopes::Character, key.clone());
+        vd.field_script_value("opinion", &mut sc);
+
         vd.field_validated_block("aptitude_level_breakpoints", validate_breakpoints);
         vd.field_script_value_rooted("aptitude", Scopes::Character);
         vd.field_validated_block_rooted("is_shown", Scopes::Character, |block, data, sc| {
@@ -59,15 +66,11 @@ impl DbKind for CourtPosition {
         vd.field_validated_block_rooted("valid_position", Scopes::Character, |block, data, sc| {
             validate_normal_trigger(block, data, sc, Tooltipped::Yes);
         });
-        vd.field_validated_block_rooted(
-            "is_shown_character",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
-            },
-        );
-        vd.field_validated_block_rooted("valid_character", Scopes::None, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+        vd.field_validated_block("is_shown_character", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+        vd.field_validated_block("valid_character", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         // guessing that root is the liege here
@@ -75,8 +78,10 @@ impl DbKind for CourtPosition {
             validate_cost(block, data, sc);
         });
 
-        vd.field_validated_block_rooted("salary", Scopes::None, |block, data, sc| {
-            validate_cost(block, data, sc);
+        vd.field_validated_key_block("salary", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+            sc.define_name("liege", Scopes::Character, key.clone());
+            validate_cost(block, data, &mut sc);
         });
 
         vd.field_validated_block("base_employer_modifier", |block, data| {
@@ -104,29 +109,49 @@ impl DbKind for CourtPosition {
             },
         );
 
-        vd.field_validated_block_rooted(
+        for field in &[
             "on_court_position_received",
-            Scopes::None,
-            |block, data, sc| {
-                validate_normal_effect(block, data, sc, Tooltipped::No);
-            },
-        );
-        vd.field_validated_block_rooted(
             "on_court_position_revoked",
-            Scopes::None,
-            |block, data, sc| {
-                validate_normal_effect(block, data, sc, Tooltipped::No);
-            },
-        );
-        vd.field_validated_block_rooted(
             "on_court_position_invalidated",
-            Scopes::None,
-            |block, data, sc| {
-                validate_normal_effect(block, data, sc, Tooltipped::No);
-            },
-        );
+        ] {
+            vd.field_validated_block(field, |block, data| {
+                validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            });
+        }
 
-        vd.field_script_value_rooted("candidate_score", Scopes::None);
+        vd.field_validated_key("candidate_score", |key, bv, data| {
+            let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+            sc.define_name("liege", Scopes::Character, key.clone());
+            sc.define_name("employee", Scopes::Character, key.clone());
+            sc.define_name("firing_court_position", Scopes::Bool, key.clone());
+            sc.define_name("percent_of_monthly_gold_income", Scopes::Value, key.clone());
+            sc.define_name(
+                "percent_of_positive_monthly_prestige_balance",
+                Scopes::Value,
+                key.clone(),
+            );
+            sc.define_name(
+                "percent_of_positive_monthly_piety_balance",
+                Scopes::Value,
+                key.clone(),
+            );
+            sc.define_name(
+                "percent_of_monthly_gold_income_all_positions",
+                Scopes::Value,
+                key.clone(),
+            );
+            sc.define_name(
+                "percent_of_positive_monthly_prestige_balance_all_positions",
+                Scopes::Value,
+                key.clone(),
+            );
+            sc.define_name(
+                "percent_of_positive_monthly_piety_balance_all_positions",
+                Scopes::Value,
+                key.clone(),
+            );
+            ScriptValue::validate_bv(bv, data, &mut sc);
+        });
 
         vd.field_bool("is_powerful_agent"); // undocumented
     }

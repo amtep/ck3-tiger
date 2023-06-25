@@ -39,6 +39,8 @@ impl DbKind for CustomLocalization {
         } else {
             sc = ScopeContext::new_root(Scopes::all(), key.clone());
         }
+        // Scopes depend on the scopes available in the loca where Custom or Custom2 is called. TODO
+        sc.set_strict_scopes(false);
         vd.field_bool("log_loc_errors");
 
         if block.has_key("parent") {

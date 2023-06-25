@@ -1,5 +1,6 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
@@ -23,19 +24,27 @@ impl DbKind for Story {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_validated_block_rooted("on_setup", Scopes::StoryCycle, |block, data, sc| {
-            validate_normal_effect(block, data, sc, Tooltipped::No);
+        vd.field_validated_key_block("on_setup", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::StoryCycle, key.clone());
+            sc.define_name("story", Scopes::StoryCycle, key.clone());
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
-        vd.field_validated_block_rooted("on_end", Scopes::StoryCycle, |block, data, sc| {
-            validate_normal_effect(block, data, sc, Tooltipped::No);
+        vd.field_validated_key_block("on_end", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::StoryCycle, key.clone());
+            sc.define_name("story", Scopes::StoryCycle, key.clone());
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
-        vd.field_validated_block_rooted("on_owner_death", Scopes::StoryCycle, |block, data, sc| {
-            validate_normal_effect(block, data, sc, Tooltipped::No);
+        vd.field_validated_key_block("on_owner_death", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::StoryCycle, key.clone());
+            sc.define_name("story", Scopes::StoryCycle, key.clone());
+            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
-        vd.field_validated_blocks_rooted("effect_group", Scopes::StoryCycle, |block, data, sc| {
+        vd.field_validated_key_blocks("effect_group", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::StoryCycle, key.clone());
+            sc.define_name("story", Scopes::StoryCycle, key.clone());
             let mut vd = Validator::new(block, data);
-            validate_optional_duration(&mut vd, sc);
+            validate_optional_duration(&mut vd, &mut sc);
 
             vd.field_validated("days", |bv, data| match bv {
                 BV::Value(token) => {

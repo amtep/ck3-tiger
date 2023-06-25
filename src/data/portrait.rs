@@ -26,6 +26,20 @@ impl DbKind for PortraitModifierGroup {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
+        // TODO: could the root be Scopes::None here?
+        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        sc.define_name("age", Scopes::Value, key.clone());
+        sc.define_name("culture", Scopes::Culture, key.clone());
+        sc.define_name("current_weight", Scopes::Value, key.clone());
+        sc.define_name("highest_held_title_tier", Scopes::Value, key.clone());
+        sc.define_name("faith", Scopes::Faith, key.clone());
+        sc.define_name("female", Scopes::Bool, key.clone());
+        sc.define_name("government", Scopes::GovernmentType, key.clone());
+        sc.define_name("prowess", Scopes::Value, key.clone());
+        sc.define_name("ruler_designer", Scopes::Bool, key.clone());
+        sc.define_name("weight_for_portrait", Scopes::Value, key.clone());
+        sc.define_name("year_of_birth", Scopes::Value, key.clone());
+
         vd.field_choice("usage", &["customization", "game", "both", "none"]);
         vd.field_integer("interface_position");
         vd.field_integer("priority");
@@ -51,10 +65,10 @@ impl DbKind for PortraitModifierGroup {
             }
         }
         vd.field_validated_blocks("add_accessory_modifiers", |block, data| {
-            validate_add_accessory_modifiers(block, data, caller);
+            validate_add_accessory_modifiers(block, data, caller, &mut sc);
         });
         for (key, block) in vd.unknown_block_fields() {
-            validate_portrait_modifier(key, block, data, caller);
+            validate_portrait_modifier(key, block, data, caller, &mut sc);
         }
     }
 
@@ -73,7 +87,13 @@ impl DbKind for PortraitModifierGroup {
     }
 }
 
-fn validate_portrait_modifier(key: &Token, block: &Block, data: &Everything, mut caller: &str) {
+fn validate_portrait_modifier(
+    key: &Token,
+    block: &Block,
+    data: &Everything,
+    mut caller: &str,
+    sc: &mut ScopeContext,
+) {
     let mut vd = Validator::new(block, data);
     vd.field_choice("usage", &["customization", "game", "both"]);
     if let Some(token) = block.get_field_value("usage") {
@@ -85,12 +105,13 @@ fn validate_portrait_modifier(key: &Token, block: &Block, data: &Everything, mut
         let loca = format!("PORTRAIT_MODIFIER_{caller}_{key}");
         data.verify_exists_implied(Item::Localization, &loca, key);
     }
-    vd.field_validated_block_rooted("is_valid_custom", Scopes::Character, |block, data, sc| {
-        validate_normal_trigger(block, data, sc, Tooltipped::No);
-    });
     vd.field_list("outfit_tags"); // TODO
     vd.field_bool("require_outfit_tags");
     vd.field_bool("ignore_outfit_tags");
+
+    vd.field_validated_block("is_valid_custom", |block, data| {
+        validate_normal_trigger(block, data, sc, Tooltipped::No);
+    });
 
     vd.field_validated_blocks("dna_modifiers", |block, data| {
         let mut vd = Validator::new(block, data);
@@ -103,7 +124,7 @@ fn validate_portrait_modifier(key: &Token, block: &Block, data: &Everything, mut
                     Gene::verify_has_template(category.as_str(), template, data);
                 }
             }
-            vd.field_script_value_rooted("value", Scopes::Character);
+            vd.field_script_value("value", sc);
             vd.field_validated_block("range", |block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.req_tokens_numbers_exactly(2);
@@ -134,15 +155,15 @@ fn validate_portrait_modifier(key: &Token, block: &Block, data: &Everything, mut
             vd.field_choice("type", &["male", "female", "boy", "girl"]);
         });
     });
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-    sc.define_name("age", Scopes::Value, key.clone());
-    sc.define_name("culture", Scopes::Culture, key.clone());
-    sc.define_name("current_weight", Scopes::Value, key.clone());
-    sc.define_name("ruler_designer", Scopes::Bool, key.clone());
-    vd.field_validated_blocks_sc("weight", &mut sc, validate_modifiers_with_base);
+    vd.field_validated_blocks_sc("weight", sc, validate_modifiers_with_base);
 }
 
-fn validate_add_accessory_modifiers(block: &Block, data: &Everything, caller: &str) {
+fn validate_add_accessory_modifiers(
+    block: &Block,
+    data: &Everything,
+    caller: &str,
+    sc: &mut ScopeContext,
+) {
     let mut vd = Validator::new(block, data);
     vd.field_item("gene", Item::GeneCategory);
     if let Some(category) = block.get_field_value("gene") {
@@ -159,10 +180,10 @@ fn validate_add_accessory_modifiers(block: &Block, data: &Everything, caller: &s
             }
         }
     }
-    vd.field_validated_block_rooted("is_valid_custom", Scopes::Character, |block, data, sc| {
+    vd.field_validated_block("is_valid_custom", |block, data| {
         validate_normal_trigger(block, data, sc, Tooltipped::No);
     });
-    vd.field_validated_blocks_rooted("weight", Scopes::Character, validate_modifiers_with_base);
+    vd.field_validated_blocks_sc("weight", sc, validate_modifiers_with_base);
 }
 
 #[derive(Clone, Debug)]
@@ -225,6 +246,7 @@ fn validate_animation(block: &Block, data: &Everything) {
         vd.field_validated_key_block("weight", |key, block, data| {
             let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
             sc.define_name("age", Scopes::Value, key.clone());
+            sc.define_name("culture", Scopes::Culture, key.clone());
             sc.define_name("current_weight", Scopes::Value, key.clone());
             sc.define_name("ai_boldness", Scopes::Value, key.clone());
             sc.define_name("ai_compassion", Scopes::Value, key.clone());

@@ -1,5 +1,6 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
@@ -180,12 +181,14 @@ impl DbKind for CulturePillar {
         });
         validate_modifiers(&mut vd);
 
-        vd.field_script_value_rooted("ai_will_do", Scopes::Culture);
-        vd.field_validated_block_rooted("is_shown", Scopes::Culture, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+        let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
+        sc.define_name("character", Scopes::Character, key.clone());
+        vd.field_script_value("ai_will_do", &mut sc);
+        vd.field_validated_block("is_shown", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
-        vd.field_validated_block_rooted("can_pick", Scopes::Culture, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+        vd.field_validated_block("can_pick", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated("color", |bv, data| match bv {
             BV::Value(token) => data.verify_exists(Item::NamedColor, token),
@@ -245,7 +248,12 @@ impl DbKind for CultureTradition {
             vd.field_item("name", Item::Localization);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
-        vd.field_validated_block_rooted("cost", Scopes::Culture, validate_cost);
+        vd.field_validated_key_block("cost", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
+            sc.define_name("replacing", Scopes::Bool, key.clone());
+            sc.define_name("character", Scopes::Character, key.clone());
+            validate_cost(block, data, &mut sc)
+        });
         vd.field_script_value_rooted("ai_will_do", Scopes::Culture);
         vd.field_validated_block_rooted("is_shown", Scopes::Culture, |block, data, sc| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
