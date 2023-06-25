@@ -38,6 +38,7 @@ use crate::data::data_binding::DataBindings;
 use crate::data::deathreasons::DeathReason;
 use crate::data::decisions::Decisions;
 use crate::data::defines::Defines;
+use crate::data::diarchies::{DiarchyMandate, DiarchyType};
 use crate::data::dna::Dna;
 use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
@@ -526,6 +527,8 @@ impl Everything {
         self.load_pdx_items(Item::Story, Story::add);
         self.load_pdx_items(Item::LawGroup, LawGroup::add);
         self.load_pdx_items(Item::SuccessionElection, Election::add);
+        self.load_pdx_items(Item::DiarchyType, DiarchyType::add);
+        self.load_pdx_items(Item::DiarchyMandate, DiarchyMandate::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -641,6 +644,9 @@ impl Everything {
             | Item::CultureParameter
             | Item::CultureTradition
             | Item::DeathReason
+            | Item::DiarchyMandate
+            | Item::DiarchyParameter
+            | Item::DiarchyType
             | Item::Dna
             | Item::EffectLocalization
             | Item::Environment
@@ -768,10 +774,7 @@ impl Everything {
             Item::Trait => self.traits.exists(key),
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::DiarchyMandate
-            | Item::DiarchyParameter
-            | Item::DiarchyType
-            | Item::DynastyLegacy
+            Item::DynastyLegacy
             | Item::DynastyPerk
             | Item::Inspiration
             | Item::PointOfInterest

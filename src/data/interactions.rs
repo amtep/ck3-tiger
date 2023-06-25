@@ -341,6 +341,14 @@ impl Interaction {
                 validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
+        if let Some(token) = self.block.get_key("ai_potential") {
+            if self.block.get_field_integer("ai_frequency").unwrap_or(0) == 0
+                && !self.key.is("revoke_title_interaction")
+            {
+                let msg = "`ai_potential` will not be used if `ai_frequency` is 0";
+                warn(token, ErrorKey::Unneeded, msg);
+            }
+        }
         vd.field_validated_sc(
             "ai_intermediary_accept",
             &mut sc.clone(),

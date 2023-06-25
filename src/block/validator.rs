@@ -236,6 +236,17 @@ impl<'a> Validator<'a> {
         })
     }
 
+    pub fn field_validated_values<F>(&mut self, name: &str, mut f: F) -> bool
+    where
+        F: FnMut(&Token, &Token, &Everything),
+    {
+        self.fields_check(name, |k, bv| {
+            if let Some(token) = bv.expect_value() {
+                f(k, token, self.data);
+            }
+        })
+    }
+
     pub fn field_item(&mut self, name: &str, itype: Item) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {

@@ -21,6 +21,7 @@ pub mod data_binding;
 pub mod deathreasons;
 pub mod decisions;
 pub mod defines;
+pub mod diarchies;
 pub mod dna;
 pub mod doctrines;
 pub mod dynasties;
