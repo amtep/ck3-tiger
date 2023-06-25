@@ -25,6 +25,9 @@ use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
 use crate::data::coa::{CoaDynamicDefinition, CoaTemplateList, Coas};
+use crate::data::coadesigner::{
+    CoaDesignerColorPalette, CoaDesignerColoredEmblem, CoaDesignerEmblemLayout, CoaDesignerPattern,
+};
 use crate::data::colors::NamedColor;
 use crate::data::council::{CouncilPosition, CouncilTask};
 use crate::data::court_scene::{
@@ -531,6 +534,13 @@ impl Everything {
         self.load_pdx_items(Item::DiarchyType, DiarchyType::add);
         self.load_pdx_items(Item::DiarchyMandate, DiarchyMandate::add);
         self.load_pdx_items(Item::Inspiration, Inspiration::add);
+        self.load_pdx_items(
+            Item::CoaDesignerColoredEmblem,
+            CoaDesignerColoredEmblem::add,
+        );
+        self.load_pdx_items(Item::CoaDesignerColorPalette, CoaDesignerColorPalette::add);
+        self.load_pdx_items(Item::CoaDesignerEmblemLayout, CoaDesignerEmblemLayout::add);
+        self.load_pdx_items(Item::CoaDesignerPattern, CoaDesignerPattern::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -625,6 +635,10 @@ impl Everything {
             | Item::ClothingGfx
             | Item::CoaColorList
             | Item::CoaColoredEmblemList
+            | Item::CoaDesignerColoredEmblem
+            | Item::CoaDesignerColorPalette
+            | Item::CoaDesignerEmblemLayout
+            | Item::CoaDesignerPattern
             | Item::CoaDynamicDefinition
             | Item::CoaGfx
             | Item::CoaPatternList

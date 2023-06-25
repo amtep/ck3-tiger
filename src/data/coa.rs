@@ -119,90 +119,90 @@ impl Coa {
     pub fn validate(&self, data: &Everything) {
         match &self.bv {
             BV::Value(token) => data.verify_exists(Item::Coa, token),
-            BV::Block(block) => self.validate_block(block, data),
+            BV::Block(block) => validate_coa_layout(block, data),
+        }
+    }
+}
+
+pub fn validate_coa_layout(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+
+    if let Some(token) = vd.field_value("pattern") {
+        if let Some((_, token)) = token.split_once('"') {
+            data.verify_exists(Item::CoaPatternList, &token);
+        } else {
+            let pathname = format!("gfx/coat_of_arms/patterns/{token}");
+            data.verify_exists_implied(Item::File, &pathname, token);
         }
     }
 
-    pub fn validate_block(&self, block: &Block, data: &Everything) {
-        let mut vd = Validator::new(block, data);
+    vd.field_validated("color1", |bv, data| {
+        validate_coa_color(bv, None, data);
+    });
+    vd.field_validated("color2", |bv, data| {
+        validate_coa_color(bv, None, data);
+    });
+    vd.field_validated("color3", |bv, data| {
+        validate_coa_color(bv, None, data);
+    });
+    vd.field_validated("color4", |bv, data| {
+        validate_coa_color(bv, None, data);
+    });
 
-        if let Some(token) = vd.field_value("pattern") {
+    vd.field_validated_blocks("colored_emblem", |subblock, data| {
+        let mut vd = Validator::new(subblock, data);
+        vd.req_field("texture");
+        if let Some(token) = vd.field_value("texture") {
             if let Some((_, token)) = token.split_once('"') {
-                data.verify_exists(Item::CoaPatternList, &token);
+                data.verify_exists(Item::CoaColoredEmblemList, &token);
             } else {
-                let pathname = format!("gfx/coat_of_arms/patterns/{token}");
+                let pathname = format!("gfx/coat_of_arms/colored_emblems/{token}");
                 data.verify_exists_implied(Item::File, &pathname, token);
             }
         }
 
         vd.field_validated("color1", |bv, data| {
-            validate_coa_color(bv, None, data);
+            validate_coa_color(bv, Some(block), data);
         });
         vd.field_validated("color2", |bv, data| {
-            validate_coa_color(bv, None, data);
+            validate_coa_color(bv, Some(block), data);
         });
         vd.field_validated("color3", |bv, data| {
-            validate_coa_color(bv, None, data);
+            validate_coa_color(bv, Some(block), data);
         });
         vd.field_validated("color4", |bv, data| {
-            validate_coa_color(bv, None, data);
+            validate_coa_color(bv, Some(block), data);
         });
-
-        vd.field_validated_blocks("colored_emblem", |subblock, data| {
-            let mut vd = Validator::new(subblock, data);
-            vd.req_field("texture");
-            if let Some(token) = vd.field_value("texture") {
-                if let Some((_, token)) = token.split_once('"') {
-                    data.verify_exists(Item::CoaColoredEmblemList, &token);
-                } else {
-                    let pathname = format!("gfx/coat_of_arms/colored_emblems/{token}");
-                    data.verify_exists_implied(Item::File, &pathname, token);
-                }
-            }
-
-            vd.field_validated("color1", |bv, data| {
-                validate_coa_color(bv, Some(block), data);
-            });
-            vd.field_validated("color2", |bv, data| {
-                validate_coa_color(bv, Some(block), data);
-            });
-            vd.field_validated("color3", |bv, data| {
-                validate_coa_color(bv, Some(block), data);
-            });
-            vd.field_validated("color4", |bv, data| {
-                validate_coa_color(bv, Some(block), data);
-            });
-            vd.field_validated_blocks("instance", |block, data| {
-                let mut vd = Validator::new(block, data);
-                vd.field_list_numeric_exactly("position", 2);
-                vd.field_list_numeric_exactly("scale", 2);
-                vd.field_numeric("rotation");
-                vd.field_numeric("depth");
-            });
-            vd.field_validated_block("mask", |block, data| {
-                let mut vd = Validator::new(block, data);
-                for token in vd.values() {
-                    if let Some(mask) = token.expect_integer() {
-                        if !(1..=3).contains(&mask) {
-                            warn(token, ErrorKey::Range, "mask should be from 1 to 3");
-                        }
+        vd.field_validated_blocks("instance", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_list_numeric_exactly("position", 2);
+            vd.field_list_numeric_exactly("scale", 2);
+            vd.field_numeric("rotation");
+            vd.field_numeric("depth");
+        });
+        vd.field_validated_block("mask", |block, data| {
+            let mut vd = Validator::new(block, data);
+            for token in vd.values() {
+                if let Some(mask) = token.expect_integer() {
+                    if !(1..=3).contains(&mask) {
+                        warn(token, ErrorKey::Range, "mask should be from 1 to 3");
                     }
                 }
-            });
-        });
-        vd.field_validated_blocks("textured_emblem", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.req_field("texture");
-            if let Some(token) = vd.field_value("texture") {
-                if let Some((_, token)) = token.split_once('"') {
-                    data.verify_exists(Item::CoaTexturedEmblemList, &token);
-                } else {
-                    let pathname = format!("gfx/coat_of_arms/textured_emblems/{token}");
-                    data.verify_exists_implied(Item::File, &pathname, token);
-                }
             }
         });
-    }
+    });
+    vd.field_validated_blocks("textured_emblem", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.req_field("texture");
+        if let Some(token) = vd.field_value("texture") {
+            if let Some((_, token)) = token.split_once('"') {
+                data.verify_exists(Item::CoaTexturedEmblemList, &token);
+            } else {
+                let pathname = format!("gfx/coat_of_arms/textured_emblems/{token}");
+                data.verify_exists_implied(Item::File, &pathname, token);
+            }
+        }
+    });
 }
 
 fn validate_coa_color(bv: &BV, block: Option<&Block>, data: &Everything) {

@@ -10,6 +10,7 @@ pub mod casusbelli;
 pub mod character_templates;
 pub mod characters;
 pub mod coa;
+pub mod coadesigner;
 pub mod colors;
 pub mod council;
 pub mod court_scene;
