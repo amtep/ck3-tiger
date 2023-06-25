@@ -172,6 +172,7 @@ impl DbKind for CasusBelli {
             "all",
             "claim",
             "de_jure",
+            "independence_domain", // undocumented
         ];
         vd.field_choice("target_titles", choices);
         let choices = &["all", "barony", "county", "duchy", "kingdom", "empire"];

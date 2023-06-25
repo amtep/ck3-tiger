@@ -487,7 +487,7 @@ fn validate_morph_gene(block: &Block, data: &Everything) {
                     // TODO: if it refers to another field, check that following the chain of fields eventually reaches a block
                     if !choices.contains(&token.as_str()) {
                         let msg = format!("expected one of {}", choices.join(", "));
-                        warn(token, ErrorKey::Validation, &msg);
+                        warn(token, ErrorKey::Choice, &msg);
                     }
                 }
                 BV::Block(block) => {
@@ -517,7 +517,7 @@ fn validate_accessory_gene(block: &Block, data: &Everything) {
                     // TODO: if it refers to another field, check that following the chain of fields eventually reaches a block
                     if !choices.contains(&token.as_str()) {
                         let msg = format!("expected one of {}", choices.join(", "));
-                        warn(token, ErrorKey::Validation, &msg);
+                        warn(token, ErrorKey::Choice, &msg);
                     }
                 }
                 BV::Block(block) => {

@@ -218,7 +218,7 @@ pub fn validate_effect<'a>(
                     if let Some(token) = bv.expect_value() {
                         if !choices.contains(&token.as_str()) {
                             let msg = format!("expected one of {}", choices.join(", "));
-                            error(token, ErrorKey::Validation, &msg);
+                            error(token, ErrorKey::Choice, &msg);
                         }
                     }
                 }

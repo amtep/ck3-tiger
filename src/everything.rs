@@ -42,6 +42,7 @@ use crate::data::dna::Dna;
 use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
 use crate::data::effect_localization::EffectLocalization;
+use crate::data::election::Election;
 use crate::data::environment::Environment;
 use crate::data::ethnicity::Ethnicity;
 use crate::data::event_themes::{EventBackground, EventTheme, EventTransition};
@@ -524,6 +525,7 @@ impl Everything {
         self.load_pdx_items(Item::TravelOption, TravelOption::add);
         self.load_pdx_items(Item::Story, Story::add);
         self.load_pdx_items(Item::LawGroup, LawGroup::add);
+        self.load_pdx_items(Item::SuccessionElection, Election::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -704,6 +706,7 @@ impl Everything {
             | Item::Struggle
             | Item::StrugglePhase
             | Item::StrugglePhaseParameter
+            | Item::SuccessionElection
             | Item::Terrain
             | Item::TitleLaw
             | Item::TitleLawFlag
@@ -772,7 +775,6 @@ impl Everything {
             | Item::DynastyPerk
             | Item::Inspiration
             | Item::PointOfInterest
-            | Item::SuccessionElection
             | Item::Suggestion
             | Item::TraitTrack => true,
         }

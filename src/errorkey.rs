@@ -46,6 +46,7 @@ pub enum ErrorKey {
     UnusedLocalization,
     NameCollision,
     UnknownList,
+    Choice,
 
     PrincesOfDarkness,
 
