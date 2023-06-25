@@ -44,6 +44,7 @@ pub mod hooks;
 pub mod houses;
 pub mod important_actions;
 pub mod innovations;
+pub mod inspirations;
 pub mod interaction_cats;
 pub mod interactions;
 pub mod laws;

@@ -61,6 +61,7 @@ use crate::data::hooks::Hook;
 use crate::data::houses::Houses;
 use crate::data::important_actions::ImportantAction;
 use crate::data::innovations::Innovation;
+use crate::data::inspirations::Inspiration;
 use crate::data::interaction_cats::InteractionCategories;
 use crate::data::interactions::Interactions;
 use crate::data::laws::LawGroup;
@@ -529,6 +530,7 @@ impl Everything {
         self.load_pdx_items(Item::SuccessionElection, Election::add);
         self.load_pdx_items(Item::DiarchyType, DiarchyType::add);
         self.load_pdx_items(Item::DiarchyMandate, DiarchyMandate::add);
+        self.load_pdx_items(Item::Inspiration, Inspiration::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -675,6 +677,7 @@ impl Everything {
             | Item::ImportantAction
             | Item::Innovation
             | Item::InnovationFlag
+            | Item::Inspiration
             | Item::Language
             | Item::Law
             | Item::LawFlag
@@ -776,7 +779,6 @@ impl Everything {
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
             Item::DynastyLegacy
             | Item::DynastyPerk
-            | Item::Inspiration
             | Item::PointOfInterest
             | Item::Suggestion
             | Item::TraitTrack => true,
