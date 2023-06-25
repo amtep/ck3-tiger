@@ -304,7 +304,7 @@ impl DbKind for ReligionFamily {
 
 // LAST UPDATED VERSION 1.9.0.2
 // Taken from the Faith.random_ values in `data_types_uncategorized.txt`
-const CUSTOM_RELIGION_LOCAS: &[&str] = &[
+pub const CUSTOM_RELIGION_LOCAS: &[&str] = &[
     "AltPriestTermPlural",
     "BishopFemale",
     "BishopFemalePlural",

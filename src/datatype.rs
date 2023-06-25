@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::str::FromStr;
 
 use crate::data::customloca::CustomLocalization;
+use crate::data::religions::CUSTOM_RELIGION_LOCAS;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, warn_info};
 use crate::everything::Everything;
@@ -309,7 +310,9 @@ pub fn validate_datatypes(
                 if let Some(scopes) = scope_from_datatype(curtype) {
                     validate_custom(token, data, scopes, lang);
                 } else if curtype == Datatype::Unknown {
-                    validate_custom(token, data, Scopes::all(), lang);
+                    if !CUSTOM_RELIGION_LOCAS.contains(&token.as_str()) {
+                        validate_custom(token, data, Scopes::all(), lang);
+                    }
                 }
             }
         }
