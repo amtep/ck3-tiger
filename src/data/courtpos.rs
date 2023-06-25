@@ -123,6 +123,7 @@ impl DbKind for CourtPosition {
             let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
             sc.define_name("liege", Scopes::Character, key.clone());
             sc.define_name("employee", Scopes::Character, key.clone());
+            sc.define_name("base_value", Scopes::Value, key.clone());
             sc.define_name("firing_court_position", Scopes::Bool, key.clone());
             sc.define_name("percent_of_monthly_gold_income", Scopes::Value, key.clone());
             sc.define_name(

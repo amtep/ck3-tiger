@@ -584,7 +584,9 @@ fn validate_effect_special_bv(
     } else if caller == "change_first_name" {
         match bv {
             BV::Value(token) => {
-                if !data.item_exists(Item::Localization, token.as_str()) {
+                if data.item_exists(Item::Localization, token.as_str()) {
+                    data.item_used(Item::Localization, token.as_str());
+                } else {
                     validate_target(token, data, sc, Scopes::Flag);
                 }
             }

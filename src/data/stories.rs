@@ -57,30 +57,30 @@ impl DbKind for Story {
             });
             vd.field_integer("chance");
 
-            vd.field_validated_block_rooted("trigger", Scopes::StoryCycle, |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+            vd.field_validated_block("trigger", |block, data| {
+                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
             });
 
-            validate_complex_effect(&mut vd);
+            validate_complex_effect(&mut vd, &mut sc);
         });
     }
 }
 
-fn validate_complex_effect(vd: &mut Validator) {
+fn validate_complex_effect(vd: &mut Validator, sc: &mut ScopeContext) {
     vd.field_validated_blocks("first_valid", |block, data| {
         let mut vd = Validator::new(block, data);
-        validate_complex_effect(&mut vd);
+        validate_complex_effect(&mut vd, sc);
     });
     vd.field_validated_blocks("random_valid", |block, data| {
         let mut vd = Validator::new(block, data);
-        validate_complex_effect(&mut vd);
+        validate_complex_effect(&mut vd, sc);
     });
     vd.field_validated_blocks("triggered_effect", |block, data| {
         let mut vd = Validator::new(block, data);
-        vd.field_validated_block_rooted("trigger", Scopes::StoryCycle, |block, data, sc| {
+        vd.field_validated_block("trigger", |block, data| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
-        vd.field_validated_block_rooted("effect", Scopes::StoryCycle, |block, data, sc| {
+        vd.field_validated_block("effect", |block, data| {
             validate_normal_effect(block, data, sc, Tooltipped::No);
         });
     });

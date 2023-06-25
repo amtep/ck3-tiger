@@ -24,6 +24,7 @@ impl DbKind for ScriptedRule {
         for (name, scope, tooltipped) in SCRIPTED_RULE_ROOTS {
             if key.is(name) {
                 let mut sc = ScopeContext::new_root(*scope, key.clone());
+                sc.set_strict_scopes(false); // TODO
                 validate_normal_trigger(block, data, &mut sc, *tooltipped);
                 return;
             }

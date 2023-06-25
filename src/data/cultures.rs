@@ -254,9 +254,11 @@ impl DbKind for CultureTradition {
             sc.define_name("character", Scopes::Character, key.clone());
             validate_cost(block, data, &mut sc)
         });
-        vd.field_script_value_rooted("ai_will_do", Scopes::Culture);
-        vd.field_validated_block_rooted("is_shown", Scopes::Culture, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+        let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
+        sc.define_name("character", Scopes::Character, key.clone());
+        vd.field_script_value("ai_will_do", &mut sc);
+        vd.field_validated_block("is_shown", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
     }
 }

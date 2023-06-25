@@ -308,6 +308,8 @@ pub fn validate_datatypes(
             if let CodeArg::Literal(ref token) = code.arguments[0] {
                 if let Some(scopes) = scope_from_datatype(curtype) {
                     validate_custom(token, data, scopes, lang);
+                } else if curtype == Datatype::Unknown {
+                    validate_custom(token, data, Scopes::all(), lang);
                 }
             }
         }

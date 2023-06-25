@@ -27,16 +27,14 @@ impl DbKind for CouncilPosition {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        sc.define_name("councillor", Scopes::Character, key.clone());
+        sc.define_name("councillor_liege", Scopes::Character, key.clone());
 
         // The base key has to exist even if name = a triggered desc
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_possessive");
         data.verify_exists_implied(Item::Localization, &loca, key);
-        vd.field_validated_key("name", |key, bv, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-            sc.define_name("councillor_liege", Scopes::Character, key.clone());
-            validate_desc(bv, data, &mut sc);
-        });
+        vd.field_validated_sc("name", &mut sc, validate_desc);
         vd.field_validated_sc("tooltip", &mut sc, validate_desc);
 
         vd.field_item("skill", Item::Skill);

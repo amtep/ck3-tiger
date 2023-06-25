@@ -30,6 +30,7 @@ impl DbKind for ImportantAction {
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
         let loca = format!("{key}_click");
+        data.verify_exists_implied(Item::Localization, &loca, key);
         if block.field_value_is("combine_into_one", "yes") {
             data.verify_exists_implied(Item::Localization, &loca, key);
             let loca = format!("{key}_combined_label");
