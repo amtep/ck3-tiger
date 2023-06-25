@@ -1,8 +1,8 @@
 # ck3-tiger
-Pounces on bugs. Checks Crusader Kings 3 user mod files for common mistakes and warns about them. For example: missing localizations, or using a faith trigger on a character.
+Pounces on bugs. Checks Crusader Kings 3 user mod files for mistakes and warns about them. For example: missing localizations, or using a faith trigger on a character.
 
 ## Status
-This project still in its beginning stages. It will warn about some things that are actually correct.
+This project maturing but it's not stable yet. It will warn about some things that are actually correct.
 
 ## Features
 `ck3-tiger` will read the relevant vanilla files and your mod's files, and it will complain about everything in your mod that looks wrong. Where possible, it will tell you why it thinks the thing is wrong and (still in very few cases) what you should do instead.
@@ -14,7 +14,7 @@ This project still in its beginning stages. It will warn about some things that 
 * History: Are spouses, employers, and lieges alive on the relevant dates? Is no one their own grandfather?
 * Special: rivers.png check
 
-It doesn't load all the game files yet, but it hits the major ones (events, decisions, history, localization, scripted triggers and effects) and many minor ones.
+It doesn't load all the game files yet, but the gaps are few.
 
 ## Contributions
 
