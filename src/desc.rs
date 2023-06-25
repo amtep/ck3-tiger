@@ -3,6 +3,7 @@ use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
 use crate::errors::{warn, warn_info};
 use crate::everything::Everything;
+use crate::item::Item;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
@@ -98,6 +99,6 @@ pub fn validate_desc_map(
 
 pub fn validate_desc(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     validate_desc_map(bv, data, sc, |token, data| {
-        data.localization.verify_exists(token);
+        data.verify_exists(Item::Localization, token);
     });
 }

@@ -80,8 +80,10 @@ impl ColorGene {
 }
 
 impl DbKind for ColorGene {
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+        data.verify_exists(Item::Localization, key);
+
         vd.req_field("group");
         vd.req_field("color");
         vd.req_field("blend_range");
@@ -166,8 +168,10 @@ impl MorphGene {
 }
 
 impl DbKind for MorphGene {
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
 
         vd.field_list("ugliness_feature_categories"); // TODO: options
         vd.field_bool("can_have_portrait_extremity_shift");

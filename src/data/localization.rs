@@ -340,6 +340,18 @@ impl Localization {
     }
 
     pub fn check_unused(&self, _data: &Everything) {
+        // Mark all the loading tips as used
+        let mut tip = 0;
+        loop {
+            let loca = format!("LOADING_TIP_{tip}");
+            if self.exists(&loca) {
+                self.mark_used(&loca);
+            } else {
+                break;
+            }
+            tip += 1;
+        }
+
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {
                 let mut vec = Vec::new();
