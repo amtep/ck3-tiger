@@ -317,6 +317,12 @@ pub fn validate_datatypes(
             }
         }
 
+        if code.name.is("Localize") && code.arguments.len() == 1 {
+            if let CodeArg::Literal(ref token) = code.arguments[0] {
+                data.verify_exists(Item::Localization, token);
+            }
+        }
+
         match args {
             Args::NoArgs => (),
             Args::Arg1(dt1) => validate_argument(&code.arguments[0], data, dt1, lang),
