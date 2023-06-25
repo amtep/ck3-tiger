@@ -61,6 +61,7 @@ use crate::data::important_actions::ImportantAction;
 use crate::data::innovations::Innovation;
 use crate::data::interaction_cats::InteractionCategories;
 use crate::data::interactions::Interactions;
+use crate::data::laws::LawGroup;
 use crate::data::lifestyles::Lifestyle;
 use crate::data::localization::Localization;
 use crate::data::maa::MenAtArmsTypes;
@@ -522,6 +523,7 @@ impl Everything {
         self.load_pdx_items(Item::GameRule, GameRule::add);
         self.load_pdx_items(Item::TravelOption, TravelOption::add);
         self.load_pdx_items(Item::Story, Story::add);
+        self.load_pdx_items(Item::LawGroup, LawGroup::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -666,6 +668,9 @@ impl Everything {
             | Item::Innovation
             | Item::InnovationFlag
             | Item::Language
+            | Item::Law
+            | Item::LawFlag
+            | Item::LawGroup
             | Item::Lifestyle
             | Item::MapMode
             | Item::MemoryCategory
@@ -700,6 +705,8 @@ impl Everything {
             | Item::StrugglePhase
             | Item::StrugglePhaseParameter
             | Item::Terrain
+            | Item::TitleLaw
+            | Item::TitleLawFlag
             | Item::TravelOption
             | Item::TriggerLocalization
             | Item::UnitGfx
@@ -764,12 +771,9 @@ impl Everything {
             | Item::DynastyLegacy
             | Item::DynastyPerk
             | Item::Inspiration
-            | Item::Law
-            | Item::LawFlag
             | Item::PointOfInterest
+            | Item::SuccessionElection
             | Item::Suggestion
-            | Item::TitleLaw
-            | Item::TitleLawFlag
             | Item::TraitTrack => true,
         }
     }

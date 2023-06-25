@@ -44,6 +44,7 @@ pub mod important_actions;
 pub mod innovations;
 pub mod interaction_cats;
 pub mod interactions;
+pub mod laws;
 pub mod lifestyles;
 pub mod localization;
 pub mod maa;
