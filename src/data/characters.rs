@@ -149,6 +149,16 @@ impl Characters {
         }
         cycle_vec
     }
+
+    pub fn check_pod_flags(&self, data: &Everything) {
+        let mut vec = self.characters.values().collect::<Vec<&Character>>();
+        vec.sort_unstable_by_key(|item| &item.key.loc);
+        for item in vec {
+            if item.born_by(self.config_only_born) {
+                item.check_pod_flags(data);
+            }
+        }
+    }
 }
 
 impl FileHandler for Characters {
@@ -379,6 +389,73 @@ impl Character {
             Self::validate_history(date, b, &self.block, data, &mut sc);
         });
     }
+
+    fn check_pod_flags(&self, _data: &Everything) {
+        if self.block.has_key("dna") {
+            if self.has_trait("nosferatu")
+                && !self.has_flag("had_POD_character_nosferatu_looks")
+                && !self.key.is("791762")
+            {
+                let msg = "nosferatu with predefined dna lacks had_POD_character_nosferatu_looks";
+                error(&self.key, ErrorKey::PrincesOfDarkness, msg);
+            }
+        }
+    }
+
+    fn has_flag(&self, flag: &str) -> bool {
+        for (key, block) in self.block.iter_pure_definitions() {
+            if key.is_date() {
+                if block_has_flag(block, flag) {
+                    return true;
+                }
+                for block in block.get_field_blocks("effect") {
+                    if block_has_flag(block, flag) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    fn has_trait(&self, tr: &str) -> bool {
+        for token in self.block.get_field_values("trait") {
+            if token.is(tr) {
+                return true;
+            }
+        }
+        for (key, block) in self.block.iter_pure_definitions() {
+            if key.is_date() {
+                for token in block.get_field_values("add_trait") {
+                    if token.is(tr) {
+                        return true;
+                    }
+                }
+                if let Some(block) = block.get_field_block("effect") {
+                    for token in block.get_field_values("add_trait") {
+                        if token.is(tr) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        false
+    }
+}
+
+fn block_has_flag(block: &Block, flag: &str) -> bool {
+    for token in block.get_field_values("add_character_flag") {
+        if token.is(flag) {
+            return true;
+        }
+    }
+    for block in block.get_field_blocks("add_character_flag") {
+        if block.field_value_is("flag", flag) {
+            return true;
+        }
+    }
+    false
 }
 
 fn validate_history_death(bv: &BV, data: &Everything) {

@@ -589,6 +589,7 @@ impl Everything {
 
     pub fn check_pod(&mut self) {
         self.province_histories.check_pod_faiths(self, &self.titles);
+        self.characters.check_pod_flags(self);
     }
 
     pub fn item_has_property(&self, itype: Item, key: &str, property: &str) -> bool {
