@@ -791,12 +791,11 @@ impl Everything {
             Item::TitleHistoryType => TITLE_HISTORY_TYPES.contains(&key),
             Item::Trait => self.traits.exists(key),
             Item::TraitFlag => self.traits.flag_exists(key),
+            Item::TraitTrack => self.traits.track_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::DynastyLegacy
-            | Item::DynastyPerk
-            | Item::PointOfInterest
-            | Item::Suggestion
-            | Item::TraitTrack => true,
+            Item::DynastyLegacy | Item::DynastyPerk | Item::PointOfInterest | Item::Suggestion => {
+                true
+            }
         }
     }
 

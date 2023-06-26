@@ -7,8 +7,8 @@ use crate::item::Item;
 use crate::modif::ModifKinds;
 use crate::token::Token;
 
-/// Special generated modifs:
-/// for character, province, and county
+/// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
+/// Returns None otherwise.
 pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<ModifKinds> {
     for &(entry_name, mk) in MODIF_TABLE {
         if name.is(entry_name) {
@@ -53,21 +53,19 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
 
     // other opinions
     if let Some(s) = name.as_str().strip_suffix("_opinion") {
-        if data.item_exists(Item::Culture, s)
-            || data.item_exists(Item::Faith, s)
-            || data.item_exists(Item::Religion, s)
-            || data.item_exists(Item::ReligionFamily, s)
-            || data.item_exists(Item::GovernmentType, s)
-            || data.item_exists(Item::VassalStance, s)
+        if warn
+            && !data.item_exists(Item::Culture, s)
+            && !data.item_exists(Item::Faith, s)
+            && !data.item_exists(Item::Religion, s)
+            && !data.item_exists(Item::ReligionFamily, s)
+            && !data.item_exists(Item::GovernmentType, s)
+            && !data.item_exists(Item::VassalStance, s)
         {
-            return Some(ModifKinds::Character);
-        }
-        if warn {
             let msg = format!("could not find any {s}");
             let info = "Could be a culture, faith, religion, religion family, government type, or vassal stance";
             warn_info(name, ErrorKey::MissingItem, &msg, info);
         }
-        return None;
+        return Some(ModifKinds::Character);
     }
 
     // levy and tax contributions
@@ -78,16 +76,15 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
         "_tax_contribution_mult",
     ] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
-            if data.item_exists(Item::GovernmentType, s) || data.item_exists(Item::VassalStance, s)
+            if warn
+                && !data.item_exists(Item::GovernmentType, s)
+                && !data.item_exists(Item::VassalStance, s)
             {
-                return Some(ModifKinds::Character);
-            }
-            if warn {
                 let msg = format!("could not find any {s}");
                 let info = "Could be a government type or vassal stance";
                 warn_info(name, ErrorKey::MissingItem, &msg, info);
             }
-            return None;
+            return Some(ModifKinds::Character);
         }
     }
 
@@ -177,10 +174,23 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
         }
     }
 
-    // trait tracks
+    // The names of individual tracks in a multi-track trait start with `trait_track_` before the track name.
+    // It's also possible to use the names of traits that have one or more tracks directly, without the trait_track_.
+    // Presumably it applies to all of a trait's tracks in that case.
     for sfx in &["_xp_degradation_mult", "_xp_gain_mult", "_xp_loss_mult"] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
-            return modif_check(name, s, Item::TraitTrack, ModifKinds::Character, data, warn);
+            if let Some(s) = s.strip_prefix("trait_track_") {
+                return modif_check(name, s, Item::TraitTrack, ModifKinds::Character, data, warn);
+            }
+            if warn {
+                data.verify_exists_implied(Item::Trait, s, name);
+                if !data.traits.has_track(s) {
+                    let msg = format!("trait {s} does not have an xp track");
+                    let info = format!("so the modifier {name} does not exist");
+                    error_info(name, ErrorKey::Validation, &msg, &info);
+                }
+            }
+            return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
         }
     }
 
@@ -204,25 +214,17 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     for sfx in &["_development_growth", "_development_growth_factor"] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
             if data.item_exists(Item::Region, s) {
-                if !data.item_has_property(Item::Region, s, "generates_modifiers") {
-                    if warn {
-                        let msg = format!("region {s} does not have `generates_modifiers = yes`");
-                        let info = format!("so the modifier {name} does not exist");
-                        error_info(name, ErrorKey::Validation, &msg, &info);
-                    }
-                    return None;
+                if warn && !data.item_has_property(Item::Region, s, "generates_modifiers") {
+                    let msg = format!("region {s} does not have `generates_modifiers = yes`");
+                    let info = format!("so the modifier {name} does not exist");
+                    error_info(name, ErrorKey::Validation, &msg, &info);
                 }
-                return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
-            }
-            if data.item_exists(Item::Terrain, s) {
-                return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
-            }
-            if warn {
+            } else if warn && !data.item_exists(Item::Terrain, s) {
                 let msg = format!("could not find any {s}");
                 let info = "Could be a geographical region or terrain";
                 warn_info(name, ErrorKey::MissingItem, &msg, info);
             }
-            return None;
+            return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
         }
     }
 
@@ -245,7 +247,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
             if warn {
                 data.verify_exists_implied(Item::Holding, s, name);
             }
-            return None;
+            return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
         }
     }
 
@@ -286,13 +288,10 @@ fn modif_check(
     data: &Everything,
     warn: bool,
 ) -> Option<ModifKinds> {
-    if data.item_exists(itype, s) {
-        return Some(mk);
-    }
     if warn {
         data.verify_exists_implied(itype, s, name);
     }
-    return None;
+    return Some(mk);
 }
 
 // Redeclare the `ModifKinds` enums as bare numbers, so that we can to | on them in const tables.

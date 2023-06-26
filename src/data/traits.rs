@@ -2,8 +2,9 @@ use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::Block;
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
+use crate::data::scriptvalues::ScriptValue;
 use crate::desc::{validate_desc, validate_desc_map};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
@@ -20,6 +21,7 @@ use crate::trigger::validate_normal_trigger;
 pub struct Traits {
     traits: FnvHashMap<String, Trait>,
     groups: FnvHashSet<String>,
+    tracks: FnvHashSet<String>,
     constraints: FnvHashSet<String>,
     flags: FnvHashSet<String>,
 }
@@ -49,6 +51,14 @@ impl Traits {
         if let Some(token) = block.get_field_value("group_equivalence") {
             self.groups.insert(token.to_string());
         }
+        if block.has_key("track") {
+            self.tracks.insert(key.to_string());
+        }
+        if let Some(block) = block.get_field_block("tracks") {
+            for (key, _) in block.iter_pure_definitions() {
+                self.tracks.insert(key.to_string());
+            }
+        }
         self.traits
             .insert(key.to_string(), Trait::new(key.clone(), block.clone()));
     }
@@ -63,6 +73,15 @@ impl Traits {
 
     pub fn flag_exists(&self, key: &str) -> bool {
         self.flags.contains(key)
+    }
+
+    pub fn track_exists(&self, key: &str) -> bool {
+        self.tracks.contains(key)
+    }
+
+    // Is the trait itself a track? Different than a trait having multiple tracks
+    pub fn has_track(&self, key: &str) -> bool {
+        self.traits.get(key).map(|t| t.has_track).unwrap_or(false)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -95,47 +114,22 @@ impl FileHandler for Traits {
 pub struct Trait {
     key: Token,
     block: Block,
+    has_track: bool,
 }
 
 impl Trait {
     pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
-    }
-
-    fn validate_culture_modifier(block: &Block, data: &Everything) {
-        let mut vd = Validator::new(block, data);
-
-        vd.field_item("parameter", Item::CultureParameter);
-        validate_modifs(block, data, ModifKinds::Character, vd);
-    }
-
-    fn validate_faith_modifier(block: &Block, data: &Everything) {
-        let mut vd = Validator::new(block, data);
-
-        vd.field_item("parameter", Item::DoctrineParameter);
-        validate_modifs(block, data, ModifKinds::Character, vd);
-    }
-
-    fn validate_triggered_opinion(block: &Block, data: &Everything) {
-        let mut vd = Validator::new(block, data);
-
-        vd.field_value("opinion_modifier"); // TODO: validate
-        vd.field_item("parameter", Item::DoctrineParameter);
-        vd.field_bool("check_missing");
-        vd.field_bool("same_faith");
-        vd.field_bool("same_dynasty");
-        vd.field_bool("ignore_opinion_value_if_same_trait");
-        vd.field_bool("male_only");
-        vd.field_bool("female_only");
+        let has_track = block.has_key("track") || block.has_key("tracks");
+        Self {
+            key,
+            block,
+            has_track,
+        }
     }
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
-
-        // TODO: $TRAIT_TRACK$_xp_degradation_mult
-        // TODO: $TRAIT_TRACK$_xp_gain_mult
-        // TODO: $TRAIT_TRACK$_xp_loss_mult
 
         if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("trait_{}", self.key);
@@ -166,14 +160,20 @@ impl Trait {
         }
 
         vd.field_item("category", Item::TraitCategory);
-        vd.field_validated_blocks("culture_modifier", Self::validate_culture_modifier);
-        vd.field_validated_blocks("faith_modifier", Self::validate_faith_modifier);
+        vd.field_validated_blocks("culture_modifier", validate_culture_modifier);
+        vd.field_validated_blocks("faith_modifier", validate_faith_modifier);
         vd.field_item("culture_succession_prio", Item::CultureParameter);
-        vd.field_validated_blocks("triggered_opinion", Self::validate_triggered_opinion);
+        vd.field_validated_blocks("triggered_opinion", validate_triggered_opinion);
 
-        // TODO: validate these
-        vd.field_block("tracks");
-        vd.field_block("track");
+        vd.field_validated_block("tracks", |block, data| {
+            let mut vd = Validator::new(block, data);
+            for (key, block) in vd.unknown_block_fields() {
+                validate_trait_track(key, block, data, key);
+            }
+        });
+        vd.field_validated_key_block("track", |key, block, data| {
+            validate_trait_track(&self.key, block, data, key);
+        });
 
         vd.field_list_items("opposites", Item::Trait);
         if let Some(tokens) = self.block.get_field_list("opposites") {
@@ -182,8 +182,12 @@ impl Trait {
             }
         }
 
-        // TODO: validate as trait = integer assignments
-        vd.field_block("compatibility");
+        vd.field_validated_block("compatibility", |block, data| {
+            let mut vd = Validator::new(block, data);
+            for (key, _) in vd.unknown_value_fields() {
+                data.verify_exists(Item::Trait, key);
+            }
+        });
 
         vd.field_validated_block("potential", |b, data| {
             validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
@@ -216,10 +220,10 @@ impl Trait {
         vd.field_numeric("opposite_opinion");
         vd.field_numeric("same_faith_opinion");
         vd.field_integer("level");
-        vd.field_integer("inherit_chance"); // TODO: must be 0 - 100
-        vd.field_integer("both_parent_has_trait_inherit_chance"); //TODO: must be 0 - 100
-        vd.field_numeric("birth"); // TODO: must be 0 - 1
-        vd.field_numeric("random_creation"); // TODO: must be 0 - 1
+        vd.field_integer_range("inherit_chance", 0, 100);
+        vd.field_integer_range("both_parent_has_trait_inherit_chance", 0, 100);
+        vd.field_numeric_range("birth", 0.0, 1.0);
+        vd.field_numeric_range("random_creation", 0.0, 1.0);
         vd.field_bool("can_inherit");
         vd.field_bool("inherit_from_real_father");
         vd.replaced_field(
@@ -259,4 +263,55 @@ impl Trait {
 
         validate_modifs(&self.block, data, ModifKinds::Character, vd);
     }
+}
+
+fn validate_culture_modifier(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+
+    vd.field_item("parameter", Item::CultureParameter);
+    validate_modifs(block, data, ModifKinds::Character, vd);
+}
+
+fn validate_faith_modifier(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+
+    vd.field_item("parameter", Item::DoctrineParameter);
+    validate_modifs(block, data, ModifKinds::Character, vd);
+}
+
+fn validate_triggered_opinion(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+
+    vd.field_item("opinion_modifier", Item::OpinionModifier);
+    vd.field_item("parameter", Item::DoctrineParameter);
+    vd.field_bool("check_missing");
+    vd.field_bool("same_faith");
+    vd.field_bool("same_dynasty");
+    vd.field_bool("ignore_opinion_value_if_same_trait");
+    vd.field_bool("male_only");
+    vd.field_bool("female_only");
+}
+
+fn validate_trait_track(key: &Token, block: &Block, data: &Everything, warn_key: &Token) {
+    let mut vd = Validator::new(block, data);
+    for (key, block) in vd.unknown_block_fields() {
+        let mut sc = ScopeContext::new_root(Scopes::None, warn_key.clone());
+        ScriptValue::validate_bv(&BV::Value(key.clone()), data, &mut sc);
+
+        let mut vd = Validator::new(block, data);
+        vd.field_validated_blocks("culture_modifier", validate_culture_modifier);
+        vd.field_validated_blocks("faith_modifier", validate_faith_modifier);
+        validate_modifs(block, data, ModifKinds::Character, vd);
+    }
+    // let modif = format!("{key}_xp_degradation_mult");
+    // data.verify_exists_implied(Item::ModifierFormat, &modif, warn_key);
+    // let modif = format!("{key}_xp_gain_mult");
+    // data.verify_exists_implied(Item::ModifierFormat, &modif, warn_key);
+    // let modif = format!("{key}_xp_loss_mult");
+    // data.verify_exists_implied(Item::ModifierFormat, &modif, warn_key);
+
+    let loca = format!("trait_track_{key}");
+    data.verify_exists_implied(Item::Localization, &loca, warn_key);
+    let loca = format!("trait_track_{key}_desc");
+    data.verify_exists_implied(Item::Localization, &loca, warn_key);
 }
