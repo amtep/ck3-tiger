@@ -1,5 +1,6 @@
 use anyhow::Result;
 use fnv::FnvHashSet;
+use std::cell::RefCell;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
@@ -8,7 +9,7 @@ use walkdir::WalkDir;
 
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::error;
+use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::token::{Loc, Token};
 
@@ -117,6 +118,8 @@ pub struct Fileset {
 
     /// All filenames from ordered_files, for quick lookup
     filenames: FnvHashSet<PathBuf>,
+
+    used: RefCell<FnvHashSet<String>>,
 }
 
 impl Fileset {
@@ -129,6 +132,7 @@ impl Fileset {
             files: Vec::new(),
             ordered_files: Vec::new(),
             filenames: FnvHashSet::default(),
+            used: RefCell::new(FnvHashSet::default()),
         }
     }
 
@@ -204,12 +208,17 @@ impl Fileset {
         handler.finalize();
     }
 
+    pub fn mark_used(&self, file: &str) {
+        self.used.borrow_mut().insert(file.to_string());
+    }
+
     pub fn exists(&self, key: &str) -> bool {
         let filepath = PathBuf::from(key);
         self.filenames.contains(&filepath)
     }
 
     pub fn verify_exists(&self, file: &Token) {
+        self.mark_used(file.as_str());
         let filepath = PathBuf::from(file.as_str());
         if !self.filenames.contains(&filepath) {
             let msg = "referenced file does not exist";
@@ -218,6 +227,7 @@ impl Fileset {
     }
 
     pub fn verify_exists_crashes(&self, file: &Token) {
+        self.mark_used(file.as_str());
         let filepath = PathBuf::from(file.as_str());
         if !self.filenames.contains(&filepath) {
             let msg = "referenced file does not exist";
@@ -226,6 +236,7 @@ impl Fileset {
     }
 
     pub fn verify_exists_implied(&self, file: &str, t: &Token) {
+        self.mark_used(file);
         let filepath = PathBuf::from(file);
         if !self.filenames.contains(&filepath) {
             let msg = format!("file {file} does not exist");
@@ -234,6 +245,7 @@ impl Fileset {
     }
 
     pub fn verify_exists_implied_crashes(&self, file: &str, t: &Token) {
+        self.mark_used(file);
         let filepath = PathBuf::from(file);
         if !self.filenames.contains(&filepath) {
             let msg = format!("file {file} does not exist");
@@ -270,6 +282,28 @@ impl Fileset {
                 error(entry, ErrorKey::Filename, msg);
             }
             warned.push(dirname);
+        }
+    }
+
+    pub fn check_unused_dds(&self, _data: &Everything) {
+        let mut vec = Vec::new();
+        for entry in &self.ordered_files {
+            if !self
+                .used
+                .borrow()
+                .contains(&entry.path.to_string_lossy().to_string())
+                && entry
+                    .path
+                    .file_name()
+                    .map(|f| f.to_string_lossy().ends_with(".dds"))
+                    .unwrap_or(false)
+            {
+                vec.push(entry);
+            }
+        }
+        for entry in vec {
+            let msg = "DDS file not used anywhere";
+            warn(entry, ErrorKey::UnusedFile, &msg);
         }
     }
 }

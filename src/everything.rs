@@ -596,6 +596,7 @@ impl Everything {
         self.database.validate(self);
 
         self.localization.check_unused(self);
+        self.fileset.check_unused_dds(self);
     }
 
     pub fn check_rivers(&mut self) {
@@ -673,6 +674,7 @@ impl Everything {
 
     pub fn item_used(&self, itype: Item, key: &str) {
         match itype {
+            Item::File => self.fileset.mark_used(key),
             Item::Localization => self.localization.mark_used(key),
             _ => (),
         }
