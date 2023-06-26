@@ -146,6 +146,9 @@ impl Interaction {
             if let Some(name) = vd.field_value("icon") {
                 let pathname = format!("{icon_path}/{name}.dds");
                 data.fileset.verify_exists_implied(&pathname, name);
+            } else {
+                let pathname = format!("{icon_path}/{}.dds", &self.key);
+                data.item_used(Item::File, &pathname);
             }
             if let Some(name) = vd.field_value("alert_icon") {
                 let pathname = format!("{icon_path}/{name}.dds");

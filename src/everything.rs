@@ -691,6 +691,16 @@ impl Everything {
             Item::Music => self.music.verify_exists_implied(key, token),
             Item::Province => self.provinces.verify_exists_implied(key, token),
             Item::Sound => self.sounds.verify_exists_implied(key, token, self),
+            Item::TextureFile => {
+                if let Some(entry) = self.assets.get_texture(key) {
+                    // TODO: avoid allocating a string here
+                    self.fileset
+                        .mark_used(&entry.path().to_string_lossy().to_string());
+                } else {
+                    let msg = format!("no texture file {key} anywhere under {}", itype.path());
+                    error(token, ErrorKey::MissingFile, &msg);
+                }
+            }
             _ => {
                 if !self.item_exists(itype, key) {
                     let msg = format!("{} {} not defined in {}", itype, key, itype.path());

@@ -84,6 +84,10 @@ impl Assets {
         self.textures.contains_key(key)
     }
 
+    pub fn get_texture(&self, key: &str) -> Option<&FileEntry> {
+        self.textures.get(key)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.assets.values() {
             item.validate(data);

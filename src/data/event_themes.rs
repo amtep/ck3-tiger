@@ -88,7 +88,7 @@ impl DbKind for EventBackground {
     /// Like `EventTheme`, `EventBackground` are validated through the events (and themes) that use them.
     fn validate_call(
         &self,
-        _key: &Token,
+        key: &Token,
         block: &Block,
         _caller: &Token,
         _caller_block: &Block,
@@ -99,6 +99,8 @@ impl DbKind for EventBackground {
             return;
         }
         *self.validated_scopes.borrow_mut() |= sc.scopes();
+
+        data.item_used(Item::Localization, key.as_str());
 
         let mut vd = Validator::new(block, data);
         vd.req_field("background");

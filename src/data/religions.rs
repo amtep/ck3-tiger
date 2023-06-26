@@ -225,7 +225,7 @@ impl DbKind for Faith {
 
         if let Some(icon) = vd.field_value("doctrine_background_icon") {
             if let Some(icon_path) =
-                data.get_defined_string_warn(key, "NGameIcons|FAITH_DOCTRINE_ICON_PATH")
+                data.get_defined_string_warn(key, "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH")
             {
                 let pathname = format!("{icon_path}/{icon}");
                 data.fileset.verify_exists_implied(&pathname, icon);

@@ -48,7 +48,18 @@ impl DbKind for Bookmark {
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
+        let pathname = format!("gfx/interface/bookmarks/{key}.dds");
+        data.verify_exists_implied(Item::File, &pathname, key);
+        let pathname = format!("gfx/interface/bookmarks/start_buttons/{key}.dds");
+        data.verify_exists_implied(Item::File, &pathname, key);
+        let pathname = format!("gfx/interface/icons/bookmark_buttons/{key}.dds");
+        data.verify_exists_implied(Item::File, &pathname, key);
+
         vd.field_validated_blocks("character", |block, data| {
+            if let Some(name) = block.get_field_value("name") {
+                let pathname = format!("gfx/interface/bookmarks/{key}_{name}.dds");
+                data.verify_exists_implied(Item::File, &pathname, key);
+            }
             validate_bookmark_character(block, data, true);
         });
     }

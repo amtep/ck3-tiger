@@ -152,12 +152,45 @@ impl MenAtArmsType {
             } else if let Some(base) = self.block.get_field_value("type") {
                 let base_path = format!("{icon_path}/{base}.dds");
                 let path = format!("{icon_path}/{}.dds", self.key);
+                data.item_used(Item::File, &base_path);
                 if !data.fileset.exists(&base_path) {
                     data.fileset.verify_exists_implied(&path, &self.key);
                 }
             }
         } else {
             vd.field_value("icon");
+        }
+
+        if let Some(icon_path) =
+            data.get_defined_string_warn(&self.key, "NGameIcons|REGIMENTYPE_HORIZONTAL_IMAGE_PATH")
+        {
+            if let Some(icon) = self.block.get_field_value("icon") {
+                let path = format!("{icon_path}/{icon}.dds");
+                data.fileset.verify_exists_implied(&path, icon);
+            } else if let Some(base) = self.block.get_field_value("type") {
+                let base_path = format!("{icon_path}/{base}.dds");
+                let path = format!("{icon_path}/{}.dds", self.key);
+                data.item_used(Item::File, &base_path);
+                if !data.fileset.exists(&base_path) {
+                    data.fileset.verify_exists_implied(&path, &self.key);
+                }
+            }
+        }
+
+        if let Some(icon_path) =
+            data.get_defined_string_warn(&self.key, "NGameIcons|REGIMENTYPE_VERTICAL_IMAGE_PATH")
+        {
+            if let Some(icon) = self.block.get_field_value("icon") {
+                let path = format!("{icon_path}/{icon}.dds");
+                data.fileset.verify_exists_implied(&path, icon);
+            } else if let Some(base) = self.block.get_field_value("type") {
+                let base_path = format!("{icon_path}/{base}.dds");
+                let path = format!("{icon_path}/{}.dds", self.key);
+                data.item_used(Item::File, &base_path);
+                if !data.fileset.exists(&base_path) {
+                    data.fileset.verify_exists_implied(&path, &self.key);
+                }
+            }
         }
 
         // TODO: "Mutually exclusive with being unlocked by innovation"

@@ -30,6 +30,15 @@ impl DbKind for DynastyLegacy {
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
+        if let Some(path) = data.get_defined_string_warn(key, "NGameIcons|LEGACY_TRACK_ICON_PATH") {
+            let pathname = format!("{path}/{key}.dds");
+            data.verify_exists_implied(Item::File, &pathname, key);
+        }
+        if let Some(path) = data.get_defined_string_warn(key, "NGameIcons|LEGACY_ICON_PATH") {
+            let pathname = format!("{path}/{key}.dds");
+            data.verify_exists_implied(Item::File, &pathname, key);
+        }
+
         vd.field_validated_block("is_shown", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });

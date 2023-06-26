@@ -34,7 +34,10 @@ impl DbKind for Perk {
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
-        vd.field_value("tree");
+        if let Some(token) = vd.field_value("tree") {
+            let pathname = format!("gfx/interface/icons/lifestyle_tree_backgrounds/{token}.dds");
+            data.verify_exists_implied(Item::File, &pathname, token);
+        }
         vd.field_validated_block("position", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_tokens_numbers_exactly(2);

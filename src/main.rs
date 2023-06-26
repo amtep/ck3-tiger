@@ -154,6 +154,7 @@ fn main() -> Result<()> {
         eprintln!("Showing warnings for unused localization. There will be many false positives.");
     } else {
         ignore_key(ErrorKey::UnusedLocalization);
+        ignore_key(ErrorKey::UnusedFile);
     }
 
     if args.strict_scopes {
