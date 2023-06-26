@@ -256,7 +256,7 @@
     ("GetHostError", NoArgs, CUTF8String),
     ("GetHostilityDescription", Arg1(DType(Unknown)), CString),
     ("GetHostilityLevelName", Arg1(DType(Unknown)), CString),
-    ("GetIllustration", Arg1(DType(Unknown)), void),
+    ("GetIllustration", Arg1(IType(Item::ScriptedIllustration)), void),
     ("GetImportantActionType", Arg1(DType(Unknown)), Unknown),
     ("GetIncreaseSpeedTooltip", NoArgs, CString),
     ("GetInspirationType", Arg1(DType(Unknown)), Unknown),

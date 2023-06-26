@@ -97,6 +97,7 @@ use crate::data::schemes::Scheme;
 use crate::data::scripted_animations::ScriptedAnimation;
 use crate::data::scripted_effects::{Effect, Effects};
 use crate::data::scripted_guis::ScriptedGui;
+use crate::data::scripted_illustrations::ScriptedIllustration;
 use crate::data::scripted_lists::ScriptedLists;
 use crate::data::scripted_modifiers::ScriptedModifiers;
 use crate::data::scripted_rules::ScriptedRule;
@@ -550,6 +551,7 @@ impl Everything {
         self.load_pdx_items(Item::DynastyLegacy, DynastyLegacy::add);
         self.load_pdx_items(Item::DynastyPerk, DynastyPerk::add);
         self.load_pdx_items(Item::CombatEffect, CombatEffect::add);
+        self.load_pdx_items(Item::ScriptedIllustration, ScriptedIllustration::add);
     }
 
     pub fn validate_all(&mut self) {

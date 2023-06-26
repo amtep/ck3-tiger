@@ -42,6 +42,7 @@ ARGS_OVERRIDE = {
     ("GetFocus", 1): "Arg1(IType(Item::Focus))",
     ("GetGeographicalRegion", 1): "Arg1(IType(Item::Region))",
     ("GetHolySite", 1): "Arg1(IType(Item::HolySite))",
+    ("GetIllustration", 1): "Arg1(IType(Item::ScriptedIllustration))",
     ("GetLifestyle", 1): "Arg1(IType(Item::Lifestyle))",
     ("GetMaA", 1): "Arg1(IType(Item::MenAtArms))",
     ("GetModifier", 1): "Arg1(IType(Item::Modifier))",

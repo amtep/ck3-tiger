@@ -112,7 +112,7 @@
     ("GetGovernmentType", Arg1(DType(Unknown)), GovernmentType),
     ("GetHoldingType", Arg1(DType(Unknown)), HoldingType),
     ("GetHolySite", Arg1(IType(Item::HolySite)), HolySite),
-    ("GetIllustration", Arg1(DType(Unknown)), Illustration),
+    ("GetIllustration", Arg1(IType(Item::ScriptedIllustration)), Illustration),
     ("GetImportantActionType", Arg1(DType(Unknown)), ImportantActionType),
     ("GetInspirationType", Arg1(DType(Unknown)), InspirationType),
     ("GetInventorySlotType", Arg1(DType(Unknown)), InventorySlotType),

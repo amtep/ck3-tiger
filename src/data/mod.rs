@@ -76,6 +76,7 @@ pub mod schemes;
 pub mod scripted_animations;
 pub mod scripted_effects;
 pub mod scripted_guis;
+pub mod scripted_illustrations;
 pub mod scripted_lists;
 pub mod scripted_modifiers;
 pub mod scripted_rules;
