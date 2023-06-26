@@ -36,7 +36,9 @@ use crate::data::court_scene::{
 };
 use crate::data::court_type::CourtType;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
-use crate::data::cultures::{Culture, CultureEra, CulturePillar, CultureTradition};
+use crate::data::cultures::{
+    Culture, CultureAesthetic, CultureEra, CulturePillar, CultureTradition,
+};
 use crate::data::customloca::CustomLocalization;
 use crate::data::data_binding::DataBindings;
 use crate::data::deathreasons::DeathReason;
@@ -479,6 +481,7 @@ impl Everything {
         self.load_pdx_items(Item::CultureEra, CultureEra::add);
         self.load_pdx_items(Item::CulturePillar, CulturePillar::add);
         self.load_pdx_items(Item::CultureTradition, CultureTradition::add);
+        self.load_pdx_items(Item::CultureAesthetic, CultureAesthetic::add);
         self.load_pdx_items(Item::NamedColor, NamedColor::add);
         self.load_pdx_items(Item::Innovation, Innovation::add);
         self.load_pdx_items(Item::Accessory, Accessory::add);

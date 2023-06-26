@@ -283,3 +283,37 @@ fn validate_modifiers(vd: &mut Validator) {
         validate_modifs(block, data, ModifKinds::Province, vd);
     });
 }
+
+#[derive(Clone, Debug)]
+pub struct CultureAesthetic {}
+
+impl CultureAesthetic {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CultureAesthetic, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for CultureAesthetic {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        let loca = format!("{key}_name");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        vd.field_item("name_list", Item::NameList);
+        vd.field_list_items("building_gfx", Item::BuildingGfx);
+        vd.field_list_items("clothing_gfx", Item::ClothingGfx);
+        vd.field_list_items("unit_gfx", Item::UnitGfx);
+        vd.field_list_items("coa_gfx", Item::CoaGfx);
+
+        vd.field_validated_key_block("is_shown", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
+            sc.define_name("character", Scopes::Character, key.clone());
+            sc.define_list(
+                "trait",
+                Scopes::CultureTradition | Scopes::CulturePillar,
+                key.clone(),
+            );
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+    }
+}
