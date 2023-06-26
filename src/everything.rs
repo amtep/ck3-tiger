@@ -81,6 +81,7 @@ use crate::data::nickname::Nickname;
 use crate::data::on_actions::OnActions;
 use crate::data::opinions::OpinionModifier;
 use crate::data::perks::Perk;
+use crate::data::points_of_interest::PointOfInterest;
 use crate::data::pool::{CharacterBackground, PoolSelector};
 use crate::data::portrait::{
     PortraitAnimation, PortraitCamera, PortraitModifierGroup, PortraitModifierPack,
@@ -541,6 +542,7 @@ impl Everything {
         self.load_pdx_items(Item::CoaDesignerColorPalette, CoaDesignerColorPalette::add);
         self.load_pdx_items(Item::CoaDesignerEmblemLayout, CoaDesignerEmblemLayout::add);
         self.load_pdx_items(Item::CoaDesignerPattern, CoaDesignerPattern::add);
+        self.load_pdx_items(Item::PointOfInterest, PointOfInterest::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -708,6 +710,7 @@ impl Everything {
             | Item::OpinionModifier
             | Item::Perk
             | Item::PerkTree
+            | Item::PointOfInterest
             | Item::PoolSelector
             | Item::PortraitAnimation
             | Item::PortraitCamera
@@ -793,9 +796,7 @@ impl Everything {
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitTrack => self.traits.track_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::DynastyLegacy | Item::DynastyPerk | Item::PointOfInterest | Item::Suggestion => {
-                true
-            }
+            Item::DynastyLegacy | Item::DynastyPerk | Item::Suggestion => true,
         }
     }
 

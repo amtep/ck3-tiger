@@ -654,7 +654,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "has_building_with_flag",
         ItemOrBlock(
             Item::BuildingFlag,
-            &[("flag", Item(Item::BuildingFlag)), ("count", CompareValue)],
+            &[("flag", Item(Item::BuildingFlag)), ("?count", CompareValue)],
         ),
     ),
     (
