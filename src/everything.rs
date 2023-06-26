@@ -54,6 +54,7 @@ use crate::data::ethnicity::Ethnicity;
 use crate::data::event_themes::{EventBackground, EventTheme, EventTransition};
 use crate::data::events::Events;
 use crate::data::factions::Faction;
+use crate::data::flavorization::Flavorization;
 use crate::data::focus::Focus;
 use crate::data::gameconcepts::GameConcepts;
 use crate::data::gamerules::GameRule;
@@ -552,6 +553,7 @@ impl Everything {
         self.load_pdx_items(Item::DynastyPerk, DynastyPerk::add);
         self.load_pdx_items(Item::CombatEffect, CombatEffect::add);
         self.load_pdx_items(Item::ScriptedIllustration, ScriptedIllustration::add);
+        self.load_pdx_items(Item::Flavorization, Flavorization::add);
     }
 
     pub fn validate_all(&mut self) {

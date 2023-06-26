@@ -35,6 +35,7 @@ pub mod ethnicity;
 pub mod event_themes;
 pub mod events;
 pub mod factions;
+pub mod flavorization;
 pub mod focus;
 pub mod gameconcepts;
 pub mod gamerules;
