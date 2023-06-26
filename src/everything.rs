@@ -45,6 +45,7 @@ use crate::data::diarchies::{DiarchyMandate, DiarchyType};
 use crate::data::dna::Dna;
 use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
+use crate::data::dynasty_legacies::{DynastyLegacy, DynastyPerk};
 use crate::data::effect_localization::EffectLocalization;
 use crate::data::election::Election;
 use crate::data::environment::Environment;
@@ -545,6 +546,8 @@ impl Everything {
         self.load_pdx_items(Item::CoaDesignerEmblemLayout, CoaDesignerEmblemLayout::add);
         self.load_pdx_items(Item::CoaDesignerPattern, CoaDesignerPattern::add);
         self.load_pdx_items(Item::PointOfInterest, PointOfInterest::add);
+        self.load_pdx_items(Item::DynastyLegacy, DynastyLegacy::add);
+        self.load_pdx_items(Item::DynastyPerk, DynastyPerk::add);
     }
 
     pub fn validate_all(&mut self) {
@@ -602,151 +605,6 @@ impl Everything {
 
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
-            Item::Accessory
-            | Item::AccessoryTag
-            | Item::AccessoryVariation
-            | Item::AccessoryVariationLayout
-            | Item::AccessoryVariationTextures
-            | Item::AccoladeCategory
-            | Item::AccoladeIcon
-            | Item::AccoladeName
-            | Item::AccoladeParameter
-            | Item::AccoladeType
-            | Item::ActivityIntent
-            | Item::ActivityLocale
-            | Item::ActivityOption
-            | Item::ActivityOptionCategory
-            | Item::ActivityPhase
-            | Item::ActivityType
-            | Item::Amenity
-            | Item::ArtifactFeature
-            | Item::ArtifactFeatureGroup
-            | Item::ArtifactSlot
-            | Item::ArtifactSlotType
-            | Item::ArtifactType
-            | Item::ArtifactTemplate
-            | Item::ArtifactVisual
-            | Item::Bookmark
-            | Item::BookmarkGroup
-            | Item::BookmarkPortrait
-            | Item::Building
-            | Item::BuildingFlag
-            | Item::BuildingGfx
-            | Item::CasusBelli
-            | Item::CasusBelliGroup
-            | Item::Catalyst
-            | Item::CharacterBackground
-            | Item::CharacterTemplate
-            | Item::ClothingGfx
-            | Item::CoaColorList
-            | Item::CoaColoredEmblemList
-            | Item::CoaDesignerColoredEmblem
-            | Item::CoaDesignerColorPalette
-            | Item::CoaDesignerEmblemLayout
-            | Item::CoaDesignerPattern
-            | Item::CoaDynamicDefinition
-            | Item::CoaGfx
-            | Item::CoaPatternList
-            | Item::CoaTemplateList
-            | Item::CoaTexturedEmblemList
-            | Item::CouncilPosition
-            | Item::CouncilTask
-            | Item::CourtPosition
-            | Item::CourtPositionCategory
-            | Item::CourtSceneCulture
-            | Item::CourtSceneGroup
-            | Item::CourtSceneRole
-            | Item::CourtSceneSetting
-            | Item::CourtType
-            | Item::CustomLocalization
-            | Item::Culture
-            | Item::CultureEra
-            | Item::CulturePillar
-            | Item::CultureParameter
-            | Item::CultureTradition
-            | Item::DeathReason
-            | Item::DiarchyMandate
-            | Item::DiarchyParameter
-            | Item::DiarchyType
-            | Item::Dna
-            | Item::EffectLocalization
-            | Item::Environment
-            | Item::Ethnicity
-            | Item::EventBackground
-            | Item::EventTheme
-            | Item::EventTransition
-            | Item::Faith
-            | Item::FaithIcon
-            | Item::Faction
-            | Item::Focus
-            | Item::GameRule
-            | Item::GameRuleSetting
-            | Item::GeneAgePreset
-            | Item::GeneCategory
-            | Item::GovernmentType
-            | Item::GovernmentFlag
-            | Item::GraphicalFaith
-            | Item::GuestInviteRule
-            | Item::GuestSubset
-            | Item::Holding
-            | Item::HoldingFlag
-            | Item::HolySite
-            | Item::HolySiteFlag
-            | Item::Hook
-            | Item::ImportantAction
-            | Item::Innovation
-            | Item::InnovationFlag
-            | Item::Inspiration
-            | Item::Language
-            | Item::Law
-            | Item::LawFlag
-            | Item::LawGroup
-            | Item::Lifestyle
-            | Item::MapMode
-            | Item::MemoryCategory
-            | Item::MemoryType
-            | Item::Modifier
-            | Item::ModifierFormat
-            | Item::NamedColor
-            | Item::Nickname
-            | Item::OpinionModifier
-            | Item::Perk
-            | Item::PerkTree
-            | Item::PointOfInterest
-            | Item::PoolSelector
-            | Item::PortraitAnimation
-            | Item::PortraitCamera
-            | Item::PortraitModifierGroup
-            | Item::PortraitModifierPack
-            | Item::PulseAction
-            | Item::Relation
-            | Item::RelationFlag
-            | Item::Religion
-            | Item::ReligionFamily
-            | Item::Region
-            | Item::Scheme
-            | Item::ScriptedAnimation
-            | Item::ScriptedGui
-            | Item::ScriptedRule
-            | Item::Secret
-            | Item::SpecialBuilding
-            | Item::SpecialGuest
-            | Item::Story
-            | Item::Struggle
-            | Item::StrugglePhase
-            | Item::StrugglePhaseParameter
-            | Item::SuccessionElection
-            | Item::Suggestion
-            | Item::Terrain
-            | Item::TitleLaw
-            | Item::TitleLawFlag
-            | Item::TravelOption
-            | Item::TriggerLocalization
-            | Item::UnitGfx
-            | Item::VassalContractFlag
-            | Item::VassalContract
-            | Item::VassalObligationLevel
-            | Item::VassalStance => self.database.exists(itype, key),
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::ArtifactRarity => ARTIFACT_RARITY.contains(&key),
@@ -799,7 +657,7 @@ impl Everything {
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitTrack => self.traits.track_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::DynastyLegacy | Item::DynastyPerk => true,
+            _ => self.database.exists(itype, key),
         }
     }
 

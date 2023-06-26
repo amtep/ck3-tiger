@@ -26,6 +26,7 @@ pub mod diarchies;
 pub mod dna;
 pub mod doctrines;
 pub mod dynasties;
+pub mod dynasty_legacies;
 pub mod effect_localization;
 pub mod election;
 pub mod environment;
