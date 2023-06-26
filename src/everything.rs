@@ -29,6 +29,7 @@ use crate::data::coadesigner::{
     CoaDesignerColorPalette, CoaDesignerColoredEmblem, CoaDesignerEmblemLayout, CoaDesignerPattern,
 };
 use crate::data::colors::NamedColor;
+use crate::data::combat_effects::CombatEffect;
 use crate::data::council::{CouncilPosition, CouncilTask};
 use crate::data::court_scene::{
     CourtSceneCulture, CourtSceneGroup, CourtSceneRole, CourtSceneSetting,
@@ -548,6 +549,7 @@ impl Everything {
         self.load_pdx_items(Item::PointOfInterest, PointOfInterest::add);
         self.load_pdx_items(Item::DynastyLegacy, DynastyLegacy::add);
         self.load_pdx_items(Item::DynastyPerk, DynastyPerk::add);
+        self.load_pdx_items(Item::CombatEffect, CombatEffect::add);
     }
 
     pub fn validate_all(&mut self) {
