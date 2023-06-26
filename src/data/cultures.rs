@@ -2,6 +2,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
+use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
@@ -315,5 +316,46 @@ impl DbKind for CultureAesthetic {
             );
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct CultureCreationName {}
+
+impl CultureCreationName {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CultureCreationName, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for CultureCreationName {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        sc.define_name("culture", Scopes::Culture, key.clone());
+        if block.field_value_is("hybrid", "yes") {
+            sc.define_name("other_culture", Scopes::Culture, key.clone());
+        }
+
+        if !vd.field_validated_sc("name", &mut sc, validate_desc) {
+            let loca = format!("{key}_name");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
+
+        if !vd.field_validated_sc("collective_noun", &mut sc, validate_desc) {
+            let loca = format!("{key}_collective_noun");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
+
+        if !vd.field_validated_sc("prefix", &mut sc, validate_desc) {
+            let loca = format!("{key}_prefix"); // docs say {key}_trigger
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
+
+        vd.field_validated_block("trigger", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+
+        vd.field_bool("hybrid");
     }
 }

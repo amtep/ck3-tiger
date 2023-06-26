@@ -339,18 +339,23 @@ impl Localization {
         }
     }
 
-    pub fn check_unused(&self, _data: &Everything) {
-        // Mark all the loading tips as used
-        let mut tip = 0;
+    pub fn mark_category_used(&self, prefix: &str) {
+        let mut i = 0;
         loop {
-            let loca = format!("LOADING_TIP_{tip}");
+            let loca = format!("{prefix}{i}");
             if self.exists(&loca) {
                 self.mark_used(&loca);
             } else {
                 break;
             }
-            tip += 1;
+            i += 1;
         }
+    }
+
+    pub fn check_unused(&self, _data: &Everything) {
+        self.mark_category_used("LOADING_TIP_");
+        self.mark_category_used("HYBRID_NAME_FORMAT_");
+        self.mark_category_used("DIVERGE_NAME_FORMAT_");
 
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {
