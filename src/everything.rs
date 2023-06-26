@@ -104,6 +104,7 @@ use crate::data::secrets::Secret;
 use crate::data::sound::Sounds;
 use crate::data::stories::Story;
 use crate::data::struggle::{Catalyst, Struggle};
+use crate::data::suggestions::Suggestion;
 use crate::data::terrain::Terrain;
 use crate::data::title_history::TitleHistories;
 use crate::data::titles::Titles;
@@ -509,6 +510,7 @@ impl Everything {
         self.load_pdx_items(Item::Struggle, Struggle::add);
         self.load_pdx_items(Item::Catalyst, Catalyst::add);
         self.load_pdx_items(Item::ImportantAction, ImportantAction::add);
+        self.load_pdx_items(Item::Suggestion, Suggestion::add);
         self.load_pdx_items(Item::Scheme, Scheme::add);
         self.load_pdx_items(Item::ModifierFormat, ModifierFormat::add);
         self.load_pdx_items(Item::MemoryType, MemoryType::add);
@@ -734,6 +736,7 @@ impl Everything {
             | Item::StrugglePhase
             | Item::StrugglePhaseParameter
             | Item::SuccessionElection
+            | Item::Suggestion
             | Item::Terrain
             | Item::TitleLaw
             | Item::TitleLawFlag
@@ -796,7 +799,7 @@ impl Everything {
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitTrack => self.traits.track_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::DynastyLegacy | Item::DynastyPerk | Item::Suggestion => true,
+            Item::DynastyLegacy | Item::DynastyPerk => true,
         }
     }
 

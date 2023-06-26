@@ -405,7 +405,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     ),
     (
         Character,
-        "court_positions_currently_avaiable",
+        "court_positions_currently_available",
         CompareValue,
     ),
     (Character, "court_positions_currently_filled", CompareValue),

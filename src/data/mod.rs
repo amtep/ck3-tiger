@@ -83,6 +83,7 @@ pub mod secrets;
 pub mod sound;
 pub mod stories;
 pub mod struggle;
+pub mod suggestions;
 pub mod terrain;
 pub mod title_history;
 pub mod titles;
