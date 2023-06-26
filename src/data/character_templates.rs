@@ -25,6 +25,7 @@ impl CharacterTemplate {
 impl DbKind for CharacterTemplate {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut sc = ScopeContext::new_unrooted(Scopes::all(), key.clone());
+        sc.set_strict_scopes(false);
         let b = Block::new(key.loc.clone());
         self.validate_call(key, block, key, &b, data, &mut sc);
     }

@@ -231,16 +231,17 @@ impl DbKind for CultureTradition {
         vd.field_value("category");
         vd.field_block("layers"); // TODO
 
-        vd.field_validated_block_rooted("can_pick", Scopes::Culture, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+        vd.field_validated_key_block("can_pick", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
+            sc.define_name("replacing", Scopes::CultureTradition, key.clone());
+            sc.define_name("character", Scopes::Character, key.clone());
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
-        vd.field_validated_block_rooted(
-            "can_pick_for_hybridization",
-            Scopes::Culture,
-            |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
-            },
-        );
+        vd.field_validated_key_block("can_pick_for_hybridization", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
+            sc.define_name("character", Scopes::Character, key.clone());
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
         validate_modifiers(&mut vd);
         vd.field_validated_blocks("doctrine_character_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -250,16 +251,17 @@ impl DbKind for CultureTradition {
         });
         vd.field_validated_key_block("cost", |key, block, data| {
             let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
-            sc.define_name("replacing", Scopes::Bool, key.clone());
+            sc.define_name("replacing", Scopes::CultureTradition, key.clone());
             sc.define_name("character", Scopes::Character, key.clone());
             validate_cost(block, data, &mut sc)
         });
         let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
         sc.define_name("character", Scopes::Character, key.clone());
-        vd.field_script_value("ai_will_do", &mut sc);
         vd.field_validated_block("is_shown", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
+        sc.define_name("replacing", Scopes::CultureTradition, key.clone());
+        vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
     }
 }
 

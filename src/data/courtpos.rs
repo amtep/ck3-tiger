@@ -151,6 +151,8 @@ impl DbKind for CourtPosition {
                 Scopes::Value,
                 key.clone(),
             );
+            sc.define_name("highest_available_aptitude", Scopes::Value, key.clone()); // undocumented
+            sc.define_name("employee_aptitude", Scopes::Value, key.clone()); // undocumented
             ScriptValue::validate_bv(bv, data, &mut sc);
         });
 

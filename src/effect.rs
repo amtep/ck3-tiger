@@ -1303,6 +1303,7 @@ fn validate_effect_special(
             vd.field_value("titles"); // list name
             vd.field_bool("take_occupied");
         }
+        sc.define_name("cb_prestige_factor", Scopes::Value, key.clone());
     } else if caller == "spawn_army" {
         // TODO: either levies or men_at_arms
         vd.req_field("location");

@@ -30,6 +30,10 @@ impl DbKind for CasusBelli {
         sc.define_name("attacker", Scopes::Character, key.clone());
         sc.define_name("defender", Scopes::Character, key.clone());
 
+        if block.has_key("is_allowed_claim_title") {
+            sc.define_name("claimant", Scopes::Character, key.clone());
+        }
+
         vd.field_item("group", Item::CasusBelliGroup);
         let icon = vd.field_value("icon").unwrap_or(key);
         if let Some(icon_path) =

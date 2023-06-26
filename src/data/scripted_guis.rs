@@ -33,7 +33,9 @@ impl DbKind for ScriptedGui {
             }
         }
 
-        vd.field_list("saved_scopes");
+        vd.field_validated_list("saved_scopes", |token, _data| {
+            sc.define_name(token.as_str(), Scopes::all_but_none(), token.clone());
+        });
 
         vd.field_validated_block("is_shown", |b, data| {
             validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
