@@ -55,6 +55,7 @@ pub mod laws;
 pub mod lifestyles;
 pub mod localization;
 pub mod maa;
+pub mod map_environment;
 pub mod mapmodes;
 pub mod memories;
 pub mod modif;

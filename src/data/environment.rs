@@ -1,12 +1,10 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::db::{Db, DbKind};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::token::Token;
-use crate::validate::validate_color;
+use crate::validate::validate_camera_color;
 
 #[derive(Clone, Debug)]
 pub struct Environment {}
@@ -92,44 +90,5 @@ impl DbKind for Environment {
                 }
             }
         });
-    }
-}
-
-/// Camera colors must be hsv, and value can be > 1
-pub fn validate_camera_color(block: &Block, data: &Everything) {
-    let mut count = 0;
-    // Get the color tag, as in color = hsv { 0.5 1.0 1.0 }
-    let tag = block.tag.as_ref().map_or("rgb", Token::as_str);
-    if tag != "hsv" {
-        let msg = "camera colors should be in hsv";
-        warn(block, ErrorKey::Colors, &msg);
-        validate_color(block, data);
-        return;
-    }
-
-    for (k, _, v) in block.iter_items() {
-        if let Some(key) = k {
-            error(key, ErrorKey::Colors, "expected color value");
-        } else {
-            match v {
-                BV::Value(t) => {
-                    if let Ok(f) = t.as_str().parse::<f64>() {
-                        if count <= 1 && !(0.0..=1.0).contains(&f) {
-                            let msg = "h and s values should be between 0.0 and 1.0";
-                            error(t, ErrorKey::Colors, msg);
-                        }
-                    } else {
-                        error(t, ErrorKey::Colors, "expected hsv value");
-                    }
-                    count += 1;
-                }
-                BV::Block(b) => {
-                    error(b, ErrorKey::Colors, "expected color value");
-                }
-            }
-        }
-    }
-    if count != 3 {
-        error(block, ErrorKey::Colors, "expected 3 color values");
     }
 }

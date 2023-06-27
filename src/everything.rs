@@ -76,6 +76,7 @@ use crate::data::laws::LawGroup;
 use crate::data::lifestyles::Lifestyle;
 use crate::data::localization::Localization;
 use crate::data::maa::MenAtArmsTypes;
+use crate::data::map_environment::MapEnvironment;
 use crate::data::mapmodes::MapMode;
 use crate::data::memories::MemoryType;
 use crate::data::modif::ModifierFormat;
@@ -536,6 +537,7 @@ impl Everything {
         self.load_pdx_items(Item::CourtSceneGroup, CourtSceneGroup::add);
         self.load_pdx_items(Item::CourtSceneRole, CourtSceneRole::add);
         self.load_pdx_files_optional_bom(Item::CourtSceneSetting, CourtSceneSetting::add);
+        self.load_pdx_files_optional_bom(Item::MapEnvironment, MapEnvironment::add);
         self.load_pdx_items(Item::PortraitAnimation, PortraitAnimation::add);
         self.load_pdx_items(Item::GameRule, GameRule::add);
         self.load_pdx_items(Item::TravelOption, TravelOption::add);

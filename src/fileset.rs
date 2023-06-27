@@ -288,15 +288,11 @@ impl Fileset {
     pub fn check_unused_dds(&self, _data: &Everything) {
         let mut vec = Vec::new();
         for entry in &self.ordered_files {
-            if !self
-                .used
-                .borrow()
-                .contains(&entry.path.to_string_lossy().to_string())
-                && entry
-                    .path
-                    .file_name()
-                    .map(|f| f.to_string_lossy().ends_with(".dds"))
-                    .unwrap_or(false)
+            // TODO: avoid the to_string here
+            let path = entry.path.to_string_lossy().to_string();
+            if path.ends_with(".dds")
+                && !path.starts_with("gfx/interface/illustrations/loading_screens")
+                && !self.used.borrow().contains(&path)
             {
                 vec.push(entry);
             }
