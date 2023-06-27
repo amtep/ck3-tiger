@@ -14,7 +14,9 @@ use crate::scopes::{scope_iterator, Scopes};
 use crate::tables::effects::{scope_effect, Effect};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger_key_bv};
+use crate::trigger::{
+    validate_normal_trigger, validate_target, validate_target_ok_this, validate_trigger_key_bv,
+};
 use crate::validate::{
     precheck_iterator_fields, validate_days_weeks_months_years, validate_duration,
     validate_inside_iterator, validate_iterator_fields, validate_modifiers,
@@ -152,6 +154,11 @@ pub fn validate_effect<'a>(
                 Effect::Scope(outscopes) => {
                     if let Some(token) = bv.expect_value() {
                         validate_target(token, data, sc, outscopes);
+                    }
+                }
+                Effect::ScopeOkThis(outscopes) => {
+                    if let Some(token) = bv.expect_value() {
+                        validate_target_ok_this(token, data, sc, outscopes);
                     }
                 }
                 Effect::Item(itype) => {
@@ -420,10 +427,10 @@ fn validate_effect_control(
         let icon_scopes =
             Scopes::Character | Scopes::LandedTitle | Scopes::Artifact | Scopes::Faith;
         if let Some(token) = vd.field_value("left_icon") {
-            validate_target(token, data, sc, icon_scopes);
+            validate_target_ok_this(token, data, sc, icon_scopes);
         }
         if let Some(token) = vd.field_value("right_icon") {
-            validate_target(token, data, sc, icon_scopes);
+            validate_target_ok_this(token, data, sc, icon_scopes);
         }
         if let Some(token) = vd.field_value("goto") {
             let msg = "`goto` was removed from interface messages in 1.9";
@@ -700,7 +707,7 @@ fn validate_effect_special_bv(
                 vd.field_value("name");
                 vd.field_validated("value", |bv, data| match bv {
                     BV::Value(token) => {
-                        validate_target(token, data, sc, Scopes::all_but_none());
+                        validate_target_ok_this(token, data, sc, Scopes::all_but_none());
                     }
                     BV::Block(_) => ScriptValue::validate_bv(bv, data, sc),
                 });
@@ -993,29 +1000,29 @@ fn validate_effect_special(
         vd.field_script_value("age", sc);
         if let Some(token) = vd.field_value("gender") {
             if !token.is("male") && !token.is("female") {
-                validate_target(token, data, sc, Scopes::Character);
+                validate_target_ok_this(token, data, sc, Scopes::Character);
             }
         }
         vd.field_script_value("gender_female_chance", sc);
-        vd.field_target("opposite_gender", sc, Scopes::Character);
+        vd.field_target_ok_this("opposite_gender", sc, Scopes::Character);
         vd.field_items("trait", Item::Trait);
         vd.field_validated_blocks_sc("random_traits_list", sc, validate_random_traits_list);
         vd.field_bool("random_traits");
         vd.field_script_value("health", sc);
         vd.field_script_value("fertility", sc);
-        vd.field_target("mother", sc, Scopes::Character);
-        vd.field_target("father", sc, Scopes::Character);
-        vd.field_target("real_father", sc, Scopes::Character);
+        vd.field_target_ok_this("mother", sc, Scopes::Character);
+        vd.field_target_ok_this("father", sc, Scopes::Character);
+        vd.field_target_ok_this("real_father", sc, Scopes::Character);
         vd.req_field_one_of(&["location", "employer"]);
-        vd.field_target("employer", sc, Scopes::Character);
-        vd.field_target("location", sc, Scopes::Province);
+        vd.field_target_ok_this("employer", sc, Scopes::Character);
+        vd.field_target_ok_this("location", sc, Scopes::Province);
         if let Some(token) = vd.field_value("template") {
             // undocumented
             data.verify_exists(Item::CharacterTemplate, token);
             data.validate_call(Item::CharacterTemplate, token, block, sc);
         }
         vd.field_item("template", Item::CharacterTemplate); // undocumented
-        vd.field_target("template_character", sc, Scopes::Character);
+        vd.field_target_ok_this("template_character", sc, Scopes::Character);
         vd.field_item_or_target("faith", sc, Item::Faith, Scopes::Faith);
         vd.field_validated_block_sc("random_faith", sc, validate_random_faith);
         vd.field_item_or_target(
@@ -1060,7 +1067,7 @@ fn validate_effect_special(
                         warn(key, ErrorKey::Validation, &msg);
                     }
                 }
-                validate_target(token, data, sc, Scopes::Character);
+                validate_target_ok_this(token, data, sc, Scopes::Character);
             }
         });
         vd.field_validated_block_sc("duration", sc, validate_duration);
@@ -1399,7 +1406,7 @@ fn validate_effect_special(
         vd.req_field("important_action_type");
         vd.field_item("important_action_type", Item::ImportantAction);
         for (_, value) in vd.unknown_value_fields() {
-            validate_target(value, data, sc, Scopes::all_but_none());
+            validate_target_ok_this(value, data, sc, Scopes::all_but_none());
         }
     } else if caller == "try_create_suggestion" {
         vd.req_field("suggestion_type");

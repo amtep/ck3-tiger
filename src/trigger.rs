@@ -143,7 +143,7 @@ pub fn validate_trigger(
 
         if key.is("object") {
             if let Some(token) = bv.expect_value() {
-                validate_target(token, data, sc, Scopes::non_primitive());
+                validate_target_ok_this(token, data, sc, Scopes::non_primitive());
             }
             continue;
         }
@@ -364,7 +364,7 @@ pub fn validate_trigger_key_bv(
             let scopes = sc.scopes();
             sc.close();
             if let Some(token) = bv.expect_value() {
-                validate_target(token, data, sc, scopes);
+                validate_target_ok_this(token, data, sc, scopes);
             }
         } else {
             let msg = format!("unexpected comparator {cmp}");
@@ -378,7 +378,7 @@ pub fn validate_trigger_key_bv(
         BV::Value(t) => {
             let scopes = sc.scopes();
             sc.close();
-            validate_target(t, data, sc, scopes);
+            validate_target_ok_this(t, data, sc, scopes);
         }
         BV::Block(b) => {
             sc.finalize_builder();
@@ -467,6 +467,15 @@ fn match_trigger_bv(
         Trigger::Scope(s) => {
             if let Some(token) = bv.get_value() {
                 validate_target(token, data, sc, *s);
+            } else if s.contains(Scopes::Value) {
+                ScriptValue::validate_bv(bv, data, sc);
+            } else {
+                bv.expect_value();
+            }
+        }
+        Trigger::ScopeOkThis(s) => {
+            if let Some(token) = bv.get_value() {
+                validate_target_ok_this(token, data, sc, *s);
             } else if s.contains(Scopes::Value) {
                 ScriptValue::validate_bv(bv, data, sc);
             } else {
@@ -587,7 +596,7 @@ fn match_trigger_bv(
                         // exists = flag:$REASON$ is used in vanilla just to shut up their error.log,
                         // so accept it silently even though it's a no-op.
                     } else {
-                        validate_target(token, data, sc, Scopes::non_primitive());
+                        validate_target_ok_this(token, data, sc, Scopes::non_primitive());
 
                         if tooltipped.is_tooltipped() {
                             if let Some(firstpart) = token.as_str().strip_suffix(".holder") {
@@ -704,7 +713,12 @@ fn match_trigger_bv(
     }
 }
 
-pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, outscopes: Scopes) {
+pub fn validate_target_ok_this(
+    token: &Token,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    outscopes: Scopes,
+) {
     if token.is_number() {
         if !outscopes.intersects(Scopes::Value | Scopes::None) {
             let msg = format!("expected {outscopes}");
@@ -827,4 +841,12 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
         }
     }
     sc.close();
+}
+
+pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, outscopes: Scopes) {
+    validate_target_ok_this(token, data, sc, outscopes);
+    if token.is("this") {
+        let msg = format!("target `this` makes no sense here");
+        warn(token, ErrorKey::UseOfThis, &msg);
+    }
 }

@@ -8,7 +8,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_target;
+use crate::trigger::{validate_target, validate_target_ok_this};
 use crate::validate::{
     validate_random_culture, validate_random_faith, validate_random_traits_list,
 };
@@ -46,7 +46,7 @@ impl DbKind for CharacterTemplate {
         vd.field_script_value("age", sc);
         if let Some(token) = vd.field_value("gender") {
             if !token.is("male") && !token.is("female") {
-                validate_target(token, data, sc, Scopes::Character);
+                validate_target_ok_this(token, data, sc, Scopes::Character);
             }
         }
         vd.field_items("trait", Item::Trait);

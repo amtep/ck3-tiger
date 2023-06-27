@@ -14,7 +14,9 @@ use crate::item::Item;
 use crate::scopes::{scope_prefix, scope_to_scope, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_normal_trigger, validate_target, validate_trigger};
+use crate::trigger::{
+    validate_normal_trigger, validate_target, validate_target_ok_this, validate_trigger,
+};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ListType {
@@ -507,7 +509,7 @@ pub fn validate_inside_iterator(
     if name == "pool_character" {
         vd.req_field("province");
         if let Some(token) = block.get_field_value("province") {
-            validate_target(token, data, sc, Scopes::Province);
+            validate_target_ok_this(token, data, sc, Scopes::Province);
         }
     } else {
         vd.ban_field("province", || format!("`{listtype}_pool_character`"));
@@ -644,11 +646,11 @@ pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut Scop
 pub fn validate_opinion_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     if let Some(target) = vd.field_value("who") {
-        validate_target(target, data, sc, Scopes::Character);
+        validate_target_ok_this(target, data, sc, Scopes::Character);
     }
     vd.req_field("opinion_target");
     if let Some(target) = vd.field_value("opinion_target") {
-        validate_target(target, data, sc, Scopes::Character);
+        validate_target_ok_this(target, data, sc, Scopes::Character);
     }
     vd.field_script_value("multiplier", sc);
     vd.field_validated_sc("desc", sc, validate_desc);
@@ -663,14 +665,14 @@ pub fn validate_opinion_modifier(block: &Block, data: &Everything, sc: &mut Scop
 pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     if let Some(target) = vd.field_value("who") {
-        validate_target(target, data, sc, Scopes::Character);
+        validate_target_ok_this(target, data, sc, Scopes::Character);
     }
     // TODO: verify that this actually works. It's only used 1 time in vanilla.
     vd.field_validated_block("dread_modified_ai_boldness", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.req_field("dreaded_character");
         vd.req_field("value");
-        vd.field_target("dreaded_character", sc, Scopes::Character);
+        vd.field_target_ok_this("dreaded_character", sc, Scopes::Character);
         vd.field_script_value("value", sc);
     });
     vd.field_script_value("ai_boldness", sc);
@@ -692,10 +694,10 @@ pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut Sco
 pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     if let Some(target) = vd.field_value("who") {
-        validate_target(target, data, sc, Scopes::Character);
+        validate_target_ok_this(target, data, sc, Scopes::Character);
     }
     if let Some(target) = vd.field_value("compatibility_target") {
-        validate_target(target, data, sc, Scopes::Character);
+        validate_target_ok_this(target, data, sc, Scopes::Character);
     }
     vd.field_script_value("multiplier", sc);
     //vd.field_validated_sc("desc", sc, validate_desc);

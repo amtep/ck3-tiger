@@ -11,7 +11,7 @@ use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;
 use crate::scopes::Scopes;
-use crate::trigger::validate_target;
+use crate::trigger::{validate_target, validate_target_ok_this};
 
 pub struct Validator<'a> {
     // The block being validated
@@ -259,10 +259,6 @@ impl<'a> Validator<'a> {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 validate_target(token, self.data, sc, outscopes);
-                if token.is("this") {
-                    let msg = format!("`{name} = this` makes no sense here");
-                    warn(token, ErrorKey::UseOfThis, &msg);
-                }
             }
         })
     }
@@ -275,7 +271,7 @@ impl<'a> Validator<'a> {
     ) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
-                validate_target(token, self.data, sc, outscopes);
+                validate_target_ok_this(token, self.data, sc, outscopes);
             }
         })
     }

@@ -13,6 +13,7 @@ pub enum Effect {
     ScriptValue,
     NonNegativeValue, // warn if literal negative
     Scope(Scopes),
+    ScopeOkThis(Scopes),
     Item(Item),
     ScopeOrItem(Scopes, Item),
     Target(&'static str, Scopes),
@@ -459,7 +460,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "depose", Yes),
     (Character, "depose_diarch", Boolean),
     (Character, "designate_diarch", Scope(Scopes::Character)),
-    (None, "destroy_artifact", Scope(Scopes::Artifact)),
+    (None, "destroy_artifact", ScopeOkThis(Scopes::Artifact)),
     (
         None,
         "destroy_character_memory",
@@ -553,7 +554,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (
         Character,
         "learn_court_language_of",
-        Scope(Scopes::Character),
+        ScopeOkThis(Scopes::Character),
     ),
     (Character, "learn_language", Item(Item::Language)),
     (
@@ -1057,7 +1058,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (
         Character,
         "unlearn_court_language_of",
-        Scope(Scopes::Character),
+        ScopeOkThis(Scopes::Character),
     ),
     (Character, "unlearn_language", Item(Item::Language)),
     (

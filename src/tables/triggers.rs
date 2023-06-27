@@ -13,6 +13,7 @@ enum RawTrigger {
     SetValue,           // can be a script value; no < or >
     CompareDate,        // value must be a valid date
     Scope(u64),         // trigger is compared to a scope object
+    ScopeOkThis(u64),   // trigger is compared to a scope object which may be `this`
     Item(Item),         // value is chosen from an item type
     ScopeOrItem(u64, Item),
     Choice(&'static [&'static str]), // value is chosen from a list given here
@@ -40,6 +41,7 @@ pub enum Trigger {
     SetValue,
     CompareDate,
     Scope(Scopes),
+    ScopeOkThis(Scopes),
     Item(Item),
     ScopeOrItem(Scopes, Item),
     Choice(&'static [&'static str]),
@@ -66,6 +68,7 @@ impl Trigger {
             RawTrigger::SetValue => Trigger::SetValue,
             RawTrigger::CompareDate => Trigger::CompareDate,
             RawTrigger::Scope(s) => Trigger::Scope(Scopes::from_bits_truncate(*s)),
+            RawTrigger::ScopeOkThis(s) => Trigger::ScopeOkThis(Scopes::from_bits_truncate(*s)),
             RawTrigger::Item(i) => Trigger::Item(*i),
             RawTrigger::ScopeOrItem(s, i) => {
                 Trigger::ScopeOrItem(Scopes::from_bits_truncate(*s), *i)
@@ -1092,10 +1095,10 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Character,
         "is_character_interaction_potentially_accepted",
         Block(&[
-            ("recipient", Scope(Character)),
+            ("recipient", ScopeOkThis(Character)),
             ("interaction", Item(Item::Interaction)),
-            ("?secondary_actor", Scope(Character)),
-            ("?secondary_recipient", Scope(Character)),
+            ("?secondary_actor", ScopeOkThis(Character)),
+            ("?secondary_recipient", ScopeOkThis(Character)),
             ("?target_title", Scope(LandedTitle)),
         ]),
     ),
@@ -1103,7 +1106,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Character,
         "is_character_interaction_shown",
         Block(&[
-            ("recipient", Scope(Character)),
+            ("recipient", ScopeOkThis(Character)),
             ("interaction", Item(Item::Interaction)),
         ]),
     ),
@@ -1111,7 +1114,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Character,
         "is_character_interaction_valid",
         Block(&[
-            ("recipient", Scope(Character)),
+            ("recipient", ScopeOkThis(Character)),
             ("interaction", Item(Item::Interaction)),
         ]),
     ),
@@ -1342,17 +1345,26 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         None,
         "is_target_in_global_variable_list",
-        Block(&[("name", UncheckedValue), ("*target", Scope(ALL_BUT_NONE))]),
+        Block(&[
+            ("name", UncheckedValue),
+            ("*target", ScopeOkThis(ALL_BUT_NONE)),
+        ]),
     ),
     (
         None,
         "is_target_in_local_variable_list",
-        Block(&[("name", UncheckedValue), ("*target", Scope(ALL_BUT_NONE))]),
+        Block(&[
+            ("name", UncheckedValue),
+            ("*target", ScopeOkThis(ALL_BUT_NONE)),
+        ]),
     ),
     (
         None,
         "is_target_in_variable_list",
-        Block(&[("name", UncheckedValue), ("*target", Scope(ALL_BUT_NONE))]),
+        Block(&[
+            ("name", UncheckedValue),
+            ("*target", ScopeOkThis(ALL_BUT_NONE)),
+        ]),
     ),
     (
         LandedTitle,
@@ -1412,7 +1424,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
             ("min", SetValue),
         ]),
     ),
-    (Character, "knows_court_language_of", Scope(Character)),
+    (Character, "knows_court_language_of", ScopeOkThis(Character)),
     (Character, "knows_language", Item(Item::Language)),
     (Character, "knows_language_of_culture", Scope(Culture)),
     (Character, "learning", CompareValue),
