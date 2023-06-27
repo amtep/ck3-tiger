@@ -286,10 +286,10 @@ impl DbKind for ReligionFamily {
         // let modif = format!("{key}_opinion");
         // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
 
-        vd.field_item("name", Item::Localization);
-        if !block.has_key("name") {
-            data.verify_exists(Item::Localization, key);
-        }
+        let name = vd.field_value("name").unwrap_or(key);
+        data.verify_exists(Item::Localization, name);
+        let loca = format!("{name}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, name);
 
         vd.field_bool("is_pagan");
         vd.field_value("graphical_faith");
