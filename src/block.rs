@@ -411,7 +411,13 @@ impl Block {
                 } else {
                     for (arg, val) in args {
                         if part.is(arg) {
-                            content.push(val.clone());
+                            // Make the replacement be a token that has the substituted content, but the original's loc,
+                            // and a loc.link back to the caller's parameter. This gives the best error messages.
+                            let mut val = val.clone();
+                            let orig_loc = val.loc.clone();
+                            val.loc = part.loc.clone();
+                            val.loc.link = Some(Rc::new(orig_loc));
+                            content.push(val);
                             break;
                         }
                     }
