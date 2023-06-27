@@ -158,7 +158,7 @@ fn main() -> Result<()> {
     }
 
     if args.strict_scopes {
-        eprintln!("Using stricter scope checking. This will generate more positives but will also find more real errors.");
+        eprintln!("Using stricter scope checking. This will generate more false positives but will also find more real errors.");
     } else {
         ignore_key(ErrorKey::StrictScopes);
     }
