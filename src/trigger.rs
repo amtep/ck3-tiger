@@ -97,7 +97,7 @@ pub fn validate_trigger(
                 }
             }
         }
-        vd.field_target("subject", sc, Scopes::non_primitive());
+        vd.field_target_ok_this("subject", sc, Scopes::non_primitive());
     } else {
         vd.ban_field("text", || "`custom_description` or `custom_tooltip`");
         vd.ban_field("subject", || "`custom_description` or `custom_tooltip`");

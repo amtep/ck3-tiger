@@ -48,6 +48,7 @@ pub enum ErrorKey {
     UnusedFile,
     UnknownList,
     Choice,
+    UseOfThis,
 
     PrincesOfDarkness,
 

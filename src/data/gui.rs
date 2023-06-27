@@ -411,6 +411,14 @@ fn validate_field(key: &Token, bv: &BV, data: &Everything) {
                 return;
             }
         }
+    } else if key.is("raw_text") {
+        if let Some(token) = bv.expect_value() {
+            if !token.starts_with("[") {
+                // Some raw_text fields do contain loca keys
+                data.item_used(Item::Localization, token.as_str());
+                return;
+            }
+        }
     }
     match bv {
         BV::Value(token) => {

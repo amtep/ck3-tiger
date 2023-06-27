@@ -171,9 +171,7 @@ pub fn validate_effect<'a>(
                         let mut vd = Validator::new(block, data);
                         vd.set_case_sensitive(false);
                         vd.req_field(key);
-                        if let Some(token) = vd.field_value(key) {
-                            validate_target(token, data, sc, outscopes);
-                        }
+                        vd.field_target(key, sc, outscopes);
                     }
                 }
                 Effect::TargetValue(key, outscopes, valuekey) => {
@@ -190,18 +188,8 @@ pub fn validate_effect<'a>(
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
                         vd.set_case_sensitive(false);
-                        if let Some(token) = vd.field_value(ikey) {
-                            data.verify_exists(itype, token);
-                        }
-                        if let Some(token) = vd.field_value(&ikey.to_uppercase()) {
-                            data.verify_exists(itype, token);
-                        }
-                        if let Some(token) = vd.field_value(tkey) {
-                            validate_target(token, data, sc, outscopes);
-                        }
-                        if let Some(token) = vd.field_value(&tkey.to_uppercase()) {
-                            validate_target(token, data, sc, outscopes);
-                        }
+                        vd.field_item(ikey, itype);
+                        vd.field_target(tkey, sc, outscopes);
                     }
                 }
                 Effect::ItemValue(key, itype) => {
@@ -398,7 +386,7 @@ fn validate_effect_control(
                 }
             }
         }
-        vd.field_target("subject", sc, Scopes::non_primitive());
+        vd.field_target_ok_this("subject", sc, Scopes::non_primitive());
         tooltipped = Tooltipped::No;
     } else {
         vd.ban_field("text", || "`custom_description` or `custom_tooltip`");
@@ -406,7 +394,7 @@ fn validate_effect_control(
     }
 
     if caller == "custom_description" || caller == "custom_description_no_bullet" {
-        vd.field_target("object", sc, Scopes::non_primitive());
+        vd.field_target_ok_this("object", sc, Scopes::non_primitive());
         vd.field_script_value("value", sc);
     } else {
         vd.ban_field("object", || "`custom_description`");
@@ -874,9 +862,7 @@ fn validate_effect_special(
         vd.req_field("name");
         vd.req_field("target");
         vd.field_value("name");
-        if let Some(target) = vd.field_value("target") {
-            validate_target(target, data, sc, Scopes::all_but_none());
-        }
+        vd.field_target_ok_this("target", sc, Scopes::all_but_none());
     } else if caller == "add_to_guest_subset" {
         vd.req_field("name");
         vd.req_field("target");
@@ -1174,10 +1160,10 @@ fn validate_effect_special(
         vd.req_field("recipient");
         vd.field_value("interaction"); // TODO
         vd.field_bool("redirect");
-        vd.field_target("actor", sc, Scopes::Character);
-        vd.field_target("recipient", sc, Scopes::Character);
-        vd.field_target("secondary_actor", sc, Scopes::Character);
-        vd.field_target("secondary_recipient", sc, Scopes::Character);
+        vd.field_target_ok_this("actor", sc, Scopes::Character);
+        vd.field_target_ok_this("recipient", sc, Scopes::Character);
+        vd.field_target_ok_this("secondary_actor", sc, Scopes::Character);
+        vd.field_target_ok_this("secondary_recipient", sc, Scopes::Character);
         if caller == "open_interaction_window" {
             vd.field_target("target_title", sc, Scopes::LandedTitle);
         }
@@ -1375,7 +1361,7 @@ fn validate_effect_special(
         vd.field_item("casus_belli", Item::CasusBelli);
         vd.field_item("cb", Item::CasusBelli);
         vd.field_target("target", sc, Scopes::Character);
-        vd.field_target("claimant", sc, Scopes::Character);
+        vd.field_target_ok_this("claimant", sc, Scopes::Character);
         for token in vd.field_values("target_title") {
             validate_target(token, data, sc, Scopes::LandedTitle);
         }
@@ -1418,11 +1404,11 @@ fn validate_effect_special(
     } else if caller == "try_create_suggestion" {
         vd.req_field("suggestion_type");
         vd.field_item("suggestion_type", Item::Suggestion);
-        vd.field_target("actor", sc, Scopes::Character);
-        vd.field_target("recipient", sc, Scopes::Character);
-        vd.field_target("secondary_actor", sc, Scopes::Character);
-        vd.field_target("secondary_recipient", sc, Scopes::Character);
-        vd.field_target("landed_title", sc, Scopes::LandedTitle);
+        vd.field_target_ok_this("actor", sc, Scopes::Character);
+        vd.field_target_ok_this("recipient", sc, Scopes::Character);
+        vd.field_target_ok_this("secondary_actor", sc, Scopes::Character);
+        vd.field_target_ok_this("secondary_recipient", sc, Scopes::Character);
+        vd.field_target_ok_this("landed_title", sc, Scopes::LandedTitle);
     } else if caller == "vassal_contract_set_obligation_level" {
         vd.req_field("type");
         vd.req_field("level");

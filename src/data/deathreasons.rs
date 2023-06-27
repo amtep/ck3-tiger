@@ -28,6 +28,13 @@ impl DbKind for DeathReason {
         vd.field_integer("priority");
         vd.field_bool("default");
 
+        data.verify_exists(Item::Localization, key);
+        if !key.as_str().ends_with("_killer") && !block.field_value_is("natural", "yes") {
+            // TODO: can we narrow down which death reasons need a _killer version?
+            let loca = format!("{key}_killer");
+            data.item_used(Item::Localization, &loca);
+        }
+
         if let Some(icon) = vd.field_value("icon") {
             if let Some(icon_path) =
                 data.get_defined_string_warn(key, "NGameIcons|DEATH_REASON_ICON_PATH")

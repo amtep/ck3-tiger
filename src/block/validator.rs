@@ -259,6 +259,23 @@ impl<'a> Validator<'a> {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 validate_target(token, self.data, sc, outscopes);
+                if token.is("this") {
+                    let msg = format!("`{name} = this` makes no sense here");
+                    warn(token, ErrorKey::UseOfThis, &msg);
+                }
+            }
+        })
+    }
+
+    pub fn field_target_ok_this(
+        &mut self,
+        name: &str,
+        sc: &mut ScopeContext,
+        outscopes: Scopes,
+    ) -> bool {
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                validate_target(token, self.data, sc, outscopes);
             }
         })
     }

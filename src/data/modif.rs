@@ -20,7 +20,9 @@ impl DbKind for ModifierFormat {
         let mut vd = Validator::new(block, data);
 
         // TODO: figure out exactly when a localization is needed
-        if block.loc.kind != FileKind::Vanilla {
+        if block.loc.kind == FileKind::Vanilla {
+            data.localization.mark_used(key.as_str());
+        } else {
             data.localization.verify_exists(key);
         }
 
