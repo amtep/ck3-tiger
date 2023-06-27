@@ -7,7 +7,9 @@ use std::path::{Path, PathBuf};
 use crate::block::Block;
 use crate::datatype::{validate_datatypes, CodeChain, Datatype};
 use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, error, error_info, warn, warn2, warn_info};
+use crate::errors::{
+    advice_info, error, error_info, warn, warn2, warn_abbreviated, warn_header, warn_info, will_log,
+};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::{dup_error, stringify_list};
@@ -366,9 +368,19 @@ impl Localization {
                     }
                 }
                 vec.sort_unstable_by_key(|entry| &entry.key.loc);
+                let mut printed_header = false;
                 for entry in vec {
-                    let msg = "localization not used anywhere";
-                    warn(&entry.key, ErrorKey::UnusedLocalization, &msg);
+                    if !printed_header && will_log(&entry.key, ErrorKey::UnusedLocalization) {
+                        warn_header(
+                            ErrorKey::UnusedLocalization,
+                            &format!("Unused localization - {lang}:\n"),
+                        );
+                        printed_header = true;
+                    }
+                    warn_abbreviated(&entry.key, ErrorKey::UnusedLocalization);
+                }
+                if printed_header {
+                    warn_header(ErrorKey::UnusedLocalization, "\n");
                 }
             }
         }

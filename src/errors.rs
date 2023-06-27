@@ -240,6 +240,25 @@ impl Errors {
         }
     }
 
+    pub fn log_abbreviated(&mut self, loc: &Loc) {
+        if self.outfile.is_none() {
+            self.outfile = Some(Box::new(stdout()));
+        }
+        if loc.line == 0 {
+            writeln!(
+                self.outfile.as_mut().expect("outfile"),
+                "{}",
+                loc.pathname.to_string_lossy()
+            )
+            .expect("writeln");
+        } else {
+            if let Some(line) = self.get_line(loc) {
+                writeln!(self.outfile.as_mut().expect("outfile"), "{line}").expect("writeln");
+            }
+        }
+    }
+
+    #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
     #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
     pub fn push<E: ErrorLoc>(
         &mut self,
@@ -329,6 +348,30 @@ impl Errors {
         self.log(&loc2, ErrorLevel::Info, key, msg2, None);
         self.log(&loc3, ErrorLevel::Info, key, msg3, None);
         writeln!(self.outfile.as_mut().expect("outfile")).expect("writeln");
+    }
+
+    pub fn push_abbreviated<E: ErrorLoc>(&mut self, eloc: E, level: ErrorLevel, key: ErrorKey) {
+        if level < self.minimum_level {
+            return;
+        }
+        let loc = eloc.into_loc();
+        let index = (loc.clone(), key, "".to_string(), None, None);
+        if self.seen.contains(&index) {
+            return;
+        }
+        self.seen.insert(index);
+        if !self.will_log(&loc, key) {
+            return;
+        }
+        self.log_abbreviated(&loc);
+    }
+
+    pub fn push_header(&mut self, level: ErrorLevel, key: ErrorKey, msg: &str) {
+        if level < self.minimum_level || self.logging_paused > 0 || self.ignore_keys.contains(&key)
+        {
+            return;
+        }
+        writeln!(self.outfile.as_mut().expect("outfile"), "{}", msg).expect("writeln");
     }
 
     pub fn get_mut() -> &'static mut Self {
@@ -495,6 +538,14 @@ pub fn advice2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc
 pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     let info = if info.is_empty() { None } else { Some(info) };
     Errors::get_mut().push(eloc, ErrorLevel::Advice, key, msg, info);
+}
+
+pub fn warn_header(key: ErrorKey, msg: &str) {
+    Errors::get_mut().push_header(ErrorLevel::Warning, key, msg);
+}
+
+pub fn warn_abbreviated<E: ErrorLoc>(eloc: E, key: ErrorKey) {
+    Errors::get_mut().push_abbreviated(eloc, ErrorLevel::Warning, key);
 }
 
 pub fn ignore_key_for(path: PathBuf, key: ErrorKey) {

@@ -9,7 +9,7 @@ use walkdir::WalkDir;
 
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
+use crate::errors::{error, warn_abbreviated, warn_header, will_log};
 use crate::everything::Everything;
 use crate::token::{Loc, Token};
 
@@ -297,9 +297,16 @@ impl Fileset {
                 vec.push(entry);
             }
         }
+        let mut printed_header = false;
         for entry in vec {
-            let msg = "DDS file not used anywhere";
-            warn(entry, ErrorKey::UnusedFile, &msg);
+            if !printed_header && will_log(entry, ErrorKey::UnusedFile) {
+                warn_header(ErrorKey::UnusedFile, "Unused DDS files:\n");
+                printed_header = true;
+            }
+            warn_abbreviated(entry, ErrorKey::UnusedFile);
+        }
+        if printed_header {
+            warn_header(ErrorKey::UnusedFile, "");
         }
     }
 }
