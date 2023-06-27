@@ -8,7 +8,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_target, validate_target_ok_this};
+use crate::trigger::validate_target_ok_this;
 use crate::validate::{
     validate_random_culture, validate_random_faith, validate_random_traits_list,
 };

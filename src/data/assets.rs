@@ -246,7 +246,7 @@ impl Asset {
             });
             vd.field_validated_blocks("throne_entity_user_data", |block, data| {
                 let mut vd = Validator::new(block, data);
-                vd.field_value("animation"); // TODO
+                vd.field_item("animation", Item::PortraitAnimation);
                 vd.field_bool("use_throne_transform");
             });
             vd.field_validated_blocks("court_entity_user_data", |block, data| {

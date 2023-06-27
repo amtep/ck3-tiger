@@ -461,14 +461,14 @@ fn validate_court_scene(block: &Block, data: &Everything, sc: &mut ScopeContext)
     vd.field_bool("show_timeout_info");
     vd.field_bool("should_pause_time");
     vd.field_target("court_owner", sc, Scopes::Character);
-    vd.field("scripted_animation");
+    vd.field_item("scripted_animation", Item::ScriptedAnimation);
     vd.field_validated_blocks("roles", |b, data| {
         for (key, block) in b.iter_pure_definitions_warn() {
             validate_target(key, data, sc, Scopes::Character);
             let mut vd = Validator::new(block, data);
             vd.req_field("group");
             vd.field_item("group", Item::CourtSceneGroup);
-            vd.field_value("animation"); // TODO
+            vd.field_item("animation", Item::PortraitAnimation);
             vd.field_validated_blocks("triggered_animation", |b, data| {
                 validate_triggered_animation(b, data, sc);
             });
@@ -503,8 +503,8 @@ fn validate_triggered_animation(block: &Block, data: &Everything, sc: &mut Scope
     vd.field_validated_block("trigger", |b, data| {
         validate_normal_trigger(b, data, sc, Tooltipped::No);
     });
-    vd.field_value("animation"); // TODO
-    vd.field_value("scripted_animation"); // TODO
+    vd.field_item("animation", Item::PortraitAnimation);
+    vd.field_item("scripted_animation", Item::ScriptedAnimation);
 }
 
 fn validate_triggered_outfit(block: &Block, data: &Everything, sc: &mut ScopeContext) {
