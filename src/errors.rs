@@ -240,25 +240,25 @@ impl Errors {
         }
     }
 
-    pub fn log_abbreviated(&mut self, loc: &Loc) {
+    pub fn log_abbreviated(&mut self, loc: &Loc, key: ErrorKey) {
         if self.outfile.is_none() {
             self.outfile = Some(Box::new(stdout()));
         }
         if loc.line == 0 {
             writeln!(
                 self.outfile.as_mut().expect("outfile"),
-                "{}",
+                "({key}) {}",
                 loc.pathname.to_string_lossy()
             )
             .expect("writeln");
         } else {
             if let Some(line) = self.get_line(loc) {
-                writeln!(self.outfile.as_mut().expect("outfile"), "{line}").expect("writeln");
+                writeln!(self.outfile.as_mut().expect("outfile"), "({key}) {line}")
+                    .expect("writeln");
             }
         }
     }
 
-    #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
     #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
     pub fn push<E: ErrorLoc>(
         &mut self,
@@ -363,7 +363,7 @@ impl Errors {
         if !self.will_log(&loc, key) {
             return;
         }
-        self.log_abbreviated(&loc);
+        self.log_abbreviated(&loc, key);
     }
 
     pub fn push_header(&mut self, level: ErrorLevel, key: ErrorKey, msg: &str) {
