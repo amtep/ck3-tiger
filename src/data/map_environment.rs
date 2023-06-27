@@ -69,7 +69,7 @@ impl DbKind for MapEnvironment {
 
         vd.field_choice(
             "tonemap_function",
-            &["Uncharted", "Reinhard", "ReinhardModified", "Filmic"],
+            &["Uncharted", "Reinhard", "ReinhardModified", "Filmic", ""],
         );
         vd.field_validated_block("tonemap_curve", validate_curve);
 
