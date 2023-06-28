@@ -17,7 +17,9 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::{validate_ai_chance, validate_duration, validate_modifiers_with_base};
+use crate::validate::{
+    validate_ai_chance, validate_cost_with_renown, validate_duration, validate_modifiers_with_base,
+};
 
 #[derive(Clone, Debug, Default)]
 pub struct Interactions {
@@ -425,13 +427,8 @@ impl Interaction {
             validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
 
-        vd.field_validated_block_rerooted("cost", &sc, Scopes::Character, |b, data, sc| {
-            let mut vd = Validator::new(b, data);
-            vd.field_script_value("piety", sc);
-            vd.field_script_value("prestige", sc);
-            vd.field_script_value("gold", sc);
-            vd.field_script_value("renown", sc);
-        });
+        // Experimentation showed that even the cost block has scope none
+        vd.field_validated_block_rerooted("cost", &sc, Scopes::None, validate_cost_with_renown);
     }
 }
 
