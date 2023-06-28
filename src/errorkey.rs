@@ -31,7 +31,7 @@ pub enum ErrorKey {
     Crash,
     Range,
     Tooltip,
-    Tidying,
+    IfElse,
     Rivers,
     Modifiers,
     Macro,

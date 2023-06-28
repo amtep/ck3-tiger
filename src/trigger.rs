@@ -59,9 +59,13 @@ pub fn validate_trigger(
         warn_info(block, ErrorKey::Tooltip, &msg, info);
     }
 
-    // limit blocks are accepted in trigger_else even though it doesn't make sense
     if caller == "trigger_if" || caller == "trigger_else_if" || caller == "trigger_else" {
-        vd.field_validated_block("limit", |block, data| {
+        vd.field_validated_key_block("limit", |key, block, data| {
+            if caller == "trigger_else" {
+                let msg = "`trigger_else` with a `limit` does work, but may indicate a mistake";
+                let info = "normally you would use `trigger_else_if` instead.";
+                advice_info(key, ErrorKey::IfElse, msg, info);
+            }
             validate_normal_trigger(block, data, sc, tooltipped.no_longer_failures_only());
         });
     } else {

@@ -7,7 +7,7 @@ use crate::data::effect_localization::EffectLocalization;
 use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn, warn_info};
+use crate::errors::{advice_info, error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, Scopes};
@@ -44,14 +44,18 @@ pub fn validate_effect<'a>(
     mut vd: Validator<'a>,
     mut tooltipped: Tooltipped,
 ) {
-    // `limit` is accepted in `else` blocks even though it's untidy
     if caller == "if"
         || caller == "else_if"
         || caller == "else"
         || caller == "while"
         || list_type != ListType::None
     {
-        vd.field_validated_block("limit", |block, data| {
+        vd.field_validated_key_block("limit", |key, block, data| {
+            if caller == "else" {
+                let msg = "`else` with a `limit` does work, but may indicate a mistake";
+                let info = "normally you would use `else_if` instead.";
+                advice_info(key, ErrorKey::IfElse, msg, info);
+            }
             validate_normal_trigger(block, data, sc, tooltipped);
         });
     } else {

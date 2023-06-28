@@ -6,7 +6,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, BV};
 use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
+use crate::errors::{advice_info, error, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, TriBool};
@@ -178,6 +178,11 @@ impl ScriptValue {
                 }
                 if let Some(block) = bv.expect_block() {
                     Self::validate_else(block, data, sc, check_desc);
+                    if block.has_key("limit") {
+                        // Another `else` after an `else` with a limit does work, so don't warn about it if it comes.
+                        // There will already be an "advice" about this limit, so no need for an extra message.
+                        next_seen_if = true;
+                    }
                 }
                 have_value = TriBool::Maybe;
             } else {
@@ -280,7 +285,10 @@ impl ScriptValue {
 
     fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
         let mut vd = Validator::new(block, data);
-        vd.field_validated_block("limit", |block, data| {
+        vd.field_validated_key_block("limit", |key, block, data| {
+            let msg = "`else` with a `limit` does work, but may indicate a mistake";
+            let info = "normally you would use `else_if` instead.";
+            advice_info(key, ErrorKey::IfElse, msg, info);
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
         Self::validate_inner(vd, data, sc, TriBool::Maybe, check_desc);
