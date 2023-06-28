@@ -12,7 +12,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, TriBool};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::scopes::{scope_iterator, Scopes};
+use crate::scopes::{scope_from_snake_case, scope_iterator, Scopes};
 use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_normal_trigger, validate_target};
@@ -23,6 +23,7 @@ use crate::validate::{
 
 #[derive(Clone, Debug, Default)]
 pub struct ScriptValues {
+    scope_overrides: FnvHashMap<String, Scopes>,
     scriptvalues: FnvHashMap<String, ScriptValue>,
 }
 
@@ -33,8 +34,11 @@ impl ScriptValues {
                 dup_error(key, &other.key, "script value");
             }
         }
-        self.scriptvalues
-            .insert(key.to_string(), ScriptValue::new(key.clone(), bv.clone()));
+        let scope_override = self.scope_overrides.get(key.as_str()).copied();
+        self.scriptvalues.insert(
+            key.to_string(),
+            ScriptValue::new(key.clone(), bv.clone(), scope_override),
+        );
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -55,6 +59,28 @@ impl ScriptValues {
 }
 
 impl FileHandler for ScriptValues {
+    fn config(&mut self, config: &Block) {
+        if let Some(block) = config.get_field_block("scope_override") {
+            for (key, token) in block.iter_assignments() {
+                let mut scopes = Scopes::empty();
+                if token.lowercase_is("all") {
+                    scopes = Scopes::all();
+                } else {
+                    for part in token.split('|') {
+                        if let Some(scope) = scope_from_snake_case(part.as_str()) {
+                            scopes |= scope;
+                        } else {
+                            let msg = format!("unknown scope type `{part}`");
+                            warn(part, ErrorKey::Config, &msg);
+                        }
+                    }
+                }
+                self.scope_overrides
+                    .insert(key.as_str().to_string(), scopes);
+            }
+        }
+    }
+
     fn subpath(&self) -> PathBuf {
         PathBuf::from("common/script_values")
     }
@@ -76,14 +102,16 @@ pub struct ScriptValue {
     key: Token,
     bv: BV,
     cache: RefCell<FnvHashMap<Loc, ScopeContext>>,
+    scope_override: Option<Scopes>,
 }
 
 impl ScriptValue {
-    pub fn new(key: Token, bv: BV) -> Self {
+    pub fn new(key: Token, bv: BV, scope_override: Option<Scopes>) -> Self {
         Self {
             key,
             bv,
             cache: RefCell::new(FnvHashMap::default()),
+            scope_override,
         }
     }
 
@@ -353,6 +381,10 @@ impl ScriptValue {
                 .borrow_mut()
                 .insert(key.loc.clone(), our_sc.clone());
             Self::validate_bv(&self.bv, data, &mut our_sc);
+            if let Some(scopes) = self.scope_override {
+                our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
+                our_sc.set_strict_scopes(false);
+            }
             sc.expect_compatibility(&our_sc, key);
             self.cache.borrow_mut().insert(key.loc.clone(), our_sc);
         }
