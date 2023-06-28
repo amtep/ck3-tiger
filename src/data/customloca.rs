@@ -97,8 +97,9 @@ impl CustomLocalization {
 
         if let Some(parent) = block.get_field_value("parent") {
             if let Some(suffix) = block.get_field_value("suffix") {
-                if let Some((key, block, kind)) =
-                    data.get_item::<CustomLocalization>(Item::CustomLocalization, parent.as_str())
+                if let Some((key, block)) = data
+                    .database
+                    .get_key_block(Item::CustomLocalization, parent.as_str())
                 {
                     let suffix_str = format!("{suffix_str}{suffix}");
                     let suffix_token = if suffix_token.is_some() {
@@ -106,7 +107,8 @@ impl CustomLocalization {
                     } else {
                         Some(suffix)
                     };
-                    kind.validate_custom_call(
+                    // Re-using self here because it does not matter which object is used
+                    self.validate_custom_call(
                         key,
                         block,
                         data,
