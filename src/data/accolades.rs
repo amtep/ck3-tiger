@@ -164,7 +164,7 @@ impl DbKind for AccoladeType {
                         validate_winter_bonus(block, data);
                     }
                 });
-                vd.field_list("accolade_parameters");
+                vd.field_list_items("accolade_parameters", Item::Localization);
             }
         });
     }

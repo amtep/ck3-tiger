@@ -166,6 +166,14 @@ impl Errors {
     }
 
     pub fn will_log(&self, loc: &Loc, key: ErrorKey) -> bool {
+        // Check all elements of the loc link chain.
+        // This is necessary because of cases like a mod passing `CHARACTER = this` to a vanilla script effect
+        // that does not expect that. The error would be located in the vanilla script but would be caused by the mod.
+        if let Some(loc) = &loc.link {
+            if self.will_log(loc, key) {
+                return true;
+            }
+        }
         if self.logging_paused > 0
             || self.ignore_keys.contains(&key)
             || (loc.kind == FileKind::Vanilla && !self.show_vanilla)
