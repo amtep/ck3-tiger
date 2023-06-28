@@ -473,12 +473,14 @@ impl FileHandler for Localization {
                 Ok(content) => {
                     for loca in parse_loca(entry, &content, filelang) {
                         let hash = self.locas.entry(filelang).or_default();
-                        if let Some(other) = hash.get(loca.key.as_str()) {
-                            // other.key and loca.key are in the other order than usual here,
-                            // because in loca the older definition overrides the later one.
-                            if loca.key.loc.kind == entry.kind() && other.orig != loca.orig {
-                                dup_error(&other.key, &loca.key, "localization");
-                                continue;
+                        if !is_replace_path(entry.path()) {
+                            if let Some(other) = hash.get(loca.key.as_str()) {
+                                // other.key and loca.key are in the other order than usual here,
+                                // because in loca the older definition overrides the later one.
+                                if loca.key.loc.kind == entry.kind() && other.orig != loca.orig {
+                                    dup_error(&other.key, &loca.key, "localization");
+                                    continue;
+                                }
                             }
                         }
                         hash.insert(loca.key.to_string(), loca);
@@ -575,4 +577,14 @@ impl Default for Localization {
             used_locas: RefCell::new(FnvHashSet::default()),
         }
     }
+}
+
+/// It's been tested that localization/replace/english and localization/english/replace both work
+fn is_replace_path(path: &Path) -> bool {
+    for element in path {
+        if element.to_string_lossy() == "replace" {
+            return true;
+        }
+    }
+    false
 }
