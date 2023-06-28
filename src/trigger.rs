@@ -60,6 +60,9 @@ pub fn validate_trigger(
     }
 
     if caller == "trigger_if" || caller == "trigger_else_if" || caller == "trigger_else" {
+        if caller != "trigger_else" {
+            vd.req_field_warn("limit");
+        }
         vd.field_validated_key_block("limit", |key, block, data| {
             if caller == "trigger_else" {
                 let msg = "`trigger_else` with a `limit` does work, but may indicate a mistake";
