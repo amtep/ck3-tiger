@@ -15,7 +15,7 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_from_snake_case, scope_iterator, Scopes};
 use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_normal_trigger, validate_target};
+use crate::trigger::{validate_normal_trigger, validate_target_ok_this};
 use crate::validate::{
     precheck_iterator_fields, validate_inside_iterator, validate_iterator_fields,
     validate_scope_chain, ListType,
@@ -323,8 +323,9 @@ impl ScriptValue {
     }
 
     pub fn validate_bv_2(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
+        // Using validate_target_ok_this here because when chaining script values to each other, you often do `value = this`
         match bv {
-            BV::Value(t) => validate_target(t, data, sc, Scopes::Value | Scopes::Bool),
+            BV::Value(t) => validate_target_ok_this(t, data, sc, Scopes::Value | Scopes::Bool),
             BV::Block(b) => {
                 let mut vd = Validator::new(b, data);
                 if let Some((None, _, _)) = b.iter_items().next() {
@@ -332,7 +333,7 @@ impl ScriptValue {
                     let vec = vd.values();
                     if vec.len() == 2 {
                         for v in vec {
-                            validate_target(v, data, sc, Scopes::Value | Scopes::Bool);
+                            validate_target_ok_this(v, data, sc, Scopes::Value | Scopes::Bool);
                         }
                     } else {
                         warn(b, ErrorKey::Validation, "invalid script value range");
