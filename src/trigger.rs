@@ -47,12 +47,19 @@ pub fn validate_trigger(
         tooltipped = Tooltipped::No;
     }
 
+    // If this condition looks weird, it's because the negation from for example NOR has already
+    // been applied to the tooltip value.
     if (tooltipped == Tooltipped::FailuresOnly
         && (caller == "or" || caller == "nor" || caller == "all_false"))
         || (tooltipped == Tooltipped::NegatedFailuresOnly && (caller == "and" || caller == "nand"))
     {
+        let negated = if caller == "nor" || caller == "all_false" || caller == "and" {
+            "negated "
+        } else {
+            ""
+        };
         let msg = format!(
-            "{} is a too complex trigger to be tooltipped in a trigger that shows failures only.",
+            "{negated}{} is a too complex trigger to be tooltipped in a trigger that shows failures only.",
             caller.to_uppercase()
         );
         let info = "Try adding a custom_description or custom_tooltip, or simplifying the trigger";
