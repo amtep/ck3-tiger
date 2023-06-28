@@ -5,7 +5,7 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
+use crate::errors::{error, error_info, will_log};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 
@@ -164,6 +164,11 @@ impl Rivers {
                 ErrorKey::ImageFormat,
                 "rivers.png must have an 8-bit palette",
             );
+            return;
+        }
+
+        // Early exit before expensive loop, if errors won't be logged anyway
+        if !will_log(self.entry.as_ref().unwrap(), ErrorKey::Rivers) {
             return;
         }
 
