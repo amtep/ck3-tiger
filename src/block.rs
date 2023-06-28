@@ -125,6 +125,23 @@ impl Block {
         self.v.push((Some(key), cmp, value));
     }
 
+    pub fn add_to_field_block(&mut self, name: &str, block: &mut Block) -> bool {
+        for (k, _, bv) in self.v.iter_mut().rev() {
+            if let Some(key) = k {
+                if key.is(name) {
+                    match bv {
+                        BV::Value(_) => (),
+                        BV::Block(b) => {
+                            b.append(block);
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        false
+    }
+
     pub fn append(&mut self, other: &mut Block) {
         self.v.append(&mut other.v);
     }
@@ -309,6 +326,10 @@ impl Block {
 
     pub fn iter_items(&self) -> std::slice::Iter<BlockItem> {
         self.v.iter()
+    }
+
+    pub fn drain(&mut self) -> std::vec::Drain<BlockItem> {
+        self.v.drain(..)
     }
 
     pub fn iter_definitions(&self) -> IterDefinitions {

@@ -1,10 +1,12 @@
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
 
 use crate::block::validator::Validator;
-use crate::block::Block;
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::effect::validate_normal_effect;
+use crate::errorkey::ErrorKey;
+use crate::errors::{error_info, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
@@ -21,9 +23,9 @@ pub struct OnActions {
 }
 
 impl OnActions {
-    fn load_item(&mut self, key: Token, mut block: Block) {
+    fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.on_actions.get_mut(key.as_str()) {
-            other.block.append(&mut block);
+            on_action_special_append(&mut other.block, block);
         } else {
             self.on_actions
                 .insert(key.to_string(), OnAction::new(key, block));
@@ -62,6 +64,38 @@ impl FileHandler for OnActions {
     }
 }
 
+fn on_action_special_append(first: &mut Block, mut second: Block) {
+    const SPECIAL_FIELDS: &[&str] = &[
+        "events",
+        "random_events",
+        "first_valid",
+        "on_actions",
+        "random_on_action",
+        "first_valid_on_action",
+    ];
+    let mut seen: FnvHashSet<String> = FnvHashSet::default();
+    for (k, cmp, bv) in second.drain() {
+        if let Some(key) = k {
+            if let BV::Block(mut block) = bv {
+                // For the special fields, append the first one we see to the first block's corresponding field.
+                if SPECIAL_FIELDS.contains(&key.as_str()) {
+                    if !seen.contains(&key.to_string()) {
+                        seen.insert(key.to_string());
+                        if first.add_to_field_block(key.as_str(), &mut block) {
+                            continue;
+                        }
+                    }
+                }
+                first.add_key_value(key, cmp, BV::Block(block));
+            } else {
+                first.add_key_value(key, cmp, bv);
+            }
+        } else {
+            first.add_value(bv);
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct OnAction {
     key: Token,
@@ -90,15 +124,24 @@ impl OnAction {
             validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block_sc("weight_multiplier", &mut sc, validate_modifiers_with_base);
-        vd.field_validated_blocks("events", |b, data| {
+        let mut count = 0;
+        vd.field_validated_key_blocks("events", |key, b, data| {
             let mut vd = Validator::new(b, data);
             vd.field_validated_blocks_sc("delay", &mut sc, validate_duration);
             for token in vd.values() {
                 data.verify_exists(Item::Event, token);
                 data.events.check_scope(token, &mut sc);
             }
+            count += 1;
+            if count == 2 {
+                // TODO: verify
+                let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
+                let info = "try combining them into one block";
+                warn_info(key, ErrorKey::Validation, &msg, info);
+            }
         });
-        vd.field_validated_blocks("random_events", |b, data| {
+        count = 0;
+        vd.field_validated_key_blocks("random_events", |key, b, data| {
             let mut vd = Validator::new(b, data);
             vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
             vd.field_script_value("chance_of_no_event", &mut sc);
@@ -110,23 +153,45 @@ impl OnAction {
                 data.verify_exists(Item::Event, token);
                 data.events.check_scope(token, &mut sc);
             }
+            count += 1;
+            if count == 2 {
+                let msg = format!("multiple `random_events` blocks in one on_action do not work");
+                let info = "try putting each into its own on_action and firing those separately";
+                error_info(key, ErrorKey::Validation, &msg, info);
+            }
         });
-        vd.field_list_items("first_valid", Item::Event);
-        vd.field_validated_blocks("first_valid", |b, data| {
+        count = 0;
+        vd.field_validated_key_blocks("first_valid", |key, b, data| {
             let mut vd = Validator::new(b, data);
             for token in vd.values() {
                 data.verify_exists(Item::Event, token);
                 data.events.check_scope(token, &mut sc);
             }
+            count += 1;
+            if count == 2 {
+                // TODO: verify
+                let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
+                let info = "try putting each into its own on_action and firing those separately";
+                warn_info(key, ErrorKey::Validation, &msg, info);
+            }
         });
-        vd.field_validated_blocks("on_actions", |b, data| {
+        count = 0;
+        vd.field_validated_key_blocks("on_actions", |key, b, data| {
             let mut vd = Validator::new(b, data);
             vd.field_validated_blocks_sc("delay", &mut sc, validate_duration);
             for token in vd.values() {
                 data.verify_exists(Item::OnAction, token);
             }
+            count += 1;
+            if count == 2 {
+                // TODO: verify
+                let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
+                let info = "try combining them into one block";
+                warn_info(key, ErrorKey::Validation, &msg, info);
+            }
         });
-        vd.field_validated_blocks("random_on_action", |b, data| {
+        count = 0;
+        vd.field_validated_key_blocks("random_on_action", |key, b, data| {
             let mut vd = Validator::new(b, data);
             vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
             vd.field_script_value("chance_of_no_event", &mut sc);
@@ -136,11 +201,26 @@ impl OnAction {
                 }
                 data.verify_exists(Item::OnAction, token);
             }
+            count += 1;
+            if count == 2 {
+                // TODO: verify
+                let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
+                let info = "try putting each into its own on_action and firing those separately";
+                warn_info(key, ErrorKey::Validation, &msg, info);
+            }
         });
-        vd.field_validated_blocks("first_valid_on_action", |b, data| {
+        count = 0;
+        vd.field_validated_key_blocks("first_valid_on_action", |key, b, data| {
             let mut vd = Validator::new(b, data);
             for token in vd.values() {
                 data.verify_exists(Item::OnAction, token);
+            }
+            count += 1;
+            if count == 2 {
+                // TODO: verify
+                let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
+                let info = "try putting each into its own on_action and firing those separately";
+                warn_info(key, ErrorKey::Validation, &msg, info);
             }
         });
         vd.field_validated_block("effect", |b, data| {
