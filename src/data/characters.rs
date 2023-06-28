@@ -391,14 +391,13 @@ impl Character {
     }
 
     fn check_pod_flags(&self, _data: &Everything) {
-        if self.block.has_key("dna") {
-            if self.has_trait("nosferatu")
-                && !self.has_flag("had_POD_character_nosferatu_looks")
-                && !self.key.is("791762")
-            {
-                let msg = "nosferatu with predefined dna lacks had_POD_character_nosferatu_looks";
-                error(&self.key, ErrorKey::PrincesOfDarkness, msg);
-            }
+        if self.block.has_key("dna")
+            && self.has_trait("nosferatu")
+            && !self.has_flag("had_POD_character_nosferatu_looks")
+            && !self.key.is("791762")
+        {
+            let msg = "nosferatu with predefined dna lacks had_POD_character_nosferatu_looks";
+            error(&self.key, ErrorKey::PrincesOfDarkness, msg);
         }
     }
 

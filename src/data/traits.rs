@@ -81,7 +81,7 @@ impl Traits {
 
     // Is the trait itself a track? Different than a trait having multiple tracks
     pub fn has_track(&self, key: &str) -> bool {
-        self.traits.get(key).map(|t| t.has_track).unwrap_or(false)
+        self.traits.get(key).map_or(false, |t| t.has_track)
     }
 
     pub fn validate(&self, data: &Everything) {

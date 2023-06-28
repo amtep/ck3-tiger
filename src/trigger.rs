@@ -90,15 +90,13 @@ pub fn validate_trigger(
         vd.req_field("text");
         if caller == "custom_tooltip" {
             vd.field_item("text", Item::Localization);
-        } else {
-            if let Some(token) = vd.field_value("text") {
-                data.verify_exists(Item::TriggerLocalization, token);
-                if let Some((key, block)) = data
-                    .database
-                    .get_key_block(Item::TriggerLocalization, token.as_str())
-                {
-                    TriggerLocalization::validate_use(key, block, data, token, tooltipped);
-                }
+        } else if let Some(token) = vd.field_value("text") {
+            data.verify_exists(Item::TriggerLocalization, token);
+            if let Some((key, block)) = data
+                .database
+                .get_key_block(Item::TriggerLocalization, token.as_str())
+            {
+                TriggerLocalization::validate_use(key, block, data, token, tooltipped);
             }
         }
         vd.field_target_ok_this("subject", sc, Scopes::non_primitive());
@@ -837,11 +835,11 @@ pub fn validate_target_ok_this(
     if !outscopes.intersects(final_scopes | Scopes::None) {
         let part = &part_vec[part_vec.len() - 1];
         let msg = format!("`{part}` produces {final_scopes} but expected {outscopes}");
-        if part != because {
+        if part == because {
+            warn(part, ErrorKey::Scopes, &msg);
+        } else {
             let msg2 = format!("scope was deduced from `{because}` here");
             warn2(part, ErrorKey::Scopes, &msg, because, &msg2);
-        } else {
-            warn(part, ErrorKey::Scopes, &msg);
         }
     }
     sc.close();
@@ -850,7 +848,7 @@ pub fn validate_target_ok_this(
 pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, outscopes: Scopes) {
     validate_target_ok_this(token, data, sc, outscopes);
     if token.is("this") {
-        let msg = format!("target `this` makes no sense here");
-        warn(token, ErrorKey::UseOfThis, &msg);
+        let msg = "target `this` makes no sense here";
+        warn(token, ErrorKey::UseOfThis, msg);
     }
 }

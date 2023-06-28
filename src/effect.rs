@@ -386,15 +386,13 @@ fn validate_effect_control(
         vd.req_field("text");
         if caller == "custom_tooltip" || caller == "custom_label" {
             vd.field_item("text", Item::Localization);
-        } else {
-            if let Some(token) = vd.field_value("text") {
-                data.verify_exists(Item::EffectLocalization, token);
-                if let Some((key, block)) = data
-                    .database
-                    .get_key_block(Item::EffectLocalization, token.as_str())
-                {
-                    EffectLocalization::validate_use(key, block, data, token, tooltipped);
-                }
+        } else if let Some(token) = vd.field_value("text") {
+            data.verify_exists(Item::EffectLocalization, token);
+            if let Some((key, block)) = data
+                .database
+                .get_key_block(Item::EffectLocalization, token.as_str())
+            {
+                EffectLocalization::validate_use(key, block, data, token, tooltipped);
             }
         }
         vd.field_target_ok_this("subject", sc, Scopes::non_primitive());

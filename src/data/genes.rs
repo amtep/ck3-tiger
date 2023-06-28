@@ -407,11 +407,11 @@ fn validate_curve_range(block: &Block, data: &Everything) {
         if let Some(v) = token.expect_number() {
             count += 1;
             if count == 1 {
-                if v < 0.0 || v > 1.0 {
+                if !(0.0..=1.0).contains(&v) {
                     error(token, ErrorKey::Range, "expected number from 0.0 to 1.0");
                 }
             } else {
-                if v < -1.0 || v > 1.0 {
+                if !(-1.0..=1.0).contains(&v) {
                     error(token, ErrorKey::Range, "expected number from -1.0 to 1.0");
                 }
             }
@@ -433,7 +433,7 @@ fn validate_hsv_curve_range(block: &Block, data: &Everything) {
             if let Some(token) = bv.expect_value() {
                 if let Some(v) = token.expect_number() {
                     found_first = true;
-                    if v < 0.0 || v > 1.0 {
+                    if !(0.0..=1.0).contains(&v) {
                         error(token, ErrorKey::Range, "expected number from 0.0 to 1.0");
                     }
                 }
@@ -446,7 +446,7 @@ fn validate_hsv_curve_range(block: &Block, data: &Everything) {
                 for token in vd.values() {
                     if let Some(v) = token.expect_number() {
                         count += 1;
-                        if v < -1.0 || v > 1.0 {
+                        if !(-1.0..=1.0).contains(&v) {
                             error(token, ErrorKey::Range, "expected number from -1.0 to 1.0");
                         }
                     }
@@ -465,7 +465,7 @@ fn validate_gene_range(block: &Block, data: &Everything) {
     for token in vd.values() {
         if let Some(v) = token.expect_number() {
             count += 1;
-            if v < 0.0 || v > 1.0 {
+            if !(0.0..=1.0).contains(&v) {
                 error(token, ErrorKey::Range, "expected number from 0.0 to 1.0");
             }
         }

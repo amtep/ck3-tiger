@@ -34,7 +34,7 @@ impl Sounds {
 
     pub fn verify_exists_implied(&self, key: &str, item: &Token, data: &Everything) {
         if let Some(file) = key.strip_prefix("file:/") {
-            data.verify_exists_implied(Item::File, &file, item);
+            data.verify_exists_implied(Item::File, file, item);
         } else if !self.sounds.contains_key(key) {
             let msg = if key == item.as_str() {
                 "sound not defined in sounds/GUIDs.txt".to_string()

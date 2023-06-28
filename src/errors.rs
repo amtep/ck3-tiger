@@ -259,11 +259,8 @@ impl Errors {
                 loc.pathname.to_string_lossy()
             )
             .expect("writeln");
-        } else {
-            if let Some(line) = self.get_line(loc) {
-                writeln!(self.outfile.as_mut().expect("outfile"), "({key}) {line}")
-                    .expect("writeln");
-            }
+        } else if let Some(line) = self.get_line(loc) {
+            writeln!(self.outfile.as_mut().expect("outfile"), "({key}) {line}").expect("writeln");
         }
     }
 
@@ -363,7 +360,7 @@ impl Errors {
             return;
         }
         let loc = eloc.into_loc();
-        let index = (loc.clone(), key, "".to_string(), None, None);
+        let index = (loc.clone(), key, String::new(), None, None);
         if self.seen.contains(&index) {
             return;
         }
@@ -379,7 +376,7 @@ impl Errors {
         {
             return;
         }
-        writeln!(self.outfile.as_mut().expect("outfile"), "{}", msg).expect("writeln");
+        writeln!(self.outfile.as_mut().expect("outfile"), "{msg}").expect("writeln");
     }
 
     pub fn get_mut() -> &'static mut Self {

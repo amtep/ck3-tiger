@@ -120,12 +120,12 @@ impl LocaEntry {
     }
 
     // returns false to abort expansion in case of an error
-    fn expand_macros<'a, 'b>(
+    fn expand_macros<'a>(
         &'a self,
         vec: &mut Vec<&'a Token>,
         from: &'a FnvHashMap<String, LocaEntry>,
         count: &mut usize,
-        used: &'b mut FnvHashSet<String>,
+        used: &mut FnvHashSet<String>,
     ) -> bool {
         // Are we (probably) stuck in a macro loop?
         if *count > 250 {

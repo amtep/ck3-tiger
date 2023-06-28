@@ -291,7 +291,7 @@ fn modif_check(
     if warn {
         data.verify_exists_implied(itype, s, name);
     }
-    return Some(mk);
+    Some(mk)
 }
 
 // Redeclare the `ModifKinds` enums as bare numbers, so that we can to | on them in const tables.

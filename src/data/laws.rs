@@ -52,7 +52,7 @@ impl DbKind for LawGroup {
         let mut vd = Validator::new(block, data);
 
         if let Some(token) = vd.field_value("default") {
-            if !block.get_field_block(token.as_str()).is_some() {
+            if block.get_field_block(token.as_str()).is_none() {
                 let msg = "law not defined in this group";
                 error(token, ErrorKey::MissingItem, msg);
             }
@@ -185,8 +185,7 @@ impl DbKind for Law {
 
             let order_of_succession = block
                 .get_field_value("order_of_succession")
-                .map(Token::as_str)
-                .unwrap_or("none");
+                .map_or("none", Token::as_str);
             if order_of_succession == "theocratic"
                 || order_of_succession == "company"
                 || order_of_succession == "generate"

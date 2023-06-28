@@ -78,12 +78,10 @@ fn on_action_special_append(first: &mut Block, mut second: Block) {
         if let Some(key) = k {
             if let BV::Block(mut block) = bv {
                 // For the special fields, append the first one we see to the first block's corresponding field.
-                if SPECIAL_FIELDS.contains(&key.as_str()) {
-                    if !seen.contains(&key.to_string()) {
-                        seen.insert(key.to_string());
-                        if first.add_to_field_block(key.as_str(), &mut block) {
-                            continue;
-                        }
+                if SPECIAL_FIELDS.contains(&key.as_str()) && !seen.contains(&key.to_string()) {
+                    seen.insert(key.to_string());
+                    if first.add_to_field_block(key.as_str(), &mut block) {
+                        continue;
                     }
                 }
                 first.add_key_value(key, cmp, BV::Block(block));
@@ -155,7 +153,7 @@ impl OnAction {
             }
             count += 1;
             if count == 2 {
-                let msg = format!("multiple `random_events` blocks in one on_action do not work");
+                let msg = format!("multiple `{key}` blocks in one on_action do not work");
                 let info = "try putting each into its own on_action and firing those separately";
                 error_info(key, ErrorKey::Validation, &msg, info);
             }

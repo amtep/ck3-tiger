@@ -33,9 +33,9 @@ impl Coas {
                         if other.key.loc.kind >= key.loc.kind {
                             if let BV::Block(otherblock) = &other.bv {
                                 if otherblock.equivalent(block) {
-                                    dup_advice(&key, &other.key, "coa template");
+                                    dup_advice(key, &other.key, "coa template");
                                 } else {
-                                    dup_error(&key, &other.key, "coa template");
+                                    dup_error(key, &other.key, "coa template");
                                 }
                             }
                         }
@@ -50,9 +50,9 @@ impl Coas {
             if let Some(other) = self.coas.get(key.as_str()) {
                 if other.key.loc.kind >= key.loc.kind {
                     if other.bv.equivalent(bv) {
-                        dup_advice(&key, &other.key, "coat of arms");
+                        dup_advice(key, &other.key, "coat of arms");
                     } else {
-                        dup_error(&key, &other.key, "coat of arms");
+                        dup_error(key, &other.key, "coat of arms");
                     }
                 }
             }

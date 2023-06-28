@@ -53,10 +53,10 @@ impl DbKind for Modifier {
         vd.field("stacking");
         vd.field("hide_effects");
         let kind = match property.as_str() {
-            "add_character_modifier" => ModifKinds::Character,
+            "add_character_modifier" | "add_dynasty_modifier" | "add_house_modifier" => {
+                ModifKinds::Character
+            }
             "add_county_modifier" => ModifKinds::County,
-            "add_dynasty_modifier" => ModifKinds::Character,
-            "add_house_modifier" => ModifKinds::Character,
             "add_province_modifier" => ModifKinds::Province,
             "add_scheme_modifier" => ModifKinds::Scheme,
             "add_travel_plan_modifier" => ModifKinds::TravelPlan,

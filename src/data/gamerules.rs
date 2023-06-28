@@ -60,12 +60,12 @@ impl DbKind for GameRule {
                 if let Some((category, modifier)) = token.split_once(':') {
                     if !category.is("player") && !category.is("ai") && !category.is("all") {
                         let msg = "expected player: ai: or all:";
-                        error(category, ErrorKey::Validation, &msg);
+                        error(category, ErrorKey::Validation, msg);
                     }
                     data.verify_exists(Item::Modifier, &modifier);
                 } else {
                     let msg = "expected format category:modifier";
-                    error(token, ErrorKey::Validation, &msg);
+                    error(token, ErrorKey::Validation, msg);
                 }
             }
 
@@ -74,7 +74,7 @@ impl DbKind for GameRule {
                 for (group, block) in vd.unknown_block_fields() {
                     let mut vd = Validator::new(block, data);
                     for (key, _) in vd.unknown_fields() {
-                        let define_key = format!("{}|{}", group, key);
+                        let define_key = format!("{group}|{key}");
                         data.verify_exists_implied(Item::Define, &define_key, key);
                     }
                 }

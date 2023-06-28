@@ -254,7 +254,7 @@ impl DbKind for CultureTradition {
             let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
             sc.define_name("replacing", Scopes::CultureTradition, key.clone());
             sc.define_name("character", Scopes::Character, key.clone());
-            validate_cost(block, data, &mut sc)
+            validate_cost(block, data, &mut sc);
         });
         let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
         sc.define_name("character", Scopes::Character, key.clone());

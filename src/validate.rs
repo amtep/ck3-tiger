@@ -256,7 +256,7 @@ pub fn validate_camera_color(block: &Block, data: &Everything) {
     let tag = block.tag.as_ref().map_or("rgb", Token::as_str);
     if tag != "hsv" {
         let msg = "camera colors should be in hsv";
-        warn(block, ErrorKey::Colors, &msg);
+        warn(block, ErrorKey::Colors, msg);
         validate_color(block, data);
         return;
     }
@@ -315,8 +315,9 @@ pub fn validate_prefix_reference(prefix: &Token, arg: &Token, data: &Everything)
         "struggle" => data.verify_exists(Item::Struggle, arg),
         "title" => data.verify_exists(Item::Title, arg),
         "trait" => data.verify_exists(Item::Trait, arg),
-        "vassal_contract" => data.verify_exists(Item::VassalContract, arg),
-        "vassal_contract_obligation_level" => data.verify_exists(Item::VassalContract, arg),
+        "vassal_contract" | "vassal_contract_obligation_level" => {
+            data.verify_exists(Item::VassalContract, arg)
+        }
         &_ => (),
     }
 }

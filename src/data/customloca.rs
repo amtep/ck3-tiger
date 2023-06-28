@@ -74,7 +74,6 @@ impl DbKind for CustomLocalization {
 
 impl CustomLocalization {
     pub fn validate_custom_call(
-        &self,
         key: &Token,
         block: &Block,
         data: &Everything,
@@ -107,8 +106,7 @@ impl CustomLocalization {
                     } else {
                         Some(suffix)
                     };
-                    // Re-using self here because it does not matter which object is used
-                    self.validate_custom_call(
+                    Self::validate_custom_call(
                         key,
                         block,
                         data,

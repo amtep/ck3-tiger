@@ -68,8 +68,7 @@ fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: &'sta
         .database
         .get_key_block(Item::CustomLocalization, token.as_str())
     {
-        let kind = CustomLocalization {};
-        kind.validate_custom_call(key, block, data, token, scopes, lang, "", None);
+        CustomLocalization::validate_custom_call(key, block, data, token, scopes, lang, "", None);
     }
 }
 
@@ -102,11 +101,9 @@ fn validate_argument(arg: &CodeArg, data: &Everything, expect_arg: Arg, lang: &'
                             let msg = format!("unrecognized datatype {dtype}");
                             error(token, ErrorKey::Datafunctions, &msg);
                         }
-                    } else {
-                        if expect_type != Datatype::Unknown && expect_type != Datatype::CString {
-                            let msg = format!("expected {expect_type}, got CString");
-                            error(token, ErrorKey::Datafunctions, &msg);
-                        }
+                    } else if expect_type != Datatype::Unknown && expect_type != Datatype::CString {
+                        let msg = format!("expected {expect_type}, got CString");
+                        error(token, ErrorKey::Datafunctions, &msg);
                     }
                 }
             }
@@ -309,10 +306,10 @@ pub fn validate_datatypes(
             if let CodeArg::Literal(ref token) = code.arguments[0] {
                 if let Some(scopes) = scope_from_datatype(curtype) {
                     validate_custom(token, data, scopes, lang);
-                } else if curtype == Datatype::Unknown {
-                    if !CUSTOM_RELIGION_LOCAS.contains(&token.as_str()) {
-                        validate_custom(token, data, Scopes::all(), lang);
-                    }
+                } else if curtype == Datatype::Unknown
+                    && !CUSTOM_RELIGION_LOCAS.contains(&token.as_str())
+                {
+                    validate_custom(token, data, Scopes::all(), lang);
                 }
             }
         }
