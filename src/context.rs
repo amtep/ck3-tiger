@@ -38,6 +38,7 @@ pub struct ScopeContext {
     is_unrooted: bool,
 
     strict_scopes: bool,
+    no_warn: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -81,6 +82,7 @@ impl ScopeContext {
             is_builder: false,
             is_unrooted: false,
             strict_scopes: true,
+            no_warn: false,
         }
     }
 
@@ -99,11 +101,16 @@ impl ScopeContext {
             is_builder: false,
             is_unrooted: true,
             strict_scopes: true,
+            no_warn: false,
         }
     }
 
     pub fn set_strict_scopes(&mut self, strict: bool) {
         self.strict_scopes = strict;
+    }
+
+    pub fn set_no_warn(&mut self, no_warn: bool) {
+        self.no_warn = no_warn;
     }
 
     pub fn change_root<T: Borrow<Token>>(&mut self, root: Scopes, token: T) {
@@ -176,6 +183,7 @@ impl ScopeContext {
             let (s, t) = self._resolve_named(idx);
             self.expect(s, &t.clone());
         } else {
+            // TODO
             // only with strict scope checking
             // let msg = format!("unknown list");
             //warn(name, ErrorKey::UnknownList, &msg);
@@ -257,8 +265,10 @@ impl ScopeContext {
             self.named
                 .push(ScopeEntry::Scope(Scopes::all(), token.clone()));
             if self.strict_scopes {
-                let msg = format!("scope:{name} might not be available here");
-                warn(token, ErrorKey::StrictScopes, &msg);
+                if !self.no_warn {
+                    let msg = format!("scope:{name} might not be available here");
+                    warn(token, ErrorKey::StrictScopes, &msg);
+                }
                 // Don't treat it as an input scope, because we already warned about it
                 self.is_input.push(false);
             } else {
@@ -535,7 +545,7 @@ impl ScopeContext {
 
     pub fn expect(&mut self, scopes: Scopes, token: &Token) {
         // The None scope is special, it means the scope isn't used or inspected
-        if scopes == Scopes::None {
+        if self.no_warn || scopes == Scopes::None {
             return;
         }
         match self.this {
@@ -564,6 +574,9 @@ impl ScopeContext {
     }
 
     pub fn expect_compatibility(&mut self, other: &ScopeContext, key: &Token) {
+        if self.no_warn {
+            return;
+        }
         // Compare restrictions on `root`
         match other.root {
             ScopeEntry::Scope(scopes, ref token) => {

@@ -4,7 +4,7 @@ use bitflags::bitflags;
 use std::fmt::{Display, Formatter};
 
 use crate::errorkey::ErrorKey;
-use crate::errors::{warn, warn_info};
+use crate::errors::warn_info;
 use crate::everything::Everything;
 use crate::helpers::display_choices;
 use crate::token::Token;
@@ -62,15 +62,6 @@ bitflags! {
 }
 
 impl Scopes {
-    pub fn expect_scope(&mut self, key: &Token, expect: Scopes) {
-        if self.intersects(expect) {
-            *self &= expect;
-        } else {
-            let msg = format!("{key} is for {expect} but scope seems to be {self}");
-            warn(key, ErrorKey::Scopes, &msg);
-        }
-    }
-
     pub fn non_primitive() -> Scopes {
         Scopes::all() ^ (Scopes::None | Scopes::Value | Scopes::Bool | Scopes::Flag)
     }

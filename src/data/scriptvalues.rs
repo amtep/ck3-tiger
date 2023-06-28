@@ -371,6 +371,9 @@ impl ScriptValue {
         }
         let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
         sc.set_strict_scopes(false);
+        if self.scope_override.is_some() {
+            sc.set_no_warn(true);
+        }
         self.validate_call(&self.key, data, &mut sc);
     }
 
@@ -378,6 +381,9 @@ impl ScriptValue {
         if !self.cached_compat(key, sc) {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
             our_sc.set_strict_scopes(false);
+            if self.scope_override.is_some() {
+                our_sc.set_no_warn(true);
+            }
             self.cache
                 .borrow_mut()
                 .insert(key.loc.clone(), our_sc.clone());
