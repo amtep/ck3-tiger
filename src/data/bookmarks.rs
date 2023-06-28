@@ -58,7 +58,7 @@ impl DbKind for Bookmark {
         vd.field_validated_blocks("character", |block, data| {
             if let Some(name) = block.get_field_value("name") {
                 let pathname = format!("gfx/interface/bookmarks/{key}_{name}.dds");
-                data.verify_exists_implied(Item::File, &pathname, key);
+                data.verify_exists_implied(Item::File, &pathname, name);
             }
             validate_bookmark_character(block, data, true);
         });
