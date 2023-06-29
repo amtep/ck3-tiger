@@ -134,7 +134,7 @@ impl Effect {
             self.cache.insert(key, &[], tooltipped, our_sc.clone());
             validate_normal_effect(&self.block, data, &mut our_sc, tooltipped);
             if let Some(scopes) = self.scope_override {
-                our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
+                our_sc = ScopeContext::new_unrooted(scopes, key.clone());
                 our_sc.set_strict_scopes(false);
             }
             sc.expect_compatibility(&our_sc, key);
@@ -180,7 +180,7 @@ impl Effect {
                 self.cache.insert(key, &args, tooltipped, our_sc.clone());
                 validate_normal_effect(&block, data, &mut our_sc, tooltipped);
                 if let Some(scopes) = self.scope_override {
-                    our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
+                    our_sc = ScopeContext::new_unrooted(scopes, key.clone());
                     our_sc.set_strict_scopes(false);
                 }
 

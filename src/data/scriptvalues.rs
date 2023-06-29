@@ -367,7 +367,7 @@ impl ScriptValue {
                 .insert(key.loc.clone(), our_sc.clone());
             Self::validate_bv(&self.bv, data, &mut our_sc);
             if let Some(scopes) = self.scope_override {
-                our_sc = ScopeContext::new_unrooted(scopes, self.key.clone());
+                our_sc = ScopeContext::new_unrooted(scopes, key.clone());
                 our_sc.set_strict_scopes(false);
             }
             sc.expect_compatibility(&our_sc, key);
