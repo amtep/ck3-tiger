@@ -928,3 +928,35 @@ pub fn validate_maa_stats(vd: &mut Validator) {
     vd.field_numeric("toughness");
     vd.field_numeric("siege_value");
 }
+
+pub fn validate_ifelse_sequence(block: &Block, key_if: &str, key_elseif: &str, key_else: &str) {
+    let mut seen_if = false;
+    for (k, _, bv) in block.iter_items() {
+        if let Some(key) = k {
+            if key.is(key_if) {
+                seen_if = true;
+                continue;
+            } else if key.is(key_elseif) {
+                if !seen_if {
+                    let msg = format!("`{key_elseif} without preceding `{key_if}`");
+                    warn(key, ErrorKey::IfElse, &msg);
+                }
+                seen_if = true;
+                continue;
+            } else if key.is(key_else) {
+                if !seen_if {
+                    let msg = format!("`{key_else} without preceding `{key_if}`");
+                    warn(key, ErrorKey::IfElse, &msg);
+                }
+                if let Some(block) = bv.get_block() {
+                    if block.has_key("limit") {
+                        // `else` with a `limit`, followed by another `else`, does work.
+                        seen_if = true;
+                        continue;
+                    }
+                }
+            }
+        }
+        seen_if = false;
+    }
+}

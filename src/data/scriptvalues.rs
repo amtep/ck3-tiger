@@ -17,8 +17,8 @@ use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_normal_trigger, validate_target_ok_this};
 use crate::validate::{
-    precheck_iterator_fields, validate_inside_iterator, validate_iterator_fields,
-    validate_scope_chain, ListType,
+    precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
+    validate_iterator_fields, validate_scope_chain, ListType,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -117,6 +117,7 @@ impl ScriptValue {
 
     fn validate_inner(
         mut vd: Validator,
+        block: &Block,
         data: &Everything,
         sc: &mut ScopeContext,
         mut have_value: TriBool,
@@ -130,12 +131,8 @@ impl ScriptValue {
             vd.field_value("format");
         }
 
-        let mut seen_if;
-        let mut next_seen_if = false;
+        validate_ifelse_sequence(block, "if", "else_if", "else");
         for (token, cmp, bv) in vd.unknown_fields_cmp() {
-            seen_if = next_seen_if;
-            next_seen_if = false;
-
             // save_temporary_scope_as is now allowed in script values
             if token.is("save_temporary_scope_as") {
                 if let Some(name) = bv.expect_value() {
@@ -183,34 +180,14 @@ impl ScriptValue {
                     Self::validate_minmax_range(block, data, sc, check_desc);
                 }
                 have_value = TriBool::True;
-            } else if token.is("if") {
+            } else if token.is("if") || token.is("else_if") {
                 if let Some(block) = bv.expect_block() {
                     Self::validate_if(block, data, sc, check_desc);
                 }
                 have_value = TriBool::Maybe;
-                next_seen_if = true;
-            } else if token.is("else_if") {
-                if !seen_if {
-                    let msg = "`else_if` without preceding `if`";
-                    warn(token, ErrorKey::Validation, msg);
-                }
-                if let Some(block) = bv.expect_block() {
-                    Self::validate_if(block, data, sc, check_desc);
-                }
-                have_value = TriBool::Maybe;
-                next_seen_if = true;
             } else if token.is("else") {
-                if !seen_if {
-                    let msg = "`else` without preceding `if`";
-                    warn(token, ErrorKey::Validation, msg);
-                }
                 if let Some(block) = bv.expect_block() {
                     Self::validate_else(block, data, sc, check_desc);
-                    if block.has_key("limit") {
-                        // Another `else` after an `else` with a limit does work, so don't warn about it if it comes.
-                        // There will already be an "advice" about this limit, so no need for an extra message.
-                        next_seen_if = true;
-                    }
                 }
                 have_value = TriBool::Maybe;
             } else {
@@ -247,7 +224,7 @@ impl ScriptValue {
                     if let Some(block) = bv.expect_block() {
                         sc.finalize_builder();
                         let vd = Validator::new(block, data);
-                        Self::validate_inner(vd, data, sc, have_value, check_desc);
+                        Self::validate_inner(vd, block, data, sc, have_value, check_desc);
                         have_value = TriBool::Maybe;
                     }
                 }
@@ -282,7 +259,7 @@ impl ScriptValue {
             Tooltipped::No,
         );
 
-        Self::validate_inner(vd, data, sc, TriBool::Maybe, check_desc);
+        Self::validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
     }
 
     fn validate_minmax_range(
@@ -308,7 +285,7 @@ impl ScriptValue {
         vd.field_validated_block("limit", |block, data| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
-        Self::validate_inner(vd, data, sc, TriBool::Maybe, check_desc);
+        Self::validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
     }
 
     fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
@@ -319,7 +296,7 @@ impl ScriptValue {
             advice_info(key, ErrorKey::IfElse, msg, info);
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
-        Self::validate_inner(vd, data, sc, TriBool::Maybe, check_desc);
+        Self::validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
     }
 
     pub fn validate_bv_2(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
@@ -339,7 +316,7 @@ impl ScriptValue {
                         warn(b, ErrorKey::Validation, "invalid script value range");
                     }
                 } else {
-                    Self::validate_inner(vd, data, sc, TriBool::False, check_desc);
+                    Self::validate_inner(vd, b, data, sc, TriBool::False, check_desc);
                 }
             }
         }

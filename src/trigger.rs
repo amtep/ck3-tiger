@@ -17,8 +17,8 @@ use crate::tables::triggers::{scope_trigger, trigger_comparevalue, Trigger};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::{
-    precheck_iterator_fields, validate_inside_iterator, validate_iterator_fields,
-    validate_prefix_reference, ListType,
+    precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
+    validate_iterator_fields, validate_prefix_reference, ListType,
 };
 
 pub fn validate_normal_trigger(
@@ -141,6 +141,8 @@ pub fn validate_trigger(
     } else if !in_list {
         vd.ban_field("amount", || "`calc_true_if`");
     }
+
+    validate_ifelse_sequence(block, "trigger_if", "trigger_else_if", "trigger_else");
 
     for (key, cmp, bv) in vd.unknown_fields_any_cmp() {
         if key.is("add") || key.is("factor") || key.is("value") {
