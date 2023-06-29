@@ -9,23 +9,17 @@ use walkdir::WalkDir;
 
 use crate::block::Block;
 use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn_abbreviated, warn_header, will_log};
+use crate::errors::{add_loaded_mod_root, error, warn_abbreviated, warn_header, will_log};
 use crate::everything::Everything;
+use crate::everything::FilesError;
+use crate::modfile::ModFile;
 use crate::token::{Loc, Token};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FileKind {
     Vanilla,
+    LoadedMod(u16), // 0-based indexing
     Mod,
-}
-
-impl Display for FileKind {
-    fn fmt(&self, fmt: &mut Formatter) -> Result<(), std::fmt::Error> {
-        match *self {
-            FileKind::Vanilla => write!(fmt, "CK3"),
-            FileKind::Mod => write!(fmt, "MOD"),
-        }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -97,15 +91,62 @@ pub trait FileHandler {
 }
 
 #[derive(Clone, Debug)]
+pub struct LoadedMod {
+    /// The `FileKind` to use for file entries from this mod.
+    kind: FileKind,
+
+    /// The tag used for this mod in error messages.
+    label: String,
+
+    /// The location of this mod in the filesystem.
+    root: PathBuf,
+
+    /// A list of directories that should not be read from vanilla or previous mods.
+    replace_paths: Vec<PathBuf>,
+}
+
+impl LoadedMod {
+    fn new_main_mod(root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
+        Self {
+            kind: FileKind::Mod,
+            label: "MOD".to_string(),
+            root,
+            replace_paths,
+        }
+    }
+
+    fn new(kind: FileKind, label: String, root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
+        Self {
+            kind,
+            label,
+            root,
+            replace_paths,
+        }
+    }
+
+    pub fn root(&self) -> &Path {
+        &self.root
+    }
+
+    pub fn kind(&self) -> FileKind {
+        self.kind
+    }
+
+    pub fn should_replace(&self, path: &Path) -> bool {
+        self.replace_paths.iter().any(|p| p == path)
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct Fileset {
     /// The CK3 game directory
     vanilla_root: PathBuf,
 
-    /// The mod directory
-    mod_root: PathBuf,
+    /// The mod being analyzed
+    the_mod: LoadedMod,
 
-    /// A list of directories that should not be read from vanilla.
-    replace_paths: Vec<PathBuf>,
+    /// Other mods to be loaded before `mod`, in order
+    pub loaded_mods: Vec<LoadedMod>,
 
     /// The ck3-tiger config
     config: Option<Block>,
@@ -126,8 +167,8 @@ impl Fileset {
     pub fn new(vanilla_root: PathBuf, mod_root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
         Fileset {
             vanilla_root,
-            mod_root,
-            replace_paths,
+            the_mod: LoadedMod::new_main_mod(mod_root, replace_paths),
+            loaded_mods: Vec::new(),
             config: None,
             files: Vec::new(),
             ordered_files: Vec::new(),
@@ -137,10 +178,62 @@ impl Fileset {
     }
 
     pub fn config(&mut self, config: Block) {
+        for block in config.get_field_blocks("load_mod") {
+            let mod_idx;
+            if let Ok(idx) = u16::try_from(self.loaded_mods.len()) {
+                mod_idx = idx;
+            } else {
+                let msg = "too many loaded mods, cannot process more";
+                error(block, ErrorKey::Config, msg);
+                break;
+            }
+
+            let default_label = || format!("MOD{mod_idx}");
+            let label = block
+                .get_field_value("label")
+                .map_or_else(default_label, |t| t.to_string());
+            if let Some(path) = block.get_field_value("modfile") {
+                let path = PathBuf::from(path.as_str());
+                if let Ok(modfile) = ModFile::read(&path) {
+                    eprintln!(
+                        "Loading secondary mod {label} from: {}{}",
+                        modfile.modpath().display(),
+                        modfile.display_name_ext()
+                    );
+                    let kind = FileKind::LoadedMod(mod_idx);
+                    let loaded_mod = LoadedMod::new(
+                        kind,
+                        label.clone(),
+                        modfile.modpath().to_path_buf(),
+                        modfile.replace_paths(),
+                    );
+                    add_loaded_mod_root(label, loaded_mod.root.to_path_buf());
+                    self.loaded_mods.push(loaded_mod);
+                }
+            } else {
+                let msg = "could not load secondary mod from config; missing `modfile` field";
+                error(block, ErrorKey::Config, msg);
+            }
+        }
         self.config = Some(config);
     }
 
-    pub fn scan(&mut self, path: &Path, kind: FileKind) -> Result<(), walkdir::Error> {
+    fn should_replace(&self, path: &Path, kind: FileKind) -> bool {
+        if kind == FileKind::Mod {
+            return false;
+        }
+        if kind < FileKind::Mod && self.the_mod.should_replace(path) {
+            return true;
+        }
+        for loaded_mod in &self.loaded_mods {
+            if kind < loaded_mod.kind && loaded_mod.should_replace(path) {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn scan(&mut self, path: &Path, kind: FileKind) -> Result<(), walkdir::Error> {
         for entry in WalkDir::new(path) {
             let entry = entry?;
             if entry.depth() == 0 || !entry.file_type().is_file() {
@@ -149,7 +242,7 @@ impl Fileset {
             // unwrap is safe here because WalkDir gives us paths with this prefix.
             let inner_path = entry.path().strip_prefix(path).unwrap();
             let inner_dir = inner_path.parent().unwrap_or_else(|| Path::new(""));
-            if kind == FileKind::Vanilla && self.replace_paths.iter().any(|p| p == inner_dir) {
+            if self.should_replace(inner_dir, kind) {
                 continue;
             }
             self.files
@@ -158,8 +251,30 @@ impl Fileset {
         Ok(())
     }
 
+    pub fn scan_all(&mut self) -> Result<(), FilesError> {
+        self.scan(&self.vanilla_root.clone(), FileKind::Vanilla)
+            .map_err(|e| FilesError::VanillaUnreadable {
+                path: self.vanilla_root.clone(),
+                source: e,
+            })?;
+        // loaded_mods is cloned here for the borrow checker
+        for loaded_mod in &self.loaded_mods.clone() {
+            self.scan(loaded_mod.root(), loaded_mod.kind())
+                .map_err(|e| FilesError::ModUnreadable {
+                    path: loaded_mod.root().to_path_buf(),
+                    source: e,
+                })?;
+        }
+        self.scan(&self.the_mod.root().to_path_buf(), FileKind::Mod)
+            .map_err(|e| FilesError::ModUnreadable {
+                path: self.the_mod.root().to_path_buf(),
+                source: e,
+            })?;
+        Ok(())
+    }
+
     pub fn finalize(&mut self) {
-        // This places `Mod` entries after `Vanilla` entries
+        // This places `Mod` entries after `Vanilla` entries and `LoadedMod` entries between them in order
         self.files.sort();
 
         // When there are identical paths, only keep the last entry of them.
@@ -193,7 +308,8 @@ impl Fileset {
     pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {
         match entry.kind {
             FileKind::Vanilla => self.vanilla_root.join(entry.path()),
-            FileKind::Mod => self.mod_root.join(entry.path()),
+            FileKind::LoadedMod(idx) => self.loaded_mods[idx as usize].root.join(entry.path()),
+            FileKind::Mod => self.the_mod.root.join(entry.path()),
         }
     }
 

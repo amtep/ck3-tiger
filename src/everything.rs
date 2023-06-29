@@ -234,22 +234,6 @@ impl Everything {
             replace_paths,
         );
 
-        // Abort if whole directories are unreadable, because then we don't have
-        // a full map of vanilla's or the mod's contents and might give bad advice.
-        fileset.scan(vanilla_root, FileKind::Vanilla).map_err(|e| {
-            FilesError::VanillaUnreadable {
-                path: vanilla_root.to_path_buf(),
-                source: e,
-            }
-        })?;
-        fileset
-            .scan(mod_root, FileKind::Mod)
-            .map_err(|e| FilesError::ModUnreadable {
-                path: mod_root.to_path_buf(),
-                source: e,
-            })?;
-        fileset.finalize();
-
         let config_file = mod_root.join("ck3-tiger.conf");
         let config = if config_file.is_file() {
             Self::_read_config(&config_file)
@@ -259,6 +243,9 @@ impl Everything {
         };
 
         fileset.config(config.clone());
+
+        fileset.scan_all()?;
+        fileset.finalize();
 
         Ok(Everything {
             fileset,
@@ -410,7 +397,6 @@ impl Everything {
 
     pub fn load_all(&mut self) {
         self.load_errorkey_config();
-        self.fileset.config(self.config.clone());
 
         self.fileset.handle(&mut self.dds);
         self.fileset.handle(&mut self.localization);

@@ -9,13 +9,11 @@ use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
-#[allow(dead_code)] // remove when TODO are fixed
 pub struct ModFile {
     block: Block,
     name: Option<Token>,
     path: Option<Token>,
-    // TODO: implement this in Fileset
-    replace_path: Vec<Token>,
+    replace_paths: Vec<Token>,
     version: Option<Token>,
     // TODO: check that these are tags accepted by steam ?
     tags: Option<Vec<Token>>,
@@ -31,7 +29,7 @@ fn validate_modfile(block: &Block) -> ModFile {
         block: block.clone(),
         name: block.get_field_value("name").cloned(),
         path: block.get_field_value("path").cloned(),
-        replace_path: block.get_field_values("replace_path"),
+        replace_paths: block.get_field_values("replace_path"),
         version: block.get_field_value("version").cloned(),
         tags: block.get_field_list("tags"),
         supported_version: block.get_field_value("supported_version").cloned(),
@@ -48,7 +46,7 @@ fn validate_modfile(block: &Block) -> ModFile {
         }
     }
 
-    for path in &modfile.replace_path {
+    for path in &modfile.replace_paths {
         if path.is("history") {
             advice_info(path, ErrorKey::Unneeded,
                 "replace_path only replaces the specific directory, not any directories below it",
@@ -102,9 +100,17 @@ impl ModFile {
     }
 
     pub fn replace_paths(&self) -> Vec<PathBuf> {
-        self.replace_path
+        self.replace_paths
             .iter()
             .map(|t| PathBuf::from(t.as_str()))
             .collect()
+    }
+
+    pub fn display_name_ext(&self) -> String {
+        if let Some(name) = &self.name {
+            format!(" \"{name}\"")
+        } else {
+            String::new()
+        }
     }
 }

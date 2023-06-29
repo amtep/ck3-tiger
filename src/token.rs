@@ -39,10 +39,6 @@ impl Loc {
         format!("line {}", self.line)
     }
 
-    pub fn file_marker(&self) -> String {
-        format!("[{}] file {}", self.kind, self.pathname.display())
-    }
-
     pub fn filename(&self) -> Cow<str> {
         self.pathname
             .file_name()

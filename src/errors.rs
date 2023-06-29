@@ -112,6 +112,12 @@ struct Errors {
     /// The CK3 game directory
     vanilla_root: PathBuf,
 
+    /// Extra loaded mods' directories
+    loaded_mods: Vec<PathBuf>,
+
+    /// Extra loaded mods' error tags
+    loaded_mods_labels: Vec<String>,
+
     /// The mod directory
     mod_root: PathBuf,
 
@@ -120,6 +126,9 @@ struct Errors {
 
     /// Whether to log errors in vanilla CK3 files
     show_vanilla: bool,
+
+    /// Whether to log errors in other loaded mods
+    show_loaded_mods: bool,
 
     /// Skip logging errors with these keys for these files and directories
     ignore_keys_for: FnvHashMap<PathBuf, Vec<ErrorKey>>,
@@ -150,6 +159,7 @@ impl Errors {
         }
         let pathname = match loc.kind {
             FileKind::Vanilla => self.vanilla_root.join(&*loc.pathname),
+            FileKind::LoadedMod(idx) => self.loaded_mods[idx as usize].join(&*loc.pathname),
             FileKind::Mod => self.mod_root.join(&*loc.pathname),
         };
         if let Some(contents) = self.filecache.get(&pathname) {
@@ -177,6 +187,7 @@ impl Errors {
         if self.logging_paused > 0
             || self.ignore_keys.contains(&key)
             || (loc.kind == FileKind::Vanilla && !self.show_vanilla)
+            || (matches!(loc.kind, FileKind::LoadedMod(_)) && !self.show_loaded_mods)
         {
             return false;
         }
@@ -204,12 +215,8 @@ impl Errors {
         if self.outfile.is_none() {
             self.outfile = Some(Box::new(stdout()));
         }
-        writeln!(
-            self.outfile.as_mut().expect("outfile"),
-            "{}",
-            loc.file_marker()
-        )
-        .expect("writeln");
+        let marker = self.loc_file_marker(loc);
+        writeln!(self.outfile.as_mut().expect("outfile"), "{marker}").expect("writeln");
         if let Some(line) = self.get_line(loc) {
             let line_marker = loc.line_marker();
             if loc.line > 0 {
@@ -404,6 +411,22 @@ impl Errors {
             }
         }
     }
+
+    fn loc_file_marker(&self, loc: &Loc) -> String {
+        format!(
+            "[{}] file {}",
+            self.kind_tag(loc.kind),
+            loc.pathname.display()
+        )
+    }
+
+    fn kind_tag(&self, kind: FileKind) -> &str {
+        match kind {
+            FileKind::Vanilla => "CK3",
+            FileKind::LoadedMod(idx) => &self.loaded_mods_labels[idx as usize],
+            FileKind::Mod => "MOD",
+        }
+    }
 }
 
 pub fn log_to(outfile: Box<dyn ErrorLogger>) {
@@ -426,6 +449,10 @@ pub fn resume_logging() {
 
 pub fn show_vanilla(v: bool) {
     Errors::get_mut().show_vanilla = v;
+}
+
+pub fn show_loaded_mods(v: bool) {
+    Errors::get_mut().show_loaded_mods = v;
 }
 
 pub fn minimum_level(lvl: ErrorLevel) {
@@ -462,6 +489,11 @@ pub fn set_vanilla_root(root: PathBuf) {
 
 pub fn set_mod_root(root: PathBuf) {
     Errors::get_mut().mod_root = root;
+}
+
+pub fn add_loaded_mod_root(label: String, root: PathBuf) {
+    Errors::get_mut().loaded_mods_labels.push(label);
+    Errors::get_mut().loaded_mods.push(root);
 }
 
 pub fn error<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {

@@ -11,7 +11,8 @@ use winreg::RegKey;
 
 use ck3_tiger::errorkey::ErrorKey;
 use ck3_tiger::errors::{
-    ignore_key, minimum_level, set_mod_root, set_vanilla_root, show_vanilla, ErrorLevel,
+    ignore_key, minimum_level, set_mod_root, set_vanilla_root, show_loaded_mods, show_vanilla,
+    ErrorLevel,
 };
 use ck3_tiger::everything::Everything;
 use ck3_tiger::modfile::ModFile;
@@ -41,6 +42,9 @@ struct Cli {
     /// Show errors in the base CK3 script code as well
     #[clap(long)]
     show_vanilla: bool,
+    /// Show errors in other loaded mods as well
+    #[clap(long)]
+    show_mods: bool,
     /// Show advice in addition to warnings and errors
     #[clap(long)]
     advice: bool,
@@ -144,6 +148,11 @@ fn main() -> Result<()> {
     if args.show_vanilla {
         eprintln!("Showing warnings for base game files too. There will be many false positives in those.");
         show_vanilla(true);
+    }
+
+    if args.show_mods {
+        eprintln!("Showing warnings for other loaded mods too.");
+        show_loaded_mods(true);
     }
 
     if !args.advice {
