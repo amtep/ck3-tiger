@@ -100,11 +100,10 @@ impl DbKind for Culture {
 
         vd.field_validated("color", validate_possibly_named_color);
 
-        // TODO: check that these pillars are of the right kinds
-        vd.field_item("ethos", Item::CulturePillar);
-        vd.field_item("heritage", Item::CulturePillar);
+        vd.field_item("ethos", Item::CultureEthos);
+        vd.field_item("heritage", Item::CultureHeritage);
         vd.field_item("language", Item::Language);
-        vd.field_item("martial_custom", Item::CulturePillar);
+        vd.field_item("martial_custom", Item::MartialCustom);
 
         vd.field_list_items("traditions", Item::CultureTradition);
         vd.field_items("name_list", Item::NameList);
@@ -146,8 +145,16 @@ impl CulturePillar {
                 }
             }
         }
-        if block.field_value_is("type", "language") {
-            db.add_flag(Item::Language, key.clone());
+        if let Some(pillar) = block.get_field_value("type") {
+            if pillar.is("language") {
+                db.add_flag(Item::Language, key.clone());
+            } else if pillar.is("ethos") {
+                db.add_flag(Item::CultureEthos, key.clone());
+            } else if pillar.is("heritage") {
+                db.add_flag(Item::CultureHeritage, key.clone());
+            } else if pillar.is("martial_custom") {
+                db.add_flag(Item::MartialCustom, key.clone());
+            }
         }
         db.add(Item::CulturePillar, key, block, Box::new(Self {}));
     }

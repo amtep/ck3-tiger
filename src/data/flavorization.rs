@@ -36,7 +36,7 @@ impl DbKind for Flavorization {
         vd.field_choice("tier", &["empire", "kingdom", "duchy", "county", "barony"]);
         vd.field_integer("priority");
         vd.field_list_items("name_lists", Item::NameList);
-        vd.field_list_items("heritages", Item::CulturePillar); // TODO restrict to heritage pillars
+        vd.field_list_items("heritages", Item::CultureHeritage);
         vd.field_list_items("governments", Item::GovernmentType);
         vd.field_list_items("faiths", Item::Faith);
         vd.field_list_items("religions", Item::Religion);

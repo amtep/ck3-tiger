@@ -72,7 +72,7 @@ impl DbKind for Government {
         vd.field_list_items("required_county_holdings", Item::Holding);
 
         vd.field_list_items("primary_cultures", Item::Culture);
-        vd.field_list_items("primary_heritages", Item::CulturePillar); // TODO: restrict to heritage?
+        vd.field_list_items("primary_heritages", Item::CultureHeritage);
 
         vd.field_list_items("preferred_religions", Item::Religion);
 
