@@ -18,7 +18,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::validate_color;
+use crate::validate::validate_possibly_named_color;
 
 #[derive(Clone, Debug, Default)]
 pub struct Titles {
@@ -208,7 +208,7 @@ impl Title {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
-        vd.field_validated_block("color", validate_color);
+        vd.field_validated("color", validate_possibly_named_color);
         vd.advice_field("color2", "no longer used");
         if let Some(token) = vd.field_value("capital") {
             data.verify_exists(Item::Title, token);

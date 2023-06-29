@@ -1,5 +1,5 @@
 use crate::block::validator::Validator;
-use crate::block::{Block, BV};
+use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -10,7 +10,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::{validate_color, validate_cost, validate_maa_stats};
+use crate::validate::{validate_cost, validate_maa_stats, validate_possibly_named_color};
 
 #[derive(Clone, Debug)]
 pub struct CultureEra {}
@@ -98,10 +98,7 @@ impl DbKind for Culture {
         vd.field_date("created");
         vd.field_list_items("parents", Item::Culture);
 
-        vd.field_validated("color", |bv, data| match bv {
-            BV::Value(token) => data.verify_exists(Item::NamedColor, token),
-            BV::Block(block) => validate_color(block, data),
-        });
+        vd.field_validated("color", validate_possibly_named_color);
 
         // TODO: check that these pillars are of the right kinds
         vd.field_item("ethos", Item::CulturePillar);
@@ -191,10 +188,7 @@ impl DbKind for CulturePillar {
         vd.field_validated_block("can_pick", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
-        vd.field_validated("color", |bv, data| match bv {
-            BV::Value(token) => data.verify_exists(Item::NamedColor, token),
-            BV::Block(block) => validate_color(block, data),
-        });
+        vd.field_validated("color", validate_possibly_named_color);
         vd.field_block("parameters");
     }
 }

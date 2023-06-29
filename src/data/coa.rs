@@ -16,7 +16,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::validate_color;
+use crate::validate::{validate_color, validate_possibly_named_color};
 
 #[derive(Clone, Debug, Default)]
 pub struct Coas {
@@ -332,10 +332,7 @@ pub struct CoaColorList {}
 
 impl DbKind for CoaColorList {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        validate_coa_list(key, block, data, |bv, data| match bv {
-            BV::Value(value) => data.verify_exists(Item::NamedColor, value),
-            BV::Block(block) => validate_color(block, data),
-        });
+        validate_coa_list(key, block, data, validate_possibly_named_color);
     }
 }
 

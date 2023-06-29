@@ -288,6 +288,13 @@ pub fn validate_camera_color(block: &Block, data: &Everything) {
     }
 }
 
+pub fn validate_possibly_named_color(bv: &BV, data: &Everything) {
+    match bv {
+        BV::Value(token) => data.verify_exists(Item::NamedColor, token),
+        BV::Block(block) => validate_color(block, data),
+    }
+}
+
 pub fn validate_prefix_reference(prefix: &Token, arg: &Token, data: &Everything) {
     // TODO there are more to match
     // TODO integrate this to the SCOPE_FROM_PREFIX table

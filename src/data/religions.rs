@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::fileset::FileKind;
 use crate::item::Item;
 use crate::token::Token;
-use crate::validate::{validate_color, validate_traits};
+use crate::validate::{validate_possibly_named_color, validate_traits};
 
 #[derive(Clone, Debug)]
 pub struct Religion {}
@@ -204,10 +204,8 @@ impl DbKind for Faith {
         let mut vd = Validator::new(block, data);
 
         vd.req_field("color");
-        vd.field_validated("color", |bv, data| match bv {
-            BV::Value(token) => data.verify_exists(Item::NamedColor, token),
-            BV::Block(block) => validate_color(block, data),
-        });
+        vd.field_validated("color", validate_possibly_named_color);
+
         let icon = vd.field_value("icon").unwrap_or(key);
         if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|FAITH_ICON_PATH") {
             let pathname = format!("{icon_path}/{icon}.dds");
