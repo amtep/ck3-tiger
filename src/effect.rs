@@ -512,6 +512,10 @@ fn validate_effect_special_value(
         if !value.is("no") {
             data.verify_exists(Item::Focus, value);
         }
+    } else if caller == "set_title_name" {
+        data.verify_exists(Item::Localization, value);
+        let loca = format!("{value}_adj");
+        data.item_used(Item::Localization, &loca);
     } else {
         let msg = format!("internal error, unhandled effect {caller}");
         error(value, ErrorKey::Internal, &msg);

@@ -1006,7 +1006,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Artifact, "set_should_decay", Boolean),
     (Faction, "set_special_character", Scope(Scopes::Character)),
     (Faction, "set_special_title", Scope(Scopes::LandedTitle)),
-    (LandedTitle, "set_title_name", Item(Item::Localization)),
+    (LandedTitle, "set_title_name", SpecialValue),
     (LandedTitle, "set_title_prefix", Item(Item::Localization)),
     (Character, "set_to_lowborn", Yes),
     (Character, "set_trait_rank", SpecialBlock),

@@ -3,15 +3,22 @@ use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::data::provinces::ProvId;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
+use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
+use crate::trigger::validate_normal_trigger;
+use crate::validate::validate_color;
 
 #[derive(Clone, Debug, Default)]
 pub struct Titles {
@@ -159,20 +166,6 @@ impl FileHandler for Titles {
             }
         }
     }
-
-    fn finalize(&mut self) {
-        for title in self.titles.values() {
-            if let Some(capital) = title.block.get_field_value("capital") {
-                if self.titles.get(capital.as_str()).is_none() {
-                    error(
-                        capital,
-                        ErrorKey::Validation,
-                        "capital is not defined as a title",
-                    );
-                }
-            }
-        }
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -200,15 +193,78 @@ impl Title {
     pub fn validate(&self, data: &Everything) {
         // NOTE: There used to be a check that non-barony titles existed in the
         // title history, but that seems to be optional.
-        data.localization.verify_exists(&self.key);
-        // TODO: figure out when to recommend adding _adj or _pre titles
-        // The _adj key is optional
-        // The _pre key is optional
+        data.verify_exists(Item::Localization, &self.key);
+        // TODO: figure out when to recommend adding _adj or _pre or _article loca
+        let loca = format!("{}_adj", &self.key);
+        data.item_used(Item::Localization, &loca);
+        let loca = format!("{}_pre", &self.key);
+        data.item_used(Item::Localization, &loca);
+        let definite_form = self.block.field_value_is("definite_form", "yes");
+        if definite_form {
+            let loca = format!("{}_article", &self.key);
+            data.item_used(Item::Localization, &loca);
+        }
 
-        if let Some(names) = self.block.get_field_block("cultural_names") {
-            for (_, t) in names.get_assignments() {
-                data.localization.verify_exists(t);
-                // The _adj key is optional
+        let mut vd = Validator::new(&self.block, data);
+        let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
+
+        vd.field_validated_block("color", validate_color);
+        vd.advice_field("color2", "no longer used");
+        if let Some(token) = vd.field_value("capital") {
+            data.verify_exists(Item::Title, token);
+            if Tier::try_from(token) != Ok(Tier::County) {
+                let msg = "capital must be a county";
+                error(token, ErrorKey::TitleTier, msg);
+            }
+        }
+        vd.field_bool("definite_form");
+        vd.field_bool("ruler_uses_title_name");
+        vd.field_bool("can_be_named_after_dynasty");
+        vd.field_bool("landless");
+        vd.field_bool("no_automatic_claims");
+        vd.field_bool("always_follows_primary_heir");
+        vd.field_bool("destroy_if_invalid_heir");
+        vd.field_bool("destroy_on_succession");
+        vd.field_bool("delete_on_destroy");
+        vd.field_bool("delete_on_gain_same_tier");
+        vd.field_bool("de_jure_drift_disabled");
+        vd.field_bool("ignore_titularity_for_title_weighting");
+
+        vd.field_list_items("male_names", Item::Localization);
+        vd.field_list_items("female_names", Item::Localization);
+
+        if Tier::try_from(&self.key) == Ok(Tier::Barony) {
+            // TODO: check that no two baronies have the same province
+            vd.field_item("province", Item::Province);
+        }
+
+        vd.field_script_value_no_breakdown("ai_primary_priority", &mut sc);
+
+        vd.field_validated_block("can_create", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
+        vd.field_validated_block("can_create_on_partition", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+
+        vd.field_validated_block("cultural_names", |block, data| {
+            let mut vd = Validator::new(block, data);
+            for (key, token) in vd.unknown_value_fields() {
+                data.verify_exists(Item::NameList, key);
+                data.verify_exists(Item::Localization, token);
+                let loca = format!("{}_adj", token);
+                data.item_used(Item::Localization, &loca);
+                if definite_form {
+                    let loca = format!("{}_article", token);
+                    data.item_used(Item::Localization, &loca);
+                }
+            }
+        });
+
+        for (key, _) in vd.unknown_block_fields() {
+            if Tier::try_from(key).is_err() {
+                let msg = format!("unknown field `{key}`");
+                warn(key, ErrorKey::UnknownField, &msg);
             }
         }
     }
