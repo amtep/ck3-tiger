@@ -311,6 +311,7 @@ impl ScopeContext {
 
     // Resolve a `ScopeEntry` until it's either a `ScopeEntry::Scope` or a `ScopeEntry::Rootref`
     fn _resolve_named(&self, idx: usize) -> (Scopes, &Token) {
+        #[allow(clippy::match_on_vec_items)]
         match self.named[idx] {
             ScopeEntry::Scope(s, ref t) => (s, t),
             ScopeEntry::Rootref => self._resolve_root(),
@@ -431,6 +432,7 @@ impl ScopeContext {
     // TODO: find a way to report the chain of Named tokens to the user
     fn _expect_named(&mut self, mut idx: usize, scopes: Scopes, token: &Token) {
         loop {
+            #[allow(clippy::match_on_vec_items)]
             match self.named[idx] {
                 ScopeEntry::Scope(_, _) => {
                     Self::_expect_check(&mut self.named[idx], scopes, token);
@@ -455,6 +457,7 @@ impl ScopeContext {
         report: &str,
     ) {
         loop {
+            #[allow(clippy::match_on_vec_items)]
             match self.named[idx] {
                 ScopeEntry::Scope(_, _) => {
                     Self::_expect_check3(&mut self.named[idx], scopes, token, key, report);
@@ -606,19 +609,17 @@ impl ScopeContext {
                     // Their scopes now become our scopes.
                     self.define_name(name, s, t.clone());
                 }
+            } else if self.strict_scopes && other.is_input[oidx] {
+                let msg = format!("`{key}` expects scope:{name} to be set");
+                let msg2 = "here";
+                let (_, t) = other._resolve_named(oidx);
+                warn2(key, ErrorKey::StrictScopes, &msg, t, msg2);
             } else {
-                if other.is_input[oidx] && self.strict_scopes {
-                    let msg = format!("`{key}` expects scope:{name} to be set");
-                    let msg2 = "here";
-                    let (_, t) = other._resolve_named(oidx);
-                    warn2(key, ErrorKey::StrictScopes, &msg, t, msg2);
-                } else {
-                    // Their scopes now become our scopes.
-                    let (s, t) = other._resolve_named(oidx);
-                    self.names.insert(name.to_string(), self.named.len());
-                    self.named.push(ScopeEntry::Scope(s, t.clone()));
-                    self.is_input.push(other.is_input[oidx]);
-                }
+                // Their scopes now become our scopes.
+                let (s, t) = other._resolve_named(oidx);
+                self.names.insert(name.to_string(), self.named.len());
+                self.named.push(ScopeEntry::Scope(s, t.clone()));
+                self.is_input.push(other.is_input[oidx]);
             }
         }
     }

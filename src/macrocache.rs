@@ -16,7 +16,7 @@ impl MacroKey {
         loc.link = None;
         let mut args: Vec<(String, String)> = args
             .iter()
-            .map(|(parm, arg)| (parm.to_string(), arg.to_string()))
+            .map(|(parm, arg)| ((*parm).to_string(), arg.to_string()))
             .collect();
         args.sort();
         Self {

@@ -252,10 +252,10 @@ impl Title {
             for (key, token) in vd.unknown_value_fields() {
                 data.verify_exists(Item::NameList, key);
                 data.verify_exists(Item::Localization, token);
-                let loca = format!("{}_adj", token);
+                let loca = format!("{token}_adj");
                 data.item_used(Item::Localization, &loca);
                 if definite_form {
-                    let loca = format!("{}_article", token);
+                    let loca = format!("{token}_article");
                     data.item_used(Item::Localization, &loca);
                 }
             }

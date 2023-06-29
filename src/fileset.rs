@@ -5,6 +5,7 @@ use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+use std::string::ToString;
 use walkdir::WalkDir;
 
 use crate::block::Block;
@@ -191,7 +192,7 @@ impl Fileset {
             let default_label = || format!("MOD{mod_idx}");
             let label = block
                 .get_field_value("label")
-                .map_or_else(default_label, |t| t.to_string());
+                .map_or_else(default_label, ToString::to_string);
             if let Some(path) = block.get_field_value("modfile") {
                 let path = PathBuf::from(path.as_str());
                 if let Ok(modfile) = ModFile::read(&path) {
@@ -204,10 +205,10 @@ impl Fileset {
                     let loaded_mod = LoadedMod::new(
                         kind,
                         label.clone(),
-                        modfile.modpath().to_path_buf(),
+                        modfile.modpath().clone(),
                         modfile.replace_paths(),
                     );
-                    add_loaded_mod_root(label, loaded_mod.root.to_path_buf());
+                    add_loaded_mod_root(label, loaded_mod.root.clone());
                     self.loaded_mods.push(loaded_mod);
                 }
             } else {

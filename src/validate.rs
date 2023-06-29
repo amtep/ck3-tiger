@@ -221,20 +221,18 @@ pub fn validate_color(block: &Block, _data: &Everything) {
                         } else {
                             error(t, ErrorKey::Colors, "expected hsv360 value");
                         }
-                    } else {
-                        if let Ok(i) = t.as_str().parse::<i64>() {
-                            if !(0..=255).contains(&i) {
-                                let msg = "color values should be between 0 and 255";
-                                error(t, ErrorKey::Colors, msg);
-                            }
-                        } else if let Ok(f) = t.as_str().parse::<f64>() {
-                            if !(0.0..=1.0).contains(&f) {
-                                let msg = "color values should be between 0.0 and 1.0";
-                                error(t, ErrorKey::Colors, msg);
-                            }
-                        } else {
-                            error(t, ErrorKey::Colors, "expected color value");
+                    } else if let Ok(i) = t.as_str().parse::<i64>() {
+                        if !(0..=255).contains(&i) {
+                            let msg = "color values should be between 0 and 255";
+                            error(t, ErrorKey::Colors, msg);
                         }
+                    } else if let Ok(f) = t.as_str().parse::<f64>() {
+                        if !(0.0..=1.0).contains(&f) {
+                            let msg = "color values should be between 0.0 and 1.0";
+                            error(t, ErrorKey::Colors, msg);
+                        }
+                    } else {
+                        error(t, ErrorKey::Colors, "expected color value");
                     }
                     count += 1;
                 }
@@ -323,7 +321,7 @@ pub fn validate_prefix_reference(prefix: &Token, arg: &Token, data: &Everything)
         "title" => data.verify_exists(Item::Title, arg),
         "trait" => data.verify_exists(Item::Trait, arg),
         "vassal_contract" | "vassal_contract_obligation_level" => {
-            data.verify_exists(Item::VassalContract, arg)
+            data.verify_exists(Item::VassalContract, arg);
         }
         &_ => (),
     }

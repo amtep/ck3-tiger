@@ -325,6 +325,7 @@ impl Errors {
     }
 
     #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
+    #[allow(clippy::too_many_arguments)]
     pub fn push3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
         &mut self,
         eloc: E,

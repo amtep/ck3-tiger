@@ -47,13 +47,6 @@ impl Sounds {
     }
 
     pub fn validate(&self, _data: &Everything) {}
-
-    fn read_guids(&self, fullpath: &Path) -> Result<String> {
-        let bytes = read(fullpath)?;
-        WINDOWS_1252
-            .decode(&bytes, DecoderTrap::Strict)
-            .map_err(anyhow::Error::msg)
-    }
 }
 
 impl FileHandler for Sounds {
@@ -65,7 +58,7 @@ impl FileHandler for Sounds {
         if entry.path() != PathBuf::from("sound/GUIDs.txt") {
             return;
         }
-        let content = match self.read_guids(fullpath) {
+        let content = match read_guids(fullpath) {
             Ok(content) => content,
             Err(e) => {
                 let msg = format!("could not read file: {e:#}");
@@ -100,4 +93,11 @@ impl Sound {
     pub fn new(key: Token, guid: Token) -> Self {
         Sound { key, guid }
     }
+}
+
+fn read_guids(fullpath: &Path) -> Result<String> {
+    let bytes = read(fullpath)?;
+    WINDOWS_1252
+        .decode(&bytes, DecoderTrap::Strict)
+        .map_err(anyhow::Error::msg)
 }

@@ -79,21 +79,20 @@ fn lookup_promote_or_function(
     let mut found_any = false;
     let mut possible_args = None;
     let mut possible_rtype = None;
-    for i in start..global.len() {
-        let (name, intype, args, rtype) = global[i];
-        if lookup_name != name {
+    for (name, intype, args, rtype) in global.iter().skip(start) {
+        if lookup_name != *name {
             break;
         }
         found_any = true;
         if ltype == Datatype::Unknown {
             if possible_rtype.is_none() {
-                possible_args = Some(args);
-                possible_rtype = Some(rtype);
-            } else if possible_rtype != Some(rtype) {
+                possible_args = Some(*args);
+                possible_rtype = Some(*rtype);
+            } else if possible_rtype != Some(*rtype) {
                 possible_rtype = Some(Datatype::Unknown);
             }
-        } else if ltype == intype {
-            return LookupResult::Found(args, rtype);
+        } else if ltype == *intype {
+            return LookupResult::Found(*args, *rtype);
         }
     }
 

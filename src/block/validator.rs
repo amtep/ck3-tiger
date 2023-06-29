@@ -1128,6 +1128,7 @@ impl<'a> Validator<'a> {
     }
 
     fn expect_eq_qeq(&self, key: &Token, cmp: Comparator) {
+        #[allow(clippy::collapsible_else_if)]
         if self.allow_qeq {
             if !matches!(cmp, Comparator::Eq | Comparator::QEq) {
                 let msg = format!("expected `{key} =` or `?=`, found `{cmp}`");

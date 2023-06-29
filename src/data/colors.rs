@@ -11,15 +11,10 @@ use crate::validate::validate_color;
 pub struct NamedColor {}
 
 impl NamedColor {
-    pub fn add(db: &mut Db, key: Token, block: Block) {
+    pub fn add(db: &mut Db, key: Token, mut block: Block) {
         if key.is("colors") {
-            for (key, block) in block.iter_definitions_warn() {
-                db.add(
-                    Item::NamedColor,
-                    key.clone(),
-                    block.clone(),
-                    Box::new(Self {}),
-                );
+            for (key, block) in block.drain_definitions_warn() {
+                db.add(Item::NamedColor, key, block, Box::new(Self {}));
             }
         } else {
             warn(key, ErrorKey::ParseError, "unexpected field");

@@ -53,19 +53,6 @@ impl CultureHistory {
         Self { key, block }
     }
 
-    pub fn validate_history(&self, _date: Date, block: &Block, data: &Everything) {
-        let mut vd = Validator::new(block, data);
-
-        vd.field_items("discover_innovation", Item::Innovation);
-        vd.field_validated_blocks("add_innovation_progress", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_item("culture_innovation", Item::Innovation);
-            vd.field_numeric_range("progress", 0.0, 100.0);
-        });
-        vd.field_item("join_era", Item::CultureEra);
-        vd.field_numeric_range("progress_era", 0.0, 100.0);
-    }
-
     pub fn validate(&self, data: &Everything) {
         if self.key.starts_with("heritage_") {
             data.verify_exists(Item::CultureHeritage, &self.key);
@@ -74,6 +61,19 @@ impl CultureHistory {
         }
 
         let mut vd = Validator::new(&self.block, data);
-        vd.validate_history_blocks(|date, block, data| self.validate_history(date, block, data));
+        vd.validate_history_blocks(validate_history);
     }
+}
+
+fn validate_history(_date: Date, block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+
+    vd.field_items("discover_innovation", Item::Innovation);
+    vd.field_validated_blocks("add_innovation_progress", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_item("culture_innovation", Item::Innovation);
+        vd.field_numeric_range("progress", 0.0, 100.0);
+    });
+    vd.field_item("join_era", Item::CultureEra);
+    vd.field_numeric_range("progress_era", 0.0, 100.0);
 }

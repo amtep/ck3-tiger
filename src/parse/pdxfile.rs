@@ -69,10 +69,8 @@ impl LocalMacros {
     fn get_as_string(&self, key: &str) -> Option<String> {
         if let Some(value) = self.values.get(key) {
             Some(value.to_string())
-        } else if let Some(value) = self.text.get(key) {
-            Some(value.to_string())
         } else {
-            None
+            self.text.get(key).map(ToString::to_string)
         }
     }
 
@@ -328,7 +326,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
             contains_macro_parms: false,
         },
         stack: Vec::new(),
-        local_macros: local_macros,
+        local_macros,
         calculation: 0.0,
         calculation_op: CalculationOp::Add,
     };

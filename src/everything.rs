@@ -694,8 +694,7 @@ impl Everything {
             Item::TextureFile => {
                 if let Some(entry) = self.assets.get_texture(key) {
                     // TODO: avoid allocating a string here
-                    self.fileset
-                        .mark_used(&entry.path().to_string_lossy().to_string());
+                    self.fileset.mark_used(&entry.path().to_string_lossy());
                 } else {
                     let msg = format!("no texture file {key} anywhere under {}", itype.path());
                     error(token, ErrorKey::MissingFile, &msg);

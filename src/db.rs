@@ -86,11 +86,9 @@ impl Db {
     pub fn get_key_block(&self, item: Item, key: &str) -> Option<(&Token, &Block)> {
         // TODO: figure out how to avoid the to_string() here
         let index = (item, key.to_string());
-        if let Some(entry) = self.database.get(&index) {
-            Some((&entry.key, &entry.block))
-        } else {
-            None
-        }
+        self.database
+            .get(&index)
+            .map(|entry| (&entry.key, &entry.block))
     }
 
     pub fn has_property(&self, item: Item, key: &str, property: &str, data: &Everything) -> bool {

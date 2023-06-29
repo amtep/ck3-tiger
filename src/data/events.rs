@@ -183,20 +183,18 @@ impl FileHandler for Events {
                     let msg = "unknown setting in event files";
                     error(key, ErrorKey::UnknownField, msg);
                 }
-            } else {
-                if let Some(key) = bv.expect_into_value() {
-                    if matches!(expecting, Expecting::Event) && key.is("scripted_trigger") {
-                        expecting = Expecting::ScriptedTrigger;
-                    } else if matches!(expecting, Expecting::Event) && key.is("scripted_effect") {
-                        expecting = Expecting::ScriptedEffect;
-                    } else {
-                        error_info(
-                            key,
-                            ErrorKey::Validation,
-                            "unexpected token",
-                            "Did you forget an = ?",
-                        );
-                    }
+            } else if let Some(key) = bv.expect_into_value() {
+                if matches!(expecting, Expecting::Event) && key.is("scripted_trigger") {
+                    expecting = Expecting::ScriptedTrigger;
+                } else if matches!(expecting, Expecting::Event) && key.is("scripted_effect") {
+                    expecting = Expecting::ScriptedEffect;
+                } else {
+                    error_info(
+                        key,
+                        ErrorKey::Validation,
+                        "unexpected token",
+                        "Did you forget an = ?",
+                    );
                 }
             }
         }

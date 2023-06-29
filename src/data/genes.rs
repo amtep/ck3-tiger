@@ -14,44 +14,44 @@ use crate::token::Token;
 pub struct Gene {}
 
 impl Gene {
-    pub fn add(db: &mut Db, key: Token, block: Block) {
+    pub fn add(db: &mut Db, key: Token, mut block: Block) {
         match key.as_str() {
             "color_genes" => {
-                for (k, b) in block.iter_definitions_warn() {
-                    ColorGene::add(db, k.clone(), b.clone());
+                for (k, b) in block.drain_definitions_warn() {
+                    ColorGene::add(db, k, b);
                 }
             }
             "age_presets" => {
-                for (k, b) in block.iter_definitions_warn() {
-                    AgePresetGene::add(db, k.clone(), b.clone());
+                for (k, b) in block.drain_definitions_warn() {
+                    AgePresetGene::add(db, k, b);
                 }
             }
             "decal_atlases" => {
-                for (_k, _b) in block.iter_definitions_warn() {
+                for (_k, _b) in block.drain_definitions_warn() {
                     // TODO: no examples in vanilla
                 }
             }
             "morph_genes" => {
-                for (k, b) in block.iter_definitions_warn() {
-                    MorphGene::add(db, k.clone(), b.clone(), false);
+                for (k, b) in block.drain_definitions_warn() {
+                    MorphGene::add(db, k, b, false);
                 }
             }
             "accessory_genes" => {
-                for (k, b) in block.iter_definitions_warn() {
-                    AccessoryGene::add(db, k.clone(), b.clone());
+                for (k, b) in block.drain_definitions_warn() {
+                    AccessoryGene::add(db, k, b);
                 }
             }
             "special_genes" => {
-                for (k, b) in block.iter_definitions_warn() {
+                for (k, mut b) in block.drain_definitions_warn() {
                     match k.as_str() {
                         "morph_genes" => {
-                            for (k, b) in b.iter_definitions_warn() {
-                                MorphGene::add(db, k.clone(), b.clone(), true);
+                            for (k, b) in b.drain_definitions_warn() {
+                                MorphGene::add(db, k, b, true);
                             }
                         }
                         "accessory_genes" => {
-                            for (k, b) in b.iter_definitions_warn() {
-                                AccessoryGene::add(db, k.clone(), b.clone());
+                            for (k, b) in b.drain_definitions_warn() {
+                                AccessoryGene::add(db, k, b);
                             }
                         }
                         _ => warn(k, ErrorKey::ParseError, "unknown gene type"),
@@ -406,6 +406,7 @@ fn validate_curve_range(block: &Block, data: &Everything) {
     for token in vd.values() {
         if let Some(v) = token.expect_number() {
             count += 1;
+            #[allow(clippy::collapsible_else_if)]
             if count == 1 {
                 if !(0.0..=1.0).contains(&v) {
                     error(token, ErrorKey::Range, "expected number from 0.0 to 1.0");

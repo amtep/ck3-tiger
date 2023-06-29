@@ -280,6 +280,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     None
 }
 
+#[allow(clippy::unnecessary_wraps)]
 fn modif_check(
     name: &Token,
     s: &str,

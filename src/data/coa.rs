@@ -236,49 +236,39 @@ fn validate_coa_color(bv: &BV, block: Option<&Block>, data: &Everything) {
 pub struct CoaTemplateList {}
 
 impl CoaTemplateList {
-    pub fn add(db: &mut Db, key: Token, block: Block) {
+    pub fn add(db: &mut Db, key: Token, mut block: Block) {
         if key.is("coat_of_arms_template_lists") {
-            for (key, block) in block.iter_definitions_warn() {
-                db.add(
-                    Item::CoaTemplateList,
-                    key.clone(),
-                    block.clone(),
-                    Box::new(Self {}),
-                );
+            for (key, block) in block.drain_definitions_warn() {
+                db.add(Item::CoaTemplateList, key, block, Box::new(Self {}));
             }
         } else if key.is("colored_emblem_texture_lists") {
-            for (key, block) in block.iter_definitions_warn() {
+            for (key, block) in block.drain_definitions_warn() {
                 db.add(
                     Item::CoaColoredEmblemList,
-                    key.clone(),
-                    block.clone(),
+                    key,
+                    block,
                     Box::new(CoaColoredEmblemList {}),
                 );
             }
         } else if key.is("color_lists") {
-            for (key, block) in block.iter_definitions_warn() {
-                db.add(
-                    Item::CoaColorList,
-                    key.clone(),
-                    block.clone(),
-                    Box::new(CoaColorList {}),
-                );
+            for (key, block) in block.drain_definitions_warn() {
+                db.add(Item::CoaColorList, key, block, Box::new(CoaColorList {}));
             }
         } else if key.is("pattern_texture_lists") {
-            for (key, block) in block.iter_definitions_warn() {
+            for (key, block) in block.drain_definitions_warn() {
                 db.add(
                     Item::CoaPatternList,
-                    key.clone(),
-                    block.clone(),
+                    key,
+                    block,
                     Box::new(CoaPatternList {}),
                 );
             }
         } else if key.is("textured_emblem_texture_lists") {
-            for (key, block) in block.iter_definitions_warn() {
+            for (key, block) in block.drain_definitions_warn() {
                 db.add(
                     Item::CoaTexturedEmblemList,
-                    key.clone(),
-                    block.clone(),
+                    key,
+                    block,
                     Box::new(CoaTexturedEmblemList {}),
                 );
             }

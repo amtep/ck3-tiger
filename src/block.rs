@@ -353,10 +353,10 @@ impl Block {
 
     pub fn count_keys(&self, name: &str) -> usize {
         let mut count = 0;
-        for (k, _, _) in self.v.iter() {
+        for (k, _, _) in &self.v {
             if let Some(key) = k {
                 if key.is(name) {
-                    count += 1
+                    count += 1;
                 }
             }
         }
@@ -406,7 +406,7 @@ impl Block {
         }
     }
 
-    pub fn drain_definitions_warn<'a>(&'a mut self) -> DrainDefinitions<'a> {
+    pub fn drain_definitions_warn(&mut self) -> DrainDefinitions {
         DrainDefinitions {
             iter: self.v.drain(..),
         }
@@ -718,9 +718,8 @@ impl Iterator for DrainDefinitions<'_> {
             if let Some(key) = k {
                 if let Some(block) = bv.into_block() {
                     return Some((key, block));
-                } else {
-                    error(key, ErrorKey::Validation, "unexpected assignment");
                 }
+                error(key, ErrorKey::Validation, "unexpected assignment");
             } else {
                 match bv {
                     BV::Value(t) => {
