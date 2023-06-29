@@ -290,14 +290,15 @@ impl Localization {
         }
     }
 
-    pub fn verify_key_has_options(&self, key: &Token, n: i64) {
+    pub fn verify_key_has_options(&self, loca: &str, key: &Token, n: i64, prefix: &str) {
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {
-                if let Some(entry) = hash.get(key.as_str()) {
+                if let Some(entry) = hash.get(loca) {
                     if let Some(ref orig) = entry.orig {
                         for i in 1..=n {
-                            let find = format!("$OPTION_{i}$");
-                            if !orig.as_str().contains(&find) {
+                            let find = format!("${prefix}{i}$");
+                            let find2 = format!("${prefix}{i}|");
+                            if !orig.as_str().contains(&find) && !orig.as_str().contains(&find2) {
                                 warn2(
                                     key,
                                     ErrorKey::Validation,
@@ -307,8 +308,9 @@ impl Localization {
                                 );
                             }
                         }
-                        let find = format!("$OPTION_{}$", n + 1);
-                        if orig.as_str().contains(&find) {
+                        let find = format!("${prefix}{}$", n + 1);
+                        let find2 = format!("${prefix}{}|", n + 1);
+                        if orig.as_str().contains(&find) && !orig.as_str().contains(&find2) {
                             warn2(
                                 key,
                                 ErrorKey::Validation,
@@ -318,13 +320,8 @@ impl Localization {
                             );
                         }
                     } else if n > 0 {
-                        warn2(
-                            key,
-                            ErrorKey::Validation,
-                            "localization is missing $OPTION_1$",
-                            &entry.key,
-                            "here",
-                        );
+                        let msg = format!("localization is missing ${prefix}1$");
+                        warn2(key, ErrorKey::Validation, &msg, &entry.key, "here");
                     }
                 }
             }

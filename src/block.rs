@@ -351,6 +351,18 @@ impl Block {
         self.get_key(name).is_some()
     }
 
+    pub fn count_keys(&self, name: &str) -> usize {
+        let mut count = 0;
+        for (k, _, _) in self.v.iter() {
+            if let Some(key) = k {
+                if key.is(name) {
+                    count += 1
+                }
+            }
+        }
+        count
+    }
+
     pub fn iter_items(&self) -> std::slice::Iter<BlockItem> {
         self.v.iter()
     }

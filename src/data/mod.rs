@@ -61,6 +61,7 @@ pub mod mapmodes;
 pub mod memories;
 pub mod modif;
 pub mod modifiers;
+pub mod mottos;
 pub mod music;
 pub mod namelists;
 pub mod nickname;

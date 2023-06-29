@@ -82,6 +82,7 @@ use crate::data::mapmodes::MapMode;
 use crate::data::memories::MemoryType;
 use crate::data::modif::ModifierFormat;
 use crate::data::modifiers::Modifier;
+use crate::data::mottos::{Motto, MottoInsert};
 use crate::data::music::Musics;
 use crate::data::namelists::Namelists;
 use crate::data::nickname::Nickname;
@@ -550,6 +551,8 @@ impl Everything {
         self.load_pdx_items(Item::ScriptedIllustration, ScriptedIllustration::add);
         self.load_pdx_items(Item::Flavorization, Flavorization::add);
         self.fileset.handle(&mut self.culture_history);
+        self.load_pdx_items(Item::Motto, Motto::add);
+        self.load_pdx_items(Item::MottoInsert, MottoInsert::add);
     }
 
     pub fn validate_all(&mut self) {
