@@ -21,26 +21,26 @@ pub struct ActivityType {}
 impl ActivityType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if let Some(block) = block.get_field_block("options") {
-            for (key, block) in block.iter_pure_definitions() {
+            for (key, block) in block.iter_definitions() {
                 db.add_flag(Item::ActivityOptionCategory, key.clone());
-                for (key, _) in block.iter_pure_definitions() {
+                for (key, _) in block.iter_definitions() {
                     db.add_flag(Item::ActivityOption, key.clone());
                 }
             }
         }
         if let Some(block) = block.get_field_block("phases") {
-            for (key, _) in block.iter_pure_definitions() {
+            for (key, _) in block.iter_definitions() {
                 db.add_flag(Item::ActivityPhase, key.clone());
             }
         }
         if let Some(block) = block.get_field_block("special_guests") {
-            for (key, _) in block.iter_pure_definitions() {
+            for (key, _) in block.iter_definitions() {
                 db.add_flag(Item::SpecialGuest, key.clone());
             }
         }
         // window_characters seem to count as special guests too
         if let Some(block) = block.get_field_block("window_characters") {
-            for (key, _) in block.iter_pure_definitions() {
+            for (key, _) in block.iter_definitions() {
                 db.add_flag(Item::SpecialGuest, key.clone());
             }
         }
@@ -127,14 +127,14 @@ impl DbKind for ActivityType {
         special_guests_sc.define_list("special_guests", Scopes::Character, key.clone());
 
         if let Some(block) = block.get_field_block("special_guests") {
-            for (key, _) in block.iter_pure_definitions() {
+            for (key, _) in block.iter_definitions() {
                 join_chance_sc.define_name(key.as_str(), Scopes::Character, key.clone());
                 special_guests_sc.define_name(key.as_str(), Scopes::Character, key.clone());
             }
         }
         if let Some(block) = block.get_field_block("options") {
-            for (_, block) in block.iter_pure_definitions() {
-                for (key, _) in block.iter_pure_definitions() {
+            for (_, block) in block.iter_definitions() {
+                for (key, _) in block.iter_definitions() {
                     join_chance_sc.define_name(key.as_str(), Scopes::Flag, key.clone());
                 }
             }

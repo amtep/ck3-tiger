@@ -71,6 +71,33 @@ impl BV {
         }
     }
 
+    pub fn expect_into_value(self) -> Option<Token> {
+        match self {
+            BV::Value(t) => Some(t),
+            BV::Block(_) => {
+                error(self, ErrorKey::Validation, "expected value, found block");
+                None
+            }
+        }
+    }
+
+    pub fn into_block(self) -> Option<Block> {
+        match self {
+            BV::Value(_) => None,
+            BV::Block(b) => Some(b),
+        }
+    }
+
+    pub fn expect_into_block(self) -> Option<Block> {
+        match self {
+            BV::Value(_) => {
+                error(self, ErrorKey::Validation, "expected block, found value");
+                None
+            }
+            BV::Block(b) => Some(b),
+        }
+    }
+
     pub fn equivalent(&self, other: &Self) -> bool {
         match self {
             BV::Value(t1) => {
@@ -332,20 +359,6 @@ impl Block {
         self.v.drain(..)
     }
 
-    pub fn iter_definitions(&self) -> IterDefinitions {
-        IterDefinitions {
-            iter: self.v.iter(),
-            warn: false,
-        }
-    }
-
-    pub fn iter_definitions_warn(&self) -> IterDefinitions {
-        IterDefinitions {
-            iter: self.v.iter(),
-            warn: true,
-        }
-    }
-
     pub fn iter_assignments(&self) -> IterAssignments {
         IterAssignments {
             iter: self.v.iter(),
@@ -367,16 +380,16 @@ impl Block {
         }
     }
 
-    pub fn iter_pure_definitions_warn(&self) -> IterPureDefinitions {
-        IterPureDefinitions {
-            iter: self.iter_definitions_warn(),
+    pub fn iter_definitions_warn(&self) -> IterDefinitions {
+        IterDefinitions {
+            iter: self.v.iter(),
             warn: true,
         }
     }
 
-    pub fn iter_pure_definitions(&self) -> IterPureDefinitions {
-        IterPureDefinitions {
-            iter: self.iter_definitions(),
+    pub fn iter_definitions(&self) -> IterDefinitions {
+        IterDefinitions {
+            iter: self.v.iter(),
             warn: false,
         }
     }
@@ -578,60 +591,6 @@ impl Display for Comparator {
     }
 }
 
-/// A type for callers who are only interested in "definition"-style blocks, where there
-/// are no comparisons and no loose blocks.
-#[derive(Clone, Debug)]
-pub enum DefinitionItem<'a> {
-    Assignment(&'a Token, &'a Token), // key = value
-    Definition(&'a Token, &'a Block), // key = { definition }
-    Keyword(&'a Token),
-}
-
-#[derive(Clone, Debug)]
-pub struct IterDefinitions<'a> {
-    iter: std::slice::Iter<'a, BlockItem>,
-    warn: bool,
-}
-
-impl<'a> Iterator for IterDefinitions<'a> {
-    type Item = DefinitionItem<'a>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        for (k, cmp, v) in self.iter.by_ref() {
-            if let Some(key) = k {
-                if !matches!(cmp, Comparator::Eq) {
-                    if self.warn {
-                        error(
-                            key,
-                            ErrorKey::Validation,
-                            &format!("expected `{key} =`, found `{cmp}`"),
-                        );
-                    }
-                    continue;
-                }
-                return match v {
-                    BV::Value(t) => Some(DefinitionItem::Assignment(key, t)),
-                    BV::Block(b) => Some(DefinitionItem::Definition(key, b)),
-                };
-            }
-            match v {
-                BV::Value(t) => return Some(DefinitionItem::Keyword(t)),
-                BV::Block(b) => {
-                    if self.warn {
-                        error_info(
-                            b,
-                            ErrorKey::Validation,
-                            "unexpected block",
-                            "Did you forget an = ?",
-                        );
-                    }
-                }
-            }
-        }
-        None
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct IterAssignments<'a> {
     iter: std::slice::Iter<'a, BlockItem>,
@@ -642,7 +601,7 @@ impl<'a> Iterator for IterAssignments<'a> {
     type Item = (&'a Token, &'a Token);
 
     fn next(&mut self) -> Option<Self::Item> {
-        for (k, cmp, v) in self.iter.by_ref() {
+        for (k, cmp, bv) in self.iter.by_ref() {
             if let Some(key) = k {
                 if !matches!(cmp, Comparator::Eq) {
                     if self.warn {
@@ -651,7 +610,7 @@ impl<'a> Iterator for IterAssignments<'a> {
                     }
                     continue;
                 }
-                return match v {
+                return match bv {
                     BV::Value(t) => Some((key, t)),
                     BV::Block(b) => {
                         if self.warn {
@@ -661,9 +620,9 @@ impl<'a> Iterator for IterAssignments<'a> {
                     }
                 };
             }
-            match v {
-                BV::Value(t) => {
-                    if self.warn {
+            if self.warn {
+                match bv {
+                    BV::Value(t) => {
                         error_info(
                             t,
                             ErrorKey::Validation,
@@ -671,9 +630,7 @@ impl<'a> Iterator for IterAssignments<'a> {
                             "Did you forget an = ?",
                         );
                     }
-                }
-                BV::Block(b) => {
-                    if self.warn {
+                    BV::Block(b) => {
                         error_info(
                             b,
                             ErrorKey::Validation,
@@ -689,34 +646,40 @@ impl<'a> Iterator for IterAssignments<'a> {
 }
 
 #[derive(Clone, Debug)]
-pub struct IterPureDefinitions<'a> {
-    iter: IterDefinitions<'a>,
+pub struct IterDefinitions<'a> {
+    iter: std::slice::Iter<'a, BlockItem>,
     warn: bool,
 }
 
-impl<'a> Iterator for IterPureDefinitions<'a> {
+impl<'a> Iterator for IterDefinitions<'a> {
     type Item = (&'a Token, &'a Block);
 
     fn next(&mut self) -> Option<Self::Item> {
-        for def in self.iter.by_ref() {
-            match def {
-                DefinitionItem::Keyword(t) => {
-                    if self.warn {
+        for (k, _, bv) in self.iter.by_ref() {
+            if let Some(key) = k {
+                if let Some(block) = bv.get_block() {
+                    return Some((key, block));
+                } else if self.warn {
+                    error(key, ErrorKey::Validation, "unexpected assignment");
+                }
+            } else if self.warn {
+                match bv {
+                    BV::Value(t) => {
                         error_info(
                             t,
                             ErrorKey::Validation,
-                            "unexpected token",
+                            "unexpected value",
                             "Did you forget an = ?",
                         );
                     }
-                }
-                DefinitionItem::Assignment(key, _) => {
-                    if self.warn {
-                        error(key, ErrorKey::Validation, "unexpected assignment");
+                    BV::Block(b) => {
+                        error_info(
+                            b,
+                            ErrorKey::Validation,
+                            "unexpected block",
+                            "Did you forget an = ?",
+                        );
                     }
-                }
-                DefinitionItem::Definition(key, block) => {
-                    return Some((key, block));
                 }
             }
         }
@@ -748,9 +711,9 @@ impl<'a> Iterator for IterBlockValueDefinitions<'a> {
                 }
                 return Some((key, bv));
             }
-            match bv {
-                BV::Value(t) => {
-                    if self.warn {
+            if self.warn {
+                match bv {
+                    BV::Value(t) => {
                         error_info(
                             t,
                             ErrorKey::Validation,
@@ -758,9 +721,7 @@ impl<'a> Iterator for IterBlockValueDefinitions<'a> {
                             "Did you forget an = ?",
                         );
                     }
-                }
-                BV::Block(b) => {
-                    if self.warn {
+                    BV::Block(b) => {
                         error_info(
                             b,
                             ErrorKey::Validation,

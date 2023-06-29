@@ -19,7 +19,7 @@ pub struct LawGroup {}
 
 impl LawGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for (key, block) in block.iter_pure_definitions() {
+        for (key, block) in block.iter_definitions() {
             let title_law = block.has_key("can_title_have");
             for token in block.get_field_values("flag") {
                 if title_law {

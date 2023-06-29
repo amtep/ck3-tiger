@@ -44,7 +44,7 @@ pub struct CoaDesignerColorPalette {}
 impl CoaDesignerColorPalette {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if key.is("coa_designer_background_colors") {
-            for (token, block) in block.iter_pure_definitions_warn() {
+            for (token, block) in block.iter_definitions_warn() {
                 db.add(
                     Item::CoaDesignerColorPalette,
                     token.clone(),

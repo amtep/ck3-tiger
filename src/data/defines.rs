@@ -51,7 +51,7 @@ impl FileHandler for Defines {
         }
 
         let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (group, block) in block.iter_pure_definitions_warn() {
+        for (group, block) in block.iter_definitions_warn() {
             for (name, bv) in block.iter_bv_definitions_warn() {
                 self.load_item(group.clone(), name.clone(), bv);
             }

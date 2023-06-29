@@ -24,7 +24,7 @@ pub struct Assets {
 impl Assets {
     pub fn load_item(&mut self, key: &Token, block: &Block) {
         if key.is("pdxmesh") {
-            for (key, block) in block.iter_pure_definitions() {
+            for (key, block) in block.iter_definitions() {
                 if key.is("blend_shape") {
                     if let Some(id) = block.get_field_value("id") {
                         self.blend_shapes.insert(id.to_string());
@@ -33,7 +33,7 @@ impl Assets {
             }
         }
         if key.is("entity") {
-            for (key, block) in block.iter_pure_definitions() {
+            for (key, block) in block.iter_definitions() {
                 if key.is("attribute") {
                     if let Some(name) = block.get_field_value("name") {
                         self.attributes.insert(name.to_string());
@@ -124,7 +124,7 @@ impl FileHandler for Assets {
         }
 
         let Some(block) = PdxFile::read_optional_bom(entry, fullpath) else { return };
-        for (key, block) in block.iter_pure_definitions_warn() {
+        for (key, block) in block.iter_definitions_warn() {
             self.load_item(key, block);
         }
     }

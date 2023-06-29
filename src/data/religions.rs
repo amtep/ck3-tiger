@@ -15,7 +15,7 @@ pub struct Religion {}
 impl Religion {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if let Some(block) = block.get_field_block("faiths") {
-            for (faith, block) in block.iter_pure_definitions() {
+            for (faith, block) in block.iter_definitions() {
                 if let Some(token) = block.get_field_value("graphical_faith") {
                     db.add_flag(Item::GraphicalFaith, token.clone());
                 }

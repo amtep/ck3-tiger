@@ -55,7 +55,7 @@ impl Traits {
             self.tracks.insert(key.to_string());
         }
         if let Some(block) = block.get_field_block("tracks") {
-            for (key, _) in block.iter_pure_definitions() {
+            for (key, _) in block.iter_definitions() {
                 self.tracks.insert(key.to_string());
             }
         }
@@ -104,7 +104,7 @@ impl FileHandler for Traits {
         }
 
         let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, b) in block.iter_pure_definitions_warn() {
+        for (key, b) in block.iter_definitions_warn() {
             self.load_item(key, b);
         }
     }

@@ -36,7 +36,7 @@ impl Doctrines {
             DoctrineGroup::new(key.clone(), block.clone()),
         );
 
-        for (doctrine, block) in block.iter_pure_definitions() {
+        for (doctrine, block) in block.iter_definitions() {
             // skip definitions that are not doctrines
             if doctrine.is("is_available_on_create") || doctrine.is("name") {
                 continue;
@@ -91,7 +91,7 @@ impl FileHandler for Doctrines {
         }
 
         let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, b) in block.iter_pure_definitions_warn() {
+        for (key, b) in block.iter_definitions_warn() {
             self.load_item(key, b);
         }
     }

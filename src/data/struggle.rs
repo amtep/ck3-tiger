@@ -19,7 +19,7 @@ pub struct Struggle {}
 impl Struggle {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if let Some(block) = block.get_field_block("phase_list") {
-            for (key, block) in block.iter_pure_definitions() {
+            for (key, block) in block.iter_definitions() {
                 db.add_flag(Item::StrugglePhase, key.clone());
                 for field in &[
                     "war_effects",

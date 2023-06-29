@@ -71,7 +71,7 @@ impl FileHandler for Musics {
         }
 
         let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, block) in block.iter_pure_definitions_warn() {
+        for (key, block) in block.iter_definitions_warn() {
             self.load_item(key, block);
         }
     }

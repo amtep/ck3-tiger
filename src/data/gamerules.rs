@@ -12,7 +12,7 @@ pub struct GameRule {}
 
 impl GameRule {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for (key, _) in block.iter_pure_definitions() {
+        for (key, _) in block.iter_definitions() {
             if !key.is("categories") {
                 db.add_flag(Item::GameRuleSetting, key.clone());
             }

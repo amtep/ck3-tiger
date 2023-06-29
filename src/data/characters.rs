@@ -183,7 +183,7 @@ impl FileHandler for Characters {
 
         let Some(block) = PdxFile::read(entry, fullpath) else { return };
 
-        for (key, b) in block.iter_pure_definitions_warn() {
+        for (key, b) in block.iter_definitions_warn() {
             self.load_item(key, b);
         }
     }
@@ -402,7 +402,7 @@ impl Character {
     }
 
     fn has_flag(&self, flag: &str) -> bool {
-        for (key, block) in self.block.iter_pure_definitions() {
+        for (key, block) in self.block.iter_definitions() {
             if key.is_date() {
                 if block_has_flag(block, flag) {
                     return true;
@@ -423,7 +423,7 @@ impl Character {
                 return true;
             }
         }
-        for (key, block) in self.block.iter_pure_definitions() {
+        for (key, block) in self.block.iter_definitions() {
             if key.is_date() {
                 for token in block.get_field_values("add_trait") {
                     if token.is(tr) {

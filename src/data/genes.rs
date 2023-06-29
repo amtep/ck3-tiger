@@ -17,40 +17,40 @@ impl Gene {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         match key.as_str() {
             "color_genes" => {
-                for (k, b) in block.iter_pure_definitions_warn() {
+                for (k, b) in block.iter_definitions_warn() {
                     ColorGene::add(db, k.clone(), b.clone());
                 }
             }
             "age_presets" => {
-                for (k, b) in block.iter_pure_definitions_warn() {
+                for (k, b) in block.iter_definitions_warn() {
                     AgePresetGene::add(db, k.clone(), b.clone());
                 }
             }
             "decal_atlases" => {
-                for (_k, _b) in block.iter_pure_definitions_warn() {
+                for (_k, _b) in block.iter_definitions_warn() {
                     // TODO: no examples in vanilla
                 }
             }
             "morph_genes" => {
-                for (k, b) in block.iter_pure_definitions_warn() {
+                for (k, b) in block.iter_definitions_warn() {
                     MorphGene::add(db, k.clone(), b.clone(), false);
                 }
             }
             "accessory_genes" => {
-                for (k, b) in block.iter_pure_definitions_warn() {
+                for (k, b) in block.iter_definitions_warn() {
                     AccessoryGene::add(db, k.clone(), b.clone());
                 }
             }
             "special_genes" => {
-                for (k, b) in block.iter_pure_definitions_warn() {
+                for (k, b) in block.iter_definitions_warn() {
                     match k.as_str() {
                         "morph_genes" => {
-                            for (k, b) in b.iter_pure_definitions_warn() {
+                            for (k, b) in b.iter_definitions_warn() {
                                 MorphGene::add(db, k.clone(), b.clone(), true);
                             }
                         }
                         "accessory_genes" => {
-                            for (k, b) in b.iter_pure_definitions_warn() {
+                            for (k, b) in b.iter_definitions_warn() {
                                 AccessoryGene::add(db, k.clone(), b.clone());
                             }
                         }
@@ -146,7 +146,7 @@ pub struct MorphGene {
 impl MorphGene {
     pub fn add(db: &mut Db, key: Token, block: Block, special_gene: bool) {
         let mut templates = FnvHashMap::default();
-        for (key, _block) in block.iter_pure_definitions() {
+        for (key, _block) in block.iter_definitions() {
             if key.is("ugliness_feature_categories") {
                 continue;
             }
@@ -284,7 +284,7 @@ pub struct AccessoryGene {
 impl AccessoryGene {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         let mut templates = FnvHashMap::default();
-        for (key, block) in block.iter_pure_definitions() {
+        for (key, block) in block.iter_definitions() {
             if key.is("ugliness_feature_categories") {
                 continue;
             }

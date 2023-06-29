@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, DefinitionItem, BV};
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
@@ -34,38 +34,34 @@ pub struct Events {
 }
 
 impl Events {
-    fn load_event(&mut self, key: &Token, block: &Block) {
+    fn load_event(&mut self, key: Token, block: Block) {
         if let Some((key_a, key_b)) = key.as_str().split_once('.') {
             if let Ok(id) = u16::from_str(key_b) {
                 if let Some(other) = self.get_event(key.as_str()) {
-                    dup_error(key, &other.key, "event");
+                    dup_error(&key, &other.key, "event");
                 }
-                self.events.insert(
-                    (key_a.to_string(), id),
-                    Event::new(key.clone(), block.clone()),
-                );
+                self.events
+                    .insert((key_a.to_string(), id), Event::new(key, block));
                 return;
             }
         }
         warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.");
     }
 
-    fn load_scripted_trigger(&mut self, key: Token, block: &Block) {
+    fn load_scripted_trigger(&mut self, key: Token, block: Block) {
         let index = (key.loc.pathname.to_path_buf(), key.to_string());
         if let Some(other) = self.triggers.get(&index) {
             dup_error(&key, &other.key, "scripted trigger");
         }
-        self.triggers
-            .insert(index, Trigger::new(key, block.clone(), None));
+        self.triggers.insert(index, Trigger::new(key, block, None));
     }
 
-    fn load_scripted_effect(&mut self, key: Token, block: &Block) {
+    fn load_scripted_effect(&mut self, key: Token, block: Block) {
         let index = (key.loc.pathname.to_path_buf(), key.to_string());
         if let Some(other) = self.effects.get(&index) {
             dup_error(&key, &other.key, "scripted effect");
         }
-        self.effects
-            .insert(index, Effect::new(key, block.clone(), None));
+        self.effects.insert(index, Effect::new(key, block, None));
     }
 
     pub fn trigger_exists(&self, key: &Token) -> bool {
@@ -156,61 +152,52 @@ impl FileHandler for Events {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
 
         let mut expecting = Expecting::Event;
 
-        for def in block.iter_definitions_warn() {
-            match def {
-                DefinitionItem::Assignment(key, value) if key.is("namespace") => {
-                    self.namespaces.insert(value.to_string(), value.clone());
-                }
-                DefinitionItem::Assignment(key, _)
-                    if key.is("scripted_trigger") || key.is("scripted_effect") =>
-                {
+        for (k, _, bv) in block.drain() {
+            if let Some(key) = k {
+                if key.is("namespace") {
+                    if let Some(value) = bv.expect_into_value() {
+                        self.namespaces.insert(value.to_string(), value);
+                    }
+                } else if key.is("scripted_trigger") || key.is("scripted_effect") {
                     let msg = format!("`{key}` should be used without `=`");
                     error(key, ErrorKey::Validation, &msg);
+                } else if let Some(block) = bv.into_block() {
+                    match expecting {
+                        Expecting::ScriptedTrigger => {
+                            self.load_scripted_trigger(key, block);
+                            expecting = Expecting::Event;
+                        }
+                        Expecting::ScriptedEffect => {
+                            self.load_scripted_effect(key, block);
+                            expecting = Expecting::Event;
+                        }
+                        Expecting::Event => {
+                            self.load_event(key, block);
+                        }
+                    };
+                } else {
+                    let msg = "unknown setting in event files";
+                    error(key, ErrorKey::UnknownField, msg);
                 }
-                DefinitionItem::Assignment(key, _) => {
-                    error(
-                        key,
-                        ErrorKey::UnknownField,
-                        "unknown setting in event files",
-                    );
-                }
-                DefinitionItem::Keyword(key)
-                    if matches!(expecting, Expecting::Event) && key.is("scripted_trigger") =>
-                {
-                    expecting = Expecting::ScriptedTrigger;
-                }
-                DefinitionItem::Keyword(key)
-                    if matches!(expecting, Expecting::Event) && key.is("scripted_effect") =>
-                {
-                    expecting = Expecting::ScriptedEffect;
-                }
-                DefinitionItem::Keyword(key) => error_info(
-                    key,
-                    ErrorKey::Validation,
-                    "unexpected token",
-                    "Did you forget an = ?",
-                ),
-                DefinitionItem::Definition(key, b) if key.is("namespace") => {
-                    let msg = "expected namespace to have a simple string value";
-                    error(b, ErrorKey::EventNamespace, msg);
-                }
-                DefinitionItem::Definition(key, b) => match expecting {
-                    Expecting::ScriptedTrigger => {
-                        self.load_scripted_trigger(key.clone(), b);
-                        expecting = Expecting::Event;
+            } else {
+                if let Some(key) = bv.expect_into_value() {
+                    if matches!(expecting, Expecting::Event) && key.is("scripted_trigger") {
+                        expecting = Expecting::ScriptedTrigger;
+                    } else if matches!(expecting, Expecting::Event) && key.is("scripted_effect") {
+                        expecting = Expecting::ScriptedEffect;
+                    } else {
+                        error_info(
+                            key,
+                            ErrorKey::Validation,
+                            "unexpected token",
+                            "Did you forget an = ?",
+                        );
                     }
-                    Expecting::ScriptedEffect => {
-                        self.load_scripted_effect(key.clone(), b);
-                        expecting = Expecting::Event;
-                    }
-                    Expecting::Event => {
-                        self.load_event(key, b);
-                    }
-                },
+                }
             }
         }
     }
@@ -463,7 +450,7 @@ fn validate_court_scene(block: &Block, data: &Everything, sc: &mut ScopeContext)
     vd.field_target("court_owner", sc, Scopes::Character);
     vd.field_item("scripted_animation", Item::ScriptedAnimation);
     vd.field_validated_blocks("roles", |b, data| {
-        for (key, block) in b.iter_pure_definitions_warn() {
+        for (key, block) in b.iter_definitions_warn() {
             validate_target(key, data, sc, Scopes::Character);
             let mut vd = Validator::new(block, data);
             vd.req_field("group");

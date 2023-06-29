@@ -17,7 +17,7 @@ pub struct VassalContract {}
 impl VassalContract {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if let Some(block) = block.get_field_block("obligation_levels") {
-            for (key, block) in block.iter_pure_definitions() {
+            for (key, block) in block.iter_definitions() {
                 for token in block.get_field_values("flag") {
                     db.add_flag(Item::VassalContractFlag, token.clone());
                 }

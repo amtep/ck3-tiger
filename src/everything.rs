@@ -350,7 +350,7 @@ impl Everything {
                 if let Some(block) =
                     PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
                 {
-                    for (key, block) in block.iter_pure_definitions_warn() {
+                    for (key, block) in block.iter_definitions_warn() {
                         add(&mut self.database, key.clone(), block.clone());
                     }
                 }
@@ -368,7 +368,7 @@ impl Everything {
         for entry in self.fileset.get_files_under(&subpath) {
             if entry.filename().to_string_lossy().ends_with(ext) {
                 if let Some(block) = PdxFile::read(entry, &self.fileset.fullpath(entry)) {
-                    for (key, block) in block.iter_pure_definitions_warn() {
+                    for (key, block) in block.iter_definitions_warn() {
                         add(&mut self.database, key.clone(), block.clone());
                     }
                 }

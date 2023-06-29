@@ -67,7 +67,7 @@ impl FileHandler for DataBindings {
         }
 
         let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, b) in block.iter_pure_definitions_warn() {
+        for (key, b) in block.iter_definitions_warn() {
             if key.is("macro") {
                 self.load_macro(b.clone());
             } else {

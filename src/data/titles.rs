@@ -113,7 +113,7 @@ impl Titles {
         }
 
         let mut is_county_capital = parent_tier == Tier::County;
-        for (k, v) in block.iter_pure_definitions() {
+        for (k, v) in block.iter_definitions() {
             if let Ok(tier) = Tier::try_from(k) {
                 if tier >= parent_tier {
                     let msg = format!("can't put a {tier} inside a {parent_tier}");
@@ -158,7 +158,7 @@ impl FileHandler for Titles {
         }
 
         let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, block) in block.iter_pure_definitions_warn() {
+        for (key, block) in block.iter_definitions_warn() {
             if Tier::try_from(key).is_ok() {
                 self.load_item(key.clone(), block, None, false);
             } else {

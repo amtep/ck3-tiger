@@ -99,7 +99,7 @@ impl AccoladeType {
             }
         }
         if let Some(block) = block.get_field_block("ranks") {
-            for (key, block) in block.iter_pure_definitions() {
+            for (key, block) in block.iter_definitions() {
                 if key.is_integer() {
                     if let Some(vec) = block.get_field_list("accolade_parameters") {
                         for token in vec {
