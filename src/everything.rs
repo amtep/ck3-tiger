@@ -102,6 +102,7 @@ use crate::data::relations::Relation;
 use crate::data::religions::{Religion, ReligionFamily};
 use crate::data::schemes::Scheme;
 use crate::data::scripted_animations::ScriptedAnimation;
+use crate::data::scripted_costs::ScriptedCost;
 use crate::data::scripted_effects::{Effect, Effects};
 use crate::data::scripted_guis::ScriptedGui;
 use crate::data::scripted_illustrations::ScriptedIllustration;
@@ -555,6 +556,7 @@ impl Everything {
         self.load_pdx_items(Item::Motto, Motto::add);
         self.load_pdx_items(Item::MottoInsert, MottoInsert::add);
         self.load_pdx_items(Item::CombatPhaseEvent, CombatPhaseEvent::add);
+        self.load_pdx_items(Item::ScriptedCost, ScriptedCost::add);
     }
 
     pub fn validate_all(&mut self) {
