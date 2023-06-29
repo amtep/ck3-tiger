@@ -27,10 +27,10 @@ pub struct Traits {
 }
 
 impl Traits {
-    fn load_item(&mut self, key: &Token, block: &Block) {
+    fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.traits.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(key, &other.key, "trait");
+                dup_error(&key, &other.key, "trait");
             }
         }
         if let Some(token) = block.get_field_value("group") {
@@ -59,8 +59,7 @@ impl Traits {
                 self.tracks.insert(key.to_string());
             }
         }
-        self.traits
-            .insert(key.to_string(), Trait::new(key.clone(), block.clone()));
+        self.traits.insert(key.to_string(), Trait::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -103,9 +102,9 @@ impl FileHandler for Traits {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, b) in block.iter_definitions_warn() {
-            self.load_item(key, b);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }

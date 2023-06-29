@@ -59,14 +59,14 @@ pub struct Characters {
 }
 
 impl Characters {
-    fn load_item(&mut self, key: &Token, block: &Block) {
+    fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.characters.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind && other.born_by(self.config_only_born) {
-                dup_error(key, &other.key, "character");
+                dup_error(&key, &other.key, "character");
             }
         }
         self.characters
-            .insert(key.to_string(), Character::new(key.clone(), block.clone()));
+            .insert(key.to_string(), Character::new(key, block));
     }
 
     pub fn verify_exists_gender(&self, item: &Token, gender: Gender) {
@@ -181,10 +181,10 @@ impl FileHandler for Characters {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
 
-        for (key, b) in block.iter_definitions_warn() {
-            self.load_item(key, b);
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 

@@ -16,14 +16,14 @@ pub struct Dynasties {
 }
 
 impl Dynasties {
-    fn load_item(&mut self, key: &Token, block: &Block) {
+    fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.dynasties.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(key, &other.key, "dynasty");
+                dup_error(&key, &other.key, "dynasty");
             }
         }
         self.dynasties
-            .insert(key.to_string(), Dynasty::new(key.clone(), block.clone()));
+            .insert(key.to_string(), Dynasty::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -47,9 +47,9 @@ impl FileHandler for Dynasties {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, b) in block.iter_definitions_warn() {
-            self.load_item(key, b);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }

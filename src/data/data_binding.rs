@@ -66,10 +66,10 @@ impl FileHandler for DataBindings {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, b) in block.iter_definitions_warn() {
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
             if key.is("macro") {
-                self.load_macro(b.clone());
+                self.load_macro(block);
             } else {
                 let msg = format!("unexpected key {key} in data_binding");
                 warn(key, ErrorKey::ParseError, &msg);

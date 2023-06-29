@@ -27,14 +27,14 @@ pub struct Interactions {
 }
 
 impl Interactions {
-    pub fn load_interaction(&mut self, key: Token, block: &Block) {
+    pub fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.interactions.get(key.as_str()) {
             if other.key.loc.kind == key.loc.kind {
                 dup_error(&key, &other.key, "interaction");
             }
         }
         self.interactions
-            .insert(key.to_string(), Interaction::new(key, block.clone()));
+            .insert(key.to_string(), Interaction::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -58,9 +58,9 @@ impl FileHandler for Interactions {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, block) in block.iter_definitions_warn() {
-            self.load_interaction(key.clone(), block);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }

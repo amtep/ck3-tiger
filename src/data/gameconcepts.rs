@@ -19,7 +19,7 @@ pub struct GameConcepts {
 }
 
 impl GameConcepts {
-    pub fn load_item(&mut self, key: Token, block: &Block) {
+    pub fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.concepts.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
                 dup_error(&key, &other.key, "game concept");
@@ -31,7 +31,7 @@ impl GameConcepts {
             }
         }
         self.concepts
-            .insert(key.to_string(), Concept::new(key, block.clone()));
+            .insert(key.to_string(), Concept::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -55,10 +55,9 @@ impl FileHandler for GameConcepts {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-
-        for (key, b) in block.iter_definitions_warn() {
-            self.load_item(key.clone(), b);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }

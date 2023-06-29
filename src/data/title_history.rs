@@ -71,10 +71,10 @@ impl FileHandler for TitleHistories {
             return;
         }
 
-        let Some(block) = PdxFile::read_cp1252(entry, fullpath) else { return };
-        for (key, block) in block.iter_definitions_warn() {
-            if Tier::try_from(key).is_ok() {
-                self.load_item(key.clone(), block.clone());
+        let Some(mut block) = PdxFile::read_cp1252(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            if Tier::try_from(&key).is_ok() {
+                self.load_item(key, block);
             } else {
                 warn(key, ErrorKey::Validation, "expected title");
             }

@@ -16,14 +16,13 @@ pub struct Namelists {
 }
 
 impl Namelists {
-    pub fn load_item(&mut self, key: Token, block: &Block) {
+    pub fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.lists.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
                 dup_error(&key, &other.key, "name list");
             }
         }
-        self.lists
-            .insert(key.to_string(), List::new(key, block.clone()));
+        self.lists.insert(key.to_string(), List::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -47,9 +46,9 @@ impl FileHandler for Namelists {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, block) in block.iter_definitions_warn() {
-            self.load_item(key.clone(), block);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }

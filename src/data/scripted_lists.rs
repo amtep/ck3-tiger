@@ -21,14 +21,13 @@ pub struct ScriptedLists {
 }
 
 impl ScriptedLists {
-    fn load_item(&mut self, key: &Token, block: &Block) {
+    fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.lists.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(key, &other.key, "scripted list");
+                dup_error(&key, &other.key, "scripted list");
             }
         }
-        self.lists
-            .insert(key.to_string(), List::new(key.clone(), block.clone()));
+        self.lists.insert(key.to_string(), List::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -58,9 +57,9 @@ impl FileHandler for ScriptedLists {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, b) in block.iter_definitions_warn() {
-            self.load_item(key, b);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }

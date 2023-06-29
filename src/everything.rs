@@ -347,11 +347,11 @@ impl Everything {
         let subpath = PathBuf::from(itype.path());
         for entry in self.fileset.get_files_under(&subpath) {
             if entry.filename().to_string_lossy().ends_with(".txt") {
-                if let Some(block) =
+                if let Some(mut block) =
                     PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
                 {
-                    for (key, block) in block.iter_definitions_warn() {
-                        add(&mut self.database, key.clone(), block.clone());
+                    for (key, block) in block.drain_definitions_warn() {
+                        add(&mut self.database, key, block);
                     }
                 }
             }
@@ -367,9 +367,9 @@ impl Everything {
         let subpath = PathBuf::from(itype.path());
         for entry in self.fileset.get_files_under(&subpath) {
             if entry.filename().to_string_lossy().ends_with(ext) {
-                if let Some(block) = PdxFile::read(entry, &self.fileset.fullpath(entry)) {
-                    for (key, block) in block.iter_definitions_warn() {
-                        add(&mut self.database, key.clone(), block.clone());
+                if let Some(mut block) = PdxFile::read(entry, &self.fileset.fullpath(entry)) {
+                    for (key, block) in block.drain_definitions_warn() {
+                        add(&mut self.database, key, block);
                     }
                 }
             }

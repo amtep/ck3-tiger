@@ -16,14 +16,13 @@ pub struct Houses {
 }
 
 impl Houses {
-    fn load_item(&mut self, key: &Token, block: &Block) {
+    fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.houses.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(key, &other.key, "house");
+                dup_error(&key, &other.key, "house");
             }
         }
-        self.houses
-            .insert(key.to_string(), House::new(key.clone(), block.clone()));
+        self.houses.insert(key.to_string(), House::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -47,9 +46,9 @@ impl FileHandler for Houses {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, b) in block.iter_definitions_warn() {
-            self.load_item(key, b);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }

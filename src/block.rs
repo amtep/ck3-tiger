@@ -394,6 +394,12 @@ impl Block {
         }
     }
 
+    pub fn drain_definitions_warn<'a>(&'a mut self) -> DrainDefinitions<'a> {
+        DrainDefinitions {
+            iter: self.v.drain(..),
+        }
+    }
+
     pub fn get_field_at_date(&self, name: &str, date: Date) -> Option<BV> {
         let mut found_date: Option<Date> = None;
         let mut found: Option<&BV> = None;
@@ -687,6 +693,46 @@ impl<'a> Iterator for IterDefinitions<'a> {
     }
 }
 
+#[derive(Debug)]
+pub struct DrainDefinitions<'a> {
+    iter: std::vec::Drain<'a, BlockItem>,
+}
+
+impl Iterator for DrainDefinitions<'_> {
+    type Item = (Token, Block);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for (k, _, bv) in self.iter.by_ref() {
+            if let Some(key) = k {
+                if let Some(block) = bv.into_block() {
+                    return Some((key, block));
+                } else {
+                    error(key, ErrorKey::Validation, "unexpected assignment");
+                }
+            } else {
+                match bv {
+                    BV::Value(t) => {
+                        error_info(
+                            t,
+                            ErrorKey::Validation,
+                            "unexpected value",
+                            "Did you forget an = ?",
+                        );
+                    }
+                    BV::Block(b) => {
+                        error_info(
+                            b,
+                            ErrorKey::Validation,
+                            "unexpected block",
+                            "Did you forget an = ?",
+                        );
+                    }
+                }
+            }
+        }
+        None
+    }
+}
 #[derive(Clone, Debug)]
 pub struct IterBlockValueDefinitions<'a> {
     iter: std::slice::Iter<'a, BlockItem>,

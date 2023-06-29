@@ -25,14 +25,14 @@ pub struct Decisions {
 }
 
 impl Decisions {
-    pub fn load_decision(&mut self, key: Token, block: &Block) {
+    pub fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.decisions.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
                 dup_error(&key, &other.key, "decision");
             }
         }
         self.decisions
-            .insert(key.to_string(), Decision::new(key, block.clone()));
+            .insert(key.to_string(), Decision::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -56,10 +56,9 @@ impl FileHandler for Decisions {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-
-        for (key, block) in block.iter_definitions_warn() {
-            self.load_decision(key.clone(), block);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }

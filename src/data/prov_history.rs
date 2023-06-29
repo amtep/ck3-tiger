@@ -23,16 +23,15 @@ pub struct ProvinceHistories {
 }
 
 impl ProvinceHistories {
-    fn load_history(&mut self, id: ProvId, key: &Token, b: &Block) {
+    fn load_item(&mut self, id: ProvId, key: Token, mut block: Block) {
         if let Some(province) = self.provinces.get_mut(&id) {
             // Multiple entries are valid but could easily be a mistake.
             if province.key.loc.kind >= key.loc.kind {
-                dup_error(key, &province.key, "province");
+                dup_error(&key, &province.key, "province");
             }
-            province.block.append(&mut b.clone());
+            province.block.append(&mut block);
         } else {
-            self.provinces
-                .insert(id, ProvinceHistory::new(key.clone(), b.clone()));
+            self.provinces.insert(id, ProvinceHistory::new(key, block));
         }
     }
 
@@ -82,16 +81,13 @@ impl FileHandler for ProvinceHistories {
             return;
         }
 
-        let Some(block) = PdxFile::read_cp1252(entry, fullpath) else { return };
-        for (key, b) in block.iter_definitions_warn() {
+        let Some(mut block) = PdxFile::read_cp1252(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
             if let Ok(id) = key.as_str().parse() {
-                self.load_history(id, key, b);
+                self.load_item(id, key, block);
             } else {
-                warn(
-                    key,
-                    ErrorKey::Validation,
-                    "unexpected key, expected only province ids",
-                );
+                let msg = "unexpected key, expected only province ids";
+                warn(key, ErrorKey::Validation, msg);
             }
         }
     }

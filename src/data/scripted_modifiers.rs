@@ -20,16 +20,14 @@ pub struct ScriptedModifiers {
 }
 
 impl ScriptedModifiers {
-    fn load_item(&mut self, key: &Token, block: &Block) {
+    fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.scripted_modifiers.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(key, &other.key, "scripted modifier");
+                dup_error(&key, &other.key, "scripted modifier");
             }
         }
-        self.scripted_modifiers.insert(
-            key.to_string(),
-            ScriptedModifier::new(key.clone(), block.clone()),
-        );
+        self.scripted_modifiers
+            .insert(key.to_string(), ScriptedModifier::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -57,9 +55,9 @@ impl FileHandler for ScriptedModifiers {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, b) in block.iter_definitions_warn() {
-            self.load_item(key, b);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }

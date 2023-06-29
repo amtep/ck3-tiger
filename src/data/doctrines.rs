@@ -25,16 +25,12 @@ pub struct Doctrines {
 }
 
 impl Doctrines {
-    fn load_item(&mut self, key: &Token, block: &Block) {
+    fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.groups.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(key, &other.key, "doctrine group");
+                dup_error(&key, &other.key, "doctrine group");
             }
         }
-        self.groups.insert(
-            key.to_string(),
-            DoctrineGroup::new(key.clone(), block.clone()),
-        );
 
         for (doctrine, block) in block.iter_definitions() {
             // skip definitions that are not doctrines
@@ -60,6 +56,9 @@ impl Doctrines {
                 Doctrine::new(doctrine.clone(), block.clone(), key.clone()),
             );
         }
+
+        self.groups
+            .insert(key.to_string(), DoctrineGroup::new(key, block));
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -90,9 +89,9 @@ impl FileHandler for Doctrines {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, b) in block.iter_definitions_warn() {
-            self.load_item(key, b);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }

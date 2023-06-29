@@ -22,17 +22,15 @@ pub struct Effects {
 }
 
 impl Effects {
-    fn load_item(&mut self, key: &Token, block: &Block) {
+    fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.effects.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(key, &other.key, "scripted effect");
+                dup_error(&key, &other.key, "scripted effect");
             }
         }
         let scope_override = self.scope_overrides.get(key.as_str()).copied();
-        self.effects.insert(
-            key.to_string(),
-            Effect::new(key.clone(), block.clone(), scope_override),
-        );
+        self.effects
+            .insert(key.to_string(), Effect::new(key, block, scope_override));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -82,9 +80,9 @@ impl FileHandler for Effects {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, b) in block.iter_definitions_warn() {
-            self.load_item(key, b);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }

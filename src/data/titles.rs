@@ -78,7 +78,7 @@ impl Titles {
     pub fn load_item(
         &mut self,
         key: Token,
-        block: &Block,
+        block: Block,
         parent: Option<&str>,
         is_county_capital: bool,
     ) {
@@ -119,7 +119,7 @@ impl Titles {
                     let msg = format!("can't put a {tier} inside a {parent_tier}");
                     error(k, ErrorKey::TitleTier, &msg);
                 }
-                self.load_item(k.clone(), v, Some(key.as_str()), is_county_capital);
+                self.load_item(k.clone(), v.clone(), Some(key.as_str()), is_county_capital);
                 is_county_capital = false;
             }
         }
@@ -157,10 +157,10 @@ impl FileHandler for Titles {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, block) in block.iter_definitions_warn() {
-            if Tier::try_from(key).is_ok() {
-                self.load_item(key.clone(), block, None, false);
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            if Tier::try_from(&key).is_ok() {
+                self.load_item(key, block, None, false);
             } else {
                 warn(key, ErrorKey::Validation, "expected title");
             }

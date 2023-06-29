@@ -64,9 +64,9 @@ impl FileHandler for MenAtArmsTypes {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
-        for (key, block) in block.iter_definitions_warn() {
-            self.load_item(key.clone(), block.clone());
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        for (key, block) in block.drain_definitions_warn() {
+            self.load_item(key, block);
         }
     }
 }
