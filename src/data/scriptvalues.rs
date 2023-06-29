@@ -132,6 +132,7 @@ impl ScriptValue {
         }
 
         validate_ifelse_sequence(block, "if", "else_if", "else");
+        vd.allow_qeq(true);
         for (token, cmp, bv) in vd.unknown_fields_cmp() {
             // save_temporary_scope_as is now allowed in script values
             if token.is("save_temporary_scope_as") {
@@ -218,7 +219,7 @@ impl ScriptValue {
                     }
                 }
 
-                // Check for target = { script_value } or target = compare_value
+                // Check for target = { script_value }
                 sc.open_builder();
                 if validate_scope_chain(token, data, sc, matches!(cmp, Comparator::QEq)) {
                     if let Some(block) = bv.expect_block() {

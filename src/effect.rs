@@ -70,6 +70,7 @@ pub fn validate_effect<'a>(
 
     validate_ifelse_sequence(block, "if", "else_if", "else");
 
+    vd.allow_qeq(true);
     'outer: for (key, cmp, bv) in vd.unknown_fields_cmp() {
         if let Some(effect) = data.get_effect(key) {
             match bv {
