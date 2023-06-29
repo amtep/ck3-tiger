@@ -20,6 +20,10 @@ GLOBAL_PROMOTES.append('    ("Root", NoArgs, Scope),\n')
 # Most promotes and functions have 'Unknown' arg types in the data_type logs.
 # This dictionary replaces those with known arg types in specific cases.
 ARGS_OVERRIDE = {
+    ("Character.Custom2", 2): "Arg2(DType(CString), DType(AnyScope))",
+    ("EqualTo_string", 2): "Arg2(DType(CString), DType(CString))",
+    ("FaithDoctrine.GetName", 1): "Arg1(DType(Faith))",
+    ("FaithDoctrineGroup.GetName", 1): "Arg1(DType(Faith))",
     ("GetAccoladeType", 1): "Arg1(IType(Item::AccoladeType))",
     ("GetActivityGuestInviteRule", 1): "Arg1(IType(Item::GuestInviteRule))",
     ("GetActivityIntent", 1): "Arg1(IType(Item::ActivityIntent))",
@@ -60,7 +64,14 @@ ARGS_OVERRIDE = {
     ("GetTitleByKey", 1): "Arg1(IType(Item::Title))",
     ("GetTrait", 1): "Arg1(IType(Item::Trait))",
     ("GetVassalStance", 1): "Arg1(IType(Item::VassalStance))",
-    ("EqualTo_string", 2): "Arg2(DType(CString), DType(CString))",
+    ("Scope.Var", 1): "Arg1(DType(CString))",
+    ("TopScope.sC", 1): "Arg1(DType(CString))",
+}
+
+# This is for overriding argument types regardless of the datafunction's input type
+ARGS_OVERRIDE_ANY = {
+    ("Custom", 1): "Arg1(DType(CString))",
+    ("GetName", 1): "Arg1(DType(Character))",
 }
 
 # UNARY_ARGS are functions that have their argument type in their name
@@ -77,6 +88,7 @@ BINARY_ARGS = [
 # This dictionary replaces those with known return types in specific cases.
 RTYPE_OVERRIDE = {
     "GetNullCharacter": "Character",
+    "TopScope.sC": "Character",
 }
 
 fnames = sys.argv[1:]
@@ -119,6 +131,12 @@ for fname in fnames:
         if name.startswith("Select_"):
             type = name.split('_')[1]
             args = 'Arg3(DType(bool), DType(%s), DType(%s))' % (type, type)
+        if (name, nargs) in ARGS_OVERRIDE_ANY:
+            args = ARGS_OVERRIDE_ANY[(name, nargs)]
+        if "." in name:
+            type, barename = name.split(".")
+            if (barename, nargs) in ARGS_OVERRIDE_ANY:
+                args = ARGS_OVERRIDE_ANY[(barename, nargs)]
         if (name, nargs) in ARGS_OVERRIDE:
             args = ARGS_OVERRIDE[(name, nargs)]
 
@@ -145,13 +163,11 @@ for fname in fnames:
         elif "\nDefinition type: Global function\n" in item:
             GLOBAL_FUNCTIONS.append('    ("%s", %s, %s),\n' % (name, args, rtype))
         elif "\nDefinition type: Function\n" in item:
-            type, name = name.split(".")
-            if name == "AccessSelf" or name == "Self":
+            if barename == "AccessSelf" or barename == "Self":
                 rtype = type
-            FUNCTIONS.append('    ("%s", %s, %s, %s),\n' % (name, type, args, rtype))
+            FUNCTIONS.append('    ("%s", %s, %s, %s),\n' % (barename, type, args, rtype))
         elif "\nDefinition type: Promote\n" in item:
-            type, name = name.split(".")
-            PROMOTES.append('    ("%s", %s, %s, %s),\n' % (name, type, args, rtype))
+            PROMOTES.append('    ("%s", %s, %s, %s),\n' % (barename, type, args, rtype))
         else:
             print(item)
             raise "unknown item"
@@ -161,6 +177,7 @@ with open(OUTDIR + "/datatypes.rs", "w") as outf:
     outf.write("#[derive(Copy, Clone, Debug, Eq, PartialEq, Display, EnumString)]\n")
     outf.write("pub enum Datatype {\n")
     outf.write("    Unknown,\n")
+    outf.write("    AnyScope,\n")
     outf.write("".join(TYPES))
     outf.write("}\n")
 

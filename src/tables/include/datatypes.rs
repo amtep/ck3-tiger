@@ -1,6 +1,7 @@
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Display, EnumString)]
 pub enum Datatype {
     Unknown,
+    AnyScope,
     AIUnitWatchWindow,
     AIWarCoordinatorWatchWindow,
     AIWatchWindow,

@@ -306,7 +306,7 @@ pub fn validate_datatypes(
             if let CodeArg::Literal(ref token) = code.arguments[0] {
                 if let Some(scopes) = scope_from_datatype(curtype) {
                     validate_custom(token, data, scopes, lang);
-                } else if curtype == Datatype::Unknown
+                } else if (curtype == Datatype::Unknown || curtype == Datatype::AnyScope)
                     && !CUSTOM_RELIGION_LOCAS.contains(&token.as_str())
                 {
                     validate_custom(token, data, Scopes::all(), lang);
@@ -354,12 +354,23 @@ pub fn validate_datatypes(
             && expect_type != Datatype::Unknown
             && curtype != expect_type
         {
-            let msg = format!(
-                "{} returns {curtype} but a {expect_type} is needed here",
-                code.name
-            );
-            error(&code.name, ErrorKey::Datafunctions, &msg);
-            return;
+            if expect_type == Datatype::AnyScope {
+                if scope_from_datatype(curtype).is_none() {
+                    let msg = format!(
+                        "{} returns {curtype} but a scope type is needed here",
+                        code.name
+                    );
+                    error(&code.name, ErrorKey::Datafunctions, &msg);
+                    return;
+                }
+            } else {
+                let msg = format!(
+                    "{} returns {curtype} but a {expect_type} is needed here",
+                    code.name
+                );
+                error(&code.name, ErrorKey::Datafunctions, &msg);
+                return;
+            }
         }
 
         i += 1;
