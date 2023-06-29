@@ -919,7 +919,6 @@ fn validate_effect_special(
         vd.field_bool("remove_existing_councillor");
     } else if caller == "battle_event" {
         vd.req_field("left_portrait");
-        vd.req_field("right_portrait");
         vd.req_field("key");
         if let Some(token) = vd.field_value("key") {
             let loca = format!("{token}_friendly");

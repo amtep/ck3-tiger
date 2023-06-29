@@ -29,6 +29,7 @@ use crate::data::coadesigner::{
     CoaDesignerColorPalette, CoaDesignerColoredEmblem, CoaDesignerEmblemLayout, CoaDesignerPattern,
 };
 use crate::data::colors::NamedColor;
+use crate::data::combat::CombatPhaseEvent;
 use crate::data::combat_effects::CombatEffect;
 use crate::data::council::{CouncilPosition, CouncilTask};
 use crate::data::court_scene::{
@@ -553,6 +554,7 @@ impl Everything {
         self.fileset.handle(&mut self.culture_history);
         self.load_pdx_items(Item::Motto, Motto::add);
         self.load_pdx_items(Item::MottoInsert, MottoInsert::add);
+        self.load_pdx_items(Item::CombatPhaseEvent, CombatPhaseEvent::add);
     }
 
     pub fn validate_all(&mut self) {

@@ -12,6 +12,7 @@ pub mod characters;
 pub mod coa;
 pub mod coadesigner;
 pub mod colors;
+pub mod combat;
 pub mod combat_effects;
 pub mod council;
 pub mod court_scene;
