@@ -425,7 +425,7 @@ fn validate_effect_control(
     }
 
     if caller == "send_interface_message" || caller == "send_interface_toast" {
-        vd.field_value("type");
+        vd.field_item("type", Item::Message);
         vd.field_validated_sc("title", sc, validate_desc);
         vd.field_validated_sc("desc", sc, validate_desc);
         vd.field_validated_sc("tooltip", sc, validate_desc);

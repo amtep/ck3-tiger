@@ -47,6 +47,7 @@ use crate::data::deathreasons::DeathReason;
 use crate::data::decisions::Decisions;
 use crate::data::defines::Defines;
 use crate::data::diarchies::{DiarchyMandate, DiarchyType};
+use crate::data::difficulty::PlayableDifficultyInfo;
 use crate::data::dna::Dna;
 use crate::data::doctrines::Doctrines;
 use crate::data::dynasties::Dynasties;
@@ -81,6 +82,7 @@ use crate::data::maa::MenAtArmsTypes;
 use crate::data::map_environment::MapEnvironment;
 use crate::data::mapmodes::MapMode;
 use crate::data::memories::MemoryType;
+use crate::data::messages::Message;
 use crate::data::modif::ModifierFormat;
 use crate::data::modifiers::Modifier;
 use crate::data::mottos::{Motto, MottoInsert};
@@ -557,6 +559,8 @@ impl Everything {
         self.load_pdx_items(Item::MottoInsert, MottoInsert::add);
         self.load_pdx_items(Item::CombatPhaseEvent, CombatPhaseEvent::add);
         self.load_pdx_items(Item::ScriptedCost, ScriptedCost::add);
+        self.load_pdx_items(Item::PlayableDifficultyInfo, PlayableDifficultyInfo::add);
+        self.load_pdx_items(Item::Message, Message::add);
     }
 
     pub fn validate_all(&mut self) {
