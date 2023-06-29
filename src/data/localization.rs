@@ -187,14 +187,14 @@ pub enum MacroValue {
 
 fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
     // Deliberate discrepancy here between the check and the error msg below.
-    // `l_{}.yml` works, but `_l_{}.yml` is still recommended.
+    // `l_{}` anywhere in the filename works, but `_l_{}.yml` is still recommended.
     //
     // Using to_string_lossy is ok here because non-unicode sequences will
     // never match the suffix anyway.
     let filename = filename.to_string_lossy();
     KNOWN_LANGUAGES
         .into_iter()
-        .find(|&lang| filename.ends_with(&format!("l_{lang}.yml")))
+        .find(|&lang| filename.contains(&format!("l_{lang}")))
 }
 
 impl Localization {
