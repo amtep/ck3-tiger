@@ -36,6 +36,7 @@ use crate::data::court_scene::{
 };
 use crate::data::court_type::CourtType;
 use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
+use crate::data::culture_history::CultureHistories;
 use crate::data::cultures::{
     Culture, CultureAesthetic, CultureCreationName, CultureEra, CulturePillar, CultureTradition,
 };
@@ -220,6 +221,7 @@ pub struct Everything {
     pub music: Musics,
 
     pub coas: Coas,
+    pub culture_history: CultureHistories,
 }
 
 impl Everything {
@@ -283,6 +285,7 @@ impl Everything {
             sounds: Sounds::default(),
             music: Musics::default(),
             coas: Coas::default(),
+            culture_history: CultureHistories::default(),
         })
     }
 
@@ -546,6 +549,7 @@ impl Everything {
         self.load_pdx_items(Item::CombatEffect, CombatEffect::add);
         self.load_pdx_items(Item::ScriptedIllustration, ScriptedIllustration::add);
         self.load_pdx_items(Item::Flavorization, Flavorization::add);
+        self.fileset.handle(&mut self.culture_history);
     }
 
     pub fn validate_all(&mut self) {
@@ -581,6 +585,7 @@ impl Everything {
         self.sounds.validate(self);
         self.music.validate(self);
         self.coas.validate(self);
+        self.culture_history.validate(self);
         self.database.validate(self);
 
         self.localization.check_unused(self);

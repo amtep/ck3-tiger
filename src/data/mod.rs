@@ -17,6 +17,7 @@ pub mod council;
 pub mod court_scene;
 pub mod court_type;
 pub mod courtpos;
+pub mod culture_history;
 pub mod cultures;
 pub mod customloca;
 pub mod data_binding;
