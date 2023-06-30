@@ -129,14 +129,15 @@ impl Effect {
             if self.scope_override.is_some() {
                 our_sc.set_no_warn(true);
             }
-            self.cache.insert(key, &[], tooltipped, our_sc.clone());
+            self.cache
+                .insert(key, &[], tooltipped, false, our_sc.clone());
             validate_normal_effect(&self.block, data, &mut our_sc, tooltipped);
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key.clone());
                 our_sc.set_strict_scopes(false);
             }
             sc.expect_compatibility(&our_sc, key);
-            self.cache.insert(key, &[], tooltipped, our_sc);
+            self.cache.insert(key, &[], tooltipped, false, our_sc);
         }
     }
 
@@ -151,7 +152,7 @@ impl Effect {
         tooltipped: Tooltipped,
         sc: &mut ScopeContext,
     ) -> bool {
-        self.cache.perform(key, args, tooltipped, |our_sc| {
+        self.cache.perform(key, args, tooltipped, false, |our_sc| {
             sc.expect_compatibility(our_sc, key);
         })
     }
@@ -175,7 +176,8 @@ impl Effect {
                 }
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
-                self.cache.insert(key, &args, tooltipped, our_sc.clone());
+                self.cache
+                    .insert(key, &args, tooltipped, false, our_sc.clone());
                 validate_normal_effect(&block, data, &mut our_sc, tooltipped);
                 if let Some(scopes) = self.scope_override {
                     our_sc = ScopeContext::new_unrooted(scopes, key.clone());
@@ -183,7 +185,7 @@ impl Effect {
                 }
 
                 sc.expect_compatibility(&our_sc, key);
-                self.cache.insert(key, &args, tooltipped, our_sc);
+                self.cache.insert(key, &args, tooltipped, false, our_sc);
             }
         }
     }

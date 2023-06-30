@@ -91,12 +91,13 @@ impl ScriptedModifier {
         if !self.cached_compat(key, &[], sc) {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
             our_sc.set_strict_scopes(false);
-            self.cache.insert(key, &[], Tooltipped::No, our_sc.clone());
+            self.cache
+                .insert(key, &[], Tooltipped::No, false, our_sc.clone());
             let mut vd = Validator::new(&self.block, data);
             validate_modifiers(&mut vd, &mut our_sc);
             validate_scripted_modifier_calls(vd, data, &mut our_sc);
             sc.expect_compatibility(&our_sc, key);
-            self.cache.insert(key, &[], Tooltipped::No, our_sc);
+            self.cache.insert(key, &[], Tooltipped::No, false, our_sc);
         }
     }
 
@@ -110,9 +111,10 @@ impl ScriptedModifier {
         args: &[(&str, Token)],
         sc: &mut ScopeContext,
     ) -> bool {
-        self.cache.perform(key, args, Tooltipped::No, |our_sc| {
-            sc.expect_compatibility(our_sc, key);
-        })
+        self.cache
+            .perform(key, args, Tooltipped::No, false, |our_sc| {
+                sc.expect_compatibility(our_sc, key);
+            })
     }
 
     pub fn validate_macro_expansion(
@@ -131,12 +133,12 @@ impl ScriptedModifier {
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
                 self.cache
-                    .insert(key, &args, Tooltipped::No, our_sc.clone());
+                    .insert(key, &args, Tooltipped::No, false, our_sc.clone());
                 let mut vd = Validator::new(&block, data);
                 validate_modifiers(&mut vd, &mut our_sc);
                 validate_scripted_modifier_calls(vd, data, &mut our_sc);
                 sc.expect_compatibility(&our_sc, key);
-                self.cache.insert(key, &args, Tooltipped::No, our_sc);
+                self.cache.insert(key, &args, Tooltipped::No, false, our_sc);
             }
         }
     }

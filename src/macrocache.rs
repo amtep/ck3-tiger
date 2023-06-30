@@ -9,10 +9,16 @@ struct MacroKey {
     loc: Loc,                    // the loc of the call site
     args: Vec<(String, String)>, // lexically sorted macro arguments
     tooltipped: Tooltipped,
+    negated: bool, // only for triggers
 }
 
 impl MacroKey {
-    pub fn new(mut loc: Loc, args: &[(&str, Token)], tooltipped: Tooltipped) -> Self {
+    pub fn new(
+        mut loc: Loc,
+        args: &[(&str, Token)],
+        tooltipped: Tooltipped,
+        negated: bool,
+    ) -> Self {
         loc.link = None;
         let mut args: Vec<(String, String)> = args
             .iter()
@@ -23,6 +29,7 @@ impl MacroKey {
             loc,
             args,
             tooltipped,
+            negated,
         }
     }
 }
@@ -38,10 +45,11 @@ impl<T> MacroCache<T> {
         key: &Token,
         args: &[(&str, Token)],
         tooltipped: Tooltipped,
+        negated: bool,
         mut f: impl FnMut(&T),
     ) -> bool {
         // TODO: find a way to avoid all the cloning for creating a MacroKey just to look it up in the cache
-        let key = MacroKey::new(key.loc.clone(), args, tooltipped);
+        let key = MacroKey::new(key.loc.clone(), args, tooltipped, negated);
         if let Some(x) = self.cache.borrow().get(&key) {
             f(x);
             true
@@ -50,8 +58,15 @@ impl<T> MacroCache<T> {
         }
     }
 
-    pub fn insert(&self, key: &Token, args: &[(&str, Token)], tooltipped: Tooltipped, value: T) {
-        let key = MacroKey::new(key.loc.clone(), args, tooltipped);
+    pub fn insert(
+        &self,
+        key: &Token,
+        args: &[(&str, Token)],
+        tooltipped: Tooltipped,
+        negated: bool,
+        value: T,
+    ) {
+        let key = MacroKey::new(key.loc.clone(), args, tooltipped, negated);
         self.cache.borrow_mut().insert(key, value);
     }
 }
