@@ -601,10 +601,10 @@ impl ScopeContext {
         for (name, &oidx) in &other.names {
             if self.names.contains_key(name) {
                 let (s, t) = other._resolve_named(oidx);
-                if let Some(token) = &other.is_input[oidx] {
+                if other.is_input[oidx].is_some() {
                     let idx = self._named_index(name, key);
                     let report = format!("scope:{name}");
-                    self._expect_named3(idx, s, token, key, &report);
+                    self._expect_named3(idx, s, t, key, &report);
                 } else {
                     // Their scopes now become our scopes.
                     self.define_name(name, s, t.clone());

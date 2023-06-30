@@ -347,6 +347,15 @@ impl Character {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
 
+        if self.key.as_str().contains('.') {
+            let msg = format!(
+                "`character:{}` will not work because of the dot in the id",
+                &self.key
+            );
+            let info = "script code will not be able to refer to this character";
+            warn_info(&self.key, ErrorKey::CharacterId, &msg, info);
+        }
+
         vd.req_field("name");
         vd.field_item("name", Item::Localization);
 
@@ -383,7 +392,7 @@ impl Character {
         vd.field_item("sexuality", Item::Sexuality);
         vd.field_numeric("health");
         vd.field_numeric("fertility");
-        vd.field_block("portrait_override"); // undocumented
+        vd.field_block("portrait_modifier_overrides"); // TODO
 
         vd.validate_history_blocks(|date, b, data| {
             Self::validate_history(date, b, &self.block, data, &mut sc);

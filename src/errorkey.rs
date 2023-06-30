@@ -49,6 +49,7 @@ pub enum ErrorKey {
     UnknownList,
     Choice,
     UseOfThis,
+    CharacterId,
 
     PrincesOfDarkness,
 
