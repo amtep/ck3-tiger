@@ -30,9 +30,9 @@ pub struct ScopeContext {
     /// Invariant: there are no cycles in the array via `ScopeEntry::Named` entries.
     named: Vec<ScopeEntry>,
 
-    /// Same indices as `named`, is true iff the named scope is expected to be set on entry to the current scope context.
+    /// Same indices as `named`, is a token iff the named scope is expected to be set on entry to the current scope context.
     /// Invariant: `named` and `is_input` are the same length.
-    is_input: Vec<bool>,
+    is_input: Vec<Option<Token>>,
 
     is_builder: bool,
     is_unrooted: bool,
@@ -124,7 +124,7 @@ impl ScopeContext {
         } else {
             self.names.insert(name.to_string(), self.named.len());
             self.named.push(ScopeEntry::Scope(scopes, token));
-            self.is_input.push(false);
+            self.is_input.push(None);
         }
     }
 
@@ -133,7 +133,7 @@ impl ScopeContext {
             let idx = self.named.len();
             self.names.insert(name.to_string(), idx);
             self.named.push(ScopeEntry::Scope(Scopes::all(), token));
-            self.is_input.push(false);
+            self.is_input.push(None);
         }
     }
 
@@ -144,7 +144,7 @@ impl ScopeContext {
         } else {
             self.list_names.insert(name.to_string(), self.named.len());
             self.named.push(ScopeEntry::Scope(scopes, token));
-            self.is_input.push(false);
+            self.is_input.push(None);
         }
     }
 
@@ -163,7 +163,7 @@ impl ScopeContext {
         } else {
             self.names.insert(name.to_string(), self.named.len());
             self.named.push(self._resolve_backrefs().clone());
-            self.is_input.push(false);
+            self.is_input.push(None);
         }
     }
 
@@ -174,7 +174,7 @@ impl ScopeContext {
         } else {
             self.list_names.insert(name.to_string(), self.named.len());
             self.named.push(self._resolve_backrefs().clone());
-            self.is_input.push(false);
+            self.is_input.push(None);
         }
     }
 
@@ -270,9 +270,9 @@ impl ScopeContext {
                     warn(token, ErrorKey::StrictScopes, &msg);
                 }
                 // Don't treat it as an input scope, because we already warned about it
-                self.is_input.push(false);
+                self.is_input.push(None);
             } else {
-                self.is_input.push(true);
+                self.is_input.push(Some(token.clone()));
             }
             idx
         }
@@ -601,25 +601,25 @@ impl ScopeContext {
         for (name, &oidx) in &other.names {
             if self.names.contains_key(name) {
                 let (s, t) = other._resolve_named(oidx);
-                if other.is_input[oidx] {
+                if let Some(token) = &other.is_input[oidx] {
                     let idx = self._named_index(name, key);
                     let report = format!("scope:{name}");
-                    self._expect_named3(idx, s, t, key, &report);
+                    self._expect_named3(idx, s, token, key, &report);
                 } else {
                     // Their scopes now become our scopes.
                     self.define_name(name, s, t.clone());
                 }
-            } else if self.strict_scopes && other.is_input[oidx] {
+            } else if self.strict_scopes && other.is_input[oidx].is_some() {
+                let token = other.is_input[oidx].as_ref().unwrap();
                 let msg = format!("`{key}` expects scope:{name} to be set");
                 let msg2 = "here";
-                let (_, t) = other._resolve_named(oidx);
-                warn2(key, ErrorKey::StrictScopes, &msg, t, msg2);
+                warn2(key, ErrorKey::StrictScopes, &msg, token, msg2);
             } else {
                 // Their scopes now become our scopes.
                 let (s, t) = other._resolve_named(oidx);
                 self.names.insert(name.to_string(), self.named.len());
                 self.named.push(ScopeEntry::Scope(s, t.clone()));
-                self.is_input.push(other.is_input[oidx]);
+                self.is_input.push(other.is_input[oidx].clone());
             }
         }
     }

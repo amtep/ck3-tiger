@@ -603,10 +603,12 @@ fn match_trigger_bv(
                         }
                     } else if token.starts_with("scope:") && !token.as_str().contains('.') {
                         // exists = scope:name is used to check if that scope name was set
-                        sc.exists_scope(
-                            token.as_str().strip_prefix("scope:").unwrap(),
-                            name.clone(),
-                        );
+                        if !negated {
+                            sc.exists_scope(
+                                token.as_str().strip_prefix("scope:").unwrap(),
+                                name.clone(),
+                            );
+                        }
                     } else if token.starts_with("flag:") {
                         // exists = flag:$REASON$ is used in vanilla just to shut up their error.log,
                         // so accept it silently even though it's a no-op.
