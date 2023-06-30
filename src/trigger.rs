@@ -27,7 +27,7 @@ pub fn validate_normal_trigger(
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
 ) {
-    validate_trigger("", false, block, data, sc, tooltipped);
+    validate_trigger("", false, block, data, sc, tooltipped, false);
 }
 
 pub fn validate_trigger(
@@ -37,6 +37,7 @@ pub fn validate_trigger(
     data: &Everything,
     sc: &mut ScopeContext,
     mut tooltipped: Tooltipped,
+    negated: bool,
 ) {
     let mut vd = Validator::new(block, data);
 
@@ -48,18 +49,18 @@ pub fn validate_trigger(
     }
 
     // If this condition looks weird, it's because the negation from for example NOR has already
-    // been applied to the tooltip value.
-    if (tooltipped == Tooltipped::FailuresOnly
-        && (caller == "or" || caller == "nor" || caller == "all_false"))
-        || (tooltipped == Tooltipped::NegatedFailuresOnly && (caller == "and" || caller == "nand"))
+    // been applied to the `negated` value.
+    if tooltipped == Tooltipped::FailuresOnly
+        && ((negated && (caller == "and" || caller == "nand"))
+            || (!negated && (caller == "or" || caller == "nor" || caller == "all_false")))
     {
-        let negated = if caller == "nor" || caller == "all_false" || caller == "and" {
+        let true_negated = if caller == "nor" || caller == "all_false" || caller == "and" {
             "negated "
         } else {
             ""
         };
         let msg = format!(
-            "{negated}{} is a too complex trigger to be tooltipped in a trigger that shows failures only.",
+            "{true_negated}{} is a too complex trigger to be tooltipped in a trigger that shows failures only.",
             caller.to_uppercase()
         );
         let info = "Try adding a custom_description or custom_tooltip, or simplifying the trigger";
@@ -76,7 +77,7 @@ pub fn validate_trigger(
                 let info = "normally you would use `trigger_else_if` instead.";
                 advice_info(key, ErrorKey::IfElse, msg, info);
             }
-            validate_normal_trigger(block, data, sc, tooltipped.no_longer_failures_only());
+            validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
     } else {
         vd.ban_field("limit", || {
@@ -106,7 +107,7 @@ pub fn validate_trigger(
                 .database
                 .get_key_block(Item::TriggerLocalization, token.as_str())
             {
-                TriggerLocalization::validate_use(key, block, data, token, tooltipped);
+                TriggerLocalization::validate_use(key, block, data, token, tooltipped, negated);
             }
         }
         vd.field_target_ok_this("subject", sc, Scopes::non_primitive());
@@ -178,7 +179,7 @@ pub fn validate_trigger(
                     if let Some(b) = bv.get_block() {
                         precheck_iterator_fields(ListType::Any, b, data, sc);
                         sc.open_scope(outscope, key.clone());
-                        validate_trigger(it_name.as_str(), true, b, data, sc, tooltipped);
+                        validate_trigger(it_name.as_str(), true, b, data, sc, tooltipped, negated);
                         sc.close();
                     } else {
                         error(bv, ErrorKey::Validation, "expected block, found value");
@@ -188,7 +189,7 @@ pub fn validate_trigger(
             }
         }
 
-        validate_trigger_key_bv(key, cmp, bv, data, sc, tooltipped);
+        validate_trigger_key_bv(key, cmp, bv, data, sc, tooltipped, negated);
     }
 }
 
@@ -199,6 +200,7 @@ pub fn validate_trigger_key_bv(
     data: &Everything,
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
+    negated: bool,
 ) {
     // Scripted trigger?
     if let Some(trigger) = data.get_trigger(key) {
@@ -210,12 +212,8 @@ pub fn validate_trigger_key_bv(
                 if !trigger.macro_parms().is_empty() {
                     error(token, ErrorKey::Macro, "expected macro arguments");
                 }
-                let tooltipped = if token.is("no") {
-                    tooltipped.negated()
-                } else {
-                    tooltipped
-                };
-                trigger.validate_call(key, data, sc, tooltipped);
+                let negated = if token.is("no") { !negated } else { negated };
+                trigger.validate_call(key, data, sc, tooltipped, negated);
             }
             BV::Block(block) => {
                 let parms = trigger.macro_parms();
@@ -234,7 +232,7 @@ pub fn validate_trigger_key_bv(
                         }
                     }
                     let args = parms.into_iter().zip(vec.into_iter()).collect();
-                    trigger.validate_macro_expansion(key, args, data, sc, tooltipped);
+                    trigger.validate_macro_expansion(key, args, data, sc, tooltipped, negated);
                 }
             }
         }
@@ -366,7 +364,7 @@ pub fn validate_trigger_key_bv(
 
     if let Some((trigger, name)) = found_trigger {
         sc.close();
-        match_trigger_bv(&trigger, &name, cmp, bv, data, sc, tooltipped);
+        match_trigger_bv(&trigger, &name, cmp, bv, data, sc, tooltipped, negated);
         return;
     }
 
@@ -396,7 +394,7 @@ pub fn validate_trigger_key_bv(
         }
         BV::Block(b) => {
             sc.finalize_builder();
-            validate_normal_trigger(b, data, sc, tooltipped);
+            validate_trigger("", false, b, data, sc, tooltipped, negated);
             sc.close();
         }
     }
@@ -408,6 +406,7 @@ fn match_trigger_fields(
     data: &Everything,
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
+    negated: bool,
 ) {
     let mut vd = Validator::new(block, data);
     for (field, _) in fields {
@@ -432,7 +431,7 @@ fn match_trigger_fields(
                     field
                 };
                 if key.is(fieldname) {
-                    match_trigger_bv(trigger, key, *cmp, bv, data, sc, tooltipped);
+                    match_trigger_bv(trigger, key, *cmp, bv, data, sc, tooltipped, negated);
                 }
             }
         }
@@ -447,6 +446,7 @@ fn match_trigger_bv(
     data: &Everything,
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
+    negated: bool,
 ) {
     let mut must_be_eq = true;
     let mut warn_if_eq = false;
@@ -519,16 +519,16 @@ fn match_trigger_bv(
         }
         Trigger::Block(fields) => {
             if let Some(block) = bv.expect_block() {
-                match_trigger_fields(fields, block, data, sc, tooltipped);
+                match_trigger_fields(fields, block, data, sc, tooltipped, negated);
             }
         }
         Trigger::ScopeOrBlock(s, fields) => match bv {
             BV::Value(token) => validate_target(token, data, sc, *s),
-            BV::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped),
+            BV::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped, negated),
         },
         Trigger::ItemOrBlock(i, fields) => match bv {
             BV::Value(token) => data.verify_exists(*i, token),
-            BV::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped),
+            BV::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped, negated),
         },
         Trigger::CompareValueOrBlock(fields) => match bv {
             BV::Value(t) => {
@@ -536,7 +536,7 @@ fn match_trigger_bv(
                 must_be_eq = false;
             }
             BV::Block(b) => {
-                match_trigger_fields(fields, b, data, sc, tooltipped);
+                match_trigger_fields(fields, b, data, sc, tooltipped, negated);
             }
         },
         Trigger::ScopeList(s) => {
@@ -574,13 +574,13 @@ fn match_trigger_bv(
         }
         Trigger::Control => {
             if let Some(block) = bv.expect_block() {
-                let mut tooltipped = tooltipped;
+                let mut negated = negated;
                 if name.lowercase_is("all_false")
                     || name.lowercase_is("not")
                     || name.lowercase_is("nand")
                     || name.lowercase_is("nor")
                 {
-                    tooltipped = tooltipped.negated();
+                    negated = !negated;
                 }
                 validate_trigger(
                     &name.as_str().to_lowercase(),
@@ -589,6 +589,7 @@ fn match_trigger_bv(
                     data,
                     sc,
                     tooltipped,
+                    negated,
                 );
             }
         }
@@ -625,7 +626,15 @@ fn match_trigger_bv(
                 match bv {
                     BV::Value(t) => data.verify_exists(Item::Localization, t),
                     BV::Block(b) => {
-                        validate_trigger(name.as_str(), false, b, data, sc, Tooltipped::No);
+                        validate_trigger(
+                            name.as_str(),
+                            false,
+                            b,
+                            data,
+                            sc,
+                            Tooltipped::No,
+                            negated,
+                        );
                     }
                 }
             } else if name.is("has_gene") {
@@ -694,6 +703,7 @@ fn match_trigger_bv(
                                     data,
                                     sc,
                                     tooltipped,
+                                    negated,
                                 );
                             }
                             validate_normal_trigger(block, data, sc, tooltipped);

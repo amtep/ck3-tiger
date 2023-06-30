@@ -22,19 +22,10 @@ impl TriggerLocalization {
         data: &Everything,
         caller: &Token,
         tooltipped: Tooltipped,
+        negated: bool,
     ) {
-        match tooltipped {
-            Tooltipped::No => (),
-            Tooltipped::Yes | Tooltipped::Past | Tooltipped::FailuresOnly => {
-                for field in &["global", "first", "third", "none"] {
-                    if block.has_key(field) {
-                        return;
-                    }
-                }
-                let msg = format!("missing positive perspective for {key}");
-                warn2(caller, ErrorKey::MissingPerspective, &msg, key, "here");
-            }
-            Tooltipped::Negated | Tooltipped::NegatedFailuresOnly => {
+        if tooltipped.is_tooltipped() {
+            if negated {
                 for field in &["global_not", "first_not", "third_not", "none_not"] {
                     if block.has_key(field) {
                         return;
@@ -49,6 +40,14 @@ impl TriggerLocalization {
                     }
                 }
                 let msg = format!("missing `NOT_` perspective for {key}");
+                warn2(caller, ErrorKey::MissingPerspective, &msg, key, "here");
+            } else {
+                for field in &["global", "first", "third", "none"] {
+                    if block.has_key(field) {
+                        return;
+                    }
+                }
+                let msg = format!("missing positive perspective for {key}");
                 warn2(caller, ErrorKey::MissingPerspective, &msg, key, "here");
             }
         }

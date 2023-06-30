@@ -741,7 +741,7 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
         validate_modifiers(&mut vd, sc);
     });
     vd.field_validated_blocks("modifier", |b, data| {
-        validate_trigger("modifier", false, b, data, sc, Tooltipped::No);
+        validate_trigger("modifier", false, b, data, sc, Tooltipped::No, false);
     });
     vd.field_validated_blocks_sc("compare_modifier", sc, validate_compare_modifier);
     vd.field_validated_blocks_sc("opinion_modifier", sc, validate_opinion_modifier);

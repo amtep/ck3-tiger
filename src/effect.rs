@@ -1403,6 +1403,7 @@ fn validate_effect_special(
                         data,
                         sc,
                         tooltipped,
+                        false,
                     );
                 }
 

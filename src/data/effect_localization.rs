@@ -16,7 +16,6 @@ impl EffectLocalization {
         db.add(Item::EffectLocalization, key, block, Box::new(Self {}));
     }
 
-    // TODO: when are the _neg effect tooltips used?
     pub fn validate_use(
         key: &Token,
         block: &Block,
@@ -26,10 +25,7 @@ impl EffectLocalization {
     ) {
         match tooltipped {
             Tooltipped::No => (),
-            Tooltipped::Yes
-            | Tooltipped::Negated
-            | Tooltipped::NegatedFailuresOnly
-            | Tooltipped::FailuresOnly => {
+            Tooltipped::Yes | Tooltipped::FailuresOnly => {
                 for field in &["global", "first", "third"] {
                     if block.has_key(field) {
                         return;

@@ -13,7 +13,7 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct Triggers {
@@ -114,7 +114,7 @@ impl Trigger {
             if self.scope_override.is_some() {
                 sc.set_no_warn(true);
             }
-            self.validate_call(&self.key, data, &mut sc, Tooltipped::No);
+            self.validate_call(&self.key, data, &mut sc, Tooltipped::No, false);
         }
     }
 
@@ -124,6 +124,7 @@ impl Trigger {
         data: &Everything,
         sc: &mut ScopeContext,
         tooltipped: Tooltipped,
+        negated: bool,
     ) {
         if !self.cached_compat(key, &[], tooltipped, sc) {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
@@ -132,7 +133,15 @@ impl Trigger {
                 our_sc.set_no_warn(true);
             }
             self.cache.insert(key, &[], tooltipped, our_sc.clone());
-            validate_normal_trigger(&self.block, data, &mut our_sc, tooltipped);
+            validate_trigger(
+                "",
+                false,
+                &self.block,
+                data,
+                &mut our_sc,
+                tooltipped,
+                negated,
+            );
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key.clone());
                 our_sc.set_strict_scopes(false);
@@ -165,6 +174,7 @@ impl Trigger {
         data: &Everything,
         sc: &mut ScopeContext,
         tooltipped: Tooltipped,
+        negated: bool,
     ) {
         // Every invocation is treated as different even if the args are the same,
         // because we want to point to the correct one when reporting errors.
@@ -178,7 +188,7 @@ impl Trigger {
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
                 self.cache.insert(key, &args, tooltipped, our_sc.clone());
-                validate_normal_trigger(&block, data, &mut our_sc, tooltipped);
+                validate_trigger("", false, &block, data, &mut our_sc, tooltipped, negated);
                 if let Some(scopes) = self.scope_override {
                     our_sc = ScopeContext::new_unrooted(scopes, key.clone());
                     our_sc.set_strict_scopes(false);
