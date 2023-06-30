@@ -22,6 +22,7 @@ const CK3_APP_ID: &str = "1158310";
 
 // How to find steamapps dir on different systems
 const STEAM_LINUX: &str = ".local/share/Steam/steamapps";
+const STEAM_LINUX_PROTON: &str = ".steam/steam/steamapps";
 const STEAM_MAC: &str = "Library/Application Support/Steam/steamapps";
 #[cfg(windows)]
 const STEAM_WINDOWS_KEY: &str = r"SOFTWARE\Wow6432Node\Valve\Steam";
@@ -60,15 +61,21 @@ struct Cli {
     pod: bool,
 }
 
-fn find_steamapps_directory() -> Option<PathBuf> {
+/// Tries to locate the CK3 game files.
+/// If there are several locations where the files may reside, it will try them one by one.
+fn find_ck3_directory() -> Option<PathBuf> {
     if let Some(home) = home_dir() {
-        let on_linux = home.join(STEAM_LINUX);
-        if on_linux.is_dir() {
-            return Some(on_linux);
+        let on_linux = find_ck3_dir_in_steam_dir(home.join(STEAM_LINUX));
+        if on_linux.is_some() {
+            return on_linux;
         }
-        let on_mac = home.join(STEAM_MAC);
-        if on_mac.is_dir() {
-            return Some(on_mac);
+        let on_linux_proton = find_ck3_dir_in_steam_dir(home.join(STEAM_LINUX_PROTON));
+        if on_linux_proton.is_some() {
+            return on_linux_proton;
+        }
+        let on_mac = find_ck3_dir_in_steam_dir(home.join(STEAM_MAC));
+        if on_mac.is_some() {
+            return on_mac;
         }
     }
     #[cfg(windows)]
@@ -78,17 +85,19 @@ fn find_steamapps_directory() -> Option<PathBuf> {
             .ok()?;
         let on_windows: String = key.get_value("InstallPath").ok()?;
         let on_windows = PathBuf::from(on_windows).join("steamapps");
-        if on_windows.is_dir() {
-            return Some(on_windows);
-        }
+        return find_ck3_dir_in_steam_dir(on_windows);
     }
     None
 }
 
-fn find_ck3_directory() -> Option<PathBuf> {
-    let steamapps_dir = find_steamapps_directory()?;
-
-    let vdf = steamapps_dir.join("libraryfolders.vdf");
+/// Tries to find the CK3 game directory inside a steamapps/ directory.
+/// Returns None if the steamapps/ directory doesn't exist, or isn't really a steamapps directory,
+/// or doesn't contain the CK3 game.
+fn find_ck3_dir_in_steam_dir(steam_dir: PathBuf) -> Option<PathBuf> {
+    if !steam_dir.is_dir() {
+        return None;
+    }
+    let vdf = steam_dir.join("libraryfolders.vdf");
     // Rudimentary libraryfolders.vdf parsing.
     // We're looking for a subsection with a "path" setting that has
     // our app (CK3) listed in its "apps" list.
