@@ -190,7 +190,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
                     error_info(name, ErrorKey::Validation, &msg, &info);
                 }
             }
-            return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
+            return Some(ModifKinds::Character);
         }
     }
 
