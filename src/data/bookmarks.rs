@@ -3,6 +3,8 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::data::dna::validate_genes;
 use crate::db::{Db, DbKind};
+use crate::errorkey::ErrorKey;
+use crate::errors::error;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
@@ -128,7 +130,16 @@ impl DbKind for BookmarkPortrait {
                 let mut vd = Validator::new(block, data);
                 for (key, value) in vd.unknown_value_fields() {
                     data.verify_exists(Item::PortraitModifierGroup, key);
-                    data.verify_exists(Item::Accessory, value);
+                    if !data.item_has_property(
+                        Item::PortraitModifierGroup,
+                        key.as_str(),
+                        value.as_str(),
+                    ) {
+                        let msg = format!(
+                            "portrait modifier group {key} does not have the modifier {value}"
+                        );
+                        error(value, ErrorKey::MissingItem, &msg);
+                    }
                 }
             });
         });

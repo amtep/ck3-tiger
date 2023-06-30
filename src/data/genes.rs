@@ -301,6 +301,35 @@ impl AccessoryGene {
         }
         db.add(Item::GeneCategory, key, block, Box::new(Self { templates }));
     }
+
+    /// TODO: Make this an &self function once the db get_item is straightened out.
+    pub fn has_template_setting(
+        _key: &Token,
+        block: &Block,
+        _data: &Everything,
+        template: &str,
+        setting: &str,
+    ) -> bool {
+        if template == "ugliness_feature_categories" {
+            return false;
+        }
+        if let Some(block) = block.get_field_block(template) {
+            for field in &["male", "female", "boy", "girl"] {
+                // get weighted settings
+                if let Some(block) = block.get_field_block(field) {
+                    for (_, token) in block.iter_assignments() {
+                        if token.is("empty") {
+                            continue;
+                        }
+                        if token.is(setting) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        false
+    }
 }
 
 impl DbKind for AccessoryGene {

@@ -1,7 +1,7 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
-use crate::data::genes::Gene;
+use crate::data::genes::{AccessoryGene, Gene};
 use crate::db::{Db, DbKind};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
@@ -72,17 +72,33 @@ impl DbKind for PortraitModifierGroup {
         }
     }
 
-    fn has_property(
-        &self,
-        _key: &Token,
-        block: &Block,
-        property: &str,
-        _data: &Everything,
-    ) -> bool {
+    fn has_property(&self, _key: &Token, block: &Block, property: &str, data: &Everything) -> bool {
         if property == "fallback" || property == "add_accessory_modifiers" {
             false
+        } else if block.get_field_block(property).is_some() {
+            true
         } else {
-            block.get_field_block(property).is_some()
+            for block in block.get_field_blocks("add_accessory_modifiers") {
+                if let Some(gene) = block.get_field_value("gene") {
+                    if let Some(template) = block.get_field_value("template") {
+                        if let Some((key, block)) = data
+                            .database
+                            .get_key_block(Item::GeneCategory, gene.as_str())
+                        {
+                            if AccessoryGene::has_template_setting(
+                                key,
+                                block,
+                                data,
+                                template.as_str(),
+                                property,
+                            ) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            false
         }
     }
 }
