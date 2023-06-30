@@ -62,12 +62,16 @@ impl DbKind for Focus {
         } else {
             vd.req_field("lifestyle");
             vd.field_item("lifestyle", Item::Lifestyle);
-
-            // Undocumented
-            vd.field_validated_block("is_valid", |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
-            });
         }
+
+        // Undocumented
+        vd.field_validated_block("is_valid", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
+        // Undocumented, but can confirm that both 'is_valid' and 'is_valid_showing_failures_only' do work for education focus.
+        vd.field_validated_block("is_valid_showing_failures_only", |block, data| {
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
+        });
 
         vd.field_script_value("auto_selection_weight", &mut sc);
         vd.field_validated_block("modifier", |block, data| {
