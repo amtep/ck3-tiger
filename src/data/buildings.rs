@@ -50,10 +50,10 @@ impl DbKind for Building {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        if !block
+        let graphical_only = block
             .get_field_bool("is_graphical_background")
-            .unwrap_or(false)
-        {
+            .unwrap_or(false);
+        if !graphical_only {
             let loca = format!("building_{key}");
             data.verify_exists_implied(Item::Localization, &loca, key);
             let loca = format!("building_{key}_desc");
@@ -86,33 +86,27 @@ impl DbKind for Building {
         vd.field_validated_block_rooted("is_enabled", Scopes::Province, |block, data, sc| {
             sc.define_name("holder", Scopes::Character, key.clone());
             sc.define_name("county", Scopes::LandedTitle, key.clone());
-            let tooltipped = if block
-                .get_field_bool("is_graphical_background")
-                .unwrap_or(false)
-            {
+            let tooltipped = if graphical_only {
+                Tooltipped::No
+            } else {
+                Tooltipped::FailuresOnly
+            };
+            validate_normal_trigger(block, data, sc, tooltipped);
+        });
+        vd.field_validated_key_block("can_construct_potential", |key, block, data| {
+            let mut sc = ScopeContext::new_root(Scopes::Province, key.clone());
+            sc.define_name("holder", Scopes::Character, key.clone());
+            sc.define_name("county", Scopes::LandedTitle, key.clone());
+            // For buildings that are upgrades, can_construct_potential is added to can_construct_showing_failures_only so it will be tooltipped
+            let tooltipped =
+                block.get_field_bool("show_disabled").unwrap_or(false) || self.is_upgrade;
+            let tooltipped = if tooltipped {
                 Tooltipped::FailuresOnly
             } else {
                 Tooltipped::No
             };
-            validate_normal_trigger(block, data, sc, tooltipped);
+            validate_normal_trigger(block, data, &mut sc, tooltipped);
         });
-        vd.field_validated_block_rooted(
-            "can_construct_potential",
-            Scopes::Province,
-            |block, data, sc| {
-                sc.define_name("holder", Scopes::Character, key.clone());
-                sc.define_name("county", Scopes::LandedTitle, key.clone());
-                // For buildings that are upgrades, can_construct_potential is added to can_construct_showing_failures_only so it will be tooltipped
-                let tooltipped =
-                    block.get_field_bool("show_disabled").unwrap_or(false) || self.is_upgrade;
-                let tooltipped = if tooltipped {
-                    Tooltipped::FailuresOnly
-                } else {
-                    Tooltipped::No
-                };
-                validate_normal_trigger(block, data, sc, tooltipped);
-            },
-        );
         vd.field_validated_block_rooted(
             "can_construct_showing_failures_only",
             Scopes::Province,

@@ -323,7 +323,7 @@ impl DbKind for ActivityType {
             "on_travel_state_pulse",
             "on_passive_state_pulse",
             "on_active_state_pulse",
-            "on_completed",
+            "on_complete",
         ] {
             vd.field_validated_key_block(field, |key, block, data| {
                 let mut sc = ch_host_activity_sc(key);
