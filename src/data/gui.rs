@@ -394,7 +394,7 @@ fn validate_field(key: &Token, bv: &BV, data: &Everything) {
     if key.is("default_format") {
         bv.expect_value();
         return;
-    } else if key.is("texture") {
+    } else if key.is("texture") || key.is("progresstexture") || key.is("noprogresstexture") {
         if let Some(token) = bv.expect_value() {
             // The editor_gui ones aren't in the CK3 installation but do appear
             // to be available.
