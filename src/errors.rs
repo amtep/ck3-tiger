@@ -121,9 +121,6 @@ struct Errors {
     /// The mod directory
     mod_root: PathBuf,
 
-    /// Don't log if this is > 0,
-    logging_paused: isize,
-
     /// Whether to log errors in vanilla CK3 files
     show_vanilla: bool,
 
@@ -184,8 +181,7 @@ impl Errors {
                 return true;
             }
         }
-        if self.logging_paused > 0
-            || self.ignore_keys.contains(&key)
+        if self.ignore_keys.contains(&key)
             || (loc.kind == FileKind::Vanilla && !self.show_vanilla)
             || (matches!(loc.kind, FileKind::LoadedMod(_)) && !self.show_loaded_mods)
         {
@@ -380,8 +376,7 @@ impl Errors {
     }
 
     pub fn push_header(&mut self, level: ErrorLevel, key: ErrorKey, msg: &str) {
-        if level < self.minimum_level || self.logging_paused > 0 || self.ignore_keys.contains(&key)
-        {
+        if level < self.minimum_level || self.ignore_keys.contains(&key) {
             return;
         }
         writeln!(self.outfile.as_mut().expect("outfile"), "{msg}").expect("writeln");
@@ -440,14 +435,6 @@ pub fn take_log_to() -> Box<dyn ErrorLogger> {
     Errors::get_mut().outfile.take().expect("outfile")
 }
 
-pub fn pause_logging() {
-    Errors::get_mut().logging_paused += 1;
-}
-
-pub fn resume_logging() {
-    Errors::get_mut().logging_paused -= 1;
-}
-
 pub fn show_vanilla(v: bool) {
     Errors::get_mut().show_vanilla = v;
 }
@@ -458,30 +445,6 @@ pub fn show_loaded_mods(v: bool) {
 
 pub fn minimum_level(lvl: ErrorLevel) {
     Errors::get_mut().minimum_level = lvl;
-}
-
-/// This is an object that can pause logging as long as it's in scope.
-/// Whether it does to depends on its constructor's `pause` argument.
-#[derive(Debug)]
-pub struct LogPauseRaii {
-    paused: bool,
-}
-
-impl LogPauseRaii {
-    pub fn new(pause: bool) -> Self {
-        if pause {
-            pause_logging();
-        }
-        Self { paused: pause }
-    }
-}
-
-impl Drop for LogPauseRaii {
-    fn drop(&mut self) {
-        if self.paused {
-            resume_logging();
-        }
-    }
 }
 
 pub fn set_vanilla_root(root: PathBuf) {

@@ -4,8 +4,6 @@
 
 ## False positives
 
-* With localization, duplicate keys take the earlier entry not the later entry.
-
 ## Features
 
 * Check that relation flags actually belong to the relation they are used with
@@ -15,3 +13,4 @@
 ## Refactoring
 
 * ScriptValue::validate_bv should be in its own module just like trigger and effect
+* The munch_data_types.py script has an ever-growing list of overrides. It should instead be smart enough to parse the existing Rust tables and only add/remove the functions that changed. That way, the overrides can be done directly in Rust code.
