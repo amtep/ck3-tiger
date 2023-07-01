@@ -194,9 +194,13 @@ impl Title {
         // NOTE: There used to be a check that non-barony titles existed in the
         // title history, but that seems to be optional.
         data.verify_exists(Item::Localization, &self.key);
-        // TODO: figure out when to recommend adding _adj or _pre or _article loca
         let loca = format!("{}_adj", &self.key);
-        data.item_used(Item::Localization, &loca);
+        if self.tier > Tier::Barony {
+            data.verify_exists_implied(Item::Localization, &loca, &self.key);
+        } else {
+            data.item_used(Item::Localization, &loca);
+        }
+        // The _pre is rarely defined even in vanilla
         let loca = format!("{}_pre", &self.key);
         data.item_used(Item::Localization, &loca);
         let definite_form = self.block.field_value_is("definite_form", "yes");
