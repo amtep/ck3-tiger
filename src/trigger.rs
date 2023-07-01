@@ -4,7 +4,6 @@ use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Date, BV};
 use crate::context::ScopeContext;
 use crate::data::genes::Gene;
-use crate::data::scriptvalues::ScriptValue;
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
@@ -13,6 +12,7 @@ use crate::everything::Everything;
 use crate::helpers::stringify_choices;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
+use crate::scriptvalue::validate_scriptvalue;
 use crate::tables::triggers::{scope_trigger, trigger_comparevalue, Trigger};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -147,7 +147,7 @@ pub fn validate_trigger(
 
     for (key, cmp, bv) in vd.unknown_fields_any_cmp() {
         if key.is("add") || key.is("factor") || key.is("value") {
-            ScriptValue::validate_bv(bv, data, sc);
+            validate_scriptvalue(bv, data, sc);
             continue;
         }
 
@@ -241,7 +241,7 @@ pub fn validate_trigger_key_bv(
 
     // `10 < scriptvalue` is a valid trigger
     if key.is_number() {
-        ScriptValue::validate_bv(bv, data, sc);
+        validate_scriptvalue(bv, data, sc);
         return;
     }
 
@@ -371,7 +371,7 @@ pub fn validate_trigger_key_bv(
     if !matches!(cmp, Comparator::Eq | Comparator::QEq) {
         if sc.can_be(Scopes::Value) {
             sc.close();
-            ScriptValue::validate_bv(bv, data, sc);
+            validate_scriptvalue(bv, data, sc);
         } else if matches!(cmp, Comparator::Ne | Comparator::EEq) {
             let scopes = sc.scopes();
             sc.close();
@@ -459,15 +459,15 @@ fn match_trigger_bv(
         }
         Trigger::CompareValue => {
             must_be_eq = false;
-            ScriptValue::validate_bv(bv, data, sc);
+            validate_scriptvalue(bv, data, sc);
         }
         Trigger::CompareValueWarnEq => {
             must_be_eq = false;
             warn_if_eq = true;
-            ScriptValue::validate_bv(bv, data, sc);
+            validate_scriptvalue(bv, data, sc);
         }
         Trigger::SetValue => {
-            ScriptValue::validate_bv(bv, data, sc);
+            validate_scriptvalue(bv, data, sc);
         }
         Trigger::CompareDate => {
             must_be_eq = false;
@@ -482,7 +482,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.get_value() {
                 validate_target(token, data, sc, *s);
             } else if s.contains(Scopes::Value) {
-                ScriptValue::validate_bv(bv, data, sc);
+                validate_scriptvalue(bv, data, sc);
             } else {
                 bv.expect_value();
             }
@@ -491,7 +491,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.get_value() {
                 validate_target_ok_this(token, data, sc, *s);
             } else if s.contains(Scopes::Value) {
-                ScriptValue::validate_bv(bv, data, sc);
+                validate_scriptvalue(bv, data, sc);
             } else {
                 bv.expect_value();
             }
@@ -666,7 +666,7 @@ fn match_trigger_bv(
                     vd.req_field("value");
                     vd.field_validated("value", |bv, data| match bv {
                         BV::Value(token) => validate_target(token, data, sc, Scopes::primitive()),
-                        BV::Block(_) => ScriptValue::validate_bv(bv, data, sc),
+                        BV::Block(_) => validate_scriptvalue(bv, data, sc),
                     });
                     // TODO: figure out the scope type of `value` and use that
                     if let Some(name) = vd.field_value("name") {

@@ -1,13 +1,13 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
-use crate::data::scriptvalues::ScriptValue;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
+use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
@@ -153,7 +153,7 @@ impl DbKind for CourtPosition {
             );
             sc.define_name("highest_available_aptitude", Scopes::Value, key.clone()); // undocumented
             sc.define_name("employee_aptitude", Scopes::Value, key.clone()); // undocumented
-            ScriptValue::validate_bv(bv, data, &mut sc);
+            validate_scriptvalue(bv, data, &mut sc);
         });
 
         vd.field_bool("is_powerful_agent"); // undocumented

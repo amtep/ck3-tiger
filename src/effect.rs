@@ -4,13 +4,13 @@ use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, BV};
 use crate::context::ScopeContext;
 use crate::data::effect_localization::EffectLocalization;
-use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice_info, error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, Scopes};
+use crate::scriptvalue::validate_scriptvalue;
 use crate::tables::effects::{scope_effect, Effect};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -156,7 +156,7 @@ pub fn validate_effect<'a>(
                             }
                         }
                     }
-                    ScriptValue::validate_bv(bv, data, sc);
+                    validate_scriptvalue(bv, data, sc);
                 }
                 Effect::Scope(outscopes) => {
                     if let Some(token) = bv.expect_value() {
@@ -718,7 +718,7 @@ fn validate_effect_special_bv(
                     BV::Value(token) => {
                         validate_target_ok_this(token, data, sc, Scopes::all_but_none());
                     }
-                    BV::Block(_) => ScriptValue::validate_bv(bv, data, sc),
+                    BV::Block(_) => validate_scriptvalue(bv, data, sc),
                 });
                 validate_optional_duration(&mut vd, sc);
             }
@@ -1384,7 +1384,7 @@ fn validate_effect_special(
         vd.field_script_value("base", sc);
         for (token, bv) in vd.unknown_fields() {
             data.verify_exists(Item::Trait, token);
-            ScriptValue::validate_bv(bv, data, sc);
+            validate_scriptvalue(bv, data, sc);
         }
     } else if caller == "switch" {
         vd.set_case_sensitive(true);

@@ -41,6 +41,7 @@ mod parse;
 mod pdxfile;
 mod rivers;
 mod scopes;
+mod scriptvalue;
 mod tables;
 mod token;
 mod tooltipped;

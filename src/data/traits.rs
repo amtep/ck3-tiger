@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
-use crate::data::scriptvalues::ScriptValue;
 use crate::desc::{validate_desc, validate_desc_map};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
@@ -13,6 +12,7 @@ use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
+use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
@@ -295,7 +295,7 @@ fn validate_trait_track(key: &Token, block: &Block, data: &Everything, warn_key:
     let mut vd = Validator::new(block, data);
     for (key, block) in vd.unknown_block_fields() {
         let mut sc = ScopeContext::new_root(Scopes::None, warn_key.clone());
-        ScriptValue::validate_bv(&BV::Value(key.clone()), data, &mut sc);
+        validate_scriptvalue(&BV::Value(key.clone()), data, &mut sc);
 
         let mut vd = Validator::new(block, data);
         vd.field_validated_blocks("culture_modifier", validate_culture_modifier);

@@ -1,17 +1,17 @@
+/// A module for validation functions that are useful for more than one data module.
 use std::fmt::{Display, Formatter};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
-/// A module for validation functions that are useful for more than one data module.
 use crate::context::ScopeContext;
 use crate::data::scripted_modifiers::ScriptedModifier;
-use crate::data::scriptvalues::ScriptValue;
 use crate::desc::validate_desc;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_prefix, scope_to_scope, Scopes};
+use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{
@@ -120,7 +120,7 @@ pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &m
 
     for field in &["days", "weeks", "months", "years"] {
         if let Some(bv) = vd.field_any_cmp(field) {
-            ScriptValue::validate_bv(bv, data, sc);
+            validate_scriptvalue(bv, data, sc);
             count += 1;
         }
     }
@@ -182,7 +182,7 @@ pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
 
     for field in &["days", "weeks", "months", "years"] {
         vd.field_validated_key(field, |key, bv, data| {
-            ScriptValue::validate_bv(bv, data, sc);
+            validate_scriptvalue(bv, data, sc);
             count += 1;
             if count > 1 {
                 let msg = "must have at most 1 of days, weeks, months, or years";
@@ -356,19 +356,19 @@ pub fn precheck_iterator_fields(
                         }
                     }
                 }
-                ScriptValue::validate_bv(bv, data, sc);
+                validate_scriptvalue(bv, data, sc);
             }
             if let Some(bv) = block.get_field("count") {
                 match bv {
                     BV::Value(token) if token.is("all") => (),
-                    bv => ScriptValue::validate_bv(bv, data, sc),
+                    bv => validate_scriptvalue(bv, data, sc),
                 }
             };
         }
         ListType::Ordered => {
             for field in &["position", "min", "max"] {
                 if let Some(bv) = block.get_field(field) {
-                    ScriptValue::validate_bv(bv, data, sc);
+                    validate_scriptvalue(bv, data, sc);
                 }
             }
         }

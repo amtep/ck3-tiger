@@ -1,7 +1,6 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
-use crate::data::scriptvalues::ScriptValue;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_normal_effect;
 use crate::errorkey::ErrorKey;
@@ -10,6 +9,7 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
+use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 
@@ -152,7 +152,7 @@ fn validate_catalyst_list(block: &Block, data: &Everything) {
         if bv.expect_value().is_some() {
             data.verify_exists(Item::Catalyst, key);
             let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
-            ScriptValue::validate_bv(bv, data, &mut sc);
+            validate_scriptvalue(bv, data, &mut sc);
         }
     }
 }

@@ -4,13 +4,13 @@ use std::str::FromStr;
 
 use crate::block::{Block, Comparator, Date, Token, BV};
 use crate::context::ScopeContext;
-use crate::data::scriptvalues::ScriptValue;
 use crate::errorkey::ErrorKey;
 use crate::errors::{advice, error, warn};
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;
 use crate::scopes::Scopes;
+use crate::scriptvalue::{validate_scriptvalue, validate_scriptvalue_no_breakdown};
 use crate::trigger::{validate_target, validate_target_ok_this};
 
 pub struct Validator<'a> {
@@ -366,20 +366,20 @@ impl<'a> Validator<'a> {
 
     pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
-            ScriptValue::validate_bv(bv, self.data, sc);
+            validate_scriptvalue(bv, self.data, sc);
         })
     }
 
     pub fn field_script_value_no_breakdown(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
-            ScriptValue::validate_bv_no_breakdown(bv, self.data, sc);
+            validate_scriptvalue_no_breakdown(bv, self.data, sc);
         })
     }
 
     pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
         self.field_check(name, |_, bv| {
             let mut sc = ScopeContext::new_root(scopes, self.block.get_key(name).unwrap().clone());
-            ScriptValue::validate_bv(bv, self.data, &mut sc);
+            validate_scriptvalue(bv, self.data, &mut sc);
         })
     }
 
@@ -393,14 +393,14 @@ impl<'a> Validator<'a> {
                     Scopes::Value | Scopes::Bool | Scopes::Flag,
                 );
             } else {
-                ScriptValue::validate_bv(bv, self.data, sc);
+                validate_scriptvalue(bv, self.data, sc);
             }
         })
     }
 
     pub fn fields_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.fields_check(name, |_, bv| {
-            ScriptValue::validate_bv(bv, self.data, sc);
+            validate_scriptvalue(bv, self.data, sc);
         })
     }
 
