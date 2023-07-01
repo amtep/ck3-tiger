@@ -15,12 +15,13 @@ impl OpinionModifier {
 }
 
 impl DbKind for OpinionModifier {
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         // TODO: figure out when it is necessary to localize an opinion.
         // Opinions given from traits don't need to be localized, for one.
         // Maybe only ones used with add_opinion
         // data.verify_exists(Item::Localization, key);
+        data.item_used(Item::Localization, key.as_str());
 
         vd.field_integer("opinion");
 
