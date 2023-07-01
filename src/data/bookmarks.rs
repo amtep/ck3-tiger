@@ -4,7 +4,7 @@ use crate::context::ScopeContext;
 use crate::data::dna::validate_genes;
 use crate::db::{Db, DbKind};
 use crate::errorkey::ErrorKey;
-use crate::errors::error;
+use crate::errors::{error, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
@@ -87,6 +87,16 @@ fn validate_bookmark_character(block: &Block, data: &Everything, toplevel: bool)
     }
     vd.field_item("dynasty", Item::Dynasty);
     vd.field_item("dynasty_house", Item::House);
+    if let Some(token) = block
+        .get_field_value("dynasty_house")
+        .or_else(|| block.get_field_value("dynasty"))
+    {
+        if !data.item_exists(Item::Coa, token.as_str()) {
+            let msg = format!("{} {token} not defined in {}", Item::Coa, Item::Coa.path());
+            let info = "bookmark characters must have a defined coa or their shields will be blank";
+            warn_info(token, ErrorKey::MissingItem, &msg, info);
+        }
+    }
     vd.field_integer("dynasty_splendor_level");
     vd.field_choice("type", &["male", "female", "boy", "girl"]);
     vd.field_date("birth");
