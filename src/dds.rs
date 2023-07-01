@@ -1,10 +1,10 @@
 use fnv::FnvHashMap;
-use std::fs::File;
+use std::fs::{metadata, File};
 use std::io::{Read, Result};
 use std::path::{Path, PathBuf};
 
 use crate::errorkey::ErrorKey;
-use crate::errors::{error_info, warn};
+use crate::errors::{error, error_info, warn};
 use crate::fileset::{FileEntry, FileHandler};
 use crate::token::Token;
 
@@ -26,11 +26,20 @@ pub struct DdsFiles {
 
 impl DdsFiles {
     fn load_dds(&mut self, entry: &FileEntry, fullpath: &Path) -> Result<()> {
+        if metadata(fullpath)?.len() == 0 {
+            warn(entry, ErrorKey::ImageFormat, "empty file");
+            return Ok(());
+        }
         let mut f = File::open(fullpath)?;
         let mut buffer = [0; DDS_HEADER_SIZE];
         f.read_exact(&mut buffer)?;
+        if buffer.starts_with(b"\x89PNG") {
+            // PNG files actually work for most images in CK3 but may be slower and lack mipmaps
+            warn(entry, ErrorKey::ImageFormat, "actually a PNG");
+            return Ok(());
+        }
         if !buffer.starts_with(b"DDS ") {
-            warn(entry, ErrorKey::ImageFormat, "not a DDS file");
+            error(entry, ErrorKey::ImageFormat, "not a DDS file");
             return Ok(());
         }
         self.dds_files.insert(
