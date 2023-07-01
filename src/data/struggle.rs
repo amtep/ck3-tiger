@@ -74,6 +74,8 @@ impl DbKind for Struggle {
                 data.verify_exists(Item::Localization, key);
                 let loca = format!("{key}_desc");
                 data.verify_exists_implied(Item::Localization, &loca, key);
+                let pathname = format!("gfx/interface/icons/struggle_types/{key}.dds");
+                data.verify_exists_implied(Item::File, &pathname, key);
                 has_one = true;
                 validate_phase(block, data);
                 if let Some(vec) = block.get_field_list("ending_decisions") {
