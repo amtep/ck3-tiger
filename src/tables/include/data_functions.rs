@@ -3582,7 +3582,7 @@
     ("GetFascination", Culture, NoArgs, Unknown),
     ("GetFascinationType", Culture, NoArgs, Unknown),
     ("GetFather", Character, NoArgs, Unknown),
-    ("GetFeatureText", Artifact, Arg1(DType(Unknown)), CString),
+    ("GetFeatureText", Artifact, Arg1(IType(Item::ArtifactFeatureGroup)), CString),
     ("GetFeatures", Dlc, NoArgs, CString),
     ("GetFertility", Character, NoArgs, CFixedPoint),
     ("GetFervor", Faith, NoArgs, CFixedPoint),

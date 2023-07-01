@@ -20,6 +20,7 @@ GLOBAL_PROMOTES.append('    ("Root", NoArgs, Scope),\n')
 # Most promotes and functions have 'Unknown' arg types in the data_type logs.
 # This dictionary replaces those with known arg types in specific cases.
 ARGS_OVERRIDE = {
+    ("Artifact.GetFeatureText", 1): "Arg1(IType(Item::ArtifactFeatureGroup))",
     ("Character.Custom2", 2): "Arg2(DType(CString), DType(AnyScope))",
     ("EqualTo_string", 2): "Arg2(DType(CString), DType(CString))",
     ("FaithDoctrine.GetName", 1): "Arg1(DType(Faith))",
