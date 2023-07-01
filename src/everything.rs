@@ -728,6 +728,10 @@ impl Everything {
         self.database.get_item(itype, key)
     }
 
+    pub fn get_key_block(&self, itype: Item, key: &str) -> Option<(&Token, &Block)> {
+        self.database.get_key_block(itype, key)
+    }
+
     pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
         if let Some(trigger) = self.triggers.get(key.as_str()) {
             Some(trigger)

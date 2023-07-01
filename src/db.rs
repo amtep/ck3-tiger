@@ -1,5 +1,6 @@
 use as_any::AsAny;
 use fnv::FnvHashMap;
+use std::any::Any;
 use std::fmt::Debug;
 
 use crate::block::Block;
@@ -70,19 +71,17 @@ impl Db {
         self.database.contains_key(&index) || self.flags.contains_key(&index)
     }
 
-    /// This doesn't work yet :(
-    pub fn get_item<T: DbKind>(&self, item: Item, key: &str) -> Option<(&Token, &Block, &T)> {
+    pub fn get_item<T: DbKind + Any>(&self, item: Item, key: &str) -> Option<(&Token, &Block, &T)> {
         // TODO: figure out how to avoid the to_string() here
         let index = (item, key.to_string());
         if let Some(entry) = self.database.get(&index) {
-            if let Some(kind) = entry.kind.as_any().downcast_ref::<T>() {
+            if let Some(kind) = (*entry.kind).as_any().downcast_ref::<T>() {
                 return Some((&entry.key, &entry.block, kind));
             }
         }
         None
     }
 
-    /// Using this until `get_item` works
     pub fn get_key_block(&self, item: Item, key: &str) -> Option<(&Token, &Block)> {
         // TODO: figure out how to avoid the to_string() here
         let index = (item, key.to_string());
