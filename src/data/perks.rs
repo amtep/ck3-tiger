@@ -35,6 +35,8 @@ impl DbKind for Perk {
         }
 
         if let Some(token) = vd.field_value("tree") {
+            let loca = format!("{token}_name");
+            data.verify_exists_implied(Item::Localization, &loca, token);
             let pathname = format!("gfx/interface/icons/lifestyle_tree_backgrounds/{token}.dds");
             data.verify_exists_implied(Item::File, &pathname, token);
         }

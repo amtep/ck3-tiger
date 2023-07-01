@@ -170,9 +170,6 @@ fn main() -> Result<()> {
 
     if args.unused {
         eprintln!("Showing warnings for unused localization. There will be many false positives.");
-    } else {
-        ignore_key(ErrorKey::UnusedLocalization);
-        ignore_key(ErrorKey::UnusedFile);
     }
 
     if args.strict_scopes {
@@ -203,6 +200,9 @@ fn main() -> Result<()> {
     everything.check_rivers();
     if args.pod {
         everything.check_pod();
+    }
+    if args.unused {
+        everything.check_unused();
     }
 
     Ok(())

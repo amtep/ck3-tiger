@@ -382,6 +382,28 @@ impl Localization {
             }
         }
     }
+
+    pub fn check_pod_loca(&self, data: &Everything) {
+        for lang in &self.mod_langs {
+            if let Some(hash) = self.locas.get(lang) {
+                for key in data.database.iter_itype_flags(Item::PerkTree) {
+                    let loca = format!("{key}_name");
+                    if let Some(entry) = hash.get(&loca) {
+                        if let LocaValue::Text(token) = &entry.value {
+                            data.verify_exists(Item::ScriptedGui, token);
+                            if data.item_exists(Item::ScriptedGui, token.as_str()) {
+                                data.verify_exists(Item::Localization, token);
+                            }
+                            continue;
+                        }
+                    }
+                    let msg = format!("missing loca `{key}_name: \"{key}_visible\"`");
+                    let info = "this is needed for the `window_character_lifestyle.gui` code";
+                    error_info(key, ErrorKey::PrincesOfDarkness, &msg, info);
+                }
+            }
+        }
+    }
 }
 
 impl FileHandler for Localization {

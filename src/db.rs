@@ -160,6 +160,17 @@ impl Db {
         }
         vec
     }
+
+    /// TODO: Returns a Vec for now, should become an iterator.
+    pub fn iter_itype_flags(&self, itype: Item) -> Vec<&Token> {
+        let mut vec = Vec::new();
+        for ((item, _), token) in &self.flags {
+            if *item == itype {
+                vec.push(token);
+            }
+        }
+        vec
+    }
 }
 
 #[derive(Debug)]

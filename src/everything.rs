@@ -598,9 +598,6 @@ impl Everything {
         self.coas.validate(self);
         self.culture_history.validate(self);
         self.database.validate(self);
-
-        self.localization.check_unused(self);
-        self.fileset.check_unused_dds(self);
     }
 
     pub fn check_rivers(&mut self) {
@@ -612,6 +609,12 @@ impl Everything {
     pub fn check_pod(&mut self) {
         self.province_histories.check_pod_faiths(self, &self.titles);
         self.characters.check_pod_flags(self);
+        self.localization.check_pod_loca(self);
+    }
+
+    pub fn check_unused(&mut self) {
+        self.localization.check_unused(self);
+        self.fileset.check_unused_dds(self);
     }
 
     pub fn item_has_property(&self, itype: Item, key: &str, property: &str) -> bool {
