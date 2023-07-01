@@ -306,9 +306,12 @@ pub fn validate_datatypes(
             if let CodeArg::Literal(ref token) = code.arguments[0] {
                 if let Some(scopes) = scope_from_datatype(curtype) {
                     validate_custom(token, data, scopes, lang);
-                } else if (curtype == Datatype::Unknown || curtype == Datatype::AnyScope)
+                } else if (curtype == Datatype::Unknown
+                    || curtype == Datatype::AnyScope
+                    || curtype == Datatype::TopScope)
                     && !CUSTOM_RELIGION_LOCAS.contains(&token.as_str())
                 {
+                    // TODO: is a TopScope even valid to pass to .Custom? verify
                     validate_custom(token, data, Scopes::all(), lang);
                 }
             }
