@@ -360,15 +360,6 @@ fn validate_gui(block: &Block, data: &Everything) {
                     expecting = Expecting::Field;
                 }
             }
-            Expecting::SubstBlockBody => {
-                if let Some(key) = k {
-                    let msg = format!("unexpected assignment `{key} {cmp}`");
-                    error(key, ErrorKey::ParseError, &msg);
-                } else if let Some(block) = bv.expect_block() {
-                    validate_gui(block, data);
-                }
-                expecting = Expecting::Field;
-            }
             Expecting::BlockOverride => {
                 if let Some(key) = k {
                     let msg = format!("unexpected assignment `{key} {cmp}`");
@@ -380,7 +371,7 @@ fn validate_gui(block: &Block, data: &Everything) {
                     expecting = Expecting::Field;
                 }
             }
-            Expecting::BlockOverrideBody => {
+            Expecting::SubstBlockBody | Expecting::BlockOverrideBody => {
                 if let Some(key) = k {
                     let msg = format!("unexpected assignment `{key} {cmp}`");
                     error(key, ErrorKey::ParseError, &msg);

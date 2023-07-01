@@ -302,7 +302,6 @@ impl AccessoryGene {
         db.add(Item::GeneCategory, key, block, Box::new(Self { templates }));
     }
 
-    /// TODO: Make this an &self function once the db get_item is straightened out.
     pub fn has_template_setting(
         _key: &Token,
         block: &Block,

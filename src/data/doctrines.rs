@@ -128,9 +128,7 @@ impl DoctrineGroup {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new_root(Scopes::Faith, self.key.clone());
 
-        if !vd.field_validated("name", |bv, data| {
-            validate_desc(bv, data, &mut sc);
-        }) {
+        if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("{}_name", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
@@ -180,16 +178,12 @@ impl Doctrine {
             vd.field_value("icon");
         }
 
-        if !vd.field_validated("name", |bv, data| {
-            validate_desc(bv, data, &mut sc);
-        }) {
+        if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("{}_name", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
-        if !vd.field_validated("desc", |bv, data| {
-            validate_desc(bv, data, &mut sc);
-        }) {
+        if !vd.field_validated_sc("desc", &mut sc, validate_desc) {
             let loca = format!("{}_desc", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }

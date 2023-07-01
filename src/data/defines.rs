@@ -75,6 +75,7 @@ impl Define {
         format!("{}|{}", self.group, self.name)
     }
 
+    #[allow(clippy::unused_self)]
     pub fn validate(&self, _data: &Everything) {
         // TODO: validate that each define is the right 'type',
         // such as a path, a number, or a block of numeric values

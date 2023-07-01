@@ -110,29 +110,21 @@ impl Decision {
 
         vd.field_item("confirm_click_sound", Item::Sound);
 
-        if !vd.field_validated("selection_tooltip", |bv, data| {
-            validate_desc(bv, data, &mut sc);
-        }) {
+        if !vd.field_validated_sc("selection_tooltip", &mut sc, validate_desc) {
             let loca = format!("{}_tooltip", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
-        if !vd.field_validated("title", |bv, data| {
-            validate_desc(bv, data, &mut sc);
-        }) {
+        if !vd.field_validated_sc("title", &mut sc, validate_desc) {
             data.localization.verify_exists(&self.key);
         }
 
-        if !vd.field_validated("desc", |bv, data| {
-            validate_desc(bv, data, &mut sc);
-        }) {
+        if !vd.field_validated_sc("desc", &mut sc, validate_desc) {
             let loca = format!("{}_desc", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
 
-        if !vd.field_validated("confirm_text", |bv, data| {
-            validate_desc(bv, data, &mut sc);
-        }) {
+        if !vd.field_validated_sc("confirm_text", &mut sc, validate_desc) {
             let loca = format!("{}_confirm", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
         }
