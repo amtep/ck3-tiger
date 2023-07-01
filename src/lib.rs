@@ -1,6 +1,7 @@
 #![warn(missing_debug_implementations)]
 // Turn on clippy pedantic, but not all of them yet.
 #![warn(clippy::pedantic)]
+#![allow(clippy::struct_excessive_bools)] // we like our bools
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::module_name_repetitions)]

@@ -103,10 +103,21 @@ impl DbKind for ActivityType {
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
-        if block.has_key("conclusion_description") {
+        let ch_host_activity_sc = |key: &Token| {
             let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
             sc.define_name("host", Scopes::Character, key.clone());
             sc.define_name("activity", Scopes::Activity, key.clone());
+            sc
+        };
+        let ac_host_activity_sc = |key: &Token| {
+            let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
+            sc.define_name("host", Scopes::Character, key.clone());
+            sc.define_name("activity", Scopes::Activity, key.clone());
+            sc
+        };
+
+        if block.has_key("conclusion_description") {
+            let mut sc = ch_host_activity_sc(key);
             vd.field_validated_sc("conclusion_description", &mut sc, validate_desc);
         } else {
             let loca = format!("{key}_conclusion_desc");
@@ -168,16 +179,16 @@ impl DbKind for ActivityType {
         vd.field_integer("ai_check_interval");
         vd.field_script_value_no_breakdown("ai_select_num_provinces", &mut sc);
 
-        let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
-        sc.define_name("activity", Scopes::Activity, key.clone());
-        sc.define_name("host", Scopes::Character, key.clone());
-        vd.field_validated_block("is_valid", |block, data| {
+        vd.field_validated_key_block("is_valid", |key, block, data| {
+            let mut sc = ac_host_activity_sc(key);
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
-        vd.field_validated_block("on_invalidated", |block, data| {
+        vd.field_validated_key_block("on_invalidated", |key, block, data| {
+            let mut sc = ac_host_activity_sc(key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
-        vd.field_validated_block("on_host_death", |block, data| {
+        vd.field_validated_key_block("on_host_death", |key, block, data| {
+            let mut sc = ac_host_activity_sc(key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
@@ -216,69 +227,14 @@ impl DbKind for ActivityType {
             for (key, block) in vd.unknown_block_fields() {
                 // option categories
                 let mut vd = Validator::new(block, data);
-                let mut is_special = false;
+                let mut is_special_option = false;
                 if let Some(special) = special_option_category {
                     if key.is(special.as_str()) {
-                        is_special = true;
+                        is_special_option = true;
                     }
                 }
                 for (key, block) in vd.unknown_block_fields() {
-                    // options
-                    let mut vd = Validator::new(block, data);
-                    data.verify_exists(Item::Localization, key);
-                    let loca = format!("{key}_desc");
-                    data.verify_exists_implied(Item::Localization, &loca, key);
-                    if is_special {
-                        let pathname =
-                            format!("gfx/interface/illustrations/activity_types/{key}.dds");
-                        data.verify_exists_implied(Item::File, &pathname, key);
-                        let pathname = format!("gfx/interface/icons/activity_types/{key}_icon.dds");
-                        data.verify_exists_implied(Item::File, &pathname, key);
-                    }
-                    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-                    if has_special_option {
-                        sc.define_name("special_option", Scopes::Flag, key.clone());
-                    }
-                    vd.field_validated_block("is_shown", |block, data| {
-                        validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
-                    });
-                    vd.field_validated_block("is_valid", |block, data| {
-                        validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
-                    });
-                    vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
-
-                    let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
-                    sc.define_name("activity", Scopes::Activity, key.clone());
-                    sc.define_name("host", Scopes::Character, key.clone());
-                    vd.field_validated_block("on_start", |block, data| {
-                        validate_normal_effect(block, data, &mut sc, Tooltipped::No);
-                    });
-
-                    vd.field_validated("default", |bv, data| {
-                        match bv {
-                            BV::Value(token) => {
-                                if !token.is("yes") {
-                                    let msg = "expected `default = yes`";
-                                    warn(token, ErrorKey::Validation, msg);
-                                }
-                            }
-                            BV::Block(block) => {
-                                // TODO: what is the scope context?
-                                let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-                                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
-                            }
-                        }
-                    });
-
-                    vd.field_list_items("blocked_intents", Item::ActivityIntent);
-
-                    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-                    vd.field_validated_block_sc("cost", &mut sc, validate_cost_with_renown);
-
-                    vd.field_validated_key_block(
-                        "travel_entourage_selection",
-                        |key, block, data| validate_tes(key, block, data, has_special_option),
-                    );
+                    validate_option(key, block, data, has_special_option, is_special_option);
                 }
             }
         });
@@ -343,55 +299,40 @@ impl DbKind for ActivityType {
 
         vd.field_validated_block("locales", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, block) in vd.unknown_block_fields() {
+            // TODO: can we validate the key against anything?
+            for (_, block) in vd.unknown_block_fields() {
                 let mut vd = Validator::new(block, data);
-                let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
-                sc.define_name("host", Scopes::Character, key.clone());
-                sc.define_name("activity", Scopes::Activity, key.clone());
-                vd.field_validated_block("is_available", |block, data| {
+                vd.field_validated_key_block("is_available", |key, block, data| {
+                    let mut sc = ac_host_activity_sc(key);
                     validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
                 });
                 vd.field_list_items("locales", Item::ActivityLocale);
             }
         });
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("host", Scopes::Character, key.clone());
-        sc.define_name("activity", Scopes::Activity, key.clone());
+        let mut sc = ch_host_activity_sc(key);
         vd.field_validated_block_sc("locale_cooldown", &mut sc, validate_duration);
         vd.field_validated_block_sc("auto_select_locale_cooldown", &mut sc, validate_duration);
-        vd.field_validated_block("on_enter_travel_state", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_enter_passive_state", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_enter_active_state", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_leave_travel_state", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_leave_passive_state", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_leave_active_state", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_travel_state_pulse", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_passive_state_pulse", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_active_state_pulse", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_complete", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        sc.change_root(Scopes::Activity, key.clone());
-        vd.field_validated_block("on_start", |block, data| {
+        for field in &[
+            "on_enter_travel_state",
+            "on_enter_passive_state",
+            "on_enter_active_state",
+            "on_leave_travel_state",
+            "on_leave_passive_state",
+            "on_leave_active_state",
+            "on_travel_state_pulse",
+            "on_passive_state_pulse",
+            "on_active_state_pulse",
+            "on_completed",
+        ] {
+            vd.field_validated_key_block(field, |key, block, data| {
+                let mut sc = ch_host_activity_sc(key);
+                validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            });
+        }
+        vd.field_validated_key_block("on_start", |key, block, data| {
+            let mut sc = ch_host_activity_sc(key);
+            sc.change_root(Scopes::Activity, key.clone());
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
@@ -825,4 +766,66 @@ impl DbKind for ActivityIntent {
         let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
         vd.field_validated_sc("scripted_animation", &mut sc, validate_scripted_animation);
     }
+}
+
+fn validate_option(
+    key: &Token,
+    block: &Block,
+    data: &Everything,
+    has_special_option: bool,
+    is_special_option: bool,
+) {
+    let mut vd = Validator::new(block, data);
+    data.verify_exists(Item::Localization, key);
+    let loca = format!("{key}_desc");
+    data.verify_exists_implied(Item::Localization, &loca, key);
+    if is_special_option {
+        let pathname = format!("gfx/interface/illustrations/activity_types/{key}.dds");
+        data.verify_exists_implied(Item::File, &pathname, key);
+        let pathname = format!("gfx/interface/icons/activity_types/{key}_icon.dds");
+        data.verify_exists_implied(Item::File, &pathname, key);
+    }
+    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+    if has_special_option {
+        sc.define_name("special_option", Scopes::Flag, key.clone());
+    }
+    vd.field_validated_block("is_shown", |block, data| {
+        validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+    });
+    vd.field_validated_block("is_valid", |block, data| {
+        validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+    });
+    vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
+
+    let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
+    sc.define_name("activity", Scopes::Activity, key.clone());
+    sc.define_name("host", Scopes::Character, key.clone());
+    vd.field_validated_block("on_start", |block, data| {
+        validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+    });
+
+    vd.field_validated("default", |bv, data| {
+        match bv {
+            BV::Value(token) => {
+                if !token.is("yes") {
+                    let msg = "expected `default = yes`";
+                    warn(token, ErrorKey::Validation, msg);
+                }
+            }
+            BV::Block(block) => {
+                // TODO: what is the scope context?
+                let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            }
+        }
+    });
+
+    vd.field_list_items("blocked_intents", Item::ActivityIntent);
+
+    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+    vd.field_validated_block_sc("cost", &mut sc, validate_cost_with_renown);
+
+    vd.field_validated_key_block("travel_entourage_selection", |key, block, data| {
+        validate_tes(key, block, data, has_special_option);
+    });
 }

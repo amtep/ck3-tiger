@@ -403,6 +403,7 @@ impl Everything {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     pub fn load_all(&mut self) {
         self.load_errorkey_config();
 
