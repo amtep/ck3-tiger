@@ -119,6 +119,9 @@ impl Gui {
         for item in self.types.values() {
             item.validate(data);
         }
+        for item in self.layers.values() {
+            item.validate(data);
+        }
     }
 }
 
