@@ -390,8 +390,8 @@ impl Localization {
                     let loca = format!("{key}_name");
                     if let Some(entry) = hash.get(&loca) {
                         if let LocaValue::Text(token) = &entry.value {
-                            data.verify_exists(Item::ScriptedGui, token);
-                            if data.item_exists(Item::ScriptedGui, token.as_str()) {
+                            if token.as_str().ends_with("_visible") {
+                                data.verify_exists(Item::ScriptedGui, token);
                                 data.verify_exists(Item::Localization, token);
                             }
                             continue;
