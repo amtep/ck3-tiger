@@ -7,6 +7,7 @@
 ## Features
 
 * Check that relation flags actually belong to the relation they are used with
+* The error output should highlight non-printing characters in the code, to bring clarity to some confusing bugs
 * The validations in IDEAS.md
 * Hundreds of TODO comments in the code
 

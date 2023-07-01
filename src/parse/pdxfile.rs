@@ -342,7 +342,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
         for (i, c) in content.char_indices() {
             match state {
                 State::Neutral => {
-                    if c.is_whitespace() {
+                    if c.is_ascii_whitespace() {
                     } else if c == '"' {
                         token_start = loc.clone();
                         state = State::QString;
@@ -410,7 +410,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                             current_id.push(c);
                             token_start = loc.clone();
                             state = State::Comparator;
-                        } else if c.is_whitespace() {
+                        } else if c.is_ascii_whitespace() {
                             state = State::Neutral;
                         } else if c == '#' {
                             state = State::Comment;
@@ -428,7 +428,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                 }
                 State::Calculation => {
                     current_id.clear();
-                    if c.is_whitespace() {
+                    if c.is_ascii_whitespace() {
                     } else if c == '+' {
                         parser.calculation_op(CalculationOp::Add);
                     } else if c == '-' {
@@ -451,7 +451,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                     }
                 }
                 State::CalculationId => {
-                    if c.is_whitespace() || c == '+' || c == '/' || c == '*' || c == '-' {
+                    if c.is_ascii_whitespace() || c == '+' || c == '/' || c == '*' || c == '-' {
                         let token = Token::new(take(&mut current_id), token_start.clone());
                         parser.calculation_next(&token);
                         state = State::Calculation;
@@ -507,7 +507,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                             token_start = loc.clone();
                             state = State::Id;
                             current_id.push(c);
-                        } else if c.is_whitespace() {
+                        } else if c.is_ascii_whitespace() {
                             state = State::Neutral;
                         } else if c == '#' {
                             state = State::Comment;

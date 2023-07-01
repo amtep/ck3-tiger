@@ -48,7 +48,7 @@ impl<'a> CsvParser<'a> {
 
     fn skip_whitespace(&mut self) {
         while let Some(c) = self.chars.peek() {
-            if c.is_whitespace() {
+            if c.is_ascii_whitespace() {
                 self.next_char();
             } else {
                 break;
