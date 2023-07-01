@@ -335,7 +335,7 @@ impl Fileset {
     }
 
     pub fn verify_exists(&self, file: &Token) {
-        self.mark_used(file.as_str());
+        self.mark_used(&file.as_str().replace("//", "/"));
         let filepath = PathBuf::from(file.as_str());
         if !self.filenames.contains(&filepath) {
             let msg = "referenced file does not exist";
@@ -344,7 +344,7 @@ impl Fileset {
     }
 
     pub fn verify_exists_crashes(&self, file: &Token) {
-        self.mark_used(file.as_str());
+        self.mark_used(&file.as_str().replace("//", "/"));
         let filepath = PathBuf::from(file.as_str());
         if !self.filenames.contains(&filepath) {
             let msg = "referenced file does not exist";
@@ -353,7 +353,7 @@ impl Fileset {
     }
 
     pub fn verify_exists_implied(&self, file: &str, t: &Token) {
-        self.mark_used(file);
+        self.mark_used(&file.replace("//", "/"));
         let filepath = PathBuf::from(file);
         if !self.filenames.contains(&filepath) {
             let msg = format!("file {file} does not exist");
@@ -362,7 +362,7 @@ impl Fileset {
     }
 
     pub fn verify_exists_implied_crashes(&self, file: &str, t: &Token) {
-        self.mark_used(file);
+        self.mark_used(&file.replace("//", "/"));
         let filepath = PathBuf::from(file);
         if !self.filenames.contains(&filepath) {
             let msg = format!("file {file} does not exist");
