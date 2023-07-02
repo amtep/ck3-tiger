@@ -21,8 +21,8 @@ impl VassalStance {
 impl DbKind for VassalStance {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("liege", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("liege", Scopes::Character, key);
 
         let modif = format!("{key}_opinion");
         data.verify_exists_implied(Item::ModifierFormat, &modif, key);

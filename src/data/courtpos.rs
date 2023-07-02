@@ -52,9 +52,9 @@ impl DbKind for CourtPosition {
         vd.field_choice("minimum_rank", &["county", "duchy", "kingdom", "empire"]);
         vd.field_bool("is_travel_related");
 
-        let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
-        sc.define_name("liege", Scopes::Character, key.clone());
-        sc.define_name("employee", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::None, key);
+        sc.define_name("liege", Scopes::Character, key);
+        sc.define_name("employee", Scopes::Character, key);
         vd.field_script_value("opinion", &mut sc);
 
         vd.field_validated_block("aptitude_level_breakpoints", validate_breakpoints);
@@ -79,8 +79,8 @@ impl DbKind for CourtPosition {
         });
 
         vd.field_validated_key_block("salary", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
-            sc.define_name("liege", Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::None, key);
+            sc.define_name("liege", Scopes::Character, key);
             validate_cost(block, data, &mut sc);
         });
 
@@ -120,39 +120,39 @@ impl DbKind for CourtPosition {
         }
 
         vd.field_validated_key("candidate_score", |key, bv, data| {
-            let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
-            sc.define_name("liege", Scopes::Character, key.clone());
-            sc.define_name("employee", Scopes::Character, key.clone());
-            sc.define_name("base_value", Scopes::Value, key.clone());
-            sc.define_name("firing_court_position", Scopes::Bool, key.clone());
-            sc.define_name("percent_of_monthly_gold_income", Scopes::Value, key.clone());
+            let mut sc = ScopeContext::new(Scopes::None, key);
+            sc.define_name("liege", Scopes::Character, key);
+            sc.define_name("employee", Scopes::Character, key);
+            sc.define_name("base_value", Scopes::Value, key);
+            sc.define_name("firing_court_position", Scopes::Bool, key);
+            sc.define_name("percent_of_monthly_gold_income", Scopes::Value, key);
             sc.define_name(
                 "percent_of_positive_monthly_prestige_balance",
                 Scopes::Value,
-                key.clone(),
+                key,
             );
             sc.define_name(
                 "percent_of_positive_monthly_piety_balance",
                 Scopes::Value,
-                key.clone(),
+                key,
             );
             sc.define_name(
                 "percent_of_monthly_gold_income_all_positions",
                 Scopes::Value,
-                key.clone(),
+                key,
             );
             sc.define_name(
                 "percent_of_positive_monthly_prestige_balance_all_positions",
                 Scopes::Value,
-                key.clone(),
+                key,
             );
             sc.define_name(
                 "percent_of_positive_monthly_piety_balance_all_positions",
                 Scopes::Value,
-                key.clone(),
+                key,
             );
-            sc.define_name("highest_available_aptitude", Scopes::Value, key.clone()); // undocumented
-            sc.define_name("employee_aptitude", Scopes::Value, key.clone()); // undocumented
+            sc.define_name("highest_available_aptitude", Scopes::Value, key); // undocumented
+            sc.define_name("employee_aptitude", Scopes::Value, key); // undocumented
             validate_scriptvalue(bv, data, &mut sc);
         });
 

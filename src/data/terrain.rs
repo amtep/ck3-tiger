@@ -21,7 +21,7 @@ impl Terrain {
 impl DbKind for Terrain {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+        let mut sc = ScopeContext::new(Scopes::None, key);
 
         if !key.is("sea") && !key.is("coastal_sea") {
             let modif = format!("{key}_advantage");

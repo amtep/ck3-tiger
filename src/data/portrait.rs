@@ -27,18 +27,18 @@ impl DbKind for PortraitModifierGroup {
         let mut vd = Validator::new(block, data);
 
         // TODO: could the root be Scopes::None here?
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("age", Scopes::Value, key.clone());
-        sc.define_name("culture", Scopes::Culture, key.clone());
-        sc.define_name("current_weight", Scopes::Value, key.clone());
-        sc.define_name("highest_held_title_tier", Scopes::Value, key.clone());
-        sc.define_name("faith", Scopes::Faith, key.clone());
-        sc.define_name("female", Scopes::Bool, key.clone());
-        sc.define_name("government", Scopes::GovernmentType, key.clone());
-        sc.define_name("prowess", Scopes::Value, key.clone());
-        sc.define_name("ruler_designer", Scopes::Bool, key.clone());
-        sc.define_name("weight_for_portrait", Scopes::Value, key.clone());
-        sc.define_name("year_of_birth", Scopes::Value, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("age", Scopes::Value, key);
+        sc.define_name("culture", Scopes::Culture, key);
+        sc.define_name("current_weight", Scopes::Value, key);
+        sc.define_name("highest_held_title_tier", Scopes::Value, key);
+        sc.define_name("faith", Scopes::Faith, key);
+        sc.define_name("female", Scopes::Bool, key);
+        sc.define_name("government", Scopes::GovernmentType, key);
+        sc.define_name("prowess", Scopes::Value, key);
+        sc.define_name("ruler_designer", Scopes::Bool, key);
+        sc.define_name("weight_for_portrait", Scopes::Value, key);
+        sc.define_name("year_of_birth", Scopes::Value, key);
 
         vd.field_choice("usage", &["customization", "game", "both", "none"]);
         vd.field_integer("interface_position");
@@ -260,17 +260,17 @@ fn validate_animation(block: &Block, data: &Everything) {
             vd.field_value("torso"); // TODO
         });
         vd.field_validated_key_block("weight", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-            sc.define_name("age", Scopes::Value, key.clone());
-            sc.define_name("culture", Scopes::Culture, key.clone());
-            sc.define_name("current_weight", Scopes::Value, key.clone());
-            sc.define_name("ai_boldness", Scopes::Value, key.clone());
-            sc.define_name("ai_compassion", Scopes::Value, key.clone());
-            sc.define_name("ai_greed", Scopes::Value, key.clone());
-            sc.define_name("ai_honor", Scopes::Value, key.clone());
-            sc.define_name("ai_rationality", Scopes::Value, key.clone());
-            sc.define_name("ai_vengefulness", Scopes::Value, key.clone());
-            sc.define_name("ai_zeal", Scopes::Value, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("age", Scopes::Value, key);
+            sc.define_name("culture", Scopes::Culture, key);
+            sc.define_name("current_weight", Scopes::Value, key);
+            sc.define_name("ai_boldness", Scopes::Value, key);
+            sc.define_name("ai_compassion", Scopes::Value, key);
+            sc.define_name("ai_greed", Scopes::Value, key);
+            sc.define_name("ai_honor", Scopes::Value, key);
+            sc.define_name("ai_rationality", Scopes::Value, key);
+            sc.define_name("ai_vengefulness", Scopes::Value, key);
+            sc.define_name("ai_zeal", Scopes::Value, key);
             validate_modifiers_with_base(block, data, &mut sc);
         });
         vd.field_validated_block("portrait_modifier", |block, data| {

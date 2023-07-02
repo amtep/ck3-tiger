@@ -23,7 +23,7 @@ impl DbKind for ScriptedRule {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         for (name, scope, tooltipped) in SCRIPTED_RULE_ROOTS {
             if key.is(name) {
-                let mut sc = ScopeContext::new_root(*scope, key.clone());
+                let mut sc = ScopeContext::new(*scope, key);
                 sc.set_strict_scopes(false); // TODO
                 validate_normal_trigger(block, data, &mut sc, *tooltipped);
                 return;
@@ -31,7 +31,7 @@ impl DbKind for ScriptedRule {
         }
         let msg = "unknown scripted rule";
         warn(key, ErrorKey::Validation, msg);
-        let mut sc = ScopeContext::new_root(Scopes::non_primitive(), key.clone());
+        let mut sc = ScopeContext::new(Scopes::non_primitive(), key);
         validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
     }
 }

@@ -186,8 +186,8 @@ impl DbKind for CulturePillar {
         });
         validate_modifiers(&mut vd);
 
-        let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
-        sc.define_name("character", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Culture, key);
+        sc.define_name("character", Scopes::Character, key);
         vd.field_script_value("ai_will_do", &mut sc);
         vd.field_validated_block("is_shown", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
@@ -234,14 +234,14 @@ impl DbKind for CultureTradition {
         vd.field_block("layers"); // TODO
 
         vd.field_validated_key_block("can_pick", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
-            sc.define_name("replacing", Scopes::CultureTradition, key.clone());
-            sc.define_name("character", Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Culture, key);
+            sc.define_name("replacing", Scopes::CultureTradition, key);
+            sc.define_name("character", Scopes::Character, key);
             validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_key_block("can_pick_for_hybridization", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
-            sc.define_name("character", Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Culture, key);
+            sc.define_name("character", Scopes::Character, key);
             validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         validate_modifiers(&mut vd);
@@ -252,17 +252,17 @@ impl DbKind for CultureTradition {
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
         vd.field_validated_key_block("cost", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
-            sc.define_name("replacing", Scopes::CultureTradition, key.clone());
-            sc.define_name("character", Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Culture, key);
+            sc.define_name("replacing", Scopes::CultureTradition, key);
+            sc.define_name("character", Scopes::Character, key);
             validate_cost(block, data, &mut sc);
         });
-        let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
-        sc.define_name("character", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Culture, key);
+        sc.define_name("character", Scopes::Character, key);
         vd.field_validated_block("is_shown", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
-        sc.define_name("replacing", Scopes::CultureTradition, key.clone());
+        sc.define_name("replacing", Scopes::CultureTradition, key);
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
     }
 }
@@ -308,12 +308,12 @@ impl DbKind for CultureAesthetic {
         vd.field_list_items("coa_gfx", Item::CoaGfx);
 
         vd.field_validated_key_block("is_shown", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Culture, key.clone());
-            sc.define_name("character", Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Culture, key);
+            sc.define_name("character", Scopes::Character, key);
             sc.define_list(
                 "trait",
                 Scopes::CultureTradition | Scopes::CulturePillar,
-                key.clone(),
+                key,
             );
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
@@ -332,10 +332,10 @@ impl CultureCreationName {
 impl DbKind for CultureCreationName {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("culture", Scopes::Culture, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("culture", Scopes::Culture, key);
         if block.field_value_is("hybrid", "yes") {
-            sc.define_name("other_culture", Scopes::Culture, key.clone());
+            sc.define_name("other_culture", Scopes::Culture, key);
         }
 
         if !vd.field_validated_sc("name", &mut sc, validate_desc) {

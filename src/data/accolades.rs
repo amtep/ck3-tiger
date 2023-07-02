@@ -26,8 +26,8 @@ impl AccoladeIcon {
 impl DbKind for AccoladeIcon {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::AccoladeType, key.clone());
-        sc.define_name("accolade", Scopes::Accolade, key.clone());
+        let mut sc = ScopeContext::new(Scopes::AccoladeType, key);
+        sc.define_name("accolade", Scopes::Accolade, key);
 
         if let Some(token) = vd.field_value("texture") {
             let pathname = format!("gfx/interface/icons/knight_badge/icons/{token}");
@@ -52,9 +52,9 @@ impl AccoladeName {
 impl DbKind for AccoladeName {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("owner", Scopes::Character, key.clone());
-        sc.define_name("accolade_type", Scopes::AccoladeType, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("owner", Scopes::Character, key);
+        sc.define_name("accolade_type", Scopes::AccoladeType, key);
 
         vd.req_field("key");
         vd.req_field("num_options");
@@ -117,7 +117,7 @@ impl AccoladeType {
 impl DbKind for AccoladeType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_modifier");
@@ -131,7 +131,7 @@ impl DbKind for AccoladeType {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
-        sc.define_name("owner", Scopes::Character, key.clone());
+        sc.define_name("owner", Scopes::Character, key);
         vd.field_script_value("weight", &mut sc);
 
         vd.field_validated_block("ranks", |block, data| {

@@ -25,24 +25,24 @@ impl DbKind for Story {
         let mut vd = Validator::new(block, data);
 
         vd.field_validated_key_block("on_setup", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::StoryCycle, key.clone());
-            sc.define_name("story", Scopes::StoryCycle, key.clone());
+            let mut sc = ScopeContext::new(Scopes::StoryCycle, key);
+            sc.define_name("story", Scopes::StoryCycle, key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_end", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::StoryCycle, key.clone());
-            sc.define_name("story", Scopes::StoryCycle, key.clone());
+            let mut sc = ScopeContext::new(Scopes::StoryCycle, key);
+            sc.define_name("story", Scopes::StoryCycle, key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_owner_death", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::StoryCycle, key.clone());
-            sc.define_name("story", Scopes::StoryCycle, key.clone());
+            let mut sc = ScopeContext::new(Scopes::StoryCycle, key);
+            sc.define_name("story", Scopes::StoryCycle, key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_key_blocks("effect_group", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::StoryCycle, key.clone());
-            sc.define_name("story", Scopes::StoryCycle, key.clone());
+            let mut sc = ScopeContext::new(Scopes::StoryCycle, key);
+            sc.define_name("story", Scopes::StoryCycle, key);
             let mut vd = Validator::new(block, data);
             validate_optional_duration(&mut vd, &mut sc);
 

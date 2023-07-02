@@ -22,10 +22,10 @@ impl PoolSelector {
 impl DbKind for PoolSelector {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("base", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("base", Scopes::Character, key);
         if key.is("auto_generated_baron") {
-            sc.define_name("province", Scopes::Province, key.clone());
+            sc.define_name("province", Scopes::Province, key);
         }
 
         vd.field_validated_block("valid_character", |block, data| {

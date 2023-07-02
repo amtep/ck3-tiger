@@ -345,7 +345,7 @@ impl Character {
 
     fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, &self.key);
 
         if self.key.as_str().contains('.') {
             let msg = format!(

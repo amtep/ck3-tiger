@@ -210,7 +210,7 @@ impl Title {
         }
 
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, &self.key);
 
         vd.field_validated("color", validate_possibly_named_color);
         vd.advice_field("color2", "no longer used");

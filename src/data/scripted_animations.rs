@@ -20,7 +20,7 @@ impl ScriptedAnimation {
 
 impl DbKind for ScriptedAnimation {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
         validate_scripted_animation(&BV::Block(block.clone()), data, &mut sc);
     }
 }

@@ -378,7 +378,7 @@ impl<'a> Validator<'a> {
 
     pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
         self.field_check(name, |_, bv| {
-            let mut sc = ScopeContext::new_root(scopes, self.block.get_key(name).unwrap().clone());
+            let mut sc = ScopeContext::new(scopes, self.block.get_key(name).unwrap());
             validate_scriptvalue(bv, self.data, &mut sc);
         })
     }
@@ -579,7 +579,7 @@ impl<'a> Validator<'a> {
         F: FnMut(&BV, &Everything, &mut ScopeContext),
     {
         self.field_validated_key(name, |key, bv, data| {
-            let mut sc = ScopeContext::new_root(scopes, key);
+            let mut sc = ScopeContext::new(scopes, key);
             f(bv, data, &mut sc);
         })
     }
@@ -751,7 +751,7 @@ impl<'a> Validator<'a> {
                     }
                     self.expect_eq_qeq(key, *cmp);
                     if let Some(block) = bv.expect_block() {
-                        let mut sc = ScopeContext::new_root(scopes, key);
+                        let mut sc = ScopeContext::new(scopes, key);
                         f(block, self.data, &mut sc);
                     }
                     found = Some(key);
@@ -780,7 +780,7 @@ impl<'a> Validator<'a> {
                     }
                     self.expect_eq_qeq(key, *cmp);
                     if let Some(block) = bv.expect_block() {
-                        let mut sc = ScopeContext::new_root(scopes, key);
+                        let mut sc = ScopeContext::new(scopes, key);
                         f(key, block, self.data, &mut sc);
                     }
                     found = Some(key);
@@ -800,7 +800,7 @@ impl<'a> Validator<'a> {
                     self.known_fields.push(key.as_str());
                     self.expect_eq_qeq(key, *cmp);
                     if let Some(block) = bv.expect_block() {
-                        let mut sc = ScopeContext::new_root(scopes, key);
+                        let mut sc = ScopeContext::new(scopes, key);
                         f(block, self.data, &mut sc);
                     }
                 }

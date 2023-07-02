@@ -29,15 +29,15 @@ impl DbKind for CustomLocalization {
         let mut sc;
         if let Some(token) = vd.field_value("type") {
             if token.is("all") {
-                sc = ScopeContext::new_root(Scopes::all(), token.clone());
+                sc = ScopeContext::new(Scopes::all(), token);
             } else if let Some(scopes) = scope_from_snake_case(token.as_str()) {
-                sc = ScopeContext::new_root(scopes, token.clone());
+                sc = ScopeContext::new(scopes, token);
             } else {
                 warn(token, ErrorKey::Scopes, "unknown scope type");
-                sc = ScopeContext::new_root(Scopes::all(), token.clone());
+                sc = ScopeContext::new(Scopes::all(), token);
             }
         } else {
-            sc = ScopeContext::new_root(Scopes::all(), key.clone());
+            sc = ScopeContext::new(Scopes::all(), key);
         }
         // Scopes depend on the scopes available in the loca where Custom or Custom2 is called. TODO
         sc.set_strict_scopes(false);

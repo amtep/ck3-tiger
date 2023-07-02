@@ -42,7 +42,7 @@ fn validate_inner(
         } else if token.is("save_temporary_value_as") {
             // seen in vanilla
             if let Some(name) = bv.expect_value() {
-                sc.define_name(name.as_str(), Scopes::Value, name.clone());
+                sc.define_name(name.as_str(), Scopes::Value, name);
             }
         } else if token.is("value") {
             if have_value == TriBool::True {

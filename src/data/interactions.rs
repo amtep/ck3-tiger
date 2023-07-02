@@ -80,48 +80,48 @@ impl Interaction {
         let mut vd = Validator::new(&self.block, data);
 
         // You're expected to use scope:actor and scope:recipient instead of root
-        let mut sc = ScopeContext::new_root(Scopes::None, self.key.clone());
-        sc.define_name("actor", Scopes::Character, self.key.clone());
-        sc.define_name("recipient", Scopes::Character, self.key.clone());
-        sc.define_name("hook", Scopes::Bool, self.key.clone());
+        let mut sc = ScopeContext::new(Scopes::None, &self.key);
+        sc.define_name("actor", Scopes::Character, &self.key);
+        sc.define_name("recipient", Scopes::Character, &self.key);
+        sc.define_name("hook", Scopes::Bool, &self.key);
         // TODO: figure out when these are available
-        sc.define_name("secondary_actor", Scopes::Character, self.key.clone());
-        sc.define_name("secondary_recipient", Scopes::Character, self.key.clone());
+        sc.define_name("secondary_actor", Scopes::Character, &self.key);
+        sc.define_name("secondary_recipient", Scopes::Character, &self.key);
         // TODO: figure out if there's a better way than exhaustively matching on "interface" and "special_interaction"
         if let Some(target_type) = self.block.get_field_value("target_type") {
             if target_type.is("artifact") {
-                sc.define_name("target", Scopes::Artifact, target_type.clone());
+                sc.define_name("target", Scopes::Artifact, target_type);
             } else if target_type.is("title") {
-                sc.define_name("target", Scopes::LandedTitle, target_type.clone());
-                sc.define_name("landed_title", Scopes::LandedTitle, target_type.clone());
+                sc.define_name("target", Scopes::LandedTitle, target_type);
+                sc.define_name("landed_title", Scopes::LandedTitle, target_type);
             }
         } else if let Some(interface) = self.block.get_field_value("interface") {
             if interface.is("interfere_in_war") || interface.is("call_ally") {
-                sc.define_name("target", Scopes::War, interface.clone());
+                sc.define_name("target", Scopes::War, interface);
             } else if interface.is("blackmail") {
-                sc.define_name("target", Scopes::Secret, interface.clone());
+                sc.define_name("target", Scopes::Secret, interface);
             } else if interface.is("council_task_interaction") {
-                sc.define_name("target", Scopes::CouncilTask, interface.clone());
+                sc.define_name("target", Scopes::CouncilTask, interface);
             } else if interface.is("create_claimant_faction_against") {
-                sc.define_name("landed_title", Scopes::LandedTitle, interface.clone());
+                sc.define_name("landed_title", Scopes::LandedTitle, interface);
             }
         } else if let Some(special) = self.block.get_field_value("special_interaction") {
             if special.is("invite_to_council_interaction") {
-                sc.define_name("target", Scopes::CouncilTask, special.clone());
+                sc.define_name("target", Scopes::CouncilTask, special);
             } else if special.is("end_war_attacker_victory_interaction")
                 || special.is("end_war_attacker_defeat_interaction")
                 || special.is("end_war_white_peace_interaction")
             {
-                sc.define_name("war", Scopes::War, special.clone());
+                sc.define_name("war", Scopes::War, special);
             } else if special.is("remove_scheme_interaction")
                 || special.is("invite_to_scheme_interaction")
             {
-                sc.define_name("scheme", Scopes::Scheme, special.clone());
+                sc.define_name("scheme", Scopes::Scheme, special);
             }
         }
         for block in self.block.get_field_blocks("send_option") {
             if let Some(token) = block.get_field_value("flag") {
-                sc.define_name(token.as_str(), Scopes::Bool, token.clone());
+                sc.define_name(token.as_str(), Scopes::Bool, token);
             }
         }
 

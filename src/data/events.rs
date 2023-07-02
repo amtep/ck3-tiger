@@ -277,10 +277,10 @@ impl Event {
             vd.ban_field("window", || "character events");
         }
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, &self.key);
         if let Some(token) = vd.field_value("scope") {
             if let Some(scope) = scope_from_snake_case(token.as_str()) {
-                sc = ScopeContext::new_root(scope, token.clone());
+                sc = ScopeContext::new(scope, token);
             } else {
                 warn(token, ErrorKey::Scopes, "unknown scope type");
             }

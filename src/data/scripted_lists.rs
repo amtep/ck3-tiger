@@ -83,7 +83,7 @@ impl List {
 
         if let Some(token) = vd.field_value("base") {
             if let Some((_, outscope)) = scope_iterator(token, data) {
-                let mut sc = ScopeContext::new_root(outscope, token.clone());
+                let mut sc = ScopeContext::new(outscope, token);
                 vd.field_validated_block("conditions", |block, data| {
                     validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
                 });

@@ -847,7 +847,7 @@ pub fn validate_scope_chain(
                 validate_prefix_reference(&prefix, &arg, data);
                 if prefix.is("scope") {
                     if last && qeq {
-                        sc.exists_scope(arg.as_str(), part.clone());
+                        sc.exists_scope(arg.as_str(), part);
                     }
                     sc.replace_named_scope(arg.as_str(), part);
                 } else {

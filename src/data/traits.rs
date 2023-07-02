@@ -128,7 +128,7 @@ impl Trait {
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, &self.key);
 
         if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("trait_{}", self.key);
@@ -294,7 +294,7 @@ fn validate_triggered_opinion(block: &Block, data: &Everything) {
 fn validate_trait_track(key: &Token, block: &Block, data: &Everything, warn_key: &Token) {
     let mut vd = Validator::new(block, data);
     for (key, block) in vd.unknown_block_fields() {
-        let mut sc = ScopeContext::new_root(Scopes::None, warn_key.clone());
+        let mut sc = ScopeContext::new(Scopes::None, warn_key);
         validate_scriptvalue(&BV::Value(key.clone()), data, &mut sc);
 
         let mut vd = Validator::new(block, data);

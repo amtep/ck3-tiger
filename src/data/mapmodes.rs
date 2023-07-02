@@ -37,7 +37,7 @@ impl DbKind for MapMode {
 
         vd.field_blocks("gradient_parameters");
 
-        let mut sc = ScopeContext::new_root(Scopes::LandedTitle, key.clone());
+        let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
         vd.field_validated_sc("barony_description", &mut sc, validate_desc);
         vd.field_validated_sc("selection_description", &mut sc, validate_desc);
     }

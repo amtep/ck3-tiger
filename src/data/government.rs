@@ -27,7 +27,7 @@ impl Government {
 impl DbKind for Government {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         // let modif = format!("{key}_levy_contribution_add");
         // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
@@ -108,9 +108,9 @@ impl DbKind for Government {
         vd.field_bool("dynasty_named_realms");
         vd.field_script_value_rooted("opinion_of_liege", Scopes::Character);
         vd.field_validated_key("opinion_of_liege_desc", |key, bv, data| {
-            let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
-            sc.define_name("vassal", Scopes::Character, key.clone());
-            sc.define_name("liege", Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::None, key);
+            sc.define_name("vassal", Scopes::Character, key);
+            sc.define_name("liege", Scopes::Character, key);
             validate_desc(bv, data, &mut sc);
         });
     }

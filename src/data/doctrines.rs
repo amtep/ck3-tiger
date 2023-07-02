@@ -126,7 +126,7 @@ impl DoctrineGroup {
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Faith, self.key.clone());
+        let mut sc = ScopeContext::new(Scopes::Faith, &self.key);
 
         if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("{}_name", self.key);
@@ -162,7 +162,7 @@ impl Doctrine {
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Faith, self.key.clone());
+        let mut sc = ScopeContext::new(Scopes::Faith, &self.key);
 
         let icon_path =
             data.get_defined_string_warn(&self.key, "NGameIcons|FAITH_DOCTRINE_ICON_PATH");

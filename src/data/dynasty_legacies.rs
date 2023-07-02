@@ -23,7 +23,7 @@ impl DynastyLegacy {
 impl DbKind for DynastyLegacy {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         let loca = format!("{key}_name");
         data.verify_exists_implied(Item::Localization, &loca, key);
@@ -57,7 +57,7 @@ impl DynastyPerk {
 impl DbKind for DynastyPerk {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         let loca = format!("{key}_name");
         data.verify_exists_implied(Item::Localization, &loca, key);

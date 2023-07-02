@@ -25,7 +25,7 @@ impl TravelOption {
 impl DbKind for TravelOption {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         vd.field_validated_block("is_shown", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
@@ -46,8 +46,8 @@ impl DbKind for TravelOption {
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
 
-        sc.define_name("travel_speed", Scopes::Value, key.clone());
-        sc.define_name("travel_safety", Scopes::Value, key.clone());
+        sc.define_name("travel_speed", Scopes::Value, key);
+        sc.define_name("travel_safety", Scopes::Value, key);
         vd.field_validated_block("on_applied_effect", |block, data| {
             validate_normal_effect(block, data, &mut sc, Tooltipped::Yes);
         });
@@ -55,8 +55,8 @@ impl DbKind for TravelOption {
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
-        let mut sc = ScopeContext::new_root(Scopes::TravelPlan, key.clone());
-        sc.define_name("highest_future_danger_value", Scopes::Value, key.clone());
+        let mut sc = ScopeContext::new(Scopes::TravelPlan, key);
+        sc.define_name("highest_future_danger_value", Scopes::Value, key);
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
 
         vd.field_validated_block("travel_entourage_selection", |block, data| {

@@ -25,7 +25,7 @@ impl Building {
 
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for token in block.get_field_values("flag") {
-            db.add_flag(Item::BuildingFlag, token);
+            db.add_flag(Item::BuildingFlag, token.clone());
         }
         if block.field_value_is("type", "special") {
             db.add_flag(Item::SpecialBuilding, key.clone());
@@ -84,8 +84,8 @@ impl DbKind for Building {
         vd.field_validated_blocks("asset", validate_asset);
 
         vd.field_validated_block_rooted("is_enabled", Scopes::Province, |block, data, sc| {
-            sc.define_name("holder", Scopes::Character, key.clone());
-            sc.define_name("county", Scopes::LandedTitle, key.clone());
+            sc.define_name("holder", Scopes::Character, key);
+            sc.define_name("county", Scopes::LandedTitle, key);
             let tooltipped = if graphical_only {
                 Tooltipped::No
             } else {
@@ -94,9 +94,9 @@ impl DbKind for Building {
             validate_normal_trigger(block, data, sc, tooltipped);
         });
         vd.field_validated_key_block("can_construct_potential", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Province, key.clone());
-            sc.define_name("holder", Scopes::Character, key.clone());
-            sc.define_name("county", Scopes::LandedTitle, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Province, key);
+            sc.define_name("holder", Scopes::Character, key);
+            sc.define_name("county", Scopes::LandedTitle, key);
             // For buildings that are upgrades, can_construct_potential is added to can_construct_showing_failures_only so it will be tooltipped
             let tooltipped =
                 block.get_field_bool("show_disabled").unwrap_or(false) || self.is_upgrade;
@@ -111,14 +111,14 @@ impl DbKind for Building {
             "can_construct_showing_failures_only",
             Scopes::Province,
             |block, data, sc| {
-                sc.define_name("holder", Scopes::Character, key.clone());
-                sc.define_name("county", Scopes::LandedTitle, key.clone());
+                sc.define_name("holder", Scopes::Character, key);
+                sc.define_name("county", Scopes::LandedTitle, key);
                 validate_normal_trigger(block, data, sc, Tooltipped::FailuresOnly);
             },
         );
         vd.field_validated_block_rooted("can_construct", Scopes::Province, |block, data, sc| {
-            sc.define_name("holder", Scopes::Character, key.clone());
-            sc.define_name("county", Scopes::LandedTitle, key.clone());
+            sc.define_name("holder", Scopes::Character, key);
+            sc.define_name("county", Scopes::LandedTitle, key);
             validate_normal_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_bool("show_disabled");
@@ -242,9 +242,9 @@ impl DbKind for Building {
                 token.expect_integer();
             }
             BV::Block(block) => {
-                let mut sc = ScopeContext::new_root(Scopes::Province, key.clone());
-                sc.define_name("holder", Scopes::Character, key.clone());
-                sc.define_name("county", Scopes::LandedTitle, key.clone());
+                let mut sc = ScopeContext::new(Scopes::Province, key);
+                sc.define_name("holder", Scopes::Character, key);
+                sc.define_name("county", Scopes::LandedTitle, key);
                 validate_modifiers_with_base(block, data, &mut sc);
             }
         });

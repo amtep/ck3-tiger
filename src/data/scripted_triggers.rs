@@ -109,7 +109,7 @@ impl Trigger {
         // We could let triggers get "naturally" validated by being called from other places,
         // but we want to also validate triggers that aren't called from anywhere yet.
         if self.block.source.is_none() {
-            let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            let mut sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
             sc.set_strict_scopes(false);
             if self.scope_override.is_some() {
                 sc.set_no_warn(true);
@@ -127,7 +127,7 @@ impl Trigger {
         negated: bool,
     ) {
         if !self.cached_compat(key, &[], tooltipped, negated, sc) {
-            let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
             our_sc.set_strict_scopes(false);
             if self.scope_override.is_some() {
                 our_sc.set_no_warn(true);
@@ -144,7 +144,7 @@ impl Trigger {
                 negated,
             );
             if let Some(scopes) = self.scope_override {
-                our_sc = ScopeContext::new_unrooted(scopes, key.clone());
+                our_sc = ScopeContext::new_unrooted(scopes, key);
                 our_sc.set_strict_scopes(false);
             }
             sc.expect_compatibility(&our_sc, key);
@@ -183,7 +183,7 @@ impl Trigger {
         // because we want to point to the correct one when reporting errors.
         if !self.cached_compat(key, &args, tooltipped, negated, sc) {
             if let Some(block) = self.block.expand_macro(&args, key) {
-                let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+                let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
                 our_sc.set_strict_scopes(false);
                 if self.scope_override.is_some() {
                     our_sc.set_no_warn(true);
@@ -194,7 +194,7 @@ impl Trigger {
                     .insert(key, &args, tooltipped, negated, our_sc.clone());
                 validate_trigger("", false, &block, data, &mut our_sc, tooltipped, negated);
                 if let Some(scopes) = self.scope_override {
-                    our_sc = ScopeContext::new_unrooted(scopes, key.clone());
+                    our_sc = ScopeContext::new_unrooted(scopes, key);
                     our_sc.set_strict_scopes(false);
                 }
                 sc.expect_compatibility(&our_sc, key);

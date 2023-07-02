@@ -53,7 +53,7 @@ impl Struggle {
 impl DbKind for Struggle {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Struggle, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Struggle, key);
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_desc");
@@ -105,7 +105,7 @@ impl DbKind for Struggle {
         });
         vd.field_validated_key_block("on_join", |key, block, data| {
             // Docs say it's Struggle scope but that's wrong.
-            let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
         });
     }
@@ -151,7 +151,7 @@ fn validate_catalyst_list(block: &Block, data: &Everything) {
     for (key, bv) in vd.unknown_fields() {
         if bv.expect_value().is_some() {
             data.verify_exists(Item::Catalyst, key);
-            let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+            let mut sc = ScopeContext::new(Scopes::None, key);
             validate_scriptvalue(bv, data, &mut sc);
         }
     }

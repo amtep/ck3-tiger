@@ -86,7 +86,7 @@ pub struct Music {
 impl Music {
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, &self.key);
 
         vd.field_item("music", Item::Sound);
         vd.field_item("group", Item::Music); // Take settings from this item

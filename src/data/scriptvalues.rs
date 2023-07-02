@@ -130,7 +130,7 @@ impl ScriptValue {
                 return;
             }
         }
-        let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+        let mut sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
         sc.set_strict_scopes(false);
         if self.scope_override.is_some() {
             sc.set_no_warn(true);
@@ -140,7 +140,7 @@ impl ScriptValue {
 
     pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
         if !self.cached_compat(key, sc) {
-            let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
             our_sc.set_strict_scopes(false);
             if self.scope_override.is_some() {
                 our_sc.set_no_warn(true);
@@ -150,7 +150,7 @@ impl ScriptValue {
                 .insert(key.loc.clone(), our_sc.clone());
             validate_scriptvalue(&self.bv, data, &mut our_sc);
             if let Some(scopes) = self.scope_override {
-                our_sc = ScopeContext::new_unrooted(scopes, key.clone());
+                our_sc = ScopeContext::new_unrooted(scopes, key);
                 our_sc.set_strict_scopes(false);
             }
             sc.expect_compatibility(&our_sc, key);

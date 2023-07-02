@@ -38,7 +38,7 @@ impl Bookmark {
 impl DbKind for Bookmark {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+        let mut sc = ScopeContext::new(Scopes::None, key);
         vd.field_date("start_date");
         vd.field_bool("is_playable");
         vd.field_bool("recommended");

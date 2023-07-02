@@ -21,7 +21,7 @@ impl DeathReason {
 impl DbKind for DeathReason {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         vd.field_bool("public_knowledge");
         vd.field_bool("natural");

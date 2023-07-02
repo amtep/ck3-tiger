@@ -81,7 +81,7 @@ impl ScriptedModifier {
     pub fn validate(&self, data: &Everything) {
         // Validate the modifiers that aren't macros
         if self.block.source.is_none() {
-            let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            let mut sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
             sc.set_strict_scopes(false);
             self.validate_call(&self.key, data, &mut sc);
         }
@@ -89,7 +89,7 @@ impl ScriptedModifier {
 
     pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
         if !self.cached_compat(key, &[], sc) {
-            let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
             our_sc.set_strict_scopes(false);
             self.cache
                 .insert(key, &[], Tooltipped::No, false, our_sc.clone());
@@ -128,7 +128,7 @@ impl ScriptedModifier {
         // because we want to point to the correct one when reporting errors.
         if !self.cached_compat(key, &args, sc) {
             if let Some(block) = self.block.expand_macro(&args, key) {
-                let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+                let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
                 our_sc.set_strict_scopes(false);
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.

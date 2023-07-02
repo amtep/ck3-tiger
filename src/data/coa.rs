@@ -345,10 +345,10 @@ where
     F: Fn(&BV, &Everything),
 {
     let mut vd = Validator::new(block, data);
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone()); // TODO: may be unset
-    sc.define_name("faith", Scopes::Faith, key.clone());
-    sc.define_name("culture", Scopes::Culture, key.clone());
-    sc.define_name("title", Scopes::LandedTitle, key.clone()); // TODO: may be unset
+    let mut sc = ScopeContext::new(Scopes::Character, key); // TODO: may be unset
+    sc.define_name("faith", Scopes::Faith, key);
+    sc.define_name("culture", Scopes::Culture, key);
+    sc.define_name("title", Scopes::LandedTitle, key); // TODO: may be unset
 
     // TODO: warn about duplicate values in the lists?
 
@@ -389,7 +389,7 @@ impl CoaDynamicDefinition {
 impl DbKind for CoaDynamicDefinition {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::LandedTitle, key.clone());
+        let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
 
         vd.field_validated_blocks("item", |block, data| {
             let mut vd = Validator::new(block, data);

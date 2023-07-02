@@ -70,7 +70,7 @@ enum ScopeEntry {
 }
 
 impl ScopeContext {
-    pub fn new_root<T: Borrow<Token>>(root: Scopes, token: T) -> Self {
+    pub fn new<T: Borrow<Token>>(root: Scopes, token: T) -> Self {
         ScopeContext {
             prev: None,
             this: ScopeEntry::Rootref,
@@ -117,33 +117,36 @@ impl ScopeContext {
         self.root = ScopeEntry::Scope(root, token.borrow().clone());
     }
 
-    pub fn define_name(&mut self, name: &str, scopes: Scopes, token: Token) {
+    pub fn define_name<T: Borrow<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
         if let Some(&idx) = self.names.get(name) {
             self._break_chains_to(idx);
-            self.named[idx] = ScopeEntry::Scope(scopes, token);
+            self.named[idx] = ScopeEntry::Scope(scopes, token.borrow().clone());
         } else {
             self.names.insert(name.to_string(), self.named.len());
-            self.named.push(ScopeEntry::Scope(scopes, token));
+            self.named
+                .push(ScopeEntry::Scope(scopes, token.borrow().clone()));
             self.is_input.push(None);
         }
     }
 
-    pub fn exists_scope(&mut self, name: &str, token: Token) {
+    pub fn exists_scope<T: Borrow<Token>>(&mut self, name: &str, token: T) {
         if !self.names.contains_key(name) {
             let idx = self.named.len();
             self.names.insert(name.to_string(), idx);
-            self.named.push(ScopeEntry::Scope(Scopes::all(), token));
+            self.named
+                .push(ScopeEntry::Scope(Scopes::all(), token.borrow().clone()));
             self.is_input.push(None);
         }
     }
 
-    pub fn define_list(&mut self, name: &str, scopes: Scopes, token: Token) {
+    pub fn define_list<T: Borrow<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
         if let Some(&idx) = self.list_names.get(name) {
             self._break_chains_to(idx);
-            self.named[idx] = ScopeEntry::Scope(scopes, token);
+            self.named[idx] = ScopeEntry::Scope(scopes, token.borrow().clone());
         } else {
             self.list_names.insert(name.to_string(), self.named.len());
-            self.named.push(ScopeEntry::Scope(scopes, token));
+            self.named
+                .push(ScopeEntry::Scope(scopes, token.borrow().clone()));
             self.is_input.push(None);
         }
     }
@@ -607,7 +610,7 @@ impl ScopeContext {
                     self._expect_named3(idx, s, t, key, &report);
                 } else {
                     // Their scopes now become our scopes.
-                    self.define_name(name, s, t.clone());
+                    self.define_name(name, s, t);
                 }
             } else if self.strict_scopes && other.is_input[oidx].is_some() {
                 let token = other.is_input[oidx].as_ref().unwrap();

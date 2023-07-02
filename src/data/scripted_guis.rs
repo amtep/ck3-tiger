@@ -24,17 +24,17 @@ impl ScriptedGui {
 impl DbKind for ScriptedGui {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+        let mut sc = ScopeContext::new(Scopes::None, key);
         if let Some(token) = vd.field_value("scope") {
             if let Some(scope) = scope_from_snake_case(token.as_str()) {
-                sc = ScopeContext::new_root(scope, token.clone());
+                sc = ScopeContext::new(scope, token);
             } else {
                 warn(token, ErrorKey::Scopes, "unknown scope type");
             }
         }
 
         vd.field_validated_list("saved_scopes", |token, _data| {
-            sc.define_name(token.as_str(), Scopes::all_but_none(), token.clone());
+            sc.define_name(token.as_str(), Scopes::all_but_none(), token);
         });
 
         vd.field_validated_block("is_shown", |b, data| {

@@ -22,9 +22,9 @@ impl Secret {
 impl DbKind for Secret {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("secret_owner", Scopes::Character, key.clone());
-        sc.define_name("secret_target", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("secret_owner", Scopes::Character, key);
+        sc.define_name("secret_target", Scopes::Character, key);
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_desc");
@@ -47,26 +47,26 @@ impl DbKind for Secret {
 
         vd.field_validated_key_block("is_shunned", |key, block, data| {
             let mut sc = sc.clone();
-            sc.define_name("target", Scopes::Character, key.clone());
+            sc.define_name("target", Scopes::Character, key);
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("is_criminal", |key, block, data| {
             let mut sc = sc.clone();
-            sc.define_name("target", Scopes::Character, key.clone());
+            sc.define_name("target", Scopes::Character, key);
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
-        let mut sc = ScopeContext::new_root(Scopes::Secret, key);
-        sc.define_name("secret_owner", Scopes::Character, key.clone());
-        sc.define_name("secret_target", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Secret, key);
+        sc.define_name("secret_owner", Scopes::Character, key);
+        sc.define_name("secret_target", Scopes::Character, key);
         vd.field_validated_key_block("on_discover", |key, block, data| {
             let mut sc = sc.clone();
-            sc.define_name("discoverer", Scopes::Character, key.clone());
+            sc.define_name("discoverer", Scopes::Character, key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_expose", |key, block, data| {
             let mut sc = sc.clone();
-            sc.define_name("secret_exposer", Scopes::Character, key.clone());
+            sc.define_name("secret_exposer", Scopes::Character, key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 

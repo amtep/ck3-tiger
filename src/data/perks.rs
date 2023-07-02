@@ -27,7 +27,7 @@ impl Perk {
 impl DbKind for Perk {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("{key}_name");

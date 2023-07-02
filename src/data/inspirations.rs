@@ -22,10 +22,10 @@ impl Inspiration {
 impl DbKind for Inspiration {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Inspiration, key.clone());
-        sc.define_name("inspiration", Scopes::Inspiration, key.clone());
-        sc.define_name("inspiration_owner", Scopes::Character, key.clone());
-        sc.define_name("inspiration_sponsor", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Inspiration, key);
+        sc.define_name("inspiration", Scopes::Inspiration, key);
+        sc.define_name("inspiration_owner", Scopes::Character, key);
+        sc.define_name("inspiration_sponsor", Scopes::Character, key);
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_desc");

@@ -23,8 +23,8 @@ impl CombatPhaseEvent {
 impl DbKind for CombatPhaseEvent {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("combat_side", Scopes::CombatSide, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("combat_side", Scopes::CombatSide, key);
 
         vd.field_choice("type", &["commander", "knight"]);
         vd.field_validated_block("is_valid", |block, data| {

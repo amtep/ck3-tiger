@@ -47,13 +47,13 @@ impl CourtSceneRole {
 impl DbKind for CourtSceneRole {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("ruler", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("ruler", Scopes::Character, key);
 
         vd.field_validated_sc("scripted_animation", &mut sc, validate_scripted_animation);
 
         vd.field_validated_key_block("effect", |key, block, data| {
-            sc.define_list("characters", Scopes::Character, key.clone());
+            sc.define_list("characters", Scopes::Character, key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
@@ -74,7 +74,7 @@ impl CourtSceneCulture {
 impl DbKind for CourtSceneCulture {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         vd.field_validated_block("trigger", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);

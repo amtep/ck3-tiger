@@ -26,9 +26,9 @@ impl CouncilPosition {
 impl DbKind for CouncilPosition {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("councillor", Scopes::Character, key.clone());
-        sc.define_name("councillor_liege", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("councillor", Scopes::Character, key);
+        sc.define_name("councillor_liege", Scopes::Character, key);
 
         // The base key has to exist even if name = a triggered desc
         data.verify_exists(Item::Localization, key);
@@ -120,15 +120,15 @@ impl CouncilTask {
 impl DbKind for CouncilTask {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("councillor", Scopes::Character, key.clone());
-        sc.define_name("councillor_liege", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("councillor", Scopes::Character, key);
+        sc.define_name("councillor_liege", Scopes::Character, key);
         if let Some(token) = block.get_field_value("task_type") {
             if token.is("task_type_county") {
-                sc.define_name("province", Scopes::Province, token.clone());
-                sc.define_name("county", Scopes::LandedTitle, token.clone());
+                sc.define_name("province", Scopes::Province, token);
+                sc.define_name("county", Scopes::LandedTitle, token);
             } else if token.is("task_type_court") {
-                sc.define_name("target_character", Scopes::Character, token.clone());
+                sc.define_name("target_character", Scopes::Character, token);
             }
         }
 

@@ -291,7 +291,7 @@ pub fn validate_trigger_key_bv(
                 if prefix.is("scope") {
                     if last && matches!(cmp, Comparator::QEq) {
                         // If the comparator is ?=, it's an implicit existence check
-                        sc.exists_scope(arg.as_str(), part.clone());
+                        sc.exists_scope(arg.as_str(), part);
                     }
                     sc.replace_named_scope(arg.as_str(), part);
                 } else {
@@ -604,10 +604,7 @@ fn match_trigger_bv(
                     } else if token.starts_with("scope:") && !token.as_str().contains('.') {
                         // exists = scope:name is used to check if that scope name was set
                         if !negated {
-                            sc.exists_scope(
-                                token.as_str().strip_prefix("scope:").unwrap(),
-                                name.clone(),
-                            );
+                            sc.exists_scope(token.as_str().strip_prefix("scope:").unwrap(), name);
                         }
                     } else if token.starts_with("flag:") {
                         // exists = flag:$REASON$ is used in vanilla just to shut up their error.log,
@@ -656,7 +653,7 @@ fn match_trigger_bv(
                     vd.req_field("target");
                     vd.field_target("target", sc, Scopes::Character);
                     if let Some(name) = vd.field_value("name") {
-                        sc.define_name(name.as_str(), Scopes::Value, name.clone());
+                        sc.define_name(name.as_str(), Scopes::Value, name);
                     }
                 }
             } else if name.is("save_temporary_scope_value_as") {
@@ -670,7 +667,7 @@ fn match_trigger_bv(
                     });
                     // TODO: figure out the scope type of `value` and use that
                     if let Some(name) = vd.field_value("name") {
-                        sc.define_name(name.as_str(), Scopes::primitive(), name.clone());
+                        sc.define_name(name.as_str(), Scopes::primitive(), name);
                     }
                 }
             } else if name.is("save_temporary_scope_as") {

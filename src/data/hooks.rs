@@ -21,8 +21,8 @@ impl Hook {
 impl DbKind for Hook {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("target", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("target", Scopes::Character, key);
 
         data.verify_exists(Item::Localization, key);
 

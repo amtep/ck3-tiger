@@ -21,7 +21,7 @@ impl PlayableDifficultyInfo {
 impl DbKind for PlayableDifficultyInfo {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         data.verify_exists(Item::Localization, key);
         vd.field_validated_block("is_shown", |block, data| {

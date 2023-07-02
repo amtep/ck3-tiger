@@ -31,7 +31,7 @@ impl DbKind for Lifestyle {
         data.verify_exists_implied(Item::ModifierFormat, &modif, key);
 
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         vd.field_validated_block("is_highlighted", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);

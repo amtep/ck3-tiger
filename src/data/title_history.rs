@@ -183,8 +183,8 @@ impl TitleHistory {
 
         vd.field_item("insert_title_history", Item::TitleHistory);
 
-        vd.field_validated_block("effect", |block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::LandedTitle, self.key.clone());
+        vd.field_validated_key_block("effect", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
     }

@@ -73,7 +73,7 @@ impl Law {}
 impl DbKind for Law {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_effects");
@@ -142,18 +142,18 @@ impl DbKind for Law {
         let title_law = block.has_key("can_title_have");
 
         vd.field_validated_key_block("on_pass", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             if title_law {
-                sc.define_name("title", Scopes::LandedTitle, key.clone());
+                sc.define_name("title", Scopes::LandedTitle, key);
             }
             validate_normal_effect(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_key_block("on_revoke", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             if title_law {
-                sc.define_name("title", Scopes::LandedTitle, key.clone());
+                sc.define_name("title", Scopes::LandedTitle, key);
             }
-            sc.define_name("title", Scopes::LandedTitle, key.clone());
+            sc.define_name("title", Scopes::LandedTitle, key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::Yes);
         });
 

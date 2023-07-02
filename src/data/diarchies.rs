@@ -30,7 +30,7 @@ impl DiarchyType {
 impl DbKind for DiarchyType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::None, key.clone()); // TODO scope type
+        let mut sc = ScopeContext::new(Scopes::None, key); // TODO scope type
 
         let loca = format!("{key}_diarchy_type");
         data.verify_exists_implied(Item::Localization, &loca, key);

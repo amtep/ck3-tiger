@@ -22,7 +22,7 @@ impl DbKind for ScriptedIllustration {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         // TODO: validate the call from gui
-        let mut sc = ScopeContext::new_root(Scopes::all(), key.clone());
+        let mut sc = ScopeContext::new(Scopes::all(), key);
 
         vd.field_validated_bvs("texture", |bv, data| match bv {
             BV::Value(token) => validate_texture(key, token, data),

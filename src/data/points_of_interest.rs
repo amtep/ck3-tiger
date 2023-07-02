@@ -21,15 +21,15 @@ impl PointOfInterest {
 impl DbKind for PointOfInterest {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         vd.field_validated_block("build_province_list", |block, data| {
             let mut sc = sc.clone();
-            sc.define_list("provinces", Scopes::Province, key.clone());
+            sc.define_list("provinces", Scopes::Province, key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
-        sc.define_name("province", Scopes::Province, key.clone());
+        sc.define_name("province", Scopes::Province, key);
         vd.field_validated_block("on_visit", |block, data| {
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });

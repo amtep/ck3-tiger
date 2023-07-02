@@ -107,7 +107,7 @@ impl Effect {
 
     pub fn validate(&self, data: &Everything) {
         if self.block.source.is_none() {
-            let mut sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            let mut sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
             sc.set_strict_scopes(false);
             if self.scope_override.is_some() {
                 sc.set_no_warn(true);
@@ -124,7 +124,7 @@ impl Effect {
         tooltipped: Tooltipped,
     ) {
         if !self.cached_compat(key, &[], tooltipped, sc) {
-            let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+            let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
             our_sc.set_strict_scopes(false);
             if self.scope_override.is_some() {
                 our_sc.set_no_warn(true);
@@ -133,7 +133,7 @@ impl Effect {
                 .insert(key, &[], tooltipped, false, our_sc.clone());
             validate_normal_effect(&self.block, data, &mut our_sc, tooltipped);
             if let Some(scopes) = self.scope_override {
-                our_sc = ScopeContext::new_unrooted(scopes, key.clone());
+                our_sc = ScopeContext::new_unrooted(scopes, key);
                 our_sc.set_strict_scopes(false);
             }
             sc.expect_compatibility(&our_sc, key);
@@ -169,7 +169,7 @@ impl Effect {
         // because we want to point to the correct one when reporting errors.
         if !self.cached_compat(key, &args, tooltipped, sc) {
             if let Some(block) = self.block.expand_macro(&args, key) {
-                let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), self.key.clone());
+                let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
                 our_sc.set_strict_scopes(false);
                 if self.scope_override.is_some() {
                     our_sc.set_no_warn(true);
@@ -180,7 +180,7 @@ impl Effect {
                     .insert(key, &args, tooltipped, false, our_sc.clone());
                 validate_normal_effect(&block, data, &mut our_sc, tooltipped);
                 if let Some(scopes) = self.scope_override {
-                    our_sc = ScopeContext::new_unrooted(scopes, key.clone());
+                    our_sc = ScopeContext::new_unrooted(scopes, key);
                     our_sc.set_strict_scopes(false);
                 }
 

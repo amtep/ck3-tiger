@@ -107,12 +107,12 @@ impl OnAction {
 
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new_root(Scopes::non_primitive(), &self.key);
+        let mut sc = ScopeContext::new(Scopes::non_primitive(), &self.key);
         for (name, root, named_scopes) in ON_ACTION_SCOPES {
             if self.key.is(name) {
-                sc = ScopeContext::new_root(*root, &self.key);
+                sc = ScopeContext::new(*root, &self.key);
                 for (name, scope) in named_scopes.iter() {
-                    sc.define_name(name, *scope, self.key.clone());
+                    sc.define_name(name, *scope, &self.key);
                 }
                 break;
             }

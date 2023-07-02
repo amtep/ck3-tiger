@@ -75,10 +75,10 @@ impl DbKind for ActivityType {
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         if block.has_key("province_description") {
-            let mut sc = ScopeContext::new_root(Scopes::Province, key.clone());
-            sc.define_name("host", Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Province, key);
+            sc.define_name("host", Scopes::Character, key);
             if has_special_option {
-                sc.define_name("special_option", Scopes::Flag, key.clone());
+                sc.define_name("special_option", Scopes::Flag, key);
             }
             vd.field_validated_sc("province_description", &mut sc, validate_desc);
         } else {
@@ -87,7 +87,7 @@ impl DbKind for ActivityType {
         }
 
         if block.has_key("host_description") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             vd.field_validated_sc("host_description", &mut sc, validate_desc);
         } else {
             let loca = format!("{key}_host_desc");
@@ -96,7 +96,7 @@ impl DbKind for ActivityType {
 
         // undocumented
         if block.has_key("guest_description") {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             vd.field_validated_sc("guest_description", &mut sc, validate_desc);
         } else {
             let loca = format!("{key}_guest_desc");
@@ -104,15 +104,15 @@ impl DbKind for ActivityType {
         }
 
         let ch_host_activity_sc = |key: &Token| {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-            sc.define_name("host", Scopes::Character, key.clone());
-            sc.define_name("activity", Scopes::Activity, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("host", Scopes::Character, key);
+            sc.define_name("activity", Scopes::Activity, key);
             sc
         };
         let ac_host_activity_sc = |key: &Token| {
-            let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
-            sc.define_name("host", Scopes::Character, key.clone());
-            sc.define_name("activity", Scopes::Activity, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Activity, key);
+            sc.define_name("host", Scopes::Character, key);
+            sc.define_name("activity", Scopes::Activity, key);
             sc
         };
 
@@ -124,34 +124,34 @@ impl DbKind for ActivityType {
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
-        let mut join_chance_sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        join_chance_sc.define_name("host", Scopes::Character, key.clone());
-        join_chance_sc.define_name("minimal_travel_time", Scopes::Value, key.clone());
+        let mut join_chance_sc = ScopeContext::new(Scopes::Character, key);
+        join_chance_sc.define_name("host", Scopes::Character, key);
+        join_chance_sc.define_name("minimal_travel_time", Scopes::Value, key);
         // docs say activity_start_diff_days
-        join_chance_sc.define_name("estimated_arrival_diff_days", Scopes::Value, key.clone());
-        join_chance_sc.define_list("special_guests", Scopes::Character, key.clone());
+        join_chance_sc.define_name("estimated_arrival_diff_days", Scopes::Value, key);
+        join_chance_sc.define_list("special_guests", Scopes::Character, key);
 
-        let mut special_guests_sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut special_guests_sc = ScopeContext::new(Scopes::Character, key);
         if has_special_option {
-            special_guests_sc.define_name("special_option", Scopes::Flag, key.clone());
+            special_guests_sc.define_name("special_option", Scopes::Flag, key);
         }
-        special_guests_sc.define_list("special_guests", Scopes::Character, key.clone());
+        special_guests_sc.define_list("special_guests", Scopes::Character, key);
 
         if let Some(block) = block.get_field_block("special_guests") {
             for (key, _) in block.iter_definitions() {
-                join_chance_sc.define_name(key.as_str(), Scopes::Character, key.clone());
-                special_guests_sc.define_name(key.as_str(), Scopes::Character, key.clone());
+                join_chance_sc.define_name(key.as_str(), Scopes::Character, key);
+                special_guests_sc.define_name(key.as_str(), Scopes::Character, key);
             }
         }
         if let Some(block) = block.get_field_block("options") {
             for (_, block) in block.iter_definitions() {
                 for (key, _) in block.iter_definitions() {
-                    join_chance_sc.define_name(key.as_str(), Scopes::Flag, key.clone());
+                    join_chance_sc.define_name(key.as_str(), Scopes::Flag, key);
                 }
             }
         }
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         vd.field_validated_block("is_shown", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
@@ -203,18 +203,18 @@ impl DbKind for ActivityType {
         vd.field_choice("province_filter", filters);
         vd.field_choice("ai_province_filter", filters);
 
-        let mut sc = ScopeContext::new_root(Scopes::Province, key.clone());
-        sc.define_name("host", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Province, key);
+        sc.define_name("host", Scopes::Character, key);
         vd.field_script_value_no_breakdown("province_score", &mut sc);
 
         if has_special_option {
-            sc.define_name("special_option", Scopes::Flag, key.clone());
+            sc.define_name("special_option", Scopes::Flag, key);
         }
         vd.field_validated_block("is_location_valid", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
-        sc.define_name("score", Scopes::Value, key.clone());
+        sc.define_name("score", Scopes::Value, key);
         vd.field_script_value_no_breakdown("ai_will_select_province", &mut sc);
 
         vd.field_integer("max_province_icons");
@@ -247,16 +247,16 @@ impl DbKind for ActivityType {
         });
 
         vd.field_validated_key_block("cost", |key, block, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             if has_special_option {
-                sc.define_name("special_option", Scopes::Flag, key.clone());
+                sc.define_name("special_option", Scopes::Flag, key);
             }
-            sc.define_name("province", Scopes::Province, key.clone());
-            sc.define_list("provinces", Scopes::Province, key.clone());
+            sc.define_name("province", Scopes::Province, key);
+            sc.define_list("provinces", Scopes::Province, key);
             validate_cost_with_renown(block, data, &mut sc);
         });
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
         vd.field_validated_block_sc("ui_predicted_cost", &mut sc, validate_cost_with_renown);
 
         vd.field_integer("max_guests");
@@ -273,10 +273,10 @@ impl DbKind for ActivityType {
             });
         });
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("host", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("host", Scopes::Character, key);
         if has_special_option {
-            sc.define_name("special_option", Scopes::Flag, key.clone());
+            sc.define_name("special_option", Scopes::Flag, key);
         }
         vd.field_validated_block("can_be_activity_guest", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
@@ -332,11 +332,11 @@ impl DbKind for ActivityType {
         }
         vd.field_validated_key_block("on_start", |key, block, data| {
             let mut sc = ch_host_activity_sc(key);
-            sc.change_root(Scopes::Activity, key.clone());
+            sc.change_root(Scopes::Activity, key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
-        sc.change_root(Scopes::None, key.clone());
+        sc.change_root(Scopes::None, key);
         vd.field_validated_block_sc("early_locale_opening_duration", &mut sc, validate_duration);
 
         vd.field_bool("open_invite");
@@ -378,9 +378,9 @@ impl DbKind for ActivityType {
             }
         });
 
-        let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
-        sc.define_name("host", Scopes::Character, key.clone());
-        sc.define_name("activity", Scopes::Activity, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Activity, key);
+        sc.define_name("host", Scopes::Character, key);
+        sc.define_name("activity", Scopes::Activity, key);
         vd.field_validated_bvs("map_entity", |bv, data| match bv {
             BV::Value(token) => data.verify_exists(Item::Entity, token),
             BV::Block(block) => {
@@ -440,15 +440,15 @@ fn validate_rules(block: &Block, data: &Everything) {
 }
 
 pub fn validate_tes(key: &Token, block: &Block, data: &Everything, has_special_option: bool) {
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-    sc.define_name("host", Scopes::Character, key.clone());
-    sc.define_name("owner", Scopes::Character, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Character, key);
+    sc.define_name("host", Scopes::Character, key);
+    sc.define_name("owner", Scopes::Character, key);
     if has_special_option {
-        sc.define_name("special_option", Scopes::Flag, key.clone());
+        sc.define_name("special_option", Scopes::Flag, key);
     }
     let mut vd = Validator::new(block, data);
     vd.field_script_value("weight", &mut sc);
-    let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+    let mut sc = ScopeContext::new(Scopes::None, key);
     vd.field_script_value("max", &mut sc);
     vd.field_script_value("ai_max", &mut sc);
     vd.field_integer("invite_rule_order");
@@ -459,20 +459,20 @@ fn validate_window_characters(key: &Token, block: &Block, data: &Everything) {
     let loca = format!("activity_window_character_{key}");
     data.verify_exists_implied(Item::Localization, &loca, key);
     vd.field_item("camera", Item::PortraitCamera);
-    let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
-    sc.define_name("activity", Scopes::Activity, key.clone());
-    sc.define_name("host", Scopes::Character, key.clone());
-    sc.define_name("player", Scopes::Character, key.clone());
-    sc.define_list("characters", Scopes::Character, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Activity, key);
+    sc.define_name("activity", Scopes::Activity, key);
+    sc.define_name("host", Scopes::Character, key);
+    sc.define_name("player", Scopes::Character, key);
+    sc.define_list("characters", Scopes::Character, key);
     vd.field_validated_block("effect", |block, data| {
         validate_normal_effect(block, data, &mut sc, Tooltipped::No);
     });
 
-    let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
-    sc.define_name("activity", Scopes::Activity, key.clone());
-    sc.define_name("host", Scopes::Character, key.clone());
-    sc.define_name("player", Scopes::Character, key.clone());
-    sc.define_name("character", Scopes::Character, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Activity, key);
+    sc.define_name("activity", Scopes::Activity, key);
+    sc.define_name("host", Scopes::Character, key);
+    sc.define_name("player", Scopes::Character, key);
+    sc.define_name("character", Scopes::Character, key);
     vd.field_validated_sc("scripted_animation", &mut sc, validate_scripted_animation);
     vd.field_item("animation", Item::PortraitAnimation);
 }
@@ -480,7 +480,7 @@ fn validate_window_characters(key: &Token, block: &Block, data: &Everything) {
 fn validate_phase(key: &Token, block: &Block, data: &Everything, has_special_option: bool) {
     let mut vd = Validator::new(block, data);
     vd.field_bool("is_predefined");
-    let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
+    let mut sc = ScopeContext::new(Scopes::None, key);
     vd.field_script_value("number_of_picks", &mut sc);
     // TODO: "you should have unique order nr for your phases, if you have more than one phase"
     vd.field_integer("order");
@@ -494,9 +494,9 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, has_special_opt
         ],
     );
     if block.field_value_is("location_source", "scripted") {
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
         if has_special_option {
-            sc.define_name("special_option", Scopes::Flag, key.clone());
+            sc.define_name("special_option", Scopes::Flag, key);
         }
         vd.field_validated_block("select_scripted_location", |block, data| {
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
@@ -504,17 +504,17 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, has_special_opt
     } else {
         vd.ban_field("select_scripted_location", || "location_source = scripted");
     }
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-    sc.define_name("province", Scopes::Province, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Character, key);
+    sc.define_name("province", Scopes::Province, key);
     if has_special_option {
-        sc.define_name("special_option", Scopes::Flag, key.clone());
+        sc.define_name("special_option", Scopes::Flag, key);
     }
     vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
 
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-    sc.define_name("province", Scopes::Province, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Character, key);
+    sc.define_name("province", Scopes::Province, key);
     if has_special_option {
-        sc.define_name("special_option", Scopes::Flag, key.clone());
+        sc.define_name("special_option", Scopes::Flag, key);
     }
     vd.field_validated_block("is_shown", |block, data| {
         validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
@@ -522,16 +522,16 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, has_special_opt
     vd.field_validated_block("can_pick", |block, data| {
         validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
     });
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-    sc.define_name("province", Scopes::Province, key.clone());
-    sc.define_name("host", Scopes::Character, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Character, key);
+    sc.define_name("province", Scopes::Province, key);
+    sc.define_name("host", Scopes::Character, key);
     vd.field_validated_block("is_valid", |block, data| {
         validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
     });
 
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-    sc.define_name("activity", Scopes::Activity, key.clone());
-    sc.define_name("host", Scopes::Character, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Character, key);
+    sc.define_name("activity", Scopes::Activity, key);
+    sc.define_name("host", Scopes::Character, key);
     vd.field_validated_block("on_enter_phase", |block, data| {
         validate_normal_effect(block, data, &mut sc, Tooltipped::No);
     });
@@ -547,16 +547,16 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, has_special_opt
     vd.field_validated_block("on_weekly_pulse", |block, data| {
         validate_normal_effect(block, data, &mut sc, Tooltipped::No);
     });
-    sc.define_name("province", Scopes::Province, key.clone());
+    sc.define_name("province", Scopes::Province, key);
     vd.field_validated_block("on_invalidated", |block, data| {
         validate_normal_effect(block, data, &mut sc, Tooltipped::No);
     });
 
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-    sc.define_name("province", Scopes::Province, key.clone());
-    sc.define_name("previous_province", Scopes::Province, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Character, key);
+    sc.define_name("province", Scopes::Province, key);
+    sc.define_name("previous_province", Scopes::Province, key);
     if has_special_option {
-        sc.define_name("special_option", Scopes::Flag, key.clone());
+        sc.define_name("special_option", Scopes::Flag, key);
     }
     vd.field_validated_block_sc("cost", &mut sc, validate_cost_with_renown);
 }
@@ -576,9 +576,9 @@ fn validate_special_guest(
     data.verify_exists_implied(Item::Localization, &loca, key);
     let loca = format!("{key}_desc_for_host");
     data.verify_exists_implied(Item::Localization, &loca, key);
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Character, key);
     if has_special_option {
-        sc.define_name("special_option", Scopes::Flag, key.clone());
+        sc.define_name("special_option", Scopes::Flag, key);
     }
     vd.field_validated_block("is_shown", |block, data| {
         validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
@@ -590,7 +590,7 @@ fn validate_special_guest(
         validate_normal_effect(block, data, special_guests_sc, Tooltipped::No);
     });
 
-    special_guests_sc.define_name("host", Scopes::Character, key.clone());
+    special_guests_sc.define_name("host", Scopes::Character, key);
     vd.field_validated_block("can_pick", |block, data| {
         validate_normal_trigger(block, data, special_guests_sc, Tooltipped::No);
     });
@@ -598,7 +598,7 @@ fn validate_special_guest(
         validate_normal_effect(block, data, special_guests_sc, Tooltipped::No);
     });
 
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Character, key);
     vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
 }
 
@@ -619,9 +619,9 @@ impl DbKind for ActivityLocale {
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("host", Scopes::Character, key.clone());
-        sc.define_name("activity", Scopes::Activity, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("host", Scopes::Character, key);
+        sc.define_name("activity", Scopes::Activity, key);
         vd.field_validated_block("is_available", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
@@ -641,9 +641,9 @@ fn validate_visuals(key: &Token, bv: &BV, data: &Everything) {
         BV::Value(_) => (), // TODO
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
-            let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
-            sc.define_name("activity", Scopes::Activity, key.clone());
-            sc.define_name("host", Scopes::Character, key.clone());
+            let mut sc = ScopeContext::new(Scopes::Activity, key);
+            sc.define_name("activity", Scopes::Activity, key);
+            sc.define_name("host", Scopes::Character, key);
             vd.field_validated_block("trigger", |block, data| {
                 validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
             });
@@ -666,8 +666,8 @@ impl DbKind for GuestInviteRule {
         let mut vd = Validator::new(block, data);
         data.verify_exists(Item::Localization, key);
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_list("characters", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_list("characters", Scopes::Character, key);
         vd.field_validated_block("effect", |block, data| {
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
@@ -693,10 +693,10 @@ impl DbKind for PulseAction {
         let pathname = format!("gfx/interface/icons/activity_pulse_actions/{icon}.dds");
         data.verify_exists_implied(Item::File, &pathname, key);
 
-        let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
-        sc.define_name("activity", Scopes::Activity, key.clone());
-        sc.define_name("host", Scopes::Character, key.clone());
-        sc.define_name("province", Scopes::Province, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Activity, key);
+        sc.define_name("activity", Scopes::Activity, key);
+        sc.define_name("host", Scopes::Character, key);
+        sc.define_name("province", Scopes::Province, key);
         vd.field_validated_block("is_valid", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
@@ -726,44 +726,44 @@ impl DbKind for ActivityIntent {
 
         vd.field_bool("auto_complete");
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("magnificence", Scopes::Value, key.clone());
-        sc.define_name("special_option", Scopes::Flag, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("magnificence", Scopes::Value, key);
+        sc.define_name("special_option", Scopes::Flag, key);
         vd.field_validated_block("is_shown", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("is_valid", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("target", Scopes::Character, key.clone());
-        sc.define_name("special_option", Scopes::Flag, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("target", Scopes::Character, key);
+        sc.define_name("special_option", Scopes::Flag, key);
         vd.field_validated_block("is_target_valid", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
         vd.field_validated_block("on_invalidated", |block, data| {
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
-        sc.define_name("target", Scopes::Character, key.clone());
+        sc.define_name("target", Scopes::Character, key);
         vd.field_validated_block("on_target_invalidated", |block, data| {
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("activity", Scopes::Activity, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("activity", Scopes::Activity, key);
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
 
         vd.field_blocks("ai_targets"); // TODO, see also interactions
         vd.field_blocks("ai_target_quick_trigger"); // TODO, see also interactions
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("target", Scopes::Character, key.clone());
-        sc.define_name("special_option", Scopes::Flag, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("target", Scopes::Character, key);
+        sc.define_name("special_option", Scopes::Flag, key);
         vd.field_script_value_no_breakdown("ai_target_score", &mut sc);
 
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
         vd.field_validated_sc("scripted_animation", &mut sc, validate_scripted_animation);
     }
 }
@@ -785,9 +785,9 @@ fn validate_option(
         let pathname = format!("gfx/interface/icons/activity_types/{key}_icon.dds");
         data.verify_exists_implied(Item::File, &pathname, key);
     }
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Character, key);
     if has_special_option {
-        sc.define_name("special_option", Scopes::Flag, key.clone());
+        sc.define_name("special_option", Scopes::Flag, key);
     }
     vd.field_validated_block("is_shown", |block, data| {
         validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
@@ -797,9 +797,9 @@ fn validate_option(
     });
     vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
 
-    let mut sc = ScopeContext::new_root(Scopes::Activity, key.clone());
-    sc.define_name("activity", Scopes::Activity, key.clone());
-    sc.define_name("host", Scopes::Character, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Activity, key);
+    sc.define_name("activity", Scopes::Activity, key);
+    sc.define_name("host", Scopes::Character, key);
     vd.field_validated_block("on_start", |block, data| {
         validate_normal_effect(block, data, &mut sc, Tooltipped::No);
     });
@@ -814,7 +814,7 @@ fn validate_option(
             }
             BV::Block(block) => {
                 // TODO: what is the scope context?
-                let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+                let mut sc = ScopeContext::new(Scopes::Character, key);
                 validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
             }
         }
@@ -822,7 +822,7 @@ fn validate_option(
 
     vd.field_list_items("blocked_intents", Item::ActivityIntent);
 
-    let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
+    let mut sc = ScopeContext::new(Scopes::Character, key);
     vd.field_validated_block_sc("cost", &mut sc, validate_cost_with_renown);
 
     vd.field_validated_key_block("travel_entourage_selection", |key, block, data| {

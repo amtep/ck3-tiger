@@ -24,11 +24,11 @@ impl Scheme {
 impl DbKind for Scheme {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("scheme", Scopes::Scheme, key.clone());
-        sc.define_name("target", Scopes::Character, key.clone());
-        sc.define_name("owner", Scopes::Character, key.clone());
-        sc.define_name("exposed", Scopes::Bool, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("scheme", Scopes::Scheme, key);
+        sc.define_name("target", Scopes::Character, key);
+        sc.define_name("owner", Scopes::Character, key);
+        sc.define_name("exposed", Scopes::Bool, key);
 
         // let modif = format!("max_{key}_schemes_add");
         // data.verify_exists_implied(Item::ModifierFormat, &modif, key);
@@ -83,7 +83,7 @@ impl DbKind for Scheme {
 
         vd.field_validated_key_block("agent_join_chance", |key, block, data| {
             let mut sc = sc.clone();
-            sc.define_name("gift", Scopes::Bool, key.clone());
+            sc.define_name("gift", Scopes::Bool, key);
             validate_modifiers_with_base(block, data, &mut sc);
         });
         vd.field_validated_block_sc(
@@ -143,7 +143,7 @@ impl DbKind for Scheme {
         });
         vd.field_validated_key_block("on_agent_exposed", |key, block, data| {
             let mut sc = sc.clone();
-            sc.define_name("agent", Scopes::Character, key.clone());
+            sc.define_name("agent", Scopes::Character, key);
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
 

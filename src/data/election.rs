@@ -24,9 +24,9 @@ impl Election {
 impl DbKind for Election {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("title", Scopes::LandedTitle, key.clone());
-        sc.define_name("holder", Scopes::Character, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("title", Scopes::LandedTitle, key);
+        sc.define_name("holder", Scopes::Character, key);
 
         vd.field_validated_block("candidates", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -46,8 +46,8 @@ impl DbKind for Election {
             validate_modifiers_with_base,
         );
 
-        sc.define_name("candidate", Scopes::Character, key.clone());
-        sc.define_name("holder_candidate", Scopes::Character, key.clone());
+        sc.define_name("candidate", Scopes::Character, key);
+        sc.define_name("holder_candidate", Scopes::Character, key);
         vd.field_validated_block_sc("candidate_score", &mut sc, validate_modifiers_with_base);
     }
 }

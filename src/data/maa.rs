@@ -194,27 +194,21 @@ impl MenAtArmsType {
         }
 
         // TODO: "Mutually exclusive with being unlocked by innovation"
-        vd.field_validated_block("can_recruit", |b, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::Yes);
+        vd.field_validated_key_block("can_recruit", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         validate_maa_stats(&mut vd);
         vd.field_integer("siege_tier");
         vd.field_bool("fights_in_main_phase");
 
-        vd.field_validated_block("buy_cost", |b, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
-            validate_cost(b, data, &mut sc);
-        });
-        vd.field_validated_block("low_maintenance_cost", |b, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
-            validate_cost(b, data, &mut sc);
-        });
-        vd.field_validated_block("high_maintenance_cost", |b, data| {
-            let mut sc = ScopeContext::new_root(Scopes::Character, self.key.clone());
-            validate_cost(b, data, &mut sc);
-        });
+        for field in &["buy_cost", "low_maintenance_cost", "high_maintenance_cost"] {
+            vd.field_validated_key_block(field, |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Character, key);
+                validate_cost(block, data, &mut sc);
+            });
+        }
 
         vd.field_validated_block("terrain_bonus", validate_terrain_bonus);
         vd.field_validated_block("winter_bonus", validate_winter_bonus);

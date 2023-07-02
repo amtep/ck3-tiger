@@ -79,8 +79,8 @@ impl ArtifactTemplate {
 impl DbKind for ArtifactTemplate {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("artifact", Scopes::Artifact, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("artifact", Scopes::Artifact, key);
 
         vd.field_validated_block("can_equip", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
@@ -117,8 +117,8 @@ impl ArtifactVisual {
 impl DbKind for ArtifactVisual {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new_root(Scopes::Character, key.clone());
-        sc.define_name("artifact", Scopes::Artifact, key.clone());
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("artifact", Scopes::Artifact, key);
 
         vd.field_value("default_type"); // unused
 
@@ -199,10 +199,10 @@ impl DbKind for ArtifactFeature {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         // TODO: it's not clear what the scope is for these triggers
-        let mut sc = ScopeContext::new_unrooted(Scopes::Artifact | Scopes::Character, key.clone());
-        sc.define_name("newly_created_artifact", Scopes::Artifact, key.clone());
-        sc.define_name("owner", Scopes::Character, key.clone());
-        sc.define_name("wealth", Scopes::Value, key.clone());
+        let mut sc = ScopeContext::new_unrooted(Scopes::Artifact | Scopes::Character, key);
+        sc.define_name("newly_created_artifact", Scopes::Artifact, key);
+        sc.define_name("owner", Scopes::Character, key);
+        sc.define_name("wealth", Scopes::Value, key);
 
         let loca = format!("feature_{key}");
         data.verify_exists_implied(Item::Localization, &loca, key);
