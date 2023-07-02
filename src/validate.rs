@@ -11,7 +11,7 @@ use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_prefix, scope_to_scope, Scopes};
-use crate::scriptvalue::validate_scriptvalue;
+use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{
@@ -728,7 +728,7 @@ pub fn validate_scheme_modifier(block: &Block, data: &Everything, sc: &mut Scope
 
 pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    vd.field_script_value("base", sc);
+    vd.field_validated("base", validate_non_dynamic_scriptvalue);
     vd.field_script_value("add", sc);
     vd.field_script_value("factor", sc);
     validate_modifiers(&mut vd, sc);
