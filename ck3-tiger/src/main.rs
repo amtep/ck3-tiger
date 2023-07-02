@@ -11,7 +11,7 @@ use winreg::RegKey;
 
 use tiger_lib::errorkey::ErrorKey;
 use tiger_lib::errors::{
-    ignore_key, minimum_level, set_mod_root, set_vanilla_dir, show_loaded_mods, show_vanilla,
+    disable_ansi_colors, ignore_key, minimum_level, set_mod_root, set_vanilla_root, show_loaded_mods, show_vanilla,
     ErrorLevel,
 };
 use tiger_lib::everything::Everything;
@@ -56,9 +56,12 @@ struct Cli {
     #[clap(long)]
     strict_scopes: bool,
     /// Do checks specific to the Princes of Darkness mod
-    /// Do checks specific to the Princes of Darkness mod
     #[clap(long)]
     pod: bool,
+    /// Omit color from the output. False by default.
+    /// Can also be configured in the ck3-tiger.conf file.
+    #[clap(long)]
+    no_color: bool,
 }
 
 /// Tries to locate the CK3 game files.
@@ -123,6 +126,12 @@ fn find_ck3_dir_in_steam_dir(steam_dir: PathBuf) -> Option<PathBuf> {
 
 fn main() -> Result<()> {
     let mut args = Cli::parse();
+
+    #[cfg(windows)]
+    if !args.no_color {
+        let _ = ansi_term::enable_ansi_support()
+            .map_err(|_| eprintln!("Failed to enable ANSI support for Windows10 users. Continuing probably without colored output."));
+    }
 
     // LAST UPDATED VERSION 1.9.2.1
     eprintln!("This validator was made for Crusader Kings version 1.9.2.1 (Lance).");
@@ -192,9 +201,17 @@ fn main() -> Result<()> {
         bail!("Cannot find mod directory. Please make sure the .mod file is correct.");
     }
     eprintln!("Using mod directory: {}", modpath.display());
+    eprintln!();
+
     set_mod_root(modpath.clone());
 
     let mut everything = Everything::new(&args.ck3.unwrap(), &modpath, modfile.replace_paths())?;
+    everything.load_output_settings();
+    // We must apply the --no-color flag AFTER loading and applying the config,
+    // because we want it to override the config.
+    if args.no_color {
+        disable_ansi_colors();
+    }
     everything.load_all();
     everything.validate_all();
     everything.check_rivers();

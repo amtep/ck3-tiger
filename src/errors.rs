@@ -1,20 +1,25 @@
-use encoding::all::{UTF_8, WINDOWS_1252};
-use encoding::{DecoderTrap, Encoding};
-use fnv::{FnvHashMap, FnvHashSet};
 use std::fmt::{Debug, Display, Formatter};
 use std::fs::read;
 use std::io::{stdout, Stderr, Stdout, Write};
 use std::path::PathBuf;
+
+use ansi_term::{ANSIString, ANSIStrings};
+use encoding::all::{UTF_8, WINDOWS_1252};
+use encoding::{DecoderTrap, Encoding};
+use fnv::{FnvHashMap, FnvHashSet};
+use strum_macros::EnumIter;
 use unicode_width::UnicodeWidthChar;
 
 use crate::block::{Block, BV};
+use crate::error::{Confidence, LogLevel, LogReport, PointedMessage, Severity};
 use crate::errorkey::ErrorKey;
 use crate::fileset::{FileEntry, FileKind};
+use crate::output_style::{OutputStyle, Styled};
 use crate::token::{Loc, Token};
 
 static mut ERRORS: Option<Errors> = None;
 
-#[derive(Clone, Copy, Debug, Default, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Ord, PartialOrd, Eq, PartialEq, Hash, EnumIter)]
 pub enum ErrorLevel {
     #[default]
     Advice,
@@ -147,15 +152,22 @@ struct Errors {
 
     /// Minimum error level to log
     minimum_level: ErrorLevel,
+    min_level: LogLevel,
 
     /// Errors that have already been logged (to avoid duplication, which is common
     /// when validating macro expanded triggers and effects)
     seen: FnvHashSet<ErrorRecord>,
 
     filecache: FnvHashMap<PathBuf, String>,
+
+    /// Output color and style configuration.
+    styles: OutputStyle,
 }
 
 impl Errors {
+    fn outfile(&mut self) -> &mut dyn Write {
+        self.outfile.as_mut().expect("outfile")
+    }
     fn get_line(&mut self, loc: &Loc) -> Option<String> {
         if loc.line == 0 {
             return None;
@@ -209,6 +221,238 @@ impl Errors {
         true
     }
 
+    /// Perform some checks to see whether the report should actually be logged.
+    /// If yes, it will do so.
+    fn push_report(&mut self, report: LogReport) {
+        if self.outfile.is_none() {
+            // TODO: should this be evaluated every time? Can it not happen once at the start?
+            self.outfile = Some(Box::new(stdout()));
+        }
+        if report.lvl.severity < self.min_level.severity
+            || report.lvl.confidence < self.min_level.confidence
+        {
+            return;
+        }
+        // TODO: Re-implement 'seen'
+        // let loc = eloc.into_loc();
+        // let loc2 = eloc2.into_loc();
+        // let index = (loc.clone(), key, msg.to_string(), Some(loc2.clone()), None);
+        // if self.seen.contains(&index) {
+        //     return;
+        // }
+        // self.seen.insert(index);
+        if !self.will_log(&report.primary().location, report.key) {
+            return;
+        }
+        self.log_report(report);
+    }
+
+    /// Log the report.
+    fn log_report(&mut self, report: LogReport) {
+        // Log error lvl and message:
+        self.log_line_title(&report);
+        // Log the primary pointer:
+        self.log_pointer_primary(report.primary(), report.indentation(), report.lvl.severity);
+        // Log the other pointers:
+        report.pointers.windows(2).for_each(|pointers| {
+            self.log_pointer(
+                pointers.get(0).expect("Must exist."),
+                pointers.get(1).expect("Must exist."),
+                report.indentation(),
+                report.lvl.severity,
+            );
+        });
+        if let Some(info) = report.info {
+            let line_info: &[ANSIString<'static>] = &[
+                self.styles.style(&Styled::Default).paint(format!(
+                    "{:width$}",
+                    "",
+                    width = report.indentation()
+                )),
+                self.styles.style(&Styled::Default).paint(" "),
+                self.styles.style(&Styled::Location).paint("="),
+                self.styles.style(&Styled::Default).paint(" "),
+                self.styles.style(&Styled::InfoTag).paint("Info:"),
+                self.styles.style(&Styled::Default).paint(" "),
+                self.styles.style(&Styled::Info).paint(format!("{info}")),
+            ];
+            writeln!(self.outfile(), "{}", ANSIStrings(line_info)).expect("writeln");
+        }
+
+        // if let Some(link) = &loc.link {
+        //     self.log(link, level, key, "from here", None);
+        // }
+
+        // Write a blank line to visually separate reports:
+        writeln!(self.outfile.as_mut().expect("outfile"), "").expect("writeln");
+    }
+    fn log_pointer_primary(
+        &mut self,
+        pointer: &PointedMessage,
+        indentation: usize,
+        severity: Severity,
+    ) {
+        self.log_line_file_location(pointer, indentation);
+        if pointer.location.line == 0 {
+            // Zero-length line means the location is an entire file,
+            // not any particular location within the file.
+            return;
+        }
+        if let Some(line) = self.get_line(&pointer.location) {
+            self.log_line_from_source(pointer, indentation, &line);
+            self.log_line_carets(pointer, &line, indentation, severity);
+        }
+    }
+    fn log_pointer(
+        &mut self,
+        previous: &PointedMessage,
+        pointer: &PointedMessage,
+        indentation: usize,
+        severity: Severity,
+    ) {
+        if previous.location.pathname != pointer.location.pathname
+            || previous.location.kind != pointer.location.kind
+        {
+            // This pointer is not the same as the previous pointer. Print file location as well:
+            self.log_line_file_location(pointer, indentation);
+        } else {
+            self.log_line_blank(indentation);
+        }
+        if pointer.location.line == 0 {
+            // Zero-length line means the location is an entire file,
+            // not any particular location within the file.
+            return;
+        }
+        if let Some(line) = self.get_line(&pointer.location) {
+            self.log_line_from_source(pointer, indentation, &line);
+            self.log_line_carets(pointer, &line, indentation, severity);
+        }
+    }
+
+    /// Log the first line of a report, containing the severity level and the error message.
+    fn log_line_title(&mut self, report: &LogReport) {
+        let line: &[ANSIString<'static>] = &[
+            self.styles
+                .style(&Styled::Tag(report.lvl.severity, true))
+                .paint(format!("{}", report.lvl.severity)),
+            self.styles
+                .style(&Styled::Tag(report.lvl.severity, false))
+                .paint("("),
+            self.styles
+                .style(&Styled::Tag(report.lvl.severity, false))
+                .paint(format!("{}", report.key)),
+            self.styles
+                .style(&Styled::Tag(report.lvl.severity, false))
+                .paint(")"),
+            self.styles.style(&Styled::Default).paint(": "),
+            self.styles
+                .style(&Styled::ErrorMessage)
+                .paint(format!("{}", report.msg)),
+        ];
+        writeln!(self.outfile(), "{}", ANSIStrings(line)).expect("writeln");
+    }
+
+    /// Log the line containing the location's mod name and filename.
+    fn log_line_file_location(&mut self, pointer: &PointedMessage, indentation: usize) {
+        let line_filename: &[ANSIString<'static>] = &[
+            self.styles.style(&Styled::Default).paint(format!(
+                "{:width$}",
+                "",
+                width = indentation
+            )),
+            self.styles.style(&Styled::Location).paint("-->"),
+            self.styles.style(&Styled::Default).paint(" "),
+            self.styles.style(&Styled::Location).paint("["),
+            self.styles
+                .style(&Styled::Location)
+                .paint(format!("{}", self.kind_tag(pointer.location.kind))),
+            self.styles.style(&Styled::Location).paint("]"),
+            self.styles.style(&Styled::Default).paint(" "),
+            self.styles
+                .style(&Styled::Location)
+                .paint(format!("{}", pointer.location.pathname.display())),
+        ];
+        writeln!(self.outfile(), "{}", ANSIStrings(line_filename)).expect("writeln");
+    }
+
+    /// Print a line from the source file.
+    fn log_line_from_source(&mut self, pointer: &PointedMessage, indentation: usize, line: &str) {
+        let line_from_source: &[ANSIString<'static>] = &[
+            self.styles.style(&Styled::Location).paint(format!(
+                "{:width$}",
+                pointer.location.line,
+                width = indentation
+            )),
+            self.styles.style(&Styled::Default).paint(" "),
+            self.styles.style(&Styled::Location).paint("|"),
+            self.styles.style(&Styled::Default).paint(" "),
+            self.styles
+                .style(&Styled::SourceText)
+                .paint(format!("{line}")),
+        ];
+        writeln!(self.outfile(), "{}", ANSIStrings(line_from_source)).expect("writeln");
+    }
+
+    fn log_line_carets(
+        &mut self,
+        pointer: &PointedMessage,
+        line: &str,
+        indentation: usize,
+        severity: Severity,
+    ) {
+        let mut spacing = String::new();
+        for c in line.chars().take(pointer.location.column.saturating_sub(1)) {
+            if c == '\t' {
+                // spacing.push_str("  ");
+                spacing.push('\t');
+            } else {
+                for _ in 0..c.width().unwrap_or(0) {
+                    spacing.push(' ');
+                }
+            }
+        }
+        // A line containing the carets that point upwards at the source line.
+        let line_carets: &[ANSIString<'static>] = &[
+            self.styles.style(&Styled::Default).paint(format!(
+                "{:width$}",
+                "",
+                width = indentation
+            )),
+            self.styles.style(&Styled::Default).paint(" "),
+            self.styles.style(&Styled::Location).paint("|"),
+            self.styles.style(&Styled::Default).paint(" "),
+            self.styles
+                .style(&Styled::Default)
+                .paint(format!("{spacing}")),
+            self.styles
+                .style(&Styled::Tag(severity, true))
+                .paint(format!("{:^^width$}", "", width = pointer.length)),
+            self.styles.style(&Styled::Default).paint(" "),
+            self.styles
+                .style(&Styled::Tag(severity, true))
+                .paint(format!(
+                    "{}",
+                    pointer.msg.as_ref().map(|_| "<-- ").unwrap_or(&"")
+                )),
+            self.styles
+                .style(&Styled::Tag(severity, true))
+                .paint(format!("{}", pointer.msg.as_ref().unwrap_or(&""))),
+        ];
+        writeln!(self.outfile(), "{}", ANSIStrings(line_carets)).expect("writeln");
+    }
+
+    /// Print a blank line to represent space between two lines in the same file.
+    fn log_line_blank(&mut self, indentation: usize) {
+        let line_blank: &[ANSIString<'static>] = &[
+            self.styles
+                .style(&Styled::Location)
+                .paint("-".repeat(indentation)),
+            self.styles.style(&Styled::Default).paint("   "),
+        ];
+        writeln!(self.outfile(), "{}", ANSIStrings(line_blank)).expect("writeln");
+    }
+
+    /// Deprecated in favour of log_report().
     pub fn log(
         &mut self,
         loc: &Loc,
@@ -220,19 +464,84 @@ impl Errors {
         if self.outfile.is_none() {
             self.outfile = Some(Box::new(stdout()));
         }
-        let marker = self.loc_file_marker(loc);
-        writeln!(self.outfile.as_mut().expect("outfile"), "{marker}").expect("writeln");
+        let first_line: &[ANSIString<'static>] = &[
+            self.styles
+                .style(&Styled::TagOld(level, true))
+                .paint(format!("{level}")),
+            self.styles.style(&Styled::TagOld(level, false)).paint("("),
+            self.styles
+                .style(&Styled::TagOld(level, false))
+                .paint(format!("{key}")),
+            self.styles.style(&Styled::TagOld(level, false)).paint(")"),
+            self.styles.style(&Styled::Default).paint(": "),
+            self.styles
+                .style(&Styled::ErrorMessage)
+                .paint(format!("{msg}")),
+        ];
+        writeln!(
+            self.outfile.as_mut().expect("outfile"),
+            "{}",
+            ANSIStrings(first_line)
+        )
+        .expect("writeln");
+
+        let second_line: &[ANSIString<'static>] = &[
+            self.styles.style(&Styled::Default).paint(format!(
+                "{:width$}",
+                "",
+                width = loc.line.to_string().len()
+            )),
+            self.styles.style(&Styled::Location).paint("-->"),
+            self.styles.style(&Styled::Default).paint(" "),
+            self.styles.style(&Styled::Location).paint("["),
+            self.styles
+                .style(&Styled::Location)
+                .paint(format!("{}", self.kind_tag(loc.kind))),
+            self.styles.style(&Styled::Location).paint("]"),
+            self.styles.style(&Styled::Default).paint(" "),
+            self.styles
+                .style(&Styled::Location)
+                .paint(format!("{}", loc.pathname.display())),
+            self.styles.style(&Styled::Location).paint(":"),
+            self.styles
+                .style(&Styled::Location)
+                .paint(format!("{}", loc.line)),
+            self.styles.style(&Styled::Location).paint(":"),
+            self.styles
+                .style(&Styled::Location)
+                .paint(format!("{}", loc.column)),
+        ];
+        writeln!(
+            self.outfile.as_mut().expect("outfile"),
+            "{}",
+            ANSIStrings(second_line)
+        )
+        .expect("writeln");
+
         if let Some(line) = self.get_line(loc) {
-            let line_marker = loc.line_marker();
             if loc.line > 0 {
+                let third_line: &[ANSIString<'static>] = &[
+                    self.styles
+                        .style(&Styled::Location)
+                        .paint(format!("{}", loc.line)),
+                    self.styles.style(&Styled::Default).paint(" "),
+                    self.styles.style(&Styled::Location).paint("|"),
+                    self.styles.style(&Styled::Default).paint(" "),
+                    self.styles
+                        .style(&Styled::SourceText)
+                        .paint(format!("{line}")),
+                ];
                 writeln!(
                     self.outfile.as_mut().expect("outfile"),
-                    "{line_marker} {line}"
+                    "{}",
+                    ANSIStrings(third_line)
                 )
                 .expect("writeln");
+
                 let mut spacing = String::new();
                 for c in line.chars().take(loc.column.saturating_sub(1)) {
                     if c == '\t' {
+                        // spacing.push_str("  ");
                         spacing.push('\t');
                     } else {
                         for _ in 0..c.width().unwrap_or(0) {
@@ -240,18 +549,28 @@ impl Errors {
                         }
                     }
                 }
+                let third_line: &[ANSIString<'static>] = &[
+                    self.styles.style(&Styled::Default).paint(format!(
+                        "{:width$}",
+                        "",
+                        width = loc.line.to_string().len()
+                    )),
+                    self.styles.style(&Styled::Default).paint(" "),
+                    self.styles.style(&Styled::Location).paint("|"),
+                    self.styles.style(&Styled::Default).paint(" "),
+                    self.styles
+                        .style(&Styled::Default)
+                        .paint(format!("{spacing}")),
+                    self.styles.style(&Styled::TagOld(level, true)).paint("^"),
+                ];
                 writeln!(
                     self.outfile.as_mut().expect("outfile"),
-                    "{line_marker} {spacing}^",
+                    "{}",
+                    ANSIStrings(third_line)
                 )
                 .expect("writeln");
             }
         }
-        writeln!(
-            self.outfile.as_mut().expect("outfile"),
-            "{level} ({key}): {msg}"
-        )
-        .expect("writeln");
         if let Some(info) = info {
             writeln!(self.outfile.as_mut().expect("outfile"), "  {info}").expect("writeln");
         }
@@ -437,6 +756,7 @@ impl Errors {
     }
 }
 
+/// Exclusively used in tests. Deprecated?
 pub fn log_to(outfile: Box<dyn ErrorLogger>) {
     Errors::get_mut().outfile = Some(outfile);
 }
@@ -482,37 +802,72 @@ pub fn add_loaded_mod_root(label: String, root: PathBuf) {
     Errors::get_mut().loaded_mods.push(root);
 }
 
+pub fn log(report: LogReport) {
+    Errors::get_mut().push_report(report);
+}
+
 pub fn error<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
-    Errors::get_mut().push(eloc, ErrorLevel::Error, key, msg, None);
-}
-
-pub fn error2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
-    Errors::get_mut().push2(eloc, ErrorLevel::Error, key, msg, eloc2, msg2);
-}
-
-pub fn error3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
-    eloc: E,
-    key: ErrorKey,
-    msg: &str,
-    eloc2: E2,
-    msg2: &str,
-    eloc3: E3,
-    msg3: &str,
-) {
-    Errors::get_mut().push3(eloc, ErrorLevel::Error, key, msg, eloc2, msg2, eloc3, msg3);
+    log(LogReport {
+        lvl: LogLevel::new(Severity::Error, Confidence::Reasonable),
+        key,
+        msg,
+        info: None,
+        pointers: vec![PointedMessage {
+            location: eloc.into_loc(),
+            length: 1,
+            msg: None,
+        }],
+    });
 }
 
 pub fn error_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     let info = if info.is_empty() { None } else { Some(info) };
-    Errors::get_mut().push(eloc, ErrorLevel::Error, key, msg, info);
+    log(LogReport {
+        lvl: LogLevel::new(Severity::Error, Confidence::Reasonable),
+        key,
+        msg,
+        info,
+        pointers: vec![PointedMessage {
+            location: eloc.into_loc(),
+            length: 1,
+            msg: None,
+        }],
+    });
 }
 
 pub fn warn<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
-    Errors::get_mut().push(eloc, ErrorLevel::Warning, key, msg, None);
+    log(LogReport {
+        lvl: LogLevel::new(Severity::Warning, Confidence::Reasonable),
+        key,
+        msg,
+        info: None,
+        pointers: vec![PointedMessage {
+            location: eloc.into_loc(),
+            length: 1,
+            msg: None,
+        }],
+    });
 }
 
 pub fn warn2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
-    Errors::get_mut().push2(eloc, ErrorLevel::Warning, key, msg, eloc2, msg2);
+    log(LogReport {
+        lvl: LogLevel::new(Severity::Warning, Confidence::Reasonable),
+        key,
+        msg,
+        info: None,
+        pointers: vec![
+            PointedMessage {
+                location: eloc.into_loc(),
+                length: 1,
+                msg: None,
+            },
+            PointedMessage {
+                location: eloc2.into_loc(),
+                length: 1,
+                msg: Some(msg2),
+            },
+        ],
+    });
 }
 
 pub fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
@@ -524,38 +879,79 @@ pub fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
     eloc3: E3,
     msg3: &str,
 ) {
-    Errors::get_mut().push3(
-        eloc,
-        ErrorLevel::Warning,
+    log(LogReport {
+        lvl: LogLevel::new(Severity::Warning, Confidence::Reasonable),
         key,
         msg,
-        eloc2,
-        msg2,
-        eloc3,
-        msg3,
-    );
+        info: None,
+        pointers: vec![
+            PointedMessage {
+                location: eloc.into_loc(),
+                length: 1,
+                msg: None,
+            },
+            PointedMessage {
+                location: eloc2.into_loc(),
+                length: 1,
+                msg: Some(msg2),
+            },
+            PointedMessage {
+                location: eloc3.into_loc(),
+                length: 1,
+                msg: Some(msg3),
+            },
+        ],
+    });
 }
 
 pub fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     let info = if info.is_empty() { None } else { Some(info) };
-    Errors::get_mut().push(eloc, ErrorLevel::Warning, key, msg, info);
-}
-
-pub fn info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
-    Errors::get_mut().push(eloc, ErrorLevel::Info, key, msg, None);
-}
-
-pub fn info_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
-    let info = if info.is_empty() { None } else { Some(info) };
-    Errors::get_mut().push(eloc, ErrorLevel::Info, key, msg, info);
+    log(LogReport {
+        lvl: LogLevel::new(Severity::Warning, Confidence::Reasonable),
+        key,
+        msg,
+        info,
+        pointers: vec![PointedMessage {
+            location: eloc.into_loc(),
+            length: 1,
+            msg: None,
+        }],
+    });
 }
 
 pub fn advice<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
-    Errors::get_mut().push(eloc, ErrorLevel::Advice, key, msg, None);
+    log(LogReport {
+        lvl: LogLevel::new(Severity::Info, Confidence::Reasonable),
+        key,
+        msg,
+        info: None,
+        pointers: vec![PointedMessage {
+            location: eloc.into_loc(),
+            length: 1,
+            msg: None,
+        }],
+    });
 }
 
 pub fn advice2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
-    Errors::get_mut().push2(eloc, ErrorLevel::Advice, key, msg, eloc2, msg2);
+    log(LogReport {
+        lvl: LogLevel::new(Severity::Info, Confidence::Reasonable),
+        key,
+        msg,
+        info: None,
+        pointers: vec![
+            PointedMessage {
+                location: eloc.into_loc(),
+                length: 1,
+                msg: None,
+            },
+            PointedMessage {
+                location: eloc2.into_loc(),
+                length: 1,
+                msg: Some(msg2),
+            },
+        ],
+    });
 }
 
 pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
@@ -591,6 +987,16 @@ pub fn ignore_path(path: PathBuf) {
 
 pub fn will_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
     Errors::get().will_log(&eloc.into_loc(), key)
+}
+
+/// Override the default OutputStyle. (Controls ansi colors)
+pub fn set_output_style(style: OutputStyle) {
+    Errors::get_mut().styles = style;
+}
+
+/// Disable color in the output.
+pub fn disable_ansi_colors() {
+    Errors::get_mut().styles = OutputStyle::no_color();
 }
 
 pub trait ErrorLogger: Write {
