@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 tiger-lib = { path = ".." }
 anyhow = "1"
-clap = { version = "3", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
 home = "0.5"

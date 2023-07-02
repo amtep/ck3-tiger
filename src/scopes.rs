@@ -13,6 +13,7 @@ bitflags! {
     /// LAST UPDATED VERSION 1.9.2
     /// See `event_scopes.log` from the game data dumps.
     /// Keep in sync with the module constants below.
+    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     pub struct Scopes: u64 {
         const None = 0x0000_0001;
         const Value = 0x0000_0002;

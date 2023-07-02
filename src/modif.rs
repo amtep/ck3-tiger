@@ -14,6 +14,7 @@ use crate::tables::modifs::lookup_modif;
 use crate::token::Token;
 
 bitflags! {
+    #[derive(Debug, Copy, Clone)]
     pub struct ModifKinds: u8 {
         const Character = 0x01;
         const Province = 0x02;
