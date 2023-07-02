@@ -2,32 +2,49 @@ use ansi_term::{ANSIString, ANSIStrings};
 use unicode_width::UnicodeWidthChar;
 
 use crate::fileset::FileKind;
+use crate::report::{LogReport, PointedMessage, Severity};
 use crate::report::errors::Errors;
 use crate::report::output_style::Styled;
-use crate::report::{LogReport, PointedMessage, Severity};
+
+/// Source lines printed in the output have tab characters replaced by this string.
+const SPACES_PER_TAB: &'static str = " ";
+/// Within a single report, if all printed source files have leading whitespace in excess of
+/// this number of spaces, the whitespace will be truncated.
+const MAX_IDLE_SPACE: usize = 4;
 
 /// Log the report.
 pub fn log_report(errors: &mut Errors, report: &LogReport) {
     // Log error lvl and message:
     log_line_title(errors, &report);
+    let lines = lines(errors, report);
+    let skippable_ws = skippable_ws(&lines);
+
     // Log the primary pointer:
     log_pointer(
         errors,
         None,
         report.primary(),
+        lines.first().unwrap_or(&None),
+        skippable_ws,
         report.indentation(),
         report.lvl.severity,
     );
     // Log the other pointers:
-    report.pointers.windows(2).for_each(|pointers| {
-        log_pointer(
-            errors,
-            pointers.get(0),
-            pointers.get(1).expect("Must exist."),
-            report.indentation(),
-            report.lvl.severity,
-        );
-    });
+    report
+        .pointers
+        .windows(2)
+        .enumerate()
+        .for_each(|(index, pointers)| {
+            log_pointer(
+                errors,
+                pointers.get(0),
+                pointers.get(1).expect("Must exist."),
+                lines.get(index + 1).unwrap_or(&None),
+                skippable_ws,
+                report.indentation(),
+                report.lvl.severity,
+            );
+        });
     // Log the info line, if one exists.
     if let Some(info) = report.info {
         log_line_info(errors, report.indentation(), info);
@@ -37,9 +54,11 @@ pub fn log_report(errors: &mut Errors, report: &LogReport) {
 }
 
 fn log_pointer(
-    errors: &mut Errors,
+    errors: &Errors,
     previous: Option<&PointedMessage>,
     pointer: &PointedMessage,
+    line: &Option<String>,
+    skippable_ws: usize,
     indentation: usize,
     severity: Severity,
 ) {
@@ -55,9 +74,10 @@ fn log_pointer(
         // not any particular location within the file.
         return;
     }
-    if let Some(line) = errors.get_line(&pointer.location) {
+    // If a line exists, slice it to skip the given number of spaces.
+    if let Some(line) = line.as_ref().map(|v| &v[skippable_ws..]) {
         log_line_from_source(errors, pointer, indentation, &line);
-        log_line_carets(errors, pointer, &line, indentation, severity);
+        log_line_carets(errors, pointer, &line, skippable_ws, indentation, severity);
     }
 }
 
@@ -153,18 +173,18 @@ fn log_line_carets(
     errors: &Errors,
     pointer: &PointedMessage,
     line: &str,
+    skippable_ws: usize,
     indentation: usize,
     severity: Severity,
 ) {
     let mut spacing = String::new();
-    for c in line.chars().take(pointer.location.column.saturating_sub(1)) {
-        if c == '\t' {
-            // spacing.push_str("  ");
-            spacing.push('\t');
-        } else {
-            for _ in 0..c.width().unwrap_or(0) {
-                spacing.push(' ');
-            }
+    for c in line
+        .chars()
+        .skip(skippable_ws)
+        .take(pointer.location.column.saturating_sub( skippable_ws + 1))
+    {
+        for _ in 0..c.width().unwrap_or(0) {
+            spacing.push(' ');
         }
     }
     // A line containing the carets that point upwards at the source line.
@@ -206,4 +226,29 @@ fn kind_tag(errors: &Errors, kind: FileKind) -> &str {
         FileKind::LoadedMod(idx) => &errors.loaded_mods_labels[idx as usize],
         FileKind::Mod => "MOD",
     }
+}
+
+/// Gathers all printable source lines and gets rid of tab characters for consistency.
+fn lines(errors: &mut Errors, report: &LogReport) -> Vec<Option<String>> {
+    report
+        .pointers
+        .iter()
+        .map(|p| {
+            errors
+                .get_line(&p.location)
+                .map(|line| line.replace("\t", SPACES_PER_TAB))
+        })
+        .collect()
+}
+
+/// Calculates how many leading spaces to skip from each printed source line.
+fn skippable_ws(lines: &Vec<Option<String>>) -> usize {
+    lines
+        .iter()
+        .flatten()
+        .map(|line| line.chars().take_while(|ch| ch == &' ').count())
+        .min()
+        .map(|smallest_whitespace| smallest_whitespace.saturating_sub(MAX_IDLE_SPACE))
+        // If there are no lines, this value doesn't matter anyway, so just return a zero:
+        .unwrap_or(0)
 }
