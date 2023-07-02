@@ -1,0 +1,12 @@
+[package]
+name = "ck3-tiger"
+version = "0.5.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tiger-lib = { path = ".." }
+anyhow = "1"
+clap = { version = "3", features = ["derive"] }
+home = "0.5"

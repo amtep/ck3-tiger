@@ -1,5 +1,12 @@
+[workspace]
+
+members = [
+    "ck3-tiger",
+    ".",
+]
+
 [package]
-name = "ck3-tiger"
+name = "tiger-lib"
 version = "0.5.0"
 edition = "2021"
 
@@ -7,12 +14,9 @@ edition = "2021"
 anyhow = "1"
 as-any = "0.3.0"
 bitflags = "1.3.2"
-clap = { version = "3", features = ["derive"] }
 encoding = "0.2"
 fnv = "1"
-home = "0.5"
 image = "0.24"
-itertools = "0.10"
 lazy_static = "1"
 png = "0.17.6"
 strum = "0.24.1"

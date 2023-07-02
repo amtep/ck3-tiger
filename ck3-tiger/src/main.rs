@@ -9,13 +9,13 @@ use winreg::enums::HKEY_LOCAL_MACHINE;
 #[cfg(windows)]
 use winreg::RegKey;
 
-use ck3_tiger::errorkey::ErrorKey;
-use ck3_tiger::errors::{
+use tiger_lib::errorkey::ErrorKey;
+use tiger_lib::errors::{
     ignore_key, minimum_level, set_mod_root, set_vanilla_root, show_loaded_mods, show_vanilla,
     ErrorLevel,
 };
-use ck3_tiger::everything::Everything;
-use ck3_tiger::modfile::ModFile;
+use tiger_lib::everything::Everything;
+use tiger_lib::modfile::ModFile;
 
 /// Steam's code for Crusader Kings 3
 const CK3_APP_ID: &str = "1158310";
