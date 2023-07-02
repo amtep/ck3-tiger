@@ -5,9 +5,11 @@ pub use errors::{
     set_vanilla_root, show_loaded_mods, show_vanilla, warn, warn2, warn3, warn_abbreviated,
     warn_header, warn_info, will_log, ErrorLevel, ErrorLoc,
 };
+pub use output_style::OutputStyle;
 pub use report_struct::{Confidence, LogLevel, LogReport, PointedMessage, Severity};
 
 mod errorkey;
 mod errors;
+mod output_style;
 mod report_struct;
 mod writer;

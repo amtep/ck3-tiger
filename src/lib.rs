@@ -40,7 +40,6 @@ mod helpers;
 mod item;
 mod macrocache;
 mod modif;
-mod output_style;
 mod parse;
 mod pdxfile;
 mod rivers;
