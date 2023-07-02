@@ -1,7 +1,8 @@
 use std::fmt::{Display, Formatter};
 
+use crate::error::{Confidence, LogLevel, LogReport, PointedMessage, Severity};
 use crate::errorkey::ErrorKey;
-use crate::errors::{advice2, warn2};
+use crate::errors::{advice2, log, warn2};
 use crate::token::Token;
 
 /// Warns about a redefinition of a database item
@@ -46,13 +47,24 @@ pub fn dup_assign_error(key: &Token, other: &Token) {
     let mut other = other.clone();
     other.loc.link = None;
 
-    warn2(
-        &other,
-        ErrorKey::DuplicateField,
-        &format!("`{other}` is redefined in a following line"),
-        &key,
-        "the other one is here",
-    );
+    log(LogReport {
+        lvl: LogLevel::new(Severity::Warning, Confidence::Reasonable),
+        key: ErrorKey::DuplicateField,
+        msg: format!("`{other}` is redefined in a following line").as_str(),
+        info: None,
+        pointers: vec![
+            PointedMessage {
+                location: other.loc.clone(),
+                length: other.as_str().len(),
+                msg: None,
+            },
+            PointedMessage {
+                location: key.loc.clone(),
+                length: key.as_str().len(),
+                msg: Some("the other one is here"),
+            },
+        ],
+    });
 }
 
 pub fn display_choices(f: &mut Formatter, v: &[&str], joiner: &str) -> Result<(), std::fmt::Error> {
