@@ -1,20 +1,21 @@
-use fnv::{FnvHashMap, FnvHashSet};
 use std::cell::RefCell;
 use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
+use fnv::{FnvHashMap, FnvHashSet};
+
 use crate::block::Block;
 use crate::datatype::{validate_datatypes, CodeChain, Datatype};
-use crate::errorkey::ErrorKey;
-use crate::errors::{
-    advice_info, error, error_info, warn, warn2, warn_abbreviated, warn_header, warn_info, will_log,
-};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::{dup_error, stringify_list};
 use crate::item::Item;
 use crate::parse::localization::{parse_loca, ValueParser};
+use crate::report::ErrorKey;
+use crate::report::{
+    advice_info, error, error_info, warn, warn2, warn_abbreviated, warn_header, warn_info, will_log,
+};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -512,10 +513,10 @@ impl FileHandler for Localization {
         } else if entry.kind() >= FileKind::Vanilla {
             // Check for `FileKind::Vanilla` because Jomini and Clausewitz support more languages
             error_info(
-               entry,
-               ErrorKey::Filename,
-               "could not determine language from filename",
-               &format!("Localization filenames should end in _l_language.yml, where language is one of {}", KNOWN_LANGUAGES.join(", "))
+                entry,
+                ErrorKey::Filename,
+                "could not determine language from filename",
+                &format!("Localization filenames should end in _l_language.yml, where language is one of {}", KNOWN_LANGUAGES.join(", ")),
             );
         }
     }

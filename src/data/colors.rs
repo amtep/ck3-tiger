@@ -1,9 +1,8 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
-use crate::errorkey::ErrorKey;
-use crate::errors::warn;
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::{warn, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_color;
 

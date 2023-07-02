@@ -1,11 +1,11 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, BV};
 use crate::context::ScopeContext;
-use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, error, error_info, warn};
 use crate::everything::Everything;
 use crate::helpers::TriBool;
 use crate::item::Item;
+use crate::report::ErrorKey;
+use crate::report::{advice_info, error, error_info, warn};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;

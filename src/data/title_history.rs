@@ -1,17 +1,18 @@
-use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
+
+use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
 use crate::context::ScopeContext;
 use crate::data::titles::Tier;
 use crate::effect::validate_normal_effect;
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn, warn2};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::report::ErrorKey;
+use crate::report::{error, error_info, warn, warn2};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -71,7 +72,7 @@ impl FileHandler for TitleHistories {
             return;
         }
 
-        let Some(mut block) = PdxFile::read_cp1252(entry, fullpath) else { return };
+        let Some(mut block) = PdxFile::read_cp1252(entry, fullpath) else { return; };
         for (key, block) in block.drain_definitions_warn() {
             if Tier::try_from(&key).is_ok() {
                 self.load_item(key, block);

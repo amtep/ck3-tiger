@@ -1,10 +1,10 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
-use crate::errorkey::ErrorKey;
-use crate::errors::{warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::ErrorKey;
+use crate::report::{warn, warn_info};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;

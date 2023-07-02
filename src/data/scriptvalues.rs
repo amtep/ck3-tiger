@@ -1,15 +1,16 @@
-use fnv::FnvHashMap;
 use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 
+use fnv::FnvHashMap;
+
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
-use crate::errorkey::ErrorKey;
-use crate::errors::warn;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
+use crate::report::warn;
+use crate::report::ErrorKey;
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::{Loc, Token};
@@ -89,7 +90,7 @@ impl FileHandler for ScriptValues {
             return;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return };
+        let Some(block) = PdxFile::read(entry, fullpath) else { return; };
         for (key, bv) in block.iter_bv_definitions_warn() {
             self.load_item(key, bv);
         }

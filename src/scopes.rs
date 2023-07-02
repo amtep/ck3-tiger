@@ -1,12 +1,13 @@
 #![allow(non_upper_case_globals)]
 
-use bitflags::bitflags;
 use std::fmt::{Display, Formatter};
 
-use crate::errorkey::ErrorKey;
-use crate::errors::warn_info;
+use bitflags::bitflags;
+
 use crate::everything::Everything;
 use crate::helpers::display_choices;
+use crate::report::warn_info;
+use crate::report::ErrorKey;
 use crate::token::Token;
 
 bitflags! {

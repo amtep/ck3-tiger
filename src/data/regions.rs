@@ -1,10 +1,10 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::ErrorKey;
+use crate::report::{error, error_info};
 use crate::token::Token;
 use crate::validate::validate_color;
 

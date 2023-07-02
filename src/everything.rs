@@ -1,9 +1,10 @@
-use anyhow::Result;
-use fnv::FnvHashSet;
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+
+use anyhow::Result;
+use fnv::FnvHashSet;
 use strum::IntoEnumIterator;
 use thiserror::Error;
 
@@ -129,14 +130,14 @@ use crate::data::vassalcontract::VassalContract;
 use crate::data::vassalstance::VassalStance;
 use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
-use crate::errorkey::ErrorKey;
-use crate::errors::{
-    error, ignore_key, ignore_key_for, ignore_path, set_output_style, warn, ErrorLevel,
-};
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::item::Item;
 use crate::output_style::OutputStyle;
 use crate::pdxfile::PdxFile;
+use crate::report::ErrorKey;
+use crate::report::{
+    error, ignore_key, ignore_key_for, ignore_path, set_output_style, warn, ErrorLevel,
+};
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 
@@ -342,9 +343,9 @@ impl Everything {
         }
     }
 
-    /// Load the OutputStyle settings from the config.
+    /// Load the `OutputStyle` settings from the config.
     /// Returns None if no settings are defined.
-    /// Otherwise, returns the overwritten OutputStyles.
+    /// Otherwise, returns the overwritten `OutputStyles`.
     ///
     /// Note that the settings from the config can still be overridden
     /// by supplying the --no-color flag.

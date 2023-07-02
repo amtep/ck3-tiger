@@ -1,11 +1,12 @@
-use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
+use anyhow::{Context, Result};
+
 use crate::block::Block;
-use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, error_info, warn};
 use crate::fileset::{FileEntry, FileKind};
 use crate::pdxfile::PdxFile;
+use crate::report::ErrorKey;
+use crate::report::{advice_info, error_info, warn};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -49,8 +50,8 @@ fn validate_modfile(block: &Block) -> ModFile {
     for path in &modfile.replace_paths {
         if path.is("history") {
             advice_info(path, ErrorKey::Unneeded,
-                "replace_path only replaces the specific directory, not any directories below it",
-                "So replace_path = history is not useful, you should replace the paths under it. However, replace_path = history/province_mapping will crash the game.");
+                        "replace_path only replaces the specific directory, not any directories below it",
+                        "So replace_path = history is not useful, you should replace the paths under it. However, replace_path = history/province_mapping will crash the game.");
         } else if path.is("history/province_mapping") {
             error_info(
                 path,

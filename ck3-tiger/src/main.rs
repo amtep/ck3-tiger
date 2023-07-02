@@ -1,21 +1,21 @@
-use anyhow::{bail, Result};
-use clap::Parser;
-use home::home_dir;
 use std::fs::read_to_string;
 use std::path::PathBuf;
 
+use anyhow::{bail, Result};
+use clap::Parser;
+use home::home_dir;
+
+use tiger_lib::everything::Everything;
+use tiger_lib::modfile::ModFile;
+use tiger_lib::report::ErrorKey;
+use tiger_lib::report::{
+    disable_ansi_colors, ignore_key, minimum_level, set_mod_root, set_vanilla_root,
+    show_loaded_mods, show_vanilla, ErrorLevel,
+};
 #[cfg(windows)]
 use winreg::enums::HKEY_LOCAL_MACHINE;
 #[cfg(windows)]
 use winreg::RegKey;
-
-use tiger_lib::errorkey::ErrorKey;
-use tiger_lib::errors::{
-    disable_ansi_colors, ignore_key, minimum_level, set_mod_root, set_vanilla_root, show_loaded_mods, show_vanilla,
-    ErrorLevel,
-};
-use tiger_lib::everything::Everything;
-use tiger_lib::modfile::ModFile;
 
 /// Steam's code for Crusader Kings 3
 const CK3_APP_ID: &str = "1158310";

@@ -4,11 +4,10 @@ use std::str::FromStr;
 
 use crate::block::{Block, Comparator, Date, Token, BV};
 use crate::context::ScopeContext;
-use crate::errorkey::ErrorKey;
-use crate::errors::{advice, error, warn};
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;
+use crate::report::{advice, error, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::scriptvalue::{validate_scriptvalue, validate_scriptvalue_no_breakdown};
 use crate::trigger::{validate_target, validate_target_ok_this};
