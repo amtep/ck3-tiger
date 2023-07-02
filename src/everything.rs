@@ -132,12 +132,9 @@ use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::item::Item;
-use crate::output_style::OutputStyle;
 use crate::pdxfile::PdxFile;
-use crate::report::ErrorKey;
-use crate::report::{
-    error, ignore_key, ignore_key_for, ignore_path, set_output_style, warn, ErrorLevel,
-};
+use crate::report::{error, ignore_key, ignore_key_for, ignore_path, set_output_style, warn};
+use crate::report::{ErrorKey, OutputStyle, Severity};
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 
@@ -355,12 +352,12 @@ impl Everything {
             return Some(OutputStyle::no_color());
         }
         let mut style = OutputStyle::default();
-        for level in ErrorLevel::iter() {
+        for severity in Severity::iter() {
             if let Some(error_block) =
-                block.get_field_block(format!("{level}").to_ascii_lowercase().as_str())
+                block.get_field_block(format!("{severity}").to_ascii_lowercase().as_str())
             {
                 if let Some(color) = error_block.get_field_value("color") {
-                    style.set(level, color.as_str());
+                    style.set(severity, color.as_str());
                 }
             }
         }

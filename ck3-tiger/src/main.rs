@@ -201,12 +201,15 @@ fn main() -> Result<()> {
         bail!("Cannot find mod directory. Please make sure the .mod file is correct.");
     }
     eprintln!("Using mod directory: {}", modpath.display());
-    eprintln!();
 
     set_mod_root(modpath.clone());
 
     let mut everything = Everything::new(&args.ck3.unwrap(), &modpath, modfile.replace_paths())?;
     everything.load_output_settings();
+
+    // Print a blank line between the preamble and the first report:
+    eprintln!();
+
     // We must apply the --no-color flag AFTER loading and applying the config,
     // because we want it to override the config.
     if args.no_color {

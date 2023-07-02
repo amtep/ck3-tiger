@@ -3,23 +3,21 @@ use std::fs::read;
 use std::io::{stdout, Stderr, Stdout, Write};
 use std::path::PathBuf;
 
-use ansi_term::{ANSIString, ANSIStrings};
 use encoding::all::{UTF_8, WINDOWS_1252};
 use encoding::{DecoderTrap, Encoding};
 use fnv::{FnvHashMap, FnvHashSet};
 use strum_macros::EnumIter;
-use unicode_width::UnicodeWidthChar;
 
 use crate::block::{Block, BV};
 use crate::fileset::{FileEntry, FileKind};
-use crate::output_style::{OutputStyle, Styled};
 use crate::report::writer::log_report;
 use crate::report::ErrorKey;
-use crate::report::{Confidence, LogLevel, LogReport, PointedMessage, Severity};
+use crate::report::{Confidence, LogLevel, LogReport, OutputStyle, PointedMessage, Severity};
 use crate::token::{Loc, Token};
 
 static mut ERRORS: Option<Errors> = None;
 
+/// Deprecated
 #[derive(Clone, Copy, Debug, Default, Ord, PartialOrd, Eq, PartialEq, Hash, EnumIter)]
 pub enum ErrorLevel {
     #[default]
@@ -248,133 +246,6 @@ impl Errors {
         log_report(self, &report);
     }
 
-    /// Deprecated in favour of `log_report()`.
-    pub fn log(
-        &mut self,
-        loc: &Loc,
-        level: ErrorLevel,
-        key: ErrorKey,
-        msg: &str,
-        info: Option<&str>,
-    ) {
-        if self.outfile.is_none() {
-            self.outfile = Some(Box::new(stdout()));
-        }
-        let first_line: &[ANSIString<'static>] = &[
-            self.styles
-                .style(&Styled::TagOld(level, true))
-                .paint(format!("{level}")),
-            self.styles.style(&Styled::TagOld(level, false)).paint("("),
-            self.styles
-                .style(&Styled::TagOld(level, false))
-                .paint(format!("{key}")),
-            self.styles.style(&Styled::TagOld(level, false)).paint(")"),
-            self.styles.style(&Styled::Default).paint(": "),
-            self.styles
-                .style(&Styled::ErrorMessage)
-                .paint(format!("{msg}")),
-        ];
-        writeln!(
-            self.outfile.as_mut().expect("outfile"),
-            "{}",
-            ANSIStrings(first_line)
-        )
-        .expect("writeln");
-
-        let second_line: &[ANSIString<'static>] = &[
-            self.styles.style(&Styled::Default).paint(format!(
-                "{:width$}",
-                "",
-                width = loc.line.to_string().len()
-            )),
-            self.styles.style(&Styled::Location).paint("-->"),
-            self.styles.style(&Styled::Default).paint(" "),
-            self.styles.style(&Styled::Location).paint("["),
-            self.styles
-                .style(&Styled::Location)
-                .paint(format!("{}", self.kind_tag(loc.kind))),
-            self.styles.style(&Styled::Location).paint("]"),
-            self.styles.style(&Styled::Default).paint(" "),
-            self.styles
-                .style(&Styled::Location)
-                .paint(format!("{}", loc.pathname.display())),
-            self.styles.style(&Styled::Location).paint(":"),
-            self.styles
-                .style(&Styled::Location)
-                .paint(format!("{}", loc.line)),
-            self.styles.style(&Styled::Location).paint(":"),
-            self.styles
-                .style(&Styled::Location)
-                .paint(format!("{}", loc.column)),
-        ];
-        writeln!(
-            self.outfile.as_mut().expect("outfile"),
-            "{}",
-            ANSIStrings(second_line)
-        )
-        .expect("writeln");
-
-        if let Some(line) = self.get_line(loc) {
-            if loc.line > 0 {
-                let third_line: &[ANSIString<'static>] = &[
-                    self.styles
-                        .style(&Styled::Location)
-                        .paint(format!("{}", loc.line)),
-                    self.styles.style(&Styled::Default).paint(" "),
-                    self.styles.style(&Styled::Location).paint("|"),
-                    self.styles.style(&Styled::Default).paint(" "),
-                    self.styles
-                        .style(&Styled::SourceText)
-                        .paint(format!("{line}")),
-                ];
-                writeln!(
-                    self.outfile.as_mut().expect("outfile"),
-                    "{}",
-                    ANSIStrings(third_line)
-                )
-                .expect("writeln");
-
-                let mut spacing = String::new();
-                for c in line.chars().take(loc.column.saturating_sub(1)) {
-                    if c == '\t' {
-                        // spacing.push_str("  ");
-                        spacing.push('\t');
-                    } else {
-                        for _ in 0..c.width().unwrap_or(0) {
-                            spacing.push(' ');
-                        }
-                    }
-                }
-                let third_line: &[ANSIString<'static>] = &[
-                    self.styles.style(&Styled::Default).paint(format!(
-                        "{:width$}",
-                        "",
-                        width = loc.line.to_string().len()
-                    )),
-                    self.styles.style(&Styled::Default).paint(" "),
-                    self.styles.style(&Styled::Location).paint("|"),
-                    self.styles.style(&Styled::Default).paint(" "),
-                    self.styles
-                        .style(&Styled::Default)
-                        .paint(format!("{spacing}")),
-                    self.styles.style(&Styled::TagOld(level, true)).paint("^"),
-                ];
-                writeln!(
-                    self.outfile.as_mut().expect("outfile"),
-                    "{}",
-                    ANSIStrings(third_line)
-                )
-                .expect("writeln");
-            }
-        }
-        if let Some(info) = info {
-            writeln!(self.outfile.as_mut().expect("outfile"), "  {info}").expect("writeln");
-        }
-        if let Some(link) = &loc.link {
-            self.log(link, level, key, "from here", None);
-        }
-    }
-
     pub fn log_abbreviated(&mut self, loc: &Loc, key: ErrorKey) {
         if self.outfile.is_none() {
             self.outfile = Some(Box::new(stdout()));
@@ -389,98 +260,6 @@ impl Errors {
         } else if let Some(line) = self.get_line(loc) {
             writeln!(self.outfile.as_mut().expect("outfile"), "({key}) {line}").expect("writeln");
         }
-    }
-
-    #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
-    pub fn push<E: ErrorLoc>(
-        &mut self,
-        eloc: E,
-        level: ErrorLevel,
-        key: ErrorKey,
-        msg: &str,
-        info: Option<&str>,
-    ) {
-        if level < self.minimum_level {
-            return;
-        }
-        let loc = eloc.into_loc();
-        let index = (loc.clone(), key, msg.to_string(), None, None);
-        if self.seen.contains(&index) {
-            return;
-        }
-        self.seen.insert(index);
-        if !self.will_log(&loc, key) {
-            return;
-        }
-        self.log(&loc, level, key, msg, info);
-        writeln!(self.outfile.as_mut().expect("outfile")).expect("writeln");
-    }
-
-    #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
-    pub fn push2<E: ErrorLoc, E2: ErrorLoc>(
-        &mut self,
-        eloc: E,
-        level: ErrorLevel,
-        key: ErrorKey,
-        msg: &str,
-        eloc2: E2,
-        msg2: &str,
-    ) {
-        if level < self.minimum_level {
-            return;
-        }
-        let loc = eloc.into_loc();
-        let loc2 = eloc2.into_loc();
-        let index = (loc.clone(), key, msg.to_string(), Some(loc2.clone()), None);
-        if self.seen.contains(&index) {
-            return;
-        }
-        self.seen.insert(index);
-        if !self.will_log(&loc, key) {
-            return;
-        }
-        self.log(&loc, level, key, msg, None);
-        self.log(&loc2, ErrorLevel::Info, key, msg2, None);
-        writeln!(self.outfile.as_mut().expect("outfile")).expect("writeln");
-    }
-
-    #[allow(clippy::similar_names)] // eloc and loc are perfectly clear
-    #[allow(clippy::too_many_arguments)]
-    pub fn push3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
-        &mut self,
-        eloc: E,
-        level: ErrorLevel,
-        key: ErrorKey,
-        msg: &str,
-        eloc2: E2,
-        msg2: &str,
-        eloc3: E3,
-        msg3: &str,
-    ) {
-        if level < self.minimum_level {
-            return;
-        }
-        let loc = eloc.into_loc();
-        let loc2 = eloc2.into_loc();
-        let loc3 = eloc3.into_loc();
-        let index = (
-            loc.clone(),
-            key,
-            msg.to_string(),
-            Some(loc2.clone()),
-            Some(loc3.clone()),
-        );
-        if self.seen.contains(&index) {
-            return;
-        }
-        self.seen.insert(index);
-        if !self.will_log(&loc, key) {
-            return;
-        }
-        self.log(&loc, level, key, msg, None);
-        self.log(&loc2, ErrorLevel::Info, key, msg2, None);
-        self.log(&loc3, ErrorLevel::Info, key, msg3, None);
-        writeln!(self.outfile.as_mut().expect("outfile")).expect("writeln");
     }
 
     pub fn push_abbreviated<E: ErrorLoc>(&mut self, eloc: E, level: ErrorLevel, key: ErrorKey) {
@@ -530,14 +309,6 @@ impl Errors {
                 None => unreachable!(),
             }
         }
-    }
-
-    fn loc_file_marker(&self, loc: &Loc) -> String {
-        format!(
-            "[{}] file {}",
-            self.kind_tag(loc.kind),
-            loc.pathname.display()
-        )
     }
 
     fn kind_tag(&self, kind: FileKind) -> &str {
@@ -598,8 +369,32 @@ pub fn add_loaded_mod_root(label: String, root: PathBuf) {
     Errors::get_mut().loaded_mods.push(root);
 }
 
-pub fn log(report: LogReport) {
+pub fn log(mut report: LogReport) {
+    let mut vec = Vec::new();
+    report.pointers.drain(..).for_each(|pointer| {
+        let index = vec.len();
+        recursive_pointed_msg_expansion(&mut vec, &pointer);
+        vec.insert(index, pointer);
+    });
+    report.pointers.extend(vec);
     Errors::get_mut().push_report(report);
+}
+
+/// Expand `PointedMessage` recursively.
+/// That is; for the given `PointedMessage`, follow its location's link until such link is no
+/// longer available, adding a newly created `PointedMessage` to the given `Vec` for each linked
+/// location.
+fn recursive_pointed_msg_expansion(vec: &mut Vec<PointedMessage>, pointer: &PointedMessage) {
+    if let Some(link) = &pointer.location.link {
+        let from_here = PointedMessage {
+            location: link.as_ref().into_loc(),
+            length: 1,
+            msg: Some("from here"),
+        };
+        let index = vec.len();
+        recursive_pointed_msg_expansion(vec, &from_here);
+        vec.insert(index, from_here);
+    }
 }
 
 pub fn error<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
@@ -752,7 +547,17 @@ pub fn advice2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc
 
 pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     let info = if info.is_empty() { None } else { Some(info) };
-    Errors::get_mut().push(eloc, ErrorLevel::Advice, key, msg, info);
+    log(LogReport {
+        lvl: LogLevel::new(Severity::Info, Confidence::Reasonable),
+        key,
+        msg,
+        info,
+        pointers: vec![PointedMessage {
+            location: eloc.into_loc(),
+            length: 1,
+            msg: None,
+        }],
+    });
 }
 
 pub fn warn_header(key: ErrorKey, msg: &str) {
