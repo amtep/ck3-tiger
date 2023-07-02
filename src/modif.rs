@@ -5,13 +5,11 @@ use std::fmt::{Display, Formatter};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::scopes::Scopes;
-use crate::scriptvalue::validate_scriptvalue;
+use crate::scriptvalue::validate_non_dynamic_scriptvalue;
 use crate::tables::modifs::lookup_modif;
 use crate::token::Token;
 
@@ -73,8 +71,7 @@ pub fn validate_modifs<'a>(
     for (key, bv) in vd.unknown_fields() {
         if let Some(mk) = lookup_modif(key, data, true) {
             kinds.require(mk, key);
-            let mut sc = ScopeContext::new_root(Scopes::None, key.clone());
-            validate_scriptvalue(bv, data, &mut sc);
+            validate_non_dynamic_scriptvalue(bv, data);
             if !key.is("health") && !key.is("negate_health_penalty_add") {
                 data.verify_exists(Item::ModifierFormat, key);
             }

@@ -10,7 +10,7 @@ use crate::errors::{advice_info, error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::{scope_iterator, Scopes};
-use crate::scriptvalue::validate_scriptvalue;
+use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::tables::effects::{scope_effect, Effect};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -1384,7 +1384,7 @@ fn validate_effect_special(
         vd.field_script_value("base", sc);
         for (token, bv) in vd.unknown_fields() {
             data.verify_exists(Item::Trait, token);
-            validate_scriptvalue(bv, data, sc);
+            validate_non_dynamic_scriptvalue(bv, data);
         }
     } else if caller == "switch" {
         vd.set_case_sensitive(true);

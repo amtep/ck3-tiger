@@ -11,7 +11,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
 use crate::scopes::{scope_from_snake_case, Scopes};
-use crate::scriptvalue::validate_scriptvalue;
+use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::{Loc, Token};
 
 #[derive(Clone, Debug, Default)]
@@ -47,6 +47,12 @@ impl ScriptValues {
     pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
         if let Some(item) = self.scriptvalues.get(key.as_str()) {
             item.validate_call(key, data, sc);
+        }
+    }
+
+    pub fn validate_non_dynamic_call(&self, key: &Token, data: &Everything) {
+        if let Some(item) = self.scriptvalues.get(key.as_str()) {
+            item.validate_non_dynamic_call(data);
         }
     }
 }
@@ -150,5 +156,9 @@ impl ScriptValue {
             sc.expect_compatibility(&our_sc, key);
             self.cache.borrow_mut().insert(key.loc.clone(), our_sc);
         }
+    }
+
+    pub fn validate_non_dynamic_call(&self, data: &Everything) {
+        validate_non_dynamic_scriptvalue(&self.bv, data);
     }
 }

@@ -2,7 +2,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, BV};
 use crate::context::ScopeContext;
 use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, error, warn};
+use crate::errors::{advice_info, error, error_info, warn};
 use crate::everything::Everything;
 use crate::helpers::TriBool;
 use crate::item::Item;
@@ -226,4 +226,19 @@ pub fn validate_scriptvalue(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
 
 pub fn validate_scriptvalue_no_breakdown(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     validate_bv(bv, data, sc, false);
+}
+
+pub fn validate_non_dynamic_scriptvalue(bv: &BV, data: &Everything) {
+    if let Some(token) = bv.get_value() {
+        if token.is_number() || token.is("yes") || token.is("no") {
+            return;
+        }
+        if data.scriptvalues.exists(token.as_str()) {
+            data.scriptvalues.validate_non_dynamic_call(token, data);
+            return;
+        }
+    }
+    let msg = "dynamic script values are not allowed here";
+    let info = "only literal numbers or the name of a simple script value";
+    error_info(bv, ErrorKey::Validation, msg, info);
 }
