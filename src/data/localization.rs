@@ -28,7 +28,7 @@ pub struct Localization {
 }
 
 // LAST UPDATED VERSION 1.9.2
-pub const KNOWN_LANGUAGES: [&str; 7] = [
+pub const KNOWN_LANGUAGES: &[&str] = &[
     "english",
     "spanish",
     "french",
@@ -36,6 +36,14 @@ pub const KNOWN_LANGUAGES: [&str; 7] = [
     "russian",
     "korean",
     "simp_chinese",
+    #[cfg(feature = "vic3")]
+    "braz_por",
+    #[cfg(feature = "vic3")]
+    "japanese",
+    #[cfg(feature = "vic3")]
+    "polish",
+    #[cfg(feature = "vic3")]
+    "turkish",
 ];
 
 // LAST UPDATED VERSION 1.9.2
@@ -194,6 +202,7 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
     KNOWN_LANGUAGES
         .into_iter()
         .find(|&lang| filename.contains(&format!("l_{lang}")))
+        .copied()
 }
 
 impl Localization {
@@ -413,7 +422,7 @@ impl FileHandler for Localization {
             // TODO: warn if there are unknown languages in check or skip?
             let check = block.get_field_values("check");
             let skip = block.get_field_values("skip");
-            for lang in &KNOWN_LANGUAGES {
+            for lang in KNOWN_LANGUAGES {
                 if check.iter().any(|t| t.is(lang))
                     || (check.is_empty() && skip.iter().all(|t| !t.is(lang)))
                 {
@@ -477,7 +486,7 @@ impl FileHandler for Localization {
         }
 
         if entry.kind() == FileKind::Mod && !self.mod_langs.contains(&&*lang) {
-            for known in KNOWN_LANGUAGES {
+            for &known in KNOWN_LANGUAGES {
                 if known == lang {
                     self.mod_langs.push(known);
                 }
