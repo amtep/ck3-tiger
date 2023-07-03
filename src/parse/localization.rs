@@ -618,7 +618,9 @@ impl<'a> ValueParser<'a> {
                             break;
                         }
                     }
-                    at_end = true;
+                    if self.peek() != Some(';') {
+                        at_end = true;
+                    }
                 } else {
                     let msg = "#markup should be followed by a space";
                     warn(loc, ErrorKey::Localization, msg);
