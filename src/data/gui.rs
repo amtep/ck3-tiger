@@ -50,7 +50,7 @@ impl Gui {
                         let info = "did you forget the `type` keyword?";
                         warn_info(key, ErrorKey::ParseError, &msg, info);
                     } else if let Some(token) = bv.expect_value() {
-                        if token.is("type") {
+                        if token.is("type") || token.is("local_type") {
                             stage = Expecting::Header;
                         } else {
                             let msg = format!("unexpected token `{token}`");
