@@ -187,7 +187,11 @@ use RawTrigger::*;
 const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Accolade, "accolade_rank", CompareValue),
     (AccoladeType, "accolade_type_tier", Scope(AccoladeType)),
-    (LandedTitle, "active_de_jure_drift_progress", CompareValue),
+    (
+        LandedTitle & !BaronyTitle,
+        "active_de_jure_drift_progress",
+        CompareValue,
+    ),
     // TODO: warn if this is in an any_ iterator and not at the end
     (ALL_BUT_NONE, "add_to_temporary_list", Special),
     (Character, "age", CompareValue),
@@ -273,9 +277,14 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     ),
     (Inspiration, "base_inspiration_gold_cost", CompareValue),
     (Character, "base_weight", CompareValue),
-    (LandedTitle | Province, "building_levies", CompareValue),
+    // TODO: figure out if barony title is ok. Docs say "county or province"
     (
-        LandedTitle | Province,
+        CountyTitle | BaronyTitle | Province,
+        "building_levies",
+        CompareValue,
+    ),
+    (
+        CountyTitle | BaronyTitle | Province,
         "building_max_garrison",
         CompareValue,
     ),
@@ -298,7 +307,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Artifact, "can_be_claimed_by", Scope(Character)),
     (Character, "can_be_employed_as", Item(Item::CourtPosition)),
     (Secret, "can_be_exposed_by", Scope(Character)),
-    (LandedTitle, "can_be_leased_out", Boolean),
+    (BaronyTitle, "can_be_leased_out", Boolean),
     (Character, "can_be_parent_of", Scope(Character)),
     (Character, "can_benefit_from_artifact", Scope(Artifact)),
     (TravelPlan, "can_cancel", Boolean),
@@ -363,11 +372,11 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     ),
     (None, "can_start_tutorial_lesson", UncheckedValue), // TODO
     (
-        LandedTitle,
+        CountyTitle,
         "can_title_create_faction",
         Block(&[("type", Item(Item::Faction)), ("target", Scope(Character))]),
     ),
-    (LandedTitle, "can_title_join_faction", Scope(Faction)),
+    (CountyTitle, "can_title_join_faction", Scope(Faction)),
     (Artifact, "category", Choice(&["inventory", "court"])),
     (
         Character,
@@ -390,13 +399,13 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Item(Item::HolySiteFlag),
     ),
     (Character, "council_task_monthly_progress", CompareValue),
-    (LandedTitle, "county_control", CompareValue),
-    (LandedTitle, "county_control_rate", CompareValue),
-    (LandedTitle, "county_control_rate_modifier", CompareValue),
-    (LandedTitle, "county_holder_opinion", CompareValue),
-    (LandedTitle, "county_opinion", CompareValue),
+    (CountyTitle, "county_control", CompareValue),
+    (CountyTitle, "county_control_rate", CompareValue),
+    (CountyTitle, "county_control_rate_modifier", CompareValue),
+    (CountyTitle, "county_holder_opinion", CompareValue),
+    (CountyTitle, "county_opinion", CompareValue),
     (
-        LandedTitle,
+        CountyTitle,
         "county_opinion_target",
         Block(&[("target", Scope(Character)), ("value", CompareValue)]),
     ),
@@ -463,11 +472,15 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (TravelPlan, "days_travelled", CompareValue),
     (GreatHolyWar, "days_until_ghw_launch", CompareValue),
     (
-        LandedTitle,
+        LandedTitle & !BaronyTitle,
         "de_jure_drift_progress",
         Block(&[("target", Scope(LandedTitle)), ("value", CompareValue)]),
     ),
-    (LandedTitle, "de_jure_drifting_towards", Scope(LandedTitle)),
+    (
+        LandedTitle & !BaronyTitle,
+        "de_jure_drifting_towards",
+        Scope(LandedTitle),
+    ),
     (Character, "death_reason", Item(Item::DeathReason)),
     (Character, "debt_level", CompareValue),
     (None, "debug_log", UncheckedValue),
@@ -475,11 +488,11 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (None, "debug_only", Boolean),
     (War, "defender_war_score", CompareValue),
     (TravelPlan, "departure_date", CompareValue),
-    (LandedTitle, "development_level", CompareValue),
-    (LandedTitle, "development_rate", CompareValue),
-    (LandedTitle, "development_rate_modifier", CompareValue),
+    (CountyTitle, "development_level", CompareValue),
+    (CountyTitle, "development_rate", CompareValue),
+    (CountyTitle, "development_rate_modifier", CompareValue),
     (
-        LandedTitle,
+        CountyTitle,
         "development_towards_level_increase",
         CompareValue,
     ),
@@ -714,9 +727,9 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
             "general",
         ]),
     ),
-    (LandedTitle, "has_county_modifier", Item(Item::Modifier)),
+    (CountyTitle, "has_county_modifier", Item(Item::Modifier)),
     (
-        LandedTitle,
+        CountyTitle,
         "has_county_modifier_duration_remaining",
         Item(Item::Modifier),
     ),
@@ -796,7 +809,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "has_had_focus_for_days", CompareValue),
     (Province, "has_holding", Boolean),
     (Province, "has_holding_type", Item(Item::Holding)),
-    (LandedTitle, "has_holy_site_flag", Item(Item::HolySiteFlag)),
+    (BaronyTitle, "has_holy_site_flag", Item(Item::HolySiteFlag)),
     (Character, "has_hook", Scope(Character)),
     (Character, "has_hook_from_secret", Scope(Secret)),
     (
@@ -925,7 +938,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     ),
     (Character, "has_relation_to", Scope(Character)),
     (Character, "has_religion", Scope(Religion)),
-    (LandedTitle, "has_revokable_lease", Boolean),
+    (BaronyTitle, "has_revokable_lease", Boolean),
     (Character, "has_revoke_title_reason", Scope(Character)),
     (None, "has_reward_item", Item(Item::RewardItem)),
     (Character, "has_royal_court", Boolean),
@@ -1088,7 +1101,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (None, "is_bad_nickname", Item(Item::Nickname)),
     (Character, "is_betrothed", Boolean),
     (TravelPlan, "is_cancelled", Boolean),
-    (LandedTitle, "is_capital_barony", Boolean),
+    (BaronyTitle, "is_capital_barony", Boolean),
     (
         Character,
         "is_causing_raid_hostility_towards",
@@ -1133,7 +1146,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Scope(Character),
     ),
     (Province, "is_coastal", Boolean),
-    (LandedTitle, "is_coastal_county", Boolean),
+    (CountyTitle, "is_coastal_county", Boolean),
     (CombatSide, "is_combat_side_attacker", Boolean),
     (CombatSide, "is_combat_side_pursuing", Boolean),
     (CombatSide, "is_combat_side_retreating", Boolean),
@@ -1158,7 +1171,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "is_council_task_valid",
         Block(&[
             ("task_type", Item(Item::CouncilTask)),
-            ("?target", Scope(Character | LandedTitle)),
+            ("?target", Scope(Character | CountyTitle)), // TODO: should be province?
         ]),
     ),
     (Character, "is_councillor", Boolean),
@@ -1227,9 +1240,10 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (LandedTitle, "is_head_of_faith", Boolean),
     (Character, "is_heir_of", Scope(Character)),
     (LandedTitle, "is_holy_order", Boolean),
-    (LandedTitle, "is_holy_site", Boolean),
+    (BaronyTitle, "is_holy_site", Boolean),
+    // TODO: vanilla explicitly does `county = { is_holy_site_controlled_by` here... why?
     (LandedTitle, "is_holy_site_controlled_by", Scope(Character)),
-    (LandedTitle, "is_holy_site_of", Scope(Faith)),
+    (BaronyTitle, "is_holy_site_of", Scope(Faith)),
     (Scheme, "is_hostile", Boolean),
     (Culture, "is_hybrid_culture", Boolean),
     (Character, "is_immortal", Boolean),
@@ -1267,7 +1281,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (LandedTitle, "is_landless_type_title", Boolean),
     (Character, "is_leader_in_war", Scope(War)),
     (Character, "is_leading_faction_type", Item(Item::Faction)),
-    (LandedTitle, "is_leased_out", Boolean),
+    (BaronyTitle, "is_leased_out", Boolean),
     (Character, "is_liege_or_above_of", Scope(Character)),
     (Character, "is_local_player", Boolean),
     (Character, "is_lowborn", Boolean),
@@ -1308,7 +1322,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Province, "is_raided", Boolean),
     (Activity, "is_required_special_guest", Scope(Character)),
     (Province, "is_river_province", Boolean),
-    (LandedTitle, "is_riverside_county", Boolean),
+    (CountyTitle, "is_riverside_county", Boolean),
     (Province, "is_riverside_province", Boolean),
     (Character, "is_ruler", Boolean),
     (Scheme, "is_scheme_agent_exposed", Scope(Character)),
@@ -1370,7 +1384,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         ]),
     ),
     (
-        LandedTitle,
+        CountyTitle,
         "is_target_of_council_task",
         Item(Item::CouncilTask),
     ),
@@ -1391,7 +1405,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "is_unborn_child_of_concubine", Boolean),
     (Character, "is_unborn_known_bastard", Boolean),
     (Character, "is_uncle_or_aunt_of", Scope(Character)),
-    (LandedTitle, "is_under_holy_order_lease", Boolean),
+    (BaronyTitle, "is_under_holy_order_lease", Boolean),
     (Artifact, "is_unique", Boolean),
     (Character, "is_valid_as_agent_in_scheme", Scope(Scheme)),
     (Character, "is_valid_for_event_debug", Item(Item::Event)), // will not work in release mode
@@ -1799,14 +1813,18 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (CombatSide, "side_soldiers", CompareValue),
     (CombatSide, "side_strength", CompareValue),
     (
-        LandedTitle | Province,
+        BaronyTitle | CountyTitle | Province,
         "squared_distance",
         Block(&[
-            ("target", Scope(LandedTitle | Province)),
+            ("target", Scope(BaronyTitle | CountyTitle | Province)),
             ("value", CompareValue),
         ]),
     ),
-    (LandedTitle | Province, "squared_distance(", CompareValue),
+    (
+        BaronyTitle | CountyTitle | Province,
+        "squared_distance(",
+        CompareValue,
+    ),
     (Character, "stewardship", CompareValue),
     (
         Character,
@@ -1843,7 +1861,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "target_is_vassal_or_below", Scope(Character)),
     (Character, "target_weight", CompareValue),
     (Province, "terrain", Item(Item::Terrain)),
-    (LandedTitle, "tier", CompareValue), // TODO: advice if this is compared to a bare number
+    (LandedTitle, "tier", CompareValue), // TODO: advise if this is compared to a bare number
     (
         Character,
         "tier_difference",
@@ -1898,7 +1916,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[("target", Scope(Character)), ("value", CompareValue)]),
     ),
     (
-        LandedTitle,
+        CountyTitle,
         "title_create_faction_type_chance",
         Block(&[
             ("type", Item(Item::Faction)),
@@ -1907,9 +1925,9 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         ]),
     ),
     (LandedTitle, "title_held_years", CompareValueWarnEq),
-    (LandedTitle, "title_is_a_faction_member", Boolean),
+    (CountyTitle, "title_is_a_faction_member", Boolean),
     (
-        LandedTitle,
+        CountyTitle,
         "title_join_faction_chance",
         Block(&[("target", Scope(Faction)), ("value", CompareValue)]),
     ),

@@ -460,13 +460,22 @@ pub fn validate_effect_block(
             vd.field_choice("tier", &["duchy", "kingdom", "empire"]);
             vd.field_validated_sc("name", sc, validate_desc);
             vd.field_validated_sc("adjective", sc, validate_desc);
-            sc.define_name("new_title", Scopes::LandedTitle, key);
+            let mut scope = Scopes::LandedTitle;
+            if let Some(tier) = block.get_field_value("tier") {
+                match tier.as_str() {
+                    "duchy" => scope = Scopes::DuchyTitle,
+                    "kingdom" => scope = Scopes::KingdomTitle,
+                    "empire" => scope = Scopes::EmpireTitle,
+                    _ => scope = Scopes::LandedTitle,
+                }
+            }
+            sc.define_name("new_title", scope, key);
         }
         CreateHolyOrder => {
             vd.req_field("leader");
             vd.req_field("capital");
             vd.field_target("leader", sc, Scopes::Character);
-            vd.field_target("capital", sc, Scopes::LandedTitle);
+            vd.field_target("capital", sc, Scopes::BaronyTitle);
             if let Some(name) = vd.field_value("save_scope_as") {
                 sc.define_name(name.as_str(), Scopes::HolyOrder, name);
             }

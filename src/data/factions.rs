@@ -69,16 +69,16 @@ impl DbKind for Faction {
             validate_modifiers_with_base(block, data, &mut sc);
         });
         vd.field_validated_key_block("county_join_score", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
+            let mut sc = ScopeContext::new(Scopes::CountyTitle, key);
             sc.define_name("faction", Scopes::Faction, key);
             validate_modifiers_with_base(block, data, &mut sc);
         });
         vd.field_validated_key_block("county_create_score", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
+            let mut sc = ScopeContext::new(Scopes::CountyTitle, key);
             sc.define_name("target", Scopes::Character, key);
             validate_modifiers_with_base(block, data, &mut sc);
         });
-        vd.field_script_value_rooted("county_power", Scopes::LandedTitle);
+        vd.field_script_value_rooted("county_power", Scopes::CountyTitle);
         vd.field_validated_block_rooted(
             "ai_demand_chance",
             Scopes::Faction,
@@ -106,7 +106,7 @@ impl DbKind for Faction {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("is_county_valid", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
+            let mut sc = ScopeContext::new(Scopes::CountyTitle, key);
             sc.define_name("faction", Scopes::Faction, key);
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
@@ -131,12 +131,12 @@ impl DbKind for Faction {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("can_county_join", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
+            let mut sc = ScopeContext::new(Scopes::CountyTitle, key);
             sc.define_name("faction", Scopes::Faction, key);
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("can_county_create", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
+            let mut sc = ScopeContext::new(Scopes::CountyTitle, key);
             sc.define_name("target", Scopes::Character, key);
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });

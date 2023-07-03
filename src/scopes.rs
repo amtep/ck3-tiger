@@ -20,7 +20,7 @@ bitflags! {
         const Bool = 0x0000_0004;
         const Flag = 0x0000_0008;
         const Character = 0x0000_0010;
-        const LandedTitle = 0x0000_0020;
+        // const LandedTitle = 0x0000_0020;
         const Activity = 0x0000_0040;
         const Secret = 0x0000_0080;
         const Province = 0x0000_0100;
@@ -59,6 +59,14 @@ bitflags! {
         const Trait = 0x0000_0100_0000_0000;
         const VassalContract = 0x0000_0200_0000_0000;
         const VassalObligationLevel = 0x0000_0400_0000_0000;
+
+        // virtual scope types added by tiger for its analysis
+        const BaronyTitle = 0x0000_0800_0000_0000;
+        const CountyTitle = 0x0000_1000_0000_0000;
+        const DuchyTitle = 0x0000_2000_0000_0000;
+        const KingdomTitle = 0x0000_4000_0000_0000;
+        const EmpireTitle = 0x0000_8000_0000_0000;
+        const LandedTitle = BaronyTitle | CountyTitle | DuchyTitle | KingdomTitle | EmpireTitle;
     }
 }
 
@@ -83,7 +91,7 @@ pub const Value: u64 = 0x0000_0002;
 pub const Bool: u64 = 0x0000_0004;
 pub const Flag: u64 = 0x0000_0008;
 pub const Character: u64 = 0x0000_0010;
-pub const LandedTitle: u64 = 0x0000_0020;
+// pub const LandedTitle: u64 = 0x0000_0020;
 pub const Activity: u64 = 0x0000_0040;
 pub const Secret: u64 = 0x0000_0080;
 pub const Province: u64 = 0x0000_0100;
@@ -121,6 +129,14 @@ pub const GovernmentType: u64 = 0x0000_0080_0000_0000;
 pub const Trait: u64 = 0x0000_0100_0000_0000;
 pub const VassalContract: u64 = 0x0000_0200_0000_0000;
 pub const VassalObligationLevel: u64 = 0x0000_0400_0000_0000;
+
+pub const BaronyTitle: u64 = 0x0000_0800_0000_0000;
+pub const CountyTitle: u64 = 0x0000_1000_0000_0000;
+pub const DuchyTitle: u64 = 0x0000_2000_0000_0000;
+pub const KingdomTitle: u64 = 0x0000_4000_0000_0000;
+pub const EmpireTitle: u64 = 0x0000_8000_0000_0000;
+pub const LandedTitle: u64 = 0x0000_f800_0000_0000;
+
 pub const ALL: u64 = 0x7fff_ffff_ffff_ffff;
 pub const ALL_BUT_NONE: u64 = 0x7fff_ffff_ffff_fffe;
 pub const PRIMITIVE: u64 = 0x0000_000e;
@@ -170,6 +186,13 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "trait" => Scopes::Trait,
         "vassal_contract" => Scopes::VassalContract,
         "vassal_contract_obligation_level" => Scopes::VassalObligationLevel,
+
+        "barony_title" => Scopes::BaronyTitle,
+        "county_title" => Scopes::CountyTitle,
+        "duchy_title" => Scopes::DuchyTitle,
+        "kingdom_title" => Scopes::KingdomTitle,
+        "empire_title" => Scopes::EmpireTitle,
+
         _ => return std::option::Option::None,
     })
 }
@@ -261,6 +284,22 @@ impl Display for Scopes {
             }
             if self.contains(Scopes::LandedTitle) {
                 vec.push("landed title");
+            } else {
+                if self.contains(Scopes::BaronyTitle) {
+                    vec.push("barony title");
+                }
+                if self.contains(Scopes::CountyTitle) {
+                    vec.push("county title");
+                }
+                if self.contains(Scopes::DuchyTitle) {
+                    vec.push("duchy title");
+                }
+                if self.contains(Scopes::KingdomTitle) {
+                    vec.push("kingdom title");
+                }
+                if self.contains(Scopes::EmpireTitle) {
+                    vec.push("empire title");
+                }
             }
             if self.contains(Scopes::Activity) {
                 vec.push("activity");
@@ -393,13 +432,13 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Army, "army_owner", Character),
     (Artifact, "artifact_age", Value),
     (Artifact, "artifact_owner", Character),
-    (LandedTitle | Province, "barony", LandedTitle),
-    (LandedTitle | Province, "barony_controller", Character),
+    (BaronyTitle | Province, "barony", BaronyTitle),
+    (BaronyTitle | Province, "barony_controller", Character),
     (Character, "betrothed", Character),
     (Culture, "calc_culture_dominant_faith", Faith),
     (Culture, "calc_culture_dominant_religion", Religion),
-    (Character, "capital_barony", LandedTitle),
-    (Character, "capital_county", LandedTitle),
+    (Character, "capital_barony", BaronyTitle),
+    (Character, "capital_county", CountyTitle),
     (Character, "capital_province", Province),
     (LandedTitle, "capital_vassal", LandedTitle),
     (War, "casus_belli", CasusBelli),
@@ -414,36 +453,48 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Character, "council_task", CouncilTask), // also has a prefix form
     (CouncilTask, "councillor", Character),
     (Character, "councillor_task_target", ALL), // output scope depends on task
-    (LandedTitle | Province, "county", LandedTitle),
-    (LandedTitle | Province, "county_controller", Character),
+    (BaronyTitle | CountyTitle | Province, "county", CountyTitle),
+    (
+        BaronyTitle | CountyTitle | Province,
+        "county_controller",
+        Character,
+    ),
     (Character, "court_owner", Character),
     (Artifact, "creator", Character),
-    (Character | LandedTitle | Province, "culture", Culture),
+    (
+        Character | BaronyTitle | CountyTitle | Province,
+        "culture",
+        Culture,
+    ),
     (Culture, "culture_head", Character),
     (LandedTitle, "current_heir", Character),
     (TravelPlan, "current_location", Province),
     (Character, "current_travel_plan", TravelPlan),
-    (LandedTitle, "de_facto_liege", LandedTitle),
-    (LandedTitle, "de_jure_liege", LandedTitle),
+    (LandedTitle, "de_facto_liege", LandedTitle), // TODO: some kind of +1 on the rank
+    (LandedTitle, "de_jure_liege", LandedTitle),  // TODO: some kind of +1 on the rank
     (Character, "default_location", Province),
     (TravelPlan, "departure_location", Province),
     (Character, "designated_diarch", Character),
     (Character, "designated_heir", Character),
     (Character, "diarch", Character),
     (Character, "diarchy_successor", Character),
-    (LandedTitle | Province, "duchy", LandedTitle),
+    (
+        BaronyTitle | CountyTitle | DuchyTitle | Province,
+        "duchy",
+        DuchyTitle,
+    ),
     (None, "dummy_female", Character),
     (None, "dummy_male", Character),
     (Dynasty, "dynast", Character),
     (Character, "dynasty", Dynasty),
-    (LandedTitle | Province, "empire", LandedTitle),
+    (LandedTitle | Province, "empire", EmpireTitle),
     (Character, "employer", Character),
     (CombatSide, "enemy_side", CombatSide),
     (Faction, "faction_leader", Character),
     (Faction, "faction_target", Character),
     (Faction, "faction_war", War),
     (
-        Character | LandedTitle | Province | GreatHolyWar,
+        Character | BaronyTitle | CountyTitle | Province | GreatHolyWar,
         "faith",
         Faith,
     ),
@@ -476,13 +527,17 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Character, "involved_activity", Activity),
     (Character, "joined_faction", Faction),
     (Character, "killer", Character),
-    (LandedTitle | Province, "kingdom", LandedTitle),
+    (
+        (LandedTitle & !EmpireTitle) | Province,
+        "kingdom",
+        KingdomTitle,
+    ),
     (Character, "knight_army", Army),
     (DynastyHouse, "last_house_head", Character),
     (Character, "last_played_character", Character),
     (HolyOrder, "leader", Character),
-    (LandedTitle, "lessee", Character),
-    (LandedTitle, "lessee_title", LandedTitle),
+    (BaronyTitle, "lessee", Character),
+    (BaronyTitle, "lessee_title", LandedTitle),
     (Character, "liege", Character),
     (Character, "liege_or_court_owner", Character),
     (Character | Combat | Army, "location", Province),
@@ -513,7 +568,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Character, "real_father", Character),
     (Character, "realm_priest", Character),
     (
-        Character | LandedTitle | Province | Faith | GreatHolyWar,
+        Character | BaronyTitle | CountyTitle | Province | Faith | GreatHolyWar,
         "religion",
         Religion,
     ),
@@ -534,7 +589,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (StoryCycle, "story_owner", Character),
     // "this" special
     (HolyOrder, "title", LandedTitle),
-    (LandedTitle, "title_capital_county", LandedTitle),
+    (LandedTitle, "title_capital_county", CountyTitle),
     (LandedTitle, "title_province", Province),
     (TravelPlan, "travel_leader", Character),
     (TravelPlan, "travel_plan_activity", Activity),
@@ -627,49 +682,49 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Artifact, "artifact_claimant", Character),
     (Artifact, "artifact_house_claimant", DynastyHouse),
     (Activity, "attending_character", Character),
-    (None, "barony", LandedTitle),
+    (None, "barony", BaronyTitle),
     (Character, "character_artifact", Artifact),
     (Province, "character_in_location", Character),
     (Character, "character_struggle", Struggle),
     (
         Character,
         "character_to_title_neighboring_and_across_water_county",
-        LandedTitle,
+        CountyTitle,
     ),
     (
         Character,
         "character_to_title_neighboring_and_across_water_duchy",
-        LandedTitle,
+        DuchyTitle,
     ),
     (
         Character,
         "character_to_title_neighboring_and_across_water_empire",
-        LandedTitle,
+        EmpireTitle,
     ),
     (
         Character,
         "character_to_title_neighboring_and_across_water_kingdom",
-        LandedTitle,
+        KingdomTitle,
     ),
     (
         Character,
         "character_to_title_neighboring_county",
-        LandedTitle,
+        CountyTitle,
     ),
     (
         Character,
         "character_to_title_neighboring_duchy",
-        LandedTitle,
+        DuchyTitle,
     ),
     (
         Character,
         "character_to_title_neighboring_empire",
-        LandedTitle,
+        EmpireTitle,
     ),
     (
         Character,
         "character_to_title_neighboring_kingdom",
-        LandedTitle,
+        KingdomTitle,
     ),
     (Character, "character_trait", Trait),
     (Character, "character_war", War),
@@ -682,49 +737,65 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Character, "close_or_extended_family_member", Character),
     (Combat, "combat_side", CombatSide),
     (Character, "concubine", Character),
-    (LandedTitle, "connected_county", LandedTitle),
+    (CountyTitle, "connected_county", CountyTitle),
     (Character, "consort", Character),
     (LandedTitle, "controlled_faith", Faith),
     (Character, "councillor", Character),
-    (None, "county", LandedTitle),
-    (None, "county_in_region", LandedTitle), // TODO region = region_name inside it
-    (LandedTitle, "county_province", Province),
-    (LandedTitle, "county_struggle", Struggle),
+    (None, "county", CountyTitle),
+    (None, "county_in_region", CountyTitle),
+    (CountyTitle, "county_province", Province),
+    (CountyTitle, "county_struggle", Struggle),
     (Character, "court_position_employer", Character),
     (Character, "court_position_holder", Character), // TODO find out how court position is supplied
     (Character, "courtier", Character),
     (Character, "courtier_away", Character),
     (Character, "courtier_or_guest", Character),
-    (Culture, "culture_county", LandedTitle),
-    (Culture, "culture_duchy", LandedTitle),
-    (Culture, "culture_empire", LandedTitle),
+    (Culture, "culture_county", CountyTitle),
+    (Culture, "culture_duchy", DuchyTitle),
+    (Culture, "culture_empire", EmpireTitle),
     (None, "culture_global", Culture),
-    (Culture, "culture_kingdom", LandedTitle),
+    (Culture, "culture_kingdom", KingdomTitle),
     (None, "culture_pillar", CulturePillar),
     (None, "culture_tradition", CultureTradition),
     (Character, "de_jure_claim", LandedTitle),
-    (LandedTitle, "de_jure_county", LandedTitle),
-    (LandedTitle, "de_jure_county_holder", Character),
-    (LandedTitle, "de_jure_top_liege", Character),
+    (LandedTitle & !BaronyTitle, "de_jure_county", CountyTitle),
+    (
+        LandedTitle & !BaronyTitle,
+        "de_jure_county_holder",
+        Character,
+    ),
+    (LandedTitle & !BaronyTitle, "de_jure_top_liege", Character),
     (None, "decision", Decision),
     (Faith, "defensive_great_holy_wars", GreatHolyWar),
-    (LandedTitle, "dejure_vassal_title_holder", Character),
+    (
+        LandedTitle & !BaronyTitle,
+        "dejure_vassal_title_holder",
+        Character,
+    ),
     (Character, "diarchy_succession_character", Character),
     (Character, "diplomacy_councillor", Character),
-    (LandedTitle, "direct_de_facto_vassal_title", LandedTitle),
-    (LandedTitle, "direct_de_jure_vassal_title", LandedTitle),
+    (
+        LandedTitle & !BaronyTitle,
+        "direct_de_facto_vassal_title",
+        LandedTitle & !EmpireTitle,
+    ),
+    (
+        LandedTitle & !BaronyTitle,
+        "direct_de_jure_vassal_title",
+        LandedTitle & !EmpireTitle,
+    ),
     (Character, "directly_owned_province", Province),
     (None, "doctrine", Doctrine),
-    (None, "duchy", LandedTitle),
+    (None, "duchy", DuchyTitle),
     (Dynasty, "dynasty_member", Character),
     (LandedTitle, "election_candidate", Character),
     (Character, "election_title", LandedTitle),
     (LandedTitle, "elector", Character),
-    (None, "empire", LandedTitle),
+    (None, "empire", EmpireTitle),
     (TravelPlan, "entourage_character", Character),
     (Character, "equipped_character_artifact", Artifact),
     (Character, "extended_family_member", Character),
-    (Faction, "faction_county_member", LandedTitle),
+    (Faction, "faction_county_member", CountyTitle),
     (Faction, "faction_member", Character),
     (Religion, "faith", Faith),
     (Faith, "faith_character", Character),
@@ -746,7 +817,7 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Character, "heir_to_title", LandedTitle),
     (Character, "held_title", LandedTitle),
     (Character, "hired_mercenary", MercenaryCompany),
-    (Faith, "holy_site", LandedTitle),
+    (Faith, "holy_site", BaronyTitle),
     (Character, "hooked_character", Character),
     (Character, "hostile_raider", Character),
     (DynastyHouse, "house_claimed_artifact", Artifact),
@@ -765,11 +836,11 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Activity, "invited_character", Character),
     (Struggle, "involved_ruler", Character),
     (Character | Artifact, "killed_character", Character),
-    (None, "kingdom", LandedTitle),
+    (None, "kingdom", KingdomTitle),
     (Character, "knight", Character),
     (Character, "known_secret", Secret),
     (Character, "learning_councillor", Character),
-    (HolyOrder, "leased_title", LandedTitle),
+    (HolyOrder, "leased_title", BaronyTitle),
     (Character, "liege_or_above", Character),
     (None, "living_character", Character),
     (Character, "martial_councillor", Character),
@@ -791,7 +862,7 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
         "neighboring_and_across_water_top_liege_realm_owner",
         Character,
     ),
-    (LandedTitle, "neighboring_county", LandedTitle),
+    (CountyTitle, "neighboring_county", CountyTitle),
     (Province, "neighboring_province", Province),
     (Character, "neighboring_realm_same_rank_owner", Character),
     (Character, "neighboring_top_liege_realm", LandedTitle),
@@ -824,10 +895,10 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (None, "province", Province),
     (Character, "prowess_councillor", Character),
     (Character, "raid_target", Character),
-    (Character, "realm_county", LandedTitle),
-    (Character, "realm_de_jure_duchy", LandedTitle),
-    (Character, "realm_de_jure_empire", LandedTitle),
-    (Character, "realm_de_jure_kingdom", LandedTitle),
+    (Character, "realm_county", CountyTitle),
+    (Character, "realm_de_jure_duchy", DuchyTitle),
+    (Character, "realm_de_jure_empire", EmpireTitle),
+    (Character, "realm_de_jure_kingdom", KingdomTitle),
     (Character, "realm_province", Province),
     (Character, "relation", Character), // TODO takes a type
     (None, "religion_global", Religion),
@@ -847,11 +918,11 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Character, "spouse", Character),
     (Character, "spouse_candidate", Character),
     (Character, "stewardship_councillor", Character),
-    (Character, "sub_realm_barony", LandedTitle),
-    (Character, "sub_realm_county", LandedTitle),
-    (Character, "sub_realm_duchy", LandedTitle),
-    (Character, "sub_realm_empire", LandedTitle),
-    (Character, "sub_realm_kingdom", LandedTitle),
+    (Character, "sub_realm_barony", BaronyTitle),
+    (Character, "sub_realm_county", CountyTitle),
+    (Character, "sub_realm_duchy", DuchyTitle),
+    (Character, "sub_realm_empire", EmpireTitle),
+    (Character, "sub_realm_kingdom", KingdomTitle),
     (Character, "sub_realm_title", LandedTitle),
     (CasusBelli, "target_title", LandedTitle),
     (Character, "targeting_faction", Faction),
@@ -859,42 +930,42 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Character, "targeting_secret", Secret),
     (LandedTitle, "this_title_or_de_jure_above", LandedTitle),
     (LandedTitle, "title_heir", Character),
-    (LandedTitle, "title_joined_faction", Faction),
+    (CountyTitle, "title_joined_faction", Faction),
     (
         LandedTitle,
         "title_to_title_neighboring_and_across_water_county",
-        LandedTitle,
+        CountyTitle,
     ),
     (
         LandedTitle,
         "title_to_title_neighboring_and_across_water_duchy",
-        LandedTitle,
+        DuchyTitle,
     ),
     (
         LandedTitle,
         "title_to_title_neighboring_and_across_water_empire",
-        LandedTitle,
+        EmpireTitle,
     ),
     (
         LandedTitle,
         "title_to_title_neighboring_and_across_water_kingdom",
-        LandedTitle,
+        KingdomTitle,
     ),
     (
         LandedTitle,
         "title_to_title_neighboring_county",
-        LandedTitle,
+        CountyTitle,
     ),
-    (LandedTitle, "title_to_title_neighboring_duchy", LandedTitle),
+    (LandedTitle, "title_to_title_neighboring_duchy", DuchyTitle),
     (
         LandedTitle,
         "title_to_title_neighboring_empire",
-        LandedTitle,
+        EmpireTitle,
     ),
     (
         LandedTitle,
         "title_to_title_neighboring_kingdom",
-        LandedTitle,
+        KingdomTitle,
     ),
     (None, "trait", Trait),
     (None, "trait_in_category", Trait),

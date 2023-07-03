@@ -85,7 +85,7 @@ impl DbKind for Building {
 
         vd.field_validated_block_rooted("is_enabled", Scopes::Province, |block, data, sc| {
             sc.define_name("holder", Scopes::Character, key);
-            sc.define_name("county", Scopes::LandedTitle, key);
+            sc.define_name("county", Scopes::CountyTitle, key);
             let tooltipped = if graphical_only {
                 Tooltipped::No
             } else {
@@ -96,7 +96,7 @@ impl DbKind for Building {
         vd.field_validated_key_block("can_construct_potential", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Province, key);
             sc.define_name("holder", Scopes::Character, key);
-            sc.define_name("county", Scopes::LandedTitle, key);
+            sc.define_name("county", Scopes::CountyTitle, key);
             // For buildings that are upgrades, can_construct_potential is added to can_construct_showing_failures_only so it will be tooltipped
             let tooltipped =
                 block.get_field_bool("show_disabled").unwrap_or(false) || self.is_upgrade;
@@ -112,13 +112,13 @@ impl DbKind for Building {
             Scopes::Province,
             |block, data, sc| {
                 sc.define_name("holder", Scopes::Character, key);
-                sc.define_name("county", Scopes::LandedTitle, key);
+                sc.define_name("county", Scopes::CountyTitle, key);
                 validate_normal_trigger(block, data, sc, Tooltipped::FailuresOnly);
             },
         );
         vd.field_validated_block_rooted("can_construct", Scopes::Province, |block, data, sc| {
             sc.define_name("holder", Scopes::Character, key);
-            sc.define_name("county", Scopes::LandedTitle, key);
+            sc.define_name("county", Scopes::CountyTitle, key);
             validate_normal_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_bool("show_disabled");
@@ -244,7 +244,7 @@ impl DbKind for Building {
             BV::Block(block) => {
                 let mut sc = ScopeContext::new(Scopes::Province, key);
                 sc.define_name("holder", Scopes::Character, key);
-                sc.define_name("county", Scopes::LandedTitle, key);
+                sc.define_name("county", Scopes::CountyTitle, key);
                 validate_modifiers_with_base(block, data, &mut sc);
             }
         });

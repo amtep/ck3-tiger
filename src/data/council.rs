@@ -126,7 +126,7 @@ impl DbKind for CouncilTask {
         if let Some(token) = block.get_field_value("task_type") {
             if token.is("task_type_county") {
                 sc.define_name("province", Scopes::Province, token);
-                sc.define_name("county", Scopes::LandedTitle, token);
+                sc.define_name("county", Scopes::CountyTitle, token);
             } else if token.is("task_type_court") {
                 sc.define_name("target_character", Scopes::Character, token);
             }

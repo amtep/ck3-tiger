@@ -12,7 +12,6 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 
@@ -184,7 +183,7 @@ impl TitleHistory {
         vd.field_item("insert_title_history", Item::TitleHistory);
 
         vd.field_validated_key_block("effect", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
+            let mut sc = ScopeContext::new(self.tier.as_scope(), key);
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
     }

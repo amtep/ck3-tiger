@@ -74,6 +74,18 @@ impl Display for Tier {
     }
 }
 
+impl Tier {
+    pub fn as_scope(&self) -> Scopes {
+        match *self {
+            Tier::Barony => Scopes::BaronyTitle,
+            Tier::County => Scopes::CountyTitle,
+            Tier::Duchy => Scopes::DuchyTitle,
+            Tier::Kingdom => Scopes::KingdomTitle,
+            Tier::Empire => Scopes::EmpireTitle,
+        }
+    }
+}
+
 impl Titles {
     pub fn load_item(
         &mut self,

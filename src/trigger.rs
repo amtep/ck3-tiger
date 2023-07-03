@@ -255,7 +255,12 @@ pub fn validate_trigger_key_bv(
                     if part.is("vassal_contract_obligation_level_score(") {
                         validate_target(&arg, data, sc, Scopes::VassalContract);
                     } else if part.is("squared_distance(") {
-                        validate_target(&arg, data, sc, Scopes::Province);
+                        validate_target(
+                            &arg,
+                            data,
+                            sc,
+                            Scopes::Province | Scopes::BaronyTitle | Scopes::CountyTitle,
+                        );
                     } else {
                         warn(&arg, ErrorKey::Validation, "unexpected argument");
                     }
@@ -763,7 +768,12 @@ pub fn validate_target_ok_this(
                 if new_part.is("vassal_contract_obligation_level_score(") {
                     validate_target(&arg, data, sc, Scopes::VassalContract);
                 } else if new_part.is("squared_distance(") {
-                    validate_target(&arg, data, sc, Scopes::Province);
+                    validate_target(
+                        &arg,
+                        data,
+                        sc,
+                        Scopes::Province | Scopes::BaronyTitle | Scopes::CountyTitle,
+                    );
                 } else {
                     warn(arg, ErrorKey::Validation, "unexpected argument");
                 }

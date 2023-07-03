@@ -90,7 +90,7 @@ impl Decision {
                 } else if controller.is("create_holy_order") {
                     sc.define_name("ruler", Scopes::Character, controller);
                 } else if controller.is("revoke_holy_order_lease") {
-                    sc.define_name("barony", Scopes::LandedTitle, controller);
+                    sc.define_name("barony", Scopes::BaronyTitle, controller);
                 }
             }
         }
