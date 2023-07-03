@@ -33,6 +33,7 @@ mod db;
 mod dds;
 mod desc;
 mod effect;
+mod effect_validation;
 mod fileset;
 mod helpers;
 mod item;
