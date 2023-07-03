@@ -11,7 +11,7 @@ use winreg::RegKey;
 
 use tiger_lib::errorkey::ErrorKey;
 use tiger_lib::errors::{
-    ignore_key, minimum_level, set_mod_root, set_vanilla_root, show_loaded_mods, show_vanilla,
+    ignore_key, minimum_level, set_mod_root, set_vanilla_dir, show_loaded_mods, show_vanilla,
     ErrorLevel,
 };
 use tiger_lib::everything::Everything;
@@ -28,16 +28,16 @@ const STEAM_MAC: &str = "Library/Application Support/Steam/steamapps";
 const STEAM_WINDOWS_KEY: &str = r"SOFTWARE\Wow6432Node\Valve\Steam";
 
 /// CK3 directory under steam library dir
-const CK3_GAME_DIR: &str = "steamapps/common/Crusader Kings III/game";
+const CK3_DIR: &str = "steamapps/common/Crusader Kings III";
 
-/// A file that should be present if this is a CK3 game directory
-const CK3_SIGNATURE_FILE: &str = "events/witch_events.txt";
+/// A file that should be present if this is the CK3 directory
+const CK3_SIGNATURE_FILE: &str = "game/events/witch_events.txt";
 
 #[derive(Parser)]
 struct Cli {
     /// Path to .mod file of mod to check.
     modpath: PathBuf,
-    /// Path to CK3 game directory.
+    /// Path to CK3 main directory.
     #[clap(long)]
     ck3: Option<PathBuf>,
     /// Show errors in the base CK3 script code as well
@@ -90,7 +90,7 @@ fn find_ck3_directory() -> Option<PathBuf> {
     None
 }
 
-/// Tries to find the CK3 game directory inside a steamapps/ directory.
+/// Tries to find the CK3 directory inside a steamapps/ directory.
 /// Returns None if the steamapps/ directory doesn't exist, or isn't really a steamapps directory,
 /// or doesn't contain the CK3 game.
 fn find_ck3_dir_in_steam_dir(steam_dir: PathBuf) -> Option<PathBuf> {
@@ -110,7 +110,7 @@ fn find_ck3_dir_in_steam_dir(steam_dir: PathBuf) -> Option<PathBuf> {
             if key == "path" {
                 found_path = Some(PathBuf::from(value))
             } else if key == CK3_APP_ID && found_path.is_some() {
-                let ck3_path = found_path.unwrap().join(CK3_GAME_DIR);
+                let ck3_path = found_path.unwrap().join(CK3_DIR);
                 if ck3_path.is_dir() {
                     return Some(ck3_path);
                 }
@@ -133,26 +133,26 @@ fn main() -> Result<()> {
         args.ck3 = find_ck3_directory();
     }
     if let Some(ref mut ck3) = args.ck3 {
-        eprintln!("Using CK3 game directory: {}", ck3.display());
+        eprintln!("Using CK3 directory: {}", ck3.display());
         let mut sig = ck3.clone();
         sig.push(CK3_SIGNATURE_FILE);
         if !sig.is_file() {
-            eprintln!("That does not look like a CK3 game directory.");
-            ck3.push("game");
+            eprintln!("That does not look like a CK3 directory.");
+            ck3.push("..");
             eprintln!("Trying: {}", ck3.display());
             sig = ck3.clone();
             sig.push(CK3_SIGNATURE_FILE);
             if sig.is_file() {
                 eprintln!("Ok.");
             } else {
-                bail!("Cannot find CK3 game directory. Please supply it as the --ck3 option.");
+                bail!("Cannot find CK3 directory. Please supply it as the --ck3 option.");
             }
         }
     } else {
-        bail!("Cannot find CK3 game directory. Please supply it as the --ck3 option.");
+        bail!("Cannot find CK3 directory. Please supply it as the --ck3 option.");
     }
 
-    set_vanilla_root(args.ck3.as_ref().unwrap().clone());
+    set_vanilla_dir(args.ck3.as_ref().unwrap().clone());
 
     if args.show_vanilla {
         eprintln!("Showing warnings for base game files too. There will be many false positives in those.");

@@ -18,6 +18,8 @@ use crate::token::{Loc, Token};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FileKind {
+    Clausewitz,
+    Jomini,
     Vanilla,
     LoadedMod(u16), // 0-based indexing
     Mod,
@@ -143,6 +145,12 @@ pub struct Fileset {
     /// The CK3 game directory
     vanilla_root: PathBuf,
 
+    /// Extra CK3 directory loaded before vanilla
+    clausewitz_root: PathBuf,
+
+    /// Extra CK3 directory loaded before vanilla
+    jomini_root: PathBuf,
+
     /// The mod being analyzed
     the_mod: LoadedMod,
 
@@ -165,9 +173,18 @@ pub struct Fileset {
 }
 
 impl Fileset {
-    pub fn new(vanilla_root: PathBuf, mod_root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
+    pub fn new(vanilla_dir: PathBuf, mod_root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
+        let mut vanilla_root = vanilla_dir.clone();
+        vanilla_root.push("game");
+        let mut clausewitz_root = vanilla_dir.clone();
+        clausewitz_root.push("clausewitz");
+        let mut jomini_root = vanilla_dir.clone();
+        jomini_root.push("jomini");
+
         Fileset {
             vanilla_root,
+            clausewitz_root,
+            jomini_root,
             the_mod: LoadedMod::new_main_mod(mod_root, replace_paths),
             loaded_mods: Vec::new(),
             config: None,
@@ -253,6 +270,16 @@ impl Fileset {
     }
 
     pub fn scan_all(&mut self) -> Result<(), FilesError> {
+        self.scan(&self.clausewitz_root.clone(), FileKind::Clausewitz)
+            .map_err(|e| FilesError::VanillaUnreadable {
+                path: self.clausewitz_root.clone(),
+                source: e,
+            })?;
+        self.scan(&self.jomini_root.clone(), FileKind::Jomini)
+            .map_err(|e| FilesError::VanillaUnreadable {
+                path: self.jomini_root.clone(),
+                source: e,
+            })?;
         self.scan(&self.vanilla_root.clone(), FileKind::Vanilla)
             .map_err(|e| FilesError::VanillaUnreadable {
                 path: self.vanilla_root.clone(),
@@ -308,6 +335,8 @@ impl Fileset {
 
     pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {
         match entry.kind {
+            FileKind::Clausewitz => self.clausewitz_root.join(entry.path()),
+            FileKind::Jomini => self.jomini_root.join(entry.path()),
             FileKind::Vanilla => self.vanilla_root.join(entry.path()),
             FileKind::LoadedMod(idx) => self.loaded_mods[idx as usize].root.join(entry.path()),
             FileKind::Mod => self.the_mod.root.join(entry.path()),

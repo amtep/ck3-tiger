@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-use ck3_tiger::errors::{log_to, set_mod_root, set_vanilla_root, take_log_to};
+use ck3_tiger::errors::{log_to, set_mod_root, set_vanilla_dir, take_log_to};
 use ck3_tiger::everything::Everything;
 
 lazy_static! {
@@ -12,14 +12,14 @@ lazy_static! {
 fn check_mod_helper(modname: &str) -> String {
     let _guard = TEST_MUTEX.lock().unwrap();
 
-    let vanilla_root = PathBuf::from("tests/files/ck3");
+    let vanilla_dir = PathBuf::from("tests/files/ck3");
     let mod_root = PathBuf::from(format!("tests/files/{}", modname));
 
-    set_vanilla_root(vanilla_root.clone());
+    set_vanilla_dir(vanilla_dir.clone());
     set_mod_root(mod_root.clone());
     log_to(Box::new(Vec::new()));
 
-    let mut everything = Everything::new(&vanilla_root, &mod_root, Vec::new()).unwrap();
+    let mut everything = Everything::new(&vanilla_dir, &mod_root, Vec::new()).unwrap();
     everything.load_all();
     everything.validate_all();
 

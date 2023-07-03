@@ -390,17 +390,14 @@ fn validate_field(key: &Token, bv: &BV, data: &Everything) {
         return;
     } else if key.is("texture") || key.is("progresstexture") || key.is("noprogresstexture") {
         if let Some(token) = bv.expect_value() {
-            // The editor_gui ones aren't in the CK3 installation but do appear
-            // to be available.
-            if !token.starts_with("[") && !token.starts_with("gfx/editor_gui/") {
+            if !token.starts_with("[") {
                 data.verify_exists(Item::File, token);
                 return;
             }
         }
     } else if key.is("tooltip") || key.is("text") {
         if let Some(token) = bv.expect_value() {
-            // The JOMINI_MULTIPLAYER_ ones are probably built in.
-            if !token.starts_with("[") && !token.starts_with("JOMINI_MULTIPLAYER_") {
+            if !token.starts_with("[") {
                 data.verify_exists(Item::Localization, token);
                 return;
             }

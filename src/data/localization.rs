@@ -99,8 +99,6 @@ pub const BUILTIN_MACROS: &[&str] = &[
     "TRAIT",
     "TRAIT_AGE",
     "TRAIT_SEX",
-    "TRIGGER_AND",
-    "TRIGGER_OR",
     "VALUE",
     "WHAT",
     "WHO",
@@ -456,7 +454,11 @@ impl FileHandler for Localization {
                 "Localization files should be in subdirectories according to their language.",
             );
             warned = true;
-        } else if !KNOWN_LANGUAGES.contains(&&*lang) && lang != "replace" {
+        } else if entry.kind() >= FileKind::Vanilla
+            && !KNOWN_LANGUAGES.contains(&&*lang)
+            && lang != "replace"
+            && lang != "jomini"
+        {
             if self.warned_dirs.iter().any(|d| *d == *lang) {
                 warn_info(
                     entry,
@@ -507,7 +509,8 @@ impl FileHandler for Localization {
                 }
                 Err(e) => eprintln!("{e:#}"),
             }
-        } else {
+        } else if entry.kind() >= FileKind::Vanilla {
+            // Check for `FileKind::Vanilla` because Jomini and Clausewitz support more languages
             error_info(
                entry,
                ErrorKey::Filename,
@@ -526,7 +529,7 @@ impl FileHandler for Localization {
         builtins.extend(BUILTIN_MACROS);
         for lang in self.locas.values() {
             for entry in lang.values() {
-                if entry.key.loc.kind != FileKind::Vanilla {
+                if entry.key.loc.kind > FileKind::Vanilla {
                     continue;
                 }
 

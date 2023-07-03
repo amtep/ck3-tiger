@@ -231,12 +231,12 @@ pub struct Everything {
 
 impl Everything {
     pub fn new(
-        vanilla_root: &Path,
+        vanilla_dir: &Path,
         mod_root: &Path,
         replace_paths: Vec<PathBuf>,
     ) -> Result<Self, FilesError> {
         let mut fileset = Fileset::new(
-            vanilla_root.to_path_buf(),
+            vanilla_dir.to_path_buf(),
             mod_root.to_path_buf(),
             replace_paths,
         );

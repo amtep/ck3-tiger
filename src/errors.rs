@@ -112,6 +112,12 @@ struct Errors {
     /// The CK3 game directory
     vanilla_root: PathBuf,
 
+    /// Extra CK3 directory loaded before `vanilla_root`
+    clausewitz_root: PathBuf,
+
+    /// Extra CK3 directory loaded before `vanilla_root`
+    jomini_root: PathBuf,
+
     /// Extra loaded mods' directories
     loaded_mods: Vec<PathBuf>,
 
@@ -155,6 +161,8 @@ impl Errors {
             return None;
         }
         let pathname = match loc.kind {
+            FileKind::Clausewitz => self.clausewitz_root.join(&*loc.pathname),
+            FileKind::Jomini => self.jomini_root.join(&*loc.pathname),
             FileKind::Vanilla => self.vanilla_root.join(&*loc.pathname),
             FileKind::LoadedMod(idx) => self.loaded_mods[idx as usize].join(&*loc.pathname),
             FileKind::Mod => self.mod_root.join(&*loc.pathname),
@@ -182,7 +190,7 @@ impl Errors {
             }
         }
         if self.ignore_keys.contains(&key)
-            || (loc.kind == FileKind::Vanilla && !self.show_vanilla)
+            || (loc.kind <= FileKind::Vanilla && !self.show_vanilla)
             || (matches!(loc.kind, FileKind::LoadedMod(_)) && !self.show_loaded_mods)
         {
             return false;
@@ -418,6 +426,8 @@ impl Errors {
 
     fn kind_tag(&self, kind: FileKind) -> &str {
         match kind {
+            FileKind::Clausewitz => "Clausewitz",
+            FileKind::Jomini => "Jomini",
             FileKind::Vanilla => "CK3",
             FileKind::LoadedMod(idx) => &self.loaded_mods_labels[idx as usize],
             FileKind::Mod => "MOD",
@@ -447,8 +457,18 @@ pub fn minimum_level(lvl: ErrorLevel) {
     Errors::get_mut().minimum_level = lvl;
 }
 
-pub fn set_vanilla_root(root: PathBuf) {
-    Errors::get_mut().vanilla_root = root;
+pub fn set_vanilla_dir(dir: PathBuf) {
+    let mut game = dir.clone();
+    game.push("game");
+    Errors::get_mut().vanilla_root = game;
+
+    let mut clausewitz = dir.clone();
+    clausewitz.push("clausewitz");
+    Errors::get_mut().clausewitz_root = clausewitz;
+
+    let mut jomini = dir.clone();
+    jomini.push("jomini");
+    Errors::get_mut().jomini_root = jomini;
 }
 
 pub fn set_mod_root(root: PathBuf) {
