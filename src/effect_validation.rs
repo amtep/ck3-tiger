@@ -66,6 +66,8 @@ pub enum EvB {
     PayGold,
     PayIncome,
     RandomList,
+    RemoveFromCurrentPhaseGuestSubset,
+    RemoveFromGuestSubset,
     RemoveOpinion,
     ReplaceCourtPosition,
     RevokeCourtPosition,
@@ -586,6 +588,19 @@ pub fn validate_effect_block(
         }
         RandomList => {
             validate_random_list("random_list", block, data, vd, sc, tooltipped);
+        }
+        RemoveFromCurrentPhaseGuestSubset => {
+            vd.req_field("name");
+            vd.req_field("target");
+            vd.field_item("name", Item::GuestSubset);
+            vd.field_target("target", sc, Scopes::Character);
+        }
+        RemoveFromGuestSubset => {
+            vd.req_field("name");
+            vd.req_field("target");
+            vd.field_item("name", Item::GuestSubset);
+            vd.field_target("target", sc, Scopes::Character);
+            vd.field_item("phase", Item::ActivityPhase);
         }
         RemoveOpinion => {
             vd.req_field("target");

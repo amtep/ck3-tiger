@@ -277,7 +277,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         ScopeOrItem(Scopes::Trait, Item::Trait),
     ),
     (Character, "add_trait_xp", VB(EvB::AddTraitXp)),
-    (Character, "add_travel_option", Unchecked),
+    (Character, "add_travel_option", Item(Item::TravelOption)),
     (TravelPlan, "add_travel_plan_modifier", AddModifier),
     (
         Province,
@@ -768,14 +768,16 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Dynasty, "remove_dynasty_modifier", Item(Item::Modifier)),
     (Dynasty, "remove_dynasty_perk", Item(Item::DynastyPerk)),
     (Character, "remove_from_activity", Scope(Scopes::Activity)),
-    // TODO: figure out what to put for name = <subset_key>
     (
         Activity,
         "remove_from_current_phase_guest_subset",
-        Unchecked,
+        VB(EvB::RemoveFromCurrentPhaseGuestSubset),
     ),
-    // TODO: figure out what to put for name = <subset_key> and phase = <phase_key>
-    (Activity, "remove_from_guest_subset", Unchecked),
+    (
+        Activity,
+        "remove_from_guest_subset",
+        VB(EvB::RemoveFromGuestSubset),
+    ),
     (ALL_BUT_NONE, "remove_from_list", VV(EvV::RemoveFromList)),
     (None, "remove_global_variable", Unchecked),
     (Province, "remove_holding", Yes),
@@ -862,8 +864,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
         "remove_trait_force_tooltip",
         ScopeOrItem(Scopes::Trait, Item::Trait),
     ),
-    // TODO: figure out which item this is
-    (TravelPlan, "remove_travel_option", Unchecked),
+    (TravelPlan, "remove_travel_option", Item(Item::TravelOption)),
     (
         TravelPlan,
         "remove_travel_plan_modifier",
@@ -1030,9 +1031,9 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (LandedTitle, "set_destroy_on_gain_same_tier", Boolean),
     (LandedTitle, "set_destroy_on_succession", Boolean),
     (Character, "set_diarch", Scope(Scopes::Character)),
-    (Character, "set_diarchy_mandate", Unchecked), // TODO
+    (Character, "set_diarchy_mandate", Item(Item::DiarchyMandate)),
     (Character, "set_diarchy_swing", ScriptValue),
-    (Character, "set_diarchy_type", Unchecked), // TODO
+    (Character, "set_diarchy_type", Item(Item::DiarchyType)),
     (Dynasty, "set_dynasty_name", Item(Item::Localization)),
     (Character, "set_employer", Scope(Scopes::Character)),
     (Culture, "set_ethos_from", Scope(Scopes::Culture)),
@@ -1142,7 +1143,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Secret, "spend_by", Scope(Scopes::Character)),
     (Character, "sponsor_inspiration", Scope(Scopes::Inspiration)),
     (Character, "start_default_task", Yes),
-    (Character, "start_diarchy", Unchecked), // TODO
+    (Character, "start_diarchy", Item(Item::DiarchyType)),
     (GreatHolyWar, "start_ghw_war", Item(Item::CasusBelli)),
     (Faith, "start_great_holy_war", VB(EvB::SetGHWTarget)),
     (Character, "start_scheme", VB(EvB::StartScheme)),
