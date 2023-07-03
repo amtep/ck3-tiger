@@ -1,10 +1,12 @@
 use fnv::FnvHashMap;
+
 use std::mem::{swap, take};
+use std::path::PathBuf;
 
 use crate::block::{Block, Comparator, BV};
 use crate::errorkey::ErrorKey;
 use crate::errors::{error, warn, warn_info};
-use crate::fileset::FileEntry;
+use crate::fileset::{FileEntry, FileKind};
 use crate::token::{Loc, Token};
 
 #[derive(Copy, Clone, Debug)]
@@ -576,6 +578,13 @@ pub fn parse_pdx(entry: &FileEntry, mut content: &str) -> Block {
 
 pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
     parse(inputs[0].loc.clone(), inputs, local_macros)
+}
+
+pub fn parse_pdx_internal(input: &str, desc: &str) -> Block {
+    let entry = FileEntry::new(PathBuf::from(desc), FileKind::Internal);
+    let loc = Loc::for_entry(&entry);
+    let input = Token::new(input.to_string(), loc.clone());
+    parse(loc, &[input], LocalMacros::default())
 }
 
 // Simplified parsing just to get the macro arguments

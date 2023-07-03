@@ -1015,6 +1015,7 @@ dependencies = [
  "fnv",
  "image",
  "lazy_static",
+ "once_cell",
  "png",
  "strum",
  "strum_macros",

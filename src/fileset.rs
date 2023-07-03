@@ -18,6 +18,7 @@ use crate::token::{Loc, Token};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FileKind {
+    Internal,
     Clausewitz,
     Jomini,
     Vanilla,
@@ -335,6 +336,7 @@ impl Fileset {
 
     pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {
         match entry.kind {
+            FileKind::Internal => entry.path().to_path_buf(),
             FileKind::Clausewitz => self.clausewitz_root.join(entry.path()),
             FileKind::Jomini => self.jomini_root.join(entry.path()),
             FileKind::Vanilla => self.vanilla_root.join(entry.path()),

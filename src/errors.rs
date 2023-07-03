@@ -161,6 +161,7 @@ impl Errors {
             return None;
         }
         let pathname = match loc.kind {
+            FileKind::Internal => (*loc.pathname).clone(),
             FileKind::Clausewitz => self.clausewitz_root.join(&*loc.pathname),
             FileKind::Jomini => self.jomini_root.join(&*loc.pathname),
             FileKind::Vanilla => self.vanilla_root.join(&*loc.pathname),
@@ -426,6 +427,7 @@ impl Errors {
 
     fn kind_tag(&self, kind: FileKind) -> &str {
         match kind {
+            FileKind::Internal => "Internal",
             FileKind::Clausewitz => "Clausewitz",
             FileKind::Jomini => "Jomini",
             FileKind::Vanilla => "CK3",
