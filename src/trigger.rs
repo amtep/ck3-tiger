@@ -253,6 +253,7 @@ pub fn validate_trigger_key_bv(
     if let Some((before, after)) = key.split_after('(') {
         if let Some((arg, after)) = after.split_once(')') {
             let arg = arg.trim();
+            #[cfg(feature = "ck3")]
             for part in before.split('.') {
                 if part.as_str().ends_with('(') {
                     if part.is("vassal_contract_obligation_level_score(") {
@@ -759,8 +760,10 @@ pub fn validate_target_ok_this(
         let first = i == 0;
         let last = i + 1 == part_vec.len();
         let mut part = &part_vec[i];
+        #[cfg(feature = "ck3")]
         let store_part;
 
+        #[cfg(feature = "ck3")]
         if let Some((new_part, arg)) = part.split_after('(') {
             if let Some((arg, _)) = arg.split_once(')') {
                 let arg = arg.trim();

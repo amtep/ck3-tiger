@@ -415,6 +415,7 @@ pub fn validate_effect_control(
         vd.ban_field("chance", || "`random`");
     }
 
+    #[cfg(feature = "ck3")]
     if caller == "send_interface_message" || caller == "send_interface_toast" {
         vd.field_item("type", Item::Message);
         vd.field_validated_sc("title", sc, validate_desc);

@@ -715,12 +715,14 @@ pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mu
     });
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_activity_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_target("object", sc, Scopes::Activity);
     vd.field_target("target", sc, Scopes::Character);
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_scheme_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_target("object", sc, Scopes::Scheme);
@@ -754,7 +756,9 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     );
 
     // These are special single-use modifiers
+    #[cfg(feature = "ck3")]
     vd.field_validated_blocks_sc("scheme_modifier", sc, validate_scheme_modifier);
+    #[cfg(feature = "ck3")]
     vd.field_validated_blocks_sc("activity_modifier", sc, validate_activity_modifier);
 }
 
@@ -915,6 +919,7 @@ pub fn validate_random_culture(block: &Block, data: &Everything, sc: &mut ScopeC
     }
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_random_faith(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     for (key, block) in vd.unknown_block_fields() {
