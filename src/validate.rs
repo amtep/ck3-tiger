@@ -204,7 +204,8 @@ pub fn validate_color(block: &Block, _data: &Everything) {
             match v {
                 BV::Value(t) => {
                     if tag == "hsv" {
-                        if let Ok(f) = t.as_str().parse::<f64>() {
+                        t.check_number();
+                        if let Some(f) = t.get_number() {
                             if !(0.0..=1.0).contains(&f) {
                                 let msg = "hsv values should be between 0.0 and 1.0";
                                 error(t, ErrorKey::Colors, msg);
@@ -213,7 +214,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
                             error(t, ErrorKey::Colors, "expected hsv value");
                         }
                     } else if tag == "hsv360" {
-                        if let Ok(i) = t.as_str().parse::<i64>() {
+                        if let Some(i) = t.get_integer() {
                             if !(0..=360).contains(&i) {
                                 let msg = "hsv360 values should be between 0 and 360";
                                 error(t, ErrorKey::Colors, msg);
@@ -221,12 +222,13 @@ pub fn validate_color(block: &Block, _data: &Everything) {
                         } else {
                             error(t, ErrorKey::Colors, "expected hsv360 value");
                         }
-                    } else if let Ok(i) = t.as_str().parse::<i64>() {
+                    } else if let Some(i) = t.get_integer() {
                         if !(0..=255).contains(&i) {
                             let msg = "color values should be between 0 and 255";
                             error(t, ErrorKey::Colors, msg);
                         }
-                    } else if let Ok(f) = t.as_str().parse::<f64>() {
+                    } else if let Some(f) = t.get_number() {
+                        t.check_number();
                         if !(0.0..=1.0).contains(&f) {
                             let msg = "color values should be between 0.0 and 1.0";
                             error(t, ErrorKey::Colors, msg);
@@ -265,7 +267,8 @@ pub fn validate_camera_color(block: &Block, data: &Everything) {
         } else {
             match v {
                 BV::Value(t) => {
-                    if let Ok(f) = t.as_str().parse::<f64>() {
+                    t.check_number();
+                    if let Some(f) = t.get_number() {
                         if count <= 1 && !(0.0..=1.0).contains(&f) {
                             let msg = "h and s values should be between 0.0 and 1.0";
                             error(t, ErrorKey::Colors, msg);
@@ -349,7 +352,8 @@ pub fn precheck_iterator_fields(
         ListType::Any => {
             if let Some(bv) = block.get_field("percent") {
                 if let Some(token) = bv.get_value() {
-                    if let Ok(num) = token.as_str().parse::<f64>() {
+                    if let Some(num) = token.get_number() {
+                        token.check_number();
                         if num > 1.0 {
                             let msg = "'percent' here needs to be between 0 and 1";
                             warn(token, ErrorKey::Range, msg);

@@ -175,10 +175,10 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
         });
         vd.field_validated_blocks("instance", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_list_numeric_exactly("position", 2);
-            vd.field_list_numeric_exactly("scale", 2);
-            vd.field_numeric("rotation");
-            vd.field_numeric("depth");
+            vd.field_list_precise_numeric_exactly("position", 2);
+            vd.field_list_precise_numeric_exactly("scale", 2);
+            vd.field_precise_numeric("rotation");
+            vd.field_precise_numeric("depth");
         });
         vd.field_validated_block("mask", |block, data| {
             let mut vd = Validator::new(block, data);

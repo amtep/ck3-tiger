@@ -341,6 +341,14 @@ impl<'a> Validator<'a> {
         })
     }
 
+    pub fn field_precise_numeric(&mut self, name: &str) -> bool {
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                token.expect_precise_number();
+            }
+        })
+    }
+
     pub fn field_numeric_range(&mut self, name: &str, low: f64, high: f64) {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -894,6 +902,31 @@ impl<'a> Validator<'a> {
         self.field_validated_block(name, |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_tokens_numbers_exactly(expect);
+        });
+    }
+
+    pub fn req_tokens_precise_numbers_exactly(&mut self, expect: usize) {
+        self.accepted_tokens = true;
+        let mut found = 0;
+        for (k, _, bv) in &self.block.v {
+            if k.is_none() {
+                if let BV::Value(t) = bv {
+                    if t.expect_precise_number().is_some() {
+                        found += 1;
+                    }
+                }
+            }
+        }
+        if found != expect {
+            let msg = format!("expected {expect} numbers");
+            error(self.block, ErrorKey::Validation, &msg);
+        }
+    }
+
+    pub fn field_list_precise_numeric_exactly(&mut self, name: &str, expect: usize) {
+        self.field_validated_block(name, |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_tokens_precise_numbers_exactly(expect);
         });
     }
 

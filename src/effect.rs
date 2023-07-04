@@ -137,7 +137,7 @@ pub fn validate_effect<'a>(
                 }
                 Effect::ScriptValue | Effect::NonNegativeValue => {
                     if let Some(token) = bv.get_value() {
-                        if let Ok(number) = token.as_str().parse::<f64>() {
+                        if let Some(number) = token.get_number() {
                             if matches!(effect, Effect::NonNegativeValue) && number < 0.0 {
                                 if key.is("add_gold") {
                                     let msg = "add_gold does not take negative numbers";

@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use crate::block::Date;
 use crate::errorkey::ErrorKey;
-use crate::errors::error;
+use crate::errors::{error, error_info};
 use crate::fileset::{FileEntry, FileKind};
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -155,6 +155,7 @@ impl Token {
     }
 
     pub fn expect_number(&self) -> Option<f64> {
+        self.check_number();
         if let Ok(v) = self.s.parse::<f64>() {
             Some(v)
         } else {
@@ -163,8 +164,33 @@ impl Token {
         }
     }
 
+    pub fn get_number(&self) -> Option<f64> {
+        self.s.parse::<f64>().ok()
+    }
+
     pub fn is_number(&self) -> bool {
         self.s.parse::<f64>().is_ok()
+    }
+
+    pub fn check_number(&self) {
+        if let Some(idx) = self.s.find('.') {
+            if self.s.len() - idx > 6 {
+                let msg = "only 5 decimals are supported";
+                let info =
+                    "if you give more decimals, you get an error and the number is read as 0";
+                error_info(self, ErrorKey::Validation, msg, info);
+            }
+        }
+    }
+
+    /// Some files seem not to have the 5-decimal limitation
+    pub fn expect_precise_number(&self) -> Option<f64> {
+        if let Ok(v) = self.s.parse::<f64>() {
+            Some(v)
+        } else {
+            error(self, ErrorKey::Validation, "expected number");
+            None
+        }
     }
 
     pub fn expect_integer(&self) -> Option<i64> {
@@ -174,6 +200,10 @@ impl Token {
             error(self, ErrorKey::Validation, "expected integer");
             None
         }
+    }
+
+    pub fn get_integer(&self) -> Option<i64> {
+        self.s.parse::<i64>().ok()
     }
 
     pub fn is_integer(&self) -> bool {

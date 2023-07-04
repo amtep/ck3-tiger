@@ -103,7 +103,7 @@ impl DbKind for CourtSceneSetting {
         vd.field_integer("visual_culture_level");
         vd.field_item("cubemap", Item::File);
         vd.field_item("environment", Item::File);
-        vd.field_numeric("audio_culture");
+        vd.field_precise_numeric("audio_culture");
 
         let mut cameras = Vec::new();
         vd.field_validated_block("camera", |block, data| {
@@ -117,8 +117,8 @@ impl DbKind for CourtSceneSetting {
         });
 
         vd.field_integer_range("default_camera", 0, max(cameras.len() as i64 - 1, 0));
-        vd.field_numeric("shadows_fade");
-        vd.field_numeric("shadows_strength");
+        vd.field_precise_numeric("shadows_fade");
+        vd.field_precise_numeric("shadows_strength");
 
         vd.field_validated_block("lights", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -164,11 +164,11 @@ fn validate_camera(block: &Block, data: &Everything, cameras: &mut Vec<String>) 
     if let Some(token) = vd.field_value("description") {
         cameras.push(token.to_string());
     }
-    vd.field_numeric("fov");
-    vd.field_list_numeric_exactly("position", 3);
-    vd.field_numeric("pitch");
-    vd.field_numeric("yaw");
-    vd.field_list_numeric_exactly("camera_near_far", 2);
+    vd.field_precise_numeric("fov");
+    vd.field_list_precise_numeric_exactly("position", 3);
+    vd.field_precise_numeric("pitch");
+    vd.field_precise_numeric("yaw");
+    vd.field_list_precise_numeric_exactly("camera_near_far", 2);
     vd.field_bool("is_camera_used_for_screenshots");
     vd.field_item("royal_court_camera_name_key", Item::Localization);
 }
@@ -182,9 +182,9 @@ fn validate_light(block: &Block, data: &Everything) {
 
 fn validate_character(block: &Block, data: &Everything, cameras: &[String]) {
     let mut vd = Validator::new(block, data);
-    vd.field_list_numeric_exactly("position", 3);
-    vd.field_list_numeric_exactly("rotation", 3);
-    vd.field_numeric("direction");
+    vd.field_list_precise_numeric_exactly("position", 3);
+    vd.field_list_precise_numeric_exactly("rotation", 3);
+    vd.field_precise_numeric("direction");
     vd.field_value("locator"); // TODO
     vd.field_value("description");
     if let Some(token) = vd.field_value("camera") {
@@ -197,10 +197,10 @@ fn validate_character(block: &Block, data: &Everything, cameras: &[String]) {
 
 fn validate_asset(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    vd.field_list_numeric_exactly("position", 3);
-    vd.field_list_numeric_exactly("rotation", 3);
-    vd.field_numeric("direction");
-    vd.field_numeric("scale");
+    vd.field_list_precise_numeric_exactly("position", 3);
+    vd.field_list_precise_numeric_exactly("rotation", 3);
+    vd.field_precise_numeric("direction");
+    vd.field_precise_numeric("scale");
     vd.field_value("description");
     vd.field_item("asset", Item::Asset);
     vd.field_value("roles"); // TODO
@@ -209,9 +209,9 @@ fn validate_asset(block: &Block, data: &Everything) {
 
 fn validate_artifact(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    vd.field_list_numeric_exactly("position", 3);
-    vd.field_list_numeric_exactly("rotation", 3);
-    vd.field_numeric("direction");
+    vd.field_list_precise_numeric_exactly("position", 3);
+    vd.field_list_precise_numeric_exactly("rotation", 3);
+    vd.field_precise_numeric("direction");
     vd.field_value("locator"); // TODO
     vd.field_item("slot", Item::ArtifactSlot);
 }
