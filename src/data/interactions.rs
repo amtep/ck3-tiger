@@ -289,10 +289,13 @@ impl Interaction {
 
         vd.field_validated_blocks("send_option", |b, data| {
             let mut vd = Validator::new(b, data);
-            vd.req_field("localization");
             vd.req_field("flag");
-            vd.field_item("localization", Item::Localization);
-            vd.field_value("flag");
+            // If localization field is not set, then flag is used as the localization
+            if !vd.field_item("localization", Item::Localization) {
+                vd.field_item("flag", Item::Localization);
+            } else {
+                vd.field_value("flag");
+            }
             vd.field_validated_block("is_shown", |b, data| {
                 validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
             });
