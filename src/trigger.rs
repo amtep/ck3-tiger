@@ -13,13 +13,15 @@ use crate::everything::Everything;
 use crate::helpers::stringify_choices;
 use crate::item::Item;
 use crate::report::{advice_info, error, old_warn, warn2, warn_info, ErrorKey};
-use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
+use crate::scopes::{
+    scope_iterator, scope_prefix, scope_to_scope, validate_prefix_reference, Scopes,
+};
 use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
-    validate_iterator_fields, validate_prefix_reference, ListType,
+    validate_iterator_fields, ListType,
 };
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::triggers::{scope_trigger, trigger_comparevalue, Trigger};
@@ -291,7 +293,7 @@ pub fn validate_trigger_key_bv(
                     old_warn(part, ErrorKey::Validation, &msg);
                 }
                 sc.expect(inscopes, &prefix);
-                validate_prefix_reference(&prefix, &arg, data);
+                validate_prefix_reference(&prefix, &arg, data, sc);
                 if prefix.is("scope") {
                     if last && matches!(cmp, Comparator::Equals(Question)) {
                         // If the comparator is ?=, it's an implicit existence check
@@ -789,7 +791,7 @@ pub fn validate_target_ok_this(
                     old_warn(part, ErrorKey::Validation, &msg);
                 }
                 sc.expect(inscopes, &prefix);
-                validate_prefix_reference(&prefix, &arg, data);
+                validate_prefix_reference(&prefix, &arg, data, sc);
                 if prefix.is("scope") {
                     sc.replace_named_scope(arg.as_str(), part);
                 } else {

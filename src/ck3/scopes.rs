@@ -4,8 +4,10 @@ use std::fmt::{Display, Formatter};
 
 use bitflags::bitflags;
 
+use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::display_choices;
+use crate::item::Item;
 use crate::report::{warn_info, ErrorKey};
 use crate::token::Token;
 
@@ -362,6 +364,45 @@ impl Display for Scopes {
             }
             display_choices(f, &vec, "or")
         }
+    }
+}
+
+pub fn validate_prefix_reference(
+    prefix: &Token,
+    arg: &Token,
+    data: &Everything,
+    _sc: &mut ScopeContext,
+) {
+    // TODO there are more to match
+    // TODO integrate this to the SCOPE_FROM_PREFIX table
+    match prefix.as_str() {
+        "accolade_type" => data.verify_exists(Item::AccoladeType, arg),
+        "activity_type" => data.verify_exists(Item::ActivityType, arg),
+        "aptitude" | "court_position" => data.verify_exists(Item::CourtPosition, arg),
+        "array_define" | "define" => data.verify_exists(Item::Define, arg),
+        "character" => data.verify_exists(Item::Character, arg),
+        "council_task" | "cp" => data.verify_exists(Item::CouncilPosition, arg),
+        "culture" => data.verify_exists(Item::Culture, arg),
+        "culture_pillar" => data.verify_exists(Item::CulturePillar, arg),
+        "culture_tradition" => data.verify_exists(Item::CultureTradition, arg),
+        "decision" => data.verify_exists(Item::Decision, arg),
+        "doctrine" => data.verify_exists(Item::Doctrine, arg),
+        "dynasty" => data.verify_exists(Item::Dynasty, arg),
+        "event_id" => data.verify_exists(Item::Event, arg),
+        "faith" => data.verify_exists(Item::Faith, arg),
+        "government_type" => data.verify_exists(Item::GovernmentType, arg),
+        "house" => data.verify_exists(Item::House, arg),
+        "mandate_type_qualification" => data.verify_exists(Item::DiarchyMandate, arg),
+        "province" => data.verify_exists(Item::Province, arg),
+        "religion" => data.verify_exists(Item::Religion, arg),
+        "special_guest" => data.verify_exists(Item::SpecialGuest, arg),
+        "struggle" => data.verify_exists(Item::Struggle, arg),
+        "title" => data.verify_exists(Item::Title, arg),
+        "trait" => data.verify_exists(Item::Trait, arg),
+        "vassal_contract" | "vassal_contract_obligation_level" => {
+            data.verify_exists(Item::VassalContract, arg);
+        }
+        &_ => (),
     }
 }
 

@@ -9,7 +9,7 @@ use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{error, error_info, old_warn, ErrorKey};
-use crate::scopes::{scope_prefix, scope_to_scope, Scopes};
+use crate::scopes::{scope_prefix, scope_to_scope, validate_prefix_reference, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -295,43 +295,10 @@ pub fn validate_possibly_named_color(bv: &BV, data: &Everything) {
     }
 }
 
-pub fn validate_prefix_reference(prefix: &Token, arg: &Token, data: &Everything) {
-    // TODO there are more to match
-    // TODO integrate this to the SCOPE_FROM_PREFIX table
-    match prefix.as_str() {
-        "accolade_type" => data.verify_exists(Item::AccoladeType, arg),
-        "activity_type" => data.verify_exists(Item::ActivityType, arg),
-        "aptitude" | "court_position" => data.verify_exists(Item::CourtPosition, arg),
-        "array_define" | "define" => data.verify_exists(Item::Define, arg),
-        "character" => data.verify_exists(Item::Character, arg),
-        "council_task" | "cp" => data.verify_exists(Item::CouncilPosition, arg),
-        "culture" => data.verify_exists(Item::Culture, arg),
-        "culture_pillar" => data.verify_exists(Item::CulturePillar, arg),
-        "culture_tradition" => data.verify_exists(Item::CultureTradition, arg),
-        "decision" => data.verify_exists(Item::Decision, arg),
-        "doctrine" => data.verify_exists(Item::Doctrine, arg),
-        "dynasty" => data.verify_exists(Item::Dynasty, arg),
-        "event_id" => data.verify_exists(Item::Event, arg),
-        "faith" => data.verify_exists(Item::Faith, arg),
-        "government_type" => data.verify_exists(Item::GovernmentType, arg),
-        "house" => data.verify_exists(Item::House, arg),
-        "mandate_type_qualification" => data.verify_exists(Item::DiarchyMandate, arg),
-        "province" => data.verify_exists(Item::Province, arg),
-        "religion" => data.verify_exists(Item::Religion, arg),
-        "special_guest" => data.verify_exists(Item::SpecialGuest, arg),
-        "struggle" => data.verify_exists(Item::Struggle, arg),
-        "title" => data.verify_exists(Item::Title, arg),
-        "trait" => data.verify_exists(Item::Trait, arg),
-        "vassal_contract" | "vassal_contract_obligation_level" => {
-            data.verify_exists(Item::VassalContract, arg);
-        }
-        &_ => (),
-    }
-}
-
 pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted: &str) {
     if let Some((prefix, arg)) = token.split_once(':') {
-        validate_prefix_reference(&prefix, &arg, data);
+        let mut sc = ScopeContext::new(Scopes::None, token);
+        validate_prefix_reference(&prefix, &arg, data, &mut sc);
         if prefix.is(wanted) {
             return;
         }
@@ -849,7 +816,7 @@ pub fn validate_scope_chain(
                     old_warn(part, ErrorKey::Validation, &msg);
                 }
                 sc.expect(inscopes, &prefix);
-                validate_prefix_reference(&prefix, &arg, data);
+                validate_prefix_reference(&prefix, &arg, data, sc);
                 if prefix.is("scope") {
                     if last && qeq {
                         sc.exists_scope(arg.as_str(), part);

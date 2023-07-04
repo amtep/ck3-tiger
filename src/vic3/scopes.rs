@@ -3,10 +3,13 @@
 use bitflags::bitflags;
 use std::fmt::{Display, Formatter};
 
+use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::display_choices;
+use crate::item::Item;
 use crate::report::{warn_info, ErrorKey};
 use crate::token::Token;
+use crate::trigger::validate_target;
 
 bitflags! {
     /// LAST UPDATED VIC3 VERSION 1.3.6
@@ -446,11 +449,280 @@ impl Display for Scopes {
     }
 }
 
+pub fn validate_prefix_reference(
+    prefix: &Token,
+    arg: &Token,
+    data: &Everything,
+    sc: &mut ScopeContext,
+) {
+    // TODO there are more to match
+    // TODO integrate this to the SCOPE_FROM_PREFIX table
+    match prefix.as_str() {
+        // "active_law"
+        "ai_army_comparison" => validate_target(arg, data, sc, Scopes::Country),
+        "ai_gdp_comparison" => validate_target(arg, data, sc, Scopes::Country),
+        "ai_ideological_opinion" => validate_target(arg, data, sc, Scopes::Country),
+        "ai_navy_comparison" => validate_target(arg, data, sc, Scopes::Country),
+        // "array_define"
+        "average_defense" => validate_target(arg, data, sc, Scopes::Country),
+        "average_offense" => validate_target(arg, data, sc, Scopes::Country),
+        "b" => data.verify_exists(Item::Building, arg),
+        // "c" => data.verify_exists(Item::Country, arg),
+        // "cd" => data.verify_exists(Item::CountryDefinition, arg),
+        "cu" => data.verify_exists(Item::Culture, arg),
+        // "decree_cost"
+        // "define"
+        // "diplomatic_pact_other_country"
+        // "flag"
+        // "g" => data.verify_exists(Item::Goods, arg),
+        // "get_ruler_for"
+        // "global_var"
+        // "i" => data.verify_exists(Item::Ideology, arg),
+        // "ideology" => data.verify_exists(Item::Ideology, arg),
+        // "ig" => data.verify_exists(Item::InterestGroup, arg),
+        // "ig_trait" => data.verify_exists(Item::InterestGroupTrait, arg),
+        // "ig_type" => data.verify_exists(Item::InterestGroupType, arg),
+        // "infamy_threshold" => data.verify_exists(Item::InfamyThreshold, arg),
+        // "institution" => data.verify_exists(Item::Institution, arg),
+        // "je" => data.verify_exists(Item::Journalentry, arg),
+        // "law_type" => data.verify_exists(Item::LawType, arg),
+        // "local_var"
+        // "mg" => data.verify_exists(Item::MarketGoods, arg),
+        // "modifier" => data.verify_exists(Item::Modifier, arg),
+        // "nf" => data.verify_exists(Item::Decree, arg),
+        "num_alliances_and_defensive_pacts_with_allies" => {
+            validate_target(arg, data, sc, Scopes::Country)
+        }
+        "num_alliances_and_defensive_pacts_with_rivals" => {
+            validate_target(arg, data, sc, Scopes::Country)
+        }
+        "num_defending_battalions" => validate_target(arg, data, sc, Scopes::Country),
+        "num_enemy_units" => validate_target(arg, data, sc, Scopes::Character), // TODO verify type
+        "num_mutual_trade_route_levels_with_country" => {
+            validate_target(arg, data, sc, Scopes::Country)
+        }
+        // "num_pending_events" =>
+        "num_total_battalions" => validate_target(arg, data, sc, Scopes::Country),
+        "p" => data.verify_exists(Item::Province, arg),
+        // "pop_type" => data.verify_exists(Item::PopType, arg),
+        // "py" => data.verify_exists(Item::Party, arg),
+        // "rank_value" =>
+        // "region_state" =>
+        "rel" => data.verify_exists(Item::Religion, arg),
+        "relations" => validate_target(arg, data, sc, Scopes::Country),
+        // "relations_threshold" =>
+        // "s" => data.verify_exists(Item::StateRegion, arg),
+        // "scope"
+        // "sr" => data.verify_exists(Item::StrategicRegion, arg),
+        "tension" => validate_target(arg, data, sc, Scopes::Country),
+        // "tension_threshold" =>
+        // "var"
+        &_ => (),
+    }
+}
+
 /// LAST UPDATED VIC3 VERSION 1.3.6
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
-    // TODO
+    (
+        Country | StrategicRegion,
+        "active_diplomatic_play",
+        DiplomaticPlay,
+    ),
+    (TradeRoute, "actor_market", Market),
+    (Country, "army_size", Value),
+    (Country, "army_size_including_conscripts", Value),
+    (Battle, "attacker_side", BattleSide),
+    (War, "attacker_warleader", Country),
+    (Country | State, "average_expected_sol", Value),
+    (Country | State, "average_sol", Value),
+    (BattleSide, "battle", Battle),
+    (CombatUnit, "building", Building),
+    (Country, "building_levels", Value),
+    (Country, "cached_ai_coastal_population", Value),
+    (Country, "cached_ai_incorporated_coastal_population", Value),
+    (Country, "cached_ai_incorporated_population", Value),
+    (Country, "cached_ai_overseas_subject_population", Value),
+    (Country, "cached_ai_subject_population", Value),
+    (Country, "cached_ai_total_population", Value),
+    (
+        Country,
+        "cached_ai_unincorporated_coastal_population",
+        Value,
+    ),
+    (Country, "cached_ai_unincorporated_population", Value),
+    (Country, "capital", State),
+    (PoliticalMovement, "civil_war", CivilWar),
+    (Country, "civil_war_origin_country", Country),
+    (Country, "colonial_growth_per_colony", Value),
+    (Province, "combat_width", Value),
+    (CombatUnit, "commander", Character),
+    (Province | State, "controller", Country),
+    (Country, "country_definition", CountryDefinition),
+    (Country, "credit", Value),
+    (Character | CombatUnit | Pop, "culture", Culture),
+    (Law, "currently_active_law_in_group", Law),
+    (Country, "currently_enacting_law", Law),
+    (Battle, "defender_side", BattleSide),
+    (War, "defender_warleader", Country),
+    (CombatUnit, "defense", Value),
+    (CombatUnit, "demoralized", Value),
+    (PoliticalMovement, "desired_law", LawType),
+    (DiplomaticPact, "diplomatic_pact_other_country", Country),
+    (TradeRoute, "exporter", Market),
+    (DiplomaticPact, "first_country", Country),
+    (Battle | Character, "front", Front),
+    (Front, "front_length", Value),
+    (Country | State, "gdp", Value),
+    (None, "global_gdb", Value),
+    (Journalentry, "goal_value", Value),
+    (MarketGoods | TradeRoute, "goods", Goods),
+    (Country, "government_size", Value),
+    (Country, "heir", Character),
+    (Character | Pop, "home_country", Country),
+    (Character, "ideology", Ideology),
+    (TradeRoute, "importer", Market),
+    (Country, "income", Value),
+    (Country, "infamy", Value),
+    (DiplomaticPlay, "initiator", Country),
+    (Character, "interest_group", InterestGroup),
+    (Character, "interest_group_type", InterestGroupType),
+    (Institution, "investment", Value),
+    (Institution, "investment_max", Value),
+    (None, "is_setup", Value),
+    (Province | State, "land_hq", Hq),
+    (InterestGroup, "leader", Character),
+    (Country, "legitimacy", Value),
+    (Building | TradeRoute, "level", Value),
+    (CombatUnit, "manpower", Value),
+    (
+        Country | Building | Market | MarketGoods | Province | State | StateRegion,
+        "market",
+        Market,
+    ),
+    (Country, "market_capital", State),
+    (CombatUnit, "mobilization", Value),
+    (Party, "momentum", Value),
+    (CombatUnit, "morale", Value),
+    (Province, "naval_hq", Hq),
+    (Country, "navy_size", Value),
+    (None, "no", Bool),
+    (Country, "num_active_declared_interests", Value),
+    (Country, "num_active_interests", Value),
+    (Country, "num_active_natural_interests", Value),
+    (Country, "num_active_plays", Value),
+    (Country, "num_admirals", Value),
+    (Country, "num_alliances", Value),
+    (Character, "num_battallions", Value),
+    (Country, "num_characters", Value),
+    (Country, "num_colony_projects", Value),
+    (Character, "num_commanded_units", Value),
+    (Country, "num_commanders", Value),
+    (Country, "num_convoys_available", Value),
+    (Country, "num_convoys_required", Value),
+    (Country, "num_declared_interests", Value),
+    (Country, "num_defensive_pacts", Value),
+    (MarketGoods, "num_export_trade_routes", Value),
+    (Hq, "num_garrison_units", Value),
+    (Country, "num_generals", Value),
+    (MarketGoods, "num_import_trade_routes", Value),
+    (Country, "num_income_transfer_pacts", Value),
+    (Country, "num_incorporated_states", Value),
+    (Country, "num_interests", Value),
+    (Character, "num_mobilized_battallions", Value),
+    (Country, "num_natural_interests", Value),
+    (Country, "num_obligations_earned", Value),
+    (Country, "num_pending_events", Value),
+    (Country, "num_politicians", Value),
+    (Country, "num_positive_relations", Value),
+    (Front | State | StateRegion, "num_provinces", Value),
+    (Country, "num_queued_constructions", Value),
+    (Country, "num_queued_government_constructions", Value),
+    (Country, "num_queued_private_constructions", Value),
+    (Country, "num_rivals", Value),
+    (Country, "num_ruling_igs", Value),
+    (Country, "num_states", Value),
+    (Country, "num_trade_routes", Value),
+    (Country, "num_treaty_ports", Value),
+    (Country, "num_unincorporated_states", Value),
+    (Character, "num_units", Value),
+    (Character, "num_units_not_in_battle", Value),
+    (CombatUnit, "offense", Value),
+    (Character, "opposing_commander", Character),
+    (Country, "overlord", Country),
+    (
+        Country
+            | Building
+            | Character
+            | CombatUnit
+            | Decree
+            | Institution
+            | InterestMarker
+            | InterestGroup
+            | Journalentry
+            | Law
+            | Market
+            | MarketGoods
+            | Pop
+            | Province
+            | State
+            | TradeRoute,
+        "owner",
+        Country,
+    ),
+    (Market, "participants", Value),
+    (InterestGroup, "party", Party),
+    (None, "player", Country), // TODO "do not use this outside tutorial"
+    (
+        DiplomaticRelations,
+        "player_owed_obligation_days_left",
+        Value,
+    ),
+    (
+        Character | CivilWar,
+        "political_movement",
+        PoliticalMovement,
+    ),
+    (Pop, "pop_weight_modifier_scale", Value),
+    (Character, "popularity", Value),
+    (State, "population_below_expected_sol", Value),
+    (BattleSide, "province", Province),
+    (
+        Building | DiplomaticPlay | InterestMarker | Province | State | StateRegion,
+        "region",
+        StrategicRegion,
+    ),
+    (StateRegion, "region_state", State), // TODO: docs say Unknown
+    (
+        Country | Character | CountryDefinition | Pop,
+        "religion",
+        Religion,
+    ),
+    (Country, "ruler", Character),
+    (DiplomaticRelations, "scope_relations", Value),
+    (DiplomaticRelations, "scope_tension", Value),
+    (DiplomaticPact, "second_country", Country),
+    (BuildingType, "slaves_role", PopType),
+    (Building | Market | Pop | Province, "state", State),
+    (State, "state_region", StateRegion),
+    (Character, "supply", Value),
+    (DiplomaticPlay | Journalentry, "target", ALL), // TODO: scope type?
+    (TradeRoute, "target_market", Market),
+    (Country, "technology_being_researched", Technology),
+    (Country, "techs_researched", Value),
+    (Country, "top_overlord", Country),
+    (Market, "trade_center", State),
+    (Building, "training_rate", Value),
+    // TODO: special case for the scope types here
+    (
+        Building | CommanderOrder | Institution | InterestGroup | Law,
+        "type",
+        BuildingType | CommanderOrderType | InstitutionType | InterestGroupType | LawType,
+    ),
+    (DiplomaticPlay, "war", War),
+    (Pop, "workplace", Building),
+    (None, "yes", Bool),
 ];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
@@ -459,7 +731,69 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
 /// a key (like `root.cp:councillor_steward`)
 /// TODO: add the Item type here, so that it can be checked for existence.
 const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
-    // TODO
+    (Country, "active_law", Law),
+    (Country, "ai_army_comparison", Value),
+    (Country, "ai_gdp_comparison", Value),
+    (Country, "ai_ideological_opinion", Value),
+    (Country, "ai_navy_comparison", Value),
+    (None, "array_define", Value),
+    (Front, "average_defense", Value),
+    (Front, "average_offense", Value),
+    (State, "b", Building),
+    (None, "c", Country),
+    (None, "cd", CountryDefinition),
+    (None, "cu", Culture),
+    (Country, "decree_cost", Value),
+    (None, "define", Value),
+    (None, "flag", Flag),
+    (None, "g", Goods),
+    (Country, "get_ruler_for", Character),
+    (None, "global_var", ALL),
+    (None, "i", Ideology),
+    (None, "ideology", Ideology), // TODO difference with i:
+    (Country, "ig", InterestGroup),
+    (None, "ig_trait", InterestGroupTrait),
+    (None, "ig_type", InterestGroupType),
+    (None, "infamy_threshold", Value),
+    (Country, "institution", Institution),
+    (Country, "je", Journalentry),
+    (Country, "je_tutorial", Journalentry),
+    (None, "law_type", LawType),
+    (None, "local_var", ALL),
+    (Market, "mg", MarketGoods),
+    (
+        Country | Building | Character | InterestGroup | Market | State,
+        "modifier",
+        Value | Bool,
+    ),
+    (State, "nf", Decree),
+    (
+        Country,
+        "num_alliances_and_defensive_pacts_with_allies",
+        Value,
+    ),
+    (
+        Country,
+        "num_alliances_and_defensive_pacts_with_rivals",
+        Value,
+    ),
+    (Front, "num_defending_battalions", Value),
+    (Front, "num_enemy_units", Value),
+    (Country, "num_mutual_trade_route_levels_with_country", Value),
+    (Country, "num_pending_events", Value),
+    (Front, "num_total_battalions", Value),
+    (None, "p", Province),
+    (None, "pop_type", PopType),
+    (Country, "py", Party),
+    (None, "rank_value", Value),
+    (None, "rel", Religion),
+    (Country, "relations", Value),
+    (None, "relations_threshold", Value),
+    (None, "s", StateRegion),
+    (None, "sr", StrategicRegion),
+    (Country, "tension", Value),
+    (None, "tension_threshold", Value),
+    (ALL, "var", ALL),
 ];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
