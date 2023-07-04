@@ -1,5 +1,6 @@
 use std::fs::read_to_string;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use anyhow::{bail, Result};
 use clap::Parser;
@@ -7,11 +8,9 @@ use home::home_dir;
 
 use tiger_lib::everything::Everything;
 use tiger_lib::modfile::ModFile;
-use tiger_lib::report::{
-    disable_ansi_colors, ignore_key, minimum_level, set_mod_root, show_loaded_mods, show_vanilla,
-    ErrorLevel,
-};
+use tiger_lib::report::{disable_ansi_colors, set_minimum_level, set_mod_root, set_show_loaded_mods, set_show_vanilla, Confidence, LogLevel, Severity, add_filter_rule_key};
 use tiger_lib::report::{set_vanilla_dir, ErrorKey};
+use tiger_lib::report::RulesListType::{Blacklist, Whitelist};
 #[cfg(windows)]
 use winreg::enums::HKEY_LOCAL_MACHINE;
 #[cfg(windows)]
@@ -62,6 +61,9 @@ struct Cli {
     /// Can also be configured in the ck3-tiger.conf file.
     #[clap(long)]
     no_color: bool,
+    /// Only print reports for the given key.
+    #[clap(long)]
+    key: Option<String>,
 }
 
 /// Tries to locate the CK3 game files.
@@ -165,16 +167,16 @@ fn main() -> Result<()> {
 
     if args.show_vanilla {
         eprintln!("Showing warnings for base game files too. There will be many false positives in those.");
-        show_vanilla(true);
+        set_show_vanilla(true);
     }
 
     if args.show_mods {
         eprintln!("Showing warnings for other loaded mods too.");
-        show_loaded_mods(true);
+        set_show_loaded_mods(true);
     }
 
-    if !args.advice {
-        minimum_level(ErrorLevel::Info);
+    if args.advice {
+        set_minimum_level(LogLevel::new(Severity::Untidy, Confidence::Reasonable));
     }
 
     if args.unused {
@@ -184,11 +186,17 @@ fn main() -> Result<()> {
     if args.strict_scopes {
         eprintln!("Using stricter scope checking. This will generate more false positives but will also find more real errors.");
     } else {
-        ignore_key(ErrorKey::StrictScopes);
+        add_filter_rule_key(Blacklist, ErrorKey::StrictScopes);
     }
 
     if args.pod {
         eprintln!("Doing special checks for the Princes of Darkness mod.");
+    }
+
+    if let Some(key) = args.key {
+        if let Ok(key) = ErrorKey::from_str(&key) {
+            add_filter_rule_key(Whitelist, key);
+        }
     }
 
     if args.modpath.is_dir() {
@@ -205,10 +213,12 @@ fn main() -> Result<()> {
     set_mod_root(modpath.clone());
 
     let mut everything = Everything::new(&args.ck3.unwrap(), &modpath, modfile.replace_paths())?;
-    everything.load_output_settings();
 
     // Print a blank line between the preamble and the first report:
     eprintln!();
+
+    everything.load_output_settings();
+    everything.load_config_filtering_rules();
 
     // We must apply the --no-color flag AFTER loading and applying the config,
     // because we want it to override the config.

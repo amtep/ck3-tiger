@@ -8,7 +8,8 @@ use fnv::FnvHashSet;
 use strum::IntoEnumIterator;
 use thiserror::Error;
 
-use crate::block::Block;
+use crate::block::{Block, BV};
+use crate::block::Comparator::Eq;
 use crate::context::ScopeContext;
 use crate::data::accessory::{Accessory, AccessoryVariation};
 use crate::data::accolades::{AccoladeIcon, AccoladeName, AccoladeType};
@@ -26,9 +27,9 @@ use crate::data::buildings::Building;
 use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
 use crate::data::character_templates::CharacterTemplate;
 use crate::data::characters::Characters;
-use crate::data::coa::{CoaDynamicDefinition, CoaTemplateList, Coas};
+use crate::data::coa::{CoaDynamicDefinition, Coas, CoaTemplateList};
 use crate::data::coadesigner::{
-    CoaDesignerColorPalette, CoaDesignerColoredEmblem, CoaDesignerEmblemLayout, CoaDesignerPattern,
+    CoaDesignerColoredEmblem, CoaDesignerColorPalette, CoaDesignerEmblemLayout, CoaDesignerPattern,
 };
 use crate::data::colors::NamedColor;
 use crate::data::combat::CombatPhaseEvent;
@@ -133,8 +134,9 @@ use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, ignore_key, ignore_key_for, ignore_path, set_output_style, warn};
+use crate::report::{add_filter_rule_key, add_filter_rule_key_in_path, add_filter_rule_path, advice, Confidence, error, LogLevel, RulesListType, set_max_line_length, set_minimum_level, set_output_style, set_show_loaded_mods, set_show_vanilla, warn};
 use crate::report::{ErrorKey, OutputStyle, Severity};
+use crate::report::RulesListType::{Blacklist, Whitelist};
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 
@@ -305,8 +307,106 @@ impl Everything {
         self.fileset.fullpath(entry)
     }
 
-    pub fn load_errorkey_config(&self) {
+    pub fn load_config_filtering_rules(&self) {
+        // Load legacy rules:
+        self.load_legacy_ignore_blocks();
+        if self.config.count_keys("filter") > 1 {
+            error(&self.config, ErrorKey::Config, "Detected more than one filter block: there can be only one!");
+        }
+        if let Some(filter) = self.config.get_field_block("filter") {
+            set_show_vanilla(filter.get_field_bool("show_vanilla").unwrap_or(false));
+            set_show_loaded_mods(filter.get_field_bool("show_loaded_mods").unwrap_or(false));
+            let severity = filter
+                .get_field_value("minimum_severity")
+                .map(|t| t.as_str().parse().ok())
+                .flatten()
+                .unwrap_or(Severity::Warning);
+            let confidence = filter
+                .get_field_value("minimum_confidence")
+                .map(|t| t.as_str().parse().ok())
+                .flatten()
+                .unwrap_or(Confidence::Reasonable);
+            set_minimum_level(LogLevel::new(severity, confidence));
+            if let Some(whitelist) = filter.get_field_block("whitelist") {
+                self.load_filter_rules_list(Whitelist, whitelist);
+            }
+            if let Some(blacklist) = filter.get_field_block("blacklist") {
+                self.load_filter_rules_list(Blacklist, blacklist);
+            }
+        }
+    }
+
+    fn load_filter_rules_list(&self, rules_type: RulesListType, rules: &Block) {
+        for (key_opt, comp, value) in rules.iter_items() {
+            if let None = key_opt {
+                error(value, ErrorKey::Config, "Missing key. Loose values are not allowed here.");
+                continue;
+            }
+            let key = key_opt.as_ref().expect("Should exist.");
+            if comp != &Eq {
+                error(key, ErrorKey::Config, &format!("Detected illegal operator `{comp}`, only `=` is allowed."));
+                continue;
+            }
+            match (key.as_str(), &value) {
+                ("key", _) => error(key, ErrorKey::Config, "Detected illegal key: `key` should probably be `rule_key`."),
+                ("rule_key", BV::Value(value)) => {
+                    if let Ok(rule_key) = value.as_str().parse() {
+                        add_filter_rule_key(rules_type, rule_key);
+                    } else {
+                        error(value, ErrorKey::Config, "Illegal report-key detected");
+                    }
+                }
+                ("file", _) => error(key, ErrorKey::Config, "Detected illegal key: `file` should probably be `rule_file`."),
+                ("rule_file", BV::Value(value)) => {
+                    add_filter_rule_path(rules_type, PathBuf::from(value.as_str()));
+                }
+                ("rule_keys_in_file", _) => error(key, ErrorKey::Config, "Detected illegal key: should probably be `rule_keys_in_files`."),
+                ("rule_key_in_files", _) => error(key, ErrorKey::Config, "Detected illegal key: should probably be `rule_keys_in_files`."),
+                ("rule_key_in_file", _) => error(key, ErrorKey::Config, "Detected illegal key: should probably be `rule_keys_in_files`."),
+                ("rule_keys_in_files", BV::Block(block)) => {
+                    self.load_rule_keys_in_files(rules_type, block);
+                }
+                _ => error(key, ErrorKey::Config, "Detected illegal key"),
+            }
+        }
+    }
+
+    fn load_rule_keys_in_files(&self, rules_type: RulesListType, block: &Block) {
+        let keys: Vec<ErrorKey> = block.get_field_values("key").iter()
+            .map(|key| {
+                if let Ok(key) = key.as_str().parse() {
+                    Some(key)
+                } else {
+                    error(key, ErrorKey::Config, "Illegal report-key detected");
+                    None
+                }
+            })
+            .flatten()
+            .collect();
+        if keys.is_empty() {
+            error(block, ErrorKey::Config, "This block should contain at least one `key` and one `file`.");
+            return;
+        }
+
+        let path_names = block.get_field_values("file");
+        if path_names.is_empty() {
+            error(block, ErrorKey::Config, "This block should contain at least one `key` and one `file`.");
+            return;
+        }
+
+        for pathname in path_names {
+            for &key in &keys {
+                add_filter_rule_key_in_path(rules_type, PathBuf::from(pathname.as_str()), key);
+            }
+        }
+    }
+
+    /// This reads the old ignore sections from config.
+    /// Maybe we can drop support in the future if supporting this becomes cumbersome.
+    fn load_legacy_ignore_blocks(&self) {
         for block in self.config.get_field_blocks("ignore") {
+            advice(block, ErrorKey::Config, "`ignore` is deprecated, consider using `filter` instead.");
+
             let keynames = block.get_field_values("key");
 
             let mut keys = Vec::new();
@@ -324,16 +424,16 @@ impl Everything {
             let pathnames = block.get_field_values("file");
             if pathnames.is_empty() {
                 for key in keys {
-                    ignore_key(key);
+                    add_filter_rule_key(Blacklist, key);
                 }
             } else if keys.is_empty() {
                 for path in pathnames {
-                    ignore_path(PathBuf::from(path.as_str()));
+                    add_filter_rule_path(Blacklist, PathBuf::from(path.as_str()));
                 }
             } else {
                 for pathname in pathnames {
                     for &key in &keys {
-                        ignore_key_for(PathBuf::from(pathname.as_str()), key);
+                        add_filter_rule_key_in_path(Blacklist, PathBuf::from(pathname.as_str()), key);
                     }
                 }
             }
@@ -367,16 +467,16 @@ impl Everything {
     /// A helper function for categories of items that follow the usual pattern of
     /// `.txt` files containing a block with definitions
     pub fn load_pdx_items<F>(&mut self, itype: Item, add: F)
-    where
-        F: Fn(&mut Db, Token, Block),
+        where
+            F: Fn(&mut Db, Token, Block),
     {
         self.load_pdx_items_ext(itype, add, ".txt");
     }
 
     /// Like `load_pdx_items` but does not complain about a missing BOM
     pub fn load_pdx_items_optional_bom<F>(&mut self, itype: Item, add: F)
-    where
-        F: Fn(&mut Db, Token, Block),
+        where
+            F: Fn(&mut Db, Token, Block),
     {
         let subpath = PathBuf::from(itype.path());
         for entry in self.fileset.get_files_under(&subpath) {
@@ -395,8 +495,8 @@ impl Everything {
     /// A helper function for categories of items that follow the usual pattern of
     /// `.txt` files containing a block with definitions
     pub fn load_pdx_items_ext<F>(&mut self, itype: Item, add: F, ext: &str)
-    where
-        F: Fn(&mut Db, Token, Block),
+        where
+            F: Fn(&mut Db, Token, Block),
     {
         let subpath = PathBuf::from(itype.path());
         for entry in self.fileset.get_files_under(&subpath) {
@@ -412,8 +512,8 @@ impl Everything {
 
     /// A helper function for categories of items that are unusual in having each item in one file.
     pub fn load_pdx_files_optional_bom<F>(&mut self, itype: Item, add: F)
-    where
-        F: Fn(&mut Db, Token, Block),
+        where
+            F: Fn(&mut Db, Token, Block),
     {
         let subpath = PathBuf::from(itype.path());
         for entry in self.fileset.get_files_under(&subpath) {
@@ -430,9 +530,13 @@ impl Everything {
     }
 
     pub fn load_output_settings(&self) {
-        self.load_errorkey_config();
         if let Some(style) = self.load_output_styles() {
             set_output_style(style);
+        }
+        if let Some(block) = self.config.get_field_block("output_style") {
+            if let Some(max_line_length) = block.get_field_integer("max_line_length") {
+                set_max_line_length(max_line_length as usize);
+            }
         }
     }
 

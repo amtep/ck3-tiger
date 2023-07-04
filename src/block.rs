@@ -554,12 +554,12 @@ impl Block {
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Comparator {
     None,
+    /// Eq is also Assign
     Eq,
-    // Eq is also Assign
+    /// The == operator, which means Eq but cannot be used to assign
     EEq,
-    // The == operator, which means Eq but cannot be used to assign
+    /// The ?= operator
     QEq,
-    // The ?= operator
     Lt,
     Gt,
     Le,

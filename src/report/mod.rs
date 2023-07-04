@@ -1,15 +1,13 @@
-pub use errorkey::ErrorKey;
-pub use errors::{
-    add_loaded_mod_root, advice, advice2, advice_info, disable_ansi_colors, error, error_info,
-    ignore_key, ignore_key_for, ignore_path, log, minimum_level, set_mod_root, set_output_style,
-    set_vanilla_dir, show_loaded_mods, show_vanilla, warn, warn2, warn3, warn_abbreviated,
-    warn_header, warn_info, will_log, ErrorLevel, ErrorLoc,
-};
+pub use error_key::ErrorKey;
+pub use error_loc::ErrorLoc;
+pub use errors::*;
 pub use output_style::OutputStyle;
 pub use report_struct::{Confidence, LogLevel, LogReport, PointedMessage, Severity};
-
-mod errorkey;
+pub use filter::RulesListType;
+mod error_key;
+mod error_loc;
 mod errors;
+mod filter;
 mod output_style;
 mod report_struct;
 mod writer;

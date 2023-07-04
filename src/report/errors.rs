@@ -1,157 +1,37 @@
-use std::fmt::{Debug, Display, Formatter};
 use std::fs::read;
-use std::io::{stdout, Stderr, Stdout, Write};
+use std::io::{Stderr, Stdout, Write};
 use std::path::PathBuf;
 
 use encoding::all::{UTF_8, WINDOWS_1252};
 use encoding::{DecoderTrap, Encoding};
 use fnv::{FnvHashMap, FnvHashSet};
-use strum_macros::EnumIter;
 
-use crate::block::{Block, BV};
-use crate::fileset::{FileEntry, FileKind};
+use crate::fileset::FileKind;
+use crate::report::error_loc::ErrorLoc;
+use crate::report::filter::ReportFilter;
 use crate::report::writer::log_report;
-use crate::report::ErrorKey;
+use crate::report::{ErrorKey, RulesListType};
 use crate::report::{Confidence, LogLevel, LogReport, OutputStyle, PointedMessage, Severity};
-use crate::token::{Loc, Token};
+use crate::token::Loc;
 
 static mut ERRORS: Option<Errors> = None;
 
-/// Deprecated
-#[derive(Clone, Copy, Debug, Default, Ord, PartialOrd, Eq, PartialEq, Hash, EnumIter)]
-pub enum ErrorLevel {
-    #[default]
-    Advice,
-    Info,
-    Warning,
-    Error,
-}
-
-impl Display for ErrorLevel {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        match self {
-            ErrorLevel::Error => write!(f, "ERROR"),
-            ErrorLevel::Warning => write!(f, "WARNING"),
-            ErrorLevel::Info => write!(f, "INFO"),
-            ErrorLevel::Advice => write!(f, "ADVICE"),
-        }
-    }
-}
-
-// This trait lets the error functions accept a variety of things as the error locator.
-pub trait ErrorLoc {
-    fn into_loc(self) -> Loc;
-}
-
-impl ErrorLoc for BV {
-    fn into_loc(self) -> Loc {
-        match self {
-            BV::Value(t) => t.into_loc(),
-            BV::Block(s) => s.into_loc(),
-        }
-    }
-}
-
-impl ErrorLoc for &BV {
-    fn into_loc(self) -> Loc {
-        match self {
-            BV::Value(t) => t.into_loc(),
-            BV::Block(s) => s.into_loc(),
-        }
-    }
-}
-
-impl ErrorLoc for FileEntry {
-    fn into_loc(self) -> Loc {
-        Loc::for_entry(&self)
-    }
-}
-
-impl ErrorLoc for &FileEntry {
-    fn into_loc(self) -> Loc {
-        Loc::for_entry(self)
-    }
-}
-
-impl ErrorLoc for Loc {
-    fn into_loc(self) -> Loc {
-        self
-    }
-}
-
-impl ErrorLoc for &Loc {
-    fn into_loc(self) -> Loc {
-        self.clone()
-    }
-}
-
-impl ErrorLoc for Token {
-    fn into_loc(self) -> Loc {
-        self.loc
-    }
-}
-
-impl ErrorLoc for &Token {
-    fn into_loc(self) -> Loc {
-        self.loc.clone()
-    }
-}
-
-impl ErrorLoc for Block {
-    fn into_loc(self) -> Loc {
-        self.loc
-    }
-}
-
-impl ErrorLoc for &Block {
-    fn into_loc(self) -> Loc {
-        self.loc.clone()
-    }
-}
-
 type ErrorRecord = (Loc, ErrorKey, String, Option<Loc>, Option<Loc>);
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Errors {
     /// The CK3 game directory
     vanilla_root: PathBuf,
-
     /// Extra CK3 directory loaded before `vanilla_root`
     clausewitz_root: PathBuf,
-
     /// Extra CK3 directory loaded before `vanilla_root`
     jomini_root: PathBuf,
-
-    /// Extra loaded mods' directories
-    loaded_mods: Vec<PathBuf>,
-
-    /// Extra loaded mods' error tags
-    pub(crate) loaded_mods_labels: Vec<String>,
-
     /// The mod directory
     mod_root: PathBuf,
-
-    /// Whether to log errors in vanilla CK3 files
-    show_vanilla: bool,
-
-    /// Whether to log errors in other loaded mods
-    show_loaded_mods: bool,
-
-    /// Skip logging errors with these keys for these files and directories
-    ignore_keys_for: FnvHashMap<PathBuf, Vec<ErrorKey>>,
-
-    /// Skip logging errors with these keys
-    ignore_keys: Vec<ErrorKey>,
-
-    /// Skip logging errors for these files and directories (regardless of key)
-    ignore_paths: Vec<PathBuf>,
-
-    /// Error logs are written here (initially stderr)
-    outfile: Option<Box<dyn ErrorLogger>>,
-
-    /// Minimum error level to log
-    minimum_level: ErrorLevel,
-    min_level: LogLevel,
+    /// Extra loaded mods' directories
+    loaded_mods: Vec<PathBuf>,
+    /// Extra loaded mods' error tags
+    pub(crate) loaded_mods_labels: Vec<String>,
 
     /// Errors that have already been logged (to avoid duplication, which is common
     /// when validating macro expanded triggers and effects)
@@ -159,14 +39,14 @@ pub struct Errors {
 
     filecache: FnvHashMap<PathBuf, String>,
 
+    /// Determines whether a report should be printed.
+    pub(crate) filter: ReportFilter,
     /// Output color and style configuration.
     pub(crate) styles: OutputStyle,
+    pub(crate) max_line_length: Option<usize>,
 }
 
 impl Errors {
-    fn outfile(&mut self) -> &mut dyn Write {
-        self.outfile.as_mut().expect("outfile")
-    }
     pub(crate) fn get_line(&mut self, loc: &Loc) -> Option<String> {
         if loc.line == 0 {
             return None;
@@ -192,44 +72,10 @@ impl Errors {
         line
     }
 
-    pub fn will_log(&self, loc: &Loc, key: ErrorKey) -> bool {
-        // Check all elements of the loc link chain.
-        // This is necessary because of cases like a mod passing `CHARACTER = this` to a vanilla script effect
-        // that does not expect that. The error would be located in the vanilla script but would be caused by the mod.
-        if let Some(loc) = &loc.link {
-            if self.will_log(loc, key) {
-                return true;
-            }
-        }
-        if self.ignore_keys.contains(&key)
-            || (loc.kind <= FileKind::Vanilla && !self.show_vanilla)
-            || (matches!(loc.kind, FileKind::LoadedMod(_)) && !self.show_loaded_mods)
-        {
-            return false;
-        }
-        for (path, keys) in &self.ignore_keys_for {
-            if loc.pathname.starts_with(path) && keys.contains(&key) {
-                return false;
-            }
-        }
-        for path in &self.ignore_paths {
-            if loc.pathname.starts_with(path) {
-                return false;
-            }
-        }
-        true
-    }
-
     /// Perform some checks to see whether the report should actually be logged.
     /// If yes, it will do so.
-    fn push_report(&mut self, report: LogReport) {
-        if self.outfile.is_none() {
-            // TODO: should this be evaluated every time? Can it not happen once at the start?
-            self.outfile = Some(Box::new(stdout()));
-        }
-        if report.lvl.severity < self.min_level.severity
-            || report.lvl.confidence < self.min_level.confidence
-        {
+    fn push_report(&mut self, report: &LogReport) {
+        if !self.filter.should_print_report(report) {
             return;
         }
         let loc = report.primary().location.clone();
@@ -238,52 +84,34 @@ impl Errors {
         let index = (loc, report.key, report.msg.to_string(), loc2, loc3);
         if self.seen.contains(&index) {
             return;
-        } else {
-            self.seen.insert(index);
         }
-        if !self.will_log(&report.primary().location, report.key) {
-            return;
-        }
-        log_report(self, &report);
+        self.seen.insert(index);
+        log_report(self, report);
     }
 
     pub fn log_abbreviated(&mut self, loc: &Loc, key: ErrorKey) {
-        if self.outfile.is_none() {
-            self.outfile = Some(Box::new(stdout()));
-        }
         if loc.line == 0 {
-            writeln!(
-                self.outfile.as_mut().expect("outfile"),
+            println!(
                 "({key}) {}",
                 loc.pathname.to_string_lossy()
-            )
-            .expect("writeln");
+            );
         } else if let Some(line) = self.get_line(loc) {
-            writeln!(self.outfile.as_mut().expect("outfile"), "({key}) {line}").expect("writeln");
+            println!("({key}) {line}");
         }
     }
 
-    pub fn push_abbreviated<E: ErrorLoc>(&mut self, eloc: E, level: ErrorLevel, key: ErrorKey) {
-        if level < self.minimum_level {
-            return;
-        }
+    pub fn push_abbreviated<E: ErrorLoc>(&mut self, eloc: E, key: ErrorKey) {
         let loc = eloc.into_loc();
         let index = (loc.clone(), key, String::new(), None, None);
         if self.seen.contains(&index) {
             return;
         }
         self.seen.insert(index);
-        if !self.will_log(&loc, key) {
-            return;
-        }
         self.log_abbreviated(&loc, key);
     }
 
-    pub fn push_header(&mut self, level: ErrorLevel, key: ErrorKey, msg: &str) {
-        if level < self.minimum_level || self.ignore_keys.contains(&key) {
-            return;
-        }
-        writeln!(self.outfile.as_mut().expect("outfile"), "{msg}").expect("writeln");
+    pub fn push_header(&mut self, _key: ErrorKey, msg: &str) {
+        println!("{msg}");
     }
 
     pub fn get_mut() -> &'static mut Self {
@@ -313,29 +141,6 @@ impl Errors {
     }
 }
 
-/// Exclusively used in tests. Deprecated?
-pub fn log_to(outfile: Box<dyn ErrorLogger>) {
-    Errors::get_mut().outfile = Some(outfile);
-}
-
-/// # Panics
-/// Can panic if it is called without a previous `log_to()` call.
-pub fn take_log_to() -> Box<dyn ErrorLogger> {
-    Errors::get_mut().outfile.take().expect("outfile")
-}
-
-pub fn show_vanilla(v: bool) {
-    Errors::get_mut().show_vanilla = v;
-}
-
-pub fn show_loaded_mods(v: bool) {
-    Errors::get_mut().show_loaded_mods = v;
-}
-
-pub fn minimum_level(lvl: ErrorLevel) {
-    Errors::get_mut().minimum_level = lvl;
-}
-
 pub fn set_vanilla_dir(dir: PathBuf) {
     let mut game = dir.clone();
     game.push("game");
@@ -345,7 +150,7 @@ pub fn set_vanilla_dir(dir: PathBuf) {
     clausewitz.push("clausewitz");
     Errors::get_mut().clausewitz_root = clausewitz;
 
-    let mut jomini = dir.clone();
+    let mut jomini = dir;
     jomini.push("jomini");
     Errors::get_mut().jomini_root = jomini;
 }
@@ -367,7 +172,7 @@ pub fn log(mut report: LogReport) {
         vec.insert(index, pointer);
     });
     report.pointers.extend(vec);
-    Errors::get_mut().push_report(report);
+    Errors::get_mut().push_report(&report);
 }
 
 /// Expand `PointedMessage` recursively.
@@ -551,43 +356,17 @@ pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
 }
 
 pub fn warn_header(key: ErrorKey, msg: &str) {
-    Errors::get_mut().push_header(ErrorLevel::Warning, key, msg);
+    Errors::get_mut().push_header(key, msg);
 }
 
 pub fn warn_abbreviated<E: ErrorLoc>(eloc: E, key: ErrorKey) {
-    Errors::get_mut().push_abbreviated(eloc, ErrorLevel::Warning, key);
-}
-
-pub fn ignore_key_for(path: PathBuf, key: ErrorKey) {
-    Errors::get_mut()
-        .ignore_keys_for
-        .entry(path)
-        .or_default()
-        .push(key);
-}
-
-/// Ignore this key for all files
-pub fn ignore_key(key: ErrorKey) {
-    Errors::get_mut().ignore_keys.push(key);
-}
-
-/// Ignore this path for all keys
-pub fn ignore_path(path: PathBuf) {
-    Errors::get_mut().ignore_paths.push(path);
+    Errors::get_mut().push_abbreviated(eloc, key);
 }
 
 pub fn will_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
-    Errors::get().will_log(&eloc.into_loc(), key)
-}
-
-/// Override the default `OutputStyle`. (Controls ansi colors)
-pub fn set_output_style(style: OutputStyle) {
-    Errors::get_mut().styles = style;
-}
-
-/// Disable color in the output.
-pub fn disable_ansi_colors() {
-    Errors::get_mut().styles = OutputStyle::no_color();
+    Errors::get()
+        .filter
+        .should_print(LogLevel::min(), &eloc.into_loc(), key)
 }
 
 pub trait ErrorLogger: Write {
@@ -610,4 +389,60 @@ impl ErrorLogger for Vec<u8> {
     fn get_logs(&self) -> Option<String> {
         Some(String::from_utf8_lossy(self).to_string())
     }
+}
+
+// =================================================================================================
+// =============== Configuration (Output style):
+// =================================================================================================
+
+/// Override the default `OutputStyle`. (Controls ansi colors)
+pub fn set_output_style(style: OutputStyle) {
+    Errors::get_mut().styles = style;
+}
+
+/// Disable color in the output.
+pub fn disable_ansi_colors() {
+    Errors::get_mut().styles = OutputStyle::no_color();
+}
+
+pub fn set_max_line_length(max_line_length: usize) {
+    Errors::get_mut().max_line_length = if max_line_length == 0 {
+        None
+    } else {
+        Some(max_line_length)
+    };
+}
+
+// =================================================================================================
+// =============== Configuration (Filter):
+// =================================================================================================
+
+pub fn set_minimum_level(lvl: LogLevel) {
+    Errors::get_mut().filter.min_level = lvl;
+}
+
+pub fn set_show_vanilla(v: bool) {
+    Errors::get_mut().filter.show_vanilla = v;
+}
+
+pub fn set_show_loaded_mods(v: bool) {
+    Errors::get_mut().filter.show_loaded_mods = v;
+}
+
+/// Add a key to the whitelist.
+pub fn add_filter_rule_key(rules_type: RulesListType, key: ErrorKey) {
+    Errors::get_mut().filter.get_or_create_rules_list(rules_type).add_rule_key(key);
+}
+
+/// Ignore this path for all keys
+pub fn add_filter_rule_path(rules_type: RulesListType, path: PathBuf) {
+    Errors::get_mut().filter.get_or_create_rules_list(rules_type)
+        .add_rule_path(path);
+}
+
+pub fn add_filter_rule_key_in_path(rules_type: RulesListType, path: PathBuf, key: ErrorKey) {
+    Errors::get_mut()
+        .filter
+        .get_or_create_rules_list(rules_type)
+        .add_rule_key_in_path(path, key);
 }

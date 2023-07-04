@@ -81,7 +81,7 @@ impl OutputStyle {
             .or_else(|| self.map.get(&Styled::Default))
             .expect("Failed to retrieve output style.")
     }
-    /// Allows overriding a color for a given ErrorLevel.
+    /// Allows overriding a color for a given `ErrorLevel`.
     pub fn set(&mut self, severity: Severity, color_str: &str) {
         if let Some(color) = match color_str.to_ascii_lowercase().as_str() {
             "black" => Some(Black),
@@ -94,8 +94,7 @@ impl OutputStyle {
             "white" => Some(White),
             _ => None,
         } {
-            self.map
-                .insert(Styled::Tag(severity, true), color.clone().bold());
+            self.map.insert(Styled::Tag(severity, true), color.bold());
             self.map
                 .insert(Styled::Tag(severity, false), color.normal());
         } else {
