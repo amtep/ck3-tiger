@@ -20,23 +20,13 @@ pub struct LawGroup {}
 impl LawGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, block) in block.iter_definitions() {
-            let title_law = block.has_key("can_title_have");
             for token in block.get_field_values("flag") {
-                if title_law {
-                    db.add_flag(Item::TitleLawFlag, token.clone());
-                }
                 db.add_flag(Item::LawFlag, token.clone());
             }
             for block in block.get_field_blocks("triggered_flag") {
                 if let Some(token) = block.get_field_value("flag") {
-                    if title_law {
-                        db.add_flag(Item::TitleLawFlag, token.clone());
-                    }
                     db.add_flag(Item::LawFlag, token.clone());
                 }
-            }
-            if title_law {
-                db.add_flag(Item::TitleLaw, key.clone());
             }
             db.add(Item::Law, key.clone(), block.clone(), Box::new(Law {}));
         }

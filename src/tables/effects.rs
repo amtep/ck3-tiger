@@ -240,8 +240,8 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "add_stewardship_skill", ScriptValue),
     (Character, "add_stress", ScriptValue),
     (Character, "add_targeting_factions_discontent", ScriptValue),
-    (LandedTitle, "add_title_law", Item(Item::TitleLaw)),
-    (LandedTitle, "add_title_law_effects", Item(Item::TitleLaw)),
+    (LandedTitle, "add_title_law", Item(Item::Law)),
+    (LandedTitle, "add_title_law_effects", Item(Item::Law)),
     (Character, "add_to_activity", Scope(Scopes::Activity)),
     (
         Character,
@@ -848,12 +848,8 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Faction, "remove_special_character", Yes),
     (Faction, "remove_special_title", Yes),
     // docs say these next two are scope None, but that does not make sense.
-    (LandedTitle, "remove_title_law", Item(Item::TitleLaw)),
-    (
-        LandedTitle,
-        "remove_title_law_effects",
-        Item(Item::TitleLaw),
-    ),
+    (LandedTitle, "remove_title_law", Item(Item::Law)),
+    (LandedTitle, "remove_title_law_effects", Item(Item::Law)),
     (
         Character,
         "remove_trait",
