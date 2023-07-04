@@ -2,7 +2,6 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
@@ -26,14 +25,6 @@ impl DbKind for BuildingType {
         let mut sc = ScopeContext::new(Scopes::Country, key);
 
         data.verify_exists(Item::Localization, key);
-        let loca = format!("{key}_modifier");
-        data.verify_exists_implied(Item::Localization, &loca, key);
-        let loca = format!("{key}_effect_desc");
-        data.verify_exists_implied(Item::Localization, &loca, key);
-        if !vd.field_validated_sc("desc", &mut sc, validate_desc) {
-            let loca = format!("{key}_desc");
-            data.verify_exists_implied(Item::Localization, &loca, key);
-        }
 
         vd.field_item("building_group", Item::BuildingGroup);
         vd.field_item("texture", Item::File);
