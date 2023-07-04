@@ -8,9 +8,10 @@ use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::fileset::FileKind;
 use crate::report::error_loc::ErrorLoc;
+use crate::report::filter::ReportFilter;
 use crate::report::writer::log_report;
 use crate::report::{
-    Confidence, ErrorKey, LogLevel, LogReport, OutputStyle, PointedMessage, Severity,
+    Confidence, ErrorKey, FilterRule, LogLevel, LogReport, OutputStyle, PointedMessage, Severity,
 };
 use crate::token::Loc;
 
@@ -33,30 +34,14 @@ pub struct Errors {
     /// Extra loaded mods' error tags
     pub(crate) loaded_mods_labels: Vec<String>,
 
-    /// Whether to log errors in vanilla CK3 files
-    show_vanilla: bool,
-
-    /// Whether to log errors in other loaded mods
-    show_loaded_mods: bool,
-
-    /// Skip logging errors with these keys for these files and directories
-    ignore_keys_for: FnvHashMap<PathBuf, Vec<ErrorKey>>,
-
-    /// Skip logging errors with these keys
-    ignore_keys: Vec<ErrorKey>,
-
-    /// Skip logging errors for these files and directories (regardless of key)
-    ignore_paths: Vec<PathBuf>,
-
-    /// Minimum error level to log
-    min_level: LogLevel,
-
     /// Errors that have already been logged (to avoid duplication, which is common
     /// when validating macro expanded triggers and effects)
     seen: FnvHashSet<ErrorRecord>,
 
     filecache: FnvHashMap<PathBuf, String>,
 
+    /// Determines whether a report should be printed.
+    pub(crate) filter: ReportFilter,
     /// Output color and style configuration.
     pub(crate) styles: OutputStyle,
     pub(crate) max_line_length: Option<usize>,
@@ -88,40 +73,10 @@ impl Errors {
         line
     }
 
-    pub fn will_log(&self, loc: &Loc, key: ErrorKey) -> bool {
-        // Check all elements of the loc link chain.
-        // This is necessary because of cases like a mod passing `CHARACTER = this` to a vanilla script effect
-        // that does not expect that. The error would be located in the vanilla script but would be caused by the mod.
-        if let Some(loc) = &loc.link {
-            if self.will_log(loc, key) {
-                return true;
-            }
-        }
-        if self.ignore_keys.contains(&key)
-            || (loc.kind <= FileKind::Vanilla && !self.show_vanilla)
-            || (matches!(loc.kind, FileKind::LoadedMod(_)) && !self.show_loaded_mods)
-        {
-            return false;
-        }
-        for (path, keys) in &self.ignore_keys_for {
-            if loc.pathname.starts_with(path) && keys.contains(&key) {
-                return false;
-            }
-        }
-        for path in &self.ignore_paths {
-            if loc.pathname.starts_with(path) {
-                return false;
-            }
-        }
-        true
-    }
-
     /// Perform some checks to see whether the report should actually be logged.
     /// If yes, it will do so.
     fn push_report(&mut self, report: &LogReport) {
-        if report.lvl.severity < self.min_level.severity
-            || report.lvl.confidence < self.min_level.confidence
-        {
+        if !self.filter.should_print_report(report) {
             return;
         }
         let loc = report.primary().location.clone();
@@ -130,13 +85,9 @@ impl Errors {
         let index = (loc, report.key, report.msg.to_string(), loc2, loc3);
         if self.seen.contains(&index) {
             return;
-        } else {
-            self.seen.insert(index);
         }
-        if !self.will_log(&report.primary().location, report.key) {
-            return;
-        }
-        log_report(self, &report);
+        self.seen.insert(index);
+        log_report(self, report);
     }
 
     pub fn log_abbreviated(&mut self, loc: &Loc, key: ErrorKey) {
@@ -154,16 +105,10 @@ impl Errors {
             return;
         }
         self.seen.insert(index);
-        if !self.will_log(&loc, key) {
-            return;
-        }
         self.log_abbreviated(&loc, key);
     }
 
-    pub fn push_header(&mut self, key: ErrorKey, msg: &str) {
-        if self.ignore_keys.contains(&key) {
-            return;
-        }
+    pub fn push_header(&mut self, _key: ErrorKey, msg: &str) {
         println!("{msg}");
     }
 
@@ -360,7 +305,7 @@ pub fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
 
 pub fn advice<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
     log(LogReport {
-        lvl: LogLevel::new(Severity::Info, Confidence::Reasonable),
+        lvl: LogLevel::new(Severity::Tips, Confidence::Reasonable),
         key,
         msg,
         info: None,
@@ -374,7 +319,7 @@ pub fn advice<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
 
 pub fn advice2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
     log(LogReport {
-        lvl: LogLevel::new(Severity::Info, Confidence::Reasonable),
+        lvl: LogLevel::new(Severity::Tips, Confidence::Reasonable),
         key,
         msg,
         info: None,
@@ -396,7 +341,7 @@ pub fn advice2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc
 pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     let info = if info.is_empty() { None } else { Some(info) };
     log(LogReport {
-        lvl: LogLevel::new(Severity::Info, Confidence::Reasonable),
+        lvl: LogLevel::new(Severity::Tips, Confidence::Reasonable),
         key,
         msg,
         info,
@@ -416,36 +361,11 @@ pub fn warn_abbreviated<E: ErrorLoc>(eloc: E, key: ErrorKey) {
     Errors::get_mut().push_abbreviated(eloc, key);
 }
 
-pub fn ignore_key_for(path: PathBuf, key: ErrorKey) {
-    Errors::get_mut()
-        .ignore_keys_for
-        .entry(path)
-        .or_default()
-        .push(key);
-}
-
-/// Ignore this key for all files
-pub fn ignore_key(key: ErrorKey) {
-    Errors::get_mut().ignore_keys.push(key);
-}
-
-/// Ignore this path for all keys
-pub fn ignore_path(path: PathBuf) {
-    Errors::get_mut().ignore_paths.push(path);
-}
-
-pub fn will_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
-    Errors::get().will_log(&eloc.into_loc(), key)
-}
-
-/// Override the default `OutputStyle`. (Controls ansi colors)
-pub fn set_output_style(style: OutputStyle) {
-    Errors::get_mut().styles = style;
-}
-
-/// Disable color in the output.
-pub fn disable_ansi_colors() {
-    Errors::get_mut().styles = OutputStyle::no_color();
+/// Tests whether the report might be printed. If false, the report will definitely not be printed.
+pub fn will_maybe_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
+    Errors::get()
+        .filter
+        .should_maybe_print(LogLevel::min(), key, &eloc.into_loc())
 }
 
 pub trait ErrorLogger: Write {
@@ -470,14 +390,40 @@ impl ErrorLogger for Vec<u8> {
     }
 }
 
-pub fn set_minimum_level(lvl: LogLevel) {
-    Errors::get_mut().min_level = lvl;
+// =================================================================================================
+// =============== Configuration (Output style):
+// =================================================================================================
+
+/// Override the default `OutputStyle`. (Controls ansi colors)
+pub fn set_output_style(style: OutputStyle) {
+    Errors::get_mut().styles = style;
 }
 
-pub fn show_vanilla(v: bool) {
-    Errors::get_mut().show_vanilla = v;
+/// Disable color in the output.
+pub fn disable_ansi_colors() {
+    Errors::get_mut().styles = OutputStyle::no_color();
 }
 
-pub fn show_loaded_mods(v: bool) {
-    Errors::get_mut().show_loaded_mods = v;
+pub fn set_max_line_length(max_line_length: usize) {
+    Errors::get_mut().max_line_length = if max_line_length == 0 {
+        None
+    } else {
+        Some(max_line_length)
+    };
+}
+
+// =================================================================================================
+// =============== Configuration (Filter):
+// =================================================================================================
+
+pub fn set_show_vanilla(v: bool) {
+    Errors::get_mut().filter.show_vanilla = v;
+}
+
+pub fn set_show_loaded_mods(v: bool) {
+    Errors::get_mut().filter.show_loaded_mods = v;
+}
+
+pub fn set_predicate(predicate: FilterRule) {
+    Errors::get_mut().filter.predicate = predicate;
 }

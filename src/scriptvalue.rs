@@ -117,7 +117,7 @@ fn validate_inner(
 
             // Check for target = { script_value }
             sc.open_builder();
-            if validate_scope_chain(token, data, sc, matches!(cmp, Comparator::QEq)) {
+            if validate_scope_chain(token, data, sc, matches!(cmp, Comparator::ConditionalEquals)) {
                 if let Some(block) = bv.expect_block() {
                     sc.finalize_builder();
                     let vd = Validator::new(block, data);

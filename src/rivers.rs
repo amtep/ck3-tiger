@@ -7,7 +7,7 @@ use png::{ColorType, Decoder};
 
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::report::{error, error_info, will_log, ErrorKey};
+use crate::report::{error, error_info, will_maybe_log, ErrorKey};
 
 #[derive(Clone, Debug, Default)]
 pub struct Rivers {
@@ -169,7 +169,7 @@ impl Rivers {
         }
 
         // Early exit before expensive loop, if errors won't be logged anyway
-        if !will_log(self.entry.as_ref().unwrap(), ErrorKey::Rivers) {
+        if !will_maybe_log(self.entry.as_ref().unwrap(), ErrorKey::Rivers) {
             return;
         }
 

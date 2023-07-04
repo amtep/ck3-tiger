@@ -335,7 +335,7 @@ pub fn validate_effect<'a>(
 
         // Check if it's a target = { target_scope } block.
         sc.open_builder();
-        if validate_scope_chain(key, data, sc, matches!(cmp, Comparator::QEq)) {
+        if validate_scope_chain(key, data, sc, matches!(cmp, Comparator::ConditionalEquals)) {
             sc.finalize_builder();
             if key.starts_with("flag:") {
                 let msg = "as of 1.9, flag literals can not be used on the left-hand side";

@@ -553,18 +553,26 @@ impl Block {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Comparator {
+    /// TODO: Can perhaps be replaced by wrapping the operator in an option.
     None,
-    /// Eq is also Assign
+    /// The = operator. Can be used as assignment, or to open a scope.
+    /// TODO: Can perhaps be merged with the other one.
+    ///       If preserving knowledge of notation used is important, maybe we could do: Equals(u8) or something?
     Eq,
-    /// The == operator, which means Eq but cannot be used to assign
-    EEq,
-    /// The ?= operator
-    QEq,
-    Lt,
-    Gt,
-    Le,
-    Ge,
-    Ne,
+    /// The ?= operator Can be used to open a scope on the condition that it exists.
+    ConditionalEquals,
+    /// ==
+    Equals,
+    /// !=
+    NotEquals,
+    /// <
+    LessThan,
+    /// >
+    GreaterThan,
+    /// <=
+    AtMost,
+    /// >=
+    AtLeast,
 }
 
 impl Comparator {
@@ -572,40 +580,66 @@ impl Comparator {
         if s == "=" {
             Some(Comparator::Eq)
         } else if s == "?=" {
-            Some(Comparator::QEq)
+            Some(Comparator::ConditionalEquals)
         } else if s == "==" {
-            Some(Comparator::EEq)
+            Some(Comparator::Equals)
         } else if s == "<" {
-            Some(Comparator::Lt)
+            Some(Comparator::LessThan)
         } else if s == ">" {
-            Some(Comparator::Gt)
+            Some(Comparator::GreaterThan)
         } else if s == "<=" {
-            Some(Comparator::Le)
+            Some(Comparator::AtMost)
         } else if s == ">=" {
-            Some(Comparator::Ge)
+            Some(Comparator::AtLeast)
         } else if s == "!=" {
-            Some(Comparator::Ne)
+            Some(Comparator::NotEquals)
         } else {
             None
         }
     }
-
     pub fn from_token(token: &Token) -> Option<Self> {
         Self::from_str(token.as_str())
+    }
+
+    /// Returns true if the operator is a comparison operator, or if it's an `=` operator,
+    /// which serves as an alias for the equality comparator.
+    pub fn is_comparator(self) -> bool {
+        matches!(
+            self,
+            Comparator::Eq
+                | Comparator::Equals
+                | Comparator::NotEquals
+                | Comparator::AtLeast
+                | Comparator::AtMost
+                | Comparator::GreaterThan
+                | Comparator::LessThan
+        )
+    }
+    /// Substitutes `==` for `=`.
+    /// This is to allow `=` to be used as an alias for equality,
+    /// even though that's technically incorrect.
+    pub fn to_comparator(self) -> Self {
+        if self == Self::Eq {
+            Self::Equals
+        } else if self.is_comparator() {
+            self
+        } else {
+            panic!("Cannot convert {self} to comparator operator. Check is_comparator() first.");
+        }
     }
 }
 
 impl Display for Comparator {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         match *self {
             Comparator::Eq => write!(f, "="),
-            Comparator::EEq => write!(f, "=="),
-            Comparator::QEq => write!(f, "?="),
-            Comparator::Lt => write!(f, "<"),
-            Comparator::Gt => write!(f, ">"),
-            Comparator::Le => write!(f, "<="),
-            Comparator::Ge => write!(f, ">="),
-            Comparator::Ne => write!(f, "!="),
+            Comparator::Equals => write!(f, "=="),
+            Comparator::ConditionalEquals => write!(f, "?="),
+            Comparator::LessThan => write!(f, "<"),
+            Comparator::GreaterThan => write!(f, ">"),
+            Comparator::AtMost => write!(f, "<="),
+            Comparator::AtLeast => write!(f, ">="),
+            Comparator::NotEquals => write!(f, "!="),
             Comparator::None => Ok(()),
         }
     }

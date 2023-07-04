@@ -8,7 +8,8 @@ use fnv::FnvHashSet;
 use strum::IntoEnumIterator;
 use thiserror::Error;
 
-use crate::block::Block;
+use crate::block::Comparator::Eq;
+use crate::block::{Block, Comparator, BV};
 use crate::context::ScopeContext;
 use crate::data::accessory::{Accessory, AccessoryVariation};
 use crate::data::accolades::{AccoladeIcon, AccoladeName, AccoladeType};
@@ -133,10 +134,7 @@ use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{
-    error, ignore_key, ignore_key_for, ignore_path, set_output_style, warn, ErrorKey, OutputStyle,
-    Severity,
-};
+use crate::report::{error, log, set_output_style, set_predicate, set_show_loaded_mods, set_show_vanilla, warn, Confidence, ErrorKey, ErrorLoc, FilterRule, LogLevel, LogReport, OutputStyle, PointedMessage, Severity};
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 
@@ -307,38 +305,312 @@ impl Everything {
         self.fileset.fullpath(entry)
     }
 
-    pub fn load_errorkey_config(&self) {
-        for block in self.config.get_field_blocks("ignore") {
-            let keynames = block.get_field_values("key");
-
-            let mut keys = Vec::new();
-            for keyname in keynames {
-                let key = match keyname.as_str().parse() {
-                    Ok(key) => key,
-                    Err(e) => {
-                        warn(keyname, ErrorKey::Config, &format!("{e:#}"));
-                        continue;
+    /// Assert that the given key occurs at most once within the given block.
+    /// If the assertion fails, an error report will be created. No other action will be taken.
+    fn assert_one_key(assert_key: &str, block: &Block) {
+        let keys: Vec<_> = block
+            .iter_items()
+            .filter_map(|item| {
+                if let (Some(key), _, _) = item {
+                    if key.as_str() == assert_key {
+                        Some(key)
+                    } else {
+                        None
                     }
-                };
-                keys.push(key);
-            }
+                } else {
+                    None
+                }
+            })
+            .collect();
+        if keys.len() > 1 {
+            let pointers = keys
+                .iter()
+                .enumerate()
+                .map(|(index, key)| PointedMessage {
+                    location: key.into_loc(),
+                    length: 1,
+                    msg: Some(if index == 0 {
+                        "It occurs here"
+                    } else {
+                        "and here"
+                    }),
+                })
+                .collect();
+            log(LogReport {
+                lvl: LogLevel::new(Severity::Error, Confidence::Strong),
+                key: ErrorKey::Config,
+                msg: &format!(
+                    "Detected more than one `{assert_key}`: there can be only one here!"
+                ),
+                info: None,
+                pointers,
+            });
+        }
+    }
 
-            let pathnames = block.get_field_values("file");
-            if pathnames.is_empty() {
-                for key in keys {
-                    ignore_key(key);
-                }
-            } else if keys.is_empty() {
-                for path in pathnames {
-                    ignore_path(PathBuf::from(path.as_str()));
-                }
+    pub fn load_config_filtering_rules(&self) {
+        // First, report errors if legacy ignore blocks are detected:
+        let pointers :Vec<_>= self.config.get_field_blocks("ignore").iter()
+            .map(|block|PointedMessage {
+                location: block.into_loc(), length: 1, msg: None
+            }).collect();
+        if !pointers.is_empty() {
+            log(LogReport{
+                lvl:LogLevel::new(Severity::Error, Confidence::Strong),
+                key: ErrorKey::Config,
+                msg:"`ignore` is deprecated, consider using `filter` instead.",
+                info: Some("Check out the filter.md guide on GitHub for tips on how to migrate."),
+                pointers
+            });
+        }
+
+        Self::assert_one_key("filter", &self.config);
+        if let Some(filter) = self.config.get_field_block("filter") {
+            Self::assert_one_key("trigger", filter);
+            Self::assert_one_key("show_vanilla", filter);
+            Self::assert_one_key("show_loaded_mods", filter);
+            set_show_vanilla(filter.get_field_bool("show_vanilla").unwrap_or(false));
+            set_show_loaded_mods(filter.get_field_bool("show_loaded_mods").unwrap_or(false));
+            if let Some(trigger) = filter.get_field_block("trigger") {
+                set_predicate(FilterRule::Conjunction(Self::load_rules(trigger)));
             } else {
-                for pathname in pathnames {
-                    for &key in &keys {
-                        ignore_key_for(PathBuf::from(pathname.as_str()), key);
-                    }
+                set_predicate(FilterRule::default());
+            }
+        }
+    }
+    /// Load a vector of rules from the given block.
+    fn load_rules(block: &Block) -> Vec<FilterRule> {
+        block
+            .iter_items()
+            .filter_map(|(key, operator, value)| Self::load_rule(key, *operator, value))
+            .collect()
+    }
+    /// Load a single rule.
+    fn load_rule(key: &Option<Token>, operator: Comparator, value: &BV) -> Option<FilterRule> {
+        if key.is_none() {
+            error(
+                value,
+                ErrorKey::Config,
+                "Missing key. Loose values are not valid here.",
+            );
+            return None;
+        }
+        let key = key.as_ref().expect("Should exist.");
+        let key_str = key.as_str();
+        if key_str != "severity" && key_str != "confidence" && operator != Eq {
+            error(
+                key,
+                ErrorKey::Config,
+                &format!("Unexpected operator `{operator}`, only `=` is valid here."),
+            );
+            return None;
+        }
+        match key_str {
+            "severity" => Self::load_rule_severity(operator, value),
+            "confidence" => Self::load_rule_confidence(operator, value),
+            "key" => Self::load_rule_key(value),
+            "file" => Self::load_rule_file(value),
+            "always" => Self::load_rule_always(value),
+            "NOT" => Self::load_not(value),
+            "AND" => Some(FilterRule::Conjunction(Self::load_rules_from_value(value)?)),
+            "OR" => Some(FilterRule::Disjunction(Self::load_rules_from_value(value)?)),
+            "NAND" => Some(FilterRule::Negation(Box::new(FilterRule::Conjunction(
+                Self::load_rules_from_value(value)?,
+            )))),
+            "NOR" => Some(FilterRule::Negation(Box::new(FilterRule::Disjunction(
+                Self::load_rules_from_value(value)?,
+            )))),
+            _ => {
+                error(key, ErrorKey::Config, "Unexpected key");
+                None
+            }
+        }
+    }
+    /// This loads a NOT block.
+    /// In paradox script, NOT is actually an implicit NOR.
+    /// Load the children, if more than one exists, it returns a NOR block, otherwise a NOT.
+    fn load_not(value : &BV) -> Option<FilterRule> {
+        let mut children = Self::load_rules_from_value(value)?;
+        if children.is_empty() {
+            error(
+                value,
+                ErrorKey::Config,
+                "This NOT block is empty. It will be ignored.",
+            );
+             None
+        } else if children.len() == 1 {
+            Some(FilterRule::Negation(Box::new(children.remove(0))))
+        } else {
+            Some(FilterRule::Negation(Box::new(FilterRule::Disjunction(children))))
+        }
+    }
+    fn load_rule_always(value: &BV) -> Option<FilterRule> {
+        match value {
+            BV::Block(_) => {
+                error(
+                    value,
+                    ErrorKey::Config,
+                    "`always` can't open a block. Valid values are `yes` and `no`.",
+                );
+                None
+            }
+            BV::Value(token) => match token.as_str() {
+                "yes" => Some(FilterRule::Tautology),
+                "no" => Some(FilterRule::Contradiction),
+                _ => {
+                    error(
+                        value,
+                        ErrorKey::Config,
+                        "`always` value not recognised. Valid values are `yes` and `no`.",
+                    );
+                    None
+                }
+            },
+        }
+    }
+    /// Load a vector of rules from a value.
+    /// This first checks that the value is a block. If so, it loads a `Vec` of `FilterRule`s.
+    fn load_rules_from_value(value: &BV) -> Option<Vec<FilterRule>> {
+        match value {
+            BV::Block(block) => Some(Self::load_rules(block)),
+            BV::Value(_) => {
+                error(
+                    value,
+                    ErrorKey::Config,
+                    "Expected a trigger block. Example usage: `AND = { }`",
+                );
+                None
+            }
+        }
+    }
+    /// Used for loading a NOT block.
+    /// Load a single rule from a block value.
+    /// This first checks that the value is a block. If so, it loads a `FilterRule` from inside the block.
+    /// This returns None unless the value is a block that contains exactly 1 rule.
+    fn load_rule_from_value(value: &BV) -> Option<FilterRule> {
+        if let BV::Value(_) = value {
+            error(
+                value,
+                ErrorKey::Config,
+                "Expected a trigger block containing exactly one rule. Example usage: `NOT = { }`",
+            );
+            return None;
+        }
+        let block = value.expect_block().expect("Should exist.");
+        if block.iter_items().count() != 1 {
+            error(
+                value,
+                ErrorKey::Config,
+                "Expected a trigger block containing exactly one rule. Example usage: `NOT = { }`",
+            );
+            return None;
+        }
+        if let Some((key, operator, value)) = block.iter_items().next() {
+            Self::load_rule(key, *operator, value)
+        } else {
+            panic!("Should be unreachable code, we already asserted that the count is 1.");
+        }
+    }
+
+    fn load_rule_severity(operator: Comparator, value: &BV) -> Option<FilterRule> {
+        if !operator.is_comparator() {
+            error(value, ErrorKey::Config, "This operator is not valid. Use one of: [==, !=, >, >=, <, <=]. Example usage: `severity >= Warning`");
+            return None;
+        }
+        match value {
+            BV::Block(_) => {
+                error(
+                    value,
+                    ErrorKey::Config,
+                    "`severity` can't open a block. Example usage: `severity >= Warning`",
+                );
+                None
+            }
+            BV::Value(token) => {
+                if let Ok(severity) = token.as_str().parse() {
+                    Some(FilterRule::Severity(operator.to_comparator(), severity))
+                } else {
+                    error(
+                        token,
+                        ErrorKey::Config,
+                        &format!(
+                            "Invalid Severity value. Valid values: {:?}",
+                            Severity::iter().collect::<Vec<_>>()
+                        ),
+                    );
+                    None
                 }
             }
+        }
+    }
+
+    fn load_rule_confidence(operator: Comparator, value: &BV) -> Option<FilterRule> {
+        if !operator.is_comparator() {
+            error(value, ErrorKey::Config, "This operator is not valid. Use one of: [==, !=, >, >=, <, <=]. Example usage: `confidence >= Reasonable`");
+            return None;
+        }
+        match value {
+            BV::Block(_) => {
+                error(
+                    value,
+                    ErrorKey::Config,
+                    "`confidence` can't open a block. Example usage: `confidence >= Reasonable`",
+                );
+                None
+            }
+            BV::Value(token) => {
+                if let Ok(confidence) = token.as_str().parse() {
+                    Some(FilterRule::Confidence(operator.to_comparator(), confidence))
+                } else {
+                    error(
+                        token,
+                        ErrorKey::Config,
+                        &format!(
+                            "Invalid Confidence value. Valid values: {:?}",
+                            Confidence::iter().collect::<Vec<_>>()
+                        ),
+                    );
+                    None
+                }
+            }
+        }
+    }
+
+    fn load_rule_key(value: &BV) -> Option<FilterRule> {
+        match value {
+            BV::Block(_) => {
+                error(
+                    value,
+                    ErrorKey::Config,
+                    "`key` can't open a block. Example usage: `key = missing-item`",
+                );
+                None
+            }
+            BV::Value(token) => {
+                if let Ok(error_key) = token.as_str().parse() {
+                    Some(FilterRule::Key(error_key))
+                } else {
+                    error(
+                        token,
+                        ErrorKey::Config,
+                        "Invalid key. In the output, keys are listed between parentheses on the first line of each report. For example, in `Warning(missing-item)`, the key is `missing-item`.",
+                    );
+                    None
+                }
+            }
+        }
+    }
+    fn load_rule_file(value: &BV) -> Option<FilterRule> {
+        match value {
+            BV::Block(_) => {
+                error(
+                    value,
+                    ErrorKey::Config,
+                    "`file` can't open a block. Example usage: `file = common/traits/00_traits.txt`",
+                );
+                None
+            }
+            BV::Value(token) => Some(FilterRule::File(PathBuf::from(token.as_str()))),
         }
     }
 
@@ -432,7 +704,6 @@ impl Everything {
     }
 
     pub fn load_output_settings(&self) {
-        self.load_errorkey_config();
         if let Some(style) = self.load_output_styles() {
             set_output_style(style);
         }
