@@ -507,7 +507,7 @@ pub fn validate_prefix_reference(
         // "pop_type" => data.verify_exists(Item::PopType, arg),
         // "py" => data.verify_exists(Item::Party, arg),
         // "rank_value" =>
-        // "region_state" =>
+        "region_state" => data.verify_exists(Item::Country, arg),
         "rel" => data.verify_exists(Item::Religion, arg),
         "relations" => validate_target(arg, data, sc, Scopes::Country),
         // "relations_threshold" =>
@@ -693,7 +693,6 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
         "region",
         StrategicRegion,
     ),
-    (StateRegion, "region_state", State), // TODO: docs say Unknown
     (
         Country | Character | CountryDefinition | Pop,
         "religion",
@@ -786,10 +785,12 @@ const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
     (None, "pop_type", PopType),
     (Country, "py", Party),
     (None, "rank_value", Value),
+    (StateRegion, "region_state", State), // undocumented
     (None, "rel", Religion),
     (Country, "relations", Value),
     (None, "relations_threshold", Value),
     (None, "s", StateRegion),
+    (None, "scope", ALL),
     (None, "sr", StrategicRegion),
     (Country, "tension", Value),
     (None, "tension_threshold", Value),
@@ -801,7 +802,91 @@ const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
 const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
-    // TODO
+    (Country, "active_party", Party),
+    (None, "character", Character),
+    (None, "character_in_exile_pool", Character),
+    (None, "character_in_void", Character),
+    (Country, "civil_war", CivilWar),
+    (Building | Character, "combat_units", CombatUnit),
+    (None, "country", Country),
+    (None, "diplomatic_play", DiplomaticPlay),
+    (None, "in_global_list", ALL_BUT_NONE),
+    (Country, "in_hierarchy", Country),
+    (None, "in_list", ALL_BUT_NONE),
+    (None, "in_local_list", ALL_BUT_NONE),
+    (Country, "interest_group", InterestGroup),
+    (Country, "law", Law),
+    (None, "market", Market),
+    (Market, "market_goods", MarketGoods),
+    (Party, "member", InterestGroup),
+    (
+        Country | State | StateRegion | StrategicRegion,
+        "neighbouring_state",
+        State,
+    ),
+    (Country, "overlord_or_above", Country),
+    (DiplomaticPact, "participant", Country),
+    (Country, "political_movement", PoliticalMovement),
+    (Country, "potential_party", Party),
+    (InterestGroup, "preferred_law", Law),
+    (
+        Country | CountryDefinition | State,
+        "primary_culture",
+        Culture,
+    ),
+    (Country, "rival_country", Country),
+    (Country | Front | InterestGroup, "scope_admiral", Character),
+    (Country, "scope_ally", Country),
+    (Country | State, "scope_building", Building),
+    (
+        Country | Front | InterestGroup,
+        "scope_character",
+        Character,
+    ),
+    (Country, "scope_cobelligerent", Country),
+    (Market, "scope_country", Country),
+    (Country | State, "scope_culture", Culture),
+    (Country, "scope_diplomatic_pact", DiplomaticPact),
+    (War, "scope_front", Front),
+    (Country | Front | InterestGroup, "scope_general", Character),
+    (DiplomaticPlay, "scope_initiator_ally", Country),
+    (
+        Country | StrategicRegion,
+        "scope_interest_marker",
+        InterestMarker,
+    ),
+    (DiplomaticPlay, "scope_play_involved", Country),
+    (
+        Country | Front | InterestGroup,
+        "scope_politician",
+        Character,
+    ),
+    (Country | Culture | InterestGroup | State, "scope_pop", Pop),
+    (
+        Country | Front | StateRegion | StrategicRegion | Theater,
+        "scope_state",
+        State,
+    ),
+    (DiplomaticPlay, "scope_target_ally", Country),
+    (Country, "scope_theater", Theater),
+    (
+        Country,
+        "scope_violate_sovereignty_interested_parties",
+        Country,
+    ),
+    (Country, "scope_violate_sovereignty_wars", War),
+    (Country, "scope_war", War),
+    (None, "state", State),
+    (None, "state_region", StateRegion),
+    (Country, "strategic_objective", State),
+    (Country, "subject_or_below", Country),
+    (PoliticalMovement, "supporting_character", Character),
+    (
+        PoliticalMovement,
+        "supporting_interest_group",
+        InterestGroup,
+    ),
+    (Country | Market | MarketGoods, "trade_route", TradeRoute),
 ];
 
 const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[];
