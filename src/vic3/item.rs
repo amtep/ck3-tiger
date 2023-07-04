@@ -5,7 +5,9 @@ use strum_macros::IntoStaticStr;
 #[cfg(feature = "vic3")]
 pub enum Item {
     Attitude,
+    BuildingGroup,
     BuildingType,
+    CanalType,
     Country,
     Culture,
     CustomLocalization,
@@ -46,7 +48,9 @@ impl Item {
         #[allow(clippy::match_same_arms)]
         match self {
             Item::Attitude => "",
+            Item::BuildingGroup => "common/building_groups/",
             Item::BuildingType => "common/buildings/",
+            Item::CanalType => "common/canals/",
             Item::Country => "common/country_definitions/",
             Item::Culture => "common/cultures/",
             Item::CustomLocalization => "common/customizable_localization/",

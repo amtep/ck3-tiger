@@ -141,6 +141,8 @@ use crate::report::{
 };
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
+#[cfg(feature = "vic3")]
+use crate::vic3::data::buildings::BuildingType;
 
 #[derive(Debug, Error)]
 pub enum FilesError {
@@ -927,7 +929,9 @@ impl Everything {
     }
 
     #[cfg(feature = "vic3")]
-    fn load_all_vic3(&mut self) {}
+    fn load_all_vic3(&mut self) {
+        self.load_pdx_items(Item::BuildingType, BuildingType::add);
+    }
 
     pub fn load_all(&mut self) {
         self.load_all_generic();

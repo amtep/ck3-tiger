@@ -251,12 +251,12 @@ pub fn validate_trigger_key_bv(
     }
 
     let mut new_key = key;
+    #[cfg(feature = "ck3")]
     let mut store;
+    #[cfg(feature = "ck3")]
     if let Some((before, after)) = key.split_after('(') {
         if let Some((arg, after)) = after.split_once(')') {
-            #[cfg(feature = "ck3")]
             let arg = arg.trim();
-            #[cfg(feature = "ck3")]
             for part in before.split('.') {
                 if part.as_str().ends_with('(') {
                     if part.is("vassal_contract_obligation_level_score(") {
