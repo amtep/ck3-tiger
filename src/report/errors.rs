@@ -232,14 +232,15 @@ impl Errors {
         {
             return;
         }
-        // TODO: Re-implement 'seen'
-        // let loc = eloc.into_loc();
-        // let loc2 = eloc2.into_loc();
-        // let index = (loc.clone(), key, msg.to_string(), Some(loc2.clone()), None);
-        // if self.seen.contains(&index) {
-        //     return;
-        // }
-        // self.seen.insert(index);
+        let loc = report.primary().location.clone();
+        let loc2 = report.pointers.get(1).map(|p| p.location.clone());
+        let loc3 = report.pointers.get(2).map(|p| p.location.clone());
+        let index = (loc, report.key, report.msg.to_string(), loc2, loc3);
+        if self.seen.contains(&index) {
+            return;
+        } else {
+            self.seen.insert(index);
+        }
         if !self.will_log(&report.primary().location, report.key) {
             return;
         }
@@ -310,7 +311,6 @@ impl Errors {
             }
         }
     }
-
 }
 
 /// Exclusively used in tests. Deprecated?
