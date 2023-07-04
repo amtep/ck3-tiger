@@ -7,11 +7,11 @@ use home::home_dir;
 
 use tiger_lib::everything::Everything;
 use tiger_lib::modfile::ModFile;
-use tiger_lib::report::{ErrorKey, set_vanilla_dir};
 use tiger_lib::report::{
-    disable_ansi_colors, ignore_key, minimum_level, set_mod_root,
-    show_loaded_mods, show_vanilla, ErrorLevel,
+    disable_ansi_colors, ignore_key, minimum_level, set_mod_root, show_loaded_mods, show_vanilla,
+    ErrorLevel,
 };
+use tiger_lib::report::{set_vanilla_dir, ErrorKey};
 #[cfg(windows)]
 use winreg::enums::HKEY_LOCAL_MACHINE;
 #[cfg(windows)]
