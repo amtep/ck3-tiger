@@ -2,9 +2,9 @@ use ansi_term::{ANSIString, ANSIStrings};
 use unicode_width::UnicodeWidthChar;
 
 use crate::fileset::FileKind;
-use crate::report::{LogReport, PointedMessage, Severity};
 use crate::report::errors::Errors;
 use crate::report::output_style::Styled;
+use crate::report::{LogReport, PointedMessage, Severity};
 
 /// Source lines printed in the output have tab characters replaced by this string.
 const SPACES_PER_TAB: &'static str = " ";
@@ -181,7 +181,7 @@ fn log_line_carets(
     for c in line
         .chars()
         .skip(skippable_ws)
-        .take(pointer.location.column.saturating_sub( skippable_ws + 1))
+        .take(pointer.location.column.saturating_sub(skippable_ws + 1))
     {
         for _ in 0..c.width().unwrap_or(0) {
             spacing.push(' ');
@@ -222,6 +222,9 @@ fn log_line_carets(
 
 fn kind_tag(errors: &Errors, kind: FileKind) -> &str {
     match kind {
+        FileKind::Internal => "Internal",
+        FileKind::Clausewitz => "Clausewitz",
+        FileKind::Jomini => "Jomini",
         FileKind::Vanilla => "CK3",
         FileKind::LoadedMod(idx) => &errors.loaded_mods_labels[idx as usize],
         FileKind::Mod => "MOD",

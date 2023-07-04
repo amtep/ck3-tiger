@@ -5,10 +5,9 @@ use crate::block::{Block, Comparator, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_control, validate_normal_effect};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::{error, warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::Token;
@@ -18,6 +17,9 @@ use crate::validate::{
     validate_duration, validate_optional_duration, validate_optional_duration_int,
     validate_random_culture, validate_random_faith, validate_random_traits_list, ListType,
 };
+use EvB::*;
+use EvBv::*;
+use EvV::*;
 
 #[derive(Debug, Copy, Clone)]
 pub enum EvB {
@@ -123,10 +125,6 @@ pub enum EvV {
     SetFocus,
     SetTitleName,
 }
-
-use EvB::*;
-use EvBv::*;
-use EvV::*;
 
 pub fn validate_effect_block(
     v: EvB,

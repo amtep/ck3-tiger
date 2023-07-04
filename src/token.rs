@@ -6,8 +6,8 @@ use std::rc::Rc;
 
 use crate::block::Date;
 use crate::fileset::{FileEntry, FileKind};
-use crate::report::{error, error_info};
 use crate::report::ErrorKey;
+use crate::report::{error, error_info};
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {

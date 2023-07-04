@@ -311,16 +311,6 @@ impl Errors {
         }
     }
 
-    fn kind_tag(&self, kind: FileKind) -> &str {
-        match kind {
-            FileKind::Internal => "Internal",
-            FileKind::Clausewitz => "Clausewitz",
-            FileKind::Jomini => "Jomini",
-            FileKind::Vanilla => "CK3",
-            FileKind::LoadedMod(idx) => &self.loaded_mods_labels[idx as usize],
-            FileKind::Mod => "MOD",
-        }
-    }
 }
 
 /// Exclusively used in tests. Deprecated?
