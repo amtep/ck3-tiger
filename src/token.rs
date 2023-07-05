@@ -5,9 +5,9 @@ use std::path::PathBuf;
 use std::rc::Rc;
 
 use crate::block::Date;
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
 use crate::fileset::{FileEntry, FileKind};
+use crate::report::ErrorKey;
+use crate::report::{error, error_info};
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
@@ -230,6 +230,7 @@ impl PartialEq for Token {
         self.s == other.s
     }
 }
+
 impl Eq for Token {}
 
 impl From<Loc> for Token {

@@ -1,18 +1,18 @@
-use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
+
+use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::data::localization::LocaValue;
 use crate::datatype::{validate_datatypes, Datatype};
-use crate::errorkey::ErrorKey;
-use crate::errors::{advice, error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
+use crate::report::{advice, error, error_info, warn, warn_info, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -146,7 +146,7 @@ impl FileHandler for Gui {
             return;
         }
 
-        let Some(block) = PdxFile::read_optional_bom(entry, fullpath) else { return };
+        let Some(block) = PdxFile::read_optional_bom(entry, fullpath) else { return; };
 
         let mut expecting = Expecting::Widget;
 

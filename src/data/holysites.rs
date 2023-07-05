@@ -2,11 +2,10 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::data::titles::Tier;
 use crate::db::{Db, DbKind};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::report::{error, warn, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]

@@ -1,5 +1,6 @@
-use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
+
+use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
@@ -35,7 +36,7 @@ impl FileHandler for CultureHistories {
     fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
         let name = entry.filename().to_string_lossy();
         if let Some(key) = name.strip_suffix(".txt") {
-            let Some(block) = PdxFile::read_cp1252(entry, fullpath) else { return };
+            let Some(block) = PdxFile::read_cp1252(entry, fullpath) else { return; };
             let token = Token::new(key.to_string(), Loc::for_entry(entry));
             self.load_item(token, block);
         }

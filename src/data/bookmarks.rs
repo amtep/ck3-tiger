@@ -3,10 +3,9 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::data::dna::validate_genes;
 use crate::db::{Db, DbKind};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::{error, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 

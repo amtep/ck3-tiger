@@ -1,14 +1,15 @@
 #![allow(non_upper_case_globals)]
 
-use bitflags::bitflags;
 use std::fmt::{Display, Formatter};
+
+use bitflags::bitflags;
 
 use crate::block::validator::Validator;
 use crate::block::Block;
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::ErrorKey;
+use crate::report::{error, warn};
 use crate::scriptvalue::validate_non_dynamic_scriptvalue;
 use crate::tables::modifs::lookup_modif;
 use crate::token::Token;

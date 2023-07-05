@@ -1,11 +1,12 @@
-use fnv::FnvHashMap;
 use std::fs::{metadata, File};
 use std::io::{Read, Result};
 use std::path::{Path, PathBuf};
 
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn};
+use fnv::FnvHashMap;
+
 use crate::fileset::{FileEntry, FileHandler};
+use crate::report::ErrorKey;
+use crate::report::{error, error_info, warn};
 use crate::token::Token;
 
 const DDS_HEADER_SIZE: usize = 124;

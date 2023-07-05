@@ -3,19 +3,18 @@ use std::str::FromStr;
 
 use crate::data::customloca::CustomLocalization;
 use crate::data::religions::CUSTOM_RELIGION_LOCAS;
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn, warn_info};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::ErrorKey;
+use crate::report::{error, warn, warn_info};
 use crate::scopes::Scopes;
 use crate::tables::datafunctions::scope_from_datatype;
-pub use crate::tables::datafunctions::{Arg, Args};
-use crate::token::Token;
-
 pub use crate::tables::datafunctions::{
     lookup_alternative, lookup_function, lookup_global_function, lookup_global_promote,
     lookup_promote, Datatype, LookupResult,
 };
+pub use crate::tables::datafunctions::{Arg, Args};
+use crate::token::Token;
 
 #[derive(Clone, Debug)]
 pub struct CodeChain {

@@ -1,8 +1,8 @@
-use fnv::FnvHashMap;
 use std::borrow::Borrow;
 
-use crate::errorkey::ErrorKey;
-use crate::errors::{warn, warn2, warn3};
+use fnv::FnvHashMap;
+
+use crate::report::{warn, warn2, warn3, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 

@@ -1,17 +1,19 @@
-use anyhow::{bail, Result};
-use fnv::FnvHashMap;
-use png::{ColorType, Decoder};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, will_log};
+use anyhow::{bail, Result};
+use fnv::FnvHashMap;
+use png::{ColorType, Decoder};
+
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::report::ErrorKey;
+use crate::report::{error, error_info, will_log};
 
 #[derive(Clone, Debug, Default)]
 pub struct Rivers {
-    entry: Option<FileEntry>, // for error reporting
+    /// for error reporting
+    entry: Option<FileEntry>,
     width: u32,
     height: u32,
     color_type: Option<ColorType>,

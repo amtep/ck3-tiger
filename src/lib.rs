@@ -19,11 +19,12 @@
 // Unfortunately we can't set it to warn only on unused functions. It keeps
 // warning about struct fields.
 #![allow(dead_code)]
+// This was causing a lot of warnings.
+#![allow(clippy::too_many_lines)]
 
-pub mod errorkey;
-pub mod errors;
 pub mod everything;
 pub mod modfile;
+pub mod report;
 
 mod block;
 mod context;

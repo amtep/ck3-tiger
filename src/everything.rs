@@ -1,9 +1,11 @@
-use anyhow::Result;
-use fnv::FnvHashSet;
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+
+use anyhow::Result;
+use fnv::FnvHashSet;
+use strum::IntoEnumIterator;
 use thiserror::Error;
 
 use crate::block::Block;
@@ -128,11 +130,11 @@ use crate::data::vassalcontract::VassalContract;
 use crate::data::vassalstance::VassalStance;
 use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, ignore_key, ignore_key_for, ignore_path, warn};
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::report::{error, ignore_key, ignore_key_for, ignore_path, set_output_style, warn};
+use crate::report::{ErrorKey, OutputStyle, Severity};
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 
@@ -338,6 +340,30 @@ impl Everything {
         }
     }
 
+    /// Load the `OutputStyle` settings from the config.
+    /// Returns None if no settings are defined.
+    /// Otherwise, returns the overwritten `OutputStyles`.
+    ///
+    /// Note that the settings from the config can still be overridden
+    /// by supplying the --no-color flag.
+    fn load_output_styles(&self) -> Option<OutputStyle> {
+        let block = self.config.get_field_block("output_style")?;
+        if !block.get_field_bool("enable").unwrap_or(true) {
+            return Some(OutputStyle::no_color());
+        }
+        let mut style = OutputStyle::default();
+        for severity in Severity::iter() {
+            if let Some(error_block) =
+                block.get_field_block(format!("{severity}").to_ascii_lowercase().as_str())
+            {
+                if let Some(color) = error_block.get_field_value("color") {
+                    style.set(severity, color.as_str());
+                }
+            }
+        }
+        Some(style)
+    }
+
     /// A helper function for categories of items that follow the usual pattern of
     /// `.txt` files containing a block with definitions
     pub fn load_pdx_items<F>(&mut self, itype: Item, add: F)
@@ -403,10 +429,15 @@ impl Everything {
         }
     }
 
+    pub fn load_output_settings(&self) {
+        self.load_errorkey_config();
+        if let Some(style) = self.load_output_styles() {
+            set_output_style(style);
+        }
+    }
+
     #[allow(clippy::too_many_lines)]
     pub fn load_all(&mut self) {
-        self.load_errorkey_config();
-
         self.fileset.handle(&mut self.dds);
         self.fileset.handle(&mut self.localization);
         self.fileset.handle(&mut self.scripted_lists);

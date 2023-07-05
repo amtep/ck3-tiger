@@ -1,17 +1,17 @@
-use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
+
+use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_advice, dup_error};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::report::{error, error_info, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -89,7 +89,7 @@ impl FileHandler for Coas {
             return;
         }
 
-        let Some(block) = PdxFile::read_optional_bom(entry, fullpath) else { return };
+        let Some(block) = PdxFile::read_optional_bom(entry, fullpath) else { return; };
         for (key, _, bv) in block.iter_items() {
             if let Some(key) = key {
                 self.load_item(key, bv);

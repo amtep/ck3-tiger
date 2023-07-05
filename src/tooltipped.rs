@@ -2,8 +2,10 @@
 pub enum Tooltipped {
     No,
     Yes,
-    FailuresOnly, // for triggers
-    Past,         // for effects
+    /// for triggers
+    FailuresOnly,
+    /// for effects
+    Past,
 }
 
 impl Tooltipped {

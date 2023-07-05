@@ -1,16 +1,17 @@
-use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
+
+use fnv::FnvHashMap;
 
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::effect::validate_normal_effect;
-use crate::errorkey::ErrorKey;
-use crate::errors::warn;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
+use crate::report::warn;
+use crate::report::ErrorKey;
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -80,7 +81,7 @@ impl FileHandler for Effects {
             return;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
         for (key, block) in block.drain_definitions_warn() {
             self.load_item(key, block);
         }

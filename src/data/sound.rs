@@ -1,16 +1,17 @@
+use std::fs::read;
+use std::path::{Path, PathBuf};
+
 use anyhow::Result;
 use encoding::all::WINDOWS_1252;
 use encoding::{DecoderTrap, Encoding};
 use fnv::FnvHashMap;
-use std::fs::read;
-use std::path::{Path, PathBuf};
 
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
+use crate::report::ErrorKey;
+use crate::report::{error, warn_info};
 use crate::token::{Loc, Token};
 
 #[derive(Clone, Debug, Default)]

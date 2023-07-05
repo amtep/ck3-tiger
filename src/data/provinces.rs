@@ -1,15 +1,16 @@
-use fnv::{FnvHashMap, FnvHashSet};
-use image::{DynamicImage, Rgb};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use fnv::{FnvHashMap, FnvHashSet};
+use image::{DynamicImage, Rgb};
+
 use crate::block::{Block, BV};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::pdxfile::PdxFile;
+use crate::report::ErrorKey;
+use crate::report::{error, warn};
 use crate::token::{Loc, Token};
 
 pub type ProvId = u32;
@@ -24,7 +25,7 @@ pub struct Provinces {
     /// and continue if they're not, so it's a hashmap.
     provinces: FnvHashMap<ProvId, Province>,
 
-    /// Kept and used for error reporting
+    /// Kept and used for error reporting.
     definition_csv: Option<FileEntry>,
 
     adjacencies: Vec<Adjacency>,
@@ -204,7 +205,7 @@ impl FileHandler for Provinces {
                     }
                 }
                 "default.map" => {
-                    let Some(block) = PdxFile::read_no_bom(entry, fullpath) else { return };
+                    let Some(block) = PdxFile::read_no_bom(entry, fullpath) else { return; };
                     self.load_impassable(&block);
                 }
                 _ => (),
@@ -261,14 +262,15 @@ pub struct Coords {
 #[derive(Clone, Debug)]
 pub struct Adjacency {
     line: Loc,
-    // TODO: check from, to, and through are valid prov ids
+    /// TODO: check from, to, and through are valid prov ids
     from: ProvId,
     to: ProvId,
-    // TODO: check type is "sea" or "river_large"
-    kind: Token, // sea or river_large
+    /// TODO: check type is "sea" or "river_large"
+    /// sea or river_large
+    kind: Token,
     through: ProvId,
-    // TODO: check start and stop are map coordinates and have the right color on province.png
-    // They can be -1 -1 though.
+    /// TODO: check start and stop are map coordinates and have the right color on province.png
+    /// They can be -1 -1 though.
     start: Coords,
     stop: Coords,
     comment: Token,

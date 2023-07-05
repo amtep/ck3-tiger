@@ -1,5 +1,6 @@
-use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
+
+use fnv::FnvHashMap;
 
 use crate::block::BV;
 use crate::everything::Everything;
@@ -50,7 +51,7 @@ impl FileHandler for Defines {
             return;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
         for (group, block) in block.drain_definitions_warn() {
             for (name, bv) in block.iter_bv_definitions_warn() {
                 self.load_item(group.clone(), name.clone(), bv);

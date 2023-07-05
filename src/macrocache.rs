@@ -1,15 +1,19 @@
-use fnv::FnvHashMap;
 use std::cell::RefCell;
+
+use fnv::FnvHashMap;
 
 use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 struct MacroKey {
-    loc: Loc,                    // the loc of the call site
-    args: Vec<(String, String)>, // lexically sorted macro arguments
+    /// the loc of the call site
+    loc: Loc,
+    /// lexically sorted macro arguments
+    args: Vec<(String, String)>,
     tooltipped: Tooltipped,
-    negated: bool, // only for triggers
+    /// only for triggers
+    negated: bool,
 }
 
 impl MacroKey {

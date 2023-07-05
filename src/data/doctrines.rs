@@ -1,5 +1,6 @@
-use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
+
+use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
@@ -89,7 +90,7 @@ impl FileHandler for Doctrines {
             return;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
         for (key, block) in block.drain_definitions_warn() {
             self.load_item(key, block);
         }

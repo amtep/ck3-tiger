@@ -6,11 +6,11 @@ use crate::context::ScopeContext;
 use crate::data::genes::Gene;
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::desc::validate_desc;
-use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, error, warn, warn2, warn_info};
 use crate::everything::Everything;
 use crate::helpers::stringify_choices;
 use crate::item::Item;
+use crate::report::ErrorKey;
+use crate::report::{advice_info, error, warn, warn2, warn_info};
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::scriptvalue::validate_scriptvalue;
 use crate::tables::triggers::{scope_trigger, trigger_comparevalue, Trigger};
@@ -844,7 +844,7 @@ pub fn validate_target_ok_this(
                 sc.expect(inscopes, part);
             }
             sc.replace(Scopes::Value, part.clone());
-        // TODO: warn if trying to use iterator here
+            // TODO: warn if trying to use iterator here
         } else {
             let msg = format!("unknown token `{part}`");
             error(part, ErrorKey::UnknownField, &msg);

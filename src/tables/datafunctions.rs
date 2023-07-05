@@ -1,7 +1,12 @@
 #![allow(non_camel_case_types)]
 
 use std::str::FromStr;
+
 use strum_macros::{Display, EnumString};
+
+use Arg::*;
+use Args::*;
+use Datatype::*;
 
 use crate::everything::Everything;
 use crate::item::Item;
@@ -202,10 +207,6 @@ pub fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
         _ => None,
     }
 }
-
-use Arg::*;
-use Args::*;
-use Datatype::*;
 
 const GLOBAL_PROMOTES: &[(&str, Args, Datatype)] = include!("include/data_global_promotes.rs");
 
