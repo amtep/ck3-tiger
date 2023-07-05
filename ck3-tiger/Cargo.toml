@@ -10,3 +10,7 @@ tiger-lib = { path = ".." }
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 home = "0.5"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.50"
+ansi_term = "0.12.1"
