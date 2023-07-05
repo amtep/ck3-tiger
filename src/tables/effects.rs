@@ -8,14 +8,14 @@ use Effect::*;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Effect {
+    /// no special value, just effect = yes
     Yes,
-    // no special value, just effect = yes
+    /// yes and no are both meaningful
     Boolean,
-    // yes and no are both meaningful
     Integer,
     ScriptValue,
+    /// warn if literal negative
     NonNegativeValue,
-    // warn if literal negative
     Scope(Scopes),
     ScopeOkThis(Scopes),
     Item(Item),
@@ -25,13 +25,13 @@ pub enum Effect {
     ItemTarget(&'static str, Item, &'static str, Scopes),
     ItemValue(&'static str, Item),
     Desc,
+    /// days/weeks/months/years
     Timespan,
-    // days/weeks/months/years
     AddModifier,
     Control,
     ControlOrLabel,
+    /// so special that we just accept whatever argument
     Unchecked,
-    // so special that we just accept whatever argument
     Choice(&'static [&'static str]),
     Removed(&'static str, &'static str),
     VB(EvB),

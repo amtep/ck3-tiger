@@ -7,12 +7,13 @@ use crate::tooltipped::Tooltipped;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 struct MacroKey {
+    /// the loc of the call site
     loc: Loc,
-    // the loc of the call site
+    /// lexically sorted macro arguments
     args: Vec<(String, String)>,
-    // lexically sorted macro arguments
     tooltipped: Tooltipped,
-    negated: bool, // only for triggers
+    /// only for triggers
+    negated: bool,
 }
 
 impl MacroKey {

@@ -9,43 +9,45 @@ use crate::token::Token;
 /// constructing bitfield types in const values is not allowed.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum RawTrigger {
+    /// trigger = no or trigger = yes
     Boolean,
-    // trigger = no or trigger = yes
+    /// can be a script value
     CompareValue,
-    // can be a script value
+    /// can be a script value; warn if =
     CompareValueWarnEq,
-    // can be a script value; warn if =
+    /// can be a script value; no < or >
     SetValue,
-    // can be a script value; no < or >
+    /// value must be a valid date
     CompareDate,
-    // value must be a valid date
+    /// trigger is compared to a scope object
     Scope(u64),
-    // trigger is compared to a scope object
+    /// trigger is compared to a scope object which may be `this`
     ScopeOkThis(u64),
-    // trigger is compared to a scope object which may be `this`
+    /// value is chosen from an item type
     Item(Item),
-    // value is chosen from an item type
     ScopeOrItem(u64, Item),
+    /// value is chosen from a list given here
     Choice(&'static [&'static str]),
-    // value is chosen from a list given here
-    // For Block, if a field name in the array starts with ? it means that field is optional
+    /// For Block, if a field name in the array starts with ? it means that field is optional
+    /// trigger takes a block with these fields
     Block(&'static [(&'static str, RawTrigger)]),
-    // trigger takes a block with these fields
+    /// trigger takes a block with these fields
     ScopeOrBlock(u64, &'static [(&'static str, RawTrigger)]),
-    // trigger takes a block with these fields
+    /// trigger takes a block with these fields
     ItemOrBlock(Item, &'static [(&'static str, RawTrigger)]),
-    // trigger takes a block with these fields
+    /// can be part of a scope chain but also a standalone trigger
     CompareValueOrBlock(&'static [(&'static str, RawTrigger)]),
-    // can be part of a scope chain but also a standalone trigger
+    /// trigger takes a block of values of this scope type
     ScopeList(u64),
-    // trigger takes a block of values of this scope type
+    /// trigger takes a block comparing two scope objects
     ScopeCompare(u64),
-    // trigger takes a block comparing two scope objects
-    CompareToScope(u64), // this is for inside a Block, where a key is compared to a scope object
+    /// this is for inside a Block, where a key is compared to a scope object
+    CompareToScope(u64),
 
+    /// this key opens another trigger block
     Control,
-    // this key opens another trigger block
-    Special, // this has specific code for validation
+    /// this has specific code for validation
+    Special,
 
     UncheckedValue,
 }

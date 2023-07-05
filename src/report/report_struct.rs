@@ -1,8 +1,7 @@
-use strum_macros::{Display, EnumIter};
-
 use crate::report::ErrorKey;
 use crate::token::Loc;
-
+use strum_macros::EnumString;
+use strum_macros::{Display, EnumIter};
 /// Describes a report about a potentially problematic situation that can be logged.
 #[derive(Debug)]
 pub struct LogReport<'a> {
@@ -64,11 +63,20 @@ impl LogLevel {
             confidence,
         }
     }
+    /// The lowest possible log level. If used as a filter, this will match everything.
+    pub fn min() -> Self {
+        LogLevel {
+            severity: Severity::Untidy,
+            confidence: Confidence::Weak,
+        }
+    }
 }
 
 /// Determines the output colour.
 /// User can also filter by minimum severity level: e.g. don't show me Info-level messages.
-#[derive(Default, Debug, Display, Clone, Copy, Ord, PartialOrd, Eq, PartialEq, Hash, EnumIter)]
+#[derive(
+    Default, Debug, Display, Clone, Copy, Ord, PartialOrd, Eq, PartialEq, Hash, EnumString, EnumIter,
+)]
 pub enum Severity {
     /// This problem likely will not affect the end-user, but is just sloppy code.
     /// It constitutes technical debt that will increase maintenance costs.
@@ -86,7 +94,7 @@ pub enum Severity {
 /// Mostly invisible in the output.
 /// User can filter by minimum confidence level.
 /// This would be a dial for how many false positives they're willing to put up with.
-#[derive(Default, Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq, Hash, EnumString)]
 pub enum Confidence {
     /// Quite likely to be a false positive.
     Weak,

@@ -7,7 +7,7 @@ use crate::report::output_style::Styled;
 use crate::report::{LogReport, PointedMessage, Severity};
 
 /// Source lines printed in the output have tab characters replaced by this string.
-const SPACES_PER_TAB: &'static str = " ";
+const SPACES_PER_TAB: &str = " ";
 /// Within a single report, if all printed source files have leading whitespace in excess of
 /// this number of spaces, the whitespace will be truncated.
 const MAX_IDLE_SPACE: usize = 4;
@@ -15,7 +15,7 @@ const MAX_IDLE_SPACE: usize = 4;
 /// Log the report.
 pub fn log_report(errors: &mut Errors, report: &LogReport) {
     // Log error lvl and message:
-    log_line_title(errors, &report);
+    log_line_title(errors, report);
     let lines = lines(errors, report);
     let skippable_ws = skippable_ws(&lines);
 
@@ -76,8 +76,8 @@ fn log_pointer(
     }
     // If a line exists, slice it to skip the given number of spaces.
     if let Some(line) = line.as_ref().map(|v| &v[skippable_ws..]) {
-        log_line_from_source(errors, pointer, indentation, &line);
-        log_line_carets(errors, pointer, &line, skippable_ws, indentation, severity);
+        log_line_from_source(errors, pointer, indentation, line);
+        log_line_carets(errors, pointer, line, skippable_ws, indentation, severity);
     }
 }
 
@@ -208,10 +208,7 @@ fn log_line_carets(
         errors
             .styles
             .style(&Styled::Tag(severity, true))
-            .paint(format!(
-                "{}",
-                pointer.msg.as_ref().map(|_| "<-- ").unwrap_or(&"")
-            )),
+            .paint(format!("{}", pointer.msg.as_ref().map_or("", |_| "<-- "))),
         errors
             .styles
             .style(&Styled::Tag(severity, true))
@@ -239,19 +236,20 @@ fn lines(errors: &mut Errors, report: &LogReport) -> Vec<Option<String>> {
         .map(|p| {
             errors
                 .get_line(&p.location)
-                .map(|line| line.replace("\t", SPACES_PER_TAB))
+                .map(|line| line.replace('\t', SPACES_PER_TAB))
         })
         .collect()
 }
 
 /// Calculates how many leading spaces to skip from each printed source line.
-fn skippable_ws(lines: &Vec<Option<String>>) -> usize {
+fn skippable_ws(lines: &[Option<String>]) -> usize {
     lines
         .iter()
         .flatten()
         .map(|line| line.chars().take_while(|ch| ch == &' ').count())
         .min()
-        .map(|smallest_whitespace| smallest_whitespace.saturating_sub(MAX_IDLE_SPACE))
         // If there are no lines, this value doesn't matter anyway, so just return a zero:
-        .unwrap_or(0)
+        .map_or(0, |smallest_whitespace| {
+            smallest_whitespace.saturating_sub(MAX_IDLE_SPACE)
+        })
 }

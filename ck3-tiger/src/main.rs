@@ -8,8 +8,8 @@ use home::home_dir;
 use tiger_lib::everything::Everything;
 use tiger_lib::modfile::ModFile;
 use tiger_lib::report::{
-    disable_ansi_colors, ignore_key, minimum_level, set_mod_root, show_loaded_mods, show_vanilla,
-    ErrorLevel,
+    disable_ansi_colors, ignore_key, set_minimum_level, set_mod_root, show_loaded_mods,
+    show_vanilla, LogLevel,
 };
 use tiger_lib::report::{set_vanilla_dir, ErrorKey};
 #[cfg(windows)]
@@ -173,8 +173,8 @@ fn main() -> Result<()> {
         show_loaded_mods(true);
     }
 
-    if !args.advice {
-        minimum_level(ErrorLevel::Info);
+    if args.advice {
+        set_minimum_level(LogLevel::min());
     }
 
     if args.unused {

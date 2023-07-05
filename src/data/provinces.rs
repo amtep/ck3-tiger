@@ -25,7 +25,7 @@ pub struct Provinces {
     /// and continue if they're not, so it's a hashmap.
     provinces: FnvHashMap<ProvId, Province>,
 
-    /// Kept and used for error report
+    /// Kept and used for error reporting.
     definition_csv: Option<FileEntry>,
 
     adjacencies: Vec<Adjacency>,
@@ -262,15 +262,15 @@ pub struct Coords {
 #[derive(Clone, Debug)]
 pub struct Adjacency {
     line: Loc,
-    // TODO: check from, to, and through are valid prov ids
+    /// TODO: check from, to, and through are valid prov ids
     from: ProvId,
     to: ProvId,
-    // TODO: check type is "sea" or "river_large"
+    /// TODO: check type is "sea" or "river_large"
+    /// sea or river_large
     kind: Token,
-    // sea or river_large
     through: ProvId,
-    // TODO: check start and stop are map coordinates and have the right color on province.png
-    // They can be -1 -1 though.
+    /// TODO: check start and stop are map coordinates and have the right color on province.png
+    /// They can be -1 -1 though.
     start: Coords,
     stop: Coords,
     comment: Token,

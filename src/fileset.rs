@@ -17,6 +17,7 @@ use crate::report::ErrorKey;
 use crate::report::{add_loaded_mod_root, error, warn_abbreviated, warn_header, will_log};
 use crate::token::{Loc, Token};
 
+/// Note that ordering of these enum values matters. Do not change the order.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FileKind {
     Internal,

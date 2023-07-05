@@ -12,8 +12,8 @@ use crate::report::{error, error_info, will_log};
 
 #[derive(Clone, Debug, Default)]
 pub struct Rivers {
+    /// for error reporting
     entry: Option<FileEntry>,
-    // for error reporting
     width: u32,
     height: u32,
     color_type: Option<ColorType>,

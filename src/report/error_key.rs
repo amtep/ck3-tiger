@@ -28,6 +28,7 @@ pub enum ErrorKey {
     ImageFormat,
     Unneeded,
     Scopes,
+    /// This seems like it solves the same problem that `Confidence` solves.
     StrictScopes,
     Crash,
     Range,
