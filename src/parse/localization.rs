@@ -4,8 +4,7 @@ use std::str::Chars;
 use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
-use crate::report::ErrorKey;
-use crate::report::{error, warn};
+use crate::report::{error, warn, ErrorKey};
 use crate::token::{Loc, Token};
 
 fn is_key_char(c: char) -> bool {

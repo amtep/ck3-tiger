@@ -7,8 +7,7 @@ use png::{ColorType, Decoder};
 
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::report::ErrorKey;
-use crate::report::{error, error_info, will_log};
+use crate::report::{error, error_info, will_log, ErrorKey};
 
 #[derive(Clone, Debug, Default)]
 pub struct Rivers {

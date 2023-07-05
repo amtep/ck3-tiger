@@ -13,8 +13,9 @@ use crate::block::Block;
 use crate::everything::Everything;
 use crate::everything::FilesError;
 use crate::modfile::ModFile;
-use crate::report::ErrorKey;
-use crate::report::{add_loaded_mod_root, error, warn_abbreviated, warn_header, will_log};
+use crate::report::{
+    add_loaded_mod_root, error, warn_abbreviated, warn_header, will_log, ErrorKey,
+};
 use crate::token::{Loc, Token};
 
 /// Note that ordering of these enum values matters. Do not change the order.

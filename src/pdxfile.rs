@@ -7,8 +7,7 @@ use encoding::{DecoderTrap, Encoding};
 use crate::block::Block;
 use crate::fileset::FileEntry;
 use crate::parse::pdxfile::parse_pdx;
-use crate::report::ErrorKey;
-use crate::report::{advice_info, error_info, warn};
+use crate::report::{advice_info, error_info, warn, ErrorKey};
 
 /// If a windows-1252 file mistakenly starts with a UTF-8 BOM, this is
 /// what it will look like after decoding

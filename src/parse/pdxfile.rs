@@ -5,8 +5,7 @@ use fnv::FnvHashMap;
 
 use crate::block::{Block, Comparator, BV};
 use crate::fileset::{FileEntry, FileKind};
-use crate::report::ErrorKey;
-use crate::report::{error, warn, warn_info};
+use crate::report::{error, warn, warn_info, ErrorKey};
 use crate::token::{Loc, Token};
 
 #[derive(Copy, Clone, Debug)]

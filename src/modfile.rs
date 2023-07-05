@@ -5,8 +5,7 @@ use anyhow::{Context, Result};
 use crate::block::Block;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pdxfile::PdxFile;
-use crate::report::ErrorKey;
-use crate::report::{advice_info, error_info, warn};
+use crate::report::{advice_info, error_info, warn, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]

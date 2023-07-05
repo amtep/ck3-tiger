@@ -133,8 +133,10 @@ use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, ignore_key, ignore_key_for, ignore_path, set_output_style, warn};
-use crate::report::{ErrorKey, OutputStyle, Severity};
+use crate::report::{
+    error, ignore_key, ignore_key_for, ignore_path, set_output_style, warn, ErrorKey, OutputStyle,
+    Severity,
+};
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 

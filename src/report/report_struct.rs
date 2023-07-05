@@ -2,6 +2,7 @@ use crate::report::ErrorKey;
 use crate::token::Loc;
 use strum_macros::EnumString;
 use strum_macros::{Display, EnumIter};
+
 /// Describes a report about a potentially problematic situation that can be logged.
 #[derive(Debug)]
 pub struct LogReport<'a> {

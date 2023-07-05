@@ -3,8 +3,7 @@
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::ModifKinds;
-use crate::report::ErrorKey;
-use crate::report::{error_info, warn_info};
+use crate::report::{error_info, warn_info, ErrorKey};
 use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.

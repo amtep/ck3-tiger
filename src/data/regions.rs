@@ -3,8 +3,7 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::ErrorKey;
-use crate::report::{error, error_info};
+use crate::report::{error, error_info, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_color;
 

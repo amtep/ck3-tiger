@@ -9,8 +9,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::pdxfile::PdxFile;
-use crate::report::ErrorKey;
-use crate::report::{error, warn};
+use crate::report::{error, warn, ErrorKey};
 use crate::token::{Loc, Token};
 
 pub type ProvId = u32;

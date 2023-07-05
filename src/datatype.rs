@@ -5,8 +5,7 @@ use crate::data::customloca::CustomLocalization;
 use crate::data::religions::CUSTOM_RELIGION_LOCAS;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::ErrorKey;
-use crate::report::{error, warn, warn_info};
+use crate::report::{error, warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::tables::datafunctions::scope_from_datatype;
 pub use crate::tables::datafunctions::{

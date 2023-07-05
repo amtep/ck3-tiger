@@ -5,8 +5,7 @@ use std::path::{Path, PathBuf};
 use fnv::FnvHashMap;
 
 use crate::fileset::{FileEntry, FileHandler};
-use crate::report::ErrorKey;
-use crate::report::{error, error_info, warn};
+use crate::report::{error, error_info, warn, ErrorKey};
 use crate::token::Token;
 
 const DDS_HEADER_SIZE: usize = 124;

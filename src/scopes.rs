@@ -6,8 +6,7 @@ use bitflags::bitflags;
 
 use crate::everything::Everything;
 use crate::helpers::display_choices;
-use crate::report::warn_info;
-use crate::report::ErrorKey;
+use crate::report::{warn_info, ErrorKey};
 use crate::token::Token;
 
 bitflags! {

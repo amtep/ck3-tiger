@@ -12,9 +12,9 @@ use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::{dup_error, stringify_list};
 use crate::item::Item;
 use crate::parse::localization::{parse_loca, ValueParser};
-use crate::report::ErrorKey;
 use crate::report::{
-    advice_info, error, error_info, warn, warn2, warn_abbreviated, warn_header, warn_info, will_log,
+    advice_info, error, error_info, warn, warn2, warn_abbreviated, warn_header, warn_info,
+    will_log, ErrorKey,
 };
 use crate::token::Token;
 

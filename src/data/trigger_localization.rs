@@ -3,8 +3,7 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::warn2;
-use crate::report::ErrorKey;
+use crate::report::{warn2, ErrorKey};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 

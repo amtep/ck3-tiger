@@ -9,8 +9,9 @@ use fnv::{FnvHashMap, FnvHashSet};
 use crate::fileset::FileKind;
 use crate::report::error_loc::ErrorLoc;
 use crate::report::writer::log_report;
-use crate::report::ErrorKey;
-use crate::report::{Confidence, LogLevel, LogReport, OutputStyle, PointedMessage, Severity};
+use crate::report::{
+    Confidence, ErrorKey, LogLevel, LogReport, OutputStyle, PointedMessage, Severity,
+};
 use crate::token::Loc;
 
 static mut ERRORS: Option<Errors> = None;

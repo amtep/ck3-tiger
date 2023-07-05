@@ -10,8 +10,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
-use crate::report::ErrorKey;
-use crate::report::{error, warn_info};
+use crate::report::{error, warn_info, ErrorKey};
 use crate::token::{Loc, Token};
 
 #[derive(Clone, Debug, Default)]
