@@ -641,7 +641,7 @@ impl<'a> ValueParser<'a> {
             }
             // Clean up leftover state at end
             match state {
-                State::InKey(s) => {
+                State::InKey(_) => {
                     self.value.push(LocaValue::Markup(Token::new(text, loc)));
                 }
                 State::InValue(key, value, loc, bracecount) => {

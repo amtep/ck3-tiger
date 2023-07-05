@@ -18,15 +18,22 @@ use crate::report::{
 };
 use crate::token::{Loc, Token};
 
-/// Note that ordering of these enum values matters. Do not change the order.
+/// Note that ordering of these enum values matters.
+/// Files later in the order will override files of the same name before them,
+/// and the warnings about duplicates take that into account.
+/// TODO: verify the relative order of `Clausewitz` and `Jomini`
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FileKind {
+    /// `Internal` is for parsing tiger's own data. The user should not see warnings from this.
     Internal,
+    /// `Clausewitz` and `Jomini` are directories bundled with the base game.
     Clausewitz,
     Jomini,
+    /// The base game files.
     Vanilla,
+    /// Other mods loaded as directed by the config file. 0-based indexing.
     LoadedMod(u16),
-    // 0-based indexing
+    /// The mod under scrutiny. Usually, warnings are not emitted unless they touch `Mod` files.
     Mod,
 }
 

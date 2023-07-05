@@ -70,7 +70,7 @@ fn log_pointer(
         log_line_file_location(errors, pointer, indentation);
     }
     if pointer.location.line == 0 {
-        // Zero-length line means the location is an entire file,
+        // Line being zero means the location is an entire file,
         // not any particular location within the file.
         return;
     }
@@ -91,15 +91,7 @@ fn log_line_title(errors: &Errors, report: &LogReport) {
         errors
             .styles
             .style(&Styled::Tag(report.lvl.severity, false))
-            .paint("("),
-        errors
-            .styles
-            .style(&Styled::Tag(report.lvl.severity, false))
-            .paint(format!("{}", report.key)),
-        errors
-            .styles
-            .style(&Styled::Tag(report.lvl.severity, false))
-            .paint(")"),
+            .paint(format!("({})", report.key)),
         errors.styles.style(&Styled::Default).paint(": "),
         errors
             .styles
@@ -135,12 +127,10 @@ fn log_line_file_location(errors: &Errors, pointer: &PointedMessage, indentation
             .paint(format!("{:width$}", "", width = indentation)),
         errors.styles.style(&Styled::Location).paint("-->"),
         errors.styles.style(&Styled::Default).paint(" "),
-        errors.styles.style(&Styled::Location).paint("["),
         errors
             .styles
             .style(&Styled::Location)
-            .paint(format!("{}", kind_tag(errors, pointer.location.kind))),
-        errors.styles.style(&Styled::Location).paint("]"),
+            .paint(format!("[{}]", kind_tag(errors, pointer.location.kind))),
         errors.styles.style(&Styled::Default).paint(" "),
         errors
             .styles
