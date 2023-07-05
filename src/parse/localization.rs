@@ -218,11 +218,8 @@ impl<'a> LocaParser<'a> {
         let format = self.parse_format();
         if self.chars.peek() != Some(&'$') {
             // TODO: check if there is a closing $, adapt warning text
-            warn(
-                key,
-                ErrorKey::Localization,
-                "didn't recognize a key between $",
-            );
+            let msg = "didn't recognize a key between $";
+            warn(key, ErrorKey::Localization, msg);
             return None;
         }
         let s = self.content[start_offset..end_offset].to_string();
@@ -280,11 +277,8 @@ impl<'a> LocaParser<'a> {
         if matches!(self.chars.peek(), Some('#' | '\n') | None) {
             if self.expecting_language {
                 if !key.is(&format!("l_{}", self.language)) {
-                    error(
-                        key,
-                        ErrorKey::Localization,
-                        &format!("wrong language header, should be `l_{}:`", self.language),
-                    );
+                    let msg = format!("wrong language header, should be `l_{}:`", self.language);
+                    error(key, ErrorKey::Localization, &msg);
                 }
                 self.expecting_language = false;
                 self.skip_line();
@@ -294,11 +288,8 @@ impl<'a> LocaParser<'a> {
             error(&key, ErrorKey::Localization, "key with no value");
             return self.error_line(key);
         } else if self.expecting_language {
-            error(
-                &key,
-                ErrorKey::Localization,
-                &format!("expected language header `l_{}:`", self.language),
-            );
+            let msg = format!("expected language header `l_{}:`", self.language);
+            error(&key, ErrorKey::Localization, &msg);
             self.expecting_language = false;
             // Continue to parse this entry as usual
         }
@@ -569,7 +560,7 @@ impl<'a> ValueParser<'a> {
     }
 
     fn parse_markup(&mut self) {
-        let mut loc = self.loc.clone();
+        let loc = self.loc.clone();
         let mut text = "#".to_string();
         self.next_char(); // skip the #
         if self.peek() == Some('#') {
@@ -582,56 +573,98 @@ impl<'a> ValueParser<'a> {
             self.next_char();
             self.value.push(LocaValue::MarkupEnd(Token::new(text, loc)));
         } else {
-            // TODO This may have become complicated enough to need its own state machine
-            let mut at_end = false;
-            let mut is_tooltip = false;
+            // examples:
+            // #indent_newline:2
+            // #color:{1.0,1.0,1.0}
+            // #font:TitleFont
+            // #tooltippable;positive_value;TOOLTIP:expedition_progress_explanation_tt
+            enum State {
+                InKey(String),
+                InValue(String, String, Loc, usize),
+            }
+            let mut state = State::InKey(String::new());
             while let Some(c) = self.peek() {
-                if c == ':' && text.to_lowercase() == "#tooltip" && !is_tooltip {
-                    self.next_char();
-                    is_tooltip = true;
-                    text = String::new();
-                    loc = self.loc.clone();
-                } else if c.is_whitespace() {
-                    self.next_char();
+                if c.is_whitespace() {
                     break;
-                } else if !at_end && (is_key_char(c) || c == ';') {
-                    // TODO: check that ';' is a separator, not at the beginning or end
-                    text.push(c);
-                    self.next_char();
-                } else if !at_end && c == ':' {
-                    // #indent_newline:2 parsing
-                    // #color:{1.0,1.0,1.0} parsing
-                    // #font:TitleFont parsing
-                    text.push(c);
-                    self.next_char();
-                    let mut in_braces = false; // only one level of braces
-                    while let Some(c) = self.peek() {
-                        if c.is_alphanumeric() || in_braces || c == '{' {
-                            if c == '{' {
-                                in_braces = true;
-                            } else if c == '}' {
-                                in_braces = false;
+                }
+                match &mut state {
+                    State::InKey(s) => {
+                        if c == ':' {
+                            if s.is_empty() {
+                                self.unexpected_char("expected markup key", ErrorKey::Markup);
                             }
-                            text.push(c);
-                            self.next_char();
+                            state = State::InValue(s.clone(), String::new(), self.loc.clone(), 0);
+                        } else if c == ';' {
+                            if s.is_empty() {
+                                self.unexpected_char("expected markup key", ErrorKey::Markup);
+                            }
+                            // TODO: warn about markup keys that expect a value
+                            state = State::InKey(String::new());
+                        } else if c.is_alphanumeric() || c == '_' {
+                            s.push(c);
                         } else {
                             break;
                         }
                     }
-                    if self.peek() != Some(';') {
-                        at_end = true;
+                    State::InValue(key, value, loc, bracecount) => {
+                        if c == ':' {
+                            value.push(c);
+                            self.unexpected_char("expected `;`", ErrorKey::Markup);
+                        } else if c == ';' {
+                            if key.to_lowercase() == "tooltip" {
+                                self.value.push(LocaValue::Tooltip(Token::new(
+                                    value.clone(),
+                                    loc.clone(),
+                                )));
+                            }
+                            state = State::InKey(String::new());
+                        } else if c == '{' {
+                            *bracecount += 1;
+                        } else if c == '}' {
+                            if *bracecount > 0 {
+                                *bracecount -= 1;
+                            } else {
+                                let msg = "mismatched braces in markup";
+                                warn(&self.loc, ErrorKey::Markup, msg);
+                                self.value.push(LocaValue::Error);
+                            }
+                        } else if *bracecount > 0 && (c == '.' || c == ',') {
+                            value.push(c);
+                        } else if c.is_alphanumeric() || c == '_' {
+                            value.push(c);
+                        } else {
+                            break;
+                        }
                     }
-                } else {
-                    let msg = "#markup should be followed by a space";
-                    warn(loc, ErrorKey::Localization, msg);
-                    self.value.push(LocaValue::Error);
-                    return;
+                }
+                self.next_char();
+                text.push(c);
+            }
+            // Clean up leftover state at end
+            match state {
+                State::InKey(s) => {
+                    self.value.push(LocaValue::Markup(Token::new(text, loc)));
+                }
+                State::InValue(key, value, loc, bracecount) => {
+                    if key.to_lowercase() == "tooltip" {
+                        self.value
+                            .push(LocaValue::Tooltip(Token::new(value, loc.clone())));
+                    }
+                    if bracecount > 0 {
+                        let msg = "mismatched braces in markup";
+                        warn(&self.loc, ErrorKey::Markup, msg);
+                        self.value.push(LocaValue::Error);
+                    } else {
+                        self.value.push(LocaValue::Markup(Token::new(text, loc)));
+                    }
                 }
             }
-            if is_tooltip {
-                self.value.push(LocaValue::Tooltip(Token::new(text, loc)));
+            if self.peek().map_or(true, |c| c.is_whitespace()) {
+                self.next_char();
             } else {
-                self.value.push(LocaValue::Markup(Token::new(text, loc)));
+                let msg = "#markup should be followed by a space";
+                warn(&self.loc, ErrorKey::Markup, msg);
+                self.value.push(LocaValue::Error);
             }
         }
     }

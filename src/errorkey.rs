@@ -12,6 +12,7 @@ pub enum ErrorKey {
     Filename,
     Encoding,
     Localization,
+    Markup,
     DuplicateItem,
     ExactDuplicateItem,
     DuplicateField,
