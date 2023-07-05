@@ -1,15 +1,15 @@
-use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
+
+use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
-use crate::errorkey::ErrorKey;
-use crate::errors::{warn, warn2};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::report::{warn, warn2, ErrorKey};
 use crate::token::Token;
 use crate::util::SmartJoin;
 
@@ -123,7 +123,7 @@ impl FileHandler for Assets {
             return;
         }
 
-        let Some(block) = PdxFile::read_optional_bom(entry, fullpath) else { return };
+        let Some(block) = PdxFile::read_optional_bom(entry, fullpath) else { return; };
         for (key, block) in block.iter_definitions_warn() {
             self.load_item(key, block);
         }

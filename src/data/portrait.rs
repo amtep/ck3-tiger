@@ -3,10 +3,10 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::data::genes::{AccessoryGene, Gene};
 use crate::db::{Db, DbKind};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::ErrorKey;
+use crate::report::{error, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -212,6 +212,7 @@ impl PortraitAnimation {
 }
 
 const TYPES: &[&str] = &["male", "female", "boy", "girl"];
+
 impl DbKind for PortraitAnimation {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);

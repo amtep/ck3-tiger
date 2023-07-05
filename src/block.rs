@@ -3,12 +3,11 @@ use std::fmt::{Display, Error, Formatter};
 use std::rc::Rc;
 use std::str::FromStr;
 
-pub mod validator;
-
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info};
 use crate::parse::pdxfile::{parse_pdx_macro, LocalMacros};
+use crate::report::{error, error_info, ErrorKey};
 use crate::token::{Loc, Token};
+
+pub mod validator;
 
 /// BV is an item in a Block, either on its own or after a field key.
 /// It is itself either a Block or a single-token Value.
@@ -555,9 +554,12 @@ impl Block {
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Comparator {
     None,
-    Eq,  // Eq is also Assign
-    EEq, // The == operator, which means Eq but cannot be used to assign
-    QEq, // The ?= operator
+    Eq,
+    // Eq is also Assign
+    EEq,
+    // The == operator, which means Eq but cannot be used to assign
+    QEq,
+    // The ?= operator
     Lt,
     Gt,
     Le,
@@ -744,6 +746,7 @@ impl Iterator for DrainDefinitions<'_> {
         None
     }
 }
+
 #[derive(Clone, Debug)]
 pub struct IterBlockValueDefinitions<'a> {
     iter: std::slice::Iter<'a, BlockItem>,

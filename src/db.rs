@@ -1,7 +1,8 @@
-use as_any::AsAny;
-use fnv::FnvHashMap;
 use std::any::Any;
 use std::fmt::Debug;
+
+use as_any::AsAny;
+use fnv::FnvHashMap;
 
 use crate::block::Block;
 use crate::context::ScopeContext;

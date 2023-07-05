@@ -1,19 +1,20 @@
-use anyhow::Result;
-use fnv::FnvHashSet;
 use std::cell::RefCell;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::string::ToString;
+
+use anyhow::Result;
+use fnv::FnvHashSet;
 use walkdir::WalkDir;
 
 use crate::block::Block;
-use crate::errorkey::ErrorKey;
-use crate::errors::{add_loaded_mod_root, error, warn_abbreviated, warn_header, will_log};
 use crate::everything::Everything;
 use crate::everything::FilesError;
 use crate::modfile::ModFile;
+use crate::report::ErrorKey;
+use crate::report::{add_loaded_mod_root, error, warn_abbreviated, warn_header, will_log};
 use crate::token::{Loc, Token};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -22,7 +23,8 @@ pub enum FileKind {
     Clausewitz,
     Jomini,
     Vanilla,
-    LoadedMod(u16), // 0-based indexing
+    LoadedMod(u16),
+    // 0-based indexing
     Mod,
 }
 

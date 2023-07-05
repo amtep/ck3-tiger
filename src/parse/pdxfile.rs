@@ -1,12 +1,12 @@
-use fnv::FnvHashMap;
-
 use std::mem::{swap, take};
 use std::path::PathBuf;
 
+use fnv::FnvHashMap;
+
 use crate::block::{Block, Comparator, BV};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn, warn_info};
 use crate::fileset::{FileEntry, FileKind};
+use crate::report::ErrorKey;
+use crate::report::{error, warn, warn_info};
 use crate::token::{Loc, Token};
 
 #[derive(Copy, Clone, Debug)]
@@ -287,9 +287,9 @@ impl Parser {
             self.block_value(prev_level.block);
             if loc.column == 1 && !self.stack.is_empty() {
                 warn_info(Token::new("}".to_string(), loc),
-                ErrorKey::BracePlacement,
-                "possible brace error",
-                "This closing brace is at the start of a line but does not end a top-level item."
+                          ErrorKey::BracePlacement,
+                          "possible brace error",
+                          "This closing brace is at the start of a line but does not end a top-level item.",
                 );
             }
         } else {

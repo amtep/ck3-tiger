@@ -11,10 +11,11 @@ use strum_macros::EnumIter;
 use unicode_width::UnicodeWidthChar;
 
 use crate::block::{Block, BV};
-use crate::error::{Confidence, LogLevel, LogReport, PointedMessage, Severity};
-use crate::errorkey::ErrorKey;
 use crate::fileset::{FileEntry, FileKind};
 use crate::output_style::{OutputStyle, Styled};
+use crate::report::writer::log_report;
+use crate::report::ErrorKey;
+use crate::report::{Confidence, LogLevel, LogReport, PointedMessage, Severity};
 use crate::token::{Loc, Token};
 
 static mut ERRORS: Option<Errors> = None;
@@ -113,7 +114,7 @@ impl ErrorLoc for &Block {
 type ErrorRecord = (Loc, ErrorKey, String, Option<Loc>, Option<Loc>);
 
 #[derive(Default)]
-struct Errors {
+pub struct Errors {
     /// The CK3 game directory
     vanilla_root: PathBuf,
 
@@ -127,7 +128,7 @@ struct Errors {
     loaded_mods: Vec<PathBuf>,
 
     /// Extra loaded mods' error tags
-    loaded_mods_labels: Vec<String>,
+    pub(crate) loaded_mods_labels: Vec<String>,
 
     /// The mod directory
     mod_root: PathBuf,
@@ -161,14 +162,14 @@ struct Errors {
     filecache: FnvHashMap<PathBuf, String>,
 
     /// Output color and style configuration.
-    styles: OutputStyle,
+    pub(crate) styles: OutputStyle,
 }
 
 impl Errors {
     fn outfile(&mut self) -> &mut dyn Write {
         self.outfile.as_mut().expect("outfile")
     }
-    fn get_line(&mut self, loc: &Loc) -> Option<String> {
+    pub(crate) fn get_line(&mut self, loc: &Loc) -> Option<String> {
         if loc.line == 0 {
             return None;
         }
@@ -244,215 +245,10 @@ impl Errors {
         if !self.will_log(&report.primary().location, report.key) {
             return;
         }
-        self.log_report(report);
+        log_report(self, &report);
     }
 
-    /// Log the report.
-    fn log_report(&mut self, report: LogReport) {
-        // Log error lvl and message:
-        self.log_line_title(&report);
-        // Log the primary pointer:
-        self.log_pointer_primary(report.primary(), report.indentation(), report.lvl.severity);
-        // Log the other pointers:
-        report.pointers.windows(2).for_each(|pointers| {
-            self.log_pointer(
-                pointers.get(0).expect("Must exist."),
-                pointers.get(1).expect("Must exist."),
-                report.indentation(),
-                report.lvl.severity,
-            );
-        });
-        if let Some(info) = report.info {
-            let line_info: &[ANSIString<'static>] = &[
-                self.styles.style(&Styled::Default).paint(format!(
-                    "{:width$}",
-                    "",
-                    width = report.indentation()
-                )),
-                self.styles.style(&Styled::Default).paint(" "),
-                self.styles.style(&Styled::Location).paint("="),
-                self.styles.style(&Styled::Default).paint(" "),
-                self.styles.style(&Styled::InfoTag).paint("Info:"),
-                self.styles.style(&Styled::Default).paint(" "),
-                self.styles.style(&Styled::Info).paint(format!("{info}")),
-            ];
-            writeln!(self.outfile(), "{}", ANSIStrings(line_info)).expect("writeln");
-        }
-
-        // if let Some(link) = &loc.link {
-        //     self.log(link, level, key, "from here", None);
-        // }
-
-        // Write a blank line to visually separate reports:
-        writeln!(self.outfile.as_mut().expect("outfile"), "").expect("writeln");
-    }
-    fn log_pointer_primary(
-        &mut self,
-        pointer: &PointedMessage,
-        indentation: usize,
-        severity: Severity,
-    ) {
-        self.log_line_file_location(pointer, indentation);
-        if pointer.location.line == 0 {
-            // Zero-length line means the location is an entire file,
-            // not any particular location within the file.
-            return;
-        }
-        if let Some(line) = self.get_line(&pointer.location) {
-            self.log_line_from_source(pointer, indentation, &line);
-            self.log_line_carets(pointer, &line, indentation, severity);
-        }
-    }
-    fn log_pointer(
-        &mut self,
-        previous: &PointedMessage,
-        pointer: &PointedMessage,
-        indentation: usize,
-        severity: Severity,
-    ) {
-        if previous.location.pathname != pointer.location.pathname
-            || previous.location.kind != pointer.location.kind
-        {
-            // This pointer is not the same as the previous pointer. Print file location as well:
-            self.log_line_file_location(pointer, indentation);
-        } else {
-            self.log_line_blank(indentation);
-        }
-        if pointer.location.line == 0 {
-            // Zero-length line means the location is an entire file,
-            // not any particular location within the file.
-            return;
-        }
-        if let Some(line) = self.get_line(&pointer.location) {
-            self.log_line_from_source(pointer, indentation, &line);
-            self.log_line_carets(pointer, &line, indentation, severity);
-        }
-    }
-
-    /// Log the first line of a report, containing the severity level and the error message.
-    fn log_line_title(&mut self, report: &LogReport) {
-        let line: &[ANSIString<'static>] = &[
-            self.styles
-                .style(&Styled::Tag(report.lvl.severity, true))
-                .paint(format!("{}", report.lvl.severity)),
-            self.styles
-                .style(&Styled::Tag(report.lvl.severity, false))
-                .paint("("),
-            self.styles
-                .style(&Styled::Tag(report.lvl.severity, false))
-                .paint(format!("{}", report.key)),
-            self.styles
-                .style(&Styled::Tag(report.lvl.severity, false))
-                .paint(")"),
-            self.styles.style(&Styled::Default).paint(": "),
-            self.styles
-                .style(&Styled::ErrorMessage)
-                .paint(format!("{}", report.msg)),
-        ];
-        writeln!(self.outfile(), "{}", ANSIStrings(line)).expect("writeln");
-    }
-
-    /// Log the line containing the location's mod name and filename.
-    fn log_line_file_location(&mut self, pointer: &PointedMessage, indentation: usize) {
-        let line_filename: &[ANSIString<'static>] = &[
-            self.styles.style(&Styled::Default).paint(format!(
-                "{:width$}",
-                "",
-                width = indentation
-            )),
-            self.styles.style(&Styled::Location).paint("-->"),
-            self.styles.style(&Styled::Default).paint(" "),
-            self.styles.style(&Styled::Location).paint("["),
-            self.styles
-                .style(&Styled::Location)
-                .paint(format!("{}", self.kind_tag(pointer.location.kind))),
-            self.styles.style(&Styled::Location).paint("]"),
-            self.styles.style(&Styled::Default).paint(" "),
-            self.styles
-                .style(&Styled::Location)
-                .paint(format!("{}", pointer.location.pathname.display())),
-        ];
-        writeln!(self.outfile(), "{}", ANSIStrings(line_filename)).expect("writeln");
-    }
-
-    /// Print a line from the source file.
-    fn log_line_from_source(&mut self, pointer: &PointedMessage, indentation: usize, line: &str) {
-        let line_from_source: &[ANSIString<'static>] = &[
-            self.styles.style(&Styled::Location).paint(format!(
-                "{:width$}",
-                pointer.location.line,
-                width = indentation
-            )),
-            self.styles.style(&Styled::Default).paint(" "),
-            self.styles.style(&Styled::Location).paint("|"),
-            self.styles.style(&Styled::Default).paint(" "),
-            self.styles
-                .style(&Styled::SourceText)
-                .paint(format!("{line}")),
-        ];
-        writeln!(self.outfile(), "{}", ANSIStrings(line_from_source)).expect("writeln");
-    }
-
-    fn log_line_carets(
-        &mut self,
-        pointer: &PointedMessage,
-        line: &str,
-        indentation: usize,
-        severity: Severity,
-    ) {
-        let mut spacing = String::new();
-        for c in line.chars().take(pointer.location.column.saturating_sub(1)) {
-            if c == '\t' {
-                // spacing.push_str("  ");
-                spacing.push('\t');
-            } else {
-                for _ in 0..c.width().unwrap_or(0) {
-                    spacing.push(' ');
-                }
-            }
-        }
-        // A line containing the carets that point upwards at the source line.
-        let line_carets: &[ANSIString<'static>] = &[
-            self.styles.style(&Styled::Default).paint(format!(
-                "{:width$}",
-                "",
-                width = indentation
-            )),
-            self.styles.style(&Styled::Default).paint(" "),
-            self.styles.style(&Styled::Location).paint("|"),
-            self.styles.style(&Styled::Default).paint(" "),
-            self.styles
-                .style(&Styled::Default)
-                .paint(format!("{spacing}")),
-            self.styles
-                .style(&Styled::Tag(severity, true))
-                .paint(format!("{:^^width$}", "", width = pointer.length)),
-            self.styles.style(&Styled::Default).paint(" "),
-            self.styles
-                .style(&Styled::Tag(severity, true))
-                .paint(format!(
-                    "{}",
-                    pointer.msg.as_ref().map(|_| "<-- ").unwrap_or(&"")
-                )),
-            self.styles
-                .style(&Styled::Tag(severity, true))
-                .paint(format!("{}", pointer.msg.as_ref().unwrap_or(&""))),
-        ];
-        writeln!(self.outfile(), "{}", ANSIStrings(line_carets)).expect("writeln");
-    }
-
-    /// Print a blank line to represent space between two lines in the same file.
-    fn log_line_blank(&mut self, indentation: usize) {
-        let line_blank: &[ANSIString<'static>] = &[
-            self.styles
-                .style(&Styled::Location)
-                .paint("-".repeat(indentation)),
-            self.styles.style(&Styled::Default).paint("   "),
-        ];
-        writeln!(self.outfile(), "{}", ANSIStrings(line_blank)).expect("writeln");
-    }
-
-    /// Deprecated in favour of log_report().
+    /// Deprecated in favour of `log_report()`.
     pub fn log(
         &mut self,
         loc: &Loc,
@@ -989,7 +785,7 @@ pub fn will_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
     Errors::get().will_log(&eloc.into_loc(), key)
 }
 
-/// Override the default OutputStyle. (Controls ansi colors)
+/// Override the default `OutputStyle`. (Controls ansi colors)
 pub fn set_output_style(style: OutputStyle) {
     Errors::get_mut().styles = style;
 }

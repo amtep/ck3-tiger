@@ -2,10 +2,9 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::data::coa::validate_coa_layout;
 use crate::db::{Db, DbKind};
-use crate::errorkey::ErrorKey;
-use crate::errors::warn;
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::{warn, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]

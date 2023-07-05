@@ -1,6 +1,7 @@
-use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+
+use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
@@ -9,13 +10,12 @@ use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
 use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_normal_effect};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::report::{error, error_info, warn, warn_info, ErrorKey};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -152,7 +152,7 @@ impl FileHandler for Events {
             return;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
 
         let mut expecting = Expecting::Event;
 

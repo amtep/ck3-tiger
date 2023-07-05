@@ -1,17 +1,17 @@
-use fnv::FnvHashMap;
 use std::path::{Path, PathBuf};
+
+use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::data::localization::LocaValue;
 use crate::datatype::{Code, CodeArg, CodeChain};
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
+use crate::report::{error, warn, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -66,7 +66,7 @@ impl FileHandler for DataBindings {
             return;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
         for (key, block) in block.drain_definitions_warn() {
             if key.is("macro") {
                 self.load_macro(block);

@@ -1,16 +1,17 @@
-use fnv::{FnvHashMap, FnvHashSet};
 use std::path::{Path, PathBuf};
+
+use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::effect::validate_normal_effect;
-use crate::errorkey::ErrorKey;
-use crate::errors::{error_info, warn_info};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::report::ErrorKey;
+use crate::report::{error_info, warn_info};
 use crate::scopes::Scopes;
 use crate::tables::on_action::on_action_scopecontext;
 use crate::token::Token;
@@ -58,7 +59,7 @@ impl FileHandler for OnActions {
             return;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
         for (key, block) in block.drain_definitions_warn() {
             self.load_item(key, block);
         }

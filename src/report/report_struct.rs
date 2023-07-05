@@ -1,6 +1,6 @@
 use strum_macros::{Display, EnumIter};
 
-use crate::errorkey::ErrorKey;
+use crate::report::ErrorKey;
 use crate::token::Loc;
 
 /// Describes a report about a potentially problematic situation that can be logged.
@@ -49,7 +49,7 @@ pub struct PointedMessage<'a> {
     pub msg: Option<&'a str>,
 }
 
-/// Replaces the ErrorLevel that previously existed.
+/// Replaces the `ErrorLevel` that previously existed.
 #[derive(Default, Debug, Clone, Copy)]
 pub struct LogLevel {
     /// The seriousness of the error.

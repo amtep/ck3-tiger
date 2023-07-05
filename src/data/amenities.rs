@@ -1,11 +1,10 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
-use crate::errorkey::ErrorKey;
-use crate::errors::warn;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;

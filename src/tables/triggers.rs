@@ -1,3 +1,5 @@
+use RawTrigger::*;
+
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::*;
@@ -7,26 +9,42 @@ use crate::token::Token;
 /// constructing bitfield types in const values is not allowed.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum RawTrigger {
-    Boolean,            // trigger = no or trigger = yes
-    CompareValue,       // can be a script value
-    CompareValueWarnEq, // can be a script value; warn if =
-    SetValue,           // can be a script value; no < or >
-    CompareDate,        // value must be a valid date
-    Scope(u64),         // trigger is compared to a scope object
-    ScopeOkThis(u64),   // trigger is compared to a scope object which may be `this`
-    Item(Item),         // value is chosen from an item type
+    Boolean,
+    // trigger = no or trigger = yes
+    CompareValue,
+    // can be a script value
+    CompareValueWarnEq,
+    // can be a script value; warn if =
+    SetValue,
+    // can be a script value; no < or >
+    CompareDate,
+    // value must be a valid date
+    Scope(u64),
+    // trigger is compared to a scope object
+    ScopeOkThis(u64),
+    // trigger is compared to a scope object which may be `this`
+    Item(Item),
+    // value is chosen from an item type
     ScopeOrItem(u64, Item),
-    Choice(&'static [&'static str]), // value is chosen from a list given here
+    Choice(&'static [&'static str]),
+    // value is chosen from a list given here
     // For Block, if a field name in the array starts with ? it means that field is optional
-    Block(&'static [(&'static str, RawTrigger)]), // trigger takes a block with these fields
-    ScopeOrBlock(u64, &'static [(&'static str, RawTrigger)]), // trigger takes a block with these fields
-    ItemOrBlock(Item, &'static [(&'static str, RawTrigger)]), // trigger takes a block with these fields
-    CompareValueOrBlock(&'static [(&'static str, RawTrigger)]), // can be part of a scope chain but also a standalone trigger
-    ScopeList(u64),      // trigger takes a block of values of this scope type
-    ScopeCompare(u64),   // trigger takes a block comparing two scope objects
+    Block(&'static [(&'static str, RawTrigger)]),
+    // trigger takes a block with these fields
+    ScopeOrBlock(u64, &'static [(&'static str, RawTrigger)]),
+    // trigger takes a block with these fields
+    ItemOrBlock(Item, &'static [(&'static str, RawTrigger)]),
+    // trigger takes a block with these fields
+    CompareValueOrBlock(&'static [(&'static str, RawTrigger)]),
+    // can be part of a scope chain but also a standalone trigger
+    ScopeList(u64),
+    // trigger takes a block of values of this scope type
+    ScopeCompare(u64),
+    // trigger takes a block comparing two scope objects
     CompareToScope(u64), // this is for inside a Block, where a key is compared to a scope object
 
-    Control, // this key opens another trigger block
+    Control,
+    // this key opens another trigger block
     Special, // this has specific code for validation
 
     UncheckedValue,
@@ -169,8 +187,6 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
         _ => std::option::Option::None,
     }
 }
-
-use RawTrigger::*;
 
 /// LAST UPDATED VERSION 1.9.2
 /// See `triggers.log` from the game data dumps

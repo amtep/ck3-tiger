@@ -1,19 +1,20 @@
-use fnv::FnvHashMap;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+
+use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::data::provinces::ProvId;
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, warn};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::report::ErrorKey;
+use crate::report::{error, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -157,7 +158,7 @@ impl FileHandler for Titles {
             return;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return };
+        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
         for (key, block) in block.drain_definitions_warn() {
             if Tier::try_from(&key).is_ok() {
                 self.load_item(key, block, None, false);

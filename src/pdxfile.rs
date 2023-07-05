@@ -1,13 +1,14 @@
-use encoding::all::WINDOWS_1252;
-use encoding::{DecoderTrap, Encoding};
 use std::fs::{read, read_to_string};
 use std::path::Path;
 
+use encoding::all::WINDOWS_1252;
+use encoding::{DecoderTrap, Encoding};
+
 use crate::block::Block;
-use crate::errorkey::ErrorKey;
-use crate::errors::{advice_info, error_info, warn};
 use crate::fileset::FileEntry;
 use crate::parse::pdxfile::parse_pdx;
+use crate::report::ErrorKey;
+use crate::report::{advice_info, error_info, warn};
 
 /// If a windows-1252 file mistakenly starts with a UTF-8 BOM, this is
 /// what it will look like after decoding

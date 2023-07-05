@@ -1,13 +1,14 @@
-use anyhow::Result;
-use encoding::all::WINDOWS_1252;
-use encoding::{DecoderTrap, Encoding};
 use std::fs::read;
 use std::iter::Peekable;
 use std::path::Path;
 use std::str::Chars;
 
-use crate::errors::ErrorLoc;
+use anyhow::Result;
+use encoding::all::WINDOWS_1252;
+use encoding::{DecoderTrap, Encoding};
+
 use crate::fileset::FileEntry;
+use crate::report::ErrorLoc;
 use crate::token::{Loc, Token};
 
 #[derive(Clone, Debug)]

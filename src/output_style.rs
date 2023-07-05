@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use crate::error::Severity;
 use ansi_term::Colour::{Black, Blue, Cyan, Green, Purple, Red, White, Yellow};
 use ansi_term::Style;
 
-use crate::errors::ErrorLevel;
+use crate::report::ErrorLevel;
+use crate::report::Severity;
 
 /// For looking up the style to use for the various parts of the output.
 #[derive(Debug, Default, Clone, Copy, Hash, PartialEq, Eq)]
@@ -34,7 +34,7 @@ pub enum Styled {
     Emphasis,
 }
 
-/// Whether the style applies to the ErrorLevel tag itself or the ErrorKey that follows it.
+/// Whether the style applies to the `ErrorLevel` tag itself or the `ErrorKey` that follows it.
 pub type IsTag = bool;
 
 #[derive(Debug)]
@@ -43,7 +43,7 @@ pub struct OutputStyle {
 }
 
 impl Default for OutputStyle {
-    /// Constructs an instance of OutputStyles that uses default, hard-coded color values.
+    /// Constructs an instance of `OutputStyles` that uses default, hard-coded color values.
     fn default() -> Self {
         let mut map = HashMap::new();
         map.insert(Styled::Default, Style::new());
@@ -77,7 +77,7 @@ impl Default for OutputStyle {
 }
 
 impl OutputStyle {
-    /// Construct a version of the OutputStyles that always returns the no_color style.
+    /// Construct a version of the `OutputStyles` that always returns the default, no-colour style.
     /// Use this to effectively disable any ANSI characters in the output.
     pub fn no_color() -> Self {
         let mut map = HashMap::new();

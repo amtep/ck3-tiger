@@ -6,10 +6,10 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::desc::validate_desc;
-use crate::errorkey::ErrorKey;
-use crate::errors::{error, error_info, warn};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::ErrorKey;
+use crate::report::{error, error_info, warn};
 use crate::scopes::{scope_prefix, scope_to_scope, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::Token;
@@ -392,12 +392,10 @@ pub fn validate_iterator_fields(
     tooltipped: &mut Tooltipped,
 ) {
     // undocumented
-    if list_type != ListType::None {
-        if vd.field_item("custom", Item::Localization) {
-            *tooltipped = Tooltipped::No;
-        }
-    } else {
+    if list_type == ListType::None {
         vd.ban_field("custom", || "lists");
+    } else if vd.field_item("custom", Item::Localization) {
+        *tooltipped = Tooltipped::No;
     }
 
     // undocumented

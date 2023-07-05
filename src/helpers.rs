@@ -1,8 +1,8 @@
 use std::fmt::{Display, Formatter};
 
-use crate::error::{Confidence, LogLevel, LogReport, PointedMessage, Severity};
-use crate::errorkey::ErrorKey;
-use crate::errors::{advice2, log, warn2};
+use crate::report::ErrorKey;
+use crate::report::{advice2, log, warn2};
+use crate::report::{Confidence, LogLevel, LogReport, PointedMessage, Severity};
 use crate::token::Token;
 
 /// Warns about a redefinition of a database item
