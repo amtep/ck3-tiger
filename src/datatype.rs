@@ -10,9 +10,8 @@ use crate::scopes::Scopes;
 use crate::tables::datafunctions::scope_from_datatype;
 pub use crate::tables::datafunctions::{
     lookup_alternative, lookup_function, lookup_global_function, lookup_global_promote,
-    lookup_promote, Datatype, LookupResult,
+    lookup_promote, Arg, Args, Datatype, LookupResult,
 };
-pub use crate::tables::datafunctions::{Arg, Args};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]

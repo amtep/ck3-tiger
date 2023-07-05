@@ -4,13 +4,13 @@ use std::str::FromStr;
 
 use strum_macros::{Display, EnumString};
 
-use Arg::*;
-use Args::*;
-use Datatype::*;
-
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
+
+use Arg::*;
+use Args::*;
+use Datatype::*;
 
 // Validate the "code" blocks in localization files and in the gui files.
 // The include/ files are converted from the game's data_type_* output files.
