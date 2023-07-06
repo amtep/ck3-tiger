@@ -16,6 +16,7 @@ pub enum Effect {
     ScriptValue,
     /// warn if literal negative
     NonNegativeValue,
+    Date,
     Scope(Scopes),
     ScopeOkThis(Scopes),
     Item(Item),

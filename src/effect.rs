@@ -15,7 +15,9 @@ use crate::report::{advice_info, error, error_info, old_warn, warn_info, ErrorKe
 use crate::scopes::{scope_iterator, Scopes};
 use crate::scriptvalue::validate_scriptvalue;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_normal_trigger, validate_target, validate_target_ok_this};
+use crate::trigger::{
+    validate_normal_trigger, validate_target, validate_target_ok_this, validate_trigger_key_bv,
+};
 use crate::validate::{
     precheck_iterator_fields, validate_days_weeks_months_years, validate_ifelse_sequence,
     validate_inside_iterator, validate_iterator_fields, validate_modifiers,
@@ -160,6 +162,11 @@ pub fn validate_effect<'a>(
                         }
                     }
                     validate_scriptvalue(bv, data, sc);
+                }
+                Effect::Date => {
+                    if let Some(token) = bv.expect_value() {
+                        token.expect_date();
+                    }
                 }
                 Effect::Scope(outscopes) => {
                     if let Some(token) = bv.expect_value() {
@@ -473,4 +480,116 @@ pub fn validate_effect_control(
     }
 
     validate_effect(caller, ListType::None, block, data, sc, vd, tooltipped);
+}
+
+pub fn validate_add_to_variable_list(mut vd: Validator, sc: &mut ScopeContext) {
+    vd.req_field("name");
+    vd.req_field("target");
+    vd.field_value("name");
+    vd.field_target_ok_this("target", sc, Scopes::all_but_none());
+}
+
+pub fn validate_change_variable(mut vd: Validator, sc: &mut ScopeContext) {
+    vd.req_field("name");
+    vd.field_value("name");
+    vd.field_script_value("add", sc);
+    vd.field_script_value("subtract", sc);
+    vd.field_script_value("multiply", sc);
+    vd.field_script_value("divide", sc);
+    vd.field_script_value("modulo", sc);
+    vd.field_script_value("min", sc);
+    vd.field_script_value("max", sc);
+}
+
+pub fn validate_clamp_variable(mut vd: Validator, sc: &mut ScopeContext) {
+    vd.req_field("name");
+    vd.field_value("name");
+    vd.field_script_value("min", sc);
+    vd.field_script_value("max", sc);
+}
+
+pub fn validate_random_list(
+    caller: &str,
+    _block: &Block,
+    data: &Everything,
+    mut vd: Validator,
+    sc: &mut ScopeContext,
+    tooltipped: Tooltipped,
+) {
+    vd.field_integer("pick");
+    vd.field_bool("unique"); // don't know what this does
+    vd.field_validated_sc("desc", sc, validate_desc);
+    for (key, block) in vd.unknown_block_fields() {
+        if key.expect_number().is_some() {
+            validate_effect_control(caller, block, data, sc, tooltipped);
+        }
+    }
+}
+
+pub fn validate_round_variable(mut vd: Validator, sc: &mut ScopeContext) {
+    vd.req_field("name");
+    vd.req_field("nearest");
+    vd.field_value("name");
+    vd.field_script_value("nearest", sc);
+}
+
+pub fn validate_save_scope_value(mut vd: Validator, sc: &mut ScopeContext) {
+    vd.req_field("name");
+    vd.req_field("value");
+    if let Some(name) = vd.field_value("name") {
+        // TODO: examine `value` field to check its real scope type
+        sc.define_name(name.as_str(), Scopes::primitive(), name);
+    }
+    vd.field_script_value_or_flag("value", sc);
+}
+
+pub fn validate_set_variable(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
+    match bv {
+        BV::Value(_token) => (),
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.set_case_sensitive(false);
+            vd.req_field("name");
+            vd.field_value("name");
+            vd.field_validated("value", |bv, data| match bv {
+                BV::Value(token) => {
+                    validate_target_ok_this(token, data, sc, Scopes::all_but_none());
+                }
+                BV::Block(_) => validate_scriptvalue(bv, data, sc),
+            });
+            validate_optional_duration(&mut vd, sc);
+        }
+    }
+}
+
+pub fn validate_switch(
+    mut vd: Validator,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    tooltipped: Tooltipped,
+) {
+    vd.set_case_sensitive(true);
+    vd.req_field("trigger");
+    if let Some(target) = vd.field_value("trigger") {
+        // clone to avoid calling vd again while target is still borrowed
+        let target = target.clone();
+        for (key, block) in vd.unknown_block_fields() {
+            if !key.is("fallback") {
+                // Pretend the switch was written as a series of trigger = key lines
+                let synthetic_bv = BV::Value(key.clone());
+                validate_trigger_key_bv(
+                    &target,
+                    Comparator::Equals(Single),
+                    &synthetic_bv,
+                    data,
+                    sc,
+                    tooltipped,
+                    false,
+                );
+            }
+
+            let vd = Validator::new(block, data);
+            validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
+        }
+    }
 }

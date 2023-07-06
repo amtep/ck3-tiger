@@ -16,6 +16,8 @@ pub enum Item {
     File,
     GameConcept,
     Goods,
+    Ideology,
+    Law,
     Localization,
     Modifier,
     NamedColor,
@@ -33,6 +35,8 @@ pub enum Item {
     StateRegion,
     StrategicRegion,
     Technology,
+    TechnologyEra,
+    TerrainManipulator,
     TriggerLocalization,
 }
 
@@ -53,6 +57,8 @@ impl Item {
             Item::File => "",
             Item::GameConcept => "common/game_concepts/",
             Item::Goods => "common/goods/",
+            Item::Ideology => "common/ideologies/",
+            Item::Law => "common/laws/",
             Item::Localization => "localization/",
             Item::Modifier => "common/modifiers/",
             Item::NamedColor => "common/named_colors/",
@@ -70,6 +76,8 @@ impl Item {
             Item::StateRegion => "map_data/state_regions/",
             Item::StrategicRegion => "common/strategic_regions/",
             Item::Technology => "common/technology/",
+            Item::TechnologyEra => "common/technology/era/",
+            Item::TerrainManipulator => "common/terrain_manipulators/",
             Item::TriggerLocalization => "common/trigger_localization/",
         }
     }

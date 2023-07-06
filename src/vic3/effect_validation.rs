@@ -1,35 +1,47 @@
 use crate::block::validator::Validator;
-use crate::block::{Block, Comparator, BV};
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
-use crate::desc::validate_desc;
-use crate::effect::{validate_effect, validate_effect_control, validate_normal_effect};
+use crate::effect::{
+    validate_add_to_variable_list, validate_change_variable, validate_clamp_variable,
+    validate_random_list, validate_round_variable, validate_save_scope_value,
+    validate_set_variable, validate_switch,
+};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, warn, warn_info, ErrorKey};
-use crate::scopes::Scopes;
-use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger_key_bv};
-use crate::validate::{
-    validate_duration, validate_optional_duration, validate_optional_duration_int, ListType,
-};
+
 use EvB::*;
 use EvBv::*;
 use EvV::*;
 
 #[derive(Debug, Copy, Clone)]
-pub enum EvB {}
+pub enum EvB {
+    ActivateProductionMethod,
+    AddToVariableList,
+    ChangeVariable,
+    ClampVariable,
+    RandomList,
+    RoundVariable,
+    SaveScopeValue,
+    Switch,
+}
 
 #[derive(Debug, Copy, Clone)]
-pub enum EvBv {}
+pub enum EvBv {
+    SetVariable,
+}
 
 #[derive(Debug, Copy, Clone)]
-pub enum EvV {}
+pub enum EvV {
+    AddToList,
+    RemoveFromList,
+    SaveScope,
+}
 
 pub fn validate_effect_block(
     v: EvB,
-    key: &Token,
+    _key: &Token,
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
@@ -37,27 +49,70 @@ pub fn validate_effect_block(
 ) {
     let mut vd = Validator::new(block, data);
     vd.set_case_sensitive(false);
-    match v {}
+    match v {
+        ActivateProductionMethod => {
+            vd.req_field("building_type");
+            vd.req_field("production_method");
+            vd.field_item("building_type", Item::BuildingType);
+            // TODO: check that the production method belongs to the building type
+            vd.field_item("production_method", Item::ProductionMethod);
+        }
+        AddToVariableList => {
+            validate_add_to_variable_list(vd, sc);
+        }
+        ChangeVariable => {
+            validate_change_variable(vd, sc);
+        }
+        ClampVariable => {
+            validate_clamp_variable(vd, sc);
+        }
+        RandomList => {
+            validate_random_list("random_list", block, data, vd, sc, tooltipped);
+        }
+        RoundVariable => {
+            validate_round_variable(vd, sc);
+        }
+        SaveScopeValue => {
+            validate_save_scope_value(vd, sc);
+        }
+        Switch => {
+            validate_switch(vd, data, sc, tooltipped);
+        }
+    }
 }
 
 pub fn validate_effect_value(
     v: EvV,
     _key: &Token,
     value: &Token,
-    data: &Everything,
+    _data: &Everything,
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    match v {}
+    match v {
+        AddToList => {
+            sc.define_or_expect_list(value);
+        }
+        RemoveFromList => {
+            sc.expect_list(value);
+        }
+        SaveScope => {
+            sc.save_current_scope(value.as_str());
+        }
+    }
 }
 
 pub fn validate_effect_bv(
     v: EvBv,
-    key: &Token,
+    _key: &Token,
     bv: &BV,
     data: &Everything,
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    match v {}
+    match v {
+        SetVariable => {
+            validate_set_variable(bv, data, sc);
+        }
+    }
 }

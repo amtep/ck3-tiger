@@ -132,6 +132,7 @@ pub fn validate_datatypes(
 ) {
     let mut curtype = Datatype::Unknown;
     let mut codes = Cow::from(&chain.codes[..]);
+    #[cfg(feature = "ck3")]
     let mut macro_count = 0;
     // Have to loop with `while` instead of `for` because the array can mutate during the loop because of macro substitution
     let mut i = 0;

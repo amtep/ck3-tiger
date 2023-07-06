@@ -1,19 +1,20 @@
-use std::str::FromStr;
-
 use crate::block::validator::Validator;
-use crate::block::Eq::Single;
-use crate::block::{Block, Comparator, BV};
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
-use crate::effect::{validate_effect, validate_effect_control, validate_normal_effect};
+use crate::effect::{
+    validate_add_to_variable_list, validate_change_variable, validate_clamp_variable,
+    validate_effect, validate_normal_effect, validate_random_list, validate_round_variable,
+    validate_save_scope_value, validate_set_variable, validate_switch,
+};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{error, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
-use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
+use crate::scriptvalue::validate_non_dynamic_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger_key_bv};
+use crate::trigger::{validate_target, validate_target_ok_this};
 use crate::validate::{
     validate_duration, validate_optional_duration, validate_optional_duration_int,
     validate_random_culture, validate_random_faith, validate_random_traits_list, ListType,
@@ -248,10 +249,7 @@ pub fn validate_effect_block(
             vd.field_script_value("value", sc);
         }
         AddToVariableList => {
-            vd.req_field("name");
-            vd.req_field("target");
-            vd.field_value("name");
-            vd.field_target_ok_this("target", sc, Scopes::all_but_none());
+            validate_add_to_variable_list(vd, sc);
         }
         AddTruce => {
             vd.req_field("character");
@@ -304,15 +302,7 @@ pub fn validate_effect_block(
             vd.field_validated_sc("desc", sc, validate_desc);
         }
         ChangeVariable => {
-            vd.req_field("name");
-            vd.field_value("name");
-            vd.field_script_value("add", sc);
-            vd.field_script_value("subtract", sc);
-            vd.field_script_value("multiply", sc);
-            vd.field_script_value("divide", sc);
-            vd.field_script_value("modulo", sc);
-            vd.field_script_value("min", sc);
-            vd.field_script_value("max", sc);
+            validate_change_variable(vd, sc);
         }
         ChangeLiege => {
             vd.req_field("liege");
@@ -339,10 +329,7 @@ pub fn validate_effect_block(
             }
         }
         ClampVariable => {
-            vd.req_field("name");
-            vd.field_value("name");
-            vd.field_script_value("min", sc);
-            vd.field_script_value("max", sc);
+            validate_clamp_variable(vd, sc);
         }
         CopyLocalizedText => {
             vd.req_field("key");
@@ -629,10 +616,7 @@ pub fn validate_effect_block(
             }
         }
         RoundVariable => {
-            vd.req_field("name");
-            vd.req_field("nearest");
-            vd.field_value("name");
-            vd.field_script_value("nearest", sc);
+            validate_round_variable(vd, sc);
         }
         SaveOpinionValue => {
             vd.req_field("name");
@@ -643,13 +627,7 @@ pub fn validate_effect_block(
             vd.field_target("target", sc, Scopes::Character);
         }
         SaveScopeValue => {
-            vd.req_field("name");
-            vd.req_field("value");
-            if let Some(name) = vd.field_value("name") {
-                // TODO: examine `value` field to check its real scope type
-                sc.define_name(name.as_str(), Scopes::primitive(), name);
-            }
-            vd.field_script_value_or_flag("value", sc);
+            validate_save_scope_value(vd, sc);
         }
         SchemeFreeze => {
             vd.field_item("reason", Item::Localization);
@@ -795,30 +773,7 @@ pub fn validate_effect_block(
             }
         }
         Switch => {
-            vd.set_case_sensitive(true);
-            vd.req_field("trigger");
-            if let Some(target) = vd.field_value("trigger") {
-                // clone to avoid calling vd again while target is still borrowed
-                let target = target.clone();
-                for (key, block) in vd.unknown_block_fields() {
-                    if !key.is("fallback") {
-                        // Pretend the switch was written as a series of trigger = key lines
-                        let synthetic_bv = BV::Value(key.clone());
-                        validate_trigger_key_bv(
-                            &target,
-                            Comparator::Equals(Single),
-                            &synthetic_bv,
-                            data,
-                            sc,
-                            tooltipped,
-                            false,
-                        );
-                    }
-
-                    let vd = Validator::new(block, data);
-                    validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
-                }
-            }
+            validate_switch(vd, data, sc, tooltipped);
         }
         TryCreateImportantAction => {
             vd.req_field("important_action_type");
@@ -1085,22 +1040,7 @@ pub fn validate_effect_bv(
                 vd.field_target("involved_character", sc, Scopes::Character);
             }
         },
-        SetVariable => match bv {
-            BV::Value(_token) => (),
-            BV::Block(block) => {
-                let mut vd = Validator::new(block, data);
-                vd.set_case_sensitive(false);
-                vd.req_field("name");
-                vd.field_value("name");
-                vd.field_validated("value", |bv, data| match bv {
-                    BV::Value(token) => {
-                        validate_target_ok_this(token, data, sc, Scopes::all_but_none());
-                    }
-                    BV::Block(_) => validate_scriptvalue(bv, data, sc),
-                });
-                validate_optional_duration(&mut vd, sc);
-            }
-        },
+        SetVariable => validate_set_variable(bv, data, sc),
         TriggerEvent => match bv {
             BV::Value(token) => {
                 data.verify_exists(Item::Event, token);
@@ -1173,26 +1113,5 @@ fn validate_artifact(
         vd.ban_field("save_scope_as", || "`create_artifact`");
         vd.ban_field("title_history", || "`create_artifact`");
         vd.ban_field("title_history_date", || "`create_artifact`");
-    }
-}
-
-fn validate_random_list(
-    caller: &str,
-    _block: &Block,
-    data: &Everything,
-    mut vd: Validator,
-    sc: &mut ScopeContext,
-    tooltipped: Tooltipped,
-) {
-    vd.field_integer("pick");
-    vd.field_bool("unique"); // don't know what this does
-    vd.field_validated_sc("desc", sc, validate_desc);
-    for (key, block) in vd.unknown_block_fields() {
-        if f64::from_str(key.as_str()).is_err() {
-            let msg = "expected number";
-            error(key, ErrorKey::Validation, msg);
-        } else {
-            validate_effect_control(caller, block, data, sc, tooltipped);
-        }
     }
 }

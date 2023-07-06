@@ -3,12 +3,11 @@
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::ModifKinds;
-use crate::report::{error_info, warn_info, ErrorKey};
 use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
 /// Returns None otherwise.
-pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<ModifKinds> {
+pub fn lookup_modif(name: &Token, _data: &Everything, _warn: bool) -> Option<ModifKinds> {
     for &(entry_name, mk) in MODIF_TABLE {
         if name.is(entry_name) {
             return Some(ModifKinds::from_bits_truncate(mk));

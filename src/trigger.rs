@@ -254,6 +254,7 @@ pub fn validate_trigger_key_bv(
     let mut store;
     if let Some((before, after)) = key.split_after('(') {
         if let Some((arg, after)) = after.split_once(')') {
+            #[cfg(feature = "ck3")]
             let arg = arg.trim();
             #[cfg(feature = "ck3")]
             for part in before.split('.') {
