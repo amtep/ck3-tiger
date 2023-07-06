@@ -5,6 +5,7 @@ use strum_macros::IntoStaticStr;
 #[cfg(feature = "vic3")]
 pub enum Item {
     Attitude,
+    BattleCondition,
     BuildingGroup,
     BuildingType,
     CanalType,
@@ -22,6 +23,8 @@ pub enum Item {
     GameConcept,
     Goods,
     Ideology,
+    Institution,
+    InterestGroup,
     Law,
     Localization,
     MediaAlias,
@@ -53,6 +56,7 @@ impl Item {
         #[allow(clippy::match_same_arms)]
         match self {
             Item::Attitude => "",
+            Item::BattleCondition => "common/battle_conditions/",
             Item::BuildingGroup => "common/building_groups/",
             Item::BuildingType => "common/buildings/",
             Item::CanalType => "common/canals/",
@@ -70,6 +74,8 @@ impl Item {
             Item::GameConcept => "common/game_concepts/",
             Item::Goods => "common/goods/",
             Item::Ideology => "common/ideologies/",
+            Item::Institution => "common/institutions/",
+            Item::InterestGroup => "common/interest_groups/",
             Item::Law => "common/laws/",
             Item::Localization => "localization/",
             Item::MediaAlias => "gfx/media_aliases",

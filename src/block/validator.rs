@@ -1015,6 +1015,20 @@ impl<'a> Validator<'a> {
         vec
     }
 
+    pub fn numeric_keys(&mut self) -> Vec<(&Token, &BV)> {
+        let mut vec = Vec::new();
+        for (k, cmp, bv) in &self.block.v {
+            if let Some(key) = k {
+                if key.is_number() {
+                    self.known_fields.push(key.as_str());
+                    self.expect_eq_qeq(key, *cmp);
+                    vec.push((key, bv));
+                }
+            }
+        }
+        vec
+    }
+
     pub fn validate_history_blocks<F>(&mut self, mut f: F)
     where
         F: FnMut(Date, &Block, &Everything),

@@ -144,7 +144,7 @@ use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
 use crate::vic3::data::{
     buildings::BuildingType, countries::Country, cultures::Culture, events::Events,
-    production_methods::ProductionMethod, religions::Religion,
+    modifiers::Modifier, production_methods::ProductionMethod, religions::Religion,
 };
 
 #[derive(Debug, Error)]
@@ -783,6 +783,7 @@ impl Everything {
 
         self.load_pdx_items(Item::Culture, Culture::add);
         self.fileset.handle(&mut self.events);
+        self.load_pdx_items(Item::Modifier, Modifier::add);
         self.load_pdx_items(Item::Religion, Religion::add);
     }
 
@@ -927,7 +928,6 @@ impl Everything {
         self.load_pdx_items(Item::ScriptedCost, ScriptedCost::add);
         self.load_pdx_items(Item::PlayableDifficultyInfo, PlayableDifficultyInfo::add);
         self.load_pdx_items(Item::Message, Message::add);
-        self.load_pdx_items(Item::Modifier, Modifier::add);
     }
 
     #[cfg(feature = "vic3")]
