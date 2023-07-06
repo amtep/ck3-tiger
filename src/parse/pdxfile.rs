@@ -19,12 +19,99 @@ enum State {
     Comment,
 }
 
-#[derive(Copy, Clone, Debug)]
-enum CalculationOp {
+#[derive(Clone, Debug)]
+enum Calculation {
+    Value(f64),
     Add,
     Subtract,
     Multiply,
-    Divide,
+    Divide(Loc),
+}
+
+impl Calculation {
+    fn is_value(&self) -> bool {
+        match self {
+            Calculation::Value(_) => true,
+            Calculation::Add
+            | Calculation::Subtract
+            | Calculation::Multiply
+            | Calculation::Divide(_) => false,
+        }
+    }
+
+    fn calculate(mut calc: Vec<Calculation>) -> f64 {
+        // Handle unary negation
+        for i in 0..calc.len().saturating_sub(1) {
+            if let Calculation::Subtract = calc[i] {
+                if let Calculation::Value(value) = calc[i + 1] {
+                    // Negation is unary if it occurs at the start of a calculation, or after another operator.
+                    if i == 0 || !calc[i - 1].is_value() {
+                        calc.splice(i..=i + 1, vec![Calculation::Value(-value)]);
+                    }
+                }
+            }
+        }
+
+        // Handle multiply and divide.
+        // Loop from 1 to len-1 (exclusive) in order to only catch operators that are between other indices
+        let mut i = 1;
+        while i < calc.len().saturating_sub(1) {
+            if let Calculation::Value(value1) = calc[i - 1] {
+                if let Calculation::Value(value2) = calc[i + 1] {
+                    match calc[i] {
+                        Calculation::Multiply => {
+                            calc.splice(i - 1..=i + 1, vec![Calculation::Value(value1 * value2)]);
+                            i -= 1;
+                        }
+                        Calculation::Divide(ref loc) => {
+                            if value2 == 0.0 {
+                                let msg = "dividing by zero";
+                                error(loc, ErrorKey::LocalValues, msg);
+                            } else {
+                                calc.splice(
+                                    i - 1..=i + 1,
+                                    vec![Calculation::Value(value1 / value2)],
+                                );
+                                i -= 1;
+                            }
+                        }
+                        _ => (),
+                    }
+                }
+            }
+            i += 1;
+        }
+
+        // Handle add and subtract.
+        // Loop from 1 to len-1 (exclusive) in order to only catch operators that are between other indices
+        let mut i = 1;
+        while i < calc.len().saturating_sub(1) {
+            if let Calculation::Value(value1) = calc[i - 1] {
+                if let Calculation::Value(value2) = calc[i + 1] {
+                    match calc[i] {
+                        Calculation::Add => {
+                            calc.splice(i - 1..=i + 1, vec![Calculation::Value(value1 + value2)]);
+                            i -= 1;
+                        }
+                        Calculation::Subtract => {
+                            calc.splice(i - 1..=i + 1, vec![Calculation::Value(value1 - value2)]);
+                            i -= 1;
+                        }
+                        _ => (),
+                    }
+                }
+            }
+            i += 1;
+        }
+
+        if calc.len() == 1 {
+            if let Calculation::Value(value) = calc[0] {
+                return value;
+            }
+        }
+        // Whatever went wrong, we've already logged an error about it
+        return 0.0;
+    }
 }
 
 #[allow(clippy::wrong_self_convention)]
@@ -97,67 +184,63 @@ struct Parser {
     current: ParseLevel,
     stack: Vec<ParseLevel>,
     local_macros: LocalMacros,
-    calculation_stack: Vec<(CalculationOp, f64)>,
-    calculation_op: CalculationOp,
-    calculation: f64,
+    calculation_stack: Vec<Vec<Calculation>>,
+    calculation: Vec<Calculation>,
 }
 
 impl Parser {
     fn unknown_char(c: char, loc: Loc) {
         let token = Token::new(c.to_string(), loc);
-        error(
-            token,
-            ErrorKey::ParseError,
-            &format!("Unrecognized character {c}"),
-        );
+        let msg = format!("Unrecognized character {c}");
+        error(token, ErrorKey::ParseError, &msg);
     }
 
     fn calculation_start(&mut self) {
-        self.calculation = 0.0;
-        self.calculation_op = CalculationOp::Add;
+        self.calculation = Vec::new();
+        self.calculation_stack = Vec::new();
     }
 
-    fn calculation_op(&mut self, op: CalculationOp) {
-        self.calculation_op = op;
+    fn calculation_op(&mut self, op: Calculation, loc: &Loc) {
+        if let Some(Calculation::Value(_)) = self.calculation.last() {
+            self.calculation.push(op);
+        } else if let Calculation::Subtract = op {
+            // accept negation
+            self.calculation.push(op);
+        } else {
+            let msg = "operator `{op}` without left-hand value";
+            error(loc, ErrorKey::LocalValues, &msg);
+        }
     }
 
     fn calculation_next(&mut self, local_macro: &Token) {
         if let Some(value) = self.local_macros.get_value(local_macro.as_str()) {
-            match self.calculation_op {
-                CalculationOp::Add => self.calculation += value,
-                CalculationOp::Subtract => self.calculation -= value,
-                CalculationOp::Multiply => self.calculation *= value,
-                CalculationOp::Divide => self.calculation /= value,
-            }
+            self.calculation.push(Calculation::Value(value));
         } else {
             let msg = format!("local value {local_macro} not defined");
-            error(local_macro, ErrorKey::ParseError, &msg);
+            error(local_macro, ErrorKey::LocalValues, &msg);
         }
     }
 
-    fn calculation_push(&mut self) {
-        self.calculation_stack
-            .push((self.calculation_op, self.calculation));
-        self.calculation_op = CalculationOp::Add;
-        self.calculation = 0.0;
+    fn calculation_push(&mut self, loc: &Loc) {
+        if let Some(Calculation::Value(_)) = self.calculation.last() {
+            let msg = "calculation has two values with no operator in between";
+            error(loc, ErrorKey::LocalValues, msg);
+        }
+        self.calculation_stack.push(take(&mut self.calculation));
     }
 
     fn calculation_pop(&mut self, loc: &Loc) {
-        if let Some((op, value)) = self.calculation_stack.pop() {
-            match op {
-                CalculationOp::Add => self.calculation = value + self.calculation,
-                CalculationOp::Subtract => self.calculation = value - self.calculation,
-                CalculationOp::Multiply => self.calculation = value * self.calculation,
-                CalculationOp::Divide => self.calculation = value / self.calculation,
-            }
+        if let Some(mut calc) = self.calculation_stack.pop() {
+            calc.push(Calculation::Value(self.calculation_result()));
+            self.calculation = calc;
         } else {
             let msg = "found `)` without corresponding `(`";
-            warn(loc, ErrorKey::ParseError, msg);
+            warn(loc, ErrorKey::LocalValues, msg);
         }
     }
 
     fn calculation_result(&mut self) -> f64 {
-        take(&mut self.calculation)
+        Calculation::calculate(take(&mut self.calculation))
     }
 
     fn token(&mut self, token: Token) {
@@ -192,7 +275,7 @@ impl Parser {
                             .block
                             .add_key_value(key, comp, BV::Value(token));
                     } else {
-                        error(token, ErrorKey::ParseError, "local value not defined");
+                        error(token, ErrorKey::LocalValues, "local value not defined");
                     }
                 } else {
                     self.current
@@ -205,7 +288,7 @@ impl Parser {
                         let token = Token::new(value, key.loc);
                         self.current.block.add_value(BV::Value(token));
                     } else {
-                        error(&key, ErrorKey::ParseError, "local value not defined");
+                        error(&key, ErrorKey::LocalValues, "local value not defined");
                         self.current.block.add_value(BV::Value(key));
                     }
                 } else {
@@ -239,11 +322,8 @@ impl Parser {
 
     fn comparator(&mut self, token: Token) {
         let cmp = Comparator::from_token(&token).unwrap_or_else(|| {
-            error(
-                &token,
-                ErrorKey::ParseError,
-                &format!("Unrecognized comparator '{token}'"),
-            );
+            let msg = format!("Unrecognized comparator '{token}'");
+            error(&token, ErrorKey::ParseError, &msg);
             Comparator::Eq
         });
 
@@ -269,7 +349,7 @@ impl Parser {
                     let token = Token::new(value, key.loc);
                     self.current.block.add_value(BV::Value(token));
                 } else {
-                    error(&key, ErrorKey::ParseError, "local value not defined");
+                    error(&key, ErrorKey::LocalValues, "local value not defined");
                     self.current.block.add_value(BV::Value(key));
                 }
             } else {
@@ -351,8 +431,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
         stack: Vec::new(),
         local_macros,
         calculation_stack: Vec::new(),
-        calculation: 0.0,
-        calculation_op: CalculationOp::Add,
+        calculation: Vec::new(),
     };
     let mut state = State::Neutral;
     let mut token_start = blockloc.clone();
@@ -450,20 +529,19 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         }
                     }
                 }
-                // TODO: this parser silently accepts strange things like @[ + + ]
                 State::Calculation => {
                     current_id.clear();
                     if c.is_ascii_whitespace() {
                     } else if c == '+' {
-                        parser.calculation_op(CalculationOp::Add);
+                        parser.calculation_op(Calculation::Add, &loc);
                     } else if c == '-' {
-                        parser.calculation_op(CalculationOp::Subtract);
+                        parser.calculation_op(Calculation::Subtract, &loc);
                     } else if c == '*' {
-                        parser.calculation_op(CalculationOp::Multiply);
+                        parser.calculation_op(Calculation::Multiply, &loc);
                     } else if c == '/' {
-                        parser.calculation_op(CalculationOp::Divide);
+                        parser.calculation_op(Calculation::Divide(loc.clone()), &loc);
                     } else if c == '(' {
-                        parser.calculation_push();
+                        parser.calculation_push(&loc);
                     } else if c == ')' {
                         parser.calculation_pop(&loc);
                     } else if c == ']' {
@@ -492,15 +570,15 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         parser.calculation_next(&token);
                         state = State::Calculation;
                         if c == '+' {
-                            parser.calculation_op(CalculationOp::Add);
+                            parser.calculation_op(Calculation::Add, &loc);
                         } else if c == '-' {
-                            parser.calculation_op(CalculationOp::Subtract);
+                            parser.calculation_op(Calculation::Subtract, &loc);
                         } else if c == '*' {
-                            parser.calculation_op(CalculationOp::Multiply);
+                            parser.calculation_op(Calculation::Multiply, &loc);
                         } else if c == '/' {
-                            parser.calculation_op(CalculationOp::Divide);
+                            parser.calculation_op(Calculation::Divide(loc.clone()), &loc);
                         } else if c == '(' {
-                            parser.calculation_push();
+                            parser.calculation_push(&loc);
                         } else if c == ')' {
                             parser.calculation_pop(&loc);
                         }

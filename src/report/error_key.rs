@@ -7,6 +7,7 @@ pub enum ErrorKey {
     ReadError,
     ParseError,
     BracePlacement,
+    LocalValues,
     Packaging,
     Validation,
     Filename,
