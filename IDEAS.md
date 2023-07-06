@@ -25,10 +25,11 @@
 ## Tooltips
 * `create_character` is not executed during tooltip generation, so the scope it creates won't exist yet.
 * iterators should have a `custom =` to summarize the iterator. ("All infidel counties:" for example)
-* character interaction can't show OR in is_valid_showing_failures_only, should change them to custom_description or trigger_if.
 
 ## Performance
 * Doing `if = { limit = {` in an iterator is often redundant, you can do `limit = {` directly in the iterator instead.
+* Warn about nested AND in a trigger that's already AND, or a double nested OR.
+* `every_living_character` with a limit that restricts it to rulers, or to players, can be made more performant by using a more restrictive iterator.
 
 ## Maps
 * Check resolution and graphics format for all the pngs in map_data
@@ -36,7 +37,6 @@
 * map dimensions should be multiple of 32x32
 
 ## History
-* bookmarked characters need to have a static COA for their highest landed title, because if it's random it will be blank on the bookmark selection view
 * title history: Warn if one character gets multiple different lieges on the same day
 * warn if a character is born twice or dies twice
 
@@ -46,4 +46,3 @@
 ## Crashes
 * If you try to use scripted triggers in music files it will crash on startup
 * scripted_triggers in the dynasty legacy tracks too, though individual perks are fine
-* gfx: if a template is in modifiers the string should be somewhere in the genes
