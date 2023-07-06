@@ -499,7 +499,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.expect_value() {
                 if !LEVELS.contains(&token.as_str()) {
                     let msg = format!("{name} expects one of {}", stringify_list(LEVELS));
-                    warn(token, ErrorKey::Validation, &msg);
+                    old_warn(token, ErrorKey::Validation, &msg);
                 }
             }
         }
@@ -508,7 +508,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.expect_value() {
                 if !STANCES.contains(&token.as_str()) {
                     let msg = format!("{name} expects one of {}", stringify_list(STANCES));
-                    warn(token, ErrorKey::Validation, &msg);
+                    old_warn(token, ErrorKey::Validation, &msg);
                 }
             }
         }

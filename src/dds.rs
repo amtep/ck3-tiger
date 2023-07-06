@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use fnv::FnvHashMap;
 
 use crate::fileset::{FileEntry, FileHandler};
-use crate::report::{error, error_info, old_warn, warn_info, ErrorKey};
+use crate::report::{advice_info, error, error_info, old_warn, ErrorKey};
 use crate::token::Token;
 
 const DDS_HEADER_SIZE: usize = 124;
@@ -37,7 +37,7 @@ impl DdsFiles {
             let msg = "actually a PNG";
             let info =
                 "this may be slower and lower quality because PNG format does not have mipmaps";
-            warn_info(entry, ErrorKey::ImageFormat, msg, info);
+            advice_info(entry, ErrorKey::ImageFormat, msg, info);
             return Ok(());
         }
         if !buffer.starts_with(b"DDS ") {
