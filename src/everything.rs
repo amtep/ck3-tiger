@@ -142,7 +142,9 @@ use crate::report::{
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
-use crate::vic3::data::{buildings::BuildingType, production_methods::ProductionMethod};
+use crate::vic3::data::{
+    buildings::BuildingType, cultures::Culture, production_methods::ProductionMethod,
+};
 
 #[derive(Debug, Error)]
 pub enum FilesError {
@@ -779,11 +781,12 @@ impl Everything {
         self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
         self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
+
+        self.load_pdx_items(Item::Culture, Culture::add);
     }
 
     #[cfg(feature = "ck3")]
     fn load_all_ck3(&mut self) {
-        self.load_pdx_items(Item::Culture, Culture::add);
         self.fileset.handle(&mut self.events);
         self.load_pdx_items(Item::Modifier, Modifier::add);
         self.load_pdx_items(Item::Religion, Religion::add);
