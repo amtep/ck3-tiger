@@ -11,7 +11,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_advice, dup_error};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, error_info, warn, ErrorKey};
+use crate::report::{error, error_info, old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -185,7 +185,7 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
             for token in vd.values() {
                 if let Some(mask) = token.expect_integer() {
                     if !(1..=3).contains(&mask) {
-                        warn(token, ErrorKey::Range, "mask should be from 1 to 3");
+                        old_warn(token, ErrorKey::Range, "mask should be from 1 to 3");
                     }
                 }
             }
@@ -274,7 +274,7 @@ impl CoaTemplateList {
             }
         } else {
             let msg = format!("unknown list type {key}");
-            warn(key, ErrorKey::UnknownField, &msg);
+            old_warn(key, ErrorKey::UnknownField, &msg);
         }
     }
 }

@@ -11,7 +11,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, error_info, warn, warn2, ErrorKey};
+use crate::report::{error, error_info, old_warn, warn2, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -76,7 +76,7 @@ impl FileHandler for TitleHistories {
             if Tier::try_from(&key).is_ok() {
                 self.load_item(key, block);
             } else {
-                warn(key, ErrorKey::Validation, "expected title");
+                old_warn(key, ErrorKey::Validation, "expected title");
             }
         }
     }

@@ -12,7 +12,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -169,21 +169,21 @@ fn check_cost(blocks: &[&Block]) {
             if let Some(gold) = cost.get_field("gold") {
                 if seen_gold {
                     let msg = "This value of the gold cost overrides the previously set cost.";
-                    warn(gold, ErrorKey::Conflict, msg);
+                    old_warn(gold, ErrorKey::Conflict, msg);
                 }
                 seen_gold = true;
             }
             if let Some(prestige) = cost.get_field("prestige") {
                 if seen_prestige {
                     let msg = "This value of the prestige cost overrides the previously set cost.";
-                    warn(prestige, ErrorKey::Conflict, msg);
+                    old_warn(prestige, ErrorKey::Conflict, msg);
                 }
                 seen_prestige = true;
             }
             if let Some(piety) = cost.get_field("piety") {
                 if seen_piety {
                     let msg = "This value of the piety cost overrides the previously set cost.";
-                    warn(piety, ErrorKey::Conflict, msg);
+                    old_warn(piety, ErrorKey::Conflict, msg);
                 }
                 seen_piety = true;
             }

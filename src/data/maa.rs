@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -240,7 +240,7 @@ pub fn validate_winter_bonus(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     for (key, block) in vd.unknown_block_fields() {
         if !(key.is("harsh_winter") || key.is("normal_winter")) {
-            warn(key, ErrorKey::Validation, "unknown winter type");
+            old_warn(key, ErrorKey::Validation, "unknown winter type");
         }
         let mut vd = Validator::new(block, data);
         validate_maa_stats(&mut vd);

@@ -6,7 +6,7 @@ use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
@@ -82,11 +82,11 @@ impl DbKind for Struggle {
                 }
             }
             if !has_one {
-                warn(block, ErrorKey::Validation, "must have at least one phase");
+                old_warn(block, ErrorKey::Validation, "must have at least one phase");
             }
             if !has_ending {
                 let msg = "must have at least one phase with ending_decisions";
-                warn(block, ErrorKey::Validation, msg);
+                old_warn(block, ErrorKey::Validation, msg);
             }
         });
 
@@ -125,7 +125,7 @@ fn validate_phase(block: &Block, data: &Everything) {
             vd.field_validated_block("catalysts", validate_catalyst_list);
         }
         if !has_one {
-            warn(
+            old_warn(
                 block,
                 ErrorKey::Validation,
                 "must have at least one future phase",
@@ -202,7 +202,7 @@ fn validate_struggle_parameters(block: &Block, data: &Everything) {
     for (key, value) in vd.unknown_value_fields() {
         if !value.is("yes") {
             let msg = format!("expected `{key} = yes`");
-            warn(value, ErrorKey::Validation, &msg);
+            old_warn(value, ErrorKey::Validation, &msg);
         }
 
         let loca = format!("struggle_parameter_{key}");

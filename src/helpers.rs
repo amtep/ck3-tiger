@@ -1,41 +1,33 @@
 use std::fmt::{Display, Formatter};
 
-use crate::report::{
-    advice2, log, warn2, Confidence, ErrorKey, LogLevel, LogReport, PointedMessage, Severity,
-};
+use crate::report::{tips, warn, ErrorKey};
 use crate::token::Token;
 
 /// Warns about a redefinition of a database item
 pub fn dup_error(key: &Token, other: &Token, id: &str) {
-    warn2(
-        other,
-        ErrorKey::DuplicateItem,
-        &format!("{id} is redefined by another {id}"),
-        key,
-        &format!("the other {id} is here"),
-    );
+    warn(ErrorKey::DuplicateItem)
+        .msg(&format!("{id} is redefined by another {id}"))
+        .loc(other)
+        .loc(key, &format!("the other {id} is here"))
+        .push();
 }
 
 /// Warns about an exact redefinition of a database item
 pub fn exact_dup_error(key: &Token, other: &Token, id: &str) {
-    warn2(
-        other,
-        ErrorKey::ExactDuplicateItem,
-        &format!("{id} is redefined by an identical {id}"),
-        key,
-        &format!("the other {id} is here"),
-    );
+    warn(ErrorKey::ExactDuplicateItem)
+        .msg(&format!("{id} is redefined by an identical {id}"))
+        .loc(other)
+        .loc(key, &format!("the other {id} is here"))
+        .push();
 }
 
 /// Warns about a redefinition of a database item, but only at "advice" level
 pub fn dup_advice(key: &Token, other: &Token, id: &str) {
-    advice2(
-        other,
-        ErrorKey::DuplicateItem,
-        &format!("{id} is redefined by another {id}, which may cause problems if one of them is later changed"),
-        key,
-        &format!("the other {id} is here"),
-    );
+    tips(ErrorKey::DuplicateItem)
+        .msg(&format!("{id} is redefined by another {id}, which may cause problems if one of them is later changed"))
+        .loc(other)
+        .loc(key, &format!("the other {id} is here"))
+        .push();
 }
 
 /// Warns about a duplicate `key = value` in a database item
@@ -47,24 +39,11 @@ pub fn dup_assign_error(key: &Token, other: &Token) {
     let mut other = other.clone();
     other.loc.link = None;
 
-    log(LogReport {
-        lvl: LogLevel::new(Severity::Warning, Confidence::Reasonable),
-        key: ErrorKey::DuplicateField,
-        msg: format!("`{other}` is redefined in a following line").as_str(),
-        info: None,
-        pointers: vec![
-            PointedMessage {
-                location: other.loc.clone(),
-                length: other.as_str().len(),
-                msg: None,
-            },
-            PointedMessage {
-                location: key.loc.clone(),
-                length: key.as_str().len(),
-                msg: Some("the other one is here"),
-            },
-        ],
-    });
+    warn(ErrorKey::DuplicateField)
+        .msg(format!("`{other}` is redefined in a following line").as_str())
+        .loc(other.loc)
+        .loc(key.loc, "the other one is here")
+        .push();
 }
 
 pub fn display_choices(f: &mut Formatter, v: &[&str], joiner: &str) -> Result<(), std::fmt::Error> {

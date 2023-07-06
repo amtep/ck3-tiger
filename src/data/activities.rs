@@ -7,7 +7,7 @@ use crate::desc::validate_desc;
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -808,7 +808,7 @@ fn validate_option(
             BV::Value(token) => {
                 if !token.is("yes") {
                     let msg = "expected `default = yes`";
-                    warn(token, ErrorKey::Validation, msg);
+                    old_warn(token, ErrorKey::Validation, msg);
                 }
             }
             BV::Block(block) => {

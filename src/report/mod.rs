@@ -1,10 +1,12 @@
+pub use builder::{err, fatal, tips, untidy, warn};
 pub use error_key::ErrorKey;
 pub use error_loc::ErrorLoc;
 pub use errors::*;
 pub use filter::FilterRule;
 pub use output_style::OutputStyle;
-pub use report_struct::{Confidence, LogLevel, LogReport, PointedMessage, Severity};
+pub use report_struct::{Confidence, LogReport, PointedMessage, Severity};
 
+mod builder;
 mod error_key;
 mod error_loc;
 mod errors;

@@ -133,10 +133,11 @@ use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
+use crate::report::Confidence::Strong;
+use crate::report::Severity::Error;
 use crate::report::{
-    error, log, set_output_style, set_predicate, set_show_loaded_mods, set_show_vanilla, warn,
-    Confidence, ErrorKey, ErrorLoc, FilterRule, LogLevel, LogReport, OutputStyle, PointedMessage,
-    Severity,
+    error, log, old_warn, set_output_style, set_predicate, set_show_loaded_mods, set_show_vanilla,
+    Confidence, ErrorKey, ErrorLoc, FilterRule, LogReport, OutputStyle, PointedMessage, Severity,
 };
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
@@ -340,7 +341,8 @@ impl Everything {
                 })
                 .collect();
             log(LogReport {
-                lvl: LogLevel::new(Severity::Error, Confidence::Strong),
+                severity: Severity::Error,
+                confidence: Strong,
                 key: ErrorKey::Config,
                 msg: &format!("Detected more than one `{assert_key}`: there can be only one here!"),
                 info: None,
@@ -363,7 +365,8 @@ impl Everything {
             .collect();
         if !pointers.is_empty() {
             log(LogReport {
-                lvl: LogLevel::new(Severity::Error, Confidence::Strong),
+                severity: Error,
+                confidence: Strong,
                 key: ErrorKey::Config,
                 msg: "`ignore` is deprecated, consider using `filter` instead.",
                 info: Some("Check out the filter.md guide on GitHub for tips on how to migrate."),
@@ -1069,7 +1072,7 @@ impl Everything {
         let result = self.get_defined_string(key);
         let mut cache = self.warned_defines.borrow_mut();
         if result.is_none() && !cache.contains(key) {
-            warn(
+            old_warn(
                 token,
                 ErrorKey::MissingItem,
                 &format!("{key} not defined in common/defines/"),

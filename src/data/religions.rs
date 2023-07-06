@@ -4,7 +4,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::FileKind;
 use crate::item::Item;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::token::Token;
 use crate::validate::{validate_possibly_named_color, validate_traits};
 
@@ -168,7 +168,7 @@ impl Faith {
                 continue;
             }
             let msg = format!("faith or religion missing localization for {loca}");
-            warn(key, ErrorKey::MissingLocalization, &msg);
+            old_warn(key, ErrorKey::MissingLocalization, &msg);
         }
     }
 }

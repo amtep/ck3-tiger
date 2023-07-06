@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use fnv::FnvHashMap;
 
 use crate::fileset::{FileEntry, FileHandler};
-use crate::report::{error, error_info, warn, warn_info, ErrorKey};
+use crate::report::{error, error_info, old_warn, warn_info, ErrorKey};
 use crate::token::Token;
 
 const DDS_HEADER_SIZE: usize = 124;
@@ -27,7 +27,7 @@ pub struct DdsFiles {
 impl DdsFiles {
     fn load_dds(&mut self, entry: &FileEntry, fullpath: &Path) -> Result<()> {
         if metadata(fullpath)?.len() == 0 {
-            warn(entry, ErrorKey::ImageFormat, "empty file");
+            old_warn(entry, ErrorKey::ImageFormat, "empty file");
             return Ok(());
         }
         let mut f = File::open(fullpath)?;
@@ -56,13 +56,13 @@ impl DdsFiles {
         if let Some(info) = self.dds_files.get(key.as_str()) {
             if info.height != height {
                 let msg = format!("texture does not match frame height of {height}");
-                warn(key, ErrorKey::ImageFormat, &msg);
+                old_warn(key, ErrorKey::ImageFormat, &msg);
             } else if width == 0 || (info.width % width) != 0 {
                 let msg = format!("texture is not a multiple of frame width {width}");
-                warn(key, ErrorKey::ImageFormat, &msg);
+                old_warn(key, ErrorKey::ImageFormat, &msg);
             } else if frame * width > info.width {
                 let msg = format!("texture is not large enough for frame index {frame}");
-                warn(key, ErrorKey::ImageFormat, &msg);
+                old_warn(key, ErrorKey::ImageFormat, &msg);
             }
         }
     }

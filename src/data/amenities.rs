@@ -4,7 +4,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -25,7 +25,7 @@ impl DbKind for Amenity {
         let mut vd = Validator::new(block, data);
         vd.field_validated_value("default", |_, token, _| {
             if !block.has_key(token.as_str()) {
-                warn(token, ErrorKey::MissingItem, "default not found in amenity");
+                old_warn(token, ErrorKey::MissingItem, "default not found in amenity");
             }
         });
         for (key, block) in vd.unknown_block_fields() {

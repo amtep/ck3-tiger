@@ -12,7 +12,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
-use crate::report::{advice, error, error_info, warn, warn_info, ErrorKey};
+use crate::report::{advice, error, error_info, old_warn, warn_info, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -424,7 +424,7 @@ fn validate_field(key: &Token, bv: &BV, data: &Everything) {
                     validate_datatypes(&chain, data, Datatype::Unknown, "", true);
                 } else {
                     let msg = "expected whole field to be a single [ ] clause";
-                    warn(token, ErrorKey::Validation, msg);
+                    old_warn(token, ErrorKey::Validation, msg);
                 }
             } else {
                 validate_gui_loca(value, data);

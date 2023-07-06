@@ -2,7 +2,7 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_color;
 
@@ -16,7 +16,7 @@ impl NamedColor {
                 db.add(Item::NamedColor, key, block, Box::new(Self {}));
             }
         } else {
-            warn(key, ErrorKey::ParseError, "unexpected field");
+            old_warn(key, ErrorKey::ParseError, "unexpected field");
         }
     }
 }

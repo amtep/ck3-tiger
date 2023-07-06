@@ -5,7 +5,7 @@ use crate::data::customloca::CustomLocalization;
 use crate::data::religions::CUSTOM_RELIGION_LOCAS;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, warn, warn_info, ErrorKey};
+use crate::report::{error, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::tables::datafunctions::scope_from_datatype;
 pub use crate::tables::datafunctions::{
@@ -152,7 +152,7 @@ pub fn validate_datatypes(
 
         if code.name.is("") {
             // TODO: find out if the game engine is okay with this
-            warn(&code.name, ErrorKey::Datafunctions, "empty fragment");
+            old_warn(&code.name, ErrorKey::Datafunctions, "empty fragment");
             return;
         }
 
@@ -268,7 +268,7 @@ pub fn validate_datatypes(
                     let info = format!("did you mean {alternative}?");
                     warn_info(&code.name, ErrorKey::Datafunctions, &msg, &info);
                 } else {
-                    warn(&code.name, ErrorKey::Datafunctions, &msg);
+                    old_warn(&code.name, ErrorKey::Datafunctions, &msg);
                 }
                 return;
             }

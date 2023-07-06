@@ -12,7 +12,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -60,10 +60,10 @@ impl ProvinceHistories {
                                 "Vanilla or unknown religion in prov {} (county {}) at {}",
                                 provhist.key, capital, bookmark
                             );
-                            warn(religion, ErrorKey::PrincesOfDarkness, &msg);
+                            old_warn(religion, ErrorKey::PrincesOfDarkness, &msg);
                         }
                     } else {
-                        warn(&provhist.key, ErrorKey::PrincesOfDarkness, "no religion");
+                        old_warn(&provhist.key, ErrorKey::PrincesOfDarkness, "no religion");
                     }
                 }
             }
@@ -87,7 +87,7 @@ impl FileHandler for ProvinceHistories {
                 self.load_item(id, key, block);
             } else {
                 let msg = "unexpected key, expected only province ids";
-                warn(key, ErrorKey::Validation, msg);
+                old_warn(key, ErrorKey::Validation, msg);
             }
         }
     }

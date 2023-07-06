@@ -9,7 +9,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, warn2, ErrorKey};
+use crate::report::{old_warn, warn2, ErrorKey};
 use crate::token::Token;
 use crate::util::SmartJoin;
 
@@ -332,7 +332,7 @@ impl Asset {
         } else if self.key.is("arrowType") {
             // TODO: arrowType
         } else {
-            warn(&self.key, ErrorKey::UnknownField, "unknown asset type");
+            old_warn(&self.key, ErrorKey::UnknownField, "unknown asset type");
         }
     }
 }

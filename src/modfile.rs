@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 use crate::block::Block;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pdxfile::PdxFile;
-use crate::report::{advice_info, error_info, warn, ErrorKey};
+use crate::report::{advice_info, error_info, old_warn, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -38,7 +38,7 @@ fn validate_modfile(block: &Block) -> ModFile {
 
     if let Some(picture) = &modfile.picture {
         if !picture.is("thumbnail.png") {
-            warn(
+            old_warn(
                 picture,
                 ErrorKey::Packaging,
                 "Steam ignores picture= and always uses thumbnail.png.",

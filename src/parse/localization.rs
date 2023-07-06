@@ -4,7 +4,7 @@ use std::str::Chars;
 use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
-use crate::report::{error, warn, ErrorKey};
+use crate::report::{error, old_warn, ErrorKey};
 use crate::token::{Loc, Token};
 
 fn is_key_char(c: char) -> bool {
@@ -37,7 +37,7 @@ impl<'a> LocaParser<'a> {
             offset += '\u{feff}'.len_utf8();
             chars.next();
         } else {
-            warn(&loc, ErrorKey::Encoding, "Expected UTF-8 BOM encoding");
+            old_warn(&loc, ErrorKey::Encoding, "Expected UTF-8 BOM encoding");
         }
         LocaParser {
             loc,
@@ -218,7 +218,7 @@ impl<'a> LocaParser<'a> {
         if self.chars.peek() != Some(&'$') {
             // TODO: check if there is a closing $, adapt warning text
             let msg = "didn't recognize a key between $";
-            warn(key, ErrorKey::Localization, msg);
+            old_warn(key, ErrorKey::Localization, msg);
             return None;
         }
         let s = self.content[start_offset..end_offset].to_string();
@@ -337,7 +337,7 @@ impl<'a> LocaParser<'a> {
             None | Some('#' | '\n') => (),
             _ => {
                 let msg = "content after final `\"` on line";
-                warn(&self.loc, ErrorKey::Localization, msg);
+                old_warn(&self.loc, ErrorKey::Localization, msg);
             }
         }
 
@@ -467,7 +467,7 @@ impl<'a> ValueParser<'a> {
                 while let Some(c) = self.peek() {
                     match c {
                         '\'' => break,
-                        ']' | ')' if parens == 0 => warn(
+                        ']' | ')' if parens == 0 => old_warn(
                             &self.loc,
                             ErrorKey::Localization,
                             "Possible unterminated argument string",
@@ -624,7 +624,7 @@ impl<'a> ValueParser<'a> {
                                 *bracecount -= 1;
                             } else {
                                 let msg = "mismatched braces in markup";
-                                warn(&self.loc, ErrorKey::Markup, msg);
+                                old_warn(&self.loc, ErrorKey::Markup, msg);
                                 self.value.push(LocaValue::Error);
                             }
                         } else if *bracecount > 0 && (c == '.' || c == ',') {
@@ -651,7 +651,7 @@ impl<'a> ValueParser<'a> {
                     }
                     if bracecount > 0 {
                         let msg = "mismatched braces in markup";
-                        warn(&self.loc, ErrorKey::Markup, msg);
+                        old_warn(&self.loc, ErrorKey::Markup, msg);
                         self.value.push(LocaValue::Error);
                     } else {
                         self.value.push(LocaValue::Markup(Token::new(text, loc)));
@@ -662,7 +662,7 @@ impl<'a> ValueParser<'a> {
                 self.next_char();
             } else {
                 let msg = "#markup should be followed by a space";
-                warn(&self.loc, ErrorKey::Markup, msg);
+                old_warn(&self.loc, ErrorKey::Markup, msg);
                 self.value.push(LocaValue::Error);
             }
         }

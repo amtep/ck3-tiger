@@ -13,7 +13,7 @@ use crate::helpers::{dup_error, stringify_list};
 use crate::item::Item;
 use crate::parse::localization::{parse_loca, ValueParser};
 use crate::report::{
-    advice_info, error, error_info, warn, warn2, warn_abbreviated, warn_header, warn_info,
+    advice_info, error, error_info, old_warn, warn2, warn_abbreviated, warn_header, warn_info,
     will_maybe_log, ErrorKey,
 };
 use crate::token::Token;
@@ -274,7 +274,7 @@ impl Localization {
                     data.verify_exists(Item::GameConcept, name);
                 } else {
                     let msg = format!("cannot figure out game concept for this |{fmt}");
-                    warn(fmt, ErrorKey::ParseError, &msg);
+                    old_warn(fmt, ErrorKey::ParseError, &msg);
                 }
             }
             // Some other code

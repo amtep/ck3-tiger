@@ -7,7 +7,7 @@ use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;
-use crate::report::{advice, error, warn, ErrorKey};
+use crate::report::{advice, error, old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::scriptvalue::{validate_scriptvalue, validate_scriptvalue_no_breakdown};
 use crate::trigger::{validate_target, validate_target_ok_this};
@@ -102,7 +102,7 @@ impl<'a> Validator<'a> {
         let found = self.check_key(name);
         if !found {
             let msg = format!("required field `{name}` missing");
-            warn(self.block, ErrorKey::FieldMissing, &msg);
+            old_warn(self.block, ErrorKey::FieldMissing, &msg);
         }
         found
     }
@@ -326,7 +326,7 @@ impl<'a> Validator<'a> {
                 if let Some(i) = token.expect_integer() {
                     if !(low..=high).contains(&i) {
                         let msg = format!("should be between {low} and {high} (inclusive)");
-                        warn(token, ErrorKey::Range, &msg);
+                        old_warn(token, ErrorKey::Range, &msg);
                     }
                 }
             }
@@ -354,7 +354,7 @@ impl<'a> Validator<'a> {
                 if let Some(f) = token.expect_number() {
                     if !(low..=high).contains(&f) {
                         let msg = format!("should be between {low} and {high} (inclusive)");
-                        warn(token, ErrorKey::Range, &msg);
+                        old_warn(token, ErrorKey::Range, &msg);
                     }
                 }
             }
@@ -365,7 +365,7 @@ impl<'a> Validator<'a> {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if Date::from_str(token.as_str()).is_err() {
-                    warn(token, ErrorKey::Validation, "expected date value");
+                    old_warn(token, ErrorKey::Validation, "expected date value");
                 }
             }
         })
@@ -442,7 +442,7 @@ impl<'a> Validator<'a> {
                 for (k, _, bv) in &block.v {
                     if let Some(key) = k {
                         let msg = format!("found key `{key}`, expected only values");
-                        warn(key, ErrorKey::Validation, &msg);
+                        old_warn(key, ErrorKey::Validation, &msg);
                     } else if let Some(token) = bv.expect_value() {
                         f(token, self.data);
                     }
@@ -470,7 +470,7 @@ impl<'a> Validator<'a> {
                 for (k, _, bv) in &block.v {
                     if let Some(key) = k {
                         let msg = format!("found key `{key}`, expected only values");
-                        warn(key, ErrorKey::Validation, &msg);
+                        old_warn(key, ErrorKey::Validation, &msg);
                     } else if let Some(token) = bv.expect_value() {
                         f(token, self.data);
                     }
@@ -1124,7 +1124,7 @@ impl<'a> Validator<'a> {
                         if !self.accepted_value_fields && !self.known_fields.contains(&key.as_str())
                         {
                             let msg = format!("unknown field `{key}`");
-                            warn(key, ErrorKey::UnknownField, &msg);
+                            old_warn(key, ErrorKey::UnknownField, &msg);
                             warned = true;
                         }
                     }
@@ -1132,7 +1132,7 @@ impl<'a> Validator<'a> {
                         if !self.accepted_block_fields && !self.known_fields.contains(&key.as_str())
                         {
                             let msg = format!("unknown field `{key}`");
-                            warn(key, ErrorKey::UnknownField, &msg);
+                            old_warn(key, ErrorKey::UnknownField, &msg);
                             warned = true;
                         }
                     }
@@ -1141,14 +1141,14 @@ impl<'a> Validator<'a> {
                     BV::Value(t) => {
                         if !self.accepted_tokens {
                             let msg = "found loose value, expected only `key =`";
-                            warn(t, ErrorKey::Validation, msg);
+                            old_warn(t, ErrorKey::Validation, msg);
                             warned = true;
                         }
                     }
                     BV::Block(b) => {
                         if !self.accepted_blocks {
                             let msg = "found sub-block, expected only `key =`";
-                            warn(b, ErrorKey::Validation, msg);
+                            old_warn(b, ErrorKey::Validation, msg);
                             warned = true;
                         }
                     }

@@ -27,7 +27,7 @@ pub fn log_report(errors: &mut Errors, report: &LogReport) {
         lines.first().unwrap_or(&None),
         skippable_ws,
         report.indentation(),
-        report.lvl.severity,
+        report.severity,
     );
     // Log the other pointers:
     report
@@ -42,7 +42,7 @@ pub fn log_report(errors: &mut Errors, report: &LogReport) {
                 lines.get(index + 1).unwrap_or(&None),
                 skippable_ws,
                 report.indentation(),
-                report.lvl.severity,
+                report.severity,
             );
         });
     // Log the info line, if one exists.
@@ -86,11 +86,11 @@ fn log_line_title(errors: &Errors, report: &LogReport) {
     let line: &[ANSIString<'static>] = &[
         errors
             .styles
-            .style(&Styled::Tag(report.lvl.severity, true))
-            .paint(format!("{}", report.lvl.severity)),
+            .style(&Styled::Tag(report.severity, true))
+            .paint(format!("{}", report.severity)),
         errors
             .styles
-            .style(&Styled::Tag(report.lvl.severity, false))
+            .style(&Styled::Tag(report.severity, false))
             .paint(format!("({})", report.key)),
         errors.styles.style(&Styled::Default).paint(": "),
         errors

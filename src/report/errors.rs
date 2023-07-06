@@ -9,10 +9,9 @@ use fnv::{FnvHashMap, FnvHashSet};
 use crate::fileset::FileKind;
 use crate::report::error_loc::ErrorLoc;
 use crate::report::filter::ReportFilter;
-use crate::report::report_struct::LogLevel;
 use crate::report::writer::log_report;
 use crate::report::{
-    Confidence, ErrorKey, FilterRule, LogReport, OutputStyle, PointedMessage, Severity,
+    err, tips, warn, ErrorKey, FilterRule, LogReport, OutputStyle, PointedMessage,
 };
 use crate::token::Loc;
 
@@ -191,182 +190,11 @@ fn recursive_pointed_msg_expansion(vec: &mut Vec<PointedMessage>, pointer: &Poin
     }
 }
 
-pub fn error<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
-    log(LogReport {
-        lvl: LogLevel::new(Severity::Error, Confidence::Reasonable),
-        key,
-        msg,
-        info: None,
-        pointers: vec![PointedMessage {
-            location: eloc.into_loc(),
-            length: 1,
-            msg: None,
-        }],
-    });
-}
-
-pub fn error_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
-    let info = if info.is_empty() { None } else { Some(info) };
-    log(LogReport {
-        lvl: LogLevel::new(Severity::Error, Confidence::Reasonable),
-        key,
-        msg,
-        info,
-        pointers: vec![PointedMessage {
-            location: eloc.into_loc(),
-            length: 1,
-            msg: None,
-        }],
-    });
-}
-
-pub fn warn<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
-    log(LogReport {
-        lvl: LogLevel::new(Severity::Warning, Confidence::Reasonable),
-        key,
-        msg,
-        info: None,
-        pointers: vec![PointedMessage {
-            location: eloc.into_loc(),
-            length: 1,
-            msg: None,
-        }],
-    });
-}
-
-pub fn warn2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
-    log(LogReport {
-        lvl: LogLevel::new(Severity::Warning, Confidence::Reasonable),
-        key,
-        msg,
-        info: None,
-        pointers: vec![
-            PointedMessage {
-                location: eloc.into_loc(),
-                length: 1,
-                msg: None,
-            },
-            PointedMessage {
-                location: eloc2.into_loc(),
-                length: 1,
-                msg: Some(msg2),
-            },
-        ],
-    });
-}
-
-pub fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
-    eloc: E,
-    key: ErrorKey,
-    msg: &str,
-    eloc2: E2,
-    msg2: &str,
-    eloc3: E3,
-    msg3: &str,
-) {
-    log(LogReport {
-        lvl: LogLevel::new(Severity::Warning, Confidence::Reasonable),
-        key,
-        msg,
-        info: None,
-        pointers: vec![
-            PointedMessage {
-                location: eloc.into_loc(),
-                length: 1,
-                msg: None,
-            },
-            PointedMessage {
-                location: eloc2.into_loc(),
-                length: 1,
-                msg: Some(msg2),
-            },
-            PointedMessage {
-                location: eloc3.into_loc(),
-                length: 1,
-                msg: Some(msg3),
-            },
-        ],
-    });
-}
-
-pub fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
-    let info = if info.is_empty() { None } else { Some(info) };
-    log(LogReport {
-        lvl: LogLevel::new(Severity::Warning, Confidence::Reasonable),
-        key,
-        msg,
-        info,
-        pointers: vec![PointedMessage {
-            location: eloc.into_loc(),
-            length: 1,
-            msg: None,
-        }],
-    });
-}
-
-pub fn advice<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
-    log(LogReport {
-        lvl: LogLevel::new(Severity::Tips, Confidence::Reasonable),
-        key,
-        msg,
-        info: None,
-        pointers: vec![PointedMessage {
-            location: eloc.into_loc(),
-            length: 1,
-            msg: None,
-        }],
-    });
-}
-
-pub fn advice2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
-    log(LogReport {
-        lvl: LogLevel::new(Severity::Tips, Confidence::Reasonable),
-        key,
-        msg,
-        info: None,
-        pointers: vec![
-            PointedMessage {
-                location: eloc.into_loc(),
-                length: 1,
-                msg: None,
-            },
-            PointedMessage {
-                location: eloc2.into_loc(),
-                length: 1,
-                msg: Some(msg2),
-            },
-        ],
-    });
-}
-
-pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
-    let info = if info.is_empty() { None } else { Some(info) };
-    log(LogReport {
-        lvl: LogLevel::new(Severity::Tips, Confidence::Reasonable),
-        key,
-        msg,
-        info,
-        pointers: vec![PointedMessage {
-            location: eloc.into_loc(),
-            length: 1,
-            msg: None,
-        }],
-    });
-}
-
-pub fn warn_header(key: ErrorKey, msg: &str) {
-    Errors::get_mut().push_header(key, msg);
-}
-
-pub fn warn_abbreviated<E: ErrorLoc>(eloc: E, key: ErrorKey) {
-    Errors::get_mut().push_abbreviated(eloc, key);
-}
-
 /// Tests whether the report might be printed. If false, the report will definitely not be printed.
 pub fn will_maybe_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
     Errors::get()
         .filter
-        .should_maybe_print(LogLevel::min(), key, &eloc.into_loc())
+        .should_maybe_print(key, &eloc.into_loc())
 }
 
 pub trait ErrorLogger: Write {
@@ -392,6 +220,67 @@ impl ErrorLogger for Vec<u8> {
 }
 
 // =================================================================================================
+// =============== Deprecated legacy calls to submit reports:
+// =================================================================================================
+
+pub fn error<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
+    err(key).msg(msg).loc(eloc).push();
+}
+
+pub fn error_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
+    err(key).msg(msg).info(info).loc(eloc).push();
+}
+
+pub fn old_warn<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
+    warn(key).msg(msg).loc(eloc).push();
+}
+
+pub fn warn2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
+    warn(key).msg(msg).loc(eloc).loc(eloc2, msg2).push();
+}
+
+pub fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
+    eloc: E,
+    key: ErrorKey,
+    msg: &str,
+    eloc2: E2,
+    msg2: &str,
+    eloc3: E3,
+    msg3: &str,
+) {
+    warn(key)
+        .msg(msg)
+        .loc(eloc)
+        .loc(eloc2, msg2)
+        .loc(eloc3, msg3)
+        .push();
+}
+
+pub fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
+    warn(key).msg(msg).info(info).loc(eloc).push();
+}
+
+pub fn advice<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
+    tips(key).msg(msg).loc(eloc).push();
+}
+
+pub fn advice2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
+    tips(key).msg(msg).loc(eloc).loc(eloc2, msg2).push();
+}
+
+pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
+    tips(key).msg(msg).info(info).loc(eloc).push();
+}
+
+pub fn warn_header(key: ErrorKey, msg: &str) {
+    Errors::get_mut().push_header(key, msg);
+}
+
+pub fn warn_abbreviated<E: ErrorLoc>(eloc: E, key: ErrorKey) {
+    Errors::get_mut().push_abbreviated(eloc, key);
+}
+
+// =================================================================================================
 // =============== Configuration (Output style):
 // =================================================================================================
 
@@ -405,6 +294,7 @@ pub fn disable_ansi_colors() {
     Errors::get_mut().styles = OutputStyle::no_color();
 }
 
+/// TODO:
 pub fn set_max_line_length(max_line_length: usize) {
     Errors::get_mut().max_line_length = if max_line_length == 0 {
         None

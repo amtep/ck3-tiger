@@ -4,7 +4,7 @@ use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::TriBool;
 use crate::item::Item;
-use crate::report::{advice_info, error, error_info, warn, ErrorKey};
+use crate::report::{advice_info, error, error_info, old_warn, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -46,7 +46,7 @@ fn validate_inner(
         } else if token.is("value") {
             if have_value == TriBool::True {
                 let msg = "setting value here will overwrite the previous calculations";
-                warn(token, ErrorKey::Logic, msg);
+                old_warn(token, ErrorKey::Logic, msg);
             }
             have_value = TriBool::True;
             validate_bv(bv, data, sc, check_desc);
@@ -56,24 +56,24 @@ fn validate_inner(
         } else if token.is("multiply") || token.is("divide") || token.is("modulo") {
             if have_value == TriBool::False {
                 let msg = format!("nothing to {token} yet");
-                warn(token, ErrorKey::Logic, &msg);
+                old_warn(token, ErrorKey::Logic, &msg);
             }
             validate_bv(bv, data, sc, check_desc);
         } else if token.is("round") || token.is("ceiling") || token.is("floor") {
             if have_value == TriBool::False {
                 let msg = format!("nothing to {token} yet");
-                warn(token, ErrorKey::Logic, &msg);
+                old_warn(token, ErrorKey::Logic, &msg);
             }
             if let Some(value) = bv.expect_value() {
                 if !value.is("yes") && !value.is("no") {
                     let msg = "expected yes or no";
-                    warn(value, ErrorKey::Validation, msg);
+                    old_warn(value, ErrorKey::Validation, msg);
                 }
             }
         } else if token.is("fixed_range") || token.is("integer_range") {
             if have_value == TriBool::True {
                 let msg = "using fixed_range here will overwrite the previous calculations";
-                warn(token, ErrorKey::Logic, msg);
+                old_warn(token, ErrorKey::Logic, msg);
             }
             if let Some(block) = bv.expect_block() {
                 validate_minmax_range(block, data, sc, check_desc);
@@ -210,7 +210,7 @@ fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bo
                         validate_target_ok_this(v, data, sc, Scopes::Value | Scopes::Bool);
                     }
                 } else {
-                    warn(b, ErrorKey::Validation, "invalid script value range");
+                    old_warn(b, ErrorKey::Validation, "invalid script value range");
                 }
             } else {
                 validate_inner(vd, b, data, sc, TriBool::False, check_desc);

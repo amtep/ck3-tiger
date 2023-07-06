@@ -5,7 +5,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{error, warn, ErrorKey};
+use crate::report::{error, old_warn, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -33,11 +33,11 @@ impl DbKind for HolySite {
 
         if let Some(county) = block.get_field_value("county") {
             if Tier::try_from(county) != Ok(Tier::County) {
-                warn(county, ErrorKey::TitleTier, "must be a county");
+                old_warn(county, ErrorKey::TitleTier, "must be a county");
             }
             if let Some(barony) = block.get_field_value("barony") {
                 if Tier::try_from(barony) != Ok(Tier::Barony) {
-                    warn(barony, ErrorKey::TitleTier, "must be a barony");
+                    old_warn(barony, ErrorKey::TitleTier, "must be a barony");
                 }
                 if let Some(title) = data.titles.get(barony.as_str()) {
                     if title.parent.as_deref() != Some(county.as_str()) {
