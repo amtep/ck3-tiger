@@ -7,7 +7,7 @@ use crate::context::ScopeContext;
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, exact_dup_error};
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
 use crate::report::{warn, ErrorKey};
@@ -25,7 +25,11 @@ impl Effects {
     fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.effects.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(&key, &other.key, "scripted effect");
+                if other.block.equivalent(&block) {
+                    exact_dup_error(&key, &other.key, "scripted effect");
+                } else {
+                    dup_error(&key, &other.key, "scripted effect");
+                }
             }
         }
         let scope_override = self.scope_overrides.get(key.as_str()).copied();

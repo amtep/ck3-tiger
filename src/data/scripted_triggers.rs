@@ -6,7 +6,7 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, exact_dup_error};
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
 use crate::report::{warn, ErrorKey};
@@ -25,7 +25,11 @@ impl Triggers {
     fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.triggers.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(&key, &other.key, "scripted trigger");
+                if other.block.equivalent(&block) {
+                    exact_dup_error(&key, &other.key, "scripted trigger");
+                } else {
+                    dup_error(&key, &other.key, "scripted trigger");
+                }
             }
         }
         let scope_override = self.scope_overrides.get(key.as_str()).copied();

@@ -7,7 +7,7 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, exact_dup_error};
 use crate::pdxfile::PdxFile;
 use crate::report::{warn, ErrorKey};
 use crate::scopes::{scope_from_snake_case, Scopes};
@@ -24,7 +24,11 @@ impl ScriptValues {
     fn load_item(&mut self, key: &Token, bv: &BV) {
         if let Some(other) = self.scriptvalues.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(key, &other.key, "script value");
+                if other.bv.equivalent(&bv) {
+                    exact_dup_error(&key, &other.key, "script value");
+                } else {
+                    dup_error(&key, &other.key, "script value");
+                }
             }
         }
         let scope_override = self.scope_overrides.get(key.as_str()).copied();
