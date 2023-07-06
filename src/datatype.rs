@@ -264,6 +264,7 @@ pub fn validate_datatypes(
             // Unfortunately we don't have a complete list of those, so accept any lowercase id and
             // warn if it starts with uppercase. This is not a foolproof check though.
             // TODO: it's in theory possible to build a complete list of possible scope variable names
+            // TODO: for Vic3, country tags can be used directly too.
             if code.name.as_str().chars().next().unwrap().is_uppercase() {
                 // TODO: If there is a Custom of the same name, suggest that
                 let msg = format!("unknown datafunction {}", &code.name);
@@ -323,6 +324,22 @@ pub fn validate_datatypes(
             }
         }
 
+        #[cfg(feature = "vic3")]
+        if code.name.is("GetCustom") && code.arguments.len() == 1 {
+            if let CodeArg::Literal(ref token) = code.arguments[0] {
+                if let Some(scopes) = scope_from_datatype(curtype) {
+                    validate_custom(token, data, scopes, lang);
+                } else if curtype == Datatype::Unknown
+                    || curtype == Datatype::AnyScope
+                    || curtype == Datatype::TopScope
+                {
+                    // TODO: is a TopScope even valid to pass to .GetCustom? verify
+                    validate_custom(token, data, Scopes::all(), lang);
+                }
+            }
+        }
+
+        // TODO: vic3 docs say that `Localize` can take a `CustomLocalization` as well
         if code.name.is("Localize") && code.arguments.len() == 1 {
             if let CodeArg::Literal(ref token) = code.arguments[0] {
                 data.verify_exists(Item::Localization, token);
