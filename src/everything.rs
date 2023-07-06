@@ -512,7 +512,7 @@ impl Everything {
         self.load_pdx_items(Item::CultureTradition, CultureTradition::add);
         self.load_pdx_items(Item::CultureAesthetic, CultureAesthetic::add);
         self.load_pdx_items(Item::CultureCreationName, CultureCreationName::add);
-        self.load_pdx_items(Item::NamedColor, NamedColor::add);
+        self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
         self.load_pdx_items(Item::Innovation, Innovation::add);
         self.load_pdx_items(Item::Accessory, Accessory::add);
         self.load_pdx_items(Item::AccessoryVariation, AccessoryVariation::add);
