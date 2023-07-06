@@ -143,8 +143,8 @@ use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
 use crate::vic3::data::{
-    buildings::BuildingType, cultures::Culture, production_methods::ProductionMethod,
-    religions::Religion,
+    buildings::BuildingType, countries::Country, cultures::Culture,
+    production_methods::ProductionMethod, religions::Religion,
 };
 
 #[derive(Debug, Error)]
@@ -935,6 +935,7 @@ impl Everything {
     #[cfg(feature = "vic3")]
     fn load_all_vic3(&mut self) {
         self.load_pdx_items(Item::BuildingType, BuildingType::add);
+        self.load_pdx_items(Item::Country, Country::add);
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
     }
 

@@ -225,6 +225,13 @@ pub fn validate_datatypes(
             }
         }
 
+        #[cfg(feature = "vic3")]
+        if data.item_exists(Item::Country, code.name.as_str()) {
+            found = true;
+            args = Args::NoArgs;
+            rtype = Datatype::Country
+        }
+
         if !found {
             // Properly reporting these errors is tricky because `code.name`
             // might be found in any or all of the functions and promotes tables.
