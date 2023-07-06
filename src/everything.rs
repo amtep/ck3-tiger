@@ -144,6 +144,7 @@ use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
 use crate::vic3::data::{
     buildings::BuildingType, cultures::Culture, production_methods::ProductionMethod,
+    religions::Religion,
 };
 
 #[derive(Debug, Error)]
@@ -783,13 +784,13 @@ impl Everything {
         self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
 
         self.load_pdx_items(Item::Culture, Culture::add);
+        self.load_pdx_items(Item::Religion, Religion::add);
     }
 
     #[cfg(feature = "ck3")]
     fn load_all_ck3(&mut self) {
         self.fileset.handle(&mut self.events);
         self.load_pdx_items(Item::Modifier, Modifier::add);
-        self.load_pdx_items(Item::Religion, Religion::add);
         self.fileset.handle(&mut self.decisions);
         self.fileset.handle(&mut self.on_actions);
         self.fileset.handle(&mut self.interactions);
