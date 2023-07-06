@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use fnv::FnvHashMap;
 
 use crate::fileset::{FileEntry, FileHandler};
-use crate::report::{error, error_info, warn, ErrorKey};
+use crate::report::{error, error_info, warn, warn_info, ErrorKey};
 use crate::token::Token;
 
 const DDS_HEADER_SIZE: usize = 124;
@@ -34,8 +34,10 @@ impl DdsFiles {
         let mut buffer = [0; DDS_HEADER_SIZE];
         f.read_exact(&mut buffer)?;
         if buffer.starts_with(b"\x89PNG") {
-            // PNG files actually work for most images in CK3 but may be slower and lack mipmaps
-            warn(entry, ErrorKey::ImageFormat, "actually a PNG");
+            let msg = "actually a PNG";
+            let info =
+                "this may be slower and lower quality because PNG format does not have mipmaps";
+            warn_info(entry, ErrorKey::ImageFormat, msg, info);
             return Ok(());
         }
         if !buffer.starts_with(b"DDS ") {
