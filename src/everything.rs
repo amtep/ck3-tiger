@@ -8,8 +8,7 @@ use fnv::FnvHashSet;
 use strum::IntoEnumIterator;
 use thiserror::Error;
 
-use crate::block::Comparator::Eq;
-use crate::block::{Block, Comparator, BV};
+use crate::block::{Block, Comparator, Eq::*, BV};
 use crate::context::ScopeContext;
 use crate::data::accessory::{Accessory, AccessoryVariation};
 use crate::data::accolades::{AccoladeIcon, AccoladeName, AccoladeType};
@@ -134,7 +133,11 @@ use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, log, set_output_style, set_predicate, set_show_loaded_mods, set_show_vanilla, warn, Confidence, ErrorKey, ErrorLoc, FilterRule, LogLevel, LogReport, OutputStyle, PointedMessage, Severity};
+use crate::report::{
+    error, log, set_output_style, set_predicate, set_show_loaded_mods, set_show_vanilla, warn,
+    Confidence, ErrorKey, ErrorLoc, FilterRule, LogLevel, LogReport, OutputStyle, PointedMessage,
+    Severity,
+};
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 
@@ -339,9 +342,7 @@ impl Everything {
             log(LogReport {
                 lvl: LogLevel::new(Severity::Error, Confidence::Strong),
                 key: ErrorKey::Config,
-                msg: &format!(
-                    "Detected more than one `{assert_key}`: there can be only one here!"
-                ),
+                msg: &format!("Detected more than one `{assert_key}`: there can be only one here!"),
                 info: None,
                 pointers,
             });
@@ -350,17 +351,23 @@ impl Everything {
 
     pub fn load_config_filtering_rules(&self) {
         // First, report errors if legacy ignore blocks are detected:
-        let pointers :Vec<_>= self.config.get_field_blocks("ignore").iter()
-            .map(|block|PointedMessage {
-                location: block.into_loc(), length: 1, msg: None
-            }).collect();
+        let pointers: Vec<_> = self
+            .config
+            .get_field_blocks("ignore")
+            .iter()
+            .map(|block| PointedMessage {
+                location: block.into_loc(),
+                length: 1,
+                msg: None,
+            })
+            .collect();
         if !pointers.is_empty() {
-            log(LogReport{
-                lvl:LogLevel::new(Severity::Error, Confidence::Strong),
+            log(LogReport {
+                lvl: LogLevel::new(Severity::Error, Confidence::Strong),
                 key: ErrorKey::Config,
-                msg:"`ignore` is deprecated, consider using `filter` instead.",
+                msg: "`ignore` is deprecated, consider using `filter` instead.",
                 info: Some("Check out the filter.md guide on GitHub for tips on how to migrate."),
-                pointers
+                pointers,
             });
         }
 
@@ -386,7 +393,7 @@ impl Everything {
             .collect()
     }
     /// Load a single rule.
-    fn load_rule(key: &Option<Token>, operator: Comparator, value: &BV) -> Option<FilterRule> {
+    fn load_rule(key: &Option<Token>, comparator: Comparator, value: &BV) -> Option<FilterRule> {
         if key.is_none() {
             error(
                 value,
@@ -397,17 +404,20 @@ impl Everything {
         }
         let key = key.as_ref().expect("Should exist.");
         let key_str = key.as_str();
-        if key_str != "severity" && key_str != "confidence" && operator != Eq {
+        if key_str != "severity"
+            && key_str != "confidence"
+            && !matches!(comparator, Comparator::Equals(Single))
+        {
             error(
                 key,
                 ErrorKey::Config,
-                &format!("Unexpected operator `{operator}`, only `=` is valid here."),
+                &format!("Unexpected operator `{comparator}`, only `=` is valid here."),
             );
             return None;
         }
         match key_str {
-            "severity" => Self::load_rule_severity(operator, value),
-            "confidence" => Self::load_rule_confidence(operator, value),
+            "severity" => Self::load_rule_severity(comparator, value),
+            "confidence" => Self::load_rule_confidence(comparator, value),
             "key" => Self::load_rule_key(value),
             "file" => Self::load_rule_file(value),
             "always" => Self::load_rule_always(value),
@@ -429,7 +439,7 @@ impl Everything {
     /// This loads a NOT block.
     /// In paradox script, NOT is actually an implicit NOR.
     /// Load the children, if more than one exists, it returns a NOR block, otherwise a NOT.
-    fn load_not(value : &BV) -> Option<FilterRule> {
+    fn load_not(value: &BV) -> Option<FilterRule> {
         let mut children = Self::load_rules_from_value(value)?;
         if children.is_empty() {
             error(
@@ -437,11 +447,13 @@ impl Everything {
                 ErrorKey::Config,
                 "This NOT block is empty. It will be ignored.",
             );
-             None
+            None
         } else if children.len() == 1 {
             Some(FilterRule::Negation(Box::new(children.remove(0))))
         } else {
-            Some(FilterRule::Negation(Box::new(FilterRule::Disjunction(children))))
+            Some(FilterRule::Negation(Box::new(FilterRule::Disjunction(
+                children,
+            ))))
         }
     }
     fn load_rule_always(value: &BV) -> Option<FilterRule> {
@@ -512,11 +524,7 @@ impl Everything {
         }
     }
 
-    fn load_rule_severity(operator: Comparator, value: &BV) -> Option<FilterRule> {
-        if !operator.is_comparator() {
-            error(value, ErrorKey::Config, "This operator is not valid. Use one of: [==, !=, >, >=, <, <=]. Example usage: `severity >= Warning`");
-            return None;
-        }
+    fn load_rule_severity(comparator: Comparator, value: &BV) -> Option<FilterRule> {
         match value {
             BV::Block(_) => {
                 error(
@@ -528,7 +536,7 @@ impl Everything {
             }
             BV::Value(token) => {
                 if let Ok(severity) = token.as_str().parse() {
-                    Some(FilterRule::Severity(operator.to_comparator(), severity))
+                    Some(FilterRule::Severity(comparator, severity))
                 } else {
                     error(
                         token,
@@ -544,11 +552,7 @@ impl Everything {
         }
     }
 
-    fn load_rule_confidence(operator: Comparator, value: &BV) -> Option<FilterRule> {
-        if !operator.is_comparator() {
-            error(value, ErrorKey::Config, "This operator is not valid. Use one of: [==, !=, >, >=, <, <=]. Example usage: `confidence >= Reasonable`");
-            return None;
-        }
+    fn load_rule_confidence(comparator: Comparator, value: &BV) -> Option<FilterRule> {
         match value {
             BV::Block(_) => {
                 error(
@@ -560,7 +564,7 @@ impl Everything {
             }
             BV::Value(token) => {
                 if let Ok(confidence) = token.as_str().parse() {
-                    Some(FilterRule::Confidence(operator.to_comparator(), confidence))
+                    Some(FilterRule::Confidence(comparator, confidence))
                 } else {
                     error(
                         token,

@@ -9,9 +9,10 @@ use fnv::{FnvHashMap, FnvHashSet};
 use crate::fileset::FileKind;
 use crate::report::error_loc::ErrorLoc;
 use crate::report::filter::ReportFilter;
+use crate::report::report_struct::LogLevel;
 use crate::report::writer::log_report;
 use crate::report::{
-    Confidence, ErrorKey, FilterRule, LogLevel, LogReport, OutputStyle, PointedMessage, Severity,
+    Confidence, ErrorKey, FilterRule, LogReport, OutputStyle, PointedMessage, Severity,
 };
 use crate::token::Loc;
 

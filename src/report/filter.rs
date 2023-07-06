@@ -93,23 +93,23 @@ impl FilterRule {
             FilterRule::Conjunction(children) => children.iter().all(|child| child.apply(report)),
             FilterRule::Disjunction(children) => children.iter().any(|child| child.apply(report)),
             FilterRule::Negation(child) => !child.apply(report),
-            FilterRule::Severity(operator, level) => match operator {
-                Comparator::Equals => report.lvl.severity == *level,
+            FilterRule::Severity(comparator, level) => match comparator {
+                Comparator::Equals(_) => report.lvl.severity == *level,
                 Comparator::NotEquals => report.lvl.severity != *level,
                 Comparator::GreaterThan => report.lvl.severity > *level,
                 Comparator::AtLeast => report.lvl.severity >= *level,
                 Comparator::LessThan => report.lvl.severity < *level,
                 Comparator::AtMost => report.lvl.severity <= *level,
-                _ => panic!("Encountered unexpected operator: {operator}"),
+                Comparator::None => panic!("Encountered unexpected operator: {comparator}"),
             },
-            FilterRule::Confidence(operator, level) => match operator {
-                Comparator::Equals => report.lvl.confidence == *level,
+            FilterRule::Confidence(comparator, level) => match comparator {
+                Comparator::Equals(_) => report.lvl.confidence == *level,
                 Comparator::NotEquals => report.lvl.confidence != *level,
                 Comparator::GreaterThan => report.lvl.confidence > *level,
                 Comparator::AtLeast => report.lvl.confidence >= *level,
                 Comparator::LessThan => report.lvl.confidence < *level,
                 Comparator::AtMost => report.lvl.confidence <= *level,
-                _ => panic!("Encountered unexpected operator: {operator}"),
+                Comparator::None => panic!("Encountered unexpected operator: {comparator}"),
             },
             FilterRule::Key(key) => report.key == *key,
             FilterRule::File(path) => report

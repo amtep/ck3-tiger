@@ -4,6 +4,7 @@ pub use errors::*;
 pub use filter::FilterRule;
 pub use output_style::OutputStyle;
 pub use report_struct::{Confidence, LogLevel, LogReport, PointedMessage, Severity};
+
 mod error_key;
 mod error_loc;
 mod errors;
