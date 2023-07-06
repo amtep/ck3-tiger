@@ -175,10 +175,12 @@ dependencies = [
 name = "ck3-tiger"
 version = "0.6.0"
 dependencies = [
+ "ansi_term",
  "anyhow",
  "clap",
  "home",
  "tiger-lib",
+ "winreg",
 ]
 
 [[package]]
@@ -1032,7 +1034,6 @@ dependencies = [
  "thiserror",
  "unicode-width",
  "walkdir",
- "winreg",
 ]
 
 [[package]]

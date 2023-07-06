@@ -97,6 +97,7 @@ struct Parser {
     current: ParseLevel,
     stack: Vec<ParseLevel>,
     local_macros: LocalMacros,
+    calculation_stack: Vec<(CalculationOp, f64)>,
     calculation_op: CalculationOp,
     calculation: f64,
 }
@@ -131,6 +132,27 @@ impl Parser {
         } else {
             let msg = format!("local value {local_macro} not defined");
             error(local_macro, ErrorKey::ParseError, &msg);
+        }
+    }
+
+    fn calculation_push(&mut self) {
+        self.calculation_stack
+            .push((self.calculation_op, self.calculation));
+        self.calculation_op = CalculationOp::Add;
+        self.calculation = 0.0;
+    }
+
+    fn calculation_pop(&mut self, loc: &Loc) {
+        if let Some((op, value)) = self.calculation_stack.pop() {
+            match op {
+                CalculationOp::Add => self.calculation = value + self.calculation,
+                CalculationOp::Subtract => self.calculation = value - self.calculation,
+                CalculationOp::Multiply => self.calculation = value * self.calculation,
+                CalculationOp::Divide => self.calculation = value / self.calculation,
+            }
+        } else {
+            let msg = "found `)` without corresponding `(`";
+            warn(loc, ErrorKey::ParseError, msg);
         }
     }
 
@@ -328,6 +350,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
         },
         stack: Vec::new(),
         local_macros,
+        calculation_stack: Vec::new(),
         calculation: 0.0,
         calculation_op: CalculationOp::Add,
     };
@@ -427,6 +450,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         }
                     }
                 }
+                // TODO: this parser silently accepts strange things like @[ + + ]
                 State::Calculation => {
                     current_id.clear();
                     if c.is_ascii_whitespace() {
@@ -438,6 +462,10 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         parser.calculation_op(CalculationOp::Multiply);
                     } else if c == '/' {
                         parser.calculation_op(CalculationOp::Divide);
+                    } else if c == '(' {
+                        parser.calculation_push();
+                    } else if c == ')' {
+                        parser.calculation_pop(&loc);
                     } else if c == ']' {
                         let token = Token::new(
                             parser.calculation_result().to_string(),
@@ -452,7 +480,14 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                     }
                 }
                 State::CalculationId => {
-                    if c.is_ascii_whitespace() || c == '+' || c == '/' || c == '*' || c == '-' {
+                    if c.is_ascii_whitespace()
+                        || c == '+'
+                        || c == '/'
+                        || c == '*'
+                        || c == '-'
+                        || c == '('
+                        || c == ')'
+                    {
                         let token = Token::new(take(&mut current_id), token_start.clone());
                         parser.calculation_next(&token);
                         state = State::Calculation;
@@ -464,6 +499,10 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                             parser.calculation_op(CalculationOp::Multiply);
                         } else if c == '/' {
                             parser.calculation_op(CalculationOp::Divide);
+                        } else if c == '(' {
+                            parser.calculation_push();
+                        } else if c == ')' {
+                            parser.calculation_pop(&loc);
                         }
                     } else if c == ']' {
                         let token = Token::new(take(&mut current_id), token_start.clone());

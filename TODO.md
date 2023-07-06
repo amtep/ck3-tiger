@@ -2,6 +2,8 @@
 
 ## Bugs
 
+* Calculations with local @values currently go from left to right (except when parentheses are used) but they should do multiplication and division before addition and subtraction.
+
 ## False positives
 
 ## Features
