@@ -3,8 +3,6 @@
 import os.path
 import sys
 
-OUTDIR = "src/tables/include"
-
 SEPARATOR = "\n-----------------------\n\n"
 
 # Vec4f is not listed as a datatype but there is a Select_vec4f function so it must exist.
@@ -92,7 +90,15 @@ RTYPE_OVERRIDE = {
     "TopScope.sC": "Character",
 }
 
-fnames = sys.argv[1:]
+game = sys.argv[1]
+fnames = sys.argv[2:]
+
+if game == "ck3":
+    OUTDIR = "src/ck3/tables/include"
+elif game == "vic3":
+    OUTDIR = "src/vic3/tables/include"
+else:
+    print("unknown game {}", game)
 
 for fname in fnames:
     text = open(fname, encoding="windows-1252").read()

@@ -1,0 +1,124 @@
+use anyhow::{bail, Result};
+use clap::Parser;
+use std::path::PathBuf;
+
+use tiger_lib::everything::Everything;
+use tiger_lib::gamedir::find_game_directory_steam;
+use tiger_lib::report::{
+    ignore_key, set_minimum_level, set_mod_root, set_vanilla_dir, show_loaded_mods, show_vanilla,
+    ErrorKey, LogLevel,
+};
+
+/// Steam's code for Victoria 3
+const VIC3_APP_ID: &str = "529340";
+
+/// VIC3 directory under steam library dir
+const VIC3_DIR: &str = "steamapps/common/Victoria 3";
+
+/// A file that should be present if this is the VIC3 directory
+const VIC3_SIGNATURE_FILE: &str = "game/events/titanic_events.txt";
+
+#[derive(Parser)]
+struct Cli {
+    /// Path to folder of mod to check.
+    modpath: PathBuf,
+    /// Path to Vic3 directory.
+    #[clap(long)]
+    vic3: Option<PathBuf>,
+    /// Show errors in the base Vic3 script code as well
+    #[clap(long)]
+    show_vanilla: bool,
+    /// Show errors in other loaded mods as well
+    #[clap(long)]
+    show_mods: bool,
+    /// Show advice in addition to warnings and errors
+    #[clap(long)]
+    advice: bool,
+    /// Warn about items that are defined but unused
+    #[clap(long)]
+    unused: bool,
+    /// Warn about use of named scopes that haven't been defined
+    #[clap(long)]
+    strict_scopes: bool,
+}
+
+fn main() -> Result<()> {
+    let mut args = Cli::parse();
+
+    // LAST UPDATED VERSION VIC3 1.3.6
+    eprintln!("This validator was made for Victoria 3 version 1.3.6 (Thé à la menthe).");
+    eprintln!("If you are using a newer version of Victoria 3, it may be inaccurate.");
+    eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
+
+    if args.vic3.is_none() {
+        args.vic3 = find_game_directory_steam(VIC3_APP_ID, &PathBuf::from(VIC3_DIR));
+    }
+    if let Some(ref mut vic3) = args.vic3 {
+        eprintln!("Using Vic3 directory: {}", vic3.display());
+        let mut sig = vic3.clone();
+        sig.push(VIC3_SIGNATURE_FILE);
+        if !sig.is_file() {
+            eprintln!("That does not look like a Vic3 directory.");
+            vic3.push("..");
+            eprintln!("Trying: {}", vic3.display());
+            sig = vic3.clone();
+            sig.push(VIC3_SIGNATURE_FILE);
+            if sig.is_file() {
+                eprintln!("Ok.");
+            } else {
+                bail!("Cannot find Vic3 directory. Please supply it as the --vic3 option.");
+            }
+        }
+    } else {
+        bail!("Cannot find Vic3 directory. Please supply it as the --vic3 option.");
+    }
+
+    set_vanilla_dir(args.vic3.as_ref().unwrap().clone());
+
+    if args.show_vanilla {
+        eprintln!("Showing warnings for base game files too. There will be many false positives in those.");
+        show_vanilla(true);
+    }
+
+    if args.show_mods {
+        eprintln!("Showing warnings for other loaded mods too.");
+        show_loaded_mods(true);
+    }
+
+    if args.advice {
+        set_minimum_level(LogLevel::min());
+    }
+
+    if args.unused {
+        eprintln!("Showing warnings for unused localization. There will be many false positives.");
+    }
+
+    if args.strict_scopes {
+        eprintln!("Using stricter scope checking. This will generate more false positives but will also find more real errors.");
+    } else {
+        ignore_key(ErrorKey::StrictScopes);
+    }
+
+    if args.modpath.is_dir() {
+        let mut sig = args.modpath.clone();
+        sig.push(".metadata/metadata.json");
+        if !sig.is_file() {
+            bail!(
+                "{} does not look like a mod directory.",
+                args.modpath.display()
+            );
+        }
+    }
+    eprintln!("Using mod directory: {}", args.modpath.display());
+    set_mod_root(args.modpath.clone());
+
+    let mut everything = Everything::new(&args.vic3.unwrap(), &args.modpath, Vec::new())?;
+    everything.load_all();
+    everything.validate_all();
+    everything.check_rivers();
+    if args.unused {
+        everything.check_unused();
+    }
+
+    Ok(())
+}

@@ -716,31 +716,41 @@ impl Everything {
         }
     }
 
-    #[allow(clippy::too_many_lines)]
-    pub fn load_all(&mut self) {
+    fn load_all_generic(&mut self) {
         self.fileset.handle(&mut self.dds);
         self.fileset.handle(&mut self.localization);
         self.fileset.handle(&mut self.scripted_lists);
         self.fileset.handle(&mut self.defines);
-        self.fileset.handle(&mut self.events);
-        self.fileset.handle(&mut self.decisions);
         self.fileset.handle(&mut self.scripted_modifiers);
+        self.fileset.handle(&mut self.scriptvalues);
+        self.fileset.handle(&mut self.triggers);
+        self.fileset.handle(&mut self.effects);
+        self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
+        self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
+        self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
+        self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
+
+        self.load_pdx_items(Item::Culture, Culture::add);
+        self.fileset.handle(&mut self.events);
+        self.load_pdx_items(Item::Modifier, Modifier::add);
+        self.load_pdx_items(Item::Religion, Religion::add);
+    }
+
+    #[cfg(feature = "ck3")]
+    fn load_all_ck3(&mut self) {
+        self.fileset.handle(&mut self.decisions);
         self.fileset.handle(&mut self.on_actions);
         self.fileset.handle(&mut self.interactions);
         self.fileset.handle(&mut self.interaction_cats);
         self.fileset.handle(&mut self.provinces);
         self.fileset.handle(&mut self.province_histories);
         self.fileset.handle(&mut self.gameconcepts);
-        self.load_pdx_items(Item::Religion, Religion::add);
         self.load_pdx_items(Item::ReligionFamily, ReligionFamily::add);
         self.fileset.handle(&mut self.titles);
         self.fileset.handle(&mut self.dynasties);
         self.fileset.handle(&mut self.houses);
         self.fileset.handle(&mut self.characters);
         self.fileset.handle(&mut self.namelists);
-        self.fileset.handle(&mut self.scriptvalues);
-        self.fileset.handle(&mut self.triggers);
-        self.fileset.handle(&mut self.effects);
         self.fileset.handle(&mut self.traits);
         self.load_pdx_items(Item::Lifestyle, Lifestyle::add);
         self.load_pdx_items(Item::CourtPositionCategory, CourtPositionCategory::add);
@@ -767,8 +777,6 @@ impl Everything {
         self.load_pdx_items(Item::CasusBelliGroup, CasusBelliGroup::add);
         self.load_pdx_items(Item::CasusBelli, CasusBelli::add);
         self.load_pdx_items(Item::Holding, Holding::add);
-        self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
-        self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
         self.load_pdx_items(Item::Focus, Focus::add);
         self.load_pdx_items(Item::Perk, Perk::add);
         self.load_pdx_items(Item::OpinionModifier, OpinionModifier::add);
@@ -781,16 +789,13 @@ impl Everything {
         self.load_pdx_items(Item::ArtifactFeature, ArtifactFeature::add);
         self.load_pdx_items(Item::ArtifactFeatureGroup, ArtifactFeatureGroup::add);
         self.load_pdx_items(Item::Nickname, Nickname::add);
-        self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
         self.load_pdx_items(Item::Building, Building::add);
         Building::finalize(&mut self.database);
-        self.load_pdx_items(Item::Culture, Culture::add);
         self.load_pdx_items(Item::CultureEra, CultureEra::add);
         self.load_pdx_items(Item::CulturePillar, CulturePillar::add);
         self.load_pdx_items(Item::CultureTradition, CultureTradition::add);
         self.load_pdx_items(Item::CultureAesthetic, CultureAesthetic::add);
         self.load_pdx_items(Item::CultureCreationName, CultureCreationName::add);
-        self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
         self.load_pdx_items(Item::Innovation, Innovation::add);
         self.load_pdx_items(Item::Accessory, Accessory::add);
         self.load_pdx_items(Item::AccessoryVariation, AccessoryVariation::add);
@@ -810,7 +815,6 @@ impl Everything {
         self.load_pdx_items(Item::BookmarkGroup, BookmarkGroup::add);
         self.load_pdx_items_optional_bom(Item::BookmarkPortrait, BookmarkPortrait::add);
         self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
-        self.load_pdx_items(Item::Modifier, Modifier::add);
         self.load_pdx_items(Item::GovernmentType, Government::add);
         self.load_pdx_items(Item::Hook, Hook::add);
         self.load_pdx_items(Item::CouncilPosition, CouncilPosition::add);
@@ -875,18 +879,33 @@ impl Everything {
         self.load_pdx_items(Item::Message, Message::add);
     }
 
-    pub fn validate_all(&mut self) {
+    #[cfg(feature = "vic3")]
+    fn load_all_vic3(&mut self) {}
+
+    pub fn load_all(&mut self) {
+        self.load_all_generic();
+        #[cfg(feature = "ck3")]
+        self.load_all_ck3();
+        #[cfg(feature = "vic3")]
+        self.load_all_vic3();
+    }
+
+    fn validate_all_generic(&mut self) {
         self.fileset.validate(self);
         self.localization.validate(self);
         self.scripted_lists.validate(self);
         self.defines.validate(self);
-        // scripted items go early because they update their scope context info
+        self.scripted_modifiers.validate(self);
         self.scriptvalues.validate(self);
         self.triggers.validate(self);
         self.effects.validate(self);
-        self.scripted_modifiers.validate(self);
-        self.on_actions.validate(self);
+
         self.events.validate(self);
+    }
+
+    #[cfg(feature = "ck3")]
+    fn validate_all_ck3(&mut self) {
+        self.on_actions.validate(self);
         self.decisions.validate(self);
         self.interactions.validate(self);
         self.interaction_cats.validate(self);
@@ -909,6 +928,17 @@ impl Everything {
         self.music.validate(self);
         self.coas.validate(self);
         self.culture_history.validate(self);
+    }
+
+    #[cfg(feature = "vic3")]
+    fn validate_all_vic3(&mut self) {}
+
+    pub fn validate_all(&mut self) {
+        self.validate_all_generic();
+        #[cfg(feature = "ck3")]
+        self.validate_all_ck3();
+        #[cfg(feature = "vic3")]
+        self.validate_all_vic3();
         self.database.validate(self);
     }
 

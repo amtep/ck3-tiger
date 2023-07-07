@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 
 use strum_macros::IntoStaticStr;
 
-use crate::item::Item::*;
+use Item::*;
 
 /// "items" are all the things that can be looked up in string-indexed databases.
 /// There is some overlap with scopes, but the difference is that scopes are runtime values

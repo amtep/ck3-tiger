@@ -23,6 +23,7 @@
 #![allow(clippy::too_many_lines)]
 
 pub mod everything;
+pub mod gamedir;
 pub mod modfile;
 pub mod report;
 

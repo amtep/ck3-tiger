@@ -178,9 +178,7 @@ dependencies = [
  "ansi_term",
  "anyhow",
  "clap",
- "home",
  "tiger-lib",
- "winreg",
 ]
 
 [[package]]
@@ -1025,6 +1023,7 @@ dependencies = [
  "criterion",
  "encoding",
  "fnv",
+ "home",
  "image",
  "lazy_static",
  "once_cell",
@@ -1063,6 +1062,16 @@ name = "utf8parse"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
+
+[[package]]
+name = "vic3-tiger"
+version = "0.6.0"
+dependencies = [
+ "ansi_term",
+ "anyhow",
+ "clap",
+ "tiger-lib",
+]
 
 [[package]]
 name = "walkdir"
@@ -1246,16 +1255,6 @@ name = "windows_x86_64_msvc"
 version = "0.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
-
-[[package]]
-name = "winreg"
-version = "0.50.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
-dependencies = [
- "cfg-if",
- "windows-sys",
-]
 
 [[package]]
 name = "zune-inflate"

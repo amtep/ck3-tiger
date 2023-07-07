@@ -1,12 +1,12 @@
 [package]
-name = "ck3-tiger"
+name = "vic3-tiger"
 version = "0.6.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tiger-lib = { path = "..", features = ["ck3"] }
+tiger-lib = { path = "..", features = ["vic3"] }
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 
