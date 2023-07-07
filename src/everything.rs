@@ -143,7 +143,7 @@ use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
 use crate::vic3::data::{
-    buildings::BuildingType, countries::Country, cultures::Culture,
+    buildings::BuildingType, countries::Country, cultures::Culture, events::Events,
     production_methods::ProductionMethod, religions::Religion,
 };
 
@@ -185,7 +185,6 @@ pub struct Everything {
     pub defines: Defines,
 
     /// Processed event files
-    #[cfg(feature = "ck3")]
     pub events: Events,
 
     /// Processed decision files
@@ -298,7 +297,6 @@ impl Everything {
             localization: Localization::default(),
             scripted_lists: ScriptedLists::default(),
             defines: Defines::default(),
-            #[cfg(feature = "ck3")]
             events: Events::default(),
             #[cfg(feature = "ck3")]
             decisions: Decisions::default(),
@@ -784,13 +782,12 @@ impl Everything {
         self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
 
         self.load_pdx_items(Item::Culture, Culture::add);
+        self.fileset.handle(&mut self.events);
         self.load_pdx_items(Item::Religion, Religion::add);
     }
 
     #[cfg(feature = "ck3")]
     fn load_all_ck3(&mut self) {
-        self.fileset.handle(&mut self.events);
-        self.load_pdx_items(Item::Modifier, Modifier::add);
         self.fileset.handle(&mut self.decisions);
         self.fileset.handle(&mut self.on_actions);
         self.fileset.handle(&mut self.interactions);
@@ -930,6 +927,7 @@ impl Everything {
         self.load_pdx_items(Item::ScriptedCost, ScriptedCost::add);
         self.load_pdx_items(Item::PlayableDifficultyInfo, PlayableDifficultyInfo::add);
         self.load_pdx_items(Item::Message, Message::add);
+        self.load_pdx_items(Item::Modifier, Modifier::add);
     }
 
     #[cfg(feature = "vic3")]
@@ -956,6 +954,8 @@ impl Everything {
         self.scriptvalues.validate(self);
         self.triggers.validate(self);
         self.effects.validate(self);
+
+        self.events.validate(self);
     }
 
     #[cfg(feature = "ck3")]
@@ -1085,6 +1085,8 @@ impl Everything {
             Item::Define => self.defines.exists(key),
             Item::Dlc => DLC.contains(&key),
             Item::DlcFeature => DLC_FEATURES.contains(&key),
+            Item::Event => self.events.exists(key),
+            Item::EventNamespace => self.events.namespace_exists(key),
             Item::File => self.fileset.exists(key),
             Item::Localization => self.localization.exists(key),
             Item::ScriptedEffect => self.effects.exists(key),
@@ -1092,6 +1094,7 @@ impl Everything {
             Item::ScriptedModifier => self.scripted_modifiers.exists(key),
             Item::ScriptedTrigger => self.triggers.exists(key),
             Item::ScriptValue => self.scriptvalues.exists(key),
+            Item::Sound => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
@@ -1229,6 +1232,7 @@ const ARTIFACT_HISTORY: &[&str] = &[
 /// LAST UPDATED VERSION 1.9.2
 // TODO: parse it from dlc_metadata/ ? Unfortunately Tours and Tournaments
 // is an exception.
+#[cfg(feature = "ck3")]
 const DLC: &[&str] = &[
     "Fashion of the Abbasid Court",
     "The Northern Lords",
@@ -1241,6 +1245,7 @@ const DLC: &[&str] = &[
 ];
 
 /// LAST UPDATED VERSION 1.9.2
+#[cfg(feature = "ck3")]
 const DLC_FEATURES: &[&str] = &[
     "garments_of_the_hre",
     "fashion_of_the_abbasid_court",
@@ -1256,6 +1261,18 @@ const DLC_FEATURES: &[&str] = &[
     "advanced_activities",
     "accolades",
     "elegance_of_the_empire",
+];
+
+/// LAST UPDATED VIC3 VERSION 1.3.6
+#[cfg(feature = "vic3")]
+const DLC: &[&str] = &["dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006"];
+
+/// LAST UPDATED VIC3 VERSION 1.3.6
+#[cfg(feature = "vic3")]
+const DLC_FEATURES: &[&str] = &[
+    "voice_of_the_people_content",
+    "voice_of_the_people_preorder",
+    "agitators",
 ];
 
 /// LAST UPDATED VERSION 1.9.2
