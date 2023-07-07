@@ -53,6 +53,27 @@ pub struct PointedMessage<'a> {
     pub msg: Option<&'a str>,
 }
 
+impl<'a> PointedMessage<'a> {
+    pub fn new(location: Loc) -> Self {
+        Self {
+            location,
+            msg: None,
+            length: 1,
+        }
+    }
+    pub fn with_msg(location: Loc, msg: &'a str) -> Self {
+        if msg.is_empty() {
+            Self::new(location)
+        } else {
+            Self {
+                location,
+                msg: Some(msg),
+                length: 1,
+            }
+        }
+    }
+}
+
 /// Determines the output colour.
 /// User can also filter by minimum severity level: e.g. don't show me Info-level messages.
 ///

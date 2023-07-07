@@ -99,6 +99,14 @@ impl<'a> ReportBuilderStage2<'a> {
             }],
         }
     }
+    pub fn pointers(self, pointers: Vec<PointedMessage<'a>>) -> ReportBuilderStage3 {
+        ReportBuilderStage3 {
+            stage1: self.stage1,
+            msg: self.msg,
+            info: self.info,
+            pointers,
+        }
+    }
 }
 
 #[derive(Debug)]
