@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, BV};
 use crate::context::ScopeContext;

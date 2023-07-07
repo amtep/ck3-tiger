@@ -36,15 +36,21 @@ fn modif_check(
 }
 
 // Redeclare the `ModifKinds` enums as bare numbers, so that we can do | on them in const tables.
-const Character: u8 = 0x01;
-const Province: u8 = 0x02;
-const County: u8 = 0x04;
-const Terrain: u8 = 0x08;
-const Culture: u8 = 0x10;
-const Scheme: u8 = 0x20;
-const TravelPlan: u8 = 0x40;
+const NoneModifKind: u16 = 0x0001;
+const Battle: u16 = 0x0002;
+const Building: u16 = 0x0004;
+const Character: u16 = 0x0008;
+const Country: u16 = 0x0010;
+const Front: u16 = 0x0020;
+const InterestGroup: u16 = 0x0040;
+const Market: u16 = 0x0080;
+const PoliticalMovement: u16 = 0x0100;
+const State: u16 = 0x0200;
+const Tariff: u16 = 0x0400;
+const Tax: u16 = 0x0800;
+const Unit: u16 = 0x1000;
 
 /// LAST UPDATED VERSION 1.9.2
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
-const MODIF_TABLE: &[(&str, u8)] = &[];
+const MODIF_TABLE: &[(&str, u16)] = &[];
