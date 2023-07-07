@@ -391,6 +391,7 @@ impl Localization {
         }
     }
 
+    #[cfg(feature = "ck3")]
     pub fn check_pod_loca(&self, data: &Everything) {
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {

@@ -53,6 +53,7 @@ impl TryFrom<&str> for ListType {
     }
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     match bv {
         BV::Value(token) => {
@@ -83,6 +84,7 @@ pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeConte
     }
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_theme_icon(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
@@ -92,6 +94,7 @@ pub fn validate_theme_icon(block: &Block, data: &Everything, sc: &mut ScopeConte
     vd.field_item("reference", Item::File);
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_theme_sound(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
@@ -101,6 +104,7 @@ pub fn validate_theme_sound(block: &Block, data: &Everything, sc: &mut ScopeCont
     vd.field_item("reference", Item::Sound);
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
@@ -452,6 +456,7 @@ pub fn validate_inside_iterator(
         vd.ban_field("continue", only_for);
     }
 
+    #[cfg(feature = "ck3")]
     if name == "county_in_region" {
         vd.req_field("region");
         vd.field_item("region", Item::Region);
@@ -459,6 +464,7 @@ pub fn validate_inside_iterator(
         vd.ban_field("region", || format!("`{listtype}_county_in_region`"));
     }
 
+    #[cfg(feature = "ck3")]
     if name == "court_position_holder" {
         vd.field_item("type", Item::CourtPosition);
     } else if name == "relation" {
@@ -472,6 +478,7 @@ pub fn validate_inside_iterator(
         });
     }
 
+    #[cfg(feature = "ck3")]
     if name == "claim" {
         vd.field_choice("explicit", &["yes", "no", "all"]);
         vd.field_choice("pressed", &["yes", "no", "all"]);
@@ -480,6 +487,7 @@ pub fn validate_inside_iterator(
         vd.ban_field("pressed", || format!("`{listtype}_claim`"));
     }
 
+    #[cfg(feature = "ck3")]
     if name == "pool_character" {
         vd.req_field("province");
         if let Some(token) = block.get_field_value("province") {
@@ -489,6 +497,7 @@ pub fn validate_inside_iterator(
         vd.ban_field("province", || format!("`{listtype}_pool_character`"));
     }
 
+    #[cfg(feature = "ck3")]
     if sc.can_be(Scopes::Character) {
         vd.field_bool("only_if_dead");
         vd.field_bool("even_if_dead");
@@ -497,12 +506,14 @@ pub fn validate_inside_iterator(
         vd.ban_field("even_if_dead", || "lists of characters");
     }
 
+    #[cfg(feature = "ck3")]
     if name == "character_struggle" {
         vd.field_choice("involvement", &["involved", "interloper"]);
     } else {
         vd.ban_field("involvement", || format!("`{listtype}_character_struggle`"));
     }
 
+    #[cfg(feature = "ck3")]
     if name == "connected_county" {
         // Undocumented
         vd.field_bool("invert");
@@ -515,6 +526,7 @@ pub fn validate_inside_iterator(
         vd.ban_field("allow_one_county_land_gap", only_for);
     }
 
+    #[cfg(feature = "ck3")]
     if name == "activity_phase_location"
         || name == "activity_phase_location_future"
         || name == "activity_phase_location_past"
@@ -525,6 +537,7 @@ pub fn validate_inside_iterator(
         vd.ban_field("unique", only_for);
     }
 
+    #[cfg(feature = "ck3")]
     if name == "guest_subset" || name == "guest_subset_current_phase" {
         vd.field_item("name", Item::GuestSubset);
     } else {
@@ -532,12 +545,14 @@ pub fn validate_inside_iterator(
             format!("`{listtype}_guest_subset` and `{listtype}_guest_subset_current_phase`")
         });
     }
+    #[cfg(feature = "ck3")]
     if name == "guest_subset" {
         vd.field_value("phase"); // TODO
     } else {
         vd.ban_field("phase", || format!("`{listtype}_guest_subset`"));
     }
 
+    #[cfg(feature = "ck3")]
     if name == "trait_in_category" {
         vd.field_value("category"); // TODO
     } else {
@@ -562,12 +577,14 @@ pub fn validate_cost_with_renown(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_bool("round");
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_traits(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.field_validated_block("virtues", validate_virtues_sins);
     vd.field_validated_block("sins", validate_virtues_sins);
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_virtues_sins(block: &Block, data: &Everything) {
     // Can be single tokens ("wrathful") or assignments ("wrathful = 3")
     // or even wrathful = { scale = 2 weight = 2 } whatever that means
@@ -861,6 +878,7 @@ pub fn validate_scope_chain(
     true
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_random_traits_list(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_script_value("count", sc);
@@ -874,6 +892,7 @@ pub fn validate_random_traits_list(block: &Block, data: &Everything, sc: &mut Sc
     }
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_random_culture(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     for (key, block) in vd.unknown_block_fields() {

@@ -643,6 +643,7 @@ fn match_trigger_bv(
                     }
                 }
             } else if name.is("has_gene") {
+                #[cfg(feature = "ck3")] // TODO move this out of generic code
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
                     vd.field_item("category", Item::GeneCategory);

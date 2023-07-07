@@ -76,6 +76,7 @@ pub fn validate_modifs<'a>(
         if let Some(mk) = lookup_modif(key, data, true) {
             kinds.require(mk, key);
             validate_non_dynamic_scriptvalue(bv, data);
+            #[cfg(feature = "ck3")]
             if !key.is("health") && !key.is("negate_health_penalty_add") {
                 data.verify_exists(Item::ModifierFormat, key);
             }
