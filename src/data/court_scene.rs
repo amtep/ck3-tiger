@@ -8,7 +8,7 @@ use crate::db::{Db, DbKind};
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -111,7 +111,7 @@ impl DbKind for CourtSceneSetting {
                 validate_camera(block, data, &mut cameras);
             }
             if cameras.is_empty() {
-                warn(block, ErrorKey::Validation, "need at least one camera");
+                old_warn(block, ErrorKey::Validation, "need at least one camera");
             }
         });
 
@@ -188,7 +188,7 @@ fn validate_character(block: &Block, data: &Everything, cameras: &[String]) {
     vd.field_value("description");
     if let Some(token) = vd.field_value("camera") {
         if !cameras.contains(&token.to_string()) {
-            warn(token, ErrorKey::MissingItem, "unknown camera");
+            old_warn(token, ErrorKey::MissingItem, "unknown camera");
         }
     }
     vd.field_list_items("roles", Item::CourtSceneRole);

@@ -11,7 +11,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, warn, ErrorKey};
+use crate::report::{error, old_warn, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -29,7 +29,7 @@ impl DataBindings {
                 key = def.clone();
             }
         } else {
-            warn(block, ErrorKey::ParseError, "missing field `definition`");
+            old_warn(block, ErrorKey::ParseError, "missing field `definition`");
             return;
         }
         if let Some(other) = self.bindings.get(key.as_str()) {
@@ -72,7 +72,7 @@ impl FileHandler for DataBindings {
                 self.load_macro(block);
             } else {
                 let msg = format!("unexpected key {key} in data_binding");
-                warn(key, ErrorKey::ParseError, &msg);
+                old_warn(key, ErrorKey::ParseError, &msg);
             }
         }
     }

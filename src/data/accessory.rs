@@ -3,7 +3,7 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, warn, ErrorKey};
+use crate::report::{error, old_warn, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -88,7 +88,7 @@ impl AccessoryVariation {
                 error(key, ErrorKey::FieldMissing, "pattern_layout without a name");
             }
         } else {
-            warn(key, ErrorKey::UnknownField, "unknown variation type");
+            old_warn(key, ErrorKey::UnknownField, "unknown variation type");
         }
     }
 }

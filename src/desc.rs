@@ -3,7 +3,7 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{warn, warn_info, ErrorKey};
+use crate::report::{old_warn, warn_info, ErrorKey};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
@@ -61,12 +61,12 @@ fn validate_desc_map_block(
             if let Some(block) = bv.expect_block() {
                 if caller != "triggered_desc" {
                     let msg = "`trigger` is only for `triggered_desc";
-                    warn(key, ErrorKey::Validation, msg);
+                    old_warn(key, ErrorKey::Validation, msg);
                 }
                 validate_normal_trigger(block, data, sc, Tooltipped::No);
             }
         } else {
-            warn(key, ErrorKey::UnknownField, "unexpected key in description");
+            old_warn(key, ErrorKey::UnknownField, "unexpected key in description");
         }
     }
 }

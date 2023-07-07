@@ -7,7 +7,7 @@ use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{error, warn, ErrorKey};
+use crate::report::{error, old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -52,7 +52,7 @@ impl DbKind for CouncilPosition {
             count += 1;
             if count > 5 {
                 let msg = "no more than 5 modifier blocks can be specified here";
-                warn(block, ErrorKey::Validation, msg);
+                old_warn(block, ErrorKey::Validation, msg);
             }
         });
         count = 0;
@@ -67,7 +67,7 @@ impl DbKind for CouncilPosition {
                 count += 1;
                 if count > 5 {
                     let msg = "no more than 5 council_owner_modifier blocks can be specified here";
-                    warn(block, ErrorKey::Validation, msg);
+                    old_warn(block, ErrorKey::Validation, msg);
                 }
             },
         );
@@ -135,11 +135,11 @@ impl DbKind for CouncilTask {
             if value.is("yes") {
                 if !block.field_value_is("task_type", "task_type_general") {
                     let msg = "`default_task` is only available for `task_type_general` tasks";
-                    warn(key, ErrorKey::Validation, msg);
+                    old_warn(key, ErrorKey::Validation, msg);
                 }
                 if !block.field_value_is("task_progress", "task_progress_infinite") {
                     let msg = "`default_task` is only available for `task_progress_infinite` tasks";
-                    warn(key, ErrorKey::Validation, msg);
+                    old_warn(key, ErrorKey::Validation, msg);
                 }
             }
         });
@@ -172,7 +172,7 @@ impl DbKind for CouncilTask {
             if let Some(token) = block.get_field_value("county_target") {
                 if token.is("neighbor_land_or_water") {
                     let msg = "`neighbor_land_or_water` is only for `ai_county_target`";
-                    warn(token, ErrorKey::Validation, msg);
+                    old_warn(token, ErrorKey::Validation, msg);
                 }
             }
             vd.field_script_value("ai_target_score", &mut sc);

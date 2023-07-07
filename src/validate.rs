@@ -8,7 +8,7 @@ use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, error_info, warn, ErrorKey};
+use crate::report::{error, error_info, old_warn, ErrorKey};
 use crate::scopes::{scope_prefix, scope_to_scope, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::Token;
@@ -255,7 +255,7 @@ pub fn validate_camera_color(block: &Block, data: &Everything) {
     let tag = block.tag.as_ref().map_or("rgb", Token::as_str);
     if tag != "hsv" {
         let msg = "camera colors should be in hsv";
-        warn(block, ErrorKey::Colors, msg);
+        old_warn(block, ErrorKey::Colors, msg);
         validate_color(block, data);
         return;
     }
@@ -355,7 +355,7 @@ pub fn precheck_iterator_fields(
                         token.check_number();
                         if num > 1.0 {
                             let msg = "'percent' here needs to be between 0 and 1";
-                            warn(token, ErrorKey::Range, msg);
+                            old_warn(token, ErrorKey::Range, msg);
                         }
                     }
                 }
@@ -770,7 +770,7 @@ pub fn validate_scripted_modifier_call(
             if !modifier.macro_parms().is_empty() {
                 error(token, ErrorKey::Macro, "expected macro arguments");
             } else if !token.is("yes") {
-                warn(token, ErrorKey::Validation, "expected just modifier = yes");
+                old_warn(token, ErrorKey::Validation, "expected just modifier = yes");
             }
             modifier.validate_call(key, data, sc);
         }
@@ -811,7 +811,7 @@ pub fn validate_scripted_modifier_calls(
             validate_scripted_modifier_call(key, bv, modifier, data, sc);
         } else {
             let msg = format!("unknown field `{key}`");
-            warn(key, ErrorKey::UnknownField, &msg);
+            old_warn(key, ErrorKey::UnknownField, &msg);
         }
     }
 }
@@ -842,7 +842,7 @@ pub fn validate_scope_chain(
             if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                 if inscopes == Scopes::None && !first {
                     let msg = format!("`{prefix}:` makes no sense except as first part");
-                    warn(part, ErrorKey::Validation, &msg);
+                    old_warn(part, ErrorKey::Validation, &msg);
                 }
                 sc.expect(inscopes, &prefix);
                 validate_prefix_reference(&prefix, &arg, data);
@@ -865,7 +865,7 @@ pub fn validate_scope_chain(
         {
             if !first {
                 let msg = format!("`{part}` makes no sense except as first part");
-                warn(part, ErrorKey::Validation, &msg);
+                old_warn(part, ErrorKey::Validation, &msg);
             }
             if part.lowercase_is("root") {
                 sc.replace_root();
@@ -877,7 +877,7 @@ pub fn validate_scope_chain(
         } else if let Some((inscopes, outscope)) = scope_to_scope(part) {
             if inscopes == Scopes::None && !first {
                 let msg = format!("`{part}` makes no sense except as first part");
-                warn(part, ErrorKey::Validation, &msg);
+                old_warn(part, ErrorKey::Validation, &msg);
             }
             sc.expect(inscopes, part);
             sc.replace(outscope, part.clone());
@@ -945,14 +945,14 @@ pub fn validate_ifelse_sequence(block: &Block, key_if: &str, key_elseif: &str, k
             } else if key.is(key_elseif) {
                 if !seen_if {
                     let msg = format!("`{key_elseif} without preceding `{key_if}`");
-                    warn(key, ErrorKey::IfElse, &msg);
+                    old_warn(key, ErrorKey::IfElse, &msg);
                 }
                 seen_if = true;
                 continue;
             } else if key.is(key_else) {
                 if !seen_if {
                     let msg = format!("`{key_else} without preceding `{key_if}`");
-                    warn(key, ErrorKey::IfElse, &msg);
+                    old_warn(key, ErrorKey::IfElse, &msg);
                 }
                 if let Some(block) = bv.get_block() {
                     if block.has_key("limit") {

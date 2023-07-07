@@ -6,7 +6,7 @@ use fnv::FnvHashMap;
 use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
 use crate::fileset::{FileEntry, FileKind};
-use crate::report::{error, warn, warn_info, ErrorKey};
+use crate::report::{error, old_warn, warn_info, ErrorKey};
 use crate::token::{Loc, Token};
 
 #[derive(Copy, Clone, Debug)]
@@ -236,7 +236,7 @@ impl Parser {
             self.calculation = calc;
         } else {
             let msg = "found `)` without corresponding `(`";
-            warn(loc, ErrorKey::LocalValues, msg);
+            old_warn(loc, ErrorKey::LocalValues, msg);
         }
     }
 
@@ -489,7 +489,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         state = State::Id;
                     } else if c == '\n' {
                         let token = Token::new(take(&mut current_id), token_start.clone());
-                        warn(token, ErrorKey::ParseError, "Quoted string not closed");
+                        old_warn(token, ErrorKey::ParseError, "Quoted string not closed");
                     } else {
                         current_id.push(c);
                     }

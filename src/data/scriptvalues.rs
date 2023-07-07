@@ -9,7 +9,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, exact_dup_error};
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::{Loc, Token};
@@ -74,7 +74,7 @@ impl FileHandler for ScriptValues {
                             scopes |= scope;
                         } else {
                             let msg = format!("unknown scope type `{part}`");
-                            warn(part, ErrorKey::Config, &msg);
+                            old_warn(part, ErrorKey::Config, &msg);
                         }
                     }
                 }

@@ -8,7 +8,9 @@ use crate::token::Loc;
 #[derive(Debug)]
 pub struct LogReport<'a> {
     /// Used for choosing output colors and for filtering reports.
-    pub lvl: LogLevel,
+    pub severity: Severity,
+    /// Mostly used for filtering reports.
+    pub confidence: Confidence,
     /// Defines the problem category. Used for filtering reports.
     pub key: ErrorKey,
     /// The primary error message. A short description of the problem.
@@ -45,33 +47,10 @@ pub struct PointedMessage<'a> {
     /// Set this to 1 if the length cannot be determined.
     /// This will determine the number of carets that are printed at the given location.
     /// e.g.:     ^^^^^^^^^
+    /// TODO: If we end up adding length to Loc, this field can be deleted.
     pub length: usize,
     /// A short message that will be printed at the caret location.
     pub msg: Option<&'a str>,
-}
-
-/// Replaces the `ErrorLevel` that previously existed.
-#[derive(Default, Debug, Clone, Copy)]
-pub struct LogLevel {
-    /// The seriousness of the error.
-    pub severity: Severity,
-    pub confidence: Confidence,
-}
-
-impl LogLevel {
-    pub fn new(severity: Severity, confidence: Confidence) -> Self {
-        LogLevel {
-            severity,
-            confidence,
-        }
-    }
-    /// The lowest possible log level. If used as a filter, this will match everything.
-    pub fn min() -> Self {
-        LogLevel {
-            severity: Severity::Tips,
-            confidence: Confidence::Weak,
-        }
-    }
 }
 
 /// Determines the output colour.

@@ -7,7 +7,7 @@ use encoding::{DecoderTrap, Encoding};
 use crate::block::Block;
 use crate::fileset::FileEntry;
 use crate::parse::pdxfile::parse_pdx;
-use crate::report::{advice_info, error_info, warn, ErrorKey};
+use crate::report::{advice_info, error_info, old_warn, ErrorKey};
 
 /// If a windows-1252 file mistakenly starts with a UTF-8 BOM, this is
 /// what it will look like after decoding
@@ -57,7 +57,7 @@ impl PdxFile {
         if let Some(bomless) = contents.strip_prefix('\u{feff}') {
             Some(parse_pdx(entry, bomless))
         } else {
-            warn(
+            old_warn(
                 entry,
                 ErrorKey::Encoding,
                 "file must start with a UTF-8 BOM",

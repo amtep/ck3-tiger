@@ -8,7 +8,7 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, warn, ErrorKey};
+use crate::report::{error, old_warn, ErrorKey};
 use crate::scriptvalue::validate_non_dynamic_scriptvalue;
 use crate::tables::modifs::lookup_modif;
 use crate::token::Token;
@@ -78,7 +78,7 @@ pub fn validate_modifs<'a>(
             }
         } else {
             let msg = format!("unknown modifier `{key}`");
-            warn(key, ErrorKey::UnknownField, &msg);
+            old_warn(key, ErrorKey::UnknownField, &msg);
         }
     }
 }

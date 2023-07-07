@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, exact_dup_error};
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -65,7 +65,7 @@ impl FileHandler for Effects {
                             scopes |= scope;
                         } else {
                             let msg = format!("unknown scope type `{part}`");
-                            warn(part, ErrorKey::Config, &msg);
+                            old_warn(part, ErrorKey::Config, &msg);
                         }
                     }
                 }

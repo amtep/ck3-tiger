@@ -6,7 +6,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::helpers::dup_error;
 use crate::item::Item;
-use crate::report::{error, warn, warn2, ErrorKey};
+use crate::report::{error, old_warn, warn2, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -53,11 +53,11 @@ impl Gene {
                                 AccessoryGene::add(db, k, b);
                             }
                         }
-                        _ => warn(k, ErrorKey::ParseError, "unknown gene type"),
+                        _ => old_warn(k, ErrorKey::ParseError, "unknown gene type"),
                     }
                 }
             }
-            _ => warn(key, ErrorKey::ParseError, "unknown gene type"),
+            _ => old_warn(key, ErrorKey::ParseError, "unknown gene type"),
         }
     }
 
@@ -128,7 +128,7 @@ impl DbKind for AgePresetGene {
         call_key: &Token,
         _call_block: &Block,
     ) {
-        warn(
+        old_warn(
             call_key,
             ErrorKey::Validation,
             "cannot define age preset genes",
@@ -225,7 +225,7 @@ impl DbKind for MorphGene {
                 }
             } else if let Some(i) = token.expect_integer() {
                 if !(0..=256).contains(&i) {
-                    warn(token, ErrorKey::Range, "expected value from 0 to 256");
+                    old_warn(token, ErrorKey::Range, "expected value from 0 to 256");
                 }
             }
             count += 1;
@@ -380,7 +380,7 @@ impl DbKind for AccessoryGene {
                 }
             } else if let Some(i) = token.expect_integer() {
                 if !(0..=256).contains(&i) {
-                    warn(token, ErrorKey::Range, "expected value from 0 to 256");
+                    old_warn(token, ErrorKey::Range, "expected value from 0 to 256");
                 }
             }
             count += 1;
@@ -456,7 +456,7 @@ fn validate_hsv_curve_range(block: &Block, data: &Everything) {
 
     for (k, _cmp, bv) in block.iter_items() {
         if let Some(key) = k {
-            warn(key, ErrorKey::Validation, "unknown field");
+            old_warn(key, ErrorKey::Validation, "unknown field");
         } else if !found_first {
             if let Some(token) = bv.expect_value() {
                 if let Some(v) = token.expect_number() {
@@ -519,7 +519,7 @@ fn validate_morph_gene(block: &Block, data: &Everything) {
                     // TODO: if it refers to another field, check that following the chain of fields eventually reaches a block
                     if !choices.contains(&token.as_str()) {
                         let msg = format!("expected one of {}", choices.join(", "));
-                        warn(token, ErrorKey::Choice, &msg);
+                        old_warn(token, ErrorKey::Choice, &msg);
                     }
                 }
                 BV::Block(block) => {
@@ -549,7 +549,7 @@ fn validate_accessory_gene(block: &Block, data: &Everything) {
                     // TODO: if it refers to another field, check that following the chain of fields eventually reaches a block
                     if !choices.contains(&token.as_str()) {
                         let msg = format!("expected one of {}", choices.join(", "));
-                        warn(token, ErrorKey::Choice, &msg);
+                        old_warn(token, ErrorKey::Choice, &msg);
                     }
                 }
                 BV::Block(block) => {

@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 
 use fnv::FnvHashMap;
 
-use crate::report::{warn, warn2, warn3, ErrorKey};
+use crate::report::{old_warn, warn2, warn3, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 
@@ -270,7 +270,7 @@ impl ScopeContext {
             if self.strict_scopes {
                 if !self.no_warn {
                     let msg = format!("scope:{name} might not be available here");
-                    warn(token, ErrorKey::StrictScopes, &msg);
+                    old_warn(token, ErrorKey::StrictScopes, &msg);
                 }
                 // Don't treat it as an input scope, because we already warned about it
                 self.is_input.push(None);

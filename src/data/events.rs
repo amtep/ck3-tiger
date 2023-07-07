@@ -15,7 +15,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, error_info, warn, warn_info, ErrorKey};
+use crate::report::{error, error_info, old_warn, warn_info, ErrorKey};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -282,7 +282,7 @@ impl Event {
             if let Some(scope) = scope_from_snake_case(token.as_str()) {
                 sc = ScopeContext::new(scope, token);
             } else {
-                warn(token, ErrorKey::Scopes, "unknown scope type");
+                old_warn(token, ErrorKey::Scopes, "unknown scope type");
             }
         }
         sc.set_strict_scopes(false);

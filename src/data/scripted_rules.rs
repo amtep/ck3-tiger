@@ -3,7 +3,7 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -29,7 +29,7 @@ impl DbKind for ScriptedRule {
             }
         }
         let msg = "unknown scripted rule";
-        warn(key, ErrorKey::Validation, msg);
+        old_warn(key, ErrorKey::Validation, msg);
         let mut sc = ScopeContext::new(Scopes::non_primitive(), key);
         validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
     }

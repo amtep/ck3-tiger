@@ -6,7 +6,7 @@ use crate::desc::validate_desc;
 use crate::effect_validation::{validate_effect_block, validate_effect_bv, validate_effect_value};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{advice_info, error, error_info, warn, warn_info, ErrorKey};
+use crate::report::{advice_info, error, error_info, old_warn, warn_info, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::scriptvalue::validate_scriptvalue;
 use crate::tables::effects::{scope_effect, Effect};
@@ -71,7 +71,7 @@ pub fn validate_effect<'a>(
                     if !effect.macro_parms().is_empty() {
                         error(token, ErrorKey::Macro, "expected macro arguments");
                     } else if !token.is("yes") {
-                        warn(token, ErrorKey::Validation, "expected just effect = yes");
+                        old_warn(token, ErrorKey::Validation, "expected just effect = yes");
                     }
                     effect.validate_call(key, data, sc, tooltipped);
                 }
@@ -120,7 +120,7 @@ pub fn validate_effect<'a>(
                     if let Some(token) = bv.expect_value() {
                         if !token.is("yes") {
                             let msg = format!("expected just `{key} = yes`");
-                            warn(token, ErrorKey::Validation, &msg);
+                            old_warn(token, ErrorKey::Validation, &msg);
                         }
                     }
                 }
@@ -144,7 +144,7 @@ pub fn validate_effect<'a>(
                                     warn_info(token, ErrorKey::Range, msg, info);
                                 } else {
                                     let msg = format!("{key} does not take negative numbers");
-                                    warn(token, ErrorKey::Range, &msg);
+                                    old_warn(token, ErrorKey::Range, &msg);
                                 }
                             }
                         }
@@ -420,14 +420,14 @@ pub fn validate_effect_control(
         }
         if let Some(token) = vd.field_value("goto") {
             let msg = "`goto` was removed from interface messages in 1.9";
-            warn(token, ErrorKey::Removed, msg);
+            old_warn(token, ErrorKey::Removed, msg);
         }
     }
 
     if caller == "while" {
         if !(block.has_key("limit") || block.has_key("count")) {
             let msg = "`while` needs one of `limit` or `count`";
-            warn(block, ErrorKey::Validation, msg);
+            old_warn(block, ErrorKey::Validation, msg);
         }
 
         vd.field_script_value("count", sc);

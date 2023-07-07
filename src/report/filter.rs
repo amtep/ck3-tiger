@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use crate::block::Comparator;
 
 use crate::fileset::FileKind;
-use crate::report::{Confidence, ErrorKey, LogLevel, LogReport, Severity};
+use crate::report::{Confidence, ErrorKey, LogReport, Severity};
 use crate::token::Loc;
 
 /// Determines whether a given Report should be printed.
@@ -42,7 +42,7 @@ impl ReportFilter {
         self.predicate.apply(report)
     }
     /// TODO: Check the filter rules to be more sure.
-    pub fn should_maybe_print(&self, _lvl: LogLevel, key: ErrorKey, location: &Loc) -> bool {
+    pub fn should_maybe_print(&self, key: ErrorKey, location: &Loc) -> bool {
         if key == ErrorKey::Config {
             // Any errors concerning the Config should be easy to fix and will fundamentally
             // undermine the operation of the application. They must always be printed.
@@ -94,21 +94,21 @@ impl FilterRule {
             FilterRule::Disjunction(children) => children.iter().any(|child| child.apply(report)),
             FilterRule::Negation(child) => !child.apply(report),
             FilterRule::Severity(comparator, level) => match comparator {
-                Comparator::Equals(_) => report.lvl.severity == *level,
-                Comparator::NotEquals => report.lvl.severity != *level,
-                Comparator::GreaterThan => report.lvl.severity > *level,
-                Comparator::AtLeast => report.lvl.severity >= *level,
-                Comparator::LessThan => report.lvl.severity < *level,
-                Comparator::AtMost => report.lvl.severity <= *level,
+                Comparator::Equals(_) => report.severity == *level,
+                Comparator::NotEquals => report.severity != *level,
+                Comparator::GreaterThan => report.severity > *level,
+                Comparator::AtLeast => report.severity >= *level,
+                Comparator::LessThan => report.severity < *level,
+                Comparator::AtMost => report.severity <= *level,
                 Comparator::None => panic!("Encountered unexpected operator: {comparator}"),
             },
             FilterRule::Confidence(comparator, level) => match comparator {
-                Comparator::Equals(_) => report.lvl.confidence == *level,
-                Comparator::NotEquals => report.lvl.confidence != *level,
-                Comparator::GreaterThan => report.lvl.confidence > *level,
-                Comparator::AtLeast => report.lvl.confidence >= *level,
-                Comparator::LessThan => report.lvl.confidence < *level,
-                Comparator::AtMost => report.lvl.confidence <= *level,
+                Comparator::Equals(_) => report.confidence == *level,
+                Comparator::NotEquals => report.confidence != *level,
+                Comparator::GreaterThan => report.confidence > *level,
+                Comparator::AtLeast => report.confidence >= *level,
+                Comparator::LessThan => report.confidence < *level,
+                Comparator::AtMost => report.confidence <= *level,
                 Comparator::None => panic!("Encountered unexpected operator: {comparator}"),
             },
             FilterRule::Key(key) => report.key == *key,

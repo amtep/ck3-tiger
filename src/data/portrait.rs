@@ -5,7 +5,7 @@ use crate::data::genes::{AccessoryGene, Gene};
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, warn, ErrorKey};
+use crate::report::{error, old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -60,7 +60,7 @@ impl DbKind for PortraitModifierGroup {
         if let Some(token) = vd.field_value("fallback") {
             if !block.has_key(token.as_str()) {
                 let msg = "portrait modifier not defined";
-                warn(token, ErrorKey::MissingItem, msg);
+                old_warn(token, ErrorKey::MissingItem, msg);
             }
         }
         vd.field_validated_blocks("add_accessory_modifiers", |block, data| {
@@ -224,7 +224,7 @@ impl DbKind for PortraitAnimation {
                     BV::Value(token) => {
                         // TODO: check that the chain eventually resolves to a block
                         if !TYPES.contains(&token.as_str()) {
-                            warn(token, ErrorKey::Validation, "unknown body type");
+                            old_warn(token, ErrorKey::Validation, "unknown body type");
                         }
                     }
                     BV::Block(block) => {

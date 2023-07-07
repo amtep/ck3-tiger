@@ -4,7 +4,7 @@ use crate::data::coa::validate_coa_layout;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -52,7 +52,7 @@ impl CoaDesignerColorPalette {
                 );
             }
         } else {
-            warn(key, ErrorKey::UnknownField, "unknown key");
+            old_warn(key, ErrorKey::UnknownField, "unknown key");
         }
     }
 }

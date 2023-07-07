@@ -5,7 +5,7 @@ use crate::db::{Db, DbKind};
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -28,7 +28,7 @@ impl DbKind for ScriptedGui {
             if let Some(scope) = scope_from_snake_case(token.as_str()) {
                 sc = ScopeContext::new(scope, token);
             } else {
-                warn(token, ErrorKey::Scopes, "unknown scope type");
+                old_warn(token, ErrorKey::Scopes, "unknown scope type");
             }
         }
 

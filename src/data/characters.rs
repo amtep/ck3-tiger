@@ -13,7 +13,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, warn, warn_info, ErrorKey};
+use crate::report::{error, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -99,7 +99,7 @@ impl Characters {
     pub fn verify_alive(&self, item: &Token, date: Date) {
         if !self.is_alive(item, date) {
             let msg = format!("{item} is not alive on {date}");
-            warn(item, ErrorKey::History, &msg);
+            old_warn(item, ErrorKey::History, &msg);
         }
     }
 
@@ -248,7 +248,7 @@ impl Character {
         if let Some(token) = vd.field_value("birth") {
             if !token.is("yes") && Date::from_str(token.as_str()).is_err() {
                 let msg = "expected `yes` or a date";
-                warn(token, ErrorKey::Validation, msg);
+                old_warn(token, ErrorKey::Validation, msg);
             }
         }
 

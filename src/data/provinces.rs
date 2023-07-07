@@ -9,7 +9,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::pdxfile::PdxFile;
-use crate::report::{error, warn, ErrorKey};
+use crate::report::{error, old_warn, ErrorKey};
 use crate::token::{Loc, Token};
 
 pub type ProvId = u32;
@@ -155,7 +155,7 @@ impl FileHandler for Provinces {
                             seen_terminator = true;
                         } else if seen_terminator {
                             let msg = "the line with all `-1;` should be the last line in the file";
-                            warn(&csv[0], ErrorKey::ParseError, msg);
+                            old_warn(&csv[0], ErrorKey::ParseError, msg);
                             break;
                         } else {
                             self.adjacencies.extend(Adjacency::parse(&csv));
@@ -229,10 +229,10 @@ impl FileHandler for Provinces {
                 }
                 if !self.colors.contains(&province.color) {
                     let msg = "color is not in the provinces.png";
-                    warn(&province.comment, ErrorKey::Colors, msg);
+                    old_warn(&province.comment, ErrorKey::Colors, msg);
                 } else if let Some(k) = seen_colors.get(&province.color) {
                     let msg = format!("color was already used for id {k}");
-                    warn(&province.comment, ErrorKey::Colors, &msg);
+                    old_warn(&province.comment, ErrorKey::Colors, &msg);
                 } else {
                     seen_colors.insert(province.color, i);
                 }
@@ -247,7 +247,7 @@ impl FileHandler for Provinces {
                 "provinces.png contains {} colors with no provinces assigned",
                 self.colors.len() - seen_colors.len()
             );
-            warn(definition_csv, ErrorKey::Colors, &msg);
+            old_warn(definition_csv, ErrorKey::Colors, &msg);
         }
     }
 }
