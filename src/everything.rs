@@ -8,7 +8,7 @@ use fnv::FnvHashSet;
 use strum::IntoEnumIterator;
 use thiserror::Error;
 
-use crate::block::{Block};
+use crate::block::Block;
 #[cfg(feature = "ck3")]
 use crate::ck3::data::{
     accessory::{Accessory, AccessoryVariation},

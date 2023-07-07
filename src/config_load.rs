@@ -2,10 +2,10 @@ use std::path::PathBuf;
 
 use strum::IntoEnumIterator;
 
-use crate::block::{Block, BV, Comparator, Eq::*};
+use crate::block::{Block, Comparator, Eq::*, BV};
 use crate::report::{
-    Confidence, err, error, ErrorKey, ErrorLoc, FilterRule, PointedMessage,
-    set_predicate, set_show_loaded_mods, set_show_vanilla, Severity,
+    err, error, set_predicate, set_show_loaded_mods, set_show_vanilla, Confidence, ErrorKey,
+    ErrorLoc, FilterRule, PointedMessage, Severity,
 };
 use crate::token::Token;
 
@@ -164,10 +164,12 @@ fn load_rule_always(value: &BV) -> Option<FilterRule> {
 /// This is syntactic sugar for a NAND wrapping an OR of keys and an OR of files.
 fn load_ignore_keys_in_files(value: &BV) -> Option<FilterRule> {
     if let BV::Value(_) = value {
-        err(ErrorKey::Config).strong()
+        err(ErrorKey::Config)
+            .strong()
             .msg("This trigger should open a block.")
             .info("Usage: ignore_keys_in_files = { keys = {} files = {} }")
-            .loc(value).push();
+            .loc(value)
+            .push();
         return None;
     }
     let block = value.expect_block().expect("Should be ok");
@@ -177,19 +179,23 @@ fn load_ignore_keys_in_files(value: &BV) -> Option<FilterRule> {
 
     for (key, comparator, value) in block.iter_items() {
         if key.is_none() {
-            err(ErrorKey::Config).strong()
+            err(ErrorKey::Config)
+                .strong()
                 .msg("Didn't expect a loose value here.")
                 .info("Usage: ignore_keys_in_files = { keys = {} files = {} }")
-                .loc(value).push();
+                .loc(value)
+                .push();
             return None;
         }
         let key = key.as_ref().expect("Should exist.");
         let key_str = key.as_str();
         if key_str != "keys" && key_str != "files" {
-            err(ErrorKey::Config).strong()
+            err(ErrorKey::Config)
+                .strong()
                 .msg("This key isn't valid here.")
                 .info("Usage: ignore_keys_in_files = { keys = {} files = {} }")
-                .loc(value).push();
+                .loc(value)
+                .push();
             return None;
         }
         if !matches!(comparator, Comparator::Equals(_)) {
@@ -202,10 +208,12 @@ fn load_ignore_keys_in_files(value: &BV) -> Option<FilterRule> {
             return None;
         }
         if let BV::Value(_) = value {
-            err(ErrorKey::Config).strong()
+            err(ErrorKey::Config)
+                .strong()
                 .msg("This should open a block.")
                 .info("Usage: ignore_keys_in_files = { keys = {} files = {} }")
-                .loc(value).push();
+                .loc(value)
+                .push();
             return None;
         }
         let array_block = value.expect_block().expect("Should be ok");
@@ -217,14 +225,18 @@ fn load_ignore_keys_in_files(value: &BV) -> Option<FilterRule> {
         }
     }
     if keys.is_none() {
-        err(ErrorKey::Config).strong()
+        err(ErrorKey::Config)
+            .strong()
             .msg("There are no valid keys. This `ignore_keys_in_files` trigger will be ignored.")
-            .info("Add at least one key. Example: ignore_keys_in_files = { keys = { unknown-field }")
+            .info(
+                "Add at least one key. Example: ignore_keys_in_files = { keys = { unknown-field }",
+            )
             .loc(block)
             .push();
         None
     } else if files.is_none() {
-        err(ErrorKey::Config).strong()
+        err(ErrorKey::Config)
+            .strong()
             .msg("There are no valid files. This `ignore_keys_in_files` trigger will be ignored.")
             .info("Add at least one file. Example: ignore_keys_in_files = { files = { common/ }")
             .loc(block)
@@ -232,7 +244,7 @@ fn load_ignore_keys_in_files(value: &BV) -> Option<FilterRule> {
         None
     } else {
         Some(FilterRule::Negation(Box::new(FilterRule::Conjunction(
-            vec![keys.expect("Should exist."), files.expect("Should exist.")]
+            vec![keys.expect("Should exist."), files.expect("Should exist.")],
         ))))
     }
 }
@@ -272,26 +284,32 @@ fn load_keys_array(array_block: &Block) -> Option<FilterRule> {
     }
 }
 fn load_files_array(array_block: &Block) -> Option<FilterRule> {
-    let files: Vec<_> = array_block.iter_items()
+    let files: Vec<_> = array_block
+        .iter_items()
         .filter_map(|(key, _, value)| {
             if key.is_some() {
-                err(ErrorKey::Config).strong()
+                err(ErrorKey::Config)
+                    .strong()
                     .msg("Expected a sequence of values here, no need to write `file = `")
                     .info("Example: files = { common/ history/ }")
                     .loc(key.as_ref().expect("Should be present."))
                     .push();
                 None
             } else if value.is_block() {
-                err(ErrorKey::Config).strong()
+                err(ErrorKey::Config)
+                    .strong()
                     .msg("Expected a sequence of values here, no blocks.")
                     .info("Example: files = { common/ history/ }")
                     .loc(value.get_block().expect("Should be present."))
                     .push();
                 None
             } else {
-                Some(FilterRule::File(PathBuf::from(value.get_value().expect("Should be present.").as_str())))
+                Some(FilterRule::File(PathBuf::from(
+                    value.get_value().expect("Should be present.").as_str(),
+                )))
             }
-        }).collect();
+        })
+        .collect();
     if files.is_empty() {
         None
     } else {
