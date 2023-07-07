@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use tiger_lib::everything::Everything;
 use tiger_lib::gamedir::find_game_directory_steam;
 use tiger_lib::report::{
-   disable_ansi_colors, set_mod_root, set_show_loaded_mods, set_show_vanilla, set_vanilla_dir,
+    disable_ansi_colors, set_mod_root, set_show_loaded_mods, set_show_vanilla, set_vanilla_dir,
 };
 
 /// Steam's code for Victoria 3
@@ -36,7 +36,6 @@ struct Cli {
     /// Omit color from the output.
     #[clap(long)]
     no_color: bool,
-
 }
 
 fn main() -> Result<()> {
@@ -47,7 +46,6 @@ fn main() -> Result<()> {
         let _ = ansi_term::enable_ansi_support()
             .map_err(|_| eprintln!("Failed to enable ANSI support for Windows10 users. Continuing probably without colored output."));
     }
-
 
     // LAST UPDATED VERSION VIC3 1.3.6
     eprintln!("This validator was made for Victoria 3 version 1.3.6 (Thé à la menthe).");

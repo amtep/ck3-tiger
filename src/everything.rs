@@ -277,7 +277,7 @@ impl Everything {
 
         let config_file = mod_root.join("ck3-tiger.conf");
         let config = if config_file.is_file() {
-            Self::_read_config(&config_file)
+            Self::_read_config("ck3-tiger.conf", &config_file)
                 .ok_or(FilesError::ConfigUnreadable { path: config_file })?
         } else {
             Block::new(Loc::for_file(Rc::new(config_file), FileKind::Mod))
@@ -351,8 +351,8 @@ impl Everything {
         })
     }
 
-    fn _read_config(path: &Path) -> Option<Block> {
-        let entry = FileEntry::new(path.to_path_buf(), FileKind::Mod);
+    fn _read_config(name: &str, path: &Path) -> Option<Block> {
+        let entry = FileEntry::new(PathBuf::from(name), FileKind::Mod);
         PdxFile::read_no_bom(&entry, path)
     }
 
