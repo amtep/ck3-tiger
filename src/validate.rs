@@ -417,7 +417,7 @@ pub fn validate_iterator_fields(
 pub fn validate_inside_iterator(
     name: &str,
     listtype: ListType,
-    block: &Block,
+    _block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
     vd: &mut Validator,
@@ -470,9 +470,7 @@ pub fn validate_inside_iterator(
         vd.field_item("type", Item::CourtPosition);
     } else if name == "relation" {
         vd.req_field("type"); // without a type, it won't match any relationship
-        for t in vd.field_values("type") {
-            data.verify_exists(Item::Relation, t);
-        }
+        vd.field_items("type", Item::Relation);
     } else {
         vd.ban_field("type", || {
             format!("`{listtype}_court_position_holder` or `{listtype}_relation`")
@@ -491,7 +489,7 @@ pub fn validate_inside_iterator(
     #[cfg(feature = "ck3")]
     if name == "pool_character" {
         vd.req_field("province");
-        if let Some(token) = block.get_field_value("province") {
+        if let Some(token) = vd.field_value("province") {
             validate_target_ok_this(token, data, sc, Scopes::Province);
         }
     } else {

@@ -4,7 +4,6 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug)]

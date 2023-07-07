@@ -40,7 +40,7 @@ pub enum Effect {
     VV(EvV),
 }
 
-pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)> {
+pub fn scope_effect(name: &Token, _data: &Everything) -> Option<(Scopes, Effect)> {
     let lwname = name.as_str().to_lowercase();
 
     for (from, s, effect) in SCOPE_EFFECT {

@@ -4,7 +4,6 @@ use once_cell::sync::Lazy; // replace with std version once it's stable
 use crate::block::BV;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
-use crate::item::Item;
 use crate::parse::pdxfile::parse_pdx_internal;
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
