@@ -1,7 +1,6 @@
-use std::borrow::Borrow;
-
 use fnv::FnvHashMap;
 
+use crate::helpers::Own;
 use crate::report::{old_warn, warn2, warn3, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -70,11 +69,11 @@ enum ScopeEntry {
 }
 
 impl ScopeContext {
-    pub fn new<T: Borrow<Token>>(root: Scopes, token: T) -> Self {
+    pub fn new<T: Own<Token>>(root: Scopes, token: T) -> Self {
         ScopeContext {
             prev: None,
             this: ScopeEntry::Rootref,
-            root: ScopeEntry::Scope(root, token.borrow().clone()),
+            root: ScopeEntry::Scope(root, token.own()),
             names: FnvHashMap::default(),
             list_names: FnvHashMap::default(),
             named: Vec::new(),
@@ -86,14 +85,15 @@ impl ScopeContext {
         }
     }
 
-    pub fn new_unrooted<T: Borrow<Token>>(this: Scopes, token: T) -> Self {
+    pub fn new_unrooted<T: Own<Token>>(this: Scopes, token: T) -> Self {
+        let token = token.own();
         ScopeContext {
             prev: Some(Box::new(ScopeHistory {
                 prev: None,
-                this: ScopeEntry::Scope(this, token.borrow().clone()),
+                this: ScopeEntry::Scope(this, token.clone()),
             })),
-            this: ScopeEntry::Scope(this, token.borrow().clone()),
-            root: ScopeEntry::Scope(Scopes::all(), token.borrow().clone()),
+            this: ScopeEntry::Scope(this, token.clone()),
+            root: ScopeEntry::Scope(Scopes::all(), token),
             names: FnvHashMap::default(),
             list_names: FnvHashMap::default(),
             named: Vec::new(),
@@ -113,40 +113,38 @@ impl ScopeContext {
         self.no_warn = no_warn;
     }
 
-    pub fn change_root<T: Borrow<Token>>(&mut self, root: Scopes, token: T) {
-        self.root = ScopeEntry::Scope(root, token.borrow().clone());
+    pub fn change_root<T: Own<Token>>(&mut self, root: Scopes, token: T) {
+        self.root = ScopeEntry::Scope(root, token.own());
     }
 
-    pub fn define_name<T: Borrow<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
+    pub fn define_name<T: Own<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
         if let Some(&idx) = self.names.get(name) {
             self._break_chains_to(idx);
-            self.named[idx] = ScopeEntry::Scope(scopes, token.borrow().clone());
+            self.named[idx] = ScopeEntry::Scope(scopes, token.own());
         } else {
             self.names.insert(name.to_string(), self.named.len());
-            self.named
-                .push(ScopeEntry::Scope(scopes, token.borrow().clone()));
+            self.named.push(ScopeEntry::Scope(scopes, token.own()));
             self.is_input.push(None);
         }
     }
 
-    pub fn exists_scope<T: Borrow<Token>>(&mut self, name: &str, token: T) {
+    pub fn exists_scope<T: Own<Token>>(&mut self, name: &str, token: T) {
         if !self.names.contains_key(name) {
             let idx = self.named.len();
             self.names.insert(name.to_string(), idx);
             self.named
-                .push(ScopeEntry::Scope(Scopes::all(), token.borrow().clone()));
+                .push(ScopeEntry::Scope(Scopes::all(), token.own()));
             self.is_input.push(None);
         }
     }
 
-    pub fn define_list<T: Borrow<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
+    pub fn define_list<T: Own<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
         if let Some(&idx) = self.list_names.get(name) {
             self._break_chains_to(idx);
-            self.named[idx] = ScopeEntry::Scope(scopes, token.borrow().clone());
+            self.named[idx] = ScopeEntry::Scope(scopes, token.own());
         } else {
             self.list_names.insert(name.to_string(), self.named.len());
-            self.named
-                .push(ScopeEntry::Scope(scopes, token.borrow().clone()));
+            self.named.push(ScopeEntry::Scope(scopes, token.own()));
             self.is_input.push(None);
         }
     }
