@@ -116,6 +116,37 @@ Example:
 - `file = common/` This matches any report that mentions a file inside the `common/` directory.
 - `file = history/characters/afar.txt` This matches any report that mentions that specific file.
 
+### Ignoring keys only in certain files
+
+The below example returns false for reports with key1 or key2 that mention either file1 or file2. You must list at least one key and one file.
+
+```
+ignore_keys_in_files = {
+    keys = { 
+        key1
+        key2
+    }
+    files = {
+        file1
+        file2
+    }
+}
+```
+
+Note that this is exactly the same as writing:
+```
+NAND = {
+    OR = {
+        key = key1
+        key = key2
+    }
+    OR = {
+        file = file1
+        file = file2
+    }
+}
+```
+
 # Migrating from `ignore` to `filter`
 
 Filtering was previously done through `ignore` blocks.
@@ -145,12 +176,12 @@ trigger = {
         key = duplicate-field
         file = events/travel_events/travel_events.txt
     }
-    NAND = {
-        key = duplicate-item
-        OR = {
-            file = common/decisions/80_major_decisions.txt
-            file = common/script_values/00_basic_values.txt
-            file = common/defines/00_defines.txt
+    ignore_keys_in_files = {
+        keys = { duplicate-item }
+        files = {
+            common/decisions/80_major_decisions.txt
+            common/script_values/00_basic_values.txt
+            common/defines/00_defines.txt
         }
     }
 }

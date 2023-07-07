@@ -33,6 +33,7 @@ mod ck3;
 mod vic3;
 
 mod block;
+mod config_load;
 mod context;
 mod data;
 mod datatype;
