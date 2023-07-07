@@ -87,7 +87,7 @@ pub struct DataBinding {
 }
 
 impl DataBinding {
-    pub fn new(key: Token, block: Block) -> Self {
+    fn new(key: Token, block: Block) -> Self {
         let mut params = Vec::new();
         if let Some(def) = block.get_field_value("definition") {
             if let Some((_, paramsx)) = def.split_once('(') {
@@ -154,7 +154,7 @@ impl DataBinding {
         }
     }
 
-    pub fn replace_param(&self, arg: &CodeArg, call: &Code) -> Option<CodeArg> {
+    fn replace_param(&self, arg: &CodeArg, call: &Code) -> Option<CodeArg> {
         match arg {
             CodeArg::Chain(chain) => {
                 let mut result = CodeChain { codes: Vec::new() };
@@ -206,7 +206,7 @@ impl DataBinding {
         }
     }
 
-    pub fn validate(&self, data: &Everything) {
+    fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
         vd.req_field("replace_with");
         vd.field_value("description");

@@ -35,7 +35,7 @@ fn modif_check(
     Some(mk)
 }
 
-// Redeclare the `ModifKinds` enums as bare numbers, so that we can to | on them in const tables.
+// Redeclare the `ModifKinds` enums as bare numbers, so that we can do | on them in const tables.
 const Character: u8 = 0x01;
 const Province: u8 = 0x02;
 const County: u8 = 0x04;

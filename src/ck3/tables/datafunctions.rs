@@ -47,6 +47,7 @@ impl Args {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum LookupResult {
     NotFound,
     WrongType,
