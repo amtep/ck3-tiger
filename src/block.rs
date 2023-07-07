@@ -1,3 +1,4 @@
+use crate::block::Eq::{Double, Question, Single};
 use std::borrow::Cow;
 use std::fmt::{Display, Error, Formatter};
 use std::rc::Rc;
@@ -316,7 +317,7 @@ impl Block {
         let mut vec = Vec::new();
         for (k, cmp, v) in &self.v {
             if let Some(key) = k {
-                if matches!(cmp, Comparator::Eq) {
+                if matches!(cmp, Comparator::Equals(Single)) {
                     match v {
                         BV::Value(t) => vec.push((key, t)),
                         BV::Block(_) => (),
@@ -553,59 +554,74 @@ impl Block {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Comparator {
+    /// TODO: Can perhaps be replaced by wrapping the operator in an option.
+    /// Deprecated.
     None,
-    /// Eq is also Assign
-    Eq,
-    /// The == operator, which means Eq but cannot be used to assign
-    EEq,
-    /// The ?= operator
-    QEq,
-    Lt,
-    Gt,
-    Le,
-    Ge,
-    Ne,
+    /// =, ?=, ==,
+    Equals(Eq),
+    /// !=
+    NotEquals,
+    /// <
+    LessThan,
+    /// >
+    GreaterThan,
+    /// <=
+    AtMost,
+    /// >=
+    AtLeast,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Eq {
+    /// Notation: =
+    /// Valid as an equality comparison operator, assignment operator and scope opener.
+    Single,
+    /// Notation: ==
+    /// Only valid as an equality comparison operator.
+    Double,
+    /// Notation: ?=
+    /// Valid as a conditional equality comparison operator and condition scope opener.
+    Question,
 }
 
 impl Comparator {
     pub fn from_str(s: &str) -> Option<Self> {
         if s == "=" {
-            Some(Comparator::Eq)
-        } else if s == "?=" {
-            Some(Comparator::QEq)
+            Some(Comparator::Equals(Single))
         } else if s == "==" {
-            Some(Comparator::EEq)
+            Some(Comparator::Equals(Double))
+        } else if s == "?=" {
+            Some(Comparator::Equals(Question))
         } else if s == "<" {
-            Some(Comparator::Lt)
+            Some(Comparator::LessThan)
         } else if s == ">" {
-            Some(Comparator::Gt)
+            Some(Comparator::GreaterThan)
         } else if s == "<=" {
-            Some(Comparator::Le)
+            Some(Comparator::AtMost)
         } else if s == ">=" {
-            Some(Comparator::Ge)
+            Some(Comparator::AtLeast)
         } else if s == "!=" {
-            Some(Comparator::Ne)
+            Some(Comparator::NotEquals)
         } else {
             None
         }
     }
-
     pub fn from_token(token: &Token) -> Option<Self> {
         Self::from_str(token.as_str())
     }
 }
 
 impl Display for Comparator {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         match *self {
-            Comparator::Eq => write!(f, "="),
-            Comparator::EEq => write!(f, "=="),
-            Comparator::QEq => write!(f, "?="),
-            Comparator::Lt => write!(f, "<"),
-            Comparator::Gt => write!(f, ">"),
-            Comparator::Le => write!(f, "<="),
-            Comparator::Ge => write!(f, ">="),
-            Comparator::Ne => write!(f, "!="),
+            Comparator::Equals(Single) => write!(f, "="),
+            Comparator::Equals(Double) => write!(f, "=="),
+            Comparator::Equals(Question) => write!(f, "?="),
+            Comparator::LessThan => write!(f, "<"),
+            Comparator::GreaterThan => write!(f, ">"),
+            Comparator::AtMost => write!(f, "<="),
+            Comparator::AtLeast => write!(f, ">="),
+            Comparator::NotEquals => write!(f, "!="),
             Comparator::None => Ok(()),
         }
     }
@@ -623,7 +639,7 @@ impl<'a> Iterator for IterAssignments<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         for (k, cmp, bv) in self.iter.by_ref() {
             if let Some(key) = k {
-                if !matches!(cmp, Comparator::Eq) {
+                if !matches!(cmp, Comparator::Equals(Single)) {
                     if self.warn {
                         let msg = format!("expected `{key} =`, found `{cmp}`");
                         error(key, ErrorKey::Validation, &msg);
@@ -759,7 +775,7 @@ impl<'a> Iterator for IterBlockValueDefinitions<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         for (k, cmp, bv) in self.iter.by_ref() {
             if let Some(key) = k {
-                if !matches!(cmp, Comparator::Eq) {
+                if !matches!(cmp, Comparator::Equals(Single)) {
                     if self.warn {
                         error(
                             key,

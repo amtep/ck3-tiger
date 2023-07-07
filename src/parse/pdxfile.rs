@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use fnv::FnvHashMap;
 
+use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
 use crate::fileset::{FileEntry, FileKind};
 use crate::report::{error, warn, warn_info, ErrorKey};
@@ -324,7 +325,7 @@ impl Parser {
         let cmp = Comparator::from_token(&token).unwrap_or_else(|| {
             let msg = format!("Unrecognized comparator '{token}'");
             error(&token, ErrorKey::ParseError, &msg);
-            Comparator::Eq
+            Comparator::Equals(Single)
         });
 
         if self.current.key.is_none() {

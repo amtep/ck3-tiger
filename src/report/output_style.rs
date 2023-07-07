@@ -58,10 +58,10 @@ impl Default for OutputStyle {
         map.insert(Styled::Tag(Severity::Error, false), Red.bold());
         map.insert(Styled::Tag(Severity::Warning, true), Yellow.bold());
         map.insert(Styled::Tag(Severity::Warning, false), Yellow.normal());
-        map.insert(Styled::Tag(Severity::Info, true), Green.bold());
-        map.insert(Styled::Tag(Severity::Info, false), Green.normal());
         map.insert(Styled::Tag(Severity::Untidy, true), Cyan.bold());
         map.insert(Styled::Tag(Severity::Untidy, false), Cyan.normal());
+        map.insert(Styled::Tag(Severity::Tips, true), Green.bold());
+        map.insert(Styled::Tag(Severity::Tips, false), Green.normal());
 
         OutputStyle { map }
     }

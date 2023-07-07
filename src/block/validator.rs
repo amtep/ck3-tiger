@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
-use crate::block::{Block, Comparator, Date, Token, BV};
+use crate::block::{Block, Comparator, Date, Eq::*, Token, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
@@ -1162,12 +1162,12 @@ impl<'a> Validator<'a> {
     fn expect_eq_qeq(&self, key: &Token, cmp: Comparator) {
         #[allow(clippy::collapsible_else_if)]
         if self.allow_qeq {
-            if !matches!(cmp, Comparator::Eq | Comparator::QEq) {
+            if !matches!(cmp, Comparator::Equals(Single | Question)) {
                 let msg = format!("expected `{key} =` or `?=`, found `{cmp}`");
                 error(key, ErrorKey::Validation, &msg);
             }
         } else {
-            if !matches!(cmp, Comparator::Eq) {
+            if !matches!(cmp, Comparator::Equals(Single)) {
                 let msg = format!("expected `{key} =`, found `{cmp}`");
                 error(key, ErrorKey::Validation, &msg);
             }

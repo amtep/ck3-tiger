@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, Comparator, Date, BV};
+use crate::block::{Block, Comparator, Date, Eq::*, BV};
 use crate::context::ScopeContext;
 use crate::data::genes::Gene;
 use crate::data::trigger_localization::TriggerLocalization;
@@ -288,7 +288,7 @@ pub fn validate_trigger_key_bv(
                 sc.expect(inscopes, &prefix);
                 validate_prefix_reference(&prefix, &arg, data);
                 if prefix.is("scope") {
-                    if last && matches!(cmp, Comparator::QEq) {
+                    if last && matches!(cmp, Comparator::Equals(Question)) {
                         // If the comparator is ?=, it's an implicit existence check
                         sc.exists_scope(arg.as_str(), part);
                     }
@@ -367,11 +367,11 @@ pub fn validate_trigger_key_bv(
         return;
     }
 
-    if !matches!(cmp, Comparator::Eq | Comparator::QEq) {
+    if !matches!(cmp, Comparator::Equals(Single | Question)) {
         if sc.can_be(Scopes::Value) {
             sc.close();
             validate_scriptvalue(bv, data, sc);
-        } else if matches!(cmp, Comparator::Ne | Comparator::EEq) {
+        } else if matches!(cmp, Comparator::NotEquals | Comparator::Equals(Double)) {
             let scopes = sc.scopes();
             sc.close();
             if let Some(token) = bv.expect_value() {
@@ -696,7 +696,7 @@ fn match_trigger_bv(
                                 let synthetic_bv = BV::Value(key.clone());
                                 validate_trigger_key_bv(
                                     &target,
-                                    Comparator::Eq,
+                                    Comparator::Equals(Single),
                                     &synthetic_bv,
                                     data,
                                     sc,
@@ -724,7 +724,7 @@ fn match_trigger_bv(
         }
     }
 
-    if matches!(cmp, Comparator::Eq | Comparator::QEq | Comparator::EEq) {
+    if matches!(cmp, Comparator::Equals(_)) {
         if warn_if_eq {
             let msg = format!("`{name} {cmp}` means exactly equal to that amount, which is usually not what you want");
             warn(name, ErrorKey::Logic, &msg);

@@ -1,7 +1,8 @@
-use crate::report::ErrorKey;
-use crate::token::Loc;
 use strum_macros::EnumString;
 use strum_macros::{Display, EnumIter};
+
+use crate::report::ErrorKey;
+use crate::token::Loc;
 
 /// Describes a report about a potentially problematic situation that can be logged.
 #[derive(Debug)]
@@ -67,7 +68,7 @@ impl LogLevel {
     /// The lowest possible log level. If used as a filter, this will match everything.
     pub fn min() -> Self {
         LogLevel {
-            severity: Severity::Untidy,
+            severity: Severity::Tips,
             confidence: Confidence::Weak,
         }
     }
@@ -75,27 +76,39 @@ impl LogLevel {
 
 /// Determines the output colour.
 /// User can also filter by minimum severity level: e.g. don't show me Info-level messages.
+///
+/// The order of these enum values determines the level of severity they denote.
+/// Do not change the order unless you mean to change the logic of the program!
 #[derive(
     Default, Debug, Display, Clone, Copy, Ord, PartialOrd, Eq, PartialEq, Hash, EnumString, EnumIter,
 )]
 pub enum Severity {
-    /// This problem likely will not affect the end-user, but is just sloppy code.
-    /// It constitutes technical debt that will increase maintenance costs.
+    /// These are things that aren't necessarily wrong, but there may be a better, more
+    /// idiomatic way to do it. This may also include performance issues.
+    Tips,
+    /// This code smells.
+    /// The player is unlikely to be impacted directly, but developers working on this codebase
+    /// will likely experience maintenance headaches.
     Untidy,
-    /// The problem may lead to minor glitches, but won't seriously affect gameplay.
-    Info,
-    /// The problem may lead to features not working, unexpected behaviour and other
-    /// bugs that will noticeably impact the end-user's experience playing the game.
+    /// This will result in glitches that will noticeably impact the player's gaming experience.
+    /// Missing translations are an example.
     #[default]
     Warning,
-    /// The problem can potentially cause crashes.
+    /// This code probably doesn't work as intended. The player may experience bugs.
     Error,
+    /// This is likely to cause crashes.
+    Fatal,
 }
 
 /// Mostly invisible in the output.
 /// User can filter by minimum confidence level.
 /// This would be a dial for how many false positives they're willing to put up with.
-#[derive(Default, Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq, Hash, EnumString)]
+///
+/// The order of these enum values determines the level of confidence they denote.
+/// Do not change the order unless you mean to change the logic of the program!
+#[derive(
+    Default, Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq, Hash, EnumString, EnumIter,
+)]
 pub enum Confidence {
     /// Quite likely to be a false positive.
     Weak,

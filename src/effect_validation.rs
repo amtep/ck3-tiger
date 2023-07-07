@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use crate::block::validator::Validator;
+use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
@@ -805,7 +806,7 @@ pub fn validate_effect_block(
                         let synthetic_bv = BV::Value(key.clone());
                         validate_trigger_key_bv(
                             &target,
-                            Comparator::Eq,
+                            Comparator::Equals(Single),
                             &synthetic_bv,
                             data,
                             sc,

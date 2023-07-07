@@ -1,5 +1,5 @@
 use crate::block::validator::Validator;
-use crate::block::{Block, Comparator, BV};
+use crate::block::{Block, Comparator, Eq::*, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::TriBool;
@@ -117,7 +117,7 @@ fn validate_inner(
 
             // Check for target = { script_value }
             sc.open_builder();
-            if validate_scope_chain(token, data, sc, matches!(cmp, Comparator::QEq)) {
+            if validate_scope_chain(token, data, sc, matches!(cmp, Comparator::Equals(Question))) {
                 if let Some(block) = bv.expect_block() {
                     sc.finalize_builder();
                     let vd = Validator::new(block, data);

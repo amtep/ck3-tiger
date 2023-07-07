@@ -96,7 +96,7 @@ fn log_line_title(errors: &Errors, report: &LogReport) {
         errors
             .styles
             .style(&Styled::ErrorMessage)
-            .paint(format!("{}", report.msg)),
+            .paint(report.msg.to_string()),
     ];
     println!("{}", ANSIStrings(line));
 }
@@ -113,7 +113,7 @@ fn log_line_info(errors: &Errors, indentation: usize, info: &str) {
         errors.styles.style(&Styled::Default).paint(" "),
         errors.styles.style(&Styled::InfoTag).paint("Info:"),
         errors.styles.style(&Styled::Default).paint(" "),
-        errors.styles.style(&Styled::Info).paint(format!("{info}")),
+        errors.styles.style(&Styled::Info).paint(info.to_string()),
     ];
     println!("{}", ANSIStrings(line_info));
 }
@@ -154,7 +154,7 @@ fn log_line_from_source(errors: &Errors, pointer: &PointedMessage, indentation: 
         errors
             .styles
             .style(&Styled::SourceText)
-            .paint(format!("{line}")),
+            .paint(line.to_string()),
     ];
     println!("{}", ANSIStrings(line_from_source));
 }
@@ -189,7 +189,7 @@ fn log_line_carets(
         errors
             .styles
             .style(&Styled::Default)
-            .paint(format!("{spacing}")),
+            .paint(spacing.to_string()),
         errors
             .styles
             .style(&Styled::Tag(severity, true))
@@ -198,11 +198,11 @@ fn log_line_carets(
         errors
             .styles
             .style(&Styled::Tag(severity, true))
-            .paint(format!("{}", pointer.msg.as_ref().map_or("", |_| "<-- "))),
+            .paint(pointer.msg.as_ref().map_or("", |_| "<-- ").to_string()),
         errors
             .styles
             .style(&Styled::Tag(severity, true))
-            .paint(format!("{}", pointer.msg.as_ref().unwrap_or(&""))),
+            .paint(pointer.msg.unwrap_or("").to_string()),
     ];
     println!("{}", ANSIStrings(line_carets));
 }

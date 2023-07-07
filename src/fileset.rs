@@ -14,7 +14,7 @@ use crate::everything::Everything;
 use crate::everything::FilesError;
 use crate::modfile::ModFile;
 use crate::report::{
-    add_loaded_mod_root, error, warn_abbreviated, warn_header, will_log, ErrorKey,
+    add_loaded_mod_root, error, warn_abbreviated, warn_header, will_maybe_log, ErrorKey,
 };
 use crate::token::{Loc, Token};
 
@@ -458,7 +458,7 @@ impl Fileset {
         }
         let mut printed_header = false;
         for entry in vec {
-            if !printed_header && will_log(entry, ErrorKey::UnusedFile) {
+            if !printed_header && will_maybe_log(entry, ErrorKey::UnusedFile) {
                 warn_header(ErrorKey::UnusedFile, "Unused DDS files:\n");
                 printed_header = true;
             }

@@ -49,7 +49,7 @@ ck3-tiger <i>path/to/your/</i>descriptor.mod ><i>filename</i>
 ## How to configure
 You can place a file `ck3-tiger.conf` in your mod directory. You can use it to select which languages to check localizations for, and to suppress messages about things you don't want to fix.
 
-There is a sample `ck3-tiger.conf` file in the release, with an explanation of what goes in it.
+There is a sample [`ck3-tiger.conf`](ck3-tiger.conf) file in the release, with an explanation of what goes in it. There is also a [guide](filter.md).
 
 ## How to build
 You can unpack the archive from the "Release" page on GitHub and use it that way.

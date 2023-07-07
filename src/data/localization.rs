@@ -14,7 +14,7 @@ use crate::item::Item;
 use crate::parse::localization::{parse_loca, ValueParser};
 use crate::report::{
     advice_info, error, error_info, warn, warn2, warn_abbreviated, warn_header, warn_info,
-    will_log, ErrorKey,
+    will_maybe_log, ErrorKey,
 };
 use crate::token::Token;
 
@@ -366,7 +366,7 @@ impl Localization {
                 vec.sort_unstable_by_key(|entry| &entry.key.loc);
                 let mut printed_header = false;
                 for entry in vec {
-                    if !printed_header && will_log(&entry.key, ErrorKey::UnusedLocalization) {
+                    if !printed_header && will_maybe_log(&entry.key, ErrorKey::UnusedLocalization) {
                         warn_header(
                             ErrorKey::UnusedLocalization,
                             &format!("Unused localization - {lang}:\n"),
