@@ -19,6 +19,8 @@ enum RawTrigger {
     SetValue,
     /// value must be a valid date
     CompareDate,
+    CompareLevel,
+    CompareStance,
     /// trigger is compared to a scope object
     Scope(u64),
     /// trigger is compared to a scope object which may be `this`
@@ -60,6 +62,8 @@ pub enum Trigger {
     CompareValueWarnEq,
     SetValue,
     CompareDate,
+    CompareLevel,
+    CompareStance,
     Scope(Scopes),
     ScopeOkThis(Scopes),
     Item(Item),
@@ -87,6 +91,8 @@ impl Trigger {
             RawTrigger::CompareValueWarnEq => Trigger::CompareValueWarnEq,
             RawTrigger::SetValue => Trigger::SetValue,
             RawTrigger::CompareDate => Trigger::CompareDate,
+            RawTrigger::CompareLevel => Trigger::CompareLevel,
+            RawTrigger::CompareStance => Trigger::CompareStance,
             RawTrigger::Scope(s) => Trigger::Scope(Scopes::from_bits_truncate(*s)),
             RawTrigger::ScopeOkThis(s) => Trigger::ScopeOkThis(Scopes::from_bits_truncate(*s)),
             RawTrigger::Item(i) => Trigger::Item(*i),

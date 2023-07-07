@@ -10,7 +10,7 @@ use crate::context::ScopeContext;
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
-use crate::helpers::stringify_choices;
+use crate::helpers::{stringify_choices, stringify_list};
 use crate::item::Item;
 use crate::report::{advice_info, error, old_warn, warn2, warn_info, ErrorKey};
 use crate::scopes::{
@@ -444,6 +444,16 @@ fn match_trigger_fields(
     }
 }
 
+const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
+
+const STANCES: &[&str] = &[
+    "strongly_disapprove",
+    "disapprove",
+    "neutral",
+    "approve",
+    "strongly_approve",
+];
+
 fn match_trigger_bv(
     trigger: &Trigger,
     name: &Token,
@@ -481,6 +491,24 @@ fn match_trigger_bv(
                 if Date::from_str(token.as_str()).is_err() {
                     let msg = format!("{name} expects a date value");
                     old_warn(token, ErrorKey::Validation, &msg);
+                }
+            }
+        }
+        Trigger::CompareLevel => {
+            must_be_eq = false;
+            if let Some(token) = bv.expect_value() {
+                if !LEVELS.contains(&token.as_str()) {
+                    let msg = format!("{name} expects one of {}", stringify_list(LEVELS));
+                    warn(token, ErrorKey::Validation, &msg);
+                }
+            }
+        }
+        Trigger::CompareStance => {
+            must_be_eq = false;
+            if let Some(token) = bv.expect_value() {
+                if !STANCES.contains(&token.as_str()) {
+                    let msg = format!("{name} expects one of {}", stringify_list(STANCES));
+                    warn(token, ErrorKey::Validation, &msg);
                 }
             }
         }

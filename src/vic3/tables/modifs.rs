@@ -53,4 +53,6 @@ const Unit: u16 = 0x1000;
 /// LAST UPDATED VERSION 1.9.2
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
-const MODIF_TABLE: &[(&str, u16)] = &[];
+const MODIF_TABLE: &[(&str, u16)] = &[
+    // TODO
+];

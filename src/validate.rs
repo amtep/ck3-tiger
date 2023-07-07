@@ -442,6 +442,7 @@ pub fn validate_inside_iterator(
         });
     }
 
+    #[cfg(feature = "ck3")]
     if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
         vd.field_validated_block("filter", |block, data| {
             validate_normal_trigger(block, data, sc, tooltipped);

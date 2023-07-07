@@ -466,8 +466,8 @@ pub fn validate_prefix_reference(
         // "array_define"
         "average_defense" => validate_target(arg, data, sc, Scopes::Country),
         "average_offense" => validate_target(arg, data, sc, Scopes::Country),
-        "b" => data.verify_exists(Item::Building, arg),
-        // "c" => data.verify_exists(Item::Country, arg),
+        "b" => data.verify_exists(Item::BuildingType, arg),
+        "c" => data.verify_exists(Item::Country, arg),
         // "cd" => data.verify_exists(Item::CountryDefinition, arg),
         "cu" => data.verify_exists(Item::Culture, arg),
         // "decree_cost"

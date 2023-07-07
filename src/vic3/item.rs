@@ -5,7 +5,8 @@ use strum_macros::IntoStaticStr;
 #[cfg(feature = "vic3")]
 pub enum Item {
     Attitude,
-    Building,
+    BuildingType,
+    Country,
     Culture,
     CustomLocalization,
     Define,
@@ -14,6 +15,7 @@ pub enum Item {
     EffectLocalization,
     File,
     GameConcept,
+    Goods,
     Localization,
     Modifier,
     NamedColor,
@@ -28,6 +30,9 @@ pub enum Item {
     ScriptedModifier,
     ScriptedTrigger,
     ScriptValue,
+    StateRegion,
+    StrategicRegion,
+    Technology,
     TriggerLocalization,
 }
 
@@ -37,7 +42,8 @@ impl Item {
         #[allow(clippy::match_same_arms)]
         match self {
             Item::Attitude => "",
-            Item::Building => "common/buildings/",
+            Item::BuildingType => "common/buildings/",
+            Item::Country => "common/country_definitions/",
             Item::Culture => "common/cultures/",
             Item::CustomLocalization => "common/customizable_localization/",
             Item::Define => "common/defines/",
@@ -46,6 +52,7 @@ impl Item {
             Item::EffectLocalization => "common/effect_localization/",
             Item::File => "",
             Item::GameConcept => "common/game_concepts/",
+            Item::Goods => "common/goods/",
             Item::Localization => "localization/",
             Item::Modifier => "common/modifiers/",
             Item::NamedColor => "common/named_colors/",
@@ -60,6 +67,9 @@ impl Item {
             Item::ScriptedModifier => "common/scripted_modifiers/",
             Item::ScriptedTrigger => "common/scripted_triggers/",
             Item::ScriptValue => "common/script_values/",
+            Item::StateRegion => "map_data/state_regions/",
+            Item::StrategicRegion => "common/strategic_regions/",
+            Item::Technology => "common/technology/",
             Item::TriggerLocalization => "common/trigger_localization/",
         }
     }
