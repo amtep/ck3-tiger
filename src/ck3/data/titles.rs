@@ -6,8 +6,8 @@ use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::ck3::data::provinces::ProvId;
 use crate::context::ScopeContext;
-use crate::data::provinces::ProvId;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;

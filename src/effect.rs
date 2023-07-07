@@ -1,15 +1,19 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Eq::*, BV};
+#[cfg(feature = "ck3")]
+use crate::ck3::effect_validation::{
+    validate_effect_block, validate_effect_bv, validate_effect_value,
+};
+#[cfg(feature = "ck3")]
+use crate::ck3::tables::effects::{scope_effect, Effect};
 use crate::context::ScopeContext;
 use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
-use crate::effect_validation::{validate_effect_block, validate_effect_bv, validate_effect_value};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{advice_info, error, error_info, old_warn, warn_info, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::scriptvalue::validate_scriptvalue;
-use crate::tables::effects::{scope_effect, Effect};
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_normal_trigger, validate_target, validate_target_ok_this};
 use crate::validate::{
@@ -17,6 +21,12 @@ use crate::validate::{
     validate_inside_iterator, validate_iterator_fields, validate_modifiers,
     validate_optional_duration, validate_scope_chain, validate_scripted_modifier_call, ListType,
 };
+#[cfg(feature = "vic3")]
+use crate::vic3::effect_validation::{
+    validate_effect_block, validate_effect_bv, validate_effect_value,
+};
+#[cfg(feature = "vic3")]
+use crate::vic3::tables::effects::{scope_effect, Effect};
 
 pub fn validate_normal_effect(
     block: &Block,

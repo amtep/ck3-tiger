@@ -4,8 +4,8 @@ use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date, BV};
-use crate::data::provinces::ProvId;
-use crate::data::titles::Titles;
+use crate::ck3::data::provinces::ProvId;
+use crate::ck3::data::titles::Titles;
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};

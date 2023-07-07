@@ -9,125 +9,125 @@ use strum::IntoEnumIterator;
 use thiserror::Error;
 
 use crate::block::{Block, Comparator, Eq::*, BV};
+#[cfg(feature = "ck3")]
+use crate::ck3::data::{
+    accessory::{Accessory, AccessoryVariation},
+    accolades::{AccoladeIcon, AccoladeName, AccoladeType},
+    activities::{ActivityIntent, ActivityLocale, ActivityType, GuestInviteRule, PulseAction},
+    amenities::Amenity,
+    artifacts::{
+        ArtifactFeature, ArtifactFeatureGroup, ArtifactSlot, ArtifactTemplate, ArtifactType,
+        ArtifactVisual,
+    },
+    assets::Assets,
+    bookmarks::{Bookmark, BookmarkGroup, BookmarkPortrait},
+    buildings::Building,
+    casusbelli::{CasusBelli, CasusBelliGroup},
+    character_templates::CharacterTemplate,
+    characters::Characters,
+    coa::{CoaDynamicDefinition, CoaTemplateList, Coas},
+    coadesigner::{
+        CoaDesignerColorPalette, CoaDesignerColoredEmblem, CoaDesignerEmblemLayout,
+        CoaDesignerPattern,
+    },
+    combat::CombatPhaseEvent,
+    combat_effects::CombatEffect,
+    council::{CouncilPosition, CouncilTask},
+    court_scene::{CourtSceneCulture, CourtSceneGroup, CourtSceneRole, CourtSceneSetting},
+    court_type::CourtType,
+    courtpos::{CourtPosition, CourtPositionCategory},
+    culture_history::CultureHistories,
+    cultures::{
+        Culture, CultureAesthetic, CultureCreationName, CultureEra, CulturePillar, CultureTradition,
+    },
+    data_binding::DataBindings,
+    deathreasons::DeathReason,
+    decisions::Decisions,
+    diarchies::{DiarchyMandate, DiarchyType},
+    difficulty::PlayableDifficultyInfo,
+    dna::Dna,
+    doctrines::Doctrines,
+    dynasties::Dynasties,
+    dynasty_legacies::{DynastyLegacy, DynastyPerk},
+    election::Election,
+    environment::Environment,
+    ethnicity::Ethnicity,
+    event_themes::{EventBackground, EventTheme, EventTransition},
+    events::Events,
+    factions::Faction,
+    flavorization::Flavorization,
+    focus::Focus,
+    gameconcepts::GameConcepts,
+    gamerules::GameRule,
+    genes::Gene,
+    government::Government,
+    gui::Gui,
+    holdings::Holding,
+    holysites::HolySite,
+    hooks::Hook,
+    houses::Houses,
+    important_actions::ImportantAction,
+    innovations::Innovation,
+    inspirations::Inspiration,
+    interaction_cats::InteractionCategories,
+    interactions::Interactions,
+    laws::LawGroup,
+    lifestyles::Lifestyle,
+    maa::MenAtArmsTypes,
+    map_environment::MapEnvironment,
+    mapmodes::MapMode,
+    memories::MemoryType,
+    messages::Message,
+    modif::ModifierFormat,
+    modifiers::Modifier,
+    mottos::{Motto, MottoInsert},
+    music::Musics,
+    namelists::Namelists,
+    nickname::Nickname,
+    on_actions::OnActions,
+    opinions::OpinionModifier,
+    perks::Perk,
+    points_of_interest::PointOfInterest,
+    pool::{CharacterBackground, PoolSelector},
+    portrait::{PortraitAnimation, PortraitCamera, PortraitModifierGroup, PortraitModifierPack},
+    prov_history::ProvinceHistories,
+    provinces::Provinces,
+    regions::Region,
+    relations::Relation,
+    religions::{Religion, ReligionFamily},
+    schemes::Scheme,
+    scripted_animations::ScriptedAnimation,
+    scripted_costs::ScriptedCost,
+    scripted_guis::ScriptedGui,
+    scripted_illustrations::ScriptedIllustration,
+    scripted_rules::ScriptedRule,
+    secrets::Secret,
+    sound::Sounds,
+    stories::Story,
+    struggle::{Catalyst, Struggle},
+    suggestions::Suggestion,
+    terrain::Terrain,
+    title_history::TitleHistories,
+    titles::Titles,
+    traits::Traits,
+    travel::TravelOption,
+    vassalcontract::VassalContract,
+    vassalstance::VassalStance,
+};
 use crate::context::ScopeContext;
-use crate::data::accessory::{Accessory, AccessoryVariation};
-use crate::data::accolades::{AccoladeIcon, AccoladeName, AccoladeType};
-use crate::data::activities::{
-    ActivityIntent, ActivityLocale, ActivityType, GuestInviteRule, PulseAction,
+use crate::data::{
+    colors::NamedColor,
+    customloca::CustomLocalization,
+    defines::Defines,
+    effect_localization::EffectLocalization,
+    localization::Localization,
+    scripted_effects::{Effect, Effects},
+    scripted_lists::ScriptedLists,
+    scripted_modifiers::ScriptedModifiers,
+    scripted_triggers::{Trigger, Triggers},
+    scriptvalues::ScriptValues,
+    trigger_localization::TriggerLocalization,
 };
-use crate::data::amenities::Amenity;
-use crate::data::artifacts::{
-    ArtifactFeature, ArtifactFeatureGroup, ArtifactSlot, ArtifactTemplate, ArtifactType,
-    ArtifactVisual,
-};
-use crate::data::assets::Assets;
-use crate::data::bookmarks::{Bookmark, BookmarkGroup, BookmarkPortrait};
-use crate::data::buildings::Building;
-use crate::data::casusbelli::{CasusBelli, CasusBelliGroup};
-use crate::data::character_templates::CharacterTemplate;
-use crate::data::characters::Characters;
-use crate::data::coa::{CoaDynamicDefinition, CoaTemplateList, Coas};
-use crate::data::coadesigner::{
-    CoaDesignerColorPalette, CoaDesignerColoredEmblem, CoaDesignerEmblemLayout, CoaDesignerPattern,
-};
-use crate::data::colors::NamedColor;
-use crate::data::combat::CombatPhaseEvent;
-use crate::data::combat_effects::CombatEffect;
-use crate::data::council::{CouncilPosition, CouncilTask};
-use crate::data::court_scene::{
-    CourtSceneCulture, CourtSceneGroup, CourtSceneRole, CourtSceneSetting,
-};
-use crate::data::court_type::CourtType;
-use crate::data::courtpos::{CourtPosition, CourtPositionCategory};
-use crate::data::culture_history::CultureHistories;
-use crate::data::cultures::{
-    Culture, CultureAesthetic, CultureCreationName, CultureEra, CulturePillar, CultureTradition,
-};
-use crate::data::customloca::CustomLocalization;
-use crate::data::data_binding::DataBindings;
-use crate::data::deathreasons::DeathReason;
-use crate::data::decisions::Decisions;
-use crate::data::defines::Defines;
-use crate::data::diarchies::{DiarchyMandate, DiarchyType};
-use crate::data::difficulty::PlayableDifficultyInfo;
-use crate::data::dna::Dna;
-use crate::data::doctrines::Doctrines;
-use crate::data::dynasties::Dynasties;
-use crate::data::dynasty_legacies::{DynastyLegacy, DynastyPerk};
-use crate::data::effect_localization::EffectLocalization;
-use crate::data::election::Election;
-use crate::data::environment::Environment;
-use crate::data::ethnicity::Ethnicity;
-use crate::data::event_themes::{EventBackground, EventTheme, EventTransition};
-use crate::data::events::Events;
-use crate::data::factions::Faction;
-use crate::data::flavorization::Flavorization;
-use crate::data::focus::Focus;
-use crate::data::gameconcepts::GameConcepts;
-use crate::data::gamerules::GameRule;
-use crate::data::genes::Gene;
-use crate::data::government::Government;
-use crate::data::gui::Gui;
-use crate::data::holdings::Holding;
-use crate::data::holysites::HolySite;
-use crate::data::hooks::Hook;
-use crate::data::houses::Houses;
-use crate::data::important_actions::ImportantAction;
-use crate::data::innovations::Innovation;
-use crate::data::inspirations::Inspiration;
-use crate::data::interaction_cats::InteractionCategories;
-use crate::data::interactions::Interactions;
-use crate::data::laws::LawGroup;
-use crate::data::lifestyles::Lifestyle;
-use crate::data::localization::Localization;
-use crate::data::maa::MenAtArmsTypes;
-use crate::data::map_environment::MapEnvironment;
-use crate::data::mapmodes::MapMode;
-use crate::data::memories::MemoryType;
-use crate::data::messages::Message;
-use crate::data::modif::ModifierFormat;
-use crate::data::modifiers::Modifier;
-use crate::data::mottos::{Motto, MottoInsert};
-use crate::data::music::Musics;
-use crate::data::namelists::Namelists;
-use crate::data::nickname::Nickname;
-use crate::data::on_actions::OnActions;
-use crate::data::opinions::OpinionModifier;
-use crate::data::perks::Perk;
-use crate::data::points_of_interest::PointOfInterest;
-use crate::data::pool::{CharacterBackground, PoolSelector};
-use crate::data::portrait::{
-    PortraitAnimation, PortraitCamera, PortraitModifierGroup, PortraitModifierPack,
-};
-use crate::data::prov_history::ProvinceHistories;
-use crate::data::provinces::Provinces;
-use crate::data::regions::Region;
-use crate::data::relations::Relation;
-use crate::data::religions::{Religion, ReligionFamily};
-use crate::data::schemes::Scheme;
-use crate::data::scripted_animations::ScriptedAnimation;
-use crate::data::scripted_costs::ScriptedCost;
-use crate::data::scripted_effects::{Effect, Effects};
-use crate::data::scripted_guis::ScriptedGui;
-use crate::data::scripted_illustrations::ScriptedIllustration;
-use crate::data::scripted_lists::ScriptedLists;
-use crate::data::scripted_modifiers::ScriptedModifiers;
-use crate::data::scripted_rules::ScriptedRule;
-use crate::data::scripted_triggers::{Trigger, Triggers};
-use crate::data::scriptvalues::ScriptValues;
-use crate::data::secrets::Secret;
-use crate::data::sound::Sounds;
-use crate::data::stories::Story;
-use crate::data::struggle::{Catalyst, Struggle};
-use crate::data::suggestions::Suggestion;
-use crate::data::terrain::Terrain;
-use crate::data::title_history::TitleHistories;
-use crate::data::titles::Titles;
-use crate::data::traits::Traits;
-use crate::data::travel::TravelOption;
-use crate::data::trigger_localization::TriggerLocalization;
-use crate::data::vassalcontract::VassalContract;
-use crate::data::vassalstance::VassalStance;
 use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
@@ -144,7 +144,7 @@ use crate::token::{Loc, Token};
 
 #[derive(Debug, Error)]
 pub enum FilesError {
-    #[error("Could not read CK3 game files at {path}")]
+    #[error("Could not read game files at {path}")]
     VanillaUnreadable {
         path: PathBuf,
         source: walkdir::Error,
@@ -165,7 +165,7 @@ pub struct Everything {
 
     warned_defines: RefCell<FnvHashSet<String>>,
 
-    /// The CK3 and mod files
+    /// The vanilla and mod files
     pub fileset: Fileset,
 
     pub dds: DdsFiles,
@@ -180,35 +180,48 @@ pub struct Everything {
     pub defines: Defines,
 
     /// Processed event files
+    #[cfg(feature = "ck3")]
     pub events: Events,
 
     /// Processed decision files
+    #[cfg(feature = "ck3")]
     pub decisions: Decisions,
 
     pub scripted_modifiers: ScriptedModifiers,
+    #[cfg(feature = "ck3")]
     pub on_actions: OnActions,
 
     /// Processed character interaction files
+    #[cfg(feature = "ck3")]
     pub interactions: Interactions,
+    #[cfg(feature = "ck3")]
     pub interaction_cats: InteractionCategories,
 
     /// Processed map data
+    #[cfg(feature = "ck3")]
     pub provinces: Provinces,
 
     /// Processed history/provinces data
+    #[cfg(feature = "ck3")]
     pub province_histories: ProvinceHistories,
 
     /// Processed game concepts
+    #[cfg(feature = "ck3")]
     pub gameconcepts: GameConcepts,
 
     /// Landed titles
+    #[cfg(feature = "ck3")]
     pub titles: Titles,
 
+    #[cfg(feature = "ck3")]
     pub dynasties: Dynasties,
+    #[cfg(feature = "ck3")]
     pub houses: Houses,
+    #[cfg(feature = "ck3")]
     pub characters: Characters,
 
     /// Cultural name lists
+    #[cfg(feature = "ck3")]
     pub namelists: Namelists,
 
     pub scriptvalues: ScriptValues,
@@ -216,22 +229,33 @@ pub struct Everything {
     pub triggers: Triggers,
     pub effects: Effects,
 
+    #[cfg(feature = "ck3")]
     pub traits: Traits,
 
+    #[cfg(feature = "ck3")]
     pub title_history: TitleHistories,
 
+    #[cfg(feature = "ck3")]
     pub doctrines: Doctrines,
 
+    #[cfg(feature = "ck3")]
     pub menatarmstypes: MenAtArmsTypes,
 
+    #[cfg(feature = "ck3")]
     pub gui: Gui,
+    #[cfg(feature = "ck3")]
     pub data_bindings: DataBindings,
 
+    #[cfg(feature = "ck3")]
     pub assets: Assets,
+    #[cfg(feature = "ck3")]
     pub sounds: Sounds,
+    #[cfg(feature = "ck3")]
     pub music: Musics,
 
+    #[cfg(feature = "ck3")]
     pub coas: Coas,
+    #[cfg(feature = "ck3")]
     pub culture_history: CultureHistories,
 }
 
@@ -269,33 +293,57 @@ impl Everything {
             localization: Localization::default(),
             scripted_lists: ScriptedLists::default(),
             defines: Defines::default(),
+            #[cfg(feature = "ck3")]
             events: Events::default(),
+            #[cfg(feature = "ck3")]
             decisions: Decisions::default(),
             scripted_modifiers: ScriptedModifiers::default(),
+            #[cfg(feature = "ck3")]
             on_actions: OnActions::default(),
+            #[cfg(feature = "ck3")]
             interactions: Interactions::default(),
+            #[cfg(feature = "ck3")]
             interaction_cats: InteractionCategories::default(),
+            #[cfg(feature = "ck3")]
             provinces: Provinces::default(),
+            #[cfg(feature = "ck3")]
             province_histories: ProvinceHistories::default(),
+            #[cfg(feature = "ck3")]
             gameconcepts: GameConcepts::default(),
+            #[cfg(feature = "ck3")]
             titles: Titles::default(),
+            #[cfg(feature = "ck3")]
             dynasties: Dynasties::default(),
+            #[cfg(feature = "ck3")]
             houses: Houses::default(),
+            #[cfg(feature = "ck3")]
             characters: Characters::default(),
+            #[cfg(feature = "ck3")]
             namelists: Namelists::default(),
             scriptvalues: ScriptValues::default(),
             triggers: Triggers::default(),
             effects: Effects::default(),
+            #[cfg(feature = "ck3")]
             traits: Traits::default(),
+            #[cfg(feature = "ck3")]
             title_history: TitleHistories::default(),
+            #[cfg(feature = "ck3")]
             doctrines: Doctrines::default(),
+            #[cfg(feature = "ck3")]
             menatarmstypes: MenAtArmsTypes::default(),
+            #[cfg(feature = "ck3")]
             gui: Gui::default(),
+            #[cfg(feature = "ck3")]
             data_bindings: DataBindings::default(),
+            #[cfg(feature = "ck3")]
             assets: Assets::default(),
+            #[cfg(feature = "ck3")]
             sounds: Sounds::default(),
+            #[cfg(feature = "ck3")]
             music: Musics::default(),
+            #[cfg(feature = "ck3")]
             coas: Coas::default(),
+            #[cfg(feature = "ck3")]
             culture_history: CultureHistories::default(),
         })
     }
@@ -729,15 +777,14 @@ impl Everything {
         self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
         self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
-
-        self.load_pdx_items(Item::Culture, Culture::add);
-        self.fileset.handle(&mut self.events);
-        self.load_pdx_items(Item::Modifier, Modifier::add);
-        self.load_pdx_items(Item::Religion, Religion::add);
     }
 
     #[cfg(feature = "ck3")]
     fn load_all_ck3(&mut self) {
+        self.load_pdx_items(Item::Culture, Culture::add);
+        self.fileset.handle(&mut self.events);
+        self.load_pdx_items(Item::Modifier, Modifier::add);
+        self.load_pdx_items(Item::Religion, Religion::add);
         self.fileset.handle(&mut self.decisions);
         self.fileset.handle(&mut self.on_actions);
         self.fileset.handle(&mut self.interactions);
@@ -899,12 +946,11 @@ impl Everything {
         self.scriptvalues.validate(self);
         self.triggers.validate(self);
         self.effects.validate(self);
-
-        self.events.validate(self);
     }
 
     #[cfg(feature = "ck3")]
     fn validate_all_ck3(&mut self) {
+        self.events.validate(self);
         self.on_actions.validate(self);
         self.decisions.validate(self);
         self.interactions.validate(self);
@@ -948,6 +994,7 @@ impl Everything {
         rivers.validate(self);
     }
 
+    #[cfg(feature = "ck3")]
     pub fn check_pod(&mut self) {
         self.province_histories.check_pod_faiths(self, &self.titles);
         self.characters.check_pod_flags(self);
@@ -963,6 +1010,7 @@ impl Everything {
         self.database.has_property(itype, key, property, self)
     }
 
+    #[cfg(feature = "ck3")]
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
@@ -1021,6 +1069,23 @@ impl Everything {
         }
     }
 
+    #[cfg(feature = "vic3")]
+    pub fn item_exists(&self, itype: Item, key: &str) -> bool {
+        match itype {
+            Item::Define => self.defines.exists(key),
+            Item::Dlc => DLC.contains(&key),
+            Item::DlcFeature => DLC_FEATURES.contains(&key),
+            Item::File => self.fileset.exists(key),
+            Item::Localization => self.localization.exists(key),
+            Item::ScriptedEffect => self.effects.exists(key),
+            Item::ScriptedList => self.scripted_lists.exists(key),
+            Item::ScriptedModifier => self.scripted_modifiers.exists(key),
+            Item::ScriptedTrigger => self.triggers.exists(key),
+            Item::ScriptValue => self.scriptvalues.exists(key),
+            _ => self.database.exists(itype, key),
+        }
+    }
+
     pub fn item_used(&self, itype: Item, key: &str) {
         match itype {
             Item::File => self.fileset.mark_used(key),
@@ -1037,9 +1102,13 @@ impl Everything {
         match itype {
             Item::File => self.fileset.verify_exists_implied(key, token),
             Item::Localization => self.localization.verify_exists_implied(key, token),
+            #[cfg(feature = "ck3")]
             Item::Music => self.music.verify_exists_implied(key, token),
+            #[cfg(feature = "ck3")]
             Item::Province => self.provinces.verify_exists_implied(key, token),
+            #[cfg(feature = "ck3")]
             Item::Sound => self.sounds.verify_exists_implied(key, token, self),
+            #[cfg(feature = "ck3")]
             Item::TextureFile => {
                 if let Some(entry) = self.assets.get_texture(key) {
                     // TODO: avoid allocating a string here
@@ -1074,6 +1143,7 @@ impl Everything {
         self.database.get_key_block(itype, key)
     }
 
+    #[cfg(feature = "ck3")]
     pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
         if let Some(trigger) = self.triggers.get(key.as_str()) {
             Some(trigger)
@@ -1083,7 +1153,12 @@ impl Everything {
             None
         }
     }
+    #[cfg(feature = "vic3")]
+    pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
+        self.triggers.get(key.as_str())
+    }
 
+    #[cfg(feature = "ck3")]
     pub fn get_effect(&self, key: &Token) -> Option<&Effect> {
         if let Some(effect) = self.effects.get(key.as_str()) {
             Some(effect)
@@ -1092,6 +1167,10 @@ impl Everything {
         } else {
             None
         }
+    }
+    #[cfg(feature = "vic3")]
+    pub fn get_effect(&self, key: &Token) -> Option<&Effect> {
+        self.effects.get(key.as_str())
     }
 
     pub fn get_defined_string(&self, key: &str) -> Option<&Token> {

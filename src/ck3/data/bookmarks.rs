@@ -1,7 +1,7 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::ck3::data::dna::validate_genes;
 use crate::context::ScopeContext;
-use crate::data::dna::validate_genes;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;

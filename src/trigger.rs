@@ -2,8 +2,11 @@ use std::str::FromStr;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Date, Eq::*, BV};
+#[cfg(feature = "ck3")]
+use crate::ck3::data::genes::Gene;
+#[cfg(feature = "ck3")]
+use crate::ck3::tables::triggers::{scope_trigger, trigger_comparevalue, Trigger};
 use crate::context::ScopeContext;
-use crate::data::genes::Gene;
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
@@ -12,13 +15,14 @@ use crate::item::Item;
 use crate::report::{advice_info, error, old_warn, warn2, warn_info, ErrorKey};
 use crate::scopes::{scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::scriptvalue::validate_scriptvalue;
-use crate::tables::triggers::{scope_trigger, trigger_comparevalue, Trigger};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
     validate_iterator_fields, validate_prefix_reference, ListType,
 };
+#[cfg(feature = "vic3")]
+use crate::vic3::tables::triggers::{scope_trigger, trigger_comparevalue, Trigger};
 
 pub fn validate_normal_trigger(
     block: &Block,
@@ -639,6 +643,7 @@ fn match_trigger_bv(
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
                     vd.field_item("category", Item::GeneCategory);
+                    #[cfg(feature = "ck3")]
                     if let Some(category) = block.get_field_value("category") {
                         if let Some(template) = vd.field_value("template") {
                             Gene::verify_has_template(category.as_str(), template, data);

@@ -27,6 +27,11 @@ pub mod gamedir;
 pub mod modfile;
 pub mod report;
 
+#[cfg(feature = "ck3")]
+mod ck3;
+#[cfg(feature = "vic3")]
+mod vic3;
+
 mod block;
 mod context;
 mod data;
@@ -35,7 +40,6 @@ mod db;
 mod dds;
 mod desc;
 mod effect;
-mod effect_validation;
 mod fileset;
 mod helpers;
 mod item;
@@ -46,7 +50,6 @@ mod pdxfile;
 mod rivers;
 mod scopes;
 mod scriptvalue;
-mod tables;
 mod token;
 mod tooltipped;
 mod trigger;

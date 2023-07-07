@@ -1,18 +1,24 @@
 use std::borrow::Cow;
 use std::str::FromStr;
 
+#[cfg(feature = "ck3")]
+use crate::ck3::data::religions::CUSTOM_RELIGION_LOCAS;
+#[cfg(feature = "ck3")]
+pub use crate::ck3::tables::datafunctions::{
+    lookup_alternative, lookup_function, lookup_global_function, lookup_global_promote,
+    lookup_promote, scope_from_datatype, Arg, Args, Datatype, LookupResult,
+};
 use crate::data::customloca::CustomLocalization;
-use crate::data::religions::CUSTOM_RELIGION_LOCAS;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{error, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
-use crate::tables::datafunctions::scope_from_datatype;
-pub use crate::tables::datafunctions::{
-    lookup_alternative, lookup_function, lookup_global_function, lookup_global_promote,
-    lookup_promote, Arg, Args, Datatype, LookupResult,
-};
 use crate::token::Token;
+#[cfg(feature = "vic3")]
+pub use crate::vic3::tables::datafunctions::{
+    lookup_alternative, lookup_function, lookup_global_function, lookup_global_promote,
+    lookup_promote, scope_from_datatype, Arg, Args, Datatype, LookupResult,
+};
 
 #[derive(Clone, Debug)]
 pub struct CodeChain {
@@ -130,6 +136,7 @@ pub fn validate_datatypes(
     // Have to loop with `while` instead of `for` because the array can mutate during the loop because of macro substitution
     let mut i = 0;
     while i < codes.len() {
+        #[cfg(feature = "ck3")]
         while let Some(binding) = data.data_bindings.get(codes[i].name.as_str()) {
             if let Some(replacement) = binding.replace(&codes[i]) {
                 macro_count += 1;
@@ -296,6 +303,7 @@ pub fn validate_datatypes(
         }
 
         // TODO: validate the Faith customs
+        #[cfg(feature = "ck3")]
         if curtype != Datatype::Faith && (code.name.is("Custom") && code.arguments.len() == 1)
             || (code.name.is("Custom2") && code.arguments.len() == 2)
         {

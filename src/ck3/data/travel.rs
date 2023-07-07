@@ -1,7 +1,7 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::ck3::data::activities::validate_tes;
 use crate::context::ScopeContext;
-use crate::data::activities::validate_tes;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;

@@ -5,8 +5,7 @@ use std::path::PathBuf;
 use tiger_lib::everything::Everything;
 use tiger_lib::gamedir::find_game_directory_steam;
 use tiger_lib::report::{
-    ignore_key, set_minimum_level, set_mod_root, set_vanilla_dir, show_loaded_mods, show_vanilla,
-    ErrorKey, LogLevel,
+   disable_ansi_colors, set_mod_root, set_show_loaded_mods, set_show_vanilla, set_vanilla_dir,
 };
 
 /// Steam's code for Victoria 3
@@ -25,25 +24,30 @@ struct Cli {
     /// Path to Vic3 directory.
     #[clap(long)]
     vic3: Option<PathBuf>,
-    /// Show errors in the base Vic3 script code as well
+    /// Show errors in the base Vic3 script code as well.
     #[clap(long)]
     show_vanilla: bool,
-    /// Show errors in other loaded mods as well
+    /// Show errors in other loaded mods as well.
     #[clap(long)]
     show_mods: bool,
-    /// Show advice in addition to warnings and errors
-    #[clap(long)]
-    advice: bool,
-    /// Warn about items that are defined but unused
+    /// Warn about items that are defined but unused.
     #[clap(long)]
     unused: bool,
-    /// Warn about use of named scopes that haven't been defined
+    /// Omit color from the output.
     #[clap(long)]
-    strict_scopes: bool,
+    no_color: bool,
+
 }
 
 fn main() -> Result<()> {
     let mut args = Cli::parse();
+
+    #[cfg(windows)]
+    if !args.no_color {
+        let _ = ansi_term::enable_ansi_support()
+            .map_err(|_| eprintln!("Failed to enable ANSI support for Windows10 users. Continuing probably without colored output."));
+    }
+
 
     // LAST UPDATED VERSION VIC3 1.3.6
     eprintln!("This validator was made for Victoria 3 version 1.3.6 (Thé à la menthe).");
@@ -77,26 +81,16 @@ fn main() -> Result<()> {
 
     if args.show_vanilla {
         eprintln!("Showing warnings for base game files too. There will be many false positives in those.");
-        show_vanilla(true);
+        set_show_vanilla(true);
     }
 
     if args.show_mods {
         eprintln!("Showing warnings for other loaded mods too.");
-        show_loaded_mods(true);
-    }
-
-    if args.advice {
-        set_minimum_level(LogLevel::min());
+        set_show_loaded_mods(true);
     }
 
     if args.unused {
         eprintln!("Showing warnings for unused localization. There will be many false positives.");
-    }
-
-    if args.strict_scopes {
-        eprintln!("Using stricter scope checking. This will generate more false positives but will also find more real errors.");
-    } else {
-        ignore_key(ErrorKey::StrictScopes);
     }
 
     if args.modpath.is_dir() {
@@ -110,9 +104,22 @@ fn main() -> Result<()> {
         }
     }
     eprintln!("Using mod directory: {}", args.modpath.display());
+
     set_mod_root(args.modpath.clone());
 
     let mut everything = Everything::new(&args.vic3.unwrap(), &args.modpath, Vec::new())?;
+
+    // Print a blank line between the preamble and the first report:
+    eprintln!();
+
+    everything.load_output_settings();
+    everything.load_config_filtering_rules();
+
+    // We must apply the --no-color flag AFTER loading and applying the config,
+    // because we want it to override the config.
+    if args.no_color {
+        disable_ansi_colors();
+    }
     everything.load_all();
     everything.validate_all();
     everything.check_rivers();

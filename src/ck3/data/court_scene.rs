@@ -2,8 +2,8 @@ use std::cmp::max;
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::ck3::data::scripted_animations::validate_scripted_animation;
 use crate::context::ScopeContext;
-use crate::data::scripted_animations::validate_scripted_animation;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;

@@ -4,6 +4,7 @@ use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
+use crate::ck3::tables::on_action::on_action_scopecontext;
 use crate::context::ScopeContext;
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
@@ -12,7 +13,6 @@ use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::report::{error_info, warn_info, ErrorKey};
 use crate::scopes::Scopes;
-use crate::tables::on_action::on_action_scopecontext;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;

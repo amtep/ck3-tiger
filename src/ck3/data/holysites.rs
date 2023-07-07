@@ -1,6 +1,6 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
-use crate::data::titles::Tier;
+use crate::ck3::data::titles::Tier;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;

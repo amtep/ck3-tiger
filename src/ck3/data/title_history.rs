@@ -4,8 +4,8 @@ use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
+use crate::ck3::data::titles::Tier;
 use crate::context::ScopeContext;
-use crate::data::titles::Tier;
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};

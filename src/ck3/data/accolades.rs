@@ -1,7 +1,7 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::ck3::data::maa::{validate_terrain_bonus, validate_winter_bonus};
 use crate::context::ScopeContext;
-use crate::data::maa::{validate_terrain_bonus, validate_winter_bonus};
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::everything::Everything;

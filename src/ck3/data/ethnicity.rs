@@ -1,6 +1,6 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
-use crate::data::genes::Gene;
+use crate::ck3::data::genes::Gene;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;

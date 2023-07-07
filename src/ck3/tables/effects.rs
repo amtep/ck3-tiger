@@ -1,4 +1,4 @@
-use crate::effect_validation::{EvB, EvBv, EvV};
+use crate::ck3::effect_validation::{EvB, EvBv, EvV};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::*;

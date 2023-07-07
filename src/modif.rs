@@ -6,12 +6,15 @@ use bitflags::bitflags;
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+#[cfg(feature = "ck3")]
+use crate::ck3::tables::modifs::lookup_modif;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{error, old_warn, ErrorKey};
 use crate::scriptvalue::validate_non_dynamic_scriptvalue;
-use crate::tables::modifs::lookup_modif;
 use crate::token::Token;
+#[cfg(feature = "vic3")]
+use crate::vic3::tables::modifs::lookup_modif;
 
 bitflags! {
     #[derive(Debug, Copy, Clone)]
