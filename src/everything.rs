@@ -465,55 +465,61 @@ impl Everything {
     }
 
     fn load_all_generic(&mut self) {
-        self.fileset.handle(&mut self.dds);
-        self.fileset.handle(&mut self.localization);
-        self.fileset.handle(&mut self.scripted_lists);
-        self.fileset.handle(&mut self.defines);
-        self.fileset.handle(&mut self.scripted_modifiers);
-        self.fileset.handle(&mut self.scriptvalues);
-        self.fileset.handle(&mut self.triggers);
-        self.fileset.handle(&mut self.effects);
+        scope(|s| {
+            s.spawn(|_| self.fileset.handle(&mut self.dds));
+            s.spawn(|_| self.fileset.handle(&mut self.localization));
+            s.spawn(|_| self.fileset.handle(&mut self.scripted_lists));
+            s.spawn(|_| self.fileset.handle(&mut self.defines));
+            s.spawn(|_| self.fileset.handle(&mut self.scripted_modifiers));
+            s.spawn(|_| self.fileset.handle(&mut self.scriptvalues));
+            s.spawn(|_| self.fileset.handle(&mut self.triggers));
+            s.spawn(|_| self.fileset.handle(&mut self.effects));
+
+            s.spawn(|_| self.fileset.handle(&mut self.events));
+        });
+
         self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
         self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
         self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
 
         self.load_pdx_items(Item::Culture, Culture::add);
-        self.fileset.handle(&mut self.events);
         self.load_pdx_items(Item::Modifier, Modifier::add);
         self.load_pdx_items(Item::Religion, Religion::add);
     }
 
     #[cfg(feature = "ck3")]
     fn load_all_ck3(&mut self) {
-        self.fileset.handle(&mut self.on_actions);
+        scope(|s| {
+            s.spawn(|_| self.fileset.handle(&mut self.on_actions));
+            s.spawn(|_| self.fileset.handle(&mut self.interaction_cats));
+            s.spawn(|_| self.fileset.handle(&mut self.provinces));
+            s.spawn(|_| self.fileset.handle(&mut self.province_histories));
+            s.spawn(|_| self.fileset.handle(&mut self.gameconcepts));
+            s.spawn(|_| self.fileset.handle(&mut self.titles));
+            s.spawn(|_| self.fileset.handle(&mut self.characters));
+            s.spawn(|_| self.fileset.handle(&mut self.traits));
+            s.spawn(|_| self.fileset.handle(&mut self.title_history));
+            s.spawn(|_| self.fileset.handle(&mut self.doctrines));
+            s.spawn(|_| self.fileset.handle(&mut self.menatarmstypes));
+            s.spawn(|_| self.fileset.handle(&mut self.gui));
+            s.spawn(|_| self.fileset.handle(&mut self.data_bindings));
+            s.spawn(|_| self.fileset.handle(&mut self.assets));
+            s.spawn(|_| self.fileset.handle(&mut self.sounds));
+            s.spawn(|_| self.fileset.handle(&mut self.music));
+        });
         self.load_pdx_items(Item::Decision, Decision::add);
         self.load_pdx_items(Item::Interaction, Interaction::add);
-        self.fileset.handle(&mut self.interaction_cats);
-        self.fileset.handle(&mut self.provinces);
-        self.fileset.handle(&mut self.province_histories);
-        self.fileset.handle(&mut self.gameconcepts);
         self.load_pdx_items(Item::ReligionFamily, ReligionFamily::add);
-        self.fileset.handle(&mut self.titles);
         self.load_pdx_items(Item::Dynasty, Dynasty::add);
         self.load_pdx_items(Item::House, House::add);
-        self.fileset.handle(&mut self.characters);
         self.load_pdx_items(Item::NameList, NameList::add);
-        self.fileset.handle(&mut self.traits);
         self.load_pdx_items(Item::Lifestyle, Lifestyle::add);
         self.load_pdx_items(Item::CourtPositionCategory, CourtPositionCategory::add);
         self.load_pdx_items(Item::CourtPosition, CourtPosition::add);
-        self.fileset.handle(&mut self.title_history);
-        self.fileset.handle(&mut self.doctrines);
-        self.fileset.handle(&mut self.menatarmstypes);
         self.load_pdx_items(Item::EventTheme, EventTheme::add);
         self.load_pdx_items(Item::EventBackground, EventBackground::add);
         self.load_pdx_items(Item::EventTransition, EventTransition::add);
-        self.fileset.handle(&mut self.gui);
-        self.fileset.handle(&mut self.data_bindings);
-        self.fileset.handle(&mut self.assets);
-        self.fileset.handle(&mut self.sounds);
-        self.fileset.handle(&mut self.music);
         self.load_pdx_items(Item::ScriptedRule, ScriptedRule::add);
         self.load_pdx_items(Item::Faction, Faction::add);
         self.load_pdx_items(Item::Relation, Relation::add);
@@ -538,7 +544,6 @@ impl Everything {
         self.load_pdx_items(Item::ArtifactFeatureGroup, ArtifactFeatureGroup::add);
         self.load_pdx_items(Item::Nickname, Nickname::add);
         self.load_pdx_items(Item::Building, Building::add);
-        Building::finalize(&mut self.database);
         self.load_pdx_items(Item::CultureEra, CultureEra::add);
         self.load_pdx_items(Item::CulturePillar, CulturePillar::add);
         self.load_pdx_items(Item::CultureTradition, CultureTradition::add);
@@ -622,6 +627,7 @@ impl Everything {
         self.load_pdx_items(Item::ScriptedCost, ScriptedCost::add);
         self.load_pdx_items(Item::PlayableDifficultyInfo, PlayableDifficultyInfo::add);
         self.load_pdx_items(Item::Message, Message::add);
+        Building::finalize(&mut self.database);
     }
 
     #[cfg(feature = "vic3")]
