@@ -4,6 +4,7 @@
 //! - The user is forced to add at least one pointer, making it impossible to create a report
 //!     without pointers, which would lead to panics.
 
+use crate::helpers::Own;
 use crate::report::{log, Confidence, ErrorKey, ErrorLoc, LogReport, PointedMessage, Severity};
 
 // =================================================================================================
@@ -53,25 +54,26 @@ impl ReportBuilderStage1 {
         self
     }
     /// Sets the main report message.
-    pub fn msg(self, msg: &str) -> ReportBuilderStage2 {
-        ReportBuilderStage2 { stage1: self, msg, info: None }
+    pub fn msg<S: Own<String>>(self, msg: S) -> ReportBuilderStage2 {
+        ReportBuilderStage2 { stage1: self, msg: msg.own(), info: None }
     }
 }
 
 #[derive(Debug)]
-pub struct ReportBuilderStage2<'a> {
+pub struct ReportBuilderStage2 {
     stage1: ReportBuilderStage1,
-    msg: &'a str,
-    info: Option<&'a str>,
+    msg: String,
+    info: Option<String>,
 }
 
-impl<'a> ReportBuilderStage2<'a> {
+impl ReportBuilderStage2 {
     /// Optional step. Adds an info section to the report.
-    pub fn info(mut self, info: &'a str) -> Self {
-        self.info = if info.is_empty() { None } else { Some(info) };
+    pub fn info<S: Own<String>>(mut self, info: S) -> Self {
+        let info = info.own();
+        self.info = if info.is_empty() { None } else { Some(info.own()) };
         self
     }
-    pub fn loc<E: ErrorLoc>(self, loc: E) -> ReportBuilderStage3<'a> {
+    pub fn loc<E: ErrorLoc>(self, loc: E) -> ReportBuilderStage3 {
         ReportBuilderStage3 {
             stage1: self.stage1,
             msg: self.msg,
@@ -79,34 +81,42 @@ impl<'a> ReportBuilderStage2<'a> {
             pointers: vec![PointedMessage { location: loc.into_loc(), length: 1, msg: None }],
         }
     }
-    pub fn loc_msg<E: ErrorLoc>(self, loc: E, msg: &'a str) -> ReportBuilderStage3 {
+    pub fn loc_msg<E: ErrorLoc, S: Own<String>>(self, loc: E, msg: S) -> ReportBuilderStage3 {
         ReportBuilderStage3 {
             stage1: self.stage1,
             msg: self.msg,
             info: self.info,
-            pointers: vec![PointedMessage { location: loc.into_loc(), length: 1, msg: Some(msg) }],
+            pointers: vec![PointedMessage {
+                location: loc.into_loc(),
+                length: 1,
+                msg: Some(msg.own()),
+            }],
         }
     }
-    pub fn pointers(self, pointers: Vec<PointedMessage<'a>>) -> ReportBuilderStage3 {
+    pub fn pointers(self, pointers: Vec<PointedMessage>) -> ReportBuilderStage3 {
         ReportBuilderStage3 { stage1: self.stage1, msg: self.msg, info: self.info, pointers }
     }
 }
 
 #[derive(Debug)]
-pub struct ReportBuilderStage3<'a> {
+pub struct ReportBuilderStage3 {
     stage1: ReportBuilderStage1,
-    msg: &'a str,
-    info: Option<&'a str>,
-    pointers: Vec<PointedMessage<'a>>,
+    msg: String,
+    info: Option<String>,
+    pointers: Vec<PointedMessage>,
 }
 
-impl<'a> ReportBuilderStage3<'a> {
-    pub fn loc<E: ErrorLoc>(mut self, loc: E, msg: &'a str) -> Self {
-        self.pointers.push(PointedMessage { location: loc.into_loc(), length: 1, msg: Some(msg) });
+impl ReportBuilderStage3 {
+    pub fn loc<E: ErrorLoc, S: Own<String>>(mut self, loc: E, msg: S) -> Self {
+        self.pointers.push(PointedMessage {
+            location: loc.into_loc(),
+            length: 1,
+            msg: Some(msg.own()),
+        });
         self
     }
     /// Build the report and returns it.
-    pub fn build(self) -> LogReport<'a> {
+    pub fn build(self) -> LogReport {
         LogReport {
             key: self.stage1.0,
             severity: self.stage1.1,

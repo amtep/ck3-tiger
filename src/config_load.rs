@@ -427,12 +427,12 @@ pub fn assert_one_key(assert_key: &str, block: &Block) {
             .map(|(index, key)| PointedMessage {
                 location: key.into_loc(),
                 length: 1,
-                msg: Some(if index == 0 { "It occurs here" } else { "and here" }),
+                msg: Some((if index == 0 { "It occurs here" } else { "and here" }).to_owned()),
             })
             .collect();
         err(ErrorKey::Config)
             .strong()
-            .msg(&format!("Detected more than one `{assert_key}`: there can be only one here!"))
+            .msg(format!("Detected more than one `{assert_key}`: there can be only one here!"))
             .pointers(pointers)
             .push();
     }

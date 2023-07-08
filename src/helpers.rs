@@ -6,27 +6,27 @@ use crate::token::Token;
 /// Warns about a redefinition of a database item
 pub fn dup_error(key: &Token, other: &Token, id: &str) {
     warn(ErrorKey::DuplicateItem)
-        .msg(&format!("{id} is redefined by another {id}"))
+        .msg(format!("{id} is redefined by another {id}"))
         .loc(other)
-        .loc(key, &format!("the other {id} is here"))
+        .loc(key, format!("the other {id} is here"))
         .push();
 }
 
 /// Warns about an exact redefinition of a database item
 pub fn exact_dup_error(key: &Token, other: &Token, id: &str) {
     warn(ErrorKey::ExactDuplicateItem)
-        .msg(&format!("{id} is redefined by an identical {id}"))
+        .msg(format!("{id} is redefined by an identical {id}"))
         .loc(other)
-        .loc(key, &format!("the other {id} is here"))
+        .loc(key, format!("the other {id} is here"))
         .push();
 }
 
 /// Warns about a redefinition of a database item, but only at "advice" level
 pub fn dup_advice(key: &Token, other: &Token, id: &str) {
     tips(ErrorKey::DuplicateItem)
-        .msg(&format!("{id} is redefined by another {id}, which may cause problems if one of them is later changed"))
+        .msg(format!("{id} is redefined by another {id}, which may cause problems if one of them is later changed"))
         .loc(other)
-        .loc(key, &format!("the other {id} is here"))
+        .loc(key, format!("the other {id} is here"))
         .push();
 }
 

@@ -182,7 +182,7 @@ fn recursive_pointed_msg_expansion(vec: &mut Vec<PointedMessage>, pointer: &Poin
         let from_here = PointedMessage {
             location: link.as_ref().into_loc(),
             length: 1,
-            msg: Some("from here"),
+            msg: Some("from here".to_owned()),
         };
         let index = vec.len();
         recursive_pointed_msg_expansion(vec, &from_here);

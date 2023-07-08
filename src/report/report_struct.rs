@@ -6,7 +6,7 @@ use crate::token::Loc;
 
 /// Describes a report about a potentially problematic situation that can be logged.
 #[derive(Debug)]
-pub struct LogReport<'a> {
+pub struct LogReport {
     /// Used for choosing output colors and for filtering reports.
     pub severity: Severity,
     /// Mostly used for filtering reports.
@@ -14,14 +14,14 @@ pub struct LogReport<'a> {
     /// Defines the problem category. Used for filtering reports.
     pub key: ErrorKey,
     /// The primary error message. A short description of the problem.
-    pub msg: &'a str,
+    pub msg: String,
     /// Optional info message to be printed at the end.
-    pub info: Option<&'a str>,
+    pub info: Option<String>,
     /// Should contain one or more elements.
-    pub pointers: Vec<PointedMessage<'a>>,
+    pub pointers: Vec<PointedMessage>,
 }
 
-impl LogReport<'_> {
+impl LogReport {
     /// Returns the primary pointer.
     pub fn primary(&self) -> &PointedMessage {
         self.pointers.get(0).expect("A LogReport must always have at least one PointedMessage.")
@@ -37,7 +37,7 @@ impl LogReport<'_> {
 }
 
 #[derive(Debug)]
-pub struct PointedMessage<'a> {
+pub struct PointedMessage {
     /// Which file and where in the file the error occurs.
     /// Might point to a whole file, rather than a specific location in the file.
     pub location: Loc,
@@ -48,19 +48,12 @@ pub struct PointedMessage<'a> {
     /// TODO: If we end up adding length to Loc, this field can be deleted.
     pub length: usize,
     /// A short message that will be printed at the caret location.
-    pub msg: Option<&'a str>,
+    pub msg: Option<String>,
 }
 
-impl<'a> PointedMessage<'a> {
+impl PointedMessage {
     pub fn new(location: Loc) -> Self {
         Self { location, msg: None, length: 1 }
-    }
-    pub fn with_msg(location: Loc, msg: &'a str) -> Self {
-        if msg.is_empty() {
-            Self::new(location)
-        } else {
-            Self { location, msg: Some(msg), length: 1 }
-        }
     }
 }
 

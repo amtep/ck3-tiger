@@ -42,7 +42,7 @@ pub fn log_report(errors: &mut Errors, report: &LogReport) {
         );
     });
     // Log the info line, if one exists.
-    if let Some(info) = report.info {
+    if let Some(info) = &report.info {
         log_line_info(errors, report.indentation(), info);
     }
     // Write a blank line to visually separate reports:
@@ -162,7 +162,7 @@ fn log_line_carets(
         }
     }
     // A line containing the carets that point upwards at the source line.
-    let line_carets: &[ANSIString<'static>] = &[
+    let line_carets: &[ANSIString] = &[
         errors.styles.style(&Styled::Default).paint(format!("{:width$}", "", width = indentation)),
         errors.styles.style(&Styled::Default).paint(" "),
         errors.styles.style(&Styled::Location).paint("|"),
@@ -177,11 +177,11 @@ fn log_line_carets(
         errors
             .styles
             .style(&Styled::Tag(severity, true))
-            .paint(pointer.msg.as_ref().map_or("", |_| "<-- ").to_string()),
+            .paint(pointer.msg.as_deref().map_or("", |_| "<-- ")),
         errors
             .styles
             .style(&Styled::Tag(severity, true))
-            .paint(pointer.msg.unwrap_or("").to_string()),
+            .paint(pointer.msg.as_deref().unwrap_or("")),
     ];
     println!("{}", ANSIStrings(line_carets));
 }
