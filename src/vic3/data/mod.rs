@@ -6,3 +6,4 @@ pub mod events;
 pub mod modifiers;
 pub mod production_methods;
 pub mod religions;
+pub mod technology;

@@ -95,8 +95,8 @@ impl Item {
             Item::Sound => "",
             Item::StateRegion => "map_data/state_regions/",
             Item::StrategicRegion => "common/strategic_regions/",
-            Item::Technology => "common/technology/",
-            Item::TechnologyEra => "common/technology/era/",
+            Item::Technology => "common/technology/technologies/",
+            Item::TechnologyEra => "common/technology/eras/",
             Item::TerrainManipulator => "common/terrain_manipulators/",
             Item::TriggerLocalization => "common/trigger_localization/",
         }
