@@ -71,9 +71,7 @@ impl Events {
     }
 
     pub fn validate(&self, data: &Everything) {
-        let mut vec = self.events.values().collect::<Vec<&Event>>();
-        vec.sort_unstable_by_key(|item| &item.key.loc);
-        for item in vec {
+        for item in self.events.values() {
             item.validate(data);
         }
     }

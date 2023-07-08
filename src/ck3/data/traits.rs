@@ -83,9 +83,7 @@ impl Traits {
     }
 
     pub fn validate(&self, data: &Everything) {
-        let mut vec = self.traits.values().collect::<Vec<&Trait>>();
-        vec.sort_unstable_by_key(|item| &item.key.loc);
-        for item in vec {
+        for item in self.traits.values() {
             item.validate(data);
         }
     }

@@ -36,9 +36,7 @@ impl ProvinceHistories {
     }
 
     pub fn validate(&self, data: &Everything) {
-        let mut vec = self.provinces.values().collect::<Vec<&ProvinceHistory>>();
-        vec.sort_unstable_by_key(|item| &item.key.loc);
-        for item in vec {
+        for item in self.provinces.values() {
             item.validate(data);
         }
     }

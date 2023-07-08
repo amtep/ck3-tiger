@@ -58,10 +58,7 @@ impl Db {
     }
 
     pub fn validate(&self, data: &Everything) {
-        // Sort the entries to create a diffable error output
-        let mut vec: Vec<&DbEntry> = self.database.values().collect();
-        vec.sort_by(|entry_a, entry_b| entry_a.key.loc.cmp(&entry_b.key.loc));
-        for entry in vec {
+        for entry in self.database.values() {
             entry.kind.validate(&entry.key, &entry.block, data);
         }
     }

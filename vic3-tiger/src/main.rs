@@ -5,7 +5,8 @@ use std::path::PathBuf;
 use tiger_lib::everything::Everything;
 use tiger_lib::gamedir::find_game_directory_steam;
 use tiger_lib::report::{
-    disable_ansi_colors, set_mod_root, set_show_loaded_mods, set_show_vanilla, set_vanilla_dir,
+    disable_ansi_colors, emit_reports, set_mod_root, set_show_loaded_mods, set_show_vanilla,
+    set_vanilla_dir,
 };
 
 /// Steam's code for Victoria 3
@@ -118,6 +119,7 @@ fn main() -> Result<()> {
     everything.load_all();
     everything.validate_all();
     everything.check_rivers();
+    emit_reports();
     if args.unused {
         everything.check_unused();
     }

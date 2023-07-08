@@ -1,5 +1,7 @@
+use std::cmp::Ordering;
 use std::fs::read;
 use std::io::{Stderr, Stdout, Write};
+use std::mem::take;
 use std::path::PathBuf;
 
 use encoding::all::{UTF_8, WINDOWS_1252};
@@ -45,6 +47,10 @@ pub struct Errors {
     /// Output color and style configuration.
     pub(crate) styles: OutputStyle,
     pub(crate) max_line_length: Option<usize>,
+
+    /// All reports that passed the checks, stored here to be sorted before being emitted all at once.
+    /// The "abbreviated" reports don't participate in this. They are still emitted immediately.
+    storage: Vec<LogReport>,
 }
 
 impl Errors {
@@ -75,8 +81,8 @@ impl Errors {
 
     /// Perform some checks to see whether the report should actually be logged.
     /// If yes, it will do so.
-    fn push_report(&mut self, report: &LogReport) {
-        if !self.filter.should_print_report(report) {
+    fn push_report(&mut self, report: LogReport) {
+        if !self.filter.should_print_report(&report) {
             return;
         }
         let loc = report.primary().location.clone();
@@ -87,7 +93,7 @@ impl Errors {
             return;
         }
         self.seen.insert(index);
-        log_report(self, report);
+        self.storage.push(report);
     }
 
     pub fn log_abbreviated(&mut self, loc: &Loc, key: ErrorKey) {
@@ -110,6 +116,22 @@ impl Errors {
 
     pub fn push_header(&mut self, _key: ErrorKey, msg: &str) {
         println!("{msg}");
+    }
+
+    pub fn emit_reports(&mut self) {
+        let mut reports = take(&mut self.storage);
+        reports.sort_unstable_by(|a, b| {
+            // Severity in descending order, which is why we have to do all this work instead of sort_by_key
+            let mut cmp = b.severity.cmp(&a.severity);
+            // If severity is the same, order by loc
+            if cmp == Ordering::Equal {
+                cmp = a.primary().location.cmp(&b.primary().location);
+            }
+            cmp
+        });
+        for report in &reports {
+            log_report(self, report);
+        }
     }
 
     pub fn get_mut() -> &'static mut Self {
@@ -170,7 +192,7 @@ pub fn log(mut report: LogReport) {
         vec.insert(index, pointer);
     });
     report.pointers.extend(vec);
-    Errors::get_mut().push_report(&report);
+    Errors::get_mut().push_report(report);
 }
 
 /// Expand `PointedMessage` recursively.
@@ -215,6 +237,10 @@ impl ErrorLogger for Vec<u8> {
     fn get_logs(&self) -> Option<String> {
         Some(String::from_utf8_lossy(self).to_string())
     }
+}
+
+pub fn emit_reports() {
+    Errors::get_mut().emit_reports();
 }
 
 // =================================================================================================
