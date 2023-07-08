@@ -123,14 +123,25 @@ impl Errors {
     pub fn emit_reports(&mut self) {
         let mut reports = take(&mut self.storage);
         reports.sort_unstable_by(|a, b| {
-            // Severity in descending order, which is why we have to do all this work instead of sort_by_key
+            // Severity in descending order
             let mut cmp = b.severity.cmp(&a.severity);
             // Confidence in descending order too
             if cmp == Ordering::Equal {
                 cmp = b.confidence.cmp(&a.confidence);
-                // If severity and confidence are the same, order by loc
+                // If severity and confidence are the same, order by loc. Check all locs in order.
                 if cmp == Ordering::Equal {
-                    cmp = a.primary().location.cmp(&b.primary().location);
+                    for (a, b) in a.pointers.iter().zip(b.pointers.iter()) {
+                        cmp = a.location.cmp(&b.location);
+                        if cmp != Ordering::Equal {
+                            return cmp;
+                        }
+                    }
+                    // Shorter chain goes first, if it comes to that.
+                    cmp = b.pointers.len().cmp(&a.pointers.len());
+                    // Fallback: order by message text.
+                    if cmp == Ordering::Equal {
+                        cmp = a.msg.cmp(&b.msg)
+                    }
                 }
             }
             cmp
