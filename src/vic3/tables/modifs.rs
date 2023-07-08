@@ -39,6 +39,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // building_group_$BuildingGroup$_$PopType$_fertility_mult
     // building_group_$BuildingGroup$_$PopType$_mortality_mult
     // building_group_$BuildingGroup$_$PopType$_standard_of_living_add
+    // building_group_$BuildingGroup$_employee_mult
     // building_group_$BuildingGroup$_fertility_mult
     // building_group_$BuildingGroup$_mortality_mult
     // building_group_$BuildingGroup$_standard_of_living_add
@@ -62,11 +63,13 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
                 return Some(ModifKinds::Building);
             }
         }
-        if let Some(part) = part.strip_suffix("_tax_mult") {
-            if warn {
-                data.verify_exists_implied(Item::BuildingGroup, part, name);
+        for sfx in &["_employee_mult", "_tax_mult"] {
+            if let Some(part) = part.strip_suffix(sfx) {
+                if warn {
+                    data.verify_exists_implied(Item::BuildingGroup, part, name);
+                }
+                return Some(ModifKinds::Building);
             }
-            return Some(ModifKinds::Building);
         }
     }
 
