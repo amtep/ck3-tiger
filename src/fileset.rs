@@ -319,16 +319,15 @@ impl Fileset {
         }
     }
 
-    pub fn get_files_under<'a>(&'a self, subpath: &'a Path) -> Files {
-        let start = self.ordered_files.partition_point(|entry| entry.path < subpath);
-        Files { iter: self.ordered_files.iter().skip(start), subpath }
-    }
-
-    pub fn for_each_under<F: Fn(&FileEntry) + Sync + Send>(&self, subpath: &Path, f: F) {
+    pub fn get_files_under<'a>(&'a self, subpath: &'a Path) -> &[FileEntry] {
         let start = self.ordered_files.partition_point(|entry| entry.path < subpath);
         let end = start
             + self.ordered_files[start..].partition_point(|entry| entry.path.starts_with(subpath));
-        self.ordered_files[start..end].par_iter().for_each(f);
+        &self.ordered_files[start..end]
+    }
+
+    pub fn for_each_under<F: Fn(&FileEntry) + Sync + Send>(&self, subpath: &Path, f: F) {
+        self.get_files_under(subpath).par_iter().for_each(f);
     }
 
     pub fn filter_map_under<F, T>(&self, subpath: &Path, f: F) -> Vec<T>
@@ -336,10 +335,7 @@ impl Fileset {
         F: Fn(&FileEntry) -> Option<T> + Sync + Send,
         T: Send,
     {
-        let start = self.ordered_files.partition_point(|entry| entry.path < subpath);
-        let end = start
-            + self.ordered_files[start..].partition_point(|entry| entry.path.starts_with(subpath));
-        self.ordered_files[start..end].par_iter().filter_map(f).collect()
+        self.get_files_under(subpath).par_iter().filter_map(f).collect()
     }
 
     pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {
