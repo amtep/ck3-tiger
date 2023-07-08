@@ -3,10 +3,12 @@ use std::fs::read;
 use std::io::{Stderr, Stdout, Write};
 use std::mem::take;
 use std::path::PathBuf;
+use std::sync::{Mutex, MutexGuard};
 
 use encoding::all::{UTF_8, WINDOWS_1252};
 use encoding::{DecoderTrap, Encoding};
 use fnv::{FnvHashMap, FnvHashSet};
+use once_cell::sync::Lazy;
 
 use crate::fileset::FileKind;
 use crate::report::error_loc::ErrorLoc;
@@ -17,7 +19,7 @@ use crate::report::{
 };
 use crate::token::Loc;
 
-static mut ERRORS: Option<Errors> = None;
+static ERRORS: Lazy<Mutex<Errors>> = Lazy::new(|| Mutex::new(Errors::default()));
 
 type ErrorRecord = (Loc, ErrorKey, String, Option<Loc>, Option<Loc>);
 
@@ -123,9 +125,13 @@ impl Errors {
         reports.sort_unstable_by(|a, b| {
             // Severity in descending order, which is why we have to do all this work instead of sort_by_key
             let mut cmp = b.severity.cmp(&a.severity);
-            // If severity is the same, order by loc
+            // Confidence in descending order too
             if cmp == Ordering::Equal {
-                cmp = a.primary().location.cmp(&b.primary().location);
+                cmp = b.confidence.cmp(&a.confidence);
+                // If severity and confidence are the same, order by loc
+                if cmp == Ordering::Equal {
+                    cmp = a.primary().location.cmp(&b.primary().location);
+                }
             }
             cmp
         });
@@ -134,30 +140,12 @@ impl Errors {
         }
     }
 
-    pub fn get_mut() -> &'static mut Self {
-        // Safe because we're single-threaded, and won't start reporting
-        // validation errors until we're well past initialization.
-        unsafe {
-            if ERRORS.is_none() {
-                ERRORS = Some(Errors::default());
-            }
-            match ERRORS {
-                Some(ref mut errors) => errors,
-                None => unreachable!(),
-            }
-        }
+    pub fn get_mut() -> MutexGuard<'static, Errors> {
+        ERRORS.lock().unwrap()
     }
 
-    pub fn get() -> &'static Self {
-        unsafe {
-            if ERRORS.is_none() {
-                ERRORS = Some(Errors::default());
-            }
-            match ERRORS {
-                Some(ref errors) => errors,
-                None => unreachable!(),
-            }
-        }
+    pub fn get() -> MutexGuard<'static, Errors> {
+        ERRORS.lock().unwrap()
     }
 }
 

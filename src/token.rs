@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::fmt::{Display, Error, Formatter};
 use std::path::PathBuf;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::block::Date;
 use crate::fileset::{FileEntry, FileKind};
@@ -10,22 +10,22 @@ use crate::report::{error, error_info, ErrorKey};
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
-    pub pathname: Rc<PathBuf>,
+    pub pathname: Arc<PathBuf>,
     pub kind: FileKind,
     /// line 0 means the loc applies to the file as a whole.
     pub line: usize,
     pub column: usize,
     /// Used in macro expansions to point to the macro invocation
-    pub link: Option<Rc<Loc>>,
+    pub link: Option<Arc<Loc>>,
 }
 
 impl Loc {
-    pub fn for_file(pathname: Rc<PathBuf>, kind: FileKind) -> Self {
+    pub fn for_file(pathname: Arc<PathBuf>, kind: FileKind) -> Self {
         Loc { pathname, kind, line: 0, column: 0, link: None }
     }
 
     pub fn for_entry(entry: &FileEntry) -> Self {
-        Self::for_file(Rc::new(entry.path().to_path_buf()), entry.kind())
+        Self::for_file(Arc::new(entry.path().to_path_buf()), entry.kind())
     }
 
     pub fn line_marker(&self) -> String {

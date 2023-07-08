@@ -2,8 +2,8 @@ use std::cell::RefCell;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
 use std::string::ToString;
+use std::sync::Arc;
 
 use anyhow::Result;
 use fnv::FnvHashSet;
@@ -76,7 +76,7 @@ impl Display for FileEntry {
 
 impl From<&FileEntry> for Loc {
     fn from(entry: &FileEntry) -> Self {
-        Loc::for_file(Rc::new(entry.path().to_path_buf()), entry.kind)
+        Loc::for_file(Arc::new(entry.path().to_path_buf()), entry.kind)
     }
 }
 

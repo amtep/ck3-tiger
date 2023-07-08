@@ -1,8 +1,8 @@
 use crate::block::Eq::{Double, Question, Single};
 use std::borrow::Cow;
 use std::fmt::{Display, Error, Formatter};
-use std::rc::Rc;
 use std::str::FromStr;
+use std::sync::Arc;
 
 use crate::parse::pdxfile::{parse_pdx_macro, LocalMacros};
 use crate::report::{error, error_info, ErrorKey};
@@ -427,7 +427,7 @@ impl Block {
     }
 
     pub fn expand_macro(&self, args: &[(&str, Token)], link: &Token) -> Option<Block> {
-        let link = Rc::new(link.loc.clone());
+        let link = Arc::new(link.loc.clone());
         if let Some((source, local_macros)) = &self.source {
             let mut content = Vec::new();
             let mut odd = false;
@@ -445,7 +445,7 @@ impl Block {
                             let mut val = val.clone();
                             let orig_loc = val.loc.clone();
                             val.loc = part.loc.clone();
-                            val.loc.link = Some(Rc::new(orig_loc));
+                            val.loc.link = Some(Arc::new(orig_loc));
                             content.push(val);
                             break;
                         }
