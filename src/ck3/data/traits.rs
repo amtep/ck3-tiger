@@ -12,6 +12,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxFile;
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
@@ -230,10 +231,10 @@ impl Trait {
         vd.field_bool("disables_combat_leadership");
         vd.field_choice("parent_inheritance_sex", &["male", "female", "all"]);
         vd.field_choice("child_inheritance_sex", &["male", "female", "all"]);
-        for _token in vd.field_values("flag") {
+        for token in vd.field_values("flag") {
             // These are optional
-            // let loca = format!("TRAIT_FLAG_DESC_{token}");
-            // data.verify_exists_implied(Item::Localization, &loca, token);
+            let loca = format!("TRAIT_FLAG_DESC_{token}");
+            data.item_used(Item::Localization, &loca);
         }
         vd.field_bool("shown_in_encyclopedia");
 
@@ -289,6 +290,13 @@ fn validate_trait_track(key: &Token, block: &Block, data: &Everything, warn_key:
     for (key, block) in vd.unknown_block_fields() {
         let mut sc = ScopeContext::new(Scopes::None, warn_key);
         validate_scriptvalue(&BV::Value(key.clone()), data, &mut sc);
+        if let Some(xp) = key.get_integer() {
+            // LAST UPDATED CK3 VERSION 1.9.2.1
+            if xp > 100 {
+                let msg = "trait xp only goes up to 100";
+                err(ErrorKey::Range).strong().msg(msg).loc(key).push();
+            }
+        }
 
         let mut vd = Validator::new(block, data);
         vd.field_validated_blocks("culture_modifier", validate_culture_modifier);
