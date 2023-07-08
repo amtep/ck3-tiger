@@ -1,66 +1,28 @@
-use std::path::{Path, PathBuf};
-
-use fnv::FnvHashMap;
-
 use crate::block::validator::Validator;
 use crate::block::{Block, Date};
+use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
-use crate::pdxfile::PdxFile;
-use crate::token::{Loc, Token};
-
-#[derive(Clone, Debug, Default)]
-pub struct CultureHistories {
-    histories: FnvHashMap<String, CultureHistory>,
-}
-
-impl CultureHistories {
-    pub fn load_item(&mut self, key: Token, block: Block) {
-        self.histories.insert(key.to_string(), CultureHistory::new(key, block));
-    }
-
-    pub fn validate(&self, data: &Everything) {
-        for item in self.histories.values() {
-            item.validate(data);
-        }
-    }
-}
-
-impl FileHandler for CultureHistories {
-    fn subpath(&self) -> PathBuf {
-        PathBuf::from("history/cultures")
-    }
-
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
-        let name = entry.filename().to_string_lossy();
-        if let Some(key) = name.strip_suffix(".txt") {
-            let Some(block) = PdxFile::read_cp1252(entry, fullpath) else { return; };
-            let token = Token::new(key.to_string(), Loc::for_entry(entry));
-            self.load_item(token, block);
-        }
-    }
-}
+use crate::token::Token;
 
 #[derive(Clone, Debug)]
-pub struct CultureHistory {
-    key: Token,
-    block: Block,
-}
+pub struct CultureHistory {}
 
 impl CultureHistory {
-    pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CultureHistory, key, block, Box::new(Self {}));
     }
+}
 
-    pub fn validate(&self, data: &Everything) {
-        if self.key.starts_with("heritage_") {
-            data.verify_exists(Item::CultureHeritage, &self.key);
+impl DbKind for CultureHistory {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        if key.starts_with("heritage_") {
+            data.verify_exists(Item::CultureHeritage, key);
         } else {
-            data.verify_exists(Item::Culture, &self.key);
+            data.verify_exists(Item::Culture, key);
         }
 
-        let mut vd = Validator::new(&self.block, data);
+        let mut vd = Validator::new(block, data);
         vd.validate_history_blocks(validate_history);
     }
 }

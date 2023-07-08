@@ -77,18 +77,20 @@ impl Events {
     }
 }
 
-impl FileHandler for Events {
+impl FileHandler<Block> for Events {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("events")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
+            return None;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
+        PdxFile::read(entry, fullpath)
+    }
 
+    fn handle_file(&mut self, entry: &FileEntry, mut block: Block) {
         for (k, _, bv) in block.drain() {
             if let Some(key) = k {
                 if key.is("namespace") {

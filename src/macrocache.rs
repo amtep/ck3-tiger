@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::sync::RwLock;
 
 use fnv::FnvHashMap;
 
@@ -31,9 +31,9 @@ impl MacroKey {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct MacroCache<T> {
-    cache: RefCell<FnvHashMap<MacroKey, T>>,
+    cache: RwLock<FnvHashMap<MacroKey, T>>,
 }
 
 impl<T> MacroCache<T> {
@@ -47,7 +47,7 @@ impl<T> MacroCache<T> {
     ) -> bool {
         // TODO: find a way to avoid all the cloning for creating a MacroKey just to look it up in the cache
         let key = MacroKey::new(key.loc.clone(), args, tooltipped, negated);
-        if let Some(x) = self.cache.borrow().get(&key) {
+        if let Some(x) = self.cache.read().unwrap().get(&key) {
             f(x);
             true
         } else {
@@ -64,12 +64,12 @@ impl<T> MacroCache<T> {
         value: T,
     ) {
         let key = MacroKey::new(key.loc.clone(), args, tooltipped, negated);
-        self.cache.borrow_mut().insert(key, value);
+        self.cache.write().unwrap().insert(key, value);
     }
 }
 
 impl<T> Default for MacroCache<T> {
     fn default() -> Self {
-        MacroCache { cache: RefCell::new(FnvHashMap::default()) }
+        MacroCache { cache: RwLock::new(FnvHashMap::default()) }
     }
 }

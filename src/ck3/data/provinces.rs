@@ -129,12 +129,20 @@ impl Provinces {
     }
 }
 
-impl FileHandler for Provinces {
+#[derive(Debug)]
+pub enum FileContent {
+    Adjacencies(String),
+    Definitions(String),
+    Provinces(DynamicImage),
+    DefaultMap(Block),
+}
+
+impl FileHandler<FileContent> for Provinces {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("map_data")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<FileContent> {
         if entry.path().components().count() == 2 {
             match &*entry.filename().to_string_lossy() {
                 "adjacencies.csv" => {
@@ -146,54 +154,36 @@ impl FileHandler for Provinces {
                                 ErrorKey::ReadError,
                                 &format!("could not read file: {e:#}"),
                             );
-                            return;
+                            return None;
                         }
                     };
-                    let mut seen_terminator = false;
-                    for csv in parse_csv(entry, 1, &content) {
-                        if csv[0].is("-1") {
-                            seen_terminator = true;
-                        } else if seen_terminator {
-                            let msg = "the line with all `-1;` should be the last line in the file";
-                            old_warn(&csv[0], ErrorKey::ParseError, msg);
-                            break;
-                        } else {
-                            self.adjacencies.extend(Adjacency::parse(&csv));
-                        }
-                    }
-                    if !seen_terminator {
-                        let msg = "CK3 needs a line with all `-1;` at the end of this file";
-                        error(entry, ErrorKey::ParseError, msg);
-                    }
+                    return Some(FileContent::Adjacencies(content));
                 }
+
                 "definition.csv" => {
-                    self.definition_csv = Some(entry.clone());
                     let content = match read_csv(fullpath) {
                         Ok(content) => content,
                         Err(e) => {
                             let msg =
                                 format!("could not read `{}`: {:#}", entry.path().display(), e);
                             error(entry, ErrorKey::ReadError, &msg);
-                            return;
+                            return None;
                         }
                     };
-                    for csv in parse_csv(entry, 0, &content) {
-                        self.parse_definition(&csv);
-                    }
+                    return Some(FileContent::Definitions(content));
                 }
+
                 "provinces.png" => {
                     let img = match image::open(fullpath) {
                         Ok(img) => img,
                         Err(e) => {
                             let msg = format!("could not read `{}`: {e:#}", entry.path().display());
                             error(entry, ErrorKey::ReadError, &msg);
-                            return;
+                            return None;
                         }
                     };
-                    if let DynamicImage::ImageRgb8(img) = img {
-                        for pixel in img.pixels() {
-                            self.colors.insert(*pixel);
-                        }
+                    if let DynamicImage::ImageRgb8(_) = img {
+                        return Some(FileContent::Provinces(img));
                     } else {
                         let msg = format!(
                             "`{}` has wrong color format `{:?}`, should be Rgb8",
@@ -203,12 +193,50 @@ impl FileHandler for Provinces {
                         error(entry, ErrorKey::ImageFormat, &msg);
                     }
                 }
+
                 "default.map" => {
-                    let Some(block) = PdxFile::read_no_bom(entry, fullpath) else { return; };
-                    self.load_impassable(&block);
+                    return PdxFile::read_no_bom(entry, fullpath).map(FileContent::DefaultMap);
                 }
                 _ => (),
             }
+        }
+        None
+    }
+
+    fn handle_file(&mut self, entry: &FileEntry, content: FileContent) {
+        match content {
+            FileContent::Adjacencies(content) => {
+                let mut seen_terminator = false;
+                for csv in parse_csv(entry, 1, &content) {
+                    if csv[0].is("-1") {
+                        seen_terminator = true;
+                    } else if seen_terminator {
+                        let msg = "the line with all `-1;` should be the last line in the file";
+                        old_warn(&csv[0], ErrorKey::ParseError, msg);
+                        break;
+                    } else {
+                        self.adjacencies.extend(Adjacency::parse(&csv));
+                    }
+                }
+                if !seen_terminator {
+                    let msg = "CK3 needs a line with all `-1;` at the end of this file";
+                    error(entry, ErrorKey::ParseError, msg);
+                }
+            }
+            FileContent::Definitions(content) => {
+                self.definition_csv = Some(entry.clone());
+                for csv in parse_csv(entry, 0, &content) {
+                    self.parse_definition(&csv);
+                }
+            }
+            FileContent::Provinces(img) => {
+                if let DynamicImage::ImageRgb8(img) = img {
+                    for pixel in img.pixels() {
+                        self.colors.insert(*pixel);
+                    }
+                }
+            }
+            FileContent::DefaultMap(block) => self.load_impassable(&block),
         }
     }
 

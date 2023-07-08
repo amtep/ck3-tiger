@@ -152,7 +152,7 @@ impl Characters {
     }
 }
 
-impl FileHandler for Characters {
+impl FileHandler<Block> for Characters {
     fn config(&mut self, config: &Block) {
         if let Some(block) = config.get_field_block("characters") {
             if let Some(born) = block.get_field_value("only_born") {
@@ -167,13 +167,15 @@ impl FileHandler for Characters {
         PathBuf::from("history/characters")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
+            return None;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
+        PdxFile::read(entry, fullpath)
+    }
 
+    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             self.load_item(key, block);
         }

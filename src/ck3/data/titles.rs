@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
+use std::sync::Arc;
 
 use fnv::FnvHashMap;
 
@@ -22,8 +22,8 @@ use crate::validate::validate_possibly_named_color;
 
 #[derive(Clone, Debug, Default)]
 pub struct Titles {
-    titles: FnvHashMap<String, Rc<Title>>,
-    baronies: FnvHashMap<ProvId, Rc<Title>>,
+    titles: FnvHashMap<String, Arc<Title>>,
+    baronies: FnvHashMap<ProvId, Arc<Title>>,
 }
 
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
@@ -87,7 +87,7 @@ impl Titles {
                 dup_error(&key, &other.key, "title");
             }
         }
-        let title = Rc::new(Title::new(key.clone(), block.clone(), parent, is_county_capital));
+        let title = Arc::new(Title::new(key.clone(), block.clone(), parent, is_county_capital));
         self.titles.insert(key.to_string(), title.clone());
 
         let parent_tier = Tier::try_from(&key).unwrap(); // guaranteed by caller
@@ -127,7 +127,7 @@ impl Titles {
         self.titles.contains_key(key)
     }
 
-    pub fn get(&self, key: &str) -> Option<Rc<Title>> {
+    pub fn get(&self, key: &str) -> Option<Arc<Title>> {
         self.titles.get(key).cloned()
     }
 
@@ -142,17 +142,20 @@ impl Titles {
     }
 }
 
-impl FileHandler for Titles {
+impl FileHandler<Block> for Titles {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("common/landed_titles")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
+            return None;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
+        PdxFile::read(entry, fullpath)
+    }
+
+    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             if Tier::try_from(&key).is_ok() {
                 self.load_item(key, &block, None, false);

@@ -25,10 +25,10 @@ pub struct DdsFiles {
 }
 
 impl DdsFiles {
-    fn load_dds(&mut self, entry: &FileEntry, fullpath: &Path) -> Result<()> {
+    fn load_dds(entry: &FileEntry, fullpath: &Path) -> Result<Option<DdsInfo>> {
         if metadata(fullpath)?.len() == 0 {
             old_warn(entry, ErrorKey::ImageFormat, "empty file");
-            return Ok(());
+            return Ok(None);
         }
         let mut f = File::open(fullpath)?;
         let mut buffer = [0; DDS_HEADER_SIZE];
@@ -38,14 +38,17 @@ impl DdsFiles {
             let info =
                 "this may be slower and lower quality because PNG format does not have mipmaps";
             advice_info(entry, ErrorKey::ImageFormat, msg, info);
-            return Ok(());
+            return Ok(None);
         }
         if !buffer.starts_with(b"DDS ") {
             error(entry, ErrorKey::ImageFormat, "not a DDS file");
-            return Ok(());
+            return Ok(None);
         }
-        self.dds_files.insert(entry.path().to_string_lossy().to_string(), DdsInfo::new(&buffer));
-        Ok(())
+        Ok(Some(DdsInfo::new(&buffer)))
+    }
+
+    fn handle_dds(&mut self, entry: &FileEntry, info: DdsInfo) {
+        self.dds_files.insert(entry.path().to_string_lossy().to_string(), info);
     }
 
     pub fn validate_frame(&self, key: &Token, width: u32, height: u32, frame: u32) {
@@ -65,18 +68,18 @@ impl DdsFiles {
     }
 }
 
-impl FileHandler for DdsFiles {
+impl FileHandler<DdsInfo> for DdsFiles {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("gfx")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<DdsInfo> {
         if !entry.filename().to_string_lossy().ends_with(".dds") {
-            return;
+            return None;
         }
 
-        match self.load_dds(entry, fullpath) {
-            Ok(()) => (),
+        match Self::load_dds(entry, fullpath) {
+            Ok(info) => info,
             Err(e) => {
                 error_info(
                     entry,
@@ -84,12 +87,17 @@ impl FileHandler for DdsFiles {
                     "could not read dds header",
                     &format!("{e:#}"),
                 );
+                return None;
             }
         }
     }
+
+    fn handle_file(&mut self, entry: &FileEntry, info: DdsInfo) {
+        self.handle_dds(entry, info);
+    }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct DdsInfo {
     width: u32,
     height: u32,

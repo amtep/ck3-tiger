@@ -1,72 +1,22 @@
-use std::path::{Path, PathBuf};
-
-use fnv::FnvHashMap;
-
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
 use crate::item::Item;
-use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
-#[derive(Clone, Debug, Default)]
-pub struct Namelists {
-    lists: FnvHashMap<String, List>,
-}
-
-impl Namelists {
-    pub fn load_item(&mut self, key: Token, block: Block) {
-        if let Some(other) = self.lists.get(key.as_str()) {
-            if other.key.loc.kind >= key.loc.kind {
-                dup_error(&key, &other.key, "name list");
-            }
-        }
-        self.lists.insert(key.to_string(), List::new(key, block));
-    }
-
-    pub fn exists(&self, key: &str) -> bool {
-        self.lists.contains_key(key)
-    }
-
-    pub fn validate(&self, data: &Everything) {
-        for item in self.lists.values() {
-            item.validate(data);
-        }
-    }
-}
-
-impl FileHandler for Namelists {
-    fn subpath(&self) -> PathBuf {
-        PathBuf::from("common/culture/name_lists")
-    }
-
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
-        if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
-        }
-
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
-        for (key, block) in block.drain_definitions_warn() {
-            self.load_item(key, block);
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
-pub struct List {
-    key: Token,
-    block: Block,
+pub struct NameList {}
+
+impl NameList {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::NameList, key, block, Box::new(Self {}));
+    }
 }
 
-impl List {
-    pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
-    }
-
-    pub fn validate(&self, data: &Everything) {
-        let mut vd = Validator::new(&self.block, data);
+impl DbKind for NameList {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
         vd.field_validated_block("mercenary_names", validate_mercenary_names);
         vd.field_validated_block("male_names", validate_name_list);
         vd.field_validated_block("female_names", validate_name_list);

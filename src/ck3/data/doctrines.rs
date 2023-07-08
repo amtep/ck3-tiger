@@ -79,17 +79,20 @@ impl Doctrines {
     }
 }
 
-impl FileHandler for Doctrines {
+impl FileHandler<Block> for Doctrines {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("common/religion/doctrines")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
+            return None;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
+        PdxFile::read(entry, fullpath)
+    }
+
+    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             self.load_item(key, block);
         }

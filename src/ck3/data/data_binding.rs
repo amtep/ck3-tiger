@@ -55,17 +55,20 @@ impl DataBindings {
     }
 }
 
-impl FileHandler for DataBindings {
+impl FileHandler<Block> for DataBindings {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("data_binding")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
+            return None;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
+        PdxFile::read(entry, fullpath)
+    }
+
+    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             if key.is("macro") {
                 self.load_macro(block);

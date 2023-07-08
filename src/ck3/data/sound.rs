@@ -50,24 +50,26 @@ impl Sounds {
     pub fn validate(&self, _data: &Everything) {}
 }
 
-impl FileHandler for Sounds {
+impl FileHandler<String> for Sounds {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("sound")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<String> {
         if entry.path() != PathBuf::from("sound/GUIDs.txt") {
-            return;
+            return None;
         }
-        let content = match read_guids(fullpath) {
-            Ok(content) => content,
+        match read_guids(fullpath) {
+            Ok(content) => return Some(content),
             Err(e) => {
                 let msg = format!("could not read file: {e:#}");
                 error(entry, ErrorKey::ReadError, &msg);
-                return;
+                return None;
             }
-        };
+        }
+    }
 
+    fn handle_file(&mut self, entry: &FileEntry, content: String) {
         let mut linenr = 1;
         for line in content.lines() {
             let mut loc = Loc::for_entry(entry);

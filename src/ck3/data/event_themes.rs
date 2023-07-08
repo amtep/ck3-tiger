@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::sync::RwLock;
 
 use crate::block::validator::Validator;
 use crate::block::Block;
@@ -14,14 +14,14 @@ use crate::validate::{
     validate_theme_background, validate_theme_icon, validate_theme_sound, validate_theme_transition,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct EventTheme {
-    validated_scopes: RefCell<Scopes>,
+    validated_scopes: RwLock<Scopes>,
 }
 
 impl EventTheme {
     pub fn new() -> Self {
-        let validated_scopes = RefCell::new(Scopes::empty());
+        let validated_scopes = RwLock::new(Scopes::empty());
         Self { validated_scopes }
     }
 
@@ -47,10 +47,10 @@ impl DbKind for EventTheme {
         sc: &mut ScopeContext,
     ) {
         // Check if the passed-in scope type has already been validated for
-        if self.validated_scopes.borrow().contains(sc.scopes()) {
+        if self.validated_scopes.read().unwrap().contains(sc.scopes()) {
             return;
         }
-        *self.validated_scopes.borrow_mut() |= sc.scopes();
+        *self.validated_scopes.write().unwrap() |= sc.scopes();
 
         let mut vd = Validator::new(block, data);
 
@@ -66,14 +66,14 @@ impl DbKind for EventTheme {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct EventBackground {
-    validated_scopes: RefCell<Scopes>,
+    validated_scopes: RwLock<Scopes>,
 }
 
 impl EventBackground {
     pub fn new() -> Self {
-        let validated_scopes = RefCell::new(Scopes::empty());
+        let validated_scopes = RwLock::new(Scopes::empty());
         Self { validated_scopes }
     }
 
@@ -95,10 +95,10 @@ impl DbKind for EventBackground {
         data: &Everything,
         sc: &mut ScopeContext,
     ) {
-        if self.validated_scopes.borrow().contains(sc.scopes()) {
+        if self.validated_scopes.read().unwrap().contains(sc.scopes()) {
             return;
         }
-        *self.validated_scopes.borrow_mut() |= sc.scopes();
+        *self.validated_scopes.write().unwrap() |= sc.scopes();
 
         data.item_used(Item::Localization, key.as_str());
 
@@ -118,14 +118,14 @@ impl DbKind for EventBackground {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct EventTransition {
-    validated_scopes: RefCell<Scopes>,
+    validated_scopes: RwLock<Scopes>,
 }
 
 impl EventTransition {
     pub fn new() -> Self {
-        let validated_scopes = RefCell::new(Scopes::empty());
+        let validated_scopes = RwLock::new(Scopes::empty());
         Self { validated_scopes }
     }
 
@@ -147,10 +147,10 @@ impl DbKind for EventTransition {
         data: &Everything,
         sc: &mut ScopeContext,
     ) {
-        if self.validated_scopes.borrow().contains(sc.scopes()) {
+        if self.validated_scopes.read().unwrap().contains(sc.scopes()) {
             return;
         }
-        *self.validated_scopes.borrow_mut() |= sc.scopes();
+        *self.validated_scopes.write().unwrap() |= sc.scopes();
 
         let mut vd = Validator::new(block, data);
         vd.req_field("transition");

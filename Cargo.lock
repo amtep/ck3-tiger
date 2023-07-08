@@ -1028,6 +1028,7 @@ dependencies = [
  "lazy_static",
  "once_cell",
  "png",
+ "rayon",
  "strum",
  "strum_macros",
  "thiserror",

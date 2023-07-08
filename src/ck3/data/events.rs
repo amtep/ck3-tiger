@@ -25,7 +25,7 @@ use crate::validate::{
     validate_theme_icon, validate_theme_sound, validate_theme_transition, ListType,
 };
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct Events {
     events: FnvHashMap<(String, u16), Event>,
     namespaces: FnvHashMap<String, Token>,
@@ -128,24 +128,26 @@ impl Events {
     }
 }
 
-impl FileHandler for Events {
+impl FileHandler<Block> for Events {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("events")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
+        if !entry.filename().to_string_lossy().ends_with(".txt") {
+            return None;
+        }
+
+        PdxFile::read(entry, fullpath)
+    }
+
+    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         #[derive(Copy, Clone)]
         enum Expecting {
             Event,
             ScriptedTrigger,
             ScriptedEffect,
         }
-
-        if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
-        }
-
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
 
         let mut expecting = Expecting::Event;
 

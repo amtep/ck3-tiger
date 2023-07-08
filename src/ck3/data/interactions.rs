@@ -1,17 +1,11 @@
-use std::path::{Path, PathBuf};
-
-use fnv::FnvHashMap;
-
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
+use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
 use crate::item::Item;
-use crate::pdxfile::PdxFile;
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -21,80 +15,36 @@ use crate::validate::{
     validate_ai_chance, validate_cost_with_renown, validate_duration, validate_modifiers_with_base,
 };
 
-#[derive(Clone, Debug, Default)]
-pub struct Interactions {
-    interactions: FnvHashMap<String, Interaction>,
-}
-
-impl Interactions {
-    pub fn load_item(&mut self, key: Token, block: Block) {
-        if let Some(other) = self.interactions.get(key.as_str()) {
-            if other.key.loc.kind == key.loc.kind {
-                dup_error(&key, &other.key, "interaction");
-            }
-        }
-        self.interactions.insert(key.to_string(), Interaction::new(key, block));
-    }
-
-    pub fn exists(&self, key: &str) -> bool {
-        self.interactions.contains_key(key)
-    }
-
-    pub fn validate(&self, data: &Everything) {
-        for item in self.interactions.values() {
-            item.validate(data);
-        }
-    }
-}
-
-impl FileHandler for Interactions {
-    fn subpath(&self) -> PathBuf {
-        PathBuf::from("common/character_interactions")
-    }
-
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
-        if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
-        }
-
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
-        for (key, block) in block.drain_definitions_warn() {
-            self.load_item(key, block);
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
-pub struct Interaction {
-    key: Token,
-    block: Block,
-}
+pub struct Interaction {}
 
 impl Interaction {
-    pub fn new(key: Token, block: Block) -> Self {
-        Interaction { key, block }
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::Interaction, key, block, Box::new(Self {}));
     }
+}
 
-    pub fn validate(&self, data: &Everything) {
-        let mut vd = Validator::new(&self.block, data);
+impl DbKind for Interaction {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
 
         // You're expected to use scope:actor and scope:recipient instead of root
-        let mut sc = ScopeContext::new(Scopes::None, &self.key);
-        sc.define_name("actor", Scopes::Character, &self.key);
-        sc.define_name("recipient", Scopes::Character, &self.key);
-        sc.define_name("hook", Scopes::Bool, &self.key);
+        let mut sc = ScopeContext::new(Scopes::None, key);
+        sc.define_name("actor", Scopes::Character, key);
+        sc.define_name("recipient", Scopes::Character, key);
+        sc.define_name("hook", Scopes::Bool, key);
         // TODO: figure out when these are available
-        sc.define_name("secondary_actor", Scopes::Character, &self.key);
-        sc.define_name("secondary_recipient", Scopes::Character, &self.key);
+        sc.define_name("secondary_actor", Scopes::Character, key);
+        sc.define_name("secondary_recipient", Scopes::Character, key);
         // TODO: figure out if there's a better way than exhaustively matching on "interface" and "special_interaction"
-        if let Some(target_type) = self.block.get_field_value("target_type") {
+        if let Some(target_type) = block.get_field_value("target_type") {
             if target_type.is("artifact") {
                 sc.define_name("target", Scopes::Artifact, target_type);
             } else if target_type.is("title") {
                 sc.define_name("target", Scopes::LandedTitle, target_type);
                 sc.define_name("landed_title", Scopes::LandedTitle, target_type);
             }
-        } else if let Some(interface) = self.block.get_field_value("interface") {
+        } else if let Some(interface) = block.get_field_value("interface") {
             if interface.is("interfere_in_war") || interface.is("call_ally") {
                 sc.define_name("target", Scopes::War, interface);
             } else if interface.is("blackmail") {
@@ -104,7 +54,7 @@ impl Interaction {
             } else if interface.is("create_claimant_faction_against") {
                 sc.define_name("landed_title", Scopes::LandedTitle, interface);
             }
-        } else if let Some(special) = self.block.get_field_value("special_interaction") {
+        } else if let Some(special) = block.get_field_value("special_interaction") {
             if special.is("invite_to_council_interaction") {
                 sc.define_name("target", Scopes::CouncilTask, special);
             } else if special.is("end_war_attacker_victory_interaction")
@@ -118,7 +68,7 @@ impl Interaction {
                 sc.define_name("scheme", Scopes::Scheme, special);
             }
         }
-        for block in self.block.get_field_blocks("send_option") {
+        for block in block.get_field_blocks("send_option") {
             if let Some(token) = block.get_field_value("flag") {
                 sc.define_name(token.as_str(), Scopes::Bool, token);
             }
@@ -142,13 +92,13 @@ impl Interaction {
         vd.field_item("category", Item::InteractionCategory);
 
         if let Some(icon_path) =
-            data.get_defined_string_warn(&self.key, "NGameIcons|CHARACTER_INTERACTION_ICON_PATH")
+            data.get_defined_string_warn(key, "NGameIcons|CHARACTER_INTERACTION_ICON_PATH")
         {
             if let Some(name) = vd.field_value("icon") {
                 let pathname = format!("{icon_path}/{name}.dds");
                 data.fileset.verify_exists_implied(&pathname, name);
             } else {
-                let pathname = format!("{icon_path}/{}.dds", &self.key);
+                let pathname = format!("{icon_path}/{}.dds", key);
                 data.item_used(Item::File, &pathname);
             }
             if let Some(name) = vd.field_value("alert_icon") {
@@ -230,13 +180,13 @@ impl Interaction {
 
         // TODO: The ai_ name check is a heuristic. It would be better to check if the
         // is_shown trigger requires scope:actor to be is_ai = yes. But that's a long way off.
-        if !self.key.as_str().starts_with("ai_") {
-            data.localization.verify_exists(&self.key);
+        if !key.as_str().starts_with("ai_") {
+            data.localization.verify_exists(key);
         }
-        vd.field_validated_value("extra_icon", |key, token, data| {
+        vd.field_validated_value("extra_icon", |k, token, data| {
             data.fileset.verify_exists(token);
-            let loca = format!("{}_extra_icon", self.key);
-            data.localization.verify_exists_implied(&loca, key);
+            let loca = format!("{}_extra_icon", key);
+            data.localization.verify_exists_implied(&loca, k);
         });
         vd.field_validated_block("should_use_extra_icon", |b, data| {
             validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
@@ -267,16 +217,16 @@ impl Interaction {
             validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
 
-        vd.field_validated_key_block("populate_actor_list", |key, block, data| {
+        vd.field_validated_key_block("populate_actor_list", |k, block, data| {
             // TODO: this loca check and the one for recipient_secondary have a lot of false positives in vanilla.
             // Not sure why.
-            let loca = format!("actor_secondary_{}", self.key);
-            data.verify_exists_implied(Item::Localization, &loca, key);
+            let loca = format!("actor_secondary_{}", key);
+            data.verify_exists_implied(Item::Localization, &loca, k);
             validate_normal_effect(block, data, &mut sc.clone(), Tooltipped::No);
         });
-        vd.field_validated_key_block("populate_recipient_list", |key, block, data| {
-            let loca = format!("recipient_secondary_{}", self.key);
-            data.verify_exists_implied(Item::Localization, &loca, key);
+        vd.field_validated_key_block("populate_recipient_list", |k, block, data| {
+            let loca = format!("recipient_secondary_{}", key);
+            data.verify_exists_implied(Item::Localization, &loca, k);
             validate_normal_effect(block, data, &mut sc.clone(), Tooltipped::No);
         });
 
@@ -344,9 +294,9 @@ impl Interaction {
                 validate_normal_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
-        if let Some(token) = self.block.get_key("ai_potential") {
-            if self.block.get_field_integer("ai_frequency").unwrap_or(0) == 0
-                && !self.key.is("revoke_title_interaction")
+        if let Some(token) = block.get_key("ai_potential") {
+            if block.get_field_integer("ai_frequency").unwrap_or(0) == 0
+                && !key.is("revoke_title_interaction")
             {
                 let msg = "`ai_potential` will not be used if `ai_frequency` is 0";
                 old_warn(token, ErrorKey::Unneeded, msg);

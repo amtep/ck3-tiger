@@ -69,17 +69,20 @@ impl ProvinceHistories {
     }
 }
 
-impl FileHandler for ProvinceHistories {
+impl FileHandler<Block> for ProvinceHistories {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("history/provinces")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
+            return None;
         }
 
-        let Some(mut block) = PdxFile::read_cp1252(entry, fullpath) else { return; };
+        PdxFile::read_cp1252(entry, fullpath)
+    }
+
+    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             if let Ok(id) = key.as_str().parse() {
                 self.load_item(id, key, block);

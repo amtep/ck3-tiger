@@ -1,7 +1,7 @@
-use std::cell::RefCell;
 use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
+use std::sync::RwLock;
 
 use fnv::{FnvHashMap, FnvHashSet};
 
@@ -18,13 +18,12 @@ use crate::report::{
 };
 use crate::token::Token;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Localization {
     check_langs: Vec<&'static str>,
-    warned_dirs: Vec<String>,
     locas: FnvHashMap<&'static str, FnvHashMap<String, LocaEntry>>,
     mod_langs: Vec<&'static str>,
-    used_locas: RefCell<FnvHashSet<String>>,
+    used_locas: RwLock<FnvHashSet<String>>,
 }
 
 // LAST UPDATED VERSION 1.9.2
@@ -262,7 +261,7 @@ impl Localization {
     }
 
     pub fn mark_used(&self, key: &str) {
-        self.used_locas.borrow_mut().insert(key.to_string());
+        self.used_locas.write().unwrap().insert(key.to_string());
     }
 
     fn check_loca_code(value: &LocaValue, data: &Everything, lang: &'static str) {
@@ -365,7 +364,7 @@ impl Localization {
             if let Some(hash) = self.locas.get(lang) {
                 let mut vec = Vec::new();
                 for (key, entry) in hash.iter() {
-                    if !self.used_locas.borrow().contains(key) {
+                    if !self.used_locas.read().unwrap().contains(key) {
                         vec.push(entry);
                     }
                 }
@@ -412,7 +411,7 @@ impl Localization {
     }
 }
 
-impl FileHandler for Localization {
+impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
     fn config(&mut self, config: &Block) {
         let mut langs: Vec<&str> = Vec::new();
 
@@ -435,12 +434,16 @@ impl FileHandler for Localization {
         PathBuf::from("localization")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(
+        &self,
+        entry: &FileEntry,
+        fullpath: &Path,
+    ) -> Option<(&'static str, Vec<LocaEntry>)> {
         let depth = entry.path().components().count();
         assert!(depth >= 2);
         assert!(entry.path().starts_with("localization"));
         if entry.filename().to_string_lossy().ends_with(".info") {
-            return;
+            return None;
         }
 
         // unwrap is safe here because we're only handed files under localization/
@@ -461,53 +464,29 @@ impl FileHandler for Localization {
             && lang != "replace"
             && lang != "jomini"
         {
-            if self.warned_dirs.iter().any(|d| *d == *lang) {
-                warn_info(
-                    entry,
-                    ErrorKey::Filename,
-                    "unknown subdirectory in localization",
-                    &format!("Valid subdirectories are {}", KNOWN_LANGUAGES.join(", ")),
-                );
-            }
-            self.warned_dirs.push(lang.to_string());
+            warn_info(
+                entry,
+                ErrorKey::Filename,
+                "unknown subdirectory in localization",
+                &format!("Valid subdirectories are {}", KNOWN_LANGUAGES.join(", ")),
+            );
             warned = true;
         }
 
         if KNOWN_LANGUAGES.contains(&&*lang) && !self.check_langs.contains(&&*lang) {
-            return;
-        }
-
-        if entry.kind() == FileKind::Mod && !self.mod_langs.contains(&&*lang) {
-            for &known in KNOWN_LANGUAGES {
-                if known == lang {
-                    self.mod_langs.push(known);
-                }
-            }
+            return None;
         }
 
         if let Some(filelang) = get_file_lang(entry.filename()) {
             if !self.check_langs.contains(&filelang) {
-                return;
+                return None;
             }
             if filelang != lang && !warned {
                 advice_info(entry, ErrorKey::Filename, "localization file with wrong name or in wrong directory", "A localization file should be in a subdirectory corresponding to its language.");
             }
             match read_to_string(fullpath) {
                 Ok(content) => {
-                    for loca in parse_loca(entry, &content, filelang) {
-                        let hash = self.locas.entry(filelang).or_default();
-                        if !is_replace_path(entry.path()) {
-                            if let Some(other) = hash.get(loca.key.as_str()) {
-                                // other.key and loca.key are in the other order than usual here,
-                                // because in loca the older definition overrides the later one.
-                                if loca.key.loc.kind == entry.kind() && other.orig != loca.orig {
-                                    dup_error(&other.key, &loca.key, "localization");
-                                    continue;
-                                }
-                            }
-                        }
-                        hash.insert(loca.key.to_string(), loca);
-                    }
+                    return Some((filelang, parse_loca(entry, &content, filelang).collect()));
                 }
                 Err(e) => eprintln!("{e:#}"),
             }
@@ -519,6 +498,33 @@ impl FileHandler for Localization {
                 "could not determine language from filename",
                 &format!("Localization filenames should end in _l_language.yml, where language is one of {}", KNOWN_LANGUAGES.join(", ")),
             );
+        }
+        None
+    }
+
+    fn handle_file(&mut self, entry: &FileEntry, loaded: (&'static str, Vec<LocaEntry>)) {
+        let (filelang, mut vec) = loaded;
+        if entry.kind() == FileKind::Mod && !self.mod_langs.contains(&filelang) {
+            for &known in KNOWN_LANGUAGES {
+                if known == filelang {
+                    self.mod_langs.push(known);
+                }
+            }
+        }
+
+        for loca in vec.drain(..) {
+            let hash = self.locas.entry(filelang).or_default();
+            if !is_replace_path(entry.path()) {
+                if let Some(other) = hash.get(loca.key.as_str()) {
+                    // other.key and loca.key are in the other order than usual here,
+                    // because in loca the older definition overrides the later one.
+                    if loca.key.loc.kind == entry.kind() && other.orig != loca.orig {
+                        dup_error(&other.key, &loca.key, "localization");
+                        continue;
+                    }
+                }
+            }
+            hash.insert(loca.key.to_string(), loca);
         }
     }
 
@@ -576,7 +582,7 @@ impl FileHandler for Localization {
                         &mut new_line,
                         &orig_lang,
                         &mut count,
-                        &mut self.used_locas.borrow_mut(),
+                        &mut self.used_locas.write().unwrap(),
                     ) {
                         let mut value = ValueParser::new(new_line).parse_value();
                         entry.value = if value.len() == 1 {
@@ -595,10 +601,9 @@ impl Default for Localization {
     fn default() -> Self {
         Localization {
             check_langs: Vec::from(KNOWN_LANGUAGES),
-            warned_dirs: Vec::default(),
             locas: FnvHashMap::default(),
             mod_langs: Vec::default(),
-            used_locas: RefCell::new(FnvHashSet::default()),
+            used_locas: RwLock::new(FnvHashSet::default()),
         }
     }
 }

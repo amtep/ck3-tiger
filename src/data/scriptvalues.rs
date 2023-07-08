@@ -1,5 +1,5 @@
-use std::cell::RefCell;
 use std::path::{Path, PathBuf};
+use std::sync::RwLock;
 
 use fnv::FnvHashMap;
 
@@ -14,7 +14,7 @@ use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::{Loc, Token};
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct ScriptValues {
     scope_overrides: FnvHashMap<String, Scopes>,
     scriptvalues: FnvHashMap<String, ScriptValue>,
@@ -59,7 +59,7 @@ impl ScriptValues {
     }
 }
 
-impl FileHandler for ScriptValues {
+impl FileHandler<Block> for ScriptValues {
     fn config(&mut self, config: &Block) {
         if let Some(block) = config.get_field_block("scope_override") {
             for (key, token) in block.iter_assignments() {
@@ -85,33 +85,36 @@ impl FileHandler for ScriptValues {
         PathBuf::from("common/script_values")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
+            return None;
         }
 
-        let Some(block) = PdxFile::read(entry, fullpath) else { return; };
+        PdxFile::read(entry, fullpath)
+    }
+
+    fn handle_file(&mut self, _entry: &FileEntry, block: Block) {
         for (key, bv) in block.iter_bv_definitions_warn() {
             self.load_item(key, bv);
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct ScriptValue {
     key: Token,
     bv: BV,
-    cache: RefCell<FnvHashMap<Loc, ScopeContext>>,
+    cache: RwLock<FnvHashMap<Loc, ScopeContext>>,
     scope_override: Option<Scopes>,
 }
 
 impl ScriptValue {
     pub fn new(key: Token, bv: BV, scope_override: Option<Scopes>) -> Self {
-        Self { key, bv, cache: RefCell::new(FnvHashMap::default()), scope_override }
+        Self { key, bv, cache: RwLock::new(FnvHashMap::default()), scope_override }
     }
 
     pub fn cached_compat(&self, key: &Token, sc: &mut ScopeContext) -> bool {
-        if let Some(our_sc) = self.cache.borrow().get(&key.loc) {
+        if let Some(our_sc) = self.cache.read().unwrap().get(&key.loc) {
             sc.expect_compatibility(our_sc, key);
             true
         } else {
@@ -141,14 +144,14 @@ impl ScriptValue {
             if self.scope_override.is_some() {
                 our_sc.set_no_warn(true);
             }
-            self.cache.borrow_mut().insert(key.loc.clone(), our_sc.clone());
+            self.cache.write().unwrap().insert(key.loc.clone(), our_sc.clone());
             validate_scriptvalue(&self.bv, data, &mut our_sc);
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key);
                 our_sc.set_strict_scopes(false);
             }
             sc.expect_compatibility(&our_sc, key);
-            self.cache.borrow_mut().insert(key.loc.clone(), our_sc);
+            self.cache.write().unwrap().insert(key.loc.clone(), our_sc);
         }
     }
 

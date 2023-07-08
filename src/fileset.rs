@@ -1,12 +1,12 @@
-use std::cell::RefCell;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 use std::string::ToString;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use anyhow::Result;
 use fnv::FnvHashSet;
+use rayon::prelude::*;
 use walkdir::WalkDir;
 
 use crate::block::Block;
@@ -87,7 +87,7 @@ impl From<&FileEntry> for Token {
 }
 
 /// A trait for a submodule that can process files.
-pub trait FileHandler {
+pub trait FileHandler<T: Send>: Sync + Send {
     /// The `FileHandler` can read settings it needs from the ck3-tiger config.
     fn config(&mut self, _config: &Block) {}
 
@@ -96,9 +96,15 @@ pub trait FileHandler {
     /// relative to the mod or vanilla root.
     fn subpath(&self) -> PathBuf;
 
+    /// This is called for each matching file, in arbitrary order.
+    /// If a `T` is returned, it will be passed to `handle_file` later.
+    /// Since `load_file` is executed multi-threaded while `handle_file`
+    /// is single-threaded, try to do the heavy work in this function.
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<T>;
+
     /// This is called for each matching file in turn, in lexical order.
     /// That's the order in which the CK3 game engine loads them too.
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path);
+    fn handle_file(&mut self, entry: &FileEntry, loaded: T);
 
     /// This is called after all files have been handled.
     /// The `FileHandler` can generate indexes, perform full-data checks, etc.
@@ -142,7 +148,7 @@ impl LoadedMod {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Fileset {
     /// The CK3 game directory
     vanilla_root: PathBuf,
@@ -171,7 +177,7 @@ pub struct Fileset {
     /// All filenames from ordered_files, for quick lookup
     filenames: FnvHashSet<PathBuf>,
 
-    used: RefCell<FnvHashSet<String>>,
+    used: RwLock<FnvHashSet<String>>,
 }
 
 impl Fileset {
@@ -193,7 +199,7 @@ impl Fileset {
             files: Vec::new(),
             ordered_files: Vec::new(),
             filenames: FnvHashSet::default(),
-            used: RefCell::new(FnvHashSet::default()),
+            used: RwLock::new(FnvHashSet::default()),
         }
     }
 
@@ -313,9 +319,27 @@ impl Fileset {
         }
     }
 
-    pub fn get_files_under<'a>(&'a self, subpath: &'a Path) -> Files<'a> {
+    pub fn get_files_under<'a>(&'a self, subpath: &'a Path) -> Files {
         let start = self.ordered_files.partition_point(|entry| entry.path < subpath);
         Files { iter: self.ordered_files.iter().skip(start), subpath }
+    }
+
+    pub fn for_each_under<F: Fn(&FileEntry) + Sync + Send>(&self, subpath: &Path, f: F) {
+        let start = self.ordered_files.partition_point(|entry| entry.path < subpath);
+        let end = start
+            + self.ordered_files[start..].partition_point(|entry| entry.path.starts_with(subpath));
+        self.ordered_files[start..end].par_iter().for_each(f);
+    }
+
+    pub fn filter_map_under<F, T>(&self, subpath: &Path, f: F) -> Vec<T>
+    where
+        F: Fn(&FileEntry) -> Option<T> + Sync + Send,
+        T: Send,
+    {
+        let start = self.ordered_files.partition_point(|entry| entry.path < subpath);
+        let end = start
+            + self.ordered_files[start..].partition_point(|entry| entry.path.starts_with(subpath));
+        self.ordered_files[start..end].par_iter().filter_map(f).collect()
     }
 
     pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {
@@ -329,19 +353,22 @@ impl Fileset {
         }
     }
 
-    pub fn handle<H: FileHandler>(&self, handler: &mut H) {
+    pub fn handle<T: Send, H: FileHandler<T>>(&self, handler: &mut H) {
         if let Some(config) = &self.config {
             handler.config(config);
         }
         let subpath = handler.subpath();
-        for entry in self.get_files_under(&subpath) {
-            handler.handle_file(entry, &self.fullpath(entry));
+        let entries = self.filter_map_under(&subpath, |entry| {
+            handler.load_file(entry, &self.fullpath(entry)).map(|loaded| (entry.clone(), loaded))
+        });
+        for (entry, loaded) in entries {
+            handler.handle_file(&entry, loaded);
         }
         handler.finalize();
     }
 
     pub fn mark_used(&self, file: &str) {
-        self.used.borrow_mut().insert(file.to_string());
+        self.used.write().unwrap().insert(file.to_string());
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -424,7 +451,7 @@ impl Fileset {
             let path = entry.path.to_string_lossy().to_string();
             if path.ends_with(".dds")
                 && !path.starts_with("gfx/interface/illustrations/loading_screens")
-                && !self.used.borrow().contains(&path)
+                && !self.used.read().unwrap().contains(&path)
             {
                 vec.push(entry);
             }

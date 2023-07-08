@@ -1,72 +1,22 @@
-use std::path::{Path, PathBuf};
-
-use fnv::FnvHashMap;
-
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
 use crate::item::Item;
-use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
-#[derive(Clone, Debug, Default)]
-pub struct Houses {
-    houses: FnvHashMap<String, House>,
-}
-
-impl Houses {
-    fn load_item(&mut self, key: Token, block: Block) {
-        if let Some(other) = self.houses.get(key.as_str()) {
-            if other.key.loc.kind >= key.loc.kind {
-                dup_error(&key, &other.key, "house");
-            }
-        }
-        self.houses.insert(key.to_string(), House::new(key, block));
-    }
-
-    pub fn exists(&self, key: &str) -> bool {
-        self.houses.contains_key(key)
-    }
-
-    pub fn validate(&self, data: &Everything) {
-        for item in self.houses.values() {
-            item.validate(data);
-        }
-    }
-}
-
-impl FileHandler for Houses {
-    fn subpath(&self) -> PathBuf {
-        PathBuf::from("common/dynasty_houses")
-    }
-
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
-        if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
-        }
-
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
-        for (key, block) in block.drain_definitions_warn() {
-            self.load_item(key, block);
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
-pub struct House {
-    key: Token,
-    block: Block,
-}
+pub struct House {}
 
 impl House {
-    pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::House, key, block, Box::new(Self {}));
     }
+}
 
-    pub fn validate(&self, data: &Everything) {
-        let mut vd = Validator::new(&self.block, data);
+impl DbKind for House {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
 
         vd.req_field("name");
         vd.req_field("dynasty");
@@ -75,6 +25,6 @@ impl House {
         vd.field_item("prefix", Item::Localization);
         vd.field_item("motto", Item::Localization);
         vd.field_item("dynasty", Item::Dynasty);
-        vd.field_value("forced_coa_religiongroup");
+        vd.field_value("forced_coa_religiongroup"); // TODO
     }
 }

@@ -78,17 +78,20 @@ impl Coas {
     }
 }
 
-impl FileHandler for Coas {
+impl FileHandler<Block> for Coas {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("common/coat_of_arms/coat_of_arms/")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
+            return None;
         }
 
-        let Some(block) = PdxFile::read_optional_bom(entry, fullpath) else { return; };
+        PdxFile::read_optional_bom(entry, fullpath)
+    }
+
+    fn handle_file(&mut self, _entry: &FileEntry, block: Block) {
         for (key, _, bv) in block.iter_items() {
             if let Some(key) = key {
                 self.load_item(key, bv);

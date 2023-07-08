@@ -167,7 +167,7 @@ pub struct DbEntry {
     kind: Box<dyn DbKind>,
 }
 
-pub trait DbKind: Debug + AsAny {
+pub trait DbKind: Debug + AsAny + Sync + Send {
     fn validate(&self, key: &Token, block: &Block, data: &Everything);
     fn has_property(
         &self,

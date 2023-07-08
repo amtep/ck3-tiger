@@ -94,14 +94,26 @@ impl Assets {
     }
 }
 
-impl FileHandler for Assets {
+impl FileHandler<Option<Block>> for Assets {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("gfx/models")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    /// TODO: should probably simplify this `FileHandler` by keeping the textures in a separate `FileHandler`.
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Option<Block>> {
         let name = entry.filename().to_string_lossy();
 
+        if name.ends_with(".dds") {
+            Some(None)
+        } else if name.ends_with(".asset") {
+            PdxFile::read_optional_bom(entry, fullpath).map(|block| Some(block))
+        } else {
+            None
+        }
+    }
+
+    fn handle_file(&mut self, entry: &FileEntry, loaded: Option<Block>) {
+        let name = entry.filename().to_string_lossy();
         if name.ends_with(".dds") {
             if let Some(other) = self.textures.get(&name.to_string()) {
                 if other.kind() >= entry.kind() {
@@ -118,11 +130,7 @@ impl FileHandler for Assets {
             return;
         }
 
-        if !name.ends_with(".asset") {
-            return;
-        }
-
-        let Some(block) = PdxFile::read_optional_bom(entry, fullpath) else { return; };
+        let block = loaded.expect("internal error");
         for (key, block) in block.iter_definitions_warn() {
             self.load_item(key, block);
         }

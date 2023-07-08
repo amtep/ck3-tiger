@@ -121,32 +121,34 @@ impl Gui {
     }
 }
 
-impl FileHandler for Gui {
+impl FileHandler<Block> for Gui {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("gui")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
-        #[derive(Copy, Clone, Debug)]
-        enum Expecting<'a> {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
+        if !entry.filename().to_string_lossy().ends_with(".gui") {
+            return None;
+        }
+
+        PdxFile::read_optional_bom(entry, fullpath)
+    }
+
+    fn handle_file(&mut self, entry: &FileEntry, mut block: Block) {
+        #[derive(Clone, Debug)]
+        enum Expecting {
             Widget,
             Types,
             TypesBody,
             Template,
-            TemplateBody(&'a Token),
+            TemplateBody(Token),
             Layer,
-            LayerBody(&'a Token),
+            LayerBody(Token),
         }
-
-        if !entry.filename().to_string_lossy().ends_with(".gui") {
-            return;
-        }
-
-        let Some(block) = PdxFile::read_optional_bom(entry, fullpath) else { return; };
 
         let mut expecting = Expecting::Widget;
 
-        for (k, cmp, bv) in block.iter_items() {
+        for (k, cmp, bv) in block.drain() {
             match expecting {
                 Expecting::Widget => {
                     if let Some(key) = k {
@@ -199,7 +201,7 @@ impl FileHandler for Gui {
                         error_info(key, ErrorKey::ParseError, &msg, &info);
                         expecting = Expecting::Widget;
                     } else if let Some(token) = bv.expect_value() {
-                        expecting = Expecting::TemplateBody(token);
+                        expecting = Expecting::TemplateBody(token.clone());
                     } else {
                         expecting = Expecting::Widget;
                     }
@@ -220,7 +222,7 @@ impl FileHandler for Gui {
                         error_info(key, ErrorKey::ParseError, &msg, &info);
                         expecting = Expecting::Widget;
                     } else if let Some(token) = bv.expect_value() {
-                        expecting = Expecting::LayerBody(token);
+                        expecting = Expecting::LayerBody(token.clone());
                     } else {
                         expecting = Expecting::Widget;
                     }

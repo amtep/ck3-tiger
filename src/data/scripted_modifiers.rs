@@ -15,7 +15,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::{validate_modifiers, validate_scripted_modifier_calls};
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct ScriptedModifiers {
     scripted_modifiers: FnvHashMap<String, ScriptedModifier>,
 }
@@ -45,24 +45,27 @@ impl ScriptedModifiers {
     }
 }
 
-impl FileHandler for ScriptedModifiers {
+impl FileHandler<Block> for ScriptedModifiers {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("common/scripted_modifiers")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
+            return None;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
+        PdxFile::read(entry, fullpath)
+    }
+
+    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             self.load_item(key, block);
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct ScriptedModifier {
     pub key: Token,
     block: Block,

@@ -321,14 +321,6 @@ impl Block {
         }
         vec
     }
-    pub fn dbg_keys(&self) {
-        for (k, _, _) in &self.v {
-            if let Some(k) = k {
-                let key = k.as_str();
-                dbg!(key);
-            }
-        }
-    }
 
     pub fn get_key(&self, name: &str) -> Option<&Token> {
         for (k, _, _) in self.v.iter().rev() {

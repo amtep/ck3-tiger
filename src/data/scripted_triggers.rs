@@ -15,7 +15,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct Triggers {
     scope_overrides: FnvHashMap<String, Scopes>,
     triggers: FnvHashMap<String, Trigger>,
@@ -51,7 +51,7 @@ impl Triggers {
     }
 }
 
-impl FileHandler for Triggers {
+impl FileHandler<Block> for Triggers {
     fn config(&mut self, config: &Block) {
         if let Some(block) = config.get_field_block("scope_override") {
             for (key, token) in block.iter_assignments() {
@@ -77,19 +77,22 @@ impl FileHandler for Triggers {
         PathBuf::from("common/scripted_triggers")
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
+    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
+            return None;
         }
 
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
+        PdxFile::read(entry, fullpath)
+    }
+
+    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             self.load_item(key, block);
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Trigger {
     pub key: Token,
     block: Block,

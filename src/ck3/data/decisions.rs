@@ -1,17 +1,11 @@
-use std::path::{Path, PathBuf};
-
-use fnv::FnvHashMap;
-
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
+use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
 use crate::item::Item;
-use crate::pdxfile::PdxFile;
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -19,65 +13,21 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
 use crate::validate::{validate_cost, validate_duration, validate_modifiers_with_base};
 
-#[derive(Clone, Debug, Default)]
-pub struct Decisions {
-    decisions: FnvHashMap<String, Decision>,
-}
-
-impl Decisions {
-    pub fn load_item(&mut self, key: Token, block: Block) {
-        if let Some(other) = self.decisions.get(key.as_str()) {
-            if other.key.loc.kind >= key.loc.kind {
-                dup_error(&key, &other.key, "decision");
-            }
-        }
-        self.decisions.insert(key.to_string(), Decision::new(key, block));
-    }
-
-    pub fn exists(&self, key: &str) -> bool {
-        self.decisions.contains_key(key)
-    }
-
-    pub fn validate(&self, data: &Everything) {
-        for item in self.decisions.values() {
-            item.validate(data);
-        }
-    }
-}
-
-impl FileHandler for Decisions {
-    fn subpath(&self) -> PathBuf {
-        PathBuf::from("common/decisions")
-    }
-
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: &Path) {
-        if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return;
-        }
-
-        let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
-        for (key, block) in block.drain_definitions_warn() {
-            self.load_item(key, block);
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
-pub struct Decision {
-    key: Token,
-    block: Block,
-}
+pub struct Decision {}
 
 impl Decision {
-    pub fn new(key: Token, block: Block) -> Self {
-        Decision { key, block }
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::Decision, key, block, Box::new(Self {}));
     }
+}
 
-    fn validate(&self, data: &Everything) {
-        let mut vd = Validator::new(&self.block, data);
-        let mut sc = ScopeContext::new(Scopes::Character, &self.key);
+impl DbKind for Decision {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
-        if let Some(block) = self.block.get_field_block("widget") {
+        if let Some(block) = block.get_field_block("widget") {
             // Add builtin scopes added by known widget controllers
             if let Some(controller) = block.get_field_value("controller") {
                 if controller.is("decision_option_list_controller") {
@@ -102,7 +52,7 @@ impl Decision {
         vd.field_bool("is_invisible");
         vd.field_bool("ai_goal");
         vd.field_integer("ai_check_interval");
-        if self.block.get_field_bool("ai_goal").unwrap_or(false) {
+        if block.get_field_bool("ai_goal").unwrap_or(false) {
             vd.advice_field("ai_check_interval", "not needed if ai_goal = yes");
         }
         vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
@@ -110,22 +60,22 @@ impl Decision {
         vd.field_item("confirm_click_sound", Item::Sound);
 
         if !vd.field_validated_sc("selection_tooltip", &mut sc, validate_desc) {
-            let loca = format!("{}_tooltip", self.key);
-            data.localization.verify_exists_implied(&loca, &self.key);
+            let loca = format!("{}_tooltip", key);
+            data.localization.verify_exists_implied(&loca, key);
         }
 
         if !vd.field_validated_sc("title", &mut sc, validate_desc) {
-            data.localization.verify_exists(&self.key);
+            data.localization.verify_exists(key);
         }
 
         if !vd.field_validated_sc("desc", &mut sc, validate_desc) {
-            let loca = format!("{}_desc", self.key);
-            data.localization.verify_exists_implied(&loca, &self.key);
+            let loca = format!("{}_desc", key);
+            data.localization.verify_exists_implied(&loca, key);
         }
 
         if !vd.field_validated_sc("confirm_text", &mut sc, validate_desc) {
-            let loca = format!("{}_confirm", self.key);
-            data.localization.verify_exists_implied(&loca, &self.key);
+            let loca = format!("{}_confirm", key);
+            data.localization.verify_exists_implied(&loca, key);
         }
 
         vd.field_validated_block("is_shown", |b, data| {
@@ -141,9 +91,9 @@ impl Decision {
         // cost can have multiple definitions and they will be combined
         // however, two costs of the same type are not summed
         vd.field_validated_blocks("cost", |b, data| validate_cost(b, data, &mut sc));
-        check_cost(&self.block.get_field_blocks("cost"));
+        check_cost(&block.get_field_blocks("cost"));
         vd.field_validated_blocks("minimum_cost", |b, data| validate_cost(b, data, &mut sc));
-        check_cost(&self.block.get_field_blocks("minimum_cost"));
+        check_cost(&block.get_field_blocks("minimum_cost"));
 
         vd.field_validated_block("effect", |b, data| {
             validate_normal_effect(b, data, &mut sc, Tooltipped::Yes);

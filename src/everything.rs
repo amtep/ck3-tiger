@@ -36,18 +36,18 @@ use crate::ck3::data::{
     court_scene::{CourtSceneCulture, CourtSceneGroup, CourtSceneRole, CourtSceneSetting},
     court_type::CourtType,
     courtpos::{CourtPosition, CourtPositionCategory},
-    culture_history::CultureHistories,
+    culture_history::CultureHistory,
     cultures::{
         Culture, CultureAesthetic, CultureCreationName, CultureEra, CulturePillar, CultureTradition,
     },
     data_binding::DataBindings,
     deathreasons::DeathReason,
-    decisions::Decisions,
+    decisions::Decision,
     diarchies::{DiarchyMandate, DiarchyType},
     difficulty::PlayableDifficultyInfo,
     dna::Dna,
     doctrines::Doctrines,
-    dynasties::Dynasties,
+    dynasties::Dynasty,
     dynasty_legacies::{DynastyLegacy, DynastyPerk},
     election::Election,
     environment::Environment,
@@ -65,12 +65,12 @@ use crate::ck3::data::{
     holdings::Holding,
     holysites::HolySite,
     hooks::Hook,
-    houses::Houses,
+    houses::House,
     important_actions::ImportantAction,
     innovations::Innovation,
     inspirations::Inspiration,
     interaction_cats::InteractionCategories,
-    interactions::Interactions,
+    interactions::Interaction,
     laws::LawGroup,
     lifestyles::Lifestyle,
     maa::MenAtArmsTypes,
@@ -82,7 +82,7 @@ use crate::ck3::data::{
     modifiers::Modifier,
     mottos::{Motto, MottoInsert},
     music::Musics,
-    namelists::Namelists,
+    namelists::NameList,
     nickname::Nickname,
     on_actions::OnActions,
     opinions::OpinionModifier,
@@ -177,17 +177,10 @@ pub struct Everything {
     /// Processed event files
     pub events: Events,
 
-    /// Processed decision files
-    #[cfg(feature = "ck3")]
-    pub decisions: Decisions,
-
     pub scripted_modifiers: ScriptedModifiers,
     #[cfg(feature = "ck3")]
     pub on_actions: OnActions,
 
-    /// Processed character interaction files
-    #[cfg(feature = "ck3")]
-    pub interactions: Interactions,
     #[cfg(feature = "ck3")]
     pub interaction_cats: InteractionCategories,
 
@@ -208,15 +201,7 @@ pub struct Everything {
     pub titles: Titles,
 
     #[cfg(feature = "ck3")]
-    pub dynasties: Dynasties,
-    #[cfg(feature = "ck3")]
-    pub houses: Houses,
-    #[cfg(feature = "ck3")]
     pub characters: Characters,
-
-    /// Cultural name lists
-    #[cfg(feature = "ck3")]
-    pub namelists: Namelists,
 
     pub scriptvalues: ScriptValues,
 
@@ -249,8 +234,6 @@ pub struct Everything {
 
     #[cfg(feature = "ck3")]
     pub coas: Coas,
-    #[cfg(feature = "ck3")]
-    pub culture_history: CultureHistories,
 }
 
 impl Everything {
@@ -285,13 +268,9 @@ impl Everything {
             scripted_lists: ScriptedLists::default(),
             defines: Defines::default(),
             events: Events::default(),
-            #[cfg(feature = "ck3")]
-            decisions: Decisions::default(),
             scripted_modifiers: ScriptedModifiers::default(),
             #[cfg(feature = "ck3")]
             on_actions: OnActions::default(),
-            #[cfg(feature = "ck3")]
-            interactions: Interactions::default(),
             #[cfg(feature = "ck3")]
             interaction_cats: InteractionCategories::default(),
             #[cfg(feature = "ck3")]
@@ -303,13 +282,7 @@ impl Everything {
             #[cfg(feature = "ck3")]
             titles: Titles::default(),
             #[cfg(feature = "ck3")]
-            dynasties: Dynasties::default(),
-            #[cfg(feature = "ck3")]
-            houses: Houses::default(),
-            #[cfg(feature = "ck3")]
             characters: Characters::default(),
-            #[cfg(feature = "ck3")]
-            namelists: Namelists::default(),
             scriptvalues: ScriptValues::default(),
             triggers: Triggers::default(),
             effects: Effects::default(),
@@ -333,8 +306,6 @@ impl Everything {
             music: Musics::default(),
             #[cfg(feature = "ck3")]
             coas: Coas::default(),
-            #[cfg(feature = "ck3")]
-            culture_history: CultureHistories::default(),
         })
     }
 
@@ -380,7 +351,7 @@ impl Everything {
     /// `.txt` files containing a block with definitions
     pub fn load_pdx_items<F>(&mut self, itype: Item, add: F)
     where
-        F: Fn(&mut Db, Token, Block),
+        F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
         self.load_pdx_items_ext(itype, add, ".txt");
     }
@@ -388,36 +359,55 @@ impl Everything {
     /// Like `load_pdx_items` but does not complain about a missing BOM
     pub fn load_pdx_items_optional_bom<F>(&mut self, itype: Item, add: F)
     where
-        F: Fn(&mut Db, Token, Block),
+        F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
-        let subpath = PathBuf::from(itype.path());
-        for entry in self.fileset.get_files_under(&subpath) {
+        for mut block in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
             if entry.filename().to_string_lossy().ends_with(".txt") {
-                if let Some(mut block) =
-                    PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
-                {
-                    for (key, block) in block.drain_definitions_warn() {
-                        add(&mut self.database, key, block);
-                    }
-                }
+                PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
+            } else {
+                None
+            }
+        }) {
+            for (key, block) in block.drain_definitions_warn() {
+                add(&mut self.database, key, block);
+            }
+        }
+    }
+
+    /// Like `load_pdx_items` but does not expect a Unicode file.
+    /// Non-Unicode files are mostly used in the history/ section.
+    pub fn load_pdx_items_cp1252<F>(&mut self, itype: Item, add: F)
+    where
+        F: Fn(&mut Db, Token, Block) + Sync + Send,
+    {
+        for mut block in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
+            if entry.filename().to_string_lossy().ends_with(".txt") {
+                PdxFile::read_cp1252(entry, &self.fileset.fullpath(entry))
+            } else {
+                None
+            }
+        }) {
+            for (key, block) in block.drain_definitions_warn() {
+                add(&mut self.database, key, block);
             }
         }
     }
 
     /// A helper function for categories of items that follow the usual pattern of
-    /// `.txt` files containing a block with definitions
+    /// files containing a block with definitions
     pub fn load_pdx_items_ext<F>(&mut self, itype: Item, add: F, ext: &str)
     where
-        F: Fn(&mut Db, Token, Block),
+        F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
-        let subpath = PathBuf::from(itype.path());
-        for entry in self.fileset.get_files_under(&subpath) {
+        for mut block in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
             if entry.filename().to_string_lossy().ends_with(ext) {
-                if let Some(mut block) = PdxFile::read(entry, &self.fileset.fullpath(entry)) {
-                    for (key, block) in block.drain_definitions_warn() {
-                        add(&mut self.database, key, block);
-                    }
-                }
+                PdxFile::read(entry, &self.fileset.fullpath(entry))
+            } else {
+                None
+            }
+        }) {
+            for (key, block) in block.drain_definitions_warn() {
+                add(&mut self.database, key, block);
             }
         }
     }
@@ -425,19 +415,46 @@ impl Everything {
     /// A helper function for categories of items that are unusual in having each item in one file.
     pub fn load_pdx_files_optional_bom<F>(&mut self, itype: Item, add: F)
     where
-        F: Fn(&mut Db, Token, Block),
+        F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
-        let subpath = PathBuf::from(itype.path());
-        for entry in self.fileset.get_files_under(&subpath) {
+        for (key, block) in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
             let filename = entry.filename().to_string_lossy();
             if let Some(key) = filename.strip_suffix(".txt") {
                 if let Some(block) =
                     PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
                 {
                     let key = Token::new(key.to_string(), Loc::for_entry(entry));
-                    add(&mut self.database, key, block);
+                    Some((key, block))
+                } else {
+                    None
                 }
+            } else {
+                None
             }
+        }) {
+            add(&mut self.database, key, block);
+        }
+    }
+
+    /// A helper function for categories of items that are unusual in having each item in one file.
+    pub fn load_pdx_files_cp1252<F>(&mut self, itype: Item, add: F)
+    where
+        F: Fn(&mut Db, Token, Block) + Sync + Send,
+    {
+        for (key, block) in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
+            let filename = entry.filename().to_string_lossy();
+            if let Some(key) = filename.strip_suffix(".txt") {
+                if let Some(block) = PdxFile::read_cp1252(entry, &self.fileset.fullpath(entry)) {
+                    let key = Token::new(key.to_string(), Loc::for_entry(entry));
+                    Some((key, block))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        }) {
+            add(&mut self.database, key, block);
         }
     }
 
@@ -469,19 +486,19 @@ impl Everything {
 
     #[cfg(feature = "ck3")]
     fn load_all_ck3(&mut self) {
-        self.fileset.handle(&mut self.decisions);
         self.fileset.handle(&mut self.on_actions);
-        self.fileset.handle(&mut self.interactions);
+        self.load_pdx_items(Item::Decision, Decision::add);
+        self.load_pdx_items(Item::Interaction, Interaction::add);
         self.fileset.handle(&mut self.interaction_cats);
         self.fileset.handle(&mut self.provinces);
         self.fileset.handle(&mut self.province_histories);
         self.fileset.handle(&mut self.gameconcepts);
         self.load_pdx_items(Item::ReligionFamily, ReligionFamily::add);
         self.fileset.handle(&mut self.titles);
-        self.fileset.handle(&mut self.dynasties);
-        self.fileset.handle(&mut self.houses);
+        self.load_pdx_items(Item::Dynasty, Dynasty::add);
+        self.load_pdx_items(Item::House, House::add);
         self.fileset.handle(&mut self.characters);
-        self.fileset.handle(&mut self.namelists);
+        self.load_pdx_items(Item::NameList, NameList::add);
         self.fileset.handle(&mut self.traits);
         self.load_pdx_items(Item::Lifestyle, Lifestyle::add);
         self.load_pdx_items(Item::CourtPositionCategory, CourtPositionCategory::add);
@@ -598,7 +615,7 @@ impl Everything {
         self.load_pdx_items(Item::CombatEffect, CombatEffect::add);
         self.load_pdx_items(Item::ScriptedIllustration, ScriptedIllustration::add);
         self.load_pdx_items(Item::Flavorization, Flavorization::add);
-        self.fileset.handle(&mut self.culture_history);
+        self.load_pdx_files_cp1252(Item::CultureHistory, CultureHistory::add);
         self.load_pdx_items(Item::Motto, Motto::add);
         self.load_pdx_items(Item::MottoInsert, MottoInsert::add);
         self.load_pdx_items(Item::CombatPhaseEvent, CombatPhaseEvent::add);
@@ -638,17 +655,12 @@ impl Everything {
     #[cfg(feature = "ck3")]
     fn validate_all_ck3(&mut self) {
         self.on_actions.validate(self);
-        self.decisions.validate(self);
-        self.interactions.validate(self);
         self.interaction_cats.validate(self);
         self.provinces.validate(self);
         self.province_histories.validate(self);
         self.gameconcepts.validate(self);
         self.titles.validate(self);
-        self.dynasties.validate(self);
-        self.houses.validate(self);
         self.characters.validate(self);
-        self.namelists.validate(self);
         self.traits.validate(self);
         self.title_history.validate(self);
         self.doctrines.validate(self);
@@ -659,7 +671,6 @@ impl Everything {
         self.sounds.validate(self);
         self.music.validate(self);
         self.coas.validate(self);
-        self.culture_history.validate(self);
     }
 
     #[cfg(feature = "vic3")]
@@ -708,13 +719,11 @@ impl Everything {
             Item::Coa => self.coas.exists(key),
             Item::CoaTemplate => self.coas.template_exists(key),
             Item::DangerType => DANGER_TYPES.contains(&key),
-            Item::Decision => self.decisions.exists(key),
             Item::Define => self.defines.exists(key),
             Item::Dlc => DLC.contains(&key),
             Item::DlcFeature => DLC_FEATURES.contains(&key),
             Item::Doctrine => self.doctrines.exists(key),
             Item::DoctrineParameter => self.doctrines.parameter_exists(key),
-            Item::Dynasty => self.dynasties.exists(key),
             Item::Entity => self.assets.entity_exists(key),
             Item::Event => self.events.exists(key),
             Item::EventNamespace => self.events.namespace_exists(key),
@@ -722,14 +731,11 @@ impl Everything {
             Item::GameConcept => self.gameconcepts.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::GeneticConstraint => self.traits.constraint_exists(key),
-            Item::House => self.houses.exists(key),
-            Item::Interaction => self.interactions.exists(key),
             Item::InteractionCategory => self.interaction_cats.exists(key),
             Item::Localization => self.localization.exists(key),
             Item::MenAtArms => self.menatarmstypes.exists(key),
             Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),
             Item::Music => self.music.exists(key),
-            Item::NameList => self.namelists.exists(key),
             Item::OnAction => self.on_actions.exists(key),
             Item::Pdxmesh => self.assets.mesh_exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
