@@ -7,3 +7,4 @@ pub mod modifiers;
 pub mod production_methods;
 pub mod religions;
 pub mod technology;
+pub mod terrain_manipulator;

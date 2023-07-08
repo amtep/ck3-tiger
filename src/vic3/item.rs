@@ -46,7 +46,9 @@ pub enum Item {
     StrategicRegion,
     Technology,
     TechnologyEra,
+    Terrain,
     TerrainManipulator,
+    TerrainMask,
     TriggerLocalization,
 }
 
@@ -97,7 +99,9 @@ impl Item {
             Item::StrategicRegion => "common/strategic_regions/",
             Item::Technology => "common/technology/technologies/",
             Item::TechnologyEra => "common/technology/eras/",
+            Item::Terrain => "common/terrain/",
             Item::TerrainManipulator => "common/terrain_manipulators/",
+            Item::TerrainMask => "gfx/map/masks/",
             Item::TriggerLocalization => "common/trigger_localization/",
         }
     }

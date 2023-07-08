@@ -148,6 +148,7 @@ use crate::vic3::data::{
     production_methods::ProductionMethod,
     religions::Religion,
     technology::{Technology, TechnologyEra},
+    terrain_manipulator::TerrainManipulator,
 };
 
 #[derive(Debug, Error)]
@@ -646,6 +647,7 @@ impl Everything {
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
         self.load_pdx_items(Item::Technology, Technology::add);
         self.load_pdx_items(Item::TechnologyEra, TechnologyEra::add);
+        self.load_pdx_items(Item::TerrainManipulator, TerrainManipulator::add);
     }
 
     pub fn load_all(&mut self) {
