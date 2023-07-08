@@ -151,14 +151,7 @@ impl DbKind for Law {
             // "generate" and "player_heir" are undocumented
             vd.field_choice(
                 "order_of_succession",
-                &[
-                    "inheritance",
-                    "election",
-                    "theocratic",
-                    "company",
-                    "generate",
-                    "player_heir",
-                ],
+                &["inheritance", "election", "theocratic", "company", "generate", "player_heir"],
             );
             vd.field_choice("title_division", &["partition", "single_heir"]);
             vd.field_choice("traversal_order", &["children", "dynasty_house", "dynasty"]);
@@ -172,9 +165,8 @@ impl DbKind for Law {
                 }
             }
 
-            let order_of_succession = block
-                .get_field_value("order_of_succession")
-                .map_or("none", Token::as_str);
+            let order_of_succession =
+                block.get_field_value("order_of_succession").map_or("none", Token::as_str);
             if order_of_succession == "theocratic"
                 || order_of_succession == "company"
                 || order_of_succession == "generate"
@@ -194,13 +186,7 @@ impl DbKind for Law {
 
             vd.field_choice(
                 "gender_law",
-                &[
-                    "male_only",
-                    "male_preference",
-                    "equal",
-                    "female_preference",
-                    "female_only",
-                ],
+                &["male_only", "male_preference", "equal", "female_preference", "female_only"],
             );
             vd.field_choice("faith", &["same_faith", "same_religion", "same_family"]);
             vd.field_bool("create_primary_tier_titles");

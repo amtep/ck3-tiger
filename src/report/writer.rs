@@ -30,21 +30,17 @@ pub fn log_report(errors: &mut Errors, report: &LogReport) {
         report.severity,
     );
     // Log the other pointers:
-    report
-        .pointers
-        .windows(2)
-        .enumerate()
-        .for_each(|(index, pointers)| {
-            log_pointer(
-                errors,
-                pointers.get(0),
-                pointers.get(1).expect("Must exist."),
-                lines.get(index + 1).unwrap_or(&None),
-                skippable_ws,
-                report.indentation(),
-                report.severity,
-            );
-        });
+    report.pointers.windows(2).enumerate().for_each(|(index, pointers)| {
+        log_pointer(
+            errors,
+            pointers.get(0),
+            pointers.get(1).expect("Must exist."),
+            lines.get(index + 1).unwrap_or(&None),
+            skippable_ws,
+            report.indentation(),
+            report.severity,
+        );
+    });
     // Log the info line, if one exists.
     if let Some(info) = report.info {
         log_line_info(errors, report.indentation(), info);
@@ -93,10 +89,7 @@ fn log_line_title(errors: &Errors, report: &LogReport) {
             .style(&Styled::Tag(report.severity, false))
             .paint(format!("({})", report.key)),
         errors.styles.style(&Styled::Default).paint(": "),
-        errors
-            .styles
-            .style(&Styled::ErrorMessage)
-            .paint(report.msg.to_string()),
+        errors.styles.style(&Styled::ErrorMessage).paint(report.msg.to_string()),
     ];
     println!("{}", ANSIStrings(line));
 }
@@ -104,10 +97,7 @@ fn log_line_title(errors: &Errors, report: &LogReport) {
 /// Log the optional info line that is part of the overall report.
 fn log_line_info(errors: &Errors, indentation: usize, info: &str) {
     let line_info: &[ANSIString<'static>] = &[
-        errors
-            .styles
-            .style(&Styled::Default)
-            .paint(format!("{:width$}", "", width = indentation)),
+        errors.styles.style(&Styled::Default).paint(format!("{:width$}", "", width = indentation)),
         errors.styles.style(&Styled::Default).paint(" "),
         errors.styles.style(&Styled::Location).paint("="),
         errors.styles.style(&Styled::Default).paint(" "),
@@ -121,10 +111,7 @@ fn log_line_info(errors: &Errors, indentation: usize, info: &str) {
 /// Log the line containing the location's mod name and filename.
 fn log_line_file_location(errors: &Errors, pointer: &PointedMessage, indentation: usize) {
     let line_filename: &[ANSIString<'static>] = &[
-        errors
-            .styles
-            .style(&Styled::Default)
-            .paint(format!("{:width$}", "", width = indentation)),
+        errors.styles.style(&Styled::Default).paint(format!("{:width$}", "", width = indentation)),
         errors.styles.style(&Styled::Location).paint("-->"),
         errors.styles.style(&Styled::Default).paint(" "),
         errors
@@ -151,10 +138,7 @@ fn log_line_from_source(errors: &Errors, pointer: &PointedMessage, indentation: 
         errors.styles.style(&Styled::Default).paint(" "),
         errors.styles.style(&Styled::Location).paint("|"),
         errors.styles.style(&Styled::Default).paint(" "),
-        errors
-            .styles
-            .style(&Styled::SourceText)
-            .paint(line.to_string()),
+        errors.styles.style(&Styled::SourceText).paint(line.to_string()),
     ];
     println!("{}", ANSIStrings(line_from_source));
 }
@@ -179,21 +163,16 @@ fn log_line_carets(
     }
     // A line containing the carets that point upwards at the source line.
     let line_carets: &[ANSIString<'static>] = &[
-        errors
-            .styles
-            .style(&Styled::Default)
-            .paint(format!("{:width$}", "", width = indentation)),
+        errors.styles.style(&Styled::Default).paint(format!("{:width$}", "", width = indentation)),
         errors.styles.style(&Styled::Default).paint(" "),
         errors.styles.style(&Styled::Location).paint("|"),
         errors.styles.style(&Styled::Default).paint(" "),
-        errors
-            .styles
-            .style(&Styled::Default)
-            .paint(spacing.to_string()),
-        errors
-            .styles
-            .style(&Styled::Tag(severity, true))
-            .paint(format!("{:^^width$}", "", width = pointer.length)),
+        errors.styles.style(&Styled::Default).paint(spacing.to_string()),
+        errors.styles.style(&Styled::Tag(severity, true)).paint(format!(
+            "{:^^width$}",
+            "",
+            width = pointer.length
+        )),
         errors.styles.style(&Styled::Default).paint(" "),
         errors
             .styles
@@ -223,11 +202,7 @@ fn lines(errors: &mut Errors, report: &LogReport) -> Vec<Option<String>> {
     report
         .pointers
         .iter()
-        .map(|p| {
-            errors
-                .get_line(&p.location)
-                .map(|line| line.replace('\t', SPACES_PER_TAB))
-        })
+        .map(|p| errors.get_line(&p.location).map(|line| line.replace('\t', SPACES_PER_TAB)))
         .collect()
 }
 
@@ -239,7 +214,5 @@ fn skippable_ws(lines: &[Option<String>]) -> usize {
         .map(|line| line.chars().take_while(|ch| ch == &' ').count())
         .min()
         // If there are no lines, this value doesn't matter anyway, so just return a zero:
-        .map_or(0, |smallest_whitespace| {
-            smallest_whitespace.saturating_sub(MAX_IDLE_SPACE)
-        })
+        .map_or(0, |smallest_whitespace| smallest_whitespace.saturating_sub(MAX_IDLE_SPACE))
 }

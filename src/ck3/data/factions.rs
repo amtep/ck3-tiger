@@ -89,14 +89,10 @@ impl DbKind for Faction {
             Scopes::Faction,
             validate_modifiers_with_base,
         );
-        vd.field_validated_rooted(
-            "power_threshold",
-            Scopes::Faction,
-            |bv, data, sc| match bv {
-                BV::Value(t) => _ = t.expect_integer(),
-                BV::Block(b) => validate_modifiers_with_base(b, data, sc),
-            },
-        );
+        vd.field_validated_rooted("power_threshold", Scopes::Faction, |bv, data, sc| match bv {
+            BV::Value(t) => _ = t.expect_integer(),
+            BV::Block(b) => validate_modifiers_with_base(b, data, sc),
+        });
         vd.field_validated_block_rooted("is_valid", Scopes::Faction, |block, data, sc| {
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });

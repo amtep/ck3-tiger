@@ -54,11 +54,7 @@ impl ReportBuilderStage1 {
     }
     /// Sets the main report message.
     pub fn msg(self, msg: &str) -> ReportBuilderStage2 {
-        ReportBuilderStage2 {
-            stage1: self,
-            msg,
-            info: None,
-        }
+        ReportBuilderStage2 { stage1: self, msg, info: None }
     }
 }
 
@@ -80,11 +76,7 @@ impl<'a> ReportBuilderStage2<'a> {
             stage1: self.stage1,
             msg: self.msg,
             info: self.info,
-            pointers: vec![PointedMessage {
-                location: loc.into_loc(),
-                length: 1,
-                msg: None,
-            }],
+            pointers: vec![PointedMessage { location: loc.into_loc(), length: 1, msg: None }],
         }
     }
     pub fn loc_msg<E: ErrorLoc>(self, loc: E, msg: &'a str) -> ReportBuilderStage3 {
@@ -92,20 +84,11 @@ impl<'a> ReportBuilderStage2<'a> {
             stage1: self.stage1,
             msg: self.msg,
             info: self.info,
-            pointers: vec![PointedMessage {
-                location: loc.into_loc(),
-                length: 1,
-                msg: Some(msg),
-            }],
+            pointers: vec![PointedMessage { location: loc.into_loc(), length: 1, msg: Some(msg) }],
         }
     }
     pub fn pointers(self, pointers: Vec<PointedMessage<'a>>) -> ReportBuilderStage3 {
-        ReportBuilderStage3 {
-            stage1: self.stage1,
-            msg: self.msg,
-            info: self.info,
-            pointers,
-        }
+        ReportBuilderStage3 { stage1: self.stage1, msg: self.msg, info: self.info, pointers }
     }
 }
 
@@ -119,11 +102,7 @@ pub struct ReportBuilderStage3<'a> {
 
 impl<'a> ReportBuilderStage3<'a> {
     pub fn loc<E: ErrorLoc>(mut self, loc: E, msg: &'a str) -> Self {
-        self.pointers.push(PointedMessage {
-            location: loc.into_loc(),
-            length: 1,
-            msg: Some(msg),
-        });
+        self.pointers.push(PointedMessage { location: loc.into_loc(), length: 1, msg: Some(msg) });
         self
     }
     /// Build the report and returns it.

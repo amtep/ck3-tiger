@@ -86,11 +86,7 @@ impl DbKind for Scheme {
             sc.define_name("gift", Scopes::Bool, key);
             validate_modifiers_with_base(block, data, &mut sc);
         });
-        vd.field_validated_block_sc(
-            "agent_success_chance",
-            &mut sc,
-            validate_modifiers_with_base,
-        );
+        vd.field_validated_block_sc("agent_success_chance", &mut sc, validate_modifiers_with_base);
         vd.field_validated_key_block("base_success_chance", |key, block, data| {
             let mut sc = sc.clone();
             sc.change_root(Scopes::Scheme, key.clone());

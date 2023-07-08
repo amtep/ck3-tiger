@@ -20,12 +20,7 @@ impl PdxFile {
         match read_to_string(fullpath) {
             Ok(contents) => Some(contents),
             Err(e) => {
-                error_info(
-                    entry,
-                    ErrorKey::ReadError,
-                    "could not read file",
-                    &format!("{e:#}"),
-                );
+                error_info(entry, ErrorKey::ReadError, "could not read file", &format!("{e:#}"));
                 None
             }
         }
@@ -35,12 +30,7 @@ impl PdxFile {
         let bytes = match read(fullpath) {
             Ok(bytes) => bytes,
             Err(e) => {
-                error_info(
-                    entry,
-                    ErrorKey::ReadError,
-                    "could not read file",
-                    &format!("{e:#}"),
-                );
+                error_info(entry, ErrorKey::ReadError, "could not read file", &format!("{e:#}"));
                 return None;
             }
         };
@@ -57,11 +47,7 @@ impl PdxFile {
         if let Some(bomless) = contents.strip_prefix('\u{feff}') {
             Some(parse_pdx(entry, bomless))
         } else {
-            old_warn(
-                entry,
-                ErrorKey::Encoding,
-                "file must start with a UTF-8 BOM",
-            );
+            old_warn(entry, ErrorKey::Encoding, "file must start with a UTF-8 BOM");
             Some(parse_pdx(entry, &contents))
         }
     }

@@ -36,11 +36,7 @@ impl DbKind for Innovation {
         vd.field_item("culture_era", Item::CultureEra);
         vd.field_choice(
             "group",
-            &[
-                "culture_group_military",
-                "culture_group_civic",
-                "culture_group_regional",
-            ],
+            &["culture_group_military", "culture_group_civic", "culture_group_regional"],
         );
         vd.field_item("icon", Item::File);
 

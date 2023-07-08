@@ -206,10 +206,7 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
 pub fn scope_to_scope(name: &Token) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_TO_SCOPE {
         if name.is(s) {
-            return Some((
-                Scopes::from_bits_truncate(*from),
-                Scopes::from_bits_truncate(*to),
-            ));
+            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
         }
     }
     for (s, version, explanation) in SCOPE_TO_SCOPE_REMOVED {
@@ -225,10 +222,7 @@ pub fn scope_to_scope(name: &Token) -> Option<(Scopes, Scopes)> {
 pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_FROM_PREFIX {
         if *s == prefix {
-            return Some((
-                Scopes::from_bits_truncate(*from),
-                Scopes::from_bits_truncate(*to),
-            ));
+            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
         }
     }
     std::option::Option::None
@@ -238,10 +232,7 @@ pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
 pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_ITERATOR {
         if name.is(s) {
-            return Some((
-                Scopes::from_bits_truncate(*from),
-                Scopes::from_bits_truncate(*to),
-            ));
+            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
         }
     }
     for (s, version, explanation) in SCOPE_REMOVED_ITERATOR {
@@ -252,10 +243,7 @@ pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes
         }
     }
     if data.scripted_lists.exists(name.as_str()) {
-        return data
-            .scripted_lists
-            .base(name)
-            .and_then(|base| scope_iterator(base, data));
+        return data.scripted_lists.base(name).and_then(|base| scope_iterator(base, data));
     }
     std::option::Option::None
 }
@@ -459,62 +447,54 @@ pub fn validate_prefix_reference(
     // TODO integrate this to the SCOPE_FROM_PREFIX table
     match prefix.as_str() {
         // "active_law"
-        "ai_army_comparison" => validate_target(arg, data, sc, Scopes::Country),
-        "ai_gdp_comparison" => validate_target(arg, data, sc, Scopes::Country),
-        "ai_ideological_opinion" => validate_target(arg, data, sc, Scopes::Country),
-        "ai_navy_comparison" => validate_target(arg, data, sc, Scopes::Country),
+        "ai_army_comparison"
+        | "ai_gdp_comparison"
+        | "ai_ideological_opinion"
+        | "ai_navy_comparison"
+        | "average_defense"
+        | "average_offense"
+        | "num_defending_batallions"
+        | "num_total_battalions"
+        | "relations"
+        | "tension"
+        | "num_alliances_and_defensive_pacts_with_allies"
+        | "num_alliances_and_defensive_pacts_with_rivals"
+        | "num_mutual_trade_route_levels_with_country" => {
+            validate_target(arg, data, sc, Scopes::Country);
+        }
         // "array_define"
-        "average_defense" => validate_target(arg, data, sc, Scopes::Country),
-        "average_offense" => validate_target(arg, data, sc, Scopes::Country),
         "b" => data.verify_exists(Item::BuildingType, arg),
-        "c" => data.verify_exists(Item::Country, arg),
-        // "cd" => data.verify_exists(Item::CountryDefinition, arg),
+        "c" | "cd" | "region_state" => data.verify_exists(Item::Country, arg),
         "cu" => data.verify_exists(Item::Culture, arg),
         // "decree_cost"
         // "define"
         // "diplomatic_pact_other_country"
         // "flag"
-        // "g" => data.verify_exists(Item::Goods, arg),
+        "g" | "mg" => data.verify_exists(Item::Goods, arg),
         // "get_ruler_for"
         // "global_var"
-        // "i" => data.verify_exists(Item::Ideology, arg),
-        // "ideology" => data.verify_exists(Item::Ideology, arg),
-        // "ig" => data.verify_exists(Item::InterestGroup, arg),
+        "i" | "ideology" => data.verify_exists(Item::Ideology, arg),
+        "ig" => data.verify_exists(Item::InterestGroup, arg),
         // "ig_trait" => data.verify_exists(Item::InterestGroupTrait, arg),
         // "ig_type" => data.verify_exists(Item::InterestGroupType, arg),
         // "infamy_threshold" => data.verify_exists(Item::InfamyThreshold, arg),
-        // "institution" => data.verify_exists(Item::Institution, arg),
+        "institution" => data.verify_exists(Item::Institution, arg),
         // "je" => data.verify_exists(Item::Journalentry, arg),
         // "law_type" => data.verify_exists(Item::LawType, arg),
         // "local_var"
-        // "mg" => data.verify_exists(Item::MarketGoods, arg),
-        // "modifier" => data.verify_exists(Item::Modifier, arg),
+        "modifier" => data.verify_exists(Item::Modifier, arg),
         // "nf" => data.verify_exists(Item::Decree, arg),
-        "num_alliances_and_defensive_pacts_with_allies" => {
-            validate_target(arg, data, sc, Scopes::Country)
-        }
-        "num_alliances_and_defensive_pacts_with_rivals" => {
-            validate_target(arg, data, sc, Scopes::Country)
-        }
-        "num_defending_battalions" => validate_target(arg, data, sc, Scopes::Country),
         "num_enemy_units" => validate_target(arg, data, sc, Scopes::Character), // TODO verify type
-        "num_mutual_trade_route_levels_with_country" => {
-            validate_target(arg, data, sc, Scopes::Country)
-        }
         // "num_pending_events" =>
-        "num_total_battalions" => validate_target(arg, data, sc, Scopes::Country),
         "p" => data.verify_exists(Item::Province, arg),
-        // "pop_type" => data.verify_exists(Item::PopType, arg),
+        "pop_type" => data.verify_exists(Item::PopType, arg),
         // "py" => data.verify_exists(Item::Party, arg),
         // "rank_value" =>
-        "region_state" => data.verify_exists(Item::Country, arg),
         "rel" => data.verify_exists(Item::Religion, arg),
-        "relations" => validate_target(arg, data, sc, Scopes::Country),
         // "relations_threshold" =>
-        // "s" => data.verify_exists(Item::StateRegion, arg),
+        "s" => data.verify_exists(Item::StateRegion, arg),
         // "scope"
-        // "sr" => data.verify_exists(Item::StrategicRegion, arg),
-        "tension" => validate_target(arg, data, sc, Scopes::Country),
+        "sr" => data.verify_exists(Item::StrategicRegion, arg),
         // "tension_threshold" =>
         // "var"
         &_ => (),
@@ -525,11 +505,7 @@ pub fn validate_prefix_reference(
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
-    (
-        Country | StrategicRegion,
-        "active_diplomatic_play",
-        DiplomaticPlay,
-    ),
+    (Country | StrategicRegion, "active_diplomatic_play", DiplomaticPlay),
     (TradeRoute, "actor_market", Market),
     (Country, "army_size", Value),
     (Country, "army_size_including_conscripts", Value),
@@ -546,11 +522,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Country, "cached_ai_overseas_subject_population", Value),
     (Country, "cached_ai_subject_population", Value),
     (Country, "cached_ai_total_population", Value),
-    (
-        Country,
-        "cached_ai_unincorporated_coastal_population",
-        Value,
-    ),
+    (Country, "cached_ai_unincorporated_coastal_population", Value),
     (Country, "cached_ai_unincorporated_population", Value),
     (Country, "capital", State),
     (PoliticalMovement, "civil_war", CivilWar),
@@ -596,11 +568,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Country, "legitimacy", Value),
     (Building | TradeRoute, "level", Value),
     (CombatUnit, "manpower", Value),
-    (
-        Country | Building | Market | MarketGoods | Province | State | StateRegion,
-        "market",
-        Market,
-    ),
+    (Country | Building | Market | MarketGoods | Province | State | StateRegion, "market", Market),
     (Country, "market_capital", State),
     (CombatUnit, "mobilization", Value),
     (Party, "momentum", Value),
@@ -674,16 +642,8 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Market, "participants", Value),
     (InterestGroup, "party", Party),
     (None, "player", Country), // TODO "do not use this outside tutorial"
-    (
-        DiplomaticRelations,
-        "player_owed_obligation_days_left",
-        Value,
-    ),
-    (
-        Character | CivilWar,
-        "political_movement",
-        PoliticalMovement,
-    ),
+    (DiplomaticRelations, "player_owed_obligation_days_left", Value),
+    (Character | CivilWar, "political_movement", PoliticalMovement),
     (Pop, "pop_weight_modifier_scale", Value),
     (Character, "popularity", Value),
     (State, "population_below_expected_sol", Value),
@@ -693,11 +653,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
         "region",
         StrategicRegion,
     ),
-    (
-        Country | Character | CountryDefinition | Pop,
-        "religion",
-        Religion,
-    ),
+    (Country | Character | CountryDefinition | Pop, "religion", Religion),
     (Country, "ruler", Character),
     (DiplomaticRelations, "scope_relations", Value),
     (DiplomaticRelations, "scope_tension", Value),
@@ -760,22 +716,10 @@ const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
     (None, "law_type", LawType),
     (None, "local_var", ALL),
     (Market, "mg", MarketGoods),
-    (
-        Country | Building | Character | InterestGroup | Market | State,
-        "modifier",
-        Value | Bool,
-    ),
+    (Country | Building | Character | InterestGroup | Market | State, "modifier", Value | Bool),
     (State, "nf", Decree),
-    (
-        Country,
-        "num_alliances_and_defensive_pacts_with_allies",
-        Value,
-    ),
-    (
-        Country,
-        "num_alliances_and_defensive_pacts_with_rivals",
-        Value,
-    ),
+    (Country, "num_alliances_and_defensive_pacts_with_allies", Value),
+    (Country, "num_alliances_and_defensive_pacts_with_rivals", Value),
     (Front, "num_defending_battalions", Value),
     (Front, "num_enemy_units", Value),
     (Country, "num_mutual_trade_route_levels_with_country", Value),
@@ -819,30 +763,18 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (None, "market", Market),
     (Market, "market_goods", MarketGoods),
     (Party, "member", InterestGroup),
-    (
-        Country | State | StateRegion | StrategicRegion,
-        "neighbouring_state",
-        State,
-    ),
+    (Country | State | StateRegion | StrategicRegion, "neighbouring_state", State),
     (Country, "overlord_or_above", Country),
     (DiplomaticPact, "participant", Country),
     (Country, "political_movement", PoliticalMovement),
     (Country, "potential_party", Party),
     (InterestGroup, "preferred_law", Law),
-    (
-        Country | CountryDefinition | State,
-        "primary_culture",
-        Culture,
-    ),
+    (Country | CountryDefinition | State, "primary_culture", Culture),
     (Country, "rival_country", Country),
     (Country | Front | InterestGroup, "scope_admiral", Character),
     (Country, "scope_ally", Country),
     (Country | State, "scope_building", Building),
-    (
-        Country | Front | InterestGroup,
-        "scope_character",
-        Character,
-    ),
+    (Country | Front | InterestGroup, "scope_character", Character),
     (Country, "scope_cobelligerent", Country),
     (Market, "scope_country", Country),
     (Country | State, "scope_culture", Culture),
@@ -850,30 +782,14 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (War, "scope_front", Front),
     (Country | Front | InterestGroup, "scope_general", Character),
     (DiplomaticPlay, "scope_initiator_ally", Country),
-    (
-        Country | StrategicRegion,
-        "scope_interest_marker",
-        InterestMarker,
-    ),
+    (Country | StrategicRegion, "scope_interest_marker", InterestMarker),
     (DiplomaticPlay, "scope_play_involved", Country),
-    (
-        Country | Front | InterestGroup,
-        "scope_politician",
-        Character,
-    ),
+    (Country | Front | InterestGroup, "scope_politician", Character),
     (Country | Culture | InterestGroup | State, "scope_pop", Pop),
-    (
-        Country | Front | StateRegion | StrategicRegion | Theater,
-        "scope_state",
-        State,
-    ),
+    (Country | Front | StateRegion | StrategicRegion | Theater, "scope_state", State),
     (DiplomaticPlay, "scope_target_ally", Country),
     (Country, "scope_theater", Theater),
-    (
-        Country,
-        "scope_violate_sovereignty_interested_parties",
-        Country,
-    ),
+    (Country, "scope_violate_sovereignty_interested_parties", Country),
     (Country, "scope_violate_sovereignty_wars", War),
     (Country, "scope_war", War),
     (None, "state", State),
@@ -881,11 +797,7 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Country, "strategic_objective", State),
     (Country, "subject_or_below", Country),
     (PoliticalMovement, "supporting_character", Character),
-    (
-        PoliticalMovement,
-        "supporting_interest_group",
-        InterestGroup,
-    ),
+    (PoliticalMovement, "supporting_interest_group", InterestGroup),
     (Country | Market | MarketGoods, "trade_route", TradeRoute),
 ];
 

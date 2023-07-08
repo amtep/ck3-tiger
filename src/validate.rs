@@ -13,9 +13,9 @@ use crate::scopes::{scope_prefix, scope_to_scope, validate_prefix_reference, Sco
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{
-    validate_normal_trigger, validate_target, validate_target_ok_this, validate_trigger,
-};
+#[cfg(feature = "ck3")]
+use crate::trigger::validate_target;
+use crate::trigger::{validate_normal_trigger, validate_target_ok_this, validate_trigger};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ListType {
@@ -69,11 +69,7 @@ pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeConte
             });
             if vd.field_value("event_background").is_some() {
                 let msg = "`event_background` now causes a crash. It has been replaced by `reference` since 1.9";
-                error(
-                    block.get_key("event_background").unwrap(),
-                    ErrorKey::Crash,
-                    msg,
-                );
+                error(block.get_key("event_background").unwrap(), ErrorKey::Crash, msg);
             }
             vd.req_field("reference");
             if let Some(token) = vd.field_value("reference") {
@@ -130,11 +126,7 @@ pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &m
 
     if count != 1 {
         let msg = "must have 1 of days, weeks, months, or years";
-        let key = if count == 0 {
-            ErrorKey::FieldMissing
-        } else {
-            ErrorKey::Validation
-        };
+        let key = if count == 0 { ErrorKey::FieldMissing } else { ErrorKey::Validation };
         error(block, key, msg);
     }
 }
@@ -153,11 +145,7 @@ pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext
 
     if count != 1 {
         let msg = "must have 1 of days, weeks, months, or years";
-        let key = if count == 0 {
-            ErrorKey::FieldMissing
-        } else {
-            ErrorKey::Validation
-        };
+        let key = if count == 0 { ErrorKey::FieldMissing } else { ErrorKey::Validation };
         error(block, key, msg);
     }
 }
@@ -374,9 +362,7 @@ pub fn validate_iterator_fields(
             validate_normal_trigger(b, data, sc, *tooltipped);
         });
     } else {
-        vd.ban_field("alternative_limit", || {
-            "`every_`, `ordered_`, and `random_` lists"
-        });
+        vd.ban_field("alternative_limit", || "`every_`, `ordered_`, and `random_` lists");
     }
 
     if list_type == ListType::Any {
@@ -732,11 +718,7 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     vd.field_validated_blocks_sc("compare_modifier", sc, validate_compare_modifier);
     vd.field_validated_blocks_sc("opinion_modifier", sc, validate_opinion_modifier);
     vd.field_validated_blocks_sc("ai_value_modifier", sc, validate_ai_value_modifier);
-    vd.field_validated_blocks_sc(
-        "compatibility_modifier",
-        sc,
-        validate_compatibility_modifier,
-    );
+    vd.field_validated_blocks_sc("compatibility_modifier", sc, validate_compatibility_modifier);
 
     // These are special single-use modifiers
     #[cfg(feature = "ck3")]

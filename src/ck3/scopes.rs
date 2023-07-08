@@ -166,10 +166,7 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
 pub fn scope_to_scope(name: &Token) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_TO_SCOPE {
         if name.is(s) {
-            return Some((
-                Scopes::from_bits_truncate(*from),
-                Scopes::from_bits_truncate(*to),
-            ));
+            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
         }
     }
     for (s, version, explanation) in SCOPE_TO_SCOPE_REMOVED {
@@ -185,10 +182,7 @@ pub fn scope_to_scope(name: &Token) -> Option<(Scopes, Scopes)> {
 pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_FROM_PREFIX {
         if *s == prefix {
-            return Some((
-                Scopes::from_bits_truncate(*from),
-                Scopes::from_bits_truncate(*to),
-            ));
+            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
         }
     }
     std::option::Option::None
@@ -198,10 +192,7 @@ pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
 pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_ITERATOR {
         if name.is(s) {
-            return Some((
-                Scopes::from_bits_truncate(*from),
-                Scopes::from_bits_truncate(*to),
-            ));
+            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
         }
     }
     for (s, version, explanation) in SCOPE_REMOVED_ITERATOR {
@@ -212,10 +203,7 @@ pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes
         }
     }
     if data.scripted_lists.exists(name.as_str()) {
-        return data
-            .scripted_lists
-            .base(name)
-            .and_then(|base| scope_iterator(base, data));
+        return data.scripted_lists.base(name).and_then(|base| scope_iterator(base, data));
     }
     std::option::Option::None
 }
@@ -470,11 +458,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Faction, "faction_leader", Character),
     (Faction, "faction_target", Character),
     (Faction, "faction_war", War),
-    (
-        Character | LandedTitle | Province | GreatHolyWar,
-        "faith",
-        Faith,
-    ),
+    (Character | LandedTitle | Province | GreatHolyWar, "faith", Faith),
     (Character, "father", Character),
     (TravelPlan, "final_destination_province", Province),
     (Faith, "founder", Character),
@@ -540,11 +524,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Province, "province_owner", Character),
     (Character, "real_father", Character),
     (Character, "realm_priest", Character),
-    (
-        Character | LandedTitle | Province | Faith | GreatHolyWar,
-        "religion",
-        Religion,
-    ),
+    (Character | LandedTitle | Province | Faith | GreatHolyWar, "religion", Religion),
     (Faith, "religious_head", Character),
     (Faith, "religious_head_title", LandedTitle),
     // "root" special
@@ -569,11 +549,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (TravelPlan, "travel_plan_owner", Character),
     (Character, "top_liege", Character),
     // "value" special
-    (
-        VassalObligationLevel,
-        "vassal_contract_type",
-        VassalContract,
-    ),
+    (VassalObligationLevel, "vassal_contract_type", VassalContract),
     (CasusBelli, "war", War),
     (None, "yes", Bool),
 ];
@@ -659,46 +635,14 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (Character, "character_artifact", Artifact),
     (Province, "character_in_location", Character),
     (Character, "character_struggle", Struggle),
-    (
-        Character,
-        "character_to_title_neighboring_and_across_water_county",
-        LandedTitle,
-    ),
-    (
-        Character,
-        "character_to_title_neighboring_and_across_water_duchy",
-        LandedTitle,
-    ),
-    (
-        Character,
-        "character_to_title_neighboring_and_across_water_empire",
-        LandedTitle,
-    ),
-    (
-        Character,
-        "character_to_title_neighboring_and_across_water_kingdom",
-        LandedTitle,
-    ),
-    (
-        Character,
-        "character_to_title_neighboring_county",
-        LandedTitle,
-    ),
-    (
-        Character,
-        "character_to_title_neighboring_duchy",
-        LandedTitle,
-    ),
-    (
-        Character,
-        "character_to_title_neighboring_empire",
-        LandedTitle,
-    ),
-    (
-        Character,
-        "character_to_title_neighboring_kingdom",
-        LandedTitle,
-    ),
+    (Character, "character_to_title_neighboring_and_across_water_county", LandedTitle),
+    (Character, "character_to_title_neighboring_and_across_water_duchy", LandedTitle),
+    (Character, "character_to_title_neighboring_and_across_water_empire", LandedTitle),
+    (Character, "character_to_title_neighboring_and_across_water_kingdom", LandedTitle),
+    (Character, "character_to_title_neighboring_county", LandedTitle),
+    (Character, "character_to_title_neighboring_duchy", LandedTitle),
+    (Character, "character_to_title_neighboring_empire", LandedTitle),
+    (Character, "character_to_title_neighboring_kingdom", LandedTitle),
     (Character, "character_trait", Trait),
     (Character, "character_war", War),
     (None, "character_with_royal_court", Character),
@@ -804,21 +748,9 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (None, "mercenary_company", MercenaryCompany),
     (Character, "memory", CharacterMemory),
     (CharacterMemory, "memory_participant", Character),
-    (
-        Character,
-        "neighboring_and_across_water_realm_same_rank_owner",
-        Character,
-    ),
-    (
-        Character,
-        "neighboring_and_across_water_top_liege_realm",
-        LandedTitle,
-    ),
-    (
-        Character,
-        "neighboring_and_across_water_top_liege_realm_owner",
-        Character,
-    ),
+    (Character, "neighboring_and_across_water_realm_same_rank_owner", Character),
+    (Character, "neighboring_and_across_water_top_liege_realm", LandedTitle),
+    (Character, "neighboring_and_across_water_top_liege_realm_owner", Character),
     (LandedTitle, "neighboring_county", LandedTitle),
     (Province, "neighboring_province", Province),
     (Character, "neighboring_realm_same_rank_owner", Character),
@@ -888,42 +820,14 @@ const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
     (LandedTitle, "this_title_or_de_jure_above", LandedTitle),
     (LandedTitle, "title_heir", Character),
     (LandedTitle, "title_joined_faction", Faction),
-    (
-        LandedTitle,
-        "title_to_title_neighboring_and_across_water_county",
-        LandedTitle,
-    ),
-    (
-        LandedTitle,
-        "title_to_title_neighboring_and_across_water_duchy",
-        LandedTitle,
-    ),
-    (
-        LandedTitle,
-        "title_to_title_neighboring_and_across_water_empire",
-        LandedTitle,
-    ),
-    (
-        LandedTitle,
-        "title_to_title_neighboring_and_across_water_kingdom",
-        LandedTitle,
-    ),
-    (
-        LandedTitle,
-        "title_to_title_neighboring_county",
-        LandedTitle,
-    ),
+    (LandedTitle, "title_to_title_neighboring_and_across_water_county", LandedTitle),
+    (LandedTitle, "title_to_title_neighboring_and_across_water_duchy", LandedTitle),
+    (LandedTitle, "title_to_title_neighboring_and_across_water_empire", LandedTitle),
+    (LandedTitle, "title_to_title_neighboring_and_across_water_kingdom", LandedTitle),
+    (LandedTitle, "title_to_title_neighboring_county", LandedTitle),
     (LandedTitle, "title_to_title_neighboring_duchy", LandedTitle),
-    (
-        LandedTitle,
-        "title_to_title_neighboring_empire",
-        LandedTitle,
-    ),
-    (
-        LandedTitle,
-        "title_to_title_neighboring_kingdom",
-        LandedTitle,
-    ),
+    (LandedTitle, "title_to_title_neighboring_empire", LandedTitle),
+    (LandedTitle, "title_to_title_neighboring_kingdom", LandedTitle),
     (None, "trait", Trait),
     (None, "trait_in_category", Trait),
     (Character, "traveling_family_member", Character),
@@ -952,9 +856,5 @@ const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
 const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
     ("activity", "1.9", ""),
     ("activity_owner", "1.9", "replaced by `activity_host`"),
-    (
-        "activity_province",
-        "1.9",
-        "replaced by `activity_location`",
-    ),
+    ("activity_province", "1.9", "replaced by `activity_location`"),
 ];

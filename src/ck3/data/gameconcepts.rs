@@ -30,8 +30,7 @@ impl GameConcepts {
                 self.aliases.insert(token.to_string(), key.to_string());
             }
         }
-        self.concepts
-            .insert(key.to_string(), Concept::new(key, block));
+        self.concepts.insert(key.to_string(), Concept::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -113,8 +112,7 @@ impl Concept {
                     if tokens.len() == 2 {
                         if let Ok(width) = tokens[0].as_str().parse::<u32>() {
                             if let Ok(height) = tokens[1].as_str().parse::<u32>() {
-                                data.dds
-                                    .validate_frame(texture, width, height, frame as u32);
+                                data.dds.validate_frame(texture, width, height, frame as u32);
                             }
                         }
                     }

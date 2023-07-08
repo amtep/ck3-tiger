@@ -24,8 +24,7 @@ impl InteractionCategories {
                 dup_error(&key, &other.key, "interaction category");
             }
         }
-        self.categories
-            .insert(key.to_string(), Category::new(key, block));
+        self.categories.insert(key.to_string(), Category::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {

@@ -76,12 +76,7 @@ impl ModFile {
     }
 
     pub fn modpath(&self) -> PathBuf {
-        let mut dirpath = self
-            .block
-            .loc
-            .pathname
-            .parent()
-            .unwrap_or_else(|| Path::new("."));
+        let mut dirpath = self.block.loc.pathname.parent().unwrap_or_else(|| Path::new("."));
         if dirpath.components().count() == 0 {
             dirpath = Path::new(".");
         }
@@ -100,10 +95,7 @@ impl ModFile {
     }
 
     pub fn replace_paths(&self) -> Vec<PathBuf> {
-        self.replace_paths
-            .iter()
-            .map(|t| PathBuf::from(t.as_str()))
-            .collect()
+        self.replace_paths.iter().map(|t| PathBuf::from(t.as_str())).collect()
     }
 
     pub fn display_name_ext(&self) -> String {

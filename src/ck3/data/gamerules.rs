@@ -20,12 +20,8 @@ impl GameRule {
     }
 }
 
-const RULE_FLAGS: &[&str] = &[
-    "blocks_achievements",
-    "no_end_date",
-    "no_diplomatic_range",
-    "restricted_diplomatic_range",
-];
+const RULE_FLAGS: &[&str] =
+    &["blocks_achievements", "no_end_date", "no_diplomatic_range", "restricted_diplomatic_range"];
 
 impl DbKind for GameRule {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {

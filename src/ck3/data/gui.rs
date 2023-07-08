@@ -28,8 +28,7 @@ impl Gui {
         if let Some(guifile) = self.files.get_mut(&filename) {
             guifile.push(GuiWidget::new(key, block));
         } else {
-            self.files
-                .insert(filename, vec![GuiWidget::new(key, block)]);
+            self.files.insert(filename, vec![GuiWidget::new(key, block)]);
         }
     }
 
@@ -87,24 +86,21 @@ impl Gui {
         if let Some(other) = self.types.get(key.as_str()) {
             dup_error(&key, &other.key, "gui type");
         }
-        self.types
-            .insert(key.to_string(), GuiType::new(key, base, block));
+        self.types.insert(key.to_string(), GuiType::new(key, base, block));
     }
 
     pub fn load_template(&mut self, key: Token, block: Block) {
         if let Some(other) = self.templates.get(key.as_str()) {
             dup_error(&key, &other.key, "gui template");
         }
-        self.templates
-            .insert(key.to_string(), GuiTemplate::new(key, block));
+        self.templates.insert(key.to_string(), GuiTemplate::new(key, block));
     }
 
     pub fn load_layer(&mut self, key: Token, block: Block) {
         if let Some(other) = self.layers.get(key.as_str()) {
             dup_error(&key, &other.key, "gui layer");
         }
-        self.layers
-            .insert(key.to_string(), GuiLayer::new(key, block));
+        self.layers.insert(key.to_string(), GuiLayer::new(key, block));
     }
 
     pub fn validate(&self, data: &Everything) {

@@ -136,12 +136,7 @@ pub struct Block {
 
 impl Block {
     pub fn new(loc: Loc) -> Self {
-        Block {
-            v: Vec::new(),
-            tag: None,
-            loc,
-            source: None,
-        }
+        Block { v: Vec::new(), tag: None, loc, source: None }
     }
 
     pub fn add_value(&mut self, value: BV) {
@@ -205,8 +200,7 @@ impl Block {
     }
 
     pub fn get_field_integer(&self, name: &str) -> Option<i64> {
-        self.get_field_value(name)
-            .and_then(|t| t.as_str().parse().ok())
+        self.get_field_value(name).and_then(|t| t.as_str().parse().ok())
     }
 
     /// Get all the values of `name = value` assignments in this block
@@ -372,44 +366,27 @@ impl Block {
     }
 
     pub fn iter_assignments(&self) -> IterAssignments {
-        IterAssignments {
-            iter: self.v.iter(),
-            warn: false,
-        }
+        IterAssignments { iter: self.v.iter(), warn: false }
     }
 
     pub fn iter_assignments_warn(&self) -> IterAssignments {
-        IterAssignments {
-            iter: self.v.iter(),
-            warn: true,
-        }
+        IterAssignments { iter: self.v.iter(), warn: true }
     }
 
     pub fn iter_bv_definitions_warn(&self) -> IterBlockValueDefinitions {
-        IterBlockValueDefinitions {
-            iter: self.v.iter(),
-            warn: true,
-        }
+        IterBlockValueDefinitions { iter: self.v.iter(), warn: true }
     }
 
     pub fn iter_definitions_warn(&self) -> IterDefinitions {
-        IterDefinitions {
-            iter: self.v.iter(),
-            warn: true,
-        }
+        IterDefinitions { iter: self.v.iter(), warn: true }
     }
 
     pub fn iter_definitions(&self) -> IterDefinitions {
-        IterDefinitions {
-            iter: self.v.iter(),
-            warn: false,
-        }
+        IterDefinitions { iter: self.v.iter(), warn: false }
     }
 
     pub fn drain_definitions_warn(&mut self) -> DrainDefinitions {
-        DrainDefinitions {
-            iter: self.v.drain(..),
-        }
+        DrainDefinitions { iter: self.v.drain(..) }
     }
 
     pub fn get_field_at_date(&self, name: &str, date: Date) -> Option<BV> {

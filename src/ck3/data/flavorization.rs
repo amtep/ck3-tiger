@@ -25,13 +25,7 @@ impl DbKind for Flavorization {
         vd.field_choice("gender", &["male", "female"]);
         vd.field_choice(
             "special",
-            &[
-                "ruler_child",
-                "holder",
-                "queen_mother",
-                "head_of_faith",
-                "councillor",
-            ],
+            &["ruler_child", "holder", "queen_mother", "head_of_faith", "councillor"],
         );
         vd.field_choice("tier", &["empire", "kingdom", "duchy", "county", "barony"]);
         vd.field_integer("priority");

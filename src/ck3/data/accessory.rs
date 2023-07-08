@@ -55,12 +55,7 @@ impl AccessoryVariation {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if key.is("variation") {
             if let Some(name) = block.get_field_value("name") {
-                db.add(
-                    Item::AccessoryVariation,
-                    name.clone(),
-                    block,
-                    Box::new(Self {}),
-                );
+                db.add(Item::AccessoryVariation, name.clone(), block, Box::new(Self {}));
             } else {
                 error(key, ErrorKey::FieldMissing, "variation without a name");
             }

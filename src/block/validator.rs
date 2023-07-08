@@ -88,11 +88,7 @@ impl<'a> Validator<'a> {
         }
         if count != 1 {
             let msg = format!("expected exactly 1 of {}", names.join(", "));
-            let key = if count == 0 {
-                ErrorKey::FieldMissing
-            } else {
-                ErrorKey::Validation
-            };
+            let key = if count == 0 { ErrorKey::FieldMissing } else { ErrorKey::Validation };
             error(self.block, key, &msg);
         }
         count == 1
@@ -393,12 +389,7 @@ impl<'a> Validator<'a> {
     pub fn field_script_value_or_flag(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.get_value() {
-                validate_target(
-                    token,
-                    self.data,
-                    sc,
-                    Scopes::Value | Scopes::Bool | Scopes::Flag,
-                );
+                validate_target(token, self.data, sc, Scopes::Value | Scopes::Bool | Scopes::Flag);
             } else {
                 validate_scriptvalue(bv, self.data, sc);
             }

@@ -62,8 +62,7 @@ impl DbKind for AccoladeName {
         vd.field_integer("num_options");
         if let Some(key) = block.get_field_value("key") {
             if let Some(n) = block.get_field_integer("num_options") {
-                data.localization
-                    .verify_key_has_options(key.as_str(), key, n, "OPTION_");
+                data.localization.verify_key_has_options(key.as_str(), key, n, "OPTION_");
             }
         }
 

@@ -24,9 +24,7 @@ pub struct LogReport<'a> {
 impl LogReport<'_> {
     /// Returns the primary pointer.
     pub fn primary(&self) -> &PointedMessage {
-        self.pointers
-            .get(0)
-            .expect("A LogReport must always have at least one PointedMessage.")
+        self.pointers.get(0).expect("A LogReport must always have at least one PointedMessage.")
     }
     /// Returns the length of the longest line number.
     pub fn indentation(&self) -> usize {
@@ -55,21 +53,13 @@ pub struct PointedMessage<'a> {
 
 impl<'a> PointedMessage<'a> {
     pub fn new(location: Loc) -> Self {
-        Self {
-            location,
-            msg: None,
-            length: 1,
-        }
+        Self { location, msg: None, length: 1 }
     }
     pub fn with_msg(location: Loc, msg: &'a str) -> Self {
         if msg.is_empty() {
             Self::new(location)
         } else {
-            Self {
-                location,
-                msg: Some(msg),
-                length: 1,
-            }
+            Self { location, msg: Some(msg), length: 1 }
         }
     }
 }

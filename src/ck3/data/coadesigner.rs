@@ -12,12 +12,7 @@ pub struct CoaDesignerColoredEmblem {}
 
 impl CoaDesignerColoredEmblem {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(
-            Item::CoaDesignerColoredEmblem,
-            key,
-            block,
-            Box::new(Self {}),
-        );
+        db.add(Item::CoaDesignerColoredEmblem, key, block, Box::new(Self {}));
     }
 }
 
@@ -44,12 +39,7 @@ impl CoaDesignerColorPalette {
     pub fn add(db: &mut Db, key: Token, mut block: Block) {
         if key.is("coa_designer_background_colors") {
             for (token, block) in block.drain_definitions_warn() {
-                db.add(
-                    Item::CoaDesignerColorPalette,
-                    token,
-                    block,
-                    Box::new(Self {}),
-                );
+                db.add(Item::CoaDesignerColorPalette, token, block, Box::new(Self {}));
             }
         } else {
             old_warn(key, ErrorKey::UnknownField, "unknown key");

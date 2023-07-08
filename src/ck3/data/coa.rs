@@ -56,8 +56,7 @@ impl Coas {
                     }
                 }
             }
-            self.coas
-                .insert(key.to_string(), Coa::new(key.clone(), bv.clone()));
+            self.coas.insert(key.to_string(), Coa::new(key.clone(), bv.clone()));
         }
     }
 
@@ -94,12 +93,7 @@ impl FileHandler for Coas {
             if let Some(key) = key {
                 self.load_item(key, bv);
             } else {
-                error_info(
-                    bv,
-                    ErrorKey::Validation,
-                    "unexpected item",
-                    "Did you forget an = ?",
-                );
+                error_info(bv, ErrorKey::Validation, "unexpected item", "Did you forget an = ?");
             }
         }
     }
@@ -243,12 +237,7 @@ impl CoaTemplateList {
             }
         } else if key.is("colored_emblem_texture_lists") {
             for (key, block) in block.drain_definitions_warn() {
-                db.add(
-                    Item::CoaColoredEmblemList,
-                    key,
-                    block,
-                    Box::new(CoaColoredEmblemList {}),
-                );
+                db.add(Item::CoaColoredEmblemList, key, block, Box::new(CoaColoredEmblemList {}));
             }
         } else if key.is("color_lists") {
             for (key, block) in block.drain_definitions_warn() {
@@ -256,21 +245,11 @@ impl CoaTemplateList {
             }
         } else if key.is("pattern_texture_lists") {
             for (key, block) in block.drain_definitions_warn() {
-                db.add(
-                    Item::CoaPatternList,
-                    key,
-                    block,
-                    Box::new(CoaPatternList {}),
-                );
+                db.add(Item::CoaPatternList, key, block, Box::new(CoaPatternList {}));
             }
         } else if key.is("textured_emblem_texture_lists") {
             for (key, block) in block.drain_definitions_warn() {
-                db.add(
-                    Item::CoaTexturedEmblemList,
-                    key,
-                    block,
-                    Box::new(CoaTexturedEmblemList {}),
-                );
+                db.add(Item::CoaTexturedEmblemList, key, block, Box::new(CoaTexturedEmblemList {}));
             }
         } else {
             let msg = format!("unknown list type {key}");

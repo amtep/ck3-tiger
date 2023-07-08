@@ -67,10 +67,7 @@ impl DbKind for BuildingType {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
-        vd.field_choice(
-            "city_type",
-            &["none", "city", "farm", "mine", "port", "wood"],
-        );
+        vd.field_choice("city_type", &["none", "city", "farm", "mine", "port", "wood"]);
         vd.field_bool("generates_residences");
         vd.field_item("terrain_manipulator", Item::TerrainManipulator);
         vd.field_integer("levels_per_mesh");

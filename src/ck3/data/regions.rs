@@ -15,9 +15,7 @@ pub struct Region {
 impl Region {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         let generates_modifiers = block.get_field_bool("generate_modifiers").unwrap_or(false);
-        let region = Self {
-            generates_modifiers,
-        };
+        let region = Self { generates_modifiers };
         db.add(Item::Region, key, block, Box::new(region));
     }
 }
@@ -70,12 +68,8 @@ impl DbKind for Region {
         vd.field_list_items("provinces", Item::Province);
         vd.field_validated_list("regions", |token, data| {
             if !data.item_exists(Item::Region, token.as_str()) {
-                let msg = format!(
-                    "{} {} not defined in {}",
-                    Item::Region,
-                    token,
-                    Item::Region.path()
-                );
+                let msg =
+                    format!("{} {} not defined in {}", Item::Region, token, Item::Region.path());
                 let info = "this will cause a crash";
                 error_info(token, ErrorKey::Crash, &msg, info);
             }

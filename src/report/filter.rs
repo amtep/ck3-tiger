@@ -112,10 +112,9 @@ impl FilterRule {
                 Comparator::None => panic!("Encountered unexpected operator: {comparator}"),
             },
             FilterRule::Key(key) => report.key == *key,
-            FilterRule::File(path) => report
-                .pointers
-                .iter()
-                .any(|pointer| pointer.location.pathname.starts_with(path)),
+            FilterRule::File(path) => {
+                report.pointers.iter().any(|pointer| pointer.location.pathname.starts_with(path))
+            }
         }
     }
 }

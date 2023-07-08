@@ -15,14 +15,14 @@ struct OnActionScopeContext {
     lists: Vec<(String, Scopes)>,
 }
 
-pub fn on_action_scopecontext(key: &Token, data: &Everything) -> Option<ScopeContext> {
-    if let Some(oa_sc) = ON_ACTION_SCOPES.get(&*key.as_str()) {
+pub fn on_action_scopecontext(key: &Token, _data: &Everything) -> Option<ScopeContext> {
+    if let Some(oa_sc) = ON_ACTION_SCOPES.get(key.as_str()) {
         let mut sc = ScopeContext::new(oa_sc.root, key);
         for (name, s) in &oa_sc.names {
-            sc.define_name(name, *s, key)
+            sc.define_name(name, *s, key);
         }
         for (list, s) in &oa_sc.lists {
-            sc.define_list(list, *s, key)
+            sc.define_list(list, *s, key);
         }
         sc.set_strict_scopes(false);
         return Some(sc);
@@ -53,11 +53,7 @@ fn build_on_action_hashmap(description: &'static str) -> FnvHashMap<String, OnAc
             BV::Block(block) => {
                 let root = block.get_field_value("root").expect("internal error");
                 let root = scope_from_snake_case(root.as_str()).expect("internal error");
-                let mut value = OnActionScopeContext {
-                    root,
-                    names: Vec::new(),
-                    lists: Vec::new(),
-                };
+                let mut value = OnActionScopeContext { root, names: Vec::new(), lists: Vec::new() };
                 for (key, token) in block.iter_assignments() {
                     if key.is("root") {
                         continue;

@@ -144,30 +144,15 @@ impl DbKind for CouncilTask {
             }
         });
         vd.field_item("position", Item::CouncilPosition);
-        vd.field_choice(
-            "task_type",
-            &["task_type_general", "task_type_county", "task_type_court"],
-        );
+        vd.field_choice("task_type", &["task_type_general", "task_type_county", "task_type_court"]);
         if block.field_value_is("task_type", "task_type_county") {
             vd.field_choice(
                 "county_target",
-                &[
-                    "all",
-                    "realm",
-                    "domain",
-                    "neighbor_land",
-                    "neighbor_land_or_water",
-                ],
+                &["all", "realm", "domain", "neighbor_land", "neighbor_land_or_water"],
             );
             vd.field_choice(
                 "ai_county_target",
-                &[
-                    "all",
-                    "realm",
-                    "domain",
-                    "neighbor_land",
-                    "neighbor_land_or_water",
-                ],
+                &["all", "realm", "domain", "neighbor_land", "neighbor_land_or_water"],
             );
             if let Some(token) = block.get_field_value("county_target") {
                 if token.is("neighbor_land_or_water") {
@@ -184,11 +169,7 @@ impl DbKind for CouncilTask {
 
         vd.field_choice(
             "task_progress",
-            &[
-                "task_progress_infinite",
-                "task_progress_percentage",
-                "task_progress_value",
-            ],
+            &["task_progress_infinite", "task_progress_percentage", "task_progress_value"],
         );
         if block.field_value_is("task_progress", "task_progress_value") {
             vd.field_script_value("task_current_value", &mut sc);
@@ -319,12 +300,8 @@ impl DbKind for CouncilTask {
             vd.field_script_value("progress", &mut sc); // documented as a mtth though
             vd.field_script_value("full_progress", &mut sc);
         } else {
-            vd.ban_field("progress", || {
-                "task_progress_percent or task_progress_value"
-            });
-            vd.ban_field("full_progress", || {
-                "task_progress_percent or task_progress_value"
-            });
+            vd.ban_field("progress", || "task_progress_percent or task_progress_value");
+            vd.ban_field("full_progress", || "task_progress_percent or task_progress_value");
         }
         vd.field_item("custom_other_loc", Item::Localization);
         vd.field_validated_sc("effect_desc", &mut sc, validate_desc);

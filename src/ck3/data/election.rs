@@ -39,11 +39,7 @@ impl DbKind for Election {
             validate_candidates(&mut vd, &mut sc);
         });
 
-        vd.field_validated_block_sc(
-            "elector_vote_strength",
-            &mut sc,
-            validate_modifiers_with_base,
-        );
+        vd.field_validated_block_sc("elector_vote_strength", &mut sc, validate_modifiers_with_base);
 
         sc.define_name("candidate", Scopes::Character, key);
         sc.define_name("holder_candidate", Scopes::Character, key);

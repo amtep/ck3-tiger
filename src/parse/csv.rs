@@ -25,13 +25,7 @@ impl<'a> CsvParser<'a> {
         loc.line = 1;
         loc.column = 1;
         let chars = content.chars().peekable();
-        Self {
-            loc,
-            offset: 0,
-            content,
-            header_lines,
-            chars,
-        }
+        Self { loc, offset: 0, content, header_lines, chars }
     }
 
     fn next_char(&mut self) {
@@ -123,9 +117,7 @@ impl<'a> Iterator for CsvReader<'a> {
 
 pub fn read_csv(fullpath: &Path) -> Result<String> {
     let bytes = read(fullpath)?;
-    WINDOWS_1252
-        .decode(&bytes, DecoderTrap::Strict)
-        .map_err(anyhow::Error::msg)
+    WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).map_err(anyhow::Error::msg)
 }
 
 #[allow(clippy::module_name_repetitions)]

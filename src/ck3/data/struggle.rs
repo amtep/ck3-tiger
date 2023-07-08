@@ -20,12 +20,7 @@ impl Struggle {
         if let Some(block) = block.get_field_block("phase_list") {
             for (key, block) in block.iter_definitions() {
                 db.add_flag(Item::StrugglePhase, key.clone());
-                for field in &[
-                    "war_effects",
-                    "culture_effects",
-                    "faith_effects",
-                    "other_effects",
-                ] {
+                for field in &["war_effects", "culture_effects", "faith_effects", "other_effects"] {
                     if let Some(block) = block.get_field_block(field) {
                         for field in &[
                             "common_parameters",
@@ -125,20 +120,11 @@ fn validate_phase(block: &Block, data: &Everything) {
             vd.field_validated_block("catalysts", validate_catalyst_list);
         }
         if !has_one {
-            old_warn(
-                block,
-                ErrorKey::Validation,
-                "must have at least one future phase",
-            );
+            old_warn(block, ErrorKey::Validation, "must have at least one future phase");
         }
     });
 
-    for field in &[
-        "war_effects",
-        "culture_effects",
-        "faith_effects",
-        "other_effects",
-    ] {
+    for field in &["war_effects", "culture_effects", "faith_effects", "other_effects"] {
         vd.field_validated_block(field, validate_phase_effects);
     }
 
@@ -163,20 +149,15 @@ fn validate_phase_effects(block: &Block, data: &Everything) {
     vd.field_validated_block("interloper_parameters", validate_struggle_parameters);
     vd.field_validated_block("uninvolved_parameters", validate_struggle_parameters);
 
-    for field in &[
-        "involved_character_modifier",
-        "interloper_character_modifier",
-    ] {
+    for field in &["involved_character_modifier", "interloper_character_modifier"] {
         vd.field_validated_block(field, |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
     }
 
-    for field in &[
-        "involved_doctrine_character_modifier",
-        "interloper_doctrine_character_modifier",
-    ] {
+    for field in &["involved_doctrine_character_modifier", "interloper_doctrine_character_modifier"]
+    {
         vd.field_validated_block(field, |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("doctrine", Item::Doctrine);

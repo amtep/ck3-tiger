@@ -199,10 +199,7 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
     // Using to_string_lossy is ok here because non-unicode sequences will
     // never match the suffix anyway.
     let filename = filename.to_string_lossy();
-    KNOWN_LANGUAGES
-        .into_iter()
-        .find(|&lang| filename.contains(&format!("l_{lang}")))
-        .copied()
+    KNOWN_LANGUAGES.iter().find(|&lang| filename.contains(&format!("l_{lang}"))).copied()
 }
 
 impl Localization {
@@ -448,13 +445,7 @@ impl FileHandler for Localization {
 
         // unwrap is safe here because we're only handed files under localization/
         // to_string_lossy is ok because we compare lang against a set of known strings.
-        let lang = entry
-            .path()
-            .components()
-            .nth(1)
-            .unwrap()
-            .as_os_str()
-            .to_string_lossy();
+        let lang = entry.path().components().nth(1).unwrap().as_os_str().to_string_lossy();
         let mut warned = false;
 
         if depth == 2 {

@@ -23,8 +23,7 @@ impl Dynasties {
                 dup_error(&key, &other.key, "dynasty");
             }
         }
-        self.dynasties
-            .insert(key.to_string(), Dynasty::new(key, block));
+        self.dynasties.insert(key.to_string(), Dynasty::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {

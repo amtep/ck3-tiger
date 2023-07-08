@@ -47,8 +47,7 @@ impl Assets {
                     dup_error(name, &other.key, "asset");
                 }
             }
-            self.assets
-                .insert(name.to_string(), Asset::new(key.clone(), block.clone()));
+            self.assets.insert(name.to_string(), Asset::new(key.clone(), block.clone()));
         }
     }
 
@@ -183,8 +182,7 @@ impl Asset {
             vd.field_value("id");
             if let Some(token) = vd.field_value("type") {
                 let path = self.key.loc.pathname.smart_join_parent(token.as_str());
-                data.fileset
-                    .verify_exists_implied_crashes(&path.to_string_lossy(), token);
+                data.fileset.verify_exists_implied_crashes(&path.to_string_lossy(), token);
             }
         });
         vd.field_validated_blocks("additive_animation", |block, data| {

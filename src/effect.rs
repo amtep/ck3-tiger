@@ -389,9 +389,8 @@ pub fn validate_effect_control(
             vd.field_item("text", Item::Localization);
         } else if let Some(token) = vd.field_value("text") {
             data.verify_exists(Item::EffectLocalization, token);
-            if let Some((key, block)) = data
-                .database
-                .get_key_block(Item::EffectLocalization, token.as_str())
+            if let Some((key, block)) =
+                data.database.get_key_block(Item::EffectLocalization, token.as_str())
             {
                 EffectLocalization::validate_use(key, block, data, token, tooltipped);
             }

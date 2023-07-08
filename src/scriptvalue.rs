@@ -146,15 +146,7 @@ fn validate_iterator(
     let mut tooltipped = Tooltipped::No;
     validate_iterator_fields("", ltype, data, sc, &mut vd, &mut tooltipped);
 
-    validate_inside_iterator(
-        it_name.as_str(),
-        ltype,
-        block,
-        data,
-        sc,
-        &mut vd,
-        Tooltipped::No,
-    );
+    validate_inside_iterator(it_name.as_str(), ltype, block, data, sc, &mut vd, Tooltipped::No);
 
     validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
 }

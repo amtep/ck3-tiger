@@ -22,8 +22,7 @@ impl Defines {
                 dup_error(&name, &other.name, "define");
             }
         }
-        self.defines
-            .insert(key, Define::new(group, name, bv.clone()));
+        self.defines.insert(key, Define::new(group, name, bv.clone()));
     }
 
     pub fn exists(&self, key: &str) -> bool {

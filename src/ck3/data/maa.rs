@@ -35,8 +35,7 @@ impl MenAtArmsTypes {
             self.menatarmsbasetypes.insert(base.to_string());
         }
 
-        self.menatarmstypes
-            .insert(key.to_string(), MenAtArmsType::new(key, block));
+        self.menatarmstypes.insert(key.to_string(), MenAtArmsType::new(key, block));
     }
 
     pub fn base_exists(&self, key: &str) -> bool {

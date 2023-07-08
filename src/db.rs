@@ -86,17 +86,13 @@ impl Db {
     pub fn get_key_block(&self, item: Item, key: &str) -> Option<(&Token, &Block)> {
         // TODO: figure out how to avoid the to_string() here
         let index = (item, key.to_string());
-        self.database
-            .get(&index)
-            .map(|entry| (&entry.key, &entry.block))
+        self.database.get(&index).map(|entry| (&entry.key, &entry.block))
     }
 
     pub fn has_property(&self, item: Item, key: &str, property: &str, data: &Everything) -> bool {
         let index = (item, key.to_string());
         if let Some(entry) = self.database.get(&index) {
-            entry
-                .kind
-                .has_property(&entry.key, &entry.block, property, data)
+            entry.kind.has_property(&entry.key, &entry.block, property, data)
         } else {
             false
         }
@@ -119,18 +115,14 @@ impl Db {
     ) {
         let index = (item, key.to_string());
         if let Some(entry) = self.database.get(&index) {
-            entry
-                .kind
-                .validate_call(&entry.key, &entry.block, key, block, data, sc);
+            entry.kind.validate_call(&entry.key, &entry.block, key, block, data, sc);
         }
     }
 
     pub fn validate_use(&self, item: Item, key: &Token, block: &Block, data: &Everything) {
         let index = (item, key.to_string());
         if let Some(entry) = self.database.get(&index) {
-            entry
-                .kind
-                .validate_use(&entry.key, &entry.block, data, key, block);
+            entry.kind.validate_use(&entry.key, &entry.block, data, key, block);
         }
     }
 
@@ -144,18 +136,16 @@ impl Db {
     ) {
         let index = (item, key.to_string());
         if let Some(entry) = self.database.get(&index) {
-            entry
-                .kind
-                .validate_property_use(&entry.key, &entry.block, property, caller, data);
+            entry.kind.validate_property_use(&entry.key, &entry.block, property, caller, data);
         }
     }
 
     /// TODO: Returns a Vec for now, should become an iterator.
-    pub fn iter_itype(&self, itype: Item) -> Vec<(&Token, &Block, &Box<dyn DbKind>)> {
+    pub fn iter_itype(&self, itype: Item) -> Vec<(&Token, &Block, &dyn DbKind)> {
         let mut vec = Vec::new();
         for ((item, _), entry) in &self.database {
             if *item == itype {
-                vec.push((&entry.key, &entry.block, &entry.kind));
+                vec.push((&entry.key, &entry.block, &*entry.kind));
             }
         }
         vec

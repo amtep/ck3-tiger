@@ -25,28 +25,14 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
         "_same_faith_opinion",
     ] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
-            return modif_check(
-                name,
-                s,
-                Item::VassalStance,
-                ModifKinds::Character,
-                data,
-                warn,
-            );
+            return modif_check(name, s, Item::VassalStance, ModifKinds::Character, data, warn);
         }
     }
 
     // government type opinions
     for sfx in &["_vassal_opinion", "_opinion_same_faith"] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
-            return modif_check(
-                name,
-                s,
-                Item::GovernmentType,
-                ModifKinds::Character,
-                data,
-                warn,
-            );
+            return modif_check(name, s, Item::GovernmentType, ModifKinds::Character, data, warn);
         }
     }
 
@@ -102,42 +88,16 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     ] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
             if let Some(s) = s.strip_prefix("stationed_") {
-                return modif_check(
-                    name,
-                    s,
-                    Item::MenAtArmsBase,
-                    ModifKinds::Province,
-                    data,
-                    warn,
-                );
+                return modif_check(name, s, Item::MenAtArmsBase, ModifKinds::Province, data, warn);
             }
-            return modif_check(
-                name,
-                s,
-                Item::MenAtArmsBase,
-                ModifKinds::Character,
-                data,
-                warn,
-            );
+            return modif_check(name, s, Item::MenAtArmsBase, ModifKinds::Character, data, warn);
         }
     }
 
     // men-at-arms types, non-stationed
-    for sfx in &[
-        "_maintenance_mult",
-        "_max_size_add",
-        "_max_size_mult",
-        "_recruitment_cost_mult",
-    ] {
+    for sfx in &["_maintenance_mult", "_max_size_add", "_max_size_mult", "_recruitment_cost_mult"] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
-            return modif_check(
-                name,
-                s,
-                Item::MenAtArmsBase,
-                ModifKinds::Character,
-                data,
-                warn,
-            );
+            return modif_check(name, s, Item::MenAtArmsBase, ModifKinds::Character, data, warn);
         }
     }
 
@@ -228,12 +188,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     }
 
     // holding type
-    for sfx in &[
-        "_build_gold_cost",
-        "_build_piety_cost",
-        "_build_prestige_cost",
-        "_build_speed",
-    ] {
+    for sfx in &["_build_gold_cost", "_build_piety_cost", "_build_prestige_cost", "_build_speed"] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
             if data.item_exists(Item::Holding, s) {
                 return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
@@ -331,10 +286,7 @@ const MODIF_TABLE: &[(&str, u8)] = &[
     ("army_screen_mult", Character),
     ("army_siege_value_mult", Character),
     ("army_toughness_mult", Character),
-    (
-        "artifact_decay_reduction_mult",
-        Character | Province | County,
-    ),
+    ("artifact_decay_reduction_mult", Character | Province | County),
     ("attacker_advantage", Character),
     ("attraction_opinion", Character),
     ("build_gold_cost", Character | Province | County),
@@ -342,10 +294,7 @@ const MODIF_TABLE: &[(&str, u8)] = &[
     ("build_piety_cost", Character | Province | County),
     ("build_prestige_cost", Character | Province | County),
     ("build_speed", Character | Province | County),
-    (
-        "character_capital_county_monthly_development_growth_add",
-        Character,
-    ),
+    ("character_capital_county_monthly_development_growth_add", Character),
     ("character_travel_safety", Character),
     ("character_travel_safety_mult", Character),
     ("character_travel_speed", Character),
@@ -380,10 +329,7 @@ const MODIF_TABLE: &[(&str, u8)] = &[
     ("development_growth_factor", Character | Province | County),
     ("different_culture_opinion", Character),
     ("different_faith_county_opinion_mult", Character),
-    (
-        "different_faith_county_opinion_mult_even_if_baron",
-        Character,
-    ),
+    ("different_faith_county_opinion_mult_even_if_baron", Character),
     ("different_faith_liege_opinion", Character),
     ("different_faith_opinion", Character),
     ("diplomacy", Character),
@@ -481,20 +427,11 @@ const MODIF_TABLE: &[(&str, u8)] = &[
     ("levy_pursuit", Character),
     ("levy_reinforcement_rate", Character | Province | County),
     ("levy_reinforcement_rate_different_faith", Character),
-    (
-        "levy_reinforcement_rate_different_faith_even_if_baron",
-        Character,
-    ),
+    ("levy_reinforcement_rate_different_faith_even_if_baron", Character),
     ("levy_reinforcement_rate_even_if_baron", Character),
-    (
-        "levy_reinforcement_rate_friendly_territory",
-        Character | Province | County,
-    ),
+    ("levy_reinforcement_rate_friendly_territory", Character | Province | County),
     ("levy_reinforcement_rate_same_faith", Character),
-    (
-        "levy_reinforcement_rate_same_faith_even_if_baron",
-        Character,
-    ),
+    ("levy_reinforcement_rate_same_faith_even_if_baron", Character),
     ("levy_screen", Character),
     ("levy_siege", Character),
     ("levy_size", Character | Province | County),
@@ -531,27 +468,12 @@ const MODIF_TABLE: &[(&str, u8)] = &[
     ("mercenary_hire_cost_add", Character),
     ("mercenary_hire_cost_mult", Character),
     ("min_combat_roll", Character),
-    (
-        "monthly_county_control_change_add",
-        Character | Province | County,
-    ),
+    ("monthly_county_control_change_add", Character | Province | County),
     ("monthly_county_control_change_add_even_if_baron", Character),
-    (
-        "monthly_county_control_change_at_war_add",
-        Character | Province | County,
-    ),
-    (
-        "monthly_county_control_change_at_war_mult",
-        Character | Province | County,
-    ),
-    (
-        "monthly_county_control_change_factor",
-        Character | Province | County,
-    ),
-    (
-        "monthly_county_control_change_factor_even_if_baron",
-        Character,
-    ),
+    ("monthly_county_control_change_at_war_add", Character | Province | County),
+    ("monthly_county_control_change_at_war_mult", Character | Province | County),
+    ("monthly_county_control_change_factor", Character | Province | County),
+    ("monthly_county_control_change_factor_even_if_baron", Character),
     ("monthly_court_grandeur_change_add", Character),
     ("monthly_court_grandeur_change_mult", Character),
     ("monthly_dread", Character),
@@ -567,14 +489,8 @@ const MODIF_TABLE: &[(&str, u8)] = &[
     ("monthly_piety_gain_mult", Character),
     ("monthly_piety_gain_per_dread_add", Character),
     ("monthly_piety_gain_per_dread_mult", Character),
-    (
-        "monthly_piety_gain_per_happy_powerful_vassal_add",
-        Character,
-    ),
-    (
-        "monthly_piety_gain_per_happy_powerful_vassal_mult",
-        Character,
-    ),
+    ("monthly_piety_gain_per_happy_powerful_vassal_add", Character),
+    ("monthly_piety_gain_per_happy_powerful_vassal_mult", Character),
     ("monthly_piety_gain_per_knight_add", Character),
     ("monthly_piety_gain_per_knight_mult", Character),
     ("monthly_prestige", Character),
@@ -582,14 +498,8 @@ const MODIF_TABLE: &[(&str, u8)] = &[
     ("monthly_prestige_gain_mult", Character),
     ("monthly_prestige_gain_per_dread_add", Character),
     ("monthly_prestige_gain_per_dread_mult", Character),
-    (
-        "monthly_prestige_gain_per_happy_powerful_vassal_add",
-        Character,
-    ),
-    (
-        "monthly_prestige_gain_per_happy_powerful_vassal_mult",
-        Character,
-    ),
+    ("monthly_prestige_gain_per_happy_powerful_vassal_add", Character),
+    ("monthly_prestige_gain_per_happy_powerful_vassal_mult", Character),
     ("monthly_prestige_gain_per_knight_add", Character),
     ("monthly_prestige_gain_per_knight_mult", Character),
     ("monthly_tyranny", Character),

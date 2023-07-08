@@ -95,16 +95,12 @@ impl CustomLocalization {
 
         if let Some(parent) = block.get_field_value("parent") {
             if let Some(suffix) = block.get_field_value("suffix") {
-                if let Some((key, block)) = data
-                    .database
-                    .get_key_block(Item::CustomLocalization, parent.as_str())
+                if let Some((key, block)) =
+                    data.database.get_key_block(Item::CustomLocalization, parent.as_str())
                 {
                     let suffix_str = format!("{suffix_str}{suffix}");
-                    let suffix_token = if suffix_token.is_some() {
-                        suffix_token
-                    } else {
-                        Some(suffix)
-                    };
+                    let suffix_token =
+                        if suffix_token.is_some() { suffix_token } else { Some(suffix) };
                     Self::validate_custom_call(
                         key,
                         block,
@@ -122,8 +118,7 @@ impl CustomLocalization {
                 if let Some(key) = block.get_field_value("localization_key") {
                     if let Some(token) = suffix_token {
                         let loca = format!("{key}{suffix_str}");
-                        data.localization
-                            .verify_exists_implied_lang(&loca, token, lang);
+                        data.localization.verify_exists_implied_lang(&loca, token, lang);
                     } else {
                         data.localization.verify_exists_lang(key, lang);
                     }

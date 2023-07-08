@@ -111,7 +111,7 @@ impl Calculation {
             }
         }
         // Whatever went wrong, we've already logged an error about it
-        return 0.0;
+        0.0
     }
 }
 
@@ -209,7 +209,7 @@ impl Parser {
             self.calculation.push(op);
         } else {
             let msg = "operator `{op}` without left-hand value";
-            error(loc, ErrorKey::LocalValues, &msg);
+            error(loc, ErrorKey::LocalValues, msg);
         }
     }
 
@@ -267,21 +267,15 @@ impl Parser {
                 } else if let Some(local_macro) = token.as_str().strip_prefix('@') {
                     // Check for a '!' to avoid looking up macros in gui code that uses @icon! syntax
                     if token.as_str().contains('!') {
-                        self.current
-                            .block
-                            .add_key_value(key, comp, BV::Value(token));
+                        self.current.block.add_key_value(key, comp, BV::Value(token));
                     } else if let Some(value) = self.local_macros.get_as_string(local_macro) {
                         let token = Token::new(value, token.loc);
-                        self.current
-                            .block
-                            .add_key_value(key, comp, BV::Value(token));
+                        self.current.block.add_key_value(key, comp, BV::Value(token));
                     } else {
                         error(token, ErrorKey::LocalValues, "local value not defined");
                     }
                 } else {
-                    self.current
-                        .block
-                        .add_key_value(key, comp, BV::Value(token));
+                    self.current.block.add_key_value(key, comp, BV::Value(token));
                 }
             } else {
                 if let Some(local_macro) = key.as_str().strip_prefix('@') {
@@ -309,9 +303,7 @@ impl Parser {
         }
         if let Some(key) = self.current.key.take() {
             if let Some((comp, _)) = self.current.comp.take() {
-                self.current
-                    .block
-                    .add_key_value(key, comp, BV::Block(block));
+                self.current.block.add_key_value(key, comp, BV::Block(block));
             } else {
                 self.current.block.add_value(BV::Value(key));
                 self.current.block.add_value(BV::Block(block));
@@ -395,11 +387,7 @@ impl Parser {
                 );
             }
         } else {
-            error(
-                Token::new("}".to_string(), loc),
-                ErrorKey::ParseError,
-                "Unexpected }",
-            );
+            error(Token::new("}".to_string(), loc), ErrorKey::ParseError, "Unexpected }");
         }
     }
 
@@ -686,11 +674,7 @@ pub fn parse_pdx(entry: &FileEntry, mut content: &str) -> Block {
     if let Some(stripped) = content.strip_suffix('\u{001A}') {
         content = stripped;
     }
-    parse(
-        blockloc,
-        &[Token::new(content.to_string(), loc)],
-        LocalMacros::default(),
-    )
+    parse(blockloc, &[Token::new(content.to_string(), loc)], LocalMacros::default())
 }
 
 pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
@@ -735,10 +719,7 @@ pub fn split_macros(content: &Token) -> Vec<Token> {
                 } else if c == '"' {
                     state = State::InQString;
                 } else if c == '$' {
-                    vec.push(Token::new(
-                        content.as_str()[last_pos..i].to_string(),
-                        last_loc,
-                    ));
+                    vec.push(Token::new(content.as_str()[last_pos..i].to_string(), last_loc));
                     last_loc = loc.clone();
                     // Skip the current '$'
                     last_loc.column += 1;
@@ -753,9 +734,6 @@ pub fn split_macros(content: &Token) -> Vec<Token> {
             loc.column += 1;
         }
     }
-    vec.push(Token::new(
-        content.as_str()[last_pos..].to_string(),
-        last_loc,
-    ));
+    vec.push(Token::new(content.as_str()[last_pos..].to_string(), last_loc));
     vec
 }

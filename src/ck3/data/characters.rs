@@ -65,8 +65,7 @@ impl Characters {
                 dup_error(&key, &other.key, "character");
             }
         }
-        self.characters
-            .insert(key.to_string(), Character::new(key, block));
+        self.characters.insert(key.to_string(), Character::new(key, block));
     }
 
     pub fn verify_exists_gender(&self, item: &Token, gender: Gender) {
@@ -76,11 +75,7 @@ impl Characters {
                 error(item, ErrorKey::WrongGender, &msg);
             }
         } else {
-            error(
-                item,
-                ErrorKey::MissingItem,
-                "character not defined in history/characters/",
-            );
+            error(item, ErrorKey::MissingItem, "character not defined in history/characters/");
         }
     }
 
@@ -195,12 +190,7 @@ impl FileHandler for Characters {
             let cycle_vec = self._check_ancestors(item, item.key.as_str(), &mut checking);
             if !cycle_vec.is_empty() {
                 let info = format!("via {}", cycle_vec.join(", "));
-                warn_info(
-                    &item.key,
-                    ErrorKey::Crash,
-                    "character is their own ancestor",
-                    &info,
-                );
+                warn_info(&item.key, ErrorKey::Crash, "character is their own ancestor", &info);
             }
         }
     }
@@ -348,10 +338,8 @@ impl Character {
         let mut sc = ScopeContext::new(Scopes::Character, &self.key);
 
         if self.key.as_str().contains('.') {
-            let msg = format!(
-                "`character:{}` will not work because of the dot in the id",
-                &self.key
-            );
+            let msg =
+                format!("`character:{}` will not work because of the dot in the id", &self.key);
             let info = "script code will not be able to refer to this character";
             warn_info(&self.key, ErrorKey::CharacterId, &msg, info);
         }

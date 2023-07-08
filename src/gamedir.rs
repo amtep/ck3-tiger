@@ -22,25 +22,23 @@ const STEAM_WINDOWS_KEY: &str = r"SOFTWARE\Wow6432Node\Valve\Steam";
 /// `game_dir` is the path to the game's files under the steam path for the app. Usually `steamapps/common/...`.
 pub fn find_game_directory_steam(steam_app_id: &str, game_dir: &Path) -> Option<PathBuf> {
     if let Some(home) = home_dir() {
-        let on_linux = find_game_dir_in_steam_dir(home.join(STEAM_LINUX), steam_app_id, game_dir);
+        let on_linux = find_game_dir_in_steam_dir(&home.join(STEAM_LINUX), steam_app_id, game_dir);
         if on_linux.is_some() {
             return on_linux;
         }
         let on_linux_proton =
-            find_game_dir_in_steam_dir(home.join(STEAM_LINUX_PROTON), steam_app_id, game_dir);
+            find_game_dir_in_steam_dir(&home.join(STEAM_LINUX_PROTON), steam_app_id, game_dir);
         if on_linux_proton.is_some() {
             return on_linux_proton;
         }
-        let on_mac = find_game_dir_in_steam_dir(home.join(STEAM_MAC), steam_app_id, game_dir);
+        let on_mac = find_game_dir_in_steam_dir(&home.join(STEAM_MAC), steam_app_id, game_dir);
         if on_mac.is_some() {
             return on_mac;
         }
     }
     #[cfg(windows)]
     {
-        let key = RegKey::predef(HKEY_LOCAL_MACHINE)
-            .open_subkey(STEAM_WINDOWS_KEY)
-            .ok()?;
+        let key = RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey(STEAM_WINDOWS_KEY).ok()?;
         let on_windows: String = key.get_value("InstallPath").ok()?;
         let on_windows = PathBuf::from(on_windows).join("steamapps");
         return find_game_dir_in_steam_dir(on_windows, steam_app_id, game_dir);
@@ -51,11 +49,7 @@ pub fn find_game_directory_steam(steam_app_id: &str, game_dir: &Path) -> Option<
 /// Tries to find the game's directory inside a steamapps/ directory.
 /// Returns None if the steamapps/ directory doesn't exist, or isn't really a steamapps directory,
 /// or doesn't contain the game.
-fn find_game_dir_in_steam_dir(
-    steam_dir: PathBuf,
-    app_id: &str,
-    game_dir: &Path,
-) -> Option<PathBuf> {
+fn find_game_dir_in_steam_dir(steam_dir: &Path, app_id: &str, game_dir: &Path) -> Option<PathBuf> {
     if !steam_dir.is_dir() {
         return None;
     }
@@ -70,7 +64,7 @@ fn find_game_dir_in_steam_dir(
             let key = fields[0].trim_matches('"');
             let value = fields[1].trim_matches('"');
             if key == "path" {
-                found_path = Some(PathBuf::from(value))
+                found_path = Some(PathBuf::from(value));
             } else if key == app_id && found_path.is_some() {
                 let game_path = found_path.unwrap().join(game_dir);
                 if game_path.is_dir() {

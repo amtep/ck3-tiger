@@ -24,17 +24,10 @@ impl MacroKey {
         negated: bool,
     ) -> Self {
         loc.link = None;
-        let mut args: Vec<(String, String)> = args
-            .iter()
-            .map(|(parm, arg)| ((*parm).to_string(), arg.to_string()))
-            .collect();
+        let mut args: Vec<(String, String)> =
+            args.iter().map(|(parm, arg)| ((*parm).to_string(), arg.to_string())).collect();
         args.sort();
-        Self {
-            loc,
-            args,
-            tooltipped,
-            negated,
-        }
+        Self { loc, args, tooltipped, negated }
     }
 }
 
@@ -77,8 +70,6 @@ impl<T> MacroCache<T> {
 
 impl<T> Default for MacroCache<T> {
     fn default() -> Self {
-        MacroCache {
-            cache: RefCell::new(FnvHashMap::default()),
-        }
+        MacroCache { cache: RefCell::new(FnvHashMap::default()) }
     }
 }

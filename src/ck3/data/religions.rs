@@ -26,9 +26,7 @@ impl Religion {
                 if let Some(token) = block.get_field_value("reformed_icon") {
                     db.add_flag(Item::FaithIcon, token.clone());
                 }
-                let kind = Box::new(Faith {
-                    religion: key.clone(),
-                });
+                let kind = Box::new(Faith { religion: key.clone() });
                 db.add(Item::Faith, faith.clone(), block.clone(), kind);
             }
         }

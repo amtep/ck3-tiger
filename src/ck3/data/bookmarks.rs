@@ -86,9 +86,8 @@ fn validate_bookmark_character(block: &Block, data: &Everything, toplevel: bool)
     }
     vd.field_item("dynasty", Item::Dynasty);
     vd.field_item("dynasty_house", Item::House);
-    if let Some(token) = block
-        .get_field_value("dynasty_house")
-        .or_else(|| block.get_field_value("dynasty"))
+    if let Some(token) =
+        block.get_field_value("dynasty_house").or_else(|| block.get_field_value("dynasty"))
     {
         if !data.item_exists(Item::Coa, token.as_str()) {
             let msg = format!("{} {token} not defined in {}", Item::Coa, Item::Coa.path());

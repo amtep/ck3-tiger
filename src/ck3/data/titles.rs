@@ -78,7 +78,7 @@ impl Titles {
     pub fn load_item(
         &mut self,
         key: Token,
-        block: Block,
+        block: &Block,
         parent: Option<&str>,
         is_county_capital: bool,
     ) {
@@ -87,12 +87,7 @@ impl Titles {
                 dup_error(&key, &other.key, "title");
             }
         }
-        let title = Rc::new(Title::new(
-            key.clone(),
-            block.clone(),
-            parent,
-            is_county_capital,
-        ));
+        let title = Rc::new(Title::new(key.clone(), block.clone(), parent, is_county_capital));
         self.titles.insert(key.to_string(), title.clone());
 
         let parent_tier = Tier::try_from(&key).unwrap(); // guaranteed by caller
@@ -113,13 +108,13 @@ impl Titles {
         }
 
         let mut is_county_capital = parent_tier == Tier::County;
-        for (k, v) in block.iter_definitions() {
+        for (k, block) in block.iter_definitions() {
             if let Ok(tier) = Tier::try_from(k) {
                 if tier >= parent_tier {
                     let msg = format!("can't put a {tier} inside a {parent_tier}");
                     error(k, ErrorKey::TitleTier, &msg);
                 }
-                self.load_item(k.clone(), v.clone(), Some(key.as_str()), is_county_capital);
+                self.load_item(k.clone(), block, Some(key.as_str()), is_county_capital);
                 is_county_capital = false;
             }
         }
@@ -160,7 +155,7 @@ impl FileHandler for Titles {
         let Some(mut block) = PdxFile::read(entry, fullpath) else { return; };
         for (key, block) in block.drain_definitions_warn() {
             if Tier::try_from(&key).is_ok() {
-                self.load_item(key, block, None, false);
+                self.load_item(key, &block, None, false);
             } else {
                 old_warn(key, ErrorKey::Validation, "expected title");
             }
@@ -181,13 +176,7 @@ impl Title {
     pub fn new(key: Token, block: Block, parent: Option<&str>, is_county_capital: bool) -> Self {
         let tier = Tier::try_from(&key).unwrap(); // guaranteed by caller
         let parent = parent.map(String::from);
-        Self {
-            key,
-            block,
-            tier,
-            parent,
-            is_county_capital,
-        }
+        Self { key, block, tier, parent, is_county_capital }
     }
 
     pub fn validate(&self, data: &Everything) {

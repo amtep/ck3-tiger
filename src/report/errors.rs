@@ -192,9 +192,7 @@ fn recursive_pointed_msg_expansion(vec: &mut Vec<PointedMessage>, pointer: &Poin
 
 /// Tests whether the report might be printed. If false, the report will definitely not be printed.
 pub fn will_maybe_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
-    Errors::get()
-        .filter
-        .should_maybe_print(key, &eloc.into_loc())
+    Errors::get().filter.should_maybe_print(key, &eloc.into_loc())
 }
 
 pub trait ErrorLogger: Write {
@@ -248,12 +246,7 @@ pub fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
     eloc3: E3,
     msg3: &str,
 ) {
-    warn(key)
-        .msg(msg)
-        .loc(eloc)
-        .loc(eloc2, msg2)
-        .loc(eloc3, msg3)
-        .push();
+    warn(key).msg(msg).loc(eloc).loc(eloc2, msg2).loc(eloc3, msg3).push();
 }
 
 pub fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
@@ -296,11 +289,8 @@ pub fn disable_ansi_colors() {
 
 /// TODO:
 pub fn set_max_line_length(max_line_length: usize) {
-    Errors::get_mut().max_line_length = if max_line_length == 0 {
-        None
-    } else {
-        Some(max_line_length)
-    };
+    Errors::get_mut().max_line_length =
+        if max_line_length == 0 { None } else { Some(max_line_length) };
 }
 
 // =================================================================================================

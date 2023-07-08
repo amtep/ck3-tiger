@@ -80,25 +80,18 @@ impl DbKind for CasusBelli {
         vd.field_bool("imprisonment_by_attacker_give_war_score");
         vd.field_bool("imprisonment_by_defender_give_war_score");
 
-        for field in &[
-            "on_declaration",
-            "on_victory",
-            "on_white_peace",
-            "on_defeat",
-            "on_invalidated",
-        ] {
+        for field in
+            &["on_declaration", "on_victory", "on_white_peace", "on_defeat", "on_invalidated"]
+        {
             vd.field_validated_block(field, |block, data| {
                 // TODO: check which are tooltipped
                 validate_normal_effect(block, data, &mut sc, Tooltipped::No);
             });
         }
 
-        for field in &[
-            "on_victory_desc",
-            "on_defeat_desc",
-            "on_white_peace_desc",
-            "on_invalidated_desc",
-        ] {
+        for field in
+            &["on_victory_desc", "on_defeat_desc", "on_white_peace_desc", "on_invalidated_desc"]
+        {
             vd.field_validated_sc(field, &mut sc, validate_desc);
         }
 

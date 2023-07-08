@@ -46,6 +46,7 @@ impl Sounds {
         }
     }
 
+    #[allow(clippy::unused_self)] // want to have a normal .validate call in Everything
     pub fn validate(&self, _data: &Everything) {}
 }
 
@@ -97,7 +98,5 @@ impl Sound {
 
 fn read_guids(fullpath: &Path) -> Result<String> {
     let bytes = read(fullpath)?;
-    WINDOWS_1252
-        .decode(&bytes, DecoderTrap::Strict)
-        .map_err(anyhow::Error::msg)
+    WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).map_err(anyhow::Error::msg)
 }

@@ -37,8 +37,7 @@ impl DataBindings {
                 dup_error(&key, &other.key, "data binding");
             }
         }
-        self.bindings
-            .insert(key.to_string(), DataBinding::new(key, block));
+        self.bindings.insert(key.to_string(), DataBinding::new(key, block));
     }
 
     pub fn get(&self, key: &str) -> Option<&DataBinding> {
@@ -118,12 +117,7 @@ impl DataBinding {
                 error(rep, ErrorKey::Datafunctions, msg);
             }
         }
-        Self {
-            key,
-            block,
-            params,
-            replace,
-        }
+        Self { key, block, params, replace }
     }
 
     pub fn replace(&self, call: &Code) -> Option<CodeChain> {
@@ -135,10 +129,7 @@ impl DataBinding {
         if let Some(replacement) = &self.replace {
             let mut result = CodeChain { codes: Vec::new() };
             for code in &replacement.codes {
-                let mut new_code = Code {
-                    name: code.name.clone(),
-                    arguments: Vec::new(),
-                };
+                let mut new_code = Code { name: code.name.clone(), arguments: Vec::new() };
                 for arg in &code.arguments {
                     if let Some(replacement) = self.replace_param(arg, call) {
                         new_code.arguments.push(replacement);
@@ -186,10 +177,7 @@ impl DataBinding {
                             result.codes.push(code.clone());
                         }
                     } else {
-                        let mut new_code = Code {
-                            name: code.name.clone(),
-                            arguments: Vec::new(),
-                        };
+                        let mut new_code = Code { name: code.name.clone(), arguments: Vec::new() };
                         for arg in &code.arguments {
                             if let Some(rep) = self.replace_param(arg, call) {
                                 new_code.arguments.push(rep);

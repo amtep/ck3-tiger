@@ -89,9 +89,9 @@ pub enum TriBool {
     Maybe,
 }
 
-/// A trait for taking a String or &str and then either re-using the String or cloning the &str.
+/// A trait for taking a `String` or `&str` and then either re-using the `String` or cloning the `&str`.
 /// It seems like this should already exist in the standard library but I can't find it.
-/// (As far as I can tell, ToOwned isn't it -- using that will clone the String.)
+/// (As far as I can tell, `ToOwned` isn't it -- using that will clone the `String`.)
 pub trait Own<T> {
     fn own(self) -> T;
 }

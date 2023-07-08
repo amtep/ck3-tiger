@@ -95,10 +95,7 @@ fn main() -> Result<()> {
         let mut sig = args.modpath.clone();
         sig.push(".metadata/metadata.json");
         if !sig.is_file() {
-            bail!(
-                "{} does not look like a mod directory.",
-                args.modpath.display()
-            );
+            bail!("{} does not look like a mod directory.", args.modpath.display());
         }
     }
     eprintln!("Using mod directory: {}", args.modpath.display());

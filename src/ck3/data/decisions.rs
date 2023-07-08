@@ -31,8 +31,7 @@ impl Decisions {
                 dup_error(&key, &other.key, "decision");
             }
         }
-        self.decisions
-            .insert(key.to_string(), Decision::new(key, block));
+        self.decisions.insert(key.to_string(), Decision::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {

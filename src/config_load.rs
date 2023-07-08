@@ -58,11 +58,7 @@ fn load_rules_from_value(value: &BV) -> Option<Vec<FilterRule>> {
     match value {
         BV::Block(block) => Some(load_rules(block)),
         BV::Value(_) => {
-            error(
-                value,
-                ErrorKey::Config,
-                "Expected a trigger block. Example usage: `AND = { }`",
-            );
+            error(value, ErrorKey::Config, "Expected a trigger block. Example usage: `AND = { }`");
             None
         }
     }
@@ -71,11 +67,7 @@ fn load_rules_from_value(value: &BV) -> Option<Vec<FilterRule>> {
 /// Load a single rule.
 fn load_rule(key: &Option<Token>, comparator: Comparator, value: &BV) -> Option<FilterRule> {
     if key.is_none() {
-        error(
-            value,
-            ErrorKey::Config,
-            "Missing key. Loose values are not valid here.",
-        );
+        error(value, ErrorKey::Config, "Missing key. Loose values are not valid here.");
         return None;
     }
     let key = key.as_ref().expect("Should exist.");
@@ -129,9 +121,7 @@ fn load_not(value: &BV) -> Option<FilterRule> {
     } else if children.len() == 1 {
         Some(FilterRule::Negation(Box::new(children.remove(0))))
     } else {
-        Some(FilterRule::Negation(Box::new(FilterRule::Disjunction(
-            children,
-        ))))
+        Some(FilterRule::Negation(Box::new(FilterRule::Disjunction(children))))
     }
 }
 
@@ -243,9 +233,10 @@ fn load_ignore_keys_in_files(value: &BV) -> Option<FilterRule> {
             .push();
         None
     } else {
-        Some(FilterRule::Negation(Box::new(FilterRule::Conjunction(
-            vec![keys.expect("Should exist."), files.expect("Should exist.")],
-        ))))
+        Some(FilterRule::Negation(Box::new(FilterRule::Conjunction(vec![
+            keys.expect("Should exist."),
+            files.expect("Should exist."),
+        ]))))
     }
 }
 
@@ -436,18 +427,12 @@ pub fn assert_one_key(assert_key: &str, block: &Block) {
             .map(|(index, key)| PointedMessage {
                 location: key.into_loc(),
                 length: 1,
-                msg: Some(if index == 0 {
-                    "It occurs here"
-                } else {
-                    "and here"
-                }),
+                msg: Some(if index == 0 { "It occurs here" } else { "and here" }),
             })
             .collect();
         err(ErrorKey::Config)
             .strong()
-            .msg(&format!(
-                "Detected more than one `{assert_key}`: there can be only one here!"
-            ))
+            .msg(&format!("Detected more than one `{assert_key}`: there can be only one here!"))
             .pointers(pointers)
             .push();
     }

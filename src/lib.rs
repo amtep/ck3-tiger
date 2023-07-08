@@ -21,6 +21,9 @@
 #![allow(dead_code)]
 // This was causing a lot of warnings.
 #![allow(clippy::too_many_lines)]
+// The construction being warned about here is the best way to express
+// validation of a field while handling the case of the field not existing.
+#![allow(clippy::blocks_in_if_conditions)]
 
 pub mod everything;
 pub mod gamedir;

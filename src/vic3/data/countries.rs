@@ -34,13 +34,7 @@ impl DbKind for Country {
         );
         vd.field_choice(
             "tier",
-            &[
-                "empire",
-                "kingdom",
-                "grand_principality",
-                "principality",
-                "city_state",
-            ],
+            &["empire", "kingdom", "grand_principality", "principality", "city_state"],
         );
         vd.field_list_items("cultures", Item::Culture);
         vd.field_list_items("religion", Item::Religion);

@@ -277,12 +277,7 @@ impl FileHandler for Rivers {
         self.entry = Some(entry.clone());
 
         if let Err(e) = self.load_png(fullpath) {
-            error_info(
-                entry,
-                ErrorKey::ReadError,
-                "could not read image",
-                &format!("{e:#}"),
-            );
+            error_info(entry, ErrorKey::ReadError, "could not read image", &format!("{e:#}"));
         }
     }
 }

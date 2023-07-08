@@ -122,21 +122,11 @@ pub struct LoadedMod {
 
 impl LoadedMod {
     fn new_main_mod(root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
-        Self {
-            kind: FileKind::Mod,
-            label: "MOD".to_string(),
-            root,
-            replace_paths,
-        }
+        Self { kind: FileKind::Mod, label: "MOD".to_string(), root, replace_paths }
     }
 
     fn new(kind: FileKind, label: String, root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
-        Self {
-            kind,
-            label,
-            root,
-            replace_paths,
-        }
+        Self { kind, label, root, replace_paths }
     }
 
     pub fn root(&self) -> &Path {
@@ -190,7 +180,7 @@ impl Fileset {
         vanilla_root.push("game");
         let mut clausewitz_root = vanilla_dir.clone();
         clausewitz_root.push("clausewitz");
-        let mut jomini_root = vanilla_dir.clone();
+        let mut jomini_root = vanilla_dir;
         jomini_root.push("jomini");
 
         Fileset {
@@ -219,9 +209,8 @@ impl Fileset {
             }
 
             let default_label = || format!("MOD{mod_idx}");
-            let label = block
-                .get_field_value("label")
-                .map_or_else(default_label, ToString::to_string);
+            let label =
+                block.get_field_value("label").map_or_else(default_label, ToString::to_string);
             if let Some(path) = block.get_field_value("modfile") {
                 let path = PathBuf::from(path.as_str());
                 if let Ok(modfile) = ModFile::read(&path) {
@@ -275,41 +264,30 @@ impl Fileset {
             if self.should_replace(inner_dir, kind) {
                 continue;
             }
-            self.files
-                .push(FileEntry::new(inner_path.to_path_buf(), kind));
+            self.files.push(FileEntry::new(inner_path.to_path_buf(), kind));
         }
         Ok(())
     }
 
     pub fn scan_all(&mut self) -> Result<(), FilesError> {
-        self.scan(&self.clausewitz_root.clone(), FileKind::Clausewitz)
-            .map_err(|e| FilesError::VanillaUnreadable {
-                path: self.clausewitz_root.clone(),
-                source: e,
-            })?;
-        self.scan(&self.jomini_root.clone(), FileKind::Jomini)
-            .map_err(|e| FilesError::VanillaUnreadable {
-                path: self.jomini_root.clone(),
-                source: e,
-            })?;
-        self.scan(&self.vanilla_root.clone(), FileKind::Vanilla)
-            .map_err(|e| FilesError::VanillaUnreadable {
-                path: self.vanilla_root.clone(),
-                source: e,
-            })?;
+        self.scan(&self.clausewitz_root.clone(), FileKind::Clausewitz).map_err(|e| {
+            FilesError::VanillaUnreadable { path: self.clausewitz_root.clone(), source: e }
+        })?;
+        self.scan(&self.jomini_root.clone(), FileKind::Jomini).map_err(|e| {
+            FilesError::VanillaUnreadable { path: self.jomini_root.clone(), source: e }
+        })?;
+        self.scan(&self.vanilla_root.clone(), FileKind::Vanilla).map_err(|e| {
+            FilesError::VanillaUnreadable { path: self.vanilla_root.clone(), source: e }
+        })?;
         // loaded_mods is cloned here for the borrow checker
         for loaded_mod in &self.loaded_mods.clone() {
-            self.scan(loaded_mod.root(), loaded_mod.kind())
-                .map_err(|e| FilesError::ModUnreadable {
-                    path: loaded_mod.root().to_path_buf(),
-                    source: e,
-                })?;
-        }
-        self.scan(&self.the_mod.root().to_path_buf(), FileKind::Mod)
-            .map_err(|e| FilesError::ModUnreadable {
-                path: self.the_mod.root().to_path_buf(),
-                source: e,
+            self.scan(loaded_mod.root(), loaded_mod.kind()).map_err(|e| {
+                FilesError::ModUnreadable { path: loaded_mod.root().to_path_buf(), source: e }
             })?;
+        }
+        self.scan(&self.the_mod.root().to_path_buf(), FileKind::Mod).map_err(|e| {
+            FilesError::ModUnreadable { path: self.the_mod.root().to_path_buf(), source: e }
+        })?;
         Ok(())
     }
 
@@ -336,13 +314,8 @@ impl Fileset {
     }
 
     pub fn get_files_under<'a>(&'a self, subpath: &'a Path) -> Files<'a> {
-        let start = self
-            .ordered_files
-            .partition_point(|entry| entry.path < subpath);
-        Files {
-            iter: self.ordered_files.iter().skip(start),
-            subpath,
-        }
+        let start = self.ordered_files.partition_point(|entry| entry.path < subpath);
+        Files { iter: self.ordered_files.iter().skip(start), subpath }
     }
 
     pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {

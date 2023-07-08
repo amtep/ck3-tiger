@@ -368,10 +368,7 @@ impl<'a> ValueParser<'a> {
         Self {
             loc: content[0].loc.clone(),
             offset: 0,
-            content_iters: content
-                .iter()
-                .map(|t| t.as_str().chars().peekable())
-                .collect(),
+            content_iters: content.iter().map(|t| t.as_str().chars().peekable()).collect(),
             content,
             content_idx: 0,
             value: Vec::new(),
@@ -517,15 +514,9 @@ impl<'a> ValueParser<'a> {
         }
         let name = Token::new(text, loc);
         if self.peek() == Some('(') {
-            Code {
-                name,
-                arguments: self.parse_code_args(),
-            }
+            Code { name, arguments: self.parse_code_args() }
         } else {
-            Code {
-                name,
-                arguments: Vec::new(),
-            }
+            Code { name, arguments: Vec::new() }
         }
     }
 
@@ -627,9 +618,10 @@ impl<'a> ValueParser<'a> {
                                 old_warn(&self.loc, ErrorKey::Markup, msg);
                                 self.value.push(LocaValue::Error);
                             }
-                        } else if *bracecount > 0 && (c == '.' || c == ',') {
-                            value.push(c);
-                        } else if c.is_alphanumeric() || c == '_' {
+                        } else if (*bracecount > 0 && (c == '.' || c == ','))
+                            || c.is_alphanumeric()
+                            || c == '_'
+                        {
                             value.push(c);
                         } else {
                             break;
@@ -646,8 +638,7 @@ impl<'a> ValueParser<'a> {
                 }
                 State::InValue(key, value, loc, bracecount) => {
                     if key.to_lowercase() == "tooltip" {
-                        self.value
-                            .push(LocaValue::Tooltip(Token::new(value, loc.clone())));
+                        self.value.push(LocaValue::Tooltip(Token::new(value, loc.clone())));
                     }
                     if bracecount > 0 {
                         let msg = "mismatched braces in markup";
@@ -658,7 +649,7 @@ impl<'a> ValueParser<'a> {
                     }
                 }
             }
-            if self.peek().map_or(true, |c| c.is_whitespace()) {
+            if self.peek().map_or(true, char::is_whitespace) {
                 self.next_char();
             } else {
                 let msg = "#markup should be followed by a space";

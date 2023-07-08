@@ -50,9 +50,7 @@ impl DbKind for Building {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        let graphical_only = block
-            .get_field_bool("is_graphical_background")
-            .unwrap_or(false);
+        let graphical_only = block.get_field_bool("is_graphical_background").unwrap_or(false);
         if !graphical_only {
             let loca = format!("building_{key}");
             data.verify_exists_implied(Item::Localization, &loca, key);
@@ -86,11 +84,7 @@ impl DbKind for Building {
         vd.field_validated_block_rooted("is_enabled", Scopes::Province, |block, data, sc| {
             sc.define_name("holder", Scopes::Character, key);
             sc.define_name("county", Scopes::LandedTitle, key);
-            let tooltipped = if graphical_only {
-                Tooltipped::No
-            } else {
-                Tooltipped::FailuresOnly
-            };
+            let tooltipped = if graphical_only { Tooltipped::No } else { Tooltipped::FailuresOnly };
             validate_normal_trigger(block, data, sc, tooltipped);
         });
         vd.field_validated_key_block("can_construct_potential", |key, block, data| {
@@ -100,11 +94,7 @@ impl DbKind for Building {
             // For buildings that are upgrades, can_construct_potential is added to can_construct_showing_failures_only so it will be tooltipped
             let tooltipped =
                 block.get_field_bool("show_disabled").unwrap_or(false) || self.is_upgrade;
-            let tooltipped = if tooltipped {
-                Tooltipped::FailuresOnly
-            } else {
-                Tooltipped::No
-            };
+            let tooltipped = if tooltipped { Tooltipped::FailuresOnly } else { Tooltipped::No };
             validate_normal_trigger(block, data, &mut sc, tooltipped);
         });
         vd.field_validated_block_rooted(
@@ -198,20 +188,12 @@ impl DbKind for Building {
                     },
                 );
             } else {
-                vd.ban_field("duchy_capital_county_modifier", || {
-                    "duchy_capital buildings"
-                });
-                vd.ban_field("duchy_capital_county_culture_modifier", || {
-                    "duchy_capital buildings"
-                });
+                vd.ban_field("duchy_capital_county_modifier", || "duchy_capital buildings");
+                vd.ban_field("duchy_capital_county_culture_modifier", || "duchy_capital buildings");
             }
         } else {
-            vd.ban_field("duchy_capital_county_modifier", || {
-                "duchy_capital buildings"
-            });
-            vd.ban_field("duchy_capital_county_culture_modifier", || {
-                "duchy_capital buildings"
-            });
+            vd.ban_field("duchy_capital_county_modifier", || "duchy_capital buildings");
+            vd.ban_field("duchy_capital_county_culture_modifier", || "duchy_capital buildings");
         }
 
         vd.field_validated_blocks("county_holding_modifier", |block, data| {

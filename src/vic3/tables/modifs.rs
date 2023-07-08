@@ -44,11 +44,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // building_group_$BuildingGroup$_standard_of_living_add
     // building_group_$BuildingGroup$_tax_mult
     if let Some(part) = name.as_str().strip_prefix("building_group_") {
-        for sfx in &[
-            "_fertility_mult",
-            "_mortality_mult",
-            "_standard_of_living_add",
-        ] {
+        for sfx in &["_fertility_mult", "_mortality_mult", "_standard_of_living_add"] {
             if let Some(part) = part.strip_suffix(sfx) {
                 // This is tricky because both BuildingGroup and PopType can have `_` in them.
                 for (i, _) in part.rmatch_indices('_') {
@@ -79,12 +75,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // building_$PopType$_shares_add
     // building_$PopType$_shares_mult
     if let Some(part) = name.as_str().strip_prefix("building_") {
-        for sfx in &[
-            "_fertility_mult",
-            "_mortality_mult",
-            "_shares_add",
-            "_shares_mult",
-        ] {
+        for sfx in &["_fertility_mult", "_mortality_mult", "_shares_add", "_shares_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
                 if warn {
                     data.verify_exists_implied(Item::PopType, part, name);
@@ -262,14 +253,8 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("building_working_conditions_mult", Building),
     ("character_attrition_risk_add", Character),
     ("character_attrition_risk_mult", Character),
-    (
-        "character_command_limit_combat_unit_conscript_add",
-        Character,
-    ),
-    (
-        "character_command_limit_combat_unit_flotilla_add",
-        Character,
-    ),
+    ("character_command_limit_combat_unit_conscript_add", Character),
+    ("character_command_limit_combat_unit_flotilla_add", Character),
     ("character_command_limit_combat_unit_regular_add", Character),
     ("character_command_limit_mult", Character),
     ("character_expedition_events_explorer_mult", Character),
@@ -379,10 +364,7 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("front_enemy_advancement_speed_mult", Front),
     ("interest_group_approval_add", InterestGroup),
     ("interest_group_in_government_approval_add", InterestGroup),
-    (
-        "interest_group_in_government_attraction_mult",
-        InterestGroup,
-    ),
+    ("interest_group_in_government_attraction_mult", InterestGroup),
     ("interest_group_in_opposition_approval_add", InterestGroup),
     ("interest_group_pol_str_factor", InterestGroup),
     ("interest_group_pol_str_mult", InterestGroup),
@@ -424,14 +406,8 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("state_infrastructure_from_population_max_mult", State),
     ("state_infrastructure_from_population_mult", State),
     ("state_infrastructure_mult", State),
-    (
-        "state_loyalists_from_sol_change_accepted_culture_mult",
-        State,
-    ),
-    (
-        "state_loyalists_from_sol_change_accepted_religion_mult",
-        State,
-    ),
+    ("state_loyalists_from_sol_change_accepted_culture_mult", State),
+    ("state_loyalists_from_sol_change_accepted_religion_mult", State),
     ("state_loyalists_from_sol_change_mult", State),
     ("state_middle_expected_sol", State),
     ("state_migration_pull_add", State),
@@ -453,14 +429,8 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("state_pop_qualifications_mult", State),
     ("state_port_range_add", State),
     ("state_radicals_from_discrimination_mult", State),
-    (
-        "state_radicals_from_sol_change_accepted_culture_mult",
-        State,
-    ),
-    (
-        "state_radicals_from_sol_change_accepted_religion_mult",
-        State,
-    ),
+    ("state_radicals_from_sol_change_accepted_culture_mult", State),
+    ("state_radicals_from_sol_change_accepted_religion_mult", State),
     ("state_radicals_from_sol_change_mult", State),
     ("state_rich_expected_sol", State),
     ("state_standard_of_living_add", State),

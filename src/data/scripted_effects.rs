@@ -33,8 +33,7 @@ impl Effects {
             }
         }
         let scope_override = self.scope_overrides.get(key.as_str()).copied();
-        self.effects
-            .insert(key.to_string(), Effect::new(key, block, scope_override));
+        self.effects.insert(key.to_string(), Effect::new(key, block, scope_override));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -69,8 +68,7 @@ impl FileHandler for Effects {
                         }
                     }
                 }
-                self.scope_overrides
-                    .insert(key.as_str().to_string(), scopes);
+                self.scope_overrides.insert(key.as_str().to_string(), scopes);
             }
         }
     }
@@ -101,12 +99,7 @@ pub struct Effect {
 
 impl Effect {
     pub fn new(key: Token, block: Block, scope_override: Option<Scopes>) -> Self {
-        Self {
-            key,
-            block,
-            cache: MacroCache::default(),
-            scope_override,
-        }
+        Self { key, block, cache: MacroCache::default(), scope_override }
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -133,8 +126,7 @@ impl Effect {
             if self.scope_override.is_some() {
                 our_sc.set_no_warn(true);
             }
-            self.cache
-                .insert(key, &[], tooltipped, false, our_sc.clone());
+            self.cache.insert(key, &[], tooltipped, false, our_sc.clone());
             validate_normal_effect(&self.block, data, &mut our_sc, tooltipped);
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key);
@@ -180,8 +172,7 @@ impl Effect {
                 }
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
-                self.cache
-                    .insert(key, &args, tooltipped, false, our_sc.clone());
+                self.cache.insert(key, &args, tooltipped, false, our_sc.clone());
                 validate_normal_effect(&block, data, &mut our_sc, tooltipped);
                 if let Some(scopes) = self.scope_override {
                     our_sc = ScopeContext::new_unrooted(scopes, key);

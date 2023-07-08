@@ -191,14 +191,7 @@ impl DbKind for ActivityType {
             validate_normal_effect(block, data, &mut sc, Tooltipped::No);
         });
 
-        let filters = &[
-            "capital",
-            "domain",
-            "realm",
-            "top_realm",
-            "holy_sites",
-            "all",
-        ];
+        let filters = &["capital", "domain", "realm", "top_realm", "holy_sites", "all"];
         vd.field_choice("province_filter", filters);
         vd.field_choice("ai_province_filter", filters);
 
@@ -485,12 +478,7 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, has_special_opt
     vd.field_integer("order");
     vd.field_choice(
         "location_source",
-        &[
-            "pickable",
-            "first_picked_phase",
-            "last_picked_phase",
-            "scripted",
-        ],
+        &["pickable", "first_picked_phase", "last_picked_phase", "scripted"],
     );
     if block.field_value_is("location_source", "scripted") {
         let mut sc = ScopeContext::new(Scopes::Character, key);

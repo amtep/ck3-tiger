@@ -311,14 +311,8 @@ impl Adjacency {
             to: to?,
             kind: csv[2].clone(),
             through: through?,
-            start: Coords {
-                x: start_x?,
-                y: start_y?,
-            },
-            stop: Coords {
-                x: stop_x?,
-                y: stop_y?,
-            },
+            start: Coords { x: start_x?, y: start_y? },
+            stop: Coords { x: stop_x?, y: stop_y? },
             comment: csv[8].clone(),
         })
     }
@@ -351,11 +345,6 @@ impl Province {
         let g = _verify(&csv[2], "expected green value")?;
         let b = _verify(&csv[3], "expected blue value")?;
         let color = Rgb::from([r, g, b]);
-        Some(Province {
-            id,
-            valid: !csv[4].as_str().is_empty(),
-            color,
-            comment: csv[4].clone(),
-        })
+        Some(Province { id, valid: !csv[4].as_str().is_empty(), color, comment: csv[4].clone() })
     }
 }

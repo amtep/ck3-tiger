@@ -24,18 +24,16 @@ impl ScriptValues {
     fn load_item(&mut self, key: &Token, bv: &BV) {
         if let Some(other) = self.scriptvalues.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                if other.bv.equivalent(&bv) {
-                    exact_dup_error(&key, &other.key, "script value");
+                if other.bv.equivalent(bv) {
+                    exact_dup_error(key, &other.key, "script value");
                 } else {
-                    dup_error(&key, &other.key, "script value");
+                    dup_error(key, &other.key, "script value");
                 }
             }
         }
         let scope_override = self.scope_overrides.get(key.as_str()).copied();
-        self.scriptvalues.insert(
-            key.to_string(),
-            ScriptValue::new(key.clone(), bv.clone(), scope_override),
-        );
+        self.scriptvalues
+            .insert(key.to_string(), ScriptValue::new(key.clone(), bv.clone(), scope_override));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -78,8 +76,7 @@ impl FileHandler for ScriptValues {
                         }
                     }
                 }
-                self.scope_overrides
-                    .insert(key.as_str().to_string(), scopes);
+                self.scope_overrides.insert(key.as_str().to_string(), scopes);
             }
         }
     }
@@ -110,12 +107,7 @@ pub struct ScriptValue {
 
 impl ScriptValue {
     pub fn new(key: Token, bv: BV, scope_override: Option<Scopes>) -> Self {
-        Self {
-            key,
-            bv,
-            cache: RefCell::new(FnvHashMap::default()),
-            scope_override,
-        }
+        Self { key, bv, cache: RefCell::new(FnvHashMap::default()), scope_override }
     }
 
     pub fn cached_compat(&self, key: &Token, sc: &mut ScopeContext) -> bool {
@@ -149,9 +141,7 @@ impl ScriptValue {
             if self.scope_override.is_some() {
                 our_sc.set_no_warn(true);
             }
-            self.cache
-                .borrow_mut()
-                .insert(key.loc.clone(), our_sc.clone());
+            self.cache.borrow_mut().insert(key.loc.clone(), our_sc.clone());
             validate_scriptvalue(&self.bv, data, &mut our_sc);
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key);

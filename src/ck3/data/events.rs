@@ -40,8 +40,7 @@ impl Events {
                 if let Some(other) = self.get_event(key.as_str()) {
                     dup_error(&key, &other.key, "event");
                 }
-                self.events
-                    .insert((key_a.to_string(), id), Event::new(key, block));
+                self.events.insert((key_a.to_string(), id), Event::new(key, block));
                 return;
             }
         }
@@ -218,12 +217,8 @@ const EVENT_TYPES: &[&str] = &[
 ];
 
 // TODO: check if mods can add more window types to gui/event_windows/
-const WINDOW_TYPES: &[&str] = &[
-    "character_event",
-    "duel_event",
-    "fullscreen_event",
-    "letter_event",
-];
+const WINDOW_TYPES: &[&str] =
+    &["character_event", "duel_event", "fullscreen_event", "letter_event"];
 
 impl Event {
     pub fn new(key: Token, block: Block) -> Self {
@@ -233,11 +228,7 @@ impl Event {
             Scopes::Character
         };
 
-        Self {
-            key,
-            block,
-            expects_scope,
-        }
+        Self { key, block, expects_scope }
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -258,10 +249,7 @@ impl Event {
             }
         }
 
-        let evtype = self
-            .block
-            .get_field_value("type")
-            .map_or("character_event", |t| t.as_str());
+        let evtype = self.block.get_field_value("type").map_or("character_event", |t| t.as_str());
         if evtype == "empty" {
             let msg = "`type = empty` has been replaced by `scope = none`";
             error(vd.field_value("type").unwrap(), ErrorKey::Validation, msg);
@@ -469,11 +457,7 @@ fn validate_artifact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_target("target", sc, Scopes::Artifact);
     vd.field_choice(
         "position",
-        &[
-            "lower_left_portrait",
-            "lower_center_portrait",
-            "lower_right_portrait",
-        ],
+        &["lower_left_portrait", "lower_center_portrait", "lower_right_portrait"],
     );
     vd.field_validated_block("trigger", |b, data| {
         validate_normal_trigger(b, data, sc, Tooltipped::No);

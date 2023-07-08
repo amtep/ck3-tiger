@@ -132,8 +132,7 @@ impl ScopeContext {
         if !self.names.contains_key(name) {
             let idx = self.named.len();
             self.names.insert(name.to_string(), idx);
-            self.named
-                .push(ScopeEntry::Scope(Scopes::all(), token.own()));
+            self.named.push(ScopeEntry::Scope(Scopes::all(), token.own()));
             self.is_input.push(None);
         }
     }
@@ -206,18 +205,14 @@ impl ScopeContext {
     }
 
     pub fn open_scope(&mut self, scopes: Scopes, token: Token) {
-        self.prev = Some(Box::new(ScopeHistory {
-            prev: self.prev.take(),
-            this: self.this.clone(),
-        }));
+        self.prev =
+            Some(Box::new(ScopeHistory { prev: self.prev.take(), this: self.this.clone() }));
         self.this = ScopeEntry::Scope(scopes, token);
     }
 
     pub fn open_builder(&mut self) {
-        self.prev = Some(Box::new(ScopeHistory {
-            prev: self.prev.take(),
-            this: self.this.clone(),
-        }));
+        self.prev =
+            Some(Box::new(ScopeHistory { prev: self.prev.take(), this: self.this.clone() }));
         self.this = ScopeEntry::Backref(0);
         self.is_builder = true;
     }
@@ -263,8 +258,7 @@ impl ScopeContext {
         } else {
             let idx = self.named.len();
             self.names.insert(name.to_string(), idx);
-            self.named
-                .push(ScopeEntry::Scope(Scopes::all(), token.clone()));
+            self.named.push(ScopeEntry::Scope(Scopes::all(), token.clone()));
             if self.strict_scopes {
                 if !self.no_warn {
                     let msg = format!("scope:{name} might not be available here");
@@ -285,8 +279,7 @@ impl ScopeContext {
         } else {
             let idx = self.named.len();
             self.list_names.insert(name.to_string(), idx);
-            self.named
-                .push(ScopeEntry::Scope(Scopes::all(), token.clone()));
+            self.named.push(ScopeEntry::Scope(Scopes::all(), token.clone()));
             idx
         }
     }

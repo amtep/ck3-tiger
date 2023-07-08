@@ -67,9 +67,8 @@ impl CodeChain {
 
 fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: &'static str) {
     data.verify_exists(Item::CustomLocalization, token);
-    if let Some((key, block)) = data
-        .database
-        .get_key_block(Item::CustomLocalization, token.as_str())
+    if let Some((key, block)) =
+        data.database.get_key_block(Item::CustomLocalization, token.as_str())
     {
         CustomLocalization::validate_custom_call(key, block, data, token, scopes, lang, "", None);
     }
@@ -83,13 +82,8 @@ fn validate_argument(arg: &CodeArg, data: &Everything, expect_arg: Arg, lang: &'
                 CodeArg::Literal(token) => {
                     if token.as_str().starts_with('(') && token.as_str().contains(')') {
                         // These unwraps are safe because of the checks in the if condition
-                        let dtype = token
-                            .as_str()
-                            .split(')')
-                            .next()
-                            .unwrap()
-                            .strip_prefix('(')
-                            .unwrap();
+                        let dtype =
+                            token.as_str().split(')').next().unwrap().strip_prefix('(').unwrap();
                         if dtype == "hex" {
                             if expect_type != Datatype::Unknown && expect_type != Datatype::int32 {
                                 let msg = format!("expected {expect_type}, got {dtype}");
@@ -229,7 +223,7 @@ pub fn validate_datatypes(
         if data.item_exists(Item::Country, code.name.as_str()) {
             found = true;
             args = Args::NoArgs;
-            rtype = Datatype::Country
+            rtype = Datatype::Country;
         }
 
         if !found {
@@ -389,18 +383,14 @@ pub fn validate_datatypes(
         {
             if expect_type == Datatype::AnyScope {
                 if scope_from_datatype(curtype).is_none() {
-                    let msg = format!(
-                        "{} returns {curtype} but a scope type is needed here",
-                        code.name
-                    );
+                    let msg =
+                        format!("{} returns {curtype} but a scope type is needed here", code.name);
                     error(&code.name, ErrorKey::Datafunctions, &msg);
                     return;
                 }
             } else {
-                let msg = format!(
-                    "{} returns {curtype} but a {expect_type} is needed here",
-                    code.name
-                );
+                let msg =
+                    format!("{} returns {curtype} but a {expect_type} is needed here", code.name);
                 error(&code.name, ErrorKey::Datafunctions, &msg);
                 return;
             }

@@ -17,8 +17,7 @@ pub struct CultureHistories {
 
 impl CultureHistories {
     pub fn load_item(&mut self, key: Token, block: Block) {
-        self.histories
-            .insert(key.to_string(), CultureHistory::new(key, block));
+        self.histories.insert(key.to_string(), CultureHistory::new(key, block));
     }
 
     pub fn validate(&self, data: &Everything) {

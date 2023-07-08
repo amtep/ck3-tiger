@@ -126,21 +126,9 @@ impl DbKind for CourtPosition {
             sc.define_name("base_value", Scopes::Value, key);
             sc.define_name("firing_court_position", Scopes::Bool, key);
             sc.define_name("percent_of_monthly_gold_income", Scopes::Value, key);
-            sc.define_name(
-                "percent_of_positive_monthly_prestige_balance",
-                Scopes::Value,
-                key,
-            );
-            sc.define_name(
-                "percent_of_positive_monthly_piety_balance",
-                Scopes::Value,
-                key,
-            );
-            sc.define_name(
-                "percent_of_monthly_gold_income_all_positions",
-                Scopes::Value,
-                key,
-            );
+            sc.define_name("percent_of_positive_monthly_prestige_balance", Scopes::Value, key);
+            sc.define_name("percent_of_positive_monthly_piety_balance", Scopes::Value, key);
+            sc.define_name("percent_of_monthly_gold_income_all_positions", Scopes::Value, key);
             sc.define_name(
                 "percent_of_positive_monthly_prestige_balance_all_positions",
                 Scopes::Value,

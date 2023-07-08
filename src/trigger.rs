@@ -85,16 +85,10 @@ pub fn validate_trigger(
             validate_normal_trigger(block, data, sc, Tooltipped::No);
         });
     } else {
-        vd.ban_field("limit", || {
-            "`trigger_if`, `trigger_else_if` or `trigger_else`"
-        });
+        vd.ban_field("limit", || "`trigger_if`, `trigger_else_if` or `trigger_else`");
     }
 
-    let list_type = if in_list {
-        ListType::Any
-    } else {
-        ListType::None
-    };
+    let list_type = if in_list { ListType::Any } else { ListType::None };
     validate_iterator_fields(caller, list_type, data, sc, &mut vd, &mut tooltipped);
 
     if list_type != ListType::None {
@@ -108,9 +102,8 @@ pub fn validate_trigger(
             vd.field_item("text", Item::Localization);
         } else if let Some(token) = vd.field_value("text") {
             data.verify_exists(Item::TriggerLocalization, token);
-            if let Some((key, block)) = data
-                .database
-                .get_key_block(Item::TriggerLocalization, token.as_str())
+            if let Some((key, block)) =
+                data.database.get_key_block(Item::TriggerLocalization, token.as_str())
             {
                 TriggerLocalization::validate_use(key, block, data, token, tooltipped, negated);
             }
@@ -447,13 +440,8 @@ fn match_trigger_fields(
 
 const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
 
-const STANCES: &[&str] = &[
-    "strongly_disapprove",
-    "disapprove",
-    "neutral",
-    "approve",
-    "strongly_approve",
-];
+const STANCES: &[&str] =
+    &["strongly_disapprove", "disapprove", "neutral", "approve", "strongly_approve"];
 
 fn match_trigger_bv(
     trigger: &Trigger,
@@ -1035,10 +1023,7 @@ impl Trigger {
     fn from_raw_fields(
         fields: &'static [(&'static str, RawTrigger)],
     ) -> Vec<(&'static str, Trigger)> {
-        fields
-            .iter()
-            .map(|(field, trigger)| (*field, Trigger::from_raw(trigger)))
-            .collect()
+        fields.iter().map(|(field, trigger)| (*field, Trigger::from_raw(trigger))).collect()
     }
 }
 

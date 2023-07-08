@@ -146,15 +146,9 @@ use crate::vic3::data::{
 #[derive(Debug, Error)]
 pub enum FilesError {
     #[error("Could not read game files at {path}")]
-    VanillaUnreadable {
-        path: PathBuf,
-        source: walkdir::Error,
-    },
+    VanillaUnreadable { path: PathBuf, source: walkdir::Error },
     #[error("Could not read mod files at {path}")]
-    ModUnreadable {
-        path: PathBuf,
-        source: walkdir::Error,
-    },
+    ModUnreadable { path: PathBuf, source: walkdir::Error },
     #[error("Could not read config file at {path}")]
     ConfigUnreadable { path: PathBuf },
 }
@@ -265,11 +259,8 @@ impl Everything {
         mod_root: &Path,
         replace_paths: Vec<PathBuf>,
     ) -> Result<Self, FilesError> {
-        let mut fileset = Fileset::new(
-            vanilla_dir.to_path_buf(),
-            mod_root.to_path_buf(),
-            replace_paths,
-        );
+        let mut fileset =
+            Fileset::new(vanilla_dir.to_path_buf(), mod_root.to_path_buf(), replace_paths);
 
         let config_file = mod_root.join("ck3-tiger.conf");
         let config = if config_file.is_file() {
@@ -597,10 +588,7 @@ impl Everything {
         self.load_pdx_items(Item::DiarchyType, DiarchyType::add);
         self.load_pdx_items(Item::DiarchyMandate, DiarchyMandate::add);
         self.load_pdx_items(Item::Inspiration, Inspiration::add);
-        self.load_pdx_items(
-            Item::CoaDesignerColoredEmblem,
-            CoaDesignerColoredEmblem::add,
-        );
+        self.load_pdx_items(Item::CoaDesignerColoredEmblem, CoaDesignerColoredEmblem::add);
         self.load_pdx_items(Item::CoaDesignerColorPalette, CoaDesignerColorPalette::add);
         self.load_pdx_items(Item::CoaDesignerEmblemLayout, CoaDesignerEmblemLayout::add);
         self.load_pdx_items(Item::CoaDesignerPattern, CoaDesignerPattern::add);
@@ -649,7 +637,6 @@ impl Everything {
 
     #[cfg(feature = "ck3")]
     fn validate_all_ck3(&mut self) {
-        self.events.validate(self);
         self.on_actions.validate(self);
         self.decisions.validate(self);
         self.interactions.validate(self);
@@ -958,11 +945,8 @@ const DLC: &[&str] = &["dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
-const DLC_FEATURES: &[&str] = &[
-    "voice_of_the_people_content",
-    "voice_of_the_people_preorder",
-    "agitators",
-];
+const DLC_FEATURES: &[&str] =
+    &["voice_of_the_people_content", "voice_of_the_people_preorder", "agitators"];
 
 /// LAST UPDATED VERSION 1.9.2
 const REWARD_ITEMS: &[&str] = &["newsletter_crown"];
@@ -971,14 +955,7 @@ const REWARD_ITEMS: &[&str] = &["newsletter_crown"];
 const PRISON_TYPES: &[&str] = &["dungeon", "house_arrest"];
 
 /// LAST UPDATED VERSION 1.9.2
-const SKILLS: &[&str] = &[
-    "diplomacy",
-    "intrigue",
-    "learning",
-    "martial",
-    "prowess",
-    "stewardship",
-];
+const SKILLS: &[&str] = &["diplomacy", "intrigue", "learning", "martial", "prowess", "stewardship"];
 
 /// LAST UPDATED VERSION 1.9.2
 const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual", "none"];

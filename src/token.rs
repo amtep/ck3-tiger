@@ -21,13 +21,7 @@ pub struct Loc {
 
 impl Loc {
     pub fn for_file(pathname: Rc<PathBuf>, kind: FileKind) -> Self {
-        Loc {
-            pathname,
-            kind,
-            line: 0,
-            column: 0,
-            link: None,
-        }
+        Loc { pathname, kind, line: 0, column: 0, link: None }
     }
 
     pub fn for_entry(entry: &FileEntry) -> Self {
@@ -39,10 +33,7 @@ impl Loc {
     }
 
     pub fn filename(&self) -> Cow<str> {
-        self.pathname
-            .file_name()
-            .unwrap_or_else(|| OsStr::new(""))
-            .to_string_lossy()
+        self.pathname.file_name().unwrap_or_else(|| OsStr::new("")).to_string_lossy()
     }
 }
 
@@ -234,19 +225,13 @@ impl Eq for Token {}
 
 impl From<Loc> for Token {
     fn from(loc: Loc) -> Self {
-        Token {
-            s: String::new(),
-            loc,
-        }
+        Token { s: String::new(), loc }
     }
 }
 
 impl From<&Loc> for Token {
     fn from(loc: &Loc) -> Self {
-        Token {
-            s: String::new(),
-            loc: loc.clone(),
-        }
+        Token { s: String::new(), loc: loc.clone() }
     }
 }
 

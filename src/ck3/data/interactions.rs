@@ -33,8 +33,7 @@ impl Interactions {
                 dup_error(&key, &other.key, "interaction");
             }
         }
-        self.interactions
-            .insert(key.to_string(), Interaction::new(key, block));
+        self.interactions.insert(key.to_string(), Interaction::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -188,11 +187,7 @@ impl Interaction {
 
         vd.field_bool("hidden");
 
-        vd.field_validated_sc(
-            "use_diplomatic_range",
-            &mut sc.clone(),
-            validate_bool_or_trigger,
-        );
+        vd.field_validated_sc("use_diplomatic_range", &mut sc.clone(), validate_bool_or_trigger);
         vd.field_bool("can_send_despite_rejection");
         vd.field_bool("ignores_pending_interaction_block");
 
@@ -291,10 +286,10 @@ impl Interaction {
             let mut vd = Validator::new(b, data);
             vd.req_field("flag");
             // If localization field is not set, then flag is used as the localization
-            if !vd.field_item("localization", Item::Localization) {
-                vd.field_item("flag", Item::Localization);
-            } else {
+            if vd.field_item("localization", Item::Localization) {
                 vd.field_value("flag");
+            } else {
+                vd.field_item("flag", Item::Localization);
             }
             vd.field_validated_block("is_shown", |b, data| {
                 validate_normal_trigger(b, data, &mut sc.clone(), Tooltipped::No);
@@ -357,11 +352,7 @@ impl Interaction {
                 old_warn(token, ErrorKey::Unneeded, msg);
             }
         }
-        vd.field_validated_sc(
-            "ai_intermediary_accept",
-            &mut sc.clone(),
-            validate_ai_chance,
-        );
+        vd.field_validated_sc("ai_intermediary_accept", &mut sc.clone(), validate_ai_chance);
 
         // These seem to be in character scope
         vd.field_validated_block_rerooted(
@@ -380,11 +371,7 @@ impl Interaction {
         vd.field_validated_sc("desc", &mut sc.clone(), validate_desc);
         vd.field_choice("greeting", &["negative", "positive"]);
         vd.field_validated_sc("prompt", &mut sc.clone(), validate_desc);
-        vd.field_validated_sc(
-            "intermediary_notification_text",
-            &mut sc.clone(),
-            validate_desc,
-        );
+        vd.field_validated_sc("intermediary_notification_text", &mut sc.clone(), validate_desc);
         vd.field_validated_sc("notification_text", &mut sc.clone(), validate_desc);
         vd.field_validated_sc("on_decline_summary", &mut sc.clone(), validate_desc);
         vd.field_item("answer_block_key", Item::Localization);

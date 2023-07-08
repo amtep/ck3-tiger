@@ -35,9 +35,7 @@ impl ScriptedLists {
     }
 
     pub fn base(&self, item: &Token) -> Option<&Token> {
-        self.lists
-            .get(item.as_str())
-            .and_then(|item| item.block.get_field_value("base"))
+        self.lists.get(item.as_str()).and_then(|item| item.block.get_field_value("base"))
     }
 
     pub fn validate(&self, data: &Everything) {

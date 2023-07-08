@@ -310,11 +310,7 @@ impl DbKind for CultureAesthetic {
         vd.field_validated_key_block("is_shown", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("character", Scopes::Character, key);
-            sc.define_list(
-                "trait",
-                Scopes::CultureTradition | Scopes::CulturePillar,
-                key,
-            );
+            sc.define_list("trait", Scopes::CultureTradition | Scopes::CulturePillar, key);
             validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
         });
     }

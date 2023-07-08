@@ -33,8 +33,7 @@ impl Triggers {
             }
         }
         let scope_override = self.scope_overrides.get(key.as_str()).copied();
-        self.triggers
-            .insert(key.to_string(), Trigger::new(key, block, scope_override));
+        self.triggers.insert(key.to_string(), Trigger::new(key, block, scope_override));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -69,8 +68,7 @@ impl FileHandler for Triggers {
                         }
                     }
                 }
-                self.scope_overrides
-                    .insert(key.as_str().to_string(), scopes);
+                self.scope_overrides.insert(key.as_str().to_string(), scopes);
             }
         }
     }
@@ -101,12 +99,7 @@ pub struct Trigger {
 
 impl Trigger {
     pub fn new(key: Token, block: Block, scope_override: Option<Scopes>) -> Self {
-        Self {
-            key,
-            block,
-            cache: MacroCache::default(),
-            scope_override,
-        }
+        Self { key, block, cache: MacroCache::default(), scope_override }
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -136,17 +129,8 @@ impl Trigger {
             if self.scope_override.is_some() {
                 our_sc.set_no_warn(true);
             }
-            self.cache
-                .insert(key, &[], tooltipped, negated, our_sc.clone());
-            validate_trigger(
-                "",
-                false,
-                &self.block,
-                data,
-                &mut our_sc,
-                tooltipped,
-                negated,
-            );
+            self.cache.insert(key, &[], tooltipped, negated, our_sc.clone());
+            validate_trigger("", false, &self.block, data, &mut our_sc, tooltipped, negated);
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key);
                 our_sc.set_strict_scopes(false);
@@ -168,10 +152,9 @@ impl Trigger {
         negated: bool,
         sc: &mut ScopeContext,
     ) -> bool {
-        self.cache
-            .perform(key, args, tooltipped, negated, |our_sc| {
-                sc.expect_compatibility(our_sc, key);
-            })
+        self.cache.perform(key, args, tooltipped, negated, |our_sc| {
+            sc.expect_compatibility(our_sc, key);
+        })
     }
 
     pub fn validate_macro_expansion(
@@ -194,8 +177,7 @@ impl Trigger {
                 }
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
-                self.cache
-                    .insert(key, &args, tooltipped, negated, our_sc.clone());
+                self.cache.insert(key, &args, tooltipped, negated, our_sc.clone());
                 validate_trigger("", false, &block, data, &mut our_sc, tooltipped, negated);
                 if let Some(scopes) = self.scope_override {
                     our_sc = ScopeContext::new_unrooted(scopes, key);

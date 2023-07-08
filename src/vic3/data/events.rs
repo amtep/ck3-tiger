@@ -33,8 +33,7 @@ impl Events {
                 if let Some(other) = self.get_event(key.as_str()) {
                     dup_error(&key, &other.key, "event");
                 }
-                self.events
-                    .insert((key_a.to_string(), id), Event::new(key, block));
+                self.events.insert((key_a.to_string(), id), Event::new(key, block));
                 return;
             }
         }
@@ -105,12 +104,7 @@ impl FileHandler for Events {
                     error(key, ErrorKey::UnknownField, msg);
                 }
             } else if let Some(key) = bv.expect_into_value() {
-                error_info(
-                    key,
-                    ErrorKey::Validation,
-                    "unexpected token",
-                    "Did you forget an = ?",
-                );
+                error_info(key, ErrorKey::Validation, "unexpected token", "Did you forget an = ?");
             }
         }
     }
@@ -142,12 +136,7 @@ impl Event {
             }
         }
 
-        Self {
-            key,
-            block,
-            expects_scope,
-            expects_from_token,
-        }
+        Self { key, block, expects_scope, expects_from_token }
     }
 
     pub fn validate(&self, data: &Everything) {

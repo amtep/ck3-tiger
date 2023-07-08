@@ -128,11 +128,7 @@ impl DbKind for AgePresetGene {
         call_key: &Token,
         _call_block: &Block,
     ) {
-        old_warn(
-            call_key,
-            ErrorKey::Validation,
-            "cannot define age preset genes",
-        );
+        old_warn(call_key, ErrorKey::Validation, "cannot define age preset genes");
     }
 }
 
@@ -154,15 +150,7 @@ impl MorphGene {
             }
             templates.insert(key.to_string(), key.clone());
         }
-        db.add(
-            Item::GeneCategory,
-            key,
-            block,
-            Box::new(Self {
-                special_gene,
-                templates,
-            }),
-        );
+        db.add(Item::GeneCategory, key, block, Box::new(Self { special_gene, templates }));
     }
 }
 
@@ -261,13 +249,7 @@ fn validate_portrait_modifier_use(
                     let loca = format!("PORTRAIT_MODIFIER_{caller}_{token}");
                     if !data.item_exists(Item::Localization, &loca) {
                         let msg = format!("missing localization key {loca}");
-                        warn2(
-                            property,
-                            ErrorKey::MissingLocalization,
-                            &msg,
-                            token,
-                            "this setting",
-                        );
+                        warn2(property, ErrorKey::MissingLocalization, &msg, token, "this setting");
                     }
                 }
             }

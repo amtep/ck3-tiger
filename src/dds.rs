@@ -44,10 +44,7 @@ impl DdsFiles {
             error(entry, ErrorKey::ImageFormat, "not a DDS file");
             return Ok(());
         }
-        self.dds_files.insert(
-            entry.path().to_string_lossy().to_string(),
-            DdsInfo::new(&buffer),
-        );
+        self.dds_files.insert(entry.path().to_string_lossy().to_string(), DdsInfo::new(&buffer));
         Ok(())
     }
 

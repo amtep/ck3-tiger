@@ -40,11 +40,9 @@ impl Traits {
         for token in block.get_field_values("flag") {
             self.flags.insert(token.to_string());
         }
-        for field in &[
-            "genetic_constraint_all",
-            "genetic_constraint_men",
-            "genetic_constraint_women",
-        ] {
+        for field in
+            &["genetic_constraint_all", "genetic_constraint_men", "genetic_constraint_women"]
+        {
             if let Some(token) = block.get_field_value(field) {
                 self.constraints.insert(token.to_string());
             }
@@ -120,11 +118,7 @@ pub struct Trait {
 impl Trait {
     pub fn new(key: Token, block: Block) -> Self {
         let has_track = block.has_key("track") || block.has_key("tracks");
-        Self {
-            key,
-            block,
-            has_track,
-        }
+        Self { key, block, has_track }
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -226,10 +220,7 @@ impl Trait {
         vd.field_numeric_range("random_creation", 0.0, 1.0);
         vd.field_bool("can_inherit");
         vd.field_bool("inherit_from_real_father");
-        vd.replaced_field(
-            "blocks_from_claim_inheritance",
-            "`claim_inheritance_blocker = all`",
-        );
+        vd.replaced_field("blocks_from_claim_inheritance", "`claim_inheritance_blocker = all`");
         vd.replaced_field(
             "blocks_from_claim_inheritance_from_dynasty",
             "`claim_inheritance_blocker = dynasty`",

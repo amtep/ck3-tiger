@@ -221,8 +221,7 @@ pub fn validate_effect_block(
             vd.req_field("type");
             if let Some(token) = vd.field_value("type") {
                 data.verify_exists(Item::Modifier, token);
-                data.database
-                    .validate_property_use(Item::Modifier, token, data, key, "");
+                data.database.validate_property_use(Item::Modifier, token, data, key, "");
             }
             vd.field_integer("days");
         }
@@ -234,7 +233,7 @@ pub fn validate_effect_block(
                 sc.define_name(name.as_str(), Scopes::Secret, name);
             }
         }
-        AddToGuestSubset => {
+        AddToGuestSubset | RemoveFromGuestSubset => {
             vd.req_field("name");
             vd.req_field("target");
             vd.field_item("name", Item::GuestSubset);
@@ -389,12 +388,7 @@ pub fn validate_effect_block(
             vd.field_target_ok_this("template_character", sc, Scopes::Character);
             vd.field_item_or_target("faith", sc, Item::Faith, Scopes::Faith);
             vd.field_validated_block_sc("random_faith", sc, validate_random_faith);
-            vd.field_item_or_target(
-                "random_faith_in_religion",
-                sc,
-                Item::Religion,
-                Scopes::Faith,
-            );
+            vd.field_item_or_target("random_faith_in_religion", sc, Item::Religion, Scopes::Faith);
             vd.field_item_or_target("culture", sc, Item::Culture, Scopes::Culture);
             vd.field_validated_block_sc("random_culture", sc, validate_random_culture);
             // TODO: figure out what a culture group is, and whether this key still works at all
@@ -533,12 +527,8 @@ pub fn validate_effect_block(
         }
         MoveBudgetGold => {
             vd.field_script_value("gold", sc);
-            let choices = &[
-                "budget_war_chest",
-                "budget_reserved",
-                "budget_short_term",
-                "budget_long_term",
-            ];
+            let choices =
+                &["budget_war_chest", "budget_reserved", "budget_short_term", "budget_long_term"];
             vd.field_choice("from", choices);
             vd.field_choice("to", choices);
         }
@@ -580,13 +570,6 @@ pub fn validate_effect_block(
             vd.req_field("target");
             vd.field_item("name", Item::GuestSubset);
             vd.field_target("target", sc, Scopes::Character);
-        }
-        RemoveFromGuestSubset => {
-            vd.req_field("name");
-            vd.req_field("target");
-            vd.field_item("name", Item::GuestSubset);
-            vd.field_target("target", sc, Scopes::Character);
-            vd.field_item("phase", Item::ActivityPhase);
         }
         RemoveOpinion => {
             vd.req_field("target");
@@ -741,10 +724,7 @@ pub fn validate_effect_block(
             vd.field_item("on_start_on_action", Item::OnAction);
             vd.field_item("on_travel_planner_cancel_event", Item::Event);
             vd.field_item("on_travel_planner_cancel_on_action", Item::OnAction);
-            vd.field_choice(
-                "on_arrival_destinations",
-                &["all", "first", "last", "all_but_last"],
-            );
+            vd.field_choice("on_arrival_destinations", &["all", "first", "last", "all_but_last"]);
             // Root for these events is travel plan owner
             if let Some(token) = block.get_field_value("on_arrival_event") {
                 data.events.check_scope(token, sc);

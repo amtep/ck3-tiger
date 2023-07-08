@@ -58,8 +58,7 @@ impl Doctrines {
             );
         }
 
-        self.groups
-            .insert(key.to_string(), DoctrineGroup::new(key, block));
+        self.groups.insert(key.to_string(), DoctrineGroup::new(key, block));
     }
 
     pub fn validate(&self, data: &Everything) {
