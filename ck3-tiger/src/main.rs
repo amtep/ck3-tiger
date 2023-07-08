@@ -120,6 +120,7 @@ fn main() -> Result<()> {
 
     everything.load_output_settings();
     everything.load_config_filtering_rules();
+    emit_reports();
 
     // We must apply the --no-color flag AFTER loading and applying the config,
     // because we want it to override the config.
