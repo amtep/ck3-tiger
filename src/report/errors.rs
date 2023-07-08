@@ -125,24 +125,29 @@ impl Errors {
         reports.sort_unstable_by(|a, b| {
             // Severity in descending order
             let mut cmp = b.severity.cmp(&a.severity);
+            if cmp != Ordering::Equal {
+                return cmp;
+            }
             // Confidence in descending order too
-            if cmp == Ordering::Equal {
-                cmp = b.confidence.cmp(&a.confidence);
-                // If severity and confidence are the same, order by loc. Check all locs in order.
-                if cmp == Ordering::Equal {
-                    for (a, b) in a.pointers.iter().zip(b.pointers.iter()) {
-                        cmp = a.location.cmp(&b.location);
-                        if cmp != Ordering::Equal {
-                            return cmp;
-                        }
-                    }
-                    // Shorter chain goes first, if it comes to that.
-                    cmp = b.pointers.len().cmp(&a.pointers.len());
-                    // Fallback: order by message text.
-                    if cmp == Ordering::Equal {
-                        cmp = a.msg.cmp(&b.msg)
-                    }
+            cmp = b.confidence.cmp(&a.confidence);
+            if cmp != Ordering::Equal {
+                return cmp;
+            }
+            // If severity and confidence are the same, order by loc. Check all locs in order.
+            for (a, b) in a.pointers.iter().zip(b.pointers.iter()) {
+                cmp = a.location.cmp(&b.location);
+                if cmp != Ordering::Equal {
+                    return cmp;
                 }
+            }
+            // Shorter chain goes first, if it comes to that.
+            cmp = b.pointers.len().cmp(&a.pointers.len());
+            if cmp != Ordering::Equal {
+                return cmp;
+            }
+            // Fallback: order by message text.
+            if cmp == Ordering::Equal {
+                cmp = a.msg.cmp(&b.msg)
             }
             cmp
         });
