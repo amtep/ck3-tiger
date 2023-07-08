@@ -147,6 +147,7 @@ use crate::vic3::data::{
     modifiers::Modifier,
     production_methods::ProductionMethod,
     religions::Religion,
+    state_regions::StateRegion,
     technology::{Technology, TechnologyEra},
     terrain_manipulator::TerrainManipulator,
 };
@@ -645,6 +646,7 @@ impl Everything {
         self.load_pdx_items(Item::BuildingType, BuildingType::add);
         self.load_pdx_items(Item::Country, Country::add);
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
+        self.load_pdx_items(Item::StateRegion, StateRegion::add);
         self.load_pdx_items(Item::Technology, Technology::add);
         self.load_pdx_items(Item::TechnologyEra, TechnologyEra::add);
         self.load_pdx_items(Item::TerrainManipulator, TerrainManipulator::add);

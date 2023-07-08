@@ -6,5 +6,6 @@ pub mod events;
 pub mod modifiers;
 pub mod production_methods;
 pub mod religions;
+pub mod state_regions;
 pub mod technology;
 pub mod terrain_manipulator;
