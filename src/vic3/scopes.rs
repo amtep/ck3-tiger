@@ -454,7 +454,7 @@ pub fn validate_prefix_reference(
         | "ai_navy_comparison"
         | "average_defense"
         | "average_offense"
-        | "num_defending_batallions"
+        | "num_defending_battalions"
         | "num_total_battalions"
         | "relations"
         | "tension"
@@ -584,7 +584,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Country, "num_active_plays", Value),
     (Country, "num_admirals", Value),
     (Country, "num_alliances", Value),
-    (Character, "num_battallions", Value),
+    (Character, "num_battalions", Value),
     (Country, "num_characters", Value),
     (Country, "num_colony_projects", Value),
     (Character, "num_commanded_units", Value),
@@ -600,7 +600,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Country, "num_income_transfer_pacts", Value),
     (Country, "num_incorporated_states", Value),
     (Country, "num_interests", Value),
-    (Character, "num_mobilized_battallions", Value),
+    (Character, "num_mobilized_battalions", Value),
     (Country, "num_natural_interests", Value),
     (Country, "num_obligations_earned", Value),
     (Country, "num_pending_events", Value),
