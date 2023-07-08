@@ -10,7 +10,7 @@ use crate::ck3::tables::modifs::lookup_modif;
 use crate::everything::Everything;
 #[cfg(feature = "ck3")]
 use crate::item::Item;
-use crate::report::{error, old_warn, ErrorKey};
+use crate::report::{err, error, ErrorKey};
 use crate::scriptvalue::validate_non_dynamic_scriptvalue;
 use crate::token::Token;
 #[cfg(feature = "vic3")]
@@ -41,7 +41,16 @@ pub fn validate_modifs<'a>(
             }
         } else {
             let msg = format!("unknown modifier `{key}`");
-            old_warn(key, ErrorKey::UnknownField, &msg);
+            err(ErrorKey::UnknownField).strong().msg(msg).loc(key).push();
         }
+    }
+}
+
+pub fn verify_modif_exists(key: &Token, data: &Everything, kinds: ModifKinds) {
+    if let Some(mk) = lookup_modif(key, data, true) {
+        kinds.require(mk, key);
+    } else {
+        let msg = format!("unknown modifier `{key}`");
+        err(ErrorKey::UnknownField).strong().msg(msg).loc(key).push();
     }
 }

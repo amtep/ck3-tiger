@@ -7,6 +7,7 @@ use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::display_choices;
 use crate::item::Item;
+use crate::modif::{verify_modif_exists, ModifKinds};
 use crate::report::{warn_info, ErrorKey};
 use crate::token::Token;
 use crate::trigger::validate_target;
@@ -482,7 +483,8 @@ pub fn validate_prefix_reference(
         // "je" => data.verify_exists(Item::Journalentry, arg),
         // "law_type" => data.verify_exists(Item::LawType, arg),
         // "local_var"
-        "modifier" => data.verify_exists(Item::Modifier, arg),
+        // TODO: use the modif type corresponding to the scope this is used in
+        "modifier" => verify_modif_exists(arg, data, ModifKinds::all()),
         // "nf" => data.verify_exists(Item::Decree, arg),
         "num_enemy_units" => validate_target(arg, data, sc, Scopes::Character), // TODO verify type
         // "num_pending_events" =>
