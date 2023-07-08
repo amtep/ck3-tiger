@@ -3,6 +3,7 @@ use std::fmt::Debug;
 
 use as_any::AsAny;
 use fnv::FnvHashMap;
+use rayon::prelude::*;
 
 use crate::block::Block;
 use crate::context::ScopeContext;
@@ -58,9 +59,9 @@ impl Db {
     }
 
     pub fn validate(&self, data: &Everything) {
-        for entry in self.database.values() {
+        self.database.par_iter().for_each(|(_, entry)| {
             entry.kind.validate(&entry.key, &entry.block, data);
-        }
+        });
     }
 
     pub fn exists(&self, item: Item, key: &str) -> bool {

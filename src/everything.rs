@@ -1,10 +1,10 @@
-use std::cell::RefCell;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use anyhow::Result;
 use fnv::FnvHashSet;
+use rayon::{scope, Scope};
 use strum::IntoEnumIterator;
 use thiserror::Error;
 
@@ -158,7 +158,7 @@ pub struct Everything {
     /// Config from file
     config: Block,
 
-    warned_defines: RefCell<FnvHashSet<String>>,
+    warned_defines: RwLock<FnvHashSet<String>>,
 
     /// The vanilla and mod files
     pub fileset: Fileset,
@@ -262,7 +262,7 @@ impl Everything {
             fileset,
             dds: DdsFiles::default(),
             config,
-            warned_defines: RefCell::new(FnvHashSet::default()),
+            warned_defines: RwLock::new(FnvHashSet::default()),
             database: Db::default(),
             localization: Localization::default(),
             scripted_lists: ScriptedLists::default(),
@@ -639,49 +639,51 @@ impl Everything {
         self.load_all_vic3();
     }
 
-    fn validate_all_generic(&mut self) {
-        self.fileset.validate(self);
-        self.localization.validate(self);
-        self.scripted_lists.validate(self);
-        self.defines.validate(self);
-        self.scripted_modifiers.validate(self);
-        self.scriptvalues.validate(self);
-        self.triggers.validate(self);
-        self.effects.validate(self);
+    fn validate_all_generic<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.fileset.validate(self));
+        s.spawn(|_| self.localization.validate(self));
+        s.spawn(|_| self.scripted_lists.validate(self));
+        s.spawn(|_| self.defines.validate(self));
+        s.spawn(|_| self.scripted_modifiers.validate(self));
+        s.spawn(|_| self.scriptvalues.validate(self));
+        s.spawn(|_| self.triggers.validate(self));
+        s.spawn(|_| self.effects.validate(self));
 
-        self.events.validate(self);
+        s.spawn(|_| self.events.validate(self));
     }
 
     #[cfg(feature = "ck3")]
-    fn validate_all_ck3(&mut self) {
-        self.on_actions.validate(self);
-        self.interaction_cats.validate(self);
-        self.provinces.validate(self);
-        self.province_histories.validate(self);
-        self.gameconcepts.validate(self);
-        self.titles.validate(self);
-        self.characters.validate(self);
-        self.traits.validate(self);
-        self.title_history.validate(self);
-        self.doctrines.validate(self);
-        self.menatarmstypes.validate(self);
-        self.gui.validate(self);
-        self.data_bindings.validate(self);
-        self.assets.validate(self);
-        self.sounds.validate(self);
-        self.music.validate(self);
-        self.coas.validate(self);
+    fn validate_all_ck3<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.on_actions.validate(self));
+        s.spawn(|_| self.interaction_cats.validate(self));
+        s.spawn(|_| self.provinces.validate(self));
+        s.spawn(|_| self.province_histories.validate(self));
+        s.spawn(|_| self.gameconcepts.validate(self));
+        s.spawn(|_| self.titles.validate(self));
+        s.spawn(|_| self.characters.validate(self));
+        s.spawn(|_| self.traits.validate(self));
+        s.spawn(|_| self.title_history.validate(self));
+        s.spawn(|_| self.doctrines.validate(self));
+        s.spawn(|_| self.menatarmstypes.validate(self));
+        s.spawn(|_| self.gui.validate(self));
+        s.spawn(|_| self.data_bindings.validate(self));
+        s.spawn(|_| self.assets.validate(self));
+        s.spawn(|_| self.sounds.validate(self));
+        s.spawn(|_| self.music.validate(self));
+        s.spawn(|_| self.coas.validate(self));
     }
 
     #[cfg(feature = "vic3")]
-    fn validate_all_vic3(&mut self) {}
+    fn validate_all_vic3(&self, _s: &Scope) {}
 
-    pub fn validate_all(&mut self) {
-        self.validate_all_generic();
-        #[cfg(feature = "ck3")]
-        self.validate_all_ck3();
-        #[cfg(feature = "vic3")]
-        self.validate_all_vic3();
+    pub fn validate_all(&self) {
+        scope(|s| {
+            self.validate_all_generic(s);
+            #[cfg(feature = "ck3")]
+            self.validate_all_ck3(s);
+            #[cfg(feature = "vic3")]
+            self.validate_all_vic3(s);
+        });
         self.database.validate(self);
     }
 
@@ -874,7 +876,7 @@ impl Everything {
 
     pub fn get_defined_string_warn(&self, token: &Token, key: &str) -> Option<&Token> {
         let result = self.get_defined_string(key);
-        let mut cache = self.warned_defines.borrow_mut();
+        let mut cache = self.warned_defines.write().unwrap();
         if result.is_none() && !cache.contains(key) {
             old_warn(
                 token,
