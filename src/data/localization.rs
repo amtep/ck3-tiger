@@ -13,8 +13,8 @@ use crate::helpers::{dup_error, stringify_list};
 use crate::item::Item;
 use crate::parse::localization::{parse_loca, ValueParser};
 use crate::report::{
-    advice_info, error, error_info, old_warn, warn2, warn_abbreviated, warn_header, warn_info,
-    will_maybe_log, ErrorKey,
+    advice_info, error, error_info, old_warn, warn, warn2, warn_abbreviated, warn_header,
+    warn_info, will_maybe_log, ErrorKey,
 };
 use crate::token::Token;
 
@@ -230,7 +230,8 @@ impl Localization {
         }
         if !langs.is_empty() {
             let msg = format!("missing {} localization key {key}", stringify_list(&langs));
-            error(token, ErrorKey::MissingLocalization, &msg);
+            // TODO: get confidence level from caller
+            warn(ErrorKey::MissingLocalization).msg(msg).loc(token).push();
         }
     }
 
@@ -256,7 +257,8 @@ impl Localization {
         self.mark_used(key);
         if !self.exists_lang(key, lang) {
             let msg = format!("missing {lang} localization key {key}");
-            error(token, ErrorKey::MissingLocalization, &msg);
+            // TODO: get confidence level from caller
+            warn(ErrorKey::MissingLocalization).msg(msg).loc(token).push();
         }
     }
 
