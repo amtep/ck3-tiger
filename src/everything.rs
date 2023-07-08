@@ -146,6 +146,7 @@ use crate::vic3::data::{
     events::Events,
     modifiers::Modifier,
     production_methods::ProductionMethod,
+    provinces::Provinces,
     religions::Religion,
     state_regions::StateRegion,
     technology::{Technology, TechnologyEra},
@@ -194,7 +195,6 @@ pub struct Everything {
     pub interaction_cats: InteractionCategories,
 
     /// Processed map data
-    #[cfg(feature = "ck3")]
     pub provinces: Provinces,
 
     /// Processed history/provinces data
@@ -282,7 +282,6 @@ impl Everything {
             on_actions: OnActions::default(),
             #[cfg(feature = "ck3")]
             interaction_cats: InteractionCategories::default(),
-            #[cfg(feature = "ck3")]
             provinces: Provinces::default(),
             #[cfg(feature = "ck3")]
             province_histories: ProvinceHistories::default(),
@@ -485,6 +484,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.effects));
 
             s.spawn(|_| self.fileset.handle(&mut self.events));
+            s.spawn(|_| self.fileset.handle(&mut self.provinces));
         });
 
         self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
@@ -502,7 +502,6 @@ impl Everything {
         scope(|s| {
             s.spawn(|_| self.fileset.handle(&mut self.on_actions));
             s.spawn(|_| self.fileset.handle(&mut self.interaction_cats));
-            s.spawn(|_| self.fileset.handle(&mut self.provinces));
             s.spawn(|_| self.fileset.handle(&mut self.province_histories));
             s.spawn(|_| self.fileset.handle(&mut self.gameconcepts));
             s.spawn(|_| self.fileset.handle(&mut self.titles));
@@ -671,13 +670,13 @@ impl Everything {
         s.spawn(|_| self.effects.validate(self));
 
         s.spawn(|_| self.events.validate(self));
+        s.spawn(|_| self.provinces.validate(self));
     }
 
     #[cfg(feature = "ck3")]
     fn validate_all_ck3<'a>(&'a self, s: &Scope<'a>) {
         s.spawn(|_| self.on_actions.validate(self));
         s.spawn(|_| self.interaction_cats.validate(self));
-        s.spawn(|_| self.provinces.validate(self));
         s.spawn(|_| self.province_histories.validate(self));
         s.spawn(|_| self.gameconcepts.validate(self));
         s.spawn(|_| self.titles.validate(self));
@@ -823,7 +822,6 @@ impl Everything {
             Item::Localization => self.localization.verify_exists_implied(key, token),
             #[cfg(feature = "ck3")]
             Item::Music => self.music.verify_exists_implied(key, token),
-            #[cfg(feature = "ck3")]
             Item::Province => self.provinces.verify_exists_implied(key, token),
             #[cfg(feature = "ck3")]
             Item::Sound => self.sounds.verify_exists_implied(key, token, self),
