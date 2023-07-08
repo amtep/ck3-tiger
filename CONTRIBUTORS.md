@@ -5,7 +5,7 @@ These are the people that made `ck3-tiger` what it is.
 * Richard Braakman
 
 ## Contributors
-* Jazarro (output format)
+* Jazarro (output format and filtering system)
 
 ## Bugfixes
 * Jazarro
