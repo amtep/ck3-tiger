@@ -80,12 +80,10 @@ fn main() -> Result<()> {
 
     if args.show_vanilla {
         eprintln!("Showing warnings for base game files too. There will be many false positives in those.");
-        set_show_vanilla(true);
     }
 
     if args.show_mods {
         eprintln!("Showing warnings for other loaded mods too.");
-        set_show_loaded_mods(true);
     }
 
     if args.unused {
@@ -116,6 +114,13 @@ fn main() -> Result<()> {
     // because we want it to override the config.
     if args.no_color {
         disable_ansi_colors();
+    }
+    // Same logic applies to showing vanilla and other mods
+    if args.show_vanilla {
+        set_show_vanilla(true);
+    }
+    if args.show_mods {
+        set_show_loaded_mods(true);
     }
     everything.load_all();
     everything.validate_all();

@@ -90,7 +90,7 @@ impl FileHandler<Block> for Events {
         PdxFile::read(entry, fullpath)
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, mut block: Block) {
+    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (k, _, bv) in block.drain() {
             if let Some(key) = k {
                 if key.is("namespace") {

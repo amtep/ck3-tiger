@@ -624,6 +624,7 @@ const COMMON_DIRS: &[&str] = &[
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
 const COMMON_DIRS: &[&str] = &[
+    "common/achievement_groups.txt",
     "common/achievements",
     "common/ai_strategies",
     "common/alert_groups",
