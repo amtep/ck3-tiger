@@ -1,3 +1,4 @@
+pub mod battle_conditions;
 pub mod buildings;
 pub mod countries;
 pub mod cultures;

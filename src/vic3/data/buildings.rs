@@ -83,3 +83,65 @@ impl DbKind for BuildingType {
         vd.field_value("lens"); // TODO
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct BuildingGroup {}
+
+impl BuildingGroup {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::BuildingGroup, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for BuildingGroup {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+
+        vd.field_item("parent_group", Item::BuildingGroup);
+        vd.field_item("texture", Item::File);
+
+        vd.field_bool("always_possible");
+        vd.field_bool("economy_of_scale");
+        vd.field_bool("is_subsistence");
+        vd.field_bool("auto_place_buildings");
+        vd.field_bool("capped_by_resources");
+        vd.field_bool("discoverable_resource");
+        vd.field_bool("depletable_resource");
+        vd.field_bool("can_use_slaves");
+        vd.field_bool("inheritable_construction");
+        vd.field_bool("stateregion_max_level");
+
+        // TODO: are category and land_usage really both valid?
+        vd.field_choice("category", &["urban", "rural", "development"]);
+        vd.field_choice("land_usage", &["urban", "rural"]);
+
+        // TODO: check if it's a building in this group
+        vd.field_item("default_building", Item::BuildingType);
+        vd.field_value("lens"); // TODO
+
+        vd.field_numeric("cash_reserves_max");
+        vd.field_numeric("urbanization");
+
+        vd.field_numeric("hiring_rate");
+        vd.field_numeric("proportionality_limit");
+        vd.field_bool("hires_unemployed_only");
+
+        vd.field_validated_block_rooted(
+            "should_auto_expand",
+            Scopes::Building,
+            |block, data, sc| {
+                validate_normal_trigger(block, data, sc, Tooltipped::No);
+            },
+        );
+
+        // undocumented fields
+
+        vd.field_numeric("economy_of_scale_ai_factor");
+        vd.field_numeric("infrastructure_usage_per_level");
+        vd.field_bool("fired_pops_become_radical");
+        vd.field_bool("is_military");
+        vd.field_bool("is_government_funded");
+    }
+}

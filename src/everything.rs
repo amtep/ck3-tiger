@@ -139,8 +139,14 @@ use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
 use crate::vic3::data::{
-    buildings::BuildingType, countries::Country, cultures::Culture, events::Events,
-    modifiers::Modifier, production_methods::ProductionMethod, religions::Religion,
+    battle_conditions::BattleCondition,
+    buildings::{BuildingGroup, BuildingType},
+    countries::Country,
+    cultures::Culture,
+    events::Events,
+    modifiers::Modifier,
+    production_methods::ProductionMethod,
+    religions::Religion,
 };
 
 #[derive(Debug, Error)]
@@ -632,6 +638,8 @@ impl Everything {
 
     #[cfg(feature = "vic3")]
     fn load_all_vic3(&mut self) {
+        self.load_pdx_items(Item::BattleCondition, BattleCondition::add);
+        self.load_pdx_items(Item::BuildingGroup, BuildingGroup::add);
         self.load_pdx_items(Item::BuildingType, BuildingType::add);
         self.load_pdx_items(Item::Country, Country::add);
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
@@ -772,6 +780,7 @@ impl Everything {
     #[cfg(feature = "vic3")]
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
+            Item::Attitude => ATTITUDE.contains(&key),
             Item::Define => self.defines.exists(key),
             Item::Dlc => DLC.contains(&key),
             Item::DlcFeature => DLC_FEATURES.contains(&key),
@@ -1024,3 +1033,20 @@ const DANGER_TYPES: &[&str] = &[
 
 /// LAST UPDATED VERSION 1.9.2
 const ARTIFACT_RARITY: &[&str] = &["common", "masterwork", "famed", "illustrious"];
+
+/// LAST UPDATED VIC3 VERSION 1.3.6
+const ATTITUDE: &[&str] = &[
+    "antagonistic",
+    "belligerent",
+    "cautious",
+    "conciliatory",
+    "cooperative",
+    "disinterested",
+    "domineering",
+    "genial",
+    "human",
+    "loyal",
+    "protective",
+    "rebellious",
+    "wary",
+];
