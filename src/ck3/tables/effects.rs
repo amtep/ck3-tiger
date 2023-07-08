@@ -1,3 +1,6 @@
+use fnv::FnvHashMap;
+use once_cell::sync::Lazy;
+
 use crate::ck3::effect_validation::{EvB, EvBv, EvV};
 use crate::everything::Everything;
 use crate::item::Item;
@@ -43,10 +46,8 @@ pub enum Effect {
 pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)> {
     let lwname = name.as_str().to_lowercase();
 
-    for (from, s, effect) in SCOPE_EFFECT {
-        if lwname == *s {
-            return Some((Scopes::from_bits_truncate(*from), *effect));
-        }
+    if let Some((from, effect)) = SCOPE_EFFECT_MAP.get(&lwname) {
+        return Some((*from, *effect));
     }
     if let Some(x) = lwname.strip_suffix("_perk_points") {
         if let Some(lifestyle) = x.strip_prefix("add_") {
@@ -70,6 +71,14 @@ pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)>
     }
     std::option::Option::None
 }
+
+static SCOPE_EFFECT_MAP: Lazy<FnvHashMap<String, (Scopes, Effect)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, effect) in SCOPE_EFFECT {
+        hash.insert(s.to_string(), (Scopes::from_bits_truncate(*from), *effect));
+    }
+    hash
+});
 
 /// LAST UPDATED VERSION 1.9.2
 /// See `effects.log` from the game data dumps

@@ -1,3 +1,6 @@
+use fnv::FnvHashMap;
+use once_cell::sync::Lazy;
+
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::*;
@@ -9,10 +12,9 @@ use RawTrigger::*;
 pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger)> {
     let name_lc = name.as_str().to_lowercase();
 
-    for (from, s, trigger) in TRIGGER {
-        if name_lc == *s {
-            return Some((Scopes::from_bits_truncate(*from), Trigger::from_raw(trigger)));
-        }
+    // TODO: binary search might be faster
+    if let Some((from, trigger)) = TRIGGER_MAP.get(&name_lc) {
+        return Some((*from, trigger.clone()));
     }
     if let Some(relation) = name_lc.strip_prefix("has_relation_") {
         data.verify_exists_implied(Item::Relation, relation, name);
@@ -52,6 +54,14 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
     }
     std::option::Option::None
 }
+
+static TRIGGER_MAP: Lazy<FnvHashMap<String, (Scopes, Trigger)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, trigger) in TRIGGER {
+        hash.insert(s.to_string(), (Scopes::from_bits_truncate(*from), Trigger::from_raw(trigger)));
+    }
+    hash
+});
 
 /// LAST UPDATED VERSION 1.9.2
 /// See `triggers.log` from the game data dumps
