@@ -564,7 +564,10 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (War, "num_country_wounded", Block(&[("target", Scope(Country)), ("value", CompareValue)])),
     (War, "num_dead", CompareValue),
     (Country, "num_declared_interests", CompareValue),
+    (Front, "num_defending_battalions(", CompareValue),
+    (Front, "num_enemy_units(", CompareValue),
     (Country, "num_taxed_goods", CompareValue),
+    (Front, "num_total_battalions(", CompareValue),
     (War, "num_wounded", CompareValue),
     (Country, "number_of_possible_decisions", CompareValue),
     (Building, "occupancy", CompareValue),
@@ -614,6 +617,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "pop_type_percent_state",
         Block(&[("target", Scope(Religion)), ("value", CompareValue)]),
     ),
+    (Country, "relations(", CompareValue),
     (
         StateRegion,
         "remaining_undepleted",

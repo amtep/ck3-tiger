@@ -12,7 +12,7 @@ use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::helpers::{stringify_choices, stringify_list};
 use crate::item::Item;
-use crate::report::{advice_info, error, old_warn, warn2, warn_info, ErrorKey};
+use crate::report::{advice_info, err, error, old_warn, warn2, warn_info, ErrorKey};
 use crate::scopes::{
     scope_iterator, scope_prefix, scope_to_scope, validate_prefix_reference, Scopes,
 };
@@ -244,20 +244,31 @@ pub fn validate_trigger_key_bv(
     }
 
     let mut new_key = key;
-    #[cfg(feature = "ck3")]
     let mut store;
-    #[cfg(feature = "ck3")]
     if let Some((before, after)) = key.split_after('(') {
         if let Some((arg, after)) = after.split_once(')') {
             let arg = arg.trim();
             for part in before.split('.') {
                 if part.as_str().ends_with('(') {
+                    #[cfg(feature = "ck3")]
                     if part.is("vassal_contract_obligation_level_score(") {
                         validate_target(&arg, data, sc, Scopes::VassalContract);
                     } else if part.is("squared_distance(") {
                         validate_target(&arg, data, sc, Scopes::Province);
                     } else {
-                        old_warn(&arg, ErrorKey::Validation, "unexpected argument");
+                        let msg = "unexpected argument";
+                        err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
+                    }
+                    #[cfg(feature = "vic3")]
+                    if part.is("num_total_battalions(")
+                        || part.is("num_defending_battalions(")
+                        || part.is("num_enemy_units(")
+                        || part.is("relations(")
+                    {
+                        validate_target(&arg, data, sc, Scopes::Country);
+                    } else {
+                        let msg = "unexpected argument";
+                        err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
                     }
                 }
             }
@@ -780,19 +791,28 @@ pub fn validate_target_ok_this(
         let first = i == 0;
         let last = i + 1 == part_vec.len();
         let mut part = &part_vec[i];
-        #[cfg(feature = "ck3")]
         let store_part;
 
-        #[cfg(feature = "ck3")]
         if let Some((new_part, arg)) = part.split_after('(') {
             if let Some((arg, _)) = arg.split_once(')') {
                 let arg = arg.trim();
+                #[cfg(feature = "ck3")]
                 if new_part.is("vassal_contract_obligation_level_score(") {
                     validate_target(&arg, data, sc, Scopes::VassalContract);
                 } else if new_part.is("squared_distance(") {
                     validate_target(&arg, data, sc, Scopes::Province);
                 } else {
-                    old_warn(arg, ErrorKey::Validation, "unexpected argument");
+                    err(ErrorKey::Validation).weak().msg("unexpected argument").loc(arg).push();
+                }
+                #[cfg(feature = "vic3")]
+                if new_part.is("num_total_battalions(")
+                    || new_part.is("num_defending_battalions(")
+                    || new_part.is("num_enemy_units(")
+                    || part.is("relations(")
+                {
+                    validate_target(&arg, data, sc, Scopes::Country);
+                } else {
+                    err(ErrorKey::Validation).weak().msg("unexpected argument").loc(arg).push();
                 }
                 store_part = new_part;
                 part = &store_part;
