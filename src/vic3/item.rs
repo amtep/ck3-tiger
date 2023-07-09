@@ -51,6 +51,7 @@ pub enum Item {
     Terrain,
     TerrainManipulator,
     TerrainMask,
+    TransferOfPower,
     TriggerLocalization,
 }
 
@@ -106,6 +107,7 @@ impl Item {
             Item::Terrain => "common/terrain/",
             Item::TerrainManipulator => "common/terrain_manipulators/",
             Item::TerrainMask => "gfx/map/masks/",
+            Item::TransferOfPower => "common/government_types/",
             Item::TriggerLocalization => "common/trigger_localization/",
         }
     }

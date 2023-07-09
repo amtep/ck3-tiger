@@ -180,7 +180,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Country, "gold_reserves", CompareValue),
     (Country, "gold_reserves_limit", CompareValue),
     (Country, "government_legitimacy", CompareValue),
-    (Country, "government_transfer_of_power", CompareValue),
+    (Country, "government_transfer_of_power", Item(Item::TransferOfPower)),
     (Country, "government_wage_level", CompareLevel),
     (Country, "government_wage_level_value", CompareValue),
     (Market | State, "has_active_building", Item(Item::BuildingType)),
