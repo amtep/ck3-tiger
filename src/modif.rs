@@ -41,7 +41,7 @@ pub fn validate_modifs<'a>(
             }
         } else {
             let msg = format!("unknown modifier `{key}`");
-            err(ErrorKey::UnknownField).strong().msg(msg).loc(key).push();
+            err(ErrorKey::UnknownField).msg(msg).loc(key).push();
         }
     }
 }
@@ -51,6 +51,6 @@ pub fn verify_modif_exists(key: &Token, data: &Everything, kinds: ModifKinds) {
         kinds.require(mk, key);
     } else {
         let msg = format!("unknown modifier `{key}`");
-        err(ErrorKey::UnknownField).strong().msg(msg).loc(key).push();
+        err(ErrorKey::UnknownField).msg(msg).loc(key).push();
     }
 }
