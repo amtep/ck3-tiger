@@ -15,7 +15,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 #[cfg(feature = "ck3")]
 use crate::trigger::validate_target;
-use crate::trigger::{validate_normal_trigger, validate_target_ok_this, validate_trigger_internal};
+use crate::trigger::{validate_target_ok_this, validate_trigger, validate_trigger_internal};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ListType {
@@ -65,7 +65,7 @@ pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeConte
             let mut vd = Validator::new(block, data);
 
             vd.field_validated_block("trigger", |b, data| {
-                validate_normal_trigger(b, data, sc, Tooltipped::No);
+                validate_trigger(b, data, sc, Tooltipped::No);
             });
             if vd.field_value("event_background").is_some() {
                 let msg = "`event_background` now causes a crash. It has been replaced by `reference` since 1.9";
@@ -85,7 +85,7 @@ pub fn validate_theme_icon(block: &Block, data: &Everything, sc: &mut ScopeConte
     let mut vd = Validator::new(block, data);
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, Tooltipped::No);
+        validate_trigger(b, data, sc, Tooltipped::No);
     });
     vd.field_item("reference", Item::File);
 }
@@ -95,7 +95,7 @@ pub fn validate_theme_sound(block: &Block, data: &Everything, sc: &mut ScopeCont
     let mut vd = Validator::new(block, data);
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, Tooltipped::No);
+        validate_trigger(b, data, sc, Tooltipped::No);
     });
     vd.field_item("reference", Item::Sound);
 }
@@ -105,7 +105,7 @@ pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut Scop
     let mut vd = Validator::new(block, data);
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, Tooltipped::No);
+        validate_trigger(b, data, sc, Tooltipped::No);
     });
     if let Some(token) = vd.field_value("reference") {
         data.verify_exists(Item::EventTransition, token);
@@ -370,7 +370,7 @@ pub fn validate_iterator_fields(
     // undocumented
     if list_type != ListType::None && list_type != ListType::Any {
         vd.field_validated_blocks("alternative_limit", |b, data| {
-            validate_normal_trigger(b, data, sc, *tooltipped);
+            validate_trigger(b, data, sc, *tooltipped);
         });
     } else {
         vd.ban_field("alternative_limit", || "`every_`, `ordered_`, and `random_` lists");
@@ -442,10 +442,10 @@ pub fn validate_inside_iterator(
     #[cfg(feature = "ck3")]
     if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
         vd.field_validated_block("filter", |block, data| {
-            validate_normal_trigger(block, data, sc, tooltipped);
+            validate_trigger(block, data, sc, tooltipped);
         });
         vd.field_validated_block("continue", |block, data| {
-            validate_normal_trigger(block, data, sc, tooltipped);
+            validate_trigger(block, data, sc, tooltipped);
         });
     } else {
         let only_for =
@@ -626,7 +626,7 @@ pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_script_value("offset", sc); // What does this do?
     vd.field_validated_sc("desc", sc, validate_desc);
     vd.field_validated_block("trigger", |block, data| {
-        validate_normal_trigger(block, data, sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
 }
 
@@ -645,7 +645,7 @@ pub fn validate_opinion_modifier(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_script_value("max", sc);
     vd.field_script_value("step", sc); // What does this do?
     vd.field_validated_block("trigger", |block, data| {
-        validate_normal_trigger(block, data, sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
 }
 
@@ -674,7 +674,7 @@ pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut Sco
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
     vd.field_validated_block("trigger", |block, data| {
-        validate_normal_trigger(block, data, sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
 }
 
@@ -691,7 +691,7 @@ pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mu
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
     vd.field_validated_block("trigger", |block, data| {
-        validate_normal_trigger(block, data, sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
 }
 
@@ -879,7 +879,7 @@ pub fn validate_random_traits_list(block: &Block, data: &Everything, sc: &mut Sc
         let mut vd = Validator::new(block, data);
         vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
         vd.field_validated_block("trigger", |block, data| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
     }
 }
@@ -892,7 +892,7 @@ pub fn validate_random_culture(block: &Block, data: &Everything, sc: &mut ScopeC
         let mut vd = Validator::new(block, data);
         vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
         vd.field_validated_block("trigger", |block, data| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
     }
 }
@@ -905,7 +905,7 @@ pub fn validate_random_faith(block: &Block, data: &Everything, sc: &mut ScopeCon
         let mut vd = Validator::new(block, data);
         vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
         vd.field_validated_block("trigger", |block, data| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
     }
 }

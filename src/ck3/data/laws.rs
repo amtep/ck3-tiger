@@ -2,7 +2,7 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
@@ -10,7 +10,7 @@ use crate::report::{error, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_cost;
 
 #[derive(Clone, Debug)]
@@ -71,19 +71,19 @@ impl DbKind for Law {
         data.item_used(Item::Localization, &loca);
 
         vd.field_validated_block_rooted("can_keep", Scopes::Character, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
         vd.field_validated_block_rooted("can_have", Scopes::Character, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
         vd.field_validated_block_rooted("can_pass", Scopes::Character, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+            validate_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_validated_block_rooted(
             "should_start_with",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+                validate_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
 
@@ -91,21 +91,21 @@ impl DbKind for Law {
             "can_title_have",
             Scopes::LandedTitle,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+                validate_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
         vd.field_validated_block_rooted(
             "should_show_for_title",
             Scopes::LandedTitle,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_validated_block_rooted(
             "can_remove_from_title",
             Scopes::LandedTitle,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+                validate_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
 
@@ -123,7 +123,7 @@ impl DbKind for Law {
             vd.req_field("trigger");
             vd.req_field("flag");
             vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             });
             vd.field_value("flag");
         });
@@ -135,7 +135,7 @@ impl DbKind for Law {
             if title_law {
                 sc.define_name("title", Scopes::LandedTitle, key);
             }
-            validate_normal_effect(block, data, &mut sc, Tooltipped::Yes);
+            validate_effect(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_key_block("on_revoke", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
@@ -143,7 +143,7 @@ impl DbKind for Law {
                 sc.define_name("title", Scopes::LandedTitle, key);
             }
             sc.define_name("title", Scopes::LandedTitle, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::Yes);
+            validate_effect(block, data, &mut sc, Tooltipped::Yes);
         });
 
         vd.field_validated_block("succession", |block, data| {

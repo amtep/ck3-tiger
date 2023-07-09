@@ -16,7 +16,7 @@ use crate::scopes::{scope_iterator, Scopes};
 use crate::scriptvalue::validate_scriptvalue;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{
-    validate_normal_trigger, validate_target, validate_target_ok_this, validate_trigger_key_bv,
+    validate_target, validate_target_ok_this, validate_trigger, validate_trigger_key_bv,
 };
 use crate::validate::{
     precheck_iterator_fields, validate_days_weeks_months_years, validate_ifelse_sequence,
@@ -30,7 +30,7 @@ use crate::vic3::effect_validation::{
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::effects::{scope_effect, Effect};
 
-pub fn validate_normal_effect(
+pub fn validate_effect(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
@@ -61,7 +61,7 @@ pub fn validate_effect_internal<'a>(
                 let info = "normally you would use `else_if` instead.";
                 advice_info(key, ErrorKey::IfElse, msg, info);
             }
-            validate_normal_trigger(block, data, sc, tooltipped);
+            validate_trigger(block, data, sc, tooltipped);
         });
     } else {
         vd.ban_field("limit", || "if/else_if or lists");
@@ -367,7 +367,7 @@ pub fn validate_effect_internal<'a>(
                 error(key, ErrorKey::Scopes, msg);
             }
             if let Some(block) = bv.expect_block() {
-                validate_normal_effect(block, data, sc, tooltipped);
+                validate_effect(block, data, sc, tooltipped);
             }
         }
         sc.close();
@@ -472,7 +472,7 @@ pub fn validate_effect_control(
 
     if caller == "random_list" || caller == "duel" {
         vd.field_validated_block("trigger", |block, data| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
         vd.field_bool("show_chance");
         vd.field_validated_sc("desc", sc, validate_desc);
@@ -595,7 +595,7 @@ pub fn validate_switch(
                 );
             }
 
-            validate_normal_effect(block, data, sc, tooltipped);
+            validate_effect(block, data, sc, tooltipped);
         }
     }
 }

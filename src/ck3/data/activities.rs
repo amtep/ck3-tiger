@@ -4,14 +4,14 @@ use crate::ck3::data::scripted_animations::validate_scripted_animation;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::{validate_cost_with_renown, validate_duration, validate_modifiers_with_base};
 
 #[derive(Clone, Debug)]
@@ -153,13 +153,13 @@ impl DbKind for ActivityType {
         let mut sc = ScopeContext::new(Scopes::Character, key);
 
         vd.field_validated_block("is_shown", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("can_start", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block("can_start_showing_failures_only", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
+            validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
         });
 
         vd.field_script_value("num_pickable_phases", &mut sc);
@@ -180,15 +180,15 @@ impl DbKind for ActivityType {
 
         vd.field_validated_key_block("is_valid", |key, block, data| {
             let mut sc = ac_host_activity_sc(key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_invalidated", |key, block, data| {
             let mut sc = ac_host_activity_sc(key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_host_death", |key, block, data| {
             let mut sc = ac_host_activity_sc(key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         let filters = &["capital", "domain", "realm", "top_realm", "holy_sites", "all"];
@@ -203,7 +203,7 @@ impl DbKind for ActivityType {
             sc.define_name("special_option", Scopes::Flag, key);
         }
         vd.field_validated_block("is_location_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         sc.define_name("score", Scopes::Value, key);
@@ -271,7 +271,7 @@ impl DbKind for ActivityType {
             sc.define_name("special_option", Scopes::Flag, key);
         }
         vd.field_validated_block("can_be_activity_guest", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_list("guest_subsets");
@@ -296,7 +296,7 @@ impl DbKind for ActivityType {
                 let mut vd = Validator::new(block, data);
                 vd.field_validated_key_block("is_available", |key, block, data| {
                     let mut sc = ac_host_activity_sc(key);
-                    validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                    validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
                 vd.field_list_items("locales", Item::ActivityLocale);
             }
@@ -319,13 +319,13 @@ impl DbKind for ActivityType {
         ] {
             vd.field_validated_key_block(field, |key, block, data| {
                 let mut sc = ch_host_activity_sc(key);
-                validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+                validate_effect(block, data, &mut sc, Tooltipped::No);
             });
         }
         vd.field_validated_key_block("on_start", |key, block, data| {
             let mut sc = ch_host_activity_sc(key);
             sc.change_root(Scopes::Activity, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         sc.change_root(Scopes::None, key);
@@ -378,7 +378,7 @@ impl DbKind for ActivityType {
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.field_validated_block("trigger", |block, data| {
-                    validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                    validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
                 vd.field_item("reference", Item::Entity);
             }
@@ -386,7 +386,7 @@ impl DbKind for ActivityType {
         vd.field_validated_blocks("background", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
             vd.field_item("texture", Item::File);
             vd.field_item("environment", Item::Environment);
@@ -396,7 +396,7 @@ impl DbKind for ActivityType {
         vd.field_validated_blocks("locale_background", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
             vd.field_item("texture", Item::File);
             vd.field_item("environment", Item::Environment);
@@ -457,7 +457,7 @@ fn validate_window_characters(key: &Token, block: &Block, data: &Everything) {
     sc.define_name("player", Scopes::Character, key);
     sc.define_list("characters", Scopes::Character, key);
     vd.field_validated_block("effect", |block, data| {
-        validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
     });
 
     let mut sc = ScopeContext::new(Scopes::Activity, key);
@@ -486,7 +486,7 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, has_special_opt
             sc.define_name("special_option", Scopes::Flag, key);
         }
         vd.field_validated_block("select_scripted_location", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
     } else {
         vd.ban_field("select_scripted_location", || "location_source = scripted");
@@ -504,39 +504,39 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, has_special_opt
         sc.define_name("special_option", Scopes::Flag, key);
     }
     vd.field_validated_block("is_shown", |block, data| {
-        validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        validate_trigger(block, data, &mut sc, Tooltipped::No);
     });
     vd.field_validated_block("can_pick", |block, data| {
-        validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+        validate_trigger(block, data, &mut sc, Tooltipped::Yes);
     });
     let mut sc = ScopeContext::new(Scopes::Character, key);
     sc.define_name("province", Scopes::Province, key);
     sc.define_name("host", Scopes::Character, key);
     vd.field_validated_block("is_valid", |block, data| {
-        validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        validate_trigger(block, data, &mut sc, Tooltipped::No);
     });
 
     let mut sc = ScopeContext::new(Scopes::Character, key);
     sc.define_name("activity", Scopes::Activity, key);
     sc.define_name("host", Scopes::Character, key);
     vd.field_validated_block("on_enter_phase", |block, data| {
-        validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
     });
     vd.field_validated_block("on_phase_active", |block, data| {
-        validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
     });
     vd.field_validated_block("on_end", |block, data| {
-        validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
     });
     vd.field_validated_block("on_monthly_pulse", |block, data| {
-        validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
     });
     vd.field_validated_block("on_weekly_pulse", |block, data| {
-        validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
     });
     sc.define_name("province", Scopes::Province, key);
     vd.field_validated_block("on_invalidated", |block, data| {
-        validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
     });
 
     let mut sc = ScopeContext::new(Scopes::Character, key);
@@ -568,21 +568,21 @@ fn validate_special_guest(
         sc.define_name("special_option", Scopes::Flag, key);
     }
     vd.field_validated_block("is_shown", |block, data| {
-        validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        validate_trigger(block, data, &mut sc, Tooltipped::No);
     });
     vd.field_bool("is_required");
 
     vd.field_validated_block("select_character", |block, data| {
         // TODO: "interface effects"
-        validate_normal_effect(block, data, special_guests_sc, Tooltipped::No);
+        validate_effect(block, data, special_guests_sc, Tooltipped::No);
     });
 
     special_guests_sc.define_name("host", Scopes::Character, key);
     vd.field_validated_block("can_pick", |block, data| {
-        validate_normal_trigger(block, data, special_guests_sc, Tooltipped::No);
+        validate_trigger(block, data, special_guests_sc, Tooltipped::No);
     });
     vd.field_validated_block("on_invite", |block, data| {
-        validate_normal_effect(block, data, special_guests_sc, Tooltipped::No);
+        validate_effect(block, data, special_guests_sc, Tooltipped::No);
     });
 
     let mut sc = ScopeContext::new(Scopes::Character, key);
@@ -610,11 +610,11 @@ impl DbKind for ActivityLocale {
         sc.define_name("host", Scopes::Character, key);
         sc.define_name("activity", Scopes::Activity, key);
         vd.field_validated_block("is_available", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_script_value("chance", &mut sc);
         vd.field_validated_block("on_enter_locale", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
         vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
@@ -632,7 +632,7 @@ fn validate_visuals(key: &Token, bv: &BV, data: &Everything) {
             sc.define_name("activity", Scopes::Activity, key);
             sc.define_name("host", Scopes::Character, key);
             vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
             vd.field_value("reference"); // TODO
         }
@@ -656,7 +656,7 @@ impl DbKind for GuestInviteRule {
         let mut sc = ScopeContext::new(Scopes::Character, key);
         sc.define_list("characters", Scopes::Character, key);
         vd.field_validated_block("effect", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
     }
 }
@@ -685,11 +685,11 @@ impl DbKind for PulseAction {
         sc.define_name("host", Scopes::Character, key);
         sc.define_name("province", Scopes::Province, key);
         vd.field_validated_block("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_script_value("weight", &mut sc);
         vd.field_validated_block("effect", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
     }
 }
@@ -717,25 +717,25 @@ impl DbKind for ActivityIntent {
         sc.define_name("magnificence", Scopes::Value, key);
         sc.define_name("special_option", Scopes::Flag, key);
         vd.field_validated_block("is_shown", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         let mut sc = ScopeContext::new(Scopes::Character, key);
         sc.define_name("target", Scopes::Character, key);
         sc.define_name("special_option", Scopes::Flag, key);
         vd.field_validated_block("is_target_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         let mut sc = ScopeContext::new(Scopes::Character, key);
         vd.field_validated_block("on_invalidated", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         sc.define_name("target", Scopes::Character, key);
         vd.field_validated_block("on_target_invalidated", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         let mut sc = ScopeContext::new(Scopes::Character, key);
@@ -777,10 +777,10 @@ fn validate_option(
         sc.define_name("special_option", Scopes::Flag, key);
     }
     vd.field_validated_block("is_shown", |block, data| {
-        validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        validate_trigger(block, data, &mut sc, Tooltipped::No);
     });
     vd.field_validated_block("is_valid", |block, data| {
-        validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+        validate_trigger(block, data, &mut sc, Tooltipped::Yes);
     });
     vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
 
@@ -788,7 +788,7 @@ fn validate_option(
     sc.define_name("activity", Scopes::Activity, key);
     sc.define_name("host", Scopes::Character, key);
     vd.field_validated_block("on_start", |block, data| {
-        validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
     });
 
     vd.field_validated("default", |bv, data| {
@@ -802,7 +802,7 @@ fn validate_option(
             BV::Block(block) => {
                 // TODO: what is the scope context?
                 let mut sc = ScopeContext::new(Scopes::Character, key);
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
             }
         }
     });

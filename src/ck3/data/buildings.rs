@@ -3,14 +3,14 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 
 #[derive(Clone, Debug)]
@@ -85,7 +85,7 @@ impl DbKind for Building {
             sc.define_name("holder", Scopes::Character, key);
             sc.define_name("county", Scopes::LandedTitle, key);
             let tooltipped = if graphical_only { Tooltipped::No } else { Tooltipped::FailuresOnly };
-            validate_normal_trigger(block, data, sc, tooltipped);
+            validate_trigger(block, data, sc, tooltipped);
         });
         vd.field_validated_key_block("can_construct_potential", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Province, key);
@@ -95,7 +95,7 @@ impl DbKind for Building {
             let tooltipped =
                 block.get_field_bool("show_disabled").unwrap_or(false) || self.is_upgrade;
             let tooltipped = if tooltipped { Tooltipped::FailuresOnly } else { Tooltipped::No };
-            validate_normal_trigger(block, data, &mut sc, tooltipped);
+            validate_trigger(block, data, &mut sc, tooltipped);
         });
         vd.field_validated_block_rooted(
             "can_construct_showing_failures_only",
@@ -103,13 +103,13 @@ impl DbKind for Building {
             |block, data, sc| {
                 sc.define_name("holder", Scopes::Character, key);
                 sc.define_name("county", Scopes::LandedTitle, key);
-                validate_normal_trigger(block, data, sc, Tooltipped::FailuresOnly);
+                validate_trigger(block, data, sc, Tooltipped::FailuresOnly);
             },
         );
         vd.field_validated_block_rooted("can_construct", Scopes::Province, |block, data, sc| {
             sc.define_name("holder", Scopes::Character, key);
             sc.define_name("county", Scopes::LandedTitle, key);
-            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+            validate_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_bool("show_disabled");
 
@@ -216,7 +216,7 @@ impl DbKind for Building {
         vd.field_values("flag");
 
         vd.field_validated_block_rooted("on_complete", Scopes::Province, |block, data, sc| {
-            validate_normal_effect(block, data, sc, Tooltipped::No);
+            validate_effect(block, data, sc, Tooltipped::No);
         });
 
         vd.field_validated_key("ai_value", |key, bv, data| match bv {

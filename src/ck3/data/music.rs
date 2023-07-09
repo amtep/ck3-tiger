@@ -14,7 +14,7 @@ use crate::report::{warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_optional_duration_int;
 
 #[derive(Clone, Debug, Default)]
@@ -104,7 +104,7 @@ impl Music {
 
         vd.field_bool("trigger_prio_override");
         vd.field_validated_block("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_list_numeric_exactly("subsequent_playback_chance", 3);

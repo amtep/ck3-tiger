@@ -2,14 +2,14 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 
 #[derive(Clone, Debug)]
@@ -43,24 +43,24 @@ impl DbKind for InterestGroup {
 
         vd.field_validated_key_block("enable", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::None, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_enable", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_disable", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::None, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_character_ig_membership", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::None, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_key_block("pop_potential", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Pop, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_script_value_rooted("pop_weight", Scopes::Pop);
         vd.field_script_value_rooted("monarch_weight", Scopes::InterestGroup);

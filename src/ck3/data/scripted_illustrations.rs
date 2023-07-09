@@ -7,7 +7,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct ScriptedIllustration {}
@@ -30,7 +30,7 @@ impl DbKind for ScriptedIllustration {
                 let mut vd = Validator::new(block, data);
                 vd.field_validated_value("reference", validate_texture);
                 vd.field_validated_block("trigger", |block, data| {
-                    validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                    validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
             }
         });
@@ -40,7 +40,7 @@ impl DbKind for ScriptedIllustration {
                 data.verify_exists(Item::Environment, token);
             }
             vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
         });
     }

@@ -7,7 +7,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct Lifestyle {}
@@ -34,13 +34,13 @@ impl DbKind for Lifestyle {
         let mut sc = ScopeContext::new(Scopes::Character, key);
 
         vd.field_validated_block("is_highlighted", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block("is_valid_showing_failures_only", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
+            validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
         });
 
         let icon = vd.field_value("icon").unwrap_or(key);

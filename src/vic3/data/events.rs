@@ -7,7 +7,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
-use crate::effect::{validate_effect_internal, validate_normal_effect};
+use crate::effect::{validate_effect, validate_effect_internal};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -17,7 +17,7 @@ use crate::report::{error, error_info, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::{validate_ai_chance, validate_duration, ListType};
 
 #[derive(Clone, Debug, Default)]
@@ -187,13 +187,13 @@ impl Event {
         vd.field_integer("duration");
 
         vd.field_validated_block("trigger", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("cancellation_trigger", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("immediate", |block, data| {
-            validate_normal_effect(block, data, &mut sc, tooltipped_immediate);
+            validate_effect(block, data, &mut sc, tooltipped_immediate);
         });
 
         vd.field_validated_sc("title", &mut sc, validate_desc);
@@ -238,14 +238,14 @@ fn validate_event_option(
             let mut vd = Validator::new(b, data);
             vd.req_field("text");
             vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             });
             vd.field_validated_sc("text", sc, validate_desc);
         }
     });
 
     vd.field_validated_block("trigger", |b, data| {
-        validate_normal_trigger(b, data, sc, Tooltipped::No);
+        validate_trigger(b, data, sc, Tooltipped::No);
     });
 
     vd.field_bool("default_option");

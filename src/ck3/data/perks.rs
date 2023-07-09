@@ -3,14 +3,14 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct Perk {}
@@ -58,17 +58,17 @@ impl DbKind for Perk {
         }
 
         vd.field_validated_block_rooted("can_be_picked", Scopes::Character, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+            validate_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_validated_block_rooted(
             "can_be_auto_selected",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_validated_block_rooted("effect", Scopes::Character, |block, data, sc| {
-            validate_normal_effect(block, data, sc, Tooltipped::Yes);
+            validate_effect(block, data, sc, Tooltipped::Yes);
         });
 
         vd.field_validated_blocks("character_modifier", |block, data| {

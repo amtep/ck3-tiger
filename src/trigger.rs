@@ -25,7 +25,7 @@ use crate::validate::{
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::triggers::scope_trigger;
 
-pub fn validate_normal_trigger(
+pub fn validate_trigger(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
@@ -81,7 +81,7 @@ pub fn validate_trigger_internal(
                 let info = "normally you would use `trigger_else_if` instead.";
                 advice_info(key, ErrorKey::IfElse, msg, info);
             }
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
     } else {
         vd.ban_field("limit", || "`trigger_if`, `trigger_else_if` or `trigger_else`");
@@ -123,7 +123,7 @@ pub fn validate_trigger_internal(
     if caller == "modifier" {
         // add, factor and desc are handled in the loop
         vd.field_validated_block("trigger", |block, data| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
     } else {
         vd.ban_field("add", || "`modifier` or script values");
@@ -724,7 +724,7 @@ fn match_trigger_bv(
                         }
                     }
                     for (_, block) in vd.integer_blocks() {
-                        validate_normal_trigger(block, data, sc, tooltipped);
+                        validate_trigger(block, data, sc, tooltipped);
                     }
                 }
             } else if name.is("switch") {
@@ -746,7 +746,7 @@ fn match_trigger_bv(
                                     negated,
                                 );
                             }
-                            validate_normal_trigger(block, data, sc, tooltipped);
+                            validate_trigger(block, data, sc, tooltipped);
                         }
                     }
                 }

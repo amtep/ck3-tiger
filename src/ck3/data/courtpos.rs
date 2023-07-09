@@ -2,7 +2,7 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
@@ -10,7 +10,7 @@ use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_cost;
 
 #[derive(Clone, Debug)]
@@ -60,17 +60,17 @@ impl DbKind for CourtPosition {
         vd.field_validated_block("aptitude_level_breakpoints", validate_breakpoints);
         vd.field_script_value_rooted("aptitude", Scopes::Character);
         vd.field_validated_block_rooted("is_shown", Scopes::Character, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
 
         vd.field_validated_block_rooted("valid_position", Scopes::Character, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+            validate_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_validated_block("is_shown_character", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("valid_character", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         // guessing that root is the liege here
@@ -105,7 +105,7 @@ impl DbKind for CourtPosition {
             "search_for_courtier",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_effect(block, data, sc, Tooltipped::No);
+                validate_effect(block, data, sc, Tooltipped::No);
             },
         );
 
@@ -115,7 +115,7 @@ impl DbKind for CourtPosition {
             "on_court_position_invalidated",
         ] {
             vd.field_validated_block(field, |block, data| {
-                validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+                validate_effect(block, data, &mut sc, Tooltipped::No);
             });
         }
 

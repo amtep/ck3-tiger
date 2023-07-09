@@ -7,7 +7,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct ScriptedAnimation {}
@@ -33,7 +33,7 @@ pub fn validate_scripted_animation(bv: &BV, data: &Everything, sc: &mut ScopeCon
             vd.field_validated_blocks("triggered_animation", |block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.field_validated_block("trigger", |block, data| {
-                    validate_normal_trigger(block, data, sc, Tooltipped::No);
+                    validate_trigger(block, data, sc, Tooltipped::No);
                 });
                 vd.field_validated("animation", validate_animation);
             });

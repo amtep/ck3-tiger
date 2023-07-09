@@ -3,13 +3,13 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_modifiers_with_base};
 
 #[derive(Clone, Debug)]
@@ -66,10 +66,10 @@ impl DbKind for Scheme {
         data.verify_exists_implied(Item::File, &pathname, icon);
 
         vd.field_validated_block("allow", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block("valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_integer("agent_join_threshold");
@@ -78,7 +78,7 @@ impl DbKind for Scheme {
         vd.field_bool("uses_resistance");
 
         vd.field_validated_block("valid_agent", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_key_block("agent_join_chance", |key, block, data| {
@@ -105,42 +105,42 @@ impl DbKind for Scheme {
 
         vd.field_bool("is_secret");
         vd.field_validated_block("use_secrecy", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_integer("base_secrecy");
 
         vd.field_validated_key_block("on_start", |key, block, data| {
             let mut sc = sc.clone();
             sc.change_root(Scopes::Scheme, key.clone());
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.req_field("on_ready");
         vd.field_validated_key_block("on_ready", |key, block, data| {
             let mut sc = sc.clone();
             sc.change_root(Scopes::Scheme, key.clone());
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_monthly", |key, block, data| {
             let mut sc = sc.clone();
             sc.change_root(Scopes::Scheme, key.clone());
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_invalidated", |key, block, data| {
             let mut sc = sc.clone();
             sc.change_root(Scopes::Scheme, key.clone());
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_block("on_agent_join", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("on_agent_leave", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_agent_exposed", |key, block, data| {
             let mut sc = sc.clone();
             sc.define_name("agent", Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_bool("freeze_scheme_when_traveling");

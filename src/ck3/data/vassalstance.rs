@@ -7,7 +7,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct VassalStance {}
@@ -44,7 +44,7 @@ impl DbKind for VassalStance {
         data.verify_exists_implied(Item::ModifierFormat, &modif, key);
 
         vd.field_validated_blocks("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_script_value("score", &mut sc);

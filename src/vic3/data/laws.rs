@@ -2,7 +2,7 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
@@ -10,7 +10,7 @@ use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct LawType {}
@@ -40,30 +40,30 @@ impl DbKind for LawType {
         });
 
         vd.field_validated_block_rooted("is_visible", Scopes::Country, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+            validate_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_validated_block_rooted("can_enact", Scopes::Country, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+            validate_trigger(block, data, sc, Tooltipped::Yes);
         });
         vd.field_validated_block_rooted("on_enact", Scopes::Country, |block, data, sc| {
-            validate_normal_effect(block, data, sc, Tooltipped::Yes);
+            validate_effect(block, data, sc, Tooltipped::Yes);
         });
         // TODO: what is the difference between on_enact and on_activate? Are they both valid?
         vd.field_validated_block_rooted("on_activate", Scopes::Country, |block, data, sc| {
-            validate_normal_effect(block, data, sc, Tooltipped::Yes);
+            validate_effect(block, data, sc, Tooltipped::Yes);
         });
         vd.field_validated_block_rooted("on_deactivate", Scopes::Country, |block, data, sc| {
-            validate_normal_effect(block, data, sc, Tooltipped::Yes);
+            validate_effect(block, data, sc, Tooltipped::Yes);
         });
         vd.field_validated_key_block("religious_acceptance_rule", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Religion, key);
             sc.define_name("country", Scopes::Country, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("cultural_acceptance_rule", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("country", Scopes::Country, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_list_items("possible_political_movements", Item::LawType);
@@ -107,7 +107,7 @@ impl DbKind for LawType {
 
         vd.field_validated_key_block("ai_will_do", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key("ai_enact_weight_modifier", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
@@ -145,7 +145,7 @@ impl DbKind for LawGroup {
             "change_allowed_trigger",
             Scopes::Country,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::Yes);
+                validate_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
     }

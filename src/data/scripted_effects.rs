@@ -4,7 +4,7 @@ use fnv::FnvHashMap;
 
 use crate::block::Block;
 use crate::context::ScopeContext;
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, exact_dup_error};
@@ -130,7 +130,7 @@ impl Effect {
                 our_sc.set_no_warn(true);
             }
             self.cache.insert(key, &[], tooltipped, false, our_sc.clone());
-            validate_normal_effect(&self.block, data, &mut our_sc, tooltipped);
+            validate_effect(&self.block, data, &mut our_sc, tooltipped);
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key);
                 our_sc.set_strict_scopes(false);
@@ -176,7 +176,7 @@ impl Effect {
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
                 self.cache.insert(key, &args, tooltipped, false, our_sc.clone());
-                validate_normal_effect(&block, data, &mut our_sc, tooltipped);
+                validate_effect(&block, data, &mut our_sc, tooltipped);
                 if let Some(scopes) = self.scope_override {
                     our_sc = ScopeContext::new_unrooted(scopes, key);
                     our_sc.set_strict_scopes(false);

@@ -13,7 +13,7 @@ use crate::report::{error, ErrorKey};
 use crate::scopes::scope_iterator;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct ScriptedLists {
@@ -86,7 +86,7 @@ impl List {
             if let Some((_, outscope)) = scope_iterator(token, data) {
                 let mut sc = ScopeContext::new(outscope, token);
                 vd.field_validated_block("conditions", |block, data| {
-                    validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                    validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
             } else {
                 error(token, ErrorKey::MissingItem, "no such base list");

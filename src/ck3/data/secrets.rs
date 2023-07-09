@@ -2,13 +2,13 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct Secret {}
@@ -42,18 +42,18 @@ impl DbKind for Secret {
         }
 
         vd.field_validated_block("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_key_block("is_shunned", |key, block, data| {
             let mut sc = sc.clone();
             sc.define_name("target", Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("is_criminal", |key, block, data| {
             let mut sc = sc.clone();
             sc.define_name("target", Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         let mut sc = ScopeContext::new(Scopes::Secret, key);
@@ -62,16 +62,16 @@ impl DbKind for Secret {
         vd.field_validated_key_block("on_discover", |key, block, data| {
             let mut sc = sc.clone();
             sc.define_name("discoverer", Scopes::Character, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_expose", |key, block, data| {
             let mut sc = sc.clone();
             sc.define_name("secret_exposer", Scopes::Character, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_block("on_owner_death", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
     }
 }

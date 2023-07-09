@@ -3,14 +3,14 @@ use crate::block::Block;
 use crate::ck3::data::activities::validate_tes;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_cost;
 
 #[derive(Clone, Debug)]
@@ -28,10 +28,10 @@ impl DbKind for TravelOption {
         let mut sc = ScopeContext::new(Scopes::Character, key);
 
         vd.field_validated_block("is_shown", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         vd.field_validated_block_sc("cost", &mut sc, validate_cost);
@@ -49,10 +49,10 @@ impl DbKind for TravelOption {
         sc.define_name("travel_speed", Scopes::Value, key);
         sc.define_name("travel_safety", Scopes::Value, key);
         vd.field_validated_block("on_applied_effect", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::Yes);
+            validate_effect(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block("on_travel_end_effect", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         let mut sc = ScopeContext::new(Scopes::TravelPlan, key);

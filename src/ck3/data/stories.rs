@@ -2,13 +2,13 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_optional_duration;
 
 #[derive(Clone, Debug)]
@@ -27,17 +27,17 @@ impl DbKind for Story {
         vd.field_validated_key_block("on_setup", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::StoryCycle, key);
             sc.define_name("story", Scopes::StoryCycle, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_end", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::StoryCycle, key);
             sc.define_name("story", Scopes::StoryCycle, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_owner_death", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::StoryCycle, key);
             sc.define_name("story", Scopes::StoryCycle, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_key_blocks("effect_group", |key, block, data| {
@@ -58,7 +58,7 @@ impl DbKind for Story {
             vd.field_integer("chance");
 
             vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
 
             validate_complex_effect(&mut vd, &mut sc);
@@ -78,10 +78,10 @@ fn validate_complex_effect(vd: &mut Validator, sc: &mut ScopeContext) {
     vd.field_validated_blocks("triggered_effect", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block("trigger", |block, data| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
         vd.field_validated_block("effect", |block, data| {
-            validate_normal_effect(block, data, sc, Tooltipped::No);
+            validate_effect(block, data, sc, Tooltipped::No);
         });
     });
 }

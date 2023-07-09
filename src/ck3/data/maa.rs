@@ -14,7 +14,7 @@ use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::{validate_cost, validate_maa_stats};
 
 #[derive(Clone, Debug, Default)]
@@ -198,7 +198,7 @@ impl MenAtArmsType {
         // TODO: "Mutually exclusive with being unlocked by innovation"
         vd.field_validated_key_block("can_recruit", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         validate_maa_stats(&mut vd);

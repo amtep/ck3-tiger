@@ -8,7 +8,7 @@ use crate::report::{advice_info, error, error_info, old_warn, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_normal_trigger, validate_target_ok_this};
+use crate::trigger::{validate_target_ok_this, validate_trigger};
 use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
     validate_iterator_fields, validate_scope_chain, ListType,
@@ -140,7 +140,7 @@ fn validate_iterator(
 ) {
     let mut vd = Validator::new(block, data);
     vd.field_validated_block("limit", |block, data| {
-        validate_normal_trigger(block, data, sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
 
     let mut tooltipped = Tooltipped::No;
@@ -172,7 +172,7 @@ fn validate_if(block: &Block, data: &Everything, sc: &mut ScopeContext, check_de
     let mut vd = Validator::new(block, data);
     vd.req_field_warn("limit");
     vd.field_validated_block("limit", |block, data| {
-        validate_normal_trigger(block, data, sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
     validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
 }
@@ -183,7 +183,7 @@ fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext, check_
         let msg = "`else` with a `limit` does work, but may indicate a mistake";
         let info = "normally you would use `else_if` instead.";
         advice_info(key, ErrorKey::IfElse, msg, info);
-        validate_normal_trigger(block, data, sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
     validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
 }

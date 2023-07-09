@@ -9,7 +9,7 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct VassalContract {}
@@ -49,7 +49,7 @@ impl DbKind for VassalContract {
         vd.field_choice("display_mode", &["tree", "list", "radiobutton", "checkbox"]);
         vd.field_value("icon"); // TODO
         vd.field_validated_block("is_shown", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_block("obligation_levels", |block, data| {
@@ -90,10 +90,10 @@ impl DbKind for VassalContract {
                     validate_modifs(block, data, ModifKinds::Character, vd);
                 });
                 vd.field_validated_block("is_shown", |block, data| {
-                    validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                    validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
                 vd.field_validated_block("is_valid", |block, data| {
-                    validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                    validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
 
                 vd.field_script_value("tax_factor", &mut sc);

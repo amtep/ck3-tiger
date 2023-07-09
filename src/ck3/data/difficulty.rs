@@ -7,7 +7,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct PlayableDifficultyInfo {}
@@ -25,7 +25,7 @@ impl DbKind for PlayableDifficultyInfo {
 
         data.verify_exists(Item::Localization, key);
         vd.field_validated_block("is_shown", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
     }
 }

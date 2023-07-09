@@ -9,7 +9,7 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::{validate_cost, validate_maa_stats, validate_possibly_named_color};
 
 #[derive(Clone, Debug)]
@@ -190,10 +190,10 @@ impl DbKind for CulturePillar {
         sc.define_name("character", Scopes::Character, key);
         vd.field_script_value("ai_will_do", &mut sc);
         vd.field_validated_block("is_shown", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("can_pick", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated("color", validate_possibly_named_color);
         vd.field_block("parameters");
@@ -237,12 +237,12 @@ impl DbKind for CultureTradition {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("replacing", Scopes::CultureTradition, key);
             sc.define_name("character", Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_key_block("can_pick_for_hybridization", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("character", Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         validate_modifiers(&mut vd);
         vd.field_validated_blocks("doctrine_character_modifier", |block, data| {
@@ -260,7 +260,7 @@ impl DbKind for CultureTradition {
         let mut sc = ScopeContext::new(Scopes::Culture, key);
         sc.define_name("character", Scopes::Character, key);
         vd.field_validated_block("is_shown", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         sc.define_name("replacing", Scopes::CultureTradition, key);
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
@@ -311,7 +311,7 @@ impl DbKind for CultureAesthetic {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("character", Scopes::Character, key);
             sc.define_list("trait", Scopes::CultureTradition | Scopes::CulturePillar, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
     }
 }
@@ -350,7 +350,7 @@ impl DbKind for CultureCreationName {
         }
 
         vd.field_validated_block("trigger", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_bool("hybrid");

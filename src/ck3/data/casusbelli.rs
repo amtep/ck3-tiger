@@ -3,13 +3,13 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::{validate_cost, validate_duration};
 
 #[derive(Clone, Debug)]
@@ -85,7 +85,7 @@ impl DbKind for CasusBelli {
         {
             vd.field_validated_block(field, |block, data| {
                 // TODO: check which are tooltipped
-                validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+                validate_effect(block, data, &mut sc, Tooltipped::No);
             });
         }
 
@@ -96,10 +96,10 @@ impl DbKind for CasusBelli {
         }
 
         vd.field_validated_block("should_invalidate", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("mutually_exclusive_titles", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_bool("combine_into_one");
 
@@ -107,7 +107,7 @@ impl DbKind for CasusBelli {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("attacker", Scopes::Character, key);
             sc.define_name("defender", Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block(
             "allowed_for_character_display_regardless",
@@ -115,7 +115,7 @@ impl DbKind for CasusBelli {
                 let mut sc = ScopeContext::new(Scopes::Character, key);
                 sc.define_name("attacker", Scopes::Character, key);
                 sc.define_name("defender", Scopes::Character, key);
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
             },
         );
 
@@ -123,7 +123,7 @@ impl DbKind for CasusBelli {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("attacker", Scopes::Character, key);
             sc.define_name("defender", Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block(
             "allowed_against_character_display_regardless",
@@ -131,7 +131,7 @@ impl DbKind for CasusBelli {
                 let mut sc = ScopeContext::new(Scopes::Character, key);
                 sc.define_name("attacker", Scopes::Character, key);
                 sc.define_name("defender", Scopes::Character, key);
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
             },
         );
 
@@ -140,14 +140,14 @@ impl DbKind for CasusBelli {
             sc.define_name("attacker", Scopes::Character, key);
             sc.define_name("defender", Scopes::Character, key);
             sc.define_name("target", Scopes::LandedTitle, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("valid_to_start_display_regardless", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("attacker", Scopes::Character, key);
             sc.define_name("defender", Scopes::Character, key);
             sc.define_name("target", Scopes::LandedTitle, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         vd.field_validated_key_block("is_allowed_claim_title", |key, block, data| {
@@ -155,7 +155,7 @@ impl DbKind for CasusBelli {
             sc.define_name("attacker", Scopes::Character, key);
             sc.define_name("defender", Scopes::Character, key);
             sc.define_name("claimant", Scopes::Character, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         // "claim" and "de_jure" choices are undocumented
@@ -207,7 +207,7 @@ impl DbKind for CasusBelli {
             "ai_can_target_all_titles",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_bool("ai");
@@ -248,7 +248,7 @@ impl DbKind for CasusBelliGroup {
             "allowed_for_character",
             Scopes::Character,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             },
         );
         vd.field_bool("should_check_for_interface_availability");

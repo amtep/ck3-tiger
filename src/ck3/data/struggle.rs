@@ -2,7 +2,7 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
@@ -89,18 +89,18 @@ impl DbKind for Struggle {
         vd.field_item("start_phase", Item::StrugglePhase);
 
         vd.field_validated_block("on_start", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("on_end", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
+            validate_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
         });
         vd.field_validated_block("on_change_phase", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
+            validate_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
         });
         vd.field_validated_key_block("on_join", |key, block, data| {
             // Docs say it's Struggle scope but that's wrong.
             let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
+            validate_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
         });
     }
 }

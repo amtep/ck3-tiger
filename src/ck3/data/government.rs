@@ -9,7 +9,7 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_color;
 
 #[derive(Clone, Debug)]
@@ -64,7 +64,7 @@ impl DbKind for Government {
         vd.field_bool("always_use_patronym");
 
         vd.field_validated_block("can_get_government", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_item("primary_holding", Item::Holding);

@@ -8,7 +8,7 @@ use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 
 #[derive(Clone, Debug)]
@@ -59,12 +59,12 @@ fn validate_candidates(vd: &mut Validator, sc: &mut ScopeContext) {
             let mut vd = Validator::new(block, data);
             vd.field_choice("type", CANDIDATE_TYPES);
             vd.field_validated_block("limit", |block, data| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             });
         }
     });
     vd.field_validated_block("limit", |block, data| {
-        validate_normal_trigger(block, data, sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
 }
 

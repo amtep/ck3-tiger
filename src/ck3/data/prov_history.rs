@@ -6,7 +6,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, Date, BV};
 use crate::ck3::data::provinces::ProvId;
 use crate::ck3::data::titles::Titles;
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -122,7 +122,7 @@ impl ProvinceHistory {
         vd.field_item("duchy_capital_building", Item::Building);
 
         vd.field_validated_block_rooted("effect", Scopes::Province, |block, data, sc| {
-            validate_normal_effect(block, data, sc, Tooltipped::No);
+            validate_effect(block, data, sc, Tooltipped::No);
         });
     }
 

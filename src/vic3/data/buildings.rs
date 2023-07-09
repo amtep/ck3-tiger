@@ -9,7 +9,7 @@ use crate::scopes::Scopes;
 use crate::scriptvalue::validate_non_dynamic_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct BuildingType {}
@@ -41,7 +41,7 @@ impl DbKind for BuildingType {
 
         vd.field_list_items("unlocking_technologies", Item::Technology);
         vd.field_validated_block("can_build", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         vd.field_integer("construction_points");
@@ -67,7 +67,7 @@ impl DbKind for BuildingType {
         vd.field_list_items("production_method_groups", Item::ProductionMethodGroup);
 
         vd.field_validated_block("should_auto_expand", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         vd.field_choice("city_type", &["none", "city", "farm", "mine", "port", "wood"]);
@@ -89,7 +89,7 @@ impl DbKind for BuildingType {
 
         vd.field_validated_key_block("possible", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::State, key);
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_block("city_gfx_interactions", |block, data| {
@@ -149,7 +149,7 @@ impl DbKind for BuildingGroup {
             "should_auto_expand",
             Scopes::Building,
             |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             },
         );
 

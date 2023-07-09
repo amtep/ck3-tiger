@@ -3,14 +3,14 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::{validate_cost, validate_duration, validate_modifiers_with_base};
 
 #[derive(Clone, Debug)]
@@ -79,13 +79,13 @@ impl DbKind for Decision {
         }
 
         vd.field_validated_block("is_shown", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("is_valid_showing_failures_only", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::FailuresOnly);
+            validate_trigger(b, data, &mut sc, Tooltipped::FailuresOnly);
         });
         vd.field_validated_block("is_valid", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
         });
 
         // cost can have multiple definitions and they will be combined
@@ -96,14 +96,14 @@ impl DbKind for Decision {
         check_cost(&block.get_field_blocks("minimum_cost"));
 
         vd.field_validated_block("effect", |b, data| {
-            validate_normal_effect(b, data, &mut sc, Tooltipped::Yes);
+            validate_effect(b, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block("ai_potential", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
         vd.field_validated_block("should_create_alert", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field("widget"); // TODO
     }

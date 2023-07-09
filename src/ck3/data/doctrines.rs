@@ -15,7 +15,7 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_traits;
 
 #[derive(Clone, Debug, Default)]
@@ -142,7 +142,7 @@ impl DoctrineGroup {
         vd.field_integer("number_of_picks");
 
         vd.field_validated_block("is_available_on_create", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
 
         // Any remaining definitions are doctrines, so accept them all.
@@ -195,10 +195,10 @@ impl Doctrine {
         vd.field_validated_block("parameters", validate_parameters);
         vd.field_script_value("piety_cost", &mut sc);
         vd.field_validated_block("is_shown", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("can_pick", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
         });
 
         vd.field_validated_block("character_modifier", |block, data| {

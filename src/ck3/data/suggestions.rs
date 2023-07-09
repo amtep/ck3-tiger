@@ -2,13 +2,13 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 
 #[derive(Clone, Debug)]
@@ -35,7 +35,7 @@ impl DbKind for Suggestion {
 
         vd.field_validated_block("check_create_suggestion", |block, data| {
             // TODO: "only interface effects are allowed"
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_block("effect", |block, data| {
@@ -43,11 +43,11 @@ impl DbKind for Suggestion {
             // TODO: The scope context will contain all scopes passed in the try_create_important_action call
             sc.set_strict_scopes(false);
             // TODO: "only interface effects are allowed"
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_block("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_item("soundeffect", Item::Sound);

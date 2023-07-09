@@ -6,7 +6,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::ck3::tables::on_action::on_action_scopecontext;
 use crate::context::ScopeContext;
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
@@ -15,7 +15,7 @@ use crate::report::{error_info, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_modifiers_with_base};
 
 #[derive(Clone, Debug, Default)]
@@ -119,7 +119,7 @@ impl OnAction {
         }
 
         vd.field_validated_block("trigger", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block_sc("weight_multiplier", &mut sc, validate_modifiers_with_base);
         let mut count = 0;
@@ -222,7 +222,7 @@ impl OnAction {
             }
         });
         vd.field_validated_block("effect", |b, data| {
-            validate_normal_effect(b, data, &mut sc, Tooltipped::No);
+            validate_effect(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_item("fallback", Item::OnAction);
     }

@@ -17,7 +17,7 @@ use crate::report::{error, old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 
 #[derive(Clone, Debug, Default)]
@@ -237,10 +237,10 @@ impl Title {
         vd.field_script_value_no_breakdown("ai_primary_priority", &mut sc);
 
         vd.field_validated_block("can_create", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block("can_create_on_partition", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_block("cultural_names", |block, data| {

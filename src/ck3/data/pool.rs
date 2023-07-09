@@ -7,7 +7,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 
 #[derive(Clone, Debug)]
@@ -29,7 +29,7 @@ impl DbKind for PoolSelector {
         }
 
         vd.field_validated_block("valid_character", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block_sc("character_score", &mut sc, validate_modifiers_with_base);
         vd.field_validated_block("config", |block, data| {

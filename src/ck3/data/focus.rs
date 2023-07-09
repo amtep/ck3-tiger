@@ -3,14 +3,14 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct Focus {}
@@ -45,19 +45,19 @@ impl DbKind for Focus {
         if education {
             vd.field_item("skill", Item::Skill);
             vd.field_validated_block("is_default", |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
             vd.field_validated_block("is_good_for", |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
             });
             vd.field_validated_block("is_bad_for", |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
             });
             vd.field_validated_block("on_change_to", |block, data| {
-                validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+                validate_effect(block, data, &mut sc, Tooltipped::No);
             });
             vd.field_validated_block("on_change_from", |block, data| {
-                validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+                validate_effect(block, data, &mut sc, Tooltipped::No);
             });
         } else {
             vd.req_field("lifestyle");
@@ -66,11 +66,11 @@ impl DbKind for Focus {
 
         // Undocumented
         vd.field_validated_block("is_valid", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         // Undocumented, but can confirm that both 'is_valid' and 'is_valid_showing_failures_only' do work for education focus.
         vd.field_validated_block("is_valid_showing_failures_only", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
+            validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
         });
 
         vd.field_script_value("auto_selection_weight", &mut sc);

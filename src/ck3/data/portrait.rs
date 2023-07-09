@@ -9,7 +9,7 @@ use crate::report::{error, old_warn, Confidence, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::{validate_modifiers_with_base, validate_numeric_range};
 
 #[derive(Clone, Debug)]
@@ -124,7 +124,7 @@ fn validate_portrait_modifier(
     vd.field_bool("ignore_outfit_tags");
 
     vd.field_validated_block("is_valid_custom", |block, data| {
-        validate_normal_trigger(block, data, sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
 
     vd.field_validated_blocks("dna_modifiers", |block, data| {
@@ -193,7 +193,7 @@ fn validate_add_accessory_modifiers(
         }
     }
     vd.field_validated_block("is_valid_custom", |block, data| {
-        validate_normal_trigger(block, data, sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
     vd.field_validated_blocks_sc("weight", sc, validate_modifiers_with_base);
 }
@@ -244,7 +244,7 @@ fn validate_animation(block: &Block, data: &Everything) {
     vd.field_validated_blocks("portrait_modifier", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
-            validate_normal_trigger(block, data, sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
         validate_portrait_modifiers(block, data, vd);
     });
@@ -294,7 +294,7 @@ impl DbKind for PortraitModifierPack {
         vd.field_validated_blocks("portrait_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             });
             validate_portrait_modifiers(block, data, vd);
         });

@@ -9,7 +9,7 @@ use crate::report::{error, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_maa_stats;
 
 #[derive(Clone, Debug)]
@@ -42,10 +42,10 @@ impl DbKind for Innovation {
 
         vd.field_item("region", Item::Region);
         vd.field_validated_block("potential", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("can_progress", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         // TODO: everything after this duplicates CultureEra validation,

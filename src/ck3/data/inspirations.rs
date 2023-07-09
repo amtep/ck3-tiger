@@ -2,13 +2,13 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct Inspiration {}
@@ -45,13 +45,13 @@ impl DbKind for Inspiration {
             "on_progress_increased", // undocumented
         ] {
             vd.field_validated_block(field, |block, data| {
-                validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+                validate_effect(block, data, &mut sc, Tooltipped::No);
             });
         }
 
         for field in &["is_valid", "is_sponsor_valid", "can_sponsor"] {
             vd.field_validated_block(field, |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
         }
     }

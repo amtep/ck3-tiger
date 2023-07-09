@@ -11,7 +11,7 @@ use crate::report::{error, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct AccoladeIcon {}
@@ -34,7 +34,7 @@ impl DbKind for AccoladeIcon {
         }
 
         vd.field_validated_block("potential", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
     }
 }
@@ -80,7 +80,7 @@ impl DbKind for AccoladeName {
         }
 
         vd.field_validated_block("potential", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_script_value("weight", &mut sc);
@@ -126,7 +126,7 @@ impl DbKind for AccoladeType {
         vd.field_list("accolade_categories");
 
         vd.field_validated_block("potential", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
         sc.define_name("owner", Scopes::Character, key);

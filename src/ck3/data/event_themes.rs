@@ -9,7 +9,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::{
     validate_theme_background, validate_theme_icon, validate_theme_sound, validate_theme_transition,
 };
@@ -107,7 +107,7 @@ impl DbKind for EventBackground {
         vd.field_validated_blocks("background", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             });
             vd.field_item("reference", Item::File);
             vd.field_bool("video");
@@ -157,7 +157,7 @@ impl DbKind for EventTransition {
         vd.field_validated_blocks("transition", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             });
             vd.field_item("reference", Item::File);
             vd.field_bool("video");

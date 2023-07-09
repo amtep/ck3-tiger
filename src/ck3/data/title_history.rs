@@ -6,7 +6,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, Date};
 use crate::ck3::data::titles::Tier;
 use crate::context::ScopeContext;
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
@@ -187,7 +187,7 @@ impl TitleHistory {
 
         vd.field_validated_key_block("effect", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
     }
 

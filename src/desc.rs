@@ -6,7 +6,7 @@ use crate::item::Item;
 use crate::report::{old_warn, warn_info, ErrorKey};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 fn validate_desc_map_block(
     caller: &str,
@@ -63,7 +63,7 @@ fn validate_desc_map_block(
                     let msg = "`trigger` is only for `triggered_desc";
                     old_warn(key, ErrorKey::Validation, msg);
                 }
-                validate_normal_trigger(block, data, sc, Tooltipped::No);
+                validate_trigger(block, data, sc, Tooltipped::No);
             }
         } else {
             old_warn(key, ErrorKey::UnknownField, "unexpected key in description");

@@ -2,14 +2,14 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct ScriptedGui {}
@@ -37,14 +37,14 @@ impl DbKind for ScriptedGui {
         });
 
         vd.field_validated_block("is_shown", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("is_valid", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("effect", |b, data| {
             // TODO: whether this is tooltipped depends on whether the gui calls for it
-            validate_normal_effect(b, data, &mut sc, Tooltipped::No);
+            validate_effect(b, data, &mut sc, Tooltipped::No);
         });
     }
 }

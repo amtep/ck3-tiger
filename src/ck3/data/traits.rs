@@ -17,7 +17,7 @@ use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug, Default)]
 pub struct Traits {
@@ -186,7 +186,7 @@ impl Trait {
         });
 
         vd.field_validated_block("potential", |b, data| {
-            validate_normal_trigger(b, data, &mut sc, Tooltipped::No);
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_integer("minimum_age");

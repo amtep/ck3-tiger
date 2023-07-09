@@ -7,7 +7,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct DeathReason {}
@@ -45,7 +45,7 @@ impl DbKind for DeathReason {
         }
 
         vd.field_validated_block("natural_death_trigger", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_item("use_equipped_artifact_in_slot", Item::ArtifactSlot);

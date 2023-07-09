@@ -2,7 +2,7 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_normal_effect;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
@@ -26,12 +26,12 @@ impl DbKind for PointOfInterest {
         vd.field_validated_block("build_province_list", |block, data| {
             let mut sc = sc.clone();
             sc.define_list("provinces", Scopes::Province, key);
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         sc.define_name("province", Scopes::Province, key);
         vd.field_validated_block("on_visit", |block, data| {
-            validate_normal_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
     }
 }

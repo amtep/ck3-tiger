@@ -15,7 +15,7 @@ use crate::report::{error, error_info, old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_normal_trigger;
+use crate::trigger::validate_trigger;
 use crate::validate::{validate_color, validate_possibly_named_color};
 
 #[derive(Clone, Debug, Default)]
@@ -341,7 +341,7 @@ where
     vd.field_validated_blocks("special_selection", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_validated_blocks("trigger", |block, data| {
-            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         for (_, bv) in vd.integer_keys() {
             f(bv, data);
@@ -350,7 +350,7 @@ where
         vd.field_validated_blocks("special_selection", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_blocks("trigger", |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
             for (_, bv) in vd.integer_keys() {
                 f(bv, data);
@@ -376,7 +376,7 @@ impl DbKind for CoaDynamicDefinition {
         vd.field_validated_blocks("item", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |block, data| {
-                validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
             vd.field_item("coat_of_arms", Item::Coa);
         });
