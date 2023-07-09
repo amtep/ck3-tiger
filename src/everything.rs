@@ -145,6 +145,7 @@ use crate::vic3::data::{
     cultures::Culture,
     events::Events,
     goods::Goods,
+    institutions::Institution,
     interest_groups::InterestGroup,
     modifiers::Modifier,
     pops::PopType,
@@ -650,6 +651,7 @@ impl Everything {
         self.load_pdx_items(Item::BuildingType, BuildingType::add);
         self.load_pdx_items(Item::Country, Country::add);
         self.load_pdx_items(Item::Goods, Goods::add);
+        self.load_pdx_items(Item::Institution, Institution::add);
         self.load_pdx_items(Item::InterestGroup, InterestGroup::add);
         self.load_pdx_items(Item::PopType, PopType::add);
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
