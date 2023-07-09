@@ -4,6 +4,7 @@ pub mod countries;
 pub mod cultures;
 pub mod events;
 pub mod goods;
+pub mod interest_groups;
 pub mod modifiers;
 pub mod pops;
 pub mod production_methods;
