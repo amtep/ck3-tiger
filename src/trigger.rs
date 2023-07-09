@@ -45,13 +45,6 @@ pub fn validate_trigger_internal(
 ) {
     let mut vd = Validator::new(block, data);
 
-    if caller == "custom_description"
-        || caller == "custom_tooltip"
-        || block.get_field_value("custom_tooltip").is_some()
-    {
-        tooltipped = Tooltipped::No;
-    }
-
     // If this condition looks weird, it's because the negation from for example NOR has already
     // been applied to the `negated` value.
     if tooltipped == Tooltipped::FailuresOnly
@@ -622,6 +615,10 @@ fn match_trigger_bv(
                     || name.lowercase_is("nor")
                 {
                     negated = !negated;
+                }
+                let mut tooltipped = tooltipped;
+                if name.lowercase_is("custom_description") {
+                    tooltipped = Tooltipped::No;
                 }
                 validate_trigger_internal(
                     &name.as_str().to_lowercase(),
