@@ -84,6 +84,7 @@ impl DbKind for ColorGene {
         let mut vd = Validator::new(block, data);
         data.verify_exists(Item::Localization, key);
 
+        #[cfg(feature = "ck3")]
         vd.req_field("group");
         vd.req_field("color");
         vd.req_field("blend_range");
