@@ -7,6 +7,7 @@ pub mod goods;
 pub mod institutions;
 pub mod interest_groups;
 pub mod laws;
+pub mod media_aliases;
 pub mod modifiers;
 pub mod pops;
 pub mod production_methods;

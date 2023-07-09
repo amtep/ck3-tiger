@@ -53,6 +53,7 @@ pub enum ErrorKey {
     Choice,
     UseOfThis,
     CharacterId,
+    Loop,
 
     PrincesOfDarkness,
 
