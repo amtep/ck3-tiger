@@ -1,3 +1,4 @@
+pub mod accessory;
 pub mod colors;
 pub mod customloca;
 pub mod defines;

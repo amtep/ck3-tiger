@@ -1,4 +1,3 @@
-pub mod accessory;
 pub mod accolades;
 pub mod activities;
 pub mod amenities;

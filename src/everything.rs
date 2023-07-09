@@ -11,7 +11,6 @@ use thiserror::Error;
 use crate::block::Block;
 #[cfg(feature = "ck3")]
 use crate::ck3::data::{
-    accessory::{Accessory, AccessoryVariation},
     accolades::{AccoladeIcon, AccoladeName, AccoladeType},
     activities::{ActivityIntent, ActivityLocale, ActivityType, GuestInviteRule, PulseAction},
     amenities::Amenity,
@@ -115,6 +114,7 @@ use crate::ck3::data::{
 use crate::config_load::{check_for_legacy_ignore, load_filter};
 use crate::context::ScopeContext;
 use crate::data::{
+    accessory::{Accessory, AccessoryVariation},
     colors::NamedColor,
     customloca::CustomLocalization,
     defines::Defines,
@@ -489,6 +489,8 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.provinces));
         });
 
+        self.load_pdx_items(Item::Accessory, Accessory::add);
+        self.load_pdx_items(Item::AccessoryVariation, AccessoryVariation::add);
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
         self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
         self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
@@ -562,8 +564,6 @@ impl Everything {
         self.load_pdx_items(Item::CultureAesthetic, CultureAesthetic::add);
         self.load_pdx_items(Item::CultureCreationName, CultureCreationName::add);
         self.load_pdx_items(Item::Innovation, Innovation::add);
-        self.load_pdx_items(Item::Accessory, Accessory::add);
-        self.load_pdx_items(Item::AccessoryVariation, AccessoryVariation::add);
         self.load_pdx_items(Item::PortraitModifierGroup, PortraitModifierGroup::add);
         self.load_pdx_items_ext(
             Item::PortraitModifierPack,
