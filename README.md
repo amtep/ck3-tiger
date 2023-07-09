@@ -56,7 +56,7 @@ You can unpack the archive from the "Release" page on GitHub and use it that way
 
 If you want to build it yourself, you will have to [install the Rust programming language](https://www.rust-lang.org/tools/install).
 
-Then run `cargo build --release` in the project's directory, then run the program as `target/release/ck3-tiger`.
+Run `cargo build --release -p ck3-tiger` in the project's directory, then run the program as `target/release/ck3-tiger`.
 
 ## Sample output
 
