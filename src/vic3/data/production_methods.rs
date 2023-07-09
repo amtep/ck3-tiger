@@ -25,20 +25,19 @@ impl DbKind for ProductionMethod {
         vd.field_bool("is_default");
 
         vd.field_validated_block("country_modifiers", |block, data| {
-            validate_modifier_block(block, data, ModifKinds::Country);
+            validate_modifier_block(block, data, ModifKinds::all());
         });
         vd.field_validated_block("state_modifiers", |block, data| {
-            validate_modifier_block(block, data, ModifKinds::State);
+            validate_modifier_block(block, data, ModifKinds::all());
         });
         vd.field_validated_block("building_modifiers", |block, data| {
-            validate_modifier_block(block, data, ModifKinds::Building);
+            validate_modifier_block(block, data, ModifKinds::all());
         });
-        vd.field_validated_block("timed_modifiers", |block, data| {
-            validate_modifier_block(block, data, ModifKinds::Building);
-        });
+        vd.field_list_items("timed_modifiers", Item::Modifier);
 
-        vd.field_list_items("unlocking_laws", Item::Law);
-        vd.field_list_items("disallowing_laws", Item::Law);
+        vd.field_list_items("unlocking_laws", Item::LawType);
+        vd.field_list_items("disallowing_laws", Item::LawType);
+        vd.field_list_items("disallowing_religions", Item::Religion);
         vd.field_list_items("unlocking_technologies", Item::Technology);
         vd.field_list_items("unlocking_production_methods", Item::ProductionMethod);
         vd.field_list_items("unlocking_global_technologies", Item::Technology);
@@ -55,6 +54,10 @@ fn validate_modifier_block(block: &Block, data: &Everything, kinds: ModifKinds) 
         validate_modifs(block, data, kinds, vd);
     });
     vd.field_validated_block("level_scaled", |block, data| {
+        let vd = Validator::new(block, data);
+        validate_modifs(block, data, kinds, vd);
+    });
+    vd.field_validated_block("throughput_scaled", |block, data| {
         let vd = Validator::new(block, data);
         validate_modifs(block, data, kinds, vd);
     });

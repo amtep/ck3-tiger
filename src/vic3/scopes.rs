@@ -481,7 +481,7 @@ pub fn validate_prefix_reference(
         // "infamy_threshold" => data.verify_exists(Item::InfamyThreshold, arg),
         "institution" => data.verify_exists(Item::Institution, arg),
         // "je" => data.verify_exists(Item::Journalentry, arg),
-        // "law_type" => data.verify_exists(Item::LawType, arg),
+        "law_type" => data.verify_exists(Item::LawType, arg),
         // "local_var"
         // TODO: use the modif type corresponding to the scope this is used in
         "modifier" => verify_modif_exists(arg, data, ModifKinds::all()),

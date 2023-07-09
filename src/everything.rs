@@ -147,6 +147,7 @@ use crate::vic3::data::{
     goods::Goods,
     institutions::Institution,
     interest_groups::InterestGroup,
+    laws::{LawGroup, LawType},
     modifiers::Modifier,
     pops::PopType,
     production_methods::{ProductionMethod, ProductionMethodGroup},
@@ -653,6 +654,8 @@ impl Everything {
         self.load_pdx_items(Item::Goods, Goods::add);
         self.load_pdx_items(Item::Institution, Institution::add);
         self.load_pdx_items(Item::InterestGroup, InterestGroup::add);
+        self.load_pdx_items(Item::LawGroup, LawGroup::add);
+        self.load_pdx_items(Item::LawType, LawType::add);
         self.load_pdx_items(Item::PopType, PopType::add);
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
         self.load_pdx_items(Item::ProductionMethodGroup, ProductionMethodGroup::add);

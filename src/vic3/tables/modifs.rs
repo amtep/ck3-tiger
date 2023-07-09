@@ -210,7 +210,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
         for sfx in &["_add", "_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
                 if warn {
-                    data.verify_exists_implied(Item::Law, part, name);
+                    data.verify_exists_implied(Item::LawType, part, name);
                 }
                 return Some(ModifKinds::State);
             }
