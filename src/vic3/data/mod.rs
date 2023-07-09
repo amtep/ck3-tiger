@@ -5,6 +5,7 @@ pub mod cultures;
 pub mod events;
 pub mod goods;
 pub mod modifiers;
+pub mod pops;
 pub mod production_methods;
 pub mod provinces;
 pub mod religions;
