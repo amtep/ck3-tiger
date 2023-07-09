@@ -151,8 +151,8 @@ impl DbKind for AccessoryVariationLayout {
 fn validate_minmax(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.req_field("min");
-    vd.field_numeric_range("min", 0.0, 1.0);
+    vd.field_numeric("min");
     vd.req_field("max");
-    vd.field_numeric_range("max", 0.0, 1.0);
+    vd.field_numeric("max");
     // TODO: verify max >= min
 }
