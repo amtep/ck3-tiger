@@ -24,11 +24,11 @@ type ErrorRecord = (Loc, ErrorKey, String, Option<Loc>, Option<Loc>);
 
 #[derive(Default, Debug)]
 pub struct Errors {
-    /// The CK3 game directory
+    /// The base game directory
     vanilla_root: PathBuf,
-    /// Extra CK3 directory loaded before `vanilla_root`
+    /// Extra base game directory loaded before `vanilla_root`
     clausewitz_root: PathBuf,
-    /// Extra CK3 directory loaded before `vanilla_root`
+    /// Extra base game directory loaded before `vanilla_root`
     jomini_root: PathBuf,
     /// The mod directory
     mod_root: PathBuf,

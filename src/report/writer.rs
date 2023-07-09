@@ -191,7 +191,10 @@ fn kind_tag(errors: &Errors, kind: FileKind) -> &str {
         FileKind::Internal => "Internal",
         FileKind::Clausewitz => "Clausewitz",
         FileKind::Jomini => "Jomini",
+        #[cfg(feature = "ck3")]
         FileKind::Vanilla => "CK3",
+        #[cfg(feature = "vic3")]
+        FileKind::Vanilla => "Vic3",
         FileKind::LoadedMod(idx) => &errors.loaded_mods_labels[idx as usize],
         FileKind::Mod => "MOD",
     }
