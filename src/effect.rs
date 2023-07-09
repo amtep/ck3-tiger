@@ -37,10 +37,10 @@ pub fn validate_normal_effect(
     tooltipped: Tooltipped,
 ) {
     let vd = Validator::new(block, data);
-    validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal("", ListType::None, block, data, sc, vd, tooltipped);
 }
 
-pub fn validate_effect<'a>(
+pub fn validate_effect_internal<'a>(
     caller: &str,
     list_type: ListType,
     block: &Block,
@@ -342,7 +342,15 @@ pub fn validate_effect<'a>(
                     sc.open_scope(outscope, key.clone());
                     if let Some(b) = bv.get_block() {
                         let vd = Validator::new(b, data);
-                        validate_effect(it_name.as_str(), ltype, b, data, sc, vd, tooltipped);
+                        validate_effect_internal(
+                            it_name.as_str(),
+                            ltype,
+                            b,
+                            data,
+                            sc,
+                            vd,
+                            tooltipped,
+                        );
                     }
                     sc.close();
                     continue;
@@ -478,7 +486,7 @@ pub fn validate_effect_control(
         vd.ban_field("show_chance", || "`random_list` or `duel`");
     }
 
-    validate_effect(caller, ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal(caller, ListType::None, block, data, sc, vd, tooltipped);
 }
 
 pub fn validate_add_to_variable_list(mut vd: Validator, sc: &mut ScopeContext) {
@@ -587,8 +595,7 @@ pub fn validate_switch(
                 );
             }
 
-            let vd = Validator::new(block, data);
-            validate_effect("", ListType::None, block, data, sc, vd, tooltipped);
+            validate_normal_effect(block, data, sc, tooltipped);
         }
     }
 }

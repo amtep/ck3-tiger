@@ -31,10 +31,10 @@ pub fn validate_normal_trigger(
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
 ) {
-    validate_trigger("", false, block, data, sc, tooltipped, false);
+    validate_trigger_internal("", false, block, data, sc, tooltipped, false);
 }
 
-pub fn validate_trigger(
+pub fn validate_trigger_internal(
     caller: &str,
     in_list: bool,
     block: &Block,
@@ -176,7 +176,15 @@ pub fn validate_trigger(
                     if let Some(b) = bv.get_block() {
                         precheck_iterator_fields(ListType::Any, b, data, sc);
                         sc.open_scope(outscope, key.clone());
-                        validate_trigger(it_name.as_str(), true, b, data, sc, tooltipped, negated);
+                        validate_trigger_internal(
+                            it_name.as_str(),
+                            true,
+                            b,
+                            data,
+                            sc,
+                            tooltipped,
+                            negated,
+                        );
                         sc.close();
                     } else {
                         error(bv, ErrorKey::Validation, "expected block, found value");
@@ -404,7 +412,7 @@ pub fn validate_trigger_key_bv(
         }
         BV::Block(b) => {
             sc.finalize_builder();
-            validate_trigger("", false, b, data, sc, tooltipped, negated);
+            validate_trigger_internal("", false, b, data, sc, tooltipped, negated);
             sc.close();
         }
     }
@@ -615,7 +623,7 @@ fn match_trigger_bv(
                 {
                     negated = !negated;
                 }
-                validate_trigger(
+                validate_trigger_internal(
                     &name.as_str().to_lowercase(),
                     false,
                     block,
@@ -658,7 +666,7 @@ fn match_trigger_bv(
                 match bv {
                     BV::Value(t) => data.verify_exists(Item::Localization, t),
                     BV::Block(b) => {
-                        validate_trigger(
+                        validate_trigger_internal(
                             name.as_str(),
                             false,
                             b,

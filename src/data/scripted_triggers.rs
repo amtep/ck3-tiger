@@ -13,7 +13,7 @@ use crate::report::{old_warn, ErrorKey};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
+use crate::trigger::validate_trigger_internal;
 
 #[derive(Debug, Default)]
 pub struct Triggers {
@@ -133,7 +133,15 @@ impl Trigger {
                 our_sc.set_no_warn(true);
             }
             self.cache.insert(key, &[], tooltipped, negated, our_sc.clone());
-            validate_trigger("", false, &self.block, data, &mut our_sc, tooltipped, negated);
+            validate_trigger_internal(
+                "",
+                false,
+                &self.block,
+                data,
+                &mut our_sc,
+                tooltipped,
+                negated,
+            );
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key);
                 our_sc.set_strict_scopes(false);
@@ -181,7 +189,15 @@ impl Trigger {
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
                 self.cache.insert(key, &args, tooltipped, negated, our_sc.clone());
-                validate_trigger("", false, &block, data, &mut our_sc, tooltipped, negated);
+                validate_trigger_internal(
+                    "",
+                    false,
+                    &block,
+                    data,
+                    &mut our_sc,
+                    tooltipped,
+                    negated,
+                );
                 if let Some(scopes) = self.scope_override {
                     our_sc = ScopeContext::new_unrooted(scopes, key);
                     our_sc.set_strict_scopes(false);

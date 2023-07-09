@@ -7,7 +7,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
-use crate::effect::{validate_effect, validate_normal_effect};
+use crate::effect::{validate_effect_internal, validate_normal_effect};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -251,5 +251,5 @@ fn validate_event_option(
     vd.field_bool("default_option");
     vd.field_bool("highlighted_option");
     vd.field_validated_sc("ai_chance", sc, validate_ai_chance);
-    validate_effect("option", ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal("option", ListType::None, block, data, sc, vd, tooltipped);
 }

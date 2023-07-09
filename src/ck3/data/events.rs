@@ -9,7 +9,7 @@ use crate::context::ScopeContext;
 use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
 use crate::desc::validate_desc;
-use crate::effect::{validate_effect, validate_normal_effect};
+use crate::effect::{validate_effect_internal, validate_normal_effect};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -418,7 +418,7 @@ fn validate_event_option(
     vd.field_target("highlight_portrait", sc, Scopes::Character);
     vd.field_bool("show_unlock_reason");
 
-    validate_effect("option", ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal("option", ListType::None, block, data, sc, vd, tooltipped);
 }
 
 fn validate_court_scene(block: &Block, data: &Everything, sc: &mut ScopeContext) {

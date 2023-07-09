@@ -7,7 +7,7 @@ use fnv::{FnvHashMap, FnvHashSet};
 use crate::block::validator::Validator;
 use crate::block::{Block, Date, BV};
 use crate::context::ScopeContext;
-use crate::effect::{validate_effect, validate_normal_effect};
+use crate::effect::{validate_effect_internal, validate_normal_effect};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
@@ -328,7 +328,7 @@ impl Character {
             validate_normal_effect(b, data, sc, Tooltipped::No);
         });
 
-        validate_effect("", ListType::None, block, data, sc, vd, Tooltipped::No);
+        validate_effect_internal("", ListType::None, block, data, sc, vd, Tooltipped::No);
     }
 
     fn validate(&self, data: &Everything) {

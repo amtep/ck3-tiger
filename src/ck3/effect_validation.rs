@@ -4,8 +4,8 @@ use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::{
     validate_add_to_variable_list, validate_change_variable, validate_clamp_variable,
-    validate_effect, validate_normal_effect, validate_random_list, validate_round_variable,
-    validate_save_scope_value, validate_set_variable, validate_switch,
+    validate_effect_internal, validate_normal_effect, validate_random_list,
+    validate_round_variable, validate_save_scope_value, validate_set_variable, validate_switch,
 };
 use crate::everything::Everything;
 use crate::item::Item;
@@ -155,7 +155,7 @@ pub fn validate_effect_block(
             vd.field_target("location", sc, Scopes::Province);
             vd.field_target("artifact", sc, Scopes::Artifact);
             // effects can be put directly in this block
-            validate_effect(&caller, ListType::None, block, data, sc, vd, tooltipped);
+            validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
         }
         AddArtifactHistory => {
             vd.req_field("type");
