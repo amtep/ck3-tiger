@@ -148,7 +148,7 @@ use crate::vic3::data::{
     interest_groups::InterestGroup,
     modifiers::Modifier,
     pops::PopType,
-    production_methods::ProductionMethod,
+    production_methods::{ProductionMethod, ProductionMethodGroup},
     provinces::Provinces,
     religions::Religion,
     state_regions::StateRegion,
@@ -653,6 +653,7 @@ impl Everything {
         self.load_pdx_items(Item::InterestGroup, InterestGroup::add);
         self.load_pdx_items(Item::PopType, PopType::add);
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
+        self.load_pdx_items(Item::ProductionMethodGroup, ProductionMethodGroup::add);
         self.load_pdx_items(Item::StateRegion, StateRegion::add);
         self.load_pdx_items(Item::Technology, Technology::add);
         self.load_pdx_items(Item::TechnologyEra, TechnologyEra::add);

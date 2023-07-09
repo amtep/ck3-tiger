@@ -6,6 +6,7 @@ use crate::effect::validate_normal_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
+use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
@@ -72,9 +73,10 @@ impl DbKind for InterestGroup {
         vd.field_script_value_rooted("female_commander_chance", Scopes::None);
         vd.field_script_value_rooted("female_politician_chance", Scopes::None);
         vd.field_script_value_rooted("female_agitator_chance", Scopes::None);
-        vd.field_validated_key_block("commander_leader_chance", |key, block, data| {
+        vd.field_validated_key("commander_leader_chance", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::None, key);
             sc.define_name("character", Scopes::Character, key);
+            validate_scriptvalue(bv, data, &mut sc);
         });
     }
 }

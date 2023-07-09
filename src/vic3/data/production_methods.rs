@@ -63,3 +63,31 @@ fn validate_modifier_block(block: &Block, data: &Everything, kinds: ModifKinds) 
         validate_modifs(block, data, kinds, vd);
     });
 }
+
+#[derive(Clone, Debug)]
+pub struct ProductionMethodGroup {}
+
+impl ProductionMethodGroup {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::ProductionMethodGroup, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for ProductionMethodGroup {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+
+        if !key.is("pmg_dummy") {
+            vd.req_field("texture");
+        }
+        vd.field_item("texture", Item::File);
+        vd.field_bool("is_hidden_when_unavailable");
+
+        vd.req_field("production_methods");
+        vd.field_list_items("production_methods", Item::ProductionMethod);
+
+        vd.field_choice("ai_selection", &["most_profitable", "most_productive"]);
+    }
+}
