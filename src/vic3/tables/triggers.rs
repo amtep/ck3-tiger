@@ -579,8 +579,8 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (PoliticalMovement, "political_movement_support", CompareValue),
     (StateRegion, "pollution_amount", CompareValue),
     (State, "pollution_generation", CompareValue),
-    (Pop, "pop_employment_building", Scope(Building)),
-    (Pop, "pop_employment_building_group", Scope(Building)),
+    (Pop, "pop_employment_building", Item(Item::BuildingType)),
+    (Pop, "pop_employment_building_group", Item(Item::BuildingGroup)),
     (Pop, "pop_has_primary_culture", Boolean),
     (Pop, "pop_is_discriminated", Boolean),
     (
