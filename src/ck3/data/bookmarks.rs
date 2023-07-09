@@ -5,9 +5,10 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, warn_info, ErrorKey};
+use crate::report::{warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::validate::validate_portrait_modifier_overrides;
 
 #[derive(Clone, Debug)]
 pub struct BookmarkGroup {}
@@ -134,22 +135,10 @@ impl DbKind for BookmarkPortrait {
         vd.field_validated_block("genes", validate_genes);
         vd.field_validated_block("override", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_validated_block("portrait_modifier_overrides", |block, data| {
-                let mut vd = Validator::new(block, data);
-                for (key, value) in vd.unknown_value_fields() {
-                    data.verify_exists(Item::PortraitModifierGroup, key);
-                    if !data.item_has_property(
-                        Item::PortraitModifierGroup,
-                        key.as_str(),
-                        value.as_str(),
-                    ) {
-                        let msg = format!(
-                            "portrait modifier group {key} does not have the modifier {value}"
-                        );
-                        error(value, ErrorKey::MissingItem, &msg);
-                    }
-                }
-            });
+            vd.field_validated_block(
+                "portrait_modifier_overrides",
+                validate_portrait_modifier_overrides,
+            );
         });
         vd.field_validated_block("tags", |block, data| {
             let mut vd = Validator::new(block, data);

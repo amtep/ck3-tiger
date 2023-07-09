@@ -17,7 +17,9 @@ use crate::report::{error, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::validate::{validate_prefix_reference_token, ListType};
+use crate::validate::{
+    validate_portrait_modifier_overrides, validate_prefix_reference_token, ListType,
+};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Gender {
@@ -378,7 +380,10 @@ impl Character {
         vd.field_item("sexuality", Item::Sexuality);
         vd.field_numeric("health");
         vd.field_numeric("fertility");
-        vd.field_block("portrait_modifier_overrides"); // TODO
+        vd.field_validated_block(
+            "portrait_modifier_overrides",
+            validate_portrait_modifier_overrides,
+        );
 
         vd.validate_history_blocks(|date, b, data| {
             Self::validate_history(date, b, &self.block, data, &mut sc);

@@ -981,3 +981,15 @@ pub fn validate_numeric_range(
         }
     }
 }
+
+#[cfg(feature = "ck3")]
+pub fn validate_portrait_modifier_overrides(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    for (key, value) in vd.unknown_value_fields() {
+        data.verify_exists(Item::PortraitModifierGroup, key);
+        if !data.item_has_property(Item::PortraitModifierGroup, key.as_str(), value.as_str()) {
+            let msg = format!("portrait modifier group {key} does not have the modifier {value}");
+            error(value, ErrorKey::MissingItem, &msg);
+        }
+    }
+}
