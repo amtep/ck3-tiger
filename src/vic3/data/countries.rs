@@ -37,7 +37,7 @@ impl DbKind for Country {
             &["hegemony", "empire", "kingdom", "grand_principality", "principality", "city_state"],
         );
         vd.field_list_items("cultures", Item::Culture);
-        vd.field_list_items("religion", Item::Religion);
+        vd.field_item("religion", Item::Religion);
         vd.field_item("capital", Item::StateRegion);
         vd.field_bool("is_named_from_capital");
 
