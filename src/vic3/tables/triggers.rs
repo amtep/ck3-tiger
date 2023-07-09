@@ -87,7 +87,10 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Country | Province | State | StateRegion | StrategicRegion | Theater,
         "check_area",
-        UncheckedValue,
+        Block(&[
+            ("mode", Choice(&["adjacent"])),
+            ("target", Scope(Country | Province | State | StateRegion | StrategicRegion | Theater)),
+        ]),
     ),
     (CivilWar, "civil_war_progress", CompareValue),
     (Character, "commander_is_available", Boolean),
