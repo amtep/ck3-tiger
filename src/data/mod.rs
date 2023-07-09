@@ -2,6 +2,7 @@ pub mod colors;
 pub mod customloca;
 pub mod defines;
 pub mod effect_localization;
+pub mod ethnicity;
 pub mod localization;
 pub mod scripted_effects;
 pub mod scripted_lists;

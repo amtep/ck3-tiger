@@ -9,9 +9,10 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{old_warn, warn2, ErrorKey};
+use crate::report::{old_warn, warn2, Confidence, ErrorKey, Severity};
 use crate::token::Token;
 use crate::util::SmartJoin;
+use crate::validate::validate_numeric_range;
 
 #[derive(Clone, Debug, Default)]
 pub struct Assets {
@@ -240,8 +241,14 @@ impl Asset {
                 vd.field_validated_blocks("color_mask_remap_interval", |block, data| {
                     let mut vd = Validator::new(block, data);
                     vd.field_validated_blocks("interval", |block, data| {
-                        let mut vd = Validator::new(block, data);
-                        vd.req_tokens_numbers_exactly(2);
+                        validate_numeric_range(
+                            block,
+                            data,
+                            0.0,
+                            1.0,
+                            Severity::Warning,
+                            Confidence::Weak,
+                        );
                     });
                 });
                 vd.field_validated_blocks("portrait_decal", |block, data| {

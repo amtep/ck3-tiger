@@ -51,7 +51,6 @@ use crate::ck3::data::{
     dynasty_legacies::{DynastyLegacy, DynastyPerk},
     election::Election,
     environment::Environment,
-    ethnicity::Ethnicity,
     event_themes::{EventBackground, EventTheme, EventTransition},
     events::Events,
     factions::Faction,
@@ -121,6 +120,7 @@ use crate::data::{
     customloca::CustomLocalization,
     defines::Defines,
     effect_localization::EffectLocalization,
+    ethnicity::Ethnicity,
     localization::Localization,
     scripted_effects::{Effect, Effects},
     scripted_lists::ScriptedLists,
@@ -490,6 +490,7 @@ impl Everything {
         self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
         self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
+        self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
         self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
 
         self.load_pdx_items(Item::Culture, Culture::add);
@@ -575,7 +576,6 @@ impl Everything {
         self.load_pdx_items(Item::Bookmark, Bookmark::add);
         self.load_pdx_items(Item::BookmarkGroup, BookmarkGroup::add);
         self.load_pdx_items_optional_bom(Item::BookmarkPortrait, BookmarkPortrait::add);
-        self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
         self.load_pdx_items(Item::GovernmentType, Government::add);
         self.load_pdx_items(Item::Hook, Hook::add);
         self.load_pdx_items(Item::CouncilPosition, CouncilPosition::add);

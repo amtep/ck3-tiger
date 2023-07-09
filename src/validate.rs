@@ -8,7 +8,7 @@ use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, error_info, old_warn, ErrorKey};
+use crate::report::{error, error_info, old_warn, report, warn, Confidence, ErrorKey, Severity};
 use crate::scopes::{scope_prefix, scope_to_scope, validate_prefix_reference, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::Token;
@@ -185,12 +185,14 @@ pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
 
 // Does not accept scriptvalues (per the documentation)
 pub fn validate_color(block: &Block, _data: &Everything) {
+    // Reports in this function are `warn` level because a bad color is just an UI issue,
+    // and normal confidence level because I'm not 100% sure of the color formats.
     let mut count = 0;
     // Get the color tag, as in color = hsv { 0.5 1.0 1.0 }
     let tag = block.tag.as_ref().map_or("rgb", Token::as_str);
     for (k, _, v) in block.iter_items() {
         if let Some(key) = k {
-            error(key, ErrorKey::Colors, "expected color value");
+            warn(ErrorKey::Colors).msg("expected color value").loc(key).push();
         } else {
             match v {
                 BV::Value(t) => {
@@ -198,45 +200,54 @@ pub fn validate_color(block: &Block, _data: &Everything) {
                         t.check_number();
                         if let Some(f) = t.get_number() {
                             if !(0.0..=1.0).contains(&f) {
+                                // TODO: check if integer color values actually work in hsv,
+                                // then adjust the report.
                                 let msg = "hsv values should be between 0.0 and 1.0";
-                                error(t, ErrorKey::Colors, msg);
+                                let mut info = "";
+                                if t.is_integer() {
+                                    info = "did you mean `hsv360`?"
+                                }
+                                warn(ErrorKey::Colors).weak().msg(msg).info(info).loc(t).push();
                             }
                         } else {
-                            error(t, ErrorKey::Colors, "expected hsv value");
+                            warn(ErrorKey::Colors).msg("expected hsv value").loc(t).push();
                         }
                     } else if tag == "hsv360" {
                         if let Some(i) = t.get_integer() {
-                            if !(0..=360).contains(&i) {
-                                let msg = "hsv360 values should be between 0 and 360";
-                                error(t, ErrorKey::Colors, msg);
+                            if count == 0 && !(0..=360).contains(&i) {
+                                let msg = "hsv360 h values should be between 0 and 360";
+                                warn(ErrorKey::Colors).msg(msg).loc(t).push();
+                            } else if count > 0 && !(0..=100).contains(&i) {
+                                let msg = "hsv360 s and v values should be between 0 and 100";
+                                warn(ErrorKey::Colors).msg(msg).loc(t).push();
                             }
                         } else {
-                            error(t, ErrorKey::Colors, "expected hsv360 value");
+                            warn(ErrorKey::Colors).msg("expected hsv360 value").loc(t).push();
                         }
                     } else if let Some(i) = t.get_integer() {
                         if !(0..=255).contains(&i) {
                             let msg = "color values should be between 0 and 255";
-                            error(t, ErrorKey::Colors, msg);
+                            warn(ErrorKey::Colors).msg(msg).loc(t).push();
                         }
                     } else if let Some(f) = t.get_number() {
                         t.check_number();
                         if !(0.0..=1.0).contains(&f) {
                             let msg = "color values should be between 0.0 and 1.0";
-                            error(t, ErrorKey::Colors, msg);
+                            warn(ErrorKey::Colors).msg(msg).loc(t).push();
                         }
                     } else {
-                        error(t, ErrorKey::Colors, "expected color value");
+                        warn(ErrorKey::Colors).msg("expected color value").loc(t).push();
                     }
                     count += 1;
                 }
                 BV::Block(b) => {
-                    error(b, ErrorKey::Colors, "expected color value");
+                    warn(ErrorKey::Colors).msg("expected color value").loc(b).push();
                 }
             }
         }
     }
     if count != 3 && count != 4 {
-        error(block, ErrorKey::Colors, "expected 3 or 4 color values");
+        warn(ErrorKey::Colors).msg("expected 3 or 4 color values").loc(block).push();
     }
 }
 
@@ -936,5 +947,37 @@ pub fn validate_ifelse_sequence(block: &Block, key_if: &str, key_elseif: &str, k
             }
         }
         seen_if = false;
+    }
+}
+
+pub fn validate_numeric_range(
+    block: &Block,
+    data: &Everything,
+    min: f64,
+    max: f64,
+    sev: Severity,
+    conf: Confidence,
+) {
+    let mut vd = Validator::new(block, data);
+    let mut count = 0;
+    let mut prev = 0.0;
+
+    for token in vd.values() {
+        if let Some(n) = token.expect_number() {
+            count += 1;
+            if !(min..=max).contains(&n) {
+                let msg = format!("expected number between {min} and {max}");
+                report(ErrorKey::Range, sev).conf(conf).msg(msg).loc(token).push();
+            }
+            if count == 1 {
+                prev = n;
+            } else if count == 2 && n < prev {
+                let msg = format!("expected second number to be bigger than first number");
+                report(ErrorKey::Range, sev).conf(conf).msg(msg).loc(token).push();
+            } else if count == 3 {
+                let msg = "expected exactly 2 numbers";
+                report(ErrorKey::Range, sev).strong().msg(msg).loc(block).push();
+            }
+        }
     }
 }

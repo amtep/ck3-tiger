@@ -1,4 +1,4 @@
-pub use builder::{err, fatal, tips, untidy, warn};
+pub use builder::{err, fatal, report, tips, untidy, warn};
 pub use error_key::ErrorKey;
 pub use error_loc::ErrorLoc;
 pub use errors::*;

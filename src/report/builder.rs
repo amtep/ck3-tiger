@@ -31,6 +31,10 @@ pub fn fatal(key: ErrorKey) -> ReportBuilderStage1 {
     ReportBuilderStage1::new(key, Severity::Fatal)
 }
 
+pub fn report(key: ErrorKey, severity: Severity) -> ReportBuilderStage1 {
+    ReportBuilderStage1::new(key, severity)
+}
+
 // =================================================================================================
 // =============== Builder internals:
 // =================================================================================================
@@ -51,6 +55,11 @@ impl ReportBuilderStage1 {
     /// Optional step. Confidence defaults to Reasonable but this overrides it to Strong.
     pub fn strong(mut self) -> Self {
         self.2 = Confidence::Strong;
+        self
+    }
+    /// Optional step for when confidence is not known at compile time.
+    pub fn conf(mut self, conf: Confidence) -> Self {
+        self.2 = conf;
         self
     }
     /// Sets the main report message.

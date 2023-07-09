@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 use std::fs::read;
-use std::io::{Stderr, Stdout, Write};
 use std::mem::take;
 use std::path::PathBuf;
 use std::sync::{Mutex, MutexGuard};
@@ -219,28 +218,6 @@ fn recursive_pointed_msg_expansion(vec: &mut Vec<PointedMessage>, pointer: &Poin
 /// Tests whether the report might be printed. If false, the report will definitely not be printed.
 pub fn will_maybe_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
     Errors::get().filter.should_maybe_print(key, &eloc.into_loc())
-}
-
-pub trait ErrorLogger: Write {
-    fn get_logs(&self) -> Option<String>;
-}
-
-impl ErrorLogger for Stderr {
-    fn get_logs(&self) -> Option<String> {
-        None
-    }
-}
-
-impl ErrorLogger for Stdout {
-    fn get_logs(&self) -> Option<String> {
-        None
-    }
-}
-
-impl ErrorLogger for Vec<u8> {
-    fn get_logs(&self) -> Option<String> {
-        Some(String::from_utf8_lossy(self).to_string())
-    }
 }
 
 pub fn emit_reports() {

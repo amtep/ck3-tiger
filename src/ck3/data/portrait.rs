@@ -5,12 +5,12 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, old_warn, ErrorKey};
+use crate::report::{error, old_warn, Confidence, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
-use crate::validate::validate_modifiers_with_base;
+use crate::validate::{validate_modifiers_with_base, validate_numeric_range};
 
 #[derive(Clone, Debug)]
 pub struct PortraitModifierGroup {}
@@ -140,8 +140,7 @@ fn validate_portrait_modifier(
             }
             vd.field_script_value("value", sc);
             vd.field_validated_block("range", |block, data| {
-                let mut vd = Validator::new(block, data);
-                vd.req_tokens_numbers_exactly(2);
+                validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
             });
         });
         vd.field_validated_blocks("color", |block, data| {
@@ -162,8 +161,7 @@ fn validate_portrait_modifier(
             }
             vd.field_numeric("value");
             vd.field_validated_block("range", |block, data| {
-                let mut vd = Validator::new(block, data);
-                vd.req_tokens_numbers_exactly(2);
+                validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
             });
             vd.field_item("accessory", Item::Accessory);
             vd.field_choice("type", &["male", "female", "boy", "girl"]);

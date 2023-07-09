@@ -30,7 +30,6 @@ pub mod dynasties;
 pub mod dynasty_legacies;
 pub mod election;
 pub mod environment;
-pub mod ethnicity;
 pub mod event_themes;
 pub mod events;
 pub mod factions;
