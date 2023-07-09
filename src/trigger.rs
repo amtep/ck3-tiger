@@ -3,10 +3,9 @@ use std::str::FromStr;
 use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Date, Eq::*, BV};
 #[cfg(feature = "ck3")]
-use crate::ck3::data::genes::Gene;
-#[cfg(feature = "ck3")]
 use crate::ck3::tables::triggers::scope_trigger;
 use crate::context::ScopeContext;
+use crate::data::genes::Gene;
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
@@ -671,11 +670,9 @@ fn match_trigger_bv(
                     }
                 }
             } else if name.is("has_gene") {
-                #[cfg(feature = "ck3")] // TODO move this out of generic code
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
                     vd.field_item("category", Item::GeneCategory);
-                    #[cfg(feature = "ck3")]
                     if let Some(category) = block.get_field_value("category") {
                         if let Some(template) = vd.field_value("template") {
                             Gene::verify_has_template(category.as_str(), template, data);

@@ -37,7 +37,6 @@ pub mod flavorization;
 pub mod focus;
 pub mod gameconcepts;
 pub mod gamerules;
-pub mod genes;
 pub mod government;
 pub mod gui;
 pub mod holdings;

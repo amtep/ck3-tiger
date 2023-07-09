@@ -4,6 +4,8 @@ use strum_macros::IntoStaticStr;
 #[strum(serialize_all = "snake_case")]
 #[cfg(feature = "vic3")]
 pub enum Item {
+    Accessory,
+    AccessoryTag,
     Attitude,
     BattleCondition,
     BuildingGroup,
@@ -21,6 +23,8 @@ pub enum Item {
     EventNamespace,
     File,
     GameConcept,
+    GeneAgePreset,
+    GeneAttribute,
     GeneCategory,
     Goods,
     Ideology,
@@ -60,6 +64,8 @@ impl Item {
     pub fn path(self) -> &'static str {
         #[allow(clippy::match_same_arms)]
         match self {
+            Item::Accessory => "gfx/portraits/accessories/",
+            Item::AccessoryTag => "gfx/portraits/accessories/",
             Item::Attitude => "",
             Item::BattleCondition => "common/battle_conditions/",
             Item::BuildingGroup => "common/building_groups/",
@@ -77,6 +83,8 @@ impl Item {
             Item::EventNamespace => "events/",
             Item::File => "",
             Item::GameConcept => "common/game_concepts/",
+            Item::GeneAgePreset => "common/genes/",
+            Item::GeneAttribute => "common/genes/",
             Item::GeneCategory => "common/genes/",
             Item::Goods => "common/goods/",
             Item::Ideology => "common/ideologies/",

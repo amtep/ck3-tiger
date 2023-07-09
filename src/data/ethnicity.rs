@@ -1,7 +1,6 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
-#[cfg(feature = "ck3")]
-use crate::ck3::data::genes::Gene;
+use crate::data::genes::Gene;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
@@ -34,8 +33,6 @@ impl DbKind for Ethnicity {
                 if let Some(token) = block.get_field_value("name") {
                     let mut vd = Validator::new(block, data);
                     vd.field_value("name");
-                    // TODO for vic3
-                    #[cfg(feature = "ck3")]
                     Gene::verify_has_template(key.as_str(), token, data);
                     vd.field_validated_block("range", |block, data| {
                         validate_numeric_range(
@@ -51,8 +48,6 @@ impl DbKind for Ethnicity {
                     vd.field_list_items("traits", Item::GeneticConstraint);
                 } else {
                     // for color genes
-                    // TODO for vic3
-                    #[cfg(feature = "ck3")]
                     data.validate_use(Item::GeneCategory, key, block);
                 }
             }

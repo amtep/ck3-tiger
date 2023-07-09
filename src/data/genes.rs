@@ -6,8 +6,9 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::helpers::dup_error;
 use crate::item::Item;
-use crate::report::{error, old_warn, warn2, ErrorKey};
+use crate::report::{error, old_warn, warn2, Confidence, ErrorKey, Severity};
 use crate::token::Token;
+use crate::validate::validate_numeric_range;
 
 #[derive(Clone, Debug)]
 pub struct Gene {}
@@ -90,7 +91,9 @@ impl DbKind for ColorGene {
         vd.field_item("sync_inheritance_with", Item::GeneCategory);
         vd.field_value("group"); // TODO
         vd.field_value("color"); // TODO
-        vd.field_validated_block("blend_range", validate_gene_range);
+        vd.field_validated_block("blend_range", |block, data| {
+            validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
+        });
     }
 
     fn validate_use(
@@ -274,6 +277,7 @@ impl AccessoryGene {
             }
             templates.insert(key.to_string(), key.clone());
 
+            #[cfg(feature = "ck3")]
             if let Some(tags) = block.get_field_value("set_tags") {
                 for tag in tags.split(',') {
                     db.add_flag(Item::AccessoryTag, tag);
@@ -466,22 +470,6 @@ fn validate_hsv_curve_range(block: &Block, data: &Everything) {
                 }
             }
         }
-    }
-}
-
-fn validate_gene_range(block: &Block, data: &Everything) {
-    let mut vd = Validator::new(block, data);
-    let mut count = 0;
-    for token in vd.values() {
-        if let Some(v) = token.expect_number() {
-            count += 1;
-            if !(0.0..=1.0).contains(&v) {
-                error(token, ErrorKey::Range, "expected number from 0.0 to 1.0");
-            }
-        }
-    }
-    if count != 2 {
-        error(block, ErrorKey::Validation, "expected exactly 2 numbers");
     }
 }
 

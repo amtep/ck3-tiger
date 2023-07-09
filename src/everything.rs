@@ -58,7 +58,6 @@ use crate::ck3::data::{
     focus::Focus,
     gameconcepts::GameConcepts,
     gamerules::GameRule,
-    genes::Gene,
     government::Government,
     gui::Gui,
     holdings::Holding,
@@ -121,6 +120,7 @@ use crate::data::{
     defines::Defines,
     effect_localization::EffectLocalization,
     ethnicity::Ethnicity,
+    genes::Gene,
     localization::Localization,
     scripted_effects::{Effect, Effects},
     scripted_lists::ScriptedLists,
@@ -484,16 +484,19 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.triggers));
             s.spawn(|_| self.fileset.handle(&mut self.effects));
 
+            // These are items that are different between vic3 and ck3 but share the same name
             s.spawn(|_| self.fileset.handle(&mut self.events));
             s.spawn(|_| self.fileset.handle(&mut self.provinces));
         });
 
-        self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
-        self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
+        self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
         self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
+        self.load_pdx_items(Item::GeneCategory, Gene::add);
         self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
+        self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
 
+        // These are items that are different between vic3 and ck3 but share the same name
         self.load_pdx_items(Item::Culture, Culture::add);
         self.load_pdx_items(Item::Modifier, Modifier::add);
         self.load_pdx_items(Item::Religion, Religion::add);
@@ -536,7 +539,6 @@ impl Everything {
         self.load_pdx_items(Item::Terrain, Terrain::add);
         self.load_pdx_items(Item::Region, Region::add);
         self.load_pdx_items(Item::ScriptedGui, ScriptedGui::add);
-        self.load_pdx_items(Item::GeneCategory, Gene::add);
         self.load_pdx_items(Item::Amenity, Amenity::add);
         self.load_pdx_items(Item::CasusBelliGroup, CasusBelliGroup::add);
         self.load_pdx_items(Item::CasusBelli, CasusBelli::add);

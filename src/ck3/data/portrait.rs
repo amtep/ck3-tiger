@@ -1,7 +1,7 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
-use crate::ck3::data::genes::{AccessoryGene, Gene};
 use crate::context::ScopeContext;
+use crate::data::genes::{AccessoryGene, Gene};
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
