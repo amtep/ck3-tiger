@@ -3,6 +3,7 @@
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::ModifKinds;
+use crate::report::{err, ErrorKey};
 use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
@@ -15,14 +16,6 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     }
 
     // Look up generated modifs, in a careful order because of possibly overlapping suffixes.
-
-    // $BuildingType$_throughput_mult
-    if let Some(part) = name.as_str().strip_suffix("_throughput_mult") {
-        if warn {
-            data.verify_exists_implied(Item::BuildingType, part, name);
-        }
-        return Some(ModifKinds::Building);
-    }
 
     // building_employment_$PopType$_add
     // building_employment_$PopType$_mult
@@ -43,6 +36,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // building_group_$BuildingGroup$_fertility_mult
     // building_group_$BuildingGroup$_mortality_mult
     // building_group_$BuildingGroup$_standard_of_living_add
+    // building_group_$BuildingGroup$_throughput_mult
     // building_group_$BuildingGroup$_tax_mult
     if let Some(part) = name.as_str().strip_prefix("building_group_") {
         for sfx in &["_fertility_mult", "_mortality_mult", "_standard_of_living_add"] {
@@ -63,7 +57,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
                 return Some(ModifKinds::Building);
             }
         }
-        for sfx in &["_employee_mult", "_tax_mult"] {
+        for sfx in &["_employee_mult", "_tax_mult", "_throughput_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
                 if warn {
                     data.verify_exists_implied(Item::BuildingGroup, part, name);
@@ -71,6 +65,14 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
                 return Some(ModifKinds::Building);
             }
         }
+    }
+
+    // $BuildingType$_throughput_mult
+    if let Some(part) = name.as_str().strip_suffix("_throughput_mult") {
+        if warn {
+            data.verify_exists_implied(Item::BuildingType, part, name);
+        }
+        return Some(ModifKinds::Building);
     }
 
     // building_$PopType$_fertility_mult
@@ -168,10 +170,15 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     }
 
     // state_$Culture$_standard_of_living_add
+    // state_$Religion$_standard_of_living_add
     if let Some(part) = name.as_str().strip_prefix("state_") {
         if let Some(part) = part.strip_suffix("_standard_of_living_add") {
             if warn {
-                data.verify_exists_implied(Item::Culture, part, name);
+                if !data.item_exists(Item::Religion, part) && !data.item_exists(Item::Culture, part)
+                {
+                    let msg = format!("{name} not found as culture or religion");
+                    err(ErrorKey::MissingItem).msg(msg).loc(name).push();
+                }
             }
             return Some(ModifKinds::State);
         }
@@ -199,7 +206,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
 
     // state_pop_support_$Law$_add
     // state_pop_support_$Law$_mult
-    if let Some(part) = name.as_str().strip_prefix("state_pop_support") {
+    if let Some(part) = name.as_str().strip_prefix("state_pop_support_") {
         for sfx in &["_add", "_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
                 if warn {
@@ -413,6 +420,7 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("state_loyalists_from_sol_change_accepted_religion_mult", State),
     ("state_loyalists_from_sol_change_mult", State),
     ("state_middle_expected_sol", State),
+    ("state_middle_standard_of_living_add", State),
     ("state_migration_pull_add", State),
     ("state_migration_pull_mult", State),
     ("state_migration_pull_unincorporated_mult", State),
@@ -427,6 +435,7 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("state_political_strength_from_wealth_mult", State),
     ("state_political_strength_from_welfare_mult", State),
     ("state_poor_expected_sol", State),
+    ("state_poor_standard_of_living_add", State),
     ("state_pop_pol_str_add", State),
     ("state_pop_pol_str_mult", State),
     ("state_pop_qualifications_mult", State),
@@ -436,6 +445,7 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("state_radicals_from_sol_change_accepted_religion_mult", State),
     ("state_radicals_from_sol_change_mult", State),
     ("state_rich_expected_sol", State),
+    ("state_rich_standard_of_living_add", State),
     ("state_standard_of_living_add", State),
     ("state_tax_capacity_add", State),
     ("state_tax_capacity_mult", State),
