@@ -31,6 +31,7 @@ impl DbKind for StateRegion {
         vd.field_list_items("traits", Item::StateTrait);
 
         for hub in &["city", "port", "mine", "farm", "wood"] {
+            // TODO verify that these provinces are in the state region
             if vd.field_item(hub, Item::Province) {
                 let loca = format!("HUB_NAME_{key}_{hub}");
                 data.verify_exists_implied(Item::Localization, &loca, key);

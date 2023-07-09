@@ -154,6 +154,7 @@ use crate::vic3::data::{
     provinces::Provinces,
     religions::Religion,
     state_regions::StateRegion,
+    strategic_regions::StrategicRegion,
     technology::{Technology, TechnologyEra},
     terrain_manipulator::TerrainManipulator,
 };
@@ -660,6 +661,7 @@ impl Everything {
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
         self.load_pdx_items(Item::ProductionMethodGroup, ProductionMethodGroup::add);
         self.load_pdx_items(Item::StateRegion, StateRegion::add);
+        self.load_pdx_items(Item::StrategicRegion, StrategicRegion::add);
         self.load_pdx_items(Item::Technology, Technology::add);
         self.load_pdx_items(Item::TechnologyEra, TechnologyEra::add);
         self.load_pdx_items(Item::TerrainManipulator, TerrainManipulator::add);
@@ -708,7 +710,9 @@ impl Everything {
     }
 
     #[cfg(feature = "vic3")]
-    fn validate_all_vic3(&self, _s: &Scope) {}
+    fn validate_all_vic3(&self, _s: &Scope) {
+        StrategicRegion::crosscheck(self);
+    }
 
     pub fn validate_all(&self) {
         scope(|s| {
