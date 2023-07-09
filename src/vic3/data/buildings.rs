@@ -6,6 +6,7 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
+use crate::scriptvalue::validate_non_dynamic_scriptvalue;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_normal_trigger;
@@ -48,6 +49,7 @@ impl DbKind for BuildingType {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Building, vd);
         });
+        vd.field_validated("required_construction", validate_non_dynamic_scriptvalue);
 
         vd.field_item("owners", Item::PopType);
         vd.field_numeric_range("economic_contribution", 0.0, 1.0);
@@ -61,7 +63,8 @@ impl DbKind for BuildingType {
 
         vd.field_item("slaves_role", Item::PopType);
 
-        vd.field_list_items("production_methods", Item::ProductionMethodGroup);
+        // docs say production_methods
+        vd.field_list_items("production_method_groups", Item::ProductionMethodGroup);
 
         vd.field_validated_block("should_auto_expand", |block, data| {
             validate_normal_trigger(block, data, &mut sc, Tooltipped::Yes);
@@ -81,6 +84,20 @@ impl DbKind for BuildingType {
         vd.field_list("entity_constructed"); // TODO
         vd.field_value("locator"); // TODO
         vd.field_value("lens"); // TODO
+
+        // undocumented
+
+        vd.field_validated_key_block("possible", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::State, key);
+            validate_normal_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+
+        vd.field_validated_block("city_gfx_interactions", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_bool("clear_collision_mesh_area");
+            vd.field_bool("clear_size_area");
+            vd.field_integer("size");
+        });
     }
 }
 
