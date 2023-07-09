@@ -525,7 +525,7 @@ fn validate_accessory_gene(block: &Block, data: &Everything) {
                 BV::Block(block) => {
                     let mut vd = Validator::new(block, data);
                     for (_weight, token) in vd.integer_values() {
-                        if !token.is("empty") {
+                        if !token.is("empty") && !token.is("0") {
                             data.verify_exists(Item::Accessory, token);
                         }
                     }
