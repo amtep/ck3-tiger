@@ -881,6 +881,16 @@ impl<'a> Validator<'a> {
         self.block.iter_blocks().collect()
     }
 
+    pub fn validated_blocks<F>(&mut self, mut f: F)
+    where
+        F: FnMut(&Block, &Everything),
+    {
+        self.accepted_blocks = true;
+        for block in self.block.iter_blocks() {
+            f(block, self.data);
+        }
+    }
+
     pub fn integer_blocks(&mut self) -> Vec<(&Token, &Block)> {
         let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {

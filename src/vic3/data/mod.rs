@@ -16,4 +16,4 @@ pub mod religions;
 pub mod state_regions;
 pub mod strategic_regions;
 pub mod technology;
-pub mod terrain_manipulator;
+pub mod terrain;

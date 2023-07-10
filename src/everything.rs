@@ -157,7 +157,7 @@ use crate::vic3::data::{
     state_regions::StateRegion,
     strategic_regions::StrategicRegion,
     technology::{Technology, TechnologyEra},
-    terrain_manipulator::TerrainManipulator,
+    terrain::{Terrain, TerrainLabel, TerrainManipulator},
 };
 
 #[derive(Debug, Error)]
@@ -666,6 +666,8 @@ impl Everything {
         self.load_pdx_items(Item::StrategicRegion, StrategicRegion::add);
         self.load_pdx_items(Item::Technology, Technology::add);
         self.load_pdx_items(Item::TechnologyEra, TechnologyEra::add);
+        self.load_pdx_items(Item::Terrain, Terrain::add);
+        self.load_pdx_items(Item::TerrainLabel, TerrainLabel::add);
         self.load_pdx_items(Item::TerrainManipulator, TerrainManipulator::add);
     }
 
