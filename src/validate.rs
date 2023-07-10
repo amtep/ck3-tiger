@@ -9,7 +9,7 @@ use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{
-    error, error_info, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity,
+    err, error, error_info, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity,
 };
 use crate::scopes::{scope_prefix, scope_to_scope, validate_prefix_reference, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
@@ -401,7 +401,7 @@ pub fn validate_iterator_fields(
 pub fn validate_inside_iterator(
     name: &str,
     listtype: ListType,
-    _block: &Block,
+    block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
     vd: &mut Validator,
@@ -453,7 +453,12 @@ pub fn validate_inside_iterator(
     if name == "court_position_holder" {
         vd.field_item("type", Item::CourtPosition);
     } else if name == "relation" {
-        vd.req_field("type"); // without a type, it won't match any relationship
+        if !block.has_key("type") {
+            let msg = "required field `type` missing";
+            let info =
+                format!("Verified for 1.9.2: with no type, {listtype}_relation will do nothing.");
+            err(ErrorKey::FieldMissing).strong().msg(msg).info(info).loc(block).push();
+        }
         vd.field_items("type", Item::Relation);
     } else {
         vd.ban_field("type", || {
