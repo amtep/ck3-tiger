@@ -5,7 +5,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{error, old_warn, ErrorKey};
+use crate::report::{fatal, old_warn, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -42,7 +42,7 @@ impl DbKind for HolySite {
                 if let Some(title) = data.titles.get(barony.as_str()) {
                     if title.parent.as_deref() != Some(county.as_str()) {
                         let msg = format!("barony not in specified county {county}");
-                        error(barony, ErrorKey::Crash, &msg);
+                        fatal(ErrorKey::Crash).strong().msg(msg).loc(barony).push();
                     }
                 }
             }

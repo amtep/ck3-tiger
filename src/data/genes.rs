@@ -6,7 +6,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::helpers::dup_error;
 use crate::item::Item;
-use crate::report::{error, old_warn, warn2, Confidence, ErrorKey, Severity};
+use crate::report::{error, fatal, old_warn, warn2, Confidence, ErrorKey, Severity};
 use crate::token::Token;
 use crate::validate::validate_numeric_range;
 
@@ -170,7 +170,7 @@ impl DbKind for MorphGene {
         if let Some(token) = vd.field_value("group") {
             if self.special_gene {
                 let msg = "adding a group to a gene under special_genes will make the ruler designer crash";
-                error(token, ErrorKey::Crash, msg);
+                fatal(ErrorKey::Crash).msg(msg).loc(token).push();
             }
         }
         for (_key, block) in vd.unknown_block_fields() {

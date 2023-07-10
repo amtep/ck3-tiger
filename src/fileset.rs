@@ -14,7 +14,7 @@ use crate::everything::Everything;
 use crate::everything::FilesError;
 use crate::modfile::ModFile;
 use crate::report::{
-    add_loaded_mod_root, error, warn_abbreviated, warn_header, will_maybe_log, ErrorKey,
+    add_loaded_mod_root, error, fatal, warn_abbreviated, warn_header, will_maybe_log, ErrorKey,
 };
 use crate::token::{Loc, Token};
 
@@ -386,7 +386,7 @@ impl Fileset {
         let filepath = PathBuf::from(file.as_str());
         if !self.filenames.contains(&filepath) {
             let msg = "referenced file does not exist";
-            error(file, ErrorKey::Crash, msg);
+            fatal(ErrorKey::Crash).msg(msg).loc(file).push();
         }
     }
 
@@ -404,7 +404,7 @@ impl Fileset {
         let filepath = PathBuf::from(file);
         if !self.filenames.contains(&filepath) {
             let msg = format!("file {file} does not exist");
-            error(t, ErrorKey::Crash, &msg);
+            fatal(ErrorKey::Crash).msg(msg).loc(t).push();
         }
     }
 

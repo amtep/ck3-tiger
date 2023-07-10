@@ -8,7 +8,9 @@ use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, error_info, old_warn, report, warn, Confidence, ErrorKey, Severity};
+use crate::report::{
+    error, error_info, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity,
+};
 use crate::scopes::{scope_prefix, scope_to_scope, validate_prefix_reference, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::Token;
@@ -69,7 +71,10 @@ pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeConte
             });
             if vd.field_value("event_background").is_some() {
                 let msg = "`event_background` now causes a crash. It has been replaced by `reference` since 1.9";
-                error(block.get_key("event_background").unwrap(), ErrorKey::Crash, msg);
+                fatal(ErrorKey::Crash)
+                    .msg(msg)
+                    .loc(block.get_key("event_background").unwrap())
+                    .push();
             }
             vd.req_field("reference");
             if let Some(token) = vd.field_value("reference") {

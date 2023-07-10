@@ -3,7 +3,7 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, error_info, ErrorKey};
+use crate::report::{error, fatal, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_color;
 
@@ -71,7 +71,7 @@ impl DbKind for Region {
                 let msg =
                     format!("{} {} not defined in {}", Item::Region, token, Item::Region.path());
                 let info = "this will cause a crash";
-                error_info(token, ErrorKey::Crash, &msg, info);
+                fatal(ErrorKey::Crash).strong().msg(msg).info(info).loc(token).push();
             }
         });
     }

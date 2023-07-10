@@ -13,7 +13,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, old_warn, warn_info, ErrorKey};
+use crate::report::{error, fatal, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -189,8 +189,9 @@ impl FileHandler<Block> for Characters {
             let mut checking = FnvHashSet::default();
             let cycle_vec = self._check_ancestors(item, item.key.as_str(), &mut checking);
             if !cycle_vec.is_empty() {
+                let msg = "character is their own ancestor";
                 let info = format!("via {}", cycle_vec.join(", "));
-                warn_info(&item.key, ErrorKey::Crash, "character is their own ancestor", &info);
+                fatal(ErrorKey::Crash).strong().msg(msg).info(info).loc(&item.key).push()
             }
         }
     }
