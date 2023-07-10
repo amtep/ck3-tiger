@@ -40,6 +40,7 @@ pub fn report(key: ErrorKey, severity: Severity) -> ReportBuilderStage1 {
 // =================================================================================================
 
 #[derive(Debug, Clone, Copy)]
+#[must_use]
 pub struct ReportBuilderStage1(ErrorKey, Severity, Confidence);
 
 impl ReportBuilderStage1 {
@@ -69,6 +70,7 @@ impl ReportBuilderStage1 {
 }
 
 #[derive(Debug)]
+#[must_use]
 pub struct ReportBuilderStage2 {
     stage1: ReportBuilderStage1,
     msg: String,
@@ -108,6 +110,7 @@ impl ReportBuilderStage2 {
 }
 
 #[derive(Debug)]
+#[must_use]
 pub struct ReportBuilderStage3 {
     stage1: ReportBuilderStage1,
     msg: String,
@@ -124,7 +127,7 @@ impl ReportBuilderStage3 {
         });
         self
     }
-    /// Build the report and returns it.
+    /// Build the report and return it.
     pub fn build(self) -> LogReport {
         LogReport {
             key: self.stage1.0,
