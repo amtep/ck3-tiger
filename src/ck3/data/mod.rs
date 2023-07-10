@@ -2,7 +2,6 @@ pub mod accolades;
 pub mod activities;
 pub mod amenities;
 pub mod artifacts;
-pub mod assets;
 pub mod bookmarks;
 pub mod buildings;
 pub mod casusbelli;

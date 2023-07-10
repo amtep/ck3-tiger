@@ -269,6 +269,7 @@ pub struct AccessoryGene {
 impl AccessoryGene {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         let mut templates = FnvHashMap::default();
+        #[allow(unused_variables)] // vic3 does not use `block`
         for (key, block) in block.iter_definitions() {
             if key.is("ugliness_feature_categories") {
                 continue;

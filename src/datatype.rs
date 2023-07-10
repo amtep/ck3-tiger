@@ -125,6 +125,7 @@ pub fn validate_datatypes(
     expect_promote: bool,
 ) {
     let mut curtype = Datatype::Unknown;
+    #[allow(unused_mut)] // vic3 does not need the mut
     let mut codes = Cow::from(&chain.codes[..]);
     #[cfg(feature = "ck3")]
     let mut macro_count = 0;

@@ -8,9 +8,9 @@ use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{
-    err, error, error_info, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity,
-};
+#[cfg(feature = "ck3")]
+use crate::report::{err, fatal};
+use crate::report::{error, error_info, old_warn, report, warn, Confidence, ErrorKey, Severity};
 use crate::scopes::{scope_prefix, scope_to_scope, validate_prefix_reference, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::Token;
@@ -398,6 +398,7 @@ pub fn validate_iterator_fields(
 
 /// This checks the special fields for certain iterators, like `type =` in `every_relation`.
 /// It doesn't check the generic ones like `limit` or the ordering ones for `ordered_*`.
+#[allow(unused_variables)] // vic3 does not use `tooltipped`
 pub fn validate_inside_iterator(
     name: &str,
     listtype: ListType,

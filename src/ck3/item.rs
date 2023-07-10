@@ -333,7 +333,7 @@ impl Item {
             Item::GameRule => "common/game_rules/",
             Item::GameRuleSetting => "common/game_rules/",
             Item::GeneAgePreset => "common/genes/",
-            Item::GeneAttribute => "common/genes/",
+            Item::GeneAttribute => "gfx/models/",
             Item::GeneCategory => "common/genes/",
             Item::GeneticConstraint => "common/traits/",
             Item::GovernmentType => "common/governments/",

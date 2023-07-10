@@ -18,7 +18,6 @@ use crate::ck3::data::{
         ArtifactFeature, ArtifactFeatureGroup, ArtifactSlot, ArtifactTemplate, ArtifactType,
         ArtifactVisual,
     },
-    assets::Assets,
     bookmarks::{Bookmark, BookmarkGroup, BookmarkPortrait},
     buildings::Building,
     casusbelli::{CasusBelli, CasusBelliGroup},
@@ -115,6 +114,7 @@ use crate::config_load::{check_for_legacy_ignore, load_filter};
 use crate::context::ScopeContext;
 use crate::data::{
     accessory::{Accessory, AccessoryVariation},
+    assets::Assets,
     colors::NamedColor,
     customloca::CustomLocalization,
     defines::Defines,
@@ -241,7 +241,6 @@ pub struct Everything {
     #[cfg(feature = "ck3")]
     pub data_bindings: DataBindings,
 
-    #[cfg(feature = "ck3")]
     pub assets: Assets,
     #[cfg(feature = "ck3")]
     pub sounds: Sounds,
@@ -313,7 +312,6 @@ impl Everything {
             gui: Gui::default(),
             #[cfg(feature = "ck3")]
             data_bindings: DataBindings::default(),
-            #[cfg(feature = "ck3")]
             assets: Assets::default(),
             #[cfg(feature = "ck3")]
             sounds: Sounds::default(),
@@ -489,6 +487,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.scriptvalues));
             s.spawn(|_| self.fileset.handle(&mut self.triggers));
             s.spawn(|_| self.fileset.handle(&mut self.effects));
+            s.spawn(|_| self.fileset.handle(&mut self.assets));
 
             // These are items that are different between vic3 and ck3 but share the same name
             s.spawn(|_| self.fileset.handle(&mut self.events));
@@ -525,7 +524,6 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.menatarmstypes));
             s.spawn(|_| self.fileset.handle(&mut self.gui));
             s.spawn(|_| self.fileset.handle(&mut self.data_bindings));
-            s.spawn(|_| self.fileset.handle(&mut self.assets));
             s.spawn(|_| self.fileset.handle(&mut self.sounds));
             s.spawn(|_| self.fileset.handle(&mut self.music));
         });
@@ -688,6 +686,7 @@ impl Everything {
         s.spawn(|_| self.scriptvalues.validate(self));
         s.spawn(|_| self.triggers.validate(self));
         s.spawn(|_| self.effects.validate(self));
+        s.spawn(|_| self.assets.validate(self));
 
         s.spawn(|_| self.events.validate(self));
         s.spawn(|_| self.provinces.validate(self));
@@ -707,7 +706,6 @@ impl Everything {
         s.spawn(|_| self.menatarmstypes.validate(self));
         s.spawn(|_| self.gui.validate(self));
         s.spawn(|_| self.data_bindings.validate(self));
-        s.spawn(|_| self.assets.validate(self));
         s.spawn(|_| self.sounds.validate(self));
         s.spawn(|_| self.music.validate(self));
         s.spawn(|_| self.coas.validate(self));
@@ -808,14 +806,19 @@ impl Everything {
     #[cfg(feature = "vic3")]
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
+            Item::Asset => self.assets.asset_exists(key),
             Item::Attitude => ATTITUDE.contains(&key),
+            Item::BlendShape => self.assets.blend_shape_exists(key),
             Item::Define => self.defines.exists(key),
             Item::Dlc => DLC.contains(&key),
             Item::DlcFeature => DLC_FEATURES.contains(&key),
+            Item::Entity => self.assets.entity_exists(key),
             Item::Event => self.events.exists(key),
             Item::EventNamespace => self.events.namespace_exists(key),
             Item::File => self.fileset.exists(key),
+            Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::Localization => self.localization.exists(key),
+            Item::Pdxmesh => self.assets.mesh_exists(key),
             Item::ScriptedEffect => self.effects.exists(key),
             Item::ScriptedList => self.scripted_lists.exists(key),
             Item::ScriptedModifier => self.scripted_modifiers.exists(key),
@@ -828,6 +831,7 @@ impl Everything {
                     SOUNDS.contains(&key)
                 }
             }
+            Item::TextureFile => self.assets.texture_exists(key),
             _ => self.database.exists(itype, key),
         }
     }
@@ -853,7 +857,6 @@ impl Everything {
             Item::Province => self.provinces.verify_exists_implied(key, token),
             #[cfg(feature = "ck3")]
             Item::Sound => self.sounds.verify_exists_implied(key, token, self),
-            #[cfg(feature = "ck3")]
             Item::TextureFile => {
                 if let Some(entry) = self.assets.get_texture(key) {
                     // TODO: avoid allocating a string here

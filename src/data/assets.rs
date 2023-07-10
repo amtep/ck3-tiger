@@ -32,8 +32,7 @@ impl Assets {
                     }
                 }
             }
-        }
-        if key.is("entity") {
+        } else if key.is("entity") {
             for (key, block) in block.iter_definitions() {
                 if key.is("attribute") {
                     if let Some(name) = block.get_field_value("name") {
@@ -278,7 +277,7 @@ impl Asset {
             vd.field("chance"); // TODO: can be integer or block
             vd.field_value("animation"); // TODO
             vd.field_numeric("animation_blend_time");
-            vd.field_numeric("time_offset");
+            vd.field_validated("time_offset", validate_time_offset);
             vd.field_validated_blocks("start_event", validate_event);
             vd.field_validated_blocks("event", validate_event);
             vd.field_validated_bvs("propagate_state", |bv, data| {
@@ -287,9 +286,7 @@ impl Asset {
                     BV::Block(block) => {
                         let mut vd = Validator::new(block, data);
                         // TODO
-                        for (_key, bv) in vd.unknown_fields() {
-                            bv.expect_value();
-                        }
+                        vd.unknown_value_fields();
                     }
                 }
             });
@@ -376,7 +373,11 @@ fn validate_event(block: &Block, data: &Everything) {
     });
     vd.field_validated_blocks("sound", |block, data| {
         let mut vd = Validator::new(block, data);
-        vd.field_item("soundeffect", Item::Sound);
+        if let Some(token) = vd.field_value("soundeffect") {
+            if !token.is("") {
+                data.verify_exists(Item::Sound, token);
+            }
+        }
         vd.field_bool("stop_on_state_change");
     });
     vd.field_value("light"); // TODO
@@ -399,11 +400,22 @@ fn validate_meshsettings(block: &Block, data: &Everything) {
     });
     vd.field_value("shader"); // TODO
     if let Some(token) = vd.field_value("shader_file") {
-        // Filter out builtin shaders
-        if !token.starts_with("gfx/FX/jomini/") {
-            data.verify_exists(Item::File, token);
-        }
+        data.verify_exists(Item::File, token);
     }
     vd.field_value("subpass");
     vd.field_value("shadow_shader");
+    #[cfg(feature = "vic3")]
+    vd.field_list("additional_shader_defines");
+}
+
+fn validate_time_offset(bv: &BV, data: &Everything) {
+    match bv {
+        BV::Value(token) => {
+            _ = token.expect_number();
+        }
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.req_tokens_numbers_exactly(2);
+        }
+    }
 }
