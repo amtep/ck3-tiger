@@ -55,7 +55,7 @@ impl FileHandler<Block> for Defines {
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (group, block) in block.drain_definitions_warn() {
-            for (name, bv) in block.iter_bv_definitions_warn() {
+            for (name, bv) in block.iter_assignments_and_definitions_warn() {
                 self.load_item(group.clone(), name.clone(), bv);
             }
         }

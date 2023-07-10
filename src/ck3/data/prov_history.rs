@@ -52,7 +52,7 @@ impl ProvinceHistories {
             for (provid, provhist) in &self.provinces {
                 if let Some(capital) = titles.capital_of(*provid) {
                     let religion = provhist.block.get_field_at_date("religion", bookmark);
-                    if let Some(religion) = religion.and_then(BV::into_value) {
+                    if let Some(religion) = religion.and_then(BV::get_value) {
                         if !data.item_has_property(Item::Faith, religion.as_str(), "is_modded") {
                             let msg = format!(
                                 "Vanilla or unknown religion in prov {} (county {}) at {}",

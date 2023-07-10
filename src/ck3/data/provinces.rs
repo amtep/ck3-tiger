@@ -4,7 +4,7 @@ use std::str::FromStr;
 use fnv::{FnvHashMap, FnvHashSet};
 use image::{DynamicImage, Rgb};
 
-use crate::block::{Block, BV};
+use crate::block::Block;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::parse::csv::{parse_csv, read_csv};
@@ -54,52 +54,65 @@ impl Provinces {
         }
 
         let mut expecting = Expecting::Nothing;
-        for (k, _, v) in block.iter_items() {
-            if let Some(key) = k {
-                if key.is("sea_zones")
-                    || key.is("river_provinces")
-                    || key.is("impassable_mountains")
-                {
-                    if let BV::Value(t) = v {
-                        if t.is("LIST") {
-                            expecting = Expecting::List;
-                        } else if t.is("RANGE") {
-                            expecting = Expecting::Range;
+        for item in block.iter_items() {
+            match expecting {
+                Expecting::Nothing => {
+                    if let Some((key, token)) = item.expect_assignment() {
+                        if key.is("sea_zones")
+                            || key.is("river_provinces")
+                            || key.is("impassable_mountains")
+                            || key.is("impassable_seas")
+                            || key.is("lakes")
+                        {
+                            if token.is("LIST") {
+                                expecting = Expecting::List;
+                            } else if token.is("RANGE") {
+                                expecting = Expecting::Range;
+                            } else {
+                                expecting = Expecting::Nothing;
+                            }
                         } else {
+                            // TODO: this has to wait until full validation
+                            // let msg = format!("unexpected key `{key}`");
+                            // warn(ErrorKey::UnknownField).weak().msg(msg).loc(key).push();
+                        }
+                    }
+                }
+                Expecting::Range => {
+                    if let Some(block) = item.expect_block() {
+                        let vec: Vec<&Token> = block.iter_values().collect();
+                        if vec.len() != 2 {
+                            error(block, ErrorKey::Validation, "invalid RANGE");
                             expecting = Expecting::Nothing;
+                            continue;
                         }
-                    }
-                }
-            } else if let BV::Block(b) = v {
-                if matches!(expecting, Expecting::Range) {
-                    let vec = b.get_values();
-                    if vec.len() != 2 {
-                        error(b, ErrorKey::Validation, "invalid RANGE");
-                        expecting = Expecting::Nothing;
-                        continue;
-                    }
-                    let from = vec[0].as_str().parse::<ProvId>();
-                    let to = vec[1].as_str().parse::<ProvId>();
-                    if from.is_err() || to.is_err() {
-                        error(b, ErrorKey::Validation, "invalid RANGE");
-                        expecting = Expecting::Nothing;
-                        continue;
-                    }
-                    for provid in from.unwrap()..=to.unwrap() {
-                        self.impassable.insert(provid);
-                    }
-                } else if matches!(expecting, Expecting::List) {
-                    for token in b.get_values() {
-                        let provid = token.as_str().parse::<ProvId>();
-                        if let Ok(provid) = provid {
+                        let from = vec[0].as_str().parse::<ProvId>();
+                        let to = vec[1].as_str().parse::<ProvId>();
+                        if from.is_err() || to.is_err() {
+                            error(block, ErrorKey::Validation, "invalid RANGE");
+                            expecting = Expecting::Nothing;
+                            continue;
+                        }
+                        for provid in from.unwrap()..=to.unwrap() {
                             self.impassable.insert(provid);
-                        } else {
-                            error(b, ErrorKey::Validation, "invalid LIST");
-                            break;
                         }
                     }
+                    expecting = Expecting::Nothing;
                 }
-                expecting = Expecting::Nothing;
+                Expecting::List => {
+                    if let Some(block) = item.expect_block() {
+                        for token in block.iter_values() {
+                            let provid = token.as_str().parse::<ProvId>();
+                            if let Ok(provid) = provid {
+                                self.impassable.insert(provid);
+                            } else {
+                                error(token, ErrorKey::Validation, "invalid LIST item");
+                                break;
+                            }
+                        }
+                    }
+                    expecting = Expecting::Nothing;
+                }
             }
         }
     }

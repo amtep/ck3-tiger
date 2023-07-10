@@ -31,7 +31,7 @@ impl Religion {
             }
         }
         if let Some(block) = block.get_field_block("custom_faith_icons") {
-            for token in block.get_values() {
+            for token in block.iter_values() {
                 db.add_flag(Item::FaithIcon, token.clone());
             }
         }

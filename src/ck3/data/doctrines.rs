@@ -46,7 +46,7 @@ impl Doctrines {
             }
 
             if let Some(b) = block.get_field_block("parameters") {
-                for (k, v) in b.get_assignments() {
+                for (k, v) in b.iter_assignments() {
                     if v.is("yes") || v.is("no") {
                         self.parameters.insert(k.to_string());
                     }

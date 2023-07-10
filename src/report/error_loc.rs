@@ -1,10 +1,42 @@
-use crate::block::{Block, BV};
+use crate::block::{Block, BlockItem, Field, BV};
 use crate::fileset::FileEntry;
 use crate::token::{Loc, Token};
 
 // This trait lets the error functions accept a variety of things as the error locator.
 pub trait ErrorLoc {
     fn into_loc(self) -> Loc;
+}
+
+impl ErrorLoc for BlockItem {
+    fn into_loc(self) -> Loc {
+        match self {
+            BlockItem::Value(token) => token.into_loc(),
+            BlockItem::Block(block) => block.into_loc(),
+            BlockItem::Field(field) => field.into_loc(),
+        }
+    }
+}
+
+impl ErrorLoc for &BlockItem {
+    fn into_loc(self) -> Loc {
+        match self {
+            BlockItem::Value(token) => token.into_loc(),
+            BlockItem::Block(block) => block.into_loc(),
+            BlockItem::Field(field) => field.into_loc(),
+        }
+    }
+}
+
+impl ErrorLoc for Field {
+    fn into_loc(self) -> Loc {
+        self.into_key().into_loc()
+    }
+}
+
+impl ErrorLoc for &Field {
+    fn into_loc(self) -> Loc {
+        self.key().into_loc()
+    }
 }
 
 impl ErrorLoc for BV {

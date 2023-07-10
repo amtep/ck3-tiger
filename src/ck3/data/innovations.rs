@@ -18,7 +18,7 @@ pub struct Innovation {}
 impl Innovation {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for token in block.get_field_values("flag") {
-            db.add_flag(Item::InnovationFlag, token);
+            db.add_flag(Item::InnovationFlag, token.clone());
         }
         db.add(Item::Innovation, key, block, Box::new(Self {}));
     }

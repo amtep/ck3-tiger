@@ -11,7 +11,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_advice, dup_error};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, error_info, old_warn, ErrorKey};
+use crate::report::{error, old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -92,12 +92,8 @@ impl FileHandler<Block> for Coas {
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, block: Block) {
-        for (key, _, bv) in block.iter_items() {
-            if let Some(key) = key {
-                self.load_item(key, bv);
-            } else {
-                error_info(bv, ErrorKey::Validation, "unexpected item", "Did you forget an = ?");
-            }
+        for (key, bv) in block.iter_assignments_and_definitions_warn() {
+            self.load_item(key, bv);
         }
     }
 }

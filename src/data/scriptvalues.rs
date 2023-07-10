@@ -94,7 +94,7 @@ impl FileHandler<Block> for ScriptValues {
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, block: Block) {
-        for (key, bv) in block.iter_bv_definitions_warn() {
+        for (key, bv) in block.iter_assignments_and_definitions_warn() {
             self.load_item(key, bv);
         }
     }

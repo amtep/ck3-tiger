@@ -11,7 +11,7 @@ pub struct Holding {}
 impl Holding {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for token in block.get_field_values("flag") {
-            db.add_flag(Item::HoldingFlag, token);
+            db.add_flag(Item::HoldingFlag, token.clone());
         }
         db.add(Item::Holding, key, block, Box::new(Self {}));
     }

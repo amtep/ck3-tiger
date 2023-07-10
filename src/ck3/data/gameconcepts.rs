@@ -111,7 +111,7 @@ impl Concept {
             }
             if let Some(frame) = self.block.get_field_integer("frame") {
                 if let Some(b) = self.block.get_field_block("framesize") {
-                    let tokens = b.get_values();
+                    let tokens: Vec<&Token> = b.iter_values().collect();
                     if tokens.len() == 2 {
                         if let Ok(width) = tokens[0].as_str().parse::<u32>() {
                             if let Ok(height) = tokens[1].as_str().parse::<u32>() {

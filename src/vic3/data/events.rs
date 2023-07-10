@@ -4,7 +4,7 @@ use std::str::FromStr;
 use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BV};
+use crate::block::{Block, Field, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_internal};
@@ -91,8 +91,8 @@ impl FileHandler<Block> for Events {
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
-        for (k, _, bv) in block.drain() {
-            if let Some(key) = k {
+        for item in block.drain() {
+            if let Some(Field(key, _, bv)) = item.expect_into_field() {
                 if key.is("namespace") {
                     if let Some(value) = bv.expect_into_value() {
                         self.namespaces.insert(value.to_string(), value);
@@ -103,8 +103,6 @@ impl FileHandler<Block> for Events {
                     let msg = "unknown setting in event files";
                     error(key, ErrorKey::UnknownField, msg);
                 }
-            } else if let Some(key) = bv.expect_into_value() {
-                error_info(key, ErrorKey::Validation, "unexpected token", "Did you forget an = ?");
             }
         }
     }

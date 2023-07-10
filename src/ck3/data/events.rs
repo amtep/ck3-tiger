@@ -4,7 +4,7 @@ use std::str::FromStr;
 use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BV};
+use crate::block::{Block, BlockItem, Field, BV};
 use crate::context::ScopeContext;
 use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
@@ -151,15 +151,15 @@ impl FileHandler<Block> for Events {
 
         let mut expecting = Expecting::Event;
 
-        for (k, _, bv) in block.drain() {
-            if let Some(key) = k {
+        for item in block.drain() {
+            if let BlockItem::Field(Field(key, _, bv)) = item {
                 if key.is("namespace") {
                     if let Some(value) = bv.expect_into_value() {
                         self.namespaces.insert(value.to_string(), value);
                     }
                 } else if key.is("scripted_trigger") || key.is("scripted_effect") {
                     let msg = format!("`{key}` should be used without `=`");
-                    error(key, ErrorKey::Validation, &msg);
+                    error(key, ErrorKey::ParseError, &msg);
                 } else if let Some(block) = bv.into_block() {
                     match expecting {
                         Expecting::ScriptedTrigger => {
@@ -178,7 +178,7 @@ impl FileHandler<Block> for Events {
                     let msg = "unknown setting in event files";
                     error(key, ErrorKey::UnknownField, msg);
                 }
-            } else if let Some(key) = bv.expect_into_value() {
+            } else if let Some(key) = item.expect_value() {
                 if matches!(expecting, Expecting::Event) && key.is("scripted_trigger") {
                     expecting = Expecting::ScriptedTrigger;
                 } else if matches!(expecting, Expecting::Event) && key.is("scripted_effect") {
@@ -432,15 +432,22 @@ fn validate_court_scene(block: &Block, data: &Everything, sc: &mut ScopeContext)
     vd.field_target("court_owner", sc, Scopes::Character);
     vd.field_item("scripted_animation", Item::ScriptedAnimation);
     vd.field_validated_blocks("roles", |b, data| {
-        for (key, block) in b.iter_definitions_warn() {
-            validate_target(key, data, sc, Scopes::Character);
-            let mut vd = Validator::new(block, data);
-            vd.req_field("group");
-            vd.field_item("group", Item::CourtSceneGroup);
-            vd.field_item("animation", Item::PortraitAnimation);
-            vd.field_validated_blocks("triggered_animation", |b, data| {
-                validate_triggered_animation(b, data, sc);
-            });
+        for (key, bv) in b.iter_assignments_and_definitions_warn() {
+            match bv {
+                BV::Block(block) => {
+                    validate_target(key, data, sc, Scopes::Character);
+                    let mut vd = Validator::new(block, data);
+                    vd.req_field("group");
+                    vd.field_item("group", Item::CourtSceneGroup);
+                    vd.field_item("animation", Item::PortraitAnimation);
+                    vd.field_validated_blocks("triggered_animation", |b, data| {
+                        validate_triggered_animation(b, data, sc);
+                    });
+                }
+                BV::Value(token) => {
+                    data.verify_exists(Item::CourtSceneGroup, token);
+                }
+            }
         }
     });
 }

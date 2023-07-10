@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BV};
+use crate::block::{Block, BlockItem, Field, BV};
 use crate::data::localization::LocaValue;
 use crate::datatype::{validate_datatypes, Datatype};
 use crate::everything::Everything;
@@ -41,14 +41,18 @@ impl Gui {
         }
 
         let mut stage = Expecting::Type;
-        for (k, cmp, bv) in block.iter_items() {
+        for item in block.iter_items() {
             match stage {
                 Expecting::Type => {
-                    if let Some(key) = k {
-                        let msg = format!("unexpected assignment `{key} {cmp}`");
-                        let info = "did you forget the `type` keyword?";
-                        warn_info(key, ErrorKey::ParseError, &msg, info);
-                    } else if let Some(token) = bv.expect_value() {
+                    if let Some(field) = item.get_field() {
+                        let msg = format!("unexpected {}", field.describe());
+                        if field.is_eq() {
+                            let info = "did you forget the `type` keyword?";
+                            warn_info(field, ErrorKey::ParseError, &msg, info);
+                        } else {
+                            old_warn(field, ErrorKey::ParseError, &msg);
+                        }
+                    } else if let Some(token) = item.expect_value() {
                         if token.is("type") || token.is("local_type") {
                             stage = Expecting::Header;
                         } else {
@@ -58,22 +62,15 @@ impl Gui {
                     }
                 }
                 Expecting::Header => {
-                    if let Some(key) = k {
-                        if let Some(token) = bv.expect_value() {
-                            stage = Expecting::Body(key, token);
-                        } else {
-                            stage = Expecting::Type;
-                        }
+                    if let Some((key, token)) = item.get_assignment() {
+                        stage = Expecting::Body(key, token);
                     } else {
-                        error(bv, ErrorKey::ParseError, "expected type header");
+                        error(item, ErrorKey::ParseError, "expected type header");
                         stage = Expecting::Type;
                     }
                 }
                 Expecting::Body(name, base) => {
-                    if let Some(key) = k {
-                        let msg = format!("unexpected assignment `{key} {cmp}`");
-                        error(key, ErrorKey::ParseError, &msg);
-                    } else if let Some(block) = bv.expect_block() {
+                    if let Some(block) = item.expect_block() {
                         self.load_type(name.clone(), base.clone(), block.clone());
                     }
                     stage = Expecting::Type;
@@ -148,18 +145,14 @@ impl FileHandler<Block> for Gui {
 
         let mut expecting = Expecting::Widget;
 
-        for (k, cmp, bv) in block.drain() {
+        for item in block.drain() {
             match expecting {
                 Expecting::Widget => {
-                    if let Some(key) = k {
-                        if let Some(block) = bv.expect_block() {
-                            self.load_widget(
-                                PathBuf::from(entry.filename()),
-                                key.clone(),
-                                block.clone(),
-                            );
+                    if let BlockItem::Field(field) = item {
+                        if let Some((key, block)) = field.expect_into_definition() {
+                            self.load_widget(PathBuf::from(entry.filename()), key, block);
                         }
-                    } else if let Some(token) = bv.expect_value() {
+                    } else if let Some(token) = item.expect_value() {
                         // TODO: figure out how local the local_template is
                         if token.lowercase_is("template") || token.lowercase_is("local_template") {
                             expecting = Expecting::Template;
@@ -174,65 +167,68 @@ impl FileHandler<Block> for Gui {
                     }
                 }
                 Expecting::Types => {
-                    if let Some(key) = k {
-                        let msg = format!("unexpected assignment `{key} {cmp}`");
-                        let info = format!("After `Types {key}` there shouldn't be an `{cmp}`");
-                        error_info(key, ErrorKey::ParseError, &msg, &info);
+                    if let BlockItem::Field(field) = item {
+                        let msg = format!("unexpected {}", field.describe());
+                        let info = format!(
+                            "After `Types {}` there shouldn't be an `{}`",
+                            field.key(),
+                            field.cmp()
+                        );
+                        error_info(field, ErrorKey::ParseError, &msg, &info);
                         expecting = Expecting::Widget;
-                    } else if let Some(_token) = bv.expect_value() {
+                    } else if let Some(_) = item.expect_value() {
                         expecting = Expecting::TypesBody;
                     } else {
                         expecting = Expecting::Widget;
                     }
                 }
                 Expecting::TypesBody => {
-                    if let Some(key) = k {
-                        let msg = format!("unexpected assignment `{key} {cmp}`");
-                        error(key, ErrorKey::ParseError, &msg);
-                    } else if let Some(block) = bv.expect_block() {
+                    if let Some(block) = item.expect_block() {
                         self.load_types(block);
                     }
                     expecting = Expecting::Widget;
                 }
                 Expecting::Template => {
-                    if let Some(key) = k {
-                        let msg = format!("unexpected assignment `{key} {cmp}`");
-                        let info = format!("After `template {key}` there shouldn't be an `{cmp}`");
-                        error_info(key, ErrorKey::ParseError, &msg, &info);
+                    if let BlockItem::Field(field) = item {
+                        let msg = format!("unexpected {}", field.describe());
+                        let info = format!(
+                            "After `template {}` there shouldn't be an `{}`",
+                            field.key(),
+                            field.cmp()
+                        );
+                        error_info(field, ErrorKey::ParseError, &msg, &info);
                         expecting = Expecting::Widget;
-                    } else if let Some(token) = bv.expect_value() {
-                        expecting = Expecting::TemplateBody(token.clone());
+                    } else if let Some(token) = item.expect_into_value() {
+                        expecting = Expecting::TemplateBody(token);
                     } else {
                         expecting = Expecting::Widget;
                     }
                 }
                 Expecting::TemplateBody(token) => {
-                    if let Some(key) = k {
-                        let msg = format!("unexpected assignment `{key} {cmp}`");
-                        error(key, ErrorKey::ParseError, &msg);
-                    } else if let Some(block) = bv.expect_block() {
-                        self.load_template(token.clone(), block.clone());
+                    if let Some(block) = item.expect_into_block() {
+                        self.load_template(token.clone(), block);
                     }
                     expecting = Expecting::Widget;
                 }
                 Expecting::Layer => {
-                    if let Some(key) = k {
-                        let msg = format!("unexpected assignment `{key} {cmp}`");
-                        let info = format!("After `layer {key}` there shouldn't be an `{cmp}`");
-                        error_info(key, ErrorKey::ParseError, &msg, &info);
+                    if let BlockItem::Field(field) = item {
+                        let msg = format!("unexpected {}", field.describe());
+                        let info = format!(
+                            "After `layer {}` there shouldn't be an `{}`",
+                            field.key(),
+                            field.cmp()
+                        );
+                        error_info(field, ErrorKey::ParseError, &msg, &info);
                         expecting = Expecting::Widget;
-                    } else if let Some(token) = bv.expect_value() {
-                        expecting = Expecting::LayerBody(token.clone());
+                    } else if let Some(token) = item.expect_into_value() {
+                        expecting = Expecting::LayerBody(token);
                     } else {
                         expecting = Expecting::Widget;
                     }
                 }
                 Expecting::LayerBody(token) => {
-                    if let Some(key) = k {
-                        let msg = format!("unexpected assignment `{key} {cmp}`");
-                        error(key, ErrorKey::ParseError, &msg);
-                    } else if let Some(block) = bv.expect_block() {
-                        self.load_layer(token.clone(), block.clone());
+                    if let Some(block) = item.expect_into_block() {
+                        self.load_layer(token.clone(), block);
                     }
                     expecting = Expecting::Widget;
                 }
@@ -318,24 +314,27 @@ fn validate_gui(block: &Block, data: &Everything) {
     }
 
     let mut expecting = Expecting::Field;
-    for (k, cmp, bv) in block.iter_items() {
+    for item in block.iter_items() {
         match expecting {
             Expecting::Field => {
-                if let Some(key) = k {
-                    if key.is("block") {
-                        let msg = format!("`{key}` should not be followed by an `{cmp}`");
-                        advice(key, ErrorKey::ParseError, &msg);
-                        bv.expect_value();
+                if let Some(field) = item.get_field() {
+                    if field.key().is("block") {
+                        let msg = format!("`block` should not be followed by an `{}`", field.cmp());
+                        advice(field, ErrorKey::ParseError, &msg);
+                        field.expect_assignment();
                         expecting = Expecting::SubstBlockBody;
-                    } else if key.is("blockoverride") {
-                        let msg = format!("`{key}` should not be followed by an `{cmp}`");
-                        advice(key, ErrorKey::ParseError, &msg);
-                        bv.expect_value();
+                    } else if field.key().is("blockoverride") {
+                        let msg = format!(
+                            "`blockoverride` should not be followed by an `{}`",
+                            field.cmp()
+                        );
+                        advice(field, ErrorKey::ParseError, &msg);
+                        field.expect_assignment();
                         expecting = Expecting::BlockOverrideBody;
                     } else {
-                        validate_field(key, bv, data);
+                        validate_field(field, data);
                     }
-                } else if let Some(token) = bv.expect_value() {
+                } else if let Some(token) = item.expect_value() {
                     if token.is("block") {
                         expecting = Expecting::SubstBlock;
                     } else if token.is("blockoverride") {
@@ -348,32 +347,21 @@ fn validate_gui(block: &Block, data: &Everything) {
                 }
             }
             Expecting::SubstBlock => {
-                if let Some(key) = k {
-                    let msg = format!("unexpected assignment `{key} {cmp}`");
-                    error(key, ErrorKey::ParseError, &msg);
-                    expecting = Expecting::Field;
-                } else if let Some(_token) = bv.expect_value() {
+                if let Some(_) = item.expect_value() {
                     expecting = Expecting::SubstBlockBody;
                 } else {
                     expecting = Expecting::Field;
                 }
             }
             Expecting::BlockOverride => {
-                if let Some(key) = k {
-                    let msg = format!("unexpected assignment `{key} {cmp}`");
-                    error(key, ErrorKey::ParseError, &msg);
-                    expecting = Expecting::Field;
-                } else if let Some(_token) = bv.expect_value() {
+                if let Some(_) = item.expect_value() {
                     expecting = Expecting::BlockOverrideBody;
                 } else {
                     expecting = Expecting::Field;
                 }
             }
             Expecting::SubstBlockBody | Expecting::BlockOverrideBody => {
-                if let Some(key) = k {
-                    let msg = format!("unexpected assignment `{key} {cmp}`");
-                    error(key, ErrorKey::ParseError, &msg);
-                } else if let Some(block) = bv.expect_block() {
+                if let Some(block) = item.expect_block() {
                     validate_gui(block, data);
                 }
                 expecting = Expecting::Field;
@@ -382,26 +370,27 @@ fn validate_gui(block: &Block, data: &Everything) {
     }
 }
 
-fn validate_field(key: &Token, bv: &BV, data: &Everything) {
+fn validate_field(field: &Field, data: &Everything) {
+    let key = field.key();
     if key.is("default_format") {
-        bv.expect_value();
+        field.expect_assignment();
         return;
     } else if key.is("texture") || key.is("progresstexture") || key.is("noprogresstexture") {
-        if let Some(token) = bv.expect_value() {
+        if let Some((_, token)) = field.expect_assignment() {
             if !token.starts_with("[") {
                 data.verify_exists(Item::File, token);
                 return;
             }
         }
     } else if key.is("tooltip") || key.is("text") {
-        if let Some(token) = bv.expect_value() {
+        if let Some((_, token)) = field.expect_assignment() {
             if !token.starts_with("[") {
                 data.verify_exists(Item::Localization, token);
                 return;
             }
         }
     } else if key.is("raw_text") {
-        if let Some(token) = bv.expect_value() {
+        if let Some((_, token)) = field.expect_assignment() {
             if !token.starts_with("[") {
                 // Some raw_text fields do contain loca keys
                 data.item_used(Item::Localization, token.as_str());
@@ -409,7 +398,7 @@ fn validate_field(key: &Token, bv: &BV, data: &Everything) {
             }
         }
     }
-    match bv {
+    match field.bv() {
         BV::Value(token) => {
             let mut valuevec = ValueParser::new(vec![token]).parse_value();
             let value = if valuevec.len() == 1 {

@@ -100,7 +100,6 @@ impl FilterRule {
                 Comparator::AtLeast => report.severity >= *level,
                 Comparator::LessThan => report.severity < *level,
                 Comparator::AtMost => report.severity <= *level,
-                Comparator::None => panic!("Encountered unexpected operator: {comparator}"),
             },
             FilterRule::Confidence(comparator, level) => match comparator {
                 Comparator::Equals(_) => report.confidence == *level,
@@ -109,7 +108,6 @@ impl FilterRule {
                 Comparator::AtLeast => report.confidence >= *level,
                 Comparator::LessThan => report.confidence < *level,
                 Comparator::AtMost => report.confidence <= *level,
-                Comparator::None => panic!("Encountered unexpected operator: {comparator}"),
             },
             FilterRule::Key(key) => report.key == *key,
             FilterRule::File(path) => {

@@ -118,7 +118,318 @@ impl BV {
     }
 }
 
-type BlockItem = (Option<Token>, Comparator, BV);
+#[derive(Debug, Clone)]
+pub struct Field(pub Token, pub Comparator, pub BV);
+
+impl Field {
+    pub fn into_key(self) -> Token {
+        self.0
+    }
+
+    pub fn key(&self) -> &Token {
+        &self.0
+    }
+
+    pub fn cmp(&self) -> Comparator {
+        self.1
+    }
+
+    pub fn into_bv(self) -> BV {
+        self.2
+    }
+
+    pub fn bv(&self) -> &BV {
+        &self.2
+    }
+
+    pub fn is_eq(&self) -> bool {
+        matches!(self.1, Comparator::Equals(Single))
+    }
+
+    pub fn is_eq_qeq(&self) -> bool {
+        matches!(self.1, Comparator::Equals(Single | Question))
+    }
+
+    pub fn expect_eq(&self) -> bool {
+        let Self(key, cmp, _) = self;
+        if matches!(cmp, Comparator::Equals(Single)) {
+            true
+        } else {
+            error(self, ErrorKey::Validation, &format!("expected `{key} =`, found `{cmp}`"));
+            false
+        }
+    }
+
+    pub fn describe(&self) -> &'static str {
+        if self.is_eq_qeq() {
+            match self.2 {
+                BV::Value(_) => "assignment",
+                BV::Block(_) => "definition",
+            }
+        } else {
+            "comparison"
+        }
+    }
+
+    pub fn equivalent(&self, other: &Self) -> bool {
+        self.0 == other.0 && self.1 == other.1 && self.2.equivalent(&other.2)
+    }
+
+    pub fn expect_definition(&self) -> Option<(&Token, &Block)> {
+        match self {
+            Field(key, Comparator::Equals(Single | Question), BV::Block(block)) => {
+                return Some((key, block))
+            }
+            _ => {
+                let msg = format!("expected definition, found {}", self.describe());
+                error(self, ErrorKey::Validation, &msg);
+            }
+        }
+        None
+    }
+
+    pub fn expect_into_definition(self) -> Option<(Token, Block)> {
+        match self {
+            Field(key, Comparator::Equals(Single | Question), BV::Block(block)) => {
+                return Some((key, block))
+            }
+            _ => {
+                let msg = format!("expected definition, found {}", self.describe());
+                error(self, ErrorKey::Validation, &msg);
+            }
+        }
+        None
+    }
+
+    pub fn get_definition(&self) -> Option<(&Token, &Block)> {
+        match self {
+            Field(key, Comparator::Equals(Single | Question), BV::Block(block)) => {
+                Some((key, block))
+            }
+            _ => None,
+        }
+    }
+
+    pub fn get_into_definition(self) -> Option<(Token, Block)> {
+        match self {
+            Field(key, Comparator::Equals(Single | Question), BV::Block(block)) => {
+                Some((key, block))
+            }
+            _ => None,
+        }
+    }
+    pub fn expect_assignment(&self) -> Option<(&Token, &Token)> {
+        match self {
+            Field(key, Comparator::Equals(Single | Question), BV::Value(token)) => {
+                return Some((key, token))
+            }
+            _ => {
+                let msg = format!("expected assignment, found {}", self.describe());
+                error(self, ErrorKey::Validation, &msg);
+            }
+        }
+        None
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum BlockItem {
+    Value(Token),
+    Block(Block),
+    Field(Field),
+}
+
+impl BlockItem {
+    pub fn expect_field(&self) -> Option<&Field> {
+        match self {
+            BlockItem::Field(field) => Some(field),
+            _ => {
+                let msg = format!("unexpected {}", self.describe());
+                error_info(self, ErrorKey::Validation, &msg, "Did you forget an = ?");
+                None
+            }
+        }
+    }
+
+    pub fn expect_into_field(self) -> Option<Field> {
+        match self {
+            BlockItem::Field(field) => Some(field),
+            _ => {
+                let msg = format!("unexpected {}", self.describe());
+                error_info(self, ErrorKey::Validation, &msg, "Did you forget an = ?");
+                None
+            }
+        }
+    }
+
+    pub fn get_field(&self) -> Option<&Field> {
+        match self {
+            BlockItem::Field(field) => Some(field),
+            _ => None,
+        }
+    }
+
+    pub fn get_into_field(self) -> Option<Field> {
+        match self {
+            BlockItem::Field(field) => Some(field),
+            _ => None,
+        }
+    }
+
+    pub fn is_field(&self) -> bool {
+        matches!(self, BlockItem::Field(_))
+    }
+
+    pub fn get_value(&self) -> Option<&Token> {
+        match self {
+            BlockItem::Value(token) => Some(token),
+            _ => None,
+        }
+    }
+
+    pub fn expect_value(&self) -> Option<&Token> {
+        match self {
+            BlockItem::Value(token) => Some(token),
+            _ => {
+                let msg = format!("expected value, found {}", self.describe());
+                error(self, ErrorKey::Validation, &msg);
+                None
+            }
+        }
+    }
+
+    pub fn expect_into_value(self) -> Option<Token> {
+        match self {
+            BlockItem::Value(token) => Some(token),
+            _ => {
+                let msg = format!("expected value, found {}", self.describe());
+                error(self, ErrorKey::Validation, &msg);
+                None
+            }
+        }
+    }
+
+    pub fn get_block(&self) -> Option<&Block> {
+        match self {
+            BlockItem::Block(block) => Some(block),
+            _ => None,
+        }
+    }
+
+    pub fn expect_block(&self) -> Option<&Block> {
+        match self {
+            BlockItem::Block(block) => Some(block),
+            _ => {
+                let msg = format!("expected block, found {}", self.describe());
+                error(self, ErrorKey::Validation, &msg);
+                None
+            }
+        }
+    }
+
+    pub fn expect_into_block(self) -> Option<Block> {
+        match self {
+            BlockItem::Block(block) => Some(block),
+            _ => {
+                let msg = format!("expected block, found {}", self.describe());
+                error(self, ErrorKey::Validation, &msg);
+                None
+            }
+        }
+    }
+
+    pub fn get_definition(&self) -> Option<(&Token, &Block)> {
+        if let Some(field) = self.get_field() {
+            field.get_definition()
+        } else {
+            None
+        }
+    }
+
+    pub fn expect_into_definition(self) -> Option<(Token, Block)> {
+        if let Some(field) = self.expect_into_field() {
+            field.expect_into_definition()
+        } else {
+            None
+        }
+    }
+
+    pub fn expect_definition(&self) -> Option<(&Token, &Block)> {
+        if let Some(field) = self.expect_field() {
+            field.expect_definition()
+        } else {
+            None
+        }
+    }
+
+    pub fn get_into_definition(self) -> Option<(Token, Block)> {
+        if let Some(field) = self.get_into_field() {
+            field.get_into_definition()
+        } else {
+            None
+        }
+    }
+
+    pub fn expect_assignment(&self) -> Option<(&Token, &Token)> {
+        if let Some(field) = self.expect_field() {
+            match field {
+                Field(key, Comparator::Equals(Single | Question), BV::Value(token)) => {
+                    return Some((key, token))
+                }
+                _ => {
+                    let msg = format!("expected assignment, found {}", field.describe());
+                    error(self, ErrorKey::Validation, &msg);
+                }
+            }
+        }
+        None
+    }
+
+    pub fn get_assignment(&self) -> Option<(&Token, &Token)> {
+        match self {
+            BlockItem::Field(Field(
+                key,
+                Comparator::Equals(Single | Question),
+                BV::Value(token),
+            )) => Some((key, token)),
+            _ => None,
+        }
+    }
+
+    pub fn describe(&self) -> &'static str {
+        match self {
+            BlockItem::Value(_) => "value",
+            BlockItem::Block(_) => "block",
+            BlockItem::Field(field) => field.describe(),
+        }
+    }
+
+    pub fn equivalent(&self, other: &Self) -> bool {
+        match self {
+            BlockItem::Value(token) => {
+                if let BlockItem::Value(t) = other {
+                    token == t
+                } else {
+                    false
+                }
+            }
+            BlockItem::Block(block) => {
+                if let BlockItem::Block(b) = other {
+                    block.equivalent(b)
+                } else {
+                    false
+                }
+            }
+            BlockItem::Field(field) => {
+                if let BlockItem::Field(f) = other {
+                    field.equivalent(f)
+                } else {
+                    false
+                }
+            }
+        }
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Block {
@@ -140,16 +451,23 @@ impl Block {
     }
 
     pub fn add_value(&mut self, value: BV) {
-        self.v.push((None, Comparator::None, value));
+        match value {
+            BV::Value(token) => self.v.push(BlockItem::Value(token)),
+            BV::Block(block) => self.v.push(BlockItem::Block(block)),
+        }
     }
 
     pub fn add_key_value(&mut self, key: Token, cmp: Comparator, value: BV) {
-        self.v.push((Some(key), cmp, value));
+        self.v.push(BlockItem::Field(Field(key, cmp, value)));
+    }
+
+    pub fn add_item(&mut self, item: BlockItem) {
+        self.v.push(item);
     }
 
     pub fn add_to_field_block(&mut self, name: &str, block: &mut Block) -> bool {
-        for (k, _, bv) in self.v.iter_mut().rev() {
-            if let Some(key) = k {
+        for item in self.v.iter_mut().rev() {
+            if let BlockItem::Field(Field(key, _, bv)) = item {
                 if key.is(name) {
                     match bv {
                         BV::Value(_) => (),
@@ -174,10 +492,10 @@ impl Block {
 
     /// Get the value of a single `name = value` assignment
     pub fn get_field_value(&self, name: &str) -> Option<&Token> {
-        for (k, _, v) in self.v.iter().rev() {
-            if let Some(key) = k {
+        for item in self.v.iter().rev() {
+            if let BlockItem::Field(Field(key, _, bv)) = item {
                 if key.is(name) {
-                    match v {
+                    match bv {
                         BV::Value(t) => return Some(t),
                         BV::Block(_) => (),
                     }
@@ -204,16 +522,11 @@ impl Block {
     }
 
     /// Get all the values of `name = value` assignments in this block
-    pub fn get_field_values(&self, name: &str) -> Vec<Token> {
+    pub fn get_field_values(&self, name: &str) -> Vec<&Token> {
         let mut vec = Vec::new();
-        for (k, _, v) in &self.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    match v {
-                        BV::Value(t) => vec.push(t.clone()),
-                        BV::Block(_) => (),
-                    }
-                }
+        for (key, token) in self.iter_assignments() {
+            if key.is(name) {
+                vec.push(token);
             }
         }
         vec
@@ -221,12 +534,12 @@ impl Block {
 
     /// Get the block of a `name = { ... }` assignment
     pub fn get_field_block(&self, name: &str) -> Option<&Block> {
-        for (k, _, v) in self.v.iter().rev() {
-            if let Some(key) = k {
+        for item in self.v.iter().rev() {
+            if let BlockItem::Field(Field(key, _, bv)) = item {
                 if key.is(name) {
-                    match v {
+                    match bv {
                         BV::Value(_) => (),
-                        BV::Block(s) => return Some(s),
+                        BV::Block(b) => return Some(b),
                     }
                 }
             }
@@ -237,14 +550,9 @@ impl Block {
     /// Get all the blocks of `name = { ... }` assignments in this block
     pub fn get_field_blocks(&self, name: &str) -> Vec<&Block> {
         let mut vec = Vec::new();
-        for (k, _, v) in &self.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    match v {
-                        BV::Value(_) => (),
-                        BV::Block(s) => vec.push(s),
-                    }
-                }
+        for (key, block) in self.iter_definitions() {
+            if key.is(name) {
+                vec.push(block);
             }
         }
         vec
@@ -252,13 +560,13 @@ impl Block {
 
     /// Get the values of a single `name = { value ... }` assignment
     pub fn get_field_list(&self, name: &str) -> Option<Vec<Token>> {
-        for (k, _, v) in self.v.iter().rev() {
-            if let Some(key) = k {
+        for item in self.v.iter().rev() {
+            if let BlockItem::Field(Field(key, _, bv)) = item {
                 if key.is(name) {
-                    match v {
+                    match bv {
                         BV::Value(_) => (),
-                        BV::Block(s) => {
-                            return Some(s.get_values());
+                        BV::Block(b) => {
+                            return Some(b.iter_values().cloned().collect());
                         }
                     }
                 }
@@ -268,63 +576,19 @@ impl Block {
     }
 
     pub fn get_field(&self, name: &str) -> Option<&BV> {
-        for (k, _, v) in self.v.iter().rev() {
-            if let Some(key) = k {
+        for item in self.v.iter().rev() {
+            if let BlockItem::Field(Field(key, _, bv)) = item {
                 if key.is(name) {
-                    return Some(v);
+                    return Some(bv);
                 }
             }
         }
         None
     }
 
-    /// Get all the unkeyed values in this block
-    pub fn get_values(&self) -> Vec<Token> {
-        let mut vec = Vec::new();
-        for (k, _, v) in &self.v {
-            if k.is_none() {
-                match v {
-                    BV::Value(t) => vec.push(t.clone()),
-                    BV::Block(_) => (),
-                }
-            }
-        }
-        vec
-    }
-
-    /// Get all the unkeyed blocks in this block
-    pub fn get_sub_blocks(&self) -> Vec<Block> {
-        let mut vec = Vec::new();
-        for (k, _, v) in &self.v {
-            if k.is_none() {
-                match v {
-                    BV::Value(_) => (),
-                    BV::Block(b) => vec.push(b.clone()),
-                }
-            }
-        }
-        vec
-    }
-
-    /// Get all the token = token items in this block
-    pub fn get_assignments(&self) -> Vec<(&Token, &Token)> {
-        let mut vec = Vec::new();
-        for (k, cmp, v) in &self.v {
-            if let Some(key) = k {
-                if matches!(cmp, Comparator::Equals(Single)) {
-                    match v {
-                        BV::Value(t) => vec.push((key, t)),
-                        BV::Block(_) => (),
-                    }
-                }
-            }
-        }
-        vec
-    }
-
     pub fn get_key(&self, name: &str) -> Option<&Token> {
-        for (k, _, _) in self.v.iter().rev() {
-            if let Some(key) = k {
+        for item in self.v.iter().rev() {
+            if let BlockItem::Field(Field(key, _, _)) = item {
                 if key.is(name) {
                     return Some(key);
                 }
@@ -333,17 +597,25 @@ impl Block {
         None
     }
 
+    pub fn get_keys(&self, name: &str) -> Vec<&Token> {
+        let mut vec = Vec::new();
+        for Field(key, _, _) in self.iter_fields() {
+            if key.is(name) {
+                vec.push(key);
+            }
+        }
+        vec
+    }
+
     pub fn has_key(&self, name: &str) -> bool {
         self.get_key(name).is_some()
     }
 
     pub fn count_keys(&self, name: &str) -> usize {
         let mut count = 0;
-        for (k, _, _) in &self.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    count += 1;
-                }
+        for Field(key, _, _) in self.iter_fields() {
+            if key.is(name) {
+                count += 1;
             }
         }
         count
@@ -357,49 +629,88 @@ impl Block {
         self.v.drain(..)
     }
 
+    pub fn iter_fields(&self) -> IterFields {
+        IterFields { iter: self.v.iter(), warn: false }
+    }
+
+    pub fn iter_fields_warn(&self) -> IterFields {
+        IterFields { iter: self.v.iter(), warn: true }
+    }
+
+    /// "Assignments" are fields that have `key = value`.
     pub fn iter_assignments(&self) -> IterAssignments {
         IterAssignments { iter: self.v.iter(), warn: false }
     }
 
+    /// "Assignments" are fields that have `key = value`.
+    /// `warn` means emit reports for every `BlockItem` that's not an assignment.
     pub fn iter_assignments_warn(&self) -> IterAssignments {
         IterAssignments { iter: self.v.iter(), warn: true }
     }
 
-    pub fn iter_bv_definitions_warn(&self) -> IterBlockValueDefinitions {
-        IterBlockValueDefinitions { iter: self.v.iter(), warn: true }
-    }
-
-    pub fn iter_definitions_warn(&self) -> IterDefinitions {
-        IterDefinitions { iter: self.v.iter(), warn: true }
-    }
-
+    /// "Definitions" are fields that have `key = { block }`.
     pub fn iter_definitions(&self) -> IterDefinitions {
         IterDefinitions { iter: self.v.iter(), warn: false }
     }
 
+    /// "Definitions" are fields that have `key = { block }`.
+    /// `warn` means emit reports for every `BlockItem` that's not a definition.
+    pub fn iter_definitions_warn(&self) -> IterDefinitions {
+        IterDefinitions { iter: self.v.iter(), warn: true }
+    }
+
+    /// "Definitions" are fields that have `key = { block }`.
+    pub fn iter_assignments_and_definitions(&self) -> IterAssignmentsAndDefinitions {
+        IterAssignmentsAndDefinitions { iter: self.v.iter(), warn: false }
+    }
+
+    /// "Assignments" are fields that have `key = value`.
+    /// "Definitions" are fields that have `key = { block }`.
+    /// `warn` means emit reports for every `BlockItem` that's not an assignment or definition
+    pub fn iter_assignments_and_definitions_warn(&self) -> IterAssignmentsAndDefinitions {
+        IterAssignmentsAndDefinitions { iter: self.v.iter(), warn: true }
+    }
+
+    /// "Assignments" are fields that have `key = value`.
+    /// "Definitions" are fields that have key = { block }
+    /// `warn` means emit reports for every `BlockItem` that's not an assignment or definition
     pub fn drain_definitions_warn(&mut self) -> DrainDefinitions {
         DrainDefinitions { iter: self.v.drain(..) }
     }
 
-    pub fn get_field_at_date(&self, name: &str, date: Date) -> Option<BV> {
+    pub fn iter_values(&self) -> IterValues {
+        IterValues { iter: self.v.iter(), warn: false }
+    }
+
+    pub fn iter_values_warn(&self) -> IterValues {
+        IterValues { iter: self.v.iter(), warn: true }
+    }
+
+    pub fn iter_blocks(&self) -> IterBlocks {
+        IterBlocks { iter: self.v.iter(), warn: false }
+    }
+
+    pub fn iter_blocks_warn(&self) -> IterBlocks {
+        IterBlocks { iter: self.v.iter(), warn: true }
+    }
+
+    pub fn get_field_at_date(&self, name: &str, date: Date) -> Option<&BV> {
         let mut found_date: Option<Date> = None;
         let mut found: Option<&BV> = None;
 
-        for (k, _, v) in &self.v {
-            if let Some(k) = k {
-                if k.is(name) && found_date.is_none() {
-                    found = Some(v);
-                } else if let Ok(isdate) = Date::try_from(k) {
-                    if isdate <= date && (found_date.is_none() || found_date.unwrap() < isdate) {
-                        if let Some(value) = v.get_block().and_then(|b| b.get_field(name)) {
-                            found_date = Some(isdate);
-                            found = Some(value);
-                        }
+        for Field(key, _, bv) in self.iter_fields() {
+            if key.is(name) && found_date.is_none() {
+                found = Some(bv);
+            } else if let Ok(isdate) = Date::try_from(key) {
+                if isdate <= date && (found_date.is_none() || found_date.unwrap() < isdate) {
+                    if let Some(value) = bv.get_block().and_then(|b| b.get_field(name)) {
+                        found_date = Some(isdate);
+                        found = Some(value);
                     }
                 }
             }
         }
-        found.cloned()
+        found
     }
 
     pub fn macro_parms(&self) -> Vec<&str> {
@@ -455,19 +766,7 @@ impl Block {
             return false;
         }
         for i in 0..self.v.len() {
-            if let Some(ref key1) = self.v[i].0 {
-                if let Some(ref key2) = other.v[i].0 {
-                    if !key1.is(key2.as_str()) {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-            } else if other.v[i].0.is_some() {
-                return false;
-            }
-
-            if self.v[i].1 != other.v[i].1 || !self.v[i].2.equivalent(&other.v[i].2) {
+            if !self.v[i].equivalent(&other.v[i]) {
                 return false;
             }
         }
@@ -479,32 +778,24 @@ impl Block {
     /// is used as the separator because it can't show up in normal parsing).
     pub fn condense_tag(self, tag: &str) -> Self {
         let mut other = Block::new(self.loc);
-        let mut reserve: Option<(Token, Comparator, BV)> = None;
-        for (k, cmp, bv) in self.v {
-            if let Some((rkey, rcmp, rbv)) = reserve {
-                if k.is_none() {
-                    if let BV::Value(token) = bv {
-                        if let BV::Value(mut rtoken) = rbv {
-                            // Combine current value with reserved assignment
-                            rtoken.combine(&token, '"');
-                            other.add_key_value(rkey, rcmp, BV::Value(rtoken));
-                        }
-                    } else {
-                        // Can't use current bv, so send the reserve and then this bv separately
-                        other.add_key_value(rkey, rcmp, rbv);
-                        other.add_value(bv);
-                    }
+        let mut reserve: Option<(Token, Comparator, Token)> = None;
+        for item in self.v {
+            if let Some((rkey, rcmp, mut rtoken)) = reserve {
+                if let BlockItem::Value(token) = item {
+                    // Combine current value with reserved assignment
+                    rtoken.combine(&token, '"');
+                    other.add_key_value(rkey, rcmp, BV::Value(rtoken));
                     reserve = None;
                     continue;
                 }
-                other.add_key_value(rkey, rcmp, rbv);
+                other.add_key_value(rkey, rcmp, BV::Value(rtoken));
                 reserve = None;
             }
-            if let Some(key) = k {
+            if let BlockItem::Field(Field(key, cmp, bv)) = item {
                 match bv {
                     BV::Value(token) => {
                         if token.is(tag) {
-                            reserve = Some((key, cmp, BV::Value(token)));
+                            reserve = Some((key, cmp, token));
                             continue;
                         }
                         other.add_key_value(key, cmp, BV::Value(token));
@@ -514,7 +805,7 @@ impl Block {
                     }
                 }
             } else {
-                other.add_value(bv);
+                other.add_item(item);
             }
         }
         other
@@ -523,9 +814,6 @@ impl Block {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Comparator {
-    /// TODO: Can perhaps be replaced by wrapping the operator in an option.
-    /// Deprecated.
-    None,
     /// =, ?=, ==,
     Equals(Eq),
     /// !=
@@ -591,7 +879,6 @@ impl Display for Comparator {
             Comparator::AtMost => write!(f, "<="),
             Comparator::AtLeast => write!(f, ">="),
             Comparator::NotEquals => write!(f, "!="),
-            Comparator::None => Ok(()),
         }
     }
 }
@@ -606,44 +893,12 @@ impl<'a> Iterator for IterAssignments<'a> {
     type Item = (&'a Token, &'a Token);
 
     fn next(&mut self) -> Option<Self::Item> {
-        for (k, cmp, bv) in self.iter.by_ref() {
-            if let Some(key) = k {
-                if !matches!(cmp, Comparator::Equals(Single)) {
-                    if self.warn {
-                        let msg = format!("expected `{key} =`, found `{cmp}`");
-                        error(key, ErrorKey::Validation, &msg);
-                    }
-                    continue;
-                }
-                return match bv {
-                    BV::Value(t) => Some((key, t)),
-                    BV::Block(b) => {
-                        if self.warn {
-                            error(b, ErrorKey::Validation, "expected value, found block");
-                        }
-                        None
-                    }
-                };
-            }
+        for item in self.iter.by_ref() {
             if self.warn {
-                match bv {
-                    BV::Value(t) => {
-                        error_info(
-                            t,
-                            ErrorKey::Validation,
-                            "unexpected value",
-                            "Did you forget an = ?",
-                        );
-                    }
-                    BV::Block(b) => {
-                        error_info(
-                            b,
-                            ErrorKey::Validation,
-                            "unexpected block",
-                            "Did you forget an = ?",
-                        );
-                    }
-                }
+                item.expect_assignment();
+            }
+            if let Some((key, token)) = item.get_assignment() {
+                return Some((key, token));
             }
         }
         None
@@ -660,32 +915,40 @@ impl<'a> Iterator for IterDefinitions<'a> {
     type Item = (&'a Token, &'a Block);
 
     fn next(&mut self) -> Option<Self::Item> {
-        for (k, _, bv) in self.iter.by_ref() {
-            if let Some(key) = k {
-                if let Some(block) = bv.get_block() {
-                    return Some((key, block));
-                } else if self.warn {
-                    error(key, ErrorKey::Validation, "unexpected assignment");
-                }
-            } else if self.warn {
-                match bv {
-                    BV::Value(t) => {
-                        error_info(
-                            t,
-                            ErrorKey::Validation,
-                            "unexpected value",
-                            "Did you forget an = ?",
-                        );
+        for item in self.iter.by_ref() {
+            if self.warn {
+                item.expect_definition();
+            }
+            if let Some((key, block)) = item.get_definition() {
+                return Some((key, block));
+            }
+        }
+        None
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct IterAssignmentsAndDefinitions<'a> {
+    iter: std::slice::Iter<'a, BlockItem>,
+    warn: bool,
+}
+
+impl<'a> Iterator for IterAssignmentsAndDefinitions<'a> {
+    type Item = (&'a Token, &'a BV);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for item in self.iter.by_ref() {
+            if self.warn {
+                item.expect_field();
+            }
+            if let BlockItem::Field(field) = item {
+                if !field.is_eq() {
+                    if self.warn {
+                        field.expect_eq();
                     }
-                    BV::Block(b) => {
-                        error_info(
-                            b,
-                            ErrorKey::Validation,
-                            "unexpected block",
-                            "Did you forget an = ?",
-                        );
-                    }
+                    continue;
                 }
+                return Some((field.key(), field.bv()));
             }
         }
         None
@@ -701,31 +964,9 @@ impl Iterator for DrainDefinitions<'_> {
     type Item = (Token, Block);
 
     fn next(&mut self) -> Option<Self::Item> {
-        for (k, _, bv) in self.iter.by_ref() {
-            if let Some(key) = k {
-                if let Some(block) = bv.into_block() {
-                    return Some((key, block));
-                }
-                error(key, ErrorKey::Validation, "unexpected assignment");
-            } else {
-                match bv {
-                    BV::Value(t) => {
-                        error_info(
-                            t,
-                            ErrorKey::Validation,
-                            "unexpected value",
-                            "Did you forget an = ?",
-                        );
-                    }
-                    BV::Block(b) => {
-                        error_info(
-                            b,
-                            ErrorKey::Validation,
-                            "unexpected block",
-                            "Did you forget an = ?",
-                        );
-                    }
-                }
+        for item in self.iter.by_ref() {
+            if let Some((key, block)) = item.expect_into_definition() {
+                return Some((key, block));
             }
         }
         None
@@ -733,49 +974,62 @@ impl Iterator for DrainDefinitions<'_> {
 }
 
 #[derive(Clone, Debug)]
-pub struct IterBlockValueDefinitions<'a> {
+pub struct IterFields<'a> {
     iter: std::slice::Iter<'a, BlockItem>,
     warn: bool,
 }
 
-impl<'a> Iterator for IterBlockValueDefinitions<'a> {
-    type Item = (&'a Token, &'a BV);
+impl<'a> Iterator for IterFields<'a> {
+    type Item = &'a Field;
 
     fn next(&mut self) -> Option<Self::Item> {
-        for (k, cmp, bv) in self.iter.by_ref() {
-            if let Some(key) = k {
-                if !matches!(cmp, Comparator::Equals(Single)) {
-                    if self.warn {
-                        error(
-                            key,
-                            ErrorKey::Validation,
-                            &format!("expected `{key} =`, found `{cmp}`"),
-                        );
-                    }
-                    continue;
-                }
-                return Some((key, bv));
-            }
+        for item in self.iter.by_ref() {
             if self.warn {
-                match bv {
-                    BV::Value(t) => {
-                        error_info(
-                            t,
-                            ErrorKey::Validation,
-                            "unexpected token",
-                            "Did you forget an = ?",
-                        );
-                    }
-                    BV::Block(b) => {
-                        error_info(
-                            b,
-                            ErrorKey::Validation,
-                            "unexpected block",
-                            "Did you forget an = ?",
-                        );
-                    }
-                }
+                item.expect_field();
             }
+            if let BlockItem::Field(field) = item {
+                return Some(field);
+            }
+        }
+        None
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct IterValues<'a> {
+    iter: std::slice::Iter<'a, BlockItem>,
+    warn: bool,
+}
+
+impl<'a> Iterator for IterValues<'a> {
+    type Item = &'a Token;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for item in self.iter.by_ref() {
+            if self.warn {
+                item.expect_value();
+            }
+            return item.get_value();
+        }
+        None
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct IterBlocks<'a> {
+    iter: std::slice::Iter<'a, BlockItem>,
+    warn: bool,
+}
+
+impl<'a> Iterator for IterBlocks<'a> {
+    type Item = &'a Block;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for item in self.iter.by_ref() {
+            if self.warn {
+                item.expect_block();
+            }
+            return item.get_block();
         }
         None
     }

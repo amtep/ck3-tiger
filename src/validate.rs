@@ -190,60 +190,51 @@ pub fn validate_color(block: &Block, _data: &Everything) {
     let mut count = 0;
     // Get the color tag, as in color = hsv { 0.5 1.0 1.0 }
     let tag = block.tag.as_ref().map_or("rgb", Token::as_str);
-    for (k, _, v) in block.iter_items() {
-        if let Some(key) = k {
-            warn(ErrorKey::Colors).msg("expected color value").loc(key).push();
-        } else {
-            match v {
-                BV::Value(t) => {
-                    if tag == "hsv" {
-                        t.check_number();
-                        if let Some(f) = t.get_number() {
-                            if !(0.0..=1.0).contains(&f) {
-                                // TODO: check if integer color values actually work in hsv,
-                                // then adjust the report.
-                                let msg = "hsv values should be between 0.0 and 1.0";
-                                let mut info = "";
-                                if t.is_integer() {
-                                    info = "did you mean `hsv360`?"
-                                }
-                                warn(ErrorKey::Colors).weak().msg(msg).info(info).loc(t).push();
-                            }
-                        } else {
-                            warn(ErrorKey::Colors).msg("expected hsv value").loc(t).push();
+    for item in block.iter_items() {
+        if let Some(t) = item.get_value() {
+            if tag == "hsv" {
+                t.check_number();
+                if let Some(f) = t.get_number() {
+                    if !(0.0..=1.0).contains(&f) {
+                        // TODO: check if integer color values actually work in hsv,
+                        // then adjust the report.
+                        let msg = "hsv values should be between 0.0 and 1.0";
+                        let mut info = "";
+                        if t.is_integer() {
+                            info = "did you mean `hsv360`?"
                         }
-                    } else if tag == "hsv360" {
-                        if let Some(i) = t.get_integer() {
-                            if count == 0 && !(0..=360).contains(&i) {
-                                let msg = "hsv360 h values should be between 0 and 360";
-                                warn(ErrorKey::Colors).msg(msg).loc(t).push();
-                            } else if count > 0 && !(0..=100).contains(&i) {
-                                let msg = "hsv360 s and v values should be between 0 and 100";
-                                warn(ErrorKey::Colors).msg(msg).loc(t).push();
-                            }
-                        } else {
-                            warn(ErrorKey::Colors).msg("expected hsv360 value").loc(t).push();
-                        }
-                    } else if let Some(i) = t.get_integer() {
-                        if !(0..=255).contains(&i) {
-                            let msg = "color values should be between 0 and 255";
-                            warn(ErrorKey::Colors).msg(msg).loc(t).push();
-                        }
-                    } else if let Some(f) = t.get_number() {
-                        t.check_number();
-                        if !(0.0..=1.0).contains(&f) {
-                            let msg = "color values should be between 0.0 and 1.0";
-                            warn(ErrorKey::Colors).msg(msg).loc(t).push();
-                        }
-                    } else {
-                        warn(ErrorKey::Colors).msg("expected color value").loc(t).push();
+                        warn(ErrorKey::Colors).weak().msg(msg).info(info).loc(t).push();
                     }
-                    count += 1;
+                } else {
+                    warn(ErrorKey::Colors).msg("expected hsv value").loc(t).push();
                 }
-                BV::Block(b) => {
-                    warn(ErrorKey::Colors).msg("expected color value").loc(b).push();
+            } else if tag == "hsv360" {
+                if let Some(i) = t.get_integer() {
+                    if count == 0 && !(0..=360).contains(&i) {
+                        let msg = "hsv360 h values should be between 0 and 360";
+                        warn(ErrorKey::Colors).msg(msg).loc(t).push();
+                    } else if count > 0 && !(0..=100).contains(&i) {
+                        let msg = "hsv360 s and v values should be between 0 and 100";
+                        warn(ErrorKey::Colors).msg(msg).loc(t).push();
+                    }
+                } else {
+                    warn(ErrorKey::Colors).msg("expected hsv360 value").loc(t).push();
                 }
+            } else if let Some(i) = t.get_integer() {
+                if !(0..=255).contains(&i) {
+                    let msg = "color values should be between 0 and 255";
+                    warn(ErrorKey::Colors).msg(msg).loc(t).push();
+                }
+            } else if let Some(f) = t.get_number() {
+                t.check_number();
+                if !(0.0..=1.0).contains(&f) {
+                    let msg = "color values should be between 0.0 and 1.0";
+                    warn(ErrorKey::Colors).msg(msg).loc(t).push();
+                }
+            } else {
+                warn(ErrorKey::Colors).msg("expected color value").loc(t).push();
             }
+            count += 1;
         }
     }
     if count != 3 && count != 4 {
@@ -263,27 +254,18 @@ pub fn validate_camera_color(block: &Block, data: &Everything) {
         return;
     }
 
-    for (k, _, v) in block.iter_items() {
-        if let Some(key) = k {
-            error(key, ErrorKey::Colors, "expected color value");
-        } else {
-            match v {
-                BV::Value(t) => {
-                    t.check_number();
-                    if let Some(f) = t.get_number() {
-                        if count <= 1 && !(0.0..=1.0).contains(&f) {
-                            let msg = "h and s values should be between 0.0 and 1.0";
-                            error(t, ErrorKey::Colors, msg);
-                        }
-                    } else {
-                        error(t, ErrorKey::Colors, "expected hsv value");
-                    }
-                    count += 1;
+    for item in block.iter_items() {
+        if let Some(t) = item.get_value() {
+            t.check_number();
+            if let Some(f) = t.get_number() {
+                if count <= 1 && !(0.0..=1.0).contains(&f) {
+                    let msg = "h and s values should be between 0.0 and 1.0";
+                    error(t, ErrorKey::Colors, msg);
                 }
-                BV::Block(b) => {
-                    error(b, ErrorKey::Colors, "expected color value");
-                }
+            } else {
+                error(t, ErrorKey::Colors, "expected hsv value");
             }
+            count += 1;
         }
     }
     if count != 3 {
@@ -920,30 +902,26 @@ pub fn validate_maa_stats(vd: &mut Validator) {
 
 pub fn validate_ifelse_sequence(block: &Block, key_if: &str, key_elseif: &str, key_else: &str) {
     let mut seen_if = false;
-    for (k, _, bv) in block.iter_items() {
-        if let Some(key) = k {
-            if key.is(key_if) {
+    for (key, block) in block.iter_definitions() {
+        if key.is(key_if) {
+            seen_if = true;
+            continue;
+        } else if key.is(key_elseif) {
+            if !seen_if {
+                let msg = format!("`{key_elseif} without preceding `{key_if}`");
+                old_warn(key, ErrorKey::IfElse, &msg);
+            }
+            seen_if = true;
+            continue;
+        } else if key.is(key_else) {
+            if !seen_if {
+                let msg = format!("`{key_else} without preceding `{key_if}`");
+                old_warn(key, ErrorKey::IfElse, &msg);
+            }
+            if block.has_key("limit") {
+                // `else` with a `limit`, followed by another `else`, does work.
                 seen_if = true;
                 continue;
-            } else if key.is(key_elseif) {
-                if !seen_if {
-                    let msg = format!("`{key_elseif} without preceding `{key_if}`");
-                    old_warn(key, ErrorKey::IfElse, &msg);
-                }
-                seen_if = true;
-                continue;
-            } else if key.is(key_else) {
-                if !seen_if {
-                    let msg = format!("`{key_else} without preceding `{key_if}`");
-                    old_warn(key, ErrorKey::IfElse, &msg);
-                }
-                if let Some(block) = bv.get_block() {
-                    if block.has_key("limit") {
-                        // `else` with a `limit`, followed by another `else`, does work.
-                        seen_if = true;
-                        continue;
-                    }
-                }
             }
         }
         seen_if = false;

@@ -29,7 +29,7 @@ fn validate_modfile(block: &Block) -> ModFile {
         block: block.clone(),
         name: block.get_field_value("name").cloned(),
         path: block.get_field_value("path").cloned(),
-        replace_paths: block.get_field_values("replace_path"),
+        replace_paths: block.get_field_values("replace_path").into_iter().cloned().collect(),
         version: block.get_field_value("version").cloned(),
         tags: block.get_field_list("tags"),
         supported_version: block.get_field_value("supported_version").cloned(),

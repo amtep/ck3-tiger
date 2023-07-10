@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::validator::Validator;
-use crate::block::{Block, BV};
+use crate::block::{Block, BlockItem, Field, BV};
 use crate::ck3::tables::on_action::on_action_scopecontext;
 use crate::context::ScopeContext;
 use crate::effect::validate_effect;
@@ -77,22 +77,18 @@ fn on_action_special_append(first: &mut Block, mut second: Block) {
         "first_valid_on_action",
     ];
     let mut seen: FnvHashSet<String> = FnvHashSet::default();
-    for (k, cmp, bv) in second.drain() {
-        if let Some(key) = k {
-            if let BV::Block(mut block) = bv {
-                // For the special fields, append the first one we see to the first block's corresponding field.
-                if SPECIAL_FIELDS.contains(&key.as_str()) && !seen.contains(&key.to_string()) {
-                    seen.insert(key.to_string());
-                    if first.add_to_field_block(key.as_str(), &mut block) {
-                        continue;
-                    }
+    for item in second.drain() {
+        if let BlockItem::Field(Field(key, cmp, BV::Block(mut block))) = item {
+            // For the special fields, append the first one we see to the first block's corresponding field.
+            if SPECIAL_FIELDS.contains(&key.as_str()) && !seen.contains(&key.to_string()) {
+                seen.insert(key.to_string());
+                if first.add_to_field_block(key.as_str(), &mut block) {
+                    continue;
                 }
-                first.add_key_value(key, cmp, BV::Block(block));
-            } else {
-                first.add_key_value(key, cmp, bv);
             }
+            first.add_key_value(key, cmp, BV::Block(block));
         } else {
-            first.add_value(bv);
+            first.add_item(item);
         }
     }
 }

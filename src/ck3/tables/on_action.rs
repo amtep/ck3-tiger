@@ -560,13 +560,13 @@ fn build_on_action_hashmap(description: &'static str) -> FnvHashMap<String, OnAc
     let mut hash: FnvHashMap<String, OnActionScopeContext> = FnvHashMap::default();
 
     let mut block = parse_pdx_internal(description, "on action builtin scopes");
-    for (key, _, bv) in block.drain() {
-        let key = key.expect("internal error");
-        match bv {
+    for item in block.drain() {
+        let field = item.get_field().expect("internal error");
+        match field.bv() {
             BV::Value(token) => {
                 // key1 = key2 means copy from key2
                 let value = hash.get(token.as_str()).expect("internal error");
-                hash.insert(key.to_string(), value.clone());
+                hash.insert(field.key().to_string(), value.clone());
             }
             BV::Block(block) => {
                 let root = block.get_field_value("root").expect("internal error");
@@ -587,7 +587,7 @@ fn build_on_action_hashmap(description: &'static str) -> FnvHashMap<String, OnAc
                         }
                     }
                 }
-                hash.insert(key.to_string(), value);
+                hash.insert(field.key().to_string(), value);
             }
         }
     }

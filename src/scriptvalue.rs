@@ -1,5 +1,5 @@
 use crate::block::validator::Validator;
-use crate::block::{Block, Comparator, Eq::*, BV};
+use crate::block::{Block, BlockItem, Comparator, Eq::*, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::TriBool;
@@ -194,7 +194,7 @@ fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bo
         BV::Value(t) => validate_target_ok_this(t, data, sc, Scopes::Value | Scopes::Bool),
         BV::Block(b) => {
             let mut vd = Validator::new(b, data);
-            if let Some((None, _, _)) = b.iter_items().next() {
+            if matches!(b.iter_items().next(), Some(BlockItem::Block(_) | BlockItem::Value(_))) {
                 // It's a range like { 1 5 }
                 let vec = vd.values();
                 if vec.len() == 2 {

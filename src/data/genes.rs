@@ -441,11 +441,11 @@ fn validate_hsv_curve_range(block: &Block, data: &Everything) {
     let mut found_first = false;
     let mut found_second = false;
 
-    for (k, _cmp, bv) in block.iter_items() {
-        if let Some(key) = k {
-            old_warn(key, ErrorKey::Validation, "unknown field");
+    for item in block.iter_items() {
+        if item.is_field() {
+            old_warn(item, ErrorKey::Validation, "unexpected key");
         } else if !found_first {
-            if let Some(token) = bv.expect_value() {
+            if let Some(token) = item.expect_value() {
                 if let Some(v) = token.expect_number() {
                     found_first = true;
                     if !(0.0..=1.0).contains(&v) {
@@ -454,7 +454,7 @@ fn validate_hsv_curve_range(block: &Block, data: &Everything) {
                 }
             }
         } else if !found_second {
-            if let Some(block) = bv.expect_block() {
+            if let Some(block) = item.expect_block() {
                 found_second = true;
                 let mut count = 0;
                 let mut vd = Validator::new(block, data);

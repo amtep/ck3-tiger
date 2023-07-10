@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::block::validator::Validator;
-use crate::block::{Block, Comparator, Date, Eq::*, BV};
+use crate::block::{Block, Comparator, Date, Eq::*, Field, BV};
 #[cfg(feature = "ck3")]
 use crate::ck3::tables::triggers::scope_trigger;
 use crate::context::ScopeContext;
@@ -431,19 +431,17 @@ fn match_trigger_fields(
         }
     }
 
-    for (key, cmp, bv) in block.iter_items() {
-        if let Some(key) = key {
-            for (field, trigger) in fields {
-                let fieldname = if let Some(opt) = field.strip_prefix('?') {
-                    opt
-                } else if let Some(mlt) = field.strip_prefix('*') {
-                    mlt
-                } else {
-                    field
-                };
-                if key.is(fieldname) {
-                    match_trigger_bv(trigger, key, *cmp, bv, data, sc, tooltipped, negated);
-                }
+    for Field(key, cmp, bv) in block.iter_fields() {
+        for (field, trigger) in fields {
+            let fieldname = if let Some(opt) = field.strip_prefix('?') {
+                opt
+            } else if let Some(mlt) = field.strip_prefix('*') {
+                mlt
+            } else {
+                field
+            };
+            if key.is(fieldname) {
+                match_trigger_bv(trigger, key, *cmp, bv, data, sc, tooltipped, negated);
             }
         }
     }
@@ -587,15 +585,10 @@ fn match_trigger_bv(
                     let msg = "unexpected number of items in block";
                     old_warn(block, ErrorKey::Validation, msg);
                 }
-                for (key, _cmp, bv) in block.iter_items() {
-                    if let Some(key) = key {
-                        validate_target(key, data, sc, *s);
-                        if let Some(token) = bv.expect_value() {
-                            validate_target(token, data, sc, *s);
-                        }
-                    } else {
-                        let msg = "unexpected item in block";
-                        old_warn(bv, ErrorKey::Validation, msg);
+                for Field(key, _, bv) in block.iter_fields_warn() {
+                    validate_target(key, data, sc, *s);
+                    if let Some(token) = bv.expect_value() {
+                        validate_target(token, data, sc, *s);
                     }
                 }
             }

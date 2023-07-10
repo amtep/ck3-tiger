@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
-use crate::block::{Block, Comparator, Date, Eq::*, Token, BV};
+use crate::block::{Block, BlockItem, Comparator, Date, Eq::*, Field, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
@@ -10,6 +10,7 @@ use crate::item::Item;
 use crate::report::{advice, error, old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::scriptvalue::{validate_scriptvalue, validate_scriptvalue_no_breakdown};
+use crate::token::Token;
 use crate::trigger::{validate_target, validate_target_ok_this};
 
 pub struct Validator<'a> {
@@ -122,14 +123,12 @@ impl<'a> Validator<'a> {
     }
 
     fn check_key(&mut self, name: &str) -> bool {
-        for (k, _, _) in &self.block.v {
-            if let Some(key) = k {
-                if (self.case_sensitive && key.is(name))
-                    || (!self.case_sensitive && key.lowercase_is(name))
-                {
-                    self.known_fields.push(key.as_str());
-                    return true;
-                }
+        for Field(key, _, _) in self.block.iter_fields() {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
+                self.known_fields.push(key.as_str());
+                return true;
             }
         }
         false
@@ -140,19 +139,17 @@ impl<'a> Validator<'a> {
         F: FnMut(&Token, &BV),
     {
         let mut found = None;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if (self.case_sensitive && key.is(name))
-                    || (!self.case_sensitive && key.lowercase_is(name))
-                {
-                    self.known_fields.push(key.as_str());
-                    if let Some(other) = found {
-                        dup_assign_error(key, other);
-                    }
-                    self.expect_eq_qeq(key, *cmp);
-                    f(key, bv);
-                    found = Some(key);
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
+                self.known_fields.push(key.as_str());
+                if let Some(other) = found {
+                    dup_assign_error(key, other);
                 }
+                self.expect_eq_qeq(key, *cmp);
+                f(key, bv);
+                found = Some(key);
             }
         }
         found.is_some()
@@ -163,16 +160,14 @@ impl<'a> Validator<'a> {
         F: FnMut(&Token, &BV),
     {
         let mut found = false;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if (self.case_sensitive && key.is(name))
-                    || (!self.case_sensitive && key.lowercase_is(name))
-                {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    f(key, bv);
-                    found = true;
-                }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                f(key, bv);
+                found = true;
             }
         }
         found
@@ -184,17 +179,15 @@ impl<'a> Validator<'a> {
 
     pub fn field_any_cmp(&mut self, name: &str) -> Option<&BV> {
         let mut found = None;
-        for (k, _, bv) in &self.block.v {
-            if let Some(key) = k {
-                if (self.case_sensitive && key.is(name))
-                    || (!self.case_sensitive && key.lowercase_is(name))
-                {
-                    self.known_fields.push(key.as_str());
-                    if let Some((other, _)) = found {
-                        dup_assign_error(key, other);
-                    }
-                    found = Some((key, bv));
+        for Field(key, _, bv) in self.block.iter_fields() {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
+                self.known_fields.push(key.as_str());
+                if let Some((other, _)) = found {
+                    dup_assign_error(key, other);
                 }
+                found = Some((key, bv));
             }
         }
         if let Some((_, bv)) = found {
@@ -207,21 +200,19 @@ impl<'a> Validator<'a> {
     pub fn field_value(&mut self, name: &str) -> Option<&Token> {
         let mut found = None;
         let mut result = None;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if (self.case_sensitive && key.is(name))
-                    || (!self.case_sensitive && key.lowercase_is(name))
-                {
-                    self.known_fields.push(key.as_str());
-                    if let Some(other) = found {
-                        dup_assign_error(key, other);
-                    }
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(token) = bv.expect_value() {
-                        result = Some(token);
-                    }
-                    found = Some(key);
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
+                self.known_fields.push(key.as_str());
+                if let Some(other) = found {
+                    dup_assign_error(key, other);
                 }
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(token) = bv.expect_value() {
+                    result = Some(token);
+                }
+                found = Some(key);
             }
         }
         result
@@ -430,13 +421,8 @@ impl<'a> Validator<'a> {
     {
         self.field_check(name, |_, bv| {
             if let Some(block) = bv.expect_block() {
-                for (k, _, bv) in &block.v {
-                    if let Some(key) = k {
-                        let msg = format!("found key `{key}`, expected only values");
-                        old_warn(key, ErrorKey::Validation, &msg);
-                    } else if let Some(token) = bv.expect_value() {
-                        f(token, self.data);
-                    }
+                for token in block.iter_values_warn() {
+                    f(token, self.data);
                 }
             }
         })
@@ -458,13 +444,8 @@ impl<'a> Validator<'a> {
     {
         self.fields_check(name, |_, bv| {
             if let Some(block) = bv.expect_block() {
-                for (k, _, bv) in &block.v {
-                    if let Some(key) = k {
-                        let msg = format!("found key `{key}`, expected only values");
-                        old_warn(key, ErrorKey::Validation, &msg);
-                    } else if let Some(token) = bv.expect_value() {
-                        f(token, self.data);
-                    }
+                for token in block.iter_values_warn() {
+                    f(token, self.data);
                 }
             }
         })
@@ -482,14 +463,12 @@ impl<'a> Validator<'a> {
 
     pub fn field_values(&mut self, name: &str) -> Vec<&Token> {
         let mut vec = Vec::new();
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(token) = bv.expect_value() {
-                        vec.push(token);
-                    }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(token) = bv.expect_value() {
+                    vec.push(token);
                 }
             }
         }
@@ -497,14 +476,12 @@ impl<'a> Validator<'a> {
     }
 
     pub fn field_items(&mut self, name: &str, itype: Item) {
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(token) = bv.expect_value() {
-                        self.data.verify_exists(itype, token);
-                    }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(token) = bv.expect_value() {
+                    self.data.verify_exists(itype, token);
                 }
             }
         }
@@ -512,12 +489,10 @@ impl<'a> Validator<'a> {
 
     pub fn fields_any_cmp(&mut self, name: &str) -> bool {
         let mut found = false;
-        for (k, _cmp, _) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    found = true;
-                }
+        for Field(key, _, _) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                found = true;
             }
         }
         found
@@ -528,17 +503,15 @@ impl<'a> Validator<'a> {
         F: FnMut(&BV, &Everything),
     {
         let mut found = None;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(other) = found {
-                        dup_assign_error(key, other);
-                    }
-                    f(bv, self.data);
-                    found = Some(key);
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(other) = found {
+                    dup_assign_error(key, other);
                 }
+                f(bv, self.data);
+                found = Some(key);
             }
         }
         found.is_some()
@@ -549,17 +522,15 @@ impl<'a> Validator<'a> {
         F: FnMut(&Token, &BV, &Everything),
     {
         let mut found = None;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(other) = found {
-                        dup_assign_error(key, other);
-                    }
-                    f(key, bv, self.data);
-                    found = Some(key);
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(other) = found {
+                    dup_assign_error(key, other);
                 }
+                f(key, bv, self.data);
+                found = Some(key);
             }
         }
         found.is_some()
@@ -587,14 +558,12 @@ impl<'a> Validator<'a> {
         F: FnMut(&BV, &Everything),
     {
         let mut found = false;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    f(bv, self.data);
-                    found = true;
-                }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                f(bv, self.data);
+                found = true;
             }
         }
         found
@@ -605,14 +574,12 @@ impl<'a> Validator<'a> {
         F: FnMut(&Token, &BV, &Everything),
     {
         let mut found = false;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    f(key, bv, self.data);
-                    found = true;
-                }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                f(key, bv, self.data);
+                found = true;
             }
         }
         found
@@ -630,16 +597,14 @@ impl<'a> Validator<'a> {
         F: FnMut(&Block, &Everything),
     {
         let mut found = false;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(block) = bv.expect_block() {
-                        f(block, self.data);
-                    }
-                    found = true;
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(block) = bv.expect_block() {
+                    f(block, self.data);
                 }
+                found = true;
             }
         }
         found
@@ -662,19 +627,17 @@ impl<'a> Validator<'a> {
         F: FnMut(&Block, &Everything),
     {
         let mut found = None;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    if let Some(other) = found {
-                        dup_assign_error(key, other);
-                    }
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(block) = bv.expect_block() {
-                        f(block, self.data);
-                    }
-                    found = Some(key);
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                if let Some(other) = found {
+                    dup_assign_error(key, other);
                 }
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(block) = bv.expect_block() {
+                    f(block, self.data);
+                }
+                found = Some(key);
             }
         }
         found.is_some()
@@ -685,19 +648,17 @@ impl<'a> Validator<'a> {
         F: FnMut(&Token, &Block, &Everything),
     {
         let mut found = None;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    if let Some(other) = found {
-                        dup_assign_error(key, other);
-                    }
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(block) = bv.expect_block() {
-                        f(key, block, self.data);
-                    }
-                    found = Some(key);
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                if let Some(other) = found {
+                    dup_assign_error(key, other);
                 }
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(block) = bv.expect_block() {
+                    f(key, block, self.data);
+                }
+                found = Some(key);
             }
         }
         found.is_some()
@@ -708,16 +669,14 @@ impl<'a> Validator<'a> {
         F: FnMut(&Token, &Block, &Everything),
     {
         let mut found = false;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(block) = bv.expect_block() {
-                        f(key, block, self.data);
-                    }
-                    found = true;
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(block) = bv.expect_block() {
+                    f(key, block, self.data);
                 }
+                found = true;
             }
         }
         found
@@ -740,20 +699,18 @@ impl<'a> Validator<'a> {
         F: FnMut(&Block, &Everything, &mut ScopeContext),
     {
         let mut found = None;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    if let Some(other) = found {
-                        dup_assign_error(key, other);
-                    }
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(block) = bv.expect_block() {
-                        let mut sc = ScopeContext::new(scopes, key);
-                        f(block, self.data, &mut sc);
-                    }
-                    found = Some(key);
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                if let Some(other) = found {
+                    dup_assign_error(key, other);
                 }
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(block) = bv.expect_block() {
+                    let mut sc = ScopeContext::new(scopes, key);
+                    f(block, self.data, &mut sc);
+                }
+                found = Some(key);
             }
         }
         found.is_some()
@@ -769,20 +726,18 @@ impl<'a> Validator<'a> {
         F: FnMut(&Token, &Block, &Everything, &mut ScopeContext),
     {
         let mut found = None;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    if let Some(other) = found {
-                        dup_assign_error(key, other);
-                    }
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(block) = bv.expect_block() {
-                        let mut sc = ScopeContext::new(scopes, key);
-                        f(key, block, self.data, &mut sc);
-                    }
-                    found = Some(key);
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                if let Some(other) = found {
+                    dup_assign_error(key, other);
                 }
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(block) = bv.expect_block() {
+                    let mut sc = ScopeContext::new(scopes, key);
+                    f(key, block, self.data, &mut sc);
+                }
+                found = Some(key);
             }
         }
         found.is_some()
@@ -792,15 +747,13 @@ impl<'a> Validator<'a> {
     where
         F: FnMut(&Block, &Everything, &mut ScopeContext),
     {
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(block) = bv.expect_block() {
-                        let mut sc = ScopeContext::new(scopes, key);
-                        f(block, self.data, &mut sc);
-                    }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(block) = bv.expect_block() {
+                    let mut sc = ScopeContext::new(scopes, key);
+                    f(block, self.data, &mut sc);
                 }
             }
         }
@@ -817,21 +770,19 @@ impl<'a> Validator<'a> {
         F: FnMut(&Block, &Everything, &mut ScopeContext),
     {
         let mut found = None;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    if let Some(other) = found {
-                        dup_assign_error(key, other);
-                    }
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(block) = bv.expect_block() {
-                        let mut sc = sc.clone();
-                        sc.change_root(scopes, key);
-                        f(block, self.data, &mut sc);
-                    }
-                    found = Some(key);
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                if let Some(other) = found {
+                    dup_assign_error(key, other);
                 }
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(block) = bv.expect_block() {
+                    let mut sc = sc.clone();
+                    sc.change_root(scopes, key);
+                    f(block, self.data, &mut sc);
+                }
+                found = Some(key);
             }
         }
         found.is_some()
@@ -839,14 +790,12 @@ impl<'a> Validator<'a> {
 
     pub fn field_blocks(&mut self, name: &str) -> bool {
         let mut found = false;
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is(name) {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    bv.expect_block();
-                    found = true;
-                }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                bv.expect_block();
+                found = true;
             }
         }
         found
@@ -855,13 +804,9 @@ impl<'a> Validator<'a> {
     pub fn req_tokens_integers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
-        for (k, _, bv) in &self.block.v {
-            if k.is_none() {
-                if let BV::Value(t) = bv {
-                    if t.expect_integer().is_some() {
-                        found += 1;
-                    }
-                }
+        for token in self.block.iter_values() {
+            if token.expect_integer().is_some() {
+                found += 1;
             }
         }
         if found != expect {
@@ -873,13 +818,9 @@ impl<'a> Validator<'a> {
     pub fn req_tokens_numbers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
-        for (k, _, bv) in &self.block.v {
-            if k.is_none() {
-                if let BV::Value(t) = bv {
-                    if t.expect_number().is_some() {
-                        found += 1;
-                    }
-                }
+        for token in self.block.iter_values() {
+            if token.expect_number().is_some() {
+                found += 1;
             }
         }
         if found != expect {
@@ -898,13 +839,9 @@ impl<'a> Validator<'a> {
     pub fn req_tokens_precise_numbers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
-        for (k, _, bv) in &self.block.v {
-            if k.is_none() {
-                if let BV::Value(t) = bv {
-                    if t.expect_precise_number().is_some() {
-                        found += 1;
-                    }
-                }
+        for token in self.block.iter_values() {
+            if token.expect_precise_number().is_some() {
+                found += 1;
             }
         }
         if found != expect {
@@ -936,40 +873,22 @@ impl<'a> Validator<'a> {
 
     pub fn values(&mut self) -> Vec<&Token> {
         self.accepted_tokens = true;
-        let mut vec = Vec::new();
-        for (k, _, bv) in &self.block.v {
-            if k.is_none() {
-                if let BV::Value(t) = bv {
-                    vec.push(t);
-                }
-            }
-        }
-        vec
+        self.block.iter_values().collect()
     }
 
     pub fn blocks(&mut self) -> Vec<&Block> {
         self.accepted_blocks = true;
-        let mut vec = Vec::new();
-        for (k, _, bv) in &self.block.v {
-            if k.is_none() {
-                if let BV::Block(b) = bv {
-                    vec.push(b);
-                }
-            }
-        }
-        vec
+        self.block.iter_blocks().collect()
     }
 
     pub fn integer_blocks(&mut self) -> Vec<(&Token, &Block)> {
         let mut vec = Vec::new();
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is_integer() {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(block) = bv.expect_block() {
-                        vec.push((key, block));
-                    }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is_integer() {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(block) = bv.expect_block() {
+                    vec.push((key, block));
                 }
             }
         }
@@ -978,14 +897,12 @@ impl<'a> Validator<'a> {
 
     pub fn integer_values(&mut self) -> Vec<(&Token, &Token)> {
         let mut vec = Vec::new();
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is_integer() {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(token) = bv.expect_value() {
-                        vec.push((key, token));
-                    }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is_integer() {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(token) = bv.expect_value() {
+                    vec.push((key, token));
                 }
             }
         }
@@ -994,13 +911,11 @@ impl<'a> Validator<'a> {
 
     pub fn integer_keys(&mut self) -> Vec<(&Token, &BV)> {
         let mut vec = Vec::new();
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is_integer() {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    vec.push((key, bv));
-                }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is_integer() {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                vec.push((key, bv));
             }
         }
         vec
@@ -1008,13 +923,11 @@ impl<'a> Validator<'a> {
 
     pub fn numeric_keys(&mut self) -> Vec<(&Token, &BV)> {
         let mut vec = Vec::new();
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if key.is_number() {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    vec.push((key, bv));
-                }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is_number() {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                vec.push((key, bv));
             }
         }
         vec
@@ -1024,14 +937,12 @@ impl<'a> Validator<'a> {
     where
         F: FnMut(Date, &Block, &Everything),
     {
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if let Ok(date) = Date::try_from(key) {
-                    self.known_fields.push(key.as_str());
-                    self.expect_eq_qeq(key, *cmp);
-                    if let Some(block) = bv.expect_block() {
-                        f(date, block, self.data);
-                    }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if let Ok(date) = Date::try_from(key) {
+                self.known_fields.push(key.as_str());
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(block) = bv.expect_block() {
+                    f(date, block, self.data);
                 }
             }
         }
@@ -1041,12 +952,10 @@ impl<'a> Validator<'a> {
         self.accepted_block_fields = true;
         self.accepted_value_fields = true;
         let mut vec = Vec::new();
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                self.expect_eq_qeq(key, *cmp);
-                if !self.known_fields.contains(&key.as_str()) {
-                    vec.push((key, bv));
-                }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            self.expect_eq_qeq(key, *cmp);
+            if !self.known_fields.contains(&key.as_str()) {
+                vec.push((key, bv));
             }
         }
         vec
@@ -1056,12 +965,10 @@ impl<'a> Validator<'a> {
         self.accepted_block_fields = true;
         self.accepted_value_fields = true;
         let mut vec = Vec::new();
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                self.expect_eq_qeq(key, *cmp);
-                if !self.known_fields.contains(&key.as_str()) {
-                    vec.push((key, *cmp, bv));
-                }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            self.expect_eq_qeq(key, *cmp);
+            if !self.known_fields.contains(&key.as_str()) {
+                vec.push((key, *cmp, bv));
             }
         }
         vec
@@ -1070,13 +977,11 @@ impl<'a> Validator<'a> {
     pub fn unknown_block_fields(&mut self) -> Vec<(&Token, &Block)> {
         self.accepted_block_fields = true;
         let mut vec = Vec::new();
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if let Some(block) = bv.get_block() {
-                    self.expect_eq_qeq(key, *cmp);
-                    if !self.known_fields.contains(&key.as_str()) {
-                        vec.push((key, block));
-                    }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if let Some(block) = bv.get_block() {
+                self.expect_eq_qeq(key, *cmp);
+                if !self.known_fields.contains(&key.as_str()) {
+                    vec.push((key, block));
                 }
             }
         }
@@ -1086,13 +991,11 @@ impl<'a> Validator<'a> {
     pub fn unknown_value_fields(&mut self) -> Vec<(&Token, &Token)> {
         self.accepted_value_fields = true;
         let mut vec = Vec::new();
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if let Some(value) = bv.get_value() {
-                    self.expect_eq_qeq(key, *cmp);
-                    if !self.known_fields.contains(&key.as_str()) {
-                        vec.push((key, value));
-                    }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if let Some(value) = bv.get_value() {
+                self.expect_eq_qeq(key, *cmp);
+                if !self.known_fields.contains(&key.as_str()) {
+                    vec.push((key, value));
                 }
             }
         }
@@ -1103,11 +1006,9 @@ impl<'a> Validator<'a> {
         self.accepted_block_fields = true;
         self.accepted_value_fields = true;
         let mut vec = Vec::new();
-        for (k, cmp, bv) in &self.block.v {
-            if let Some(key) = k {
-                if !self.known_fields.contains(&key.as_str()) {
-                    vec.push((key, *cmp, bv));
-                }
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if !self.known_fields.contains(&key.as_str()) {
+                vec.push((key, *cmp, bv));
             }
         }
         vec
@@ -1122,9 +1023,9 @@ impl<'a> Validator<'a> {
 
     pub fn warn_remaining(&mut self) -> bool {
         let mut warned = false;
-        for (k, _, bv) in &self.block.v {
-            match k {
-                Some(key) => match bv {
+        for item in &self.block.v {
+            match item {
+                BlockItem::Field(Field(key, _, bv)) => match bv {
                     BV::Value(_) => {
                         if !self.accepted_value_fields && !self.known_fields.contains(&key.as_str())
                         {
@@ -1142,22 +1043,20 @@ impl<'a> Validator<'a> {
                         }
                     }
                 },
-                None => match bv {
-                    BV::Value(t) => {
-                        if !self.accepted_tokens {
-                            let msg = "found loose value, expected only `key =`";
-                            old_warn(t, ErrorKey::Validation, msg);
-                            warned = true;
-                        }
+                BlockItem::Value(t) => {
+                    if !self.accepted_tokens {
+                        let msg = "found loose value, expected only `key =`";
+                        old_warn(t, ErrorKey::Validation, msg);
+                        warned = true;
                     }
-                    BV::Block(b) => {
-                        if !self.accepted_blocks {
-                            let msg = "found sub-block, expected only `key =`";
-                            old_warn(b, ErrorKey::Validation, msg);
-                            warned = true;
-                        }
+                }
+                BlockItem::Block(b) => {
+                    if !self.accepted_blocks {
+                        let msg = "found sub-block, expected only `key =`";
+                        old_warn(b, ErrorKey::Validation, msg);
+                        warned = true;
                     }
-                },
+                }
             }
         }
         self.no_warn_remaining();
