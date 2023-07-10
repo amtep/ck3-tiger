@@ -29,13 +29,15 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [`LICENSE`](LICENSE) file for more details.
 
 ## How to use
-Run it from the command line:
+Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere, and remember where, so that you can specify the path to it in the next step.
+
+Then run the tool from the command prompt:
 <pre>
-ck3-tiger <i>path/to/your/</i>descriptor.mod
+<i>path/to/</i>ck3-tiger <i>path/to/your/</i>descriptor.mod
 </pre>
 or
 <pre>
-ck3-tiger "<i>path/to/</i>Paradox Interactive/Crusader Kings III/mod/YourMod.mod"
+<i>path/to/</i>ck3-tiger "<i>path/to/</i>Paradox Interactive/Crusader Kings III/mod/YourMod.mod"
 </pre>
 
 (Note that the quote marks around the path are important because of the spaces in it.)
@@ -44,7 +46,6 @@ If you want the output in a file, you can redirect it like this:
 <pre>
 ck3-tiger <i>path/to/your/</i>descriptor.mod ><i>filename</i>
 </pre>
-
 
 ## How to configure
 You can place a file `ck3-tiger.conf` in your mod directory. You can use it to select which languages to check localizations for, and to suppress messages about things you don't want to fix.
