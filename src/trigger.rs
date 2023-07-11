@@ -453,7 +453,7 @@ fn match_trigger_fields(
 const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
 
 #[cfg(feature = "vic3")]
-const STANCES: &[&str] =
+pub const STANCES: &[&str] =
     &["strongly_disapprove", "disapprove", "neutral", "approve", "strongly_approve"];
 
 fn match_trigger_bv(

@@ -320,7 +320,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (None, "has_variable_list", UncheckedValue),
     (War, "has_war_exhaustion", Block(&[("target", Scope(Country)), ("value", CompareValue)])),
     (War, "has_war_goal", UncheckedValue),
-    (War, "has_war_support", CompareValue),
+    (War, "has_war_support", Block(&[("target", Scope(Country)), ("value", CompareValue)])),
     (Country, "has_war_with", Scope(Country)),
     (Country, "has_wasted_construction", Boolean),
     (None, "hidden_trigger", Control),
