@@ -46,6 +46,7 @@ pub fn validate_modifs<'a>(
     }
 }
 
+#[cfg(feature = "vic3")]
 pub fn verify_modif_exists(key: &Token, data: &Everything, kinds: ModifKinds) {
     if let Some(mk) = lookup_modif(key, data, true) {
         kinds.require(mk, key);

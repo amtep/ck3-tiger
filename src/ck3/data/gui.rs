@@ -239,6 +239,7 @@ impl FileHandler<Block> for Gui {
 
 #[derive(Clone, Debug)]
 struct GuiWidget {
+    #[allow(dead_code)]
     key: Token,
     block: Block,
 }
@@ -255,6 +256,7 @@ impl GuiWidget {
 
 #[derive(Clone, Debug)]
 struct GuiTemplate {
+    #[allow(dead_code)] // key is not used, but don't want to remove the code for storing it
     key: Token,
     block: Block,
 }
@@ -271,7 +273,9 @@ impl GuiTemplate {
 
 #[derive(Clone, Debug)]
 struct GuiType {
+    #[allow(dead_code)] // TODO
     key: Token,
+    #[allow(dead_code)] // TODO
     base: Token,
     block: Block,
 }

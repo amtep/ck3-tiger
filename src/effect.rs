@@ -2,10 +2,10 @@ use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Eq::*, BV};
 #[cfg(feature = "ck3")]
 use crate::ck3::effect_validation::{
-    validate_effect_block, validate_effect_bv, validate_effect_value,
+    validate_effect_block, validate_effect_bv, validate_effect_value, EvB, EvBv, EvV,
 };
 #[cfg(feature = "ck3")]
-use crate::ck3::tables::effects::{scope_effect, Effect};
+use crate::ck3::tables::effects::scope_effect;
 use crate::context::ScopeContext;
 use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
@@ -25,10 +25,10 @@ use crate::validate::{
 };
 #[cfg(feature = "vic3")]
 use crate::vic3::effect_validation::{
-    validate_effect_block, validate_effect_bv, validate_effect_value,
+    validate_effect_block, validate_effect_bv, validate_effect_value, EvB, EvBv, EvV,
 };
 #[cfg(feature = "vic3")]
-use crate::vic3::tables::effects::{scope_effect, Effect};
+use crate::vic3::tables::effects::scope_effect;
 
 pub fn validate_effect(
     block: &Block,
@@ -163,6 +163,7 @@ pub fn validate_effect_internal<'a>(
                     }
                     validate_scriptvalue(bv, data, sc);
                 }
+                #[cfg(feature = "vic3")]
                 Effect::Date => {
                     if let Some(token) = bv.expect_value() {
                         token.expect_date();
@@ -598,4 +599,39 @@ pub fn validate_switch(
             validate_effect(block, data, sc, tooltipped);
         }
     }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum Effect {
+    /// no special value, just effect = yes
+    Yes,
+    /// yes and no are both meaningful
+    Boolean,
+    Integer,
+    ScriptValue,
+    /// warn if literal negative
+    NonNegativeValue,
+    #[cfg(feature = "vic3")]
+    Date,
+    Scope(Scopes),
+    ScopeOkThis(Scopes),
+    Item(Item),
+    ScopeOrItem(Scopes, Item),
+    Target(&'static str, Scopes),
+    TargetValue(&'static str, Scopes, &'static str),
+    ItemTarget(&'static str, Item, &'static str, Scopes),
+    ItemValue(&'static str, Item),
+    Desc,
+    /// days/weeks/months/years
+    Timespan,
+    AddModifier,
+    Control,
+    ControlOrLabel,
+    /// so special that we just accept whatever argument
+    Unchecked,
+    Choice(&'static [&'static str]),
+    Removed(&'static str, &'static str),
+    VB(EvB),
+    VBv(EvBv),
+    VV(EvV),
 }

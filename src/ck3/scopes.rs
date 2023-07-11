@@ -78,6 +78,7 @@ pub const Province: u64 = 0x0000_0100;
 pub const Scheme: u64 = 0x0000_0200;
 pub const Combat: u64 = 0x0000_0400;
 pub const CombatSide: u64 = 0x0000_0800;
+#[allow(dead_code)]
 pub const TitleAndVassalChange: u64 = 0x0000_1000;
 pub const Faith: u64 = 0x0000_2000;
 pub const GreatHolyWar: u64 = 0x0000_4000;
@@ -112,6 +113,7 @@ pub const VassalObligationLevel: u64 = 0x0000_0400_0000_0000;
 
 pub const ALL: u64 = 0x7fff_ffff_ffff_ffff;
 pub const ALL_BUT_NONE: u64 = 0x7fff_ffff_ffff_fffe;
+#[allow(dead_code)]
 pub const PRIMITIVE: u64 = 0x0000_000e;
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {

@@ -9,7 +9,9 @@ use crate::data::genes::Gene;
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
-use crate::helpers::{stringify_choices, stringify_list};
+use crate::helpers::stringify_choices;
+#[cfg(feature = "vic3")]
+use crate::helpers::stringify_list;
 use crate::item::Item;
 use crate::report::{advice_info, err, error, old_warn, warn2, warn_info, ErrorKey};
 use crate::scopes::{
@@ -447,8 +449,10 @@ fn match_trigger_fields(
     }
 }
 
+#[cfg(feature = "vic3")]
 const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
 
+#[cfg(feature = "vic3")]
 const STANCES: &[&str] =
     &["strongly_disapprove", "disapprove", "neutral", "approve", "strongly_approve"];
 
@@ -492,6 +496,7 @@ fn match_trigger_bv(
                 }
             }
         }
+        #[cfg(feature = "vic3")]
         Trigger::CompareLevel => {
             must_be_eq = false;
             if let Some(token) = bv.expect_value() {
@@ -501,6 +506,7 @@ fn match_trigger_bv(
                 }
             }
         }
+        #[cfg(feature = "vic3")]
         Trigger::CompareStance => {
             must_be_eq = false;
             if let Some(token) = bv.expect_value() {
@@ -931,8 +937,10 @@ pub enum RawTrigger {
     /// value must be a valid date
     CompareDate,
     /// value is a level from `very_low` to `very_high`
+    #[cfg(feature = "vic3")]
     CompareLevel,
     /// value is a stance from `strongly_disapprove` to `strongly_approve`
+    #[cfg(feature = "vic3")]
     CompareStance,
     /// trigger is compared to a scope object
     Scope(u64),
@@ -975,7 +983,9 @@ pub enum Trigger {
     CompareValueWarnEq,
     SetValue,
     CompareDate,
+    #[cfg(feature = "vic3")]
     CompareLevel,
+    #[cfg(feature = "vic3")]
     CompareStance,
     Scope(Scopes),
     ScopeOkThis(Scopes),
@@ -1004,7 +1014,9 @@ impl Trigger {
             RawTrigger::CompareValueWarnEq => Trigger::CompareValueWarnEq,
             RawTrigger::SetValue => Trigger::SetValue,
             RawTrigger::CompareDate => Trigger::CompareDate,
+            #[cfg(feature = "vic3")]
             RawTrigger::CompareLevel => Trigger::CompareLevel,
+            #[cfg(feature = "vic3")]
             RawTrigger::CompareStance => Trigger::CompareStance,
             RawTrigger::Scope(s) => Trigger::Scope(Scopes::from_bits_truncate(*s)),
             RawTrigger::ScopeOkThis(s) => Trigger::ScopeOkThis(Scopes::from_bits_truncate(*s)),

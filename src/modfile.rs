@@ -8,6 +8,7 @@ use crate::pdxfile::PdxFile;
 use crate::report::{advice_info, fatal, old_warn, ErrorKey};
 use crate::token::Token;
 
+#[allow(dead_code)] // TODO, see below
 #[derive(Clone, Debug)]
 pub struct ModFile {
     block: Block,

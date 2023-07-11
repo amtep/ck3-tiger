@@ -64,6 +64,7 @@ impl FileHandler<Block> for Defines {
 
 #[derive(Clone, Debug)]
 pub struct Define {
+    #[allow(dead_code)] // TODO
     group: Token,
     name: Token,
     bv: BV,
@@ -72,10 +73,6 @@ pub struct Define {
 impl Define {
     pub fn new(group: Token, name: Token, bv: BV) -> Self {
         Self { group, name, bv }
-    }
-
-    pub fn key(&self) -> String {
-        format!("{}|{}", self.group, self.name)
     }
 
     #[allow(clippy::unused_self)]

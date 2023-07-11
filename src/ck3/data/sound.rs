@@ -19,13 +19,13 @@ pub struct Sounds {
 }
 
 impl Sounds {
-    pub fn load_item(&mut self, key: Token, guid: Token) {
+    pub fn load_item(&mut self, key: Token) {
         if let Some(other) = self.sounds.get(key.as_str()) {
             if other.key.loc.kind == key.loc.kind {
                 dup_error(&key, &other.key, "sound");
             }
         }
-        self.sounds.insert(key.to_string(), Sound::new(key, guid));
+        self.sounds.insert(key.to_string(), Sound::new(key));
     }
 
     pub fn exists(&self, key: &str) -> bool {
@@ -76,8 +76,8 @@ impl FileHandler<String> for Sounds {
             loc.line = linenr;
             loc.column = 1;
             let token = Token::new(line.to_string(), loc);
-            if let Some((guid, sound)) = token.split_once(' ') {
-                self.load_item(sound, guid);
+            if let Some((_guid, sound)) = token.split_once(' ') {
+                self.load_item(sound);
             } else {
                 error(token, ErrorKey::ParseError, "could not parse sound guid");
             }
@@ -89,12 +89,11 @@ impl FileHandler<String> for Sounds {
 #[derive(Clone, Debug)]
 pub struct Sound {
     key: Token,
-    guid: Token,
 }
 
 impl Sound {
-    pub fn new(key: Token, guid: Token) -> Self {
-        Sound { key, guid }
+    pub fn new(key: Token) -> Self {
+        Sound { key }
     }
 }
 

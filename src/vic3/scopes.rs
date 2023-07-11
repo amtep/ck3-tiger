@@ -83,23 +83,28 @@ pub const None: u64 = 0x0000_0001;
 pub const Value: u64 = 0x0000_0002;
 pub const Bool: u64 = 0x0000_0004;
 pub const Flag: u64 = 0x0000_0008;
+#[allow(dead_code)]
 pub const Color: u64 = 0x0000_0010;
 pub const Country: u64 = 0x0000_0020;
 pub const Battle: u64 = 0x0000_0040;
 pub const BattleSide: u64 = 0x0000_0080;
 pub const Building: u64 = 0x0000_0100;
 pub const BuildingType: u64 = 0x0000_0200;
+#[allow(dead_code)]
 pub const CanalType: u64 = 0x0000_0400;
 pub const Character: u64 = 0x0000_0800;
 pub const CivilWar: u64 = 0x0000_1000;
 pub const CombatUnit: u64 = 0x0000_2000;
 pub const CommanderOrder: u64 = 0x0000_4000;
 pub const CommanderOrderType: u64 = 0x0000_8000;
+#[allow(dead_code)]
 pub const CountryCreation: u64 = 0x0001_0000;
 pub const CountryDefinition: u64 = 0x0002_0000;
+#[allow(dead_code)]
 pub const CountryFormation: u64 = 0x0004_0000;
 pub const Culture: u64 = 0x0008_0000;
 pub const Decree: u64 = 0x0010_0000;
+#[allow(dead_code)]
 pub const DiplomaticAction: u64 = 0x0020_0000;
 pub const DiplomaticPact: u64 = 0x0040_0000;
 pub const DiplomaticPlay: u64 = 0x0080_0000;
@@ -119,6 +124,7 @@ pub const Law: u64 = 0x0000_0010_0000_0000;
 pub const LawType: u64 = 0x0000_0020_0000_0000;
 pub const Market: u64 = 0x0000_0040_0000_0000;
 pub const MarketGoods: u64 = 0x0000_0080_0000_0000;
+#[allow(dead_code)]
 pub const Objective: u64 = 0x0000_0100_0000_0000;
 pub const Party: u64 = 0x0000_0200_0000_0000;
 pub const PoliticalMovement: u64 = 0x0000_0400_0000_0000;
@@ -126,12 +132,15 @@ pub const Pop: u64 = 0x0000_0800_0000_0000;
 pub const PopType: u64 = 0x0000_1000_0000_0000;
 pub const Province: u64 = 0x0000_2000_0000_0000;
 pub const Religion: u64 = 0x0000_4000_0000_0000;
+#[allow(dead_code)]
 pub const ShippingLane: u64 = 0x0000_8000_0000_0000;
 pub const State: u64 = 0x0001_0000_0000_0000;
 pub const StateRegion: u64 = 0x0002_0000_0000_0000;
+#[allow(dead_code)]
 pub const StateTrait: u64 = 0x0004_0000_0000_0000;
 pub const StrategicRegion: u64 = 0x0008_0000_0000_0000;
 pub const Technology: u64 = 0x0010_0000_0000_0000;
+#[allow(dead_code)]
 pub const TechnologyStatus: u64 = 0x0020_0000_0000_0000;
 pub const Theater: u64 = 0x0040_0000_0000_0000;
 pub const TradeRoute: u64 = 0x0080_0000_0000_0000;
@@ -139,6 +148,7 @@ pub const War: u64 = 0x0100_0000_0000_0000;
 
 pub const ALL: u64 = 0x7fff_ffff_ffff_ffff;
 pub const ALL_BUT_NONE: u64 = 0x7fff_ffff_ffff_fffe;
+#[allow(dead_code)]
 pub const PRIMITIVE: u64 = 0x0000_000e;
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {

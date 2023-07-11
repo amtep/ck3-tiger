@@ -115,6 +115,7 @@ impl<'a> Validator<'a> {
         });
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn replaced_field(&mut self, name: &str, replaced_by: &str) {
         self.fields_check(name, |key, _| {
             let msg = format!("`{name}` has been replaced by {replaced_by}");
@@ -229,6 +230,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_values<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &Token, &Everything),
@@ -269,6 +271,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_item_or_target(
         &mut self,
         name: &str,
@@ -285,6 +288,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_block(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| _ = bv.expect_block())
     }
@@ -307,6 +311,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_integer_range(&mut self, name: &str, low: i64, high: i64) {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -327,6 +332,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_precise_numeric(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -364,6 +370,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_script_value_no_breakdown(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             validate_scriptvalue_no_breakdown(bv, self.data, sc);
@@ -404,6 +411,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn fields_choice(&mut self, name: &str, choices: &[&str]) -> bool {
         self.fields_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -438,6 +446,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn fields_validated_list<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &Everything),
@@ -451,10 +460,7 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn fields_list(&mut self, name: &str) -> bool {
-        self.fields_validated_list(name, |_, _| ())
-    }
-
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn fields_list_items(&mut self, name: &str, item: Item) -> bool {
         self.fields_validated_list(name, |token, data| {
             data.verify_exists(item, token);
@@ -543,6 +549,7 @@ impl<'a> Validator<'a> {
         self.field_validated(name, |bv, data| f(bv, data, sc))
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F) -> bool
     where
         F: FnMut(&BV, &Everything, &mut ScopeContext),
@@ -569,6 +576,7 @@ impl<'a> Validator<'a> {
         found
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_key_bvs<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &BV, &Everything),
@@ -585,6 +593,7 @@ impl<'a> Validator<'a> {
         found
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_bvs_sc<F>(&mut self, name: &str, sc: &mut ScopeContext, mut f: F) -> bool
     where
         F: FnMut(&BV, &Everything, &mut ScopeContext),
@@ -716,33 +725,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
-    pub fn field_validated_key_block_rooted<F>(
-        &mut self,
-        name: &str,
-        scopes: Scopes,
-        mut f: F,
-    ) -> bool
-    where
-        F: FnMut(&Token, &Block, &Everything, &mut ScopeContext),
-    {
-        let mut found = None;
-        for Field(key, cmp, bv) in self.block.iter_fields() {
-            if key.is(name) {
-                self.known_fields.push(key.as_str());
-                if let Some(other) = found {
-                    dup_assign_error(key, other);
-                }
-                self.expect_eq_qeq(key, *cmp);
-                if let Some(block) = bv.expect_block() {
-                    let mut sc = ScopeContext::new(scopes, key);
-                    f(key, block, self.data, &mut sc);
-                }
-                found = Some(key);
-            }
-        }
-        found.is_some()
-    }
-
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_blocks_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F)
     where
         F: FnMut(&Block, &Everything, &mut ScopeContext),
@@ -788,6 +771,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_blocks(&mut self, name: &str) -> bool {
         let mut found = false;
         for Field(key, cmp, bv) in self.block.iter_fields() {
@@ -801,6 +785,7 @@ impl<'a> Validator<'a> {
         found
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn req_tokens_integers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
@@ -829,6 +814,7 @@ impl<'a> Validator<'a> {
         }
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_list_numeric_exactly(&mut self, name: &str, expect: usize) {
         self.field_validated_block(name, |block, data| {
             let mut vd = Validator::new(block, data);
@@ -836,6 +822,7 @@ impl<'a> Validator<'a> {
         });
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn req_tokens_precise_numbers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
@@ -850,6 +837,7 @@ impl<'a> Validator<'a> {
         }
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_list_precise_numeric_exactly(&mut self, name: &str, expect: usize) {
         self.field_validated_block(name, |block, data| {
             let mut vd = Validator::new(block, data);
@@ -857,6 +845,7 @@ impl<'a> Validator<'a> {
         });
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_list_integers_exactly(&mut self, name: &str, expect: usize) {
         self.field_validated_block(name, |block, data| {
             let mut vd = Validator::new(block, data);
@@ -881,6 +870,7 @@ impl<'a> Validator<'a> {
         self.block.iter_blocks().collect()
     }
 
+    #[cfg(feature = "vic3")] // ck3 happens not to use; silence dead code warning
     pub fn validated_blocks<F>(&mut self, mut f: F)
     where
         F: FnMut(&Block, &Everything),
@@ -919,6 +909,7 @@ impl<'a> Validator<'a> {
         vec
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn integer_keys(&mut self) -> Vec<(&Token, &BV)> {
         let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {
@@ -931,6 +922,7 @@ impl<'a> Validator<'a> {
         vec
     }
 
+    #[cfg(feature = "vic3")] // ck3 happens not to use; silence dead code warning
     pub fn numeric_keys(&mut self) -> Vec<(&Token, &BV)> {
         let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {
@@ -943,6 +935,7 @@ impl<'a> Validator<'a> {
         vec
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn validate_history_blocks<F>(&mut self, mut f: F)
     where
         F: FnMut(Date, &Block, &Everything),

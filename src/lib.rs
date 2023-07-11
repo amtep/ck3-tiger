@@ -15,10 +15,6 @@
 #![warn(noop_method_call)]
 #![warn(trivial_casts)]
 #![warn(trivial_numeric_casts)]
-// As long as the validator is so unfinished, this warning is just noise
-// Unfortunately we can't set it to warn only on unused functions. It keeps
-// warning about struct fields.
-#![allow(dead_code)]
 // This was causing a lot of warnings.
 #![allow(clippy::too_many_lines)]
 // The construction being warned about here is the best way to express

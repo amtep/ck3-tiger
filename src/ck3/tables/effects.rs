@@ -2,46 +2,13 @@ use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
 use crate::ck3::effect_validation::{EvB, EvBv, EvV};
+use crate::effect::Effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::*;
 use crate::token::Token;
 
 use Effect::*;
-
-#[derive(Copy, Clone, Debug)]
-pub enum Effect {
-    /// no special value, just effect = yes
-    Yes,
-    /// yes and no are both meaningful
-    Boolean,
-    Integer,
-    ScriptValue,
-    /// warn if literal negative
-    NonNegativeValue,
-    Date,
-    Scope(Scopes),
-    ScopeOkThis(Scopes),
-    Item(Item),
-    ScopeOrItem(Scopes, Item),
-    Target(&'static str, Scopes),
-    TargetValue(&'static str, Scopes, &'static str),
-    ItemTarget(&'static str, Item, &'static str, Scopes),
-    ItemValue(&'static str, Item),
-    Desc,
-    /// days/weeks/months/years
-    Timespan,
-    AddModifier,
-    Control,
-    ControlOrLabel,
-    /// so special that we just accept whatever argument
-    Unchecked,
-    Choice(&'static [&'static str]),
-    Removed(&'static str, &'static str),
-    VB(EvB),
-    VBv(EvBv),
-    VV(EvV),
-}
 
 pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)> {
     let lwname = name.as_str().to_lowercase();

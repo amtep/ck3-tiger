@@ -293,12 +293,14 @@ impl FileHandler<FileContent> for Provinces {
     }
 }
 
+#[allow(dead_code)] // TODO
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Coords {
     x: i32,
     y: i32,
 }
 
+#[allow(dead_code)] // TODO
 #[derive(Clone, Debug)]
 pub struct Adjacency {
     line: Loc,

@@ -117,6 +117,7 @@ pub struct LoadedMod {
     kind: FileKind,
 
     /// The tag used for this mod in error messages.
+    #[allow(dead_code)]
     label: String,
 
     /// The location of this mod in the filesystem.

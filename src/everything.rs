@@ -941,9 +941,11 @@ impl Everything {
 }
 
 /// LAST UPDATED VERSION 1.9.2
+#[cfg(feature = "ck3")]
 const ACTIVITY_STATES: &[&str] = &["passive", "travel", "active"];
 
 /// LAST UPDATED VERSION 1.9.2
+#[cfg(feature = "ck3")]
 const ARTIFACT_HISTORY: &[&str] = &[
     "created_before_history",
     "created",
@@ -1008,18 +1010,23 @@ const DLC_FEATURES: &[&str] =
     &["voice_of_the_people_content", "voice_of_the_people_preorder", "agitators"];
 
 /// LAST UPDATED VERSION 1.9.2
+#[cfg(feature = "ck3")]
 const REWARD_ITEMS: &[&str] = &["newsletter_crown"];
 
 /// LAST UPDATED VERSION 1.9.2
+#[cfg(feature = "ck3")]
 const PRISON_TYPES: &[&str] = &["dungeon", "house_arrest"];
 
 /// LAST UPDATED VERSION 1.9.2
+#[cfg(feature = "ck3")]
 const SKILLS: &[&str] = &["diplomacy", "intrigue", "learning", "martial", "prowess", "stewardship"];
 
 /// LAST UPDATED VERSION 1.9.2
+#[cfg(feature = "ck3")]
 const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual", "none"];
 
 /// LAST UPDATED VERSION 1.9.2
+#[cfg(feature = "ck3")]
 const TITLE_HISTORY_TYPES: &[&str] = &[
     "conquest",
     "conquest_holy_war",
@@ -1042,6 +1049,7 @@ const TITLE_HISTORY_TYPES: &[&str] = &[
 ];
 
 /// LAST UPDATED VERSION 1.9.2
+#[cfg(feature = "ck3")]
 const TRAIT_CATEGORIES: &[&str] = &[
     "personality",
     "education",
@@ -1055,6 +1063,7 @@ const TRAIT_CATEGORIES: &[&str] = &[
 ];
 
 /// LAST UPDATED VERSION 1.9.2
+#[cfg(feature = "ck3")]
 const DANGER_TYPES: &[&str] = &[
     "default",
     "battle",
@@ -1068,6 +1077,7 @@ const DANGER_TYPES: &[&str] = &[
 ];
 
 /// LAST UPDATED VERSION 1.9.2
+#[cfg(feature = "ck3")]
 const ARTIFACT_RARITY: &[&str] = &["common", "masterwork", "famed", "illustrious"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6

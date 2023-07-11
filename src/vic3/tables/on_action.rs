@@ -9,12 +9,14 @@ use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)] // TODO
 struct OnActionScopeContext {
     root: Scopes,
     names: Vec<(String, Scopes)>,
     lists: Vec<(String, Scopes)>,
 }
 
+#[allow(dead_code)] // TODO
 pub fn on_action_scopecontext(key: &Token, _data: &Everything) -> Option<ScopeContext> {
     if let Some(oa_sc) = ON_ACTION_SCOPES.get(key.as_str()) {
         let mut sc = ScopeContext::new(oa_sc.root, key);
@@ -31,6 +33,7 @@ pub fn on_action_scopecontext(key: &Token, _data: &Everything) -> Option<ScopeCo
     None
 }
 
+#[allow(dead_code)] // TODO
 static ON_ACTION_SCOPES: Lazy<FnvHashMap<String, OnActionScopeContext>> = Lazy::new(|| {
     build_on_action_hashmap(
         "
@@ -38,6 +41,7 @@ static ON_ACTION_SCOPES: Lazy<FnvHashMap<String, OnActionScopeContext>> = Lazy::
     )
 });
 
+#[allow(dead_code)] // TODO
 fn build_on_action_hashmap(description: &'static str) -> FnvHashMap<String, OnActionScopeContext> {
     let mut hash: FnvHashMap<String, OnActionScopeContext> = FnvHashMap::default();
 
