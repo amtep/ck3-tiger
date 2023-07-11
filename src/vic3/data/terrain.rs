@@ -5,9 +5,10 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{verify_modif_exists, ModifKinds};
-use crate::report::{warn, ErrorKey};
+use crate::report::{untidy, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::util::SmartJoin;
 
 #[derive(Clone, Debug)]
 pub struct Terrain {}
@@ -45,7 +46,7 @@ impl DbKind for Terrain {
         vd.field_validated_block("materials", |block, data| {
             let mut vd = Validator::new(block, data);
             for (key, value) in vd.unknown_value_fields() {
-                data.verify_exists(Item::Material, key);
+                data.verify_exists(Item::TerrainMaterial, key);
                 value.expect_number();
             }
         });
@@ -56,7 +57,7 @@ impl DbKind for Terrain {
         vd.field("debug_color");
 
         // undocumented
-        vd.field_item("created_material", Item::Material);
+        vd.field_item("created_material", Item::TerrainMaterial);
     }
 }
 
@@ -123,6 +124,47 @@ impl DbKind for TerrainManipulator {
                 vd.field_validated(layer, validate_layer);
             }
         });
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct TerrainMaterial {}
+
+impl TerrainMaterial {
+    // This gets the whole file as a Block
+    pub fn add(db: &mut Db, _key: Token, block: Block) {
+        // Structure is { { material } { material } ... } { ... }
+        for block in block.iter_blocks_warn() {
+            for block in block.iter_blocks_warn() {
+                // docs say that the id field uniquely identifies a material,
+                // but the name is the one actually used to look them up.
+                if let Some(name) = block.get_field_value("name") {
+                    db.add(Item::TerrainMaterial, name.clone(), block.clone(), Box::new(Self {}));
+                } else {
+                    untidy(ErrorKey::FieldMissing).msg("texture with no name").loc(block).push();
+                }
+            }
+        }
+    }
+}
+
+impl DbKind for TerrainMaterial {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        vd.field_value("name");
+        vd.field_value("id");
+
+        for field in &["diffuse", "normal", "material"] {
+            vd.req_field(field);
+            if let Some(token) = vd.field_value(field) {
+                let path = block.loc.pathname().smart_join_parent(token.as_str());
+                data.verify_exists_implied(Item::File, &path.to_string_lossy(), token);
+            }
+        }
+
+        vd.req_field("mask");
+        vd.field_value("mask");
     }
 }
 

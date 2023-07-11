@@ -157,7 +157,7 @@ use crate::vic3::data::{
     state_regions::StateRegion,
     strategic_regions::StrategicRegion,
     technology::{Technology, TechnologyEra},
-    terrain::{Terrain, TerrainLabel, TerrainManipulator},
+    terrain::{Terrain, TerrainLabel, TerrainManipulator, TerrainMaterial},
 };
 
 #[derive(Debug, Error)]
@@ -426,13 +426,13 @@ impl Everything {
     }
 
     /// A helper function for categories of items that are unusual in having each item in one file.
-    pub fn load_pdx_files_optional_bom<F>(&mut self, itype: Item, add: F)
+    pub fn load_pdx_files_optional_bom_ext<F>(&mut self, itype: Item, add: F, ext: &str)
     where
         F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
         for (key, block) in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
             let filename = entry.filename().to_string_lossy();
-            if let Some(key) = filename.strip_suffix(".txt") {
+            if let Some(key) = filename.strip_suffix(ext) {
                 if let Some(block) =
                     PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
                 {
@@ -447,6 +447,13 @@ impl Everything {
         }) {
             add(&mut self.database, key, block);
         }
+    }
+
+    pub fn load_pdx_files_optional_bom<F>(&mut self, itype: Item, add: F)
+    where
+        F: Fn(&mut Db, Token, Block) + Sync + Send,
+    {
+        self.load_pdx_files_optional_bom_ext(itype, add, ".txt");
     }
 
     /// A helper function for categories of items that are unusual in having each item in one file.
@@ -667,6 +674,11 @@ impl Everything {
         self.load_pdx_items(Item::Terrain, Terrain::add);
         self.load_pdx_items(Item::TerrainLabel, TerrainLabel::add);
         self.load_pdx_items(Item::TerrainManipulator, TerrainManipulator::add);
+        self.load_pdx_files_optional_bom_ext(
+            Item::TerrainMaterial,
+            TerrainMaterial::add,
+            ".settings",
+        );
     }
 
     pub fn load_all(&mut self) {
