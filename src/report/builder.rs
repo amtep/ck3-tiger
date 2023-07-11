@@ -89,7 +89,7 @@ impl ReportBuilderStage2 {
             stage1: self.stage1,
             msg: self.msg,
             info: self.info,
-            pointers: vec![PointedMessage { location: loc.into_loc(), length: 1, msg: None }],
+            pointers: vec![PointedMessage { loc: loc.into_loc(), length: 1, msg: None }],
         }
     }
     pub fn loc_msg<E: ErrorLoc, S: Own<String>>(self, loc: E, msg: S) -> ReportBuilderStage3 {
@@ -97,11 +97,7 @@ impl ReportBuilderStage2 {
             stage1: self.stage1,
             msg: self.msg,
             info: self.info,
-            pointers: vec![PointedMessage {
-                location: loc.into_loc(),
-                length: 1,
-                msg: Some(msg.own()),
-            }],
+            pointers: vec![PointedMessage { loc: loc.into_loc(), length: 1, msg: Some(msg.own()) }],
         }
     }
     pub fn pointers(self, pointers: Vec<PointedMessage>) -> ReportBuilderStage3 {
@@ -120,11 +116,7 @@ pub struct ReportBuilderStage3 {
 
 impl ReportBuilderStage3 {
     pub fn loc<E: ErrorLoc, S: Own<String>>(mut self, loc: E, msg: S) -> Self {
-        self.pointers.push(PointedMessage {
-            location: loc.into_loc(),
-            length: 1,
-            msg: Some(msg.own()),
-        });
+        self.pointers.push(PointedMessage { loc: loc.into_loc(), length: 1, msg: Some(msg.own()) });
         self
     }
     /// Build the report and return it.

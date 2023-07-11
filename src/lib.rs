@@ -46,6 +46,7 @@ mod item;
 mod macrocache;
 mod modif;
 mod parse;
+mod pathtable;
 mod pdxfile;
 mod rivers;
 mod scopes;

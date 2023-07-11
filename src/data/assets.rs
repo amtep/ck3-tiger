@@ -153,7 +153,7 @@ impl Asset {
         vd.field_value("name");
         vd.req_field("file");
         if let Some(token) = vd.field_value("file") {
-            let path = self.key.loc.pathname.smart_join_parent(token.as_str());
+            let path = self.key.loc.pathname().smart_join_parent(token.as_str());
             data.verify_exists_implied(Item::File, &path.to_string_lossy(), token);
         }
         vd.field_numeric("scale");
@@ -177,7 +177,7 @@ impl Asset {
             vd.req_field("type");
             vd.field_value("id");
             if let Some(token) = vd.field_value("type") {
-                let path = self.key.loc.pathname.smart_join_parent(token.as_str());
+                let path = self.key.loc.pathname().smart_join_parent(token.as_str());
                 data.verify_exists_implied(Item::File, &path.to_string_lossy(), token);
             }
             vd.field_value("data"); // TODO
@@ -189,7 +189,7 @@ impl Asset {
             vd.req_field("type");
             vd.field_value("id");
             if let Some(token) = vd.field_value("type") {
-                let path = self.key.loc.pathname.smart_join_parent(token.as_str());
+                let path = self.key.loc.pathname().smart_join_parent(token.as_str());
                 data.fileset.verify_exists_implied_crashes(&path.to_string_lossy(), token);
             }
         });
@@ -199,7 +199,7 @@ impl Asset {
             vd.req_field("type");
             vd.field_value("id");
             if let Some(token) = vd.field_value("type") {
-                let path = self.key.loc.pathname.smart_join_parent(token.as_str());
+                let path = self.key.loc.pathname().smart_join_parent(token.as_str());
                 data.verify_exists_implied(Item::File, &path.to_string_lossy(), token);
             }
         });
@@ -326,7 +326,7 @@ impl Asset {
             vd.req_field("type");
             vd.field_value("id");
             if let Some(token) = vd.field_value("type") {
-                let path = self.key.loc.pathname.smart_join_parent(token.as_str());
+                let path = self.key.loc.pathname().smart_join_parent(token.as_str());
                 data.verify_exists_implied(Item::File, &path.to_string_lossy(), token);
             }
         });

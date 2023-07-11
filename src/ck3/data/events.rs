@@ -14,6 +14,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
+use crate::pathtable::PathTableIndex;
 use crate::pdxfile::PdxFile;
 use crate::report::{error, error_info, old_warn, warn_info, ErrorKey};
 use crate::scopes::{scope_from_snake_case, Scopes};
@@ -29,8 +30,8 @@ use crate::validate::{
 pub struct Events {
     events: FnvHashMap<(String, u16), Event>,
     namespaces: FnvHashMap<String, Token>,
-    triggers: FnvHashMap<(PathBuf, String), Trigger>,
-    effects: FnvHashMap<(PathBuf, String), Effect>,
+    triggers: FnvHashMap<(PathTableIndex, String), Trigger>,
+    effects: FnvHashMap<(PathTableIndex, String), Effect>,
 }
 
 impl Events {
@@ -48,7 +49,7 @@ impl Events {
     }
 
     fn load_scripted_trigger(&mut self, key: Token, block: Block) {
-        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        let index = (key.loc.path, key.to_string());
         if let Some(other) = self.triggers.get(&index) {
             dup_error(&key, &other.key, "scripted trigger");
         }
@@ -56,7 +57,7 @@ impl Events {
     }
 
     fn load_scripted_effect(&mut self, key: Token, block: Block) {
-        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        let index = (key.loc.path, key.to_string());
         if let Some(other) = self.effects.get(&index) {
             dup_error(&key, &other.key, "scripted effect");
         }
@@ -64,22 +65,22 @@ impl Events {
     }
 
     pub fn trigger_exists(&self, key: &Token) -> bool {
-        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        let index = (key.loc.path, key.to_string());
         self.triggers.contains_key(&index)
     }
 
     pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
-        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        let index = (key.loc.path, key.to_string());
         self.triggers.get(&index)
     }
 
     pub fn effect_exists(&self, key: &Token) -> bool {
-        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        let index = (key.loc.path, key.to_string());
         self.effects.contains_key(&index)
     }
 
     pub fn get_effect(&self, key: &Token) -> Option<&Effect> {
-        let index = (key.loc.pathname.to_path_buf(), key.to_string());
+        let index = (key.loc.path, key.to_string());
         self.effects.get(&index)
     }
 

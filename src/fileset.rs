@@ -2,7 +2,7 @@ use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 use std::string::ToString;
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
 use anyhow::Result;
 use fnv::FnvHashSet;
@@ -13,6 +13,7 @@ use crate::block::Block;
 use crate::everything::Everything;
 use crate::everything::FilesError;
 use crate::modfile::ModFile;
+use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{
     add_loaded_mod_root, error, fatal, warn_abbreviated, warn_header, will_maybe_log, ErrorKey,
 };
@@ -44,12 +45,16 @@ pub struct FileEntry {
     path: PathBuf,
     /// Whether it's a vanilla or mod file
     kind: FileKind,
+    /// Index into the `PathTable`. Used to initialize `Loc`, which doesn't carry a copy of the pathbuf.
+    /// A `FileEntry` might not have this index, because `FileEntry` needs to be usable before the (ordered)
+    /// path table is created.
+    idx: Option<PathTableIndex>,
 }
 
 impl FileEntry {
     pub fn new(path: PathBuf, kind: FileKind) -> Self {
         assert!(path.file_name().is_some());
-        Self { path, kind }
+        Self { path, kind, idx: None }
     }
 
     pub fn kind(&self) -> FileKind {
@@ -66,6 +71,15 @@ impl FileEntry {
     pub fn filename(&self) -> &OsStr {
         self.path.file_name().unwrap()
     }
+
+    fn store_in_pathtable(&mut self) {
+        assert!(self.idx.is_none());
+        self.idx = Some(PathTable::store(self.path.clone()));
+    }
+
+    pub fn path_idx(&self) -> Option<PathTableIndex> {
+        self.idx
+    }
 }
 
 impl Display for FileEntry {
@@ -76,7 +90,7 @@ impl Display for FileEntry {
 
 impl From<&FileEntry> for Loc {
     fn from(entry: &FileEntry) -> Self {
-        Loc::for_file(Arc::new(entry.path().to_path_buf()), entry.kind)
+        Loc::for_entry(entry)
     }
 }
 
@@ -178,6 +192,7 @@ pub struct Fileset {
     /// All filenames from ordered_files, for quick lookup
     filenames: FnvHashSet<PathBuf>,
 
+    /// Filenames that have been looked up during validation. Used to filter the --unused output.
     used: RwLock<FnvHashSet<String>>,
 }
 
@@ -267,6 +282,9 @@ impl Fileset {
             }
             // unwrap is safe here because WalkDir gives us paths with this prefix.
             let inner_path = entry.path().strip_prefix(path).unwrap();
+            if inner_path.starts_with(".git") {
+                continue;
+            }
             let inner_dir = inner_path.parent().unwrap_or_else(|| Path::new(""));
             if self.should_replace(inner_dir, kind) {
                 continue;
@@ -299,7 +317,8 @@ impl Fileset {
     }
 
     pub fn finalize(&mut self) {
-        // This places `Mod` entries after `Vanilla` entries and `LoadedMod` entries between them in order
+        // This sorts by pathname but where pathnames are equal it places `Mod` entries after `Vanilla` entries
+        // and `LoadedMod` entries between them in order
         self.files.sort();
 
         // When there are identical paths, only keep the last entry of them.
@@ -315,7 +334,8 @@ impl Fileset {
             }
         }
 
-        for entry in &self.ordered_files {
+        for entry in self.ordered_files.iter_mut() {
+            entry.store_in_pathtable();
             self.filenames.insert(entry.path.clone());
         }
     }

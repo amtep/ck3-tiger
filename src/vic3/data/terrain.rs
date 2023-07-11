@@ -92,7 +92,7 @@ impl TerrainManipulator {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         // Skip the common/terrain_manipulators/provinces/ files.
         // TODO: should be a way to tell fileset to skip subdirectories
-        if key.loc.pathname.components().count() > 3 {
+        if key.loc.pathname().components().count() > 3 {
             return;
         }
         db.add(Item::TerrainManipulator, key, block, Box::new(Self {}));

@@ -1,16 +1,17 @@
 use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::fmt::{Display, Error, Formatter};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use crate::block::Date;
 use crate::fileset::{FileEntry, FileKind};
+use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{error, error_info, ErrorKey};
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
-    pub pathname: Arc<PathBuf>,
+    pub path: PathTableIndex,
     pub kind: FileKind,
     /// line 0 means the loc applies to the file as a whole.
     pub line: usize,
@@ -20,20 +21,25 @@ pub struct Loc {
 }
 
 impl Loc {
-    pub fn for_file(pathname: Arc<PathBuf>, kind: FileKind) -> Self {
-        Loc { pathname, kind, line: 0, column: 0, link: None }
+    pub fn for_file(pathname: PathBuf, kind: FileKind) -> Self {
+        let path = PathTable::store(pathname);
+        Loc { path, kind, line: 0, column: 0, link: None }
     }
 
     pub fn for_entry(entry: &FileEntry) -> Self {
-        Self::for_file(Arc::new(entry.path().to_path_buf()), entry.kind())
-    }
-
-    pub fn line_marker(&self) -> String {
-        format!("line {}", self.line)
+        if let Some(path) = entry.path_idx() {
+            Loc { path, kind: entry.kind(), line: 0, column: 0, link: None }
+        } else {
+            Self::for_file(entry.path().to_path_buf(), entry.kind())
+        }
     }
 
     pub fn filename(&self) -> Cow<str> {
-        self.pathname.file_name().unwrap_or_else(|| OsStr::new("")).to_string_lossy()
+        PathTable::lookup(self.path).file_name().unwrap_or_else(|| OsStr::new("")).to_string_lossy()
+    }
+
+    pub fn pathname(&self) -> &'static Path {
+        PathTable::lookup(self.path)
     }
 }
 

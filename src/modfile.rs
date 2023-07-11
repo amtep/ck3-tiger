@@ -76,7 +76,7 @@ impl ModFile {
     }
 
     pub fn modpath(&self) -> PathBuf {
-        let mut dirpath = self.block.loc.pathname.parent().unwrap_or_else(|| Path::new("."));
+        let mut dirpath = self.block.loc.pathname().parent().unwrap_or_else(|| Path::new("."));
         if dirpath.components().count() == 0 {
             dirpath = Path::new(".");
         }

@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
 use anyhow::Result;
 use fnv::FnvHashSet;
@@ -265,7 +265,7 @@ impl Everything {
             Self::_read_config("ck3-tiger.conf", &config_file)
                 .ok_or(FilesError::ConfigUnreadable { path: config_file })?
         } else {
-            Block::new(Loc::for_file(Arc::new(config_file), FileKind::Mod))
+            Block::new(Loc::for_file(config_file, FileKind::Mod))
         };
 
         fileset.config(config.clone());

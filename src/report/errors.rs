@@ -60,12 +60,12 @@ impl Errors {
             return None;
         }
         let pathname = match loc.kind {
-            FileKind::Internal => (*loc.pathname).clone(),
-            FileKind::Clausewitz => self.clausewitz_root.join(&*loc.pathname),
-            FileKind::Jomini => self.jomini_root.join(&*loc.pathname),
-            FileKind::Vanilla => self.vanilla_root.join(&*loc.pathname),
-            FileKind::LoadedMod(idx) => self.loaded_mods[idx as usize].join(&*loc.pathname),
-            FileKind::Mod => self.mod_root.join(&*loc.pathname),
+            FileKind::Internal => loc.pathname().to_path_buf(),
+            FileKind::Clausewitz => self.clausewitz_root.join(loc.pathname()),
+            FileKind::Jomini => self.jomini_root.join(loc.pathname()),
+            FileKind::Vanilla => self.vanilla_root.join(loc.pathname()),
+            FileKind::LoadedMod(idx) => self.loaded_mods[idx as usize].join(loc.pathname()),
+            FileKind::Mod => self.mod_root.join(loc.pathname()),
         };
         if let Some(contents) = self.filecache.get(&pathname) {
             return contents.lines().nth(loc.line - 1).map(str::to_string);
@@ -86,9 +86,9 @@ impl Errors {
         if !self.filter.should_print_report(&report) {
             return;
         }
-        let loc = report.primary().location.clone();
-        let loc2 = report.pointers.get(1).map(|p| p.location.clone());
-        let loc3 = report.pointers.get(2).map(|p| p.location.clone());
+        let loc = report.primary().loc.clone();
+        let loc2 = report.pointers.get(1).map(|p| p.loc.clone());
+        let loc3 = report.pointers.get(2).map(|p| p.loc.clone());
         let index = (loc, report.key, report.msg.to_string(), loc2, loc3);
         if self.seen.contains(&index) {
             return;
@@ -99,7 +99,7 @@ impl Errors {
 
     pub fn log_abbreviated(&mut self, loc: &Loc, key: ErrorKey) {
         if loc.line == 0 {
-            println!("({key}) {}", loc.pathname.to_string_lossy());
+            println!("({key}) {}", loc.pathname().to_string_lossy());
         } else if let Some(line) = self.get_line(loc) {
             println!("({key}) {line}");
         }
@@ -134,7 +134,7 @@ impl Errors {
             }
             // If severity and confidence are the same, order by loc. Check all locs in order.
             for (a, b) in a.pointers.iter().zip(b.pointers.iter()) {
-                cmp = a.location.cmp(&b.location);
+                cmp = a.loc.cmp(&b.loc);
                 if cmp != Ordering::Equal {
                     return cmp;
                 }
@@ -203,9 +203,9 @@ pub fn log(mut report: LogReport) {
 /// longer available, adding a newly created `PointedMessage` to the given `Vec` for each linked
 /// location.
 fn recursive_pointed_msg_expansion(vec: &mut Vec<PointedMessage>, pointer: &PointedMessage) {
-    if let Some(link) = &pointer.location.link {
+    if let Some(link) = &pointer.loc.link {
         let from_here = PointedMessage {
-            location: link.as_ref().into_loc(),
+            loc: link.as_ref().into_loc(),
             length: 1,
             msg: Some("from here".to_owned()),
         };

@@ -59,13 +59,13 @@ fn log_pointer(
     severity: Severity,
 ) {
     if previous.is_none()
-        || previous.unwrap().location.pathname != pointer.location.pathname
-        || previous.unwrap().location.kind != pointer.location.kind
+        || previous.unwrap().loc.path != pointer.loc.path
+        || previous.unwrap().loc.kind != pointer.loc.kind
     {
         // This pointer is not the same as the previous pointer. Print file location as well:
         log_line_file_location(errors, pointer, indentation);
     }
-    if pointer.location.line == 0 {
+    if pointer.loc.line == 0 {
         // Line being zero means the location is an entire file,
         // not any particular location within the file.
         return;
@@ -117,12 +117,12 @@ fn log_line_file_location(errors: &Errors, pointer: &PointedMessage, indentation
         errors
             .styles
             .style(&Styled::Location)
-            .paint(format!("[{}]", kind_tag(errors, pointer.location.kind))),
+            .paint(format!("[{}]", kind_tag(errors, pointer.loc.kind))),
         errors.styles.style(&Styled::Default).paint(" "),
         errors
             .styles
             .style(&Styled::Location)
-            .paint(format!("{}", pointer.location.pathname.display())),
+            .paint(format!("{}", pointer.loc.pathname().display())),
     ];
     println!("{}", ANSIStrings(line_filename));
 }
@@ -132,7 +132,7 @@ fn log_line_from_source(errors: &Errors, pointer: &PointedMessage, indentation: 
     let line_from_source: &[ANSIString<'static>] = &[
         errors.styles.style(&Styled::Location).paint(format!(
             "{:width$}",
-            pointer.location.line,
+            pointer.loc.line,
             width = indentation
         )),
         errors.styles.style(&Styled::Default).paint(" "),
@@ -152,10 +152,8 @@ fn log_line_carets(
     severity: Severity,
 ) {
     let mut spacing = String::new();
-    for c in line
-        .chars()
-        .skip(skippable_ws)
-        .take(pointer.location.column.saturating_sub(skippable_ws + 1))
+    for c in
+        line.chars().skip(skippable_ws).take(pointer.loc.column.saturating_sub(skippable_ws + 1))
     {
         for _ in 0..c.width().unwrap_or(0) {
             spacing.push(' ');
@@ -205,7 +203,7 @@ fn lines(errors: &mut Errors, report: &LogReport) -> Vec<Option<String>> {
     report
         .pointers
         .iter()
-        .map(|p| errors.get_line(&p.location).map(|line| line.replace('\t', SPACES_PER_TAB)))
+        .map(|p| errors.get_line(&p.loc).map(|line| line.replace('\t', SPACES_PER_TAB)))
         .collect()
 }
 

@@ -378,7 +378,7 @@ pub fn assert_one_key(assert_key: &str, block: &Block) {
             .iter()
             .enumerate()
             .map(|(index, key)| PointedMessage {
-                location: key.into_loc(),
+                loc: key.into_loc(),
                 length: 1,
                 msg: Some((if index == 0 { "It occurs here" } else { "and here" }).to_owned()),
             })

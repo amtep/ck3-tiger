@@ -28,11 +28,7 @@ impl LogReport {
     }
     /// Returns the length of the longest line number.
     pub fn indentation(&self) -> usize {
-        self.pointers
-            .iter()
-            .map(|pointer| pointer.location.line.to_string().len())
-            .max()
-            .unwrap_or(0)
+        self.pointers.iter().map(|pointer| pointer.loc.line.to_string().len()).max().unwrap_or(0)
     }
 }
 
@@ -40,7 +36,7 @@ impl LogReport {
 pub struct PointedMessage {
     /// Which file and where in the file the error occurs.
     /// Might point to a whole file, rather than a specific location in the file.
-    pub location: Loc,
+    pub loc: Loc,
     /// The length of the offending phrase in characters.
     /// Set this to 1 if the length cannot be determined.
     /// This will determine the number of carets that are printed at the given location.
@@ -52,8 +48,8 @@ pub struct PointedMessage {
 }
 
 impl PointedMessage {
-    pub fn new(location: Loc) -> Self {
-        Self { location, msg: None, length: 1 }
+    pub fn new(loc: Loc) -> Self {
+        Self { loc, msg: None, length: 1 }
     }
 }
 

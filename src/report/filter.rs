@@ -32,7 +32,7 @@ impl ReportFilter {
             return true;
         }
         // If every single Loc in the chain is out of scope, the report is out of scope.
-        let out_of_scope = report.pointers.iter().map(|p| &p.location).all(|loc| {
+        let out_of_scope = report.pointers.iter().map(|p| &p.loc).all(|loc| {
             (loc.kind <= FileKind::Vanilla && !self.show_vanilla)
                 || (matches!(loc.kind, FileKind::LoadedMod(_)) && !self.show_loaded_mods)
         });
@@ -42,14 +42,14 @@ impl ReportFilter {
         self.predicate.apply(report)
     }
     /// TODO: Check the filter rules to be more sure.
-    pub fn should_maybe_print(&self, key: ErrorKey, location: &Loc) -> bool {
+    pub fn should_maybe_print(&self, key: ErrorKey, loc: &Loc) -> bool {
         if key == ErrorKey::Config {
             // Any errors concerning the Config should be easy to fix and will fundamentally
             // undermine the operation of the application. They must always be printed.
             return true;
         }
-        if (location.kind <= FileKind::Vanilla && !self.show_vanilla)
-            || (matches!(location.kind, FileKind::LoadedMod(_)) && !self.show_loaded_mods)
+        if (loc.kind <= FileKind::Vanilla && !self.show_vanilla)
+            || (matches!(loc.kind, FileKind::LoadedMod(_)) && !self.show_loaded_mods)
         {
             return false;
         }
@@ -111,7 +111,7 @@ impl FilterRule {
             },
             FilterRule::Key(key) => report.key == *key,
             FilterRule::File(path) => {
-                report.pointers.iter().any(|pointer| pointer.location.pathname.starts_with(path))
+                report.pointers.iter().any(|pointer| pointer.loc.pathname().starts_with(path))
             }
         }
     }
