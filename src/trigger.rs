@@ -467,7 +467,10 @@ fn match_trigger_bv(
     negated: bool,
 ) {
     let mut must_be_eq = true;
+    #[cfg(feature = "ck3")]
     let mut warn_if_eq = false;
+    #[cfg(feature = "vic3")]
+    let warn_if_eq = false;
 
     match trigger {
         Trigger::Boolean => {
@@ -479,11 +482,13 @@ fn match_trigger_bv(
             must_be_eq = false;
             validate_scriptvalue(bv, data, sc);
         }
+        #[cfg(feature = "ck3")]
         Trigger::CompareValueWarnEq => {
             must_be_eq = false;
             warn_if_eq = true;
             validate_scriptvalue(bv, data, sc);
         }
+        #[cfg(feature = "ck3")]
         Trigger::SetValue => {
             validate_scriptvalue(bv, data, sc);
         }
@@ -560,14 +565,17 @@ fn match_trigger_bv(
                 match_trigger_fields(fields, block, data, sc, tooltipped, negated);
             }
         }
+        #[cfg(feature = "ck3")]
         Trigger::ScopeOrBlock(s, fields) => match bv {
             BV::Value(token) => validate_target(token, data, sc, *s),
             BV::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped, negated),
         },
+        #[cfg(feature = "ck3")]
         Trigger::ItemOrBlock(i, fields) => match bv {
             BV::Value(token) => data.verify_exists(*i, token),
             BV::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped, negated),
         },
+        #[cfg(feature = "ck3")]
         Trigger::CompareValueOrBlock(fields) => match bv {
             BV::Value(t) => {
                 validate_target(t, data, sc, Scopes::Value);
@@ -577,6 +585,7 @@ fn match_trigger_bv(
                 match_trigger_fields(fields, b, data, sc, tooltipped, negated);
             }
         },
+        #[cfg(feature = "ck3")]
         Trigger::ScopeList(s) => {
             if let Some(block) = bv.expect_block() {
                 let mut vd = Validator::new(block, data);
@@ -585,6 +594,7 @@ fn match_trigger_bv(
                 }
             }
         }
+        #[cfg(feature = "ck3")]
         Trigger::ScopeCompare(s) => {
             if let Some(block) = bv.expect_block() {
                 if block.iter_items().count() != 1 {
@@ -599,6 +609,7 @@ fn match_trigger_bv(
                 }
             }
         }
+        #[cfg(feature = "ck3")]
         Trigger::CompareToScope(s) => {
             must_be_eq = false;
             if let Some(token) = bv.expect_value() {
@@ -931,8 +942,10 @@ pub enum RawTrigger {
     /// can be a script value
     CompareValue,
     /// can be a script value; warn if =
+    #[cfg(feature = "ck3")]
     CompareValueWarnEq,
     /// can be a script value; no < or >
+    #[cfg(feature = "ck3")]
     SetValue,
     /// value must be a valid date
     CompareDate,
@@ -955,16 +968,22 @@ pub enum RawTrigger {
     /// trigger takes a block with these fields
     Block(&'static [(&'static str, RawTrigger)]),
     /// trigger takes a block with these fields
+    #[cfg(feature = "ck3")]
     ScopeOrBlock(u64, &'static [(&'static str, RawTrigger)]),
     /// trigger takes a block with these fields
+    #[cfg(feature = "ck3")]
     ItemOrBlock(Item, &'static [(&'static str, RawTrigger)]),
     /// can be part of a scope chain but also a standalone trigger
+    #[cfg(feature = "ck3")]
     CompareValueOrBlock(&'static [(&'static str, RawTrigger)]),
     /// trigger takes a block of values of this scope type
+    #[cfg(feature = "ck3")]
     ScopeList(u64),
     /// trigger takes a block comparing two scope objects
+    #[cfg(feature = "ck3")]
     ScopeCompare(u64),
     /// this is for inside a Block, where a key is compared to a scope object
+    #[cfg(feature = "ck3")]
     CompareToScope(u64),
 
     /// this key opens another trigger block
@@ -980,7 +999,9 @@ pub enum RawTrigger {
 pub enum Trigger {
     Boolean,
     CompareValue,
+    #[cfg(feature = "ck3")]
     CompareValueWarnEq,
+    #[cfg(feature = "ck3")]
     SetValue,
     CompareDate,
     #[cfg(feature = "vic3")]
@@ -993,11 +1014,17 @@ pub enum Trigger {
     ScopeOrItem(Scopes, Item),
     Choice(&'static [&'static str]),
     Block(Vec<(&'static str, Trigger)>),
+    #[cfg(feature = "ck3")]
     ScopeOrBlock(Scopes, Vec<(&'static str, Trigger)>),
+    #[cfg(feature = "ck3")]
     ItemOrBlock(Item, Vec<(&'static str, Trigger)>),
+    #[cfg(feature = "ck3")]
     CompareValueOrBlock(Vec<(&'static str, Trigger)>),
+    #[cfg(feature = "ck3")]
     ScopeList(Scopes),
+    #[cfg(feature = "ck3")]
     ScopeCompare(Scopes),
+    #[cfg(feature = "ck3")]
     CompareToScope(Scopes),
 
     Control,
@@ -1011,7 +1038,9 @@ impl Trigger {
         match raw {
             RawTrigger::Boolean => Trigger::Boolean,
             RawTrigger::CompareValue => Trigger::CompareValue,
+            #[cfg(feature = "ck3")]
             RawTrigger::CompareValueWarnEq => Trigger::CompareValueWarnEq,
+            #[cfg(feature = "ck3")]
             RawTrigger::SetValue => Trigger::SetValue,
             RawTrigger::CompareDate => Trigger::CompareDate,
             #[cfg(feature = "vic3")]
@@ -1026,18 +1055,24 @@ impl Trigger {
             }
             RawTrigger::Choice(choices) => Trigger::Choice(choices),
             RawTrigger::Block(fields) => Trigger::Block(Trigger::from_raw_fields(fields)),
+            #[cfg(feature = "ck3")]
             RawTrigger::ScopeOrBlock(s, fields) => Trigger::ScopeOrBlock(
                 Scopes::from_bits_truncate(*s),
                 Trigger::from_raw_fields(fields),
             ),
+            #[cfg(feature = "ck3")]
             RawTrigger::ItemOrBlock(i, fields) => {
                 Trigger::ItemOrBlock(*i, Trigger::from_raw_fields(fields))
             }
+            #[cfg(feature = "ck3")]
             RawTrigger::CompareValueOrBlock(fields) => {
                 Trigger::CompareValueOrBlock(Trigger::from_raw_fields(fields))
             }
+            #[cfg(feature = "ck3")]
             RawTrigger::ScopeList(s) => Trigger::ScopeList(Scopes::from_bits_truncate(*s)),
+            #[cfg(feature = "ck3")]
             RawTrigger::ScopeCompare(s) => Trigger::ScopeCompare(Scopes::from_bits_truncate(*s)),
+            #[cfg(feature = "ck3")]
             RawTrigger::CompareToScope(s) => {
                 Trigger::CompareToScope(Scopes::from_bits_truncate(*s))
             }
@@ -1056,6 +1091,7 @@ impl Trigger {
 
 pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
     match scope_trigger(name, data) {
+        #[cfg(feature = "ck3")]
         Some((
             s,
             Trigger::CompareValue
@@ -1064,6 +1100,8 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
             | Trigger::SetValue
             | Trigger::CompareValueOrBlock(_),
         )) => Some(s),
+        #[cfg(feature = "vic3")]
+        Some((s, Trigger::CompareValue | Trigger::CompareDate)) => Some(s),
         _ => std::option::Option::None,
     }
 }

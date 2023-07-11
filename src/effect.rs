@@ -18,10 +18,12 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::{
     validate_target, validate_target_ok_this, validate_trigger, validate_trigger_key_bv,
 };
+#[cfg(feature = "ck3")]
+use crate::validate::validate_compare_duration;
 use crate::validate::{
-    precheck_iterator_fields, validate_days_weeks_months_years, validate_ifelse_sequence,
-    validate_inside_iterator, validate_iterator_fields, validate_modifiers,
-    validate_optional_duration, validate_scope_chain, validate_scripted_modifier_call, ListType,
+    precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
+    validate_iterator_fields, validate_modifiers, validate_optional_duration, validate_scope_chain,
+    validate_scripted_modifier_call, ListType,
 };
 #[cfg(feature = "vic3")]
 use crate::vic3::effect_validation::{
@@ -174,6 +176,7 @@ pub fn validate_effect_internal<'a>(
                         validate_target(token, data, sc, outscopes);
                     }
                 }
+                #[cfg(feature = "ck3")]
                 Effect::ScopeOkThis(outscopes) => {
                     if let Some(token) = bv.expect_value() {
                         validate_target_ok_this(token, data, sc, outscopes);
@@ -191,6 +194,7 @@ pub fn validate_effect_internal<'a>(
                         }
                     }
                 }
+                #[cfg(feature = "ck3")]
                 Effect::Target(key, outscopes) => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
@@ -199,6 +203,7 @@ pub fn validate_effect_internal<'a>(
                         vd.field_target(key, sc, outscopes);
                     }
                 }
+                #[cfg(feature = "ck3")]
                 Effect::TargetValue(key, outscopes, valuekey) => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
@@ -209,6 +214,7 @@ pub fn validate_effect_internal<'a>(
                         vd.field_script_value(valuekey, sc);
                     }
                 }
+                #[cfg(feature = "ck3")]
                 Effect::ItemTarget(ikey, itype, tkey, outscopes) => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
@@ -217,6 +223,7 @@ pub fn validate_effect_internal<'a>(
                         vd.field_target(tkey, sc, outscopes);
                     }
                 }
+                #[cfg(feature = "ck3")]
                 Effect::ItemValue(key, itype) => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
@@ -235,12 +242,15 @@ pub fn validate_effect_internal<'a>(
                         }
                     }
                 }
+                #[cfg(feature = "ck3")]
                 Effect::Desc => validate_desc(bv, data, sc),
+                #[cfg(feature = "ck3")]
                 Effect::Timespan => {
                     if let Some(block) = bv.expect_block() {
-                        validate_days_weeks_months_years(block, data, sc);
+                        validate_compare_duration(block, data, sc);
                     }
                 }
+                #[cfg(feature = "ck3")]
                 Effect::AddModifier => {
                     let visible = key.is("add_character_modifier")
                         || key.is("add_house_modifier")
@@ -314,6 +324,7 @@ pub fn validate_effect_internal<'a>(
                         );
                     }
                 }
+                #[cfg(feature = "ck3")]
                 Effect::Removed(version, explanation) => {
                     let msg = format!("`{key}` was removed in {version}");
                     warn_info(key, ErrorKey::Removed, &msg, explanation);
@@ -610,26 +621,36 @@ pub enum Effect {
     Integer,
     ScriptValue,
     /// warn if literal negative
+    #[allow(dead_code)]
     NonNegativeValue,
     #[cfg(feature = "vic3")]
     Date,
     Scope(Scopes),
+    #[cfg(feature = "ck3")]
     ScopeOkThis(Scopes),
     Item(Item),
     ScopeOrItem(Scopes, Item),
+    #[cfg(feature = "ck3")]
     Target(&'static str, Scopes),
+    #[cfg(feature = "ck3")]
     TargetValue(&'static str, Scopes, &'static str),
+    #[cfg(feature = "ck3")]
     ItemTarget(&'static str, Item, &'static str, Scopes),
+    #[cfg(feature = "ck3")]
     ItemValue(&'static str, Item),
+    #[cfg(feature = "ck3")]
     Desc,
     /// days/weeks/months/years
+    #[cfg(feature = "ck3")]
     Timespan,
+    #[cfg(feature = "ck3")]
     AddModifier,
     Control,
     ControlOrLabel,
     /// so special that we just accept whatever argument
     Unchecked,
     Choice(&'static [&'static str]),
+    #[cfg(feature = "ck3")]
     Removed(&'static str, &'static str),
     VB(EvB),
     VBv(EvBv),

@@ -118,7 +118,8 @@ pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut Scop
     }
 }
 
-pub fn validate_days_weeks_months_years(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+#[cfg(feature = "ck3")]
+pub fn validate_compare_duration(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
 
@@ -157,6 +158,7 @@ pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext
 
 // Very similar to validate_duration, but validates part of a block that may contain a duration
 // Also does not accept scriptvalues (per the documentation)
+#[cfg(feature = "ck3")]
 pub fn validate_optional_duration_int(vd: &mut Validator) {
     let mut count = 0;
 
@@ -248,6 +250,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
 }
 
 /// Camera colors must be hsv, and value can be > 1
+#[cfg(feature = "ck3")]
 pub fn validate_camera_color(block: &Block, data: &Everything) {
     let mut count = 0;
     // Get the color tag, as in color = hsv { 0.5 1.0 1.0 }
@@ -285,6 +288,7 @@ pub fn validate_possibly_named_color(bv: &BV, data: &Everything) {
     }
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted: &str) {
     if let Some((prefix, arg)) = token.split_once(':') {
         let mut sc = ScopeContext::new(Scopes::None, token);
@@ -549,6 +553,7 @@ pub fn validate_inside_iterator(
     }
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_script_value("gold", sc);
@@ -557,6 +562,7 @@ pub fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_bool("round");
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_cost_with_renown(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_script_value("gold", sc);
@@ -903,6 +909,7 @@ pub fn validate_random_faith(block: &Block, data: &Everything, sc: &mut ScopeCon
     }
 }
 
+#[cfg(feature = "ck3")]
 pub fn validate_maa_stats(vd: &mut Validator) {
     vd.field_numeric("pursuit");
     vd.field_numeric("screen");

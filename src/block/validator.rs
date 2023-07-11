@@ -9,7 +9,9 @@ use crate::helpers::dup_assign_error;
 use crate::item::Item;
 use crate::report::{advice, error, old_warn, ErrorKey};
 use crate::scopes::Scopes;
-use crate::scriptvalue::{validate_scriptvalue, validate_scriptvalue_no_breakdown};
+use crate::scriptvalue::validate_scriptvalue;
+#[cfg(feature = "ck3")]
+use crate::scriptvalue::validate_scriptvalue_no_breakdown;
 use crate::token::Token;
 use crate::trigger::{validate_target, validate_target_ok_this};
 
@@ -742,6 +744,7 @@ impl<'a> Validator<'a> {
         }
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_block_rerooted<F>(
         &mut self,
         name: &str,
