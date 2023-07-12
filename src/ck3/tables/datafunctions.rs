@@ -4,6 +4,7 @@ use std::str::FromStr;
 
 use strum_macros::{Display, EnumString};
 
+use crate::datatype::{Arg, Args, LookupResult};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
@@ -16,43 +17,6 @@ use Datatype::*;
 // The include/ files are converted from the game's data_type_* output files.
 
 include!("include/datatypes.rs");
-
-#[derive(Copy, Clone, Debug)]
-pub enum Arg {
-    DType(Datatype),
-    IType(Item),
-}
-
-#[allow(clippy::enum_variant_names)]
-#[derive(Copy, Clone, Debug)]
-pub enum Args {
-    NoArgs,
-    Arg1(Arg),
-    Arg2(Arg, Arg),
-    Arg3(Arg, Arg, Arg),
-    Arg4(Arg, Arg, Arg, Arg),
-    Arg5(Arg, Arg, Arg, Arg, Arg),
-}
-
-impl Args {
-    pub fn nargs(self) -> usize {
-        match self {
-            NoArgs => 0,
-            Arg1(_) => 1,
-            Arg2(_, _) => 2,
-            Arg3(_, _, _) => 3,
-            Arg4(_, _, _, _) => 4,
-            Arg5(_, _, _, _, _) => 5,
-        }
-    }
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum LookupResult {
-    NotFound,
-    WrongType,
-    Found(Args, Datatype),
-}
 
 pub fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
     if let Ok(idx) = GLOBAL_PROMOTES.binary_search_by_key(&lookup_name, |(name, _, _)| name) {

@@ -6,7 +6,7 @@ use crate::ck3::data::religions::CUSTOM_RELIGION_LOCAS;
 #[cfg(feature = "ck3")]
 pub use crate::ck3::tables::datafunctions::{
     lookup_alternative, lookup_function, lookup_global_function, lookup_global_promote,
-    lookup_promote, scope_from_datatype, Arg, Args, Datatype, LookupResult,
+    lookup_promote, scope_from_datatype, Datatype,
 };
 use crate::data::customloca::CustomLocalization;
 use crate::everything::Everything;
@@ -17,7 +17,7 @@ use crate::token::Token;
 #[cfg(feature = "vic3")]
 pub use crate::vic3::tables::datafunctions::{
     lookup_alternative, lookup_function, lookup_global_function, lookup_global_promote,
-    lookup_promote, scope_from_datatype, Arg, Args, Datatype, LookupResult,
+    lookup_promote, scope_from_datatype, Datatype,
 };
 
 #[derive(Clone, Debug)]
@@ -63,6 +63,46 @@ impl CodeChain {
             None
         }
     }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum Arg {
+    DType(Datatype),
+    IType(Item),
+}
+
+#[allow(clippy::enum_variant_names)]
+#[allow(dead_code)]
+#[derive(Copy, Clone, Debug)]
+pub enum Args {
+    NoArgs,
+    Arg1(Arg),
+    Arg2(Arg, Arg),
+    Arg3(Arg, Arg, Arg),
+    Arg4(Arg, Arg, Arg, Arg),
+    Arg5(Arg, Arg, Arg, Arg, Arg),
+    Arg6(Arg, Arg, Arg, Arg, Arg, Arg),
+}
+
+impl Args {
+    pub fn nargs(self) -> usize {
+        match self {
+            Args::NoArgs => 0,
+            Args::Arg1(_) => 1,
+            Args::Arg2(_, _) => 2,
+            Args::Arg3(_, _, _) => 3,
+            Args::Arg4(_, _, _, _) => 4,
+            Args::Arg5(_, _, _, _, _) => 5,
+            Args::Arg6(_, _, _, _, _, _) => 6,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum LookupResult {
+    NotFound,
+    WrongType,
+    Found(Args, Datatype),
 }
 
 fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: &'static str) {
@@ -373,7 +413,6 @@ pub fn validate_datatypes(
                 validate_argument(&code.arguments[3], data, dt4, lang);
                 validate_argument(&code.arguments[4], data, dt5, lang);
             }
-            #[cfg(feature = "vic3")]
             Args::Arg6(dt1, dt2, dt3, dt4, dt5, dt6) => {
                 validate_argument(&code.arguments[0], data, dt1, lang);
                 validate_argument(&code.arguments[1], data, dt2, lang);
