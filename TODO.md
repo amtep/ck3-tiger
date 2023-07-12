@@ -21,4 +21,3 @@
 * Make each `Block` carry a copy of its key so that we don't have to pass key parameters around everywhere.
 * Make `Validator` able to take a `BV` or `Token` and validate values as well as blocks, for more uniform code.
 * the effects table has a lot of Special entries, which then necessitate another string lookup to handle them. Maybe it would be better if the effects table contained function pointers in the first place.
-* make datatype Args enum have a static array instead

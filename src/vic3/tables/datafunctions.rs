@@ -10,7 +10,6 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 
 use Arg::*;
-use Args::*;
 use Datatype::*;
 
 // Validate the "code" blocks in localization files and in the gui files.
@@ -26,7 +25,7 @@ pub fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
 
     // Datatypes can be used directly as global promotes, taking their value from the gui context.
     if let Ok(dtype) = Datatype::from_str(lookup_name) {
-        return Some((Args::NoArgs, dtype));
+        return Some((Args(&[]), dtype));
     }
 
     None

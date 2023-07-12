@@ -71,30 +71,12 @@ pub enum Arg {
     IType(Item),
 }
 
-#[allow(clippy::enum_variant_names)]
-#[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
-pub enum Args {
-    NoArgs,
-    Arg1(Arg),
-    Arg2(Arg, Arg),
-    Arg3(Arg, Arg, Arg),
-    Arg4(Arg, Arg, Arg, Arg),
-    Arg5(Arg, Arg, Arg, Arg, Arg),
-    Arg6(Arg, Arg, Arg, Arg, Arg, Arg),
-}
+pub struct Args(pub &'static [Arg]);
 
 impl Args {
     pub fn nargs(self) -> usize {
-        match self {
-            Args::NoArgs => 0,
-            Args::Arg1(_) => 1,
-            Args::Arg2(_, _) => 2,
-            Args::Arg3(_, _, _) => 3,
-            Args::Arg4(_, _, _, _) => 4,
-            Args::Arg5(_, _, _, _, _) => 5,
-            Args::Arg6(_, _, _, _, _, _) => 6,
-        }
+        self.0.len()
     }
 }
 
@@ -190,7 +172,7 @@ pub fn validate_datatypes(
         let code = &codes[i];
         let is_first = i == 0;
         let is_last = i == codes.len() - 1;
-        let mut args = Args::NoArgs;
+        let mut args = Args(&[]);
         let mut rtype = Datatype::Unknown;
 
         if code.name.is("") {
@@ -263,7 +245,7 @@ pub fn validate_datatypes(
         #[cfg(feature = "vic3")]
         if data.item_exists(Item::Country, code.name.as_str()) {
             found = true;
-            args = Args::NoArgs;
+            args = Args(&[]);
             rtype = Datatype::Country;
         }
 
@@ -325,7 +307,7 @@ pub fn validate_datatypes(
             }
 
             // If it's a passed-in scope, then set args and rtype appropriately.
-            args = Args::NoArgs;
+            args = Args(&[]);
             // TODO: this could in theory be reduced to just the scope types.
             // That would be valuable for checks because it will find
             // the common mistake of using .Var directly after one.
@@ -388,39 +370,8 @@ pub fn validate_datatypes(
             }
         }
 
-        match args {
-            Args::NoArgs => (),
-            Args::Arg1(dt1) => validate_argument(&code.arguments[0], data, dt1, lang),
-            Args::Arg2(dt1, dt2) => {
-                validate_argument(&code.arguments[0], data, dt1, lang);
-                validate_argument(&code.arguments[1], data, dt2, lang);
-            }
-            Args::Arg3(dt1, dt2, dt3) => {
-                validate_argument(&code.arguments[0], data, dt1, lang);
-                validate_argument(&code.arguments[1], data, dt2, lang);
-                validate_argument(&code.arguments[2], data, dt3, lang);
-            }
-            Args::Arg4(dt1, dt2, dt3, dt4) => {
-                validate_argument(&code.arguments[0], data, dt1, lang);
-                validate_argument(&code.arguments[1], data, dt2, lang);
-                validate_argument(&code.arguments[2], data, dt3, lang);
-                validate_argument(&code.arguments[3], data, dt4, lang);
-            }
-            Args::Arg5(dt1, dt2, dt3, dt4, dt5) => {
-                validate_argument(&code.arguments[0], data, dt1, lang);
-                validate_argument(&code.arguments[1], data, dt2, lang);
-                validate_argument(&code.arguments[2], data, dt3, lang);
-                validate_argument(&code.arguments[3], data, dt4, lang);
-                validate_argument(&code.arguments[4], data, dt5, lang);
-            }
-            Args::Arg6(dt1, dt2, dt3, dt4, dt5, dt6) => {
-                validate_argument(&code.arguments[0], data, dt1, lang);
-                validate_argument(&code.arguments[1], data, dt2, lang);
-                validate_argument(&code.arguments[2], data, dt3, lang);
-                validate_argument(&code.arguments[3], data, dt4, lang);
-                validate_argument(&code.arguments[4], data, dt5, lang);
-                validate_argument(&code.arguments[5], data, dt6, lang);
-            }
+        for (i, arg) in args.0.iter().enumerate() {
+            validate_argument(&code.arguments[i], data, *arg, lang);
         }
 
         curtype = rtype;

@@ -13,64 +13,64 @@ FUNCTIONS = []
 PROMOTES = []
 
 # Experimentation shows that Root is accepted as well as ROOT
-GLOBAL_PROMOTES.append('    ("Root", NoArgs, Scope),\n')
+GLOBAL_PROMOTES.append('    ("Root", Args(&[]), Scope),\n')
 
 # Most promotes and functions have 'Unknown' arg types in the data_type logs.
 # This dictionary replaces those with known arg types in specific cases.
 ARGS_OVERRIDE = {
-    ("Artifact.GetFeatureText", 1): "Arg1(IType(Item::ArtifactFeatureGroup))",
-    ("Character.Custom2", 2): "Arg2(DType(CString), DType(AnyScope))",
-    ("EqualTo_string", 2): "Arg2(DType(CString), DType(CString))",
-    ("FaithDoctrine.GetName", 1): "Arg1(DType(Faith))",
-    ("FaithDoctrineGroup.GetName", 1): "Arg1(DType(Faith))",
-    ("GetAccoladeType", 1): "Arg1(IType(Item::AccoladeType))",
-    ("GetActivityGuestInviteRule", 1): "Arg1(IType(Item::GuestInviteRule))",
-    ("GetActivityIntent", 1): "Arg1(IType(Item::ActivityIntent))",
-    ("GetActivityLocale", 1): "Arg1(IType(Item::ActivityLocale))",
-    ("GetActivityPulseAction", 1): "Arg1(IType(Item::PulseAction))",
-    ("GetActivityType", 1): "Arg1(IType(Item::ActivityType))",
-    ("GetArtifactType", 1): "Arg1(IType(Item::ArtifactType))",
-    ("GetArtifactVisualType", 1): "Arg1(IType(Item::ArtifactVisual))",
-    ("GetBookmark", 1): "Arg1(IType(Item::Bookmark))",
-    ("GetBookmarkGroup", 1): "Arg1(IType(Item::BookmarkGroup))",
-    ("GetBuilding", 1): "Arg1(IType(Item::Building))",
-    ("GetCasusBelliType", 1): "Arg1(IType(Item::CasusBelli))",
-    ("GetCatalystType", 1): "Arg1(IType(Item::Catalyst))",
-    ("GetCharacterInteraction", 1): "Arg1(IType(Item::Interaction))",
-    ("GetCharacterInteractionCategory", 1): "Arg1(IType(Item::InteractionCategory))",
-    ("GetDecisionWithKey", 1): "Arg1(IType(Item::Decision))",
-    ("GetDoctrine", 1): "Arg1(IType(Item::Doctrine))",
-    ("GetFaithByKey", 1): "Arg1(IType(Item::Faith))",
-    ("GetFaithDoctrine", 1): "Arg1(IType(Item::Doctrine))",
-    ("GetFocus", 1): "Arg1(IType(Item::Focus))",
-    ("GetGeographicalRegion", 1): "Arg1(IType(Item::Region))",
-    ("GetHolySite", 1): "Arg1(IType(Item::HolySite))",
-    ("GetIllustration", 1): "Arg1(IType(Item::ScriptedIllustration))",
-    ("GetLifestyle", 1): "Arg1(IType(Item::Lifestyle))",
-    ("GetMaA", 1): "Arg1(IType(Item::MenAtArms))",
-    ("GetModifier", 1): "Arg1(IType(Item::Modifier))",
-    ("GetNickname", 1): "Arg1(IType(Item::Nickname))",
-    ("GetPerk", 1): "Arg1(IType(Item::Perk))",
-    ("GetRelation", 1): "Arg1(IType(Item::Relation))",
-    ("GetReligionByKey", 1): "Arg1(IType(Item::Religion))",
-    ("GetScheme", 1): "Arg1(IType(Item::Scheme))",
-    ("GetSchemeType", 1): "Arg1(IType(Item::Scheme))",
-    ("GetScriptedGui", 1): "Arg1(IType(Item::ScriptedGui))",
-    ("GetScriptedRelation", 1): "Arg1(IType(Item::Relation))",
-    ("GetSecretType", 1): "Arg1(IType(Item::Secret))",
-    ("GetStaticModifier", 1): "Arg1(IType(Item::Modifier))",
-    ("GetTerrain", 1): "Arg1(IType(Item::Terrain))",
-    ("GetTitleByKey", 1): "Arg1(IType(Item::Title))",
-    ("GetTrait", 1): "Arg1(IType(Item::Trait))",
-    ("GetVassalStance", 1): "Arg1(IType(Item::VassalStance))",
-    ("Scope.Var", 1): "Arg1(DType(CString))",
-    ("TopScope.sC", 1): "Arg1(DType(CString))",
+    ("Artifact.GetFeatureText", 1): ["IType(Item::ArtifactFeatureGroup)"],
+    ("Character.Custom2", 2): ["DType(CString)", "DType(AnyScope)"],
+    ("EqualTo_string", 2): ["DType(CString)", "DType(CString)"],
+    ("FaithDoctrine.GetName", 1): ["DType(Faith)"],
+    ("FaithDoctrineGroup.GetName", 1): ["DType(Faith)"],
+    ("GetAccoladeType", 1): ["IType(Item::AccoladeType)"],
+    ("GetActivityGuestInviteRule", 1): ["IType(Item::GuestInviteRule)"],
+    ("GetActivityIntent", 1): ["IType(Item::ActivityIntent)"],
+    ("GetActivityLocale", 1): ["IType(Item::ActivityLocale)"],
+    ("GetActivityPulseAction", 1): ["IType(Item::PulseAction)"],
+    ("GetActivityType", 1): ["IType(Item::ActivityType)"],
+    ("GetArtifactType", 1): ["IType(Item::ArtifactType)"],
+    ("GetArtifactVisualType", 1): ["IType(Item::ArtifactVisual)"],
+    ("GetBookmark", 1): ["IType(Item::Bookmark)"],
+    ("GetBookmarkGroup", 1): ["IType(Item::BookmarkGroup)"],
+    ("GetBuilding", 1): ["IType(Item::Building)"],
+    ("GetCasusBelliType", 1): ["IType(Item::CasusBelli)"],
+    ("GetCatalystType", 1): ["IType(Item::Catalyst)"],
+    ("GetCharacterInteraction", 1): ["IType(Item::Interaction)"],
+    ("GetCharacterInteractionCategory", 1): ["IType(Item::InteractionCategory)"],
+    ("GetDecisionWithKey", 1): ["IType(Item::Decision)"],
+    ("GetDoctrine", 1): ["IType(Item::Doctrine)"],
+    ("GetFaithByKey", 1): ["IType(Item::Faith)"],
+    ("GetFaithDoctrine", 1): ["IType(Item::Doctrine)"],
+    ("GetFocus", 1): ["IType(Item::Focus)"],
+    ("GetGeographicalRegion", 1): ["IType(Item::Region)"],
+    ("GetHolySite", 1): ["IType(Item::HolySite)"],
+    ("GetIllustration", 1): ["IType(Item::ScriptedIllustration)"],
+    ("GetLifestyle", 1): ["IType(Item::Lifestyle)"],
+    ("GetMaA", 1): ["IType(Item::MenAtArms)"],
+    ("GetModifier", 1): ["IType(Item::Modifier)"],
+    ("GetNickname", 1): ["IType(Item::Nickname)"],
+    ("GetPerk", 1): ["IType(Item::Perk)"],
+    ("GetRelation", 1): ["IType(Item::Relation)"],
+    ("GetReligionByKey", 1): ["IType(Item::Religion)"],
+    ("GetScheme", 1): ["IType(Item::Scheme)"],
+    ("GetSchemeType", 1): ["IType(Item::Scheme)"],
+    ("GetScriptedGui", 1): ["IType(Item::ScriptedGui)"],
+    ("GetScriptedRelation", 1): ["IType(Item::Relation)"],
+    ("GetSecretType", 1): ["IType(Item::Secret)"],
+    ("GetStaticModifier", 1): ["IType(Item::Modifier)"],
+    ("GetTerrain", 1): ["IType(Item::Terrain)"],
+    ("GetTitleByKey", 1): ["IType(Item::Title)"],
+    ("GetTrait", 1): ["IType(Item::Trait)"],
+    ("GetVassalStance", 1): ["IType(Item::VassalStance)"],
+    ("Scope.Var", 1): ["DType(CString)"],
+    ("TopScope.sC", 1): ["DType(CString)"],
 }
 
 # This is for overriding argument types regardless of the datafunction's input type
 ARGS_OVERRIDE_ANY = {
-    ("Custom", 1): "Arg1(DType(CString))",
-    ("GetName", 1): "Arg1(DType(Character))",
+    ("Custom", 1): ["DType(CString)"],
+    ("GetName", 1): ["DType(Character)"],
 }
 
 # UNARY_ARGS are functions that have their argument type in their name
@@ -110,39 +110,26 @@ for fname in fnames:
         lines = item.splitlines()
         name = lines[0].split('(')[0]
 
-        args = "NoArgs"
+        args = []
         nargs = 0
-        if "Arg0" in lines[0]:
-            args = "Arg1(DType(Unknown))"
-            nargs = 1
-        if "Arg1" in lines[0]:
-            args = "Arg2(DType(Unknown), DType(Unknown))"
-            nargs = 2
-        if "Arg2" in lines[0]:
-            args = "Arg3(DType(Unknown), DType(Unknown), DType(Unknown))"
-            nargs = 3
-        if "Arg3" in lines[0]:
-            args = "Arg4(DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown))"
-            nargs = 4
-        if "Arg4" in lines[0]:
-            args = "Arg5(DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown))"
-            nargs = 5
-        if "Arg5" in lines[0]:
-            args = "Arg6(DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown))"
-            nargs = 6
-        if "Arg6" in lines[0]:
-            print("error: found datafunction with 7 arguments, can only handle 6")
+        while True:
+            arg = "Arg{}".format(nargs)
+            if arg not in lines[0]:
+                break
+            nargs = nargs + 1
+            args.append("DType(Unknown)")
+
         for s in UNARY_ARGS:
             if name.startswith(s):
                 type = name.split('_')[1]
-                args = 'Arg1(DType(%s))' % type
+                args = ["DType(%s)" % type]
         for s in BINARY_ARGS:
             if name.startswith(s):
                 type = name.split('_')[1]
-                args = 'Arg2(DType(%s), DType(%s))' % (type, type)
+                args = ["DType(%s)" % type, "DType(%s)" % type]
         if name.startswith("Select_"):
             type = name.split('_')[1]
-            args = 'Arg3(DType(bool), DType(%s), DType(%s))' % (type, type)
+            args = ["DType(bool)", "DType(%s)" % type, "DType(%s)" % type]
         if (name, nargs) in ARGS_OVERRIDE_ANY:
             args = ARGS_OVERRIDE_ANY[(name, nargs)]
         if "." in name:
@@ -151,6 +138,8 @@ for fname in fnames:
                 args = ARGS_OVERRIDE_ANY[(barename, nargs)]
         if (name, nargs) in ARGS_OVERRIDE:
             args = ARGS_OVERRIDE[(name, nargs)]
+
+        args = "Args(&[" + ", ".join(args) + "])"
 
         if "Definition type: Global macro" in item:
             # macros are parsed directly from data_binding
