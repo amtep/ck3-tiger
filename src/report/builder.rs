@@ -119,6 +119,17 @@ impl ReportBuilderStage3 {
         self.pointers.push(PointedMessage { loc: loc.into_loc(), length: 1, msg: Some(msg.own()) });
         self
     }
+    pub fn opt_loc<E: ErrorLoc, S: Own<String>>(mut self, loc: Option<E>, msg: S) -> Self {
+        if let Some(loc) = loc {
+            self.pointers.push(PointedMessage {
+                loc: loc.into_loc(),
+                length: 1,
+                msg: Some(msg.own()),
+            });
+        }
+        self
+    }
+    /// Build the report and return it.
     /// Build the report and return it.
     pub fn build(self) -> LogReport {
         LogReport {

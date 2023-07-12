@@ -12,6 +12,12 @@ impl House {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::House, key, block, Box::new(Self {}));
     }
+
+    pub fn get_dynasty<'a>(key: &str, data: &'a Everything) -> Option<&'a Token> {
+        data.database
+            .get_key_block(Item::House, key)
+            .and_then(|(_, block)| block.get_field_value("dynasty"))
+    }
 }
 
 impl DbKind for House {

@@ -6,6 +6,7 @@ use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Date, BV};
+use crate::ck3::data::houses::House;
 use crate::context::ScopeContext;
 use crate::effect::{validate_effect, validate_effect_internal};
 use crate::everything::Everything;
@@ -100,36 +101,29 @@ impl Characters {
         }
     }
 
-    pub fn get_dynasty(&self, id: &Token, date: Date) -> Option<&Token> {
-        if let Some(item) = self.characters.get(id.as_str()) {
-            item.get_dynasty(date)
-        } else {
-            None
-        }
+    pub fn get_dynasty<'a>(
+        &'a self,
+        id: &Token,
+        date: Date,
+        data: &'a Everything,
+    ) -> Option<&'a Token> {
+        self.characters.get(id.as_str()).and_then(|ch| {
+            ch.get_dynasty(date).or_else(|| {
+                ch.get_house(date).and_then(|house| House::get_dynasty(house.as_str(), data))
+            })
+        })
     }
 
     pub fn get_house(&self, id: &Token, date: Date) -> Option<&Token> {
-        if let Some(item) = self.characters.get(id.as_str()) {
-            item.get_house(date)
-        } else {
-            None
-        }
+        self.characters.get(id.as_str()).and_then(|ch| ch.get_house(date))
     }
 
     pub fn get_culture(&self, id: &Token, date: Date) -> Option<&Token> {
-        if let Some(item) = self.characters.get(id.as_str()) {
-            item.get_culture(date)
-        } else {
-            None
-        }
+        self.characters.get(id.as_str()).and_then(|ch| ch.get_culture(date))
     }
 
     pub fn get_faith(&self, id: &Token, date: Date) -> Option<&Token> {
-        if let Some(item) = self.characters.get(id.as_str()) {
-            item.get_faith(date)
-        } else {
-            None
-        }
+        self.characters.get(id.as_str()).and_then(|ch| ch.get_faith(date))
     }
 
     pub fn validate(&self, data: &Everything) {

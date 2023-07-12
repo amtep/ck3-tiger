@@ -119,72 +119,37 @@ fn validate_bookmark_character(
         vd.req_tokens_integers_exactly(2);
     });
     if let Some(start_date) = start_date {
-        if let Some(id) = block.get_field_value("historical_id") {
+        if let Some(id) = block.get_field_value("history_id") {
+            let name = block.get_field_value("name");
             if data.item_exists(Item::Character, id.as_str()) {
-                if let Some(dynasty) = block.get_field_value("dynasty") {
-                    if let Some(history) = data.characters.get_dynasty(id, start_date) {
-                        if dynasty != history {
-                            let msg = "dynasty is {dynasty} in bookmark but {history} in character history at {start_date}";
-                            warn(ErrorKey::Bookmarks)
-                                .strong()
-                                .msg(msg)
-                                .loc(dynasty)
-                                .loc(history, "history")
-                                .push();
-                        } else {
-                            let msg = "dynasty is {dynasty} in bookmark but character has no dynasty in history at {start_date}";
-                            warn(ErrorKey::Bookmarks).strong().msg(msg).loc(dynasty).push();
-                        }
-                    }
-                }
-                if let Some(house) = block.get_field_value("dynasty_house") {
-                    if let Some(history) = data.characters.get_house(id, start_date) {
-                        if house != history {
-                            let msg = "house is {house} in bookmark but {history} in character history at {start_date}";
-                            warn(ErrorKey::Bookmarks)
-                                .strong()
-                                .msg(msg)
-                                .loc(house)
-                                .loc(history, "history")
-                                .push();
-                        } else {
-                            let msg = "house is {house} in bookmark but character has no house in history at {start_date}";
-                            warn(ErrorKey::Bookmarks).strong().msg(msg).loc(house).push();
-                        }
-                    }
-                }
-                if let Some(culture) = block.get_field_value("culture") {
-                    if let Some(history) = data.characters.get_culture(id, start_date) {
-                        if culture != history {
-                            let msg = "culture is {culture} in bookmark but {history} in character history at {start_date}";
-                            warn(ErrorKey::Bookmarks)
-                                .strong()
-                                .msg(msg)
-                                .loc(culture)
-                                .loc(history, "history")
-                                .push();
-                        } else {
-                            let msg = "culture is {culture} in bookmark but character has no culture in history at {start_date}";
-                            warn(ErrorKey::Bookmarks).strong().msg(msg).loc(culture).push();
-                        }
-                    }
-                }
-                if let Some(faith) = block.get_field_value("religion") {
-                    if let Some(history) = data.characters.get_faith(id, start_date) {
-                        if faith != history {
-                            let msg = "faith is {faith} in bookmark but {history} in character history at {start_date}";
-                            warn(ErrorKey::Bookmarks)
-                                .strong()
-                                .msg(msg)
-                                .loc(faith)
-                                .loc(history, "history")
-                                .push();
-                        } else {
-                            let msg = "faith is {faith} in bookmark but character has no faith in history at {start_date}";
-                            warn(ErrorKey::Bookmarks).strong().msg(msg).loc(faith).push();
-                        }
-                    }
-                }
+                validate_bookmark_against_history(
+                    block.get_field_value("dynasty"),
+                    "dynasty",
+                    start_date,
+                    data.characters.get_dynasty(id, start_date, data),
+                    name,
+                );
+                validate_bookmark_against_history(
+                    block.get_field_value("dynasty_house"),
+                    "house",
+                    start_date,
+                    data.characters.get_house(id, start_date),
+                    name,
+                );
+                validate_bookmark_against_history(
+                    block.get_field_value("culture"),
+                    "culture",
+                    start_date,
+                    data.characters.get_culture(id, start_date),
+                    name,
+                );
+                validate_bookmark_against_history(
+                    block.get_field_value("faith"),
+                    "faith",
+                    start_date,
+                    data.characters.get_faith(id, start_date),
+                    name,
+                );
             }
         }
     }
@@ -225,5 +190,35 @@ impl DbKind for BookmarkPortrait {
                 vd.field_bool("invert");
             }
         });
+    }
+}
+
+fn validate_bookmark_against_history(
+    field: Option<&Token>,
+    desc: &str,
+    date: Date,
+    history: Option<&Token>,
+    name: Option<&Token>,
+) {
+    if let Some(field) = field {
+        if let Some(history) = history {
+            if field != history {
+                let msg = format!(
+                    "{desc} is {field} in bookmark but {history} in character history at {date}"
+                );
+                warn(ErrorKey::Bookmarks)
+                    .strong()
+                    .msg(msg)
+                    .loc_msg(field, "bookmark")
+                    .loc(history, "history")
+                    .opt_loc(name, "character")
+                    .push();
+            }
+        } else {
+            let msg = format!(
+                "{desc} is {field} in bookmark but character has no {desc} in history at {date}"
+            );
+            warn(ErrorKey::Bookmarks).strong().msg(msg).loc(field).opt_loc(name, "bookmark").push();
+        }
     }
 }
