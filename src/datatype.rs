@@ -373,6 +373,15 @@ pub fn validate_datatypes(
                 validate_argument(&code.arguments[3], data, dt4, lang);
                 validate_argument(&code.arguments[4], data, dt5, lang);
             }
+            #[cfg(feature = "vic3")]
+            Args::Arg6(dt1, dt2, dt3, dt4, dt5, dt6) => {
+                validate_argument(&code.arguments[0], data, dt1, lang);
+                validate_argument(&code.arguments[1], data, dt2, lang);
+                validate_argument(&code.arguments[2], data, dt3, lang);
+                validate_argument(&code.arguments[3], data, dt4, lang);
+                validate_argument(&code.arguments[4], data, dt5, lang);
+                validate_argument(&code.arguments[5], data, dt6, lang);
+            }
         }
 
         curtype = rtype;

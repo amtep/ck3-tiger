@@ -127,6 +127,11 @@ for fname in fnames:
         if "Arg4" in lines[0]:
             args = "Arg5(DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown))"
             nargs = 5
+        if "Arg5" in lines[0]:
+            args = "Arg6(DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown), DType(Unknown))"
+            nargs = 6
+        if "Arg6" in lines[0]:
+            print("error: found datafunction with 7 arguments, can only handle 6")
         for s in UNARY_ARGS:
             if name.startswith(s):
                 type = name.split('_')[1]

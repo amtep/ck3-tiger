@@ -32,6 +32,7 @@ pub enum Args {
     Arg3(Arg, Arg, Arg),
     Arg4(Arg, Arg, Arg, Arg),
     Arg5(Arg, Arg, Arg, Arg, Arg),
+    Arg6(Arg, Arg, Arg, Arg, Arg, Arg),
 }
 
 impl Args {
@@ -43,6 +44,7 @@ impl Args {
             Arg3(_, _, _) => 3,
             Arg4(_, _, _, _) => 4,
             Arg5(_, _, _, _, _) => 5,
+            Arg6(_, _, _, _, _, _) => 6,
         }
     }
 }
