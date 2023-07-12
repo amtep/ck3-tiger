@@ -8,7 +8,8 @@
 * Certain script values are referenced in code; check that they are defined and have the right scopes.
 * It should be possible to follow scope definitions through on_actions and events and make sure every scope: reference is one that was set in previous code.
 * There are now a bunch of scopes that have "Execute Effects: no" in `event_scopes.log`. Check that those aren't used in effects (especially including the `set_variable` effect).
-
+* Warn if a script value has if blocks or iterators that end up not changing anything about the value (that is, there's no `add` statement or similar)
+* Also warn if a modifier has triggers but no `add` or `factor`
 
 ## Advice
 * for `current_date >= 1200.1.1` suggest `current_year >= 1200`

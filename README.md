@@ -22,6 +22,8 @@ I welcome contributions in the form of suggestions and ideas about what it shoul
 
 Contributions in the form of code are also welcome. They should be made as GitHub pull requests, and you should read and understand the project's copyright license before doing so. It may help to file an issue before starting to code, though, since I may prefer to solve the issue in a different way.
 
+See the [`CODING`](CODING.md) file for an overview of the code and coding style.
+
 ### License
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -62,3 +64,5 @@ Run `cargo build --release -p ck3-tiger` in the project's directory, then run th
 ## Sample output
 
 ![Sample Output](example.png)
+
+![Sample Output](example2.png)

@@ -2,11 +2,10 @@
 
 ## Bugs
 
-* Calculations with local @values currently go from left to right (except when parentheses are used) but they should do multiplication and division before addition and subtraction.
-
 ## False positives
 
 * Warn about = in gui files, but process the templates anyway. (After verifying that they do work)
+* The `ObjectsEqual` datafunction can take either a function or a promote as the last in the chain
 
 ## Features
 
