@@ -100,6 +100,38 @@ impl Characters {
         }
     }
 
+    pub fn get_dynasty(&self, id: &Token, date: Date) -> Option<&Token> {
+        if let Some(item) = self.characters.get(id.as_str()) {
+            item.get_dynasty(date)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_house(&self, id: &Token, date: Date) -> Option<&Token> {
+        if let Some(item) = self.characters.get(id.as_str()) {
+            item.get_house(date)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_culture(&self, id: &Token, date: Date) -> Option<&Token> {
+        if let Some(item) = self.characters.get(id.as_str()) {
+            item.get_culture(date)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_faith(&self, id: &Token, date: Date) -> Option<&Token> {
+        if let Some(item) = self.characters.get(id.as_str()) {
+            item.get_faith(date)
+        } else {
+            None
+        }
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.characters.values() {
             if item.born_by(self.config_only_born) {
@@ -224,6 +256,24 @@ impl Character {
         // TODO: figure out if we need to account for deaths triggered in effect { } blocks
         self.block.get_field_at_date("birth", date).is_some()
             && self.block.get_field_at_date("death", date).is_none()
+    }
+
+    pub fn get_dynasty(&self, date: Date) -> Option<&Token> {
+        self.block.get_field_value_at_date("dynasty", date)
+    }
+
+    pub fn get_house(&self, date: Date) -> Option<&Token> {
+        self.block.get_field_value_at_date("dynasty_house", date)
+    }
+
+    pub fn get_culture(&self, date: Date) -> Option<&Token> {
+        self.block.get_field_value_at_date("culture", date)
+    }
+
+    pub fn get_faith(&self, date: Date) -> Option<&Token> {
+        self.block
+            .get_field_value_at_date("faith", date)
+            .or_else(|| self.block.get_field_value_at_date("religion", date))
     }
 
     pub fn validate_history(

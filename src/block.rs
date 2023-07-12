@@ -107,6 +107,10 @@ impl Block {
         self.get_field_value(name).and_then(|t| t.as_str().parse().ok())
     }
 
+    pub fn get_field_date(&self, name: &str) -> Option<Date> {
+        self.get_field_value(name).and_then(|t| t.as_str().parse().ok())
+    }
+
     /// Get all the values of `name = value` assignments in this block
     pub fn get_field_values(&self, name: &str) -> Vec<&Token> {
         let mut vec = Vec::new();
@@ -297,6 +301,10 @@ impl Block {
             }
         }
         found
+    }
+
+    pub fn get_field_value_at_date(&self, name: &str, date: Date) -> Option<&Token> {
+        self.get_field_at_date(name, date).and_then(BV::get_value)
     }
 
     pub fn macro_parms(&self) -> Vec<&str> {

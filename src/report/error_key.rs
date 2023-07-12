@@ -54,6 +54,7 @@ pub enum ErrorKey {
     UseOfThis,
     CharacterId,
     Loop,
+    Bookmarks,
 
     PrincesOfDarkness,
 
