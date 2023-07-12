@@ -57,7 +57,6 @@ use crate::ck3::data::{
     gameconcepts::GameConcepts,
     gamerules::GameRule,
     government::Government,
-    gui::Gui,
     holdings::Holding,
     holysites::HolySite,
     hooks::Hook,
@@ -121,6 +120,7 @@ use crate::data::{
     effect_localization::EffectLocalization,
     ethnicity::Ethnicity,
     genes::Gene,
+    gui::Gui,
     localization::Localization,
     scripted_effects::{Effect, Effects},
     scripted_lists::ScriptedLists,
@@ -237,7 +237,6 @@ pub struct Everything {
     #[cfg(feature = "ck3")]
     pub menatarmstypes: MenAtArmsTypes,
 
-    #[cfg(feature = "ck3")]
     pub gui: Gui,
     #[cfg(feature = "ck3")]
     pub data_bindings: DataBindings,
@@ -309,7 +308,6 @@ impl Everything {
             doctrines: Doctrines::default(),
             #[cfg(feature = "ck3")]
             menatarmstypes: MenAtArmsTypes::default(),
-            #[cfg(feature = "ck3")]
             gui: Gui::default(),
             #[cfg(feature = "ck3")]
             data_bindings: DataBindings::default(),
@@ -496,6 +494,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.triggers));
             s.spawn(|_| self.fileset.handle(&mut self.effects));
             s.spawn(|_| self.fileset.handle(&mut self.assets));
+            s.spawn(|_| self.fileset.handle(&mut self.gui));
 
             // These are items that are different between vic3 and ck3 but share the same name
             s.spawn(|_| self.fileset.handle(&mut self.events));
@@ -530,7 +529,6 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.title_history));
             s.spawn(|_| self.fileset.handle(&mut self.doctrines));
             s.spawn(|_| self.fileset.handle(&mut self.menatarmstypes));
-            s.spawn(|_| self.fileset.handle(&mut self.gui));
             s.spawn(|_| self.fileset.handle(&mut self.data_bindings));
             s.spawn(|_| self.fileset.handle(&mut self.sounds));
             s.spawn(|_| self.fileset.handle(&mut self.music));
@@ -701,6 +699,7 @@ impl Everything {
         s.spawn(|_| self.triggers.validate(self));
         s.spawn(|_| self.effects.validate(self));
         s.spawn(|_| self.assets.validate(self));
+        s.spawn(|_| self.gui.validate(self));
 
         s.spawn(|_| self.events.validate(self));
         s.spawn(|_| self.provinces.validate(self));
@@ -718,7 +717,6 @@ impl Everything {
         s.spawn(|_| self.title_history.validate(self));
         s.spawn(|_| self.doctrines.validate(self));
         s.spawn(|_| self.menatarmstypes.validate(self));
-        s.spawn(|_| self.gui.validate(self));
         s.spawn(|_| self.data_bindings.validate(self));
         s.spawn(|_| self.sounds.validate(self));
         s.spawn(|_| self.music.validate(self));

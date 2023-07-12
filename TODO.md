@@ -6,6 +6,8 @@
 
 ## False positives
 
+* Warn about = in gui files, but process the templates anyway. (After verifying that they do work)
+
 ## Features
 
 * Check that relation flags actually belong to the relation they are used with

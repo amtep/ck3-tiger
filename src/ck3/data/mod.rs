@@ -36,7 +36,6 @@ pub mod focus;
 pub mod gameconcepts;
 pub mod gamerules;
 pub mod government;
-pub mod gui;
 pub mod holdings;
 pub mod holysites;
 pub mod hooks;
