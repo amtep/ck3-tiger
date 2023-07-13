@@ -43,7 +43,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Country, "add_era_researched", Item(Item::TechnologyEra)),
     (DiplomaticPlay, "add_escalation", Integer),
     (Character, "add_experience", ScriptValue),
-    (StateRegion, "add_homeland", Item(Item::StateRegion)),
+    (StateRegion, "add_homeland", ScopeOrItem(Scopes::Culture, Item::Culture)),
     (InterestGroup, "add_ideology", Item(Item::Ideology)),
     (Party, "add_ig_to_party", Scope(Scopes::InterestGroup)),
     (DiplomaticPlay, "add_initiator_backers", Unchecked),
