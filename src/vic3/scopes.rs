@@ -231,6 +231,8 @@ pub fn scope_to_scope(name: &Token) -> Option<(Scopes, Scopes)> {
 }
 
 pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
+    // Case insensitivity has been verified for at least S: in vic3
+    let prefix = prefix.to_lowercase();
     for (from, s, to) in SCOPE_FROM_PREFIX {
         if *s == prefix {
             return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
