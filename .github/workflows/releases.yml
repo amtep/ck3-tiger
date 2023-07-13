@@ -59,7 +59,7 @@ jobs:
         shell: bash
         run: |
           mkdir ${{ steps.version.outputs.pkgdir }}
-          cp -p README.md filter.md TODO.md IDEAS.md CONTRIBUTORS.md LICENSE ck3-tiger.conf target/release/ck3-tiger${{ matrix.extension }} ${{ steps.version.outputs.pkgdir }}
+          cp -p README.md filter.md TODO.md CONTRIBUTORS.md LICENSE ck3-tiger.conf target/release/ck3-tiger${{ matrix.extension }} target/release/ck3-tiger-auto${{ matrix.extension }} ${{ steps.version.outputs.pkgdir }}
 
       - name: Archive .zip
         uses: vimtor/action-zip@v1
