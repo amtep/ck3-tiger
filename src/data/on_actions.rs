@@ -4,6 +4,7 @@ use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Field, BV};
+#[cfg(feature = "ck3")]
 use crate::ck3::tables::on_action::on_action_scopecontext;
 use crate::context::ScopeContext;
 use crate::effect::validate_effect;
@@ -11,12 +12,16 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error_info, warn_info, ErrorKey};
+#[cfg(feature = "ck3")]
+use crate::report::error_info;
+use crate::report::{warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_modifiers_with_base};
+#[cfg(feature = "vic3")]
+use crate::vic3::tables::on_action::on_action_scopecontext;
 
 #[derive(Clone, Debug, Default)]
 pub struct OnActions {
@@ -49,7 +54,10 @@ impl OnActions {
 
 impl FileHandler<Block> for OnActions {
     fn subpath(&self) -> PathBuf {
-        PathBuf::from("common/on_action")
+        #[cfg(feature = "ck3")]
+        return PathBuf::from("common/on_action");
+        #[cfg(feature = "vic3")]
+        return PathBuf::from("common/on_actions");
     }
 
     fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
@@ -135,6 +143,7 @@ impl OnAction {
             }
         });
         count = 0;
+        #[allow(unused_variables)] // vic3 doesn't use `key`
         vd.field_validated_key_blocks("random_events", |key, b, data| {
             let mut vd = Validator::new(b, data);
             vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
@@ -148,6 +157,7 @@ impl OnAction {
                 data.events.check_scope(token, &mut sc);
             }
             count += 1;
+            #[cfg(feature = "ck3")] // TODO: verify for vic3
             if count == 2 {
                 let msg = format!("multiple `{key}` blocks in one on_action do not work");
                 let info = "try putting each into its own on_action and firing those separately";

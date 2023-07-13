@@ -450,8 +450,11 @@ impl Fileset {
             if entry.path.starts_with("common/scripted_values") {
                 let msg = "file should be in common/script_values/";
                 error(entry, ErrorKey::Filename, msg);
-            } else if entry.path.starts_with("common/on_actions") {
+            } else if cfg!(feature = "ck3") && entry.path.starts_with("common/on_actions") {
                 let msg = "file should be in common/on_action/";
+                error(entry, ErrorKey::Filename, msg);
+            } else if cfg!(feature = "vic3") && entry.path.starts_with("common/on_action") {
+                let msg = "file should be in common/on_actions/";
                 error(entry, ErrorKey::Filename, msg);
             } else {
                 let msg = "file in unexpected directory";

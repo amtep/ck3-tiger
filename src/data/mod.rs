@@ -8,6 +8,7 @@ pub mod ethnicity;
 pub mod genes;
 pub mod gui;
 pub mod localization;
+pub mod on_actions;
 pub mod scripted_effects;
 pub mod scripted_lists;
 pub mod scripted_modifiers;

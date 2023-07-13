@@ -58,7 +58,6 @@ pub mod mottos;
 pub mod music;
 pub mod namelists;
 pub mod nickname;
-pub mod on_actions;
 pub mod opinions;
 pub mod perks;
 pub mod points_of_interest;

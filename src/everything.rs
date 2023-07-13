@@ -79,7 +79,6 @@ use crate::ck3::data::{
     music::Musics,
     namelists::NameList,
     nickname::Nickname,
-    on_actions::OnActions,
     opinions::OpinionModifier,
     perks::Perk,
     points_of_interest::PointOfInterest,
@@ -122,6 +121,7 @@ use crate::data::{
     genes::Gene,
     gui::Gui,
     localization::Localization,
+    on_actions::OnActions,
     scripted_effects::{Effect, Effects},
     scripted_lists::ScriptedLists,
     scripted_modifiers::ScriptedModifiers,
@@ -198,7 +198,6 @@ pub struct Everything {
     pub events: Events,
 
     pub scripted_modifiers: ScriptedModifiers,
-    #[cfg(feature = "ck3")]
     pub on_actions: OnActions,
 
     #[cfg(feature = "ck3")]
@@ -286,7 +285,6 @@ impl Everything {
             defines: Defines::default(),
             events: Events::default(),
             scripted_modifiers: ScriptedModifiers::default(),
-            #[cfg(feature = "ck3")]
             on_actions: OnActions::default(),
             #[cfg(feature = "ck3")]
             interaction_cats: InteractionCategories::default(),
@@ -514,6 +512,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.effects));
             s.spawn(|_| self.fileset.handle(&mut self.assets));
             s.spawn(|_| self.fileset.handle(&mut self.gui));
+            s.spawn(|_| self.fileset.handle(&mut self.on_actions));
 
             // These are items that are different between vic3 and ck3 but share the same name
             s.spawn(|_| self.fileset.handle(&mut self.events));
@@ -538,7 +537,6 @@ impl Everything {
     #[cfg(feature = "ck3")]
     fn load_all_ck3(&mut self) {
         scope(|s| {
-            s.spawn(|_| self.fileset.handle(&mut self.on_actions));
             s.spawn(|_| self.fileset.handle(&mut self.interaction_cats));
             s.spawn(|_| self.fileset.handle(&mut self.province_histories));
             s.spawn(|_| self.fileset.handle(&mut self.gameconcepts));
@@ -720,6 +718,7 @@ impl Everything {
         s.spawn(|_| self.effects.validate(self));
         s.spawn(|_| self.assets.validate(self));
         s.spawn(|_| self.gui.validate(self));
+        s.spawn(|_| self.on_actions.validate(self));
 
         s.spawn(|_| self.events.validate(self));
         s.spawn(|_| self.provinces.validate(self));
@@ -727,7 +726,6 @@ impl Everything {
 
     #[cfg(feature = "ck3")]
     fn validate_all_ck3<'a>(&'a self, s: &Scope<'a>) {
-        s.spawn(|_| self.on_actions.validate(self));
         s.spawn(|_| self.interaction_cats.validate(self));
         s.spawn(|_| self.province_histories.validate(self));
         s.spawn(|_| self.gameconcepts.validate(self));
@@ -850,6 +848,7 @@ impl Everything {
             Item::File => self.fileset.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::Localization => self.localization.exists(key),
+            Item::OnAction => self.on_actions.exists(key),
             Item::Pdxmesh => self.assets.mesh_exists(key),
             Item::ScriptedEffect => self.effects.exists(key),
             Item::ScriptedList => self.scripted_lists.exists(key),
