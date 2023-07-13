@@ -673,7 +673,7 @@ impl PulseAction {
 impl DbKind for PulseAction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let loca = format!("{key}_title");
+        let loca = format!("activity_pulse_action_{key}");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         let icon = vd.field_value("icon").unwrap_or(key);

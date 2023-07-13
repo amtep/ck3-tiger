@@ -144,6 +144,10 @@ pub fn validate_effect_block(
             vd.req_field("key");
             vd.req_field("character");
             vd.field_item("key", Item::Localization);
+            if let Some(token) = block.get_field_value("key") {
+                let loca = format!("{token}_title");
+                data.verify_exists_implied(Item::Localization, &loca, token);
+            }
             vd.field_script_value("score", sc);
             vd.field_validated_block("tags", |b, data| {
                 let mut vd = Validator::new(b, data);
