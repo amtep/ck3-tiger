@@ -17,6 +17,7 @@ pub enum ErrorKey {
     DuplicateItem,
     ExactDuplicateItem,
     DuplicateField,
+    DuplicateCharacter,
     NameConflict,
     EventNamespace,
     MissingLocalization,

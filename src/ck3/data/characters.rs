@@ -11,10 +11,9 @@ use crate::context::ScopeContext;
 use crate::effect::{validate_effect, validate_effect_internal};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, fatal, old_warn, warn_info, ErrorKey};
+use crate::report::{err, error, fatal, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -59,16 +58,32 @@ pub struct Characters {
     config_only_born: Option<Date>,
 
     characters: FnvHashMap<String, Character>,
+
+    /// These are characters with duplicate ids. We can't put them in the `characters` map because of the ids,
+    /// but we do want to validate them.
+    duplicate_characters: Vec<Character>,
 }
 
 impl Characters {
     fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.characters.get(key.as_str()) {
-            if other.key.loc.kind >= key.loc.kind && other.born_by(self.config_only_born) {
-                dup_error(&key, &other.key, "character");
+            if self
+                .config_only_born
+                .and_then(|date| block.get_field_at_date("birth", date))
+                .is_some()
+            {
+                err(ErrorKey::DuplicateCharacter)
+                    .strong()
+                    .msg("duplicate character id")
+                    .info("this will create two characters with the same id")
+                    .loc(&other.key)
+                    .loc(&key, "duplicate")
+                    .push();
+                self.duplicate_characters.push(Character::new(key, block));
             }
+        } else {
+            self.characters.insert(key.to_string(), Character::new(key, block));
         }
-        self.characters.insert(key.to_string(), Character::new(key, block));
     }
 
     pub fn verify_exists_gender(&self, item: &Token, gender: Gender) {
@@ -128,6 +143,11 @@ impl Characters {
 
     pub fn validate(&self, data: &Everything) {
         for item in self.characters.values() {
+            if item.born_by(self.config_only_born) {
+                item.validate(data);
+            }
+        }
+        for item in &self.duplicate_characters {
             if item.born_by(self.config_only_born) {
                 item.validate(data);
             }
