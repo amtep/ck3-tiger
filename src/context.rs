@@ -90,7 +90,7 @@ impl ScopeContext {
         ScopeContext {
             prev: Some(Box::new(ScopeHistory {
                 prev: None,
-                this: ScopeEntry::Scope(this, token.clone()),
+                this: ScopeEntry::Scope(Scopes::all(), token.clone()),
             })),
             this: ScopeEntry::Scope(this, token.clone()),
             root: ScopeEntry::Scope(Scopes::all(), token),
