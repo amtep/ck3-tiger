@@ -2,8 +2,9 @@ use std::borrow::Borrow;
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
-use crate::block::{Block, BlockItem, Comparator, Date, Eq::*, Field, BV};
+use crate::block::{Block, BlockItem, Comparator, Eq::*, Field, BV};
 use crate::context::ScopeContext;
+use crate::date::Date;
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;

@@ -36,6 +36,7 @@ mod config_load;
 mod context;
 mod data;
 mod datatype;
+mod date;
 mod db;
 mod dds;
 mod desc;

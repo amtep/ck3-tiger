@@ -4,7 +4,7 @@ use std::fmt::{Display, Error, Formatter};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use crate::block::Date;
+use crate::date::Date;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{error, error_info, ErrorKey};
