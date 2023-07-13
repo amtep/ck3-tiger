@@ -483,7 +483,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
             if !self.check_langs.contains(&filelang) {
                 return None;
             }
-            if filelang != lang && !warned {
+            if filelang != lang && KNOWN_LANGUAGES.contains(&&*lang) && !warned {
                 advice_info(entry, ErrorKey::Filename, "localization file with wrong name or in wrong directory", "A localization file should be in a subdirectory corresponding to its language.");
             }
             match read_to_string(fullpath) {
