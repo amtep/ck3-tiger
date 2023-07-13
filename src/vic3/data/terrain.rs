@@ -168,6 +168,44 @@ impl DbKind for TerrainMaterial {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct TerrainMask {}
+
+impl TerrainMask {
+    pub fn add_json(db: &mut Db, block: Block) {
+        // The masks are deeply nested in a json that looks like this:
+        // { "masks": [ { ... }, { ... } ] }
+        let mut count = 0;
+        for block in block.iter_blocks_warn() {
+            count += 1;
+            if count == 2 {
+                warn(ErrorKey::Validation).msg("expected only one block").loc(block).push();
+            }
+            if let Some(block) = block.get_field_block("masks") {
+                for block in block.iter_blocks_warn() {
+                    if let Some(token) = block.get_field_value("key") {
+                        db.add(Item::TerrainMask, token.clone(), block.clone(), Box::new(Self {}));
+                    } else {
+                        warn(ErrorKey::FieldMissing).msg("mask with no key").loc(block).push();
+                    }
+                }
+            }
+        }
+    }
+}
+
+impl DbKind for TerrainMask {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        vd.field_value("key");
+        vd.req_field("filename");
+        if let Some(token) = vd.field_value("filename") {
+            let path = key.loc.pathname().smart_join_parent(token.as_str());
+            data.verify_exists_implied(Item::File, &path.to_string_lossy(), token);
+        }
+    }
+}
+
 fn validate_layer(bv: &BV, data: &Everything) {
     match bv {
         BV::Value(token) => {

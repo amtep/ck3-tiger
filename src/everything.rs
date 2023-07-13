@@ -133,6 +133,8 @@ use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::item::Item;
+#[cfg(feature = "vic3")]
+use crate::parse::json::parse_json_file;
 use crate::pdxfile::PdxFile;
 use crate::report::{error, old_warn, set_output_style, ErrorKey, OutputStyle, Severity};
 use crate::rivers::Rivers;
@@ -158,7 +160,7 @@ use crate::vic3::data::{
     state_regions::StateRegion,
     strategic_regions::StrategicRegion,
     technology::{Technology, TechnologyEra},
-    terrain::{Terrain, TerrainLabel, TerrainManipulator, TerrainMaterial},
+    terrain::{Terrain, TerrainLabel, TerrainManipulator, TerrainMask, TerrainMaterial},
 };
 
 #[derive(Debug, Error)]
@@ -477,6 +479,23 @@ impl Everything {
         }
     }
 
+    #[cfg(feature = "vic3")]
+    pub fn load_json<F>(&mut self, itype: Item, add_json: F)
+    where
+        F: Fn(&mut Db, Block) + Sync + Send,
+    {
+        for block in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
+            if entry.filename().to_string_lossy().ends_with(".json") {
+                parse_json_file(entry, &self.fileset.fullpath(entry))
+            } else {
+                None
+            }
+        }) {
+            add_json(&mut self.database, block);
+        }
+    }
+
+    /// Like `load_pdx_items` but does not expect a Unicode file.
     pub fn load_output_settings(&self) {
         if let Some(style) = self.load_output_styles() {
             set_output_style(style);
@@ -679,6 +698,7 @@ impl Everything {
             TerrainMaterial::add,
             ".settings",
         );
+        self.load_json(Item::TerrainMask, TerrainMask::add_json);
     }
 
     pub fn load_all(&mut self) {

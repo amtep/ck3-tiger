@@ -325,7 +325,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Country, "has_wasted_construction", Boolean),
     (None, "hidden_trigger", Control),
     (Country, "highest_secession_progress", CompareValue),
-    (InterestGroup, "ig_approval", CompareValue),
+    (InterestGroup, "ig_approval", CompareApproval),
     (InterestGroup, "ig_clout", CompareValue),
     (InterestGroup, "ig_government_power_share", CompareValue),
     (

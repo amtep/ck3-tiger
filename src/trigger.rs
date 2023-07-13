@@ -456,6 +456,9 @@ const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
 pub const STANCES: &[&str] =
     &["strongly_disapprove", "disapprove", "neutral", "approve", "strongly_approve"];
 
+#[cfg(feature = "vic3")]
+pub const APPROVALS: &[&str] = &["angry", "unhappy", "neutral", "happy", "loyal"];
+
 fn match_trigger_bv(
     trigger: &Trigger,
     name: &Token,
@@ -517,6 +520,16 @@ fn match_trigger_bv(
             if let Some(token) = bv.expect_value() {
                 if !STANCES.contains(&token.as_str()) {
                     let msg = format!("{name} expects one of {}", stringify_list(STANCES));
+                    old_warn(token, ErrorKey::Validation, &msg);
+                }
+            }
+        }
+        #[cfg(feature = "vic3")]
+        Trigger::CompareApproval => {
+            must_be_eq = false;
+            if let Some(token) = bv.expect_value() {
+                if !token.is_number() && !APPROVALS.contains(&token.as_str()) {
+                    let msg = format!("{name} expects one of {}", stringify_list(APPROVALS));
                     old_warn(token, ErrorKey::Validation, &msg);
                 }
             }
@@ -955,6 +968,9 @@ pub enum RawTrigger {
     /// value is a stance from `strongly_disapprove` to `strongly_approve`
     #[cfg(feature = "vic3")]
     CompareStance,
+    /// value is a number, or a token from `angry` to `loyal`
+    #[cfg(feature = "vic3")]
+    CompareApproval,
     /// trigger is compared to a scope object
     Scope(u64),
     /// trigger is compared to a scope object which may be `this`
@@ -1008,6 +1024,8 @@ pub enum Trigger {
     CompareLevel,
     #[cfg(feature = "vic3")]
     CompareStance,
+    #[cfg(feature = "vic3")]
+    CompareApproval,
     Scope(Scopes),
     ScopeOkThis(Scopes),
     Item(Item),
@@ -1047,6 +1065,8 @@ impl Trigger {
             RawTrigger::CompareLevel => Trigger::CompareLevel,
             #[cfg(feature = "vic3")]
             RawTrigger::CompareStance => Trigger::CompareStance,
+            #[cfg(feature = "vic3")]
+            RawTrigger::CompareApproval => Trigger::CompareApproval,
             RawTrigger::Scope(s) => Trigger::Scope(Scopes::from_bits_truncate(*s)),
             RawTrigger::ScopeOkThis(s) => Trigger::ScopeOkThis(Scopes::from_bits_truncate(*s)),
             RawTrigger::Item(i) => Trigger::Item(*i),

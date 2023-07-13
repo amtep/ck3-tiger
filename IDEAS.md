@@ -23,6 +23,7 @@
 ## GUI
 * ck3 crashes if you have multiple objects with `resizeparent` in one parent
 * Can't do `datacontext = [Character.GetLiege]` if your datacontext is already `Character` (and more generally, writing the datacontext you're already in)
+* Warn if trying to use a saved scope inside a branch of Select_CString or Select_Localization
 
 ## Tooltips
 * `create_character` is not executed during tooltip generation, so the scope it creates won't exist yet.
