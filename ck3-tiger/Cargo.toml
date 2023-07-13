@@ -10,6 +10,7 @@ tiger-lib = { path = "..", features = ["ck3"] }
 
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
+console = "0.15.7"
 
 [target.'cfg(windows)'.dependencies]
 ansi_term = "0.12.1"

@@ -1,9 +1,12 @@
+use std::cell::RefCell;
 use std::cmp::Ordering;
-use std::fs::read;
+use std::fs::{read, File};
+use std::io::{stdout, Write};
 use std::mem::take;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
 
+use anyhow::Result;
 use encoding::all::{UTF_8, WINDOWS_1252};
 use encoding::{DecoderTrap, Encoding};
 use fnv::{FnvHashMap, FnvHashSet};
@@ -22,8 +25,10 @@ static ERRORS: Lazy<Mutex<Errors>> = Lazy::new(|| Mutex::new(Errors::default()))
 
 type ErrorRecord = (Loc, ErrorKey, String, Option<Loc>, Option<Loc>);
 
-#[derive(Default, Debug)]
+#[allow(missing_debug_implementations)]
 pub struct Errors {
+    pub(crate) output: RefCell<Box<dyn Write + Send>>,
+
     /// The base game directory
     vanilla_root: PathBuf,
     /// Extra base game directory loaded before `vanilla_root`
@@ -52,6 +57,26 @@ pub struct Errors {
     /// All reports that passed the checks, stored here to be sorted before being emitted all at once.
     /// The "abbreviated" reports don't participate in this. They are still emitted immediately.
     storage: Vec<LogReport>,
+}
+
+impl Default for Errors {
+    fn default() -> Self {
+        Errors {
+            output: RefCell::new(Box::new(stdout())),
+            vanilla_root: PathBuf::default(),
+            clausewitz_root: PathBuf::default(),
+            jomini_root: PathBuf::default(),
+            mod_root: PathBuf::default(),
+            loaded_mods: Vec::default(),
+            loaded_mods_labels: Vec::default(),
+            seen: FnvHashSet::default(),
+            filecache: FnvHashMap::default(),
+            filter: ReportFilter::default(),
+            styles: OutputStyle::default(),
+            max_line_length: None,
+            storage: Vec::default(),
+        }
+    }
 }
 
 impl Errors {
@@ -99,9 +124,9 @@ impl Errors {
 
     pub fn log_abbreviated(&mut self, loc: &Loc, key: ErrorKey) {
         if loc.line == 0 {
-            println!("({key}) {}", loc.pathname().to_string_lossy());
+            _ = writeln!(self.output.get_mut(), "({key}) {}", loc.pathname().to_string_lossy());
         } else if let Some(line) = self.get_line(loc) {
-            println!("({key}) {line}");
+            _ = writeln!(self.output.get_mut(), "({key}) {line}");
         }
     }
 
@@ -116,7 +141,7 @@ impl Errors {
     }
 
     pub fn push_header(&mut self, _key: ErrorKey, msg: &str) {
-        println!("{msg}");
+        _ = writeln!(self.output.get_mut(), "{msg}");
     }
 
     pub fn emit_reports(&mut self) {
@@ -183,8 +208,15 @@ pub fn set_mod_root(root: PathBuf) {
 }
 
 pub fn add_loaded_mod_root(label: String, root: PathBuf) {
-    Errors::get_mut().loaded_mods_labels.push(label);
-    Errors::get_mut().loaded_mods.push(root);
+    let mut errors = Errors::get_mut();
+    errors.loaded_mods_labels.push(label);
+    errors.loaded_mods.push(root);
+}
+
+pub fn set_output_file(file: &Path) -> Result<()> {
+    let file = File::create(file)?;
+    Errors::get_mut().output = RefCell::new(Box::new(file));
+    Ok(())
 }
 
 pub fn log(mut report: LogReport) {

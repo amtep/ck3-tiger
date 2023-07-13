@@ -15,6 +15,11 @@ const STEAM_MAC: &str = "Library/Application Support/Steam/steamapps";
 #[cfg(windows)]
 const STEAM_WINDOWS_KEY: &str = r"SOFTWARE\Wow6432Node\Valve\Steam";
 
+// How to find the paradox local files dir on different systems
+const PDX_LINUX: &str = ".local/share/Paradox Interactive";
+const PDX_MAC: &str = "Library/Application Support/Paradox Interactive"; // TODO this is a guess
+const PDX_WINDOWS: &str = "Documents/Paradox Interactive";
+
 /// Tries to locate the game files.
 /// If there are several locations where the files may reside, it will try them one by one.
 /// `steam_app_id` is the (normally numeric) id of the game on Steam.
@@ -72,6 +77,24 @@ fn find_game_dir_in_steam_dir(steam_dir: &Path, app_id: &str, game_dir: &Path) -
                 }
                 return None;
             }
+        }
+    }
+    None
+}
+
+pub fn find_paradox_directory(dir_under: &Path) -> Option<PathBuf> {
+    if let Some(home) = home_dir() {
+        let on_linux = home.join(PDX_LINUX).join(dir_under);
+        if on_linux.is_dir() {
+            return Some(on_linux);
+        }
+        let on_mac = home.join(PDX_MAC).join(dir_under);
+        if on_mac.is_dir() {
+            return Some(on_mac);
+        }
+        let on_windows = home.join(PDX_WINDOWS).join(dir_under);
+        if on_windows.is_dir() {
+            return Some(on_windows);
         }
     }
     None

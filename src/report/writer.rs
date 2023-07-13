@@ -46,7 +46,7 @@ pub fn log_report(errors: &mut Errors, report: &LogReport) {
         log_line_info(errors, report.indentation(), info);
     }
     // Write a blank line to visually separate reports:
-    println!();
+    _ = writeln!(errors.output.borrow_mut());
 }
 
 fn log_pointer(
@@ -91,7 +91,7 @@ fn log_line_title(errors: &Errors, report: &LogReport) {
         errors.styles.style(&Styled::Default).paint(": "),
         errors.styles.style(&Styled::ErrorMessage).paint(report.msg.to_string()),
     ];
-    println!("{}", ANSIStrings(line));
+    _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line));
 }
 
 /// Log the optional info line that is part of the overall report.
@@ -105,7 +105,7 @@ fn log_line_info(errors: &Errors, indentation: usize, info: &str) {
         errors.styles.style(&Styled::Default).paint(" "),
         errors.styles.style(&Styled::Info).paint(info.to_string()),
     ];
-    println!("{}", ANSIStrings(line_info));
+    _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line_info));
 }
 
 /// Log the line containing the location's mod name and filename.
@@ -124,7 +124,7 @@ fn log_line_file_location(errors: &Errors, pointer: &PointedMessage, indentation
             .style(&Styled::Location)
             .paint(format!("{}", pointer.loc.pathname().display())),
     ];
-    println!("{}", ANSIStrings(line_filename));
+    _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line_filename));
 }
 
 /// Print a line from the source file.
@@ -140,7 +140,7 @@ fn log_line_from_source(errors: &Errors, pointer: &PointedMessage, indentation: 
         errors.styles.style(&Styled::Default).paint(" "),
         errors.styles.style(&Styled::SourceText).paint(line.to_string()),
     ];
-    println!("{}", ANSIStrings(line_from_source));
+    _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line_from_source));
 }
 
 fn log_line_carets(
@@ -181,7 +181,7 @@ fn log_line_carets(
             .style(&Styled::Tag(severity, true))
             .paint(pointer.msg.as_deref().unwrap_or("")),
     ];
-    println!("{}", ANSIStrings(line_carets));
+    _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line_carets));
 }
 
 fn kind_tag(errors: &Errors, kind: FileKind) -> &str {

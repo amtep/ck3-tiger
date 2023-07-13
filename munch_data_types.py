@@ -65,6 +65,9 @@ ARGS_OVERRIDE = {
     ("GetVassalStance", 1): ["IType(Item::VassalStance)"],
     ("Scope.Var", 1): ["DType(CString)"],
     ("TopScope.sC", 1): ["DType(CString)"],
+
+# For Vic3
+    ("VariableSystem.Set", 1): ["DType(CString)", "DType(Unknown)"],
 }
 
 # This is for overriding argument types regardless of the datafunction's input type
