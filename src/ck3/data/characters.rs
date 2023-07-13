@@ -68,10 +68,11 @@ pub struct Characters {
 impl Characters {
     fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.characters.get(key.as_str()) {
-            if self
-                .config_only_born
-                .and_then(|date| block.get_field_at_date("birth", date))
-                .is_some()
+            if self.config_only_born.is_none()
+                || self
+                    .config_only_born
+                    .and_then(|date| block.get_field_at_date("birth", date))
+                    .is_some()
             {
                 err(ErrorKey::DuplicateCharacter)
                     .strong()
