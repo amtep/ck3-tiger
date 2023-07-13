@@ -41,12 +41,14 @@ fn main() -> Result<()> {
         let sig = ck3.clone().join(CK3_SIGNATURE_FILE);
         if !sig.is_file() {
             eprintln!("That does not look like a CK3 directory.");
-            eprintln!("Cannot find the CK3 directory. Please try the main ck3-tiger executable from the command prompt.");
+            eprintln!("Cannot find the CK3 directory.");
+            eprintln!("Please try the main ck3-tiger executable from the command prompt.");
             sleep(Duration::from_secs(ERROR_WAIT_SECONDS));
             bail!("Giving up.");
         }
     } else {
-        eprintln!("Cannot find the CK3 directory. Please try the main ck3-tiger executable from the command prompt.");
+        eprintln!("Cannot find the CK3 directory.");
+        eprintln!("Please try the main ck3-tiger executable from the command prompt.");
         sleep(Duration::from_secs(ERROR_WAIT_SECONDS));
         bail!("Giving up.");
     }
@@ -55,7 +57,8 @@ fn main() -> Result<()> {
 
     let pdx = find_paradox_directory(&PathBuf::from(CK3_PARADOX_DIR));
     if pdx.is_none() {
-        eprintln!("Cannot find the Paradox CK3 directory. Please try the main ck3-tiger executable from the command prompt.");
+        eprintln!("Cannot find the Paradox CK3 directory.");
+        eprintln!("Please try the main ck3-tiger executable from the command prompt.");
         sleep(Duration::from_secs(ERROR_WAIT_SECONDS));
         bail!("Giving up.");
     }
@@ -66,6 +69,11 @@ fn main() -> Result<()> {
 
     if entries.len() == 1 {
         validate_mod(&ck3.unwrap(), &entries[0].path())?;
+    } else if entries.is_empty() {
+        eprintln!("Did not find any mods to validate.");
+        eprintln!("Please try the main ck3-tiger executable from the command prompt.");
+        sleep(Duration::from_secs(ERROR_WAIT_SECONDS));
+        bail!("Giving up.");
     } else {
         eprintln!("Found several possible mods to validate:");
         for (i, entry) in entries.iter().enumerate().take(9) {
