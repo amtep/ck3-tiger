@@ -18,13 +18,15 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::{
     validate_target, validate_target_ok_this, validate_trigger, validate_trigger_key_bv,
 };
-#[cfg(feature = "ck3")]
-use crate::validate::validate_compare_duration;
+#[cfg(feature = "vic3")]
+use crate::validate::validate_vic3_modifiers;
 use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
-    validate_iterator_fields, validate_modifiers, validate_optional_duration, validate_scope_chain,
+    validate_iterator_fields, validate_optional_duration, validate_scope_chain,
     validate_scripted_modifier_call, ListType,
 };
+#[cfg(feature = "ck3")]
+use crate::validate::{validate_compare_duration, validate_modifiers};
 #[cfg(feature = "vic3")]
 use crate::vic3::effect_validation::{
     validate_effect_block, validate_effect_bv, validate_effect_value, EvB, EvBv, EvV,
@@ -473,6 +475,9 @@ pub fn validate_effect_control(
     }
 
     if caller == "random" || caller == "random_list" || caller == "duel" {
+        #[cfg(feature = "vic3")]
+        validate_vic3_modifiers(&mut vd, sc);
+        #[cfg(feature = "ck3")]
         validate_modifiers(&mut vd, sc);
     } else {
         vd.ban_field("modifier", || "`random`, `random_list` or `duel`");
