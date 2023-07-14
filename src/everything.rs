@@ -160,6 +160,7 @@ use crate::vic3::data::{
     provinces::Provinces,
     religions::Religion,
     state_regions::StateRegion,
+    state_traits::StateTrait,
     strategic_regions::StrategicRegion,
     technology::{Technology, TechnologyEra},
     terrain::{Terrain, TerrainLabel, TerrainManipulator, TerrainMask, TerrainMaterial},
@@ -686,6 +687,7 @@ impl Everything {
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
         self.load_pdx_items(Item::ProductionMethodGroup, ProductionMethodGroup::add);
         self.load_pdx_items(Item::StateRegion, StateRegion::add);
+        self.load_pdx_items(Item::StateTrait, StateTrait::add);
         self.load_pdx_items(Item::StrategicRegion, StrategicRegion::add);
         self.load_pdx_items(Item::Technology, Technology::add);
         self.load_pdx_items(Item::TechnologyEra, TechnologyEra::add);

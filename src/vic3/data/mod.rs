@@ -16,6 +16,7 @@ pub mod production_methods;
 pub mod provinces;
 pub mod religions;
 pub mod state_regions;
+pub mod state_traits;
 pub mod strategic_regions;
 pub mod technology;
 pub mod terrain;
