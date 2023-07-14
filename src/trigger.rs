@@ -264,13 +264,25 @@ pub fn validate_trigger_key_bv(
                         let msg = "unexpected argument";
                         err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
                     }
+                    // TODO there's got to be a better way to do this
                     #[cfg(feature = "vic3")]
-                    if part.is("num_total_battalions(")
+                    if part.is("ai_army_comparison(")
+                        || part.is("ai_gdp_comparison(")
+                        || part.is("ai_ideological_opinion(")
+                        || part.is("ai_navy_comparison(")
+                        || part.is("average_defense(")
+                        || part.is("average_offense(")
+                        || part.is("num_total_battalions(")
                         || part.is("num_defending_battalions(")
-                        || part.is("num_enemy_units(")
+                        || part.is("tension(")
+                        || part.is("num_alliances_and_defensive_pacts_with_allies(")
+                        || part.is("num_alliances_and_defensive_pacts_with_rivals(")
+                        || part.is("num_mutual_trade_route_levels_with_country(")
                         || part.is("relations(")
                     {
                         validate_target(&arg, data, sc, Scopes::Country);
+                    } else if part.is("num_enemy_units(") {
+                        validate_target(&arg, data, sc, Scopes::Character);
                     } else {
                         let msg = "unexpected argument";
                         err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
@@ -830,12 +842,23 @@ pub fn validate_target_ok_this(
                     err(ErrorKey::Validation).weak().msg("unexpected argument").loc(arg).push();
                 }
                 #[cfg(feature = "vic3")]
-                if new_part.is("num_total_battalions(")
+                if new_part.is("ai_army_comparison(")
+                    || new_part.is("ai_gdp_comparison(")
+                    || new_part.is("ai_ideological_opinion(")
+                    || new_part.is("ai_navy_comparison(")
+                    || new_part.is("average_defense(")
+                    || new_part.is("average_offense(")
+                    || new_part.is("num_total_battalions(")
                     || new_part.is("num_defending_battalions(")
-                    || new_part.is("num_enemy_units(")
-                    || part.is("relations(")
+                    || new_part.is("tension(")
+                    || new_part.is("num_alliances_and_defensive_pacts_with_allies(")
+                    || new_part.is("num_alliances_and_defensive_pacts_with_rivals(")
+                    || new_part.is("num_mutual_trade_route_levels_with_country(")
+                    || new_part.is("relations(")
                 {
                     validate_target(&arg, data, sc, Scopes::Country);
+                } else if part.is("num_enemy_units(") {
+                    validate_target(&arg, data, sc, Scopes::Character);
                 } else {
                     err(ErrorKey::Validation).weak().msg("unexpected argument").loc(arg).push();
                 }
