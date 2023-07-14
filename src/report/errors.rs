@@ -23,8 +23,6 @@ use crate::token::Loc;
 
 static ERRORS: Lazy<Mutex<Errors>> = Lazy::new(|| Mutex::new(Errors::default()));
 
-type ErrorRecord = (Loc, ErrorKey, String, Option<Loc>, Option<Loc>);
-
 #[allow(missing_debug_implementations)]
 pub struct Errors {
     pub(crate) output: RefCell<Box<dyn Write + Send>>,
@@ -42,10 +40,6 @@ pub struct Errors {
     /// Extra loaded mods' error tags
     pub(crate) loaded_mods_labels: Vec<String>,
 
-    /// Errors that have already been logged (to avoid duplication, which is common
-    /// when validating macro expanded triggers and effects)
-    seen: FnvHashSet<ErrorRecord>,
-
     filecache: FnvHashMap<PathBuf, String>,
 
     /// Determines whether a report should be printed.
@@ -56,7 +50,8 @@ pub struct Errors {
 
     /// All reports that passed the checks, stored here to be sorted before being emitted all at once.
     /// The "abbreviated" reports don't participate in this. They are still emitted immediately.
-    storage: Vec<LogReport>,
+    /// It's a `HashSet` because duplicate reports are fairly common due to macro expansion and other revalidations.
+    storage: FnvHashSet<LogReport>,
 }
 
 impl Default for Errors {
@@ -69,12 +64,11 @@ impl Default for Errors {
             mod_root: PathBuf::default(),
             loaded_mods: Vec::default(),
             loaded_mods_labels: Vec::default(),
-            seen: FnvHashSet::default(),
             filecache: FnvHashMap::default(),
             filter: ReportFilter::default(),
             styles: OutputStyle::default(),
             max_line_length: None,
-            storage: Vec::default(),
+            storage: FnvHashSet::default(),
         }
     }
 }
@@ -111,15 +105,7 @@ impl Errors {
         if !self.filter.should_print_report(&report) {
             return;
         }
-        let loc = report.primary().loc.clone();
-        let loc2 = report.pointers.get(1).map(|p| p.loc.clone());
-        let loc3 = report.pointers.get(2).map(|p| p.loc.clone());
-        let index = (loc, report.key, report.msg.to_string(), loc2, loc3);
-        if self.seen.contains(&index) {
-            return;
-        }
-        self.seen.insert(index);
-        self.storage.push(report);
+        self.storage.insert(report);
     }
 
     pub fn log_abbreviated(&mut self, loc: &Loc, key: ErrorKey) {
@@ -132,11 +118,6 @@ impl Errors {
 
     pub fn push_abbreviated<E: ErrorLoc>(&mut self, eloc: E, key: ErrorKey) {
         let loc = eloc.into_loc();
-        let index = (loc.clone(), key, String::new(), None, None);
-        if self.seen.contains(&index) {
-            return;
-        }
-        self.seen.insert(index);
         self.log_abbreviated(&loc, key);
     }
 
@@ -145,7 +126,7 @@ impl Errors {
     }
 
     pub fn emit_reports(&mut self) {
-        let mut reports = take(&mut self.storage);
+        let mut reports: Vec<LogReport> = take(&mut self.storage).into_iter().collect();
         reports.sort_unstable_by(|a, b| {
             // Severity in descending order
             let mut cmp = b.severity.cmp(&a.severity);

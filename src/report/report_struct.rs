@@ -5,7 +5,7 @@ use crate::report::ErrorKey;
 use crate::token::Loc;
 
 /// Describes a report about a potentially problematic situation that can be logged.
-#[derive(Debug)]
+#[derive(Debug, Hash, PartialEq, Eq)]
 pub struct LogReport {
     /// Used for choosing output colors and for filtering reports.
     pub severity: Severity,
@@ -32,7 +32,7 @@ impl LogReport {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Hash, PartialEq, Eq)]
 pub struct PointedMessage {
     /// Which file and where in the file the error occurs.
     /// Might point to a whole file, rather than a specific location in the file.
