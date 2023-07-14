@@ -6,8 +6,10 @@ use fnv::FnvHashMap;
 use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
 use crate::fileset::{FileEntry, FileKind};
-use crate::report::{error, old_warn, warn_info, ErrorKey};
+use crate::report::{err, error, old_warn, untidy, warn_info, ErrorKey};
 use crate::token::{Loc, Token};
+
+const CONTROL_Z: char = '\u{001A}';
 
 #[derive(Copy, Clone, Debug)]
 enum State {
@@ -190,10 +192,20 @@ struct Parser {
 }
 
 impl Parser {
-    fn unknown_char(c: char, loc: Loc) {
-        let token = Token::new(c.to_string(), loc);
+    fn unknown_char(c: char, loc: &Loc) {
         let msg = format!("Unrecognized character {c}");
-        error(token, ErrorKey::ParseError, &msg);
+        error(loc, ErrorKey::ParseError, &msg);
+    }
+
+    fn control_z(loc: &Loc, at_end: bool) {
+        let msg = "^Z in file";
+        if at_end {
+            let info = "This control code means stop reading the file here, which will cause trouble if you add more code later.";
+            untidy(ErrorKey::ParseError).msg(msg).info(info).loc(loc).push();
+        } else {
+            let info = "This control code means stop reading the file here. Nothing that follows will be read.";
+            err(ErrorKey::ParseError).msg(msg).info(info).loc(loc).push();
+        }
     }
 
     fn calculation_start(&mut self) {
@@ -464,8 +476,11 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         parser.open_brace(loc.clone(), i);
                     } else if c == '}' {
                         parser.close_brace(loc.clone(), content, i);
+                    } else if c == CONTROL_Z {
+                        Parser::control_z(&loc, content[i + 1..].trim().is_empty());
+                        break;
                     } else {
-                        Parser::unknown_char(c, loc.clone());
+                        Parser::unknown_char(c, &loc);
                     }
                 }
                 State::Comment => {
@@ -515,8 +530,11 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                             state = State::QString;
                             token_start = loc.clone();
                             token_start.column += 1;
+                        } else if c == CONTROL_Z {
+                            Parser::control_z(&loc, content[i + 1..].trim().is_empty());
+                            break;
                         } else {
-                            Parser::unknown_char(c, loc.clone());
+                            Parser::unknown_char(c, &loc);
                             state = State::Neutral;
                         }
                     }
@@ -586,8 +604,11 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         state = State::Neutral;
                     } else if c.is_id_char() {
                         current_id.push(c);
+                    } else if c == CONTROL_Z {
+                        Parser::control_z(&loc, content[i + 1..].trim().is_empty());
+                        break;
                     } else {
-                        Parser::unknown_char(c, loc.clone());
+                        Parser::unknown_char(c, &loc);
                         current_id.clear();
                         state = State::Neutral;
                     }
@@ -627,8 +648,11 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         } else if c == '}' {
                             parser.close_brace(loc.clone(), content, i);
                             state = State::Neutral;
+                        } else if c == CONTROL_Z {
+                            Parser::control_z(&loc, content[i + 1..].trim().is_empty());
+                            break;
                         } else {
-                            Parser::unknown_char(c, loc.clone());
+                            Parser::unknown_char(c, &loc);
                             state = State::Neutral;
                         }
                     }
@@ -666,17 +690,11 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
 }
 
 #[allow(clippy::module_name_repetitions)]
-pub fn parse_pdx(entry: &FileEntry, mut content: &str) -> Block {
+pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
     let blockloc = Loc::for_entry(entry);
     let mut loc = blockloc.clone();
     loc.line = 1;
     loc.column = 1;
-    // If the file ends with a ^Z, remove it.
-    // A ^Z anywhere else might be an error, if it interrupts the game reading the file.
-    // TODO: needs testing.
-    if let Some(stripped) = content.strip_suffix('\u{001A}') {
-        content = stripped;
-    }
     parse(blockloc, &[Token::new(content.to_string(), loc)], LocalMacros::default())
 }
 
