@@ -442,7 +442,10 @@ static ON_ACTION_SCOPES: Lazy<FnvHashMap<String, OnActionScopeContext>> = Lazy::
 	}
 	three_year_playable_pulse = yearly_playable_pulse
 	five_year_playable_pulse = yearly_playable_pulse
-	quarterly_playable_pulse = yearly_playable_pulse
+	quarterly_playable_pulse = {
+		root = character
+		quarter = value
+	}
 	random_yearly_playable_pulse = yearly_playable_pulse
 	random_yearly_everyone_pulse = yearly_playable_pulse
 	five_year_everyone_pulse = yearly_playable_pulse
