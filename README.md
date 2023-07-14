@@ -16,20 +16,6 @@ This project is maturing but not yet stable. It will warn about some things that
 
 It doesn't load all the game files yet, but the gaps are few.
 
-## Contributions
-
-I welcome contributions in the form of suggestions and ideas about what it should check! Also, if you have trouble understanding the output messages, feel free to let me know. They could always be more clear. You can file an issue on GitHub or contact me directly via email. The same goes for bug reports. In particular, you can submit bug reports about false positives in the program output.
-
-Contributions in the form of code are also welcome. They should be made as GitHub pull requests, and you should read and understand the project's copyright license before doing so. It may help to file an issue before starting to code, though, since I may prefer to solve the issue in a different way.
-
-See the [`CODING`](CODING.md) file for an overview of the code and coding style.
-
-### License
-
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [`LICENSE`](LICENSE) file for more details.
-
 ## How to use
 Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere, and remember where, so that you can specify the path to it in the next step.
 
@@ -60,6 +46,35 @@ You can unpack the archive from the "Release" page on GitHub and use it that way
 If you want to build it yourself, you will have to [install the Rust programming language](https://www.rust-lang.org/tools/install).
 
 Run `cargo build --release -p ck3-tiger` in the project's directory, then run the program as `target/release/ck3-tiger`.
+
+## Contributions
+
+I welcome contributions and collaborations! Some forms that contributions can take:
+
+* Suggestions and ideas about what things tiger should check
+* Telling me which of the output messages are confusing or hard to understand
+* Reporting false positives, where tiger complains about a problem that's not real
+* Filing an issue on GitHub about a problem you have, or sending me email directly
+* Starting up the game to verify something that's marked "TODO: verify" in the code
+
+Contributions in the form of code are also welcome. They should be made as GitHub pull requests, and you should read and understand the project's copyright license before doing so. It may help to file a GitHub issue before starting to code, though, since I may prefer to solve the problem in a different way.
+
+Some ideas for code contributions:
+
+* Adding a new check and its error report
+* Adding a validator for a new item type
+* Updating a validator to a new game version
+* Solving one of the hundreds of TODO comments in the code
+* Solving one of the issues marked in the [TODO](https://github.com/amtep/ck3-tiger/wiki/Todo) or [IDEAS](https://github.com/amtep/ck3-tiger/wiki/Ideas) wiki pages
+* Speed or memory use improvements; opportunities are all over the place
+
+See the [`CODING`](CODING.md) file for an overview of the code and coding style.
+
+### License
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [`LICENSE`](LICENSE) file for more details.
 
 ## Sample output
 
