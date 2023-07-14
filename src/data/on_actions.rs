@@ -13,8 +13,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 #[cfg(feature = "ck3")]
-use crate::report::error_info;
-use crate::report::{warn_info, ErrorKey};
+use crate::report::{error_info, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -126,7 +125,12 @@ impl OnAction {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block_sc("weight_multiplier", &mut sc, validate_modifiers_with_base);
+
+        // TODO: multiple random_events blocks in one on_action aren't outright bugged on Vic3,
+        // but they might still get merged together into one big event pool. Verify.
+
         let mut count = 0;
+        #[allow(unused_variables)] // vic3 doesn't use `key`
         vd.field_validated_key_blocks("events", |key, b, data| {
             let mut vd = Validator::new(b, data);
             vd.field_validated_blocks_sc("delay", &mut sc, validate_duration);
@@ -166,6 +170,7 @@ impl OnAction {
             }
         });
         count = 0;
+        #[allow(unused_variables)] // vic3 doesn't use `key`
         vd.field_validated_key_blocks("first_valid", |key, b, data| {
             let mut vd = Validator::new(b, data);
             for token in vd.values() {
@@ -182,6 +187,7 @@ impl OnAction {
             }
         });
         count = 0;
+        #[allow(unused_variables)] // vic3 doesn't use `key`
         vd.field_validated_key_blocks("on_actions", |key, b, data| {
             let mut vd = Validator::new(b, data);
             vd.field_validated_blocks_sc("delay", &mut sc, validate_duration);
@@ -198,6 +204,7 @@ impl OnAction {
             }
         });
         count = 0;
+        #[allow(unused_variables)] // vic3 doesn't use `key`
         vd.field_validated_key_blocks("random_on_action", |key, b, data| {
             let mut vd = Validator::new(b, data);
             vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
@@ -218,6 +225,7 @@ impl OnAction {
             }
         });
         count = 0;
+        #[allow(unused_variables)] // vic3 doesn't use `key`
         vd.field_validated_key_blocks("first_valid_on_action", |key, b, data| {
             let mut vd = Validator::new(b, data);
             for token in vd.values() {
