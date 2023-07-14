@@ -20,6 +20,9 @@ impl FromStr for Date {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // Trailing whitespace is accepted by the engine
+        let s = s.trim_end();
+
         let mut splits = s.split('.');
         let year = splits.next().ok_or(Error)?;
         let month = splits.next().unwrap_or("1");
