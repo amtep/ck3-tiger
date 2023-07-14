@@ -142,6 +142,7 @@ use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
 use crate::vic3::data::{
+    ai_strategies::AiStrategy,
     battle_conditions::BattleCondition,
     buildings::{BuildingGroup, BuildingType},
     countries::Country,
@@ -671,6 +672,7 @@ impl Everything {
 
     #[cfg(feature = "vic3")]
     fn load_all_vic3(&mut self) {
+        self.load_pdx_items(Item::AiStrategy, AiStrategy::add);
         self.load_pdx_items(Item::BattleCondition, BattleCondition::add);
         self.load_pdx_items(Item::BuildingGroup, BuildingGroup::add);
         self.load_pdx_items(Item::BuildingType, BuildingType::add);
@@ -840,7 +842,7 @@ impl Everything {
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Asset => self.assets.asset_exists(key),
-            Item::Attitude => ATTITUDE.contains(&key),
+            Item::Attitude => ATTITUDES.contains(&key),
             Item::BlendShape => self.assets.blend_shape_exists(key),
             Item::Define => self.defines.exists(key),
             Item::Dlc => DLC.contains(&key),
@@ -850,6 +852,7 @@ impl Everything {
             Item::EventNamespace => self.events.namespace_exists(key),
             Item::File => self.fileset.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
+            Item::Level => LEVELS.contains(&key),
             Item::Localization => self.localization.exists(key),
             Item::OnAction => self.on_actions.exists(key),
             Item::Pdxmesh => self.assets.mesh_exists(key),
@@ -858,6 +861,7 @@ impl Everything {
             Item::ScriptedModifier => self.scripted_modifiers.exists(key),
             Item::ScriptedTrigger => self.triggers.exists(key),
             Item::ScriptValue => self.scriptvalues.exists(key),
+            Item::SecretGoal => SECRET_GOALS.contains(&key),
             Item::Sound => {
                 if let Some(filename) = key.strip_prefix("file://") {
                     self.fileset.exists(filename)
@@ -866,6 +870,7 @@ impl Everything {
                 }
             }
             Item::TextureFile => self.assets.texture_exists(key),
+            Item::Wargoal => WARGOALS.contains(&key),
             _ => self.database.exists(itype, key),
         }
     }
@@ -1116,7 +1121,7 @@ const ARTIFACT_RARITY: &[&str] = &["common", "masterwork", "famed", "illustrious
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
-const ATTITUDE: &[&str] = &[
+const ATTITUDES: &[&str] = &[
     "antagonistic",
     "belligerent",
     "cautious",
@@ -1130,6 +1135,43 @@ const ATTITUDE: &[&str] = &[
     "protective",
     "rebellious",
     "wary",
+];
+
+/// LAST UPDATED VIC3 VERSION 1.3.6
+#[cfg(feature = "vic3")]
+pub const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
+
+/// LAST UPDATED VIC3 VERSION 1.3.6
+#[cfg(feature = "vic3")]
+pub const SECRET_GOALS: &[&str] =
+    &["none", "befriend", "reconcile", "protect", "antagonize", "conquer", "dominate"];
+
+/// LAST UPDATED VIC3 VERSION 1.3.6
+#[cfg(feature = "vic3")]
+pub const WARGOALS: &[&str] = &[
+    "annex_country",
+    "ban_slavery",
+    "colonization_rights",
+    "conquer_state",
+    "contain_threat",
+    "force_recognition",
+    "humiliation",
+    "independence",
+    "liberate_country",
+    "liberate_subject",
+    "make_dominion",
+    "make_puppet",
+    "make_vassal",
+    "open_market",
+    "regime_change",
+    "return_state",
+    "revoke_claim",
+    "secession",
+    "take_treaty_port",
+    "transfer_subject",
+    "unification",
+    "unification_leadership",
+    "war_reparations",
 ];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6

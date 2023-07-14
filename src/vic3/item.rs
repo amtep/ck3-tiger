@@ -9,6 +9,7 @@ pub enum Item {
     AccessoryVariation,
     AccessoryVariationLayout,
     AccessoryVariationTextures,
+    AiStrategy,
     Asset,
     Attitude,
     BattleCondition,
@@ -39,6 +40,7 @@ pub enum Item {
     InterestGroupTrait,
     LawGroup,
     LawType,
+    Level,
     Localization,
     MapLayer,
     MediaAlias,
@@ -58,6 +60,7 @@ pub enum Item {
     ScriptedModifier,
     ScriptedTrigger,
     ScriptValue,
+    SecretGoal,
     Sound,
     StateRegion,
     StateTrait,
@@ -73,6 +76,7 @@ pub enum Item {
     TransferOfPower,
     TriggerLocalization,
     TutorialLesson,
+    Wargoal,
 }
 
 impl Item {
@@ -85,6 +89,7 @@ impl Item {
             Item::AccessoryVariation => "gfx/portraits/accessory_variations/",
             Item::AccessoryVariationLayout => "gfx/portraits/accessory_variations/",
             Item::AccessoryVariationTextures => "gfx/portraits/accessory_variations/",
+            Item::AiStrategy => "common/ai_strategies/",
             Item::Asset => "gfx/models/",
             Item::Attitude => "",
             Item::BattleCondition => "common/battle_conditions/",
@@ -115,6 +120,7 @@ impl Item {
             Item::InterestGroupTrait => "common/interest_group_traits/",
             Item::LawGroup => "common/law_groups/",
             Item::LawType => "common/laws/",
+            Item::Level => "",
             Item::Localization => "localization/",
             Item::MapLayer => "gfx/map/map_object_data/layers.txt",
             Item::MediaAlias => "gfx/media_aliases/",
@@ -134,6 +140,7 @@ impl Item {
             Item::ScriptedModifier => "common/scripted_modifiers/",
             Item::ScriptedTrigger => "common/scripted_triggers/",
             Item::ScriptValue => "common/script_values/",
+            Item::SecretGoal => "common/secret_goals/",
             Item::Sound => "",
             Item::StateRegion => "map_data/state_regions/",
             Item::StateTrait => "common/state_traits/",
@@ -149,6 +156,7 @@ impl Item {
             Item::TransferOfPower => "common/government_types/",
             Item::TriggerLocalization => "common/trigger_localization/",
             Item::TutorialLesson => "common/tutorial_lessons/",
+            Item::Wargoal => "",
         }
     }
 }

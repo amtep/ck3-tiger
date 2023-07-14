@@ -10,6 +10,8 @@ use crate::data::trigger_localization::TriggerLocalization;
 use crate::date::Date;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
+#[cfg(feature = "vic3")]
+use crate::everything::LEVELS;
 use crate::helpers::stringify_choices;
 #[cfg(feature = "vic3")]
 use crate::helpers::stringify_list;
@@ -449,9 +451,6 @@ fn match_trigger_fields(
         }
     }
 }
-
-#[cfg(feature = "vic3")]
-const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
 
 #[cfg(feature = "vic3")]
 pub const STANCES: &[&str] =
@@ -963,7 +962,7 @@ pub enum RawTrigger {
     SetValue,
     /// value must be a valid date
     CompareDate,
-    /// value is a level from `very_low` to `very_high`
+    /// value is a level from LEVELS array
     #[cfg(feature = "vic3")]
     CompareLevel,
     /// value is a stance from `strongly_disapprove` to `strongly_approve`
