@@ -1,6 +1,6 @@
-use strum_macros::IntoStaticStr;
+use strum_macros::{EnumIter, IntoStaticStr};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord, EnumIter)]
 #[strum(serialize_all = "snake_case")]
 #[cfg(feature = "vic3")]
 pub enum Item {
