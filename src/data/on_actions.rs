@@ -135,6 +135,7 @@ impl OnAction {
                 data.events.check_scope(token, &mut sc);
             }
             count += 1;
+            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
             if count == 2 {
                 // TODO: verify
                 let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
@@ -157,7 +158,7 @@ impl OnAction {
                 data.events.check_scope(token, &mut sc);
             }
             count += 1;
-            #[cfg(feature = "ck3")] // TODO: verify for vic3
+            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
             if count == 2 {
                 let msg = format!("multiple `{key}` blocks in one on_action do not work");
                 let info = "try putting each into its own on_action and firing those separately";
@@ -172,6 +173,7 @@ impl OnAction {
                 data.events.check_scope(token, &mut sc);
             }
             count += 1;
+            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
             if count == 2 {
                 // TODO: verify
                 let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
@@ -187,6 +189,7 @@ impl OnAction {
                 data.verify_exists(Item::OnAction, token);
             }
             count += 1;
+            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
             if count == 2 {
                 // TODO: verify
                 let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
@@ -206,6 +209,7 @@ impl OnAction {
                 data.verify_exists(Item::OnAction, token);
             }
             count += 1;
+            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
             if count == 2 {
                 // TODO: verify
                 let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
@@ -220,6 +224,7 @@ impl OnAction {
                 data.verify_exists(Item::OnAction, token);
             }
             count += 1;
+            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
             if count == 2 {
                 // TODO: verify
                 let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
