@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 use std::sync::RwLock;
@@ -336,15 +337,16 @@ impl Everything {
     }
 
     /// Load the `OutputStyle` settings from the config.
-    /// Returns None if no settings are defined.
-    /// Otherwise, returns the overwritten `OutputStyles`.
-    ///
     /// Note that the settings from the config can still be overridden
     /// by supplying the --no-color flag.
-    fn load_output_styles(&self) -> Option<OutputStyle> {
-        let block = self.config.get_field_block("output_style")?;
-        if !block.get_field_bool("enable").unwrap_or(true) {
-            return Some(OutputStyle::no_color());
+    fn load_output_styles(&self, default_color: bool) -> OutputStyle {
+        // Treat a missing output_style block and an empty output_style block exactly the same.
+        let block = match self.config.get_field_block("output_style") {
+            Some(block) => Cow::Borrowed(block),
+            None => Cow::Owned(Block::new(self.config.loc.clone())),
+        };
+        if !block.get_field_bool("enable").unwrap_or(default_color) {
+            return OutputStyle::no_color();
         }
         let mut style = OutputStyle::default();
         for severity in Severity::iter() {
@@ -356,7 +358,7 @@ impl Everything {
                 }
             }
         }
-        Some(style)
+        style
     }
 
     /// A helper function for categories of items that follow the usual pattern of
@@ -493,11 +495,8 @@ impl Everything {
         }
     }
 
-    /// Like `load_pdx_items` but does not expect a Unicode file.
-    pub fn load_output_settings(&self) {
-        if let Some(style) = self.load_output_styles() {
-            set_output_style(style);
-        }
+    pub fn load_output_settings(&self, default_colors: bool) {
+        set_output_style(self.load_output_styles(default_colors));
     }
 
     fn load_all_generic(&mut self) {

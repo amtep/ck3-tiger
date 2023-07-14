@@ -25,10 +25,25 @@ const CK3_PARADOX_DIR: &str = "Crusader Kings III";
 
 const ERROR_WAIT_SECONDS: u64 = 5;
 
-fn main() -> Result<()> {
+fn main() {
+    match inner_main() {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!();
+            eprintln!("ERROR: {e:#}");
+            eprintln!("Please try the main ck3-tiger executable from the command prompt.");
+            sleep(Duration::from_secs(ERROR_WAIT_SECONDS));
+            eprintln!("Giving up.");
+        }
+    }
+}
+
+fn inner_main() -> Result<()> {
+    /// Colors are off by default, but enable ANSI support in case the config file turns colors on again.
     #[cfg(windows)]
-    let _ = ansi_term::enable_ansi_support()
-            .map_err(|_| eprintln!("Failed to enable ANSI support for Windows10 users. Continuing probably without colored output."));
+    let _ = ansi_term::enable_ansi_support().map_err(|_| {
+        eprintln!("Failed to enable ANSI support for Windows10 users. Continuing anyway.")
+    });
 
     // LAST UPDATED CK3 VERSION 1.9.2.1
     eprintln!("This validator was made for Crusader Kings version 1.9.2.1 (Lance).");
@@ -41,39 +56,30 @@ fn main() -> Result<()> {
         let sig = ck3.clone().join(CK3_SIGNATURE_FILE);
         if !sig.is_file() {
             eprintln!("That does not look like a CK3 directory.");
-            eprintln!("Cannot find the CK3 directory.");
-            eprintln!("Please try the main ck3-tiger executable from the command prompt.");
-            sleep(Duration::from_secs(ERROR_WAIT_SECONDS));
-            bail!("Giving up.");
+            bail!("Cannot find the CK3 directory.");
         }
     } else {
-        eprintln!("Cannot find the CK3 directory.");
-        eprintln!("Please try the main ck3-tiger executable from the command prompt.");
-        sleep(Duration::from_secs(ERROR_WAIT_SECONDS));
-        bail!("Giving up.");
+        bail!("Cannot find the CK3 directory.");
     }
 
     set_vanilla_dir(ck3.as_ref().unwrap().clone());
 
     let pdx = find_paradox_directory(&PathBuf::from(CK3_PARADOX_DIR));
     if pdx.is_none() {
-        eprintln!("Cannot find the Paradox CK3 directory.");
-        eprintln!("Please try the main ck3-tiger executable from the command prompt.");
-        sleep(Duration::from_secs(ERROR_WAIT_SECONDS));
-        bail!("Giving up.");
+        bail!("Cannot find the Paradox CK3 directory.");
     }
-    let pdx = pdx.unwrap().join("mod");
+    let pdx = pdx.unwrap();
+    let pdxmod = pdx.join("mod");
+    let pdxlogs = pdx.join("logs");
+
     let mut entries: Vec<_> =
-        read_dir(pdx)?.filter_map(|entry| entry.ok()).filter(is_local_modfile_entry).collect();
+        read_dir(pdxmod)?.filter_map(|entry| entry.ok()).filter(is_local_modfile_entry).collect();
     entries.sort_by_key(|entry| entry.file_name());
 
     if entries.len() == 1 {
-        validate_mod(&ck3.unwrap(), &entries[0].path())?;
+        validate_mod(&ck3.unwrap(), &entries[0].path(), &pdxlogs)?;
     } else if entries.is_empty() {
-        eprintln!("Did not find any mods to validate.");
-        eprintln!("Please try the main ck3-tiger executable from the command prompt.");
-        sleep(Duration::from_secs(ERROR_WAIT_SECONDS));
-        bail!("Giving up.");
+        bail!("Did not find any mods to validate.");
     } else {
         eprintln!("Found several possible mods to validate:");
         for (i, entry) in entries.iter().enumerate().take(9) {
@@ -87,7 +93,11 @@ fn main() -> Result<()> {
             if let Ok(ch) = ch {
                 if ch >= '1' && ch <= '9' && ch as usize - '1' as usize <= entries.len() {
                     eprintln!();
-                    validate_mod(&ck3.unwrap(), &entries[ch as usize - '1' as usize].path())?;
+                    validate_mod(
+                        &ck3.unwrap(),
+                        &entries[ch as usize - '1' as usize].path(),
+                        &pdxlogs,
+                    )?;
                     return Ok(());
                 }
             } else {
@@ -99,25 +109,30 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn validate_mod(ck3: &Path, modpath: &Path) -> Result<()> {
+fn validate_mod(ck3: &Path, modpath: &Path, logdir: &Path) -> Result<()> {
     let modfile = ModFile::read(modpath)?;
     let modpath = modfile.modpath();
     if !modpath.is_dir() {
         eprintln!("Looking for mod in {}", modpath.display());
-        eprintln!("Cannot find mod directory. Please make sure the .mod file is correct.");
-        sleep(Duration::from_secs(ERROR_WAIT_SECONDS));
-        bail!("Giving up.");
+        bail!("Cannot find mod directory. Please make sure the .mod file is correct.");
     }
     eprintln!("Using mod directory: {}", modpath.display());
 
     set_mod_root(modpath.clone());
-    let output_file = &modpath.clone().join("ck3-tiger.log");
+    let output_filename =
+        format!("ck3-tiger-{}.log", modpath.file_name().unwrap().to_string_lossy());
+    let output_file = &logdir.clone().join(output_filename);
     set_output_file(output_file)?;
     eprintln!("Writing error reports to {} ...", output_file.display());
+    eprintln!("This will take a few seconds.");
 
     let mut everything = Everything::new(ck3, &modpath, modfile.replace_paths())?;
 
-    everything.load_output_settings();
+    // Unfortunately have to disable the colors by default because
+    // on Windows there's no easy way to view a file that contains those escape sequences.
+    // There are workarounds but those defeat the purpose of -auto.
+    // The colors can be enabled again in the ck3-tiger.conf file.
+    everything.load_output_settings(false);
     everything.load_config_filtering_rules();
     emit_reports();
 

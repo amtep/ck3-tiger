@@ -118,7 +118,7 @@ fn main() -> Result<()> {
     // Print a blank line between the preamble and the first report:
     eprintln!();
 
-    everything.load_output_settings();
+    everything.load_output_settings(true);
     everything.load_config_filtering_rules();
     emit_reports();
 
