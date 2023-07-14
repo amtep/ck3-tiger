@@ -296,6 +296,9 @@ pub fn validate_datatypes(
                 return;
             }
 
+            // TODO: in vic3, game concepts are unadorned, like [concept_ideology]
+            // Should handle those here.
+
             // If it's a passed-in scope, then set args and rtype appropriately.
             args = Args(&[]);
             // TODO: this could in theory be reduced to just the scope types.

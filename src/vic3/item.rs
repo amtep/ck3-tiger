@@ -72,6 +72,7 @@ pub enum Item {
     TextureFile,
     TransferOfPower,
     TriggerLocalization,
+    TutorialLesson,
 }
 
 impl Item {
@@ -147,6 +148,7 @@ impl Item {
             Item::TextureFile => "gfx/models/",
             Item::TransferOfPower => "common/government_types/",
             Item::TriggerLocalization => "common/trigger_localization/",
+            Item::TutorialLesson => "common/tutorial_lessons/",
         }
     }
 }

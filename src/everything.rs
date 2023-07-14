@@ -147,6 +147,7 @@ use crate::vic3::data::{
     countries::Country,
     cultures::Culture,
     events::Events,
+    gameconcepts::GameConcept,
     goods::Goods,
     ideologies::Ideology,
     institutions::Institution,
@@ -673,6 +674,7 @@ impl Everything {
         self.load_pdx_items(Item::BuildingGroup, BuildingGroup::add);
         self.load_pdx_items(Item::BuildingType, BuildingType::add);
         self.load_pdx_items(Item::Country, Country::add);
+        self.load_pdx_items(Item::GameConcept, GameConcept::add);
         self.load_pdx_items(Item::Goods, Goods::add);
         self.load_pdx_items(Item::Ideology, Ideology::add);
         self.load_pdx_items(Item::Institution, Institution::add);
