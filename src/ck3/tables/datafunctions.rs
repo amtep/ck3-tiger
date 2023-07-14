@@ -5,7 +5,6 @@ use std::str::FromStr;
 use strum_macros::{Display, EnumString};
 
 use crate::datatype::{Arg, Args, LookupResult};
-use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 
@@ -90,7 +89,6 @@ pub fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {
 /// TODO: make it consider misspellings as well
 pub fn lookup_alternative(
     lookup_name: &str,
-    data: &Everything,
     first: std::primitive::bool,
     last: std::primitive::bool,
 ) -> Option<&'static str> {
@@ -103,9 +101,6 @@ pub fn lookup_alternative(
         }
         if last {
             for (name, _, _) in GLOBAL_FUNCTIONS {
-                if data.item_exists(Item::GameConcept, name) {
-                    continue;
-                }
                 if name.to_lowercase() == lc {
                     return Some(name);
                 }

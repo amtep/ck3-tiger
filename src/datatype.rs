@@ -181,14 +181,7 @@ pub fn validate_datatypes(
             return;
         }
 
-        // The data_type logs include all game concepts as global functions.
-        // We don't want them to match here, because those concepts often
-        // overlap with passed-in scopes, which are not functions.
-        let lookup_gf = if data.item_exists(Item::GameConcept, code.name.as_str()) {
-            None
-        } else {
-            lookup_global_function(code.name.as_str())
-        };
+        let lookup_gf = lookup_global_function(code.name.as_str());
         let lookup_gp = lookup_global_promote(code.name.as_str());
         let lookup_f = lookup_function(code.name.as_str(), curtype);
         let lookup_p = lookup_promote(code.name.as_str(), curtype);
@@ -292,12 +285,9 @@ pub fn validate_datatypes(
             if code.name.as_str().chars().next().unwrap().is_uppercase() {
                 // TODO: If there is a Custom of the same name, suggest that
                 let msg = format!("unknown datafunction {}", &code.name);
-                if let Some(alternative) = lookup_alternative(
-                    code.name.as_str(),
-                    data,
-                    is_first,
-                    is_last && !expect_promote,
-                ) {
+                if let Some(alternative) =
+                    lookup_alternative(code.name.as_str(), is_first, is_last && !expect_promote)
+                {
                     let info = format!("did you mean {alternative}?");
                     warn_info(&code.name, ErrorKey::Datafunctions, &msg, &info);
                 } else {

@@ -134,14 +134,18 @@ RTYPE_OVERRIDE = {
 }
 
 game = sys.argv[1]
+gameconcepts = []
 fnames = sys.argv[2:]
 
 if game == "ck3":
     OUTDIR = "src/ck3/tables/include"
+    gameconcepts = open(sys.argv[2]).read().split()
+    fnames = sys.argv[3:]
 elif game == "vic3":
     OUTDIR = "src/vic3/tables/include"
 else:
     print("unknown game {}", game)
+    sys.exit(1)
 
 for fname in fnames:
     text = open(fname, encoding="windows-1252").read()
@@ -205,6 +209,10 @@ for fname in fnames:
         if "\nDefinition type: Global promote\n" in item:
             GLOBAL_PROMOTES.append('    ("%s", %s, %s),\n' % (name, args, rtype))
         elif "\nDefinition type: Global function\n" in item:
+            if game == "ck3" and name in gameconcepts:
+                continue
+            if game == "vic3" and name.startswith("concept_"):
+                continue
             GLOBAL_FUNCTIONS.append('    ("%s", %s, %s),\n' % (name, args, rtype))
         elif "\nDefinition type: Function\n" in item:
             if barename == "AccessSelf" or barename == "Self":
