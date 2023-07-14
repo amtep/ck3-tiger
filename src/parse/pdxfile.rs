@@ -437,6 +437,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                     if c.is_ascii_whitespace() {
                     } else if c == '"' {
                         token_start = loc.clone();
+                        token_start.column += 1;
                         state = State::QString;
                     } else if c == '#' {
                         state = State::Comment;
@@ -474,19 +475,17 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                 }
                 State::QString => {
                     if c == '"' {
-                        state = State::Id;
-                    } else if c == '\n' {
                         let token = Token::new(take(&mut current_id), token_start.clone());
-                        old_warn(token, ErrorKey::ParseError, "Quoted string not closed");
+                        parser.token(token);
+                        state = State::Neutral;
+                    } else if c == '\n' {
+                        old_warn(&loc, ErrorKey::ParseError, "Quoted string not closed");
                     } else {
                         current_id.push(c);
                     }
                 }
                 State::Id => {
-                    if c == '"' {
-                        // The quoted string actually becomes part of this id
-                        state = State::QString;
-                    } else if c == '$' {
+                    if c == '$' {
                         parser.current.contains_macro_parms = true;
                         current_id.push(c);
                     } else if c == '[' && current_id == "@" {
@@ -512,6 +511,10 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         } else if c == '}' {
                             parser.close_brace(loc.clone(), content, i);
                             state = State::Neutral;
+                        } else if c == '"' {
+                            state = State::QString;
+                            token_start = loc.clone();
+                            token_start.column += 1;
                         } else {
                             Parser::unknown_char(c, loc.clone());
                             state = State::Neutral;

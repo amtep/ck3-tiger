@@ -1052,8 +1052,8 @@ impl<'a> Validator<'a> {
                 },
                 BlockItem::Value(t) => {
                     if !self.accepted_tokens {
-                        let msg = "found loose value, expected only `key =`";
-                        old_warn(t, ErrorKey::Validation, msg);
+                        let msg = format!("found loose value {t}, expected only `key =`");
+                        old_warn(t, ErrorKey::Validation, &msg);
                         warned = true;
                     }
                 }
