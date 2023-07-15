@@ -118,8 +118,8 @@ fn merge_globals(globals: &mut HashMap<String, Global>, mut new_globals: HashMap
             if old.args.len() == v.args.len() && (v.rtype == "Unknown" || old.rtype == v.rtype) {
                 continue;
             }
-            globals.insert(k, v);
         }
+        globals.insert(k, v);
     }
 }
 

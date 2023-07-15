@@ -196,6 +196,7 @@
     ("RIGHT_CHARACTER", Args(&[]), Character),
     ("RIGHT_TITLE", Args(&[]), Title),
     ("ROOT", Args(&[]), Scope),
+    ("Root", Args(&[]), Scope),
     ("SCHEME", Args(&[]), Scheme),
     ("SCOPE", Args(&[]), TopScope),
     ("SECONDARY_ACTOR", Args(&[]), Character),
