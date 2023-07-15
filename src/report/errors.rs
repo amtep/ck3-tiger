@@ -87,14 +87,14 @@ impl Errors {
             FileKind::Mod => self.mod_root.join(loc.pathname()),
         };
         if let Some(contents) = self.filecache.get(&pathname) {
-            return contents.lines().nth(loc.line - 1).map(str::to_string);
+            return contents.lines().nth(loc.line as usize - 1).map(str::to_string);
         }
         let bytes = read(&pathname).ok()?;
         let contents = match UTF_8.decode(&bytes, DecoderTrap::Strict) {
             Ok(contents) => contents,
             Err(_) => WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).ok()?,
         };
-        let line = contents.lines().nth(loc.line - 1).map(str::to_string);
+        let line = contents.lines().nth(loc.line as usize - 1).map(str::to_string);
         self.filecache.insert(pathname, contents);
         line
     }

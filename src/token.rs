@@ -14,8 +14,8 @@ pub struct Loc {
     pub path: PathTableIndex,
     pub kind: FileKind,
     /// line 0 means the loc applies to the file as a whole.
-    pub line: usize,
-    pub column: usize,
+    pub line: u32,
+    pub column: u32,
     /// Used in macro expansions to point to the macro invocation
     pub link: Option<Arc<Loc>>,
 }
@@ -74,12 +74,12 @@ impl Token {
         let mut pos = 0;
         let mut vec = Vec::new();
         let mut loc = self.loc.clone();
-        let mut lines = 0;
+        let mut lines: u32 = 0;
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             if c == ch {
                 vec.push(Token::new(self.s[pos..i].to_string(), loc.clone()));
                 pos = i + 1;
-                loc.column = self.loc.column + cols + 1;
+                loc.column = self.loc.column + cols as u32 + 1;
                 loc.line = self.loc.line + lines;
             }
             if c == '\n' {
@@ -95,7 +95,7 @@ impl Token {
             if c == ch {
                 let token1 = Token::new(self.s[..i].to_string(), self.loc.clone());
                 let mut loc = self.loc.clone();
-                loc.column += cols + 1;
+                loc.column += cols as u32 + 1;
                 let token2 = Token::new(self.s[i + 1..].to_string(), loc);
                 return Some((token1, token2));
             }
@@ -110,7 +110,7 @@ impl Token {
                 let chlen = ch.len_utf8();
                 let token1 = Token::new(self.s[..i + chlen].to_string(), self.loc.clone());
                 let mut loc = self.loc.clone();
-                loc.column += cols + chlen;
+                loc.column += cols as u32 + chlen as u32;
                 let token2 = Token::new(self.s[i + chlen..].to_string(), loc);
                 return Some((token1, token2));
             }
@@ -138,7 +138,7 @@ impl Token {
         }
         if let Some((cols, i)) = real_start {
             let mut loc = self.loc.clone();
-            loc.column += cols;
+            loc.column += cols as u32;
             Token::new(self.s[i..real_end].to_string(), loc)
         } else {
             // all spaces
