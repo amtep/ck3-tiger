@@ -330,8 +330,12 @@ fn main() -> Result<()> {
     }
 
     for c in concepts {
-        global_functions.remove(c);
+        new_global_functions.remove(c);
     }
+
+    // Root seems to work as well as ROOT
+    new_global_promotes
+        .insert("Root".to_string(), Global::new("Root".to_string(), vec![], "Scope".to_string()));
 
     merge_globals(&mut global_promotes, new_global_promotes);
     merge_globals(&mut global_functions, new_global_functions);
