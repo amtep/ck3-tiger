@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::str::FromStr;
 
 use crate::block::validator::Validator;
@@ -248,56 +249,8 @@ pub fn validate_trigger_key_bv(
         return;
     }
 
-    let mut new_key = key;
-    let mut store;
-    if let Some((before, after)) = key.split_after('(') {
-        if let Some((arg, after)) = after.split_once(')') {
-            let arg = arg.trim();
-            for part in before.split('.') {
-                if part.as_str().ends_with('(') {
-                    #[cfg(feature = "ck3")]
-                    if part.is("vassal_contract_obligation_level_score(") {
-                        validate_target(&arg, data, sc, Scopes::VassalContract);
-                    } else if part.is("squared_distance(") {
-                        validate_target(&arg, data, sc, Scopes::Province);
-                    } else {
-                        let msg = "unexpected argument";
-                        err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
-                    }
-                    // TODO there's got to be a better way to do this
-                    #[cfg(feature = "vic3")]
-                    if part.is("ai_army_comparison(")
-                        || part.is("ai_gdp_comparison(")
-                        || part.is("ai_ideological_opinion(")
-                        || part.is("ai_navy_comparison(")
-                        || part.is("average_defense(")
-                        || part.is("average_offense(")
-                        || part.is("num_total_battalions(")
-                        || part.is("num_defending_battalions(")
-                        || part.is("tension(")
-                        || part.is("num_alliances_and_defensive_pacts_with_allies(")
-                        || part.is("num_alliances_and_defensive_pacts_with_rivals(")
-                        || part.is("num_mutual_trade_route_levels_with_country(")
-                        || part.is("relations(")
-                    {
-                        validate_target(&arg, data, sc, Scopes::Country);
-                    } else if part.is("num_enemy_units(") {
-                        validate_target(&arg, data, sc, Scopes::Character);
-                    } else {
-                        let msg = "unexpected argument";
-                        err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
-                    }
-                }
-            }
-            store = before;
-            if !after.as_str().is_empty() {
-                store.combine(&after, '.');
-            }
-            new_key = &store;
-        }
-    }
-
-    let part_vec = new_key.split('.');
+    let key = handle_argument(key, data, sc);
+    let part_vec = key.split('.');
     sc.open_builder();
     let mut found_trigger = None;
     for i in 0..part_vec.len() {
@@ -307,7 +260,7 @@ pub fn validate_trigger_key_bv(
 
         if let Some((prefix, mut arg)) = part.split_once(':') {
             if prefix.is("event_id") {
-                arg = new_key.split_once(':').unwrap().1;
+                arg = key.split_once(':').unwrap().1;
             }
             if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
                 if inscopes == Scopes::None && !first {
@@ -408,7 +361,7 @@ pub fn validate_trigger_key_bv(
             }
         } else {
             let msg = format!("unexpected comparator {cmp}");
-            old_warn(key, ErrorKey::Validation, &msg);
+            old_warn(key.into_owned(), ErrorKey::Validation, &msg);
             sc.close();
         }
         return;
@@ -822,50 +775,13 @@ pub fn validate_target_ok_this(
         }
         return;
     }
+    let token = handle_argument(token, data, sc);
     let part_vec = token.split('.');
     sc.open_builder();
     for i in 0..part_vec.len() {
         let first = i == 0;
         let last = i + 1 == part_vec.len();
-        let mut part = &part_vec[i];
-        let store_part;
-
-        if let Some((new_part, arg)) = part.split_after('(') {
-            if let Some((arg, _)) = arg.split_once(')') {
-                let arg = arg.trim();
-                #[cfg(feature = "ck3")]
-                if new_part.is("vassal_contract_obligation_level_score(") {
-                    validate_target(&arg, data, sc, Scopes::VassalContract);
-                } else if new_part.is("squared_distance(") {
-                    validate_target(&arg, data, sc, Scopes::Province);
-                } else {
-                    err(ErrorKey::Validation).weak().msg("unexpected argument").loc(arg).push();
-                }
-                #[cfg(feature = "vic3")]
-                if new_part.is("ai_army_comparison(")
-                    || new_part.is("ai_gdp_comparison(")
-                    || new_part.is("ai_ideological_opinion(")
-                    || new_part.is("ai_navy_comparison(")
-                    || new_part.is("average_defense(")
-                    || new_part.is("average_offense(")
-                    || new_part.is("num_total_battalions(")
-                    || new_part.is("num_defending_battalions(")
-                    || new_part.is("tension(")
-                    || new_part.is("num_alliances_and_defensive_pacts_with_allies(")
-                    || new_part.is("num_alliances_and_defensive_pacts_with_rivals(")
-                    || new_part.is("num_mutual_trade_route_levels_with_country(")
-                    || new_part.is("relations(")
-                {
-                    validate_target(&arg, data, sc, Scopes::Country);
-                } else if part.is("num_enemy_units(") {
-                    validate_target(&arg, data, sc, Scopes::Character);
-                } else {
-                    err(ErrorKey::Validation).weak().msg("unexpected argument").loc(arg).push();
-                }
-                store_part = new_part;
-                part = &store_part;
-            }
-        }
+        let part = &part_vec[i];
 
         if let Some((prefix, mut arg)) = part.split_once(':') {
             if prefix.is("event_id") {
@@ -967,6 +883,60 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
         let msg = "target `this` makes no sense here";
         old_warn(token, ErrorKey::UseOfThis, msg);
     }
+}
+
+/// This function is for keys that use the unusual syntax `"scope:province.squared_distance(scope:other)"`
+/// The function will extract the argument from between the parentheses and validate it.
+/// It will return the key without this argument, or return the key unchanged if there wasn't any.
+/// When deleting the argument, it will leave the '(' in place to signal that there was an argument here.
+fn handle_argument<'a>(key: &'a Token, data: &Everything, sc: &mut ScopeContext) -> Cow<'a, Token> {
+    if let Some((before, after)) = key.split_after('(') {
+        if let Some((arg, after)) = after.split_once(')') {
+            let arg = arg.trim();
+            for part in before.split('.') {
+                if part.as_str().ends_with('(') {
+                    #[cfg(feature = "ck3")]
+                    if part.is("vassal_contract_obligation_level_score(") {
+                        validate_target(&arg, data, sc, Scopes::VassalContract);
+                    } else if part.is("squared_distance(") {
+                        validate_target(&arg, data, sc, Scopes::Province);
+                    } else {
+                        let msg = "unexpected argument";
+                        err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
+                    }
+                    // TODO there's got to be a better way to do this
+                    #[cfg(feature = "vic3")]
+                    if part.is("ai_army_comparison(")
+                        || part.is("ai_gdp_comparison(")
+                        || part.is("ai_ideological_opinion(")
+                        || part.is("ai_navy_comparison(")
+                        || part.is("average_defense(")
+                        || part.is("average_offense(")
+                        || part.is("num_total_battalions(")
+                        || part.is("num_defending_battalions(")
+                        || part.is("tension(")
+                        || part.is("num_alliances_and_defensive_pacts_with_allies(")
+                        || part.is("num_alliances_and_defensive_pacts_with_rivals(")
+                        || part.is("num_mutual_trade_route_levels_with_country(")
+                        || part.is("relations(")
+                    {
+                        validate_target(&arg, data, sc, Scopes::Country);
+                    } else if part.is("num_enemy_units(") {
+                        validate_target(&arg, data, sc, Scopes::Character);
+                    } else {
+                        let msg = "unexpected argument";
+                        err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
+                    }
+                }
+            }
+            let mut new_key = before;
+            if !after.as_str().is_empty() {
+                new_key.combine(&after, '.');
+            }
+            return Cow::Owned(new_key);
+        }
+    }
+    Cow::Borrowed(key)
 }
 
 /// A version of Trigger that uses u64 to represent Scopes values, because
