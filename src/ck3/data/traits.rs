@@ -127,6 +127,8 @@ impl Trait {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new(Scopes::Character, &self.key);
 
+        let genetic = self.block.field_value_is("genetic", "yes");
+
         if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("trait_{}", self.key);
             data.localization.verify_exists_implied(&loca, &self.key);
@@ -218,10 +220,17 @@ impl Trait {
         vd.field_integer("level");
         vd.field_integer_range("inherit_chance", 0, 100);
         vd.field_integer_range("both_parent_has_trait_inherit_chance", 0, 100);
-        vd.field_numeric_range("birth", 0.0, 1.0);
-        vd.field_numeric_range("random_creation", 0.0, 1.0);
-        vd.field_bool("can_inherit");
+        vd.advice_field("can_inherit", "no longer used");
         vd.field_bool("inherit_from_real_father");
+        vd.field_choice("parent_inheritance_sex", &["male", "female", "all"]);
+        vd.field_choice("child_inheritance_sex", &["male", "female", "all"]);
+        if genetic {
+            vd.field_numeric_range("birth", 0.0, 1.0);
+            vd.field_numeric_range("random_creation", 0.0, 1.0);
+        } else {
+            vd.ban_field("birth", || "genetic = yes");
+            vd.ban_field("random_creation", || "genetic = yes");
+        }
         vd.replaced_field("blocks_from_claim_inheritance", "`claim_inheritance_blocker = all`");
         vd.replaced_field(
             "blocks_from_claim_inheritance_from_dynasty",
@@ -229,8 +238,6 @@ impl Trait {
         );
         vd.field_bool("incapacitating");
         vd.field_bool("disables_combat_leadership");
-        vd.field_choice("parent_inheritance_sex", &["male", "female", "all"]);
-        vd.field_choice("child_inheritance_sex", &["male", "female", "all"]);
         for token in vd.field_values("flag") {
             // These are optional
             let loca = format!("TRAIT_FLAG_DESC_{token}");
