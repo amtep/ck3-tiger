@@ -32,10 +32,7 @@ impl DbKind for Country {
             "country_type",
             &["recognized", "unrecognized", "colonial", "decentralized"],
         );
-        vd.field_choice(
-            "tier",
-            &["hegemony", "empire", "kingdom", "grand_principality", "principality", "city_state"],
-        );
+        vd.field_item("tier", Item::CountryTier);
         vd.field_list_items("cultures", Item::Culture);
         vd.field_item("religion", Item::Religion);
         vd.field_item("capital", Item::StateRegion);

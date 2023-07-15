@@ -131,7 +131,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         ]),
     ),
     (Country, "country_rank", CompareValue),
-    (Country, "country_tier", CompareValue),
+    (Country, "country_tier", ItemOrCompareValue(Item::CountryTier)),
     (Pop, "culture_accepted", Boolean),
     (Culture, "culture_is_discriminated_in", Scope(Country)),
     (

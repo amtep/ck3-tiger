@@ -844,6 +844,7 @@ impl Everything {
             Item::Asset => self.assets.asset_exists(key),
             Item::Attitude => ATTITUDES.contains(&key),
             Item::BlendShape => self.assets.blend_shape_exists(key),
+            Item::CountryTier => COUNTRY_TIERS.contains(&key),
             Item::Define => self.defines.exists(key),
             Item::Dlc => DLC.contains(&key),
             Item::DlcFeature => DLC_FEATURES.contains(&key),
@@ -1136,6 +1137,10 @@ const ATTITUDES: &[&str] = &[
     "rebellious",
     "wary",
 ];
+/// LAST UPDATED VIC3 VERSION 1.3.6
+#[cfg(feature = "vic3")]
+pub const COUNTRY_TIERS: &[&str] =
+    &["city_state", "principality", "grand_principality", "kingdom", "empire", "hegemony"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]

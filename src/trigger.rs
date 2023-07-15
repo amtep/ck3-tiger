@@ -499,6 +499,15 @@ fn match_trigger_bv(
                 }
             }
         }
+        #[cfg(feature = "vic3")]
+        Trigger::ItemOrCompareValue(i) => {
+            if let Some(token) = bv.expect_value() {
+                if !data.item_exists(*i, token.as_str()) {
+                    must_be_eq = false;
+                    validate_target(token, data, sc, Scopes::Value);
+                }
+            }
+        }
         Trigger::Scope(s) => {
             if let Some(token) = bv.get_value() {
                 validate_target(token, data, sc, *s);
@@ -964,6 +973,9 @@ pub enum RawTrigger {
     /// value is a number, or a token from `angry` to `loyal`
     #[cfg(feature = "vic3")]
     CompareApproval,
+    /// trigger is either = item or compared to another trigger
+    #[cfg(feature = "vic3")]
+    ItemOrCompareValue(Item),
     /// trigger is compared to a scope object
     Scope(u64),
     /// trigger is compared to a scope object which may be `this`
@@ -1019,6 +1031,8 @@ pub enum Trigger {
     CompareStance,
     #[cfg(feature = "vic3")]
     CompareApproval,
+    #[cfg(feature = "vic3")]
+    ItemOrCompareValue(Item),
     Scope(Scopes),
     ScopeOkThis(Scopes),
     Item(Item),
@@ -1060,6 +1074,8 @@ impl Trigger {
             RawTrigger::CompareStance => Trigger::CompareStance,
             #[cfg(feature = "vic3")]
             RawTrigger::CompareApproval => Trigger::CompareApproval,
+            #[cfg(feature = "vic3")]
+            RawTrigger::ItemOrCompareValue(i) => Trigger::ItemOrCompareValue(*i),
             RawTrigger::Scope(s) => Trigger::Scope(Scopes::from_bits_truncate(*s)),
             RawTrigger::ScopeOkThis(s) => Trigger::ScopeOkThis(Scopes::from_bits_truncate(*s)),
             RawTrigger::Item(i) => Trigger::Item(*i),
@@ -1114,7 +1130,10 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
             | Trigger::CompareValueOrBlock(_),
         )) => Some(s),
         #[cfg(feature = "vic3")]
-        Some((s, Trigger::CompareValue | Trigger::CompareDate)) => Some(s),
+        Some((
+            s,
+            Trigger::CompareValue | Trigger::CompareDate | Trigger::ItemOrCompareValue(_),
+        )) => Some(s),
         _ => std::option::Option::None,
     }
 }
