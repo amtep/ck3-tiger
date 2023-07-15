@@ -22,7 +22,13 @@ impl DbKind for Ethnicity {
         let mut vd = Validator::new(block, data);
         vd.field_bool("visible");
         if !block.field_value_is("visible", "no") {
+            #[cfg(feature = "ck3")]
             data.verify_exists(Item::Localization, key);
+            #[cfg(feature = "vic3")]
+            {
+                let loca = format!("ethnicity_{key}");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+            }
         }
         vd.field_item("template", Item::Ethnicity);
         vd.field_item("using", Item::Culture);
