@@ -954,7 +954,6 @@ pub enum Datatype {
     VassalConversionWindow,
     VassalStance,
     VassalStanceFilter,
-    Vec4f,
     ViewerEntity,
     ViewerEntityLodInfo,
     ViewerEntityState,

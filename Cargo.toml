@@ -3,6 +3,7 @@
 members = [
     "ck3-tiger",
     "vic3-tiger",
+    "utils",
     ".",
 ]
 
