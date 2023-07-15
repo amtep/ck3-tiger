@@ -137,7 +137,7 @@
     ("GetNumberAbove_int32", Args(&[DType(int32), DType(int32)]), int32),
     ("GetOldestDate", Args(&[DType(Unknown)]), CString),
     ("GetOpenLobbyTooltip", Args(&[]), CString),
-    ("GetPlayer", Args(&[]), Unknown),
+    ("GetPlayer", Args(&[]), Country),
     ("GetPlayersCount", Args(&[]), int32),
     ("GetPopType", Args(&[DType(Unknown)]), Unknown),
     ("GetPopTypesInLowerStrataDesc", Args(&[]), CString),

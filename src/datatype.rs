@@ -236,7 +236,7 @@ pub fn validate_datatypes(
         }
 
         #[cfg(feature = "vic3")]
-        if data.item_exists(Item::Country, code.name.as_str()) {
+        if !found && data.item_exists(Item::Country, code.name.as_str()) {
             found = true;
             args = Args(&[]);
             rtype = Datatype::Country;
