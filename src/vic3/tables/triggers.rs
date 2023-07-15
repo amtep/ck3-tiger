@@ -167,7 +167,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (None, "error_check", Special),
     (DiplomaticPlay, "escalation", CompareValue),
     (None, "exists", Special),
-    (Country, "expanding_institution", UncheckedValue),
+    (Country, "expanding_institution", ScopeOrItem(Institution, Item::Institution)),
     (Character, "experience_level", CompareValue),
     (State, "free_arable_land", CompareValue),
     (
@@ -204,7 +204,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         "has_attitude",
         Block(&[("who", Scope(Country)), ("attitude", Item(Item::Attitude))]),
     ),
-    (BattleSide, "has_battle_condition", UncheckedValue),
+    (BattleSide, "has_battle_condition", Item(Item::BattleCondition)),
     (Country | Market | State | StateRegion, "has_building", Item(Item::BuildingType)),
     (Country, "has_claim", Scope(State | StateRegion)),
     (State, "has_claim_by", Scope(Country)),
