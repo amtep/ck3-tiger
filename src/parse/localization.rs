@@ -4,7 +4,7 @@ use std::str::Chars;
 use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
-use crate::report::{error, old_warn, ErrorKey};
+use crate::report::{err, error, old_warn, ErrorKey};
 use crate::token::{Loc, Token};
 
 fn is_key_char(c: char) -> bool {
@@ -471,6 +471,10 @@ impl<'a> ValueParser<'a> {
                         ),
                         '(' => parens += 1,
                         ')' => parens -= 1,
+                        '\u{feff}' => {
+                            let msg = "found unicode BOM in middle of file";
+                            err(ErrorKey::ParseError).strong().msg(msg).loc(&loc).push();
+                        }
                         _ => (),
                     }
                     text.push(c);
