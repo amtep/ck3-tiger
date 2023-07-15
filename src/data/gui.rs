@@ -12,7 +12,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
-use crate::report::{advice, error, error_info, old_warn, warn_info, ErrorKey};
+use crate::report::{error, error_info, old_warn, warn_info, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -323,16 +323,9 @@ fn validate_gui(block: &Block, data: &Everything) {
             Expecting::Field => {
                 if let Some(field) = item.get_field() {
                     if field.key().is("block") {
-                        let msg = format!("`block` should not be followed by an `{}`", field.cmp());
-                        advice(field, ErrorKey::ParseError, &msg);
                         field.expect_assignment();
                         expecting = Expecting::SubstBlockBody;
                     } else if field.key().is("blockoverride") {
-                        let msg = format!(
-                            "`blockoverride` should not be followed by an `{}`",
-                            field.cmp()
-                        );
-                        advice(field, ErrorKey::ParseError, &msg);
                         field.expect_assignment();
                         expecting = Expecting::BlockOverrideBody;
                     } else {
