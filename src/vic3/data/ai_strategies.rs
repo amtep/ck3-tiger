@@ -37,22 +37,22 @@ impl DbKind for AiStrategy {
         vd.field_item("max_tax_level", Item::Level);
         vd.field_item("min_tax_level", Item::Level);
 
-        // TODO scope type
-        vd.field_script_value_rooted("undesirable_infamy_level", Scopes::None);
-        // TODO scope type
-        vd.field_script_value_rooted("unacceptable_infamy_level", Scopes::None);
-        // TODO scope type
-        vd.field_script_value_rooted("ideological_opinion_effect_mult", Scopes::None);
-        // TODO scope type
-        vd.field_script_value_rooted("revolution_aversion", Scopes::None);
-        // TODO scope type
-        vd.field_script_value_rooted("min_law_chance_to_pass", Scopes::None);
-        // TODO scope type
-        vd.field_script_value_rooted("max_progressiveness", Scopes::None);
-        // TODO scope type
-        vd.field_script_value_rooted("max_regressiveness", Scopes::None);
-        // TODO scope type
-        vd.field_script_value_rooted("diplomatic_play_neutrality", Scopes::None);
+        // TODO verify scope type
+        vd.field_script_value_rooted("undesirable_infamy_level", Scopes::Country);
+        // TODO verify scope type
+        vd.field_script_value_rooted("unacceptable_infamy_level", Scopes::Country);
+        // TODO verify scope type
+        vd.field_script_value_rooted("ideological_opinion_effect_mult", Scopes::Country);
+        // TODO verify scope type
+        vd.field_script_value_rooted("revolution_aversion", Scopes::Country);
+        // TODO verify scope type
+        vd.field_script_value_rooted("min_law_chance_to_pass", Scopes::Country);
+        // TODO verify scope type
+        vd.field_script_value_rooted("max_progressiveness", Scopes::Country);
+        // TODO verify scope type
+        vd.field_script_value_rooted("max_regressiveness", Scopes::Country);
+        // TODO verify scope type
+        vd.field_script_value_rooted("diplomatic_play_neutrality", Scopes::Country);
         vd.field_script_value_rooted("diplomatic_play_boldness", Scopes::Country);
         vd.field_validated_key("wargoal_maneuvers_fraction", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
