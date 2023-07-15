@@ -520,7 +520,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
                 if let Some(other) = hash.get(loca.key.as_str()) {
                     // other.key and loca.key are in the other order than usual here,
                     // because in loca the older definition overrides the later one.
-                    if loca.key.loc.kind == entry.kind() && other.orig != loca.orig {
+                    if other.key.loc.kind == entry.kind() && other.orig != loca.orig {
                         dup_error(&other.key, &loca.key, "localization");
                         continue;
                     }
