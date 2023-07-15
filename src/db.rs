@@ -9,7 +9,7 @@ use strum::IntoEnumIterator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
-use crate::helpers::{dup_advice, dup_error, exact_dup_error};
+use crate::helpers::{dup_error, exact_dup_advice, exact_dup_error};
 use crate::item::Item;
 use crate::token::Token;
 
@@ -59,7 +59,7 @@ impl Db {
         if let Some(other) = self.database[item as usize].get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
                 if other.block.equivalent(&block) {
-                    dup_advice(&key, &other.key, &item.to_string());
+                    exact_dup_advice(&key, &other.key, &item.to_string());
                 } else {
                     dup_error(&key, &other.key, &item.to_string());
                 }

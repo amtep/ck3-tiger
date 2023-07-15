@@ -1,9 +1,11 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
-use crate::ck3::data::coa::validate_coa_layout;
+#[cfg(feature = "ck3")]
+use crate::data::coa::validate_coa_layout;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
+#[cfg(feature = "ck3")]
 use crate::report::{old_warn, ErrorKey};
 use crate::token::Token;
 
@@ -33,8 +35,10 @@ impl DbKind for CoaDesignerColoredEmblem {
 }
 
 #[derive(Clone, Debug)]
+#[cfg(feature = "ck3")]
 pub struct CoaDesignerColorPalette {}
 
+#[cfg(feature = "ck3")]
 impl CoaDesignerColorPalette {
     pub fn add(db: &mut Db, key: Token, mut block: Block) {
         if key.is("coa_designer_background_colors") {
@@ -47,6 +51,7 @@ impl CoaDesignerColorPalette {
     }
 }
 
+#[cfg(feature = "ck3")]
 impl DbKind for CoaDesignerColorPalette {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut _vd = Validator::new(block, data);
@@ -56,14 +61,17 @@ impl DbKind for CoaDesignerColorPalette {
 }
 
 #[derive(Clone, Debug)]
+#[cfg(feature = "ck3")]
 pub struct CoaDesignerEmblemLayout {}
 
+#[cfg(feature = "ck3")]
 impl CoaDesignerEmblemLayout {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::CoaDesignerEmblemLayout, key, block, Box::new(Self {}));
     }
 }
 
+#[cfg(feature = "ck3")]
 impl DbKind for CoaDesignerEmblemLayout {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         validate_coa_layout(block, data);

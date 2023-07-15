@@ -8,7 +8,7 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_advice, dup_error};
+use crate::helpers::{dup_error, exact_dup_advice};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::report::{error, old_warn, ErrorKey};
@@ -33,7 +33,7 @@ impl Coas {
                         if other.key.loc.kind >= key.loc.kind {
                             if let BV::Block(otherblock) = &other.bv {
                                 if otherblock.equivalent(block) {
-                                    dup_advice(key, &other.key, "coa template");
+                                    exact_dup_advice(key, &other.key, "coa template");
                                 } else {
                                     dup_error(key, &other.key, "coa template");
                                 }
@@ -50,7 +50,7 @@ impl Coas {
             if let Some(other) = self.coas.get(key.as_str()) {
                 if other.key.loc.kind >= key.loc.kind {
                     if other.bv.equivalent(bv) {
-                        dup_advice(key, &other.key, "coat of arms");
+                        exact_dup_advice(key, &other.key, "coat of arms");
                     } else {
                         dup_error(key, &other.key, "coat of arms");
                     }
@@ -318,15 +318,11 @@ impl DbKind for CoaPatternList {
     }
 }
 
-fn validate_coa_list<F>(key: &Token, block: &Block, data: &Everything, f: F)
+fn validate_coa_list<F>(_key: &Token, block: &Block, data: &Everything, f: F)
 where
     F: Fn(&BV, &Everything),
 {
     let mut vd = Validator::new(block, data);
-    let mut sc = ScopeContext::new(Scopes::Character, key); // TODO: may be unset
-    sc.define_name("faith", Scopes::Faith, key);
-    sc.define_name("culture", Scopes::Culture, key);
-    sc.define_name("title", Scopes::LandedTitle, key); // TODO: may be unset
 
     // TODO: warn about duplicate values in the lists?
 
@@ -334,8 +330,23 @@ where
         f(bv, data);
     }
 
-    vd.field_validated_blocks("special_selection", |block, data| {
+    vd.field_validated_key_blocks("special_selection", |key, block, data| {
         let mut vd = Validator::new(block, data);
+        let mut sc;
+        #[cfg(feature = "ck3")]
+        {
+            sc = ScopeContext::new(Scopes::Character, key); // TODO: may be unset
+            sc.define_name("faith", Scopes::Faith, key);
+            sc.define_name("culture", Scopes::Culture, key);
+            sc.define_name("title", Scopes::LandedTitle, key); // TODO: may be unset
+        }
+        #[cfg(feature = "vic3")]
+        {
+            // TODO: should this be Country or CountryDefinition? Both give errors. Verify.
+            sc = ScopeContext::new(Scopes::Country | Scopes::CountryDefinition, key);
+            sc.define_name("target", Scopes::Country | Scopes::CountryDefinition, key);
+            // ?
+        }
         vd.field_validated_blocks("trigger", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
@@ -355,15 +366,18 @@ where
     });
 }
 
+#[cfg(feature = "ck3")]
 #[derive(Clone, Debug)]
 pub struct CoaDynamicDefinition {}
 
+#[cfg(feature = "ck3")]
 impl CoaDynamicDefinition {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::CoaDynamicDefinition, key, block, Box::new(Self {}));
     }
 }
 
+#[cfg(feature = "ck3")]
 impl DbKind for CoaDynamicDefinition {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);

@@ -314,7 +314,6 @@ impl<'a> Validator<'a> {
         })
     }
 
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_integer_range(&mut self, name: &str, low: i64, high: i64) {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -335,7 +334,6 @@ impl<'a> Validator<'a> {
         })
     }
 
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_precise_numeric(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -826,7 +824,6 @@ impl<'a> Validator<'a> {
         });
     }
 
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn req_tokens_precise_numbers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
@@ -841,7 +838,6 @@ impl<'a> Validator<'a> {
         }
     }
 
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_list_precise_numeric_exactly(&mut self, name: &str, expect: usize) {
         self.field_validated_block(name, |block, data| {
             let mut vd = Validator::new(block, data);
@@ -913,7 +909,6 @@ impl<'a> Validator<'a> {
         vec
     }
 
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn integer_keys(&mut self) -> Vec<(&Token, &BV)> {
         let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {

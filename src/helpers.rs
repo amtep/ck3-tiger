@@ -22,9 +22,9 @@ pub fn exact_dup_error(key: &Token, other: &Token, id: &str) {
 }
 
 /// Warns about a redefinition of a database item, but only at "advice" level
-pub fn dup_advice(key: &Token, other: &Token, id: &str) {
+pub fn exact_dup_advice(key: &Token, other: &Token, id: &str) {
     tips(ErrorKey::DuplicateItem)
-        .msg(format!("{id} is redefined by another {id}, which may cause problems if one of them is later changed"))
+        .msg(format!("{id} is redefined by an identical {id}, which may cause problems if one of them is later changed"))
         .loc(other)
         .loc(key, format!("the other {id} is here"))
         .push();

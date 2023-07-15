@@ -24,11 +24,6 @@ use crate::ck3::data::{
     casusbelli::{CasusBelli, CasusBelliGroup},
     character_templates::CharacterTemplate,
     characters::Characters,
-    coa::{CoaDynamicDefinition, CoaTemplateList, Coas},
-    coadesigner::{
-        CoaDesignerColorPalette, CoaDesignerColoredEmblem, CoaDesignerEmblemLayout,
-        CoaDesignerPattern,
-    },
     combat::CombatPhaseEvent,
     combat_effects::CombatEffect,
     council::{CouncilPosition, CouncilTask},
@@ -111,9 +106,15 @@ use crate::ck3::data::{
 };
 use crate::config_load::{check_for_legacy_ignore, load_filter};
 use crate::context::ScopeContext;
+#[cfg(feature = "ck3")]
+use crate::data::coa::CoaDynamicDefinition;
+#[cfg(feature = "ck3")]
+use crate::data::coadesigner::{CoaDesignerColorPalette, CoaDesignerEmblemLayout};
 use crate::data::{
     accessory::{Accessory, AccessoryVariation},
     assets::Assets,
+    coa::{CoaTemplateList, Coas},
+    coadesigner::{CoaDesignerColoredEmblem, CoaDesignerPattern},
     colors::NamedColor,
     customloca::CustomLocalization,
     defines::Defines,
@@ -252,7 +253,6 @@ pub struct Everything {
     #[cfg(feature = "ck3")]
     pub music: Musics,
 
-    #[cfg(feature = "ck3")]
     pub coas: Coas,
 }
 
@@ -320,7 +320,6 @@ impl Everything {
             sounds: Sounds::default(),
             #[cfg(feature = "ck3")]
             music: Musics::default(),
-            #[cfg(feature = "ck3")]
             coas: Coas::default(),
         })
     }
@@ -515,6 +514,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.assets));
             s.spawn(|_| self.fileset.handle(&mut self.gui));
             s.spawn(|_| self.fileset.handle(&mut self.on_actions));
+            s.spawn(|_| self.fileset.handle(&mut self.coas));
 
             // These are items that are different between vic3 and ck3 but share the same name
             s.spawn(|_| self.fileset.handle(&mut self.events));
@@ -523,6 +523,9 @@ impl Everything {
 
         self.load_pdx_items(Item::Accessory, Accessory::add);
         self.load_pdx_items(Item::AccessoryVariation, AccessoryVariation::add);
+        self.load_pdx_items(Item::CoaDesignerColoredEmblem, CoaDesignerColoredEmblem::add);
+        self.load_pdx_items(Item::CoaDesignerPattern, CoaDesignerPattern::add);
+        self.load_pdx_items_optional_bom(Item::CoaTemplateList, CoaTemplateList::add);
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
         self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
         self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
@@ -615,9 +618,6 @@ impl Everything {
         self.load_pdx_items(Item::PoolSelector, PoolSelector::add);
         self.load_pdx_items(Item::CharacterBackground, CharacterBackground::add);
         self.load_pdx_items(Item::HolySite, HolySite::add);
-        self.fileset.handle(&mut self.coas);
-        self.load_pdx_items_optional_bom(Item::CoaTemplateList, CoaTemplateList::add);
-        self.load_pdx_items(Item::CoaDynamicDefinition, CoaDynamicDefinition::add);
         self.load_pdx_items(Item::Environment, Environment::add);
         self.load_pdx_items(Item::Struggle, Struggle::add);
         self.load_pdx_items(Item::Catalyst, Catalyst::add);
@@ -650,10 +650,8 @@ impl Everything {
         self.load_pdx_items(Item::DiarchyType, DiarchyType::add);
         self.load_pdx_items(Item::DiarchyMandate, DiarchyMandate::add);
         self.load_pdx_items(Item::Inspiration, Inspiration::add);
-        self.load_pdx_items(Item::CoaDesignerColoredEmblem, CoaDesignerColoredEmblem::add);
         self.load_pdx_items(Item::CoaDesignerColorPalette, CoaDesignerColorPalette::add);
         self.load_pdx_items(Item::CoaDesignerEmblemLayout, CoaDesignerEmblemLayout::add);
-        self.load_pdx_items(Item::CoaDesignerPattern, CoaDesignerPattern::add);
         self.load_pdx_items(Item::PointOfInterest, PointOfInterest::add);
         self.load_pdx_items(Item::DynastyLegacy, DynastyLegacy::add);
         self.load_pdx_items(Item::DynastyPerk, DynastyPerk::add);
@@ -667,6 +665,7 @@ impl Everything {
         self.load_pdx_items(Item::ScriptedCost, ScriptedCost::add);
         self.load_pdx_items(Item::PlayableDifficultyInfo, PlayableDifficultyInfo::add);
         self.load_pdx_items(Item::Message, Message::add);
+        self.load_pdx_items(Item::CoaDynamicDefinition, CoaDynamicDefinition::add);
         Building::finalize(&mut self.database);
     }
 
@@ -844,6 +843,8 @@ impl Everything {
             Item::Asset => self.assets.asset_exists(key),
             Item::Attitude => ATTITUDES.contains(&key),
             Item::BlendShape => self.assets.blend_shape_exists(key),
+            Item::Coa => self.coas.exists(key),
+            Item::CoaTemplate => self.coas.template_exists(key),
             Item::CountryTier => COUNTRY_TIERS.contains(&key),
             Item::Define => self.defines.exists(key),
             Item::Dlc => DLC.contains(&key),
@@ -872,6 +873,7 @@ impl Everything {
             }
             Item::TextureFile => self.assets.texture_exists(key),
             Item::Wargoal => WARGOALS.contains(&key),
+            Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }

@@ -111,7 +111,7 @@ impl DbKind for AiStrategy {
 
 fn validate_institution_scores(key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    let mut sc = ScopeContext::new(Scopes::None, key); // TODO scope type
+    let mut sc = ScopeContext::new(Scopes::Country, key); // TODO verify scope type
     for (key, bv) in vd.unknown_fields() {
         data.verify_exists(Item::Institution, key);
         validate_scriptvalue(bv, data, &mut sc);

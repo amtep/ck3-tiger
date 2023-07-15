@@ -1,5 +1,7 @@
 pub mod accessory;
 pub mod assets;
+pub mod coa;
+pub mod coadesigner;
 pub mod colors;
 pub mod customloca;
 pub mod defines;
