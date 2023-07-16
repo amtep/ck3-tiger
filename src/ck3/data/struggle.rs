@@ -64,7 +64,7 @@ impl DbKind for Struggle {
             let mut has_one = false;
             let mut has_ending = false;
             let mut vd = Validator::new(block, data);
-            for (key, block) in vd.unknown_block_fields() {
+            vd.unknown_block_fields(|key, block| {
                 data.verify_exists(Item::Localization, key);
                 let loca = format!("{key}_desc");
                 data.verify_exists_implied(Item::Localization, &loca, key);
@@ -75,7 +75,7 @@ impl DbKind for Struggle {
                 if let Some(vec) = block.get_field_list("ending_decisions") {
                     has_ending |= !vec.is_empty();
                 }
-            }
+            });
             if !has_one {
                 old_warn(block, ErrorKey::Validation, "must have at least one phase");
             }
@@ -112,13 +112,13 @@ fn validate_phase(block: &Block, data: &Everything) {
     vd.field_validated_block("future_phases", |block, data| {
         let mut vd = Validator::new(block, data);
         let mut has_one = false;
-        for (key, block) in vd.unknown_block_fields() {
+        vd.unknown_block_fields(|key, block| {
             let mut vd = Validator::new(block, data);
             has_one = true;
             data.verify_exists(Item::StrugglePhase, key); // TODO: check that it belongs to this struggle
             vd.field_bool("default");
             vd.field_validated_block("catalysts", validate_catalyst_list);
-        }
+        });
         if !has_one {
             old_warn(block, ErrorKey::Validation, "must have at least one future phase");
         }
@@ -133,13 +133,13 @@ fn validate_phase(block: &Block, data: &Everything) {
 
 fn validate_catalyst_list(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, bv) in vd.unknown_fields() {
+    vd.unknown_fields(|key, bv| {
         if bv.expect_value().is_some() {
             data.verify_exists(Item::Catalyst, key);
             let mut sc = ScopeContext::new(Scopes::None, key);
             validate_scriptvalue(bv, data, &mut sc);
         }
-    }
+    });
 }
 
 fn validate_phase_effects(block: &Block, data: &Everything) {
@@ -180,7 +180,7 @@ fn validate_phase_effects(block: &Block, data: &Everything) {
 
 fn validate_struggle_parameters(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, value) in vd.unknown_value_fields() {
+    vd.unknown_value_fields(|key, value| {
         if !value.is("yes") {
             let msg = format!("expected `{key} = yes`");
             old_warn(value, ErrorKey::Validation, &msg);
@@ -188,7 +188,7 @@ fn validate_struggle_parameters(block: &Block, data: &Everything) {
 
         let loca = format!("struggle_parameter_{key}");
         data.verify_exists_implied(Item::Localization, &loca, key);
-    }
+    });
 }
 
 #[derive(Clone, Debug)]

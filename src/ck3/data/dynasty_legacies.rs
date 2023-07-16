@@ -87,10 +87,10 @@ impl DbKind for DynastyPerk {
         vd.field_item("trait", Item::Trait);
         vd.field_validated_block("traits", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, value) in vd.unknown_value_fields() {
+            vd.unknown_value_fields(|key, value| {
                 data.verify_exists(Item::Trait, key);
                 value.expect_integer();
-            }
+            });
         });
 
         vd.field_script_value_no_breakdown("ai_chance", &mut sc);

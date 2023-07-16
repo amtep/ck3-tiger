@@ -141,22 +141,22 @@ pub fn validate_trigger_internal(
 
     validate_ifelse_sequence(block, "trigger_if", "trigger_else_if", "trigger_else");
 
-    for (key, cmp, bv) in vd.unknown_fields_any_cmp() {
+    vd.unknown_fields_any_cmp(|key, cmp, bv| {
         if key.is("add") || key.is("factor") || key.is("value") {
             validate_scriptvalue(bv, data, sc);
-            continue;
+            return;
         }
 
         if key.is("desc") || key.is("DESC") {
             validate_desc(bv, data, sc);
-            continue;
+            return;
         }
 
         if key.is("object") {
             if let Some(token) = bv.expect_value() {
                 validate_target_ok_this(token, data, sc, Scopes::non_primitive());
             }
-            continue;
+            return;
         }
 
         if let Some((it_type, it_name)) = key.split_once('_') {
@@ -169,7 +169,7 @@ pub fn validate_trigger_internal(
                     if !it_type.is("any") {
                         let msg = format!("cannot use `{it_type}_` list in a trigger");
                         error(key, ErrorKey::Validation, &msg);
-                        continue;
+                        return;
                     }
                     sc.expect(inscopes, key);
                     if let Some(b) = bv.get_block() {
@@ -188,13 +188,13 @@ pub fn validate_trigger_internal(
                     } else {
                         error(bv, ErrorKey::Validation, "expected block, found value");
                     }
-                    continue;
+                    return;
                 }
             }
         }
 
         validate_trigger_key_bv(key, cmp, bv, data, sc, tooltipped, negated);
-    }
+    });
 }
 
 pub fn validate_trigger_key_bv(
@@ -727,7 +727,7 @@ fn match_trigger_bv(
                     vd.req_field("trigger");
                     if let Some(target) = vd.field_value("trigger") {
                         let target = target.clone();
-                        for (key, block) in vd.unknown_block_fields() {
+                        vd.unknown_block_fields(|key, block| {
                             if !key.is("fallback") {
                                 let synthetic_bv = BV::Value(key.clone());
                                 validate_trigger_key_bv(
@@ -741,7 +741,7 @@ fn match_trigger_bv(
                                 );
                             }
                             validate_trigger(block, data, sc, tooltipped);
-                        }
+                        });
                     }
                 }
             } else if name.is("add_to_temporary_list") {

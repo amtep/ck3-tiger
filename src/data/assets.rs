@@ -286,7 +286,7 @@ impl Asset {
                     BV::Block(block) => {
                         let mut vd = Validator::new(block, data);
                         // TODO
-                        vd.unknown_value_fields();
+                        vd.unknown_value_fields(|_, _| ());
                     }
                 }
             });
@@ -308,10 +308,10 @@ impl Asset {
         });
         vd.field_validated_blocks("attach", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (_key, token) in vd.unknown_value_fields() {
+            vd.unknown_value_fields(|_, token| {
                 // TODO: what are the keys here?
                 data.verify_exists(Item::Asset, token);
-            }
+            });
         });
     }
 
@@ -366,10 +366,10 @@ fn validate_event(block: &Block, data: &Everything) {
     vd.field_item("entity", Item::Entity);
     vd.field_validated_blocks("soundparameter", |block, data| {
         let mut vd = Validator::new(block, data);
-        for (_key, token) in vd.unknown_value_fields() {
+        vd.unknown_value_fields(|_, token| {
             // TODO: what are the keys here?
             token.expect_number();
-        }
+        });
     });
     vd.field_validated_blocks("sound", |block, data| {
         let mut vd = Validator::new(block, data);

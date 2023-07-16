@@ -147,7 +147,7 @@ impl DoctrineGroup {
 
         // Any remaining definitions are doctrines, so accept them all.
         // They are validated separately.
-        vd.unknown_block_fields();
+        vd.unknown_block_fields(|_, _| ());
     }
 }
 
@@ -227,10 +227,10 @@ impl Doctrine {
 fn validate_parameters(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
 
-    for (_, v) in vd.unknown_value_fields() {
+    vd.unknown_value_fields(|_, v| {
         if v.is("yes") || v.is("no") {
-            continue;
+            return;
         }
         v.expect_number();
-    }
+    });
 }

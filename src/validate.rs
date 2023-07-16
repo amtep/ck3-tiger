@@ -587,16 +587,16 @@ pub fn validate_virtues_sins(block: &Block, data: &Everything) {
     for token in vd.values() {
         data.verify_exists(Item::Trait, token);
     }
-    for (key, value) in vd.unknown_value_fields() {
+    vd.unknown_value_fields(|key, value| {
         data.verify_exists(Item::Trait, key);
         value.expect_number();
-    }
-    for (key, block) in vd.unknown_block_fields() {
+    });
+    vd.unknown_block_fields(|key, block| {
         data.verify_exists(Item::Trait, key);
         let mut vd = Validator::new(block, data);
         vd.field_numeric("scale");
         vd.field_numeric("weight");
-    }
+    });
 }
 
 pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -792,14 +792,14 @@ pub fn validate_scripted_modifier_calls(
     data: &Everything,
     sc: &mut ScopeContext,
 ) {
-    for (key, bv) in vd.unknown_fields() {
+    vd.unknown_fields(|key, bv| {
         if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
             validate_scripted_modifier_call(key, bv, modifier, data, sc);
         } else {
             let msg = format!("unknown field `{key}`");
             old_warn(key, ErrorKey::UnknownField, &msg);
         }
-    }
+    });
 }
 
 pub fn validate_ai_chance(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
@@ -880,40 +880,40 @@ pub fn validate_scope_chain(
 pub fn validate_random_traits_list(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_script_value("count", sc);
-    for (key, block) in vd.unknown_block_fields() {
+    vd.unknown_block_fields(|key, block| {
         data.verify_exists(Item::Trait, key);
         let mut vd = Validator::new(block, data);
         vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
         vd.field_validated_block("trigger", |block, data| {
             validate_trigger(block, data, sc, Tooltipped::No);
         });
-    }
+    });
 }
 
 #[cfg(feature = "ck3")]
 pub fn validate_random_culture(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    for (key, block) in vd.unknown_block_fields() {
+    vd.unknown_block_fields(|key, block| {
         validate_target(key, data, sc, Scopes::Culture);
         let mut vd = Validator::new(block, data);
         vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
         vd.field_validated_block("trigger", |block, data| {
             validate_trigger(block, data, sc, Tooltipped::No);
         });
-    }
+    });
 }
 
 #[cfg(feature = "ck3")]
 pub fn validate_random_faith(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    for (key, block) in vd.unknown_block_fields() {
+    vd.unknown_block_fields(|key, block| {
         validate_target(key, data, sc, Scopes::Faith);
         let mut vd = Validator::new(block, data);
         vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
         vd.field_validated_block("trigger", |block, data| {
             validate_trigger(block, data, sc, Tooltipped::No);
         });
-    }
+    });
 }
 
 #[cfg(feature = "ck3")]
@@ -988,11 +988,11 @@ pub fn validate_numeric_range(
 #[cfg(feature = "ck3")]
 pub fn validate_portrait_modifier_overrides(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, value) in vd.unknown_value_fields() {
+    vd.unknown_value_fields(|key, value| {
         data.verify_exists(Item::PortraitModifierGroup, key);
         if !data.item_has_property(Item::PortraitModifierGroup, key.as_str(), value.as_str()) {
             let msg = format!("portrait modifier group {key} does not have the modifier {value}");
             error(value, ErrorKey::MissingItem, &msg);
         }
-    }
+    });
 }

@@ -32,7 +32,7 @@ impl DbKind for Ethnicity {
         }
         vd.field_item("template", Item::Ethnicity);
         vd.field_item("using", Item::Culture);
-        for (key, block) in vd.unknown_block_fields() {
+        vd.unknown_block_fields(|key, block| {
             data.verify_exists(Item::GeneCategory, key);
             let mut vd = Validator::new(block, data);
             for (_, block) in vd.integer_blocks() {
@@ -57,6 +57,6 @@ impl DbKind for Ethnicity {
                     data.validate_use(Item::GeneCategory, key, block);
                 }
             }
-        }
+        });
     }
 }

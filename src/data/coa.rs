@@ -326,9 +326,7 @@ where
 
     // TODO: warn about duplicate values in the lists?
 
-    for (_, bv) in vd.integer_keys() {
-        f(bv, data);
-    }
+    vd.integer_keys(|_, bv| f(bv, data));
 
     vd.field_validated_key_blocks("special_selection", |key, block, data| {
         let mut vd = Validator::new(block, data);
@@ -350,18 +348,14 @@ where
         vd.field_validated_blocks("trigger", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
-        for (_, bv) in vd.integer_keys() {
-            f(bv, data);
-        }
+        vd.integer_keys(|_, bv| f(bv, data));
         // special_selection can be nested. TODO: how far?
         vd.field_validated_blocks("special_selection", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_blocks("trigger", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
-            for (_, bv) in vd.integer_keys() {
-                f(bv, data);
-            }
+            vd.integer_keys(|_, bv| f(bv, data));
         });
     });
 }

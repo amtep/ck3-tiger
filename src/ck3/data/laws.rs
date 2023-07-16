@@ -50,7 +50,7 @@ impl DbKind for LawGroup {
 
         vd.field_values("flag");
         // The laws. They are validated in the Law class.
-        vd.unknown_block_fields();
+        vd.unknown_block_fields(|_, _| ());
     }
 }
 

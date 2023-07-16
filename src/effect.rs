@@ -80,7 +80,7 @@ pub fn validate_effect_internal<'a>(
     validate_ifelse_sequence(block, "if", "else_if", "else");
 
     vd.allow_qeq(true);
-    'outer: for (key, cmp, bv) in vd.unknown_fields_cmp() {
+    vd.unknown_fields_cmp(|key, cmp, bv| {
         if let Some(effect) = data.get_effect(key) {
             match bv {
                 BV::Value(token) => {
@@ -108,7 +108,7 @@ pub fn validate_effect_internal<'a>(
                             if let Some(token) = vd.field_value(parm) {
                                 vec.push(token.clone());
                             } else {
-                                continue 'outer;
+                                return;
                             }
                         }
                         let args = parms.into_iter().zip(vec.into_iter()).collect();
@@ -116,17 +116,17 @@ pub fn validate_effect_internal<'a>(
                     }
                 }
             }
-            continue;
+            return;
         }
 
         if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
             if caller != "random" && caller != "random_list" && caller != "duel" {
                 let msg = "cannot use scripted modifier here";
                 error(key, ErrorKey::Validation, msg);
-                continue;
+                return;
             }
             validate_scripted_modifier_call(key, bv, modifier, data, sc);
-            continue;
+            return;
         }
 
         if let Some((inscopes, effect)) = scope_effect(key, data) {
@@ -340,7 +340,7 @@ pub fn validate_effect_internal<'a>(
                 }
                 Effect::Unchecked => (),
             }
-            continue;
+            return;
         }
 
         if let Some((it_type, it_name)) = key.split_once('_') {
@@ -353,7 +353,7 @@ pub fn validate_effect_internal<'a>(
                     if it_type.is("any") {
                         let msg = "cannot use `any_` lists in an effect";
                         error(key, ErrorKey::Validation, msg);
-                        continue;
+                        return;
                     }
                     sc.expect(inscopes, key);
                     let ltype = ListType::try_from(it_type.as_str()).unwrap();
@@ -374,7 +374,7 @@ pub fn validate_effect_internal<'a>(
                         );
                     }
                     sc.close();
-                    continue;
+                    return;
                 }
             }
         }
@@ -392,7 +392,7 @@ pub fn validate_effect_internal<'a>(
             }
         }
         sc.close();
-    }
+    });
 }
 
 pub fn validate_effect_control(
@@ -550,11 +550,11 @@ pub fn validate_random_list(
     vd.field_integer("pick");
     vd.field_bool("unique"); // don't know what this does
     vd.field_validated_sc("desc", sc, validate_desc);
-    for (key, block) in vd.unknown_block_fields() {
+    vd.unknown_block_fields(|key, block| {
         if key.expect_number().is_some() {
             validate_effect_control(caller, block, data, sc, tooltipped);
         }
-    }
+    });
 }
 
 pub fn validate_round_variable(mut vd: Validator, sc: &mut ScopeContext) {
@@ -604,7 +604,7 @@ pub fn validate_switch(
     if let Some(target) = vd.field_value("trigger") {
         // clone to avoid calling vd again while target is still borrowed
         let target = target.clone();
-        for (key, block) in vd.unknown_block_fields() {
+        vd.unknown_block_fields(|key, block| {
             if !key.is("fallback") {
                 // Pretend the switch was written as a series of trigger = key lines
                 let synthetic_bv = BV::Value(key.clone());
@@ -620,7 +620,7 @@ pub fn validate_switch(
             }
 
             validate_effect(block, data, sc, tooltipped);
-        }
+        });
     }
 }
 

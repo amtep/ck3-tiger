@@ -18,7 +18,7 @@ fn validate_desc_map_block(
     let mut vd = Validator::new(block, data);
     let mut seen_desc = false;
     let mut seen_unconditional_desc = false;
-    for (key, bv) in vd.unknown_fields() {
+    vd.unknown_fields(|key, bv| {
         if key.is("desc") || key.is("first_valid") || key.is("random_valid") {
             if seen_desc && caller == "triggered_desc" {
                 let msg = "multiple descs in one triggered_desc";
@@ -68,7 +68,7 @@ fn validate_desc_map_block(
         } else {
             old_warn(key, ErrorKey::UnknownField, "unexpected key in description");
         }
-    }
+    });
 }
 
 pub fn validate_desc_map(

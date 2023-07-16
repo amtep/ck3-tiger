@@ -112,36 +112,36 @@ impl DbKind for AiStrategy {
 fn validate_institution_scores(key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     let mut sc = ScopeContext::new(Scopes::Country, key); // TODO verify scope type
-    for (key, bv) in vd.unknown_fields() {
+    vd.unknown_fields(|key, bv| {
         data.verify_exists(Item::Institution, key);
         validate_scriptvalue(bv, data, &mut sc);
-    }
+    });
 }
 
 fn validate_building_group_weights(_key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, token) in vd.unknown_value_fields() {
+    vd.unknown_value_fields(|key, token| {
         data.verify_exists(Item::BuildingGroup, key);
         token.expect_number();
-    }
+    });
 }
 
 // TODO what other options?
 const SUBSIDIES_TYPES: &[&str] = &["should_have", "wants_to_have"];
 fn validate_subsidies(_key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, token) in vd.unknown_value_fields() {
+    vd.unknown_value_fields(|key, token| {
         data.verify_exists(Item::BuildingType, key);
         if !SUBSIDIES_TYPES.contains(&token.as_str()) {
             warn(ErrorKey::Validation).weak().msg("unknown subsidy type").loc(token).push();
         }
-    }
+    });
 }
 
 fn validate_goods_stances(key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     let mut sc = ScopeContext::new(Scopes::Country, key);
-    for (key, block) in vd.unknown_block_fields() {
+    vd.unknown_block_fields(|key, block| {
         data.verify_exists(Item::Goods, key);
         let mut vd = Validator::new(block, data);
         vd.req_field("stance");
@@ -149,34 +149,34 @@ fn validate_goods_stances(key: &Token, block: &Block, data: &Everything) {
         vd.field_validated_block("trigger", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
-    }
+    });
 }
 
 fn validate_strategic_region_scores(key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     let mut sc = ScopeContext::new(Scopes::Country, key);
-    for (key, bv) in vd.unknown_fields() {
+    vd.unknown_fields(|key, bv| {
         data.verify_exists(Item::StrategicRegion, key);
         validate_scriptvalue(bv, data, &mut sc);
-    }
+    });
 }
 
 fn validate_secret_goal_scores(key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     let mut sc = ScopeContext::new(Scopes::Country, key);
     sc.define_name("target_country", Scopes::Country, key);
-    for (key, bv) in vd.unknown_fields() {
+    vd.unknown_fields(|key, bv| {
         data.verify_exists(Item::SecretGoal, key);
         validate_scriptvalue(bv, data, &mut sc);
-    }
+    });
 }
 
 fn validate_secret_goal_weights(_key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, token) in vd.unknown_value_fields() {
+    vd.unknown_value_fields(|key, token| {
         data.verify_exists(Item::SecretGoal, key);
         token.expect_number();
-    }
+    });
 }
 
 fn validate_wargoal_scores(key: &Token, block: &Block, data: &Everything) {
@@ -184,16 +184,16 @@ fn validate_wargoal_scores(key: &Token, block: &Block, data: &Everything) {
     let mut sc = ScopeContext::new(Scopes::Country, key);
     sc.define_name("target_country", Scopes::Country, key);
     sc.define_name("target_state", Scopes::State, key); // might not be set
-    for (key, bv) in vd.unknown_fields() {
+    vd.unknown_fields(|key, bv| {
         data.verify_exists(Item::Wargoal, key);
         validate_scriptvalue(bv, data, &mut sc);
-    }
+    });
 }
 
 fn validate_wargoal_weights(_key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, token) in vd.unknown_value_fields() {
+    vd.unknown_value_fields(|key, token| {
         data.verify_exists(Item::Wargoal, key);
         token.expect_number();
-    }
+    });
 }

@@ -32,7 +32,7 @@ fn validate_inner(
 
     validate_ifelse_sequence(block, "if", "else_if", "else");
     vd.allow_qeq(true);
-    for (token, cmp, bv) in vd.unknown_fields_cmp() {
+    vd.unknown_fields_cmp(|token, cmp, bv| {
         // save_temporary_scope_as is now allowed in script values
         if token.is("save_temporary_scope_as") {
             if let Some(name) = bv.expect_value() {
@@ -111,7 +111,7 @@ fn validate_inner(
                             have_value = TriBool::Maybe;
                         }
                     }
-                    continue;
+                    return;
                 }
             }
 
@@ -127,7 +127,7 @@ fn validate_inner(
             }
             sc.close();
         }
-    }
+    });
 }
 
 fn validate_iterator(

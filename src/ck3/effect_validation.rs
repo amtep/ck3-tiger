@@ -422,7 +422,7 @@ pub fn validate_effect_block(
             vd.field_validated_block("participants", |b, data| {
                 let mut vd = Validator::new(b, data);
                 let memtype = block.get_field_value("type");
-                for (key, token) in vd.unknown_value_fields() {
+                vd.unknown_value_fields(|key, token| {
                     if let Some(memtype) = memtype {
                         if !data.item_has_property(Item::MemoryType, memtype.as_str(), key.as_str())
                         {
@@ -433,7 +433,7 @@ pub fn validate_effect_block(
                         }
                     }
                     validate_target_ok_this(token, data, sc, Scopes::Character);
-                }
+                });
             });
             vd.field_validated_block_sc("duration", sc, validate_duration);
             sc.define_name("new_memory", Scopes::CharacterMemory, key);
@@ -751,10 +751,10 @@ pub fn validate_effect_block(
         }
         StressImpact => {
             vd.field_script_value("base", sc);
-            for (token, bv) in vd.unknown_fields() {
+            vd.unknown_fields(|token, bv| {
                 data.verify_exists(Item::Trait, token);
                 validate_non_dynamic_scriptvalue(bv, data);
-            }
+            });
         }
         Switch => {
             validate_switch(vd, data, sc, tooltipped);
@@ -762,9 +762,9 @@ pub fn validate_effect_block(
         TryCreateImportantAction => {
             vd.req_field("important_action_type");
             vd.field_item("important_action_type", Item::ImportantAction);
-            for (_, value) in vd.unknown_value_fields() {
+            vd.unknown_value_fields(|_, value| {
                 validate_target_ok_this(value, data, sc, Scopes::all_but_none());
-            }
+            });
         }
         TryCreateSuggestion => {
             vd.req_field("suggestion_type");

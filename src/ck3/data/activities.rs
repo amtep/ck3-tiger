@@ -216,7 +216,7 @@ impl DbKind for ActivityType {
 
         vd.field_validated_block("options", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, block) in vd.unknown_block_fields() {
+            vd.unknown_block_fields(|key, block| {
                 // option categories
                 let mut vd = Validator::new(block, data);
                 let mut is_special_option = false;
@@ -225,17 +225,17 @@ impl DbKind for ActivityType {
                         is_special_option = true;
                     }
                 }
-                for (key, block) in vd.unknown_block_fields() {
+                vd.unknown_block_fields(|key, block| {
                     validate_option(key, block, data, has_special_option, is_special_option);
-                }
-            }
+                });
+            });
         });
 
         vd.field_validated_block("phases", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, block) in vd.unknown_block_fields() {
+            vd.unknown_block_fields(|key, block| {
                 validate_phase(key, block, data, has_special_option);
-            }
+            });
         });
 
         vd.field_validated_key_block("cost", |key, block, data| {
@@ -278,7 +278,7 @@ impl DbKind for ActivityType {
 
         vd.field_validated_block("special_guests", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, block) in vd.unknown_block_fields() {
+            vd.unknown_block_fields(|key, block| {
                 validate_special_guest(
                     key,
                     block,
@@ -286,20 +286,20 @@ impl DbKind for ActivityType {
                     has_special_option,
                     &mut special_guests_sc,
                 );
-            }
+            });
         });
 
         vd.field_validated_block("locales", |block, data| {
             let mut vd = Validator::new(block, data);
             // TODO: can we validate the key against anything?
-            for (_, block) in vd.unknown_block_fields() {
+            vd.unknown_block_fields(|_, block| {
                 let mut vd = Validator::new(block, data);
                 vd.field_validated_key_block("is_available", |key, block, data| {
                     let mut sc = ac_host_activity_sc(key);
                     validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
                 vd.field_list_items("locales", Item::ActivityLocale);
-            }
+            });
         });
 
         let mut sc = ch_host_activity_sc(key);
@@ -354,20 +354,20 @@ impl DbKind for ActivityType {
 
         vd.field_validated_block("activity_window_widgets", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, _) in vd.unknown_value_fields() {
+            vd.unknown_value_fields(|key, _| {
                 let pathname = format!("gui/activity_window_widgets/{key}.gui");
                 data.verify_exists_implied(Item::File, &pathname, key);
                 // TODO: what is value?
-            }
+            });
         });
 
         vd.field_validated_block("activity_planner_widgets", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, _) in vd.unknown_value_fields() {
+            vd.unknown_value_fields(|key, _| {
                 let pathname = format!("gui/activity_window_widgets/{key}.gui");
                 data.verify_exists_implied(Item::File, &pathname, key);
                 // TODO: what is value?
-            }
+            });
         });
 
         let mut sc = ScopeContext::new(Scopes::Activity, key);
@@ -405,9 +405,9 @@ impl DbKind for ActivityType {
         });
         vd.field_validated_block("window_characters", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, block) in vd.unknown_block_fields() {
+            vd.unknown_block_fields(|key, block| {
                 validate_window_characters(key, block, data);
-            }
+            });
         });
         vd.field_validated_key_block("travel_entourage_selection", |key, block, data| {
             validate_tes(key, block, data, has_special_option);
@@ -424,11 +424,11 @@ impl DbKind for ActivityType {
 
 fn validate_rules(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (_, bv) in vd.integer_keys() {
+    vd.integer_keys(|_, bv| {
         if let Some(token) = bv.expect_value() {
             data.verify_exists(Item::GuestInviteRule, token);
         }
-    }
+    });
 }
 
 pub fn validate_tes(key: &Token, block: &Block, data: &Everything, has_special_option: bool) {

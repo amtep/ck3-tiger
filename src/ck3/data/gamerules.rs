@@ -45,7 +45,7 @@ impl DbKind for GameRule {
             }
         }
 
-        for (setting, block) in vd.unknown_block_fields() {
+        vd.unknown_block_fields(|setting, block| {
             let mut vd = Validator::new(block, data);
             let loca = format!("setting_{setting}");
             data.verify_exists_implied(Item::Localization, &loca, setting);
@@ -66,16 +66,16 @@ impl DbKind for GameRule {
 
             vd.field_validated_block("defines", |block, data| {
                 let mut vd = Validator::new(block, data);
-                for (group, block) in vd.unknown_block_fields() {
+                vd.unknown_block_fields(|group, block| {
                     let mut vd = Validator::new(block, data);
-                    for (key, _) in vd.unknown_fields() {
+                    vd.unknown_fields(|key, _| {
                         let define_key = format!("{group}|{key}");
                         data.verify_exists_implied(Item::Define, &define_key, key);
-                    }
-                }
+                    });
+                });
             });
 
             vd.fields_choice("flag", RULE_FLAGS);
-        }
+        });
     }
 }

@@ -66,9 +66,9 @@ impl DbKind for PortraitModifierGroup {
         vd.field_validated_blocks("add_accessory_modifiers", |block, data| {
             validate_add_accessory_modifiers(block, data, caller, &mut sc);
         });
-        for (key, block) in vd.unknown_block_fields() {
+        vd.unknown_block_fields(|key, block| {
             validate_portrait_modifier(key, block, data, caller, &mut sc);
-        }
+        });
     }
 
     fn has_property(&self, _key: &Token, block: &Block, property: &str, data: &Everything) -> bool {
@@ -249,7 +249,7 @@ fn validate_animation(block: &Block, data: &Everything) {
         validate_portrait_modifiers(block, data, vd);
     });
 
-    for (_key, block) in vd.unknown_block_fields() {
+    vd.unknown_block_fields(|_, block| {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block("animation", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -275,7 +275,7 @@ fn validate_animation(block: &Block, data: &Everything) {
             validate_portrait_modifiers(block, data, vd);
         });
         vd.field_item("portrait_modifier_pack", Item::PortraitModifierPack);
-    }
+    });
 }
 
 #[derive(Clone, Debug)]
@@ -302,13 +302,13 @@ impl DbKind for PortraitModifierPack {
 }
 
 fn validate_portrait_modifiers(_block: &Block, data: &Everything, mut vd: Validator) {
-    for (key, value) in vd.unknown_value_fields() {
+    vd.unknown_value_fields(|key, value| {
         data.verify_exists(Item::PortraitModifierGroup, key);
         if !data.item_has_property(Item::PortraitModifierGroup, key.as_str(), value.as_str()) {
             let msg = format!("portrait modifier {value} not found in group {key}");
             error(value, ErrorKey::MissingItem, &msg);
         }
-    }
+    });
 }
 
 #[derive(Clone, Debug)]

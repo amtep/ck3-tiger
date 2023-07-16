@@ -54,7 +54,7 @@ impl DbKind for VassalContract {
 
         vd.field_validated_block("obligation_levels", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, block) in vd.unknown_block_fields() {
+            vd.unknown_block_fields(|key, block| {
                 if !key.is("default") {
                     data.verify_exists(Item::Localization, key);
                     let loca = format!("{key}_short");
@@ -98,7 +98,7 @@ impl DbKind for VassalContract {
 
                 vd.field_script_value("tax_factor", &mut sc);
                 vd.field_script_value("levies_factor", &mut sc);
-            }
+            });
         });
     }
 }

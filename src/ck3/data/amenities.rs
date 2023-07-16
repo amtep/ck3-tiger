@@ -28,9 +28,9 @@ impl DbKind for Amenity {
                 old_warn(token, ErrorKey::MissingItem, "default not found in amenity");
             }
         });
-        for (key, block) in vd.unknown_block_fields() {
+        vd.unknown_block_fields(|key, block| {
             validate_amenity_setting(key, block, data);
-        }
+        });
     }
 }
 

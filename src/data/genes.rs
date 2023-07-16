@@ -173,9 +173,9 @@ impl DbKind for MorphGene {
                 fatal(ErrorKey::Crash).msg(msg).loc(token).push();
             }
         }
-        for (_key, block) in vd.unknown_block_fields() {
+        vd.unknown_block_fields(|_, block| {
             validate_morph_gene(block, data);
-        }
+        });
     }
 
     fn has_property(
@@ -325,9 +325,9 @@ impl DbKind for AccessoryGene {
 
         vd.field_bool("inheritable");
         vd.field_value("group");
-        for (_key, block) in vd.unknown_block_fields() {
+        vd.unknown_block_fields(|_, block| {
             validate_accessory_gene(block, data);
-        }
+        });
     }
 
     fn has_property(

@@ -42,10 +42,10 @@ impl DbKind for StateRegion {
         vd.field_list_items("arable_resources", Item::BuildingGroup);
         vd.field_validated_block("capped_resources", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, value) in vd.unknown_value_fields() {
+            vd.unknown_value_fields(|key, value| {
                 data.verify_exists(Item::BuildingGroup, key);
                 value.expect_integer();
-            }
+            });
         });
         vd.field_validated_blocks("resource", |block, data| {
             let mut vd = Validator::new(block, data);

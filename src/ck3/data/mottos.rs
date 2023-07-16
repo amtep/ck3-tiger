@@ -20,7 +20,7 @@ impl MottoInsert {
 impl DbKind for MottoInsert {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        for (key, block) in vd.unknown_block_fields() {
+        vd.unknown_block_fields(|key, block| {
             let mut vd = Validator::new(block, data);
             let loca = format!("motto_{key}");
             data.verify_exists_implied(Item::Localization, &loca, key);
@@ -28,7 +28,7 @@ impl DbKind for MottoInsert {
                 validate_trigger(block, data, sc, Tooltipped::No);
             });
             vd.field_script_value_rooted("weight", Scopes::Character);
-        }
+        });
     }
 }
 

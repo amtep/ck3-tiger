@@ -30,8 +30,8 @@ fn validate_portrait_info(block: &Block, data: &Everything) {
 
 pub fn validate_genes(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, block) in vd.unknown_block_fields() {
+    vd.unknown_block_fields(|key, block| {
         data.verify_exists(Item::GeneCategory, key);
         data.validate_use(Item::GeneCategory, key, block);
-    }
+    });
 }

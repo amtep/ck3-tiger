@@ -149,10 +149,10 @@ impl DbKind for CourtSceneSetting {
 
         vd.field_validated_block("support_type", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (_, value) in vd.unknown_value_fields() {
+            vd.unknown_value_fields(|_, value| {
                 // TODO: what is the key?
                 data.verify_exists(Item::Entity, value);
-            }
+            });
         });
     }
 }

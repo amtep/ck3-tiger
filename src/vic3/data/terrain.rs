@@ -45,10 +45,10 @@ impl DbKind for Terrain {
 
         vd.field_validated_block("materials", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, value) in vd.unknown_value_fields() {
+            vd.unknown_value_fields(|key, value| {
                 data.verify_exists(Item::TerrainMaterial, key);
                 value.expect_number();
-            }
+            });
         });
         vd.field_numeric("pollution_mask_strength");
         vd.field_numeric("devastation_mask_strength");

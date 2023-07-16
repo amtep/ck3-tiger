@@ -245,7 +245,7 @@ impl Title {
 
         vd.field_validated_block("cultural_names", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, token) in vd.unknown_value_fields() {
+            vd.unknown_value_fields(|key, token| {
                 data.verify_exists(Item::NameList, key);
                 data.verify_exists(Item::Localization, token);
                 let loca = format!("{token}_adj");
@@ -254,15 +254,16 @@ impl Title {
                     let loca = format!("{token}_article");
                     data.item_used(Item::Localization, &loca);
                 }
-            }
+            });
         });
 
-        for (key, _) in vd.unknown_block_fields() {
+        // The blocks are validated by the next level Title
+        vd.unknown_block_fields(|key, _| {
             if Tier::try_from(key).is_err() {
                 let msg = format!("unknown field `{key}`");
                 old_warn(key, ErrorKey::UnknownField, &msg);
             }
-        }
+        });
     }
 
     fn capital_of(&self) -> Option<&str> {

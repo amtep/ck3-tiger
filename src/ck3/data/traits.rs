@@ -165,9 +165,9 @@ impl Trait {
 
         vd.field_validated_block("tracks", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, block) in vd.unknown_block_fields() {
+            vd.unknown_block_fields(|key, block| {
                 validate_trait_track(key, block, data, key);
-            }
+            });
         });
         vd.field_validated_key_block("track", |key, block, data| {
             validate_trait_track(&self.key, block, data, key);
@@ -182,9 +182,10 @@ impl Trait {
 
         vd.field_validated_block("compatibility", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (key, _) in vd.unknown_value_fields() {
+            vd.unknown_value_fields(|key, value| {
                 data.verify_exists(Item::Trait, key);
-            }
+                value.expect_number();
+            });
         });
 
         vd.field_validated_block("potential", |b, data| {
@@ -294,7 +295,7 @@ fn validate_triggered_opinion(block: &Block, data: &Everything) {
 
 fn validate_trait_track(key: &Token, block: &Block, data: &Everything, warn_key: &Token) {
     let mut vd = Validator::new(block, data);
-    for (key, block) in vd.unknown_block_fields() {
+    vd.unknown_block_fields(|key, block| {
         let mut sc = ScopeContext::new(Scopes::None, warn_key);
         validate_scriptvalue(&BV::Value(key.clone()), data, &mut sc);
         if let Some(xp) = key.get_integer() {
@@ -309,7 +310,7 @@ fn validate_trait_track(key: &Token, block: &Block, data: &Everything, warn_key:
         vd.field_validated_blocks("culture_modifier", validate_culture_modifier);
         vd.field_validated_blocks("faith_modifier", validate_faith_modifier);
         validate_modifs(block, data, ModifKinds::Character, vd);
-    }
+    });
     // let modif = format!("{key}_xp_degradation_mult");
     // data.verify_exists_implied(Item::ModifierFormat, &modif, warn_key);
     // let modif = format!("{key}_xp_gain_mult");

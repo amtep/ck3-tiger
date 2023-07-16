@@ -104,7 +104,7 @@ impl DbKind for Religion {
         vd.field_validated_block("localization", validate_localization);
         vd.field_validated_block("faiths", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.unknown_block_fields(); // validated by Faith class
+            vd.unknown_block_fields(|_, _| ()); // validated by Faith class
         });
     }
 

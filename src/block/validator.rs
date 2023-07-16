@@ -909,29 +909,25 @@ impl<'a> Validator<'a> {
         vec
     }
 
-    pub fn integer_keys(&mut self) -> Vec<(&Token, &BV)> {
-        let mut vec = Vec::new();
+    pub fn integer_keys<F: FnMut(&Token, &BV)>(&mut self, mut f: F) {
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if key.is_integer() {
                 self.known_fields.push(key.as_str());
                 self.expect_eq_qeq(key, *cmp);
-                vec.push((key, bv));
+                f(key, bv);
             }
         }
-        vec
     }
 
     #[cfg(feature = "vic3")] // ck3 happens not to use; silence dead code warning
-    pub fn numeric_keys(&mut self) -> Vec<(&Token, &BV)> {
-        let mut vec = Vec::new();
+    pub fn numeric_keys<F: FnMut(&Token, &BV)>(&mut self, mut f: F) {
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if key.is_number() {
                 self.known_fields.push(key.as_str());
                 self.expect_eq_qeq(key, *cmp);
-                vec.push((key, bv));
+                f(key, bv);
             }
         }
-        vec
     }
 
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
@@ -950,70 +946,62 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn unknown_fields(&mut self) -> Vec<(&Token, &BV)> {
+    pub fn unknown_fields<F: FnMut(&Token, &BV)>(&mut self, mut f: F) {
         self.accepted_block_fields = true;
         self.accepted_value_fields = true;
-        let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {
             self.expect_eq_qeq(key, *cmp);
             if !self.known_fields.contains(&key.as_str()) {
-                vec.push((key, bv));
+                f(key, bv);
             }
         }
-        vec
     }
 
-    pub fn unknown_fields_cmp(&mut self) -> Vec<(&Token, Comparator, &BV)> {
+    pub fn unknown_block_fields<F: FnMut(&Token, &Block)>(&mut self, mut f: F) {
         self.accepted_block_fields = true;
-        self.accepted_value_fields = true;
-        let mut vec = Vec::new();
-        for Field(key, cmp, bv) in self.block.iter_fields() {
-            self.expect_eq_qeq(key, *cmp);
-            if !self.known_fields.contains(&key.as_str()) {
-                vec.push((key, *cmp, bv));
-            }
-        }
-        vec
-    }
-
-    pub fn unknown_block_fields(&mut self) -> Vec<(&Token, &Block)> {
-        self.accepted_block_fields = true;
-        let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if let Some(block) = bv.get_block() {
                 self.expect_eq_qeq(key, *cmp);
                 if !self.known_fields.contains(&key.as_str()) {
-                    vec.push((key, block));
+                    f(key, block);
                 }
             }
         }
-        vec
     }
 
-    pub fn unknown_value_fields(&mut self) -> Vec<(&Token, &Token)> {
+    pub fn unknown_value_fields<F: FnMut(&Token, &Token)>(&mut self, mut f: F) {
         self.accepted_value_fields = true;
-        let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if let Some(value) = bv.get_value() {
                 self.expect_eq_qeq(key, *cmp);
                 if !self.known_fields.contains(&key.as_str()) {
-                    vec.push((key, value));
+                    f(key, value);
                 }
             }
         }
-        vec
     }
 
-    pub fn unknown_fields_any_cmp(&mut self) -> Vec<(&Token, Comparator, &BV)> {
+    /// Like `unknown_fields` but passes the comparator, so that `f` can determine whether it is `=` or `?=`
+    pub fn unknown_fields_cmp<F: FnMut(&Token, Comparator, &BV)>(&mut self, mut f: F) {
         self.accepted_block_fields = true;
         self.accepted_value_fields = true;
-        let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if !self.known_fields.contains(&key.as_str()) {
-                vec.push((key, *cmp, bv));
+                self.expect_eq_qeq(key, *cmp);
+                f(key, *cmp, bv);
             }
         }
-        vec
+    }
+
+    /// Like `unknown_fields_cmp` but accepts and passes any comparator
+    pub fn unknown_fields_any_cmp<F: FnMut(&Token, Comparator, &BV)>(&mut self, mut f: F) {
+        self.accepted_block_fields = true;
+        self.accepted_value_fields = true;
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if !self.known_fields.contains(&key.as_str()) {
+                f(key, *cmp, bv);
+            }
+        }
     }
 
     pub fn no_warn_remaining(&mut self) {

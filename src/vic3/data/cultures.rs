@@ -40,11 +40,11 @@ impl DbKind for Culture {
         vd.field_value("graphics"); // TODO
         vd.field_validated_block("ethnicities", |block, data| {
             let mut vd = Validator::new(block, data);
-            for (_, bv) in vd.numeric_keys() {
+            vd.numeric_keys(|_, bv| {
                 if let Some(token) = bv.expect_value() {
                     data.verify_exists(Item::Ethnicity, token);
                 }
-            }
+            });
         });
     }
 }

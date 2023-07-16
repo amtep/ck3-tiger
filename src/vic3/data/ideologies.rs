@@ -51,16 +51,16 @@ impl DbKind for Ideology {
             vd.field_numeric("priority");
         }
 
-        for (key, block) in vd.unknown_block_fields() {
+        vd.unknown_block_fields(|key, block| {
             data.verify_exists(Item::LawGroup, key);
             let mut vd = Validator::new(block, data);
-            for (key, value) in vd.unknown_value_fields() {
+            vd.unknown_value_fields(|key, value| {
                 data.verify_exists(Item::LawType, key);
                 if !STANCES.contains(&value.as_str()) {
                     let msg = format!("expected one of {}", stringify_choices(STANCES));
                     warn(ErrorKey::Choice).msg(msg).loc(value).push();
                 }
-            }
-        }
+            });
+        });
     }
 }

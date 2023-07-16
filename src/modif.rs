@@ -31,7 +31,7 @@ pub fn validate_modifs<'a>(
     kinds: ModifKinds,
     mut vd: Validator<'a>,
 ) {
-    for (key, bv) in vd.unknown_fields() {
+    vd.unknown_fields(|key, bv| {
         if let Some(mk) = lookup_modif(key, data, true) {
             kinds.require(mk, key);
             validate_non_dynamic_scriptvalue(bv, data);
@@ -43,7 +43,7 @@ pub fn validate_modifs<'a>(
             let msg = format!("unknown modifier `{key}`");
             err(ErrorKey::UnknownField).msg(msg).loc(key).push();
         }
-    }
+    });
 }
 
 #[cfg(feature = "vic3")]

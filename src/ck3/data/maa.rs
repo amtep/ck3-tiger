@@ -231,31 +231,31 @@ impl MenAtArmsType {
 
 pub fn validate_terrain_bonus(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, block) in vd.unknown_block_fields() {
+    vd.unknown_block_fields(|key, block| {
         data.verify_exists(Item::Terrain, key);
         let mut vd = Validator::new(block, data);
         validate_maa_stats(&mut vd);
-    }
+    });
 }
 
 pub fn validate_winter_bonus(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, block) in vd.unknown_block_fields() {
+    vd.unknown_block_fields(|key, block| {
         if !(key.is("harsh_winter") || key.is("normal_winter")) {
             old_warn(key, ErrorKey::Validation, "unknown winter type");
         }
         let mut vd = Validator::new(block, data);
         validate_maa_stats(&mut vd);
-    }
+    });
 }
 
 fn validate_era_bonus(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for (key, block) in vd.unknown_block_fields() {
+    vd.unknown_block_fields(|key, block| {
         data.verify_exists(Item::CultureEra, key);
         let mut vd = Validator::new(block, data);
         validate_maa_stats(&mut vd);
-    }
+    });
 }
 
 fn validate_counters(block: &Block, data: &Everything) {
