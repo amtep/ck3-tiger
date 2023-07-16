@@ -141,6 +141,9 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
     vd.field_validated("color4", |bv, data| {
         validate_coa_color(bv, None, data);
     });
+    vd.field_validated("color5", |bv, data| {
+        validate_coa_color(bv, None, data);
+    });
 
     vd.field_validated_blocks("colored_emblem", |subblock, data| {
         let mut vd = Validator::new(subblock, data);
@@ -154,25 +157,12 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
             }
         }
 
-        vd.field_validated("color1", |bv, data| {
-            validate_coa_color(bv, Some(block), data);
-        });
-        vd.field_validated("color2", |bv, data| {
-            validate_coa_color(bv, Some(block), data);
-        });
-        vd.field_validated("color3", |bv, data| {
-            validate_coa_color(bv, Some(block), data);
-        });
-        vd.field_validated("color4", |bv, data| {
-            validate_coa_color(bv, Some(block), data);
-        });
-        vd.field_validated_blocks("instance", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_list_precise_numeric_exactly("position", 2);
-            vd.field_list_precise_numeric_exactly("scale", 2);
-            vd.field_precise_numeric("rotation");
-            vd.field_precise_numeric("depth");
-        });
+        for field in &["color1", "color2", "color3", "color4", "color5"] {
+            vd.field_validated(field, |bv, data| {
+                validate_coa_color(bv, Some(block), data);
+            });
+        }
+        vd.field_validated_blocks("instance", validate_instance);
         vd.field_validated_block("mask", |block, data| {
             let mut vd = Validator::new(block, data);
             for token in vd.values() {
@@ -195,6 +185,19 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
                 data.verify_exists_implied(Item::File, &pathname, token);
             }
         }
+        vd.field_validated_blocks("instance", validate_instance);
+    });
+
+    #[cfg(feature = "vic3")]
+    vd.field_validated_blocks("sub", |subblock, data| {
+        let mut vd = Validator::new(subblock, data);
+        vd.field_item("parent", Item::Coa);
+        vd.field_validated_blocks("instance", validate_instance_offset);
+        for field in &["color1", "color2", "color3", "color4", "color5"] {
+            vd.field_validated(field, |bv, data| {
+                validate_coa_color(bv, Some(block), data);
+            });
+        }
     });
 }
 
@@ -207,6 +210,7 @@ fn validate_coa_color(bv: &BV, block: Option<&Block>, data: &Everything) {
                 || color.is("color2")
                 || color.is("color3")
                 || color.is("color4")
+                || color.is("color5")
             {
                 if let Some(block) = block {
                     if !block.has_key(color.as_str()) {
@@ -385,4 +389,24 @@ impl DbKind for CoaDynamicDefinition {
             vd.field_item("coat_of_arms", Item::Coa);
         });
     }
+}
+
+fn validate_instance(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.field_list_precise_numeric_exactly("position", 2);
+    vd.field_list_precise_numeric_exactly("scale", 2);
+    vd.field_precise_numeric("rotation");
+    vd.field_precise_numeric("depth");
+    vd.ban_field("offset", || "sub blocks");
+}
+
+/// Just like validate_instance, but takes offset instead of position
+#[cfg(feature = "vic3")]
+fn validate_instance_offset(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.field_list_precise_numeric_exactly("offset", 2);
+    vd.field_list_precise_numeric_exactly("scale", 2);
+    vd.field_precise_numeric("rotation");
+    vd.field_precise_numeric("depth");
+    vd.ban_field("position", || "colored and textured emblems");
 }

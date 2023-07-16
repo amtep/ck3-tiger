@@ -729,6 +729,7 @@ impl Everything {
         s.spawn(|_| self.assets.validate(self));
         s.spawn(|_| self.gui.validate(self));
         s.spawn(|_| self.on_actions.validate(self));
+        s.spawn(|_| self.coas.validate(self));
 
         s.spawn(|_| self.events.validate(self));
         s.spawn(|_| self.provinces.validate(self));
@@ -748,7 +749,6 @@ impl Everything {
         s.spawn(|_| self.data_bindings.validate(self));
         s.spawn(|_| self.sounds.validate(self));
         s.spawn(|_| self.music.validate(self));
-        s.spawn(|_| self.coas.validate(self));
     }
 
     #[cfg(feature = "vic3")]
