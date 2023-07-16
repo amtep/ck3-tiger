@@ -274,8 +274,17 @@ impl Parser {
         }
         if let Some(key) = self.current.key.take() {
             if let Some((comp, _)) = self.current.comp.take() {
+                // TODO: this needs some cleaning up and deduplication
                 if let Some(local_macro) = key.as_str().strip_prefix('@') {
-                    self.local_macros.insert(local_macro, token.as_str());
+                    if let Some(local_macro_value) = token.as_str().strip_prefix('@') {
+                        if let Some(value) = self.local_macros.get_as_string(local_macro_value) {
+                            self.local_macros.insert(local_macro, &value);
+                        } else {
+                            error(token, ErrorKey::LocalValues, "local value not defined");
+                        }
+                    } else {
+                        self.local_macros.insert(local_macro, token.as_str());
+                    }
                 } else if let Some(local_macro) = token.as_str().strip_prefix('@') {
                     // Check for a '!' to avoid looking up macros in gui code that uses @icon! syntax
                     if token.as_str().contains('!') {
