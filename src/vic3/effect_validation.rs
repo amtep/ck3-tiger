@@ -19,8 +19,10 @@ use EvV::*;
 #[derive(Debug, Copy, Clone)]
 pub enum EvB {
     ActivateProductionMethod,
-    AddCultureModifier,
+    AddCultureSolModifier,
     AddToVariableList,
+    AddJournalentry,
+    AddLoyalists,
     ChangeVariable,
     ClampVariable,
     RandomList,
@@ -59,10 +61,30 @@ pub fn validate_effect_block(
             // TODO: check that the production method belongs to the building type
             vd.field_item("production_method", Item::ProductionMethod);
         }
-        AddCultureModifier => {
+        AddCultureSolModifier => {
+            vd.req_field("culture");
             vd.field_target("culture", sc, Scopes::Culture);
             vd.field_script_value("months", sc);
             vd.field_numeric("multiplier"); // seems to be actually an adder
+        }
+        AddJournalentry => {
+            vd.req_field("type");
+            vd.field_item("type", Item::Journalentry);
+            vd.field_target("target", sc, Scopes::all());
+        }
+        AddLoyalists => {
+            vd.req_field("value");
+            vd.field_script_value("value", sc);
+            vd.field_item_or_target(
+                "interest_group",
+                sc,
+                Item::InterestGroup,
+                Scopes::InterestGroup,
+            );
+            vd.field_item_or_target("pop_type", sc, Item::PopType, Scopes::PopType);
+            vd.field_choice("strata", &["poor", "middle", "rich"]);
+            vd.field_item_or_target("culture", sc, Item::Culture, Scopes::Culture);
+            vd.field_item_or_target("religion", sc, Item::Religion, Scopes::Religion);
         }
         AddToVariableList => {
             validate_add_to_variable_list(vd, sc);

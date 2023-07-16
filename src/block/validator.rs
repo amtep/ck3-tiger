@@ -274,7 +274,6 @@ impl<'a> Validator<'a> {
         })
     }
 
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_item_or_target(
         &mut self,
         name: &str,

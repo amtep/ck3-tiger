@@ -257,9 +257,18 @@ impl Event {
         if evtype == "character_event" {
             vd.field_choice("window", WINDOW_TYPES);
         } else if evtype == "activity_event" {
-            vd.field_value("window"); // TODO: figure out the possible values for this
+            // TODO: get the choices here from the gui code
+            vd.field_choice(
+                "window",
+                &[
+                    "activity_event",
+                    "tour_arrival_event",
+                    "widget_activity_locale_fullscreen_event",
+                    "tournament_fullscreen_pivotal_event_widget",
+                ],
+            );
         } else {
-            vd.ban_field("window", || "character events");
+            vd.ban_field("window", || "character_event or activity_event");
         }
 
         let mut sc = ScopeContext::new(Scopes::Character, &self.key);
@@ -272,7 +281,8 @@ impl Event {
         }
         sc.set_strict_scopes(false);
 
-        vd.field_value("content_source"); // TODO
+        // "dlc or mod this event comes from"
+        vd.field_item("content_source", Item::Localization);
 
         vd.field_bool("hidden");
         vd.field_bool("major");
@@ -371,9 +381,6 @@ fn validate_event_option(
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
 ) {
-    // TODO: warn if they use desc, first_valid, random_valid, or triggered_desc directly
-    // in the name or tooltip.
-
     let mut vd = Validator::new(block, data);
     vd.field_validated_bvs("name", |bv, data| match bv {
         BV::Value(t) => {
@@ -386,6 +393,9 @@ fn validate_event_option(
                 validate_trigger(block, data, sc, Tooltipped::No);
             });
             vd.field_validated_sc("text", sc, validate_desc);
+            for field in &["desc", "first_valid", "random_valid", "triggered_desc"] {
+                vd.advice_field(field, "use this inside `name = { text = { ... } }`");
+            }
         }
     });
 
@@ -504,8 +514,8 @@ fn validate_portrait(v: &BV, data: &Everything, sc: &mut ScopeContext) {
             vd.field_validated_block("trigger", |b, data| {
                 validate_trigger(b, data, sc, Tooltipped::No);
             });
-            vd.field_value("animation"); // TODO
-            vd.field("scripted_animation"); // TODO
+            vd.field_item("animation", Item::PortraitAnimation);
+            vd.field_item("scripted_animation", Item::ScriptedAnimation);
             vd.field_validated_blocks("triggered_animation", |b, data| {
                 validate_triggered_animation(b, data, sc);
             });
@@ -515,7 +525,7 @@ fn validate_portrait(v: &BV, data: &Everything, sc: &mut ScopeContext) {
             vd.field_validated_blocks("triggered_outfit", |b, data| {
                 validate_triggered_outfit(b, data, sc);
             });
-            vd.field_value("camera"); // TODO: figure out valid values
+            vd.field_item("camera", Item::PortraitCamera);
 
             // TODO: is this only useful when animation is prisondungeon ?
             vd.field_bool("override_imprisonment_visuals");

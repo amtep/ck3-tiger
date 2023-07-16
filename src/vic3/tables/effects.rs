@@ -27,13 +27,13 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Country | State, "activate_production_method", VB(EvB::ActivateProductionMethod)),
     (StateRegion, "add_arable_land", Integer),
     (Country, "add_banned_goods", Scope(Scopes::Goods)),
-    (Country, "add_change_relations_progress", Unchecked),
+    (Country, "add_change_relations_progress", Unchecked), // Not used in vanilla
     (Character, "add_character_role", Item(Item::CharacterRole)),
     (CivilWar, "add_civil_war_progress", ScriptValue),
     (StateRegion, "add_claim", Scope(Scopes::Country)),
     (Character, "add_commander_rank", Integer),
     (Culture, "add_cultural_obsession", Item(Item::Goods)),
-    (State, "add_culture_standard_of_living_modifier", VB(EvB::AddCultureModifier)),
+    (State, "add_culture_standard_of_living_modifier", VB(EvB::AddCultureSolModifier)),
     (Country, "add_declared_interest", Item(Item::StrategicRegion)),
     (StateRegion, "add_devastation", Integer),
     (
@@ -50,12 +50,12 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (StateRegion, "add_homeland", ScopeOrItem(Scopes::Culture, Item::Culture)),
     (InterestGroup, "add_ideology", Item(Item::Ideology)),
     (Party, "add_ig_to_party", Scope(Scopes::InterestGroup)),
-    (DiplomaticPlay, "add_initiator_backers", Unchecked),
+    (DiplomaticPlay, "add_initiator_backers", Unchecked), // Not used in vanilla
     (Country, "add_investment_pool", ScriptValue),
-    (None, "add_journal_entry", Unchecked),
+    (None, "add_journal_entry", VB(EvB::AddJournalentry)),
     (Country, "add_law_progress", ScriptValue),
-    (Country, "add_loyalists", Unchecked),
-    (State, "add_loyalists_in_state", Unchecked),
+    (Country, "add_loyalists", VB(EvB::AddLoyalists)),
+    (State, "add_loyalists_in_state", VB(EvB::AddLoyalists)),
     (
         Country
             | Building
@@ -73,8 +73,8 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (StateRegion, "add_pollution", Integer),
     (Pop, "add_pop_wealth", Unchecked),
     (Country, "add_primary_culture", Scope(Scopes::Culture)),
-    (Country, "add_radicals", Unchecked),
-    (State, "add_radicals_in_state", Unchecked),
+    (Country, "add_radicals", VB(EvB::AddLoyalists)),
+    (State, "add_radicals_in_state", VB(EvB::AddLoyalists)),
     (Character, "add_random_trait", Choice(&["personality", "skill", "condition"])),
     (State, "add_religion_standard_of_living_modifier", Unchecked),
     (InterestGroup, "add_ruling_interest_group", Boolean),
