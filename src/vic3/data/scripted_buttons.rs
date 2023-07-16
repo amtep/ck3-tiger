@@ -1,0 +1,49 @@
+use crate::block::validator::Validator;
+use crate::block::Block;
+use crate::context::ScopeContext;
+use crate::db::{Db, DbKind};
+use crate::effect::validate_effect;
+use crate::everything::Everything;
+use crate::item::Item;
+use crate::scopes::Scopes;
+use crate::token::Token;
+use crate::tooltipped::Tooltipped;
+use crate::trigger::validate_trigger;
+use crate::validate::validate_modifiers_with_base;
+
+#[derive(Clone, Debug)]
+pub struct ScriptedButton {}
+
+impl ScriptedButton {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::ScriptedButton, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for ScriptedButton {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        // TODO: assuming that the scopes from the journalentry are available
+        let mut sc = ScopeContext::new(Scopes::Country, key);
+        sc.define_name("journal_entry", Scopes::Journalentry, key);
+        sc.define_name("target", Scopes::all(), key);
+
+        vd.field_item("name", Item::Localization);
+        vd.field_item("desc", Item::Localization);
+
+        vd.field_validated_block("visible", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+
+        vd.field_validated_block("possible", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
+
+        vd.field_validated_block("effect", |block, data| {
+            validate_effect(block, data, &mut sc, Tooltipped::Yes);
+        });
+
+        vd.field_validated_block_sc("ai_chance", &mut sc, validate_modifiers_with_base);
+    }
+}

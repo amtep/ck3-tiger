@@ -163,6 +163,7 @@ use crate::vic3::data::{
     production_methods::{ProductionMethod, ProductionMethodGroup},
     provinces::Provinces,
     religions::Religion,
+    scripted_buttons::ScriptedButton,
     state_regions::StateRegion,
     state_traits::StateTrait,
     strategic_regions::StrategicRegion,
@@ -691,6 +692,7 @@ impl Everything {
         self.load_pdx_items(Item::PopType, PopType::add);
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
         self.load_pdx_items(Item::ProductionMethodGroup, ProductionMethodGroup::add);
+        self.load_pdx_items(Item::ScriptedButton, ScriptedButton::add);
         self.load_pdx_items(Item::StateRegion, StateRegion::add);
         self.load_pdx_items(Item::StateTrait, StateTrait::add);
         self.load_pdx_items(Item::StrategicRegion, StrategicRegion::add);
@@ -878,7 +880,7 @@ impl Everything {
             }
             Item::TextureFile => self.assets.texture_exists(key),
             Item::Wargoal => WARGOALS.contains(&key),
-            Item::ScriptedButton | Item::TutorialLesson => true, // TODO
+            Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }

@@ -167,7 +167,7 @@ impl Item {
             Item::ProductionMethodGroup => "common/production_method_groups/",
             Item::Province => "map_data/provinces.png",
             Item::Religion => "common/religions/",
-            Item::ScriptedButton => "common/scripted_button/",
+            Item::ScriptedButton => "common/scripted_buttons/",
             Item::ScriptedEffect => "common/scripted_effects/",
             Item::ScriptedGui => "common/scripted_guis/",
             Item::ScriptedList => "common/scripted_lists/",
