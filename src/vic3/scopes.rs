@@ -578,7 +578,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (CombatUnit, "defense", Value),
     (CombatUnit, "demoralized", Value),
     (PoliticalMovement, "desired_law", LawType),
-    (DiplomaticPact, "diplomatic_pact_other_country", Country),
+    (DiplomaticPact, "diplomatic_pact_other_country(", Country),
     (TradeRoute, "exporter", Market),
     (DiplomaticPact, "first_country", Country),
     (Battle | Character, "front", Front),

@@ -149,6 +149,7 @@ use crate::vic3::data::{
     character_interactions::CharacterInteraction,
     countries::Country,
     cultures::Culture,
+    diplomatic_actions::DiplomaticAction,
     events::Events,
     gameconcepts::GameConcept,
     goods::Goods,
@@ -680,6 +681,7 @@ impl Everything {
         self.load_pdx_items(Item::BuildingType, BuildingType::add);
         self.load_pdx_items(Item::CharacterInteraction, CharacterInteraction::add);
         self.load_pdx_items(Item::Country, Country::add);
+        self.load_pdx_items(Item::DiplomaticAction, DiplomaticAction::add);
         self.load_pdx_items(Item::GameConcept, GameConcept::add);
         self.load_pdx_items(Item::Goods, Goods::add);
         self.load_pdx_items(Item::Ideology, Ideology::add);
@@ -880,7 +882,7 @@ impl Everything {
             }
             Item::TextureFile => self.assets.texture_exists(key),
             Item::Wargoal => WARGOALS.contains(&key),
-            Item::TutorialLesson => true, // TODO
+            Item::SubjectType | Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
