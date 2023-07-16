@@ -1,20 +1,19 @@
 #[cfg(feature = "ck3")]
 pub use crate::ck3::modif::*;
+#[cfg(feature = "ck3")]
+use crate::ck3::tables::modifs::lookup_modif;
 #[cfg(feature = "vic3")]
 pub use crate::vic3::modif::*;
+#[cfg(feature = "vic3")]
+use crate::vic3::tables::modifs::lookup_modif;
 
 use crate::block::validator::Validator;
 use crate::block::Block;
-#[cfg(feature = "ck3")]
-use crate::ck3::tables::modifs::lookup_modif;
 use crate::everything::Everything;
-#[cfg(feature = "ck3")]
 use crate::item::Item;
 use crate::report::{err, error, ErrorKey};
 use crate::scriptvalue::validate_non_dynamic_scriptvalue;
 use crate::token::Token;
-#[cfg(feature = "vic3")]
-use crate::vic3::tables::modifs::lookup_modif;
 
 impl ModifKinds {
     pub fn require(self, other: Self, token: &Token) {
@@ -38,6 +37,17 @@ pub fn validate_modifs<'a>(
             #[cfg(feature = "ck3")]
             if !key.is("health") && !key.is("negate_health_penalty_add") {
                 data.verify_exists(Item::ModifierFormat, key);
+                // TODO: some modifiers have the loc as MOD_ and then all caps.
+                // data.verify_exists(Item::Localization, key);
+            }
+            #[cfg(feature = "vic3")]
+            {
+                // The Item::ModifierType doesn't need to exist if the defaults are ok,
+                // but the loca should exist.
+                let loca = format!("modifier_{key}");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("modifier_{key}_desc");
+                data.verify_exists_implied(Item::Localization, &loca, key);
             }
         } else {
             let msg = format!("unknown modifier `{key}`");
@@ -46,7 +56,6 @@ pub fn validate_modifs<'a>(
     });
 }
 
-#[cfg(feature = "vic3")]
 pub fn verify_modif_exists(key: &Token, data: &Everything, kinds: ModifKinds) {
     if let Some(mk) = lookup_modif(key, data, true) {
         kinds.require(mk, key);

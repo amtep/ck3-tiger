@@ -452,6 +452,7 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("state_tax_collection_mult", State),
     ("state_tax_waste_add", State),
     ("state_turmoil_effects_mult", State),
+    ("state_unincorporated_standard_of_living_add", State),
     ("state_unincorporated_starting_wages_mult", State),
     ("state_urbanization_add", State),
     ("state_urbanization_mult", State),

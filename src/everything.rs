@@ -160,6 +160,7 @@ use crate::vic3::data::{
     journalentries::Journalentry,
     laws::{LawGroup, LawType},
     media_aliases::MediaAlias,
+    modifier_types::ModifierType,
     modifiers::Modifier,
     pops::PopType,
     production_methods::{ProductionMethod, ProductionMethodGroup},
@@ -692,6 +693,7 @@ impl Everything {
         self.load_pdx_items(Item::LawGroup, LawGroup::add);
         self.load_pdx_items(Item::LawType, LawType::add);
         self.load_pdx_items(Item::MediaAlias, MediaAlias::add);
+        self.load_pdx_items(Item::ModifierType, ModifierType::add);
         self.load_pdx_items(Item::PopType, PopType::add);
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
         self.load_pdx_items(Item::ProductionMethodGroup, ProductionMethodGroup::add);
