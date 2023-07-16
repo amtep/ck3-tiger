@@ -294,7 +294,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "has_religion", Scope(Religion)),
     (Country, "has_researchable_technology", Boolean),
     (Country, "has_revolution", Boolean),
-    (Character, "has_role", UncheckedValue),
+    (Character, "has_role", Item(Item::CharacterRole)),
     (Country, "has_ruling_interest_group", UncheckedValue),
     (Country, "has_ruling_interest_group_count", CompareValue),
     (

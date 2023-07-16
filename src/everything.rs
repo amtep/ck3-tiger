@@ -843,6 +843,7 @@ impl Everything {
             Item::Asset => self.assets.asset_exists(key),
             Item::Attitude => ATTITUDES.contains(&key),
             Item::BlendShape => self.assets.blend_shape_exists(key),
+            Item::CharacterRole => CHARACTER_ROLES.contains(&key),
             Item::Coa => self.coas.exists(key),
             Item::CoaTemplate => self.coas.template_exists(key),
             Item::CountryTier => COUNTRY_TIERS.contains(&key),
@@ -910,7 +911,12 @@ impl Everything {
             }
             _ => {
                 if !self.item_exists(itype, key) {
-                    let msg = format!("{} {} not defined in {}", itype, key, itype.path());
+                    let path = itype.path();
+                    let msg = if path.is_empty() {
+                        format!("unknown {itype} {key}")
+                    } else {
+                        format!("{itype} {key} not defined in {path}")
+                    };
                     error(token, ErrorKey::MissingItem, &msg);
                 }
             }
@@ -1180,6 +1186,11 @@ pub const WARGOALS: &[&str] = &[
     "unification_leadership",
     "war_reparations",
 ];
+
+/// LAST UPDATED VIC3 VERSION 1.3.6
+#[cfg(feature = "vic3")]
+// TODO: maybe ruler and heir too?
+pub const CHARACTER_ROLES: &[&str] = &["admiral", "agitator", "general", "politician"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 /// Taken from the object browser

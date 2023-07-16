@@ -109,6 +109,7 @@ impl DbKind for TerrainManipulator {
         vd.field_item("preferred_terrain", Item::Terrain);
         // Same as in BuildingType
         vd.field_choice("city_type", &["none", "city", "farm", "mine", "port", "wood"]);
+        vd.field_bool("coastal");
 
         vd.field_validated_block("toggle_map_object_layers", |block, data| {
             let mut vd = Validator::new(block, data);

@@ -8,6 +8,7 @@ use crate::effect::{
 };
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 
@@ -18,6 +19,7 @@ use EvV::*;
 #[derive(Debug, Copy, Clone)]
 pub enum EvB {
     ActivateProductionMethod,
+    AddCultureModifier,
     AddToVariableList,
     ChangeVariable,
     ClampVariable,
@@ -56,6 +58,11 @@ pub fn validate_effect_block(
             vd.field_item("building_type", Item::BuildingType);
             // TODO: check that the production method belongs to the building type
             vd.field_item("production_method", Item::ProductionMethod);
+        }
+        AddCultureModifier => {
+            vd.field_target("culture", sc, Scopes::Culture);
+            vd.field_script_value("months", sc);
+            vd.field_numeric("multiplier"); // seems to be actually an adder
         }
         AddToVariableList => {
             validate_add_to_variable_list(vd, sc);

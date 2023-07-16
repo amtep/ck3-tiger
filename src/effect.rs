@@ -205,7 +205,6 @@ pub fn validate_effect_internal<'a>(
                         vd.field_target(key, sc, outscopes);
                     }
                 }
-                #[cfg(feature = "ck3")]
                 Effect::TargetValue(key, outscopes, valuekey) => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
@@ -292,6 +291,14 @@ pub fn validate_effect_internal<'a>(
                             vd.field_validated_sc("desc", sc, validate_desc);
                             validate_optional_duration(&mut vd, sc);
                         }
+                    }
+                }
+                #[cfg(feature = "vic3")]
+                Effect::AddModifier => {
+                    if let Some(block) = bv.expect_block() {
+                        let mut vd = Validator::new(block, data);
+                        vd.field_item("name", Item::Modifier);
+                        vd.field_script_value("multiplier", sc);
                     }
                 }
                 Effect::VB(v) => {
@@ -637,7 +644,6 @@ pub enum Effect {
     ScopeOrItem(Scopes, Item),
     #[cfg(feature = "ck3")]
     Target(&'static str, Scopes),
-    #[cfg(feature = "ck3")]
     TargetValue(&'static str, Scopes, &'static str),
     #[cfg(feature = "ck3")]
     ItemTarget(&'static str, Item, &'static str, Scopes),
@@ -648,7 +654,6 @@ pub enum Effect {
     /// days/weeks/months/years
     #[cfg(feature = "ck3")]
     Timespan,
-    #[cfg(feature = "ck3")]
     AddModifier,
     Control,
     ControlOrLabel,
