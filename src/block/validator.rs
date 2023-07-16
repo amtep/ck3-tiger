@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
 use crate::block::{Block, BlockItem, Comparator, Eq::*, Field, BV};
-use crate::context::ScopeContext;
+use crate::context::{ScopeContext, ScopeContextMaker};
 use crate::date::Date;
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
@@ -365,9 +365,9 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
-        self.field_check(name, |_, bv| {
-            validate_scriptvalue(bv, self.data, sc);
+    pub fn field_script_value<S: ScopeContextMaker>(&mut self, name: &str, scm: S) -> bool {
+        self.field_check(name, |key, bv| {
+            validate_scriptvalue(bv, self.data, scm.make(key).get_mut());
         })
     }
 

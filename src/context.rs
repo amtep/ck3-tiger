@@ -631,3 +631,46 @@ impl Drop for ScopeContext {
         }
     }
 }
+
+/// A trait that allows a validator function to take a scope context and either use it directly
+/// or initialize it from its own key, depending on what the caller wants.
+pub trait ScopeContextMaker {
+    fn make(&mut self, key: &Token) -> ScopeContextWrapper;
+}
+
+/// A scope context that's simply rooted with the given scope type.
+impl ScopeContextMaker for Scopes {
+    fn make(&mut self, key: &Token) -> ScopeContextWrapper {
+        let sc = ScopeContext::new(*self, key);
+        ScopeContextWrapper::Owned(sc)
+    }
+}
+
+/// A scope context provided by the caller that's used directly.
+impl ScopeContextMaker for &mut ScopeContext {
+    fn make(&mut self, _key: &Token) -> ScopeContextWrapper {
+        ScopeContextWrapper::Borrowed(self)
+    }
+}
+
+/// A scope context created by the closure provided by the caller.
+impl<F: FnMut(&Token) -> ScopeContext> ScopeContextMaker for F {
+    fn make(&mut self, key: &Token) -> ScopeContextWrapper {
+        ScopeContextWrapper::Owned(self(key))
+    }
+}
+
+/// A wrapper similar to `Cow`, but designed to give a mutable reference.
+pub enum ScopeContextWrapper<'a> {
+    Owned(ScopeContext),
+    Borrowed(&'a mut ScopeContext),
+}
+
+impl<'a> ScopeContextWrapper<'a> {
+    pub fn get_mut(&mut self) -> &mut ScopeContext {
+        match self {
+            ScopeContextWrapper::Owned(sc) => sc,
+            ScopeContextWrapper::Borrowed(sc) => sc,
+        }
+    }
+}
