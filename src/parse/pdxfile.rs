@@ -320,7 +320,7 @@ impl Parser {
     fn block_value(&mut self, mut block: Block) {
         // Like token(), but block values cannot become keys
         if let Some(tag) = self.current.tag.take() {
-            block.tag = Some(tag);
+            block.tag = Some(Box::new(tag));
         }
         if let Some(key) = self.current.key.take() {
             if let Some((comp, _)) = self.current.comp.take() {

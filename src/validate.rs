@@ -196,7 +196,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
     // and normal confidence level because I'm not 100% sure of the color formats.
     let mut count = 0;
     // Get the color tag, as in color = hsv { 0.5 1.0 1.0 }
-    let tag = block.tag.as_ref().map_or("rgb", Token::as_str);
+    let tag = block.tag.as_deref().map_or("rgb", Token::as_str);
     for item in block.iter_items() {
         if let Some(t) = item.get_value() {
             if tag == "hsv" {
@@ -254,7 +254,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
 pub fn validate_camera_color(block: &Block, data: &Everything) {
     let mut count = 0;
     // Get the color tag, as in color = hsv { 0.5 1.0 1.0 }
-    let tag = block.tag.as_ref().map_or("rgb", Token::as_str);
+    let tag = block.tag.as_deref().map_or("rgb", Token::as_str);
     if tag != "hsv" {
         let msg = "camera colors should be in hsv";
         old_warn(block, ErrorKey::Colors, msg);

@@ -20,7 +20,7 @@ pub use crate::block::field::Field;
 pub struct Block {
     // v can contain key = value pairs as well as unadorned values.
     v: Vec<BlockItem>,
-    pub tag: Option<Token>,
+    pub tag: Option<Box<Token>>,
     pub loc: Loc,
     /// If the block is a top-level block and contains macro substitutions,
     /// this field will hold the original source for re-parsing.
