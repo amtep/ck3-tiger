@@ -289,7 +289,6 @@ impl AccessoryGene {
         db.add(Item::GeneCategory, key, block, Box::new(Self { templates }));
     }
 
-    #[cfg(feature = "ck3")]
     pub fn has_template_setting(
         _key: &Token,
         block: &Block,

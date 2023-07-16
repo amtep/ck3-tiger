@@ -79,7 +79,6 @@ use crate::ck3::data::{
     perks::Perk,
     points_of_interest::PointOfInterest,
     pool::{CharacterBackground, PoolSelector},
-    portrait::{PortraitAnimation, PortraitCamera, PortraitModifierGroup, PortraitModifierPack},
     prov_history::ProvinceHistories,
     provinces::Provinces,
     regions::Region,
@@ -124,6 +123,7 @@ use crate::data::{
     gui::Gui,
     localization::Localization,
     on_actions::OnActions,
+    portrait::{PortraitAnimation, PortraitCamera, PortraitModifierGroup, PortraitModifierPack},
     scripted_effects::{Effect, Effects},
     scripted_lists::ScriptedLists,
     scripted_modifiers::ScriptedModifiers,
@@ -531,6 +531,14 @@ impl Everything {
         self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
         self.load_pdx_items(Item::GeneCategory, Gene::add);
         self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
+        self.load_pdx_items(Item::PortraitAnimation, PortraitAnimation::add);
+        self.load_pdx_items(Item::PortraitCamera, PortraitCamera::add);
+        self.load_pdx_items(Item::PortraitModifierGroup, PortraitModifierGroup::add);
+        self.load_pdx_items_ext(
+            Item::PortraitModifierPack,
+            PortraitModifierPack::add,
+            ".modifierpack",
+        );
         self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
 
         // These are items that are different between vic3 and ck3 but share the same name
@@ -596,13 +604,6 @@ impl Everything {
         self.load_pdx_items(Item::CultureAesthetic, CultureAesthetic::add);
         self.load_pdx_items(Item::CultureCreationName, CultureCreationName::add);
         self.load_pdx_items(Item::Innovation, Innovation::add);
-        self.load_pdx_items(Item::PortraitModifierGroup, PortraitModifierGroup::add);
-        self.load_pdx_items_ext(
-            Item::PortraitModifierPack,
-            PortraitModifierPack::add,
-            ".modifierpack",
-        );
-        self.load_pdx_items(Item::PortraitCamera, PortraitCamera::add);
         self.load_pdx_items(Item::AccoladeIcon, AccoladeIcon::add);
         self.load_pdx_items(Item::AccoladeName, AccoladeName::add);
         self.load_pdx_items(Item::AccoladeType, AccoladeType::add);
@@ -641,7 +642,6 @@ impl Everything {
         self.load_pdx_items(Item::CourtSceneRole, CourtSceneRole::add);
         self.load_pdx_files_optional_bom(Item::CourtSceneSetting, CourtSceneSetting::add);
         self.load_pdx_files_optional_bom(Item::MapEnvironment, MapEnvironment::add);
-        self.load_pdx_items(Item::PortraitAnimation, PortraitAnimation::add);
         self.load_pdx_items(Item::GameRule, GameRule::add);
         self.load_pdx_items(Item::TravelOption, TravelOption::add);
         self.load_pdx_items(Item::Story, Story::add);

@@ -30,11 +30,16 @@ impl DbKind for PortraitModifierGroup {
         sc.define_name("age", Scopes::Value, key);
         sc.define_name("culture", Scopes::Culture, key);
         sc.define_name("current_weight", Scopes::Value, key);
+        #[cfg(feature = "ck3")]
         sc.define_name("highest_held_title_tier", Scopes::Value, key);
+        #[cfg(feature = "ck3")]
         sc.define_name("faith", Scopes::Faith, key);
         sc.define_name("female", Scopes::Bool, key);
+        #[cfg(feature = "ck3")]
         sc.define_name("government", Scopes::GovernmentType, key);
+        #[cfg(feature = "ck3")]
         sc.define_name("prowess", Scopes::Value, key);
+        #[cfg(feature = "ck3")]
         sc.define_name("ruler_designer", Scopes::Bool, key);
         sc.define_name("weight_for_portrait", Scopes::Value, key);
         sc.define_name("year_of_birth", Scopes::Value, key);

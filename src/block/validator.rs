@@ -787,7 +787,6 @@ impl<'a> Validator<'a> {
         found
     }
 
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn req_tokens_integers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
@@ -845,7 +844,6 @@ impl<'a> Validator<'a> {
         });
     }
 
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_list_integers_exactly(&mut self, name: &str, expect: usize) {
         self.field_validated_block(name, |block, data| {
             let mut vd = Validator::new(block, data);
