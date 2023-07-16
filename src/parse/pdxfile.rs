@@ -395,7 +395,8 @@ impl Parser {
                 let mut loc = prev_level.block.loc.clone();
                 loc.column += 1;
                 let token = Token::new(s, prev_level.block.loc.clone());
-                prev_level.block.source = Some((split_macros(&token), self.local_macros.clone()));
+                prev_level.block.source =
+                    Some(Box::new((split_macros(&token), self.local_macros.clone())));
             } else {
                 self.current.contains_macro_parms |= prev_level.contains_macro_parms;
             }

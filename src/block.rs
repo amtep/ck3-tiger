@@ -19,7 +19,6 @@ pub use crate::block::field::Field;
 #[derive(Clone, Debug)]
 pub struct Block {
     // v can contain key = value pairs as well as unadorned values.
-    // The latter are inserted as None tokens and Comparator::None
     v: Vec<BlockItem>,
     pub tag: Option<Token>,
     pub loc: Loc,
@@ -27,7 +26,8 @@ pub struct Block {
     /// this field will hold the original source for re-parsing.
     /// The source has already been split into a vec that alternates content
     /// with macro parameters.
-    pub source: Option<(Vec<Token>, LocalMacros)>,
+    // Making this a Box saves 80 bytes from every BlockItem
+    pub source: Option<Box<(Vec<Token>, LocalMacros)>>,
 }
 
 impl Block {
@@ -308,7 +308,8 @@ impl Block {
 
     pub fn macro_parms(&self) -> Vec<&str> {
         let mut vec = Vec::new();
-        if let Some((source, _)) = &self.source {
+        if let Some(source_box) = &self.source {
+            let source = &source_box.0;
             let mut odd = false;
             for part in source {
                 odd = !odd;
@@ -324,7 +325,8 @@ impl Block {
 
     pub fn expand_macro(&self, args: &[(&str, Token)], link: &Token) -> Option<Block> {
         let link = Arc::new(link.loc.clone());
-        if let Some((source, local_macros)) = &self.source {
+        if let Some(source_box) = &self.source {
+            let (source, local_macros) = &**source_box;
             let mut content = Vec::new();
             let mut odd = false;
             for part in source {
