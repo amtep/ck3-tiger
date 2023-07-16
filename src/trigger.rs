@@ -313,7 +313,7 @@ pub fn validate_trigger_key_bv(
         } else if data.scriptvalues.exists(part.as_str()) {
             data.scriptvalues.validate_call(part, data, sc);
             sc.replace(Scopes::Value, part.clone());
-        } else if let Some((inscopes, outscope)) = scope_to_scope(part) {
+        } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
             if inscopes == Scopes::None && !first {
                 let msg = format!("`{part}` makes no sense except as first part");
                 old_warn(part, ErrorKey::Validation, &msg);
@@ -840,7 +840,7 @@ pub fn validate_target_ok_this(
             } else {
                 sc.replace_this();
             }
-        } else if let Some((inscopes, outscope)) = scope_to_scope(part) {
+        } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
             if inscopes == Scopes::None && !first {
                 let msg = format!("`{part}` makes no sense except as first part");
                 old_warn(part, ErrorKey::Validation, &msg);

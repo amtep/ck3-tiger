@@ -214,9 +214,32 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     })
 }
 
-pub fn scope_to_scope(name: &Token) -> Option<(Scopes, Scopes)> {
+pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_TO_SCOPE {
         if name.is(s) {
+            // Special case for "type" because it goes from specific scope types to specific other scope types.
+            if *s == "type" {
+                let mut outscopes = Scopes::empty();
+                if inscopes.contains(Scopes::Building) {
+                    outscopes |= Scopes::BuildingType;
+                }
+                if inscopes.contains(Scopes::CommanderOrder) {
+                    outscopes |= Scopes::CommanderOrderType;
+                }
+                if inscopes.contains(Scopes::Institution) {
+                    outscopes |= Scopes::InstitutionType;
+                }
+                if inscopes.contains(Scopes::InterestGroup) {
+                    outscopes |= Scopes::InterestGroupType;
+                }
+                if inscopes.contains(Scopes::Law) {
+                    outscopes |= Scopes::LawType;
+                }
+                if outscopes.is_empty() {
+                    outscopes = Scopes::from_bits_truncate(*to);
+                }
+                return Some((Scopes::from_bits_truncate(*from), outscopes));
+            }
             return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
         }
     }

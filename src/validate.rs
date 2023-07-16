@@ -860,7 +860,7 @@ pub fn validate_scope_chain(
             } else {
                 sc.replace_this();
             }
-        } else if let Some((inscopes, outscope)) = scope_to_scope(part) {
+        } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
             if inscopes == Scopes::None && !first {
                 let msg = format!("`{part}` makes no sense except as first part");
                 old_warn(part, ErrorKey::Validation, &msg);
