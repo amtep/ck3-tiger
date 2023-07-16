@@ -154,6 +154,7 @@ use crate::vic3::data::{
     ideologies::Ideology,
     institutions::Institution,
     interest_groups::InterestGroup,
+    journalentries::Journalentry,
     laws::{LawGroup, LawType},
     media_aliases::MediaAlias,
     modifiers::Modifier,
@@ -681,6 +682,7 @@ impl Everything {
         self.load_pdx_items(Item::Ideology, Ideology::add);
         self.load_pdx_items(Item::Institution, Institution::add);
         self.load_pdx_items(Item::InterestGroup, InterestGroup::add);
+        self.load_pdx_items(Item::Journalentry, Journalentry::add);
         self.load_pdx_items(Item::LawGroup, LawGroup::add);
         self.load_pdx_items(Item::LawType, LawType::add);
         self.load_pdx_items(Item::MediaAlias, MediaAlias::add);
@@ -874,7 +876,7 @@ impl Everything {
             }
             Item::TextureFile => self.assets.texture_exists(key),
             Item::Wargoal => WARGOALS.contains(&key),
-            Item::TutorialLesson => true, // TODO
+            Item::ScriptedButton | Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
