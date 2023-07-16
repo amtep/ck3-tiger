@@ -112,7 +112,6 @@ impl OnAction {
     }
 
     pub fn validate(&self, data: &Everything) {
-        let mut vd = Validator::new(&self.block, data);
         let mut sc;
         if let Some(sc_builtin) = on_action_scopecontext(&self.key, data) {
             sc = sc_builtin;
@@ -121,128 +120,134 @@ impl OnAction {
             sc.set_strict_scopes(false);
         }
 
-        vd.field_validated_block("trigger", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block_sc("weight_multiplier", &mut sc, validate_modifiers_with_base);
-
-        // TODO: multiple random_events blocks in one on_action aren't outright bugged on Vic3,
-        // but they might still get merged together into one big event pool. Verify.
-
-        let mut count = 0;
-        #[allow(unused_variables)] // vic3 doesn't use `key`
-        vd.field_validated_key_blocks("events", |key, b, data| {
-            let mut vd = Validator::new(b, data);
-            vd.field_validated_blocks_sc("delay", &mut sc, validate_duration);
-            for token in vd.values() {
-                data.verify_exists(Item::Event, token);
-                data.events.check_scope(token, &mut sc);
-            }
-            count += 1;
-            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-            if count == 2 {
-                // TODO: verify
-                let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
-                let info = "try combining them into one block";
-                warn_info(key, ErrorKey::Validation, &msg, info);
-            }
-        });
-        count = 0;
-        #[allow(unused_variables)] // vic3 doesn't use `key`
-        vd.field_validated_key_blocks("random_events", |key, b, data| {
-            let mut vd = Validator::new(b, data);
-            vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
-            vd.field_script_value("chance_of_no_event", &mut sc);
-            vd.field_validated_blocks_sc("delay", &mut sc, validate_duration); // undocumented
-            for (_key, token) in vd.integer_values() {
-                if token.is("0") {
-                    continue;
-                }
-                data.verify_exists(Item::Event, token);
-                data.events.check_scope(token, &mut sc);
-            }
-            count += 1;
-            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-            if count == 2 {
-                let msg = format!("multiple `{key}` blocks in one on_action do not work");
-                let info = "try putting each into its own on_action and firing those separately";
-                error_info(key, ErrorKey::Validation, &msg, info);
-            }
-        });
-        count = 0;
-        #[allow(unused_variables)] // vic3 doesn't use `key`
-        vd.field_validated_key_blocks("first_valid", |key, b, data| {
-            let mut vd = Validator::new(b, data);
-            for token in vd.values() {
-                data.verify_exists(Item::Event, token);
-                data.events.check_scope(token, &mut sc);
-            }
-            count += 1;
-            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-            if count == 2 {
-                // TODO: verify
-                let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
-                let info = "try putting each into its own on_action and firing those separately";
-                warn_info(key, ErrorKey::Validation, &msg, info);
-            }
-        });
-        count = 0;
-        #[allow(unused_variables)] // vic3 doesn't use `key`
-        vd.field_validated_key_blocks("on_actions", |key, b, data| {
-            let mut vd = Validator::new(b, data);
-            vd.field_validated_blocks_sc("delay", &mut sc, validate_duration);
-            for token in vd.values() {
-                data.verify_exists(Item::OnAction, token);
-            }
-            count += 1;
-            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-            if count == 2 {
-                // TODO: verify
-                let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
-                let info = "try combining them into one block";
-                warn_info(key, ErrorKey::Validation, &msg, info);
-            }
-        });
-        count = 0;
-        #[allow(unused_variables)] // vic3 doesn't use `key`
-        vd.field_validated_key_blocks("random_on_action", |key, b, data| {
-            let mut vd = Validator::new(b, data);
-            vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
-            vd.field_script_value("chance_of_no_event", &mut sc);
-            for (_key, token) in vd.integer_values() {
-                if token.is("0") {
-                    continue;
-                }
-                data.verify_exists(Item::OnAction, token);
-            }
-            count += 1;
-            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-            if count == 2 {
-                // TODO: verify
-                let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
-                let info = "try putting each into its own on_action and firing those separately";
-                warn_info(key, ErrorKey::Validation, &msg, info);
-            }
-        });
-        count = 0;
-        #[allow(unused_variables)] // vic3 doesn't use `key`
-        vd.field_validated_key_blocks("first_valid_on_action", |key, b, data| {
-            let mut vd = Validator::new(b, data);
-            for token in vd.values() {
-                data.verify_exists(Item::OnAction, token);
-            }
-            count += 1;
-            #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-            if count == 2 {
-                // TODO: verify
-                let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
-                let info = "try putting each into its own on_action and firing those separately";
-                warn_info(key, ErrorKey::Validation, &msg, info);
-            }
-        });
-        vd.field_validated_block("effect", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_item("fallback", Item::OnAction);
+        validate_on_action(&self.block, data, &mut sc);
     }
+}
+
+pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    vd.field_validated_block("trigger", |b, data| {
+        validate_trigger(b, data, sc, Tooltipped::No);
+    });
+    vd.field_validated_block_sc("weight_multiplier", sc, validate_modifiers_with_base);
+
+    // TODO: multiple random_events blocks in one on_action aren't outright bugged on Vic3,
+    // but they might still get merged together into one big event pool. Verify.
+
+    let mut count = 0;
+    #[allow(unused_variables)] // vic3 doesn't use `key`
+    vd.field_validated_key_blocks("events", |key, b, data| {
+        let mut vd = Validator::new(b, data);
+        vd.field_validated_blocks_sc("delay", sc, validate_duration);
+        for token in vd.values() {
+            data.verify_exists(Item::Event, token);
+            data.events.check_scope(token, sc);
+        }
+        count += 1;
+        #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
+        if count == 2 {
+            // TODO: verify
+            let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
+            let info = "try combining them into one block";
+            warn_info(key, ErrorKey::Validation, &msg, info);
+        }
+    });
+    count = 0;
+    #[allow(unused_variables)] // vic3 doesn't use `key`
+    vd.field_validated_key_blocks("random_events", |key, b, data| {
+        let mut vd = Validator::new(b, data);
+        vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
+        vd.field_script_value("chance_of_no_event", sc);
+        vd.field_validated_blocks_sc("delay", sc, validate_duration); // undocumented
+        for (_key, token) in vd.integer_values() {
+            if token.is("0") {
+                continue;
+            }
+            data.verify_exists(Item::Event, token);
+            data.events.check_scope(token, sc);
+        }
+        count += 1;
+        #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
+        if count == 2 {
+            let msg = format!("multiple `{key}` blocks in one on_action do not work");
+            let info = "try putting each into its own on_action and firing those separately";
+            error_info(key, ErrorKey::Validation, &msg, info);
+        }
+    });
+    count = 0;
+    #[allow(unused_variables)] // vic3 doesn't use `key`
+    vd.field_validated_key_blocks("first_valid", |key, b, data| {
+        let mut vd = Validator::new(b, data);
+        for token in vd.values() {
+            data.verify_exists(Item::Event, token);
+            data.events.check_scope(token, sc);
+        }
+        count += 1;
+        #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
+        if count == 2 {
+            // TODO: verify
+            let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
+            let info = "try putting each into its own on_action and firing those separately";
+            warn_info(key, ErrorKey::Validation, &msg, info);
+        }
+    });
+    count = 0;
+    #[allow(unused_variables)] // vic3 doesn't use `key`
+    vd.field_validated_key_blocks("on_actions", |key, b, data| {
+        let mut vd = Validator::new(b, data);
+        vd.field_validated_blocks_sc("delay", sc, validate_duration);
+        for token in vd.values() {
+            data.verify_exists(Item::OnAction, token);
+        }
+        count += 1;
+        #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
+        if count == 2 {
+            // TODO: verify
+            let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
+            let info = "try combining them into one block";
+            warn_info(key, ErrorKey::Validation, &msg, info);
+        }
+    });
+    count = 0;
+    #[allow(unused_variables)] // vic3 doesn't use `key`
+    vd.field_validated_key_blocks("random_on_action", |key, b, data| {
+        let mut vd = Validator::new(b, data);
+        vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
+        vd.field_script_value("chance_of_no_event", sc);
+        for (_key, token) in vd.integer_values() {
+            if token.is("0") {
+                continue;
+            }
+            data.verify_exists(Item::OnAction, token);
+        }
+        count += 1;
+        #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
+        if count == 2 {
+            // TODO: verify
+            let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
+            let info = "try putting each into its own on_action and firing those separately";
+            warn_info(key, ErrorKey::Validation, &msg, info);
+        }
+    });
+    count = 0;
+    #[allow(unused_variables)] // vic3 doesn't use `key`
+    vd.field_validated_key_blocks("first_valid_on_action", |key, b, data| {
+        let mut vd = Validator::new(b, data);
+        for token in vd.values() {
+            data.verify_exists(Item::OnAction, token);
+        }
+        count += 1;
+        #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
+        if count == 2 {
+            // TODO: verify
+            let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
+            let info = "try putting each into its own on_action and firing those separately";
+            warn_info(key, ErrorKey::Validation, &msg, info);
+        }
+    });
+    vd.field_validated_block("effect", |b, data| {
+        validate_effect(b, data, sc, Tooltipped::No);
+    });
+    // TODO: check for infinite fallback loops?
+    vd.field_item("fallback", Item::OnAction);
 }

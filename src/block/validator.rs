@@ -291,6 +291,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_block(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| _ = bv.expect_block())
     }
