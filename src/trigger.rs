@@ -86,6 +86,14 @@ pub fn validate_trigger_internal(
         vd.ban_field("limit", || "`trigger_if`, `trigger_else_if` or `trigger_else`");
     }
 
+    if in_list {
+        vd.field_validated_block("filter", |block, data| {
+            validate_trigger(block, data, sc, Tooltipped::No);
+        });
+    } else {
+        vd.ban_field("filter", || "lists");
+    }
+
     let list_type = if in_list { ListType::Any } else { ListType::None };
     validate_iterator_fields(caller, list_type, data, sc, &mut vd, &mut tooltipped);
 

@@ -71,6 +71,14 @@ pub fn validate_effect_internal<'a>(
         vd.ban_field("limit", || "if/else_if or lists");
     }
 
+    if list_type != ListType::None {
+        vd.field_validated_block("filter", |block, data| {
+            validate_trigger(block, data, sc, Tooltipped::No);
+        });
+    } else {
+        vd.ban_field("filter", || "lists");
+    }
+
     validate_iterator_fields(caller, list_type, data, sc, &mut vd, &mut tooltipped);
 
     if list_type != ListType::None {
