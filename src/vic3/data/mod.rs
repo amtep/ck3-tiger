@@ -4,6 +4,7 @@ pub mod buildings;
 pub mod character_interactions;
 pub mod countries;
 pub mod cultures;
+pub mod decisions;
 pub mod diplomatic_actions;
 pub mod events;
 pub mod gameconcepts;

@@ -149,6 +149,7 @@ use crate::vic3::data::{
     character_interactions::CharacterInteraction,
     countries::Country,
     cultures::Culture,
+    decisions::Decision,
     diplomatic_actions::DiplomaticAction,
     events::Events,
     gameconcepts::GameConcept,
@@ -547,6 +548,7 @@ impl Everything {
 
         // These are items that are different between vic3 and ck3 but share the same name
         self.load_pdx_items(Item::Culture, Culture::add);
+        self.load_pdx_items(Item::Decision, Decision::add);
         self.load_pdx_items(Item::Modifier, Modifier::add);
         self.load_pdx_items(Item::Religion, Religion::add);
     }
@@ -567,7 +569,6 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.sounds));
             s.spawn(|_| self.fileset.handle(&mut self.music));
         });
-        self.load_pdx_items(Item::Decision, Decision::add);
         self.load_pdx_items(Item::Interaction, Interaction::add);
         self.load_pdx_items(Item::ReligionFamily, ReligionFamily::add);
         self.load_pdx_items(Item::Dynasty, Dynasty::add);
