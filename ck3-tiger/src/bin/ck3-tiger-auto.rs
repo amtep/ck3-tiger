@@ -1,8 +1,6 @@
 use std::fs::{read_dir, DirEntry};
 use std::mem::forget;
 use std::path::{Path, PathBuf};
-use std::thread::sleep;
-use std::time::Duration;
 
 use anyhow::{bail, Result};
 use console::Term;
@@ -24,8 +22,6 @@ const CK3_SIGNATURE_FILE: &str = "game/events/witch_events.txt";
 /// The directory under the Paradox Interactive directory for local files
 const CK3_PARADOX_DIR: &str = "Crusader Kings III";
 
-const ERROR_WAIT_SECONDS: u64 = 5;
-
 fn main() {
     match inner_main() {
         Ok(_) => (),
@@ -33,8 +29,9 @@ fn main() {
             eprintln!();
             eprintln!("ERROR: {e:#}");
             eprintln!("Please try the main ck3-tiger executable from the command prompt.");
-            sleep(Duration::from_secs(ERROR_WAIT_SECONDS));
-            eprintln!("Giving up.");
+            eprintln!("Press any key to exit.");
+            let term = Term::stdout();
+            _ = term.read_char();
         }
     }
 }
