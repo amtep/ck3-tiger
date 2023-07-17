@@ -1,4 +1,5 @@
 use std::fs::{read_dir, DirEntry};
+use std::mem::forget;
 use std::path::{Path, PathBuf};
 use std::thread::sleep;
 use std::time::Duration;
@@ -140,6 +141,9 @@ fn validate_mod(ck3: &Path, modpath: &Path, logdir: &Path) -> Result<()> {
     everything.validate_all();
     everything.check_rivers();
     emit_reports();
+
+    // Properly dropping `everything` takes a noticeable amount of time, and we're exiting anyway.
+    forget(everything);
 
     Ok(())
 }

@@ -1,3 +1,4 @@
+use std::mem::forget;
 use std::path::PathBuf;
 
 use anyhow::{bail, Result};
@@ -144,6 +145,9 @@ fn main() -> Result<()> {
     if args.unused {
         everything.check_unused();
     }
+
+    // Properly dropping `everything` takes a noticeable amount of time, and we're exiting anyway.
+    forget(everything);
 
     Ok(())
 }

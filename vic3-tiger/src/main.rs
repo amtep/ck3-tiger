@@ -1,6 +1,8 @@
+use std::mem::forget;
+use std::path::PathBuf;
+
 use anyhow::{bail, Result};
 use clap::Parser;
-use std::path::PathBuf;
 
 use tiger_lib::everything::Everything;
 use tiger_lib::gamedir::find_game_directory_steam;
@@ -129,6 +131,9 @@ fn main() -> Result<()> {
     if args.unused {
         everything.check_unused();
     }
+
+    // Properly dropping `everything` takes a noticeable amount of time, and we're exiting anyway.
+    forget(everything);
 
     Ok(())
 }
