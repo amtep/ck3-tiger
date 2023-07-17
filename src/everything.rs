@@ -147,6 +147,7 @@ use crate::vic3::data::{
     battle_conditions::BattleCondition,
     buildings::{BuildingGroup, BuildingType},
     character_interactions::CharacterInteraction,
+    combat_units::CombatUnit,
     countries::Country,
     cultures::Culture,
     decisions::Decision,
@@ -690,6 +691,7 @@ impl Everything {
         self.load_pdx_items(Item::BuildingGroup, BuildingGroup::add);
         self.load_pdx_items(Item::BuildingType, BuildingType::add);
         self.load_pdx_items(Item::CharacterInteraction, CharacterInteraction::add);
+        self.load_pdx_items(Item::CombatUnit, CombatUnit::add);
         self.load_pdx_items(Item::Country, Country::add);
         self.load_pdx_items(Item::DiplomaticAction, DiplomaticAction::add);
         self.load_pdx_items(Item::GameConcept, GameConcept::add);
