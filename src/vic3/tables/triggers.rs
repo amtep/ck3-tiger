@@ -561,7 +561,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (MarketGoods, "market_goods_sell_orders", CompareValue),
     (MarketGoods, "market_goods_shortage_ratio", CompareValue),
     (Market, "market_has_goods_shortage", Boolean),
-    (Country, "max_num_declared_interested", CompareValue),
+    (Country, "max_num_declared_interests", CompareValue),
     (Country, "military_wage_level", CompareLevel),
     (Country, "military_wage_level_value", CompareValue),
     (Character, "mobilization_cost", CompareValue),

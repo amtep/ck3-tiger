@@ -298,7 +298,7 @@ impl<'a> Validator<'a> {
     pub fn field_bool(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
-                if !token.is("yes") && !token.is("no") {
+                if !token.is("yes") && !token.is("no") && !token.is("YES") && !token.is("NO") {
                     error(token, ErrorKey::Validation, "expected yes or no");
                 }
             }

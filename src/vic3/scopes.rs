@@ -613,6 +613,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Province, "naval_hq", Hq),
     (Country, "navy_size", Value),
     (None, "no", Bool),
+    (None, "NO", Bool),
     (Country, "num_active_declared_interests", Value),
     (Country, "num_active_interests", Value),
     (Country, "num_active_natural_interests", Value),
@@ -715,6 +716,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (DiplomaticPlay, "war", War),
     (Pop, "workplace", Building),
     (None, "yes", Bool),
+    (None, "YES", Bool),
 ];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6

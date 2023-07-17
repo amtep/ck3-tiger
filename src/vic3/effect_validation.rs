@@ -70,6 +70,7 @@ pub fn validate_effect_block(
         AddJournalentry => {
             vd.req_field("type");
             vd.field_item("type", Item::Journalentry);
+            vd.field_item("objective_subgoal", Item::ObjectiveSubgoal); // undocumented
             vd.field_target("target", sc, Scopes::all());
         }
         AddLoyalists => {

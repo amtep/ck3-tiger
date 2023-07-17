@@ -18,6 +18,7 @@ pub mod laws;
 pub mod media_aliases;
 pub mod modifier_types;
 pub mod modifiers;
+pub mod objectives;
 pub mod pops;
 pub mod production_methods;
 pub mod provinces;

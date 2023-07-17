@@ -218,7 +218,7 @@ pub fn validate_trigger_key_bv(
     if let Some(trigger) = data.get_trigger(key) {
         match bv {
             BV::Value(token) => {
-                if !(token.is("yes") || token.is("no")) {
+                if !(token.is("yes") || token.is("no") || token.is("YES") || token.is("NO")) {
                     old_warn(token, ErrorKey::Validation, "expected yes or no");
                 }
                 if !trigger.macro_parms().is_empty() {

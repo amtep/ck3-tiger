@@ -163,6 +163,7 @@ use crate::vic3::data::{
     media_aliases::MediaAlias,
     modifier_types::ModifierType,
     modifiers::Modifier,
+    objectives::{Objective, ObjectiveSubgoal, ObjectiveSubgoalCategory},
     pops::PopType,
     production_methods::{ProductionMethod, ProductionMethodGroup},
     provinces::Provinces,
@@ -701,6 +702,9 @@ impl Everything {
         self.load_pdx_items(Item::LawType, LawType::add);
         self.load_pdx_items(Item::MediaAlias, MediaAlias::add);
         self.load_pdx_items(Item::ModifierType, ModifierType::add);
+        self.load_pdx_items(Item::Objective, Objective::add);
+        self.load_pdx_items(Item::ObjectiveSubgoal, ObjectiveSubgoal::add);
+        self.load_pdx_items(Item::ObjectiveSubgoalCategory, ObjectiveSubgoalCategory::add);
         self.load_pdx_items(Item::PopType, PopType::add);
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
         self.load_pdx_items(Item::ProductionMethodGroup, ProductionMethodGroup::add);
