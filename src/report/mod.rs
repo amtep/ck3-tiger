@@ -14,3 +14,4 @@ mod filter;
 mod output_style;
 mod report_struct;
 mod writer;
+mod writer_json;

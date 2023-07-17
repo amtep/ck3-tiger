@@ -33,6 +33,9 @@ struct Cli {
     /// Show errors in other loaded mods as well.
     #[clap(long)]
     show_mods: bool,
+    /// Output the reports in JSON format
+    #[clap(long)]
+    json: bool,
     /// Warn about items that are defined but unused.
     #[clap(long)]
     unused: bool,
@@ -110,7 +113,7 @@ fn main() -> Result<()> {
 
     everything.load_output_settings(true);
     everything.load_config_filtering_rules();
-    emit_reports();
+    emit_reports(args.json);
 
     // We must apply the --no-color flag AFTER loading and applying the config,
     // because we want it to override the config.
@@ -127,7 +130,7 @@ fn main() -> Result<()> {
     everything.load_all();
     everything.validate_all();
     everything.check_rivers();
-    emit_reports();
+    emit_reports(args.json);
     if args.unused {
         everything.check_unused();
     }

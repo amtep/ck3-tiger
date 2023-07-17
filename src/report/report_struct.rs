@@ -1,3 +1,4 @@
+use serde::Serialize;
 use strum_macros::EnumString;
 use strum_macros::{Display, EnumIter};
 
@@ -59,8 +60,21 @@ impl PointedMessage {
 /// The order of these enum values determines the level of severity they denote.
 /// Do not change the order unless you mean to change the logic of the program!
 #[derive(
-    Default, Debug, Display, Clone, Copy, Ord, PartialOrd, Eq, PartialEq, Hash, EnumString, EnumIter,
+    Default,
+    Debug,
+    Display,
+    Clone,
+    Copy,
+    Ord,
+    PartialOrd,
+    Eq,
+    PartialEq,
+    Hash,
+    EnumString,
+    EnumIter,
+    Serialize,
 )]
+#[serde(rename_all = "kebab-case")]
 pub enum Severity {
     /// These are things that aren't necessarily wrong, but there may be a better, more
     /// idiomatic way to do it. This may also include performance issues.
@@ -86,8 +100,20 @@ pub enum Severity {
 /// The order of these enum values determines the level of confidence they denote.
 /// Do not change the order unless you mean to change the logic of the program!
 #[derive(
-    Default, Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq, Hash, EnumString, EnumIter,
+    Default,
+    Debug,
+    Clone,
+    Copy,
+    Ord,
+    PartialOrd,
+    Eq,
+    PartialEq,
+    Hash,
+    EnumString,
+    EnumIter,
+    Serialize,
 )]
+#[serde(rename_all = "kebab-case")]
 pub enum Confidence {
     /// Quite likely to be a false positive.
     Weak,

@@ -16,6 +16,7 @@ use crate::fileset::FileKind;
 use crate::report::error_loc::ErrorLoc;
 use crate::report::filter::ReportFilter;
 use crate::report::writer::log_report;
+use crate::report::writer_json::log_report_json;
 use crate::report::{
     err, tips, warn, ErrorKey, FilterRule, LogReport, OutputStyle, PointedMessage,
 };
@@ -74,18 +75,22 @@ impl Default for Errors {
 }
 
 impl Errors {
+    pub(crate) fn get_fullpath(&mut self, kind: FileKind, path: &Path) -> PathBuf {
+        match kind {
+            FileKind::Internal => path.to_path_buf(),
+            FileKind::Clausewitz => self.clausewitz_root.join(path),
+            FileKind::Jomini => self.jomini_root.join(path),
+            FileKind::Vanilla => self.vanilla_root.join(path),
+            FileKind::LoadedMod(idx) => self.loaded_mods[idx as usize].join(path),
+            FileKind::Mod => self.mod_root.join(path),
+        }
+    }
+
     pub(crate) fn get_line(&mut self, loc: &Loc) -> Option<String> {
         if loc.line == 0 {
             return None;
         }
-        let pathname = match loc.kind {
-            FileKind::Internal => loc.pathname().to_path_buf(),
-            FileKind::Clausewitz => self.clausewitz_root.join(loc.pathname()),
-            FileKind::Jomini => self.jomini_root.join(loc.pathname()),
-            FileKind::Vanilla => self.vanilla_root.join(loc.pathname()),
-            FileKind::LoadedMod(idx) => self.loaded_mods[idx as usize].join(loc.pathname()),
-            FileKind::Mod => self.mod_root.join(loc.pathname()),
-        };
+        let pathname = self.get_fullpath(loc.kind, loc.pathname());
         if let Some(contents) = self.filecache.get(&pathname) {
             return contents.lines().nth(loc.line as usize - 1).map(str::to_string);
         }
@@ -125,7 +130,7 @@ impl Errors {
         _ = writeln!(self.output.get_mut(), "{msg}");
     }
 
-    pub fn emit_reports(&mut self) {
+    pub fn emit_reports(&mut self, json: bool) {
         let mut reports: Vec<LogReport> = take(&mut self.storage).into_iter().collect();
         reports.sort_unstable_by(|a, b| {
             // Severity in descending order
@@ -157,7 +162,11 @@ impl Errors {
             cmp
         });
         for report in &reports {
-            log_report(self, report);
+            if json {
+                log_report_json(self, report);
+            } else {
+                log_report(self, report);
+            }
         }
     }
 
@@ -233,8 +242,8 @@ pub fn will_maybe_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
     Errors::get().filter.should_maybe_print(key, &eloc.into_loc())
 }
 
-pub fn emit_reports() {
-    Errors::get_mut().emit_reports();
+pub fn emit_reports(json: bool) {
+    Errors::get_mut().emit_reports(json);
 }
 
 // =================================================================================================

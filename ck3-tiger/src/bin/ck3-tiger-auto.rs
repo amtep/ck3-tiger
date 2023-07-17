@@ -132,12 +132,12 @@ fn validate_mod(ck3: &Path, modpath: &Path, logdir: &Path) -> Result<()> {
     // The colors can be enabled again in the ck3-tiger.conf file.
     everything.load_output_settings(false);
     everything.load_config_filtering_rules();
-    emit_reports();
+    emit_reports(false);
 
     everything.load_all();
     everything.validate_all();
     everything.check_rivers();
-    emit_reports();
+    emit_reports(false);
 
     // Properly dropping `everything` takes a noticeable amount of time, and we're exiting anyway.
     forget(everything);
