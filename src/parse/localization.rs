@@ -121,7 +121,7 @@ impl<'a> LocaParser<'a> {
                 break;
             }
         }
-        let s = self.content[start_offset..self.offset].to_string();
+        let s = &self.content[start_offset..self.offset];
         Token::new(s, loc)
     }
 
@@ -165,7 +165,7 @@ impl<'a> LocaParser<'a> {
                 text.push(c);
                 self.next_char();
             }
-            Some(Token::new(text, loc))
+            Some(Token::new(&text, loc))
         } else {
             None
         }
@@ -189,7 +189,7 @@ impl<'a> LocaParser<'a> {
         let mut offset = self.offset;
         while let Some(&c) = self.chars.peek() {
             if c == '$' {
-                let s = self.content[offset..self.offset].to_string();
+                let s = &self.content[offset..self.offset];
                 v.push(MacroValue::Text(Token::new(s, loc)));
 
                 if let Some(mv) = self.parse_keyword() {
@@ -201,7 +201,7 @@ impl<'a> LocaParser<'a> {
                 loc = self.loc.clone();
                 offset = self.offset;
             } else if c == '"' && self.offset == self.loca_end {
-                let s = self.content[offset..self.offset].to_string();
+                let s = &self.content[offset..self.offset];
                 v.push(MacroValue::Text(Token::new(s, loc)));
                 self.value.push(LocaValue::Macro(v));
                 self.next_char();
@@ -210,7 +210,7 @@ impl<'a> LocaParser<'a> {
                 self.next_char();
             }
         }
-        let s = self.content[offset..self.offset].to_string();
+        let s = &self.content[offset..self.offset];
         v.push(MacroValue::Text(Token::new(s, loc)));
         self.value.push(LocaValue::Macro(v));
     }
@@ -228,7 +228,7 @@ impl<'a> LocaParser<'a> {
             warn(ErrorKey::Localization).weak().msg(msg).loc(key).push();
             return None;
         }
-        let s = self.content[start_offset..end_offset].to_string();
+        let s = &self.content[start_offset..end_offset];
         self.next_char();
         Some(MacroValue::Keyword(Token::new(s, loc), format))
     }
@@ -319,7 +319,7 @@ impl<'a> LocaParser<'a> {
         }
 
         self.value = Vec::new();
-        let s = self.content[self.offset..self.loca_end].to_string();
+        let s = &self.content[self.offset..self.loca_end];
         let token = Token::new(s, self.loc.clone());
 
         // We also need to pre-parse because $macros$ can appear anywhere and
@@ -436,7 +436,7 @@ impl<'a> ValueParser<'a> {
                 break;
             }
         }
-        Token::new(text, loc)
+        Token::new(&text, loc)
     }
 
     fn parse_format(&mut self) -> Option<Token> {
@@ -451,7 +451,7 @@ impl<'a> ValueParser<'a> {
                 text.push(c);
                 self.next_char();
             }
-            Some(Token::new(text, loc))
+            Some(Token::new(&text, loc))
         } else {
             None
         }
@@ -490,7 +490,7 @@ impl<'a> ValueParser<'a> {
                     self.value.push(LocaValue::Error);
                     return Vec::new();
                 }
-                v.push(CodeArg::Literal(Token::new(text, loc)));
+                v.push(CodeArg::Literal(Token::new(&text, loc)));
                 self.next_char();
             } else if self.peek() == Some(')') {
                 // Empty () means no arguments
@@ -522,7 +522,7 @@ impl<'a> ValueParser<'a> {
                 break;
             }
         }
-        let name = Token::new(text, loc);
+        let name = Token::new(&text, loc);
         if self.peek() == Some('(') {
             Code { name, arguments: self.parse_code_args() }
         } else {
@@ -566,7 +566,7 @@ impl<'a> ValueParser<'a> {
             // Separate out the tooltip.
             for (i, value) in value.split(',').enumerate() {
                 if i == 1 {
-                    self.value.push(LocaValue::Tooltip(Token::new(value.to_string(), loc)));
+                    self.value.push(LocaValue::Tooltip(Token::new(value, loc)));
                     break;
                 }
             }
@@ -574,7 +574,7 @@ impl<'a> ValueParser<'a> {
         }
 
         // Otherwise, or if it's not vic3, then it's just #tooltip:tooltip
-        self.value.push(LocaValue::Tooltip(Token::new(value, loc)));
+        self.value.push(LocaValue::Tooltip(Token::new(&value, loc)));
     }
 
     fn parse_markup(&mut self) {
@@ -585,11 +585,11 @@ impl<'a> ValueParser<'a> {
             // double # means a literal #
             self.next_char();
             // text already contains the #
-            self.value.push(LocaValue::Text(Token::new(text, loc)));
+            self.value.push(LocaValue::Text(Token::new(&text, loc)));
         } else if self.peek() == Some('!') {
             text.push('!');
             self.next_char();
-            self.value.push(LocaValue::MarkupEnd(Token::new(text, loc)));
+            self.value.push(LocaValue::MarkupEnd(Token::new(&text, loc)));
         } else {
             // examples:
             // #indent_newline:2
@@ -670,7 +670,7 @@ impl<'a> ValueParser<'a> {
             // Clean up leftover state at end
             match state {
                 State::InKey(_) => {
-                    self.value.push(LocaValue::Markup(Token::new(text, loc)));
+                    self.value.push(LocaValue::Markup(Token::new(&text, loc)));
                 }
                 State::InValue(key, value, loc, bracecount) => {
                     if key.to_lowercase() == "tooltip" {
@@ -681,7 +681,7 @@ impl<'a> ValueParser<'a> {
                         warn(ErrorKey::Markup).msg(msg).loc(&self.loc).push();
                         self.value.push(LocaValue::Error);
                     } else {
-                        self.value.push(LocaValue::Markup(Token::new(text, loc)));
+                        self.value.push(LocaValue::Markup(Token::new(&text, loc)));
                     }
                 }
             }
@@ -733,7 +733,7 @@ impl<'a> ValueParser<'a> {
             }
         };
         self.next_char();
-        self.value.push(LocaValue::Text(Token::new(s, loc)));
+        self.value.push(LocaValue::Text(Token::new(&s, loc)));
     }
 
     fn parse_text(&mut self) {
@@ -748,7 +748,7 @@ impl<'a> ValueParser<'a> {
                 }
             }
         }
-        self.value.push(LocaValue::Text(Token::new(text, loc)));
+        self.value.push(LocaValue::Text(Token::new(&text, loc)));
     }
 
     pub fn parse_value(&mut self) -> Vec<LocaValue> {

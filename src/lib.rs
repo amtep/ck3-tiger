@@ -58,6 +58,7 @@ mod pdxfile;
 mod rivers;
 mod scopes;
 mod scriptvalue;
+mod stringtable;
 mod token;
 mod tooltipped;
 mod trigger;

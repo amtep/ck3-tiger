@@ -84,7 +84,7 @@ impl<'a> CsvParser<'a> {
         while let Some(c) = self.chars.peek() {
             match c {
                 '#' | '\n' | ';' => {
-                    let s = self.content[start_offset..self.offset].to_string();
+                    let s = &self.content[start_offset..self.offset];
                     vec.push(Token::new(s, loc));
                     if c == &';' {
                         self.next_char();

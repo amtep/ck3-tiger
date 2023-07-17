@@ -8,6 +8,7 @@ use crate::date::Date;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{error, error_info, untidy, ErrorKey};
+use crate::stringtable::StringTable;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
@@ -43,15 +44,16 @@ impl Loc {
     }
 }
 
+/// A Token consists of a string (stored in a `StringTable`) and its location in the parsed files.
 #[derive(Clone, Debug)]
 pub struct Token {
-    s: String,
+    s: &'static str,
     pub loc: Loc,
 }
 
 impl Token {
-    pub fn new(s: String, loc: Loc) -> Self {
-        Token { s, loc }
+    pub fn new(s: &str, loc: Loc) -> Self {
+        Token { s: StringTable::store(s), loc }
     }
 
     pub fn as_str(&self) -> &str {
@@ -77,7 +79,7 @@ impl Token {
         let mut lines: u32 = 0;
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             if c == ch {
-                vec.push(Token::new(self.s[pos..i].to_string(), loc.clone()));
+                vec.push(Token::new(&self.s[pos..i], loc.clone()));
                 pos = i + 1;
                 loc.column = self.loc.column + cols as u32 + 1;
                 loc.line = self.loc.line + lines;
@@ -86,17 +88,17 @@ impl Token {
                 lines += 1;
             }
         }
-        vec.push(Token::new(self.s[pos..].to_string(), loc));
+        vec.push(Token::new(&self.s[pos..], loc));
         vec
     }
 
     pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             if c == ch {
-                let token1 = Token::new(self.s[..i].to_string(), self.loc.clone());
+                let token1 = Token::new(&self.s[..i], self.loc.clone());
                 let mut loc = self.loc.clone();
                 loc.column += cols as u32 + 1;
-                let token2 = Token::new(self.s[i + 1..].to_string(), loc);
+                let token2 = Token::new(&self.s[i + 1..], loc);
                 return Some((token1, token2));
             }
         }
@@ -108,10 +110,10 @@ impl Token {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             if c == ch {
                 let chlen = ch.len_utf8();
-                let token1 = Token::new(self.s[..i + chlen].to_string(), self.loc.clone());
+                let token1 = Token::new(&self.s[..i + chlen], self.loc.clone());
                 let mut loc = self.loc.clone();
                 loc.column += cols as u32 + chlen as u32;
-                let token2 = Token::new(self.s[i + chlen..].to_string(), loc);
+                let token2 = Token::new(&self.s[i + chlen..], loc);
                 return Some((token1, token2));
             }
         }
@@ -119,8 +121,10 @@ impl Token {
     }
 
     pub fn combine(&mut self, other: &Token, c: char) {
-        self.s.push(c);
-        self.s.push_str(&other.s);
+        let mut s = self.s.to_string();
+        s.push(c);
+        s.push_str(&other.s);
+        self.s = StringTable::store(&s);
     }
 
     pub fn trim(&self) -> Token {
@@ -139,15 +143,11 @@ impl Token {
         if let Some((cols, i)) = real_start {
             let mut loc = self.loc.clone();
             loc.column += cols as u32;
-            Token::new(self.s[i..real_end].to_string(), loc)
+            Token::new(&self.s[i..real_end], loc)
         } else {
             // all spaces
-            Token::new(String::new(), self.loc.clone())
+            Token::new("", self.loc.clone())
         }
-    }
-
-    pub fn into_string(self) -> String {
-        self.s
     }
 
     pub fn expect_number(&self) -> Option<f64> {
@@ -234,13 +234,13 @@ impl Eq for Token {}
 
 impl From<Loc> for Token {
     fn from(loc: Loc) -> Self {
-        Token { s: String::new(), loc }
+        Token { s: "", loc }
     }
 }
 
 impl From<&Loc> for Token {
     fn from(loc: &Loc) -> Self {
-        Token { s: String::new(), loc: loc.clone() }
+        Token { s: "", loc: loc.clone() }
     }
 }
 

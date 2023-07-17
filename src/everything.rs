@@ -451,7 +451,7 @@ impl Everything {
                 if let Some(block) =
                     PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
                 {
-                    let key = Token::new(key.to_string(), Loc::for_entry(entry));
+                    let key = Token::new(key, Loc::for_entry(entry));
                     Some((key, block))
                 } else {
                     None
@@ -482,7 +482,7 @@ impl Everything {
             let filename = entry.filename().to_string_lossy();
             if let Some(key) = filename.strip_suffix(".txt") {
                 if let Some(block) = PdxFile::read_cp1252(entry, &self.fileset.fullpath(entry)) {
-                    let key = Token::new(key.to_string(), Loc::for_entry(entry));
+                    let key = Token::new(key, Loc::for_entry(entry));
                     Some((key, block))
                 } else {
                     None

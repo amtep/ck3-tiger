@@ -198,11 +198,11 @@ fn parse(blockloc: Loc, content: &str) -> Block {
             }
             State::QString => {
                 if c == '"' {
-                    let token = Token::new(take(&mut current_id), token_start.clone());
+                    let token = Token::new(&take(&mut current_id), token_start.clone());
                     parser.token(token);
                     state = State::Neutral;
                 } else if c == '\n' {
-                    let token = Token::new(take(&mut current_id), token_start.clone());
+                    let token = Token::new(&take(&mut current_id), token_start.clone());
                     old_warn(token, ErrorKey::ParseError, "Quoted string not closed");
                     state = State::Neutral;
                 } else {
@@ -222,7 +222,7 @@ fn parse(blockloc: Loc, content: &str) -> Block {
     // Deal with state at end of file
     match state {
         State::QString => {
-            let token = Token::new(current_id, token_start);
+            let token = Token::new(&current_id, token_start);
             error(&token, ErrorKey::ParseError, "Quoted string not closed");
             parser.token(token);
         }

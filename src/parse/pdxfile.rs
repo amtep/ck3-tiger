@@ -290,7 +290,7 @@ impl Parser {
                     if token.as_str().contains('!') {
                         self.current.block.add_key_value(key, cmp, BV::Value(token));
                     } else if let Some(value) = self.local_macros.get_as_string(local_macro) {
-                        let token = Token::new(value, token.loc);
+                        let token = Token::new(&value, token.loc);
                         self.current.block.add_key_value(key, cmp, BV::Value(token));
                     } else {
                         error(token, ErrorKey::LocalValues, "local value not defined");
@@ -301,7 +301,7 @@ impl Parser {
             } else {
                 if let Some(local_macro) = key.as_str().strip_prefix('@') {
                     if let Some(value) = self.local_macros.get_as_string(local_macro) {
-                        let token = Token::new(value, key.loc);
+                        let token = Token::new(&value, key.loc);
                         self.current.block.add_value(BV::Value(token));
                     } else {
                         error(&key, ErrorKey::LocalValues, "local value not defined");
@@ -360,7 +360,7 @@ impl Parser {
             }
             if let Some(local_macro) = key.as_str().strip_prefix('@') {
                 if let Some(value) = self.local_macros.get_as_string(local_macro) {
-                    let token = Token::new(value, key.loc);
+                    let token = Token::new(&value, key.loc);
                     self.current.block.add_value(BV::Value(token));
                 } else {
                     error(&key, ErrorKey::LocalValues, "local value not defined");
@@ -391,7 +391,7 @@ impl Parser {
             swap(&mut self.current, &mut prev_level);
             if self.stack.is_empty() && prev_level.contains_macro_parms {
                 // skip the { } in constructing s
-                let s = content[prev_level.start + 1..offset - 1].to_string();
+                let s = &content[prev_level.start + 1..offset - 1];
                 let mut loc = prev_level.block.loc.clone();
                 loc.column += 1;
                 let token = Token::new(s, prev_level.block.loc.clone());
@@ -402,25 +402,21 @@ impl Parser {
             }
             self.block_value(prev_level.block);
             if loc.column == 1 && !self.stack.is_empty() {
-                warn_info(Token::new("}".to_string(), loc),
+                warn_info(loc,
                           ErrorKey::BracePlacement,
                           "possible brace error",
                           "This closing brace is at the start of a line but does not end a top-level item.",
                 );
             }
         } else {
-            error(Token::new("}".to_string(), loc), ErrorKey::BraceError, "Unexpected }");
+            error(loc, ErrorKey::BraceError, "Unexpected }");
         }
     }
 
     fn eof(mut self) -> Block {
         self.end_assign();
         while let Some(mut prev_level) = self.stack.pop() {
-            error(
-                &Token::new("{".to_string(), self.current.block.loc.clone()),
-                ErrorKey::BraceError,
-                "Opening { was never closed",
-            );
+            error(&self.current.block.loc, ErrorKey::BraceError, "Opening { was never closed");
             swap(&mut self.current, &mut prev_level);
             self.block_value(prev_level.block);
         }
@@ -500,7 +496,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                 }
                 State::QString => {
                     if c == '"' {
-                        let token = Token::new(take(&mut current_id), token_start.clone());
+                        let token = Token::new(&take(&mut current_id), token_start.clone());
                         parser.token(token);
                         state = State::Neutral;
                     } else if c == '\n' {
@@ -519,7 +515,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                     } else if c.is_id_char() {
                         current_id.push(c);
                     } else {
-                        let token = Token::new(take(&mut current_id), token_start.clone());
+                        let token = Token::new(&take(&mut current_id), token_start.clone());
                         parser.token(token);
 
                         if c.is_comparator_char() {
@@ -568,7 +564,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         parser.calculation_pop(&loc);
                     } else if c == ']' {
                         let token = Token::new(
-                            parser.calculation_result().to_string(),
+                            &parser.calculation_result().to_string(),
                             calculation_start.clone(),
                         );
                         parser.token(token);
@@ -588,7 +584,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                         || c == '('
                         || c == ')'
                     {
-                        let token = Token::new(take(&mut current_id), token_start.clone());
+                        let token = Token::new(&take(&mut current_id), token_start.clone());
                         parser.calculation_next(&token);
                         state = State::Calculation;
                         if c == '+' {
@@ -605,11 +601,11 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                             parser.calculation_pop(&loc);
                         }
                     } else if c == ']' {
-                        let token = Token::new(take(&mut current_id), token_start.clone());
+                        let token = Token::new(&take(&mut current_id), token_start.clone());
                         parser.calculation_next(&token);
 
                         let token = Token::new(
-                            parser.calculation_result().to_string(),
+                            &parser.calculation_result().to_string(),
                             calculation_start.clone(),
                         );
                         parser.token(token);
@@ -683,12 +679,12 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
     // Deal with state at end of file
     match state {
         State::QString => {
-            let token = Token::new(current_id, token_start);
+            let token = Token::new(&current_id, token_start);
             error(&token, ErrorKey::ParseError, "Quoted string not closed");
             parser.token(token);
         }
         State::Id => {
-            let token = Token::new(current_id, token_start);
+            let token = Token::new(&current_id, token_start);
             parser.token(token);
         }
         State::Comparator => {
@@ -706,7 +702,7 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
     let mut loc = blockloc.clone();
     loc.line = 1;
     loc.column = 1;
-    parse(blockloc, &[Token::new(content.to_string(), loc)], LocalMacros::default())
+    parse(blockloc, &[Token::new(content, loc)], LocalMacros::default())
 }
 
 pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
@@ -716,7 +712,7 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
 pub fn parse_pdx_internal(input: &str, desc: &str) -> Block {
     let entry = FileEntry::new(PathBuf::from(desc), FileKind::Internal);
     let loc = Loc::for_entry(&entry);
-    let input = Token::new(input.to_string(), loc.clone());
+    let input = Token::new(input, loc.clone());
     parse(loc, &[input], LocalMacros::default())
 }
 
@@ -751,7 +747,7 @@ pub fn split_macros(content: &Token) -> Vec<Token> {
                 } else if c == '"' {
                     state = State::InQString;
                 } else if c == '$' {
-                    vec.push(Token::new(content.as_str()[last_pos..i].to_string(), last_loc));
+                    vec.push(Token::new(&content.as_str()[last_pos..i], last_loc));
                     last_loc = loc.clone();
                     // Skip the current '$'
                     last_loc.column += 1;
@@ -766,6 +762,6 @@ pub fn split_macros(content: &Token) -> Vec<Token> {
             loc.column += 1;
         }
     }
-    vec.push(Token::new(content.as_str()[last_pos..].to_string(), last_loc));
+    vec.push(Token::new(&content.as_str()[last_pos..], last_loc));
     vec
 }

@@ -82,7 +82,7 @@ impl FileHandler<String> for Sounds {
             let mut loc = Loc::for_entry(entry);
             loc.line = linenr;
             loc.column = 1;
-            let token = Token::new(line.to_string(), loc);
+            let token = Token::new(line, loc);
             if let Some((_guid, sound)) = token.split_once(' ') {
                 self.load_item(sound);
             } else {
