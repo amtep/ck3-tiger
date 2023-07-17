@@ -1,5 +1,5 @@
 .idea/
 /target/
-cachegrind.out
-callgrind.out
+cachegrind.out*
+callgrind.out*
 flamegraph*.svg

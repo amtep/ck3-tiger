@@ -154,6 +154,7 @@ use crate::vic3::data::{
     events::Events,
     gameconcepts::GameConcept,
     goods::Goods,
+    history::History,
     ideologies::Ideology,
     institutions::Institution,
     interest_groups::InterestGroup,
@@ -260,6 +261,9 @@ pub struct Everything {
     pub music: Musics,
 
     pub coas: Coas,
+
+    #[cfg(feature = "vic3")]
+    pub history: History,
 }
 
 impl Everything {
@@ -327,6 +331,8 @@ impl Everything {
             #[cfg(feature = "ck3")]
             music: Musics::default(),
             coas: Coas::default(),
+            #[cfg(feature = "vic3")]
+            history: History::default(),
         })
     }
 
@@ -677,6 +683,7 @@ impl Everything {
 
     #[cfg(feature = "vic3")]
     fn load_all_vic3(&mut self) {
+        self.fileset.handle(&mut self.history);
         self.load_pdx_items(Item::AiStrategy, AiStrategy::add);
         self.load_pdx_items(Item::BattleCondition, BattleCondition::add);
         self.load_pdx_items(Item::BuildingGroup, BuildingGroup::add);
@@ -757,8 +764,9 @@ impl Everything {
     }
 
     #[cfg(feature = "vic3")]
-    fn validate_all_vic3(&self, _s: &Scope) {
-        StrategicRegion::crosscheck(self);
+    fn validate_all_vic3<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.history.validate(self));
+        s.spawn(|_| StrategicRegion::crosscheck(self));
     }
 
     pub fn validate_all(&self) {

@@ -9,6 +9,7 @@ pub mod diplomatic_actions;
 pub mod events;
 pub mod gameconcepts;
 pub mod goods;
+pub mod history;
 pub mod ideologies;
 pub mod institutions;
 pub mod interest_groups;
