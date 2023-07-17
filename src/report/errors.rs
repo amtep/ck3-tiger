@@ -161,6 +161,7 @@ impl Errors {
             }
             cmp
         });
+        _ = writeln!(self.output.get_mut(), "[");
         for report in &reports {
             if json {
                 log_report_json(self, report);
@@ -168,6 +169,7 @@ impl Errors {
                 log_report(self, report);
             }
         }
+        _ = writeln!(self.output.get_mut(), "]");
     }
 
     pub fn get_mut() -> MutexGuard<'static, Errors> {

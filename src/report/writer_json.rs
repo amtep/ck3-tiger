@@ -36,5 +36,5 @@ pub fn log_report_json(errors: &mut Errors, report: &LogReport) {
         Err(e) => eprintln!("JSON error: {e:#}"),
         Ok(_) => (),
     }
-    _ = writeln!(errors.output.get_mut());
+    _ = writeln!(errors.output.get_mut(), ",");
 }
