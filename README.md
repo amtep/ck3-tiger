@@ -17,9 +17,11 @@ This project is maturing but not yet stable. It will warn about some things that
 It doesn't load all the game files yet, but the gaps are few.
 
 ## How to use
-Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere, and remember where, so that you can specify the path to it in the next step.
+Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere.
 
-Then run the tool from the command prompt:
+On Windows, if everything works out, you can then just double-click on `ck3-tiger-auto` and it will try its best.
+
+Otherwise, run the tool from the command prompt:
 <pre>
 <i>path/to/</i>ck3-tiger <i>path/to/your/</i>descriptor.mod
 </pre>
