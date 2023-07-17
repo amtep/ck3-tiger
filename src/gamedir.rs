@@ -9,9 +9,10 @@ use winreg::enums::HKEY_LOCAL_MACHINE;
 use winreg::RegKey;
 
 // How to find steamapps dir on different systems
-const STEAM_LINUX: &str = ".local/share/Steam/steamapps";
-const STEAM_LINUX_PROTON: &str = ".steam/steam/steamapps";
-const STEAM_MAC: &str = "Library/Application Support/Steam/steamapps";
+const STEAM_LINUX: &str = ".local/share/Steam";
+const STEAM_LINUX_PROTON: &str = ".steam/steam";
+const STEAM_MAC: &str = "Library/Application Support/Steam";
+const STEAM_WINDOWS: &str = "C:/Program Files (x86)/Steam";
 #[cfg(windows)]
 const STEAM_WINDOWS_KEY: &str = r"SOFTWARE\Wow6432Node\Valve\Steam";
 
@@ -27,20 +28,37 @@ const PDX_WINDOWS: &str = "Documents/Paradox Interactive";
 /// `game_dir` is the path to the game's files under the steam path for the app. Usually `steamapps/common/...`.
 pub fn find_game_directory_steam(steam_app_id: &str, game_dir: &Path) -> Option<PathBuf> {
     if let Some(home) = home_dir() {
-        let on_linux = find_game_dir_in_steam_dir(&home.join(STEAM_LINUX), steam_app_id, game_dir);
-        if on_linux.is_some() {
-            return on_linux;
-        }
-        let on_linux_proton =
-            find_game_dir_in_steam_dir(&home.join(STEAM_LINUX_PROTON), steam_app_id, game_dir);
-        if on_linux_proton.is_some() {
-            return on_linux_proton;
-        }
-        let on_mac = find_game_dir_in_steam_dir(&home.join(STEAM_MAC), steam_app_id, game_dir);
-        if on_mac.is_some() {
-            return on_mac;
+        for try_dir in &[STEAM_LINUX, STEAM_LINUX_PROTON, STEAM_MAC] {
+            let steam_dir = find_game_dir_in_steam_dir(
+                &home.join(try_dir).join("steamapps"),
+                steam_app_id,
+                game_dir,
+            );
+            if steam_dir.is_some() {
+                return steam_dir;
+            }
+            // Try the default directory too
+            let steam_dir = &home.join(try_dir).join(game_dir);
+            if steam_dir.is_dir() {
+                return Some(steam_dir.to_path_buf());
+            }
         }
     }
+
+    let on_windows = find_game_dir_in_steam_dir(
+        &PathBuf::from(STEAM_WINDOWS).join("steamapps"),
+        steam_app_id,
+        game_dir,
+    );
+    if on_windows.is_some() {
+        return on_windows;
+    }
+    let on_windows = PathBuf::from(STEAM_WINDOWS).join(game_dir);
+    if on_windows.is_dir() {
+        return Some(on_windows.to_path_buf());
+    }
+
+    // If the game is not in the default dirs, go via the registry to find Steam and then find the game
     #[cfg(windows)]
     {
         let key = RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey(STEAM_WINDOWS_KEY).ok()?;
