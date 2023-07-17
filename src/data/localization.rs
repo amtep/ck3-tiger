@@ -13,8 +13,8 @@ use crate::helpers::{dup_error, stringify_list};
 use crate::item::Item;
 use crate::parse::localization::{parse_loca, ValueParser};
 use crate::report::{
-    advice_info, error, error_info, old_warn, warn, warn2, warn_abbreviated, warn_header,
-    warn_info, will_maybe_log, ErrorKey,
+    error, error_info, old_warn, warn, warn2, warn_abbreviated, warn_header, warn_info,
+    will_maybe_log, ErrorKey,
 };
 use crate::token::Token;
 
@@ -451,40 +451,16 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
         // unwrap is safe here because we're only handed files under localization/
         // to_string_lossy is ok because we compare lang against a set of known strings.
         let lang = entry.path().components().nth(1).unwrap().as_os_str().to_string_lossy();
-        let mut warned = false;
-
-        if depth == 2 {
-            advice_info(
-                entry,
-                ErrorKey::Filename,
-                "file in wrong location",
-                "Localization files should be in subdirectories according to their language.",
-            );
-            warned = true;
-        } else if entry.kind() >= FileKind::Vanilla
-            && !KNOWN_LANGUAGES.contains(&&*lang)
-            && lang != "replace"
-            && lang != "jomini"
-        {
-            warn_info(
-                entry,
-                ErrorKey::Filename,
-                "unknown subdirectory in localization",
-                &format!("Valid subdirectories are {}", KNOWN_LANGUAGES.join(", ")),
-            );
-            warned = true;
-        }
-
-        if KNOWN_LANGUAGES.contains(&&*lang) && !self.check_langs.contains(&&*lang) {
-            return None;
-        }
 
         if let Some(filelang) = get_file_lang(entry.filename()) {
             if !self.check_langs.contains(&filelang) {
                 return None;
             }
-            if filelang != lang && KNOWN_LANGUAGES.contains(&&*lang) && !warned {
-                advice_info(entry, ErrorKey::Filename, "localization file with wrong name or in wrong directory", "A localization file should be in a subdirectory corresponding to its language.");
+            // Localization files don't have to be in a subdirectory corresponding to their language.
+            // However, if there's one in a subdirectory for a *different* language than the one in its name,
+            // then something is probably wrong.
+            if filelang != lang && KNOWN_LANGUAGES.contains(&&*lang) {
+                warn_info(entry, ErrorKey::Filename, "localization file with wrong name or in wrong directory", "A localization file should be in a subdirectory corresponding to its language.");
             }
             match read_to_string(fullpath) {
                 Ok(content) => {
