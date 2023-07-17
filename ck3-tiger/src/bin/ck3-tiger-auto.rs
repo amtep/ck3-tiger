@@ -80,22 +80,32 @@ fn inner_main() -> Result<()> {
         bail!("Did not find any mods to validate.");
     } else {
         eprintln!("Found several possible mods to validate:");
-        for (i, entry) in entries.iter().enumerate().take(9) {
-            eprintln!("{}. {}", i + 1, entry.file_name().to_str().unwrap_or(""));
+        for (i, entry) in entries.iter().enumerate().take(35) {
+            if i + 1 <= 9 {
+                eprintln!("{}. {}", i + 1, entry.file_name().to_str().unwrap_or(""));
+            } else {
+                let ch = char::from_u32(((i + 1) - 10 + 'A' as usize) as u32).unwrap();
+                eprintln!("{}. {}", ch, entry.file_name().to_str().unwrap_or(""));
+            }
         }
         let term = Term::stdout();
         // This takes me back to the 80s...
         loop {
-            eprint!("\nChoose one by typing its number: ");
+            eprint!("\nChoose one by typing its key: ");
             let ch = term.read_char();
             if let Ok(ch) = ch {
-                if ch >= '1' && ch <= '9' && ch as usize - '1' as usize <= entries.len() {
+                let modnr = if ch >= '1' && ch <= '9' {
+                    ch as usize - '1' as usize
+                } else if ch >= 'a' && ch <= 'z' {
+                    9 + ch as usize - 'a' as usize
+                } else if ch >= 'A' && ch <= 'Z' {
+                    9 + ch as usize - 'A' as usize
+                } else {
+                    continue;
+                };
+                if modnr < entries.len() {
                     eprintln!();
-                    validate_mod(
-                        &ck3.unwrap(),
-                        &entries[ch as usize - '1' as usize].path(),
-                        &pdxlogs,
-                    )?;
+                    validate_mod(&ck3.unwrap(), &entries[modnr].path(), &pdxlogs)?;
                     return Ok(());
                 }
             } else {
