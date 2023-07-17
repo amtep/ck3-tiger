@@ -16,6 +16,14 @@ use crate::scriptvalue::validate_scriptvalue_no_breakdown;
 use crate::token::Token;
 use crate::trigger::{validate_target, validate_target_ok_this};
 
+/// A validator for one `Block`.
+/// The intended usage is that you wrap the `Block` in a validator, then call validation functions on it
+/// until you've validated all the possible legitimate contents of the `Block`, and then the `Validator`
+/// will warn the user about anything left over when it goes out of scope. This way you don't have to worry
+/// about checking for unknown fields yourself.
+///
+/// The validator is mostly for checking *fields* (`key = value` and `key = { block }` items in the block),
+/// but it can validate loose blocks and loose values and comparisons as well.
 pub struct Validator<'a> {
     /// The block being validated
     block: &'a Block,
@@ -52,6 +60,8 @@ impl<'a> Debug for Validator<'a> {
 }
 
 impl<'a> Validator<'a> {
+    /// Construct a new `Validator` for a `Block`. The `data` reference is there to help out some of the convenience
+    /// functions, and also to pass along to closures so that you can easily pass independent functions as the closures.
     pub fn new(block: &'a Block, data: &'a Everything) -> Self {
         Validator {
             block,
@@ -66,14 +76,20 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Control whether the fields in this `Block` will be matched case-sensitively or not.
+    /// Whether this should be on or off depends on what the game engine allows, which is not always known.
     pub fn set_case_sensitive(&mut self, cs: bool) {
         self.case_sensitive = cs;
     }
 
+    /// Whether this block can contain `?=` as well as `=` for assignments.
+    /// Blocks that allow `?=` are mostly specialized ones such as triggers and effects.
     pub fn allow_qeq(&mut self, allow_qeq: bool) {
         self.allow_qeq = allow_qeq;
     }
 
+    /// Require field `name` to be present in the block, and warn if it isn't there.
+    /// Returns true iff the field is present.
     pub fn req_field(&mut self, name: &str) -> bool {
         let found = self.check_key(name);
         if !found {
@@ -83,6 +99,9 @@ impl<'a> Validator<'a> {
         found
     }
 
+    /// Require exactly one of the fields in `names` to be present in the block,
+    /// and warn if they are missing or there is more than one.
+    /// Returns true iff it found exactly one.
     pub fn req_field_one_of(&mut self, names: &[&str]) -> bool {
         let mut count = 0;
         for name in names {
@@ -98,6 +117,8 @@ impl<'a> Validator<'a> {
         count == 1
     }
 
+    /// Require field `name` to be present in the block, and warn if it isn't there.
+    /// Returns true iff the field is present. Warns at a lower severity than `req_field`.
     pub fn req_field_warn(&mut self, name: &str) -> bool {
         let found = self.check_key(name);
         if !found {
@@ -107,6 +128,9 @@ impl<'a> Validator<'a> {
         found
     }
 
+    /// Require field `name` to not be in the block, and warn if it is found.
+    /// The warning will include the output from the `only_for` closure,
+    /// which describes where the field *is* expected.
     pub fn ban_field<F, S>(&mut self, name: &str, only_for: F)
     where
         F: Fn() -> S,
@@ -118,6 +142,8 @@ impl<'a> Validator<'a> {
         });
     }
 
+    /// Require field `name` to not be in the block. If it is found, warn that it has been replaced by `replaced_by`.
+    /// This is used to adapt to and warn about changes in the game engine.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn replaced_field(&mut self, name: &str, replaced_by: &str) {
         self.fields_check(name, |key, _| {
@@ -159,7 +185,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
-    pub fn fields_check<F>(&mut self, name: &str, mut f: F) -> bool
+    fn fields_check<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &BV),
     {
@@ -177,10 +203,17 @@ impl<'a> Validator<'a> {
         found
     }
 
+    /// Expect field `name`, if present, to be either an assignment (`= value`) or a definition (`= { block }`).
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
     pub fn field(&mut self, name: &str) -> bool {
         self.field_check(name, |_, _| ())
     }
 
+    /// Expect field `name`, if present, to be... present.
+    /// Expect no more than one `name` field in the block.
+    /// Returns the field's `BV` (block or value) if the field is present.
+    /// TODO: replace this with a `field_validated` variant.
     pub fn field_any_cmp(&mut self, name: &str) -> Option<&BV> {
         let mut found = None;
         for Field(key, _, bv) in self.block.iter_fields() {
@@ -201,6 +234,9 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect field `name`, if present, to be an assignment (`name = value`).
+    /// Expect no more than one `name` field in the block.
+    /// Returns the field's value if the field is present.
     pub fn field_value(&mut self, name: &str) -> Option<&Token> {
         let mut found = None;
         let mut result = None;
@@ -222,6 +258,10 @@ impl<'a> Validator<'a> {
         result
     }
 
+    /// Expect field `name`, if present, to be an assignment (`name = value`).
+    /// Expect no more than one `name` field in the block.
+    /// Runs the validation closure `f(key, value, data)` for every matching field.
+    /// Returns true iff the field is present.
     pub fn field_validated_value<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &Token, &Everything),
@@ -233,6 +273,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Just like `Validator::field_validated_value`, but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_values<F>(&mut self, name: &str, mut f: F) -> bool
     where
@@ -245,6 +286,10 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be set to the key of an `itype` item the game database.
+    /// The item is looked up and must exist.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
     pub fn field_item(&mut self, name: &str, itype: Item) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -253,6 +298,14 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be an assignment where the value evaluates to a scope type in `outscopes`.
+    ///
+    /// The value is evaluated in the scope context `sc`, so for example if the value does `scope:actor` but there is
+    /// no named scope "actor" in the scope context, then a warning is emitted.
+    /// Also emits a warning if the value is simply "`this`", because that is almost never correct.
+    ///
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
     pub fn field_target(&mut self, name: &str, sc: &mut ScopeContext, outscopes: Scopes) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -261,6 +314,8 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Just like `Validator::field_target`, but allows the value to be simply "`this`".
+    /// It is expected to be used judiciously in cases where "`this`" can be correct.
     pub fn field_target_ok_this(
         &mut self,
         name: &str,
@@ -274,6 +329,9 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// This is a combination of `Validator::field_item` and `Validator::field_target`. If the field is present
+    /// and is not a known `itype` item, then it is evaluated as a target.
+    /// Returns true iff the field is present.
     pub fn field_item_or_target(
         &mut self,
         name: &str,
@@ -290,11 +348,18 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be a definition `name = { block }`.
+    /// Expect no more than one `name` field.
+    /// No other validation is done.
+    /// Returns true iff the field is present.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_block(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| _ = bv.expect_block())
     }
 
+    /// Expect field `name`, if present, to be `name = yes` or `name = no`.
+    /// Expect no more than one `name` field.
+    /// Returns true iff the field is present.
     pub fn field_bool(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -305,6 +370,9 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be set to an integer.
+    /// Expect no more than one `name` field.
+    /// Returns true iff the field is present.
     pub fn field_integer(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -313,6 +381,9 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be set to an integer between `low` and `high` (inclusive).
+    /// Expect no more than one `name` field.
+    /// Returns true iff the field is present.
     pub fn field_integer_range(&mut self, name: &str, low: i64, high: i64) {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -325,6 +396,11 @@ impl<'a> Validator<'a> {
             }
         });
     }
+
+    /// Expect field `name`, if present, to be set to a number with up to 5 decimals.
+    /// (5 decimals is the limit accepted by the game engine in most contexts).
+    /// Expect no more than one `name` field.
+    /// Returns true iff the field is present.
     pub fn field_numeric(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -333,6 +409,9 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be set to a number with any number of decimals.
+    /// Expect no more than one `name` field.
+    /// Returns true iff the field is present.
     pub fn field_precise_numeric(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -341,6 +420,10 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be set to a number between `low` and `high` (inclusive).
+    /// Accept at most 5 decimals. (5 decimals is the limit accepted by the game engine in most contexts).
+    /// Expect no more than one `name` field.
+    /// Returns true iff the field is present.
     pub fn field_numeric_range(&mut self, name: &str, low: f64, high: f64) {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -354,6 +437,11 @@ impl<'a> Validator<'a> {
         });
     }
 
+    /// Expect field `name`, if present, to be set to a date.
+    /// The format of dates is very flexible, from a single number (the year), to a year.month or year.month.day.
+    /// No checking is done on the validity of the date as a date (so January 42nd is okay).
+    /// Expect no more than one `name` field.
+    /// Returns true iff the field is present.
     pub fn field_date(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -364,12 +452,26 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be set to a scriptvalue, either a named one (simply `name = scriptvaluename`)
+    /// or an inline one (can be a simple number, or a range `{ min max }`, or a full scriptvalue definition with limits
+    /// and math).
+    ///
+    /// The scriptvalue is evaluated in the scope context `sc`, so for example if the scriptvalue does `scope:actor` but
+    /// there is no named scope "actor" in the scope context, then a warning is emitted.
+    ///
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    ///
+    /// TODO: standardize on scriptvalue vs script_value.
     pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             validate_scriptvalue(bv, self.data, sc);
         })
     }
 
+    /// Just like `Validator::field_script_value`, but does not warn if it is an inline scriptvalue and the `desc` fields
+    /// in it do not contain valid localizations. This is generally used for scriptvalues that will never be shown to
+    /// the user except in debugging contexts, such as `ai_will_do`.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_script_value_no_breakdown(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
@@ -377,6 +479,10 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Just like `Validator::field_script_value`, but instead of a full `ScopeContext` it just gets the scope type
+    /// to be used for the `root` of a `ScopeContext` that is made on the spot. This is a convenient way to associate the
+    /// `root` type with the key of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated
+    /// with a key that is further away.
     pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
         self.field_check(name, |_, bv| {
             let mut sc = ScopeContext::new(scopes, self.block.get_key(name).unwrap());
@@ -384,6 +490,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Just like `Validator::field_script_value`, but it can accept a literal `flag:something` value as well as a scriptvalue.
     pub fn field_script_value_or_flag(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.get_value() {
@@ -394,12 +501,16 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Just like `Validator::field_script_value`, but it it expects any number of `name` fields.
     pub fn fields_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.fields_check(name, |_, bv| {
             validate_scriptvalue(bv, self.data, sc);
         })
     }
 
+    /// Expect field `name`, if present, to be set to one of the listed strings in `choices`.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
     pub fn field_choice(&mut self, name: &str, choices: &[&str]) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
@@ -411,6 +522,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Just like `Validator::field_choice`, but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn fields_choice(&mut self, name: &str, choices: &[&str]) -> bool {
         self.fields_check(name, |_, bv| {
@@ -423,6 +535,17 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be of the form `name = { value value value ... }` with any number of values.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    pub fn field_list(&mut self, name: &str) -> bool {
+        self.field_validated_list(name, |_, _| ())
+    }
+
+    /// Expect field `name`, if present, to be of the form `name = { value value value ... }` with any number of values.
+    /// Expect no more than one `name` field in the block.
+    /// Calls the closure `f(value, data)` for every value in the list.
+    /// Returns true iff the field is present.
     pub fn field_validated_list<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &Everything),
@@ -436,16 +559,17 @@ impl<'a> Validator<'a> {
         })
     }
 
-    pub fn field_list(&mut self, name: &str) -> bool {
-        self.field_validated_list(name, |_, _| ())
-    }
-
+    /// Expect field `name`, if present, to be of the form `name = { value value value ... }` with any number of values.
+    /// Expect every value to be an `itype` item in the game database.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
     pub fn field_list_items(&mut self, name: &str, item: Item) -> bool {
         self.field_validated_list(name, |token, data| {
             data.verify_exists(item, token);
         })
     }
 
+    /// Just like `Validator::field_validated_list`, but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn fields_validated_list<F>(&mut self, name: &str, mut f: F) -> bool
     where
@@ -460,6 +584,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Just like `Validator::field_list_items`, but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn fields_list_items(&mut self, name: &str, item: Item) -> bool {
         self.fields_validated_list(name, |token, data| {
@@ -467,6 +592,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Just like `Validator::field_value`, but expect any number of `name` fields in the block.
     pub fn field_values(&mut self, name: &str) -> Vec<&Token> {
         let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {
@@ -481,6 +607,7 @@ impl<'a> Validator<'a> {
         vec
     }
 
+    /// Just like `Validator::field_item`, but expect any number of `name` fields in the block.
     pub fn field_items(&mut self, name: &str, itype: Item) {
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if key.is(name) {
@@ -493,6 +620,7 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Just like `Validator::field_any_cmp`, but expect any number of `name` fields in the block.
     pub fn fields_any_cmp(&mut self, name: &str) -> bool {
         let mut found = false;
         for Field(key, _, _) in self.block.iter_fields() {
@@ -504,6 +632,10 @@ impl<'a> Validator<'a> {
         found
     }
 
+    /// Expect field `name`, if present, to be either an assignment (`= value`) or a definition (`= { block }`).
+    /// Expect no more than one `name` field in the block.
+    /// Calls the closure `f(bv, data)` for every matching field.
+    /// Returns true iff the field is present.
     pub fn field_validated<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BV, &Everything),
@@ -523,6 +655,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    /// Just like `Validator::field_validated`, but the closure is `f(key, bv, data)`.
     pub fn field_validated_key<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &BV, &Everything),
@@ -542,6 +675,8 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    /// Just like `Validator::field_validated`, but the closure is `f(bv, data, sc)` where `sc` is the passed-in ScopeContext.
+    /// This method is useful for delegating to `validate_desc` which takes a bv and a sc.
     pub fn field_validated_sc<F>(&mut self, name: &str, sc: &mut ScopeContext, mut f: F) -> bool
     where
         F: FnMut(&BV, &Everything, &mut ScopeContext),
@@ -549,6 +684,10 @@ impl<'a> Validator<'a> {
         self.field_validated(name, |bv, data| f(bv, data, sc))
     }
 
+    /// Just like `Validator::field_validated_sc`, but instead of a full `ScopeContext` it just gets the scope type
+    /// to be used for the `root` of a `ScopeContext` that is made on the spot. This is a convenient way to associate the
+    /// `root` type with the key of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated
+    /// with a key that is further away.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F) -> bool
     where
@@ -560,6 +699,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Just like `Validator::field_validated`, but expect any number of `name` fields in the block.
     pub fn field_validated_bvs<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BV, &Everything),
@@ -576,6 +716,7 @@ impl<'a> Validator<'a> {
         found
     }
 
+    /// Just like `Validator::field_validated_key`, but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_key_bvs<F>(&mut self, name: &str, mut f: F) -> bool
     where
@@ -593,6 +734,7 @@ impl<'a> Validator<'a> {
         found
     }
 
+    /// Just like `Validator::field_validated_sc`, but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_bvs_sc<F>(&mut self, name: &str, sc: &mut ScopeContext, mut f: F) -> bool
     where
@@ -601,6 +743,7 @@ impl<'a> Validator<'a> {
         self.field_validated_bvs(name, |b, data| f(b, data, sc))
     }
 
+    /// Just like `Validator::field_validated_block`, but expect any number of `name` fields in the block.
     pub fn field_validated_blocks<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Block, &Everything),
@@ -619,6 +762,7 @@ impl<'a> Validator<'a> {
         found
     }
 
+    /// Just like `Validator::field_validated_block_sc`, but expect any number of `name` fields in the block.
     pub fn field_validated_blocks_sc<F>(
         &mut self,
         name: &str,
@@ -631,6 +775,10 @@ impl<'a> Validator<'a> {
         self.field_validated_blocks(name, |b, data| f(b, data, sc))
     }
 
+    /// Expect field `name`, if present, to be a definition `name = { block }`.
+    /// Expect no more than one `name` field in the block.
+    /// Calls the closure `f(block, data)` for every matching field.
+    /// Returns true iff the field is present.
     pub fn field_validated_block<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Block, &Everything),
@@ -652,6 +800,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    /// Just like `Validator::field_validated_block`, but the closure is `f(key, block, data)`.
     pub fn field_validated_key_block<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &Block, &Everything),
@@ -673,6 +822,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    /// Just like `Validator::field_validated_key_block`, but expect any number of `name` fields in the block.
     pub fn field_validated_key_blocks<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &Block, &Everything),
@@ -691,6 +841,7 @@ impl<'a> Validator<'a> {
         found
     }
 
+    /// Just like `Validator::field_validated_block`, but the closure is `f(block, data, sc)` where sc is the passed-in `ScopeContext`.
     pub fn field_validated_block_sc<F>(
         &mut self,
         name: &str,
@@ -703,6 +854,10 @@ impl<'a> Validator<'a> {
         self.field_validated_block(name, |b, data| f(b, data, sc))
     }
 
+    /// Just like `Validator::field_validated_block_sc`, but instead of a full `ScopeContext` it just gets the scope type
+    /// to be used for the `root` of a `ScopeContext` that is made on the spot. This is a convenient way to associate the
+    /// `root` type with the key of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated
+    /// with a key that is further away.
     pub fn field_validated_block_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F) -> bool
     where
         F: FnMut(&Block, &Everything, &mut ScopeContext),
@@ -725,6 +880,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    /// Just like `Validator::field_validated_block_rooted`, but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_blocks_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F)
     where
@@ -742,6 +898,10 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Just like `Validator::field_validated_block_rooted`, but it takes the passed-in `ScopeContext` and associates its
+    /// root with this field's key instead of whatever it was associated with before. This is purely to get better warnings.
+    ///
+    /// TODO: get rid of this in favor of making proper ScopeContexts to begin with.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_block_rerooted<F>(
         &mut self,
@@ -772,6 +932,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    /// Just like `Validator::field_block`, but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_blocks(&mut self, name: &str) -> bool {
         let mut found = false;
@@ -786,6 +947,8 @@ impl<'a> Validator<'a> {
         found
     }
 
+    /// Expect this `Block` to be a block with exactly `expect` loose values that are integers.
+    /// So it's of the form `{ 1 2 3 }`.
     pub fn req_tokens_integers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
@@ -800,6 +963,8 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect this `Block` to be a block with exactly `expect` loose values that are numeric with up to 5 decimals.
+    /// So it's of the form `{ 0.0 0.5 1.0 }`
     pub fn req_tokens_numbers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
@@ -814,6 +979,9 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect field `name`, if present, to be of the form `name = { value value value ... }` with exactly `expect` values.
+    /// Expect every value to be a number with up to 5 decimals.
+    /// Expect no more than one `name` field in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_list_numeric_exactly(&mut self, name: &str, expect: usize) {
         self.field_validated_block(name, |block, data| {
@@ -822,6 +990,7 @@ impl<'a> Validator<'a> {
         });
     }
 
+    /// Like `Validator::req_tokens_numbers_exactly` but the numbers can have any number of decimals.
     pub fn req_tokens_precise_numbers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
@@ -836,6 +1005,7 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Like `Validator::field_list_numeric_exactly` but the numbers can have any number of decimals.
     pub fn field_list_precise_numeric_exactly(&mut self, name: &str, expect: usize) {
         self.field_validated_block(name, |block, data| {
             let mut vd = Validator::new(block, data);
@@ -843,6 +1013,7 @@ impl<'a> Validator<'a> {
         });
     }
 
+    /// Like `Validator::field_list_numeric_exactly` but the numbers have to be integers.
     pub fn field_list_integers_exactly(&mut self, name: &str, expect: usize) {
         self.field_validated_block(name, |block, data| {
             let mut vd = Validator::new(block, data);
@@ -850,6 +1021,8 @@ impl<'a> Validator<'a> {
         });
     }
 
+    /// If `name` is present in the block, emit a low-severity warning together with the helpful message `msg`.
+    /// This is for harmless but unneeded fields.
     pub fn advice_field(&mut self, name: &str, msg: &str) {
         if let Some(key) = self.block.get_key(name) {
             self.known_fields.push(key.as_str());
@@ -857,16 +1030,24 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect the block to contain any number of loose values (possibly in addition to other things).
+    /// Return a vector of those values.
+    /// TODO: make this take a closure or make it an iterator.
     pub fn values(&mut self) -> Vec<&Token> {
         self.accepted_tokens = true;
         self.block.iter_values().collect()
     }
 
+    /// Expect the block to contain any number of loose sub-blocks (possibly in addition to other things).
+    /// Return a vector of those blocks.
+    /// TODO: make callers use `validated_blocks` instead.
     pub fn blocks(&mut self) -> Vec<&Block> {
         self.accepted_blocks = true;
         self.block.iter_blocks().collect()
     }
 
+    /// Expect the block to contain any number of loose sub-blocks (possibly in addition to other things).
+    /// Run the closure `f(block, data)` for every sub-block.
     #[cfg(feature = "vic3")] // ck3 happens not to use; silence dead code warning
     pub fn validated_blocks<F>(&mut self, mut f: F)
     where
@@ -878,6 +1059,9 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect the block to contain any number of `key = { block }` fields where the key is an integer.
+    /// Return them as a vector of (key, block) pairs.
+    /// TODO: make this take a closure.
     pub fn integer_blocks(&mut self) -> Vec<(&Token, &Block)> {
         let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {
@@ -892,6 +1076,9 @@ impl<'a> Validator<'a> {
         vec
     }
 
+    /// Expect the block to contain any number of `key = value` fields where the key is an integer.
+    /// Return them as a vector of (key, value) pairs.
+    /// TODO: make this take a closure.
     pub fn integer_values(&mut self) -> Vec<(&Token, &Token)> {
         let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {
@@ -906,6 +1093,9 @@ impl<'a> Validator<'a> {
         vec
     }
 
+    /// Expect the block to contain any number of `key = value` or `key = { block }` fields where the key is an integer.
+    /// Return them as a vector of (key, bv) pairs.
+    /// TODO: make this take a closure.
     pub fn integer_keys<F: FnMut(&Token, &BV)>(&mut self, mut f: F) {
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if key.is_integer() {
@@ -916,6 +1106,9 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect the block to contain any number of `key = value` or `key = { block }` fields where the key is a number with up to 5 decimals.
+    /// Return them as a vector of (key, bv) pairs.
+    /// TODO: make this take a closure.
     #[cfg(feature = "vic3")] // ck3 happens not to use; silence dead code warning
     pub fn numeric_keys<F: FnMut(&Token, &BV)>(&mut self, mut f: F) {
         for Field(key, cmp, bv) in self.block.iter_fields() {
@@ -927,6 +1120,8 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect the block to contain any number of `key = { block }` fields where the key is a date.
+    /// Run the closure `f(date, block, data)` for every matching field.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn validate_history_blocks<F>(&mut self, mut f: F)
     where
@@ -943,6 +1138,9 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect the block to contain any number of unknown fields (so don't warn about unknown fields anymore).
+    /// Loose values and loose sub-blocks will still be warned about.
+    /// Run the closure `f(key, bv)` on every matching *unknown* field. Previously-validated fields will be skipped.
     pub fn unknown_fields<F: FnMut(&Token, &BV)>(&mut self, mut f: F) {
         self.accepted_block_fields = true;
         self.accepted_value_fields = true;
@@ -954,6 +1152,8 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect the block to contain any number of unknown `key = { block }` fields.
+    /// Run the closure `f(key, block)` on every matching *unknown* field. Previously-validated fields will be skipped.
     pub fn unknown_block_fields<F: FnMut(&Token, &Block)>(&mut self, mut f: F) {
         self.accepted_block_fields = true;
         for Field(key, cmp, bv) in self.block.iter_fields() {
@@ -966,6 +1166,8 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect the block to contain any number of unknown `key = value` fields.
+    /// Run the closure `f(key, block)` on every matching *unknown* field. Previously-validated fields will be skipped.
     pub fn unknown_value_fields<F: FnMut(&Token, &Token)>(&mut self, mut f: F) {
         self.accepted_value_fields = true;
         for Field(key, cmp, bv) in self.block.iter_fields() {
@@ -978,7 +1180,8 @@ impl<'a> Validator<'a> {
         }
     }
 
-    /// Like `unknown_fields` but passes the comparator, so that `f` can determine whether it is `=` or `?=`
+    /// Like `Validator::unknown_fields` but passes the comparator, so that `f` can determine whether it is `=` or `?=`
+    /// It still expects the comparator to be one of those two.
     pub fn unknown_fields_cmp<F: FnMut(&Token, Comparator, &BV)>(&mut self, mut f: F) {
         self.accepted_block_fields = true;
         self.accepted_value_fields = true;
@@ -990,7 +1193,7 @@ impl<'a> Validator<'a> {
         }
     }
 
-    /// Like `unknown_fields_cmp` but accepts and passes any comparator
+    /// Like `Validator::unknown_fields_cmp` but accepts and passes any comparator.
     pub fn unknown_fields_any_cmp<F: FnMut(&Token, Comparator, &BV)>(&mut self, mut f: F) {
         self.accepted_block_fields = true;
         self.accepted_value_fields = true;
@@ -1001,6 +1204,8 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Tells the Validator to not warn about any unknown block contents when it goes out of scope.
+    /// (The default is to warn.)
     pub fn no_warn_remaining(&mut self) {
         self.accepted_block_fields = true;
         self.accepted_value_fields = true;
@@ -1008,6 +1213,9 @@ impl<'a> Validator<'a> {
         self.accepted_blocks = true;
     }
 
+    /// Tells the Validator to warn about any unknown block contents right now, before it goes out of scope.
+    /// It will not warn again when it does go out of scope.
+    /// Returns true iff any warnings were emitted.
     pub fn warn_remaining(&mut self) -> bool {
         let mut warned = false;
         for item in &self.block.v {
