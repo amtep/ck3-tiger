@@ -178,7 +178,7 @@ struct ParseLevel {
     block: Block,
     start: usize,
     key: Option<Token>,
-    comp: Option<(Comparator, Token)>,
+    cmp: Option<(Comparator, Loc)>,
     tag: Option<Token>,
     contains_macro_parms: bool,
 }
@@ -273,7 +273,7 @@ impl Parser {
             self.current.contains_macro_parms = false;
         }
         if let Some(key) = self.current.key.take() {
-            if let Some((comp, _)) = self.current.comp.take() {
+            if let Some((cmp, _)) = self.current.cmp.take() {
                 // TODO: this needs some cleaning up and deduplication
                 if let Some(local_macro) = key.as_str().strip_prefix('@') {
                     if let Some(local_macro_value) = token.as_str().strip_prefix('@') {
@@ -288,15 +288,15 @@ impl Parser {
                 } else if let Some(local_macro) = token.as_str().strip_prefix('@') {
                     // Check for a '!' to avoid looking up macros in gui code that uses @icon! syntax
                     if token.as_str().contains('!') {
-                        self.current.block.add_key_value(key, comp, BV::Value(token));
+                        self.current.block.add_key_value(key, cmp, BV::Value(token));
                     } else if let Some(value) = self.local_macros.get_as_string(local_macro) {
                         let token = Token::new(value, token.loc);
-                        self.current.block.add_key_value(key, comp, BV::Value(token));
+                        self.current.block.add_key_value(key, cmp, BV::Value(token));
                     } else {
                         error(token, ErrorKey::LocalValues, "local value not defined");
                     }
                 } else {
-                    self.current.block.add_key_value(key, comp, BV::Value(token));
+                    self.current.block.add_key_value(key, cmp, BV::Value(token));
                 }
             } else {
                 if let Some(local_macro) = key.as_str().strip_prefix('@') {
@@ -323,8 +323,8 @@ impl Parser {
             block.tag = Some(Box::new(tag));
         }
         if let Some(key) = self.current.key.take() {
-            if let Some((comp, _)) = self.current.comp.take() {
-                self.current.block.add_key_value(key, comp, BV::Block(block));
+            if let Some((cmp, _)) = self.current.cmp.take() {
+                self.current.block.add_key_value(key, cmp, BV::Block(block));
             } else {
                 self.current.block.add_value(BV::Value(key));
                 self.current.block.add_value(BV::Block(block));
@@ -334,29 +334,29 @@ impl Parser {
         }
     }
 
-    fn comparator(&mut self, token: Token) {
-        let cmp = Comparator::from_token(&token).unwrap_or_else(|| {
-            let msg = format!("Unrecognized comparator '{token}'");
-            error(&token, ErrorKey::ParseError, &msg);
+    fn comparator(&mut self, s: &str, loc: Loc) {
+        let cmp = Comparator::from_str(s).unwrap_or_else(|| {
+            let msg = format!("Unrecognized comparator '{s}'");
+            error(&loc, ErrorKey::ParseError, &msg);
             Comparator::Equals(Single)
         });
 
         if self.current.key.is_none() {
-            let msg = format!("Unexpected comparator '{token}'");
-            error(token, ErrorKey::ParseError, &msg);
+            let msg = format!("Unexpected comparator '{s}'");
+            error(&loc, ErrorKey::ParseError, &msg);
         } else {
-            if self.current.comp.is_some() {
-                let msg = &format!("Double comparator '{token}'");
-                error(&token, ErrorKey::ParseError, msg);
+            if self.current.cmp.is_some() {
+                let msg = &format!("Double comparator '{s}'");
+                error(&loc, ErrorKey::ParseError, msg);
             }
-            self.current.comp = Some((cmp, token));
+            self.current.cmp = Some((cmp, loc));
         }
     }
 
     fn end_assign(&mut self) {
         if let Some(key) = self.current.key.take() {
-            if let Some((_, comp_token)) = self.current.comp.take() {
-                error(comp_token, ErrorKey::ParseError, "Comparator without value");
+            if let Some((_, cmp_loc)) = self.current.cmp.take() {
+                error(cmp_loc, ErrorKey::ParseError, "Comparator without value");
             }
             if let Some(local_macro) = key.as_str().strip_prefix('@') {
                 if let Some(value) = self.local_macros.get_as_string(local_macro) {
@@ -377,7 +377,7 @@ impl Parser {
             block: Block::new(loc),
             start: offset,
             key: None,
-            comp: None,
+            cmp: None,
             tag: None,
             contains_macro_parms: false,
         };
@@ -435,7 +435,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
             block: Block::new(blockloc.clone()),
             start: 0,
             key: None,
-            comp: None,
+            cmp: None,
             tag: None,
             contains_macro_parms: false,
         },
@@ -627,8 +627,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                     if c.is_comparator_char() {
                         current_id.push(c);
                     } else {
-                        let token = Token::new(take(&mut current_id), token_start.clone());
-                        parser.comparator(token);
+                        parser.comparator(&take(&mut current_id), token_start.clone());
 
                         if c == '"' {
                             token_start = loc.clone();
@@ -690,8 +689,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
             parser.token(token);
         }
         State::Comparator => {
-            let token = Token::new(current_id, token_start);
-            parser.comparator(token);
+            parser.comparator(&current_id, token_start);
         }
         _ => (),
     }
