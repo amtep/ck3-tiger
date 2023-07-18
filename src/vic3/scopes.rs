@@ -502,7 +502,7 @@ pub fn validate_prefix_reference(
         "b" => data.verify_exists(Item::BuildingType, arg),
         "c" | "cd" | "region_state" => data.verify_exists(Item::Country, arg),
         "cu" => data.verify_exists(Item::Culture, arg),
-        // "decree_cost"
+        "decree_cost" => data.verify_exists(Item::Decree, arg),
         // "define"
         // "diplomatic_pact_other_country"
         // "flag"
@@ -511,16 +511,15 @@ pub fn validate_prefix_reference(
         // "global_var"
         "i" | "ideology" => data.verify_exists(Item::Ideology, arg),
         "ig" => data.verify_exists(Item::InterestGroup, arg),
-        // "ig_trait" => data.verify_exists(Item::InterestGroupTrait, arg),
+        "ig_trait" => data.verify_exists(Item::InterestGroupTrait, arg),
         // "ig_type" => data.verify_exists(Item::InterestGroupType, arg),
-        // "infamy_threshold" => data.verify_exists(Item::InfamyThreshold, arg),
+        "infamy_threshold" => data.verify_exists(Item::InfamyThreshold, arg),
         "institution" => data.verify_exists(Item::Institution, arg),
-        // "je" => data.verify_exists(Item::Journalentry, arg),
+        "je" => data.verify_exists(Item::Journalentry, arg),
         "law_type" => data.verify_exists(Item::LawType, arg),
         // "local_var"
-        // TODO: use the modif type corresponding to the scope this is used in
         "modifier" => verify_modif_exists(arg, data, ModifKinds::all()),
-        // "nf" => data.verify_exists(Item::Decree, arg),
+        "nf" => data.verify_exists(Item::Decree, arg),
         "num_enemy_units" => validate_target(arg, data, sc, Scopes::Character), // TODO verify type
         // "num_pending_events" =>
         "p" => data.verify_exists(Item::Province, arg),

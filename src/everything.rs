@@ -887,6 +887,7 @@ impl Everything {
             Item::EventNamespace => self.events.namespace_exists(key),
             Item::File => self.fileset.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
+            Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
             Item::Level => LEVELS.contains(&key),
             Item::Localization => self.localization.exists(key),
             Item::OnAction => self.on_actions.exists(key),
@@ -1182,6 +1183,10 @@ const ATTITUDES: &[&str] = &[
 #[cfg(feature = "vic3")]
 pub const COUNTRY_TIERS: &[&str] =
     &["city_state", "principality", "grand_principality", "kingdom", "empire", "hegemony"];
+
+/// LAST UPDATED VIC3 VERSION 1.3.6
+#[cfg(feature = "vic3")]
+pub const INFAMY_THRESHOLDS: &[&str] = &["notorious", "infamous", "pariah"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
