@@ -1,6 +1,8 @@
 # ck3-tiger
 Pounces on bugs. Checks Crusader Kings 3 user mod files for mistakes and warns about them. For example: missing localizations, or using a faith trigger on a character.
 
+Crusader Kings 3 is a grand strategy game made by Paradox Interactive, and user mods are made by the players to enhance or change their game experience.
+
 ## Status
 This project is maturing but not yet stable. It will warn about some things that are actually correct.
 
@@ -15,6 +17,12 @@ This project is maturing but not yet stable. It will warn about some things that
 * Special: rivers.png check
 
 It doesn't load all the game files yet, but the gaps are few.
+
+## Sample output
+
+![Sample Output](example.png)
+
+![Sample Output](example2.png)
 
 ## How to use
 Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere.
@@ -47,7 +55,7 @@ You can unpack the archive from the "Release" page on GitHub and use it that way
 
 If you want to build it yourself, you will have to [install the Rust programming language](https://www.rust-lang.org/tools/install).
 
-Run `cargo build --release -p ck3-tiger` in the project's directory, then run the program as `target/release/ck3-tiger`.
+Run `cargo build --release -p ck3-tiger` in the project's directory, then run the program as `cargo run --release -p ck3-tiger`.
 
 ## Contributions
 
@@ -55,7 +63,7 @@ I welcome contributions and collaborations! Some forms that contributions can ta
 
 * Suggestions and ideas about what things tiger should check
 * Telling me which of the output messages are confusing or hard to understand
-* Reporting false positives, where tiger complains about a problem that's not real
+* Reporting cases where tiger complains about a problem that's not real (false positives)
 * Filing an issue on GitHub about a problem you have, or sending me email directly
 * Starting up the game to verify something that's marked "TODO: verify" in the code
 
@@ -78,8 +86,3 @@ This program is free software: you can redistribute it and/or modify it under th
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [`LICENSE`](LICENSE) file for more details.
 
-## Sample output
-
-![Sample Output](example.png)
-
-![Sample Output](example2.png)

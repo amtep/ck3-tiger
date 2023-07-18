@@ -2,6 +2,7 @@
 name = "vic3-tiger"
 version = "0.7.1"
 edition = "2021"
+default-run = "vic3-tiger"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
