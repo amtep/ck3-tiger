@@ -14,6 +14,13 @@ use crate::validate::{
     validate_iterator_fields, validate_scope_chain, ListType,
 };
 
+/// Validate a block that's part of a scriptvalue.
+/// * `have_value`: indicates whether this scriptvalue has had some sort of value set already.
+/// It's used to emit warnings when overwriting this value, or when assuming there is a value
+/// when there isn't one. Has values `True`, `False`, or `Maybe`.
+/// * `check_desc`: indicates whether localization errors are worth warning about. Some scriptvalues
+/// only have their breakdowns displayed while debugging, and those can have raw (non-localized)
+/// text in their descs.
 fn validate_inner(
     mut vd: Validator,
     block: &Block,
@@ -33,8 +40,8 @@ fn validate_inner(
     validate_ifelse_sequence(block, "if", "else_if", "else");
     vd.set_allow_questionmark_equals(true);
     vd.unknown_fields_cmp(|token, cmp, bv| {
-        // save_temporary_scope_as is now allowed in script values
         if token.is("save_temporary_scope_as") {
+            // save_temporary_scope_as is now allowed in script values
             if let Some(name) = bv.expect_value() {
                 sc.save_current_scope(name.as_str());
             }
@@ -130,6 +137,8 @@ fn validate_inner(
     });
 }
 
+/// Validate a block inside an iterator that's part of a scriptvalue.
+/// Checks some fields and then relies on `validate_inner` for the heavy lifting.
 fn validate_iterator(
     ltype: ListType,
     it_name: &Token,
@@ -151,6 +160,8 @@ fn validate_iterator(
     validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
 }
 
+/// Validate one of the `fixed_range` or `integer_range` scriptvalue operators.
+/// These are rarely used.
 fn validate_minmax_range(
     block: &Block,
     data: &Everything,
@@ -168,6 +179,8 @@ fn validate_minmax_range(
     });
 }
 
+/// Validate `if` or `else_if` blocks that are part of a scriptvalue.
+/// Checks the `limit` field and then relies on `validate_inner` for the heavy lifting.
 fn validate_if(block: &Block, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
     let mut vd = Validator::new(block, data);
     vd.req_field_warn("limit");
@@ -177,6 +190,8 @@ fn validate_if(block: &Block, data: &Everything, sc: &mut ScopeContext, check_de
     validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
 }
 
+/// Validate `else` blocks that are part of a scriptvalue.
+/// Just like `validate_if`, but warns if it encounters a `limit` field.
 fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
     let mut vd = Validator::new(block, data);
     vd.field_validated_key_block("limit", |key, block, data| {
@@ -188,6 +203,10 @@ fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext, check_
     validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
 }
 
+/// Validate a scriptvalue. It can be a block or a value.
+/// As a value, it may be an integer or boolean literal, or a target scope sequence, or a named scriptvalue.
+/// As a block, it may be a { min max } range, or a calculation block which is validated with `validate_inner`.
+/// (Boolean scriptvalues are rare but valid. They can't have calculation blocks.)
 fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
     // Using validate_target_ok_this here because when chaining script values to each other, you often do `value = this`
     match bv {
@@ -220,6 +239,8 @@ pub fn validate_scriptvalue_no_breakdown(bv: &BV, data: &Everything, sc: &mut Sc
     validate_bv(bv, data, sc, false);
 }
 
+/// Validate a scriptvalue that's not allowed to do calculations. It must be a literal or the name of another scriptvalue
+/// that's also not allowed to do calculations.
 pub fn validate_non_dynamic_scriptvalue(bv: &BV, data: &Everything) {
     if let Some(token) = bv.get_value() {
         if token.is_number() || token.is("yes") || token.is("no") {
