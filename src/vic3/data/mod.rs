@@ -10,6 +10,7 @@ pub mod decisions;
 pub mod diplomatic_actions;
 pub mod events;
 pub mod gameconcepts;
+pub mod gamerules;
 pub mod goods;
 pub mod history;
 pub mod ideologies;

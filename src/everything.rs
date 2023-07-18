@@ -155,6 +155,7 @@ use crate::vic3::data::{
     diplomatic_actions::DiplomaticAction,
     events::Events,
     gameconcepts::GameConcept,
+    gamerules::GameRule,
     goods::Goods,
     history::History,
     ideologies::Ideology,
@@ -703,6 +704,7 @@ impl Everything {
         self.load_pdx_items(Item::Country, Country::add);
         self.load_pdx_items(Item::DiplomaticAction, DiplomaticAction::add);
         self.load_pdx_items(Item::GameConcept, GameConcept::add);
+        self.load_pdx_items(Item::GameRule, GameRule::add);
         self.load_pdx_items(Item::Goods, Goods::add);
         self.load_pdx_items(Item::Ideology, Ideology::add);
         self.load_pdx_items(Item::Institution, Institution::add);

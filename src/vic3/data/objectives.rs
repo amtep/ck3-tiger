@@ -31,7 +31,7 @@ impl DbKind for Objective {
         vd.field_item("background", Item::File);
 
         vd.field_list_items("recommended_tags", Item::Country);
-        vd.field_list_items("recommended_game_rules", Item::GameRule); // undocumented
+        vd.field_list_items("recommended_game_rules", Item::GameRuleSetting); // undocumented
         vd.field_list_items("objective_subgoals", Item::ObjectiveSubgoal);
         // TODO: check if it's in the list above?
         vd.field_item("final_subgoal", Item::ObjectiveSubgoal); // undocumented
