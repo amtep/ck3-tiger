@@ -109,3 +109,43 @@ impl DbKind for CountryRank {
         });
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct CountryFormation {}
+
+impl CountryFormation {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CountryFormation, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for CountryFormation {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        vd.set_case_sensitive(false);
+
+        data.verify_exists(Item::Country, key);
+        vd.field_bool("is_major_formation");
+
+        vd.field_bool("use_culture_states");
+        vd.field_numeric("required_states_fraction");
+        vd.field_list_items("states", Item::StateRegion);
+
+        if block.field_value_is("is_major_formation", "yes") {
+            vd.field_item("unification_play", Item::DiplomaticPlay);
+            vd.field_item("leadership_play", Item::DiplomaticPlay);
+        } else {
+            vd.ban_field("unification_play", || "major formations");
+            vd.ban_field("leadership_play", || "major formations");
+        }
+
+        vd.field_validated_key_block("ai_will_do", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+        vd.field_validated_key_block("possible", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
+    }
+}

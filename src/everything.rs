@@ -149,7 +149,7 @@ use crate::vic3::data::{
     canals::CanalType,
     character_interactions::CharacterInteraction,
     combat_units::CombatUnit,
-    countries::{Country, CountryRank, CountryType},
+    countries::{Country, CountryFormation, CountryRank, CountryType},
     cultures::Culture,
     decisions::Decision,
     diplomatic_actions::DiplomaticAction,
@@ -704,6 +704,7 @@ impl Everything {
         self.load_pdx_items(Item::CharacterInteraction, CharacterInteraction::add);
         self.load_pdx_items(Item::CombatUnit, CombatUnit::add);
         self.load_pdx_items(Item::Country, Country::add);
+        self.load_pdx_items(Item::CountryFormation, CountryFormation::add);
         self.load_pdx_items(Item::CountryType, CountryType::add);
         self.load_pdx_items(Item::CountryRank, CountryRank::add);
         self.load_pdx_items(Item::DiplomaticAction, DiplomaticAction::add);
