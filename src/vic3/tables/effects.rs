@@ -224,7 +224,7 @@ const SCOPE_EFFECT: &[(u64, &str, Effect)] = &[
     (Character, "set_character_as_ruler", Yes),
     (Character, "set_character_busy", Boolean),
     (Character, "set_commander_rank", Integer),
-    (Country, "set_country_type", Unchecked),
+    (Country, "set_country_type", Item(Item::CountryType)),
     (StateRegion, "set_devastation", Integer),
     (Country, "set_diplomats_expelled", Scope(Scopes::Country)),
     (None, "set_global_variable", VBv(EvBv::SetVariable)),

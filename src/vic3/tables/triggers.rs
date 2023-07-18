@@ -382,7 +382,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (MarketGoods, "is_consumed_by_government_buildings", Boolean),
     (MarketGoods, "is_consumed_by_military_buildings", Boolean),
     (Country, "is_country_alive", Boolean),
-    (Country, "is_country_type", UncheckedValue),
+    (Country, "is_country_type", Item(Item::CountryType)),
     (Character, "is_defender_in_battle", Boolean),
     (DiplomaticPact, "is_diplomatic_action_type", UncheckedValue),
     (DiplomaticPact, "is_diplomatic_in_danger", Boolean),

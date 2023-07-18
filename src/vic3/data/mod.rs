@@ -32,5 +32,6 @@ pub mod scripted_buttons;
 pub mod state_regions;
 pub mod state_traits;
 pub mod strategic_regions;
+pub mod subject_types;
 pub mod technology;
 pub mod terrain;

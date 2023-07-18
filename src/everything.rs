@@ -149,7 +149,7 @@ use crate::vic3::data::{
     canals::CanalType,
     character_interactions::CharacterInteraction,
     combat_units::CombatUnit,
-    countries::Country,
+    countries::{Country, CountryRank, CountryType},
     cultures::Culture,
     decisions::Decision,
     diplomatic_actions::DiplomaticAction,
@@ -177,6 +177,7 @@ use crate::vic3::data::{
     state_regions::StateRegion,
     state_traits::StateTrait,
     strategic_regions::StrategicRegion,
+    subject_types::SubjectType,
     technology::{Technology, TechnologyEra},
     terrain::{Terrain, TerrainLabel, TerrainManipulator, TerrainMask, TerrainMaterial},
 };
@@ -703,6 +704,8 @@ impl Everything {
         self.load_pdx_items(Item::CharacterInteraction, CharacterInteraction::add);
         self.load_pdx_items(Item::CombatUnit, CombatUnit::add);
         self.load_pdx_items(Item::Country, Country::add);
+        self.load_pdx_items(Item::CountryType, CountryType::add);
+        self.load_pdx_items(Item::CountryRank, CountryRank::add);
         self.load_pdx_items(Item::DiplomaticAction, DiplomaticAction::add);
         self.load_pdx_items(Item::GameConcept, GameConcept::add);
         self.load_pdx_items(Item::GameRule, GameRule::add);
@@ -728,6 +731,7 @@ impl Everything {
         self.load_pdx_items(Item::StateRegion, StateRegion::add);
         self.load_pdx_items(Item::StateTrait, StateTrait::add);
         self.load_pdx_items(Item::StrategicRegion, StrategicRegion::add);
+        self.load_pdx_items(Item::SubjectType, SubjectType::add);
         self.load_pdx_items(Item::Technology, Technology::add);
         self.load_pdx_items(Item::TechnologyEra, TechnologyEra::add);
         self.load_pdx_items(Item::Terrain, Terrain::add);
@@ -916,7 +920,7 @@ impl Everything {
             Item::TextureFile => self.assets.texture_exists(key),
             Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
             Item::Wargoal => WARGOALS.contains(&key),
-            Item::SubjectType | Item::TutorialLesson => true, // TODO
+            Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
