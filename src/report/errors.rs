@@ -161,15 +161,17 @@ impl Errors {
             }
             cmp
         });
-        _ = writeln!(self.output.get_mut(), "[");
-        for report in &reports {
-            if json {
+        if json {
+            _ = writeln!(self.output.get_mut(), "[");
+            for report in &reports {
                 log_report_json(self, report);
-            } else {
+            }
+            _ = writeln!(self.output.get_mut(), "]");
+        } else {
+            for report in &reports {
                 log_report(self, report);
             }
         }
-        _ = writeln!(self.output.get_mut(), "]");
     }
 
     pub fn get_mut() -> MutexGuard<'static, Errors> {
