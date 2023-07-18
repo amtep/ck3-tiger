@@ -582,7 +582,7 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
     (Battle | Character, "front", Front),
     (Front, "front_length", Value),
     (Country | State, "gdp", Value),
-    (None, "global_gdb", Value),
+    (None, "global_gdp", Value),
     (Journalentry, "goal_value", Value),
     (MarketGoods | TradeRoute, "goods", Goods),
     (Country, "government_size", Value),
