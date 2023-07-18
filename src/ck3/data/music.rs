@@ -61,8 +61,8 @@ impl FileHandler<Block> for Musics {
     }
 
     fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
-        if !(entry.path().starts_with("dlc") && entry.path().parent().unwrap().ends_with("music"))
-            && !entry.path().starts_with("music")
+        if !(entry.path().starts_with("music")
+            || entry.path().starts_with("dlc") && entry.path().parent().unwrap().ends_with("music"))
         {
             return None;
         }

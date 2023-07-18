@@ -239,7 +239,7 @@ impl FileHandler<Block> for Characters {
             if !cycle_vec.is_empty() {
                 let msg = "character is their own ancestor";
                 let info = format!("via {}", cycle_vec.join(", "));
-                fatal(ErrorKey::Crash).strong().msg(msg).info(info).loc(&item.key).push()
+                fatal(ErrorKey::Crash).strong().msg(msg).info(info).loc(&item.key).push();
             }
         }
     }

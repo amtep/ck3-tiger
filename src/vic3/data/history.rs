@@ -61,7 +61,7 @@ impl FileHandler<Block> for History {
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
-            self.load_item(key, block)
+            self.load_item(key, block);
         }
     }
 }

@@ -176,7 +176,7 @@ impl FileHandler<Block> for Gui {
                         );
                         error_info(field, ErrorKey::ParseError, &msg, &info);
                         expecting = Expecting::Widget;
-                    } else if let Some(_) = item.expect_value() {
+                    } else if item.expect_value().is_some() {
                         expecting = Expecting::TypesBody;
                     } else {
                         expecting = Expecting::Widget;
@@ -344,14 +344,14 @@ fn validate_gui(block: &Block, data: &Everything) {
                 }
             }
             Expecting::SubstBlock => {
-                if let Some(_) = item.expect_value() {
+                if item.expect_value().is_some() {
                     expecting = Expecting::SubstBlockBody;
                 } else {
                     expecting = Expecting::Field;
                 }
             }
             Expecting::BlockOverride => {
-                if let Some(_) = item.expect_value() {
+                if item.expect_value().is_some() {
                     expecting = Expecting::BlockOverrideBody;
                 } else {
                     expecting = Expecting::Field;

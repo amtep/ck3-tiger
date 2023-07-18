@@ -157,7 +157,7 @@ impl Errors {
             }
             // Fallback: order by message text.
             if cmp == Ordering::Equal {
-                cmp = a.msg.cmp(&b.msg)
+                cmp = a.msg.cmp(&b.msg);
             }
             cmp
         });
@@ -174,10 +174,18 @@ impl Errors {
         }
     }
 
+    /// Get a mutable lock on the global ERRORS struct.
+    ///
+    /// # Panics
+    /// May panic when the mutex has been poisoned by another thread.
     pub fn get_mut() -> MutexGuard<'static, Errors> {
         ERRORS.lock().unwrap()
     }
 
+    /// Like [`self.get_mut`] but intended for read-only access.
+    ///
+    /// # Panics
+    /// May panic when the mutex has been poisoned by another thread.
     pub fn get() -> MutexGuard<'static, Errors> {
         ERRORS.lock().unwrap()
     }

@@ -11,38 +11,38 @@ pub enum BlockItem {
 
 impl BlockItem {
     pub fn expect_field(&self) -> Option<&Field> {
-        match self {
-            BlockItem::Field(field) => Some(field),
-            _ => {
-                let msg = format!("unexpected {}", self.describe());
-                error_info(self, ErrorKey::Validation, &msg, "Did you forget an = ?");
-                None
-            }
+        if let BlockItem::Field(field) = self {
+            Some(field)
+        } else {
+            let msg = format!("unexpected {}", self.describe());
+            error_info(self, ErrorKey::Validation, &msg, "Did you forget an = ?");
+            None
         }
     }
 
     pub fn expect_into_field(self) -> Option<Field> {
-        match self {
-            BlockItem::Field(field) => Some(field),
-            _ => {
-                let msg = format!("unexpected {}", self.describe());
-                error_info(self, ErrorKey::Validation, &msg, "Did you forget an = ?");
-                None
-            }
+        if let BlockItem::Field(field) = self {
+            Some(field)
+        } else {
+            let msg = format!("unexpected {}", self.describe());
+            error_info(self, ErrorKey::Validation, &msg, "Did you forget an = ?");
+            None
         }
     }
 
     pub fn get_field(&self) -> Option<&Field> {
-        match self {
-            BlockItem::Field(field) => Some(field),
-            _ => None,
+        if let BlockItem::Field(field) = self {
+            Some(field)
+        } else {
+            None
         }
     }
 
     pub fn get_into_field(self) -> Option<Field> {
-        match self {
-            BlockItem::Field(field) => Some(field),
-            _ => None,
+        if let BlockItem::Field(field) = self {
+            Some(field)
+        } else {
+            None
         }
     }
 
@@ -51,60 +51,58 @@ impl BlockItem {
     }
 
     pub fn get_value(&self) -> Option<&Token> {
-        match self {
-            BlockItem::Value(token) => Some(token),
-            _ => None,
+        if let BlockItem::Value(token) = self {
+            Some(token)
+        } else {
+            None
         }
     }
 
     pub fn expect_value(&self) -> Option<&Token> {
-        match self {
-            BlockItem::Value(token) => Some(token),
-            _ => {
-                let msg = format!("expected value, found {}", self.describe());
-                error(self, ErrorKey::Validation, &msg);
-                None
-            }
+        if let BlockItem::Value(token) = self {
+            Some(token)
+        } else {
+            let msg = format!("expected value, found {}", self.describe());
+            error(self, ErrorKey::Validation, &msg);
+            None
         }
     }
 
     pub fn expect_into_value(self) -> Option<Token> {
-        match self {
-            BlockItem::Value(token) => Some(token),
-            _ => {
-                let msg = format!("expected value, found {}", self.describe());
-                error(self, ErrorKey::Validation, &msg);
-                None
-            }
+        if let BlockItem::Value(token) = self {
+            Some(token)
+        } else {
+            let msg = format!("expected value, found {}", self.describe());
+            error(self, ErrorKey::Validation, &msg);
+            None
         }
     }
 
     pub fn get_block(&self) -> Option<&Block> {
-        match self {
-            BlockItem::Block(block) => Some(block),
-            _ => None,
+        if let BlockItem::Block(block) = self {
+            Some(block)
+        } else {
+            None
         }
     }
 
     pub fn expect_block(&self) -> Option<&Block> {
-        match self {
-            BlockItem::Block(block) => Some(block),
-            _ => {
-                let msg = format!("expected block, found {}", self.describe());
-                error(self, ErrorKey::Validation, &msg);
-                None
-            }
+        if let BlockItem::Block(block) = self {
+            Some(block)
+        } else {
+            let msg = format!("expected block, found {}", self.describe());
+            error(self, ErrorKey::Validation, &msg);
+            None
         }
     }
 
     pub fn expect_into_block(self) -> Option<Block> {
-        match self {
-            BlockItem::Block(block) => Some(block),
-            _ => {
-                let msg = format!("expected block, found {}", self.describe());
-                error(self, ErrorKey::Validation, &msg);
-                None
-            }
+        if let BlockItem::Block(block) = self {
+            Some(block)
+        } else {
+            let msg = format!("expected block, found {}", self.describe());
+            error(self, ErrorKey::Validation, &msg);
+            None
         }
     }
 
@@ -142,6 +140,7 @@ impl BlockItem {
 
     pub fn expect_assignment(&self) -> Option<(&Token, &Token)> {
         if let Some(field) = self.expect_field() {
+            #[allow(clippy::single_match_else)] // too complicated for a `let`
             match field {
                 Field(key, Comparator::Equals(Single | Question), BV::Value(token)) => {
                     return Some((key, token))
@@ -156,6 +155,7 @@ impl BlockItem {
     }
 
     pub fn get_assignment(&self) -> Option<(&Token, &Token)> {
+        #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
             BlockItem::Field(Field(
                 key,

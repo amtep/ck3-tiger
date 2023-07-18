@@ -461,7 +461,7 @@ impl<'a> Validator<'a> {
     /// Expect no more than one `name` field in the block.
     /// Returns true iff the field is present.
     ///
-    /// TODO: standardize on scriptvalue vs script_value.
+    /// TODO: standardize on `scriptvalue` vs `script_value`.
     pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             validate_scriptvalue(bv, self.data, sc);
@@ -674,7 +674,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
-    /// Just like `Validator::field_validated`, but the closure is `f(bv, data, sc)` where `sc` is the passed-in ScopeContext.
+    /// Just like `Validator::field_validated`, but the closure is `f(bv, data, sc)` where `sc` is the passed-in `ScopeContext`.
     /// This method is useful for delegating to `validate_desc` which takes a bv and a sc.
     pub fn field_validated_sc<F>(&mut self, name: &str, sc: &mut ScopeContext, mut f: F) -> bool
     where
@@ -900,7 +900,7 @@ impl<'a> Validator<'a> {
     /// Just like `Validator::field_validated_block_rooted`, but it takes the passed-in `ScopeContext` and associates its
     /// root with this field's key instead of whatever it was associated with before. This is purely to get better warnings.
     ///
-    /// TODO: get rid of this in favor of making proper ScopeContexts to begin with.
+    /// TODO: get rid of this in favor of making proper `ScopeContext` to begin with.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_validated_block_rerooted<F>(
         &mut self,

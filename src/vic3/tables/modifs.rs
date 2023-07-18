@@ -173,12 +173,12 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // state_$Religion$_standard_of_living_add
     if let Some(part) = name.as_str().strip_prefix("state_") {
         if let Some(part) = part.strip_suffix("_standard_of_living_add") {
-            if warn {
-                if !data.item_exists(Item::Religion, part) && !data.item_exists(Item::Culture, part)
-                {
-                    let msg = format!("{name} not found as culture or religion");
-                    err(ErrorKey::MissingItem).msg(msg).loc(name).push();
-                }
+            if warn
+                && !data.item_exists(Item::Religion, part)
+                && !data.item_exists(Item::Culture, part)
+            {
+                let msg = format!("{name} not found as culture or religion");
+                err(ErrorKey::MissingItem).msg(msg).loc(name).push();
             }
             return Some(ModifKinds::State);
         }

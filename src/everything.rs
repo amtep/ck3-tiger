@@ -1020,6 +1020,7 @@ impl Everything {
         self.defines.get_string(key)
     }
 
+    #[allow(clippy::missing_panics_doc)] // only panics on poisoned mutex
     pub fn get_defined_string_warn(&self, token: &Token, key: &str) -> Option<&Token> {
         let result = self.get_defined_string(key);
         let mut cache = self.warned_defines.write().unwrap();
@@ -1077,7 +1078,7 @@ const DLC: &[&str] = &[
 ];
 
 /// LAST UPDATED VERSION 1.9.2
-/// Entries verified in-game by seeing if datafunction HasDlcFeature logs an error.
+/// Entries verified in-game by seeing if datafunction `HasDlcFeature` logs an error.
 #[cfg(feature = "ck3")]
 const DLC_FEATURES: &[&str] = &[
     "garments_of_the_hre",
@@ -1216,7 +1217,7 @@ pub const SECRET_GOALS: &[&str] =
     &["none", "befriend", "reconcile", "protect", "antagonize", "conquer", "dominate"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
-/// Deduced from common/government_types/
+/// Deduced from `common/government_types/`
 #[cfg(feature = "vic3")]
 pub const TRANSFER_OF_POWER: &[&str] =
     &["hereditary", "presidential_elective", "dictatorial", "parliamentary_elective"];

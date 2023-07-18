@@ -87,7 +87,7 @@ impl FileHandler<DdsInfo> for DdsFiles {
                     "could not read dds header",
                     &format!("{e:#}"),
                 );
-                return None;
+                None
             }
         }
     }

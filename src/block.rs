@@ -533,7 +533,9 @@ impl<'a> Iterator for IterValues<'a> {
             if self.warn {
                 item.expect_value();
             }
-            return item.get_value();
+            if let BlockItem::Value(value) = item {
+                return Some(value);
+            }
         }
         None
     }
@@ -553,7 +555,9 @@ impl<'a> Iterator for IterBlocks<'a> {
             if self.warn {
                 item.expect_block();
             }
-            return item.get_block();
+            if let BlockItem::Block(block) = item {
+                return Some(block);
+            }
         }
         None
     }

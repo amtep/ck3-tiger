@@ -106,7 +106,7 @@ impl FileHandler<Option<Block>> for Assets {
         if name.ends_with(".dds") {
             Some(None)
         } else if name.ends_with(".asset") {
-            PdxFile::read_optional_bom(entry, fullpath).map(|block| Some(block))
+            PdxFile::read_optional_bom(entry, fullpath).map(Some)
         } else {
             None
         }

@@ -334,7 +334,7 @@ impl Fileset {
             }
         }
 
-        for entry in self.ordered_files.iter_mut() {
+        for entry in &mut self.ordered_files {
             entry.store_in_pathtable();
             self.filenames.insert(entry.path.clone());
         }

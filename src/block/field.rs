@@ -60,6 +60,7 @@ impl Field {
     }
 
     pub fn expect_definition(&self) -> Option<(&Token, &Block)> {
+        #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
             Field(key, Comparator::Equals(Single | Question), BV::Block(block)) => {
                 return Some((key, block))
@@ -73,6 +74,7 @@ impl Field {
     }
 
     pub fn expect_into_definition(self) -> Option<(Token, Block)> {
+        #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
             Field(key, Comparator::Equals(Single | Question), BV::Block(block)) => {
                 return Some((key, block))
@@ -86,6 +88,7 @@ impl Field {
     }
 
     pub fn get_definition(&self) -> Option<(&Token, &Block)> {
+        #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
             Field(key, Comparator::Equals(Single | Question), BV::Block(block)) => {
                 Some((key, block))
@@ -95,6 +98,7 @@ impl Field {
     }
 
     pub fn get_into_definition(self) -> Option<(Token, Block)> {
+        #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
             Field(key, Comparator::Equals(Single | Question), BV::Block(block)) => {
                 Some((key, block))
@@ -103,6 +107,7 @@ impl Field {
         }
     }
     pub fn expect_assignment(&self) -> Option<(&Token, &Token)> {
+        #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
             Field(key, Comparator::Equals(Single | Question), BV::Value(token)) => {
                 return Some((key, token))

@@ -60,11 +60,11 @@ impl FileHandler<String> for Sounds {
             return None;
         }
         match read_guids(fullpath) {
-            Ok(content) => return Some(content),
+            Ok(content) => Some(content),
             Err(e) => {
                 let msg = format!("could not read file: {e:#}");
                 error(entry, ErrorKey::ReadError, &msg);
-                return None;
+                None
             }
         }
     }

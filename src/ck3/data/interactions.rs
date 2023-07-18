@@ -98,7 +98,7 @@ impl DbKind for Interaction {
                 let pathname = format!("{icon_path}/{name}.dds");
                 data.fileset.verify_exists_implied(&pathname, name);
             } else {
-                let pathname = format!("{icon_path}/{}.dds", key);
+                let pathname = format!("{icon_path}/{key}.dds");
                 data.item_used(Item::File, &pathname);
             }
             if let Some(name) = vd.field_value("alert_icon") {
@@ -185,7 +185,7 @@ impl DbKind for Interaction {
         }
         vd.field_validated_value("extra_icon", |k, token, data| {
             data.fileset.verify_exists(token);
-            let loca = format!("{}_extra_icon", key);
+            let loca = format!("{key}_extra_icon");
             data.localization.verify_exists_implied(&loca, k);
         });
         vd.field_validated_block("should_use_extra_icon", |b, data| {
@@ -220,12 +220,12 @@ impl DbKind for Interaction {
         vd.field_validated_key_block("populate_actor_list", |k, block, data| {
             // TODO: this loca check and the one for recipient_secondary have a lot of false positives in vanilla.
             // Not sure why.
-            let loca = format!("actor_secondary_{}", key);
+            let loca = format!("actor_secondary_{key}");
             data.verify_exists_implied(Item::Localization, &loca, k);
             validate_effect(block, data, &mut sc.clone(), Tooltipped::No);
         });
         vd.field_validated_key_block("populate_recipient_list", |k, block, data| {
-            let loca = format!("recipient_secondary_{}", key);
+            let loca = format!("recipient_secondary_{key}");
             data.verify_exists_implied(Item::Localization, &loca, k);
             validate_effect(block, data, &mut sc.clone(), Tooltipped::No);
         });

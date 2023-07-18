@@ -208,7 +208,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
                         let msg = "hsv values should be between 0.0 and 1.0";
                         let mut info = "";
                         if t.is_integer() {
-                            info = "did you mean `hsv360`?"
+                            info = "did you mean `hsv360`?";
                         }
                         warn(ErrorKey::Colors).weak().msg(msg).info(info).loc(t).push();
                     }
@@ -975,7 +975,7 @@ pub fn validate_numeric_range(
             if count == 1 {
                 prev = n;
             } else if count == 2 && n < prev {
-                let msg = format!("expected second number to be bigger than first number");
+                let msg = "expected second number to be bigger than first number";
                 report(ErrorKey::Range, sev).conf(conf).msg(msg).loc(token).push();
             } else if count == 3 {
                 let msg = "expected exactly 2 numbers";

@@ -197,14 +197,13 @@ impl FileHandler<FileContent> for Provinces {
                     };
                     if let DynamicImage::ImageRgb8(_) = img {
                         return Some(FileContent::Provinces(img));
-                    } else {
-                        let msg = format!(
-                            "`{}` has wrong color format `{:?}`, should be Rgb8",
-                            entry.path().display(),
-                            img.color()
-                        );
-                        error(entry, ErrorKey::ImageFormat, &msg);
                     }
+                    let msg = format!(
+                        "`{}` has wrong color format `{:?}`, should be Rgb8",
+                        entry.path().display(),
+                        img.color()
+                    );
+                    error(entry, ErrorKey::ImageFormat, &msg);
                 }
 
                 "default.map" => {

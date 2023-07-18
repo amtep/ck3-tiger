@@ -42,7 +42,7 @@ pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)>
 static SCOPE_EFFECT_MAP: Lazy<FnvHashMap<String, (Scopes, Effect)>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
     for (from, s, effect) in SCOPE_EFFECT {
-        hash.insert(s.to_string(), (Scopes::from_bits_truncate(*from), *effect));
+        hash.insert((*s).to_string(), (Scopes::from_bits_truncate(*from), *effect));
     }
     hash
 });

@@ -58,7 +58,10 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
 static TRIGGER_MAP: Lazy<FnvHashMap<String, (Scopes, Trigger)>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
     for (from, s, trigger) in TRIGGER {
-        hash.insert(s.to_string(), (Scopes::from_bits_truncate(*from), Trigger::from_raw(trigger)));
+        hash.insert(
+            (*s).to_string(),
+            (Scopes::from_bits_truncate(*from), Trigger::from_raw(trigger)),
+        );
     }
     hash
 });

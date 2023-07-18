@@ -32,9 +32,8 @@ pub fn log_report_json(errors: &mut Errors, report: &LogReport) {
         "locations": pointers,
     });
 
-    match serde_json::to_writer_pretty(errors.output.get_mut(), &report) {
-        Err(e) => eprintln!("JSON error: {e:#}"),
-        Ok(_) => (),
+    if let Err(e) = serde_json::to_writer_pretty(errors.output.get_mut(), &report) {
+        eprintln!("JSON error: {e:#}");
     }
     _ = writeln!(errors.output.get_mut(), ",");
 }

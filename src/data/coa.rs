@@ -400,7 +400,7 @@ fn validate_instance(block: &Block, data: &Everything) {
     vd.ban_field("offset", || "sub blocks");
 }
 
-/// Just like validate_instance, but takes offset instead of position
+/// Just like [`validate_instance`], but takes offset instead of position
 #[cfg(feature = "vic3")]
 fn validate_instance_offset(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);

@@ -19,7 +19,7 @@ impl GameRule {
 }
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
-/// Taken from common/game_rules/_game_rules.info
+/// Taken from `common/game_rules/_game_rules.info`
 const SIMPLE_GAME_RULE_FLAGS: &[&str] = &[
     "blocks_achievements",
     "lenient_ai",
@@ -39,12 +39,9 @@ impl DbKind for GameRule {
 
         vd.req_field("default");
         if let Some(token) = vd.field_value("default") {
-            if !block.get_field_block(token.as_str()).is_some() {
-                warn(ErrorKey::MissingItem)
-                    .strong()
-                    .msg("default is not one of the settings")
-                    .loc(token)
-                    .push();
+            if block.get_field_block(token.as_str()).is_none() {
+                let msg = "default value not found among the settings";
+                warn(ErrorKey::MissingItem).strong().msg(msg).loc(token).push();
             }
         }
 

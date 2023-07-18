@@ -40,7 +40,7 @@ pub fn find_game_directory_steam(steam_app_id: &str, game_dir: &Path) -> Option<
             // Try the default directory too
             let steam_dir = &home.join(try_dir).join(game_dir);
             if steam_dir.is_dir() {
-                return Some(steam_dir.to_path_buf());
+                return Some(steam_dir.clone());
             }
         }
     }
@@ -55,7 +55,7 @@ pub fn find_game_directory_steam(steam_app_id: &str, game_dir: &Path) -> Option<
     }
     let on_windows = PathBuf::from(STEAM_WINDOWS).join(game_dir);
     if on_windows.is_dir() {
-        return Some(on_windows.to_path_buf());
+        return Some(on_windows);
     }
 
     // If the game is not in the default dirs, go via the registry to find Steam and then find the game

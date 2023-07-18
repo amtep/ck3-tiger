@@ -502,7 +502,7 @@ pub fn validate_prefix_reference(
         "b" => data.verify_exists(Item::BuildingType, arg),
         "c" | "cd" | "region_state" => data.verify_exists(Item::Country, arg),
         "cu" => data.verify_exists(Item::Culture, arg),
-        "decree_cost" => data.verify_exists(Item::Decree, arg),
+        "decree_cost" | "nf" => data.verify_exists(Item::Decree, arg),
         // "define"
         // "diplomatic_pact_other_country"
         // "flag"
@@ -519,7 +519,6 @@ pub fn validate_prefix_reference(
         "law_type" => data.verify_exists(Item::LawType, arg),
         // "local_var"
         "modifier" => verify_modif_exists(arg, data, ModifKinds::all()),
-        "nf" => data.verify_exists(Item::Decree, arg),
         "num_enemy_units" => validate_target(arg, data, sc, Scopes::Character), // TODO verify type
         // "num_pending_events" =>
         "p" => data.verify_exists(Item::Province, arg),

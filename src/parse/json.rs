@@ -172,7 +172,7 @@ fn parse(blockloc: Loc, content: &str) -> Block {
     let mut token_start = blockloc.clone();
     let mut current_id = String::new();
 
-    let mut loc = blockloc.clone();
+    let mut loc = blockloc;
     for c in content.chars() {
         match state {
             State::Neutral => {
@@ -226,7 +226,7 @@ fn parse(blockloc: Loc, content: &str) -> Block {
             error(&token, ErrorKey::ParseError, "Quoted string not closed");
             parser.token(token);
         }
-        _ => (),
+        State::Neutral => (),
     }
 
     parser.eof()
@@ -234,8 +234,7 @@ fn parse(blockloc: Loc, content: &str) -> Block {
 
 #[allow(clippy::module_name_repetitions)]
 pub fn parse_json(entry: &FileEntry, content: &str) -> Block {
-    let blockloc = Loc::for_entry(entry);
-    let mut loc = blockloc.clone();
+    let mut loc = Loc::for_entry(entry);
     loc.line = 1;
     loc.column = 1;
     parse(loc, content)

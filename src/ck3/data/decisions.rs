@@ -60,7 +60,7 @@ impl DbKind for Decision {
         vd.field_item("confirm_click_sound", Item::Sound);
 
         if !vd.field_validated_sc("selection_tooltip", &mut sc, validate_desc) {
-            let loca = format!("{}_tooltip", key);
+            let loca = format!("{key}_tooltip");
             data.localization.verify_exists_implied(&loca, key);
         }
 
@@ -69,12 +69,12 @@ impl DbKind for Decision {
         }
 
         if !vd.field_validated_sc("desc", &mut sc, validate_desc) {
-            let loca = format!("{}_desc", key);
+            let loca = format!("{key}_desc");
             data.localization.verify_exists_implied(&loca, key);
         }
 
         if !vd.field_validated_sc("confirm_text", &mut sc, validate_desc) {
-            let loca = format!("{}_confirm", key);
+            let loca = format!("{key}_confirm");
             data.localization.verify_exists_implied(&loca, key);
         }
 

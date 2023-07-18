@@ -141,9 +141,7 @@ fn load_rule_always(bv: &BV) -> Option<FilterRule> {
 /// Loads the `ignore_keys_in_files` trigger.
 /// This is syntactic sugar for a NAND wrapping an OR of keys and an OR of files.
 fn load_ignore_keys_in_files(bv: &BV) -> Option<FilterRule> {
-    let block = if let Some(block) = bv.get_block() {
-        block
-    } else {
+    let Some(block) = bv.get_block() else {
         err(ErrorKey::Config)
             .strong()
             .msg("This trigger should open a block.")
@@ -157,9 +155,7 @@ fn load_ignore_keys_in_files(bv: &BV) -> Option<FilterRule> {
     let mut files = None;
 
     for item in block.iter_items() {
-        let Field(key, cmp, bv) = if let Some(field) = item.get_field() {
-            field
-        } else {
+        let Some(Field(key, cmp, bv)) = item.get_field() else {
             err(ErrorKey::Config)
                 .strong()
                 .msg("Didn't expect a loose value here.")

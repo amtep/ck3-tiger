@@ -81,10 +81,11 @@ fn inner_main() -> Result<()> {
     } else {
         eprintln!("Found several possible mods to validate:");
         for (i, entry) in entries.iter().enumerate().take(35) {
-            if i + 1 <= 9 {
-                eprintln!("{}. {}", i + 1, entry.file_name().to_str().unwrap_or(""));
+            let ordinal = i + 1;
+            if ordinal <= 9 {
+                eprintln!("{ordinal}. {}", entry.file_name().to_str().unwrap_or(""));
             } else {
-                let modkey = char::from_u32(((i + 1) - 10 + 'A' as usize) as u32).unwrap();
+                let modkey = char::from_u32((ordinal - 10 + 'A' as usize) as u32).unwrap();
                 eprintln!("{modkey}. {}", entry.file_name().to_str().unwrap_or(""));
             }
         }
@@ -94,11 +95,11 @@ fn inner_main() -> Result<()> {
             eprint!("\nChoose one by typing its key: ");
             let ch = term.read_char();
             if let Ok(ch) = ch {
-                let modnr = if ch >= '1' && ch <= '9' {
+                let modnr = if ('1'..='9').contains(&ch) {
                     ch as usize - '1' as usize
-                } else if ch >= 'a' && ch <= 'z' {
+                } else if ch.is_ascii_lowercase() {
                     9 + ch as usize - 'a' as usize
-                } else if ch >= 'A' && ch <= 'Z' {
+                } else if ch.is_ascii_uppercase() {
                     9 + ch as usize - 'A' as usize
                 } else {
                     continue;
@@ -129,7 +130,7 @@ fn validate_mod(vic3: &Path, modpath: &Path, logdir: &Path) -> Result<()> {
     set_mod_root(modpath.clone());
     let output_filename =
         format!("vic3-tiger-{}.log", modpath.file_name().unwrap().to_string_lossy());
-    let output_file = &logdir.clone().join(output_filename);
+    let output_file = &logdir.join(output_filename);
     set_output_file(output_file)?;
     eprintln!("Writing error reports to {} ...", output_file.display());
     eprintln!("This will take a few seconds.");

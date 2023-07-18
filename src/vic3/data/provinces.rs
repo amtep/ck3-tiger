@@ -34,7 +34,7 @@ impl Provinces {
         if key.len() != 7 {
             return false; // not a valid province id
         }
-        if let Some(hexid) = key.strip_prefix("x") {
+        if let Some(hexid) = key.strip_prefix('x') {
             if let Ok(r) = u8::from_str_radix(&hexid[0..2], 16) {
                 if let Ok(g) = u8::from_str_radix(&hexid[2..4], 16) {
                     if let Ok(b) = u8::from_str_radix(&hexid[4..6], 16) {
@@ -68,15 +68,14 @@ impl FileHandler<DynamicImage> for Provinces {
             };
             if let DynamicImage::ImageRgb8(_) = img {
                 return Some(img);
-            } else {
-                let msg = format!(
-                    "`{}` has wrong color format `{:?}`, should be Rgb8",
-                    entry.path().display(),
-                    img.color()
-                );
-                // TODO: does this crash?
-                err(ErrorKey::ImageFormat).msg(msg).loc(entry).push();
             }
+            let msg = format!(
+                "`{}` has wrong color format `{:?}`, should be Rgb8",
+                entry.path().display(),
+                img.color()
+            );
+            // TODO: does this crash?
+            err(ErrorKey::ImageFormat).msg(msg).loc(entry).push();
         }
         None
     }
