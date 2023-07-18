@@ -1,10 +1,10 @@
-pub use builder::{err, fatal, report, tips, untidy, warn};
-pub use error_key::ErrorKey;
-pub use error_loc::ErrorLoc;
+pub(crate) use builder::{err, fatal, report, tips, untidy, warn};
+pub(crate) use error_key::ErrorKey;
+pub(crate) use error_loc::ErrorLoc;
 pub use errors::*;
-pub use filter::FilterRule;
-pub use output_style::OutputStyle;
-pub use report_struct::{Confidence, LogReport, PointedMessage, Severity};
+pub(crate) use filter::FilterRule;
+pub(crate) use output_style::OutputStyle;
+pub(crate) use report_struct::{Confidence, LogReport, PointedMessage, Severity};
 
 mod builder;
 mod error_key;

@@ -92,6 +92,7 @@ impl ReportBuilderStage2 {
             pointers: vec![PointedMessage { loc: loc.into_loc(), length: 1, msg: None }],
         }
     }
+    #[cfg(feature = "ck3")] // vic3 happens not to use
     pub fn loc_msg<E: ErrorLoc, S: Own<String>>(self, loc: E, msg: S) -> ReportBuilderStage3 {
         ReportBuilderStage3 {
             stage1: self.stage1,
@@ -119,6 +120,7 @@ impl ReportBuilderStage3 {
         self.pointers.push(PointedMessage { loc: loc.into_loc(), length: 1, msg: Some(msg.own()) });
         self
     }
+    #[cfg(feature = "ck3")] // vic3 happens not to use
     pub fn opt_loc<E: ErrorLoc, S: Own<String>>(mut self, loc: Option<E>, msg: S) -> Self {
         if let Some(loc) = loc {
             self.pointers.push(PointedMessage {

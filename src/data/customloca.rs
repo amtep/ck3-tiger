@@ -96,7 +96,7 @@ impl CustomLocalization {
         if let Some(parent) = block.get_field_value("parent") {
             if let Some(suffix) = block.get_field_value("suffix") {
                 if let Some((key, block)) =
-                    data.database.get_key_block(Item::CustomLocalization, parent.as_str())
+                    data.get_key_block(Item::CustomLocalization, parent.as_str())
                 {
                     let suffix_str = format!("{suffix_str}{suffix}");
                     let suffix_token =

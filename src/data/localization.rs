@@ -12,9 +12,11 @@ use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::{dup_error, stringify_list};
 use crate::item::Item;
 use crate::parse::localization::{parse_loca, ValueParser};
+#[cfg(feature = "ck3")]
+use crate::report::warn2;
 use crate::report::{
-    error, error_info, old_warn, warn, warn2, warn_abbreviated, warn_header, warn_info,
-    will_maybe_log, ErrorKey,
+    error, error_info, old_warn, warn, warn_abbreviated, warn_header, warn_info, will_maybe_log,
+    ErrorKey,
 };
 use crate::token::Token;
 
@@ -296,6 +298,7 @@ impl Localization {
         }
     }
 
+    #[cfg(feature = "ck3")]
     pub fn verify_key_has_options(&self, loca: &str, key: &Token, n: i64, prefix: &str) {
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {

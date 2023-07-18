@@ -40,10 +40,6 @@ impl OnActions {
         self.on_actions.contains_key(key)
     }
 
-    pub fn get(&self, key: &str) -> Option<&OnAction> {
-        self.on_actions.get(key)
-    }
-
     pub fn validate(&self, data: &Everything) {
         for item in self.on_actions.values() {
             item.validate(data);

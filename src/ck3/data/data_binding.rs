@@ -44,10 +44,6 @@ impl DataBindings {
         self.bindings.get(key)
     }
 
-    pub fn exists(&self, key: &str) -> bool {
-        self.bindings.contains_key(key)
-    }
-
     pub fn validate(&self, data: &Everything) {
         for item in self.bindings.values() {
             item.validate(data);

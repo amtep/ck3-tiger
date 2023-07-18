@@ -86,7 +86,7 @@ impl DbKind for PortraitModifierGroup {
                 if let Some(gene) = block.get_field_value("gene") {
                     if let Some(template) = block.get_field_value("template") {
                         if let Some((key, block)) =
-                            data.database.get_key_block(Item::GeneCategory, gene.as_str())
+                            data.get_key_block(Item::GeneCategory, gene.as_str())
                         {
                             if AccessoryGene::has_template_setting(
                                 key,

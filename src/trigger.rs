@@ -109,7 +109,7 @@ pub fn validate_trigger_internal(
         } else if let Some(token) = vd.field_value("text") {
             data.verify_exists(Item::TriggerLocalization, token);
             if let Some((key, block)) =
-                data.database.get_key_block(Item::TriggerLocalization, token.as_str())
+                data.get_key_block(Item::TriggerLocalization, token.as_str())
             {
                 TriggerLocalization::validate_use(key, block, data, token, tooltipped, negated);
             }

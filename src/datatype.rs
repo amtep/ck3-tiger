@@ -89,9 +89,7 @@ pub enum LookupResult {
 
 fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: &'static str) {
     data.verify_exists(Item::CustomLocalization, token);
-    if let Some((key, block)) =
-        data.database.get_key_block(Item::CustomLocalization, token.as_str())
-    {
+    if let Some((key, block)) = data.get_key_block(Item::CustomLocalization, token.as_str()) {
         CustomLocalization::validate_custom_call(key, block, data, token, scopes, lang, "", None);
     }
 }

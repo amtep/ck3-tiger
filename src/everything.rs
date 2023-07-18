@@ -1,9 +1,11 @@
 use std::borrow::Cow;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
+#[cfg(feature = "ck3")]
 use std::sync::RwLock;
 
 use anyhow::Result;
+#[cfg(feature = "ck3")]
 use fnv::FnvHashSet;
 use rayon::{scope, Scope};
 use strum::IntoEnumIterator;
@@ -104,6 +106,7 @@ use crate::ck3::data::{
     vassalstance::VassalStance,
 };
 use crate::config_load::{check_for_legacy_ignore, load_filter};
+#[cfg(feature = "ck3")]
 use crate::context::ScopeContext;
 #[cfg(feature = "ck3")]
 use crate::data::coa::CoaDynamicDefinition;
@@ -138,7 +141,9 @@ use crate::item::Item;
 #[cfg(feature = "vic3")]
 use crate::parse::json::parse_json_file;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, old_warn, set_output_style, ErrorKey, OutputStyle, Severity};
+#[cfg(feature = "ck3")]
+use crate::report::err;
+use crate::report::{error, set_output_style, ErrorKey, OutputStyle, Severity};
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
@@ -197,80 +202,81 @@ pub struct Everything {
     /// Config from file
     config: Block,
 
+    #[cfg(feature = "ck3")] // happens not to be used by vic3
     warned_defines: RwLock<FnvHashSet<String>>,
 
     /// The vanilla and mod files
-    pub fileset: Fileset,
+    pub(crate) fileset: Fileset,
 
-    pub dds: DdsFiles,
+    pub(crate) dds: DdsFiles,
 
-    pub database: Db,
+    pub(crate) database: Db,
 
     /// Processed localization files
-    pub localization: Localization,
+    pub(crate) localization: Localization,
 
-    pub scripted_lists: ScriptedLists,
+    pub(crate) scripted_lists: ScriptedLists,
 
-    pub defines: Defines,
+    pub(crate) defines: Defines,
 
     /// Processed event files
-    pub events: Events,
+    pub(crate) events: Events,
 
-    pub scripted_modifiers: ScriptedModifiers,
-    pub on_actions: OnActions,
+    pub(crate) scripted_modifiers: ScriptedModifiers,
+    pub(crate) on_actions: OnActions,
 
     #[cfg(feature = "ck3")]
-    pub interaction_cats: InteractionCategories,
+    pub(crate) interaction_cats: InteractionCategories,
 
     /// Processed map data
-    pub provinces: Provinces,
+    pub(crate) provinces: Provinces,
 
     /// Processed history/provinces data
     #[cfg(feature = "ck3")]
-    pub province_histories: ProvinceHistories,
+    pub(crate) province_histories: ProvinceHistories,
 
     /// Processed game concepts
     #[cfg(feature = "ck3")]
-    pub gameconcepts: GameConcepts,
+    pub(crate) gameconcepts: GameConcepts,
 
     /// Landed titles
     #[cfg(feature = "ck3")]
-    pub titles: Titles,
+    pub(crate) titles: Titles,
 
     #[cfg(feature = "ck3")]
-    pub characters: Characters,
+    pub(crate) characters: Characters,
 
-    pub scriptvalues: ScriptValues,
+    pub(crate) scriptvalues: ScriptValues,
 
-    pub triggers: Triggers,
-    pub effects: Effects,
-
-    #[cfg(feature = "ck3")]
-    pub traits: Traits,
+    pub(crate) triggers: Triggers,
+    pub(crate) effects: Effects,
 
     #[cfg(feature = "ck3")]
-    pub title_history: TitleHistories,
+    pub(crate) traits: Traits,
 
     #[cfg(feature = "ck3")]
-    pub doctrines: Doctrines,
+    pub(crate) title_history: TitleHistories,
 
     #[cfg(feature = "ck3")]
-    pub menatarmstypes: MenAtArmsTypes,
+    pub(crate) doctrines: Doctrines,
 
-    pub gui: Gui,
     #[cfg(feature = "ck3")]
-    pub data_bindings: DataBindings,
+    pub(crate) menatarmstypes: MenAtArmsTypes,
 
-    pub assets: Assets,
+    pub(crate) gui: Gui,
     #[cfg(feature = "ck3")]
-    pub sounds: Sounds,
-    #[cfg(feature = "ck3")]
-    pub music: Musics,
+    pub(crate) data_bindings: DataBindings,
 
-    pub coas: Coas,
+    pub(crate) assets: Assets,
+    #[cfg(feature = "ck3")]
+    pub(crate) sounds: Sounds,
+    #[cfg(feature = "ck3")]
+    pub(crate) music: Musics,
+
+    pub(crate) coas: Coas,
 
     #[cfg(feature = "vic3")]
-    pub history: History,
+    pub(crate) history: History,
 }
 
 impl Everything {
@@ -304,6 +310,7 @@ impl Everything {
             fileset,
             dds: DdsFiles::default(),
             config,
+            #[cfg(feature = "ck3")]
             warned_defines: RwLock::new(FnvHashSet::default()),
             database: Db::default(),
             localization: Localization::default(),
@@ -389,7 +396,7 @@ impl Everything {
 
     /// A helper function for categories of items that follow the usual pattern of
     /// `.txt` files containing a block with definitions
-    pub fn load_pdx_items<F>(&mut self, itype: Item, add: F)
+    fn load_pdx_items<F>(&mut self, itype: Item, add: F)
     where
         F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
@@ -397,7 +404,7 @@ impl Everything {
     }
 
     /// Like `load_pdx_items` but does not complain about a missing BOM
-    pub fn load_pdx_items_optional_bom<F>(&mut self, itype: Item, add: F)
+    fn load_pdx_items_optional_bom<F>(&mut self, itype: Item, add: F)
     where
         F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
@@ -414,28 +421,9 @@ impl Everything {
         }
     }
 
-    /// Like `load_pdx_items` but does not expect a Unicode file.
-    /// Non-Unicode files are mostly used in the history/ section.
-    pub fn load_pdx_items_cp1252<F>(&mut self, itype: Item, add: F)
-    where
-        F: Fn(&mut Db, Token, Block) + Sync + Send,
-    {
-        for mut block in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
-            if entry.filename().to_string_lossy().ends_with(".txt") {
-                PdxFile::read_cp1252(entry, &self.fileset.fullpath(entry))
-            } else {
-                None
-            }
-        }) {
-            for (key, block) in block.drain_definitions_warn() {
-                add(&mut self.database, key, block);
-            }
-        }
-    }
-
     /// A helper function for categories of items that follow the usual pattern of
     /// files containing a block with definitions
-    pub fn load_pdx_items_ext<F>(&mut self, itype: Item, add: F, ext: &str)
+    fn load_pdx_items_ext<F>(&mut self, itype: Item, add: F, ext: &str)
     where
         F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
@@ -453,7 +441,7 @@ impl Everything {
     }
 
     /// A helper function for categories of items that are unusual in having each item in one file.
-    pub fn load_pdx_files_optional_bom_ext<F>(&mut self, itype: Item, add: F, ext: &str)
+    fn load_pdx_files_optional_bom_ext<F>(&mut self, itype: Item, add: F, ext: &str)
     where
         F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
@@ -476,7 +464,8 @@ impl Everything {
         }
     }
 
-    pub fn load_pdx_files_optional_bom<F>(&mut self, itype: Item, add: F)
+    #[cfg(feature = "ck3")] // happens not to be used by vic3
+    fn load_pdx_files_optional_bom<F>(&mut self, itype: Item, add: F)
     where
         F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
@@ -484,7 +473,8 @@ impl Everything {
     }
 
     /// A helper function for categories of items that are unusual in having each item in one file.
-    pub fn load_pdx_files_cp1252<F>(&mut self, itype: Item, add: F)
+    #[cfg(feature = "ck3")] // happens not to be used by vic3
+    fn load_pdx_files_cp1252<F>(&mut self, itype: Item, add: F)
     where
         F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
@@ -506,7 +496,7 @@ impl Everything {
     }
 
     #[cfg(feature = "vic3")]
-    pub fn load_json<F>(&mut self, itype: Item, add_json: F)
+    fn load_json<F>(&mut self, itype: Item, add_json: F)
     where
         F: Fn(&mut Db, Block) + Sync + Send,
     {
@@ -823,12 +813,12 @@ impl Everything {
         self.fileset.check_unused_dds(self);
     }
 
-    pub fn item_has_property(&self, itype: Item, key: &str, property: &str) -> bool {
+    pub(crate) fn item_has_property(&self, itype: Item, key: &str, property: &str) -> bool {
         self.database.has_property(itype, key, property, self)
     }
 
     #[cfg(feature = "ck3")]
-    pub fn item_exists(&self, itype: Item, key: &str) -> bool {
+    pub(crate) fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
@@ -882,7 +872,7 @@ impl Everything {
     }
 
     #[cfg(feature = "vic3")]
-    pub fn item_exists(&self, itype: Item, key: &str) -> bool {
+    pub(crate) fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Asset => self.assets.asset_exists(key),
             Item::Approval => APPROVALS.contains(&key),
@@ -926,7 +916,7 @@ impl Everything {
         }
     }
 
-    pub fn item_used(&self, itype: Item, key: &str) {
+    pub(crate) fn item_used(&self, itype: Item, key: &str) {
         match itype {
             Item::File => self.fileset.mark_used(key),
             Item::Localization => self.localization.mark_used(key),
@@ -934,11 +924,11 @@ impl Everything {
         }
     }
 
-    pub fn verify_exists(&self, itype: Item, token: &Token) {
+    pub(crate) fn verify_exists(&self, itype: Item, token: &Token) {
         self.verify_exists_implied(itype, token.as_str(), token);
     }
 
-    pub fn verify_exists_implied(&self, itype: Item, key: &str, token: &Token) {
+    pub(crate) fn verify_exists_implied(&self, itype: Item, key: &str, token: &Token) {
         match itype {
             Item::File => self.fileset.verify_exists_implied(key, token),
             Item::Localization => self.localization.verify_exists_implied(key, token),
@@ -970,24 +960,36 @@ impl Everything {
         }
     }
 
-    pub fn validate_use(&self, itype: Item, key: &Token, block: &Block) {
+    pub(crate) fn validate_use(&self, itype: Item, key: &Token, block: &Block) {
         self.database.validate_use(itype, key, block, self);
     }
 
-    pub fn validate_call(&self, itype: Item, key: &Token, block: &Block, sc: &mut ScopeContext) {
+    #[cfg(feature = "ck3")] // happens not to be used by vic3
+    pub(crate) fn validate_call(
+        &self,
+        itype: Item,
+        key: &Token,
+        block: &Block,
+        sc: &mut ScopeContext,
+    ) {
         self.database.validate_call(itype, key, block, self, sc);
     }
 
-    pub fn get_item<T: DbKind>(&self, itype: Item, key: &str) -> Option<(&Token, &Block, &T)> {
+    #[allow(dead_code)] // not currently used, but was hard to write...
+    pub(crate) fn get_item<T: DbKind>(
+        &self,
+        itype: Item,
+        key: &str,
+    ) -> Option<(&Token, &Block, &T)> {
         self.database.get_item(itype, key)
     }
 
-    pub fn get_key_block(&self, itype: Item, key: &str) -> Option<(&Token, &Block)> {
+    pub(crate) fn get_key_block(&self, itype: Item, key: &str) -> Option<(&Token, &Block)> {
         self.database.get_key_block(itype, key)
     }
 
     #[cfg(feature = "ck3")]
-    pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
+    pub(crate) fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
         if let Some(trigger) = self.triggers.get(key.as_str()) {
             Some(trigger)
         } else if let Some(trigger) = self.events.get_trigger(key) {
@@ -997,12 +999,12 @@ impl Everything {
         }
     }
     #[cfg(feature = "vic3")]
-    pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
+    pub(crate) fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
         self.triggers.get(key.as_str())
     }
 
     #[cfg(feature = "ck3")]
-    pub fn get_effect(&self, key: &Token) -> Option<&Effect> {
+    pub(crate) fn get_effect(&self, key: &Token) -> Option<&Effect> {
         if let Some(effect) = self.effects.get(key.as_str()) {
             Some(effect)
         } else if let Some(effect) = self.events.get_effect(key) {
@@ -1012,24 +1014,23 @@ impl Everything {
         }
     }
     #[cfg(feature = "vic3")]
-    pub fn get_effect(&self, key: &Token) -> Option<&Effect> {
+    pub(crate) fn get_effect(&self, key: &Token) -> Option<&Effect> {
         self.effects.get(key.as_str())
     }
 
-    pub fn get_defined_string(&self, key: &str) -> Option<&Token> {
+    #[cfg(feature = "ck3")] // happens not to be used by vic3
+    pub(crate) fn get_defined_string(&self, key: &str) -> Option<&Token> {
         self.defines.get_string(key)
     }
 
     #[allow(clippy::missing_panics_doc)] // only panics on poisoned mutex
-    pub fn get_defined_string_warn(&self, token: &Token, key: &str) -> Option<&Token> {
+    #[cfg(feature = "ck3")] // happens not to be used by vic3
+    pub(crate) fn get_defined_string_warn(&self, token: &Token, key: &str) -> Option<&Token> {
         let result = self.get_defined_string(key);
         let mut cache = self.warned_defines.write().unwrap();
         if result.is_none() && !cache.contains(key) {
-            old_warn(
-                token,
-                ErrorKey::MissingItem,
-                &format!("{key} not defined in common/defines/"),
-            );
+            let msg = format!("{key} not defined in common/defines/");
+            err(ErrorKey::MissingItem).msg(msg).loc(token).push();
             cache.insert(key.to_string());
         }
         result
@@ -1179,7 +1180,7 @@ const ARTIFACT_RARITY: &[&str] = &["common", "masterwork", "famed", "illustrious
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
-pub const APPROVALS: &[&str] = &["angry", "unhappy", "neutral", "happy", "loyal"];
+pub(crate) const APPROVALS: &[&str] = &["angry", "unhappy", "neutral", "happy", "loyal"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
@@ -1200,31 +1201,31 @@ const ATTITUDES: &[&str] = &[
 ];
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
-pub const COUNTRY_TIERS: &[&str] =
+const COUNTRY_TIERS: &[&str] =
     &["city_state", "principality", "grand_principality", "kingdom", "empire", "hegemony"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
-pub const INFAMY_THRESHOLDS: &[&str] = &["notorious", "infamous", "pariah"];
+const INFAMY_THRESHOLDS: &[&str] = &["notorious", "infamous", "pariah"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
-pub const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
+pub(crate) const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
-pub const SECRET_GOALS: &[&str] =
+const SECRET_GOALS: &[&str] =
     &["none", "befriend", "reconcile", "protect", "antagonize", "conquer", "dominate"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 /// Deduced from `common/government_types/`
 #[cfg(feature = "vic3")]
-pub const TRANSFER_OF_POWER: &[&str] =
+const TRANSFER_OF_POWER: &[&str] =
     &["hereditary", "presidential_elective", "dictatorial", "parliamentary_elective"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
-pub const WARGOALS: &[&str] = &[
+const WARGOALS: &[&str] = &[
     "annex_country",
     "ban_slavery",
     "colonization_rights",
@@ -1253,7 +1254,7 @@ pub const WARGOALS: &[&str] = &[
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
 // TODO: maybe ruler and heir too?
-pub const CHARACTER_ROLES: &[&str] = &["admiral", "agitator", "general", "politician"];
+const CHARACTER_ROLES: &[&str] = &["admiral", "agitator", "general", "politician"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 /// Taken from the object browser

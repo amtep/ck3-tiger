@@ -347,10 +347,6 @@ impl Fileset {
         &self.ordered_files[start..end]
     }
 
-    pub fn for_each_under<F: Fn(&FileEntry) + Sync + Send>(&self, subpath: &Path, f: F) {
-        self.get_files_under(subpath).par_iter().for_each(f);
-    }
-
     pub fn filter_map_under<F, T>(&self, subpath: &Path, f: F) -> Vec<T>
     where
         F: Fn(&FileEntry) -> Option<T> + Sync + Send,
@@ -393,21 +389,13 @@ impl Fileset {
         self.filenames.contains(&filepath)
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use
     pub fn verify_exists(&self, file: &Token) {
         self.mark_used(&file.as_str().replace("//", "/"));
         let filepath = PathBuf::from(file.as_str());
         if !self.filenames.contains(&filepath) {
             let msg = "referenced file does not exist";
             error(file, ErrorKey::MissingFile, msg);
-        }
-    }
-
-    pub fn verify_exists_crashes(&self, file: &Token) {
-        self.mark_used(&file.as_str().replace("//", "/"));
-        let filepath = PathBuf::from(file.as_str());
-        if !self.filenames.contains(&filepath) {
-            let msg = "referenced file does not exist";
-            fatal(ErrorKey::Crash).msg(msg).loc(file).push();
         }
     }
 

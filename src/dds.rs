@@ -6,6 +6,7 @@ use fnv::FnvHashMap;
 
 use crate::fileset::{FileEntry, FileHandler};
 use crate::report::{advice_info, error, error_info, old_warn, ErrorKey};
+#[cfg(feature = "ck3")]
 use crate::token::Token;
 
 const DDS_HEADER_SIZE: usize = 124;
@@ -51,6 +52,7 @@ impl DdsFiles {
         self.dds_files.insert(entry.path().to_string_lossy().to_string(), info);
     }
 
+    #[cfg(feature = "ck3")]
     pub fn validate_frame(&self, key: &Token, width: u32, height: u32, frame: u32) {
         // Note: `frame` is 1-based
         if let Some(info) = self.dds_files.get(key.as_str()) {
@@ -99,7 +101,9 @@ impl FileHandler<DdsInfo> for DdsFiles {
 
 #[derive(Copy, Clone, Debug)]
 pub struct DdsInfo {
+    #[allow(dead_code)] // vic3 doesn't use
     width: u32,
+    #[allow(dead_code)] // vic3 doesn't use
     height: u32,
 }
 

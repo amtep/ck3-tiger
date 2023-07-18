@@ -85,6 +85,7 @@ impl Db {
             || self.flags[item as usize].contains_key(key)
     }
 
+    #[allow(dead_code)] // not currently used, but was hard to write...
     pub fn get_item<T: DbKind + Any>(&self, item: Item, key: &str) -> Option<(&Token, &Block, &T)> {
         if let Some(entry) = self.database[item as usize].get(key) {
             if let Some(kind) = (*entry.kind).as_any().downcast_ref::<T>() {
@@ -106,12 +107,14 @@ impl Db {
         }
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use
     pub fn set_property(&mut self, item: Item, key: &str, property: &str) {
         if let Some(entry) = self.database[item as usize].get_mut(key) {
             entry.kind.set_property(&entry.key, &entry.block, property);
         }
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use
     pub fn validate_call(
         &self,
         item: Item,
@@ -154,6 +157,7 @@ impl Db {
     }
 
     /// TODO: Returns a Vec for now, should become an iterator.
+    #[cfg(feature = "ck3")] // vic3 happens not to use
     pub fn iter_itype_flags(&self, itype: Item) -> Vec<&Token> {
         let mut vec = Vec::new();
         for token in self.flags[itype as usize].values() {

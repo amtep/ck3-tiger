@@ -64,19 +64,9 @@ impl Events {
         self.effects.insert(index, Effect::new(key, block, None));
     }
 
-    pub fn trigger_exists(&self, key: &Token) -> bool {
-        let index = (key.loc.path, key.to_string());
-        self.triggers.contains_key(&index)
-    }
-
     pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
         let index = (key.loc.path, key.to_string());
         self.triggers.get(&index)
-    }
-
-    pub fn effect_exists(&self, key: &Token) -> bool {
-        let index = (key.loc.path, key.to_string());
-        self.effects.contains_key(&index)
     }
 
     pub fn get_effect(&self, key: &Token) -> Option<&Effect> {

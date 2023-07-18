@@ -46,7 +46,7 @@ fn check_fallback_cycle(key: &Token, block: &Block, data: &Everything) {
             break;
         }
         seen.insert(fallback.as_str());
-        if let Some((_, block)) = data.database.get_key_block(Item::MediaAlias, fallback.as_str()) {
+        if let Some((_, block)) = data.get_key_block(Item::MediaAlias, fallback.as_str()) {
             if let Some(key) = block.get_field_value("fallback") {
                 fallback = key;
             } else {

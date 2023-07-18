@@ -113,6 +113,7 @@ impl ScopeContext {
         self.no_warn = no_warn;
     }
 
+    #[cfg(feature = "ck3")] // happens not to be used by vic3
     pub fn change_root<T: Own<Token>>(&mut self, root: Scopes, token: T) {
         self.root = ScopeEntry::Scope(root, token.own());
     }

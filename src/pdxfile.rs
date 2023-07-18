@@ -1,16 +1,23 @@
-use std::fs::{read, read_to_string};
+#[cfg(feature = "ck3")]
+use std::fs::read;
+use std::fs::read_to_string;
 use std::path::Path;
 
+#[cfg(feature = "ck3")]
 use encoding::all::WINDOWS_1252;
+#[cfg(feature = "ck3")]
 use encoding::{DecoderTrap, Encoding};
 
 use crate::block::Block;
 use crate::fileset::FileEntry;
 use crate::parse::pdxfile::parse_pdx;
-use crate::report::{advice_info, error_info, old_warn, ErrorKey};
+#[cfg(feature = "ck3")]
+use crate::report::advice_info;
+use crate::report::{error_info, old_warn, ErrorKey};
 
 /// If a windows-1252 file mistakenly starts with a UTF-8 BOM, this is
 /// what it will look like after decoding
+#[cfg(feature = "ck3")]
 const BOM_FROM_1252: &str = "\u{00ef}\u{00bb}\u{00bf}";
 
 pub struct PdxFile;
@@ -26,6 +33,7 @@ impl PdxFile {
         }
     }
 
+    #[cfg(feature = "ck3")]
     fn read_1252(entry: &FileEntry, fullpath: &Path) -> Option<String> {
         let bytes = match read(fullpath) {
             Ok(bytes) => bytes,
@@ -61,6 +69,7 @@ impl PdxFile {
         }
     }
 
+    #[cfg(feature = "ck3")]
     pub fn read_cp1252(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         let contents = Self::read_1252(entry, fullpath)?;
 
