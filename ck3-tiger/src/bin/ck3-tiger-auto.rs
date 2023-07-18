@@ -84,8 +84,8 @@ fn inner_main() -> Result<()> {
             if i + 1 <= 9 {
                 eprintln!("{}. {}", i + 1, entry.file_name().to_str().unwrap_or(""));
             } else {
-                let ch = char::from_u32(((i + 1) - 10 + 'A' as usize) as u32).unwrap();
-                eprintln!("{}. {}", ch, entry.file_name().to_str().unwrap_or(""));
+                let modkey = char::from_u32(((i + 1) - 10 + 'A' as usize) as u32).unwrap();
+                eprintln!("{modkey}. {}", entry.file_name().to_str().unwrap_or(""));
             }
         }
         let term = Term::stdout();

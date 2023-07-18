@@ -42,7 +42,7 @@ pub struct Validator<'a> {
     /// Whether key comparisons should be done case-sensitively
     case_sensitive: bool,
     /// Whether this block can have ?= operators
-    allow_qeq: bool,
+    allow_questionmark_equals: bool,
 }
 
 impl<'a> Debug for Validator<'a> {
@@ -72,7 +72,7 @@ impl<'a> Validator<'a> {
             accepted_block_fields: false,
             accepted_value_fields: false,
             case_sensitive: true,
-            allow_qeq: false,
+            allow_questionmark_equals: false,
         }
     }
 
@@ -84,8 +84,8 @@ impl<'a> Validator<'a> {
 
     /// Whether this block can contain `?=` as well as `=` for assignments and definitions.
     /// Blocks that allow `?=` are mostly specialized ones such as triggers and effects.
-    pub fn set_allow_qeq(&mut self, allow_qeq: bool) {
-        self.allow_qeq = allow_qeq;
+    pub fn set_allow_questionmark_equals(&mut self, allow_questionmark_equals: bool) {
+        self.allow_questionmark_equals = allow_questionmark_equals;
     }
 
     /// Require field `name` to be present in the block, and warn if it isn't there.
@@ -1260,7 +1260,7 @@ impl<'a> Validator<'a> {
 
     fn expect_eq_qeq(&self, key: &Token, cmp: Comparator) {
         #[allow(clippy::collapsible_else_if)]
-        if self.allow_qeq {
+        if self.allow_questionmark_equals {
             if !matches!(cmp, Comparator::Equals(Single | Question)) {
                 let msg = format!("expected `{key} =` or `?=`, found `{cmp}`");
                 error(key, ErrorKey::Validation, &msg);
