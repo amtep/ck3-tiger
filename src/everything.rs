@@ -278,9 +278,14 @@ impl Everything {
         let mut fileset =
             Fileset::new(vanilla_dir.to_path_buf(), mod_root.to_path_buf(), replace_paths);
 
-        let config_file = mod_root.join("ck3-tiger.conf");
+        #[cfg(feature = "ck3")]
+        let config_file_name = "ck3-tiger.conf";
+        #[cfg(feature = "vic3")]
+        let config_file_name = "vic3-tiger.conf";
+
+        let config_file = mod_root.join(config_file_name);
         let config = if config_file.is_file() {
-            Self::_read_config("ck3-tiger.conf", &config_file)
+            Self::_read_config(config_file_name, &config_file)
                 .ok_or(FilesError::ConfigUnreadable { path: config_file })?
         } else {
             Block::new(Loc::for_file(config_file, FileKind::Mod))
