@@ -1057,6 +1057,7 @@ const DLC: &[&str] = &[
 ];
 
 /// LAST UPDATED VERSION 1.9.2
+/// Entries verified in-game by seeing if datafunction HasDlcFeature logs an error.
 #[cfg(feature = "ck3")]
 const DLC_FEATURES: &[&str] = &[
     "garments_of_the_hre",

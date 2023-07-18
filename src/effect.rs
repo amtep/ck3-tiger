@@ -87,7 +87,7 @@ pub fn validate_effect_internal<'a>(
 
     validate_ifelse_sequence(block, "if", "else_if", "else");
 
-    vd.allow_qeq(true);
+    vd.set_allow_qeq(true);
     vd.unknown_fields_cmp(|key, cmp, bv| {
         if let Some(effect) = data.get_effect(key) {
             match bv {

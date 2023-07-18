@@ -82,9 +82,9 @@ impl<'a> Validator<'a> {
         self.case_sensitive = cs;
     }
 
-    /// Whether this block can contain `?=` as well as `=` for assignments.
+    /// Whether this block can contain `?=` as well as `=` for assignments and definitions.
     /// Blocks that allow `?=` are mostly specialized ones such as triggers and effects.
-    pub fn allow_qeq(&mut self, allow_qeq: bool) {
+    pub fn set_allow_qeq(&mut self, allow_qeq: bool) {
         self.allow_qeq = allow_qeq;
     }
 
