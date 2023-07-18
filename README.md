@@ -24,6 +24,8 @@ It doesn't load all the game files yet, but the gaps are few.
 
 ![Sample Output](example2.png)
 
+![Sample Output](example3.png)
+
 ## How to use
 Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere.
 

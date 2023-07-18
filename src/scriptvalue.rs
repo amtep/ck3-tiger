@@ -4,7 +4,7 @@ use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::TriBool;
 use crate::item::Item;
-use crate::report::{advice_info, error, error_info, old_warn, ErrorKey};
+use crate::report::{advice_info, err, error, error_info, old_warn, untidy, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -21,6 +21,7 @@ use crate::validate::{
 /// * `check_desc`: indicates whether localization errors are worth warning about. Some scriptvalues
 /// only have their breakdowns displayed while debugging, and those can have raw (non-localized)
 /// text in their descs.
+/// Returns true iff this block did something useful. (Used for warnings)
 fn validate_inner(
     mut vd: Validator,
     block: &Block,
@@ -28,7 +29,7 @@ fn validate_inner(
     sc: &mut ScopeContext,
     mut have_value: TriBool,
     check_desc: bool,
-) {
+) -> bool {
     if check_desc {
         vd.field_item("desc", Item::Localization);
         vd.field_item("format", Item::Localization);
@@ -37,6 +38,8 @@ fn validate_inner(
         vd.field_value("format");
     }
 
+    let mut made_changes = false;
+
     validate_ifelse_sequence(block, "if", "else_if", "else");
     vd.set_allow_questionmark_equals(true);
     vd.unknown_fields_cmp(|token, cmp, bv| {
@@ -44,11 +47,13 @@ fn validate_inner(
             // save_temporary_scope_as is now allowed in script values
             if let Some(name) = bv.expect_value() {
                 sc.save_current_scope(name.as_str());
+                made_changes = true;
             }
         } else if token.is("save_temporary_value_as") {
             // seen in vanilla
             if let Some(name) = bv.expect_value() {
                 sc.define_name(name.as_str(), Scopes::Value, name);
+                made_changes = true;
             }
         } else if token.is("value") {
             if have_value == TriBool::True {
@@ -57,15 +62,18 @@ fn validate_inner(
             }
             have_value = TriBool::True;
             validate_bv(bv, data, sc, check_desc);
+            made_changes = true;
         } else if token.is("add") || token.is("subtract") || token.is("min") || token.is("max") {
             have_value = TriBool::True;
             validate_bv(bv, data, sc, check_desc);
+            made_changes = true;
         } else if token.is("multiply") || token.is("divide") || token.is("modulo") {
             if have_value == TriBool::False {
                 let msg = format!("nothing to {token} yet");
                 old_warn(token, ErrorKey::Logic, &msg);
             }
             validate_bv(bv, data, sc, check_desc);
+            made_changes = true;
         } else if token.is("round") || token.is("ceiling") || token.is("floor") {
             if have_value == TriBool::False {
                 let msg = format!("nothing to {token} yet");
@@ -76,6 +84,7 @@ fn validate_inner(
                     let msg = "expected yes or no";
                     old_warn(value, ErrorKey::Validation, msg);
                 }
+                made_changes = true;
             }
         } else if token.is("fixed_range") || token.is("integer_range") {
             if have_value == TriBool::True {
@@ -84,16 +93,19 @@ fn validate_inner(
             }
             if let Some(block) = bv.expect_block() {
                 validate_minmax_range(block, data, sc, check_desc);
+                made_changes = true;
             }
             have_value = TriBool::True;
         } else if token.is("if") || token.is("else_if") {
             if let Some(block) = bv.expect_block() {
-                validate_if(block, data, sc, check_desc);
+                validate_if(token, block, data, sc, check_desc);
+                made_changes = true;
             }
             have_value = TriBool::Maybe;
         } else if token.is("else") {
             if let Some(block) = bv.expect_block() {
-                validate_else(block, data, sc, check_desc);
+                validate_else(token, block, data, sc, check_desc);
+                made_changes = true;
             }
             have_value = TriBool::Maybe;
         } else {
@@ -114,6 +126,7 @@ fn validate_inner(
                             precheck_iterator_fields(ltype, block, data, sc);
                             sc.open_scope(outscope, token.clone());
                             validate_iterator(ltype, &it_name, block, data, sc, check_desc);
+                            made_changes = true;
                             sc.close();
                             have_value = TriBool::Maybe;
                         }
@@ -128,13 +141,14 @@ fn validate_inner(
                 if let Some(block) = bv.expect_block() {
                     sc.finalize_builder();
                     let vd = Validator::new(block, data);
-                    validate_inner(vd, block, data, sc, have_value, check_desc);
+                    made_changes |= validate_inner(vd, block, data, sc, have_value, check_desc);
                     have_value = TriBool::Maybe;
                 }
             }
             sc.close();
         }
     });
+    made_changes
 }
 
 /// Validate a block inside an iterator that's part of a scriptvalue.
@@ -157,7 +171,11 @@ fn validate_iterator(
 
     validate_inside_iterator(it_name.as_str(), ltype, block, data, sc, &mut vd, Tooltipped::No);
 
-    validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
+    if !validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc) {
+        let msg = "this iterator does not change the scriptvalue";
+        let info = "it should be either removed, or changed to do something useful";
+        err(ErrorKey::Logic).msg(msg).info(info).loc(block).push();
+    }
 }
 
 /// Validate one of the `fixed_range` or `integer_range` scriptvalue operators.
@@ -181,18 +199,35 @@ fn validate_minmax_range(
 
 /// Validate `if` or `else_if` blocks that are part of a scriptvalue.
 /// Checks the `limit` field and then relies on `validate_inner` for the heavy lifting.
-fn validate_if(block: &Block, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
+fn validate_if(
+    key: &Token,
+    block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    check_desc: bool,
+) {
     let mut vd = Validator::new(block, data);
     vd.req_field_warn("limit");
     vd.field_validated_block("limit", |block, data| {
         validate_trigger(block, data, sc, Tooltipped::No);
     });
-    validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
+    if !validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc) {
+        let msg = format!("this `{key}` does not change the scriptvalue");
+        // weak because in an if-if_else sequence you might want some that deliberately do nothing
+        // TODO: make this smarter so that it does not warn if followed by an else or else_if
+        err(ErrorKey::Logic).weak().msg(msg).loc(key).push();
+    }
 }
 
 /// Validate `else` blocks that are part of a scriptvalue.
 /// Just like `validate_if`, but warns if it encounters a `limit` field.
-fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
+fn validate_else(
+    key: &Token,
+    block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    check_desc: bool,
+) {
     let mut vd = Validator::new(block, data);
     vd.field_validated_key_block("limit", |key, block, data| {
         let msg = "`else` with a `limit` does work, but may indicate a mistake";
@@ -200,7 +235,12 @@ fn validate_else(block: &Block, data: &Everything, sc: &mut ScopeContext, check_
         advice_info(key, ErrorKey::IfElse, msg, info);
         validate_trigger(block, data, sc, Tooltipped::No);
     });
-    validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
+    if !validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc) {
+        let msg = format!("this `{key}` does not change the scriptvalue");
+        let info = "it should be either removed, or changed to do something useful";
+        // only untidy because an empty else is probably not a logic error
+        untidy(ErrorKey::Logic).msg(msg).info(info).loc(key).push();
+    }
 }
 
 /// Validate a scriptvalue. It can be a block or a value.
