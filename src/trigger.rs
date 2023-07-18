@@ -12,7 +12,7 @@ use crate::date::Date;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 #[cfg(feature = "vic3")]
-use crate::everything::LEVELS;
+use crate::everything::{APPROVALS, LEVELS};
 use crate::helpers::stringify_choices;
 #[cfg(feature = "vic3")]
 use crate::helpers::stringify_list;
@@ -428,9 +428,6 @@ fn match_trigger_fields(
 #[cfg(feature = "vic3")]
 pub const STANCES: &[&str] =
     &["strongly_disapprove", "disapprove", "neutral", "approve", "strongly_approve"];
-
-#[cfg(feature = "vic3")]
-pub const APPROVALS: &[&str] = &["angry", "unhappy", "neutral", "happy", "loyal"];
 
 fn match_trigger_bv(
     trigger: &Trigger,

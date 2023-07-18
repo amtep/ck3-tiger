@@ -5,6 +5,7 @@ use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
@@ -77,6 +78,34 @@ impl DbKind for InterestGroup {
             let mut sc = ScopeContext::new(Scopes::None, key);
             sc.define_name("character", Scopes::Character, key);
             validate_scriptvalue(bv, data, &mut sc);
+        });
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct InterestGroupTrait {}
+
+impl InterestGroupTrait {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::InterestGroupTrait, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for InterestGroupTrait {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        vd.field_item("icon", Item::File);
+        vd.field_item("min_approval", Item::Approval);
+        vd.field_item("max_approval", Item::Approval);
+
+        vd.field_validated_block("modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::all(), vd);
         });
     }
 }

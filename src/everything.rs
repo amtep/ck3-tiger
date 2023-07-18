@@ -159,9 +159,10 @@ use crate::vic3::data::{
     history::History,
     ideologies::Ideology,
     institutions::Institution,
-    interest_groups::InterestGroup,
+    interest_groups::{InterestGroup, InterestGroupTrait},
     journalentries::Journalentry,
     laws::{LawGroup, LawType},
+    map::MapLayer,
     media_aliases::MediaAlias,
     modifier_types::ModifierType,
     modifiers::Modifier,
@@ -706,9 +707,11 @@ impl Everything {
         self.load_pdx_items(Item::Ideology, Ideology::add);
         self.load_pdx_items(Item::Institution, Institution::add);
         self.load_pdx_items(Item::InterestGroup, InterestGroup::add);
+        self.load_pdx_items(Item::InterestGroupTrait, InterestGroupTrait::add);
         self.load_pdx_items(Item::Journalentry, Journalentry::add);
         self.load_pdx_items(Item::LawGroup, LawGroup::add);
         self.load_pdx_items(Item::LawType, LawType::add);
+        self.load_pdx_items(Item::MapLayer, MapLayer::add);
         self.load_pdx_items(Item::MediaAlias, MediaAlias::add);
         self.load_pdx_items(Item::ModifierType, ModifierType::add);
         self.load_pdx_items(Item::Objective, Objective::add);
@@ -873,6 +876,7 @@ impl Everything {
     pub fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Asset => self.assets.asset_exists(key),
+            Item::Approval => APPROVALS.contains(&key),
             Item::Attitude => ATTITUDES.contains(&key),
             Item::BlendShape => self.assets.blend_shape_exists(key),
             Item::CharacterRole => CHARACTER_ROLES.contains(&key),
@@ -1161,6 +1165,10 @@ const DANGER_TYPES: &[&str] = &[
 /// LAST UPDATED VERSION 1.9.2
 #[cfg(feature = "ck3")]
 const ARTIFACT_RARITY: &[&str] = &["common", "masterwork", "famed", "illustrious"];
+
+/// LAST UPDATED VIC3 VERSION 1.3.6
+#[cfg(feature = "vic3")]
+pub const APPROVALS: &[&str] = &["angry", "unhappy", "neutral", "happy", "loyal"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
