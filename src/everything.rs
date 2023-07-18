@@ -157,6 +157,7 @@ use crate::vic3::data::{
     gameconcepts::GameConcept,
     gamerules::GameRule,
     goods::Goods,
+    governments::GovernmentType,
     history::History,
     ideologies::Ideology,
     institutions::Institution,
@@ -706,6 +707,7 @@ impl Everything {
         self.load_pdx_items(Item::GameConcept, GameConcept::add);
         self.load_pdx_items(Item::GameRule, GameRule::add);
         self.load_pdx_items(Item::Goods, Goods::add);
+        self.load_pdx_items(Item::GovernmentType, GovernmentType::add);
         self.load_pdx_items(Item::Ideology, Ideology::add);
         self.load_pdx_items(Item::Institution, Institution::add);
         self.load_pdx_items(Item::InterestGroup, InterestGroup::add);
@@ -912,6 +914,7 @@ impl Everything {
                 }
             }
             Item::TextureFile => self.assets.texture_exists(key),
+            Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
             Item::Wargoal => WARGOALS.contains(&key),
             Item::SubjectType | Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
@@ -1206,6 +1209,12 @@ pub const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
 #[cfg(feature = "vic3")]
 pub const SECRET_GOALS: &[&str] =
     &["none", "befriend", "reconcile", "protect", "antagonize", "conquer", "dominate"];
+
+/// LAST UPDATED VIC3 VERSION 1.3.6
+/// Deduced from common/government_types/
+#[cfg(feature = "vic3")]
+pub const TRANSFER_OF_POWER: &[&str] =
+    &["hereditary", "presidential_elective", "dictatorial", "parliamentary_elective"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]

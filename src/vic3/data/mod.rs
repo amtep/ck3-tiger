@@ -12,6 +12,7 @@ pub mod events;
 pub mod gameconcepts;
 pub mod gamerules;
 pub mod goods;
+pub mod governments;
 pub mod history;
 pub mod ideologies;
 pub mod institutions;
