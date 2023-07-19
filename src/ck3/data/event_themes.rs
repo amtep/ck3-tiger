@@ -6,6 +6,7 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::Severity;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -53,6 +54,7 @@ impl DbKind for EventTheme {
         *self.validated_scopes.write().unwrap() |= sc.scopes();
 
         let mut vd = Validator::new(block, data);
+        vd.set_max_severity(Severity::Warning);
 
         vd.req_field("background");
         vd.req_field("icon");
@@ -103,9 +105,11 @@ impl DbKind for EventBackground {
         data.item_used(Item::Localization, key.as_str());
 
         let mut vd = Validator::new(block, data);
+        vd.set_max_severity(Severity::Warning);
         vd.req_field("background");
         vd.field_validated_blocks("background", |block, data| {
             let mut vd = Validator::new(block, data);
+            vd.set_max_severity(Severity::Warning);
             vd.field_validated_block("trigger", |block, data| {
                 validate_trigger(block, data, sc, Tooltipped::No);
             });
@@ -153,9 +157,11 @@ impl DbKind for EventTransition {
         *self.validated_scopes.write().unwrap() |= sc.scopes();
 
         let mut vd = Validator::new(block, data);
+        vd.set_max_severity(Severity::Warning);
         vd.req_field("transition");
         vd.field_validated_blocks("transition", |block, data| {
             let mut vd = Validator::new(block, data);
+            vd.set_max_severity(Severity::Warning);
             vd.field_validated_block("trigger", |block, data| {
                 validate_trigger(block, data, sc, Tooltipped::No);
             });

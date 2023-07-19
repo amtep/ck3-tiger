@@ -487,7 +487,11 @@ impl Item {
             | Item::CultureCreationName
             | Item::CustomLocalization
             | Item::EffectLocalization
+            | Item::Environment
             | Item::Ethnicity
+            | Item::EventBackground
+            | Item::EventTheme
+            | Item::EventTransition
             | Item::Flavorization
             | Item::GameConcept
             | Item::GraphicalFaith
@@ -501,6 +505,7 @@ impl Item {
             | Item::Nickname
             | Item::PortraitAnimation
             | Item::PortraitCamera
+            | Item::ScriptedIllustration
             | Item::Sound
             | Item::TextureFile
             | Item::TriggerLocalization
