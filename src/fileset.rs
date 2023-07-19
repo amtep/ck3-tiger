@@ -383,10 +383,12 @@ impl Fileset {
     }
 
     pub fn mark_used(&self, file: &str) {
+        let file = file.strip_prefix('/').unwrap_or(file);
         self.used.write().unwrap().insert(file.to_string());
     }
 
     pub fn exists(&self, key: &str) -> bool {
+        let key = key.strip_prefix('/').unwrap_or(key);
         let filepath = PathBuf::from(key);
         self.filenames.contains(&filepath)
     }
@@ -394,8 +396,7 @@ impl Fileset {
     #[cfg(feature = "ck3")] // vic3 happens not to use
     pub fn verify_exists(&self, file: &Token) {
         self.mark_used(&file.as_str().replace("//", "/"));
-        let filepath = PathBuf::from(file.as_str());
-        if !self.filenames.contains(&filepath) {
+        if !self.exists(file.as_str()) {
             let msg = "referenced file does not exist";
             report(ErrorKey::MissingFile, Item::File.severity()).msg(msg).loc(file).push();
         }
@@ -403,8 +404,7 @@ impl Fileset {
 
     pub fn verify_exists_implied(&self, file: &str, t: &Token, max_sev: Severity) {
         self.mark_used(&file.replace("//", "/"));
-        let filepath = PathBuf::from(file);
-        if !self.filenames.contains(&filepath) {
+        if !self.exists(file) {
             let msg = format!("file {file} does not exist");
             report(ErrorKey::MissingFile, Item::File.severity().at_most(max_sev))
                 .msg(msg)
@@ -415,8 +415,7 @@ impl Fileset {
 
     pub fn verify_exists_implied_crashes(&self, file: &str, t: &Token) {
         self.mark_used(&file.replace("//", "/"));
-        let filepath = PathBuf::from(file);
-        if !self.filenames.contains(&filepath) {
+        if !self.exists(file) {
             let msg = format!("file {file} does not exist");
             fatal(ErrorKey::Crash).msg(msg).loc(t).push();
         }
