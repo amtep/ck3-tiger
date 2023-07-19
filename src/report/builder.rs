@@ -84,21 +84,23 @@ impl ReportBuilderStage2 {
         self.info = if info.is_empty() { None } else { Some(info.own()) };
         self
     }
-    pub fn loc<E: ErrorLoc>(self, loc: E) -> ReportBuilderStage3 {
+    pub fn loc<E: ErrorLoc>(self, eloc: E) -> ReportBuilderStage3 {
+        let length = eloc.loc_length();
         ReportBuilderStage3 {
             stage1: self.stage1,
             msg: self.msg,
             info: self.info,
-            pointers: vec![PointedMessage { loc: loc.into_loc(), length: 1, msg: None }],
+            pointers: vec![PointedMessage { loc: eloc.into_loc(), length, msg: None }],
         }
     }
     #[cfg(feature = "ck3")] // vic3 happens not to use
-    pub fn loc_msg<E: ErrorLoc, S: Own<String>>(self, loc: E, msg: S) -> ReportBuilderStage3 {
+    pub fn loc_msg<E: ErrorLoc, S: Own<String>>(self, eloc: E, msg: S) -> ReportBuilderStage3 {
+        let length = eloc.loc_length();
         ReportBuilderStage3 {
             stage1: self.stage1,
             msg: self.msg,
             info: self.info,
-            pointers: vec![PointedMessage { loc: loc.into_loc(), length: 1, msg: Some(msg.own()) }],
+            pointers: vec![PointedMessage { loc: eloc.into_loc(), length, msg: Some(msg.own()) }],
         }
     }
     pub fn pointers(self, pointers: Vec<PointedMessage>) -> ReportBuilderStage3 {
@@ -116,16 +118,18 @@ pub struct ReportBuilderStage3 {
 }
 
 impl ReportBuilderStage3 {
-    pub fn loc<E: ErrorLoc, S: Own<String>>(mut self, loc: E, msg: S) -> Self {
-        self.pointers.push(PointedMessage { loc: loc.into_loc(), length: 1, msg: Some(msg.own()) });
+    pub fn loc<E: ErrorLoc, S: Own<String>>(mut self, eloc: E, msg: S) -> Self {
+        let length = eloc.loc_length();
+        self.pointers.push(PointedMessage { loc: eloc.into_loc(), length, msg: Some(msg.own()) });
         self
     }
     #[cfg(feature = "ck3")] // vic3 happens not to use
-    pub fn opt_loc<E: ErrorLoc, S: Own<String>>(mut self, loc: Option<E>, msg: S) -> Self {
-        if let Some(loc) = loc {
+    pub fn opt_loc<E: ErrorLoc, S: Own<String>>(mut self, eloc: Option<E>, msg: S) -> Self {
+        if let Some(eloc) = eloc {
+            let length = eloc.loc_length();
             self.pointers.push(PointedMessage {
-                loc: loc.into_loc(),
-                length: 1,
+                loc: eloc.into_loc(),
+                length,
                 msg: Some(msg.own()),
             });
         }

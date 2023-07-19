@@ -171,7 +171,7 @@ fn log_line_carets(
         errors.styles.style(&Styled::Tag(severity, true)).paint(format!(
             "{:^^width$}",
             "",
-            width = pointer.length
+            width = pointer.length.max(1)
         )),
         errors.styles.style(&Styled::Default).paint(" "),
         errors

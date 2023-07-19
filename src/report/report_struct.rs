@@ -39,7 +39,7 @@ pub struct PointedMessage {
     /// Might point to a whole file, rather than a specific location in the file.
     pub loc: Loc,
     /// The length of the offending phrase in characters.
-    /// Set this to 1 if the length cannot be determined.
+    /// Set this to 0 if the length cannot be determined.
     /// This will determine the number of carets that are printed at the given location.
     /// e.g.:     ^^^^^^^^^
     /// TODO: If we end up adding length to Loc, this field can be deleted.
@@ -50,7 +50,7 @@ pub struct PointedMessage {
 
 impl PointedMessage {
     pub fn new(loc: Loc) -> Self {
-        Self { loc, msg: None, length: 1 }
+        Self { loc, msg: None, length: 0 }
     }
 }
 
