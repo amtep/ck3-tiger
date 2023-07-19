@@ -10,7 +10,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
-use crate::report::{error, report, ErrorKey};
+use crate::report::{error, report, ErrorKey, Severity};
 use crate::token::{Loc, Token};
 
 #[derive(Clone, Debug, Default)]
@@ -32,7 +32,13 @@ impl Sounds {
         self.sounds.contains_key(key)
     }
 
-    pub fn verify_exists_implied(&self, key: &str, item: &Token, data: &Everything) {
+    pub fn verify_exists_implied(
+        &self,
+        key: &str,
+        item: &Token,
+        data: &Everything,
+        max_sev: Severity,
+    ) {
         if let Some(file) = key.strip_prefix("file:/") {
             data.verify_exists_implied(Item::File, file, item);
         } else if !self.sounds.contains_key(key) {
@@ -42,11 +48,8 @@ impl Sounds {
                 format!("sound {key} not defined in sounds/GUIDs.txt")
             };
             let info = "this could be due to a missing DLC";
-            report(ErrorKey::MissingSound, Item::Sound.severity())
-                .msg(msg)
-                .info(info)
-                .loc(item)
-                .push();
+            let sev = Item::Sound.severity().at_most(max_sev);
+            report(ErrorKey::MissingSound, sev).msg(msg).info(info).loc(item).push();
         }
     }
 

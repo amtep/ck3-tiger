@@ -150,13 +150,13 @@ impl MenAtArmsType {
         {
             if let Some(icon) = vd.field_value("icon") {
                 let path = format!("{icon_path}/{icon}.dds");
-                data.fileset.verify_exists_implied(&path, icon);
+                data.verify_exists_implied(Item::File, &path, icon);
             } else if let Some(base) = self.block.get_field_value("type") {
                 let base_path = format!("{icon_path}/{base}.dds");
                 let path = format!("{icon_path}/{}.dds", self.key);
                 data.item_used(Item::File, &base_path);
                 if !data.fileset.exists(&base_path) {
-                    data.fileset.verify_exists_implied(&path, &self.key);
+                    data.verify_exists_implied(Item::File, &path, &self.key);
                 }
             }
         } else {
@@ -168,13 +168,13 @@ impl MenAtArmsType {
         {
             if let Some(icon) = self.block.get_field_value("icon") {
                 let path = format!("{icon_path}/{icon}.dds");
-                data.fileset.verify_exists_implied(&path, icon);
+                data.verify_exists_implied(Item::File, &path, icon);
             } else if let Some(base) = self.block.get_field_value("type") {
                 let base_path = format!("{icon_path}/{base}.dds");
                 let path = format!("{icon_path}/{}.dds", self.key);
                 data.item_used(Item::File, &base_path);
                 if !data.fileset.exists(&base_path) {
-                    data.fileset.verify_exists_implied(&path, &self.key);
+                    data.verify_exists_implied(Item::File, &path, &self.key);
                 }
             }
         }
@@ -184,13 +184,13 @@ impl MenAtArmsType {
         {
             if let Some(icon) = self.block.get_field_value("icon") {
                 let path = format!("{icon_path}/{icon}.dds");
-                data.fileset.verify_exists_implied(&path, icon);
+                data.verify_exists_implied(Item::File, &path, icon);
             } else if let Some(base) = self.block.get_field_value("type") {
                 let base_path = format!("{icon_path}/{base}.dds");
                 let path = format!("{icon_path}/{}.dds", self.key);
                 data.item_used(Item::File, &base_path);
                 if !data.fileset.exists(&base_path) {
-                    data.fileset.verify_exists_implied(&path, &self.key);
+                    data.verify_exists_implied(Item::File, &path, &self.key);
                 }
             }
         }

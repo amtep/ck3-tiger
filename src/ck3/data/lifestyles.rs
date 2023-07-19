@@ -21,11 +21,11 @@ impl Lifestyle {
 impl DbKind for Lifestyle {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let loca = format!("{key}_name");
-        data.localization.verify_exists_implied(&loca, key);
+        data.verify_exists_implied(Item::Localization, &loca, key);
         let loca = format!("{key}_desc");
-        data.localization.verify_exists_implied(&loca, key);
+        data.verify_exists_implied(Item::Localization, &loca, key);
         let loca = format!("{key}_highlight_desc");
-        data.localization.verify_exists_implied(&loca, key);
+        data.verify_exists_implied(Item::Localization, &loca, key);
 
         let modif = format!("monthly_{key}_xp_gain_mult");
         data.verify_exists_implied(Item::ModifierFormat, &modif, key);

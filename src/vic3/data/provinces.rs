@@ -5,7 +5,8 @@ use image::{DynamicImage, Rgb};
 
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::report::{err, warn, ErrorKey};
+use crate::item::Item;
+use crate::report::{err, report, ErrorKey, Severity};
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -18,11 +19,12 @@ pub struct Provinces {
 }
 
 impl Provinces {
-    pub fn verify_exists_implied(&self, key: &str, item: &Token) {
+    pub fn verify_exists_implied(&self, key: &str, item: &Token, max_sev: Severity) {
         if !self.exists(key) {
-            // TODO: determine the severity of a missing province
+            // TODO: determine the severity of a missing province. Does it cause crashes?
             let msg = "province not found on map";
-            warn(ErrorKey::MissingItem).msg(msg).loc(item).push();
+            let sev = Item::Province.severity().at_most(max_sev);
+            report(ErrorKey::MissingItem, sev).msg(msg).loc(item).push();
         }
     }
 

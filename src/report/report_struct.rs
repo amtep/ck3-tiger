@@ -93,6 +93,17 @@ pub enum Severity {
     Fatal,
 }
 
+impl Severity {
+    /// Reduce the severity to at most `max_sev`, unless severity is `Fatal`, then stays `Fatal`.
+    pub fn at_most(self, max_sev: Severity) -> Severity {
+        if self == Severity::Fatal {
+            Severity::Fatal
+        } else {
+            self.min(max_sev)
+        }
+    }
+}
+
 /// Mostly invisible in the output.
 /// User can filter by minimum confidence level.
 /// This would be a dial for how many false positives they're willing to put up with.

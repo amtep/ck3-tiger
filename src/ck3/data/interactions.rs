@@ -96,18 +96,18 @@ impl DbKind for Interaction {
         {
             if let Some(name) = vd.field_value("icon") {
                 let pathname = format!("{icon_path}/{name}.dds");
-                data.fileset.verify_exists_implied(&pathname, name);
+                data.verify_exists_implied(Item::File, &pathname, name);
             } else {
                 let pathname = format!("{icon_path}/{key}.dds");
                 data.item_used(Item::File, &pathname);
             }
             if let Some(name) = vd.field_value("alert_icon") {
                 let pathname = format!("{icon_path}/{name}.dds");
-                data.fileset.verify_exists_implied(&pathname, name);
+                data.verify_exists_implied(Item::File, &pathname, name);
             }
             if let Some(name) = vd.field_value("icon_small") {
                 let pathname = format!("{icon_path}/{name}.dds");
-                data.fileset.verify_exists_implied(&pathname, name);
+                data.verify_exists_implied(Item::File, &pathname, name);
             }
         } else {
             vd.field_value("icon");
@@ -186,7 +186,7 @@ impl DbKind for Interaction {
         vd.field_validated_value("extra_icon", |k, token, data| {
             data.fileset.verify_exists(token);
             let loca = format!("{key}_extra_icon");
-            data.localization.verify_exists_implied(&loca, k);
+            data.verify_exists_implied(Item::Localization, &loca, k);
         });
         vd.field_validated_block("should_use_extra_icon", |b, data| {
             validate_trigger(b, data, &mut sc.clone(), Tooltipped::No);

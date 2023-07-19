@@ -930,22 +930,36 @@ impl Everything {
         self.verify_exists_implied(itype, token.as_str(), token);
     }
 
-    pub(crate) fn verify_exists_implied(&self, itype: Item, key: &str, token: &Token) {
+    pub(crate) fn verify_exists_max_sev(&self, itype: Item, token: &Token, max_sev: Severity) {
+        self.verify_exists_implied_max_sev(itype, token.as_str(), token, max_sev);
+    }
+
+    pub(crate) fn verify_exists_implied_max_sev(
+        &self,
+        itype: Item,
+        key: &str,
+        token: &Token,
+        max_sev: Severity,
+    ) {
         match itype {
-            Item::File => self.fileset.verify_exists_implied(key, token),
-            Item::Localization => self.localization.verify_exists_implied(key, token),
+            Item::File => self.fileset.verify_exists_implied(key, token, max_sev),
+            Item::Localization => self.localization.verify_exists_implied(key, token, max_sev),
             #[cfg(feature = "ck3")]
-            Item::Music => self.music.verify_exists_implied(key, token),
-            Item::Province => self.provinces.verify_exists_implied(key, token),
+            Item::Music => self.music.verify_exists_implied(key, token, max_sev),
+            Item::Province => self.provinces.verify_exists_implied(key, token, max_sev),
             #[cfg(feature = "ck3")]
-            Item::Sound => self.sounds.verify_exists_implied(key, token, self),
+            Item::Sound => self.sounds.verify_exists_implied(key, token, self, max_sev),
             Item::TextureFile => {
                 if let Some(entry) = self.assets.get_texture(key) {
                     // TODO: avoid allocating a string here
                     self.fileset.mark_used(&entry.path().to_string_lossy());
                 } else {
                     let msg = format!("no texture file {key} anywhere under {}", itype.path());
-                    report(ErrorKey::MissingFile, itype.severity()).msg(msg).loc(token).push();
+                    report(ErrorKey::MissingFile, itype.severity().at_most(max_sev))
+                        .conf(itype.confidence())
+                        .msg(msg)
+                        .loc(token)
+                        .push();
                 }
             }
             _ => {
@@ -956,7 +970,7 @@ impl Everything {
                     } else {
                         format!("{itype} {key} not defined in {path}")
                     };
-                    report(ErrorKey::MissingItem, itype.severity())
+                    report(ErrorKey::MissingItem, itype.severity().at_most(max_sev))
                         .conf(itype.confidence())
                         .msg(msg)
                         .loc(token)
@@ -964,6 +978,10 @@ impl Everything {
                 }
             }
         }
+    }
+
+    pub(crate) fn verify_exists_implied(&self, itype: Item, key: &str, token: &Token) {
+        self.verify_exists_implied_max_sev(itype, key, token, Severity::Error);
     }
 
     pub(crate) fn validate_use(&self, itype: Item, key: &Token, block: &Block) {

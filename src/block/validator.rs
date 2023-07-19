@@ -8,7 +8,7 @@ use crate::date::Date;
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;
-use crate::report::{advice, error, old_warn, ErrorKey};
+use crate::report::{error, report, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
 #[cfg(feature = "ck3")]
@@ -43,9 +43,15 @@ pub struct Validator<'a> {
     case_sensitive: bool,
     /// Whether this block can have ?= operators
     allow_questionmark_equals: bool,
+    /// Maximum severity of problems reported by this `Validator`. Defaults to `Error`.
+    /// This is intended to be set lower by validators for less-important items.
+    /// As an exception, `Fatal` severity reports will still always be logged as `Fatal`.
+    /// TODO: pass this down to all the helper functions
+    max_severity: Severity,
 }
 
 impl<'a> Debug for Validator<'a> {
+    /// Roll our own `Debug` implementation in order to leave out the `data` field.
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         f.debug_struct("Validator")
             .field("block", &self.block)
@@ -55,6 +61,8 @@ impl<'a> Debug for Validator<'a> {
             .field("accepted_block_fields", &self.accepted_block_fields)
             .field("accepted_value_fields", &self.accepted_value_fields)
             .field("case_sensitive", &self.case_sensitive)
+            .field("allow_questionmark_equals", &self.allow_questionmark_equals)
+            .field("max_severity", &self.max_severity)
             .finish()
     }
 }
@@ -73,6 +81,7 @@ impl<'a> Validator<'a> {
             accepted_value_fields: false,
             case_sensitive: true,
             allow_questionmark_equals: false,
+            max_severity: Severity::Fatal,
         }
     }
 
@@ -88,13 +97,18 @@ impl<'a> Validator<'a> {
         self.allow_questionmark_equals = allow_questionmark_equals;
     }
 
+    pub fn set_max_severity(&mut self, max_severity: Severity) {
+        self.max_severity = max_severity;
+    }
+
     /// Require field `name` to be present in the block, and warn if it isn't there.
     /// Returns true iff the field is present.
     pub fn req_field(&mut self, name: &str) -> bool {
         let found = self.check_key(name);
         if !found {
             let msg = format!("required field `{name}` missing");
-            error(self.block, ErrorKey::FieldMissing, &msg);
+            let sev = Severity::Error.at_most(self.max_severity);
+            report(ErrorKey::FieldMissing, sev).msg(msg).loc(self.block).push();
         }
         found
     }
@@ -112,7 +126,8 @@ impl<'a> Validator<'a> {
         if count != 1 {
             let msg = format!("expected exactly 1 of {}", names.join(", "));
             let key = if count == 0 { ErrorKey::FieldMissing } else { ErrorKey::Validation };
-            error(self.block, key, &msg);
+            let sev = Severity::Error.at_most(self.max_severity);
+            report(key, sev).msg(msg).loc(self.block).push();
         }
         count == 1
     }
@@ -123,7 +138,8 @@ impl<'a> Validator<'a> {
         let found = self.check_key(name);
         if !found {
             let msg = format!("required field `{name}` missing");
-            old_warn(self.block, ErrorKey::FieldMissing, &msg);
+            let sev = Severity::Warning.at_most(self.max_severity);
+            report(ErrorKey::FieldMissing, sev).msg(msg).loc(self.block).push();
         }
         found
     }
@@ -131,14 +147,16 @@ impl<'a> Validator<'a> {
     /// Require field `name` to not be in the block, and warn if it is found.
     /// The warning will include the output from the `only_for` closure,
     /// which describes where the field *is* expected.
+    /// TODO: make lower-severity versions of this function.
     pub fn ban_field<F, S>(&mut self, name: &str, only_for: F)
     where
         F: Fn() -> S,
         S: Borrow<str> + Display,
     {
+        let sev = Severity::Error.at_most(self.max_severity);
         self.fields_check(name, |key, _| {
             let msg = format!("`{name} = ` is only for {}", only_for());
-            error(key, ErrorKey::Validation, &msg);
+            report(ErrorKey::Validation, sev).msg(msg).loc(key).push();
         });
     }
 
@@ -146,9 +164,10 @@ impl<'a> Validator<'a> {
     /// This is used to adapt to and warn about changes in the game engine.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn replaced_field(&mut self, name: &str, replaced_by: &str) {
+        let sev = Severity::Error.at_most(self.max_severity);
         self.fields_check(name, |key, _| {
             let msg = format!("`{name}` has been replaced by {replaced_by}");
-            error(key, ErrorKey::Validation, &msg);
+            report(ErrorKey::Validation, sev).msg(msg).loc(key).push();
         });
     }
 
@@ -290,9 +309,10 @@ impl<'a> Validator<'a> {
     /// Expect no more than one `name` field in the block.
     /// Returns true iff the field is present.
     pub fn field_item(&mut self, name: &str, itype: Item) -> bool {
+        let sev = self.max_severity;
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
-                self.data.verify_exists(itype, token);
+                self.data.verify_exists_max_sev(itype, token, sev);
             }
         })
     }
@@ -308,6 +328,7 @@ impl<'a> Validator<'a> {
     pub fn field_target(&mut self, name: &str, sc: &mut ScopeContext, outscopes: Scopes) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
+                // TODO: pass max_severity here
                 validate_target(token, self.data, sc, outscopes);
             }
         })
@@ -323,6 +344,7 @@ impl<'a> Validator<'a> {
     ) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
+                // TODO: pass max_severity here
                 validate_target_ok_this(token, self.data, sc, outscopes);
             }
         })
@@ -341,6 +363,7 @@ impl<'a> Validator<'a> {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if !self.data.item_exists(itype, token.as_str()) {
+                    // TODO: pass max_severity here
                     validate_target(token, self.data, sc, outscopes);
                 }
             }
@@ -360,10 +383,11 @@ impl<'a> Validator<'a> {
     /// Expect no more than one `name` field.
     /// Returns true iff the field is present.
     pub fn field_bool(&mut self, name: &str) -> bool {
+        let sev = Severity::Error.at_most(self.max_severity);
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if !token.is("yes") && !token.is("no") && !token.is("YES") && !token.is("NO") {
-                    error(token, ErrorKey::Validation, "expected yes or no");
+                    report(ErrorKey::Validation, sev).msg("expected yes or no").loc(token).push();
                 }
             }
         })
@@ -375,6 +399,7 @@ impl<'a> Validator<'a> {
     pub fn field_integer(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
+                // TODO: pass max_severity here
                 token.expect_integer();
             }
         })
@@ -384,12 +409,14 @@ impl<'a> Validator<'a> {
     /// Expect no more than one `name` field.
     /// Returns true iff the field is present.
     pub fn field_integer_range(&mut self, name: &str, low: i64, high: i64) {
+        let sev = Severity::Error.at_most(self.max_severity);
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
+                // TODO: pass max_severity here
                 if let Some(i) = token.expect_integer() {
                     if !(low..=high).contains(&i) {
                         let msg = format!("should be between {low} and {high} (inclusive)");
-                        old_warn(token, ErrorKey::Range, &msg);
+                        report(ErrorKey::Range, sev).msg(msg).loc(token).push();
                     }
                 }
             }
@@ -424,12 +451,13 @@ impl<'a> Validator<'a> {
     /// Expect no more than one `name` field.
     /// Returns true iff the field is present.
     pub fn field_numeric_range(&mut self, name: &str, low: f64, high: f64) {
+        let sev = Severity::Error.at_most(self.max_severity);
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if let Some(f) = token.expect_number() {
                     if !(low..=high).contains(&f) {
                         let msg = format!("should be between {low} and {high} (inclusive)");
-                        old_warn(token, ErrorKey::Range, &msg);
+                        report(ErrorKey::Range, sev).msg(msg).loc(token).push();
                     }
                 }
             }
@@ -442,10 +470,12 @@ impl<'a> Validator<'a> {
     /// Expect no more than one `name` field.
     /// Returns true iff the field is present.
     pub fn field_date(&mut self, name: &str) -> bool {
+        let sev = Severity::Error.at_most(self.max_severity);
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if Date::from_str(token.as_str()).is_err() {
-                    old_warn(token, ErrorKey::Validation, "expected date value");
+                    let msg = "expected date value";
+                    report(ErrorKey::Validation, sev).msg(msg).loc(token).push();
                 }
             }
         })
@@ -464,6 +494,7 @@ impl<'a> Validator<'a> {
     /// TODO: standardize on `scriptvalue` vs `script_value`.
     pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
+            // TODO: pass max_severity value down
             validate_scriptvalue(bv, self.data, sc);
         })
     }
@@ -474,6 +505,7 @@ impl<'a> Validator<'a> {
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_script_value_no_breakdown(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
+            // TODO: pass max_severity value down
             validate_scriptvalue_no_breakdown(bv, self.data, sc);
         })
     }
@@ -485,6 +517,7 @@ impl<'a> Validator<'a> {
     pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
         self.field_check(name, |_, bv| {
             let mut sc = ScopeContext::new(scopes, self.block.get_key(name).unwrap());
+            // TODO: pass max_severity value down
             validate_scriptvalue(bv, self.data, &mut sc);
         })
     }
@@ -492,6 +525,7 @@ impl<'a> Validator<'a> {
     /// Just like `Validator::field_script_value`, but it can accept a literal `flag:something` value as well as a scriptvalue.
     pub fn field_script_value_or_flag(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
+            // TODO: pass max_severity value down
             if let Some(token) = bv.get_value() {
                 validate_target(token, self.data, sc, Scopes::Value | Scopes::Bool | Scopes::Flag);
             } else {
@@ -503,6 +537,7 @@ impl<'a> Validator<'a> {
     /// Just like `Validator::field_script_value`, but it it expects any number of `name` fields.
     pub fn fields_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.fields_check(name, |_, bv| {
+            // TODO: pass max_severity value down
             validate_scriptvalue(bv, self.data, sc);
         })
     }
@@ -511,11 +546,12 @@ impl<'a> Validator<'a> {
     /// Expect no more than one `name` field in the block.
     /// Returns true iff the field is present.
     pub fn field_choice(&mut self, name: &str, choices: &[&str]) -> bool {
+        let sev = Severity::Error.at_most(self.max_severity);
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if !choices.contains(&token.as_str()) {
                     let msg = format!("expected one of {}", choices.join(", "));
-                    error(token, ErrorKey::Choice, &msg);
+                    report(ErrorKey::Choice, sev).msg(msg).loc(token).push();
                 }
             }
         })
@@ -524,11 +560,12 @@ impl<'a> Validator<'a> {
     /// Just like `Validator::field_choice`, but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn fields_choice(&mut self, name: &str, choices: &[&str]) -> bool {
+        let sev = Severity::Error.at_most(self.max_severity);
         self.fields_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if !choices.contains(&token.as_str()) {
                     let msg = format!("expected one of {}", choices.join(", "));
-                    error(token, ErrorKey::Choice, &msg);
+                    report(ErrorKey::Choice, sev).msg(msg).loc(token).push();
                 }
             }
         })
@@ -563,8 +600,9 @@ impl<'a> Validator<'a> {
     /// Expect no more than one `name` field in the block.
     /// Returns true iff the field is present.
     pub fn field_list_items(&mut self, name: &str, item: Item) -> bool {
+        let sev = self.max_severity;
         self.field_validated_list(name, |token, data| {
-            data.verify_exists(item, token);
+            data.verify_exists_max_sev(item, token, sev);
         })
     }
 
@@ -586,8 +624,9 @@ impl<'a> Validator<'a> {
     /// Just like `Validator::field_list_items`, but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn fields_list_items(&mut self, name: &str, item: Item) -> bool {
+        let sev = self.max_severity;
         self.fields_validated_list(name, |token, data| {
-            data.verify_exists(item, token);
+            data.verify_exists_max_sev(item, token, sev);
         })
     }
 
@@ -613,7 +652,7 @@ impl<'a> Validator<'a> {
                 self.known_fields.push(key.as_str());
                 self.expect_eq_qeq(key, *cmp);
                 if let Some(token) = bv.expect_value() {
-                    self.data.verify_exists(itype, token);
+                    self.data.verify_exists_max_sev(itype, token, self.max_severity);
                 }
             }
         }
@@ -958,7 +997,8 @@ impl<'a> Validator<'a> {
         }
         if found != expect {
             let msg = format!("expected {expect} integers");
-            error(self.block, ErrorKey::Validation, &msg);
+            let sev = Severity::Error.at_most(self.max_severity);
+            report(ErrorKey::Validation, sev).msg(msg).loc(self.block).push();
         }
     }
 
@@ -974,7 +1014,8 @@ impl<'a> Validator<'a> {
         }
         if found != expect {
             let msg = format!("expected {expect} numbers");
-            error(self.block, ErrorKey::Validation, &msg);
+            let sev = Severity::Error.at_most(self.max_severity);
+            report(ErrorKey::Validation, sev).msg(msg).loc(self.block).push();
         }
     }
 
@@ -1025,7 +1066,8 @@ impl<'a> Validator<'a> {
     pub fn advice_field(&mut self, name: &str, msg: &str) {
         if let Some(key) = self.block.get_key(name) {
             self.known_fields.push(key.as_str());
-            advice(key, ErrorKey::Unneeded, msg);
+            let sev = Severity::Untidy.at_most(self.max_severity);
+            report(ErrorKey::Unneeded, sev).msg(msg).loc(key).push();
         }
     }
 
@@ -1224,7 +1266,8 @@ impl<'a> Validator<'a> {
                         if !self.accepted_value_fields && !self.known_fields.contains(&key.as_str())
                         {
                             let msg = format!("unknown field `{key}`");
-                            old_warn(key, ErrorKey::UnknownField, &msg);
+                            let sev = Severity::Error.at_most(self.max_severity);
+                            report(ErrorKey::UnknownField, sev).weak().msg(msg).loc(key).push();
                             warned = true;
                         }
                     }
@@ -1232,7 +1275,8 @@ impl<'a> Validator<'a> {
                         if !self.accepted_block_fields && !self.known_fields.contains(&key.as_str())
                         {
                             let msg = format!("unknown field `{key}`");
-                            old_warn(key, ErrorKey::UnknownField, &msg);
+                            let sev = Severity::Error.at_most(self.max_severity);
+                            report(ErrorKey::UnknownField, sev).weak().msg(msg).loc(key).push();
                             warned = true;
                         }
                     }
@@ -1240,14 +1284,16 @@ impl<'a> Validator<'a> {
                 BlockItem::Value(t) => {
                     if !self.accepted_tokens {
                         let msg = format!("found loose value {t}, expected only `key =`");
-                        old_warn(t, ErrorKey::Validation, &msg);
+                        let sev = Severity::Error.at_most(self.max_severity);
+                        report(ErrorKey::Validation, sev).msg(msg).loc(t).push();
                         warned = true;
                     }
                 }
                 BlockItem::Block(b) => {
                     if !self.accepted_blocks {
                         let msg = "found sub-block, expected only `key =`";
-                        old_warn(b, ErrorKey::Validation, msg);
+                        let sev = Severity::Error.at_most(self.max_severity);
+                        report(ErrorKey::Validation, sev).msg(msg).loc(b).push();
                         warned = true;
                     }
                 }
@@ -1262,12 +1308,14 @@ impl<'a> Validator<'a> {
         if self.allow_questionmark_equals {
             if !matches!(cmp, Comparator::Equals(Single | Question)) {
                 let msg = format!("expected `{key} =` or `?=`, found `{cmp}`");
-                error(key, ErrorKey::Validation, &msg);
+                let sev = Severity::Error.at_most(self.max_severity);
+                report(ErrorKey::Validation, sev).msg(msg).loc(key).push();
             }
         } else {
             if !matches!(cmp, Comparator::Equals(Single)) {
                 let msg = format!("expected `{key} =`, found `{cmp}`");
-                error(key, ErrorKey::Validation, &msg);
+                let sev = Severity::Error.at_most(self.max_severity);
+                report(ErrorKey::Validation, sev).msg(msg).loc(key).push();
             }
         }
     }

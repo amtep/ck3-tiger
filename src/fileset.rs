@@ -17,7 +17,7 @@ use crate::modfile::ModFile;
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{
     add_loaded_mod_root, error, fatal, report, warn_abbreviated, warn_header, will_maybe_log,
-    ErrorKey,
+    ErrorKey, Severity,
 };
 use crate::token::{Loc, Token};
 
@@ -401,12 +401,15 @@ impl Fileset {
         }
     }
 
-    pub fn verify_exists_implied(&self, file: &str, t: &Token) {
+    pub fn verify_exists_implied(&self, file: &str, t: &Token, max_sev: Severity) {
         self.mark_used(&file.replace("//", "/"));
         let filepath = PathBuf::from(file);
         if !self.filenames.contains(&filepath) {
             let msg = format!("file {file} does not exist");
-            report(ErrorKey::MissingFile, Item::File.severity()).msg(msg).loc(t).push();
+            report(ErrorKey::MissingFile, Item::File.severity().at_most(max_sev))
+                .msg(msg)
+                .loc(t)
+                .push();
         }
     }
 

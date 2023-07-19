@@ -133,7 +133,7 @@ impl DoctrineGroup {
 
         if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("{}_name", self.key);
-            data.localization.verify_exists_implied(&loca, &self.key);
+            data.verify_exists_implied(Item::Localization, &loca, &self.key);
         }
 
         // doc says "grouping" but that's wrong
@@ -172,10 +172,10 @@ impl Doctrine {
         if let Some(icon_path) = icon_path {
             if let Some(icon) = vd.field_value("icon") {
                 let path = format!("{icon_path}/{icon}.dds");
-                data.fileset.verify_exists_implied(&path, icon);
+                data.verify_exists_implied(Item::File, &path, icon);
             } else if data.doctrines.groups[self.group.as_str()].needs_icon(data) {
                 let path = format!("{icon_path}/{}.dds", &self.key);
-                data.fileset.verify_exists_implied(&path, &self.key);
+                data.verify_exists_implied(Item::File, &path, &self.key);
             }
         } else {
             vd.field_value("icon");
@@ -183,12 +183,12 @@ impl Doctrine {
 
         if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("{}_name", self.key);
-            data.localization.verify_exists_implied(&loca, &self.key);
+            data.verify_exists_implied(Item::Localization, &loca, &self.key);
         }
 
         if !vd.field_validated_sc("desc", &mut sc, validate_desc) {
             let loca = format!("{}_desc", self.key);
-            data.localization.verify_exists_implied(&loca, &self.key);
+            data.verify_exists_implied(Item::Localization, &loca, &self.key);
         }
 
         vd.field_bool("visible");

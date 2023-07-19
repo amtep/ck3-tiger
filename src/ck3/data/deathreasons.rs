@@ -4,6 +4,7 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::Severity;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -40,7 +41,7 @@ impl DbKind for DeathReason {
                 data.get_defined_string_warn(key, "NGameIcons|DEATH_REASON_ICON_PATH")
             {
                 let pathname = format!("{icon_path}/{icon}");
-                data.fileset.verify_exists_implied(&pathname, icon);
+                data.verify_exists_implied_max_sev(Item::File, &pathname, icon, Severity::Warning);
             }
         }
 

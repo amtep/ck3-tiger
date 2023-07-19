@@ -131,12 +131,12 @@ impl Trait {
 
         if !vd.field_validated_sc("name", &mut sc, validate_desc) {
             let loca = format!("trait_{}", self.key);
-            data.localization.verify_exists_implied(&loca, &self.key);
+            data.verify_exists_implied(Item::Localization, &loca, &self.key);
         }
 
         if !vd.field_validated_sc("desc", &mut sc, validate_desc) {
             let loca = format!("trait_{}_desc", self.key);
-            data.localization.verify_exists_implied(&loca, &self.key);
+            data.verify_exists_implied(Item::Localization, &loca, &self.key);
         }
 
         if !vd.field_validated("icon", |bv, data| {
@@ -145,7 +145,7 @@ impl Trait {
                     data.get_defined_string_warn(&self.key, "NGameIcons|TRAIT_ICON_PATH")
                 {
                     let path = format!("{icon_path}/{name}");
-                    data.fileset.verify_exists_implied(&path, name);
+                    data.verify_exists_implied(Item::File, &path, name);
                 }
             });
         }) {
@@ -153,7 +153,7 @@ impl Trait {
                 data.get_defined_string_warn(&self.key, "NGameIcons|TRAIT_ICON_PATH")
             {
                 let path = format!("{icon_path}/{}.dds", self.key);
-                data.fileset.verify_exists_implied(&path, &self.key);
+                data.verify_exists_implied(Item::File, &path, &self.key);
             }
         }
 

@@ -82,16 +82,16 @@ impl Concept {
         }
 
         let loca = format!("game_concept_{}", self.key);
-        data.localization.verify_exists_implied(&loca, &self.key);
+        data.verify_exists_implied(Item::Localization, &loca, &self.key);
         let loca = format!("game_concept_{}_desc", self.key);
-        data.localization.verify_exists_implied(&loca, &self.key);
+        data.verify_exists_implied(Item::Localization, &loca, &self.key);
 
         let mut vd = Validator::new(&self.block, data);
         vd.field_list("alias");
         if let Some(aliases) = self.block.get_field_list("alias") {
             for alias in aliases {
                 let loca = format!("game_concept_{alias}");
-                data.localization.verify_exists_implied(&loca, &alias);
+                data.verify_exists_implied(Item::Localization, &loca, &alias);
             }
         }
 

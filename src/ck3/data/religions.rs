@@ -77,7 +77,7 @@ impl DbKind for Religion {
                 data.get_defined_string_warn(key, "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH")
             {
                 let pathname = format!("{icon_path}/{icon}");
-                data.fileset.verify_exists_implied(&pathname, icon);
+                data.verify_exists_implied(Item::File, &pathname, icon);
             }
         }
         vd.field_value("piety_icon_group"); // TODO
@@ -91,7 +91,7 @@ impl DbKind for Religion {
             {
                 for icon in &icons {
                     let pathname = format!("{icon_path}/{icon}.dds");
-                    data.fileset.verify_exists_implied(&pathname, icon);
+                    data.verify_exists_implied(Item::File, &pathname, icon);
                 }
             }
         }
@@ -206,13 +206,13 @@ impl DbKind for Faith {
         let icon = vd.field_value("icon").unwrap_or(key);
         if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|FAITH_ICON_PATH") {
             let pathname = format!("{icon_path}/{icon}.dds");
-            data.fileset.verify_exists_implied(&pathname, icon);
+            data.verify_exists_implied(Item::File, &pathname, icon);
         }
         if let Some(icon) = vd.field_value("reformed_icon") {
             if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|FAITH_ICON_PATH")
             {
                 let pathname = format!("{icon_path}/{icon}.dds");
-                data.fileset.verify_exists_implied(&pathname, icon);
+                data.verify_exists_implied(Item::File, &pathname, icon);
             }
         }
         vd.field_value("graphical_faith");
@@ -223,7 +223,7 @@ impl DbKind for Faith {
                 data.get_defined_string_warn(key, "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH")
             {
                 let pathname = format!("{icon_path}/{icon}");
-                data.fileset.verify_exists_implied(&pathname, icon);
+                data.verify_exists_implied(Item::File, &pathname, icon);
             }
         }
 

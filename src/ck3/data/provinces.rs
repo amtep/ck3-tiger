@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::pdxfile::PdxFile;
-use crate::report::{error, old_warn, report, ErrorKey};
+use crate::report::{error, old_warn, report, ErrorKey, Severity};
 use crate::token::{Loc, Token};
 
 pub type ProvId = u32;
@@ -118,7 +118,7 @@ impl Provinces {
         }
     }
 
-    pub fn verify_exists_implied(&self, key: &str, item: &Token) {
+    pub fn verify_exists_implied(&self, key: &str, item: &Token, max_sev: Severity) {
         if let Ok(provid) = key.parse::<ProvId>() {
             if !self.provinces.contains_key(&provid) {
                 let msg = format!("province {provid} not defined in map_data/definition.csv");
@@ -126,7 +126,8 @@ impl Provinces {
             }
         } else {
             let msg = "province id should be numeric";
-            report(ErrorKey::Validation, Item::Province.severity()).msg(msg).loc(item).push();
+            let sev = Item::Province.severity().at_most(max_sev);
+            report(ErrorKey::Validation, sev).msg(msg).loc(item).push();
         }
     }
 

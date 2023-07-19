@@ -48,7 +48,7 @@ impl DbKind for Perk {
         let icon = vd.field_value("icon").unwrap_or(key);
         if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|PERK_ICON_PATH") {
             let pathname = format!("{icon_path}/{icon}.dds");
-            data.fileset.verify_exists_implied(&pathname, icon);
+            data.verify_exists_implied(Item::File, &pathname, icon);
         }
 
         vd.field_item("lifestyle", Item::Lifestyle);

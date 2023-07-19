@@ -20,6 +20,7 @@ impl Ethnicity {
 impl DbKind for Ethnicity {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+        vd.set_max_severity(Severity::Warning);
         vd.field_bool("visible");
         if !block.field_value_is("visible", "no") {
             #[cfg(feature = "ck3")]
@@ -35,9 +36,11 @@ impl DbKind for Ethnicity {
         vd.unknown_block_fields(|key, block| {
             data.verify_exists(Item::GeneCategory, key);
             let mut vd = Validator::new(block, data);
+            vd.set_max_severity(Severity::Warning);
             for (_, block) in vd.integer_blocks() {
                 if let Some(token) = block.get_field_value("name") {
                     let mut vd = Validator::new(block, data);
+                    vd.set_max_severity(Severity::Warning);
                     vd.field_value("name");
                     Gene::verify_has_template(key.as_str(), token, data);
                     vd.field_validated_block("range", |block, data| {

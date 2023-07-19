@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{report, ErrorKey};
+use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -36,7 +36,7 @@ impl Musics {
         self.musics.contains_key(key) || DLC_MUSIC.contains(&key)
     }
 
-    pub fn verify_exists_implied(&self, key: &str, item: &Token) {
+    pub fn verify_exists_implied(&self, key: &str, item: &Token, max_sev: Severity) {
         if !self.exists(key) {
             let msg = if key == item.as_str() {
                 "music not defined in music/ or dlc/*/music/".to_string()
@@ -44,7 +44,7 @@ impl Musics {
                 format!("music {key} not defined in music/ or dlc/*/music/")
             };
             let info = "this could be due to a missing DLC";
-            report(ErrorKey::MissingSound, Item::Sound.severity())
+            report(ErrorKey::MissingSound, Item::Sound.severity().at_most(max_sev))
                 .msg(msg)
                 .info(info)
                 .loc(item)

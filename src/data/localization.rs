@@ -16,7 +16,7 @@ use crate::parse::localization::{parse_loca, ValueParser};
 use crate::report::warn2;
 use crate::report::{
     error, error_info, old_warn, report, warn, warn_abbreviated, warn_header, warn_info,
-    will_maybe_log, ErrorKey,
+    will_maybe_log, ErrorKey, Severity,
 };
 use crate::token::Token;
 
@@ -215,10 +215,10 @@ impl Localization {
     }
 
     pub fn verify_exists(&self, token: &Token) {
-        self.verify_exists_implied(token.as_str(), token);
+        self.verify_exists_implied(token.as_str(), token, Severity::Error);
     }
 
-    pub fn verify_exists_implied(&self, key: &str, token: &Token) {
+    pub fn verify_exists_implied(&self, key: &str, token: &Token, max_sev: Severity) {
         if key.is_empty() {
             return;
         }
@@ -233,7 +233,7 @@ impl Localization {
         if !langs.is_empty() {
             let msg = format!("missing {} localization key {key}", stringify_list(&langs));
             // TODO: get confidence level from caller
-            report(ErrorKey::MissingLocalization, Item::Localization.severity())
+            report(ErrorKey::MissingLocalization, Item::Localization.severity().at_most(max_sev))
                 .msg(msg)
                 .loc(token)
                 .push();
