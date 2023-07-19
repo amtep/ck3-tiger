@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn_info, ErrorKey};
+use crate::report::{report, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -44,7 +44,11 @@ impl Musics {
                 format!("music {key} not defined in music/ or dlc/*/music/")
             };
             let info = "this could be due to a missing DLC";
-            warn_info(item, ErrorKey::MissingSound, &msg, info);
+            report(ErrorKey::MissingSound, Item::Sound.severity())
+                .msg(msg)
+                .info(info)
+                .loc(item)
+                .push();
         }
     }
 

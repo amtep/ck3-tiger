@@ -143,7 +143,7 @@ use crate::parse::json::parse_json_file;
 use crate::pdxfile::PdxFile;
 #[cfg(feature = "ck3")]
 use crate::report::err;
-use crate::report::{error, set_output_style, ErrorKey, OutputStyle, Severity};
+use crate::report::{report, set_output_style, ErrorKey, OutputStyle, Severity};
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
@@ -945,7 +945,7 @@ impl Everything {
                     self.fileset.mark_used(&entry.path().to_string_lossy());
                 } else {
                     let msg = format!("no texture file {key} anywhere under {}", itype.path());
-                    error(token, ErrorKey::MissingFile, &msg);
+                    report(ErrorKey::MissingFile, itype.severity()).msg(msg).loc(token).push();
                 }
             }
             _ => {
@@ -956,7 +956,11 @@ impl Everything {
                     } else {
                         format!("{itype} {key} not defined in {path}")
                     };
-                    error(token, ErrorKey::MissingItem, &msg);
+                    report(ErrorKey::MissingItem, itype.severity())
+                        .conf(itype.confidence())
+                        .msg(msg)
+                        .loc(token)
+                        .push();
                 }
             }
         }

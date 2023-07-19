@@ -10,7 +10,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
-use crate::report::{error, warn_info, ErrorKey};
+use crate::report::{error, report, ErrorKey};
 use crate::token::{Loc, Token};
 
 #[derive(Clone, Debug, Default)]
@@ -42,7 +42,11 @@ impl Sounds {
                 format!("sound {key} not defined in sounds/GUIDs.txt")
             };
             let info = "this could be due to a missing DLC";
-            warn_info(item, ErrorKey::MissingSound, &msg, info);
+            report(ErrorKey::MissingSound, Item::Sound.severity())
+                .msg(msg)
+                .info(info)
+                .loc(item)
+                .push();
         }
     }
 

@@ -12,10 +12,12 @@ use walkdir::WalkDir;
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::everything::FilesError;
+use crate::item::Item;
 use crate::modfile::ModFile;
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{
-    add_loaded_mod_root, error, fatal, warn_abbreviated, warn_header, will_maybe_log, ErrorKey,
+    add_loaded_mod_root, error, fatal, report, warn_abbreviated, warn_header, will_maybe_log,
+    ErrorKey,
 };
 use crate::token::{Loc, Token};
 
@@ -395,7 +397,7 @@ impl Fileset {
         let filepath = PathBuf::from(file.as_str());
         if !self.filenames.contains(&filepath) {
             let msg = "referenced file does not exist";
-            error(file, ErrorKey::MissingFile, msg);
+            report(ErrorKey::MissingFile, Item::File.severity()).msg(msg).loc(file).push();
         }
     }
 
@@ -404,7 +406,7 @@ impl Fileset {
         let filepath = PathBuf::from(file);
         if !self.filenames.contains(&filepath) {
             let msg = format!("file {file} does not exist");
-            error(t, ErrorKey::MissingFile, &msg);
+            report(ErrorKey::MissingFile, Item::File.severity()).msg(msg).loc(t).push();
         }
     }
 

@@ -7,9 +7,10 @@ use image::{DynamicImage, Rgb};
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::item::Item;
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::pdxfile::PdxFile;
-use crate::report::{error, old_warn, ErrorKey};
+use crate::report::{error, old_warn, report, ErrorKey};
 use crate::token::{Loc, Token};
 
 pub type ProvId = u32;
@@ -121,10 +122,11 @@ impl Provinces {
         if let Ok(provid) = key.parse::<ProvId>() {
             if !self.provinces.contains_key(&provid) {
                 let msg = format!("province {provid} not defined in map_data/definition.csv");
-                error(item, ErrorKey::MissingItem, &msg);
+                report(ErrorKey::MissingItem, Item::Province.severity()).msg(msg).loc(item).push();
             }
         } else {
-            error(item, ErrorKey::Validation, "province id should be numeric");
+            let msg = "province id should be numeric";
+            report(ErrorKey::Validation, Item::Province.severity()).msg(msg).loc(item).push();
         }
     }
 

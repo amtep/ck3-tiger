@@ -15,8 +15,8 @@ use crate::parse::localization::{parse_loca, ValueParser};
 #[cfg(feature = "ck3")]
 use crate::report::warn2;
 use crate::report::{
-    error, error_info, old_warn, warn, warn_abbreviated, warn_header, warn_info, will_maybe_log,
-    ErrorKey,
+    error, error_info, old_warn, report, warn, warn_abbreviated, warn_header, warn_info,
+    will_maybe_log, ErrorKey,
 };
 use crate::token::Token;
 
@@ -233,7 +233,10 @@ impl Localization {
         if !langs.is_empty() {
             let msg = format!("missing {} localization key {key}", stringify_list(&langs));
             // TODO: get confidence level from caller
-            warn(ErrorKey::MissingLocalization).msg(msg).loc(token).push();
+            report(ErrorKey::MissingLocalization, Item::Localization.severity())
+                .msg(msg)
+                .loc(token)
+                .push();
         }
     }
 

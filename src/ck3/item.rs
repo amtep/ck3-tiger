@@ -1,5 +1,7 @@
 use strum_macros::{EnumIter, IntoStaticStr};
 
+use crate::report::{Confidence, Severity};
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord, EnumIter)]
 #[strum(serialize_all = "snake_case")]
 pub enum Item {
@@ -435,6 +437,75 @@ impl Item {
             Item::VassalContractFlag => "common/vassal_contracts/",
             Item::VassalObligationLevel => "common/vassal_contracts/",
             Item::VassalStance => "common/vassal_stances/",
+        }
+    }
+
+    /// Confidence value to use when reporting that an item is missing.
+    /// Should be `Strong` for most, `Weak` for items that aren't defined anywhere but just used (such as gfx flags).
+    pub fn confidence(self) -> Confidence {
+        match self {
+            Item::AccessoryTag
+            | Item::AccoladeCategory
+            | Item::BuildingGfx
+            | Item::ClothingGfx
+            | Item::CoaGfx
+            | Item::Sound
+            | Item::UnitGfx => Confidence::Weak,
+            Item::SpecialBuilding => Confidence::Reasonable,
+            _ => Confidence::Strong,
+        }
+    }
+
+    /// Severity value to use when reporting that an item is missing.
+    /// * `Error` - most things
+    /// * `Warning` - things that only impact visuals or presentation
+    /// * `Untidy` - things that don't matter much at all
+    /// * `Fatal` - things that cause crashes if they're missing
+    /// This is only one piece of the severity puzzle. It can also depend on the caller who's expecting the item to exist.
+    /// That part isn't handled yet.
+    pub fn severity(self) -> Severity {
+        match self {
+            Item::Accessory
+            | Item::AccessoryTag
+            | Item::AccessoryVariation
+            | Item::AccessoryVariationLayout
+            | Item::AccessoryVariationTextures
+            | Item::AccoladeIcon
+            | Item::ArtifactVisual
+            | Item::BuildingGfx
+            | Item::ClothingGfx
+            | Item::Coa
+            | Item::CoaGfx
+            | Item::CoaColorList
+            | Item::CoaColoredEmblemList
+            | Item::CoaDynamicDefinition
+            | Item::CoaPatternList
+            | Item::CoaTemplate
+            | Item::CoaTemplateList
+            | Item::CoaTexturedEmblemList
+            | Item::CultureAesthetic
+            | Item::CultureCreationName
+            | Item::CustomLocalization
+            | Item::EffectLocalization
+            | Item::Ethnicity
+            | Item::Flavorization
+            | Item::GameConcept
+            | Item::GraphicalFaith
+            | Item::Localization
+            | Item::MapEnvironment
+            | Item::ModifierFormat
+            | Item::MottoInsert
+            | Item::Motto
+            | Item::Music
+            | Item::NamedColor
+            | Item::Nickname
+            | Item::PortraitAnimation
+            | Item::PortraitCamera
+            | Item::Sound
+            | Item::TextureFile
+            | Item::TriggerLocalization
+            | Item::UnitGfx => Severity::Warning,
+            _ => Severity::Error,
         }
     }
 }

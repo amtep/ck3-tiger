@@ -1,5 +1,7 @@
 use strum_macros::{EnumIter, IntoStaticStr};
 
+use crate::report::{Confidence, Severity};
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord, EnumIter)]
 #[strum(serialize_all = "snake_case")]
 #[cfg(feature = "vic3")]
@@ -227,6 +229,57 @@ impl Item {
             Item::TriggerLocalization => "common/trigger_localization/",
             Item::TutorialLesson => "common/tutorial_lessons/",
             Item::Wargoal => "",
+        }
+    }
+
+    /// Confidence value to use when reporting that an item is missing.
+    /// Should be `Strong` for most, `Weak` for items that aren't defined anywhere but just used (such as gfx flags).
+    pub fn confidence(self) -> Confidence {
+        match self {
+            Item::AccessoryTag => Confidence::Weak,
+            _ => Confidence::Strong,
+        }
+    }
+    /// Severity value to use when reporting that an item is missing.
+    /// * `Error` - most things
+    /// * `Warning` - things that only impact visuals or presentation
+    /// * `Untidy` - things that don't matter much at all
+    /// * `Fatal` - things that cause crashes if they're missing
+    /// This is only one piece of the severity puzzle. It can also depend on the caller who's expecting the item to exist.
+    /// That part isn't handled yet.
+    pub fn severity(self) -> Severity {
+        match self {
+            Item::Accessory
+            | Item::AccessoryTag
+            | Item::AccessoryVariation
+            | Item::AccessoryVariationLayout
+            | Item::AccessoryVariationTextures
+            | Item::Coa
+            | Item::CoaColorList
+            | Item::CoaColoredEmblemList
+            | Item::CoaDesignerColoredEmblem
+            | Item::CoaDesignerPattern
+            | Item::CoaPatternList
+            | Item::CoaTemplate
+            | Item::CoaTemplateList
+            | Item::CoaTexturedEmblemList
+            | Item::CustomLocalization
+            | Item::EffectLocalization
+            | Item::Ethnicity
+            | Item::GameConcept
+            | Item::Localization
+            | Item::MapLayer
+            | Item::ModifierType
+            | Item::NamedColor
+            | Item::PortraitAnimation
+            | Item::PortraitCamera
+            | Item::Sound
+            | Item::TerrainManipulator
+            | Item::TerrainMask
+            | Item::TerrainMaterial
+            | Item::TextureFile
+            | Item::TriggerLocalization => Severity::Warning,
+            _ => Severity::Error,
         }
     }
 }
