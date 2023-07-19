@@ -9,7 +9,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, exact_dup_error};
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey, Severity};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -141,6 +141,7 @@ impl Trigger {
                 &mut our_sc,
                 tooltipped,
                 negated,
+                Severity::Error,
             );
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key);
@@ -197,6 +198,7 @@ impl Trigger {
                     &mut our_sc,
                     tooltipped,
                     negated,
+                    Severity::Error,
                 );
                 if let Some(scopes) = self.scope_override {
                     our_sc = ScopeContext::new_unrooted(scopes, key);

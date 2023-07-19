@@ -17,7 +17,7 @@ use crate::helpers::stringify_choices;
 #[cfg(feature = "vic3")]
 use crate::helpers::stringify_list;
 use crate::item::Item;
-use crate::report::{advice_info, err, error, old_warn, warn2, warn_info, ErrorKey};
+use crate::report::{advice_info, err, error, old_warn, warn2, warn_info, ErrorKey, Severity};
 use crate::scopes::{
     scope_iterator, scope_prefix, scope_to_scope, validate_prefix_reference, Scopes,
 };
@@ -37,7 +37,17 @@ pub fn validate_trigger(
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
 ) {
-    validate_trigger_internal("", false, block, data, sc, tooltipped, false);
+    validate_trigger_internal("", false, block, data, sc, tooltipped, false, Severity::Error);
+}
+
+pub fn validate_trigger_max_sev(
+    block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    tooltipped: Tooltipped,
+    max_sev: Severity,
+) {
+    validate_trigger_internal("", false, block, data, sc, tooltipped, false, max_sev);
 }
 
 pub fn validate_trigger_internal(
@@ -48,8 +58,10 @@ pub fn validate_trigger_internal(
     sc: &mut ScopeContext,
     mut tooltipped: Tooltipped,
     negated: bool,
+    max_sev: Severity,
 ) {
     let mut vd = Validator::new(block, data);
+    vd.set_max_severity(max_sev);
 
     // If this condition looks weird, it's because the negation from for example NOR has already
     // been applied to the `negated` value.
@@ -107,7 +119,7 @@ pub fn validate_trigger_internal(
         if caller == "custom_tooltip" {
             vd.field_item("text", Item::Localization);
         } else if let Some(token) = vd.field_value("text") {
-            data.verify_exists(Item::TriggerLocalization, token);
+            data.verify_exists_max_sev(Item::TriggerLocalization, token, max_sev);
             if let Some((key, block)) =
                 data.get_key_block(Item::TriggerLocalization, token.as_str())
             {
@@ -191,6 +203,7 @@ pub fn validate_trigger_internal(
                             sc,
                             tooltipped,
                             negated,
+                            max_sev,
                         );
                         sc.close();
                     } else {
@@ -201,7 +214,7 @@ pub fn validate_trigger_internal(
             }
         }
 
-        validate_trigger_key_bv(key, cmp, bv, data, sc, tooltipped, negated);
+        validate_trigger_key_bv(key, cmp, bv, data, sc, tooltipped, negated, max_sev);
     });
 }
 
@@ -213,6 +226,7 @@ pub fn validate_trigger_key_bv(
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
     negated: bool,
+    max_sev: Severity,
 ) {
     // Scripted trigger?
     if let Some(trigger) = data.get_trigger(key) {
@@ -235,6 +249,7 @@ pub fn validate_trigger_key_bv(
                 } else {
                     let mut vec = Vec::new();
                     let mut vd = Validator::new(block, data);
+                    vd.set_max_severity(max_sev);
                     for parm in &parms {
                         vd.req_field(parm);
                         if let Some(token) = vd.field_value(parm) {
@@ -353,7 +368,7 @@ pub fn validate_trigger_key_bv(
 
     if let Some((trigger, name)) = found_trigger {
         sc.close();
-        match_trigger_bv(&trigger, &name, cmp, bv, data, sc, tooltipped, negated);
+        match_trigger_bv(&trigger, &name, cmp, bv, data, sc, tooltipped, negated, max_sev);
         return;
     }
 
@@ -383,7 +398,7 @@ pub fn validate_trigger_key_bv(
         }
         BV::Block(b) => {
             sc.finalize_builder();
-            validate_trigger_internal("", false, b, data, sc, tooltipped, negated);
+            validate_trigger_internal("", false, b, data, sc, tooltipped, negated, max_sev);
             sc.close();
         }
     }
@@ -396,8 +411,10 @@ fn match_trigger_fields(
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
     negated: bool,
+    max_sev: Severity,
 ) {
     let mut vd = Validator::new(block, data);
+    vd.set_max_severity(max_sev);
     for (field, _) in fields {
         if let Some(opt) = field.strip_prefix('?') {
             vd.field_any_cmp(opt);
@@ -419,7 +436,7 @@ fn match_trigger_fields(
                 field
             };
             if key.is(fieldname) {
-                match_trigger_bv(trigger, key, *cmp, bv, data, sc, tooltipped, negated);
+                match_trigger_bv(trigger, key, *cmp, bv, data, sc, tooltipped, negated, max_sev);
             }
         }
     }
@@ -438,6 +455,7 @@ fn match_trigger_bv(
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
     negated: bool,
+    max_sev: Severity,
 ) {
     let mut must_be_eq = true;
     #[cfg(feature = "ck3")]
@@ -533,7 +551,7 @@ fn match_trigger_bv(
         }
         Trigger::Item(i) => {
             if let Some(token) = bv.expect_value() {
-                data.verify_exists(*i, token);
+                data.verify_exists_max_sev(*i, token, max_sev);
             }
         }
         Trigger::ScopeOrItem(s, i) => {
@@ -554,18 +572,22 @@ fn match_trigger_bv(
         }
         Trigger::Block(fields) => {
             if let Some(block) = bv.expect_block() {
-                match_trigger_fields(fields, block, data, sc, tooltipped, negated);
+                match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
             }
         }
         #[cfg(feature = "ck3")]
         Trigger::ScopeOrBlock(s, fields) => match bv {
             BV::Value(token) => validate_target(token, data, sc, *s),
-            BV::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped, negated),
+            BV::Block(block) => {
+                match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev)
+            }
         },
         #[cfg(feature = "ck3")]
         Trigger::ItemOrBlock(i, fields) => match bv {
-            BV::Value(token) => data.verify_exists(*i, token),
-            BV::Block(block) => match_trigger_fields(fields, block, data, sc, tooltipped, negated),
+            BV::Value(token) => data.verify_exists_max_sev(*i, token, max_sev),
+            BV::Block(block) => {
+                match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev)
+            }
         },
         #[cfg(feature = "ck3")]
         Trigger::CompareValueOrBlock(fields) => match bv {
@@ -574,13 +596,14 @@ fn match_trigger_bv(
                 must_be_eq = false;
             }
             BV::Block(b) => {
-                match_trigger_fields(fields, b, data, sc, tooltipped, negated);
+                match_trigger_fields(fields, b, data, sc, tooltipped, negated, max_sev);
             }
         },
         #[cfg(feature = "ck3")]
         Trigger::ScopeList(s) => {
             if let Some(block) = bv.expect_block() {
                 let mut vd = Validator::new(block, data);
+                vd.set_max_severity(max_sev);
                 for token in vd.values() {
                     validate_target(token, data, sc, *s);
                 }
@@ -630,6 +653,7 @@ fn match_trigger_bv(
                     sc,
                     tooltipped,
                     negated,
+                    max_sev,
                 );
             }
         }
@@ -663,7 +687,7 @@ fn match_trigger_bv(
                 }
             } else if name.is("custom_tooltip") {
                 match bv {
-                    BV::Value(t) => data.verify_exists(Item::Localization, t),
+                    BV::Value(t) => data.verify_exists_max_sev(Item::Localization, t, max_sev),
                     BV::Block(b) => {
                         validate_trigger_internal(
                             name.as_str(),
@@ -673,12 +697,14 @@ fn match_trigger_bv(
                             sc,
                             Tooltipped::No,
                             negated,
+                            max_sev,
                         );
                     }
                 }
             } else if name.is("has_gene") {
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
+                    vd.set_max_severity(max_sev);
                     vd.field_item("category", Item::GeneCategory);
                     if let Some(category) = block.get_field_value("category") {
                         if let Some(template) = vd.field_value("template") {
@@ -689,6 +715,7 @@ fn match_trigger_bv(
             } else if name.is("save_temporary_opinion_value_as") {
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
+                    vd.set_max_severity(max_sev);
                     vd.req_field("name");
                     vd.req_field("target");
                     vd.field_target("target", sc, Scopes::Character);
@@ -699,6 +726,7 @@ fn match_trigger_bv(
             } else if name.is("save_temporary_scope_value_as") {
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
+                    vd.set_max_severity(max_sev);
                     vd.req_field("name");
                     vd.req_field("value");
                     vd.field_validated("value", |bv, data| match bv {
@@ -717,6 +745,7 @@ fn match_trigger_bv(
             } else if name.is("weighted_calc_true_if") {
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
+                    vd.set_max_severity(max_sev);
                     if let Some(bv) = vd.field_any_cmp("amount") {
                         if let Some(token) = bv.expect_value() {
                             token.expect_number();
@@ -729,6 +758,7 @@ fn match_trigger_bv(
             } else if name.is("switch") {
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
+                    vd.set_max_severity(max_sev);
                     vd.req_field("trigger");
                     if let Some(target) = vd.field_value("trigger") {
                         let target = target.clone();
@@ -743,6 +773,7 @@ fn match_trigger_bv(
                                     sc,
                                     tooltipped,
                                     negated,
+                                    max_sev,
                                 );
                             }
                             validate_trigger(block, data, sc, tooltipped);

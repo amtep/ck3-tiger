@@ -11,7 +11,7 @@ use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{advice_info, error, error_info, old_warn, warn_info, ErrorKey};
+use crate::report::{advice_info, error, error_info, old_warn, warn_info, ErrorKey, Severity};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::scriptvalue::validate_scriptvalue;
 use crate::tooltipped::Tooltipped;
@@ -623,6 +623,7 @@ pub fn validate_switch(
                     sc,
                     tooltipped,
                     false,
+                    Severity::Error,
                 );
             }
 

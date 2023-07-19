@@ -80,7 +80,7 @@ Some ideas for code contributions:
 * Solving one of the issues marked in the [TODO](https://github.com/amtep/ck3-tiger/wiki/Todo) or [IDEAS](https://github.com/amtep/ck3-tiger/wiki/Ideas) wiki pages
 * Speed or memory use improvements; opportunities are all over the place
 
-See the [`CODING`](CODING.md) file for an overview of the code and coding style.
+See the [CODING](https://github.com/amtep/ck3-tiger/wiki/Overview-for-coders) wiki page for an overview of the code and coding style.
 
 ### License
 

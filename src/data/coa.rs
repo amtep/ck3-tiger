@@ -11,11 +11,11 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, exact_dup_advice};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{old_warn, untidy, warn, ErrorKey};
+use crate::report::{old_warn, untidy, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
+use crate::trigger::validate_trigger_max_sev;
 use crate::validate::{validate_color, validate_possibly_named_color};
 
 #[derive(Clone, Debug, Default)]
@@ -119,6 +119,7 @@ impl Coa {
 
 pub fn validate_coa_layout(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
+    vd.set_max_severity(Severity::Warning);
 
     if let Some(token) = vd.field_value("pattern") {
         if let Some((_, token)) = token.split_once('"') {
@@ -147,6 +148,7 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
 
     vd.field_validated_blocks("colored_emblem", |subblock, data| {
         let mut vd = Validator::new(subblock, data);
+        vd.set_max_severity(Severity::Warning);
         vd.req_field("texture");
         if let Some(token) = vd.field_value("texture") {
             if let Some((_, token)) = token.split_once('"') {
@@ -165,6 +167,7 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
         vd.field_validated_blocks("instance", validate_instance);
         vd.field_validated_block("mask", |block, data| {
             let mut vd = Validator::new(block, data);
+            vd.set_max_severity(Severity::Warning);
             for token in vd.values() {
                 if let Some(mask) = token.expect_integer() {
                     if !(1..=3).contains(&mask) {
@@ -176,6 +179,7 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
     });
     vd.field_validated_blocks("textured_emblem", |block, data| {
         let mut vd = Validator::new(block, data);
+        vd.set_max_severity(Severity::Warning);
         vd.req_field("texture");
         if let Some(token) = vd.field_value("texture") {
             if let Some((_, token)) = token.split_once('"') {
@@ -191,6 +195,7 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
     #[cfg(feature = "vic3")]
     vd.field_validated_blocks("sub", |subblock, data| {
         let mut vd = Validator::new(subblock, data);
+        vd.set_max_severity(Severity::Warning);
         vd.field_item("parent", Item::Coa);
         vd.field_validated_blocks("instance", validate_instance_offset);
         for field in &["color1", "color2", "color3", "color4", "color5"] {
@@ -327,6 +332,7 @@ where
     F: Fn(&BV, &Everything),
 {
     let mut vd = Validator::new(block, data);
+    vd.set_max_severity(Severity::Warning);
 
     // TODO: warn about duplicate values in the lists?
 
@@ -334,6 +340,7 @@ where
 
     vd.field_validated_key_blocks("special_selection", |key, block, data| {
         let mut vd = Validator::new(block, data);
+        vd.set_max_severity(Severity::Warning);
         let mut sc;
         #[cfg(feature = "ck3")]
         {
@@ -350,14 +357,15 @@ where
             // ?
         }
         vd.field_validated_blocks("trigger", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger_max_sev(block, data, &mut sc, Tooltipped::No, Severity::Warning);
         });
         vd.integer_keys(|_, bv| f(bv, data));
         // special_selection can be nested. TODO: how far?
         vd.field_validated_blocks("special_selection", |block, data| {
             let mut vd = Validator::new(block, data);
+            vd.set_max_severity(Severity::Warning);
             vd.field_validated_blocks("trigger", |block, data| {
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger_max_sev(block, data, &mut sc, Tooltipped::No, Severity::Warning);
             });
             vd.integer_keys(|_, bv| f(bv, data));
         });
@@ -379,12 +387,14 @@ impl CoaDynamicDefinition {
 impl DbKind for CoaDynamicDefinition {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+        vd.set_max_severity(Severity::Warning);
         let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
 
         vd.field_validated_blocks("item", |block, data| {
             let mut vd = Validator::new(block, data);
+            vd.set_max_severity(Severity::Warning);
             vd.field_validated_block("trigger", |block, data| {
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
+                validate_trigger_max_sev(block, data, &mut sc, Tooltipped::No, Severity::Warning);
             });
             vd.field_item("coat_of_arms", Item::Coa);
         });
@@ -393,6 +403,7 @@ impl DbKind for CoaDynamicDefinition {
 
 fn validate_instance(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
+    vd.set_max_severity(Severity::Warning);
     vd.field_list_precise_numeric_exactly("position", 2);
     vd.field_validated_block("scale", validate_scale);
     vd.field_precise_numeric("rotation");
@@ -404,6 +415,7 @@ fn validate_instance(block: &Block, data: &Everything) {
 #[cfg(feature = "vic3")]
 fn validate_instance_offset(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
+    vd.set_max_severity(Severity::Warning);
     vd.field_list_precise_numeric_exactly("offset", 2);
     vd.field_validated_block("scale", validate_scale);
     vd.field_precise_numeric("rotation");
@@ -413,6 +425,7 @@ fn validate_instance_offset(block: &Block, data: &Everything) {
 
 fn validate_scale(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
+    vd.set_max_severity(Severity::Warning);
     let mut count = 0;
     for token in vd.values() {
         count += 1;
