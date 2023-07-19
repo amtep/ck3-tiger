@@ -8,6 +8,7 @@ pub mod countries;
 pub mod cultures;
 pub mod decisions;
 pub mod diplomatic_actions;
+pub mod diplomatic_plays;
 pub mod events;
 pub mod gameconcepts;
 pub mod gamerules;
