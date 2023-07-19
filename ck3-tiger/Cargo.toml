@@ -1,6 +1,6 @@
 [package]
 name = "ck3-tiger"
-version = "0.7.1"
+version = "0.7.2"
 edition = "2021"
 default-run = "ck3-tiger"
 
