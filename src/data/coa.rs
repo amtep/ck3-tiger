@@ -11,7 +11,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, exact_dup_advice};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, old_warn, ErrorKey};
+use crate::report::{old_warn, untidy, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -215,11 +215,11 @@ fn validate_coa_color(bv: &BV, block: Option<&Block>, data: &Everything) {
                 if let Some(block) = block {
                     if !block.has_key(color.as_str()) {
                         let msg = format!("setting to {color} but {color} is not defined");
-                        error(color, ErrorKey::Colors, &msg);
+                        old_warn(color, ErrorKey::Colors, &msg);
                     }
                 } else {
                     let msg = format!("setting to {color} only works in an emblem");
-                    error(color, ErrorKey::Colors, &msg);
+                    old_warn(color, ErrorKey::Colors, &msg);
                 }
             } else {
                 data.verify_exists(Item::NamedColor, color);
@@ -394,7 +394,7 @@ impl DbKind for CoaDynamicDefinition {
 fn validate_instance(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.field_list_precise_numeric_exactly("position", 2);
-    vd.field_list_precise_numeric_exactly("scale", 2);
+    vd.field_validated_block("scale", validate_scale);
     vd.field_precise_numeric("rotation");
     vd.field_precise_numeric("depth");
     vd.ban_field("offset", || "sub blocks");
@@ -405,8 +405,25 @@ fn validate_instance(block: &Block, data: &Everything) {
 fn validate_instance_offset(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.field_list_precise_numeric_exactly("offset", 2);
-    vd.field_list_precise_numeric_exactly("scale", 2);
+    vd.field_validated_block("scale", validate_scale);
     vd.field_precise_numeric("rotation");
     vd.field_precise_numeric("depth");
     vd.ban_field("position", || "colored and textured emblems");
+}
+
+fn validate_scale(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    let mut count = 0;
+    for token in vd.values() {
+        count += 1;
+        token.expect_precise_number();
+    }
+    if count == 0 || count > 2 {
+        let msg = "expected 2 numbers";
+        warn(ErrorKey::Validation).msg(msg).loc(block).push();
+    } else if count == 1 {
+        let msg = "found only x scale";
+        let info = "adding the y scale is clearer";
+        untidy(ErrorKey::Validation).msg(msg).info(info).loc(block).push();
+    }
 }
