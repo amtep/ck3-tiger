@@ -163,10 +163,15 @@ impl Errors {
         });
         if json {
             _ = writeln!(self.output.get_mut(), "[");
+            let mut first = true;
             for report in &reports {
+                if !first {
+                    _ = writeln!(self.output.get_mut(), ",");
+                }
+                first = false;
                 log_report_json(self, report);
             }
-            _ = writeln!(self.output.get_mut(), "]");
+            _ = writeln!(self.output.get_mut(), "\n]");
         } else {
             for report in &reports {
                 log_report(self, report);
