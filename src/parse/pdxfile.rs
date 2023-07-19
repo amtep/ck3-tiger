@@ -526,7 +526,9 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
                             current_id.push(c);
                             token_start = loc.clone();
                             state = State::Comparator;
-                        } else if c.is_ascii_whitespace() {
+                        } else if c.is_ascii_whitespace() || c == ';' {
+                            // An id followed by ; is silently accepted because it's a common mistake,
+                            // and doesn't seem to cause any harm.
                             state = State::Neutral;
                         } else if c == '#' {
                             state = State::Comment;
