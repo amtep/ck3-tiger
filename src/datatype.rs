@@ -240,6 +240,19 @@ pub fn validate_datatypes(
             rtype = Datatype::Country;
         }
 
+        // In vic3, game concepts are unadorned, like [concept_ideology]
+        // Each concept also generates a [concept_ideology_desc]
+        #[cfg(feature = "vic3")]
+        if !found && code.name.as_str().starts_with("concept_") {
+            if let Some(concept) = code.name.as_str().strip_suffix("_desc") {
+                data.verify_exists_implied(Item::GameConcept, concept, &code.name);
+            } else {
+                data.verify_exists(Item::GameConcept, &code.name);
+            }
+            args = Args(&[]);
+            rtype = Datatype::CString;
+        }
+
         if !found {
             // Properly reporting these errors is tricky because `code.name`
             // might be found in any or all of the functions and promotes tables.
@@ -293,9 +306,6 @@ pub fn validate_datatypes(
                 }
                 return;
             }
-
-            // TODO: in vic3, game concepts are unadorned, like [concept_ideology]
-            // Should handle those here.
 
             // If it's a passed-in scope, then set args and rtype appropriately.
             args = Args(&[]);
