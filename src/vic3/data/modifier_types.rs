@@ -3,8 +3,8 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::modif::verify_modif_exists;
-use crate::modif::ModifKinds;
+use crate::modif::{verify_modif_exists, ModifKinds};
+use crate::report::Severity;
 use crate::token::Token;
 
 /// Equivalent to CK3's `Item::ModifierFormat` in the `ck3::data::modif` module.
@@ -27,7 +27,7 @@ impl DbKind for ModifierType {
         let loca = format!("modifier_{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        verify_modif_exists(key, data, ModifKinds::all());
+        verify_modif_exists(key, data, ModifKinds::all(), Severity::Untidy);
 
         vd.field_bool("neutral");
         vd.field_bool("good");

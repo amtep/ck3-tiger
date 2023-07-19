@@ -11,7 +11,7 @@ use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{err, error, ErrorKey};
+use crate::report::{err, error, ErrorKey, Severity};
 use crate::scriptvalue::validate_non_dynamic_scriptvalue;
 use crate::token::Token;
 
@@ -31,7 +31,7 @@ pub fn validate_modifs<'a>(
     mut vd: Validator<'a>,
 ) {
     vd.unknown_fields(|key, bv| {
-        if let Some(mk) = lookup_modif(key, data, true) {
+        if let Some(mk) = lookup_modif(key, data, Some(Severity::Error)) {
             kinds.require(mk, key);
             validate_non_dynamic_scriptvalue(bv, data);
             #[cfg(feature = "ck3")]
@@ -56,8 +56,8 @@ pub fn validate_modifs<'a>(
     });
 }
 
-pub fn verify_modif_exists(key: &Token, data: &Everything, kinds: ModifKinds) {
-    if let Some(mk) = lookup_modif(key, data, true) {
+pub fn verify_modif_exists(key: &Token, data: &Everything, kinds: ModifKinds, sev: Severity) {
+    if let Some(mk) = lookup_modif(key, data, Some(sev)) {
         kinds.require(mk, key);
     } else {
         let msg = format!("unknown modifier `{key}`");

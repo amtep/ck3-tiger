@@ -3,12 +3,12 @@
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::ModifKinds;
-use crate::report::{err, ErrorKey};
+use crate::report::{report, ErrorKey, Severity};
 use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
 /// Returns None otherwise.
-pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<ModifKinds> {
+pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> Option<ModifKinds> {
     for &(entry_name, mk) in MODIF_TABLE {
         if name.is(entry_name) {
             return Some(ModifKinds::from_bits_truncate(mk));
@@ -22,9 +22,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     if let Some(part) = name.as_str().strip_prefix("building_employment_") {
         for sfx in &["_add", "_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
-                if warn {
-                    data.verify_exists_implied(Item::PopType, part, name);
-                }
+                maybe_warn(Item::PopType, part, name, data, warn);
                 return Some(ModifKinds::Building);
             }
         }
@@ -44,24 +42,18 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
                 // This is tricky because both BuildingGroup and PopType can have `_` in them.
                 for (i, _) in part.rmatch_indices('_') {
                     if data.item_exists(Item::PopType, &part[i + 1..]) {
-                        if warn {
-                            data.verify_exists_implied(Item::BuildingGroup, &part[..i], name);
-                        }
+                        maybe_warn(Item::BuildingGroup, &part[..i], name, data, warn);
                         return Some(ModifKinds::Building);
                     }
                 }
                 // Check if it's the kind without $PopType$
-                if warn {
-                    data.verify_exists_implied(Item::BuildingGroup, part, name);
-                }
+                maybe_warn(Item::BuildingGroup, part, name, data, warn);
                 return Some(ModifKinds::Building);
             }
         }
         for sfx in &["_employee_mult", "_tax_mult", "_throughput_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
-                if warn {
-                    data.verify_exists_implied(Item::BuildingGroup, part, name);
-                }
+                maybe_warn(Item::BuildingGroup, part, name, data, warn);
                 return Some(ModifKinds::Building);
             }
         }
@@ -69,9 +61,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
 
     // $BuildingType$_throughput_mult
     if let Some(part) = name.as_str().strip_suffix("_throughput_mult") {
-        if warn {
-            data.verify_exists_implied(Item::BuildingType, part, name);
-        }
+        maybe_warn(Item::BuildingType, part, name, data, warn);
         return Some(ModifKinds::Building);
     }
 
@@ -82,9 +72,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     if let Some(part) = name.as_str().strip_prefix("building_") {
         for sfx in &["_fertility_mult", "_mortality_mult", "_shares_add", "_shares_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
-                if warn {
-                    data.verify_exists_implied(Item::PopType, part, name);
-                }
+                maybe_warn(Item::PopType, part, name, data, warn);
                 return Some(ModifKinds::Building);
             }
         }
@@ -93,9 +81,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // building_input_$Goods$_add
     if let Some(part) = name.as_str().strip_prefix("building_input_") {
         if let Some(part) = part.strip_suffix("_add") {
-            if warn {
-                data.verify_exists_implied(Item::Goods, part, name);
-            }
+            maybe_warn(Item::Goods, part, name, data, warn);
             return Some(ModifKinds::Building);
         }
     }
@@ -106,9 +92,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
         // TODO: some goods don't have the _mult version. Figure out why.
         for sfx in &["_add", "_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
-                if warn {
-                    data.verify_exists_implied(Item::Goods, part, name);
-                }
+                maybe_warn(Item::Goods, part, name, data, warn);
                 return Some(ModifKinds::Building);
             }
         }
@@ -117,9 +101,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // character_$BattleCondition$_mult
     if let Some(part) = name.as_str().strip_prefix("character_") {
         if let Some(part) = part.strip_suffix("_mult") {
-            if warn {
-                data.verify_exists_implied(Item::BattleCondition, part, name);
-            }
+            maybe_warn(Item::BattleCondition, part, name, data, warn);
             return Some(ModifKinds::Character);
         }
     }
@@ -129,9 +111,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     if let Some(part) = name.as_str().strip_prefix("country_") {
         for sfx in &["_pol_str_mult", "_voting_power_add"] {
             if let Some(part) = part.strip_suffix(sfx) {
-                if warn {
-                    data.verify_exists_implied(Item::PopType, part, name);
-                }
+                maybe_warn(Item::PopType, part, name, data, warn);
                 return Some(ModifKinds::Country);
             }
         }
@@ -140,18 +120,14 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // country_$Institution$_max_investment_add
     if let Some(part) = name.as_str().strip_prefix("country_") {
         if let Some(part) = part.strip_suffix("_max_investment_add") {
-            if warn {
-                data.verify_exists_implied(Item::Institution, part, name);
-            }
+            maybe_warn(Item::Institution, part, name, data, warn);
             return Some(ModifKinds::Country);
         }
     }
 
     // country_subsidies_$BuildingGroup$
     if let Some(part) = name.as_str().strip_prefix("country_subsidies_") {
-        if warn {
-            data.verify_exists_implied(Item::BuildingGroup, part, name);
-        }
+        maybe_warn(Item::BuildingGroup, part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
@@ -161,9 +137,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     if let Some(part) = name.as_str().strip_prefix("interest_group_") {
         for sfx in &["_approval_add", "_pol_str_mult", "_pop_attraction_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
-                if warn {
-                    data.verify_exists_implied(Item::InterestGroup, part, name);
-                }
+                maybe_warn(Item::InterestGroup, part, name, data, warn);
                 return Some(ModifKinds::InterestGroup);
             }
         }
@@ -173,12 +147,13 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // state_$Religion$_standard_of_living_add
     if let Some(part) = name.as_str().strip_prefix("state_") {
         if let Some(part) = part.strip_suffix("_standard_of_living_add") {
-            if warn
-                && !data.item_exists(Item::Religion, part)
-                && !data.item_exists(Item::Culture, part)
-            {
-                let msg = format!("{name} not found as culture or religion");
-                err(ErrorKey::MissingItem).msg(msg).loc(name).push();
+            if let Some(sev) = warn {
+                if !data.item_exists(Item::Religion, part) && !data.item_exists(Item::Culture, part)
+                {
+                    let msg = format!("{part} not found as culture or religion");
+                    let info = format!("so the modifier {name} does not exist");
+                    report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
+                }
             }
             return Some(ModifKinds::State);
         }
@@ -196,9 +171,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
             "_mortality_mult",
         ] {
             if let Some(part) = part.strip_suffix(sfx) {
-                if warn {
-                    data.verify_exists_implied(Item::PopType, part, name);
-                }
+                maybe_warn(Item::PopType, part, name, data, warn);
                 return Some(ModifKinds::State);
             }
         }
@@ -209,9 +182,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     if let Some(part) = name.as_str().strip_prefix("state_pop_support_") {
         for sfx in &["_add", "_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
-                if warn {
-                    data.verify_exists_implied(Item::LawType, part, name);
-                }
+                maybe_warn(Item::LawType, part, name, data, warn);
                 return Some(ModifKinds::State);
             }
         }
@@ -220,6 +191,16 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // TODO: modifiers from terrain labels
 
     None
+}
+
+fn maybe_warn(itype: Item, s: &str, name: &Token, data: &Everything, warn: Option<Severity>) {
+    if let Some(sev) = warn {
+        if !data.item_exists(itype, s) {
+            let msg = format!("could not find {itype} {s}");
+            let info = format!("so the modifier {name} does not exist");
+            report(ErrorKey::MissingItem, sev).strong().msg(msg).info(info).loc(name).push();
+        }
+    }
 }
 
 // Redeclare the `ModifKinds` enums as bare numbers, so that we can do | on them in const tables.

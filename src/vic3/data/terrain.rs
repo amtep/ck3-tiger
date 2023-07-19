@@ -5,7 +5,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{verify_modif_exists, ModifKinds};
-use crate::report::{untidy, warn, ErrorKey};
+use crate::report::{untidy, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::util::SmartJoin;
@@ -81,7 +81,7 @@ impl DbKind for TerrainLabel {
         // TerrainLabel might have to be renamed if there are more options here
         vd.field_choice("type", &["terrain"]);
         vd.field_validated_list("modifiers", |token, data| {
-            verify_modif_exists(token, data, ModifKinds::all());
+            verify_modif_exists(token, data, ModifKinds::all(), Severity::Error);
         });
     }
 }

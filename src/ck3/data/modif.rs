@@ -5,6 +5,7 @@ use crate::everything::Everything;
 use crate::fileset::FileKind;
 use crate::item::Item;
 use crate::modif::{verify_modif_exists, ModifKinds};
+use crate::report::Severity;
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
@@ -27,7 +28,7 @@ impl DbKind for ModifierFormat {
             data.localization.verify_exists(key);
         }
 
-        verify_modif_exists(key, data, ModifKinds::all());
+        verify_modif_exists(key, data, ModifKinds::all(), Severity::Untidy);
 
         vd.field_integer("decimals");
         vd.field_choice("color", &["good", "neutral", "bad"]);
