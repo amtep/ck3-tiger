@@ -1,13 +1,20 @@
 [package]
 name = "ck3-tiger"
-version = "0.7.2"
+version = "0.7.3"
 edition = "2021"
+license = "GPL-3.0-or-later"
 default-run = "ck3-tiger"
+description = "Validator that checks Crusader Kings 3 user mod files for mistakes and warns about them. For example: missing localizations, or using a faith trigger on a character. Crusader Kings 3 is a grand strategy game made by Paradox Interactive, and user mods are made by the players to enhance or change their game experience. This tool is for the people who make the mods."
+homepage = "https://github.com/amtep/ck3-tiger"
+repository = "https://github.com/amtep/ck3-tiger"
+readme = "../README.md"
+keywords = [ "ck3", "linter", "mods", "validator", "paradox" ]
+categories = ["command-line-utilities", "development-tools", "game-development"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tiger-lib = { path = "..", features = ["ck3"] }
+tiger-lib = { version = "0.7.3", path = "..", features = ["ck3"] }
 
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }

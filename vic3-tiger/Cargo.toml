@@ -1,13 +1,20 @@
 [package]
 name = "vic3-tiger"
-version = "0.7.2"
+version = "0.7.3"
 edition = "2021"
+license = "GPL-3.0-or-later"
 default-run = "vic3-tiger"
+description = "Validator that checks Victoria 3 user mod files for mistakes and warns about them. For example: missing localizations, or using a state trigger on a country. Victoria 3 is a grand strategy game made by Paradox Interactive, and user mods are made by the players to enhance or change their game experience. This tool is for the people who make the mods."
+homepage = "https://github.com/amtep/ck3-tiger"
+repository = "https://github.com/amtep/ck3-tiger"
+readme = "../README.md"
+keywords = ["victoria3", "vic3", "linter", "mods", "validator"]
+categories = ["command-line-utilities", "development-tools", "game-development"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tiger-lib = { path = "..", features = ["vic3"] }
+tiger-lib = { version = "0.7.3", path = "..", default-features = false, features = ["vic3"] }
 
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }

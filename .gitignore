@@ -3,3 +3,22 @@
 cachegrind.out*
 callgrind.out*
 flamegraph*.svg
+
+# Random testing stuff not useful to anyone else in its current form
+cerr1
+cerr2
+error-collection.txt
+gameconcepts.txt
+munch_bank.py
+munch_effects.py
+new-logs/
+new-vic3/
+old-logs/
+pitch
+test.sh
+testmod.sh
+vanilla-test/
+verr1
+verr2
+vic3test.sh
+vic3v.sh
