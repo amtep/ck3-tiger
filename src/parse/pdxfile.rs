@@ -633,6 +633,7 @@ fn parse(blockloc: Loc, inputs: &[Token], local_macros: LocalMacros) -> Block {
 
                         if c == '"' {
                             token_start = loc.clone();
+                            token_start.column += 1;
                             state = State::QString;
                         } else if c == '@' {
                             // @ can start tokens but is special
