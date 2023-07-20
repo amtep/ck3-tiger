@@ -105,7 +105,7 @@ pub fn validate_effect_internal<'a>(
                         error_info(
                             block,
                             ErrorKey::Macro,
-                            "effect does not need macro arguments",
+                            "this scripted effect does not need macro arguments",
                             "you can just use it as effect = yes",
                         );
                     } else {

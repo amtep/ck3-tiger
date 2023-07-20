@@ -244,7 +244,7 @@ pub fn validate_trigger_key_bv(
             BV::Block(block) => {
                 let parms = trigger.macro_parms();
                 if parms.is_empty() {
-                    let msg = "trigger does not need macro arguments";
+                    let msg = "this scripted trigger does not need macro arguments";
                     error(block, ErrorKey::Macro, msg);
                 } else {
                     let mut vec = Vec::new();
