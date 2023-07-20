@@ -835,7 +835,7 @@ pub fn validate_effect_value(
         SetTitleName => {
             data.verify_exists(Item::Localization, value);
             let loca = format!("{value}_adj");
-            data.item_used(Item::Localization, &loca);
+            data.mark_used(Item::Localization, &loca);
         }
     }
 }
@@ -889,7 +889,7 @@ pub fn validate_effect_bv(
         ChangeFirstName => match bv {
             BV::Value(token) => {
                 if data.item_exists(Item::Localization, token.as_str()) {
-                    data.item_used(Item::Localization, token.as_str());
+                    data.mark_used(Item::Localization, token.as_str());
                 } else {
                     validate_target(token, data, sc, Scopes::Flag);
                 }

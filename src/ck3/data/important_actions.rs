@@ -26,7 +26,7 @@ impl DbKind for ImportantAction {
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_label");
-        data.item_used(Item::Localization, &loca); // TODO: when is _label needed?
+        data.mark_used(Item::Localization, &loca); // TODO: when is _label needed?
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
         let loca = format!("{key}_click");
@@ -34,9 +34,9 @@ impl DbKind for ImportantAction {
         if block.field_value_is("combine_into_one", "yes") {
             data.verify_exists_implied(Item::Localization, &loca, key);
             let loca = format!("{key}_combined_label");
-            data.item_used(Item::Localization, &loca); // TODO: when is _label needed?
+            data.mark_used(Item::Localization, &loca); // TODO: when is _label needed?
             let loca = format!("{key}_combined_group_label");
-            data.item_used(Item::Localization, &loca); // TODO: when is _label needed?
+            data.mark_used(Item::Localization, &loca); // TODO: when is _label needed?
             let loca = format!("{key}_combined_group_name");
             data.verify_exists_implied(Item::Localization, &loca, key);
             let loca = format!("{key}_combined_group_description");

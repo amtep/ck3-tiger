@@ -22,9 +22,9 @@ impl DbKind for MapMode {
         let mut vd = Validator::new(block, data);
 
         // TODO: whether these are actually used depends on the gui code
-        data.item_used(Item::Localization, key.as_str());
+        data.mark_used(Item::Localization, key.as_str());
         let loca = format!("{key}_desc");
-        data.item_used(Item::Localization, &loca);
+        data.mark_used(Item::Localization, &loca);
 
         // These are all chosen from hardcoded options
         vd.field_value("color_mode");

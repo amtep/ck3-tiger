@@ -102,7 +102,7 @@ impl DbKind for EventBackground {
         }
         *self.validated_scopes.write().unwrap() |= sc.scopes();
 
-        data.item_used(Item::Localization, key.as_str());
+        data.mark_used(Item::Localization, key.as_str());
 
         let mut vd = Validator::new(block, data);
         vd.set_max_severity(Severity::Warning);

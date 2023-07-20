@@ -190,15 +190,15 @@ impl Title {
         if self.tier > Tier::Barony {
             data.verify_exists_implied(Item::Localization, &loca, &self.key);
         } else {
-            data.item_used(Item::Localization, &loca);
+            data.mark_used(Item::Localization, &loca);
         }
         // The _pre is rarely defined even in vanilla
         let loca = format!("{}_pre", &self.key);
-        data.item_used(Item::Localization, &loca);
+        data.mark_used(Item::Localization, &loca);
         let definite_form = self.block.field_value_is("definite_form", "yes");
         if definite_form {
             let loca = format!("{}_article", &self.key);
-            data.item_used(Item::Localization, &loca);
+            data.mark_used(Item::Localization, &loca);
         }
 
         let mut vd = Validator::new(&self.block, data);
@@ -249,10 +249,10 @@ impl Title {
                 data.verify_exists(Item::NameList, key);
                 data.verify_exists(Item::Localization, token);
                 let loca = format!("{token}_adj");
-                data.item_used(Item::Localization, &loca);
+                data.mark_used(Item::Localization, &loca);
                 if definite_form {
                     let loca = format!("{token}_article");
-                    data.item_used(Item::Localization, &loca);
+                    data.mark_used(Item::Localization, &loca);
                 }
             });
         });

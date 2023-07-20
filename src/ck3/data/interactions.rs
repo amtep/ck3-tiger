@@ -99,7 +99,7 @@ impl DbKind for Interaction {
                 data.verify_exists_implied(Item::File, &pathname, name);
             } else {
                 let pathname = format!("{icon_path}/{key}.dds");
-                data.item_used(Item::File, &pathname);
+                data.mark_used(Item::File, &pathname);
             }
             if let Some(name) = vd.field_value("alert_icon") {
                 let pathname = format!("{icon_path}/{name}.dds");

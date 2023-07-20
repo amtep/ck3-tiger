@@ -20,9 +20,9 @@ impl DbKind for Modifier {
         let mut vd = Validator::new(block, data);
 
         // There are {key} and {key}_desc locas but both are optional
-        data.item_used(Item::Localization, key.as_str());
+        data.mark_used(Item::Localization, key.as_str());
         let loca = format!("{key}_desc");
-        data.item_used(Item::Localization, &loca);
+        data.mark_used(Item::Localization, &loca);
 
         // icon is also optional
         if let Some(icon) = vd.field_value("icon") {

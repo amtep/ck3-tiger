@@ -58,7 +58,7 @@ impl DbKind for DiarchyType {
             vd.field_integer("swing");
             vd.field_items("parameter", Item::Localization);
             vd.field_validated_values("hidden_parameter", |_, value, data| {
-                data.item_used(Item::Localization, value.as_str());
+                data.mark_used(Item::Localization, value.as_str());
             });
         });
         vd.field_script_value_rooted("swing_balance", Scopes::Character);

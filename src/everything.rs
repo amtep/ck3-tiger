@@ -918,7 +918,7 @@ impl Everything {
         }
     }
 
-    pub(crate) fn item_used(&self, itype: Item, key: &str) {
+    pub(crate) fn mark_used(&self, itype: Item, key: &str) {
         match itype {
             Item::File => self.fileset.mark_used(key),
             Item::Localization => self.localization.mark_used(key),

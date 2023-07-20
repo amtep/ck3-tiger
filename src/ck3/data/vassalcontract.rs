@@ -60,7 +60,7 @@ impl DbKind for VassalContract {
                     let loca = format!("{key}_short");
                     data.verify_exists_implied(Item::Localization, &loca, key);
                     let loca = format!("{key}_desc");
-                    data.item_used(Item::Localization, &loca);
+                    data.mark_used(Item::Localization, &loca);
                 }
 
                 let mut vd = Validator::new(block, data);

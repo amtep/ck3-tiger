@@ -121,7 +121,7 @@ impl DoctrineGroup {
             data.get_defined_string_warn(&self.key, "NGameIcons|FAITH_DOCTRINE_GROUP_ICON_PATH")
         {
             let path = format!("{icon_path}/{}.dds", &self.key);
-            data.item_used(Item::File, &path);
+            data.mark_used(Item::File, &path);
             return !data.fileset.exists(&path);
         }
         true

@@ -21,7 +21,7 @@ impl DbKind for OpinionModifier {
         // Opinions given from traits don't need to be localized, for one.
         // Maybe only ones used with add_opinion
         // data.verify_exists(Item::Localization, key);
-        data.item_used(Item::Localization, key.as_str());
+        data.mark_used(Item::Localization, key.as_str());
 
         vd.field_integer("opinion");
 

@@ -154,7 +154,7 @@ impl MenAtArmsType {
             } else if let Some(base) = self.block.get_field_value("type") {
                 let base_path = format!("{icon_path}/{base}.dds");
                 let path = format!("{icon_path}/{}.dds", self.key);
-                data.item_used(Item::File, &base_path);
+                data.mark_used(Item::File, &base_path);
                 if !data.fileset.exists(&base_path) {
                     data.verify_exists_implied(Item::File, &path, &self.key);
                 }
@@ -172,7 +172,7 @@ impl MenAtArmsType {
             } else if let Some(base) = self.block.get_field_value("type") {
                 let base_path = format!("{icon_path}/{base}.dds");
                 let path = format!("{icon_path}/{}.dds", self.key);
-                data.item_used(Item::File, &base_path);
+                data.mark_used(Item::File, &base_path);
                 if !data.fileset.exists(&base_path) {
                     data.verify_exists_implied(Item::File, &path, &self.key);
                 }
@@ -188,7 +188,7 @@ impl MenAtArmsType {
             } else if let Some(base) = self.block.get_field_value("type") {
                 let base_path = format!("{icon_path}/{base}.dds");
                 let path = format!("{icon_path}/{}.dds", self.key);
-                data.item_used(Item::File, &base_path);
+                data.mark_used(Item::File, &base_path);
                 if !data.fileset.exists(&base_path) {
                     data.verify_exists_implied(Item::File, &path, &self.key);
                 }

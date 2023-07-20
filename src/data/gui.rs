@@ -390,7 +390,7 @@ fn validate_field(field: &Field, data: &Everything) {
         if let Some((_, token)) = field.expect_assignment() {
             if !token.starts_with("[") {
                 // Some raw_text fields do contain loca keys
-                data.item_used(Item::Localization, token.as_str());
+                data.mark_used(Item::Localization, token.as_str());
                 return;
             }
         }

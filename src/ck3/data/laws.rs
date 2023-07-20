@@ -68,7 +68,7 @@ impl DbKind for Law {
         let loca = format!("{key}_effects");
         data.verify_exists_implied(Item::Localization, &loca, key);
         let loca = format!("{key}_effects_not_in_prev");
-        data.item_used(Item::Localization, &loca);
+        data.mark_used(Item::Localization, &loca);
 
         vd.field_validated_block_rooted("can_keep", Scopes::Character, |block, data, sc| {
             validate_trigger(block, data, sc, Tooltipped::No);

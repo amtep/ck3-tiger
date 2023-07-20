@@ -290,8 +290,10 @@ impl Localization {
                 }
             }
             // Some other code
-            // TODO: check the formatting codes
+            // TODO: validate the formatting codes
             LocaValue::Code(chain, _) => {
+                // TODO: datatype is not really Unknown here, it should be a CString or CFixedPoint or some kind of number.
+                // But we can't express that yet.
                 validate_datatypes(chain, data, Datatype::Unknown, lang, false);
             }
             LocaValue::Tooltip(token) => {

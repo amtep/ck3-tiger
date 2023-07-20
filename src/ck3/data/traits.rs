@@ -242,7 +242,7 @@ impl Trait {
         for token in vd.field_values("flag") {
             // These are optional
             let loca = format!("TRAIT_FLAG_DESC_{token}");
-            data.item_used(Item::Localization, &loca);
+            data.mark_used(Item::Localization, &loca);
         }
         vd.field_bool("shown_in_encyclopedia");
 

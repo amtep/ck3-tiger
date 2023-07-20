@@ -30,7 +30,7 @@ impl DbKind for Journalentry {
         data.verify_exists_implied(Item::Localization, &loca, key);
         // TODO: make this depend on whether the journalentry uses the "goal" mechanic
         let loca = format!("{key}_goal");
-        data.item_used(Item::Localization, &loca);
+        data.mark_used(Item::Localization, &loca);
 
         let mut sc = ScopeContext::new(Scopes::Country, key);
         sc.define_name("journal_entry", Scopes::Journalentry, key);
@@ -75,7 +75,7 @@ impl DbKind for Journalentry {
 
         if !vd.field_validated_sc("status_desc", &mut sc, validate_desc) {
             let loca = format!("{key}_status");
-            data.item_used(Item::Localization, &loca);
+            data.mark_used(Item::Localization, &loca);
         }
 
         vd.field_integer("timeout");
@@ -106,7 +106,7 @@ impl DbKind for Journalentry {
         if block.field_value_is("progressbar", "yes") {
             if !vd.field_validated_sc("progress_desc", &mut sc, validate_desc) {
                 let loca = format!("{key}_progress");
-                data.item_used(Item::Localization, &loca);
+                data.mark_used(Item::Localization, &loca);
             }
         } else {
             vd.ban_field("progress_desc", || "progressbar = yes");

@@ -33,7 +33,7 @@ impl DbKind for DeathReason {
         if !key.as_str().ends_with("_killer") && !block.field_value_is("natural", "yes") {
             // TODO: can we narrow down which death reasons need a _killer version?
             let loca = format!("{key}_killer");
-            data.item_used(Item::Localization, &loca);
+            data.mark_used(Item::Localization, &loca);
         }
 
         if let Some(icon) = vd.field_value("icon") {

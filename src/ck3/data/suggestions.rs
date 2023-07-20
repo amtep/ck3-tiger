@@ -27,7 +27,7 @@ impl DbKind for Suggestion {
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_label");
-        data.item_used(Item::Localization, &loca); // TODO: when is _label needed?
+        data.mark_used(Item::Localization, &loca); // TODO: when is _label needed?
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
         let loca = format!("{key}_click");
