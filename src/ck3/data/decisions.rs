@@ -62,20 +62,24 @@ impl DbKind for Decision {
         if !vd.field_validated_sc("selection_tooltip", &mut sc, validate_desc) {
             let loca = format!("{key}_tooltip");
             data.verify_exists_implied(Item::Localization, &loca, key);
+            data.validate_localization_sc(&loca, &mut sc);
         }
 
         if !vd.field_validated_sc("title", &mut sc, validate_desc) {
             data.verify_exists(Item::Localization, key);
+            data.validate_localization_sc(key.as_str(), &mut sc);
         }
 
         if !vd.field_validated_sc("desc", &mut sc, validate_desc) {
             let loca = format!("{key}_desc");
             data.verify_exists_implied(Item::Localization, &loca, key);
+            data.validate_localization_sc(&loca, &mut sc);
         }
 
         if !vd.field_validated_sc("confirm_text", &mut sc, validate_desc) {
             let loca = format!("{key}_confirm");
             data.verify_exists_implied(Item::Localization, &loca, key);
+            data.validate_localization_sc(&loca, &mut sc);
         }
 
         vd.field_validated_block("is_shown", |b, data| {

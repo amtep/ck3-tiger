@@ -13,7 +13,7 @@ fn validate_desc_map_block(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    f: &impl Fn(&Token, &Everything),
+    f: &impl Fn(&Token, &Everything, &mut ScopeContext),
 ) {
     let mut vd = Validator::new(block, data);
     let mut seen_desc = false;
@@ -34,7 +34,7 @@ fn validate_desc_map_block(
                 match bv {
                     BV::Value(token) => {
                         if !token.as_str().contains(' ') {
-                            f(token, data);
+                            f(token, data, sc);
                         }
                     }
                     BV::Block(block) => {
@@ -75,12 +75,12 @@ pub fn validate_desc_map(
     bv: &BV,
     data: &Everything,
     sc: &mut ScopeContext,
-    f: impl Fn(&Token, &Everything),
+    f: impl Fn(&Token, &Everything, &mut ScopeContext),
 ) {
     match bv {
         BV::Value(t) => {
             if !t.as_str().contains(' ') {
-                f(t, data);
+                f(t, data, sc);
             }
         }
         BV::Block(b) => {
@@ -90,7 +90,8 @@ pub fn validate_desc_map(
 }
 
 pub fn validate_desc(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
-    validate_desc_map(bv, data, sc, |token, data| {
+    validate_desc_map(bv, data, sc, |token, data, sc| {
         data.verify_exists(Item::Localization, token);
+        data.validate_localization_sc(token.as_str(), sc);
     });
 }

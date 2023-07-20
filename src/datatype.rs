@@ -50,6 +50,7 @@ pub enum CodeArg {
 }
 
 impl CodeChain {
+    #[cfg(feature = "ck3")]
     pub fn as_gameconcept(&self) -> Option<&Token> {
         if self.codes.len() == 1 && self.codes[0].arguments.is_empty() {
             Some(&self.codes[0].name)
@@ -277,6 +278,7 @@ pub fn validate_datatypes(
 
         // In ck3, allow unadorned game concepts as long as they end with _i
         // (which means they are just the icon). This is a heuristic.
+        #[cfg(feature = "ck3")]
         if !found
             && code.name.as_str().ends_with("_i")
             && data.item_exists(Item::GameConcept, code.name.as_str())
@@ -336,7 +338,7 @@ pub fn validate_datatypes(
             // Unfortunately we don't have a complete list of those, so accept any lowercase id and
             // warn if it starts with uppercase. This is not a foolproof check though.
             // TODO: it's in theory possible to build a complete list of possible scope variable names
-            if code.name.as_str().chars().next().unwrap().is_uppercase() {
+            if sc.is_strict() || code.name.as_str().chars().next().unwrap().is_uppercase() {
                 // TODO: If there is a Custom of the same name, suggest that
                 let msg = format!("unknown datafunction {}", &code.name);
                 if let Some(alternative) =

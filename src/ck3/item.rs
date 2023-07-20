@@ -449,6 +449,7 @@ impl Item {
             | Item::BuildingGfx
             | Item::ClothingGfx
             | Item::CoaGfx
+            | Item::MemoryCategory
             | Item::Sound
             | Item::UnitGfx => Confidence::Weak,
             Item::SpecialBuilding => Confidence::Reasonable,

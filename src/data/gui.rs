@@ -13,7 +13,9 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, error_info, old_warn, warn, warn_info, ErrorKey};
+#[cfg(feature = "ck3")]
+use crate::report::warn;
+use crate::report::{error, error_info, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 

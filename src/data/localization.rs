@@ -274,7 +274,6 @@ impl Localization {
     }
 
     fn check_loca_code(
-        loca_key: &Token,
         value: &LocaValue,
         data: &Everything,
         sc: &mut ScopeContext,
@@ -283,7 +282,7 @@ impl Localization {
         match value {
             LocaValue::Concat(v) => {
                 for value in v {
-                    Self::check_loca_code(loca_key, value, data, sc, lang);
+                    Self::check_loca_code(value, data, sc, lang);
                 }
             }
             // A reference to a game concept
@@ -352,11 +351,11 @@ impl Localization {
         }
     }
 
-    pub fn validate_use(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
+    pub fn validate_use(&self, key: &str, data: &Everything, sc: &mut ScopeContext) {
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {
-                if let Some(entry) = hash.get(key.as_str()) {
-                    Self::check_loca_code(key, &entry.value, data, sc, lang);
+                if let Some(entry) = hash.get(key) {
+                    Self::check_loca_code(&entry.value, data, sc, lang);
                 }
             }
         }
@@ -369,7 +368,7 @@ impl Localization {
             for entry in hash.values() {
                 let mut sc = ScopeContext::new_unrooted(Scopes::all(), &entry.key);
                 sc.set_strict_scopes(false);
-                Self::check_loca_code(&entry.key, &entry.value, data, &mut sc, lang);
+                Self::check_loca_code(&entry.value, data, &mut sc, lang);
             }
         }
     }

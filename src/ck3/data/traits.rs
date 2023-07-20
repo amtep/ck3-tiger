@@ -140,7 +140,7 @@ impl Trait {
         }
 
         if !vd.field_validated("icon", |bv, data| {
-            validate_desc_map(bv, data, &mut sc, |name, data| {
+            validate_desc_map(bv, data, &mut sc, |name, data, _| {
                 if let Some(icon_path) =
                     data.get_defined_string_warn(&self.key, "NGameIcons|TRAIT_ICON_PATH")
                 {

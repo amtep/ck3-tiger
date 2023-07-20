@@ -1000,7 +1000,7 @@ impl Everything {
 
     /// Validate the use of a localization within a specific `ScopeContext`.
     /// This allows validation of the named scopes used within the localization's datafunctions.
-    pub(crate) fn validate_localization_sc(&self, key: &Token, sc: &mut ScopeContext) {
+    pub(crate) fn validate_localization_sc(&self, key: &str, sc: &mut ScopeContext) {
         self.localization.validate_use(key, self, sc);
     }
 

@@ -109,6 +109,10 @@ impl ScopeContext {
         self.strict_scopes = strict;
     }
 
+    pub fn is_strict(&self) -> bool {
+        self.strict_scopes
+    }
+
     pub fn set_no_warn(&mut self, no_warn: bool) {
         self.no_warn = no_warn;
     }
