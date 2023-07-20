@@ -6,6 +6,7 @@ use std::sync::RwLock;
 use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::datatype::{validate_datatypes, CodeChain, Datatype};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
@@ -15,9 +16,10 @@ use crate::parse::localization::{parse_loca, ValueParser};
 #[cfg(feature = "ck3")]
 use crate::report::warn2;
 use crate::report::{
-    error, error_info, old_warn, report, warn, warn_abbreviated, warn_header, warn_info,
-    will_maybe_log, ErrorKey, Severity,
+    error, error_info, report, warn, warn_abbreviated, warn_header, warn_info, will_maybe_log,
+    ErrorKey, Severity,
 };
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Debug)]
@@ -271,14 +273,21 @@ impl Localization {
         self.used_locas.write().unwrap().insert(key.to_string());
     }
 
-    fn check_loca_code(value: &LocaValue, data: &Everything, lang: &'static str) {
+    fn check_loca_code(
+        loca_key: &Token,
+        value: &LocaValue,
+        data: &Everything,
+        sc: &mut ScopeContext,
+        lang: &'static str,
+    ) {
         match value {
             LocaValue::Concat(v) => {
                 for value in v {
-                    Self::check_loca_code(value, data, lang);
+                    Self::check_loca_code(loca_key, value, data, sc, lang);
                 }
             }
             // A reference to a game concept
+            #[cfg(feature = "ck3")]
             LocaValue::Code(chain, Some(fmt))
                 if fmt.as_str().contains('E') || fmt.as_str().contains('e') =>
             {
@@ -286,7 +295,7 @@ impl Localization {
                     data.verify_exists(Item::GameConcept, name);
                 } else {
                     let msg = format!("cannot figure out game concept for this |{fmt}");
-                    old_warn(fmt, ErrorKey::ParseError, &msg);
+                    warn(ErrorKey::ParseError).weak().msg(msg).loc(fmt).push();
                 }
             }
             // Some other code
@@ -294,9 +303,10 @@ impl Localization {
             LocaValue::Code(chain, _) => {
                 // TODO: datatype is not really Unknown here, it should be a CString or CFixedPoint or some kind of number.
                 // But we can't express that yet.
-                validate_datatypes(chain, data, Datatype::Unknown, lang, false);
+                validate_datatypes(chain, data, sc, Datatype::Unknown, lang, false);
             }
             LocaValue::Tooltip(token) => {
+                // TODO: should this be validated with validate_localization_sc ? (remember to avoid infinite loops)
                 data.localization.verify_exists_lang(token, lang);
             }
             _ => (),
@@ -342,12 +352,24 @@ impl Localization {
         }
     }
 
+    pub fn validate_use(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
+        for lang in &self.mod_langs {
+            if let Some(hash) = self.locas.get(lang) {
+                if let Some(entry) = hash.get(key.as_str()) {
+                    Self::check_loca_code(key, &entry.value, data, sc, lang);
+                }
+            }
+        }
+    }
+
     pub fn validate(&self, data: &Everything) {
         // Does every `[concept|E]` reference have a defined game concept?
         // Does every other `[code]` block have valid promotes and functions?
         for (lang, hash) in &self.locas {
             for entry in hash.values() {
-                Self::check_loca_code(&entry.value, data, lang);
+                let mut sc = ScopeContext::new_unrooted(Scopes::all(), &entry.key);
+                sc.set_strict_scopes(false);
+                Self::check_loca_code(&entry.key, &entry.value, data, &mut sc, lang);
             }
         }
     }

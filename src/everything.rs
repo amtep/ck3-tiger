@@ -106,7 +106,6 @@ use crate::ck3::data::{
     vassalstance::VassalStance,
 };
 use crate::config_load::{check_for_legacy_ignore, load_filter};
-#[cfg(feature = "ck3")]
 use crate::context::ScopeContext;
 #[cfg(feature = "ck3")]
 use crate::data::coa::CoaDynamicDefinition;
@@ -997,6 +996,12 @@ impl Everything {
         sc: &mut ScopeContext,
     ) {
         self.database.validate_call(itype, key, block, self, sc);
+    }
+
+    /// Validate the use of a localization within a specific `ScopeContext`.
+    /// This allows validation of the named scopes used within the localization's datafunctions.
+    pub(crate) fn validate_localization_sc(&self, key: &Token, sc: &mut ScopeContext) {
+        self.localization.validate_use(key, self, sc);
     }
 
     #[allow(dead_code)] // not currently used, but was hard to write...

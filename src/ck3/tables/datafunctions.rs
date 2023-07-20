@@ -123,48 +123,69 @@ pub fn lookup_alternative(
     None
 }
 
+/// TODO: make a lookup for this table, rather than sequential scanning
+const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
+    (Datatype::Character, Scopes::Character),
+    (Datatype::Title, Scopes::LandedTitle),
+    (Datatype::Activity, Scopes::Activity),
+    (Datatype::Secret, Scopes::Secret),
+    (Datatype::Province, Scopes::Province),
+    (Datatype::Scheme, Scopes::Scheme),
+    (Datatype::Combat, Scopes::Combat),
+    (Datatype::CombatSide, Scopes::CombatSide),
+    (Datatype::Faith, Scopes::Faith),
+    (Datatype::GreatHolyWar, Scopes::GreatHolyWar),
+    (Datatype::Religion, Scopes::Religion),
+    (Datatype::War, Scopes::War),
+    (Datatype::Story, Scopes::StoryCycle),
+    (Datatype::CasusBelliItem, Scopes::CasusBelli),
+    (Datatype::Dynasty, Scopes::Dynasty),
+    (Datatype::DynastyHouse, Scopes::DynastyHouse),
+    (Datatype::Faction, Scopes::Faction),
+    (Datatype::Culture, Scopes::Culture),
+    (Datatype::Army, Scopes::Army),
+    (Datatype::HolyOrder, Scopes::HolyOrder),
+    (Datatype::ActiveCouncilTask, Scopes::CouncilTask),
+    (Datatype::MercenaryCompany, Scopes::MercenaryCompany),
+    (Datatype::Artifact, Scopes::Artifact),
+    (Datatype::Inspiration, Scopes::Inspiration),
+    (Datatype::Struggle, Scopes::Struggle),
+    (Datatype::CharacterMemory, Scopes::CharacterMemory),
+    (Datatype::TravelPlan, Scopes::TravelPlan),
+    (Datatype::Accolade, Scopes::Accolade),
+    (Datatype::AccoladeType, Scopes::AccoladeType),
+    (Datatype::Decision, Scopes::Decision),
+    (Datatype::FaithDoctrine, Scopes::Doctrine),
+    (Datatype::ActivityType, Scopes::ActivityType),
+    (Datatype::CultureTradition, Scopes::CultureTradition),
+    (Datatype::CulturePillar, Scopes::CulturePillar),
+    (Datatype::GovernmentType, Scopes::GovernmentType),
+    (Datatype::Trait, Scopes::Trait),
+    (Datatype::VassalContract, Scopes::VassalContract),
+    (Datatype::ObligationLevel, Scopes::VassalObligationLevel),
+];
+
+/// Return the scope type that best matches `dtype`, or `None` if there is no match.
+/// Nearly every scope type has a matching datatype, but there are far more datatypes than scope types.
 pub fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
-    match dtype {
-        Datatype::Character => Some(Scopes::Character),
-        Datatype::Title => Some(Scopes::LandedTitle),
-        Datatype::Activity => Some(Scopes::Activity),
-        Datatype::Secret => Some(Scopes::Secret),
-        Datatype::Province => Some(Scopes::Province),
-        Datatype::Scheme => Some(Scopes::Scheme),
-        Datatype::Combat => Some(Scopes::Combat),
-        Datatype::CombatSide => Some(Scopes::CombatSide),
-        Datatype::Faith => Some(Scopes::Faith),
-        Datatype::GreatHolyWar => Some(Scopes::GreatHolyWar),
-        Datatype::Religion => Some(Scopes::Religion),
-        Datatype::War => Some(Scopes::War),
-        Datatype::Story => Some(Scopes::StoryCycle),
-        Datatype::CasusBelliItem => Some(Scopes::CasusBelli),
-        Datatype::Dynasty => Some(Scopes::Dynasty),
-        Datatype::DynastyHouse => Some(Scopes::DynastyHouse),
-        Datatype::Faction => Some(Scopes::Faction),
-        Datatype::Culture => Some(Scopes::Culture),
-        Datatype::Army => Some(Scopes::Army),
-        Datatype::HolyOrder => Some(Scopes::HolyOrder),
-        Datatype::ActiveCouncilTask => Some(Scopes::CouncilTask),
-        Datatype::MercenaryCompany => Some(Scopes::MercenaryCompany),
-        Datatype::Artifact => Some(Scopes::Artifact),
-        Datatype::Inspiration => Some(Scopes::Inspiration),
-        Datatype::Struggle => Some(Scopes::Struggle),
-        Datatype::CharacterMemory => Some(Scopes::CharacterMemory),
-        Datatype::TravelPlan => Some(Scopes::TravelPlan),
-        Datatype::Accolade => Some(Scopes::Accolade),
-        Datatype::AccoladeType => Some(Scopes::AccoladeType),
-        Datatype::Decision => Some(Scopes::Decision),
-        Datatype::FaithDoctrine => Some(Scopes::Doctrine),
-        Datatype::ActivityType => Some(Scopes::ActivityType),
-        Datatype::CultureTradition => Some(Scopes::CultureTradition),
-        Datatype::CulturePillar => Some(Scopes::CulturePillar),
-        Datatype::GovernmentType => Some(Scopes::GovernmentType),
-        Datatype::Trait => Some(Scopes::Trait),
-        Datatype::VassalContract => Some(Scopes::VassalContract),
-        Datatype::ObligationLevel => Some(Scopes::VassalObligationLevel),
-        _ => None,
+    for (dt, s) in DATATYPE_AND_SCOPE {
+        if dtype == *dt {
+            return Some(*s);
+        }
     }
+    None
+}
+
+/// Return the datatype that best matches `scopes`, or `Datatype::Unknown` if there is no match.
+/// Nearly every scope type has a matching datatype, but there are far more datatypes than scope types.
+/// Note that only `Scopes` values that are narrowed down to a single scope type can be matched.
+pub fn datatype_from_scopes(scopes: Scopes) -> Datatype {
+    for (dt, s) in DATATYPE_AND_SCOPE {
+        if scopes == *s {
+            return *dt;
+        }
+    }
+    Datatype::Unknown
 }
 
 const GLOBAL_PROMOTES: &[(&str, Args, Datatype)] = include!("include/data_global_promotes.rs");

@@ -4,6 +4,7 @@ use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Field, BV};
+use crate::context::ScopeContext;
 use crate::data::localization::LocaValue;
 use crate::datatype::{validate_datatypes, Datatype};
 use crate::everything::Everything;
@@ -12,7 +13,8 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, error_info, old_warn, warn_info, ErrorKey};
+use crate::report::{error, error_info, old_warn, warn, warn_info, ErrorKey};
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -405,13 +407,16 @@ fn validate_field(field: &Field, data: &Everything) {
             };
             if key.is("datacontext") {
                 if let LocaValue::Code(chain, _) = value {
-                    validate_datatypes(&chain, data, Datatype::Unknown, "", true);
+                    // TODO: figure out the actual scope context here. Perhaps it should be a strict scope with no root and no names defined?
+                    let mut sc = ScopeContext::new_unrooted(Scopes::all(), key);
+                    sc.set_strict_scopes(false);
+                    validate_datatypes(&chain, data, &mut sc, Datatype::Unknown, "", true);
                 } else {
                     let msg = "expected whole field to be a single [ ] clause";
                     old_warn(token, ErrorKey::Validation, msg);
                 }
             } else {
-                validate_gui_loca(value, data);
+                validate_gui_loca(key, value, data);
             }
         }
         BV::Block(block) => {
@@ -420,15 +425,30 @@ fn validate_field(field: &Field, data: &Everything) {
     }
 }
 
-fn validate_gui_loca(value: LocaValue, data: &Everything) {
+fn validate_gui_loca(key: &Token, value: LocaValue, data: &Everything) {
     match value {
         LocaValue::Concat(v) => {
             for value in v {
-                validate_gui_loca(value, data);
+                validate_gui_loca(key, value, data);
+            }
+        }
+        // A reference to a game concept
+        #[cfg(feature = "ck3")]
+        LocaValue::Code(chain, Some(fmt))
+            if fmt.as_str().contains('E') || fmt.as_str().contains('e') =>
+        {
+            if let Some(name) = chain.as_gameconcept() {
+                data.verify_exists(Item::GameConcept, name);
+            } else {
+                let msg = format!("cannot figure out game concept for this |{fmt}");
+                warn(ErrorKey::ParseError).weak().msg(msg).loc(fmt).push();
             }
         }
         LocaValue::Code(chain, _) => {
-            validate_datatypes(&chain, data, Datatype::Unknown, "", false);
+            // TODO: figure out the actual scope context here. Perhaps it should be a strict scope with no root and no names defined?
+            let mut sc = ScopeContext::new_unrooted(Scopes::all(), key);
+            sc.set_strict_scopes(false);
+            validate_datatypes(&chain, data, &mut sc, Datatype::Unknown, "", false);
         }
         _ => (),
     }

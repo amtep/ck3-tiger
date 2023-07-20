@@ -129,6 +129,19 @@ impl ScopeContext {
         }
     }
 
+    pub fn is_name_defined(&mut self, name: &str) -> Option<Scopes> {
+        if let Some(&idx) = self.names.get(name) {
+            Some(match self.named[idx] {
+                ScopeEntry::Scope(s, _) => s,
+                ScopeEntry::Backref(_) => unreachable!(),
+                ScopeEntry::Rootref => self._resolve_root().0,
+                ScopeEntry::Named(idx, _) => self._resolve_named(idx).0,
+            })
+        } else {
+            None
+        }
+    }
+
     pub fn exists_scope<T: Own<Token>>(&mut self, name: &str, token: T) {
         if !self.names.contains_key(name) {
             let idx = self.named.len();

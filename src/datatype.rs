@@ -5,9 +5,10 @@ use std::str::FromStr;
 use crate::ck3::data::religions::CUSTOM_RELIGION_LOCAS;
 #[cfg(feature = "ck3")]
 pub use crate::ck3::tables::datafunctions::{
-    lookup_alternative, lookup_function, lookup_global_function, lookup_global_promote,
-    lookup_promote, scope_from_datatype, Datatype,
+    datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
+    lookup_global_promote, lookup_promote, scope_from_datatype, Datatype,
 };
+use crate::context::ScopeContext;
 use crate::data::customloca::CustomLocalization;
 use crate::everything::Everything;
 use crate::item::Item;
@@ -18,8 +19,8 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 #[cfg(feature = "vic3")]
 pub use crate::vic3::tables::datafunctions::{
-    lookup_alternative, lookup_function, lookup_global_function, lookup_global_promote,
-    lookup_promote, scope_from_datatype, Datatype,
+    datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
+    lookup_global_promote, lookup_promote, scope_from_datatype, Datatype,
 };
 
 #[derive(Clone, Debug)]
@@ -96,11 +97,19 @@ fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: &'sta
     }
 }
 
-fn validate_argument(arg: &CodeArg, data: &Everything, expect_arg: Arg, lang: &'static str) {
+fn validate_argument(
+    arg: &CodeArg,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    expect_arg: Arg,
+    lang: &'static str,
+) {
     match expect_arg {
         Arg::DType(expect_type) => {
             match arg {
-                CodeArg::Chain(chain) => validate_datatypes(chain, data, expect_type, lang, false),
+                CodeArg::Chain(chain) => {
+                    validate_datatypes(chain, data, sc, expect_type, lang, false)
+                }
                 CodeArg::Literal(token) => {
                     if token.as_str().starts_with('(') && token.as_str().contains(')') {
                         // These unwraps are safe because of the checks in the if condition
@@ -129,7 +138,7 @@ fn validate_argument(arg: &CodeArg, data: &Everything, expect_arg: Arg, lang: &'
         }
         Arg::IType(itype) => match arg {
             CodeArg::Chain(chain) => {
-                validate_datatypes(chain, data, Datatype::CString, lang, false);
+                validate_datatypes(chain, data, sc, Datatype::CString, lang, false);
             }
             CodeArg::Literal(token) => {
                 data.verify_exists(itype, token);
@@ -138,10 +147,20 @@ fn validate_argument(arg: &CodeArg, data: &Everything, expect_arg: Arg, lang: &'
     }
 }
 
-// `expect_promote` is true if the chain is expected to end on a promote rather than on a function.
+/// Validate a datafunction chain, which is the stuff between [ ] in localization.
+/// * `chain` is the parsed datafunction structure.
+/// * `sc` is a `ScopeContext` used to evaluate scope references in the datafunctions.
+/// If nothing is known about the scope, just pass an empty ScopeContext with `set_strict_types(false)`.
+/// * `expect_type` is the datatype that should be returned by this chain, can be `Datatype::Unknown` in many cases.
+/// * `lang` is set to a specific language if `Custom` references in this chain only need to be defined for one language.
+/// It can just be "" otherwise.
+/// * `expect_promote` is true iff the chain is expected to end on a promote rather than on a function.
+/// Promotes and functions are very similar but they are defined separately in the datafunction tables
+/// and usually only a function can end a chain.
 pub fn validate_datatypes(
     chain: &CodeChain,
     data: &Everything,
+    sc: &mut ScopeContext,
     expect_type: Datatype,
     lang: &'static str,
     expect_promote: bool,
@@ -246,6 +265,7 @@ pub fn validate_datatypes(
         // Each concept also generates a [concept_ideology_desc]
         #[cfg(feature = "vic3")]
         if !found && code.name.as_str().starts_with("concept_") {
+            found = true;
             if let Some(concept) = code.name.as_str().strip_suffix("_desc") {
                 data.verify_exists_implied(Item::GameConcept, concept, &code.name);
             } else {
@@ -253,6 +273,28 @@ pub fn validate_datatypes(
             }
             args = Args(&[]);
             rtype = Datatype::CString;
+        }
+
+        // In ck3, allow unadorned game concepts as long as they end with _i
+        // (which means they are just the icon). This is a heuristic.
+        if !found
+            && code.name.as_str().ends_with("_i")
+            && data.item_exists(Item::GameConcept, code.name.as_str())
+        {
+            found = true;
+            args = Args(&[]);
+            rtype = Datatype::CString;
+        }
+
+        // See if it's a passed-in scope.
+        // It may still be a passed-in scope even if this check doesn't pass, because sc might be a non-strict scope
+        // where the scope names are not known. That's handled heuristically below.
+        if !found {
+            if let Some(scopes) = sc.is_name_defined(code.name.as_str()) {
+                found = true;
+                args = Args(&[]);
+                rtype = datatype_from_scopes(scopes);
+            }
         }
 
         if !found {
@@ -294,7 +336,6 @@ pub fn validate_datatypes(
             // Unfortunately we don't have a complete list of those, so accept any lowercase id and
             // warn if it starts with uppercase. This is not a foolproof check though.
             // TODO: it's in theory possible to build a complete list of possible scope variable names
-            // TODO: for Vic3, country tags can be used directly too.
             if code.name.as_str().chars().next().unwrap().is_uppercase() {
                 // TODO: If there is a Custom of the same name, suggest that
                 let msg = format!("unknown datafunction {}", &code.name);
@@ -371,7 +412,7 @@ pub fn validate_datatypes(
         }
 
         for (i, arg) in args.0.iter().enumerate() {
-            validate_argument(&code.arguments[i], data, *arg, lang);
+            validate_argument(&code.arguments[i], data, sc, *arg, lang);
         }
 
         curtype = rtype;

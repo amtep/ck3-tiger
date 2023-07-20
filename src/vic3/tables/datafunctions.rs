@@ -123,63 +123,84 @@ pub fn lookup_alternative(
     None
 }
 
+/// TODO: make a lookup for this table, rather than sequential scanning
+// The ones not found among the datatypes, but which might be there under another name, are commented out.
+const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
+    (Datatype::Country, Scopes::Country),
+    (Datatype::Battle, Scopes::Battle),
+    // (Datatype::BattleSide,Scopes::BattleSide),
+    (Datatype::Building, Scopes::Building),
+    (Datatype::BuildingType, Scopes::BuildingType),
+    (Datatype::CanalType, Scopes::CanalType),
+    (Datatype::Character, Scopes::Character),
+    (Datatype::CivilWar, Scopes::CivilWar),
+    (Datatype::CombatUnit, Scopes::CombatUnit),
+    (Datatype::CommanderOrder, Scopes::CommanderOrder),
+    (Datatype::CommanderOrderType, Scopes::CommanderOrderType),
+    (Datatype::CountryCreation, Scopes::CountryCreation),
+    (Datatype::CountryDefinition, Scopes::CountryDefinition),
+    (Datatype::CountryFormation, Scopes::CountryFormation),
+    (Datatype::Culture, Scopes::Culture),
+    (Datatype::Decree, Scopes::Decree),
+    (Datatype::DiplomaticAction, Scopes::DiplomaticAction),
+    (Datatype::DiplomaticPact, Scopes::DiplomaticPact),
+    (Datatype::DiplomaticPlay, Scopes::DiplomaticPlay),
+    (Datatype::DiplomaticRelations, Scopes::DiplomaticRelations),
+    (Datatype::Front, Scopes::Front),
+    (Datatype::Goods, Scopes::Goods),
+    (Datatype::Hq, Scopes::Hq),
+    (Datatype::Ideology, Scopes::Ideology),
+    (Datatype::Institution, Scopes::Institution),
+    (Datatype::InstitutionType, Scopes::InstitutionType),
+    // (Datatype::InterestMarker,Scopes::InterestMarker),
+    (Datatype::InterestGroup, Scopes::InterestGroup),
+    (Datatype::InterestGroupTrait, Scopes::InterestGroupTrait),
+    // (Datatype::InterestGroupType,Scopes::InterestGroupType),
+    (Datatype::JournalEntry, Scopes::Journalentry),
+    (Datatype::Law, Scopes::Law),
+    (Datatype::LawType, Scopes::LawType),
+    (Datatype::Market, Scopes::Market),
+    (Datatype::MarketGoods, Scopes::MarketGoods),
+    (Datatype::Objective, Scopes::Objective),
+    (Datatype::Party, Scopes::Party),
+    (Datatype::PoliticalMovement, Scopes::PoliticalMovement),
+    (Datatype::Pop, Scopes::Pop),
+    (Datatype::PopType, Scopes::PopType),
+    (Datatype::Province, Scopes::Province),
+    (Datatype::Religion, Scopes::Religion),
+    (Datatype::ShippingLane, Scopes::ShippingLane),
+    (Datatype::State, Scopes::State),
+    (Datatype::StateRegion, Scopes::StateRegion),
+    (Datatype::StateTrait, Scopes::StateTrait),
+    (Datatype::StrategicRegion, Scopes::StrategicRegion),
+    (Datatype::Technology, Scopes::Technology),
+    // (Datatype::TechnologyStatus,Scopes::TechnologyStatus),
+    (Datatype::Theater, Scopes::Theater),
+    (Datatype::TradeRoute, Scopes::TradeRoute),
+    (Datatype::War, Scopes::War),
+];
+
+/// Return the scope type that best matches `dtype`, or `None` if there is no match.
+/// Nearly every scope type has a matching datatype, but there are far more data types than scope types.
 pub fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
-    // The ones not found among the datatypes, but which might be there under another name, are commented out.
-    match dtype {
-        Datatype::Country => Some(Scopes::Country),
-        Datatype::Battle => Some(Scopes::Battle),
-        // Datatype::BattleSide => Some(Scopes::BattleSide),
-        Datatype::Building => Some(Scopes::Building),
-        Datatype::BuildingType => Some(Scopes::BuildingType),
-        Datatype::CanalType => Some(Scopes::CanalType),
-        Datatype::Character => Some(Scopes::Character),
-        Datatype::CivilWar => Some(Scopes::CivilWar),
-        Datatype::CombatUnit => Some(Scopes::CombatUnit),
-        Datatype::CommanderOrder => Some(Scopes::CommanderOrder),
-        Datatype::CommanderOrderType => Some(Scopes::CommanderOrderType),
-        Datatype::CountryCreation => Some(Scopes::CountryCreation),
-        Datatype::CountryDefinition => Some(Scopes::CountryDefinition),
-        Datatype::CountryFormation => Some(Scopes::CountryFormation),
-        Datatype::Culture => Some(Scopes::Culture),
-        Datatype::Decree => Some(Scopes::Decree),
-        Datatype::DiplomaticAction => Some(Scopes::DiplomaticAction),
-        Datatype::DiplomaticPact => Some(Scopes::DiplomaticPact),
-        Datatype::DiplomaticPlay => Some(Scopes::DiplomaticPlay),
-        Datatype::DiplomaticRelations => Some(Scopes::DiplomaticRelations),
-        Datatype::Front => Some(Scopes::Front),
-        Datatype::Goods => Some(Scopes::Goods),
-        Datatype::Hq => Some(Scopes::Hq),
-        Datatype::Ideology => Some(Scopes::Ideology),
-        Datatype::Institution => Some(Scopes::Institution),
-        Datatype::InstitutionType => Some(Scopes::InstitutionType),
-        // Datatype::InterestMarker => Some(Scopes::InterestMarker),
-        Datatype::InterestGroup => Some(Scopes::InterestGroup),
-        Datatype::InterestGroupTrait => Some(Scopes::InterestGroupTrait),
-        // Datatype::InterestGroupType => Some(Scopes::InterestGroupType),
-        Datatype::JournalEntry => Some(Scopes::Journalentry),
-        Datatype::Law => Some(Scopes::Law),
-        Datatype::LawType => Some(Scopes::LawType),
-        Datatype::Market => Some(Scopes::Market),
-        Datatype::MarketGoods => Some(Scopes::MarketGoods),
-        Datatype::Objective => Some(Scopes::Objective),
-        Datatype::Party => Some(Scopes::Party),
-        Datatype::PoliticalMovement => Some(Scopes::PoliticalMovement),
-        Datatype::Pop => Some(Scopes::Pop),
-        Datatype::PopType => Some(Scopes::PopType),
-        Datatype::Province => Some(Scopes::Province),
-        Datatype::Religion => Some(Scopes::Religion),
-        Datatype::ShippingLane => Some(Scopes::ShippingLane),
-        Datatype::State => Some(Scopes::State),
-        Datatype::StateRegion => Some(Scopes::StateRegion),
-        Datatype::StateTrait => Some(Scopes::StateTrait),
-        Datatype::StrategicRegion => Some(Scopes::StrategicRegion),
-        Datatype::Technology => Some(Scopes::Technology),
-        // Datatype::TechnologyStatus => Some(Scopes::TechnologyStatus),
-        Datatype::Theater => Some(Scopes::Theater),
-        Datatype::TradeRoute => Some(Scopes::TradeRoute),
-        Datatype::War => Some(Scopes::War),
-        _ => None,
+    for (dt, s) in DATATYPE_AND_SCOPE {
+        if dtype == *dt {
+            return Some(*s);
+        }
     }
+    None
+}
+
+/// Return the datatype that best matches `scopes`, or `Datatype::Unknown` if there is no match.
+/// Nearly every scope type has a matching datatype, but there are far more datatypes than scope types.
+/// Note that only `Scopes` values that are narrowed down to a single scope type can be matched.
+pub fn datatype_from_scopes(scopes: Scopes) -> Datatype {
+    for (dt, s) in DATATYPE_AND_SCOPE {
+        if scopes == *s {
+            return *dt;
+        }
+    }
+    Datatype::Unknown
 }
 
 const GLOBAL_PROMOTES: &[(&str, Args, Datatype)] = include!("include/data_global_promotes.rs");
