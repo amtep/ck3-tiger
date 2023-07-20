@@ -11,7 +11,9 @@ pub use crate::ck3::tables::datafunctions::{
 use crate::data::customloca::CustomLocalization;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, old_warn, warn_info, ErrorKey};
+#[cfg(feature = "ck3")]
+use crate::report::err;
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 #[cfg(feature = "vic3")]
@@ -107,20 +109,20 @@ fn validate_argument(arg: &CodeArg, data: &Everything, expect_arg: Arg, lang: &'
                         if dtype == "hex" {
                             if expect_type != Datatype::Unknown && expect_type != Datatype::int32 {
                                 let msg = format!("expected {expect_type}, got {dtype}");
-                                error(token, ErrorKey::Datafunctions, &msg);
+                                warn(ErrorKey::Datafunctions).msg(msg).loc(token).push();
                             }
                         } else if let Ok(dtype) = Datatype::from_str(dtype) {
                             if expect_type != Datatype::Unknown && expect_type != dtype {
                                 let msg = format!("expected {expect_type}, got {dtype}");
-                                error(token, ErrorKey::Datafunctions, &msg);
+                                warn(ErrorKey::Datafunctions).msg(msg).loc(token).push();
                             }
                         } else {
                             let msg = format!("unrecognized datatype {dtype}");
-                            error(token, ErrorKey::Datafunctions, &msg);
+                            warn(ErrorKey::Datafunctions).msg(msg).loc(token).push();
                         }
                     } else if expect_type != Datatype::Unknown && expect_type != Datatype::CString {
                         let msg = format!("expected {expect_type}, got CString");
-                        error(token, ErrorKey::Datafunctions, &msg);
+                        warn(ErrorKey::Datafunctions).msg(msg).loc(token).push();
                     }
                 }
             }
@@ -158,7 +160,7 @@ pub fn validate_datatypes(
                 macro_count += 1;
                 if macro_count > 255 {
                     let msg = format!("substituted data bindings {macro_count} times, giving up");
-                    error(&codes[i].name, ErrorKey::Macro, &msg);
+                    err(ErrorKey::Macro).msg(msg).loc(&codes[i].name).push();
                     return;
                 }
                 codes.to_mut().splice(i..=i, replacement.codes);
@@ -175,7 +177,7 @@ pub fn validate_datatypes(
 
         if code.name.is("") {
             // TODO: find out if the game engine is okay with this
-            old_warn(&code.name, ErrorKey::Datafunctions, "empty fragment");
+            warn(ErrorKey::Datafunctions).msg("empty fragment").loc(&code.name).push();
             return;
         }
 
@@ -212,7 +214,7 @@ pub fn validate_datatypes(
                 }
                 LookupResult::WrongType => {
                     let msg = format!("{} can not follow a {curtype} promote", code.name);
-                    error(&code.name, ErrorKey::Datafunctions, &msg);
+                    warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                     return;
                 }
                 LookupResult::NotFound => (),
@@ -226,7 +228,7 @@ pub fn validate_datatypes(
                 }
                 LookupResult::WrongType => {
                     let msg = format!("{} can not follow a {curtype} promote", code.name);
-                    error(&code.name, ErrorKey::Datafunctions, &msg);
+                    warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                     return;
                 }
                 LookupResult::NotFound => (),
@@ -258,33 +260,33 @@ pub fn validate_datatypes(
             // might be found in any or all of the functions and promotes tables.
             if is_first && (p_found || f_found) && !gp_found && !gf_found {
                 let msg = format!("{} can not be the first in a chain", code.name);
-                error(&code.name, ErrorKey::Datafunctions, &msg);
+                warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 return;
             }
             if is_last && (gp_found || p_found) && !gf_found && !f_found && !expect_promote {
                 let msg = format!("{} can not be last in a chain", code.name);
-                error(&code.name, ErrorKey::Datafunctions, &msg);
+                warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 return;
             }
             if expect_promote && (gf_found || f_found) {
                 let msg = format!("{} can not be used in this field", code.name);
-                error(&code.name, ErrorKey::Datafunctions, &msg);
+                warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 return;
             }
             if !is_first && (gp_found || gf_found) && !p_found && !f_found {
                 let msg = format!("{} must be the first in a chain", code.name);
-                error(&code.name, ErrorKey::Datafunctions, &msg);
+                warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 return;
             }
             if !is_last && (gf_found || f_found) && !gp_found && !p_found {
                 let msg = format!("{} must be last in the chain", code.name);
-                error(&code.name, ErrorKey::Datafunctions, &msg);
+                warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 return;
             }
             // A catch-all condition if none of the above match
             if gp_found || gf_found || p_found || f_found {
                 let msg = format!("{} is improperly used here", code.name);
-                error(&code.name, ErrorKey::Datafunctions, &msg);
+                warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 return;
             }
 
@@ -300,9 +302,9 @@ pub fn validate_datatypes(
                     lookup_alternative(code.name.as_str(), is_first, is_last && !expect_promote)
                 {
                     let info = format!("did you mean {alternative}?");
-                    warn_info(&code.name, ErrorKey::Datafunctions, &msg, &info);
+                    warn(ErrorKey::Datafunctions).msg(msg).info(info).loc(&code.name).push();
                 } else {
-                    old_warn(&code.name, ErrorKey::Datafunctions, &msg);
+                    warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 }
                 return;
             }
@@ -316,16 +318,13 @@ pub fn validate_datatypes(
         }
 
         if args.nargs() != code.arguments.len() {
-            error(
-                &code.name,
-                ErrorKey::Datafunctions,
-                &format!(
-                    "{} takes {} arguments but was given {} here",
-                    code.name,
-                    args.nargs(),
-                    code.arguments.len()
-                ),
+            let msg = format!(
+                "{} takes {} arguments but was given {} here",
+                code.name,
+                args.nargs(),
+                code.arguments.len()
             );
+            warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
             return;
         }
 
@@ -386,13 +385,13 @@ pub fn validate_datatypes(
                 if scope_from_datatype(curtype).is_none() {
                     let msg =
                         format!("{} returns {curtype} but a scope type is needed here", code.name);
-                    error(&code.name, ErrorKey::Datafunctions, &msg);
+                    warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                     return;
                 }
             } else {
                 let msg =
                     format!("{} returns {curtype} but a {expect_type} is needed here", code.name);
-                error(&code.name, ErrorKey::Datafunctions, &msg);
+                warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 return;
             }
         }
