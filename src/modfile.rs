@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 use crate::block::Block;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pdxfile::PdxFile;
-use crate::report::{advice_info, fatal, old_warn, ErrorKey};
+use crate::report::{advice_info, old_warn, ErrorKey};
 use crate::token::Token;
 
 #[allow(dead_code)] // TODO, see below
@@ -49,15 +49,12 @@ fn validate_modfile(block: &Block) -> ModFile {
 
     for path in &modfile.replace_paths {
         if path.is("history") {
-            advice_info(path, ErrorKey::Unneeded,
-                        "replace_path only replaces the specific directory, not any directories below it",
-                        "So replace_path = history is not useful, you should replace the paths under it. However, replace_path = history/province_mapping will crash the game.");
-        } else if path.is("history/province_mapping") {
-            fatal(ErrorKey::Crash)
-                .msg("replace_path of history/province_mapping will crash the game")
-                .info("Replace the files in it with empty files, instead.")
-                .loc(path)
-                .push();
+            advice_info(
+                path,
+                ErrorKey::Unneeded,
+                "replace_path only replaces the specific directory, not any directories below it",
+                "So replace_path = history is not useful, you should replace the paths under it.",
+            );
         }
     }
 
