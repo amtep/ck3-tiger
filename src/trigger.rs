@@ -420,6 +420,9 @@ fn match_trigger_fields(
             vd.field_any_cmp(opt);
         } else if let Some(mlt) = field.strip_prefix('*') {
             vd.fields_any_cmp(mlt);
+        } else if let Some(mlt) = field.strip_prefix('+') {
+            vd.req_field(mlt);
+            vd.fields_any_cmp(mlt);
         } else {
             vd.req_field(field);
             vd.field_any_cmp(field);
@@ -431,6 +434,8 @@ fn match_trigger_fields(
             let fieldname = if let Some(opt) = field.strip_prefix('?') {
                 opt
             } else if let Some(mlt) = field.strip_prefix('*') {
+                mlt
+            } else if let Some(mlt) = field.strip_prefix('+') {
                 mlt
             } else {
                 field

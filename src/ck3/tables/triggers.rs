@@ -103,7 +103,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "ai_values_divergence",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (Character, "ai_vengefulness", CompareValue),
     (Character, "ai_zeal", CompareValue),
@@ -114,13 +114,13 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "allowed_more_concubines", Boolean),
     (Character, "allowed_more_spouses", Boolean),
     (None, "always", Boolean),
-    (Character, "amenity_level", Block(&[("type", Item(Item::Amenity)), ("value", CompareValue)])),
+    (Character, "amenity_level", Block(&[("type", Item(Item::Amenity)), ("+value", CompareValue)])),
     (None, "and", Control),
     (None, "any_false", Control),
     (
         Character,
         "aptitude",
-        Block(&[("court_position", Item(Item::CourtPosition)), ("value", CompareValue)]),
+        Block(&[("court_position", Item(Item::CourtPosition)), ("+value", CompareValue)]),
     ),
     (Army, "army_is_moving", Boolean),
     (Army, "army_max_size", CompareValue),
@@ -229,7 +229,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         LandedTitle,
         "county_opinion_target",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (Character, "court_grandeur_base", CompareValue),
     (Character, "court_grandeur_current", CompareValue),
@@ -244,10 +244,14 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[
             ("type", Item(Item::Faction)),
             ("target", Scope(Character)),
-            ("value", CompareValue),
+            ("+value", CompareValue),
         ]),
     ),
-    (Culture, "cultural_acceptance", Block(&[("target", Scope(Culture)), ("value", CompareValue)])),
+    (
+        Culture,
+        "cultural_acceptance",
+        Block(&[("target", Scope(Culture)), ("+value", CompareValue)]),
+    ),
     (Culture, "culture_age", CompareValueWarnEq),
     (Culture, "culture_number_of_counties", CompareValue),
     (Culture, "culture_overlaps_geographical_region", Item(Item::Region)),
@@ -280,7 +284,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         LandedTitle,
         "de_jure_drift_progress",
-        Block(&[("target", Scope(LandedTitle)), ("value", CompareValue)]),
+        Block(&[("target", Scope(LandedTitle)), ("+value", CompareValue)]),
     ),
     (LandedTitle, "de_jure_drifting_towards", Scope(LandedTitle)),
     (Character, "death_reason", Item(Item::DeathReason)),
@@ -301,7 +305,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "diplomacy_diff",
-        Block(&[("target", Scope(Character)), ("value", CompareValue), ("?abs", Boolean)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue), ("?abs", Boolean)]),
     ),
     (Character, "diplomacy_for_portrait", CompareValue),
     (Faction, "discontent_per_month", CompareValue),
@@ -317,7 +321,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "dread_modified_ai_boldness",
-        Block(&[("dreaded_character", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("dreaded_character", Scope(Character)), ("+value", CompareValue)]),
     ),
     (Dynasty, "dynasty_can_unlock_relevant_perk", Boolean),
     (Dynasty, "dynasty_num_unlocked_perks", CompareValue),
@@ -333,7 +337,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Faction, "faction_is_type", Item(Item::Faction)),
     (Faction, "faction_power", CompareValue),
     (Faction, "faction_power_threshold", CompareValue),
-    (Faith, "faith_hostility_level", Block(&[("target", Scope(Faith)), ("value", CompareValue)])),
+    (Faith, "faith_hostility_level", Block(&[("target", Scope(Faith)), ("+value", CompareValue)])),
     (Faith, "faith_hostility_level_comparison", ScopeCompare(Faith)),
     (Character, "fertility", CompareValue),
     (Faith, "fervor", CompareValue),
@@ -353,7 +357,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         None,
         "global_variable_list_size",
-        Block(&[("name", UncheckedValue), ("value", CompareValue)]),
+        Block(&[("name", UncheckedValue), ("+value", CompareValue)]),
     ),
     (Character, "gold", CompareValueWarnEq),
     (Character, "government_allows", Choice(&["create_cadet_branches"])),
@@ -544,7 +548,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[
             ("target", Scope(Character)),
             ("modifier", Item(Item::OpinionModifier)),
-            ("?value", CompareValue),
+            ("*value", CompareValue),
         ]),
     ),
     (Character, "has_opposite_relation", Item(Item::Relation)),
@@ -658,7 +662,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[
             ("trait", Item(Item::Trait)),
             ("?track", Item(Item::TraitTrack)),
-            ("value", CompareValue),
+            ("+value", CompareValue),
         ]),
     ),
     (TravelPlan, "has_travel_option", Item(Item::TravelOption)),
@@ -694,7 +698,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "intrigue_diff",
-        Block(&[("target", Scope(Character)), ("value", CompareValue), ("?abs", Boolean)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue), ("?abs", Boolean)]),
     ),
     (Character, "intrigue_for_portrait", CompareValue),
     (Character, "is_a_faction_leader", Boolean),
@@ -988,7 +992,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "join_faction_chance",
-        Block(&[("target", Scope(Faction)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Faction)), ("+value", CompareValue)]),
     ),
     // Documentation says `target` but it's `scheme`
     (
@@ -1003,19 +1007,23 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "learning_diff",
-        Block(&[("target", Scope(Character)), ("value", CompareValue), ("?abs", Boolean)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue), ("?abs", Boolean)]),
     ),
     (Character, "learning_for_portrait", CompareValue),
-    (None, "list_size", Block(&[("name", UncheckedValue), ("value", CompareValue)])),
+    (None, "list_size", Block(&[("name", UncheckedValue), ("+value", CompareValue)])),
     (Secret, "local_player_knows_this_secret", Boolean),
-    (None, "local_variable_list_size", Block(&[("name", UncheckedValue), ("value", CompareValue)])),
+    (
+        None,
+        "local_variable_list_size",
+        Block(&[("name", UncheckedValue), ("+value", CompareValue)]),
+    ),
     (Character, "long_term_gold", CompareValueWarnEq),
     (Character, "long_term_gold_maximum", CompareValueWarnEq),
     (Character, "martial", CompareValue),
     (
         Character,
         "martial_diff",
-        Block(&[("target", Scope(Character)), ("value", CompareValue), ("?abs", Boolean)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue), ("?abs", Boolean)]),
     ),
     (Character, "martial_for_portrait", CompareValue),
     (Character, "matrilinear_betrothal", Boolean),
@@ -1025,12 +1033,12 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "max_number_maa_soldiers_of_base_type",
-        Block(&[("type", Item(Item::MenAtArmsBase)), ("value", CompareValue)]),
+        Block(&[("type", Item(Item::MenAtArmsBase)), ("+value", CompareValue)]),
     ),
     (
         Character,
         "max_number_maa_soldiers_of_type",
-        Block(&[("type", Item(Item::MenAtArms)), ("value", CompareValue)]),
+        Block(&[("type", Item(Item::MenAtArms)), ("+value", CompareValue)]),
     ),
     (Character, "max_number_of_concubines", CompareValue),
     (Character, "max_number_of_knights", CompareValue),
@@ -1055,13 +1063,13 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[
             ("category", Item(Item::GeneCategory)),
             ("attribute", Item(Item::GeneAttribute)),
-            ("value", CompareValue),
+            ("+value", CompareValue),
         ]),
     ),
     (
         Character,
         "morph_gene_value",
-        Block(&[("category", Item(Item::GeneCategory)), ("value", CompareValue)]),
+        Block(&[("category", Item(Item::GeneCategory)), ("+value", CompareValue)]),
     ),
     (None, "nand", Control),
     (TravelPlan, "next_destination_arrival_date", CompareDate),
@@ -1088,47 +1096,47 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "num_sinful_traits",
-        CompareValueOrBlock(&[("value", CompareValue), ("faith", Scope(Faith))]),
+        CompareValueOrBlock(&[("+value", CompareValue), ("faith", Scope(Faith))]),
     ),
     (Combat, "num_total_troops", CompareValueWarnEq),
     (
         Character,
         "num_virtuous_traits",
-        CompareValueOrBlock(&[("value", CompareValue), ("faith", Scope(Faith))]),
+        CompareValueOrBlock(&[("+value", CompareValue), ("faith", Scope(Faith))]),
     ),
     (
         Character,
         "number_maa_regiments_of_base_type",
-        Block(&[("type", Item(Item::MenAtArmsBase)), ("value", CompareValue)]),
+        Block(&[("type", Item(Item::MenAtArmsBase)), ("+value", CompareValue)]),
     ),
     (
         Character,
         "number_maa_regiments_of_type",
-        Block(&[("type", Item(Item::MenAtArms)), ("value", CompareValue)]),
+        Block(&[("type", Item(Item::MenAtArms)), ("+value", CompareValue)]),
     ),
     (
         Character,
         "number_maa_soldiers_of_base_type",
-        Block(&[("type", Item(Item::MenAtArmsBase)), ("value", CompareValue)]),
+        Block(&[("type", Item(Item::MenAtArmsBase)), ("+value", CompareValue)]),
     ),
     (
         Character,
         "number_maa_soldiers_of_type",
-        Block(&[("type", Item(Item::MenAtArms)), ("value", CompareValue)]),
+        Block(&[("type", Item(Item::MenAtArms)), ("+value", CompareValue)]),
     ),
     (Province, "number_of_characters_in_pool", CompareValue),
     (Character, "number_of_commander_traits", CompareValue),
     (
         Character,
         "number_of_commander_traits_in_common",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (Character, "number_of_concubines", CompareValue),
     (Character, "number_of_desired_concubines", CompareValue),
     (
         Character,
         "number_of_election_votes",
-        Block(&[("title", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("title", Scope(Character)), ("+value", CompareValue)]),
     ),
     (Faction, "number_of_faction_members_in_council", CompareValue),
     (Character, "number_of_fertile_concubines", CompareValue),
@@ -1138,39 +1146,39 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "number_of_opposing_personality_traits",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (
         Character,
         "number_of_opposing_traits",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (Character, "number_of_personality_traits", CompareValue),
     (
         Character,
         "number_of_personality_traits_in_common",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (Character, "number_of_powerful_vassals", CompareValue),
     (
         Character,
         "number_of_sinful_traits_in_common",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (Character, "number_of_stationed_maa_regiments", CompareValue),
     (Character, "number_of_traits", CompareValue),
     (
         Character,
         "number_of_traits_in_common",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (
         Character,
         "number_of_virtue_traits_in_common",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (VassalObligationLevel, "obligation_level_score", CompareValue),
-    (Character, "opinion", Block(&[("target", Scope(Character)), ("value", CompareValue)])),
+    (Character, "opinion", Block(&[("target", Scope(Character)), ("+value", CompareValue)])),
     (None, "or", Control),
     (Character, "owns_a_story", Boolean),
     (Character, "owns_story_of_type", Item(Item::Story)),
@@ -1180,21 +1188,24 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "perk_points", CompareValue),
     (Character, "perk_points_assigned", CompareValue),
     // perks_in_<lifestyle>
-    // TODO: is "tree" here a lifestyle? No examples in vanilla
-    (Character, "perks_in_tree", Block(&[("tree", Item(Item::PerkTree)), ("value", CompareValue)])),
+    (
+        Character,
+        "perks_in_tree",
+        Block(&[("tree", Item(Item::PerkTree)), ("+value", CompareValue)]),
+    ),
     (Struggle, "phase_has_catalyst", Item(Item::Catalyst)),
     (Character, "piety", CompareValueWarnEq),
     (Character, "piety_level", CompareValue),
     (
         LandedTitle,
         "place_in_line_of_succession",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     // TODO: documentation says the field is `position`, but it's really `value`
     (
         Character,
         "player_heir_position",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (Character, "pregnancy_days", CompareValue),
     (Character, "prestige", CompareValueWarnEq),
@@ -1204,7 +1215,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "prowess_diff",
-        Block(&[("target", Scope(Character)), ("value", CompareValue), ("?abs", Boolean)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue), ("?abs", Boolean)]),
     ),
     (Character, "prowess_for_portrait", CompareValue),
     (Character, "prowess_no_portrait", CompareValue),
@@ -1215,7 +1226,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "realm_to_title_distance_squared",
-        Block(&[("title", Scope(LandedTitle)), ("value", CompareValue)]),
+        Block(&[("title", Scope(LandedTitle)), ("+value", CompareValue)]),
     ),
     (
         LandedTitle,
@@ -1237,10 +1248,14 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[
             ("target", Scope(Character)),
             ("modifier", Item(Item::OpinionModifier)),
-            ("?value", CompareValue),
+            ("*value", CompareValue),
         ]),
     ),
-    (Character, "reverse_opinion", Block(&[("target", Scope(Character)), ("value", CompareValue)])),
+    (
+        Character,
+        "reverse_opinion",
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
+    ),
     (Secret, "same_secret_type_as", Scope(Secret)),
     (Character, "save_temporary_opinion_value_as", Special),
     (ALL_BUT_NONE, "save_temporary_scope_as", Special),
@@ -1287,14 +1302,14 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         LandedTitle | Province,
         "squared_distance",
-        Block(&[("target", Scope(LandedTitle | Province)), ("value", CompareValue)]),
+        Block(&[("target", Scope(LandedTitle | Province)), ("+value", CompareValue)]),
     ),
     (LandedTitle | Province, "squared_distance(", CompareValue),
     (Character, "stewardship", CompareValue),
     (
         Character,
         "stewardship_diff",
-        Block(&[("target", Scope(Character)), ("value", CompareValue), ("?abs", Boolean)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue), ("?abs", Boolean)]),
     ),
     (Character, "stewardship_for_portrait", CompareValue),
     (StoryCycle, "story_type", Item(Item::Story)),
@@ -1311,7 +1326,11 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "target_weight", CompareValue),
     (Province, "terrain", Item(Item::Terrain)),
     (LandedTitle, "tier", CompareValue), // TODO: advice if this is compared to a bare number
-    (Character, "tier_difference", Block(&[("target", Scope(Character)), ("value", CompareValue)])),
+    (
+        Character,
+        "tier_difference",
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
+    ),
     // TODO: warn if more than one of days, months, years
     // TODO: check if "weeks" works in these
     (
@@ -1350,7 +1369,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "time_to_hook_expiry",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (
         LandedTitle,
@@ -1358,7 +1377,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
         Block(&[
             ("type", Item(Item::Faction)),
             ("target", Scope(Character)),
-            ("value", CompareValue),
+            ("+value", CompareValue),
         ]),
     ),
     (LandedTitle, "title_held_years", CompareValueWarnEq),
@@ -1366,7 +1385,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         LandedTitle,
         "title_join_faction_chance",
-        Block(&[("target", Scope(Faction)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Faction)), ("+value", CompareValue)]),
     ),
     (LandedTitle, "title_will_leave_sub_realm_on_succession", Scope(Character)),
     (Army, "total_army_damage", CompareValue),
@@ -1377,7 +1396,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Character,
         "trait_compatibility",
-        Block(&[("target", Scope(Character)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Character)), ("+value", CompareValue)]),
     ),
     (Faith, "trait_is_sin", ScopeOrItem(Trait, Item::Trait)),
     (Faith, "trait_is_virtue", ScopeOrItem(Trait, Item::Trait)),
@@ -1393,7 +1412,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (
         Province,
         "travel_danger_value",
-        Block(&[("target", Scope(TravelPlan)), ("value", CompareValue)]),
+        Block(&[("target", Scope(TravelPlan)), ("+value", CompareValue)]),
     ),
     (Character, "travel_leader_cost", CompareValue),
     (Character, "travel_leader_safety", CompareValue),
@@ -1407,7 +1426,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (AccoladeType, "type_has_accolade_category", Item(Item::AccoladeCategory)),
     (Character, "tyranny", CompareValue),
     (War, "using_cb", Item(Item::CasusBelli)),
-    (None, "variable_list_size", Block(&[("name", UncheckedValue), ("value", CompareValue)])),
+    (None, "variable_list_size", Block(&[("name", UncheckedValue), ("+value", CompareValue)])),
     (Character, "vassal_contract_has_flag", Item(Item::VassalContractFlag)),
     (Character, "vassal_contract_has_modifiable_obligations", Boolean),
     (Character, "vassal_contract_is_blocked_from_modification", Boolean),
@@ -1420,7 +1439,7 @@ const TRIGGER: &[(u64, &str, RawTrigger)] = &[
     (Character, "vassal_limit_percentage", CompareValue),
     (Character, "war_chest_gold", CompareValueWarnEq),
     (Character, "war_chest_gold_maximum", CompareValueWarnEq),
-    (War, "war_contribution", Block(&[("target", Scope(Character)), ("value", CompareValue)])),
+    (War, "war_contribution", Block(&[("target", Scope(Character)), ("+value", CompareValue)])),
     (War, "war_days", CompareValueWarnEq),
     (Combat, "warscore_value", CompareValue),
     (TravelPlan, "was_activity_completed", Boolean),
