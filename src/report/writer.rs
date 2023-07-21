@@ -6,39 +6,25 @@ use crate::report::errors::Errors;
 use crate::report::output_style::Styled;
 use crate::report::{LogReport, PointedMessage, Severity};
 
-/// Source lines printed in the output have tab characters replaced by this string.
-/// TODO: this can't be increased without breaking the caret placement logic, because
-/// loc.column isn't updated when replacing the spaces with tabs.
-const SPACES_PER_TAB: &str = " ";
-/// Within a single report, if all printed source files have leading whitespace in excess of
-/// this number of spaces, the whitespace will be truncated.
-const MAX_IDLE_SPACE: usize = 8;
+/// Source lines printed in the output have leading tab characters replaced by this number of spaces.
+const SPACES_PER_TAB: usize = 4;
+/// Source lines that have more than this amount of leading whitespace (after tab replacement) have their whitespace truncated.
+const MAX_IDLE_SPACE: usize = 16;
 
 /// Log the report.
 pub fn log_report(errors: &mut Errors, report: &LogReport) {
     // Log error lvl and message:
     log_line_title(errors, report);
-    let lines = lines(errors, report);
-    let skippable_ws = skippable_ws(&lines);
 
     // Log the primary pointer:
-    log_pointer(
-        errors,
-        None,
-        report.primary(),
-        lines.first().unwrap_or(&None),
-        skippable_ws,
-        report.indentation(),
-        report.severity,
-    );
+    log_pointer(errors, None, report.primary(), report.indentation(), report.severity);
     // Log the other pointers:
-    report.pointers.windows(2).enumerate().for_each(|(index, pointers)| {
+    report.pointers.windows(2).for_each(|pointers| {
+        // Existence of pointers[0] and pointers[1] is guaranteed by .windows(2) iterator
         log_pointer(
             errors,
-            pointers.get(0),
-            pointers.get(1).expect("Must exist."),
-            lines.get(index + 1).unwrap_or(&None),
-            skippable_ws,
+            Some(&pointers[0]),
+            &pointers[1],
             report.indentation(),
             report.severity,
         );
@@ -52,11 +38,9 @@ pub fn log_report(errors: &mut Errors, report: &LogReport) {
 }
 
 fn log_pointer(
-    errors: &Errors,
+    errors: &mut Errors,
     previous: Option<&PointedMessage>,
     pointer: &PointedMessage,
-    line: &Option<String>,
-    skippable_ws: usize,
     indentation: usize,
     severity: Severity,
 ) {
@@ -72,11 +56,10 @@ fn log_pointer(
         // not any particular location within the file.
         return;
     }
-    // If a line exists, slice it to skip the given number of spaces.
-    // This is safe because skippable_ws only counts ASCII space characters.
-    if let Some(line) = line.as_ref().map(|v| &v[skippable_ws..]) {
-        log_line_from_source(errors, pointer, indentation, line);
-        log_line_carets(errors, pointer, line, skippable_ws, indentation, severity);
+    if let Some(line) = errors.get_line(&pointer.loc) {
+        let (line, removed, spaces) = line_spacing(line);
+        log_line_from_source(errors, pointer, indentation, &line, spaces);
+        log_line_carets(errors, pointer, indentation, &line, removed, spaces, severity);
     }
 }
 
@@ -131,17 +114,19 @@ fn log_line_file_location(errors: &Errors, pointer: &PointedMessage, indentation
 }
 
 /// Print a line from the source file.
-fn log_line_from_source(errors: &Errors, pointer: &PointedMessage, indentation: usize, line: &str) {
+fn log_line_from_source(
+    errors: &Errors,
+    pointer: &PointedMessage,
+    indentation: usize,
+    line: &str,
+    spaces: usize,
+) {
     let line_from_source: &[ANSIString<'static>] = &[
-        errors.styles.style(&Styled::Location).paint(format!(
-            "{:width$}",
-            pointer.loc.line,
-            width = indentation
-        )),
+        errors.styles.style(&Styled::Location).paint(format!("{:indentation$}", pointer.loc.line,)),
         errors.styles.style(&Styled::Default).paint(" "),
         errors.styles.style(&Styled::Location).paint("|"),
         errors.styles.style(&Styled::Default).paint(" "),
-        errors.styles.style(&Styled::SourceText).paint(line.to_string()),
+        errors.styles.style(&Styled::SourceText).paint(format!("{:spaces$}{line}", "")),
     ];
     _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line_from_source));
 }
@@ -149,26 +134,34 @@ fn log_line_from_source(errors: &Errors, pointer: &PointedMessage, indentation: 
 fn log_line_carets(
     errors: &Errors,
     pointer: &PointedMessage,
-    line: &str,
-    skippable_ws: usize,
     indentation: usize,
+    line: &str,
+    removed: usize,
+    spaces: usize,
     severity: Severity,
 ) {
     let mut spacing = String::new();
-    for c in
-        line.chars().take(pointer.loc.column.saturating_sub((skippable_ws + 1) as u32) as usize)
-    {
-        for _ in 0..c.width().unwrap_or(0) {
-            spacing.push(' ');
+    for c in line.chars().take((pointer.loc.column as usize).saturating_sub(removed + 1)) {
+        // There might still be tabs in the non-leading space
+        if c == '\t' {
+            spacing.push('\t');
+        } else {
+            for _ in 0..c.width().unwrap_or(0) {
+                spacing.push(' ');
+            }
         }
     }
+
     // A line containing the carets that point upwards at the source line.
     let line_carets: &[ANSIString] = &[
-        errors.styles.style(&Styled::Default).paint(format!("{:width$}", "", width = indentation)),
+        errors.styles.style(&Styled::Default).paint(format!("{:indentation$}", "")),
         errors.styles.style(&Styled::Default).paint(" "),
         errors.styles.style(&Styled::Location).paint("|"),
-        errors.styles.style(&Styled::Default).paint(" "),
-        errors.styles.style(&Styled::Default).paint(spacing.to_string()),
+        errors.styles.style(&Styled::Default).paint(format!(
+            "{:width$}{spacing}",
+            "",
+            width = spaces + 1
+        )),
         errors.styles.style(&Styled::Tag(severity, true)).paint(format!(
             "{:^^width$}",
             "",
@@ -201,22 +194,22 @@ pub(crate) fn kind_tag(errors: &Errors, kind: FileKind) -> &str {
     }
 }
 
-/// Gathers all printable source lines and gets rid of tab characters for consistency.
-fn lines(errors: &mut Errors, report: &LogReport) -> Vec<Option<String>> {
-    report
-        .pointers
-        .iter()
-        .map(|p| errors.get_line(&p.loc).map(|line| line.replace('\t', SPACES_PER_TAB)))
-        .collect()
-}
-
-/// Calculates how many leading spaces to skip from each printed source line.
-fn skippable_ws(lines: &[Option<String>]) -> usize {
-    lines
-        .iter()
-        .flatten()
-        .map(|line| line.chars().take_while(|ch| ch == &' ').count())
-        .min()
-        // If there are no lines, this value doesn't matter anyway, so just return a zero:
-        .map_or(0, |smallest_whitespace| smallest_whitespace.saturating_sub(MAX_IDLE_SPACE))
+/// Removes the leading spaces and tabs from `line` and returns it,
+/// together with how many character positions were removed and how many spaces should be substituted.
+fn line_spacing(mut line: String) -> (String, usize, usize) {
+    let mut remove = 0;
+    let mut spaces = 0;
+    for c in line.chars() {
+        if c == ' ' {
+            spaces += 1;
+        } else if c == '\t' {
+            spaces += SPACES_PER_TAB;
+        } else {
+            break;
+        }
+        remove += 1;
+    }
+    spaces = spaces.min(MAX_IDLE_SPACE);
+    line.replace_range(..remove, "");
+    (line, remove, spaces)
 }
