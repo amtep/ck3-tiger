@@ -155,10 +155,8 @@ fn log_line_carets(
     severity: Severity,
 ) {
     let mut spacing = String::new();
-    for c in line
-        .chars()
-        .skip(skippable_ws)
-        .take(pointer.loc.column.saturating_sub((skippable_ws + 1) as u32) as usize)
+    for c in
+        line.chars().take(pointer.loc.column.saturating_sub((skippable_ws + 1) as u32) as usize)
     {
         for _ in 0..c.width().unwrap_or(0) {
             spacing.push(' ');
