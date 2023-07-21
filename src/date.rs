@@ -27,8 +27,11 @@ impl FromStr for Date {
         let year = splits.next().ok_or(Error)?;
         let month = splits.next().unwrap_or("1");
         let mut day = splits.next().unwrap_or("1");
-        if splits.next().is_some() {
-            return Err(Error);
+        // Error if there is a fourth field, but do allow a trailing dot
+        if let Some(next) = splits.next() {
+            if !next.is_empty() {
+                return Err(Error);
+            }
         }
         if day.is_empty() {
             day = "1";

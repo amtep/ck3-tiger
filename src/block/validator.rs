@@ -1170,6 +1170,7 @@ impl<'a> Validator<'a> {
     {
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if let Ok(date) = Date::try_from(key) {
+                key.expect_date(); // warn about unusual date formats
                 self.known_fields.push(key.as_str());
                 self.expect_eq_qeq(key, *cmp);
                 if let Some(block) = bv.expect_block() {

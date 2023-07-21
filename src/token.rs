@@ -7,7 +7,7 @@ use std::sync::Arc;
 use crate::date::Date;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pathtable::{PathTable, PathTableIndex};
-use crate::report::{error, error_info, ErrorKey};
+use crate::report::{error, error_info, untidy, ErrorKey};
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
@@ -208,6 +208,9 @@ impl Token {
 
     pub fn expect_date(&self) -> Option<Date> {
         if let Ok(v) = self.s.parse::<Date>() {
+            if self.s.ends_with('.') {
+                untidy(ErrorKey::Validation).msg("trailing dot on date").loc(self).push();
+            }
             Some(v)
         } else {
             error(self, ErrorKey::Validation, "expected date");
