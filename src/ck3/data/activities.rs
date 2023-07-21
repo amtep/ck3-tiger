@@ -673,12 +673,10 @@ impl PulseAction {
 impl DbKind for PulseAction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let loca = format!("activity_pulse_action_{key}");
-        data.verify_exists_implied(Item::Localization, &loca, key);
 
         let icon = vd.field_value("icon").unwrap_or(key);
         let pathname = format!("gfx/interface/icons/activity_pulse_actions/{icon}.dds");
-        data.verify_exists_implied(Item::File, &pathname, key);
+        data.verify_exists_implied(Item::File, &pathname, icon);
 
         let mut sc = ScopeContext::new(Scopes::Activity, key);
         sc.define_name("activity", Scopes::Activity, key);
