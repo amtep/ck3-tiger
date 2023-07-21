@@ -164,7 +164,7 @@ fn validate_portrait_modifier(
                     Gene::verify_has_template(category.as_str(), template, data);
                 }
             }
-            vd.field_numeric("value");
+            vd.field_script_value("value", sc);
             vd.field_validated_block("range", |block, data| {
                 validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
             });
