@@ -19,7 +19,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::{
-    validate_portrait_modifier_overrides, validate_prefix_reference_token, ListType,
+    validate_color, validate_portrait_modifier_overrides, validate_prefix_reference_token, ListType,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -447,10 +447,15 @@ impl Character {
         vd.field_item("sexuality", Item::Sexuality);
         vd.field_numeric("health");
         vd.field_numeric("fertility");
-        vd.field_validated_block(
-            "portrait_modifier_overrides",
-            validate_portrait_modifier_overrides,
-        );
+
+        vd.field_validated_block("portrait_override", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_block(
+                "portrait_modifier_overrides",
+                validate_portrait_modifier_overrides,
+            );
+            vd.field_validated_block("hair", validate_color);
+        });
 
         vd.validate_history_blocks(|date, b, data| {
             Self::validate_history(date, b, &self.block, data, &mut sc);
