@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use strum::IntoEnumIterator;
 
 use crate::block::{Block, BlockItem, Comparator, Eq::*, Field, BV};
+use crate::helpers::stringify_list;
 use crate::report::{
     err, error, set_predicate, set_show_loaded_mods, set_show_vanilla, Confidence, ErrorKey,
     ErrorLoc, FilterRule, PointedMessage, Severity,
@@ -268,15 +269,15 @@ fn load_rule_severity(comparator: Comparator, value: &BV) -> Option<FilterRule> 
             None
         }
         BV::Value(token) => {
-            if let Ok(severity) = token.as_str().parse() {
+            if let Ok(severity) = token.as_str().to_lowercase().parse() {
                 Some(FilterRule::Severity(comparator, severity))
             } else {
                 error(
                     token,
                     ErrorKey::Config,
                     &format!(
-                        "Invalid Severity value. Valid values: {:?}",
-                        Severity::iter().collect::<Vec<_>>()
+                        "Invalid Severity value. Valid values: {}",
+                        stringify_list(&Severity::iter().map(Severity::into).collect::<Vec<_>>()),
                     ),
                 );
                 None
@@ -296,15 +297,17 @@ fn load_rule_confidence(comparator: Comparator, value: &BV) -> Option<FilterRule
             None
         }
         BV::Value(token) => {
-            if let Ok(confidence) = token.as_str().parse() {
+            if let Ok(confidence) = token.as_str().to_lowercase().parse() {
                 Some(FilterRule::Confidence(comparator, confidence))
             } else {
                 error(
                     token,
                     ErrorKey::Config,
                     &format!(
-                        "Invalid Confidence value. Valid values: {:?}",
-                        Confidence::iter().collect::<Vec<_>>()
+                        "Invalid Confidence value. Valid values are {}",
+                        stringify_list(
+                            &Confidence::iter().map(Confidence::into).collect::<Vec<_>>()
+                        ),
                     ),
                 );
                 None

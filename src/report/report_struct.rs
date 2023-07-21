@@ -1,6 +1,5 @@
 use serde::Serialize;
-use strum_macros::EnumString;
-use strum_macros::{Display, EnumIter};
+use strum_macros::{Display, EnumIter, EnumString, IntoStaticStr};
 
 use crate::report::ErrorKey;
 use crate::token::Loc;
@@ -70,11 +69,13 @@ impl PointedMessage {
     Eq,
     PartialEq,
     Hash,
+    IntoStaticStr,
     EnumString,
     EnumIter,
     Serialize,
 )]
 #[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
 pub enum Severity {
     /// These are things that aren't necessarily wrong, but there may be a better, more
     /// idiomatic way to do it. This may also include performance issues.
@@ -120,11 +121,13 @@ impl Severity {
     Eq,
     PartialEq,
     Hash,
-    EnumString,
+    IntoStaticStr,
     EnumIter,
+    EnumString,
     Serialize,
 )]
 #[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
 pub enum Confidence {
     /// Quite likely to be a false positive.
     Weak,

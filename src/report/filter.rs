@@ -74,10 +74,10 @@ pub enum FilterRule {
     /// Reports must not match the enclosed rule to match the negation.
     Negation(Box<FilterRule>),
     /// Reports must be within the given Severity range to match the rule.
-    /// The condition is built as such: `report.lvl.severity OPERATOR SEVERITY`
+    /// The condition is built like `severity >= error` in the filter trigger.
     Severity(Comparator, Severity),
     /// Reports must be within the given Confidence range to match the rule.
-    /// The condition is built as such: `report.lvl.confidence OPERATOR CONFIDENCE`
+    /// The condition is built like `confidence > weak` in the filter trigger.
     Confidence(Comparator, Confidence),
     /// The report's `ErrorKey` must be the listed key for the report to match the rule.
     Key(ErrorKey),
