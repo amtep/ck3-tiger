@@ -7,10 +7,12 @@ use crate::report::output_style::Styled;
 use crate::report::{LogReport, PointedMessage, Severity};
 
 /// Source lines printed in the output have tab characters replaced by this string.
+/// TODO: this can't be increased without breaking the caret placement logic, because
+/// loc.column isn't updated when replacing the spaces with tabs.
 const SPACES_PER_TAB: &str = " ";
 /// Within a single report, if all printed source files have leading whitespace in excess of
 /// this number of spaces, the whitespace will be truncated.
-const MAX_IDLE_SPACE: usize = 4;
+const MAX_IDLE_SPACE: usize = 8;
 
 /// Log the report.
 pub fn log_report(errors: &mut Errors, report: &LogReport) {
@@ -71,6 +73,7 @@ fn log_pointer(
         return;
     }
     // If a line exists, slice it to skip the given number of spaces.
+    // This is safe because skippable_ws only counts ASCII space characters.
     if let Some(line) = line.as_ref().map(|v| &v[skippable_ws..]) {
         log_line_from_source(errors, pointer, indentation, line);
         log_line_carets(errors, pointer, line, skippable_ws, indentation, severity);
