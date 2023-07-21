@@ -107,6 +107,10 @@ fn main() -> Result<()> {
     if args.modpath.is_dir() {
         args.modpath.push("descriptor.mod");
     }
+    if args.no_color {
+        // Disable colors both here and after reading the config, because reading the modfile and config may emit errors.
+        disable_ansi_colors();
+    }
     let modfile = ModFile::read(&args.modpath)?;
     let modpath = modfile.modpath();
     if !modpath.exists() {

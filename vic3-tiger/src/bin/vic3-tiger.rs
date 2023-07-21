@@ -95,6 +95,11 @@ fn main() -> Result<()> {
         eprintln!("Showing warnings for unused localization. There will be many false positives.");
     }
 
+    if args.no_color {
+        // Disable colors both here and after reading the config, because reading the modfile and config may emit errors.
+        disable_ansi_colors();
+    }
+
     if args.modpath.is_dir() {
         let mut sig = args.modpath.clone();
         sig.push(".metadata/metadata.json");
