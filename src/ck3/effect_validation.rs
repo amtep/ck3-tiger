@@ -143,8 +143,7 @@ pub fn validate_effect_block(
         AddActivityLogEntry => {
             vd.req_field("key");
             vd.req_field("character");
-            vd.field_item("key", Item::Localization);
-            if let Some(token) = block.get_field_value("key") {
+            if let Some(token) = vd.field_value("key") {
                 let loca = format!("{token}_title");
                 data.verify_exists_implied(Item::Localization, &loca, token);
             }
