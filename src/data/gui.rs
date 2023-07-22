@@ -15,7 +15,7 @@ use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
 #[cfg(feature = "ck3")]
 use crate::report::warn;
-use crate::report::{error, error_info, old_warn, warn_info, ErrorKey};
+use crate::report::{err, error, error_info, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 
@@ -153,7 +153,16 @@ impl FileHandler<Block> for Gui {
             match expecting {
                 Expecting::Widget => {
                     if let BlockItem::Field(field) = item {
-                        if let Some((key, block)) = field.expect_into_definition() {
+                        if let Some((key, token)) = field.get_assignment() {
+                            if key.lowercase_is("template") || key.lowercase_is("local_template") {
+                                expecting = Expecting::TemplateBody(token.clone());
+                            } else {
+                                err(ErrorKey::ParseError)
+                                    .msg("unexpected assignment")
+                                    .loc(key)
+                                    .push();
+                            }
+                        } else if let Some((key, block)) = field.expect_into_definition() {
                             self.load_widget(PathBuf::from(entry.filename()), key, block);
                         }
                     } else if let Some(token) = item.expect_value() {
