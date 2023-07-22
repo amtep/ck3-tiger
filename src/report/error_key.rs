@@ -8,6 +8,7 @@ pub enum ErrorKey {
     Config,
     ReadError,
     ParseError,
+    BraceError,
     BracePlacement,
     LocalValues,
     Packaging,

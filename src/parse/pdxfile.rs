@@ -409,7 +409,7 @@ impl Parser {
                 );
             }
         } else {
-            error(Token::new("}".to_string(), loc), ErrorKey::ParseError, "Unexpected }");
+            error(Token::new("}".to_string(), loc), ErrorKey::BraceError, "Unexpected }");
         }
     }
 
@@ -418,7 +418,7 @@ impl Parser {
         while let Some(mut prev_level) = self.stack.pop() {
             error(
                 &Token::new("{".to_string(), self.current.block.loc.clone()),
-                ErrorKey::ParseError,
+                ErrorKey::BraceError,
                 "Opening { was never closed",
             );
             swap(&mut self.current, &mut prev_level);
