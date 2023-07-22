@@ -7,9 +7,10 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, BANNED_NAMES};
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -27,7 +28,12 @@ impl ScriptedModifiers {
                 dup_error(&key, &other.key, "scripted modifier");
             }
         }
-        self.scripted_modifiers.insert(key.to_string(), ScriptedModifier::new(key, block));
+        if BANNED_NAMES.contains(&key.as_str()) {
+            let msg = "scripted modifier has the same name as an important builtin";
+            err(ErrorKey::NameConflict).strong().msg(msg).loc(key).push();
+        } else {
+            self.scripted_modifiers.insert(key.to_string(), ScriptedModifier::new(key, block));
+        }
     }
 
     pub fn exists(&self, key: &str) -> bool {

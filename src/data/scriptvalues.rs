@@ -7,9 +7,9 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, exact_dup_error};
+use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
 use crate::pdxfile::PdxFile;
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{err, old_warn, ErrorKey};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::{Loc, Token};
@@ -31,9 +31,14 @@ impl ScriptValues {
                 }
             }
         }
-        let scope_override = self.scope_overrides.get(key.as_str()).copied();
-        self.scriptvalues
-            .insert(key.to_string(), ScriptValue::new(key.clone(), bv.clone(), scope_override));
+        if BANNED_NAMES.contains(&key.as_str()) {
+            let msg = "scriptedvalue has the same name as an important builtin";
+            err(ErrorKey::NameConflict).strong().msg(msg).loc(key).push();
+        } else {
+            let scope_override = self.scope_overrides.get(key.as_str()).copied();
+            self.scriptvalues
+                .insert(key.to_string(), ScriptValue::new(key.clone(), bv.clone(), scope_override));
+        }
     }
 
     pub fn exists(&self, key: &str) -> bool {

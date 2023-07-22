@@ -113,3 +113,19 @@ impl Own<String> for &str {
         self.to_owned()
     }
 }
+
+/// Warn if a scripted item has one of these names, and ignore it when validating.
+/// This avoids tons of errors from for example a scripted effect named `if`.
+/// Such an effect can happen accidentally with a misplaced brace or two.
+pub const BANNED_NAMES: &[&str] = &[
+    "if",
+    "else",
+    "else_if",
+    "trigger_if",
+    "trigger_else",
+    "trigger_else_if",
+    "while",
+    "limit",
+    "filter",
+    "switch",
+];

@@ -7,10 +7,10 @@ use crate::context::ScopeContext;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, exact_dup_error};
+use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{err, old_warn, ErrorKey};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -32,8 +32,13 @@ impl Effects {
                 }
             }
         }
-        let scope_override = self.scope_overrides.get(key.as_str()).copied();
-        self.effects.insert(key.to_string(), Effect::new(key, block, scope_override));
+        if BANNED_NAMES.contains(&key.as_str()) {
+            let msg = "scripted effect has the same name as an important builtin";
+            err(ErrorKey::NameConflict).strong().msg(msg).loc(key).push();
+        } else {
+            let scope_override = self.scope_overrides.get(key.as_str()).copied();
+            self.effects.insert(key.to_string(), Effect::new(key, block, scope_override));
+        }
     }
 
     pub fn exists(&self, key: &str) -> bool {

@@ -6,10 +6,10 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, exact_dup_error};
+use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
-use crate::report::{old_warn, ErrorKey, Severity};
+use crate::report::{err, old_warn, ErrorKey, Severity};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -32,8 +32,13 @@ impl Triggers {
                 }
             }
         }
-        let scope_override = self.scope_overrides.get(key.as_str()).copied();
-        self.triggers.insert(key.to_string(), Trigger::new(key, block, scope_override));
+        if BANNED_NAMES.contains(&key.as_str()) {
+            let msg = "scripted trigger has the same name as an important builtin";
+            err(ErrorKey::NameConflict).strong().msg(msg).loc(key).push();
+        } else {
+            let scope_override = self.scope_overrides.get(key.as_str()).copied();
+            self.triggers.insert(key.to_string(), Trigger::new(key, block, scope_override));
+        }
     }
 
     pub fn exists(&self, key: &str) -> bool {
