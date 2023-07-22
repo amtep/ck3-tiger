@@ -266,6 +266,7 @@ impl Item {
             | Item::CustomLocalization
             | Item::EffectLocalization
             | Item::Ethnicity
+            | Item::File
             | Item::GameConcept
             | Item::Localization
             | Item::MapLayer

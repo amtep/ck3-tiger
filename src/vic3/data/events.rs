@@ -116,7 +116,7 @@ pub struct Event {
     expects_from_token: Token,
 }
 
-const EVENT_TYPES: &[&str] = &["country_event", "state_event"];
+const EVENT_TYPES: &[&str] = &["character_event", "country_event", "state_event"];
 
 impl Event {
     pub fn new(key: Token, block: Block) -> Self {
@@ -154,6 +154,7 @@ impl Event {
             }
         }
 
+        // TODO: should character_event always be hidden?
         vd.field_choice("type", EVENT_TYPES);
 
         let mut sc = ScopeContext::new(self.expects_scope, &self.expects_from_token);
@@ -252,6 +253,7 @@ fn validate_event_option(
 
     vd.field_bool("default_option");
     vd.field_bool("highlighted_option");
+    vd.field_bool("fallback");
     vd.field_validated_sc("ai_chance", sc, validate_ai_chance);
     validate_effect_internal("option", ListType::None, block, data, sc, vd, tooltipped);
 }

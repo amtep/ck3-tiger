@@ -493,6 +493,7 @@ impl Item {
             | Item::EventBackground
             | Item::EventTheme
             | Item::EventTransition
+            | Item::File
             | Item::Flavorization
             | Item::GameConcept
             | Item::GraphicalFaith
