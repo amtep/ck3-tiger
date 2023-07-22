@@ -97,6 +97,8 @@ enum ScopeEntry {
 }
 
 impl ScopeContext {
+    /// Make a new `ScopeContext`, with `this` and `root` the same, and `root` of the given scope
+    /// types. `token` is used when reporting errors about the use of `root`.
     pub fn new<T: Own<Token>>(root: Scopes, token: T) -> Self {
         ScopeContext {
             prev: None,
@@ -113,6 +115,11 @@ impl ScopeContext {
         }
     }
 
+    /// Make a new `ScopeContext`, with `this` and `root` unconnected, and `this` of the given scope
+    /// types. `token` is used when reporting errors about the use of `this`, `root`, or `prev`.
+    ///
+    /// This function is useful for the scope contexts created for scripted effects, scripted
+    /// triggers, and scriptvalues. In those, it's not known what the caller's `root` is.
     pub fn new_unrooted<T: Own<Token>>(this: Scopes, token: T) -> Self {
         let token = token.own();
         ScopeContext {
@@ -133,23 +140,44 @@ impl ScopeContext {
         }
     }
 
+    /// Declare whether all the named scopes in this scope context are known. Default is true.
+    ///
+    /// Set this to false in for example events, which start with the scopes defined by their
+    /// triggering context.
+    ///
+    /// Having strict scopes set to true makes the `ScopeContext` emit errors when encountering
+    /// unknown scope names.
     pub fn set_strict_scopes(&mut self, strict: bool) {
         self.strict_scopes = strict;
     }
 
+    /// Return whether this `ScopeContext` has strict scopes set to true.
+    /// See [self.set_strict_scopes].
     pub fn is_strict(&self) -> bool {
         self.strict_scopes
     }
 
+    /// Set whether this `ScopeContext` should emit reports at all. `no_warn` defaults to false.
+    ///
+    /// It's used for scope contexts that are known to be wrong, related to the `scope_override` config file feature.
     pub fn set_no_warn(&mut self, no_warn: bool) {
         self.no_warn = no_warn;
     }
 
+    /// Change the scope type and related token of `root` for this `ScopeContext`.
+    ///
+    /// This function is mainly used in the setup of a `ScopeContext` before using it.
+    /// It's a bit of a hack and shouldn't be used.
+    /// TODO: get rid of this.
     #[cfg(feature = "ck3")] // happens not to be used by vic3
     pub fn change_root<T: Own<Token>>(&mut self, root: Scopes, token: T) {
         self.root = ScopeEntry::Scope(root, token.own());
     }
 
+    /// Declare that this `ScopeContext` contains a named scope of the given name and type.
+    ///
+    /// The associated `token` will be used in error reports related to this named scope.
+    /// The token should reflect why we think the named scope has the scope type it has.
     pub fn define_name<T: Own<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
         if let Some(&idx) = self.names.get(name) {
             self._break_chains_to(idx);
@@ -161,6 +189,9 @@ impl ScopeContext {
         }
     }
 
+    /// Look up a named scope and return its scope types if it's known.
+    ///
+    /// Callers should probably check [self.is_strict] as well.
     pub fn is_name_defined(&mut self, name: &str) -> Option<Scopes> {
         if let Some(&idx) = self.names.get(name) {
             Some(match self.named[idx] {
@@ -174,6 +205,14 @@ impl ScopeContext {
         }
     }
 
+    /// This is called when the script does `exists = scope:name`.
+    ///
+    /// It records `name` as "known", but with no scope type information, and records that the
+    /// caller is expected to provide this scope.
+    ///
+    /// The `ScopeContext` is not smart enough to track optionally existing scopes. It assumes
+    /// that if you do `exists` on a scope, then from that point on it exists. Improving this would
+    /// be a big project.
     pub fn exists_scope<T: Own<Token>>(&mut self, name: &str, token: T) {
         if !self.names.contains_key(name) {
             let idx = self.named.len();
@@ -183,6 +222,11 @@ impl ScopeContext {
         }
     }
 
+    /// This is like [`define_name`] but for lists.
+    ///
+    /// Lists (that aren't variable lists) and named scopes exist in different namespaces, but
+    /// under the hood `ScopeContext` treats them the same. This means that lists are expected to
+    /// contain items of a single scope type, which sometimes leads to false positives.
     pub fn define_list<T: Own<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
         if let Some(&idx) = self.list_names.get(name) {
             self._break_chains_to(idx);
@@ -194,11 +238,12 @@ impl ScopeContext {
         }
     }
 
+    /// This is like [`define_name`], but `scope:name` is declared equal to the current `this`.
     pub fn save_current_scope(&mut self, name: &str) {
         if let Some(&idx) = self.names.get(name) {
             self._break_chains_to(idx);
             let entry = self._resolve_backrefs();
-            // Check against `scope:foo = { save_scope_as = foo }`
+            // Guard against `scope:foo = { save_scope_as = foo }`
             if let ScopeEntry::Named(i, _) = entry {
                 if *i == idx {
                     // Leave the scope as its original value
@@ -213,6 +258,10 @@ impl ScopeContext {
         }
     }
 
+    /// If list `name` exists, expect it to have the same scope type as `this`, otherwise define it
+    /// as having the same scope type as `this`.
+    ///
+    /// TODO: I don't think this is doing the right thing for most callers.
     pub fn define_or_expect_list(&mut self, name: &Token) {
         if let Some(&idx) = self.list_names.get(name.as_str()) {
             let (s, t) = self._resolve_named(idx);
@@ -224,6 +273,10 @@ impl ScopeContext {
         }
     }
 
+    /// Expect list `name` to be already defined as having the same type as `this`, and (with
+    /// strict scopes) warn if it isn't defined.
+    ///
+    /// TODO: check that this is doing the right thing for its callers.
     pub fn expect_list(&mut self, name: &Token) {
         if let Some(&idx) = self.list_names.get(name.as_str()) {
             let (s, t) = self._resolve_named(idx);
@@ -234,7 +287,7 @@ impl ScopeContext {
         }
     }
 
-    /// Cut `idx` out of any `ScopeEntry::Named` chains
+    /// Cut `idx` out of any `ScopeEntry::Named` chains. This avoids infinite loops.
     fn _break_chains_to(&mut self, idx: usize) {
         for i in 0..self.named.len() {
             if i == idx {
@@ -248,12 +301,22 @@ impl ScopeContext {
         }
     }
 
+    /// Open a new scope level of `scopes` scope type. Record `token` as the reason for this type.
+    ///
+    /// This is mostly used by iterators.
+    /// `prev` will refer to the previous scope level.
     pub fn open_scope(&mut self, scopes: Scopes, token: Token) {
         self.prev =
             Some(Box::new(ScopeHistory { prev: self.prev.take(), this: self.this.clone() }));
         self.this = ScopeEntry::Scope(scopes, token);
     }
 
+    /// Open a new, temporary scope level. Initially it will have its `this` the same as the
+    /// previous level's `this`.
+    ///
+    /// The purpose is to handle scope chains like `root.liege.primary_title`. Call the `replace_`
+    /// functions to update the value of `this`, and at the end either confirm the new scope level
+    /// with [`finalize_builder`] or discard it with [`close`].
     pub fn open_builder(&mut self) {
         self.prev =
             Some(Box::new(ScopeHistory { prev: self.prev.take(), this: self.this.clone() }));
@@ -261,10 +324,12 @@ impl ScopeContext {
         self.is_builder = true;
     }
 
+    /// Declare that the temporary scope level opened with [`open_builder`] is a real scope level.
     pub fn finalize_builder(&mut self) {
         self.is_builder = false;
     }
 
+    /// Exit a scope level and return to the previous level.
     pub fn close(&mut self) {
         let mut prev = self.prev.take().unwrap();
         self.this = prev.this.clone();
@@ -272,30 +337,57 @@ impl ScopeContext {
         self.is_builder = false;
     }
 
+    /// Replace the `this` in a temporary scope level with the given `scopes` type and record
+    /// `token` as the reason for this type.
+    ///
+    /// This is used when a scope chain starts with something absolute like `faith:catholic`.
     pub fn replace(&mut self, scopes: Scopes, token: Token) {
         self.this = ScopeEntry::Scope(scopes, token);
     }
 
+    /// Replace the `this` in a temporary scope level with a reference to `root`.
     pub fn replace_root(&mut self) {
         self.this = ScopeEntry::Rootref;
     }
 
+    /// Replace the `this` in a temporary scope level with a reference to the previous scope level.
+    ///
+    /// Note that the previous scope level is counted from the last real level, so one further back
+    /// than you might expect.
     pub fn replace_prev(&mut self) {
         self.this = ScopeEntry::Backref(1);
     }
 
+    /// Replace the `this` in a temporary scope level with a reference to the real level below it.
+    ///
+    /// This is usually a no-op, used when scope chains start with `this`. If a scope chain has
+    /// `this` in the middle of the chain (which itself will trigger a warning) then it resets the
+    /// temporary scope level to the way it started.
     pub fn replace_this(&mut self) {
         self.this = ScopeEntry::Backref(0);
     }
 
+    /// Replace the `this` in a temporary scope level with a reference to the named scope `name`.
+    ///
+    /// This is used when a scope chain starts with `scope:name`. The `token` is expected to be the
+    /// `scope:name` token.
     pub fn replace_named_scope(&mut self, name: &str, token: &Token) {
         self.this = ScopeEntry::Named(self._named_index(name, token), token.clone());
     }
 
+    /// Replace the `this` in a temporary scope level with a reference to the scope type of the
+    /// list `name`.
+    ///
+    /// This is used in list iterators. The `token` is expected to be the token for the name of the
+    /// list.
     pub fn replace_list_entry(&mut self, name: &str, token: &Token) {
         self.this = ScopeEntry::Named(self._named_list_index(name, token), token.clone());
     }
 
+    /// Get the internal index of named scope `name`, either its existing index or a newly created
+    /// one.
+    ///
+    /// If a new index has to be created, and `strict_scopes` is on, then a warning will be emitted.
     fn _named_index(&mut self, name: &str, token: &Token) -> usize {
         if let Some(&idx) = self.names.get(name) {
             idx
@@ -325,6 +417,9 @@ impl ScopeContext {
         }
     }
 
+    /// Same as [`_named_index`], but for lists. No warning is emitted if a new list is created.
+    ///
+    /// TODO: This function does not update the `input` vector, which is a bug.
     fn _named_list_index(&mut self, name: &str, token: &Token) -> usize {
         if let Some(&idx) = self.list_names.get(name) {
             idx
@@ -336,18 +431,24 @@ impl ScopeContext {
         }
     }
 
+    /// Return true iff it's possible that `this` is the same type as one of the `scopes` types.
     pub fn can_be(&self, scopes: Scopes) -> bool {
         self.scopes().intersects(scopes)
     }
 
+    /// Return true iff `this` has exactly the same possible types as the `scopes` types.
+    ///
+    /// TODO: this function is unused and should be removed.
     pub fn must_be(&self, scopes: Scopes) -> bool {
         self.scopes() == scopes
     }
 
+    /// Return the possible scope types of this scope level.
     pub fn scopes(&self) -> Scopes {
         self.scopes_token().0
     }
 
+    /// Return the possible scope types of `root`, and a token that indicates why we think that.
     fn _resolve_root(&self) -> (Scopes, &Token) {
         match self.root {
             ScopeEntry::Scope(s, ref t) => (s, t),
@@ -355,7 +456,10 @@ impl ScopeContext {
         }
     }
 
-    // Resolve a `ScopeEntry` until it's either a `ScopeEntry::Scope` or a `ScopeEntry::Rootref`
+    /// Return the possible scope types of a named scope or list, and a token that indicates why we
+    /// think that.
+    ///
+    /// The `idx` must be an index from the `names` or `list_names` vectors.
     fn _resolve_named(&self, idx: usize) -> (Scopes, &Token) {
         #[allow(clippy::match_on_vec_items)]
         match self.named[idx] {
@@ -366,6 +470,9 @@ impl ScopeContext {
         }
     }
 
+    /// Search through the scope levels to find out what `this` actually refers to.
+    ///
+    /// The returned `ScopeEntry` will not be a `ScopeEntry::Backref`.
     fn _resolve_backrefs(&self) -> &ScopeEntry {
         match self.this {
             ScopeEntry::Backref(r) => self._resolve_backrefs_inner(r),
@@ -393,6 +500,8 @@ impl ScopeContext {
         }
     }
 
+    /// Return the possible scope types for the current scope layer, together with a `token` that
+    /// indicates the reason we think that.
     pub fn scopes_token(&self) -> (Scopes, &Token) {
         match self.this {
             ScopeEntry::Scope(s, ref t) => (s, t),
@@ -592,6 +701,9 @@ impl ScopeContext {
         }
     }
 
+    /// Record that the `this` in the current scope level is one of the scope types `scopes`, and
+    /// if this is new information, record `token` as the reason we think that.
+    /// Emit an error if what we already know about `this` is incompatible with `scopes`.
     pub fn expect(&mut self, scopes: Scopes, token: &Token) {
         // The None scope is special, it means the scope isn't used or inspected
         if self.no_warn || scopes == Scopes::None {
@@ -605,6 +717,10 @@ impl ScopeContext {
         }
     }
 
+    /// Like [`expect`], but the error emitted will be located at token `key`.
+    ///
+    /// This function is used when the expectation of scope compatibility comes from `key`, for
+    /// example when matching up a caller's scope context with a scripted effect's scope context.
     pub fn expect3(&mut self, scopes: Scopes, token: &Token, key: &Token) {
         // The None scope is special, it means the scope isn't used or inspected
         if scopes == Scopes::None {
@@ -622,6 +738,12 @@ impl ScopeContext {
         }
     }
 
+    /// Compare this scope context to `other`, with `key` as the token that identifies `other`.
+    ///
+    /// This function examines the `root`, `this`, `prev`, and named scopes of the two scope
+    /// contexts and warns about any contradictions it finds.
+    ///
+    /// It expects `self` to be the caller and `other` to be the callee.
     pub fn expect_compatibility(&mut self, other: &ScopeContext, key: &Token) {
         if self.no_warn {
             return;
@@ -672,6 +794,7 @@ impl ScopeContext {
 }
 
 impl Drop for ScopeContext {
+    /// This `drop` function checks that every opened scope level was also closed.
     fn drop(&mut self) {
         if self.is_unrooted {
             assert!(
