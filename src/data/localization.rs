@@ -16,8 +16,8 @@ use crate::parse::localization::{parse_loca, ValueParser};
 #[cfg(feature = "ck3")]
 use crate::report::warn2;
 use crate::report::{
-    error, error_info, report, warn, warn_abbreviated, warn_header, warn_info, will_maybe_log,
-    ErrorKey, Severity,
+    error_info, report, warn, warn_abbreviated, warn_header, warn_info, will_maybe_log, ErrorKey,
+    Severity,
 };
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -569,8 +569,8 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
                     for macrovalue in v {
                         if let MacroValue::Keyword(k, _) = macrovalue {
                             if !lang.contains_key(k.as_str()) && !builtins.contains(k.as_str()) {
-                                // TODO: display these errors in a sensible order, like by filename
-                                error(k, ErrorKey::Localization, &format!("The substitution parameter ${}$ is not defined anywhere as a key.", k.as_str()));
+                                let msg = &format!("The substitution parameter ${k}$ is not defined anywhere as a key.");
+                                warn(ErrorKey::Localization).msg(msg).loc(k).push();
                             }
                         }
                     }
