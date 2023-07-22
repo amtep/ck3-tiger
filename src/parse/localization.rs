@@ -4,7 +4,7 @@ use std::str::Chars;
 use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
-use crate::report::{err, error, old_warn, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::token::{Loc, Token};
 
 fn is_key_char(c: char) -> bool {
@@ -30,14 +30,23 @@ struct LocaParser<'a> {
 }
 
 impl<'a> LocaParser<'a> {
-    fn new(loc: Loc, content: &'a str, lang: &'static str) -> Self {
+    fn new(mut loc: Loc, content: &'a str, lang: &'static str) -> Self {
         let mut chars = content.chars().peekable();
         let mut offset = 0;
         if chars.peek() == Some(&'\u{feff}') {
             offset += '\u{feff}'.len_utf8();
+            loc.column += 1;
             chars.next();
+            if chars.peek() == Some(&'\u{feff}') {
+                let msg = "double BOM in localization file";
+                let info = "This will make the game engine skip the whole file.";
+                warn(ErrorKey::Encoding).strong().msg(msg).info(info).loc(&loc).push();
+                offset += '\u{feff}'.len_utf8();
+                loc.column += 1;
+                chars.next();
+            }
         } else {
-            old_warn(&loc, ErrorKey::Encoding, "Expected UTF-8 BOM encoding");
+            warn(ErrorKey::Encoding).msg("Expected UTF-8 BOM encoding").loc(&loc).push();
         }
         LocaParser {
             loc,
@@ -118,16 +127,14 @@ impl<'a> LocaParser<'a> {
 
     fn unexpected_char(&mut self, expected: &str) {
         match self.chars.peek() {
-            None => error(
-                &self.loc,
-                ErrorKey::Localization,
-                &format!("Unexpected end of file, {expected}"),
-            ),
-            Some(c) => error(
-                &self.loc,
-                ErrorKey::Localization,
-                &format!("Unexpected character `{c}`, {expected}"),
-            ),
+            None => warn(ErrorKey::Localization)
+                .msg(&format!("Unexpected end of file, {expected}"))
+                .loc(&self.loc)
+                .push(),
+            Some(c) => warn(ErrorKey::Localization)
+                .msg(&format!("Unexpected character `{c}`, {expected}"))
+                .loc(&self.loc)
+                .push(),
         };
     }
 
@@ -218,7 +225,7 @@ impl<'a> LocaParser<'a> {
         if self.chars.peek() != Some(&'$') {
             // TODO: check if there is a closing $, adapt warning text
             let msg = "didn't recognize a key between $";
-            old_warn(key, ErrorKey::Localization, msg);
+            warn(ErrorKey::Localization).weak().msg(msg).loc(key).push();
             return None;
         }
         let s = self.content[start_offset..end_offset].to_string();
@@ -277,18 +284,18 @@ impl<'a> LocaParser<'a> {
             if self.expecting_language {
                 if !key.is(&format!("l_{}", self.language)) {
                     let msg = format!("wrong language header, should be `l_{}:`", self.language);
-                    error(key, ErrorKey::Localization, &msg);
+                    warn(ErrorKey::Localization).msg(msg).loc(key).push();
                 }
                 self.expecting_language = false;
                 self.skip_line();
                 // Recursing here is safe because it can happen only once.
                 return self.parse_loca();
             }
-            error(&key, ErrorKey::Localization, "key with no value");
+            warn(ErrorKey::Localization).msg("key with no value").loc(&key).push();
             return self.error_line(key);
         } else if self.expecting_language {
             let msg = format!("expected language header `l_{}:`", self.language);
-            error(&key, ErrorKey::Localization, &msg);
+            warn(ErrorKey::Localization).msg(msg).loc(&key).push();
             self.expecting_language = false;
             // Continue to parse this entry as usual
         }
@@ -307,7 +314,7 @@ impl<'a> LocaParser<'a> {
             self.loca_end = i;
         } else {
             let msg = "localization entry without ending quote";
-            error(&self.loc, ErrorKey::Localization, msg);
+            warn(ErrorKey::Localization).msg(msg).loc(&self.loc).push();
             return self.error_line(key);
         }
 
@@ -337,7 +344,7 @@ impl<'a> LocaParser<'a> {
             None | Some('#' | '\n') => (),
             _ => {
                 let msg = "content after final `\"` on line";
-                old_warn(&self.loc, ErrorKey::Localization, msg);
+                warn(ErrorKey::Localization).strong().msg(msg).loc(&self.loc).push();
             }
         }
 
@@ -415,7 +422,7 @@ impl<'a> ValueParser<'a> {
         // TODO: handle EOF better
         let c = self.peek().unwrap_or(' ');
         let msg = format!("Unexpected character `{c}`, {expected}");
-        error(&self.loc, errorkey, &msg);
+        warn(errorkey).msg(msg).loc(&self.loc).push();
     }
 
     fn get_key(&mut self) -> Token {
@@ -464,16 +471,15 @@ impl<'a> ValueParser<'a> {
                 while let Some(c) = self.peek() {
                     match c {
                         '\'' => break,
-                        ']' | ')' if parens == 0 => old_warn(
-                            &self.loc,
-                            ErrorKey::Localization,
-                            "Possible unterminated argument string",
-                        ),
+                        ']' | ')' if parens == 0 => warn(ErrorKey::Localization)
+                            .msg("Possible unterminated argument string")
+                            .loc(&self.loc)
+                            .push(),
                         '(' => parens += 1,
                         ')' => parens -= 1,
                         '\u{feff}' => {
                             let msg = "found unicode BOM in middle of file";
-                            err(ErrorKey::ParseError).strong().msg(msg).loc(&loc).push();
+                            warn(ErrorKey::ParseError).strong().msg(msg).loc(&loc).push();
                         }
                         _ => (),
                     }
@@ -619,7 +625,7 @@ impl<'a> ValueParser<'a> {
                                 *bracecount -= 1;
                             } else {
                                 let msg = "mismatched braces in markup";
-                                old_warn(&self.loc, ErrorKey::Markup, msg);
+                                warn(ErrorKey::Markup).msg(msg).loc(&self.loc).push();
                                 self.value.push(LocaValue::Error);
                             }
                         } else if (*bracecount > 0 && (c == '.' || c == ','))
@@ -646,7 +652,7 @@ impl<'a> ValueParser<'a> {
                     }
                     if bracecount > 0 {
                         let msg = "mismatched braces in markup";
-                        old_warn(&self.loc, ErrorKey::Markup, msg);
+                        warn(ErrorKey::Markup).msg(msg).loc(&self.loc).push();
                         self.value.push(LocaValue::Error);
                     } else {
                         self.value.push(LocaValue::Markup(Token::new(text, loc)));
@@ -657,7 +663,7 @@ impl<'a> ValueParser<'a> {
                 self.next_char();
             } else {
                 let msg = "#markup should be followed by a space";
-                old_warn(&self.loc, ErrorKey::Markup, msg);
+                warn(ErrorKey::Markup).msg(msg).loc(&self.loc).push();
                 self.value.push(LocaValue::Error);
             }
         }
