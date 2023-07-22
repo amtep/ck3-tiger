@@ -157,6 +157,9 @@ impl Event {
         // TODO: should character_event always be hidden?
         vd.field_choice("type", EVENT_TYPES);
 
+        // TODO: what is this for and what else can it be?
+        vd.field_choice("category", &["enactment", "revolution"]);
+
         let mut sc = ScopeContext::new(self.expects_scope, &self.expects_from_token);
         sc.set_strict_scopes(false);
 
@@ -169,8 +172,18 @@ impl Event {
 
         vd.field_item("dlc", Item::Dlc);
 
+        vd.field_validated_block("trigger", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+        vd.field_validated_block("immediate", |block, data| {
+            validate_effect(block, data, &mut sc, tooltipped_immediate);
+        });
+
         vd.field_validated_block("event_image", |block, data| {
             let mut vd = Validator::new(block, data);
+            vd.field_validated_block("trigger", |block, data| {
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
+            });
             if let Some(token) = vd.field_value("video") {
                 if token.as_str().contains('/') {
                     data.verify_exists(Item::File, token);
@@ -189,14 +202,8 @@ impl Event {
 
         vd.field_integer("duration");
 
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
         vd.field_validated_block("cancellation_trigger", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("immediate", |block, data| {
-            validate_effect(block, data, &mut sc, tooltipped_immediate);
         });
 
         vd.field_validated_sc("title", &mut sc, validate_desc);
