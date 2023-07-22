@@ -559,6 +559,24 @@ impl<'a> ValueParser<'a> {
         }
     }
 
+    fn handle_tooltip(&mut self, value: String, loc: Loc) {
+        #[cfg(feature = "vic3")]
+        if value.contains(',') {
+            // If the value contains commas, then it's #tooltip:tag,tooltip or #tooltip:tag,tooltip,widget
+            // Separate out the tooltip.
+            for (i, value) in value.split(',').enumerate() {
+                if i == 1 {
+                    self.value.push(LocaValue::Tooltip(Token::new(value.to_string(), loc)));
+                    break;
+                }
+            }
+            return;
+        }
+
+        // Otherwise, or if it's not vic3, then it's just #tooltip:tooltip
+        self.value.push(LocaValue::Tooltip(Token::new(value, loc)));
+    }
+
     fn parse_markup(&mut self) {
         let loc = self.loc.clone();
         let mut text = "#".to_string();
@@ -587,6 +605,7 @@ impl<'a> ValueParser<'a> {
                 if c.is_whitespace() {
                     break;
                 }
+                let mut consumed = false;
                 match &mut state {
                     State::InKey(s) => {
                         if c == ':' {
@@ -612,10 +631,7 @@ impl<'a> ValueParser<'a> {
                             self.unexpected_char("expected `;`", ErrorKey::Markup);
                         } else if c == ';' {
                             if key.to_lowercase() == "tooltip" {
-                                self.value.push(LocaValue::Tooltip(Token::new(
-                                    value.clone(),
-                                    loc.clone(),
-                                )));
+                                self.handle_tooltip(value.clone(), loc.clone());
                             }
                             state = State::InKey(String::new());
                         } else if c == '{' {
@@ -633,13 +649,23 @@ impl<'a> ValueParser<'a> {
                             || c == '_'
                         {
                             value.push(c);
+                        } else if c == '[' {
+                            // Generating part of the markup with a code block is valid.
+                            // Assume (hope) that it generates the current value and not some random chunk
+                            // of markup. The next thing we see ought to be a comma or a space.
+                            self.parse_code();
+                            consumed = true;
+                        } else if cfg!(feature = "vic3") && c == ',' {
+                            value.push(c);
                         } else {
                             break;
                         }
                     }
                 }
-                self.next_char();
-                text.push(c);
+                if !consumed {
+                    self.next_char();
+                    text.push(c);
+                }
             }
             // Clean up leftover state at end
             match state {
@@ -648,7 +674,7 @@ impl<'a> ValueParser<'a> {
                 }
                 State::InValue(key, value, loc, bracecount) => {
                     if key.to_lowercase() == "tooltip" {
-                        self.value.push(LocaValue::Tooltip(Token::new(value, loc.clone())));
+                        self.handle_tooltip(value, loc.clone());
                     }
                     if bracecount > 0 {
                         let msg = "mismatched braces in markup";
