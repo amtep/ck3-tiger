@@ -166,6 +166,7 @@ impl Doctrine {
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new(Scopes::Faith, &self.key);
+        sc.define_list("selected_doctrines", Scopes::Doctrine, &self.key);
 
         let icon_path =
             data.get_defined_string_warn(&self.key, "NGameIcons|FAITH_DOCTRINE_ICON_PATH");

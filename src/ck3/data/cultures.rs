@@ -51,6 +51,7 @@ impl DbKind for CultureEra {
     }
 
     // TODO: validate that none have the same year
+    // If they have the same year, the game gets confused about which era is later
 }
 
 #[derive(Clone, Debug)]
@@ -188,6 +189,7 @@ impl DbKind for CulturePillar {
 
         let mut sc = ScopeContext::new(Scopes::Culture, key);
         sc.define_name("character", Scopes::Character, key);
+        sc.define_list("traits", Scopes::CulturePillar | Scopes::CultureTradition, key); // undocumented
         vd.field_script_value("ai_will_do", &mut sc);
         vd.field_validated_block("is_shown", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
@@ -237,11 +239,13 @@ impl DbKind for CultureTradition {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("replacing", Scopes::CultureTradition, key);
             sc.define_name("character", Scopes::Character, key);
+            sc.define_list("traits", Scopes::CulturePillar | Scopes::CultureTradition, key); // undocumented
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_key_block("can_pick_for_hybridization", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("character", Scopes::Character, key);
+            sc.define_list("traits", Scopes::CulturePillar | Scopes::CultureTradition, key); // undocumented
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         validate_modifiers(&mut vd);
@@ -255,10 +259,12 @@ impl DbKind for CultureTradition {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("replacing", Scopes::CultureTradition, key);
             sc.define_name("character", Scopes::Character, key);
+            sc.define_list("traits", Scopes::CulturePillar | Scopes::CultureTradition, key); // undocumented
             validate_cost(block, data, &mut sc);
         });
         let mut sc = ScopeContext::new(Scopes::Culture, key);
         sc.define_name("character", Scopes::Character, key);
+        sc.define_list("traits", Scopes::CulturePillar | Scopes::CultureTradition, key); // undocumented
         vd.field_validated_block("is_shown", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });

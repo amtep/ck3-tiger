@@ -1,7 +1,7 @@
 use fnv::FnvHashMap;
 
 use crate::helpers::Own;
-use crate::report::{old_warn, warn2, warn3, ErrorKey};
+use crate::report::{err, old_warn, warn2, warn3, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 
@@ -199,12 +199,10 @@ impl ScopeContext {
     pub fn expect_list(&mut self, name: &Token) {
         if let Some(&idx) = self.list_names.get(name.as_str()) {
             let (s, t) = self._resolve_named(idx);
-            self.expect(s, &t.clone());
-        } else {
-            // TODO
-            // only with strict scope checking
-            // let msg = format!("unknown list");
-            //warn(name, ErrorKey::UnknownList, &msg);
+            self.expect3(s, &t.clone(), &name);
+        } else if self.strict_scopes {
+            let msg = format!("unknown list");
+            err(ErrorKey::UnknownList).weak().msg(msg).loc(name).push();
         }
     }
 
