@@ -1,14 +1,18 @@
 use fnv::FnvHashMap;
 
-use crate::helpers::Own;
-use crate::report::{err, old_warn, warn2, warn3, ErrorKey};
+use crate::helpers::{stringify_choices, Own};
+use crate::report::{err, warn2, warn3, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
+
+/// When reporting an unknown scope, list alternative scope names if there are not more than this.
+const MAX_SCOPE_NAME_LIST: usize = 6;
 
 /// The `ScopeContext` represents what we know about the scopes leading to the `Block`
 /// currently being validated.
 #[derive(Clone, Debug)]
 pub struct ScopeContext {
+    /// `prev` is a chain of all the known previous scopes.
     prev: Option<Box<ScopeHistory>>,
 
     /// Normally, `this` starts as a `ScopeEntry::Rootref`, but there are cases where the
@@ -33,20 +37,44 @@ pub struct ScopeContext {
     /// Invariant: `named` and `is_input` are the same length.
     is_input: Vec<Option<Token>>,
 
+    /// Is this scope level a level in progress? `is_builder` is used when evaluating scope chains
+    /// like `root.liege.primary_title`. It affects the handling of `prev`, because the builder
+    /// scope is not a real scope level yet.
     is_builder: bool,
+
+    /// Was this `ScopeContext` created as an unrooted context? Unrooted means we do not know
+    /// whether `this` and `root` are the same at the start. Unrooted scopes start with an extra
+    /// `prev` level, so they need to be cleaned up differently.
     is_unrooted: bool,
 
+    /// Is this scope context one where all the named scopes are (or should be) known in advance?
+    /// If `strict_scopes` is false, then the `ScopeContext` will assume any name might be a valid
+    /// scope name that we just don't know about yet.
     strict_scopes: bool,
+
+    /// A special flag for scope contexts that are known to be wrong. It's used for the
+    /// `scope_override` config file feature. If `no_warn` is set then this ScopeContext will not
+    /// emit any reports.
     no_warn: bool,
 }
 
 #[derive(Clone, Debug)]
+/// One previous scope level in a chain of previous scopes.
+///
+/// Used for handling `prev`, and also used when closing a scope: the most recent
+/// `ScopeHistory` in the chain gets popped back as the current scope.
 struct ScopeHistory {
     prev: Option<Box<ScopeHistory>>,
     this: ScopeEntry,
 }
 
 #[derive(Clone, Debug)]
+/// `ScopeEntry` is a description of what we know of a scope's type and its connection to other
+/// scopes.
+///
+/// It is used both to look up a scope's type, and to propagate knowledge about that type backward
+/// to the scope's source. For example if `this` is a Rootref, and we find out that `this` is a
+/// `Character`, then `root` must be a `Character` too.
 enum ScopeEntry {
     /// Backref is for when the current scope is made with `prev` or `this`.
     /// It counts as a scope in the chain, for purposes of `prev` and such, but any updates
@@ -273,18 +301,26 @@ impl ScopeContext {
             idx
         } else {
             let idx = self.named.len();
-            self.names.insert(name.to_string(), idx);
             self.named.push(ScopeEntry::Scope(Scopes::all(), token.clone()));
             if self.strict_scopes {
                 if !self.no_warn {
                     let msg = format!("scope:{name} might not be available here");
-                    old_warn(token, ErrorKey::StrictScopes, &msg);
+                    let mut builder = err(ErrorKey::StrictScopes).weak().msg(msg);
+                    if self.names.len() <= MAX_SCOPE_NAME_LIST && self.names.len() > 0 {
+                        let mut names: Vec<_> = self.names.keys().map(String::as_str).collect();
+                        names.sort();
+                        let info = format!("available names are {}", stringify_choices(&names));
+                        builder = builder.info(info);
+                    }
+                    builder.loc(token).push();
                 }
                 // Don't treat it as an input scope, because we already warned about it
                 self.is_input.push(None);
             } else {
                 self.is_input.push(Some(token.clone()));
             }
+            // do this after the warnings above, so that it's not listed as available
+            self.names.insert(name.to_string(), idx);
             idx
         }
     }
