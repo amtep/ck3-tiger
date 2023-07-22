@@ -416,7 +416,7 @@ pub fn validate_inside_iterator(
     if name == "in_list" {
         vd.req_field_one_of(&["list", "variable"]);
         if let Some(token) = vd.field_value("list") {
-            sc.define_or_expect_list(token);
+            sc.expect_list(token);
             sc.replace_list_entry(token.as_str(), token);
         }
     } else if name == "in_local_list" || name == "in_global_list" {

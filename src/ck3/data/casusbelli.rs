@@ -29,6 +29,8 @@ impl DbKind for CasusBelli {
         let mut sc = ScopeContext::new(Scopes::CasusBelli, key);
         sc.define_name("attacker", Scopes::Character, key);
         sc.define_name("defender", Scopes::Character, key);
+        // TODO: be more specific about when this list is defined
+        sc.define_list("target_titles", Scopes::LandedTitle, key);
 
         if block.has_key("is_allowed_claim_title") {
             sc.define_name("claimant", Scopes::Character, key);
@@ -107,6 +109,7 @@ impl DbKind for CasusBelli {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("attacker", Scopes::Character, key);
             sc.define_name("defender", Scopes::Character, key);
+            sc.define_list("target_titles", Scopes::LandedTitle, key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block(
@@ -115,6 +118,7 @@ impl DbKind for CasusBelli {
                 let mut sc = ScopeContext::new(Scopes::Character, key);
                 sc.define_name("attacker", Scopes::Character, key);
                 sc.define_name("defender", Scopes::Character, key);
+                sc.define_list("target_titles", Scopes::LandedTitle, key);
                 validate_trigger(block, data, &mut sc, Tooltipped::Yes);
             },
         );
@@ -123,6 +127,7 @@ impl DbKind for CasusBelli {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("attacker", Scopes::Character, key);
             sc.define_name("defender", Scopes::Character, key);
+            sc.define_list("target_titles", Scopes::LandedTitle, key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block(
@@ -131,6 +136,7 @@ impl DbKind for CasusBelli {
                 let mut sc = ScopeContext::new(Scopes::Character, key);
                 sc.define_name("attacker", Scopes::Character, key);
                 sc.define_name("defender", Scopes::Character, key);
+                sc.define_list("target_titles", Scopes::LandedTitle, key);
                 validate_trigger(block, data, &mut sc, Tooltipped::Yes);
             },
         );
@@ -140,6 +146,7 @@ impl DbKind for CasusBelli {
             sc.define_name("attacker", Scopes::Character, key);
             sc.define_name("defender", Scopes::Character, key);
             sc.define_name("target", Scopes::LandedTitle, key);
+            sc.define_list("target_titles", Scopes::LandedTitle, key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("valid_to_start_display_regardless", |key, block, data| {
@@ -147,6 +154,7 @@ impl DbKind for CasusBelli {
             sc.define_name("attacker", Scopes::Character, key);
             sc.define_name("defender", Scopes::Character, key);
             sc.define_name("target", Scopes::LandedTitle, key);
+            sc.define_list("target_titles", Scopes::LandedTitle, key);
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
@@ -155,6 +163,7 @@ impl DbKind for CasusBelli {
             sc.define_name("attacker", Scopes::Character, key);
             sc.define_name("defender", Scopes::Character, key);
             sc.define_name("claimant", Scopes::Character, key);
+            sc.define_list("target_titles", Scopes::LandedTitle, key);
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 

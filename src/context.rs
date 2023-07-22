@@ -273,10 +273,8 @@ impl ScopeContext {
         }
     }
 
-    /// Expect list `name` to be already defined as having the same type as `this`, and (with
-    /// strict scopes) warn if it isn't defined.
-    ///
-    /// TODO: check that this is doing the right thing for its callers.
+    /// Expect list `name` to be known and (with strict scopes) warn if it isn't.
+    /// Narrow the type of `this` down to the list's type.
     pub fn expect_list(&mut self, name: &Token) {
         if let Some(&idx) = self.list_names.get(name.as_str()) {
             let (s, t) = self._resolve_named(idx);
@@ -418,8 +416,6 @@ impl ScopeContext {
     }
 
     /// Same as [`_named_index`], but for lists. No warning is emitted if a new list is created.
-    ///
-    /// TODO: This function does not update the `input` vector, which is a bug.
     fn _named_list_index(&mut self, name: &str, token: &Token) -> usize {
         if let Some(&idx) = self.list_names.get(name) {
             idx
@@ -427,6 +423,7 @@ impl ScopeContext {
             let idx = self.named.len();
             self.list_names.insert(name.to_string(), idx);
             self.named.push(ScopeEntry::Scope(Scopes::all(), token.clone()));
+            self.is_input.push(Some(token.clone()));
             idx
         }
     }
@@ -436,11 +433,9 @@ impl ScopeContext {
         self.scopes().intersects(scopes)
     }
 
-    /// Return true iff `this` has exactly the same possible types as the `scopes` types.
-    ///
-    /// TODO: this function is unused and should be removed.
+    /// Return true iff `this` is known to be one of the types of `scopes`
     pub fn must_be(&self, scopes: Scopes) -> bool {
-        self.scopes() == scopes
+        scopes.contains(self.scopes())
     }
 
     /// Return the possible scope types of this scope level.
@@ -790,6 +785,8 @@ impl ScopeContext {
                 self.is_input.push(other.is_input[oidx].clone());
             }
         }
+
+        // TODO: same for lists
     }
 }
 
