@@ -1,6 +1,6 @@
 [package]
 name = "ck3-tiger"
-version = "0.7.3"
+version = "0.7.4"
 edition = "2021"
 license = "GPL-3.0-or-later"
 default-run = "ck3-tiger"
