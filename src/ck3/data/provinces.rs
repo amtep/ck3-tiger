@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::pdxfile::PdxFile;
-use crate::report::{error, old_warn, report, ErrorKey, Severity};
+use crate::report::{error, old_warn, report, untidy, ErrorKey, Severity};
 use crate::token::{Loc, Token};
 
 pub type ProvId = u32;
@@ -292,6 +292,16 @@ impl FileHandler<FileContent> for Provinces {
             );
             old_warn(definition_csv, ErrorKey::Colors, &msg);
         }
+        for color in &self.colors {
+            if !seen_colors.contains_key(color) {
+                let Rgb(rgb) = color;
+                let msg = format!(
+                    "definitions.csv lacks entry for color ({}, {}, {})",
+                    rgb[0], rgb[1], rgb[2]
+                );
+                untidy(ErrorKey::Colors).msg(msg).loc(definition_csv).push();
+            }
+        }
     }
 }
 
@@ -307,6 +317,7 @@ pub struct Coords {
 pub struct Adjacency {
     line: Loc,
     /// TODO: check from, to, and through are valid prov ids
+    /// It seems to cause a crash if they're not.
     from: ProvId,
     to: ProvId,
     /// TODO: check type is "sea" or "river_large"
