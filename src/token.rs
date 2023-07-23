@@ -1,7 +1,9 @@
 use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::fmt::{Display, Error, Formatter};
+use std::ops::RangeBounds;
 use std::path::{Path, PathBuf};
+use std::slice::SliceIndex;
 use std::sync::Arc;
 
 use crate::date::Date;
@@ -56,6 +58,17 @@ impl Token {
         Token { s: StringTable::store(s), loc }
     }
 
+    pub fn from_static_str(s: &'static str, loc: Loc) -> Self {
+        Token { s, loc }
+    }
+
+    pub fn subtoken<R>(&self, range: R, loc: Loc) -> Token
+    where
+        R: RangeBounds<usize> + SliceIndex<str, Output = str>,
+    {
+        Token { s: &self.s[range], loc }
+    }
+
     pub fn as_str(&self) -> &str {
         &self.s
     }
@@ -79,7 +92,7 @@ impl Token {
         let mut lines: u32 = 0;
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             if c == ch {
-                vec.push(Token::new(&self.s[pos..i], loc.clone()));
+                vec.push(self.subtoken(pos..i, loc.clone()));
                 pos = i + 1;
                 loc.column = self.loc.column + cols as u32 + 1;
                 loc.line = self.loc.line + lines;
@@ -88,17 +101,17 @@ impl Token {
                 lines += 1;
             }
         }
-        vec.push(Token::new(&self.s[pos..], loc));
+        vec.push(self.subtoken(pos.., loc));
         vec
     }
 
     pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             if c == ch {
-                let token1 = Token::new(&self.s[..i], self.loc.clone());
+                let token1 = self.subtoken(..i, self.loc.clone());
                 let mut loc = self.loc.clone();
                 loc.column += cols as u32 + 1;
-                let token2 = Token::new(&self.s[i + 1..], loc);
+                let token2 = self.subtoken(i + 1.., loc);
                 return Some((token1, token2));
             }
         }
@@ -110,10 +123,10 @@ impl Token {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             if c == ch {
                 let chlen = ch.len_utf8();
-                let token1 = Token::new(&self.s[..i + chlen], self.loc.clone());
+                let token1 = self.subtoken(..i + chlen, self.loc.clone());
                 let mut loc = self.loc.clone();
                 loc.column += cols as u32 + chlen as u32;
-                let token2 = Token::new(&self.s[i + chlen..], loc);
+                let token2 = self.subtoken(i + chlen.., loc);
                 return Some((token1, token2));
             }
         }
@@ -143,10 +156,10 @@ impl Token {
         if let Some((cols, i)) = real_start {
             let mut loc = self.loc.clone();
             loc.column += cols as u32;
-            Token::new(&self.s[i..real_end], loc)
+            self.subtoken(i..real_end, loc)
         } else {
             // all spaces
-            Token::new("", self.loc.clone())
+            Token::from_static_str("", self.loc.clone())
         }
     }
 
