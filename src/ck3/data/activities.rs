@@ -674,6 +674,9 @@ impl DbKind for PulseAction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
+        let loca = format!("{key}_title");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
         let icon = vd.field_value("icon").unwrap_or(key);
         let pathname = format!("gfx/interface/icons/activity_pulse_actions/{icon}.dds");
         data.verify_exists_implied(Item::File, &pathname, icon);
