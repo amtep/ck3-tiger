@@ -259,7 +259,7 @@ impl DbKind for Interaction {
 
         vd.field_bool("send_options_exclusive");
         vd.field_validated_block("on_send", |b, data| {
-            validate_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
+            validate_effect(b, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block("on_accept", |b, data| {
             validate_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
