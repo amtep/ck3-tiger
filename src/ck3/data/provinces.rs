@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::pdxfile::PdxFile;
-use crate::report::{error, old_warn, report, untidy, ErrorKey, Severity};
+use crate::report::{error, fatal, old_warn, report, untidy, ErrorKey, Severity};
 use crate::token::{Loc, Token};
 
 pub type ProvId = u32;
@@ -263,6 +263,10 @@ impl FileHandler<FileContent> for Provinces {
         }
         let definition_csv = self.definition_csv.as_ref().unwrap();
 
+        for adjacency in &self.adjacencies {
+            adjacency.validate(self);
+        }
+
         let mut seen_colors = FnvHashMap::default();
         #[allow(clippy::cast_possible_truncation)]
         for i in 1..self.provinces.len() as u32 {
@@ -371,6 +375,15 @@ impl Adjacency {
             stop: Coords { x: stop_x?, y: stop_y? },
             comment: csv[8].clone(),
         })
+    }
+
+    fn validate(&self, provinces: &Provinces) {
+        for prov in vec![self.from, self.to, self.through] {
+            if !provinces.provinces.contains_key(&prov) {
+                let msg = format!("province id {} not defined in definitions.csv", prov);
+                fatal(ErrorKey::Crash).msg(msg).loc(&self.line).push();
+            }
+        }
     }
 }
 
