@@ -40,9 +40,11 @@ jobs:
         shell: bash
         run: |
           version=v$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
-          pkgdir="ck3-tiger-${{ matrix.name }}-$version"
+          ck3_pkgdir="ck3-tiger-${{ matrix.name }}-$version"
+          vic3_pkgdir="vic3-tiger-${{ matrix.name }}-$version"
           echo "::set-output name=version::$version"
-          echo "::set-output name=pkgdir::$pkgdir"
+          echo "::set-output name=ck3_pkgdir::$ck3_pkgdir"
+          echo "::set-output name=vic3_pkgdir::$vic3_pkgdir"
 
       - name: Verify version against tag
         shell: bash
@@ -55,28 +57,52 @@ jobs:
           command: build
           args: --release -p ck3-tiger
 
-      - name: Create output dir
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release -p vic3-tiger
+
+      - name: Create output dirs
         shell: bash
         run: |
-          mkdir ${{ steps.version.outputs.pkgdir }}
-          cp -p README.md filter.md TODO.md CONTRIBUTORS.md LICENSE ck3-tiger.conf target/release/ck3-tiger${{ matrix.extension }} target/release/ck3-tiger-auto${{ matrix.extension }} ${{ steps.version.outputs.pkgdir }}
+          mkdir ${{ steps.version.outputs.ck3_pkgdir }}
+          cp -p README.md filter.md TODO.md CONTRIBUTORS.md LICENSE ck3-tiger.conf target/release/ck3-tiger${{ matrix.extension }} target/release/ck3-tiger-auto${{ matrix.extension }} ${{ steps.version.outputs.ck3_pkgdir }}
+          mkdir ${{ steps.version.outputs.vic3_pkgdir }}
+          cp -p README.md filter.md TODO.md CONTRIBUTORS.md LICENSE vic3-tiger.conf target/release/vic3-tiger${{ matrix.extension }} target/release/vic3-tiger-auto${{ matrix.extension }} ${{ steps.version.outputs.vic3_pkgdir }}
 
-      - name: Archive .zip
+      - name: Archive .zip ck3
         uses: vimtor/action-zip@v1
         if: ${{ matrix.archive == 'zip' }}
         with:
-          files: ${{ steps.version.outputs.pkgdir }}/
-          dest: ${{ steps.version.outputs.pkgdir }}.zip
+          files: ${{ steps.version.outputs.ck3_pkgdir }}/
+          dest: ${{ steps.version.outputs.ck3_pkgdir }}.zip
+
+      - name: Archive .zip vic3
+        uses: vimtor/action-zip@v1
+        if: ${{ matrix.archive == 'zip' }}
+        with:
+          files: ${{ steps.version.outputs.vic3_pkgdir }}/
+          dest: ${{ steps.version.outputs.vic3_pkgdir }}.zip
 
       - name: Archive .tar.gz
         if: ${{ matrix.archive == 'tar.gz' }}
-        run: tar cfvz ${{ steps.version.outputs.pkgdir }}.tar.gz  ${{ steps.version.outputs.pkgdir }}/
+        run: |
+          tar cfvz ${{ steps.version.outputs.ck3_pkgdir }}.tar.gz  ${{ steps.version.outputs.ck3_pkgdir }}/
+          tar cfvz ${{ steps.version.outputs.vic3_pkgdir }}.tar.gz  ${{ steps.version.outputs.vic3_pkgdir }}/
 
-      - name: Upload Archive
+      - name: Upload Archive ck3
         uses: actions/upload-artifact@v3
         with:
           name: archives
           path: ${{ steps.version.outputs.pkgdir }}.${{ matrix.archive }}
+          if-no-files-found: error
+
+      - name: Upload Archive vic3
+        uses: actions/upload-artifact@v3
+        with:
+          name: archives
+          path: ${{ steps.version.outputs.vic3_pkgdir }}.${{ matrix.archive }}
           if-no-files-found: error
 
   release:
