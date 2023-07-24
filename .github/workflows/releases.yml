@@ -95,7 +95,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: archives
-          path: ${{ steps.version.outputs.pkgdir }}.${{ matrix.archive }}
+          path: ${{ steps.version.outputs.ck3_pkgdir }}.${{ matrix.archive }}
           if-no-files-found: error
 
       - name: Upload Archive vic3
