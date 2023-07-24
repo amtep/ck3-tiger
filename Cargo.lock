@@ -182,7 +182,7 @@ dependencies = [
 
 [[package]]
 name = "ck3-tiger"
-version = "0.7.4"
+version = "0.8.0"
 dependencies = [
  "ansi_term",
  "anyhow",
@@ -1062,7 +1062,7 @@ dependencies = [
 
 [[package]]
 name = "tiger-lib"
-version = "0.7.4"
+version = "0.8.0"
 dependencies = [
  "ansi_term",
  "anyhow",
@@ -1117,7 +1117,7 @@ checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
 
 [[package]]
 name = "utils"
-version = "0.7.4"
+version = "0.8.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1125,7 +1125,7 @@ dependencies = [
 
 [[package]]
 name = "vic3-tiger"
-version = "0.7.4"
+version = "0.8.0"
 dependencies = [
  "ansi_term",
  "anyhow",
