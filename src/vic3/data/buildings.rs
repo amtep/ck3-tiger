@@ -43,6 +43,12 @@ impl DbKind for BuildingType {
         vd.field_validated_block("can_build", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
+        vd.field_validated_block("can_build_government", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
+        vd.field_validated_block("can_build_private", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
 
         vd.field_integer("construction_points");
         vd.field_validated_block("construction_modifier", |block, data| {

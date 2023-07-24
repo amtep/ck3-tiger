@@ -261,6 +261,10 @@ impl Localization {
         if key.is_empty() {
             return;
         }
+        if lang.is_empty() {
+            self.verify_exists_implied(key, token, Severity::Warning);
+            return;
+        }
         self.mark_used(key);
         if !self.exists_lang(key, lang) {
             let msg = format!("missing {lang} localization key {key}");
