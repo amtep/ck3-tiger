@@ -11,7 +11,7 @@ use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{advice_info, error, error_info, old_warn, warn_info, ErrorKey, Severity};
+use crate::report::{advice_info, err, error, fatal, old_warn, warn_info, ErrorKey, Severity};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::scriptvalue::validate_scriptvalue;
 use crate::tooltipped::Tooltipped;
@@ -93,7 +93,7 @@ pub fn validate_effect_internal<'a>(
             match bv {
                 BV::Value(token) => {
                     if !effect.macro_parms().is_empty() {
-                        error(token, ErrorKey::Macro, "expected macro arguments");
+                        fatal(ErrorKey::Macro).msg("expected macro arguments").loc(token).push();
                     } else if !token.is("yes") {
                         old_warn(token, ErrorKey::Validation, "expected just effect = yes");
                     }
@@ -102,23 +102,28 @@ pub fn validate_effect_internal<'a>(
                 BV::Block(block) => {
                     let parms = effect.macro_parms();
                     if parms.is_empty() {
-                        error_info(
-                            block,
-                            ErrorKey::Macro,
-                            "this scripted effect does not need macro arguments",
-                            "you can just use it as effect = yes",
-                        );
+                        err(ErrorKey::Macro)
+                            .msg("this scripted effect does not need macro arguments")
+                            .info("you can just use it as effect = yes")
+                            .loc(block)
+                            .push();
                     } else {
                         let mut vec = Vec::new();
                         let mut vd = Validator::new(block, data);
                         for parm in &parms {
-                            vd.req_field(parm);
                             if let Some(token) = vd.field_value(parm) {
                                 vec.push(token.clone());
                             } else {
+                                let msg = format!("this scripted effect needs parameter {parm}");
+                                err(ErrorKey::Macro).msg(msg).loc(block).push();
                                 return;
                             }
                         }
+                        vd.unknown_value_fields(|key, _value| {
+                            let msg = format!("this scripted effect does not need parameter {key}");
+                            let info = "supplying an unneeded parameter often causes a crash";
+                            fatal(ErrorKey::Macro).msg(msg).info(info).loc(key).push();
+                        });
                         let args = parms.into_iter().zip(vec.into_iter()).collect();
                         effect.validate_macro_expansion(key, args, data, sc, tooltipped);
                     }

@@ -8,9 +8,7 @@ use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
-#[cfg(feature = "ck3")]
-use crate::report::{err, fatal};
-use crate::report::{error, error_info, old_warn, report, warn, Confidence, ErrorKey, Severity};
+use crate::report::{err, error, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity};
 use crate::scopes::{scope_prefix, scope_to_scope, validate_prefix_reference, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
 use crate::token::Token;
@@ -763,7 +761,7 @@ pub fn validate_scripted_modifier_call(
     match bv {
         BV::Value(token) => {
             if !modifier.macro_parms().is_empty() {
-                error(token, ErrorKey::Macro, "expected macro arguments");
+                fatal(ErrorKey::Macro).msg("expected macro arguments").loc(token).push();
             } else if !token.is("yes") {
                 old_warn(token, ErrorKey::Validation, "expected just modifier = yes");
             }
@@ -772,23 +770,28 @@ pub fn validate_scripted_modifier_call(
         BV::Block(block) => {
             let parms = modifier.macro_parms();
             if parms.is_empty() {
-                error_info(
-                    block,
-                    ErrorKey::Macro,
-                    "modifier does not need macro arguments",
-                    "you can just use it as modifier = yes",
-                );
+                fatal(ErrorKey::Macro)
+                    .msg("this scripted modifier does not need macro arguments")
+                    .info("you can just use it as modifier = yes")
+                    .loc(block)
+                    .push();
             } else {
                 let mut vec = Vec::new();
                 let mut vd = Validator::new(block, data);
                 for parm in &parms {
-                    vd.req_field(parm);
                     if let Some(token) = vd.field_value(parm) {
                         vec.push(token.clone());
                     } else {
+                        let msg = format!("this scripted modifier needs parameter {parm}");
+                        err(ErrorKey::Macro).msg(msg).loc(block).push();
                         return;
                     }
                 }
+                vd.unknown_value_fields(|key, _value| {
+                    let msg = format!("this scripted modifier does not need parameter {key}");
+                    let info = "supplying an unneeded parameter often causes a crash";
+                    fatal(ErrorKey::Macro).msg(msg).info(info).loc(key).push();
+                });
                 let args = parms.into_iter().zip(vec.into_iter()).collect();
                 modifier.validate_macro_expansion(key, args, data, sc);
             }

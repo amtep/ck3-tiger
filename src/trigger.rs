@@ -17,7 +17,9 @@ use crate::helpers::stringify_choices;
 #[cfg(feature = "vic3")]
 use crate::helpers::stringify_list;
 use crate::item::Item;
-use crate::report::{advice_info, err, error, old_warn, warn2, warn_info, ErrorKey, Severity};
+use crate::report::{
+    advice_info, err, error, fatal, old_warn, warn2, warn_info, ErrorKey, Severity,
+};
 use crate::scopes::{
     scope_iterator, scope_prefix, scope_to_scope, validate_prefix_reference, Scopes,
 };
@@ -236,7 +238,8 @@ pub fn validate_trigger_key_bv(
                     old_warn(token, ErrorKey::Validation, "expected yes or no");
                 }
                 if !trigger.macro_parms().is_empty() {
-                    error(token, ErrorKey::Macro, "expected macro arguments");
+                    fatal(ErrorKey::Macro).msg("expected macro arguments").loc(token).push();
+                    return;
                 }
                 let negated = if token.is("no") { !negated } else { negated };
                 trigger.validate_call(key, data, sc, tooltipped, negated);
@@ -245,19 +248,26 @@ pub fn validate_trigger_key_bv(
                 let parms = trigger.macro_parms();
                 if parms.is_empty() {
                     let msg = "this scripted trigger does not need macro arguments";
-                    error(block, ErrorKey::Macro, msg);
+                    fatal(ErrorKey::Macro).msg(msg).loc(block).push();
                 } else {
                     let mut vec = Vec::new();
                     let mut vd = Validator::new(block, data);
                     vd.set_max_severity(max_sev);
                     for parm in &parms {
-                        vd.req_field(parm);
                         if let Some(token) = vd.field_value(parm) {
                             vec.push(token.clone());
                         } else {
+                            let msg = format!("this scripted trigger needs parameter {parm}");
+                            err(ErrorKey::Macro).msg(msg).loc(block).push();
                             return;
                         }
                     }
+                    vd.unknown_value_fields(|key, _value| {
+                        let msg = format!("this scripted trigger does not need parameter {key}");
+                        let info = "supplying an unneeded parameter often causes a crash";
+                        fatal(ErrorKey::Macro).msg(msg).info(info).loc(key).push();
+                    });
+
                     let args = parms.into_iter().zip(vec.into_iter()).collect();
                     trigger.validate_macro_expansion(key, args, data, sc, tooltipped, negated);
                 }
