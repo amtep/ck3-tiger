@@ -1000,10 +1000,8 @@ fn handle_argument<'a>(key: &'a Token, data: &Everything, sc: &mut ScopeContext)
     Cow::Borrowed(key)
 }
 
-/// A version of Trigger that uses u64 to represent Scopes values, because
-/// constructing bitfield types in const values is not allowed.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum RawTrigger {
+pub enum Trigger {
     /// trigger = no or trigger = yes
     Boolean,
     /// can be a script value
@@ -1029,35 +1027,35 @@ pub enum RawTrigger {
     #[cfg(feature = "vic3")]
     ItemOrCompareValue(Item),
     /// trigger is compared to a scope object
-    Scope(u64),
+    Scope(Scopes),
     /// trigger is compared to a scope object which may be `this`
-    ScopeOkThis(u64),
+    ScopeOkThis(Scopes),
     /// value is chosen from an item type
     Item(Item),
-    ScopeOrItem(u64, Item),
+    ScopeOrItem(Scopes, Item),
     /// value is chosen from a list given here
     Choice(&'static [&'static str]),
     /// For Block, if a field name in the array starts with ? it means that field is optional
     /// trigger takes a block with these fields
-    Block(&'static [(&'static str, RawTrigger)]),
+    Block(&'static [(&'static str, Trigger)]),
     /// trigger takes a block with these fields
     #[cfg(feature = "ck3")]
-    ScopeOrBlock(u64, &'static [(&'static str, RawTrigger)]),
+    ScopeOrBlock(Scopes, &'static [(&'static str, Trigger)]),
     /// trigger takes a block with these fields
     #[cfg(feature = "ck3")]
-    ItemOrBlock(Item, &'static [(&'static str, RawTrigger)]),
+    ItemOrBlock(Item, &'static [(&'static str, Trigger)]),
     /// can be part of a scope chain but also a standalone trigger
     #[cfg(feature = "ck3")]
-    CompareValueOrBlock(&'static [(&'static str, RawTrigger)]),
+    CompareValueOrBlock(&'static [(&'static str, Trigger)]),
     /// trigger takes a block of values of this scope type
     #[cfg(feature = "ck3")]
-    ScopeList(u64),
+    ScopeList(Scopes),
     /// trigger takes a block comparing two scope objects
     #[cfg(feature = "ck3")]
-    ScopeCompare(u64),
+    ScopeCompare(Scopes),
     /// this is for inside a Block, where a key is compared to a scope object
     #[cfg(feature = "ck3")]
-    CompareToScope(u64),
+    CompareToScope(Scopes),
 
     /// this key opens another trigger block
     Control,
@@ -1065,109 +1063,6 @@ pub enum RawTrigger {
     Special,
 
     UncheckedValue,
-}
-
-/// A version of Trigger that has real Scopes values instead of u64 bitfields
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Trigger {
-    Boolean,
-    CompareValue,
-    #[cfg(feature = "ck3")]
-    CompareValueWarnEq,
-    #[cfg(feature = "ck3")]
-    SetValue,
-    CompareDate,
-    #[cfg(feature = "vic3")]
-    CompareLevel,
-    #[cfg(feature = "vic3")]
-    CompareStance,
-    #[cfg(feature = "vic3")]
-    CompareApproval,
-    #[cfg(feature = "vic3")]
-    ItemOrCompareValue(Item),
-    Scope(Scopes),
-    ScopeOkThis(Scopes),
-    Item(Item),
-    ScopeOrItem(Scopes, Item),
-    Choice(&'static [&'static str]),
-    Block(Vec<(&'static str, Trigger)>),
-    #[cfg(feature = "ck3")]
-    ScopeOrBlock(Scopes, Vec<(&'static str, Trigger)>),
-    #[cfg(feature = "ck3")]
-    ItemOrBlock(Item, Vec<(&'static str, Trigger)>),
-    #[cfg(feature = "ck3")]
-    CompareValueOrBlock(Vec<(&'static str, Trigger)>),
-    #[cfg(feature = "ck3")]
-    ScopeList(Scopes),
-    #[cfg(feature = "ck3")]
-    ScopeCompare(Scopes),
-    #[cfg(feature = "ck3")]
-    CompareToScope(Scopes),
-
-    Control,
-    Special,
-
-    UncheckedValue,
-}
-
-impl Trigger {
-    pub fn from_raw(raw: &RawTrigger) -> Self {
-        match raw {
-            RawTrigger::Boolean => Trigger::Boolean,
-            RawTrigger::CompareValue => Trigger::CompareValue,
-            #[cfg(feature = "ck3")]
-            RawTrigger::CompareValueWarnEq => Trigger::CompareValueWarnEq,
-            #[cfg(feature = "ck3")]
-            RawTrigger::SetValue => Trigger::SetValue,
-            RawTrigger::CompareDate => Trigger::CompareDate,
-            #[cfg(feature = "vic3")]
-            RawTrigger::CompareLevel => Trigger::CompareLevel,
-            #[cfg(feature = "vic3")]
-            RawTrigger::CompareStance => Trigger::CompareStance,
-            #[cfg(feature = "vic3")]
-            RawTrigger::CompareApproval => Trigger::CompareApproval,
-            #[cfg(feature = "vic3")]
-            RawTrigger::ItemOrCompareValue(i) => Trigger::ItemOrCompareValue(*i),
-            RawTrigger::Scope(s) => Trigger::Scope(Scopes::from_bits_truncate(*s)),
-            RawTrigger::ScopeOkThis(s) => Trigger::ScopeOkThis(Scopes::from_bits_truncate(*s)),
-            RawTrigger::Item(i) => Trigger::Item(*i),
-            RawTrigger::ScopeOrItem(s, i) => {
-                Trigger::ScopeOrItem(Scopes::from_bits_truncate(*s), *i)
-            }
-            RawTrigger::Choice(choices) => Trigger::Choice(choices),
-            RawTrigger::Block(fields) => Trigger::Block(Trigger::from_raw_fields(fields)),
-            #[cfg(feature = "ck3")]
-            RawTrigger::ScopeOrBlock(s, fields) => Trigger::ScopeOrBlock(
-                Scopes::from_bits_truncate(*s),
-                Trigger::from_raw_fields(fields),
-            ),
-            #[cfg(feature = "ck3")]
-            RawTrigger::ItemOrBlock(i, fields) => {
-                Trigger::ItemOrBlock(*i, Trigger::from_raw_fields(fields))
-            }
-            #[cfg(feature = "ck3")]
-            RawTrigger::CompareValueOrBlock(fields) => {
-                Trigger::CompareValueOrBlock(Trigger::from_raw_fields(fields))
-            }
-            #[cfg(feature = "ck3")]
-            RawTrigger::ScopeList(s) => Trigger::ScopeList(Scopes::from_bits_truncate(*s)),
-            #[cfg(feature = "ck3")]
-            RawTrigger::ScopeCompare(s) => Trigger::ScopeCompare(Scopes::from_bits_truncate(*s)),
-            #[cfg(feature = "ck3")]
-            RawTrigger::CompareToScope(s) => {
-                Trigger::CompareToScope(Scopes::from_bits_truncate(*s))
-            }
-            RawTrigger::Control => Trigger::Control,
-            RawTrigger::Special => Trigger::Special,
-            RawTrigger::UncheckedValue => Trigger::UncheckedValue,
-        }
-    }
-
-    fn from_raw_fields(
-        fields: &'static [(&'static str, RawTrigger)],
-    ) -> Vec<(&'static str, Trigger)> {
-        fields.iter().map(|(field, trigger)| (*field, Trigger::from_raw(trigger))).collect()
-    }
 }
 
 pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {

@@ -4,15 +4,17 @@ pub use crate::ck3::scopes::*;
 pub use crate::vic3::scopes::*;
 
 impl Scopes {
-    pub fn non_primitive() -> Scopes {
-        Scopes::all() ^ (Scopes::None | Scopes::Value | Scopes::Bool | Scopes::Flag)
+    // These have to be expressed a bit awkwardly because the binary operators are not `const`.
+    pub const fn non_primitive() -> Scopes {
+        Scopes::all()
+            .difference(Scopes::None.union(Scopes::Value).union(Scopes::Bool).union(Scopes::Flag))
     }
 
-    pub fn primitive() -> Scopes {
-        Scopes::Value | Scopes::Bool | Scopes::Flag
+    pub const fn primitive() -> Scopes {
+        Scopes::Value.union(Scopes::Bool).union(Scopes::Flag)
     }
 
-    pub fn all_but_none() -> Scopes {
-        Scopes::all() ^ Scopes::None
+    pub const fn all_but_none() -> Scopes {
+        Scopes::all().difference(Scopes::None)
     }
 }
