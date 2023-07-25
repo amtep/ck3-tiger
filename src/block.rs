@@ -343,6 +343,7 @@ impl Block {
                             let mut val = val.clone();
                             let orig_loc = val.loc.clone();
                             val.loc = part.loc.clone();
+                            val.loc.column -= 1; // point at the $, it looks better
                             val.loc.link = Some(Arc::new(orig_loc));
                             content.push(val);
                             break;
