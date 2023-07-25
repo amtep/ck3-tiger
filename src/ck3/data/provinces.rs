@@ -139,9 +139,10 @@ impl Provinces {
         }
     }
 
-    #[allow(clippy::unused_self)]
     pub fn validate(&self, _data: &Everything) {
-        // TODO: validate adjacencies
+        for item in &self.adjacencies {
+            item.validate(self);
+        }
     }
 }
 
@@ -263,21 +264,11 @@ impl FileHandler<FileContent> for Provinces {
         }
         let definition_csv = self.definition_csv.as_ref().unwrap();
 
-        for adjacency in &self.adjacencies {
-            adjacency.validate(self);
-        }
-
         let mut seen_colors = FnvHashMap::default();
         #[allow(clippy::cast_possible_truncation)]
         for i in 1..self.provinces.len() as u32 {
             if let Some(province) = self.provinces.get(&i) {
-                if !province.valid {
-                    continue;
-                }
-                if !self.colors.contains(&province.color) {
-                    let msg = "color is not in the provinces.png";
-                    old_warn(&province.comment, ErrorKey::Colors, msg);
-                } else if let Some(k) = seen_colors.get(&province.color) {
+                if let Some(k) = seen_colors.get(&province.color) {
                     let msg = format!("color was already used for id {k}");
                     old_warn(&province.comment, ErrorKey::Colors, &msg);
                 } else {
@@ -288,13 +279,6 @@ impl FileHandler<FileContent> for Provinces {
                 error(definition_csv, ErrorKey::Validation, &msg);
                 return;
             }
-        }
-        if seen_colors.len() < self.colors.len() {
-            let msg = format!(
-                "provinces.png contains {} colors with no provinces assigned",
-                self.colors.len() - seen_colors.len()
-            );
-            old_warn(definition_csv, ErrorKey::Colors, &msg);
         }
         for color in &self.colors {
             if !seen_colors.contains_key(color) {
@@ -390,7 +374,6 @@ impl Adjacency {
 #[derive(Clone, Debug)]
 pub struct Province {
     id: ProvId,
-    valid: bool,
     color: Rgb<u8>,
     comment: Token,
 }
@@ -414,6 +397,6 @@ impl Province {
         let g = _verify(&csv[2], "expected green value")?;
         let b = _verify(&csv[3], "expected blue value")?;
         let color = Rgb::from([r, g, b]);
-        Some(Province { id, valid: !csv[4].as_str().is_empty(), color, comment: csv[4].clone() })
+        Some(Province { id, color, comment: csv[4].clone() })
     }
 }
