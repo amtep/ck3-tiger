@@ -78,79 +78,6 @@ bitflags! {
     }
 }
 
-/// LAST UPDATED VIC3 VERSION 1.3.6
-pub const None: u64 = 0x0000_0001;
-pub const Value: u64 = 0x0000_0002;
-pub const Bool: u64 = 0x0000_0004;
-pub const Flag: u64 = 0x0000_0008;
-#[allow(dead_code)]
-pub const Color: u64 = 0x0000_0010;
-pub const Country: u64 = 0x0000_0020;
-pub const Battle: u64 = 0x0000_0040;
-pub const BattleSide: u64 = 0x0000_0080;
-pub const Building: u64 = 0x0000_0100;
-pub const BuildingType: u64 = 0x0000_0200;
-#[allow(dead_code)]
-pub const CanalType: u64 = 0x0000_0400;
-pub const Character: u64 = 0x0000_0800;
-pub const CivilWar: u64 = 0x0000_1000;
-pub const CombatUnit: u64 = 0x0000_2000;
-pub const CommanderOrder: u64 = 0x0000_4000;
-pub const CommanderOrderType: u64 = 0x0000_8000;
-#[allow(dead_code)]
-pub const CountryCreation: u64 = 0x0001_0000;
-pub const CountryDefinition: u64 = 0x0002_0000;
-#[allow(dead_code)]
-pub const CountryFormation: u64 = 0x0004_0000;
-pub const Culture: u64 = 0x0008_0000;
-pub const Decree: u64 = 0x0010_0000;
-#[allow(dead_code)]
-pub const DiplomaticAction: u64 = 0x0020_0000;
-pub const DiplomaticPact: u64 = 0x0040_0000;
-pub const DiplomaticPlay: u64 = 0x0080_0000;
-pub const DiplomaticRelations: u64 = 0x0100_0000;
-pub const Front: u64 = 0x0200_0000;
-pub const Goods: u64 = 0x0400_0000;
-pub const Hq: u64 = 0x0800_0000;
-pub const Ideology: u64 = 0x1000_0000;
-pub const Institution: u64 = 0x2000_0000;
-pub const InstitutionType: u64 = 0x4000_0000;
-pub const InterestMarker: u64 = 0x8000_0000;
-pub const InterestGroup: u64 = 0x0000_0001_0000_0000;
-pub const InterestGroupTrait: u64 = 0x0000_0002_0000_0000;
-pub const InterestGroupType: u64 = 0x0000_0004_0000_0000;
-pub const Journalentry: u64 = 0x0000_0008_0000_0000;
-pub const Law: u64 = 0x0000_0010_0000_0000;
-pub const LawType: u64 = 0x0000_0020_0000_0000;
-pub const Market: u64 = 0x0000_0040_0000_0000;
-pub const MarketGoods: u64 = 0x0000_0080_0000_0000;
-#[allow(dead_code)]
-pub const Objective: u64 = 0x0000_0100_0000_0000;
-pub const Party: u64 = 0x0000_0200_0000_0000;
-pub const PoliticalMovement: u64 = 0x0000_0400_0000_0000;
-pub const Pop: u64 = 0x0000_0800_0000_0000;
-pub const PopType: u64 = 0x0000_1000_0000_0000;
-pub const Province: u64 = 0x0000_2000_0000_0000;
-pub const Religion: u64 = 0x0000_4000_0000_0000;
-#[allow(dead_code)]
-pub const ShippingLane: u64 = 0x0000_8000_0000_0000;
-pub const State: u64 = 0x0001_0000_0000_0000;
-pub const StateRegion: u64 = 0x0002_0000_0000_0000;
-#[allow(dead_code)]
-pub const StateTrait: u64 = 0x0004_0000_0000_0000;
-pub const StrategicRegion: u64 = 0x0008_0000_0000_0000;
-pub const Technology: u64 = 0x0010_0000_0000_0000;
-#[allow(dead_code)]
-pub const TechnologyStatus: u64 = 0x0020_0000_0000_0000;
-pub const Theater: u64 = 0x0040_0000_0000_0000;
-pub const TradeRoute: u64 = 0x0080_0000_0000_0000;
-pub const War: u64 = 0x0100_0000_0000_0000;
-
-pub const ALL: u64 = 0x7fff_ffff_ffff_ffff;
-pub const ALL_BUT_NONE: u64 = 0x7fff_ffff_ffff_fffe;
-#[allow(dead_code)]
-pub const PRIMITIVE: u64 = 0x0000_000e;
-
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
         "none" => Scopes::None,
@@ -236,11 +163,11 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
                     outscopes |= Scopes::LawType;
                 }
                 if outscopes.is_empty() {
-                    outscopes = Scopes::from_bits_truncate(*to);
+                    outscopes = *to;
                 }
-                return Some((Scopes::from_bits_truncate(*from), outscopes));
+                return Some((*from, outscopes));
             }
-            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
+            return Some((*from, *to));
         }
     }
     for (s, version, explanation) in SCOPE_TO_SCOPE_REMOVED {
@@ -258,7 +185,7 @@ pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
     let prefix = prefix.to_lowercase();
     for (from, s, to) in SCOPE_FROM_PREFIX {
         if *s == prefix {
-            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
+            return Some((*from, *to));
         }
     }
     std::option::Option::None
@@ -268,7 +195,7 @@ pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
 pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_ITERATOR {
         if name.is(s) {
-            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
+            return Some((*from, *to));
         }
     }
     for (s, version, explanation) in SCOPE_REMOVED_ITERATOR {
@@ -539,182 +466,220 @@ pub fn validate_prefix_reference(
 /// LAST UPDATED VIC3 VERSION 1.3.6
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
-const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
-    (Country | StrategicRegion, "active_diplomatic_play", DiplomaticPlay),
-    (TradeRoute, "actor_market", Market),
-    (Country, "army_size", Value),
-    (Country, "army_size_including_conscripts", Value),
-    (Battle, "attacker_side", BattleSide),
-    (War, "attacker_warleader", Country),
-    (Country | State, "average_expected_sol", Value),
-    (Country | State, "average_sol", Value),
-    (BattleSide, "battle", Battle),
-    (CombatUnit, "building", Building),
-    (Country, "building_levels", Value),
-    (Country, "cached_ai_coastal_population", Value),
-    (Country, "cached_ai_incorporated_coastal_population", Value),
-    (Country, "cached_ai_incorporated_population", Value),
-    (Country, "cached_ai_overseas_subject_population", Value),
-    (Country, "cached_ai_subject_population", Value),
-    (Country, "cached_ai_total_population", Value),
-    (Country, "cached_ai_unincorporated_coastal_population", Value),
-    (Country, "cached_ai_unincorporated_population", Value),
-    (Country, "capital", State),
-    (PoliticalMovement, "civil_war", CivilWar),
-    (Country, "civil_war_origin_country", Country),
-    (Country, "colonial_growth_per_colony", Value),
-    (Province, "combat_width", Value),
-    (CombatUnit, "commander", Character),
-    (Province | State, "controller", Country),
-    (Country, "country_definition", CountryDefinition),
-    (Country, "credit", Value),
-    (Character | CombatUnit | Pop, "culture", Culture),
-    (Law, "currently_active_law_in_group", Law),
-    (Country, "currently_enacting_law", Law),
-    (Battle, "defender_side", BattleSide),
-    (War, "defender_warleader", Country),
-    (CombatUnit, "defense", Value),
-    (CombatUnit, "demoralized", Value),
-    (PoliticalMovement, "desired_law", LawType),
-    (DiplomaticPact, "diplomatic_pact_other_country(", Country),
-    (TradeRoute, "exporter", Market),
-    (DiplomaticPact, "first_country", Country),
-    (Battle | Character, "front", Front),
-    (Front, "front_length", Value),
-    (Country | State, "gdp", Value),
-    (None, "global_gdp", Value),
-    (Journalentry, "goal_value", Value),
-    (MarketGoods | TradeRoute, "goods", Goods),
-    (Country, "government_size", Value),
-    (Country, "heir", Character),
-    (Character | Pop, "home_country", Country),
-    (Character, "ideology", Ideology),
-    (TradeRoute, "importer", Market),
-    (Country, "income", Value),
-    (Country, "infamy", Value),
-    (DiplomaticPlay, "initiator", Country),
-    (Character, "interest_group", InterestGroup),
-    (Character, "interest_group_type", InterestGroupType),
-    (Institution, "investment", Value),
-    (Institution, "investment_max", Value),
-    (None, "is_setup", Value),
-    (Province | State, "land_hq", Hq),
-    (InterestGroup, "leader", Character),
-    (Country, "legitimacy", Value),
-    (Building | TradeRoute, "level", Value),
-    (CombatUnit, "manpower", Value),
-    (Country | Building | Market | MarketGoods | Province | State | StateRegion, "market", Market),
-    (Country, "market_capital", State),
-    (CombatUnit, "mobilization", Value),
-    (Party, "momentum", Value),
-    (CombatUnit, "morale", Value),
-    (Province, "naval_hq", Hq),
-    (Country, "navy_size", Value),
-    (None, "no", Bool),
-    (None, "NO", Bool),
-    (Country, "num_active_declared_interests", Value),
-    (Country, "num_active_interests", Value),
-    (Country, "num_active_natural_interests", Value),
-    (Country, "num_active_plays", Value),
-    (Country, "num_admirals", Value),
-    (Country, "num_alliances", Value),
-    (Character, "num_battalions", Value),
-    (Country, "num_characters", Value),
-    (Country, "num_colony_projects", Value),
-    (Character, "num_commanded_units", Value),
-    (Country, "num_commanders", Value),
-    (Country, "num_convoys_available", Value),
-    (Country, "num_convoys_required", Value),
-    (Country, "num_declared_interests", Value),
-    (Country, "num_defensive_pacts", Value),
-    (MarketGoods, "num_export_trade_routes", Value),
-    (Hq, "num_garrison_units", Value),
-    (Country, "num_generals", Value),
-    (MarketGoods, "num_import_trade_routes", Value),
-    (Country, "num_income_transfer_pacts", Value),
-    (Country, "num_incorporated_states", Value),
-    (Country, "num_interests", Value),
-    (Character, "num_mobilized_battalions", Value),
-    (Country, "num_natural_interests", Value),
-    (Country, "num_obligations_earned", Value),
-    (Country, "num_pending_events", Value),
-    (Country, "num_politicians", Value),
-    (Country, "num_positive_relations", Value),
-    (Front | State | StateRegion, "num_provinces", Value),
-    (Country, "num_queued_constructions", Value),
-    (Country, "num_queued_government_constructions", Value),
-    (Country, "num_queued_private_constructions", Value),
-    (Country, "num_rivals", Value),
-    (Country, "num_ruling_igs", Value),
-    (Country, "num_states", Value),
-    (Country, "num_trade_routes", Value),
-    (Country, "num_treaty_ports", Value),
-    (Country, "num_unincorporated_states", Value),
-    (Character, "num_units", Value),
-    (Character, "num_units_not_in_battle", Value),
-    (CombatUnit, "offense", Value),
-    (Character, "opposing_commander", Character),
-    (Country, "overlord", Country),
+const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (
-        Country
-            | Building
-            | Character
-            | CombatUnit
-            | Decree
-            | Institution
-            | InterestMarker
-            | InterestGroup
-            | Journalentry
-            | Law
-            | Market
-            | MarketGoods
-            | Pop
-            | Province
-            | State
-            | TradeRoute,
+        Scopes::Country.union(Scopes::StrategicRegion),
+        "active_diplomatic_play",
+        Scopes::DiplomaticPlay,
+    ),
+    (Scopes::TradeRoute, "actor_market", Scopes::Market),
+    (Scopes::Country, "army_size", Scopes::Value),
+    (Scopes::Country, "army_size_including_conscripts", Scopes::Value),
+    (Scopes::Battle, "attacker_side", Scopes::BattleSide),
+    (Scopes::War, "attacker_warleader", Scopes::Country),
+    (Scopes::Country.union(Scopes::State), "average_expected_sol", Scopes::Value),
+    (Scopes::Country.union(Scopes::State), "average_sol", Scopes::Value),
+    (Scopes::BattleSide, "battle", Scopes::Battle),
+    (Scopes::CombatUnit, "building", Scopes::Building),
+    (Scopes::Country, "building_levels", Scopes::Value),
+    (Scopes::Country, "cached_ai_coastal_population", Scopes::Value),
+    (Scopes::Country, "cached_ai_incorporated_coastal_population", Scopes::Value),
+    (Scopes::Country, "cached_ai_incorporated_population", Scopes::Value),
+    (Scopes::Country, "cached_ai_overseas_subject_population", Scopes::Value),
+    (Scopes::Country, "cached_ai_subject_population", Scopes::Value),
+    (Scopes::Country, "cached_ai_total_population", Scopes::Value),
+    (Scopes::Country, "cached_ai_unincorporated_coastal_population", Scopes::Value),
+    (Scopes::Country, "cached_ai_unincorporated_population", Scopes::Value),
+    (Scopes::Country, "capital", Scopes::State),
+    (Scopes::PoliticalMovement, "civil_war", Scopes::CivilWar),
+    (Scopes::Country, "civil_war_origin_country", Scopes::Country),
+    (Scopes::Country, "colonial_growth_per_colony", Scopes::Value),
+    (Scopes::Province, "combat_width", Scopes::Value),
+    (Scopes::CombatUnit, "commander", Scopes::Character),
+    (Scopes::Province.union(Scopes::State), "controller", Scopes::Country),
+    (Scopes::Country, "country_definition", Scopes::CountryDefinition),
+    (Scopes::Country, "credit", Scopes::Value),
+    (Scopes::Character.union(Scopes::CombatUnit).union(Scopes::Pop), "culture", Scopes::Culture),
+    (Scopes::Law, "currently_active_law_in_group", Scopes::Law),
+    (Scopes::Country, "currently_enacting_law", Scopes::Law),
+    (Scopes::Battle, "defender_side", Scopes::BattleSide),
+    (Scopes::War, "defender_warleader", Scopes::Country),
+    (Scopes::CombatUnit, "defense", Scopes::Value),
+    (Scopes::CombatUnit, "demoralized", Scopes::Value),
+    (Scopes::PoliticalMovement, "desired_law", Scopes::LawType),
+    (Scopes::DiplomaticPact, "diplomatic_pact_other_country(", Scopes::Country),
+    (Scopes::TradeRoute, "exporter", Scopes::Market),
+    (Scopes::DiplomaticPact, "first_country", Scopes::Country),
+    (Scopes::Battle.union(Scopes::Character), "front", Scopes::Front),
+    (Scopes::Front, "front_length", Scopes::Value),
+    (Scopes::Country.union(Scopes::State), "gdp", Scopes::Value),
+    (Scopes::None, "global_gdp", Scopes::Value),
+    (Scopes::Journalentry, "goal_value", Scopes::Value),
+    (Scopes::MarketGoods.union(Scopes::TradeRoute), "goods", Scopes::Goods),
+    (Scopes::Country, "government_size", Scopes::Value),
+    (Scopes::Country, "heir", Scopes::Character),
+    (Scopes::Character.union(Scopes::Pop), "home_country", Scopes::Country),
+    (Scopes::Character, "ideology", Scopes::Ideology),
+    (Scopes::TradeRoute, "importer", Scopes::Market),
+    (Scopes::Country, "income", Scopes::Value),
+    (Scopes::Country, "infamy", Scopes::Value),
+    (Scopes::DiplomaticPlay, "initiator", Scopes::Country),
+    (Scopes::Character, "interest_group", Scopes::InterestGroup),
+    (Scopes::Character, "interest_group_type", Scopes::InterestGroupType),
+    (Scopes::Institution, "investment", Scopes::Value),
+    (Scopes::Institution, "investment_max", Scopes::Value),
+    (Scopes::None, "is_setup", Scopes::Value),
+    (Scopes::Province.union(Scopes::State), "land_hq", Scopes::Hq),
+    (Scopes::InterestGroup, "leader", Scopes::Character),
+    (Scopes::Country, "legitimacy", Scopes::Value),
+    (Scopes::Building.union(Scopes::TradeRoute), "level", Scopes::Value),
+    (Scopes::CombatUnit, "manpower", Scopes::Value),
+    (
+        Scopes::Country
+            .union(Scopes::Building)
+            .union(Scopes::Market)
+            .union(Scopes::MarketGoods)
+            .union(Scopes::Province)
+            .union(Scopes::State)
+            .union(Scopes::StateRegion),
+        "market",
+        Scopes::Market,
+    ),
+    (Scopes::Country, "market_capital", Scopes::State),
+    (Scopes::CombatUnit, "mobilization", Scopes::Value),
+    (Scopes::Party, "momentum", Scopes::Value),
+    (Scopes::CombatUnit, "morale", Scopes::Value),
+    (Scopes::Province, "naval_hq", Scopes::Hq),
+    (Scopes::Country, "navy_size", Scopes::Value),
+    (Scopes::None, "no", Scopes::Bool),
+    (Scopes::None, "NO", Scopes::Bool),
+    (Scopes::Country, "num_active_declared_interests", Scopes::Value),
+    (Scopes::Country, "num_active_interests", Scopes::Value),
+    (Scopes::Country, "num_active_natural_interests", Scopes::Value),
+    (Scopes::Country, "num_active_plays", Scopes::Value),
+    (Scopes::Country, "num_admirals", Scopes::Value),
+    (Scopes::Country, "num_alliances", Scopes::Value),
+    (Scopes::Character, "num_battalions", Scopes::Value),
+    (Scopes::Country, "num_characters", Scopes::Value),
+    (Scopes::Country, "num_colony_projects", Scopes::Value),
+    (Scopes::Character, "num_commanded_units", Scopes::Value),
+    (Scopes::Country, "num_commanders", Scopes::Value),
+    (Scopes::Country, "num_convoys_available", Scopes::Value),
+    (Scopes::Country, "num_convoys_required", Scopes::Value),
+    (Scopes::Country, "num_declared_interests", Scopes::Value),
+    (Scopes::Country, "num_defensive_pacts", Scopes::Value),
+    (Scopes::MarketGoods, "num_export_trade_routes", Scopes::Value),
+    (Scopes::Hq, "num_garrison_units", Scopes::Value),
+    (Scopes::Country, "num_generals", Scopes::Value),
+    (Scopes::MarketGoods, "num_import_trade_routes", Scopes::Value),
+    (Scopes::Country, "num_income_transfer_pacts", Scopes::Value),
+    (Scopes::Country, "num_incorporated_states", Scopes::Value),
+    (Scopes::Country, "num_interests", Scopes::Value),
+    (Scopes::Character, "num_mobilized_battalions", Scopes::Value),
+    (Scopes::Country, "num_natural_interests", Scopes::Value),
+    (Scopes::Country, "num_obligations_earned", Scopes::Value),
+    (Scopes::Country, "num_pending_events", Scopes::Value),
+    (Scopes::Country, "num_politicians", Scopes::Value),
+    (Scopes::Country, "num_positive_relations", Scopes::Value),
+    (Scopes::Front.union(Scopes::State).union(Scopes::StateRegion), "num_provinces", Scopes::Value),
+    (Scopes::Country, "num_queued_constructions", Scopes::Value),
+    (Scopes::Country, "num_queued_government_constructions", Scopes::Value),
+    (Scopes::Country, "num_queued_private_constructions", Scopes::Value),
+    (Scopes::Country, "num_rivals", Scopes::Value),
+    (Scopes::Country, "num_ruling_igs", Scopes::Value),
+    (Scopes::Country, "num_states", Scopes::Value),
+    (Scopes::Country, "num_trade_routes", Scopes::Value),
+    (Scopes::Country, "num_treaty_ports", Scopes::Value),
+    (Scopes::Country, "num_unincorporated_states", Scopes::Value),
+    (Scopes::Character, "num_units", Scopes::Value),
+    (Scopes::Character, "num_units_not_in_battle", Scopes::Value),
+    (Scopes::CombatUnit, "offense", Scopes::Value),
+    (Scopes::Character, "opposing_commander", Scopes::Character),
+    (Scopes::Country, "overlord", Scopes::Country),
+    (
+        Scopes::Country
+            .union(Scopes::Building)
+            .union(Scopes::Character)
+            .union(Scopes::CombatUnit)
+            .union(Scopes::Decree)
+            .union(Scopes::Institution)
+            .union(Scopes::InterestMarker)
+            .union(Scopes::InterestGroup)
+            .union(Scopes::Journalentry)
+            .union(Scopes::Law)
+            .union(Scopes::Market)
+            .union(Scopes::MarketGoods)
+            .union(Scopes::Pop)
+            .union(Scopes::Province)
+            .union(Scopes::State)
+            .union(Scopes::TradeRoute),
         "owner",
-        Country,
+        Scopes::Country,
     ),
-    (Market, "participants", Value),
-    (InterestGroup, "party", Party),
-    (None, "player", Country), // TODO "do not use this outside tutorial"
-    (DiplomaticRelations, "player_owed_obligation_days_left", Value),
-    (Character | CivilWar, "political_movement", PoliticalMovement),
-    (Pop, "pop_weight_modifier_scale", Value),
-    (Character, "popularity", Value),
-    (State, "population_below_expected_sol", Value),
-    (BattleSide, "province", Province),
+    (Scopes::Market, "participants", Scopes::Value),
+    (Scopes::InterestGroup, "party", Scopes::Party),
+    (Scopes::None, "player", Scopes::Country), // TODO "do not use this outside tutorial"
+    (Scopes::DiplomaticRelations, "player_owed_obligation_days_left", Scopes::Value),
+    (Scopes::Character.union(Scopes::CivilWar), "political_movement", Scopes::PoliticalMovement),
+    (Scopes::Pop, "pop_weight_modifier_scale", Scopes::Value),
+    (Scopes::Character, "popularity", Scopes::Value),
+    (Scopes::State, "population_below_expected_sol", Scopes::Value),
+    (Scopes::BattleSide, "province", Scopes::Province),
     (
-        Building | DiplomaticPlay | InterestMarker | Province | State | StateRegion,
+        Scopes::Building
+            .union(Scopes::DiplomaticPlay)
+            .union(Scopes::InterestMarker)
+            .union(Scopes::Province)
+            .union(Scopes::State)
+            .union(Scopes::StateRegion),
         "region",
-        StrategicRegion,
+        Scopes::StrategicRegion,
     ),
-    (Country | Character | CountryDefinition | Pop, "religion", Religion),
-    (Country, "ruler", Character),
-    (DiplomaticRelations, "scope_relations", Value),
-    (DiplomaticRelations, "scope_tension", Value),
-    (DiplomaticPact, "second_country", Country),
-    (BuildingType, "slaves_role", PopType),
-    (Building | Market | Pop | Province, "state", State),
-    (State, "state_region", StateRegion),
-    (Character, "supply", Value),
-    (DiplomaticPlay | Journalentry, "target", ALL), // TODO: scope type?
-    (TradeRoute, "target_market", Market),
-    (Country, "technology_being_researched", Technology),
-    (Country, "techs_researched", Value),
-    (Country, "top_overlord", Country),
-    (Market, "trade_center", State),
-    (Building, "training_rate", Value),
+    (
+        Scopes::Country
+            .union(Scopes::Character)
+            .union(Scopes::CountryDefinition)
+            .union(Scopes::Pop),
+        "religion",
+        Scopes::Religion,
+    ),
+    (Scopes::Country, "ruler", Scopes::Character),
+    (Scopes::DiplomaticRelations, "scope_relations", Scopes::Value),
+    (Scopes::DiplomaticRelations, "scope_tension", Scopes::Value),
+    (Scopes::DiplomaticPact, "second_country", Scopes::Country),
+    (Scopes::BuildingType, "slaves_role", Scopes::PopType),
+    (
+        Scopes::Building.union(Scopes::Market).union(Scopes::Pop).union(Scopes::Province),
+        "state",
+        Scopes::State,
+    ),
+    (Scopes::State, "state_region", Scopes::StateRegion),
+    (Scopes::Character, "supply", Scopes::Value),
+    (Scopes::DiplomaticPlay.union(Scopes::Journalentry), "target", Scopes::all()), // TODO: scope type?
+    (Scopes::TradeRoute, "target_market", Scopes::Market),
+    (Scopes::Country, "technology_being_researched", Scopes::Technology),
+    (Scopes::Country, "techs_researched", Scopes::Value),
+    (Scopes::Country, "top_overlord", Scopes::Country),
+    (Scopes::Market, "trade_center", Scopes::State),
+    (Scopes::Building, "training_rate", Scopes::Value),
     // TODO: special case for the scope types here
     (
-        Building | CommanderOrder | Institution | InterestGroup | Law,
+        Scopes::Building
+            .union(Scopes::CommanderOrder)
+            .union(Scopes::Institution)
+            .union(Scopes::InterestGroup)
+            .union(Scopes::Law),
         "type",
-        BuildingType | CommanderOrderType | InstitutionType | InterestGroupType | LawType,
+        Scopes::BuildingType
+            .union(Scopes::CommanderOrderType)
+            .union(Scopes::InstitutionType)
+            .union(Scopes::InterestGroupType)
+            .union(Scopes::LawType),
     ),
-    (DiplomaticPlay, "war", War),
-    (Pop, "workplace", Building),
-    (None, "yes", Bool),
-    (None, "YES", Bool),
+    (Scopes::DiplomaticPlay, "war", Scopes::War),
+    (Scopes::Pop, "workplace", Scopes::Building),
+    (Scopes::None, "yes", Scopes::Bool),
+    (Scopes::None, "YES", Scopes::Bool),
 ];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
@@ -722,120 +687,176 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
 /// TODO: add the Item type here, so that it can be checked for existence.
-const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
-    (Country, "active_law", Law),
-    (Country, "ai_army_comparison", Value),
-    (Country, "ai_gdp_comparison", Value),
-    (Country, "ai_ideological_opinion", Value),
-    (Country, "ai_navy_comparison", Value),
-    (None, "array_define", Value),
-    (Front, "average_defense", Value),
-    (Front, "average_offense", Value),
-    (State, "b", Building),
-    (None, "c", Country),
-    (None, "cd", CountryDefinition),
-    (None, "cu", Culture),
-    (Country, "decree_cost", Value),
-    (None, "define", Value),
-    (None, "flag", Flag),
-    (None, "g", Goods),
-    (Country, "get_ruler_for", Character),
-    (None, "global_var", ALL),
-    (None, "i", Ideology),
-    (None, "ideology", Ideology), // TODO difference with i:
-    (Country, "ig", InterestGroup),
-    (None, "ig_trait", InterestGroupTrait),
-    (None, "ig_type", InterestGroupType),
-    (None, "infamy_threshold", Value),
-    (Country, "institution", Institution),
-    (Country, "je", Journalentry),
-    (Country, "je_tutorial", Journalentry),
-    (None, "law_type", LawType),
-    (None, "local_var", ALL),
-    (Market, "mg", MarketGoods),
-    (Country | Building | Character | InterestGroup | Market | State, "modifier", Value | Bool),
-    (State, "nf", Decree),
-    (Country, "num_alliances_and_defensive_pacts_with_allies", Value),
-    (Country, "num_alliances_and_defensive_pacts_with_rivals", Value),
-    (Front, "num_defending_battalions", Value),
-    (Front, "num_enemy_units", Value),
-    (Country, "num_mutual_trade_route_levels_with_country", Value),
-    (Country, "num_pending_events", Value),
-    (Front, "num_total_battalions", Value),
-    (None, "p", Province),
-    (None, "pop_type", PopType),
-    (Country, "py", Party),
-    (None, "rank_value", Value),
-    (StateRegion, "region_state", State), // undocumented
-    (None, "rel", Religion),
-    (Country, "relations", Value),
-    (None, "relations_threshold", Value),
-    (None, "s", StateRegion),
-    (None, "scope", ALL),
-    (None, "sr", StrategicRegion),
-    (Country, "tension", Value),
-    (None, "tension_threshold", Value),
-    (ALL, "var", ALL),
+const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
+    (Scopes::Country, "active_law", Scopes::Law),
+    (Scopes::Country, "ai_army_comparison", Scopes::Value),
+    (Scopes::Country, "ai_gdp_comparison", Scopes::Value),
+    (Scopes::Country, "ai_ideological_opinion", Scopes::Value),
+    (Scopes::Country, "ai_navy_comparison", Scopes::Value),
+    (Scopes::None, "array_define", Scopes::Value),
+    (Scopes::Front, "average_defense", Scopes::Value),
+    (Scopes::Front, "average_offense", Scopes::Value),
+    (Scopes::State, "b", Scopes::Building),
+    (Scopes::None, "c", Scopes::Country),
+    (Scopes::None, "cd", Scopes::CountryDefinition),
+    (Scopes::None, "cu", Scopes::Culture),
+    (Scopes::Country, "decree_cost", Scopes::Value),
+    (Scopes::None, "define", Scopes::Value),
+    (Scopes::None, "flag", Scopes::Flag),
+    (Scopes::None, "g", Scopes::Goods),
+    (Scopes::Country, "get_ruler_for", Scopes::Character),
+    (Scopes::None, "global_var", Scopes::all()),
+    (Scopes::None, "i", Scopes::Ideology),
+    (Scopes::None, "ideology", Scopes::Ideology), // TODO difference with i:
+    (Scopes::Country, "ig", Scopes::InterestGroup),
+    (Scopes::None, "ig_trait", Scopes::InterestGroupTrait),
+    (Scopes::None, "ig_type", Scopes::InterestGroupType),
+    (Scopes::None, "infamy_threshold", Scopes::Value),
+    (Scopes::Country, "institution", Scopes::Institution),
+    (Scopes::Country, "je", Scopes::Journalentry),
+    (Scopes::Country, "je_tutorial", Scopes::Journalentry),
+    (Scopes::None, "law_type", Scopes::LawType),
+    (Scopes::None, "local_var", Scopes::all()),
+    (Scopes::Market, "mg", Scopes::MarketGoods),
+    (
+        Scopes::Country
+            .union(Scopes::Building)
+            .union(Scopes::Character)
+            .union(Scopes::InterestGroup)
+            .union(Scopes::Market)
+            .union(Scopes::State),
+        "modifier",
+        Scopes::Value.union(Scopes::Bool),
+    ),
+    (Scopes::State, "nf", Scopes::Decree),
+    (Scopes::Country, "num_alliances_and_defensive_pacts_with_allies", Scopes::Value),
+    (Scopes::Country, "num_alliances_and_defensive_pacts_with_rivals", Scopes::Value),
+    (Scopes::Front, "num_defending_battalions", Scopes::Value),
+    (Scopes::Front, "num_enemy_units", Scopes::Value),
+    (Scopes::Country, "num_mutual_trade_route_levels_with_country", Scopes::Value),
+    (Scopes::Country, "num_pending_events", Scopes::Value),
+    (Scopes::Front, "num_total_battalions", Scopes::Value),
+    (Scopes::None, "p", Scopes::Province),
+    (Scopes::None, "pop_type", Scopes::PopType),
+    (Scopes::Country, "py", Scopes::Party),
+    (Scopes::None, "rank_value", Scopes::Value),
+    (Scopes::StateRegion, "region_state", Scopes::State), // undocumented
+    (Scopes::None, "rel", Scopes::Religion),
+    (Scopes::Country, "relations", Scopes::Value),
+    (Scopes::None, "relations_threshold", Scopes::Value),
+    (Scopes::None, "s", Scopes::StateRegion),
+    (Scopes::None, "scope", Scopes::all()),
+    (Scopes::None, "sr", Scopes::StrategicRegion),
+    (Scopes::Country, "tension", Scopes::Value),
+    (Scopes::None, "tension_threshold", Scopes::Value),
+    (Scopes::all(), "var", Scopes::all()),
 ];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
-const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
-    (Country, "active_party", Party),
-    (None, "character", Character),
-    (None, "character_in_exile_pool", Character),
-    (None, "character_in_void", Character),
-    (Country, "civil_war", CivilWar),
-    (Building | Character, "combat_units", CombatUnit),
-    (None, "country", Country),
-    (None, "diplomatic_play", DiplomaticPlay),
-    (None, "in_global_list", ALL_BUT_NONE),
-    (Country, "in_hierarchy", Country),
-    (None, "in_list", ALL_BUT_NONE),
-    (None, "in_local_list", ALL_BUT_NONE),
-    (Country, "interest_group", InterestGroup),
-    (Country, "law", Law),
-    (None, "market", Market),
-    (Market, "market_goods", MarketGoods),
-    (Party, "member", InterestGroup),
-    (Country | State | StateRegion | StrategicRegion, "neighbouring_state", State),
-    (Country, "overlord_or_above", Country),
-    (DiplomaticPact, "participant", Country),
-    (Country, "political_movement", PoliticalMovement),
-    (Country, "potential_party", Party),
-    (InterestGroup, "preferred_law", Law),
-    (Country | CountryDefinition | State, "primary_culture", Culture),
-    (Country, "rival_country", Country),
-    (Country | Front | InterestGroup, "scope_admiral", Character),
-    (Country, "scope_ally", Country),
-    (Country | State, "scope_building", Building),
-    (Country | Front | InterestGroup, "scope_character", Character),
-    (Country, "scope_cobelligerent", Country),
-    (Market, "scope_country", Country),
-    (Country | State, "scope_culture", Culture),
-    (Country, "scope_diplomatic_pact", DiplomaticPact),
-    (War, "scope_front", Front),
-    (Country | Front | InterestGroup, "scope_general", Character),
-    (DiplomaticPlay, "scope_initiator_ally", Country),
-    (Country | StrategicRegion, "scope_interest_marker", InterestMarker),
-    (DiplomaticPlay, "scope_play_involved", Country),
-    (Country | Front | InterestGroup, "scope_politician", Character),
-    (Country | Culture | InterestGroup | State, "scope_pop", Pop),
-    (Country | Front | StateRegion | StrategicRegion | Theater, "scope_state", State),
-    (DiplomaticPlay, "scope_target_ally", Country),
-    (Country, "scope_theater", Theater),
-    (Country, "scope_violate_sovereignty_interested_parties", Country),
-    (Country, "scope_violate_sovereignty_wars", War),
-    (Country, "scope_war", War),
-    (None, "state", State),
-    (None, "state_region", StateRegion),
-    (Country, "strategic_objective", State),
-    (Country, "subject_or_below", Country),
-    (PoliticalMovement, "supporting_character", Character),
-    (PoliticalMovement, "supporting_interest_group", InterestGroup),
-    (Country | Market | MarketGoods, "trade_route", TradeRoute),
+const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
+    (Scopes::Country, "active_party", Scopes::Party),
+    (Scopes::None, "character", Scopes::Character),
+    (Scopes::None, "character_in_exile_pool", Scopes::Character),
+    (Scopes::None, "character_in_void", Scopes::Character),
+    (Scopes::Country, "civil_war", Scopes::CivilWar),
+    (Scopes::Building.union(Scopes::Character), "combat_units", Scopes::CombatUnit),
+    (Scopes::None, "country", Scopes::Country),
+    (Scopes::None, "diplomatic_play", Scopes::DiplomaticPlay),
+    (Scopes::None, "in_global_list", Scopes::all_but_none()),
+    (Scopes::Country, "in_hierarchy", Scopes::Country),
+    (Scopes::None, "in_list", Scopes::all_but_none()),
+    (Scopes::None, "in_local_list", Scopes::all_but_none()),
+    (Scopes::Country, "interest_group", Scopes::InterestGroup),
+    (Scopes::Country, "law", Scopes::Law),
+    (Scopes::None, "market", Scopes::Market),
+    (Scopes::Market, "market_goods", Scopes::MarketGoods),
+    (Scopes::Party, "member", Scopes::InterestGroup),
+    (
+        Scopes::Country
+            .union(Scopes::State)
+            .union(Scopes::StateRegion)
+            .union(Scopes::StrategicRegion),
+        "neighbouring_state",
+        Scopes::State,
+    ),
+    (Scopes::Country, "overlord_or_above", Scopes::Country),
+    (Scopes::DiplomaticPact, "participant", Scopes::Country),
+    (Scopes::Country, "political_movement", Scopes::PoliticalMovement),
+    (Scopes::Country, "potential_party", Scopes::Party),
+    (Scopes::InterestGroup, "preferred_law", Scopes::Law),
+    (
+        Scopes::Country.union(Scopes::CountryDefinition).union(Scopes::State),
+        "primary_culture",
+        Scopes::Culture,
+    ),
+    (Scopes::Country, "rival_country", Scopes::Country),
+    (
+        Scopes::Country.union(Scopes::Front).union(Scopes::InterestGroup),
+        "scope_admiral",
+        Scopes::Character,
+    ),
+    (Scopes::Country, "scope_ally", Scopes::Country),
+    (Scopes::Country.union(Scopes::State), "scope_building", Scopes::Building),
+    (
+        Scopes::Country.union(Scopes::Front).union(Scopes::InterestGroup),
+        "scope_character",
+        Scopes::Character,
+    ),
+    (Scopes::Country, "scope_cobelligerent", Scopes::Country),
+    (Scopes::Market, "scope_country", Scopes::Country),
+    (Scopes::Country.union(Scopes::State), "scope_culture", Scopes::Culture),
+    (Scopes::Country, "scope_diplomatic_pact", Scopes::DiplomaticPact),
+    (Scopes::War, "scope_front", Scopes::Front),
+    (
+        Scopes::Country.union(Scopes::Front).union(Scopes::InterestGroup),
+        "scope_general",
+        Scopes::Character,
+    ),
+    (Scopes::DiplomaticPlay, "scope_initiator_ally", Scopes::Country),
+    (
+        Scopes::Country.union(Scopes::StrategicRegion),
+        "scope_interest_marker",
+        Scopes::InterestMarker,
+    ),
+    (Scopes::DiplomaticPlay, "scope_play_involved", Scopes::Country),
+    (
+        Scopes::Country.union(Scopes::Front).union(Scopes::InterestGroup),
+        "scope_politician",
+        Scopes::Character,
+    ),
+    (
+        Scopes::Country.union(Scopes::Culture).union(Scopes::InterestGroup).union(Scopes::State),
+        "scope_pop",
+        Scopes::Pop,
+    ),
+    (
+        Scopes::Country
+            .union(Scopes::Front)
+            .union(Scopes::StateRegion)
+            .union(Scopes::StrategicRegion)
+            .union(Scopes::Theater),
+        "scope_state",
+        Scopes::State,
+    ),
+    (Scopes::DiplomaticPlay, "scope_target_ally", Scopes::Country),
+    (Scopes::Country, "scope_theater", Scopes::Theater),
+    (Scopes::Country, "scope_violate_sovereignty_interested_parties", Scopes::Country),
+    (Scopes::Country, "scope_violate_sovereignty_wars", Scopes::War),
+    (Scopes::Country, "scope_war", Scopes::War),
+    (Scopes::None, "state", Scopes::State),
+    (Scopes::None, "state_region", Scopes::StateRegion),
+    (Scopes::Country, "strategic_objective", Scopes::State),
+    (Scopes::Country, "subject_or_below", Scopes::Country),
+    (Scopes::PoliticalMovement, "supporting_character", Scopes::Character),
+    (Scopes::PoliticalMovement, "supporting_interest_group", Scopes::InterestGroup),
+    (
+        Scopes::Country.union(Scopes::Market).union(Scopes::MarketGoods),
+        "trade_route",
+        Scopes::TradeRoute,
+    ),
 ];
 
 const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[];
