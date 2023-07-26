@@ -233,7 +233,7 @@ pub fn validate_effect_block(
             vd.field_item("type", Item::Secret);
             vd.field_target("target", sc, Scopes::Character);
             if let Some(name) = vd.field_value("save_scope_as") {
-                sc.define_name(name.as_str(), Scopes::Secret, name);
+                sc.define_name_token(name.as_str(), Scopes::Secret, name);
             }
         }
         AddToGuestSubset | RemoveFromGuestSubset => {
@@ -356,10 +356,10 @@ pub fn validate_effect_block(
             vd.replaced_field("save_event_target_as", "save_scope_as");
             vd.replaced_field("save_temporary_event_target_as", "save_temporary_scope_as");
             if let Some(name) = vd.field_value("save_scope_as") {
-                sc.define_name(name.as_str(), Scopes::Character, name);
+                sc.define_name_token(name.as_str(), Scopes::Character, name);
             }
             if let Some(name) = vd.field_value("save_temporary_scope_as") {
-                sc.define_name(name.as_str(), Scopes::Character, name);
+                sc.define_name_token(name.as_str(), Scopes::Character, name);
             }
 
             vd.field_validated_sc("name", sc, validate_desc);
@@ -451,10 +451,10 @@ pub fn validate_effect_block(
             vd.field_target("leader", sc, Scopes::Character);
             vd.field_target("capital", sc, Scopes::LandedTitle);
             if let Some(name) = vd.field_value("save_scope_as") {
-                sc.define_name(name.as_str(), Scopes::HolyOrder, name);
+                sc.define_name_token(name.as_str(), Scopes::HolyOrder, name);
             }
             if let Some(name) = vd.field_value("save_temporary_scope_as") {
-                sc.define_name(name.as_str(), Scopes::HolyOrder, name);
+                sc.define_name_token(name.as_str(), Scopes::HolyOrder, name);
             }
         }
         CreateTitleAndVassalChange => {
@@ -478,7 +478,7 @@ pub fn validate_effect_block(
                 ],
             );
             if let Some(name) = vd.field_value("save_scope_as") {
-                sc.define_name(name.as_str(), Scopes::TitleAndVassalChange, name);
+                sc.define_name_token(name.as_str(), Scopes::TitleAndVassalChange, name);
             }
             vd.field_bool("add_claim_on_loss");
         }
@@ -608,7 +608,7 @@ pub fn validate_effect_block(
             vd.req_field("name");
             vd.req_field("target");
             if let Some(name) = vd.field_value("name") {
-                sc.define_name(name.as_str(), Scopes::Value, name);
+                sc.define_name_token(name.as_str(), Scopes::Value, name);
             }
             vd.field_target("target", sc, Scopes::Character);
         }
@@ -690,10 +690,10 @@ pub fn validate_effect_block(
             vd.field_bool("uses_supply");
             vd.field_target("army", sc, Scopes::Army);
             if let Some(name) = vd.field_value("save_scope_as") {
-                sc.define_name(name.as_str(), Scopes::Army, name);
+                sc.define_name_token(name.as_str(), Scopes::Army, name);
             }
             if let Some(name) = vd.field_value("save_temporary_scope_as") {
-                sc.define_name(name.as_str(), Scopes::Army, name);
+                sc.define_name_token(name.as_str(), Scopes::Army, name);
             }
             vd.field_validated_sc("name", sc, validate_desc);
         }
@@ -940,10 +940,10 @@ pub fn validate_effect_bv(
                 vd.req_field("type");
                 vd.field_item("type", Item::Story);
                 if let Some(name) = vd.field_value("save_scope_as") {
-                    sc.define_name(name.as_str(), Scopes::StoryCycle, name);
+                    sc.define_name_token(name.as_str(), Scopes::StoryCycle, name);
                 }
                 if let Some(name) = vd.field_value("save_temporary_scope_as") {
-                    sc.define_name(name.as_str(), Scopes::StoryCycle, name);
+                    sc.define_name_token(name.as_str(), Scopes::StoryCycle, name);
                 }
             }
         },
@@ -1088,7 +1088,7 @@ fn validate_artifact(
 
     if caller == "create_artifact" {
         if let Some(name) = vd.field_value("save_scope_as") {
-            sc.define_name(name.as_str(), Scopes::Artifact, name);
+            sc.define_name_token(name.as_str(), Scopes::Artifact, name);
         }
         vd.field_target("title_history", sc, Scopes::LandedTitle);
         vd.field_date("title_history_date");

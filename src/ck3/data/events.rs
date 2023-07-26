@@ -5,7 +5,7 @@ use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Field, BV};
-use crate::context::ScopeContext;
+use crate::context::{Reason, ScopeContext};
 use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
 use crate::desc::validate_desc;
@@ -85,7 +85,7 @@ impl Events {
 
     pub fn check_scope(&self, token: &Token, sc: &mut ScopeContext) {
         if let Some(event) = self.get_event(token.as_str()) {
-            sc.expect(event.expects_scope, token);
+            sc.expect(event.expects_scope, &Reason::Token(token.clone()));
         }
     }
 

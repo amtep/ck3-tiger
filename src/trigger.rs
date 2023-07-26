@@ -5,7 +5,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Eq::*, Field, BV};
 #[cfg(feature = "ck3")]
 use crate::ck3::tables::triggers::scope_trigger;
-use crate::context::ScopeContext;
+use crate::context::{Reason, ScopeContext};
 use crate::data::genes::Gene;
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::date::Date;
@@ -193,7 +193,7 @@ pub fn validate_trigger_internal(
                         error(key, ErrorKey::Validation, &msg);
                         return;
                     }
-                    sc.expect(inscopes, key);
+                    sc.expect(inscopes, &Reason::Token(key.clone()));
                     if let Some(b) = bv.get_block() {
                         precheck_iterator_fields(ListType::Any, b, data, sc);
                         sc.open_scope(outscope, key.clone());
@@ -300,7 +300,7 @@ pub fn validate_trigger_key_bv(
                     let msg = format!("`{prefix}:` makes no sense except as first part");
                     old_warn(part, ErrorKey::Validation, &msg);
                 }
-                sc.expect(inscopes, &prefix);
+                sc.expect(inscopes, &Reason::Token(prefix.clone()));
                 validate_prefix_reference(&prefix, &arg, data, sc);
                 if prefix.is("scope") {
                     if last && matches!(cmp, Comparator::Equals(Question)) {
@@ -343,7 +343,7 @@ pub fn validate_trigger_key_bv(
                 let msg = format!("`{part}` makes no sense except as first part");
                 old_warn(part, ErrorKey::Validation, &msg);
             }
-            sc.expect(inscopes, part);
+            sc.expect(inscopes, &Reason::Token(part.clone()));
             sc.replace(outscope, part.clone());
         } else if let Some((inscopes, trigger)) = scope_trigger(part, data) {
             if !last {
@@ -365,7 +365,7 @@ pub fn validate_trigger_key_bv(
                     "try using current_date, or dummy_male.current_year",
                 );
             } else {
-                sc.expect(inscopes, part);
+                sc.expect(inscopes, &Reason::Token(part.clone()));
             }
         } else {
             // TODO: warn if trying to use iterator here
@@ -735,7 +735,7 @@ fn match_trigger_bv(
                     vd.req_field("target");
                     vd.field_target("target", sc, Scopes::Character);
                     if let Some(name) = vd.field_value("name") {
-                        sc.define_name(name.as_str(), Scopes::Value, name);
+                        sc.define_name_token(name.as_str(), Scopes::Value, name);
                     }
                 }
             } else if name.is("save_temporary_scope_value_as") {
@@ -750,7 +750,7 @@ fn match_trigger_bv(
                     });
                     // TODO: figure out the scope type of `value` and use that
                     if let Some(name) = vd.field_value("name") {
-                        sc.define_name(name.as_str(), Scopes::primitive(), name);
+                        sc.define_name_token(name.as_str(), Scopes::primitive(), name);
                     }
                 }
             } else if name.is("save_temporary_scope_as") {
@@ -852,7 +852,7 @@ pub fn validate_target_ok_this(
                     let msg = format!("`{prefix}:` makes no sense except as first part");
                     old_warn(part, ErrorKey::Validation, &msg);
                 }
-                sc.expect(inscopes, &prefix);
+                sc.expect(inscopes, &Reason::Token(prefix.clone()));
                 validate_prefix_reference(&prefix, &arg, data, sc);
                 if prefix.is("scope") {
                     sc.replace_named_scope(arg.as_str(), part);
@@ -888,7 +888,7 @@ pub fn validate_target_ok_this(
                 let msg = format!("`{part}` makes no sense except as first part");
                 old_warn(part, ErrorKey::Validation, &msg);
             }
-            sc.expect(inscopes, part);
+            sc.expect(inscopes, &Reason::Token(part.clone()));
             sc.replace(outscope, part.clone());
         } else if data.scriptvalues.exists(part.as_str()) {
             data.scriptvalues.validate_call(part, data, sc);
@@ -912,7 +912,7 @@ pub fn validate_target_ok_this(
                     "try using current_date, or dummy_male.current_year",
                 );
             } else {
-                sc.expect(inscopes, part);
+                sc.expect(inscopes, &Reason::Token(part.clone()));
             }
             sc.replace(Scopes::Value, part.clone());
             // TODO: warn if trying to use iterator here
@@ -923,15 +923,15 @@ pub fn validate_target_ok_this(
             return;
         }
     }
-    let (final_scopes, because) = sc.scopes_token();
+    let (final_scopes, because) = sc.scopes_reason();
     if !outscopes.intersects(final_scopes | Scopes::None) {
         let part = &part_vec[part_vec.len() - 1];
         let msg = format!("`{part}` produces {final_scopes} but expected {outscopes}");
-        if part == because {
+        if part == because.token() && part.loc == because.token().loc {
             old_warn(part, ErrorKey::Scopes, &msg);
         } else {
-            let msg2 = format!("scope was deduced from `{because}` here");
-            warn2(part, ErrorKey::Scopes, &msg, because, &msg2);
+            let msg2 = format!("scope was {}", because.msg());
+            warn2(part, ErrorKey::Scopes, &msg, because.token(), &msg2);
         }
     }
     sc.close();

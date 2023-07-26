@@ -1,6 +1,6 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Comparator, Eq::*, BV};
-use crate::context::ScopeContext;
+use crate::context::{Reason, ScopeContext};
 use crate::everything::Everything;
 use crate::helpers::TriBool;
 use crate::item::Item;
@@ -52,7 +52,7 @@ fn validate_inner(
         } else if token.is("save_temporary_value_as") {
             // seen in vanilla
             if let Some(name) = bv.expect_value() {
-                sc.define_name(name.as_str(), Scopes::Value, name);
+                sc.define_name_token(name.as_str(), Scopes::Value, name);
                 made_changes = true;
             }
         } else if token.is("value") {
@@ -120,7 +120,7 @@ fn validate_inner(
                             let msg = "cannot use `any_` iterators in a script value";
                             error(token, ErrorKey::Validation, msg);
                         }
-                        sc.expect(inscopes, token);
+                        sc.expect(inscopes, &Reason::Token(token.clone()));
                         if let Some(block) = bv.expect_block() {
                             let ltype = ListType::try_from(it_type.as_str()).unwrap();
                             precheck_iterator_fields(ltype, block, data, sc);

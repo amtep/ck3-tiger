@@ -6,7 +6,7 @@ use crate::ck3::effect_validation::{
 };
 #[cfg(feature = "ck3")]
 use crate::ck3::tables::effects::scope_effect;
-use crate::context::ScopeContext;
+use crate::context::{Reason, ScopeContext};
 use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
@@ -143,7 +143,7 @@ pub fn validate_effect_internal<'a>(
         }
 
         if let Some((inscopes, effect)) = scope_effect(key, data) {
-            sc.expect(inscopes, key);
+            sc.expect(inscopes, &Reason::Token(key.clone()));
             match effect {
                 Effect::Yes => {
                     if let Some(token) = bv.expect_value() {
@@ -368,7 +368,7 @@ pub fn validate_effect_internal<'a>(
                         error(key, ErrorKey::Validation, msg);
                         return;
                     }
-                    sc.expect(inscopes, key);
+                    sc.expect(inscopes, &Reason::Token(key.clone()));
                     let ltype = ListType::try_from(it_type.as_str()).unwrap();
                     if let Some(b) = bv.expect_block() {
                         precheck_iterator_fields(ltype, b, data, sc);
@@ -581,7 +581,7 @@ pub fn validate_save_scope_value(mut vd: Validator, sc: &mut ScopeContext) {
     vd.req_field("value");
     if let Some(name) = vd.field_value("name") {
         // TODO: examine `value` field to check its real scope type
-        sc.define_name(name.as_str(), Scopes::primitive(), name);
+        sc.define_name_token(name.as_str(), Scopes::primitive(), name);
     }
     vd.field_script_value_or_flag("value", sc);
 }

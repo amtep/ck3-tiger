@@ -5,7 +5,7 @@ use fnv::FnvHashMap;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler};
+use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
@@ -36,7 +36,11 @@ impl Triggers {
             let msg = "scripted trigger has the same name as an important builtin";
             err(ErrorKey::NameConflict).strong().msg(msg).loc(key).push();
         } else {
-            let scope_override = self.scope_overrides.get(key.as_str()).copied();
+            let scope_override = self
+                .scope_overrides
+                .get(key.as_str())
+                .copied()
+                .or_else(|| builtin_scope_overrides(&key));
             self.triggers.insert(key.to_string(), Trigger::new(key, block, scope_override));
         }
     }
@@ -213,5 +217,28 @@ impl Trigger {
                 self.cache.insert(key, &args, tooltipped, negated, our_sc);
             }
         }
+    }
+}
+
+const BUILTIN_OVERRIDE_TRIGGERS: &[&str] = &[
+    #[cfg(feature = "ck3")]
+    "artifact_low_rarity_trigger",
+    #[cfg(feature = "ck3")]
+    "artifact_medium_rarity_trigger",
+    #[cfg(feature = "ck3")]
+    "artifact_high_rarity_trigger",
+    #[cfg(feature = "ck3")]
+    "artifact_region_trigger",
+];
+
+/// There are vanilla triggers that are known to confuse tiger's scope checking.
+/// Rather than wait for the user to update their config files, just program them in as defaults,
+/// but only if the key is from vanilla. If it's from the mod, they may have implemented the
+/// trigger differently.
+fn builtin_scope_overrides(key: &Token) -> Option<Scopes> {
+    if key.loc.kind == FileKind::Vanilla && BUILTIN_OVERRIDE_TRIGGERS.contains(&key.as_str()) {
+        Some(Scopes::all())
+    } else {
+        None
     }
 }

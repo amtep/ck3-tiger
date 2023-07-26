@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
-use crate::context::ScopeContext;
+use crate::context::{Reason, ScopeContext};
 use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
@@ -842,7 +842,7 @@ pub fn validate_scope_chain(
                     let msg = format!("`{prefix}:` makes no sense except as first part");
                     old_warn(part, ErrorKey::Validation, &msg);
                 }
-                sc.expect(inscopes, &prefix);
+                sc.expect(inscopes, &Reason::Token(prefix.clone()));
                 validate_prefix_reference(&prefix, &arg, data, sc);
                 if prefix.is("scope") {
                     if last && qeq {
@@ -877,7 +877,7 @@ pub fn validate_scope_chain(
                 let msg = format!("`{part}` makes no sense except as first part");
                 old_warn(part, ErrorKey::Validation, &msg);
             }
-            sc.expect(inscopes, part);
+            sc.expect(inscopes, &Reason::Token(part.clone()));
             sc.replace(outscope, part.clone());
         } else {
             let msg = format!("unknown token `{part}`");
