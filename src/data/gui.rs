@@ -13,8 +13,6 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
-#[cfg(feature = "ck3")]
-use crate::report::warn;
 use crate::report::{err, error, error_info, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -443,19 +441,19 @@ fn validate_gui_loca(key: &Token, value: LocaValue, data: &Everything) {
                 validate_gui_loca(key, value, data);
             }
         }
-        // A reference to a game concept
-        #[cfg(feature = "ck3")]
-        LocaValue::Code(chain, Some(fmt))
-            if fmt.as_str().contains('E') || fmt.as_str().contains('e') =>
-        {
-            if let Some(name) = chain.as_gameconcept() {
-                data.verify_exists(Item::GameConcept, name);
-            } else {
-                let msg = format!("cannot figure out game concept for this |{fmt}");
-                warn(ErrorKey::ParseError).weak().msg(msg).loc(fmt).push();
+        #[allow(unused_variables)] // vic3 does not use fmt
+        LocaValue::Code(chain, fmt) => {
+            // |E is the formatting used for game concepts in ck3
+            #[cfg(feature = "ck3")]
+            if let Some(fmt) = fmt {
+                if fmt.as_str().contains('E') || fmt.as_str().contains('e') {
+                    if let Some(name) = chain.as_gameconcept() {
+                        data.verify_exists(Item::GameConcept, name);
+                        return;
+                    }
+                }
             }
-        }
-        LocaValue::Code(chain, _) => {
+
             // TODO: figure out the actual scope context here. Perhaps it should be a strict scope with no root and no names defined?
             let mut sc = ScopeContext::new_unrooted(Scopes::all(), key);
             sc.set_strict_scopes(false);

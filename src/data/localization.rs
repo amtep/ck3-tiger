@@ -289,21 +289,19 @@ impl Localization {
                     Self::check_loca_code(value, data, sc, lang);
                 }
             }
-            // A reference to a game concept
-            #[cfg(feature = "ck3")]
-            LocaValue::Code(chain, Some(fmt))
-                if fmt.as_str().contains('E') || fmt.as_str().contains('e') =>
-            {
-                if let Some(name) = chain.as_gameconcept() {
-                    data.verify_exists(Item::GameConcept, name);
-                } else {
-                    let msg = format!("cannot figure out game concept for this |{fmt}");
-                    warn(ErrorKey::ParseError).weak().msg(msg).loc(fmt).push();
-                }
-            }
-            // Some other code
             // TODO: validate the formatting codes
-            LocaValue::Code(chain, _) => {
+            #[allow(unused_variables)] // vic3 does not use fmt
+            LocaValue::Code(chain, fmt) => {
+                // |E is the formatting used for game concepts in ck3
+                #[cfg(feature = "ck3")]
+                if let Some(fmt) = fmt {
+                    if fmt.as_str().contains('E') || fmt.as_str().contains('e') {
+                        if let Some(name) = chain.as_gameconcept() {
+                            data.verify_exists(Item::GameConcept, name);
+                            return;
+                        }
+                    }
+                }
                 // TODO: datatype is not really Unknown here, it should be a CString or CFixedPoint or some kind of number.
                 // But we can't express that yet.
                 validate_datatypes(chain, data, sc, Datatype::Unknown, lang, false);
