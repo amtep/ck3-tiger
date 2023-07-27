@@ -638,44 +638,119 @@ pub fn validate_switch(
 }
 
 #[derive(Copy, Clone, Debug)]
+/// This `enum` describes what arguments an effect takes, so that they can be validated.
+///
+/// Since effects are so varied, many of them end up as special cases described by the `VB`, `VBv`,
+/// and `VV` variants. Common patterns can be captured here though.
+///
+/// TODO: adding a "Block" syntax similar to that in triggers may be helpful. It could remove some
+/// of the variants that currently have very few users, and it could remove some of the special
+/// cases.
+///
+/// TODO: The `VB`, `VBv`, and `VV` variants should be changed to take function pointers, to
+/// eliminate the indirection via `EvB`, `EvBv`, `EvV`.
 pub enum Effect {
-    /// no special value, just effect = yes
+    /// No special value, just `effect = yes`.
     Yes,
-    /// yes and no are both meaningful
+    /// Yes and no are both meaningful. The difference between this and [`Effect::Yes`] can be hard
+    /// to distinguish. TODO: needs testing.
     Boolean,
+    /// The effect takes a literal integer. It's not clear whether effects of this type actually
+    /// exist or if they're all secrectly [`Effect::ScriptValue`]. TODO: needs testing.
     Integer,
+    /// The effect takes a scriptvalue, which can be a literal number or a named scriptvalue or an
+    /// inline scriptvalue block.
     ScriptValue,
-    /// warn if literal negative
+    /// Just like [`Effect::ScriptValue`], but warns if the argument is a negative literal number.
     #[allow(dead_code)]
     NonNegativeValue,
+    /// The effect takes a literal date.
     #[cfg(feature = "vic3")]
     Date,
+    /// The effect takes a target value that must evaluate to a scope type in the given [`Scopes`] value.
+    ///
+    /// * Example: `set_county_culture = root.culture`
     Scope(Scopes),
+    /// Just like [`Effect::Scope`] but it doesn't warn if the target is a literal `this`. The
+    /// default behavior for targets is to warn about that, because it's usually a mistake.
+    ///
+    /// * Example: `destroy_artifact = this`
     #[cfg(feature = "ck3")]
     ScopeOkThis(Scopes),
+    /// The effect takes a literal string that must exist in the item database for the given [`Item`] type.
+    ///
+    /// * Example: `add_perk = iron_constitution_perk`
     Item(Item),
+    /// A combination of [`Effect::Scope`] and [`Effect::Item`]. The argument is first checked to see
+    /// if it's a literal [`Item`], and if not, it's evaluated as a target. This can sometimes
+    /// cause strange error messages if the argument was intended to be an item but just doesn't exist.
+    ///
+    /// * Example: `add_trait = cannibal`
+    /// * Example: `add_trait = scope:learned_trait`
     ScopeOrItem(Scopes, Item),
+    /// The effect takes a block that contains a single field, named here, which is a target that
+    /// must evaluate to a scope type in the given [`Scopes`] value.
+    ///
+    /// * Only example: `becomes_independent = { change = scope:change }`
     #[cfg(feature = "ck3")]
     Target(&'static str, Scopes),
+    /// The effect takes a block with two fields, both named here, where one specifies a target of
+    /// the given [`Scopes`] type and the other specifies a scriptvalue.
+    ///
+    /// * Example: `change_de_jure_drift_progress = { target = root.primary_title value = 5 }`
     TargetValue(&'static str, Scopes, &'static str),
+    /// The effect takes a block with two fields, both named here, where one specifies a key for
+    /// the given [`Item`] type and the other specifies a target of the given [`Scopes`] type.
+    ///
+    /// * Example: `remove_hook = { type = indebted_hook target = scope:old_caliph }`
     #[cfg(feature = "ck3")]
     ItemTarget(&'static str, Item, &'static str, Scopes),
+    /// The effect takes a block with two fields, both named here, where one specifies a key for
+    /// the given [`Item`] type and the other specifies a scriptvalue.
+    ///
+    /// * Example: `set_amenity_level = { type = court_food_quality value = 3 }`
     #[cfg(feature = "ck3")]
     ItemValue(&'static str, Item),
+    /// The effect takes either a localization key or a description block with `first_valid` etc.
+    ///
+    /// * Example: `set_artifact_name = relic_weapon_name`
     #[cfg(feature = "ck3")]
     Desc,
-    /// days/weeks/months/years
+    /// The effect takes a duration, with a `days`, `weeks`, `months`, or `years` scriptvalue.
+    ///
+    /// * Example: `add_destination_progress = { days = 5 }`
     #[cfg(feature = "ck3")]
     Timespan,
+    /// The effect adds a modifier and follows the usual pattern for that. The pattern varies per game.
+    ///
+    /// TODO: this should probably be a special case instead.
     AddModifier,
+    /// The effect takes a block that contains other effects.
+    ///
+    /// * Examples: `if`, `while`, `custom_description`
     Control,
+    /// The effect takes either a localization key, or a block that contains other effects.
+    /// This variant is used by `custom_tooltip`.
     ControlOrLabel,
-    /// so special that we just accept whatever argument
+    /// This variant is for effects that can take any argument and it's not validated.
+    /// The effect is too unusual, or not worth checking, or we just haven't gotten around to
+    /// writing a validator for it.
+    ///
+    /// * Examples: `assert_if`, `debug_log`, `remove_variable`
     Unchecked,
+    /// The effect takes a literal string that is one of the options given here.
+    ///
+    /// * Example: `end_war = white_peace`
     Choice(&'static [&'static str]),
+    /// The effect is no longer valid; warn if it's still being used.
+    /// The first string is the game version number where it was removed and the second string is
+    /// an explanation that suggests a different effect to try. The second string may be empty.
     #[cfg(feature = "ck3")]
     Removed(&'static str, &'static str),
+    /// The effect takes a block that will be validated according to the [`EvB`] key given here.
     VB(EvB),
+    /// The effect takes a block or value, which will be validated according to the [`EvBv`] key given here.
     VBv(EvBv),
+    /// The effect takes a value that will be validated according to the [`EvV`] key given here.
     VV(EvV),
 }
