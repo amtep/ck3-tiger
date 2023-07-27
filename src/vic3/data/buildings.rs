@@ -39,6 +39,8 @@ impl DbKind for BuildingType {
         vd.field_bool("enable_air_connection");
         vd.field_bool("port");
 
+        vd.field_item("recruits_combat_unit", Item::CombatUnit); // undocumented
+
         vd.field_list_items("unlocking_technologies", Item::Technology);
         vd.field_validated_block("can_build", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
@@ -135,6 +137,9 @@ impl DbKind for BuildingGroup {
         vd.field_bool("can_use_slaves");
         vd.field_bool("inheritable_construction");
         vd.field_bool("stateregion_max_level");
+        vd.field_bool("pays_taxes"); // undocumented
+        vd.field_bool("created_by_trade_routes"); // undocumented
+        vd.field_bool("subsidized"); // undocumented
 
         // TODO: are category and land_usage really both valid?
         vd.field_choice("category", &["urban", "rural", "development"]);

@@ -43,7 +43,7 @@ impl DbKind for InterestGroup {
         vd.advice_field("traits", "deprecated; use on_enable effect to assign traits instead");
 
         vd.field_validated_key_block("enable", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::None, key);
+            let mut sc = ScopeContext::new(Scopes::Country, key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_enable", |key, block, data| {
@@ -55,15 +55,21 @@ impl DbKind for InterestGroup {
             validate_effect(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("on_character_ig_membership", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::None, key);
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("interest_group", Scopes::InterestGroup, key);
             validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_key_block("pop_potential", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Pop, key);
+            sc.define_name("interest_group", Scopes::InterestGroup, key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
-        vd.field_script_value_rooted("pop_weight", Scopes::Pop);
+        vd.field_validated_key("pop_weight", |key, bv, data| {
+            let mut sc = ScopeContext::new(Scopes::Pop, key);
+            sc.define_name("interest_group", Scopes::InterestGroup, key);
+            validate_scriptvalue(bv, data, &mut sc);
+        });
         vd.field_script_value_rooted("monarch_weight", Scopes::InterestGroup);
         vd.field_script_value_rooted("agitator_weight", Scopes::InterestGroup);
         vd.field_script_value_rooted("commander_weight", Scopes::InterestGroup);
