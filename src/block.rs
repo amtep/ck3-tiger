@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::sync::Arc;
 
 use crate::date::Date;
@@ -16,25 +15,48 @@ pub use crate::block::bv::BV;
 pub use crate::block::comparator::{Comparator, Eq};
 pub use crate::block::field::Field;
 
+/// This type represents the most basic structural element of Pdx script code.
+/// Blocks are delimited by `{` and `}`. An entire file is also a `Block`.
+///
+/// A `Block` can contain a mix of these kinds of items:
+///
+/// * Assignments: `key = value`
+/// * Definitions: `key = { ... }`
+/// * Loose sub-blocks: `{ ... } { ... } ...`
+/// * Loose values: `value value ...`
+/// * Comparisons: `key < value` for a variety of comparators, including `=` for equality
+/// * `key < { ... }` is accepted by the parser but is not used anywhere
+///
+/// The same key can occur multiple times in a block. If a single field is requested and its key
+/// occurs multiple times, the last instance is returned (which is how the game usually resolves
+/// this).
 #[derive(Clone, Debug)]
 pub struct Block {
-    // v can contain key = value pairs as well as unadorned values.
+    /// The contents of this block.
     v: Vec<BlockItem>,
+    /// The `tag` is a short string that precedes a block, as in `color = hsv { 0.5 0.5 1.0 }`.
+    /// Only a small number of hardcoded tags are parsed this way.
+    /// It is in a `Box` to save space in blocks that don't have a tag, which is most of them.
     pub tag: Option<Box<Token>>,
+    /// The location of the start of the block. Used mostly for error reporting.
     pub loc: Loc,
-    /// If the block is a top-level block and contains macro substitutions,
-    /// this field will hold the original source for re-parsing.
-    /// The source has already been split into a vec that alternates content
-    /// with macro parameters.
-    // Making this a Box saves 80 bytes from every BlockItem
+    /// If the block is a top-level block and contains macro substitutions, this field will
+    /// hold the original source for re-parsing.
+    /// The source has already been split into a vec that alternates content with macro parameters.
+    /// It is in a `Box` to save space (80 bytes) from blocks that don't contain macro substitutions,
+    /// which is most of them.
     pub source: Option<Box<(Vec<Token>, LocalMacros)>>,
 }
 
 impl Block {
+    /// Open a new `Block` at the given location.
     pub fn new(loc: Loc) -> Self {
         Block { v: Vec::new(), tag: None, loc, source: None }
     }
 
+    /// Add a loose block or value to this `Block`. Mostly used by the parser.
+    ///
+    /// TODO: the function is misnamed, should be `add_bv`.
     pub fn add_value(&mut self, value: BV) {
         match value {
             BV::Value(token) => self.v.push(BlockItem::Value(token)),
@@ -42,14 +64,23 @@ impl Block {
         }
     }
 
+    /// Add a `key = value` or `key = { ... }` field to this `Block`.
+    /// Mostly used by the parser.
+    ///
+    /// TODO: the function is misnamed, should be `add_key_bv`
     pub fn add_key_value(&mut self, key: Token, cmp: Comparator, value: BV) {
         self.v.push(BlockItem::Field(Field(key, cmp, value)));
     }
 
+    /// Add a `BlockItem` to this `Block`.
+    /// It can contain any of the variations of things that a `Block` can hold.
     pub fn add_item(&mut self, item: BlockItem) {
         self.v.push(item);
     }
 
+    /// If this block contains a field `name` which takes a block as argument, add the contents of
+    /// `block` to that block. It's used for merging items that have special merging rules.
+    /// Currently only used for `on_action`.
     pub fn add_to_field_block(&mut self, name: &str, block: &mut Block) -> bool {
         for item in self.v.iter_mut().rev() {
             if let BlockItem::Field(Field(key, _, bv)) = item {
@@ -67,15 +98,13 @@ impl Block {
         false
     }
 
+    /// Combine two blocks by adding the contents of `other` to this block.
+    /// To avoid lots of cloning, `other` will be emptied in the process.
     pub fn append(&mut self, other: &mut Block) {
         self.v.append(&mut other.v);
     }
 
-    pub fn filename(&self) -> Cow<str> {
-        self.loc.filename()
-    }
-
-    /// Get the value of a single `name = value` assignment
+    /// Get the value of a single `name = value` assignment.
     pub fn get_field_value(&self, name: &str) -> Option<&Token> {
         for item in self.v.iter().rev() {
             if let BlockItem::Field(Field(key, _, bv)) = item {
@@ -90,6 +119,7 @@ impl Block {
         None
     }
 
+    /// Check if `name` is a field that has the literal string `value` as its value.
     pub fn field_value_is(&self, name: &str, value: &str) -> bool {
         if let Some(token) = self.get_field_value(name) {
             token.is(value)
@@ -98,19 +128,24 @@ impl Block {
         }
     }
 
+    /// Get the value of a literal boolean field
     pub fn get_field_bool(&self, name: &str) -> Option<bool> {
         self.get_field_value(name).map(|t| t.is("yes"))
     }
 
+    /// Get the value of a literal integer field
     pub fn get_field_integer(&self, name: &str) -> Option<i64> {
-        self.get_field_value(name).and_then(|t| t.as_str().parse().ok())
+        self.get_field_value(name).and_then(Token::get_integer)
     }
 
+    /// Get the value of a literal date field
     pub fn get_field_date(&self, name: &str) -> Option<Date> {
-        self.get_field_value(name).and_then(|t| t.as_str().parse().ok())
+        self.get_field_value(name).and_then(Token::get_date)
     }
 
     /// Get all the values of `name = value` assignments in this block
+    ///
+    /// TODO: should be an iterator
     pub fn get_field_values(&self, name: &str) -> Vec<&Token> {
         let mut vec = Vec::new();
         for (key, token) in self.iter_assignments() {
@@ -121,7 +156,7 @@ impl Block {
         vec
     }
 
-    /// Get the block of a `name = { ... }` assignment
+    /// Get the block of a `name = { ... }` definition
     pub fn get_field_block(&self, name: &str) -> Option<&Block> {
         for item in self.v.iter().rev() {
             if let BlockItem::Field(Field(key, _, bv)) = item {
@@ -136,7 +171,7 @@ impl Block {
         None
     }
 
-    /// Get all the blocks of `name = { ... }` assignments in this block
+    /// Get all the blocks of `name = { ... }` definitions in this block
     pub fn get_field_blocks(&self, name: &str) -> Vec<&Block> {
         let mut vec = Vec::new();
         for (key, block) in self.iter_definitions() {
@@ -147,7 +182,7 @@ impl Block {
         vec
     }
 
-    /// Get the values of a single `name = { value ... }` assignment
+    /// Get the values of a single `name = { value value ... }` list
     pub fn get_field_list(&self, name: &str) -> Option<Vec<Token>> {
         for item in self.v.iter().rev() {
             if let BlockItem::Field(Field(key, _, bv)) = item {
@@ -164,6 +199,7 @@ impl Block {
         None
     }
 
+    /// Get the value or block on the right-hand side of a field `name`.
     pub fn get_field(&self, name: &str) -> Option<&BV> {
         for item in self.v.iter().rev() {
             if let BlockItem::Field(Field(key, _, bv)) = item {
@@ -175,6 +211,8 @@ impl Block {
         None
     }
 
+    /// Get the key of a field `name` in the `Block`. The string value of the key will be equal to
+    /// `name`, but it can be useful to get this key as a `Token` with its location.
     pub fn get_key(&self, name: &str) -> Option<&Token> {
         for item in self.v.iter().rev() {
             if let BlockItem::Field(Field(key, _, _)) = item {
@@ -186,6 +224,8 @@ impl Block {
         None
     }
 
+    /// Get all the keys of fields with key `name`. The string values of these keys will be equal
+    /// to `name`, but it can be useful to get these keys as `Token` with their locations.
     pub fn get_keys(&self, name: &str) -> Vec<&Token> {
         let mut vec = Vec::new();
         for Field(key, _, _) in self.iter_fields() {
@@ -196,10 +236,12 @@ impl Block {
         vec
     }
 
+    /// Return true iff the `name` occurs in this block at least once as a field key.
     pub fn has_key(&self, name: &str) -> bool {
         self.get_key(name).is_some()
     }
 
+    /// Return the number of times `name` occurs in this block as a field key.
     pub fn count_keys(&self, name: &str) -> usize {
         let mut count = 0;
         for Field(key, _, _) in self.iter_fields() {
@@ -210,79 +252,95 @@ impl Block {
         count
     }
 
+    /// Return an iterator over the contents of this block.
     pub fn iter_items(&self) -> std::slice::Iter<BlockItem> {
         self.v.iter()
     }
 
+    /// Return a destructive iterator over the contents of this block.
+    /// It will give ownership of the returned `BlockItem` objects.
     pub fn drain(&mut self) -> std::vec::Drain<BlockItem> {
         self.v.drain(..)
     }
 
+    /// Return an iterator over all the `key = ...` fields in this block, ignoring the loose values
+    /// and loose blocks.
     pub fn iter_fields(&self) -> IterFields {
         IterFields { iter: self.v.iter(), warn: false }
     }
 
+    /// Return an iterator over all the `key = ...` fields in this block, while warning about loose values
+    /// and loose blocks.
     pub fn iter_fields_warn(&self) -> IterFields {
         IterFields { iter: self.v.iter(), warn: true }
     }
 
-    /// "Assignments" are fields that have `key = value`.
+    /// Return an iterator over all the `key = value` fields in this block, ignoring other kinds of contents.
     pub fn iter_assignments(&self) -> IterAssignments {
         IterAssignments { iter: self.v.iter(), warn: false }
     }
 
-    /// "Assignments" are fields that have `key = value`.
-    /// `warn` means emit reports for every `BlockItem` that's not an assignment.
+    /// Return an iterator over all the `key = value` fields in this block, while warning about
+    /// every other kind of content.
     pub fn iter_assignments_warn(&self) -> IterAssignments {
         IterAssignments { iter: self.v.iter(), warn: true }
     }
 
-    /// "Definitions" are fields that have `key = { block }`.
+    /// Return an iterator over all the `key = { ... }` fields in this block, ignoring other kinds of contents.
     pub fn iter_definitions(&self) -> IterDefinitions {
         IterDefinitions { iter: self.v.iter(), warn: false }
     }
 
-    /// "Definitions" are fields that have `key = { block }`.
-    /// `warn` means emit reports for every `BlockItem` that's not a definition.
+    /// Return an iterator over all the `key = { ... }` fields in this block, while warning about
+    /// every other kind of content.
     pub fn iter_definitions_warn(&self) -> IterDefinitions {
         IterDefinitions { iter: self.v.iter(), warn: true }
     }
 
-    /// "Definitions" are fields that have `key = { block }`.
+    /// Return an iterator over all the `key = value` and `key = { ... }` fields in this block,
+    /// ignoring every other kind of content.
+    /// It differs from [`Block::iter_fields`] in that it requires the comparator to be `=`.
     pub fn iter_assignments_and_definitions(&self) -> IterAssignmentsAndDefinitions {
         IterAssignmentsAndDefinitions { iter: self.v.iter(), warn: false }
     }
 
-    /// "Assignments" are fields that have `key = value`.
-    /// "Definitions" are fields that have `key = { block }`.
-    /// `warn` means emit reports for every `BlockItem` that's not an assignment or definition
+    /// Return an iterator over all the `key = value` and `key = { ... }` fields in this block,
+    /// while warning about every other kind of content.
+    /// It differs from [`Block::iter_fields_warn`] in that it requires the comparator to be `=`.
     pub fn iter_assignments_and_definitions_warn(&self) -> IterAssignmentsAndDefinitions {
         IterAssignmentsAndDefinitions { iter: self.v.iter(), warn: true }
     }
 
-    /// "Assignments" are fields that have `key = value`.
-    /// "Definitions" are fields that have key = { block }
-    /// `warn` means emit reports for every `BlockItem` that's not an assignment or definition
+    /// Like [`Block::iter_definitions_warn`] but it's a destructive iterator that gives ownership
+    /// over the returned definitions.
     pub fn drain_definitions_warn(&mut self) -> DrainDefinitions {
         DrainDefinitions { iter: self.v.drain(..) }
     }
 
+    /// Iterate over the loose values in the block.
     pub fn iter_values(&self) -> IterValues {
         IterValues { iter: self.v.iter(), warn: false }
     }
 
+    /// Iterate over the loose values in the block, while warning about everything else.
     pub fn iter_values_warn(&self) -> IterValues {
         IterValues { iter: self.v.iter(), warn: true }
     }
 
+    /// Iterate over the loose sub-blocks in the block.
     pub fn iter_blocks(&self) -> IterBlocks {
         IterBlocks { iter: self.v.iter(), warn: false }
     }
 
+    /// Iterate over the loose sub-blocks in the block, while warning about everything else.
     pub fn iter_blocks_warn(&self) -> IterBlocks {
         IterBlocks { iter: self.v.iter(), warn: true }
     }
 
+    /// Search through the history fields in this block and return the block or value the
+    /// field `name` would have at the given `date`. The field value that's directly in this block,
+    /// not in any history block, is considered to be the field value at the beginning of time.
+    /// History fields are ones that have a date as the key, like `900.1.1 = { ... }`.
     pub fn get_field_at_date(&self, name: &str, date: Date) -> Option<&BV> {
         let mut found_date: Option<Date> = None;
         let mut found: Option<&BV> = None;
@@ -302,10 +360,13 @@ impl Block {
         found
     }
 
+    /// Just like [`Block::get_field_at_date`] but only for fields that have values (not blocks).
     pub fn get_field_value_at_date(&self, name: &str, date: Date) -> Option<&Token> {
         self.get_field_at_date(name, date).and_then(BV::get_value)
     }
 
+    /// Return a sorted vector of macro parameters taken by this block.
+    /// Macro parameters are between `$` like `$CHARACTER$`.
     pub fn macro_parms(&self) -> Vec<&str> {
         let mut vec = Vec::new();
         if let Some(source_box) = &self.source {
@@ -323,6 +384,8 @@ impl Block {
         vec
     }
 
+    /// Expand a block that has macro parameters by substituting arguments for those parameters,
+    /// then re-parsing the script.
     pub fn expand_macro(&self, args: &[(&str, Token)], link: &Token) -> Option<Block> {
         let link = Arc::new(link.loc.clone());
         if let Some(source_box) = &self.source {
@@ -357,6 +420,8 @@ impl Block {
         }
     }
 
+    /// Return true iff this block has the same block items in the same order as `other`,
+    /// including equivalence of blocks inside them.
     pub fn equivalent(&self, other: &Self) -> bool {
         if self.v.len() != other.v.len() {
             return false;
@@ -372,6 +437,8 @@ impl Block {
     /// Create a version of this block where the `tag` is combined with a token that follows it.
     /// Example: `color1 = list colorlist` becomes `color1 = list"colorlist` (where the `"` character
     /// is used as the separator because it can't show up in normal parsing).
+    ///
+    /// This function is used as a last resort when validating awkward syntax.
     pub fn condense_tag(self, tag: &str) -> Self {
         let mut other = Block::new(self.loc);
         let mut reserve: Option<(Token, Comparator, Token)> = None;
@@ -408,6 +475,7 @@ impl Block {
     }
 }
 
+/// An iterator for (key, value) pairs. It is returned by [`Block::iter_assignments`].
 #[derive(Clone, Debug)]
 pub struct IterAssignments<'a> {
     iter: std::slice::Iter<'a, BlockItem>,
@@ -430,6 +498,7 @@ impl<'a> Iterator for IterAssignments<'a> {
     }
 }
 
+/// An iterator for (key, block) pairs. It is returned by [`Block::iter_definitions`].
 #[derive(Clone, Debug)]
 pub struct IterDefinitions<'a> {
     iter: std::slice::Iter<'a, BlockItem>,
@@ -452,6 +521,7 @@ impl<'a> Iterator for IterDefinitions<'a> {
     }
 }
 
+/// An iterator for (key, bv) pairs. It is returned by [`Block::iter_assignments_and_definitions`].
 #[derive(Clone, Debug)]
 pub struct IterAssignmentsAndDefinitions<'a> {
     iter: std::slice::Iter<'a, BlockItem>,
@@ -480,6 +550,8 @@ impl<'a> Iterator for IterAssignmentsAndDefinitions<'a> {
     }
 }
 
+/// An iterator for (key, block) pairs that transfers ownership.
+/// It is returned by [`Block::drain_definitions_warn`].
 #[derive(Debug)]
 pub struct DrainDefinitions<'a> {
     iter: std::vec::Drain<'a, BlockItem>,
@@ -498,6 +570,8 @@ impl Iterator for DrainDefinitions<'_> {
     }
 }
 
+/// An iterator for [`Field`] structs, returning the fields of a block.
+/// It is returned by [`Block::iter_fields`].
 #[derive(Clone, Debug)]
 pub struct IterFields<'a> {
     iter: std::slice::Iter<'a, BlockItem>,
@@ -520,6 +594,8 @@ impl<'a> Iterator for IterFields<'a> {
     }
 }
 
+/// An iterator for values (tokens), returning the loose values of a block.
+/// It is returned by [`Block::iter_values`].
 #[derive(Clone, Debug)]
 pub struct IterValues<'a> {
     iter: std::slice::Iter<'a, BlockItem>,
@@ -542,6 +618,8 @@ impl<'a> Iterator for IterValues<'a> {
     }
 }
 
+/// An iterator returning the loose sub-blocks of a block.
+/// It is returned by [`Block::iter_blocks`].
 #[derive(Clone, Debug)]
 pub struct IterBlocks<'a> {
     iter: std::slice::Iter<'a, BlockItem>,

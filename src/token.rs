@@ -231,6 +231,10 @@ impl Token {
         }
     }
 
+    pub fn get_date(&self) -> Option<Date> {
+        self.s.parse::<Date>().ok()
+    }
+
     pub fn is_date(&self) -> bool {
         self.s.parse::<Date>().is_ok()
     }
