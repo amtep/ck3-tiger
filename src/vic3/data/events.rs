@@ -194,6 +194,7 @@ impl Event {
                 }
             }
             vd.field_item("texture", Item::File);
+            vd.field_item("on_created_soundeffect", Item::Sound);
         });
 
         vd.field_value("gui_window"); // TODO
