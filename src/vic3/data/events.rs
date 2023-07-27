@@ -160,6 +160,8 @@ impl Event {
         // TODO: what is this for and what else can it be?
         vd.field_choice("category", &["enactment", "revolution"]);
 
+        vd.field_bool("orphan");
+
         let mut sc = ScopeContext::new(self.expects_scope, &self.expects_from_token);
         sc.set_strict_scopes(false);
 
