@@ -34,6 +34,10 @@ use crate::vic3::effect_validation::{
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::effects::scope_effect;
 
+/// The standard interface to effect validation. Validates an effect in the given [`ScopeContext`].
+///
+/// `tooltipped` determines what warnings are emitted related to tooltippability of the effects
+/// inside the block.
 pub fn validate_effect(
     block: &Block,
     data: &Everything,
@@ -44,6 +48,17 @@ pub fn validate_effect(
     validate_effect_internal("", ListType::None, block, data, sc, vd, tooltipped);
 }
 
+/// The interface to effect validation when [`validate_effect`] is too limited.
+///
+/// `caller` is the key that opened this effect. It is used to determine which special cases apply.
+/// For example, if `caller` is `if` then a `limit` block is expected.
+///
+/// `list_type` specifies whether this effect is directly in an iterator of the specified
+/// [`ListType`]. It is also used to determine which special cases apply. The `list_type` must not
+/// be `ListType::Any` because that is only used for triggers.
+///
+/// `vd` is a `Validator` that may have already been checked for some fields by the caller. This is
+/// because some effects are in contexts where other keys than just the effects are valid.
 pub fn validate_effect_internal<'a>(
     caller: &str,
     list_type: ListType,
@@ -408,6 +423,7 @@ pub fn validate_effect_internal<'a>(
     });
 }
 
+/// Validate an effect that has other effects inside its block.
 pub fn validate_effect_control(
     caller: &str,
     block: &Block,
@@ -525,6 +541,7 @@ pub fn validate_effect_control(
     validate_effect_internal(caller, ListType::None, block, data, sc, vd, tooltipped);
 }
 
+/// A specific validator for the three `add_to_variable_list` effects (`global`, `local`, and default).
 pub fn validate_add_to_variable_list(mut vd: Validator, sc: &mut ScopeContext) {
     vd.req_field("name");
     vd.req_field("target");
@@ -532,6 +549,7 @@ pub fn validate_add_to_variable_list(mut vd: Validator, sc: &mut ScopeContext) {
     vd.field_target_ok_this("target", sc, Scopes::all_but_none());
 }
 
+/// A specific validator for the three `change_variable` effects (`global`, `local`, and default).
 pub fn validate_change_variable(mut vd: Validator, sc: &mut ScopeContext) {
     vd.req_field("name");
     vd.field_value("name");
@@ -544,6 +562,7 @@ pub fn validate_change_variable(mut vd: Validator, sc: &mut ScopeContext) {
     vd.field_script_value("max", sc);
 }
 
+/// A specific validator for the three `clamp_variable` effects (`global`, `local`, and default).
 pub fn validate_clamp_variable(mut vd: Validator, sc: &mut ScopeContext) {
     vd.req_field("name");
     vd.field_value("name");
@@ -551,6 +570,7 @@ pub fn validate_clamp_variable(mut vd: Validator, sc: &mut ScopeContext) {
     vd.field_script_value("max", sc);
 }
 
+/// A specific validator for the `random_list` effect, which has a unique syntax.
 pub fn validate_random_list(
     caller: &str,
     _block: &Block,
@@ -569,6 +589,7 @@ pub fn validate_random_list(
     });
 }
 
+/// A specific validator for the three `round_variable` effects (`global`, `local`, and default).
 pub fn validate_round_variable(mut vd: Validator, sc: &mut ScopeContext) {
     vd.req_field("name");
     vd.req_field("nearest");
@@ -576,6 +597,7 @@ pub fn validate_round_variable(mut vd: Validator, sc: &mut ScopeContext) {
     vd.field_script_value("nearest", sc);
 }
 
+/// A specific validator for the `save_scope_value` effect.
 pub fn validate_save_scope_value(mut vd: Validator, sc: &mut ScopeContext) {
     vd.req_field("name");
     vd.req_field("value");
@@ -586,6 +608,7 @@ pub fn validate_save_scope_value(mut vd: Validator, sc: &mut ScopeContext) {
     vd.field_script_value_or_flag("value", sc);
 }
 
+/// A specific validator for the three `set_variable` effects (`global`, `local`, and default).
 pub fn validate_set_variable(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     match bv {
         BV::Value(_token) => (),
@@ -605,6 +628,7 @@ pub fn validate_set_variable(bv: &BV, data: &Everything, sc: &mut ScopeContext) 
     }
 }
 
+/// A specific validator for the `switch` effect, which has a unique syntax.
 pub fn validate_switch(
     mut vd: Validator,
     data: &Everything,
@@ -637,7 +661,6 @@ pub fn validate_switch(
     }
 }
 
-#[derive(Copy, Clone, Debug)]
 /// This `enum` describes what arguments an effect takes, so that they can be validated.
 ///
 /// Since effects are so varied, many of them end up as special cases described by the `VB`, `VBv`,
@@ -649,6 +672,7 @@ pub fn validate_switch(
 ///
 /// TODO: The `VB`, `VBv`, and `VV` variants should be changed to take function pointers, to
 /// eliminate the indirection via `EvB`, `EvBv`, `EvV`.
+#[derive(Copy, Clone, Debug)]
 pub enum Effect {
     /// No special value, just `effect = yes`.
     Yes,
