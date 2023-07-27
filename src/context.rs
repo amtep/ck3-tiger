@@ -286,23 +286,31 @@ impl ScopeContext {
         }
     }
 
-    /// This is like [`define_name`] but for lists.
+    /// This is like [`Self::_define_name`] but for lists.
     ///
     /// Lists (that aren't variable lists) and named scopes exist in different namespaces, but
     /// under the hood `ScopeContext` treats them the same. This means that lists are expected to
     /// contain items of a single scope type, which sometimes leads to false positives.
-    pub fn define_list<T: Own<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
+    pub fn _define_list(&mut self, name: &str, scopes: Scopes, reason: Reason) {
         if let Some(&idx) = self.list_names.get(name) {
             self._break_chains_to(idx);
-            self.named[idx] = ScopeEntry::Scope(scopes, Reason::Token(token.own()));
+            self.named[idx] = ScopeEntry::Scope(scopes, reason);
         } else {
             self.list_names.insert(name.to_string(), self.named.len());
-            self.named.push(ScopeEntry::Scope(scopes, Reason::Token(token.own())));
+            self.named.push(ScopeEntry::Scope(scopes, reason));
             self.is_input.push(None);
         }
     }
 
-    /// This is like [`define_name`], but `scope:name` is declared equal to the current `this`.
+    /// Declare that this `ScopeContext` contains a list of the given name and type,
+    /// supplied by the game engine.
+    ///
+    /// The associated `token` will be used in error reports related to this list.
+    pub fn define_list<T: Own<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
+        self._define_list(name, scopes, Reason::Builtin(token.own()));
+    }
+
+    /// This is like [`Self::define_name`], but `scope:name` is declared equal to the current `this`.
     pub fn save_current_scope(&mut self, name: &str) {
         if let Some(&idx) = self.names.get(name) {
             self._break_chains_to(idx);
@@ -857,7 +865,31 @@ impl ScopeContext {
             }
         }
 
-        // TODO: same for lists
+        // Compare restrictions on lists
+        for (name, &oidx) in &other.list_names {
+            if self.list_names.contains_key(name) {
+                let (s, reason) = other._resolve_named(oidx);
+                if other.is_input[oidx].is_some() {
+                    let idx = self._named_list_index(name, key);
+                    let report = format!("list {name}");
+                    self._expect_named3(idx, s, reason, key, &report);
+                } else {
+                    // Their lists now become our lists.
+                    self._define_list(name, s, reason.clone());
+                }
+            } else if self.strict_scopes && other.is_input[oidx].is_some() {
+                let token = other.is_input[oidx].as_ref().unwrap();
+                let msg = format!("`{key}` expects list {name} to exist");
+                let msg2 = "here";
+                warn2(key, ErrorKey::StrictScopes, &msg, token, msg2);
+            } else {
+                // Their lists now become our lists.
+                let (s, reason) = other._resolve_named(oidx);
+                self.list_names.insert(name.to_string(), self.named.len());
+                self.named.push(ScopeEntry::Scope(s, reason.clone()));
+                self.is_input.push(other.is_input[oidx].clone());
+            }
+        }
     }
 }
 
