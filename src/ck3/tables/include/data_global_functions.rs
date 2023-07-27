@@ -200,7 +200,7 @@
     ("GetCultureEraType", Args(&[DType(Unknown)]), Unknown),
     ("GetCultureInnovationType", Args(&[DType(Unknown)]), Unknown),
     ("GetCulturePillar", Args(&[DType(Unknown)]), Unknown),
-    ("GetCultureTemplate", Args(&[DType(Unknown)]), Unknown),
+    ("GetCultureTemplate", Args(&[IType(Item::Culture)]), CultureTemplate),
     ("GetCultureTradition", Args(&[DType(Unknown)]), Unknown),
     ("GetCurrentDate", Args(&[]), Date),
     ("GetCurrentDateStringWithSyncInfo", Args(&[]), CString),

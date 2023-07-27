@@ -85,7 +85,7 @@
     ("GetCultureEraType", Args(&[DType(Unknown)]), CultureEraType),
     ("GetCultureInnovationType", Args(&[DType(Unknown)]), CultureInnovationType),
     ("GetCulturePillar", Args(&[DType(Unknown)]), CulturePillar),
-    ("GetCultureTemplate", Args(&[DType(Unknown)]), CultureTemplate),
+    ("GetCultureTemplate", Args(&[IType(Item::Culture)]), CultureTemplate),
     ("GetCultureTradition", Args(&[DType(Unknown)]), CultureTradition),
     ("GetCurrentDate", Args(&[]), Date),
     ("GetCurrentMapMode", Args(&[]), MapMode),
