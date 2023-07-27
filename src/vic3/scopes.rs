@@ -142,8 +142,10 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
 }
 
 pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)> {
+    let name_lc = name.as_str().to_lowercase();
+
     for (from, s, to) in SCOPE_TO_SCOPE {
-        if name.is(s) {
+        if name_lc == *s {
             // Special case for "type" because it goes from specific scope types to specific other scope types.
             if *s == "type" {
                 let mut outscopes = Scopes::empty();
@@ -193,13 +195,14 @@ pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
 
 /// `name` is without the `every_`, `ordered_`, `random_`, or `any_`
 pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes)> {
+    let name_lc = name.as_str().to_lowercase();
     for (from, s, to) in SCOPE_ITERATOR {
-        if name.is(s) {
+        if name_lc == *s {
             return Some((*from, *to));
         }
     }
     for (s, version, explanation) in SCOPE_REMOVED_ITERATOR {
-        if name.is(s) {
+        if name_lc == *s {
             let msg = format!("`{name}` iterators were removed in {version}");
             warn_info(name, ErrorKey::Removed, &msg, explanation);
             return Some((Scopes::all(), Scopes::all()));
