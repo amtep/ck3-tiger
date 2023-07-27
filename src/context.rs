@@ -339,6 +339,10 @@ impl ScopeContext {
             let (s, reason) = self._resolve_named(idx);
             let reason = reason.clone(); // TODO: remove need to clone
             self.expect(s, &reason);
+            // It often happens that an iterator does is_in_list before add_to_list,
+            // and in those cases we want the add_to_list to take precedence: conclude that the
+            // list is being built here, and isn't an input list.
+            self.is_input[idx] = None;
         } else {
             self.list_names.insert(name.to_string(), self.named.len());
             self.named.push(self._resolve_backrefs().clone());
