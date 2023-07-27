@@ -33,6 +33,10 @@ use crate::validate::{
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::triggers::scope_trigger;
 
+/// The standard interface to trigger validation. Validates a trigger in the given [`ScopeContext`].
+///
+/// `tooltipped` determines what warnings are emitted related to tooltippability of the triggers
+/// inside the block.
 pub fn validate_trigger(
     block: &Block,
     data: &Everything,
@@ -42,6 +46,8 @@ pub fn validate_trigger(
     validate_trigger_internal("", false, block, data, sc, tooltipped, false, Severity::Error);
 }
 
+/// Like [`validate_trigger`] but specifies a maximum [`Severity`] for the reports emitted by this
+/// validation. Used to validate triggers in item definitions that don't warrant the `Error` level.
 pub fn validate_trigger_max_sev(
     block: &Block,
     data: &Everything,
@@ -52,6 +58,19 @@ pub fn validate_trigger_max_sev(
     validate_trigger_internal("", false, block, data, sc, tooltipped, false, max_sev);
 }
 
+/// The interface to trigger validation when [`validate_trigger`] is too limited.
+///
+/// `caller` is the key that opened this trigger. It is used to determine which special cases apply.
+/// For example, if `caller` is `trigger_if` then a `limit` block is expected.
+///
+/// `in_list` specifies whether this trigger is directly in an `any_` iterator. It is also used to
+/// determine which special cases apply.
+///
+/// `negated` is true iff this trigger is tested in a negative sense, for example if it is
+/// somewhere inside a `NOT = { ... }` block. `negated` is propagated to all sub-blocks and is
+/// flipped when another `NOT` or similar is encountered inside this one.
+///
+/// TODO: `in_list` could be removed if the code checks directly for the `any_` prefix instead.
 pub fn validate_trigger_internal(
     caller: &str,
     in_list: bool,
@@ -220,6 +239,9 @@ pub fn validate_trigger_internal(
     });
 }
 
+/// Validate a trigger given its key and argument. It is like [`validate_trigger_internal`] except
+/// that all special cases are assumed to have been handled. This is the interface used for the
+/// `switch` effect, where the key and argument are not together in the script.
 pub fn validate_trigger_key_bv(
     key: &Token,
     cmp: Comparator,
@@ -414,6 +436,15 @@ pub fn validate_trigger_key_bv(
     }
 }
 
+/// Implementation of the [`Trigger::Block`] variant and its friends. It takes a list of known
+/// fields and their own `Trigger` validators, and checks that the given `block` contains only
+/// fields from that list and validates them.
+///
+/// The field names may have a prefix to indicate how they are to be used.
+/// * `?` means the field is optional
+/// * `*` means the field is optional and may occur multiple times
+/// * `+` means the field is required and may occur multiple times
+/// The default is that the field is required and may occur only once.
 fn match_trigger_fields(
     fields: &[(&str, Trigger)],
     block: &Block,
@@ -461,6 +492,8 @@ fn match_trigger_fields(
 pub const STANCES: &[&str] =
     &["strongly_disapprove", "disapprove", "neutral", "approve", "strongly_approve"];
 
+/// Takes a [`Trigger`] and a trigger field, and validates that the constraints
+/// specified by the `Trigger` hold.
 fn match_trigger_bv(
     trigger: &Trigger,
     name: &Token,
@@ -472,7 +505,9 @@ fn match_trigger_bv(
     negated: bool,
     max_sev: Severity,
 ) {
+    // True iff the comparator must be Comparator::Equals
     let mut must_be_eq = true;
+    // True iff it's probably a mistake if the comparator is Comparator::Equals
     #[cfg(feature = "ck3")]
     let mut warn_if_eq = false;
     #[cfg(feature = "vic3")]
@@ -822,6 +857,11 @@ fn match_trigger_bv(
     }
 }
 
+/// Validate that `token` is valid as the right-hand side of a field.
+///
+/// `outscopes` is the set of scope types that this target is allowed to produce.
+/// * Example: in `has_claim_on = title:e_byzantium`, the target is `title:e_byzantium` and it
+/// should produce a [`Scopes::LandedTitle`] scope in order to be valid for `has_claim_on`.
 pub fn validate_target_ok_this(
     token: &Token,
     data: &Everything,
@@ -937,6 +977,8 @@ pub fn validate_target_ok_this(
     sc.close();
 }
 
+/// Just like [`validate_target_ok_this`], but warns if the target is a literal `this` because that
+/// is usually a mistake.
 pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, outscopes: Scopes) {
     validate_target_ok_this(token, data, sc, outscopes);
     if token.is("this") {
@@ -1000,6 +1042,11 @@ fn handle_argument<'a>(key: &'a Token, data: &Everything, sc: &mut ScopeContext)
     Cow::Borrowed(key)
 }
 
+/// A description of the constraints on the right-hand side of a given trigger.
+/// In other words, how it can be used.
+///
+/// It is used recursively in variants like [`Trigger::Block`], where each of the sub fields have
+/// their own `Trigger`.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Trigger {
     /// trigger = no or trigger = yes
@@ -1065,6 +1112,10 @@ pub enum Trigger {
     UncheckedValue,
 }
 
+/// This function checks if the trigger is one that can be used at the end of a scope chain on the
+/// right-hand side of a comparator.
+///
+/// Only triggers that take `Scopes::Value` types can be used this way.
 pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
     match scope_trigger(name, data) {
         #[cfg(feature = "ck3")]
