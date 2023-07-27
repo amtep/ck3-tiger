@@ -3517,7 +3517,7 @@
     ("GetName", Institution, Args(&[]), CString),
     ("GetName", InstitutionType, Args(&[]), CString),
     ("GetName", InterestGroup, Args(&[]), CString),
-    ("GetName", InterestGroupTrait, Args(&[DType(Character)]), CString),
+    ("GetName", InterestGroupTrait, Args(&[DType(InterestGroup)]), CString),
     ("GetName", JominiServer, Args(&[]), CString),
     ("GetName", JournalEntry, Args(&[]), CString),
     ("GetName", JournalEntryType, Args(&[]), CString),
