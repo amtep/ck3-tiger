@@ -16,7 +16,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pathtable::PathTableIndex;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, error_info, old_warn, warn_info, ErrorKey};
+use crate::report::{error, error_info, old_warn, warn, warn_info, ErrorKey, Severity};
 use crate::scopes::{scope_from_snake_case, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -468,20 +468,52 @@ fn validate_artifact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     });
 }
 
+fn validate_animations(vd: &mut Validator) {
+    vd.field_validated_value("animation", |_, value, data| {
+        if !data.item_exists(Item::PortraitAnimation, value.as_str())
+            && data.item_exists(Item::ScriptedAnimation, value.as_str())
+        {
+            let msg = format!(
+                "portrait animation {value} not defined in {}",
+                Item::PortraitAnimation.path()
+            );
+            let info = format!("Did you mean `scripted_animation = {value}`?");
+            warn(ErrorKey::MissingItem).strong().msg(msg).info(info).loc(value).push();
+        } else {
+            data.verify_exists(Item::PortraitAnimation, value);
+        }
+    });
+    vd.field_validated_value("scripted_animation", |_, value, data| {
+        if !data.item_exists(Item::ScriptedAnimation, value.as_str())
+            && data.item_exists(Item::PortraitAnimation, value.as_str())
+        {
+            let msg = format!(
+                "scripted animation {value} not defined in {}",
+                Item::ScriptedAnimation.path()
+            );
+            let info = format!("Did you mean `animation = {value}`?");
+            warn(ErrorKey::MissingItem).strong().msg(msg).info(info).loc(value).push();
+        } else {
+            data.verify_exists(Item::ScriptedAnimation, value);
+        }
+    });
+}
+
 fn validate_triggered_animation(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
+    vd.set_max_severity(Severity::Warning);
 
     vd.req_field("trigger");
-    vd.req_field_one_of(&["animation", "scripted_animation"]);
     vd.field_validated_block("trigger", |b, data| {
         validate_trigger(b, data, sc, Tooltipped::No);
     });
-    vd.field_item("animation", Item::PortraitAnimation);
-    vd.field_item("scripted_animation", Item::ScriptedAnimation);
+    vd.req_field_one_of(&["animation", "scripted_animation"]);
+    validate_animations(&mut vd);
 }
 
 fn validate_triggered_outfit(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
+    vd.set_max_severity(Severity::Warning);
 
     // trigger is apparently optional
     vd.field_validated_block("trigger", |b, data| {
@@ -504,8 +536,7 @@ fn validate_portrait(v: &BV, data: &Everything, sc: &mut ScopeContext) {
             vd.field_validated_block("trigger", |b, data| {
                 validate_trigger(b, data, sc, Tooltipped::No);
             });
-            vd.field_item("animation", Item::PortraitAnimation);
-            vd.field_item("scripted_animation", Item::ScriptedAnimation);
+            validate_animations(&mut vd);
             vd.field_validated_blocks("triggered_animation", |b, data| {
                 validate_triggered_animation(b, data, sc);
             });
