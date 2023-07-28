@@ -21,6 +21,7 @@ use crate::token::Token;
 pub struct Gui {
     files: FnvHashMap<PathBuf, Vec<GuiWidget>>,
     templates: FnvHashMap<String, GuiTemplate>,
+    // Type keys are stored in lowercase because type lookup is case-insensitive
     types: FnvHashMap<String, GuiType>,
     layers: FnvHashMap<String, GuiLayer>,
 }
@@ -82,10 +83,12 @@ impl Gui {
     }
 
     pub fn load_type(&mut self, key: Token, base: Token, block: Block) {
-        if let Some(other) = self.types.get(key.as_str()) {
+        let key_lc = key.as_str().to_lowercase();
+
+        if let Some(other) = self.types.get(&key_lc) {
             dup_error(&key, &other.key, "gui type");
         }
-        self.types.insert(key.to_string(), GuiType::new(key, base, block));
+        self.types.insert(key_lc, GuiType::new(key, base, block));
     }
 
     pub fn load_template(&mut self, key: Token, block: Block) {
