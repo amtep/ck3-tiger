@@ -13,7 +13,9 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, error, error_info, old_warn, warn_info, ErrorKey};
+use crate::report::{
+    err, error, error_info, old_warn, untidy, warn, warn_info, ErrorKey, Severity,
+};
 use crate::scopes::Scopes;
 use crate::token::Token;
 
@@ -24,14 +26,59 @@ pub struct Gui {
     // Type keys are stored in lowercase because type lookup is case-insensitive
     types: FnvHashMap<String, GuiType>,
     layers: FnvHashMap<String, GuiLayer>,
+    // TextIcon is in a Vec because a single icon can have multiple definitions with different
+    // iconsize parameters.
+    texticons: FnvHashMap<String, Vec<TextIcon>>,
+    textformats: FnvHashMap<String, TextFormat>,
+    // This is indexed by a (colorblindmode, textformatname) pair
+    textformats_colorblind: FnvHashMap<(String, String), TextFormat>,
 }
 
 impl Gui {
-    fn load_widget(&mut self, filename: PathBuf, key: Token, block: Block) {
-        if let Some(guifile) = self.files.get_mut(&filename) {
-            guifile.push(GuiWidget::new(key, block));
+    fn load_widget(&mut self, filename: PathBuf, key: Token, mut block: Block) {
+        if key.is("texticon") {
+            if let Some(icon) = block.get_field_value("icon") {
+                self.load_texticon(icon.clone(), block);
+            } else {
+                warn(ErrorKey::FieldMissing)
+                    .strong()
+                    .msg("texticon without icon field")
+                    .loc(block)
+                    .push();
+            }
+        } else if key.is("textformatting") {
+            let colorblindmode = block.get_field_value("color_blind_mode").cloned();
+            for item in block.drain() {
+                if let BlockItem::Field(Field(key, _, BV::Value(_))) = item {
+                    if key.is("color_blind_mode") {
+                        continue;
+                    }
+                } else if let BlockItem::Field(Field(key, _, BV::Block(block))) = item {
+                    if key.is("format") {
+                        if let Some(token) = block.get_field_value("name") {
+                            self.load_textformat(token.clone(), block, colorblindmode.clone());
+                        } else {
+                            warn(ErrorKey::FieldMissing)
+                                .strong()
+                                .msg("format without name field")
+                                .loc(block)
+                                .push();
+                        }
+                    } else {
+                        let msg = "unknown key in textformatting";
+                        untidy(ErrorKey::UnknownField).msg(msg).loc(key).push();
+                    }
+                } else {
+                    let msg = format!("unknown {} in textformatting", item.describe());
+                    untidy(ErrorKey::Validation).msg(msg).loc(item).push();
+                }
+            }
         } else {
-            self.files.insert(filename, vec![GuiWidget::new(key, block)]);
+            if let Some(guifile) = self.files.get_mut(&filename) {
+                guifile.push(GuiWidget::new(key, block));
+            } else {
+                self.files.insert(filename, vec![GuiWidget::new(key, block)]);
+            }
         }
     }
 
@@ -86,23 +133,79 @@ impl Gui {
         let key_lc = key.as_str().to_lowercase();
 
         if let Some(other) = self.types.get(&key_lc) {
-            dup_error(&key, &other.key, "gui type");
+            if other.key.loc.kind >= key.loc.kind {
+                dup_error(&key, &other.key, "gui type");
+            }
         }
         self.types.insert(key_lc, GuiType::new(key, base, block));
     }
 
     pub fn load_template(&mut self, key: Token, block: Block) {
         if let Some(other) = self.templates.get(key.as_str()) {
-            dup_error(&key, &other.key, "gui template");
+            if other.key.loc.kind >= key.loc.kind {
+                dup_error(&key, &other.key, "gui template");
+            }
         }
         self.templates.insert(key.to_string(), GuiTemplate::new(key, block));
     }
 
     pub fn load_layer(&mut self, key: Token, block: Block) {
         if let Some(other) = self.layers.get(key.as_str()) {
-            dup_error(&key, &other.key, "gui layer");
+            if other.key.loc.kind >= key.loc.kind {
+                dup_error(&key, &other.key, "gui layer");
+            }
         }
         self.layers.insert(key.to_string(), GuiLayer::new(key, block));
+    }
+
+    pub fn load_texticon(&mut self, key: Token, block: Block) {
+        // TODO: warn about exact duplicates? where the iconsize is the same
+        if let Some(vec) = self.texticons.get_mut(key.as_str()) {
+            vec.push(TextIcon::new(key, block));
+        } else {
+            self.texticons.insert(key.to_string(), vec![TextIcon::new(key, block)]);
+        }
+    }
+
+    pub fn load_textformat(&mut self, key: Token, block: Block, color_blind_mode: Option<Token>) {
+        if let Some(cbm) = color_blind_mode {
+            let index = (cbm.to_string(), key.to_string());
+            if let Some(other) = self.textformats_colorblind.get(&index) {
+                if other.key.loc.kind >= key.loc.kind {
+                    let id = format!("textformat for {cbm}");
+                    dup_error(&key, &other.key, &id);
+                }
+            }
+            self.textformats_colorblind.insert(index, TextFormat::new(key, block, Some(cbm)));
+        } else {
+            if let Some(other) = self.textformats.get(key.as_str()) {
+                if other.key.loc.kind >= key.loc.kind {
+                    dup_error(&key, &other.key, "textformat");
+                }
+            }
+            self.textformats.insert(key.to_string(), TextFormat::new(key, block, None));
+        }
+    }
+
+    pub fn template_exists(&self, key: &str) -> bool {
+        self.templates.contains_key(key)
+    }
+
+    pub fn type_exists(&self, key: &str) -> bool {
+        let key_lc = key.to_lowercase();
+        self.types.contains_key(&key_lc) || BUILTIN_TYPES.contains(&key_lc.as_str())
+    }
+
+    pub fn layer_exists(&self, key: &str) -> bool {
+        self.layers.contains_key(key)
+    }
+
+    pub fn texticon_exists(&self, key: &str) -> bool {
+        self.texticons.contains_key(key)
+    }
+
+    pub fn textformat_exists(&self, key: &str) -> bool {
+        self.textformats.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -118,6 +221,17 @@ impl Gui {
             item.validate(data);
         }
         for item in self.layers.values() {
+            item.validate(data);
+        }
+        for vec in self.texticons.values() {
+            for item in vec {
+                item.validate(data);
+            }
+        }
+        for item in self.textformats.values() {
+            item.validate(data);
+        }
+        for item in self.textformats_colorblind.values() {
             item.validate(data);
         }
     }
@@ -253,7 +367,6 @@ impl FileHandler<Block> for Gui {
 
 #[derive(Clone, Debug)]
 struct GuiWidget {
-    #[allow(dead_code)]
     key: Token,
     block: Block,
 }
@@ -264,7 +377,62 @@ impl GuiWidget {
     }
 
     pub fn validate(&self, data: &Everything) {
+        data.verify_exists(Item::GuiType, &self.key);
         validate_gui(&self.block, data);
+    }
+}
+
+#[derive(Clone, Debug)]
+struct TextIcon {
+    #[allow(dead_code)]
+    key: Token,
+    block: Block,
+}
+
+impl TextIcon {
+    pub fn new(key: Token, block: Block) -> Self {
+        Self { key, block }
+    }
+
+    pub fn validate(&self, data: &Everything) {
+        let mut vd = Validator::new(&self.block, data);
+        vd.set_max_severity(Severity::Warning);
+        vd.field_value("icon");
+        vd.field_validated_block("iconsize", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.set_max_severity(Severity::Warning);
+            vd.field_item("texture", Item::File);
+            vd.field_list_integers_exactly("size", 2);
+            vd.field_list_integers_exactly("offset", 2);
+            vd.field_integer("fontsize");
+            vd.field_list_numeric_exactly("uv", 4);
+        });
+    }
+}
+
+#[derive(Clone, Debug)]
+struct TextFormat {
+    #[allow(dead_code)]
+    key: Token,
+    block: Block,
+    color_blind_mode: Option<Token>,
+}
+
+impl TextFormat {
+    pub fn new(key: Token, block: Block, color_blind_mode: Option<Token>) -> Self {
+        Self { key, block, color_blind_mode }
+    }
+
+    pub fn validate(&self, data: &Everything) {
+        if self.color_blind_mode.is_some() {
+            // Color-blind modes must override existing textformats
+            data.verify_exists(Item::TextFormat, &self.key);
+        }
+        let mut vd = Validator::new(&self.block, data);
+        vd.set_max_severity(Severity::Warning);
+        vd.field_value("name");
+        vd.field_bool("override");
+        vd.field_value("format"); // TODO
     }
 }
 
@@ -289,7 +457,6 @@ impl GuiTemplate {
 struct GuiType {
     #[allow(dead_code)] // TODO
     key: Token,
-    #[allow(dead_code)] // TODO
     base: Token,
     block: Block,
 }
@@ -300,6 +467,7 @@ impl GuiType {
     }
 
     pub fn validate(&self, data: &Everything) {
+        data.verify_exists(Item::GuiType, &self.base);
         validate_gui(&self.block, data);
     }
 }
@@ -465,3 +633,89 @@ fn validate_gui_loca(key: &Token, value: LocaValue, data: &Everything) {
         _ => (),
     }
 }
+
+/// Widget types that are defined by the game engine and don't need to be defined in gui script.
+// There might be some more that should be feature = "ck3". TODO: compare vic3 and ck3 vanilla
+const BUILTIN_TYPES: &[&str] = &[
+    "active_item",
+    "animation",
+    "attachto",
+    "background",
+    #[cfg(feature = "vic3")]
+    "button",
+    "buttontext",
+    "button_group",
+    "cameracontrolwidget",
+    "checkbutton",
+    "click_modifiers",
+    "colormap_picker",
+    "colorpicker",
+    "colorpicker_reticule_icon",
+    "container",
+    "contextmenu",
+    "datacontext_from_model",
+    "drag_drop_icon",
+    "drag_drop_target",
+    "dockable_container",
+    "dropdown",
+    "dynamicgridbox",
+    "editbox",
+    "expand_item",
+    "expandbutton",
+    "fixedgridbox",
+    "flowcontainer",
+    #[cfg(feature = "ck3")]
+    "game_button",
+    "glow",
+    "glow_generation_rules",
+    "hbox",
+    "icon",
+    "icon_button_small_round",
+    "item",
+    "keyframe_editor_lane_container",
+    "line",
+    "line_deprecated",
+    "list",
+    "margin_widget",
+    "marker",
+    #[cfg(feature = "vic3")]
+    "minimap",
+    #[cfg(feature = "vic3")]
+    "minimap_window",
+    "modify_texture",
+    "overlappingitembox",
+    #[cfg(feature = "vic3")]
+    "piechart",
+    #[cfg(feature = "vic3")]
+    "pieslice",
+    #[cfg(feature = "vic3")]
+    "plotline",
+    "portrait_button",
+    "progressbar",
+    #[cfg(feature = "vic3")]
+    "right_click_menu_widget",
+    "scrollarea",
+    "scrollbar",
+    "scrollbar_horizontal",
+    "scrollbar_vertical",
+    "scrollwidget",
+    "state",
+    "text_occluder",
+    "textbox",
+    "timeline_texts",
+    "tools_dragdrop_widget",
+    "tools_player_timeline",
+    "tools_keyframe_button",
+    "tools_keyframe_editor",
+    "tools_keyframe_editor_lane",
+    "tools_table",
+    "tree",
+    #[cfg(feature = "vic3")]
+    "treemapslice",
+    "vbox",
+    #[cfg(feature = "vic3")]
+    "webwindow",
+    "widget",
+    "window",
+    "zoomarea",
+];

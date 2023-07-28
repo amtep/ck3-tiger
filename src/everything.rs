@@ -852,6 +852,9 @@ impl Everything {
             Item::GameConcept => self.gameconcepts.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::GeneticConstraint => self.traits.constraint_exists(key),
+            Item::GuiLayer => self.gui.layer_exists(key),
+            Item::GuiTemplate => self.gui.template_exists(key),
+            Item::GuiType => self.gui.type_exists(key),
             Item::InteractionCategory => self.interaction_cats.exists(key),
             Item::Localization => self.localization.exists(key),
             Item::MenAtArms => self.menatarmstypes.exists(key),
@@ -870,6 +873,8 @@ impl Everything {
             Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
             Item::Sound => self.sounds.exists(key),
+            Item::TextFormat => self.gui.textformat_exists(key),
+            Item::TextIcon => self.gui.texticon_exists(key),
             Item::TextureFile => self.assets.texture_exists(key),
             Item::Title => self.titles.exists(key),
             Item::TitleHistory => self.title_history.exists(key),
@@ -878,6 +883,7 @@ impl Everything {
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitTrack => self.traits.track_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
+            Item::Shortcut => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
@@ -901,6 +907,9 @@ impl Everything {
             Item::EventNamespace => self.events.namespace_exists(key),
             Item::File => self.fileset.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
+            Item::GuiLayer => self.gui.layer_exists(key),
+            Item::GuiTemplate => self.gui.template_exists(key),
+            Item::GuiType => self.gui.type_exists(key),
             Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
             Item::Level => LEVELS.contains(&key),
             Item::Localization => self.localization.exists(key),
@@ -919,10 +928,12 @@ impl Everything {
                     SOUNDS.contains(&key)
                 }
             }
+            Item::TextFormat => self.gui.textformat_exists(key),
+            Item::TextIcon => self.gui.texticon_exists(key),
             Item::TextureFile => self.assets.texture_exists(key),
             Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
             Item::Wargoal => WARGOALS.contains(&key),
-            Item::TutorialLesson => true, // TODO
+            Item::Shortcut | Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }

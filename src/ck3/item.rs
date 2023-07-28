@@ -126,6 +126,9 @@ pub enum Item {
     GraphicalFaith,
     GuestInviteRule,
     GuestSubset,
+    GuiLayer,
+    GuiTemplate,
+    GuiType,
     Holding,
     HoldingFlag,
     HolySite,
@@ -194,6 +197,7 @@ pub enum Item {
     ScriptValue,
     Secret,
     Sexuality,
+    Shortcut,
     Skill,
     Sound,
     SpecialBuilding,
@@ -205,6 +209,8 @@ pub enum Item {
     SuccessionElection,
     Suggestion,
     Terrain,
+    TextFormat,
+    TextIcon,
     TextureFile,
     Title,
     TitleHistory,
@@ -347,6 +353,9 @@ impl Item {
             Item::GraphicalFaith => "common/religion/religions/",
             Item::GuestInviteRule => "common/activities/guest_invite_rules/",
             Item::GuestSubset => "common/activities/activity_types/",
+            Item::GuiLayer => "gui/",
+            Item::GuiTemplate => "gui/",
+            Item::GuiType => "gui/",
             Item::Holding => "common/holdings/",
             Item::HoldingFlag => "common/holdings/",
             Item::HolySite => "common/religion/holy_sites/",
@@ -415,6 +424,7 @@ impl Item {
             Item::ScriptValue => "common/script_values/",
             Item::Secret => "common/secret_types/",
             Item::Sexuality => "",
+            Item::Shortcut => "gui/shortcuts.shortcuts",
             Item::Skill => "",
             Item::Sound => "sound/GUIDs.txt",
             Item::SpecialBuilding => "common/buildings/",
@@ -426,6 +436,8 @@ impl Item {
             Item::SuccessionElection => "common/succession_election/",
             Item::Suggestion => "common/suggestions/",
             Item::Terrain => "common/terrain_types/",
+            Item::TextFormat => "gui/",
+            Item::TextIcon => "gui/",
             Item::TextureFile => "gfx/models/",
             Item::Title => "common/landed_titles/",
             Item::TitleHistory => "history/titles/",
@@ -453,6 +465,10 @@ impl Item {
             | Item::BuildingGfx
             | Item::ClothingGfx
             | Item::CoaGfx
+            // GuiType and GuiTemplate are here because referring to templates in other mods is a
+            // common compatibility technique.
+            | Item::GuiType
+            | Item::GuiTemplate
             | Item::MemoryCategory
             | Item::Sound
             | Item::UnitGfx => Confidence::Weak,
@@ -470,6 +486,9 @@ impl Item {
     /// That part isn't handled yet.
     pub fn severity(self) -> Severity {
         match self {
+            // GuiType and GuiTemplate are here because referring to templates in other mods is a
+            // common compatibility technique.
+            Item::GuiType | Item::GuiTemplate => Severity::Untidy,
             Item::Accessory
             | Item::AccessoryTag
             | Item::AccessoryVariation
@@ -513,6 +532,8 @@ impl Item {
             | Item::PortraitCamera
             | Item::ScriptedIllustration
             | Item::Sound
+            | Item::TextFormat
+            | Item::TextIcon
             | Item::TextureFile
             | Item::TriggerLocalization
             | Item::UnitGfx => Severity::Warning,

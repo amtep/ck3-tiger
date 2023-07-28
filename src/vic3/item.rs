@@ -62,6 +62,9 @@ pub enum Item {
     GeneCategory,
     Goods,
     GovernmentType,
+    GuiLayer,
+    GuiTemplate,
+    GuiType,
     Ideology,
     InfamyThreshold,
     Institution,
@@ -99,6 +102,7 @@ pub enum Item {
     ScriptedTrigger,
     ScriptValue,
     SecretGoal,
+    Shortcut,
     Sound,
     StateRegion,
     StateTrait,
@@ -111,6 +115,8 @@ pub enum Item {
     TerrainManipulator,
     TerrainMask,
     TerrainMaterial,
+    TextFormat,
+    TextIcon,
     TextureFile,
     TransferOfPower,
     TriggerLocalization,
@@ -179,6 +185,9 @@ impl Item {
             Item::GeneCategory => "common/genes/",
             Item::Goods => "common/goods/",
             Item::GovernmentType => "common/government_types/",
+            Item::GuiLayer => "gui/",
+            Item::GuiTemplate => "gui/",
+            Item::GuiType => "gui/",
             Item::Ideology => "common/ideologies/",
             Item::InfamyThreshold => "",
             Item::Institution => "common/institutions/",
@@ -216,6 +225,7 @@ impl Item {
             Item::ScriptedTrigger => "common/scripted_triggers/",
             Item::ScriptValue => "common/script_values/",
             Item::SecretGoal => "common/secret_goals/",
+            Item::Shortcut => "gui/shortcuts.shortcuts",
             Item::Sound => "",
             Item::StateRegion => "map_data/state_regions/",
             Item::StateTrait => "common/state_traits/",
@@ -228,6 +238,8 @@ impl Item {
             Item::TerrainManipulator => "common/terrain_manipulators/",
             Item::TerrainMask => "gfx/map/masks/",
             Item::TerrainMaterial => "gfx/map/terrain/materials.settings",
+            Item::TextFormat => "gui/",
+            Item::TextIcon => "gui/",
             Item::TextureFile => "gfx/models/",
             Item::TransferOfPower => "",
             Item::TriggerLocalization => "common/trigger_localization/",
@@ -240,7 +252,12 @@ impl Item {
     /// Should be `Strong` for most, `Weak` for items that aren't defined anywhere but just used (such as gfx flags).
     pub fn confidence(self) -> Confidence {
         match self {
-            Item::AccessoryTag => Confidence::Weak,
+            Item::AccessoryTag
+                // GuiType and GuiTemplate are here because referring to templates in other mods is a
+            // common compatibility technique.
+            | Item::GuiType
+            | Item::GuiTemplate
+                => Confidence::Weak,
             _ => Confidence::Strong,
         }
     }
@@ -253,6 +270,9 @@ impl Item {
     /// That part isn't handled yet.
     pub fn severity(self) -> Severity {
         match self {
+            // GuiType and GuiTemplate are here because referring to templates in other mods is a
+            // common compatibility technique.
+            Item::GuiType | Item::GuiTemplate => Severity::Untidy,
             Item::Accessory
             | Item::AccessoryTag
             | Item::AccessoryVariation
@@ -282,6 +302,8 @@ impl Item {
             | Item::TerrainManipulator
             | Item::TerrainMask
             | Item::TerrainMaterial
+            | Item::TextFormat
+            | Item::TextIcon
             | Item::TextureFile
             | Item::TriggerLocalization => Severity::Warning,
             _ => Severity::Error,

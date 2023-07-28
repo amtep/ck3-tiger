@@ -1022,7 +1022,6 @@ impl<'a> Validator<'a> {
     /// Expect field `name`, if present, to be of the form `name = { value value value ... }` with exactly `expect` values.
     /// Expect every value to be a number with up to 5 decimals.
     /// Expect no more than one `name` field in the block.
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_list_numeric_exactly(&mut self, name: &str, expect: usize) {
         self.field_validated_block(name, |block, data| {
             let mut vd = Validator::new(block, data);

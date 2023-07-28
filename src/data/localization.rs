@@ -310,6 +310,9 @@ impl Localization {
                 // TODO: should this be validated with validate_localization_sc ? (remember to avoid infinite loops)
                 data.localization.verify_exists_lang(token, lang);
             }
+            LocaValue::Icon(token) => {
+                data.verify_exists(Item::TextIcon, token);
+            }
             _ => (),
         }
     }
