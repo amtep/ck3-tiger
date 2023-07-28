@@ -181,7 +181,7 @@ impl Event {
             validate_effect(block, data, &mut sc, tooltipped_immediate);
         });
 
-        vd.field_validated_block("event_image", |block, data| {
+        vd.field_validated_blocks("event_image", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);

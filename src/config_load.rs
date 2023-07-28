@@ -77,6 +77,7 @@ fn load_rule(field: &Field) -> Option<FilterRule> {
         "confidence" => load_rule_confidence(cmp, bv),
         "key" => load_rule_key(bv),
         "file" => load_rule_file(bv),
+        "text" => load_rule_text(bv),
         "always" => load_rule_always(bv),
         "ignore_keys_in_files" => load_ignore_keys_in_files(bv),
         "NOT" => load_not(bv),
@@ -352,6 +353,20 @@ fn load_rule_file(value: &BV) -> Option<FilterRule> {
             None
         }
         BV::Value(token) => Some(FilterRule::File(PathBuf::from(token.as_str()))),
+    }
+}
+
+fn load_rule_text(bv: &BV) -> Option<FilterRule> {
+    match bv {
+        BV::Block(_) => {
+            error(
+                bv,
+                ErrorKey::Config,
+                "`text` can't open a block. Example usage: `text = \"coat of arms is redefined\"`",
+            );
+            None
+        }
+        BV::Value(token) => Some(FilterRule::Text(token.to_string())),
     }
 }
 

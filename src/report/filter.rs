@@ -23,8 +23,7 @@ impl ReportFilter {
     /// A print will be rejected if the report matches at least one of the following conditions:
     /// - Its Severity or Confidence level is too low.
     /// - It's from vanilla or a loaded mod and the program is configured to ignore those locations.
-    /// - The filter has a whitelist, and the report doesn't match it.
-    /// - The filter has a blacklist, and the report does match it.
+    /// - The filter has a trigger, and the report doesn't match it.
     pub fn should_print_report(&self, report: &LogReport) -> bool {
         if report.key == ErrorKey::Config {
             // Any errors concerning the Config should be easy to fix and will fundamentally
@@ -41,6 +40,7 @@ impl ReportFilter {
         }
         self.predicate.apply(report)
     }
+
     /// TODO: Check the filter rules to be more sure.
     pub fn should_maybe_print(&self, key: ErrorKey, loc: &Loc) -> bool {
         if key == ErrorKey::Config {
@@ -83,6 +83,8 @@ pub enum FilterRule {
     Key(ErrorKey),
     /// The report's pointers must contain the given file for the report to match the rule.
     File(PathBuf),
+    /// The report's msg must contain the given text for the report to match the rule.
+    Text(String),
 }
 
 impl FilterRule {
@@ -113,6 +115,7 @@ impl FilterRule {
             FilterRule::File(path) => {
                 report.pointers.iter().any(|pointer| pointer.loc.pathname().starts_with(path))
             }
+            FilterRule::Text(s) => report.msg.to_lowercase().contains(&s.to_lowercase()),
         }
     }
 }

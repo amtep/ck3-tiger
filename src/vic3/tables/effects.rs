@@ -227,7 +227,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::all_but_none(), "save_temporary_scope_as", Vv(validate_save_scope)),
     (Scopes::None, "save_temporary_scope_value_as", Vb(validate_save_scope_value)),
     (Scopes::Country, "seize_investment_pool", Boolean),
-    (Scopes::Character, "set_as_interest_group_leader", Yes),
+    (Scopes::Character, "set_as_interest_group_leader", Boolean),
     (Scopes::State, "set_available_for_autonomous_investment", Scope(Scopes::BuildingType)),
     (Scopes::Country, "set_capital", Item(Item::StateRegion)),
     (Scopes::Character, "set_character_as_ruler", Yes),

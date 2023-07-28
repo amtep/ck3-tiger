@@ -80,8 +80,10 @@ impl ColorGene {
 }
 
 impl DbKind for ColorGene {
+    #[allow(unused_variables)] // vic3 does not use key
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+        #[cfg(feature = "ck3")]
         data.verify_exists(Item::Localization, key);
 
         #[cfg(feature = "ck3")]
@@ -159,9 +161,11 @@ impl MorphGene {
 }
 
 impl DbKind for MorphGene {
+    #[allow(unused_variables)] // vic3 does not use key
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
+        #[cfg(feature = "ck3")]
         data.verify_exists(Item::Localization, key);
 
         vd.field_list("ugliness_feature_categories"); // TODO: options

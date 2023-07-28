@@ -116,6 +116,17 @@ Example:
 - `file = common/` This matches any report that mentions a file inside the `common/` directory.
 - `file = history/characters/afar.txt` This matches any report that mentions that specific file.
 
+### Text
+
+You can target specific messages based on their contents.
+Reports that contain the text in their main message will be matched by this trigger.
+The text matching is case-insensitive.
+
+Example:
+
+- `text = "coat of arms is redefined"`
+- `text = "Opening { was never closed"`
+
 ### Ignoring keys only in certain files
 
 The below example returns false for reports with key1 or key2 that mention either file1 or file2. You must list at least one key and one file.

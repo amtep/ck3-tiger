@@ -23,6 +23,7 @@ impl DbKind for ProductionMethod {
 
         vd.field_item("texture", Item::File);
         vd.field_bool("is_default");
+        vd.field_bool("low_pop_method");
 
         vd.field_validated_block("country_modifiers", |block, data| {
             validate_modifier_block(block, data, ModifKinds::all());
@@ -37,6 +38,7 @@ impl DbKind for ProductionMethod {
 
         vd.field_list_items("unlocking_laws", Item::LawType);
         vd.field_list_items("disallowing_laws", Item::LawType);
+        vd.field_list_items("unlocking_religions", Item::Religion);
         vd.field_list_items("disallowing_religions", Item::Religion);
         vd.field_list_items("unlocking_technologies", Item::Technology);
         vd.field_list_items("unlocking_production_methods", Item::ProductionMethod);
