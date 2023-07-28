@@ -121,6 +121,7 @@ use crate::data::{
     defines::Defines,
     effect_localization::EffectLocalization,
     ethnicity::Ethnicity,
+    fonts::Font,
     genes::Gene,
     gui::Gui,
     localization::Localization,
@@ -408,8 +409,16 @@ impl Everything {
     where
         F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
+        self.load_pdx_items_optional_bom_ext(itype, add, ".txt");
+    }
+
+    /// Like `load_pdx_items_ext` but does not complain about a missing BOM
+    fn load_pdx_items_optional_bom_ext<F>(&mut self, itype: Item, add: F, ext: &str)
+    where
+        F: Fn(&mut Db, Token, Block) + Sync + Send,
+    {
         for mut block in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
-            if entry.filename().to_string_lossy().ends_with(".txt") {
+            if entry.filename().to_string_lossy().ends_with(ext) {
                 PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
             } else {
                 None
@@ -543,6 +552,7 @@ impl Everything {
         self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
         self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
         self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
+        self.load_pdx_items_optional_bom_ext(Item::Font, Font::add, ".font");
         self.load_pdx_items(Item::GeneCategory, Gene::add);
         self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
         self.load_pdx_items(Item::PortraitAnimation, PortraitAnimation::add);

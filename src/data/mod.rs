@@ -7,6 +7,7 @@ pub mod customloca;
 pub mod defines;
 pub mod effect_localization;
 pub mod ethnicity;
+pub mod fonts;
 pub mod genes;
 pub mod gui;
 pub mod localization;
