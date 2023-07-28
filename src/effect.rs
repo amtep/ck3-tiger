@@ -530,11 +530,8 @@ pub fn validate_effect_control(
         vd.field_validated_sc("desc", sc, validate_desc);
         vd.field_script_value("min", sc); // used in vanilla
         vd.field_script_value("max", sc); // used in vanilla
-                                          // TODO: check if "max" also works
     } else {
-        if caller != "option" {
-            vd.ban_field("trigger", || "`random_list` or `duel`");
-        }
+        vd.ban_field("trigger", || "`random_list` or `duel`");
         vd.ban_field("show_chance", || "`random_list` or `duel`");
     }
 
