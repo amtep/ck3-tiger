@@ -207,7 +207,7 @@ fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
 
 impl Localization {
     pub fn exists(&self, key: &str) -> bool {
-        for lang in &self.check_langs {
+        for lang in &self.mod_langs {
             let hash = self.locas.get(lang);
             if hash.is_none() || !hash.unwrap().contains_key(key) {
                 return false;
@@ -485,6 +485,11 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
         // unwrap is safe here because we're only handed files under localization/
         // to_string_lossy is ok because we compare lang against a set of known strings.
         let lang = entry.path().components().nth(1).unwrap().as_os_str().to_string_lossy();
+
+        // special case for this file
+        if lang == "languages.yml" {
+            return None;
+        }
 
         if let Some(filelang) = get_file_lang(entry.filename()) {
             if !self.check_langs.contains(&filelang) {
