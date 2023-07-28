@@ -72,6 +72,8 @@ impl DbKind for ActivityType {
         data.verify_exists_implied(Item::Localization, &loca, key);
         let loca = format!("{key}_predicted_cost");
         data.verify_exists_implied(Item::Localization, &loca, key);
+        let loca = format!("TRAVEL_NAME_FOR_{key}");
+        data.verify_exists_implied(Item::Localization, &loca, key);
 
         if block.has_key("province_description") {
             let mut sc = ScopeContext::new(Scopes::Province, key);
