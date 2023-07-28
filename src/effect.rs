@@ -1,36 +1,30 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Eq::*, BV};
 #[cfg(feature = "ck3")]
-use crate::ck3::effect_validation::{
-    validate_effect_block, validate_effect_bv, validate_effect_value, EvB, EvBv, EvV,
-};
-#[cfg(feature = "ck3")]
 use crate::ck3::tables::effects::scope_effect;
 use crate::context::{Reason, ScopeContext};
 use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{advice_info, err, error, fatal, old_warn, warn_info, ErrorKey, Severity};
+use crate::report::{advice_info, err, error, fatal, old_warn, warn_info, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::scriptvalue::validate_scriptvalue;
+use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{
-    validate_target, validate_target_ok_this, validate_trigger, validate_trigger_key_bv,
-};
+#[cfg(feature = "ck3")]
+use crate::trigger::validate_target_ok_this;
+use crate::trigger::{validate_target, validate_trigger};
+#[cfg(feature = "ck3")]
+use crate::validate::validate_optional_duration;
 #[cfg(feature = "vic3")]
 use crate::validate::validate_vic3_modifiers;
 use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
-    validate_iterator_fields, validate_optional_duration, validate_scope_chain,
-    validate_scripted_modifier_call, ListType,
+    validate_iterator_fields, validate_scope_chain, validate_scripted_modifier_call, ListType,
 };
 #[cfg(feature = "ck3")]
 use crate::validate::{validate_compare_duration, validate_modifiers};
-#[cfg(feature = "vic3")]
-use crate::vic3::effect_validation::{
-    validate_effect_block, validate_effect_bv, validate_effect_value, EvB, EvBv, EvV,
-};
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::effects::scope_effect;
 
@@ -329,17 +323,21 @@ pub fn validate_effect_internal<'a>(
                         vd.field_script_value("multiplier", sc);
                     }
                 }
-                Effect::VB(v) => {
+                Effect::Vb(f) => {
                     if let Some(block) = bv.expect_block() {
-                        validate_effect_block(v, key, block, data, sc, tooltipped);
+                        let mut vd = Validator::new(block, data);
+                        vd.set_case_sensitive(false);
+                        f(key, block, data, sc, vd, tooltipped);
                     }
                 }
-                Effect::VV(v) => {
+                Effect::Vv(f) => {
                     if let Some(token) = bv.expect_value() {
-                        validate_effect_value(v, key, token, data, sc, tooltipped);
+                        f(key, token, data, sc, tooltipped);
                     }
                 }
-                Effect::VBv(v) => validate_effect_bv(v, key, bv, data, sc, tooltipped),
+                Effect::Vbv(f) => {
+                    f(key, bv, data, sc, tooltipped);
+                }
                 Effect::ControlOrLabel => match bv {
                     BV::Value(t) => data.verify_exists(Item::Localization, t),
                     BV::Block(b) => validate_effect_control(
@@ -538,126 +536,6 @@ pub fn validate_effect_control(
     validate_effect_internal(caller, ListType::None, block, data, sc, vd, tooltipped);
 }
 
-/// A specific validator for the three `add_to_variable_list` effects (`global`, `local`, and default).
-pub fn validate_add_to_variable_list(mut vd: Validator, sc: &mut ScopeContext) {
-    vd.req_field("name");
-    vd.req_field("target");
-    vd.field_value("name");
-    vd.field_target_ok_this("target", sc, Scopes::all_but_none());
-}
-
-/// A specific validator for the three `change_variable` effects (`global`, `local`, and default).
-pub fn validate_change_variable(mut vd: Validator, sc: &mut ScopeContext) {
-    vd.req_field("name");
-    vd.field_value("name");
-    vd.field_script_value("add", sc);
-    vd.field_script_value("subtract", sc);
-    vd.field_script_value("multiply", sc);
-    vd.field_script_value("divide", sc);
-    vd.field_script_value("modulo", sc);
-    vd.field_script_value("min", sc);
-    vd.field_script_value("max", sc);
-}
-
-/// A specific validator for the three `clamp_variable` effects (`global`, `local`, and default).
-pub fn validate_clamp_variable(mut vd: Validator, sc: &mut ScopeContext) {
-    vd.req_field("name");
-    vd.field_value("name");
-    vd.field_script_value("min", sc);
-    vd.field_script_value("max", sc);
-}
-
-/// A specific validator for the `random_list` effect, which has a unique syntax.
-pub fn validate_random_list(
-    caller: &str,
-    _block: &Block,
-    data: &Everything,
-    mut vd: Validator,
-    sc: &mut ScopeContext,
-    tooltipped: Tooltipped,
-) {
-    vd.field_integer("pick");
-    vd.field_bool("unique"); // don't know what this does
-    vd.field_validated_sc("desc", sc, validate_desc);
-    vd.unknown_block_fields(|key, block| {
-        if key.expect_number().is_some() {
-            validate_effect_control(caller, block, data, sc, tooltipped);
-        }
-    });
-}
-
-/// A specific validator for the three `round_variable` effects (`global`, `local`, and default).
-pub fn validate_round_variable(mut vd: Validator, sc: &mut ScopeContext) {
-    vd.req_field("name");
-    vd.req_field("nearest");
-    vd.field_value("name");
-    vd.field_script_value("nearest", sc);
-}
-
-/// A specific validator for the `save_scope_value` effect.
-pub fn validate_save_scope_value(mut vd: Validator, sc: &mut ScopeContext) {
-    vd.req_field("name");
-    vd.req_field("value");
-    if let Some(name) = vd.field_value("name") {
-        // TODO: examine `value` field to check its real scope type
-        sc.define_name_token(name.as_str(), Scopes::primitive(), name);
-    }
-    vd.field_script_value_or_flag("value", sc);
-}
-
-/// A specific validator for the three `set_variable` effects (`global`, `local`, and default).
-pub fn validate_set_variable(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
-    match bv {
-        BV::Value(_token) => (),
-        BV::Block(block) => {
-            let mut vd = Validator::new(block, data);
-            vd.set_case_sensitive(false);
-            vd.req_field("name");
-            vd.field_value("name");
-            vd.field_validated("value", |bv, data| match bv {
-                BV::Value(token) => {
-                    validate_target_ok_this(token, data, sc, Scopes::all_but_none());
-                }
-                BV::Block(_) => validate_scriptvalue(bv, data, sc),
-            });
-            validate_optional_duration(&mut vd, sc);
-        }
-    }
-}
-
-/// A specific validator for the `switch` effect, which has a unique syntax.
-pub fn validate_switch(
-    mut vd: Validator,
-    data: &Everything,
-    sc: &mut ScopeContext,
-    tooltipped: Tooltipped,
-) {
-    vd.set_case_sensitive(true);
-    vd.req_field("trigger");
-    if let Some(target) = vd.field_value("trigger") {
-        // clone to avoid calling vd again while target is still borrowed
-        let target = target.clone();
-        vd.unknown_block_fields(|key, block| {
-            if !key.is("fallback") {
-                // Pretend the switch was written as a series of trigger = key lines
-                let synthetic_bv = BV::Value(key.clone());
-                validate_trigger_key_bv(
-                    &target,
-                    Comparator::Equals(Single),
-                    &synthetic_bv,
-                    data,
-                    sc,
-                    tooltipped,
-                    false,
-                    Severity::Error,
-                );
-            }
-
-            validate_effect(block, data, sc, tooltipped);
-        });
-    }
-}
-
 /// This `enum` describes what arguments an effect takes, so that they can be validated.
 ///
 /// Since effects are so varied, many of them end up as special cases described by the `VB`, `VBv`,
@@ -666,9 +544,6 @@ pub fn validate_switch(
 /// TODO: adding a "Block" syntax similar to that in triggers may be helpful. It could remove some
 /// of the variants that currently have very few users, and it could remove some of the special
 /// cases.
-///
-/// TODO: The `VB`, `VBv`, and `VV` variants should be changed to take function pointers, to
-/// eliminate the indirection via `EvB`, `EvBv`, `EvV`.
 #[derive(Copy, Clone, Debug)]
 pub enum Effect {
     /// No special value, just `effect = yes`.
@@ -768,10 +643,10 @@ pub enum Effect {
     /// an explanation that suggests a different effect to try. The second string may be empty.
     #[cfg(feature = "ck3")]
     Removed(&'static str, &'static str),
-    /// The effect takes a block that will be validated according to the [`EvB`] key given here.
-    VB(EvB),
-    /// The effect takes a block or value, which will be validated according to the [`EvBv`] key given here.
-    VBv(EvBv),
-    /// The effect takes a value that will be validated according to the [`EvV`] key given here.
-    VV(EvV),
+    /// The effect takes a block that will be validated by this function
+    Vb(fn(&Token, &Block, &Everything, &mut ScopeContext, Validator, Tooltipped)),
+    /// The effect takes a block or value that will be validated by this function
+    Vbv(fn(&Token, &BV, &Everything, &mut ScopeContext, Tooltipped)),
+    /// The effect takes a value that will be validated by this function
+    Vv(fn(&Token, &Token, &Everything, &mut ScopeContext, Tooltipped)),
 }
