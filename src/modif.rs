@@ -6,6 +6,10 @@ use crate::ck3::tables::modifs::lookup_modif;
 pub use crate::vic3::modif::*;
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::modifs::lookup_modif;
+#[cfg(feature = "imperator")]
+pub use crate::imperator::modif::*;
+#[cfg(feature = "imperator")]
+use crate::imperator::tables::modifs::lookup_modif;
 
 use crate::block::validator::Validator;
 use crate::block::Block;

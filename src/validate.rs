@@ -751,6 +751,13 @@ pub fn validate_vic3_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     });
 }
 
+#[cfg(feature = "imperator")]
+pub fn validate_imperator_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
+    vd.field_validated_bvs("modifier", |bv, data| {
+        validate_scriptvalue(bv, data, sc);
+    });
+}
+
 pub fn validate_scripted_modifier_call(
     key: &Token,
     bv: &BV,

@@ -22,6 +22,11 @@ pub use crate::vic3::tables::datafunctions::{
     datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
     lookup_global_promote, lookup_promote, scope_from_datatype, Datatype,
 };
+#[cfg(feature = "imperator")]
+pub use crate::imperator::tables::datafunctions::{
+    datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
+    lookup_global_promote, lookup_promote, scope_from_datatype, Datatype,
+};
 
 #[derive(Clone, Debug)]
 pub struct CodeChain {
@@ -402,6 +407,21 @@ pub fn validate_datatypes(
                     || curtype == Datatype::TopScope
                 {
                     // TODO: is a TopScope even valid to pass to .GetCustom? verify
+                    validate_custom(token, data, Scopes::all(), lang);
+                }
+            }
+        }
+
+        #[cfg(feature = "imperator")]
+        if code.name.is("Custom") && code.arguments.len() == 1 {
+            if let CodeArg::Literal(ref token) = code.arguments[0] {
+                if let Some(scopes) = scope_from_datatype(curtype) {
+                    validate_custom(token, data, scopes, lang);
+                } else if curtype == Datatype::Unknown
+                    || curtype == Datatype::AnyScope
+                    || curtype == Datatype::TopScope
+                {
+                    // TODO: is a TopScope even valid to pass to .Custom? verify
                     validate_custom(token, data, Scopes::all(), lang);
                 }
             }

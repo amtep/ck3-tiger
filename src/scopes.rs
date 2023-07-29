@@ -2,6 +2,8 @@
 pub use crate::ck3::scopes::*;
 #[cfg(feature = "vic3")]
 pub use crate::vic3::scopes::*;
+#[cfg(feature = "imperator")]
+pub use crate::imperator::scopes::*;
 
 impl Scopes {
     // These have to be expressed a bit awkwardly because the binary operators are not `const`.

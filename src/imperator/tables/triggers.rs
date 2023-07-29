@@ -15,15 +15,15 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
     }
     if let Some(conviction) = name_lc.strip_suffix("_conviction") {
         data.verify_exists_implied(Item::PartyType, conviction, name);
-        return Some((Scopes::Character, Trigger::CompareValue)));
+        return Some((Scopes::Character, Trigger::CompareValue));
     }
     if let Some(support) = name_lc.strip_suffix("_support") {
         data.verify_exists_implied(Item::PartyType, support, name);
-        return Some((Scopes::Country, Trigger::CompareValue)));
+        return Some((Scopes::Country, Trigger::CompareValue));
     }
     if let Some(happiness) = name_lc.strip_suffix("_happiness") {
         data.verify_exists_implied(Item::PopType, happiness, name);
-        return Some((Scopes::Province, Trigger::CompareValue)));
+        return Some((Scopes::Province, Trigger::CompareValue));
     }
     if let Some(part) = name.as_str().strip_prefix("num_of_") {
         if warn
@@ -34,11 +34,11 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
             let info = "Possible valid options would be: num_of_$POPTYPE$ or num_of_$BUILDING$";
             warn_info(name, ErrorKey::MissingItem, &msg, info);
         }
-        return Some((Scopes::Country, Trigger::CompareValue)));
+        return Some((Scopes::Country, Trigger::CompareValue));
     }
     // This one is weird...the trigger is just Item::TechnologyTable with no suffix or prefix.
     if data.verify_exists_implied(Item::TechnologyTable, "", name) {
-        return Some((Scopes::Country, Trigger::CompareValue)));
+        return Some((Scopes::Country, Trigger::CompareValue));
     }
     std::option::Option::None
 }

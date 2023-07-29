@@ -101,9 +101,9 @@ impl Item {
             Item::Government => "common/governments/",
             Item::GovernorPolicy => "common/governor_policies/",
             Item::GraphicalCultureType => "common/graphical_culture_types/",
-            Item::GreatWorkEffect => "common/great_work_effects/"
+            Item::GreatWorkEffect => "common/great_work_effects/",
             Item::GreatWorkCategory => "common/great_work_categories/",
-            Item::GreatWorkMaterial => "common/great_work_materials/"
+            Item::GreatWorkMaterial => "common/great_work_materials/",
             Item::Heritage => "common/heritage/",
             Item::Idea => "common/ideas/",
             Item::Invention => "common/inventions/",
@@ -143,7 +143,7 @@ impl Item {
             Item::Treasure => "setup/main/",
             Item::CharacterTrait => "common/traits/",
             Item::Unit => "common/units/",
-            Item::UnitAbility, => "common/unit_abilities/",
+            Item::UnitAbility => "common/unit_abilities/",
             Item::WarGoal => "common/wargoals/",
         }
     }
