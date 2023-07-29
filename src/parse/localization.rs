@@ -129,11 +129,11 @@ impl<'a> LocaParser<'a> {
     fn unexpected_char(&mut self, expected: &str) {
         match self.chars.peek() {
             None => warn(ErrorKey::Localization)
-                .msg(&format!("Unexpected end of file, {expected}"))
+                .msg(format!("Unexpected end of file, {expected}"))
                 .loc(&self.loc)
                 .push(),
             Some(c) => warn(ErrorKey::Localization)
-                .msg(&format!("Unexpected character `{c}`, {expected}"))
+                .msg(format!("Unexpected character `{c}`, {expected}"))
                 .loc(&self.loc)
                 .push(),
         };
@@ -560,7 +560,7 @@ impl<'a> ValueParser<'a> {
         }
     }
 
-    fn handle_tooltip(&mut self, value: String, loc: Loc) {
+    fn handle_tooltip(&mut self, value: &str, loc: Loc) {
         #[cfg(feature = "vic3")]
         if Game::is_vic3() && value.contains(',') {
             // If the value contains commas, then it's #tooltip:tag,tooltip or #tooltip:tag,tooltip,widget
@@ -632,7 +632,7 @@ impl<'a> ValueParser<'a> {
                             self.unexpected_char("expected `;`", ErrorKey::Markup);
                         } else if c == ';' {
                             if key.to_lowercase() == "tooltip" {
-                                self.handle_tooltip(value.clone(), loc.clone());
+                                self.handle_tooltip(&value, loc.clone());
                             }
                             state = State::InKey(String::new());
                         } else if c == '{' {
@@ -675,7 +675,7 @@ impl<'a> ValueParser<'a> {
                 }
                 State::InValue(key, value, loc, bracecount) => {
                     if key.to_lowercase() == "tooltip" {
-                        self.handle_tooltip(value, loc.clone());
+                        self.handle_tooltip(&value, loc.clone());
                     }
                     if bracecount > 0 {
                         let msg = "mismatched braces in markup";

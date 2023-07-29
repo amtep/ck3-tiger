@@ -24,6 +24,11 @@ impl Game {
         Ok(())
     }
 
+    /// Return which game we are validating. Should only be called after [`Game::set`].
+    ///
+    /// ## Panics
+    /// Will panic if called before [`Game::Set`].
+    #[allow(clippy::self_named_constructors)] // not a constructor
     pub fn game() -> Game {
         *GAME.get().expect("internal error: don't know which game we are validating")
     }

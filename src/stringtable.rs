@@ -73,7 +73,7 @@ impl Chunk {
         let packed_s = unsafe { from_utf8_unchecked(slice) };
         // Go through a raw pointer in order to confuse the borrow checker.
         // This allows us to return a &'static str.
-        let ptr: *const str = &*packed_s;
+        let ptr: *const str = packed_s;
         unsafe { &*ptr }
     }
 }

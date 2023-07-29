@@ -75,9 +75,9 @@ impl OutputStyle {
         map.insert(Styled::Default, Style::new());
         OutputStyle { map }
     }
-    pub fn style(&self, output: &Styled) -> &Style {
+    pub fn style(&self, output: Styled) -> &Style {
         self.map
-            .get(output)
+            .get(&output)
             .or_else(|| self.map.get(&Styled::Default))
             .expect("Failed to retrieve output style.")
     }

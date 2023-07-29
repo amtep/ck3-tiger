@@ -714,9 +714,8 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
 /// faster that way.
 #[allow(clippy::module_name_repetitions)]
 pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
-    let blockloc = Loc::for_entry(entry);
-    let mut parser = Parser::new(blockloc.clone(), LocalMacros::default());
-    let mut loc = blockloc.clone();
+    let mut loc = Loc::for_entry(entry);
+    let mut parser = Parser::new(loc.clone(), LocalMacros::default());
     loc.line = 1;
     loc.column = 1;
     let mut state = State::Neutral;
@@ -961,12 +960,12 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
     // Deal with state at end of file
     match state {
         State::QString => {
-            let token = Token::from_static_str(&content[token_start_offset..], token_start.clone());
+            let token = Token::from_static_str(&content[token_start_offset..], token_start);
             error(&token, ErrorKey::ParseError, "Quoted string not closed");
             parser.token(token);
         }
         State::Id => {
-            let token = Token::from_static_str(&content[token_start_offset..], token_start.clone());
+            let token = Token::from_static_str(&content[token_start_offset..], token_start);
             parser.token(token);
         }
         State::Comparator => {

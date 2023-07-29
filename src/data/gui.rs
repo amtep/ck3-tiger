@@ -37,6 +37,7 @@ pub struct Gui {
 }
 
 impl Gui {
+    #[allow(clippy::collapsible_else_if)] // clippy is suggesting bad style here
     fn load_widget(&mut self, filename: PathBuf, key: Token, mut block: Block) {
         if key.is("texticon") {
             if let Some(icon) = block.get_field_value("icon") {

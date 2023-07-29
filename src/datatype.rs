@@ -157,7 +157,7 @@ fn validate_argument(
 /// Validate a datafunction chain, which is the stuff between [ ] in localization.
 /// * `chain` is the parsed datafunction structure.
 /// * `sc` is a `ScopeContext` used to evaluate scope references in the datafunctions.
-/// If nothing is known about the scope, just pass an empty ScopeContext with `set_strict_types(false)`.
+/// If nothing is known about the scope, just pass an empty `ScopeContext` with `set_strict_types(false)`.
 /// * `expect_type` is the datatype that should be returned by this chain, can be `Datatype::Unknown` in many cases.
 /// * `lang` is set to a specific language if `Custom` references in this chain only need to be defined for one language.
 /// It can just be "" otherwise.

@@ -119,9 +119,7 @@ pub enum Reason {
 impl Reason {
     pub fn token(&self) -> &Token {
         match self {
-            Reason::Token(t) => t,
-            Reason::Name(t) => t,
-            Reason::Builtin(t) => t,
+            Reason::Token(t) | Reason::Name(t) | Reason::Builtin(t) => t,
         }
     }
 
@@ -202,7 +200,7 @@ impl ScopeContext {
     }
 
     /// Return whether this `ScopeContext` has strict scopes set to true.
-    /// See [self.set_strict_scopes].
+    /// See [`self.set_strict_scopes`].
     pub fn is_strict(&self) -> bool {
         self.strict_scopes
     }
@@ -256,7 +254,7 @@ impl ScopeContext {
 
     /// Look up a named scope and return its scope types if it's known.
     ///
-    /// Callers should probably check [self.is_strict] as well.
+    /// Callers should probably check [`self.is_strict`] as well.
     pub fn is_name_defined(&mut self, name: &str) -> Option<Scopes> {
         if let Some(&idx) = self.names.get(name) {
             Some(match self.named[idx] {
@@ -357,9 +355,9 @@ impl ScopeContext {
         if let Some(&idx) = self.list_names.get(name.as_str()) {
             let (s, reason) = self._resolve_named(idx);
             let reason = reason.clone(); // TODO: remove need to clone
-            self.expect3(s, &reason, &name);
+            self.expect3(s, &reason, name);
         } else if self.strict_scopes {
-            let msg = format!("unknown list");
+            let msg = "unknown list";
             err(ErrorKey::UnknownList).weak().msg(msg).loc(name).push();
         }
     }
@@ -476,9 +474,9 @@ impl ScopeContext {
                 if !self.no_warn {
                     let msg = format!("scope:{name} might not be available here");
                     let mut builder = err(ErrorKey::StrictScopes).weak().msg(msg);
-                    if self.names.len() <= MAX_SCOPE_NAME_LIST && self.names.len() > 0 {
+                    if self.names.len() <= MAX_SCOPE_NAME_LIST && !self.names.is_empty() {
                         let mut names: Vec<_> = self.names.keys().map(String::as_str).collect();
-                        names.sort();
+                        names.sort_unstable();
                         let info = format!("available names are {}", stringify_choices(&names));
                         builder = builder.info(info);
                     }
@@ -812,7 +810,7 @@ impl ScopeContext {
                 Self::_expect_check3(&mut self.root, scopes, reason, key, "scope");
             }
             ScopeEntry::Named(idx, ref _t) => {
-                self._expect_named3(idx, scopes, reason, key, "scope")
+                self._expect_named3(idx, scopes, reason, key, "scope");
             }
         }
     }

@@ -70,7 +70,7 @@ impl Token {
     }
 
     pub fn as_str(&self) -> &str {
-        &self.s
+        self.s
     }
 
     pub fn is(&self, s: &str) -> bool {

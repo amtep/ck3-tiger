@@ -69,14 +69,11 @@ fn log_line_title(errors: &Errors, report: &LogReport) {
     let line: &[ANSIString<'static>] = &[
         errors
             .styles
-            .style(&Styled::Tag(report.severity, true))
+            .style(Styled::Tag(report.severity, true))
             .paint(format!("{}", report.severity)),
-        errors
-            .styles
-            .style(&Styled::Tag(report.severity, false))
-            .paint(format!("({})", report.key)),
-        errors.styles.style(&Styled::Default).paint(": "),
-        errors.styles.style(&Styled::ErrorMessage).paint(report.msg.to_string()),
+        errors.styles.style(Styled::Tag(report.severity, false)).paint(format!("({})", report.key)),
+        errors.styles.style(Styled::Default).paint(": "),
+        errors.styles.style(Styled::ErrorMessage).paint(report.msg.to_string()),
     ];
     _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line));
 }
@@ -84,13 +81,13 @@ fn log_line_title(errors: &Errors, report: &LogReport) {
 /// Log the optional info line that is part of the overall report.
 fn log_line_info(errors: &Errors, indentation: usize, info: &str) {
     let line_info: &[ANSIString<'static>] = &[
-        errors.styles.style(&Styled::Default).paint(format!("{:width$}", "", width = indentation)),
-        errors.styles.style(&Styled::Default).paint(" "),
-        errors.styles.style(&Styled::Location).paint("="),
-        errors.styles.style(&Styled::Default).paint(" "),
-        errors.styles.style(&Styled::InfoTag).paint("Info:"),
-        errors.styles.style(&Styled::Default).paint(" "),
-        errors.styles.style(&Styled::Info).paint(info.to_string()),
+        errors.styles.style(Styled::Default).paint(format!("{:width$}", "", width = indentation)),
+        errors.styles.style(Styled::Default).paint(" "),
+        errors.styles.style(Styled::Location).paint("="),
+        errors.styles.style(Styled::Default).paint(" "),
+        errors.styles.style(Styled::InfoTag).paint("Info:"),
+        errors.styles.style(Styled::Default).paint(" "),
+        errors.styles.style(Styled::Info).paint(info.to_string()),
     ];
     _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line_info));
 }
@@ -98,17 +95,17 @@ fn log_line_info(errors: &Errors, indentation: usize, info: &str) {
 /// Log the line containing the location's mod name and filename.
 fn log_line_file_location(errors: &Errors, pointer: &PointedMessage, indentation: usize) {
     let line_filename: &[ANSIString<'static>] = &[
-        errors.styles.style(&Styled::Default).paint(format!("{:width$}", "", width = indentation)),
-        errors.styles.style(&Styled::Location).paint("-->"),
-        errors.styles.style(&Styled::Default).paint(" "),
+        errors.styles.style(Styled::Default).paint(format!("{:width$}", "", width = indentation)),
+        errors.styles.style(Styled::Location).paint("-->"),
+        errors.styles.style(Styled::Default).paint(" "),
         errors
             .styles
-            .style(&Styled::Location)
+            .style(Styled::Location)
             .paint(format!("[{}]", kind_tag(errors, pointer.loc.kind))),
-        errors.styles.style(&Styled::Default).paint(" "),
+        errors.styles.style(Styled::Default).paint(" "),
         errors
             .styles
-            .style(&Styled::Location)
+            .style(Styled::Location)
             .paint(format!("{}", pointer.loc.pathname().display())),
     ];
     _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line_filename));
@@ -123,11 +120,11 @@ fn log_line_from_source(
     spaces: usize,
 ) {
     let line_from_source: &[ANSIString<'static>] = &[
-        errors.styles.style(&Styled::Location).paint(format!("{:indentation$}", pointer.loc.line,)),
-        errors.styles.style(&Styled::Default).paint(" "),
-        errors.styles.style(&Styled::Location).paint("|"),
-        errors.styles.style(&Styled::Default).paint(" "),
-        errors.styles.style(&Styled::SourceText).paint(format!("{:spaces$}{line}", "")),
+        errors.styles.style(Styled::Location).paint(format!("{:indentation$}", pointer.loc.line,)),
+        errors.styles.style(Styled::Default).paint(" "),
+        errors.styles.style(Styled::Location).paint("|"),
+        errors.styles.style(Styled::Default).paint(" "),
+        errors.styles.style(Styled::SourceText).paint(format!("{:spaces$}{line}", "")),
     ];
     _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line_from_source));
 }
@@ -155,27 +152,27 @@ fn log_line_carets(
 
     // A line containing the carets that point upwards at the source line.
     let line_carets: &[ANSIString] = &[
-        errors.styles.style(&Styled::Default).paint(format!("{:indentation$}", "")),
-        errors.styles.style(&Styled::Default).paint(" "),
-        errors.styles.style(&Styled::Location).paint("|"),
-        errors.styles.style(&Styled::Default).paint(format!(
+        errors.styles.style(Styled::Default).paint(format!("{:indentation$}", "")),
+        errors.styles.style(Styled::Default).paint(" "),
+        errors.styles.style(Styled::Location).paint("|"),
+        errors.styles.style(Styled::Default).paint(format!(
             "{:width$}{spacing}",
             "",
             width = spaces + 1
         )),
-        errors.styles.style(&Styled::Tag(severity, true)).paint(format!(
+        errors.styles.style(Styled::Tag(severity, true)).paint(format!(
             "{:^^width$}",
             "",
             width = pointer.length.max(1)
         )),
-        errors.styles.style(&Styled::Default).paint(" "),
+        errors.styles.style(Styled::Default).paint(" "),
         errors
             .styles
-            .style(&Styled::Tag(severity, true))
+            .style(Styled::Tag(severity, true))
             .paint(pointer.msg.as_deref().map_or("", |_| "<-- ")),
         errors
             .styles
-            .style(&Styled::Tag(severity, true))
+            .style(Styled::Tag(severity, true))
             .paint(pointer.msg.as_deref().unwrap_or("")),
     ];
     _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line_carets));

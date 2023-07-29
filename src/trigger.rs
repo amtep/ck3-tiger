@@ -632,14 +632,14 @@ fn match_trigger_bv(
         Trigger::ScopeOrBlock(s, fields) => match bv {
             BV::Value(token) => validate_target(token, data, sc, *s),
             BV::Block(block) => {
-                match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev)
+                match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
             }
         },
         #[cfg(feature = "ck3")]
         Trigger::ItemOrBlock(i, fields) => match bv {
             BV::Value(token) => data.verify_exists_max_sev(*i, token, max_sev),
             BV::Block(block) => {
-                match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev)
+                match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
             }
         },
         #[cfg(feature = "ck3")]
