@@ -115,7 +115,7 @@ impl DbKind for EventBackground {
             });
             vd.field_item("reference", Item::File);
             vd.field_bool("video");
-            vd.field_item("environment", Item::Environment);
+            vd.field_item("environment", Item::PortraitEnvironment);
             vd.field_value("ambience");
             vd.field_item("video_mask", Item::File);
         });

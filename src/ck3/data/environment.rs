@@ -7,15 +7,15 @@ use crate::token::Token;
 use crate::validate::validate_camera_color;
 
 #[derive(Clone, Debug)]
-pub struct Environment {}
+pub struct PortraitEnvironment {}
 
-impl Environment {
+impl PortraitEnvironment {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::Environment, key, block, Box::new(Self {}));
+        db.add(Item::PortraitEnvironment, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Environment {
+impl DbKind for PortraitEnvironment {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -24,7 +24,7 @@ impl DbKind for Environment {
 
         vd.field_validated("lights", |bv, data| {
             match bv {
-                BV::Value(token) => data.verify_exists(Item::Environment, token),
+                BV::Value(token) => data.verify_exists(Item::PortraitEnvironment, token),
                 BV::Block(block) => {
                     let mut vd = Validator::new(block, data);
                     for (_, block) in vd.integer_blocks() {
@@ -78,7 +78,7 @@ impl DbKind for Environment {
 
         vd.field_validated("shadow_camera", |bv, data| {
             match bv {
-                BV::Value(token) => data.verify_exists(Item::Environment, token),
+                BV::Value(token) => data.verify_exists(Item::PortraitEnvironment, token),
                 BV::Block(block) => {
                     let mut vd = Validator::new(block, data);
 

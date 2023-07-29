@@ -46,7 +46,7 @@ use crate::ck3::data::{
     dynasties::Dynasty,
     dynasty_legacies::{DynastyLegacy, DynastyPerk},
     election::Election,
-    environment::Environment,
+    environment::PortraitEnvironment,
     event_themes::{EventBackground, EventTheme, EventTransition},
     events::Events,
     factions::Faction,
@@ -660,7 +660,7 @@ impl Everything {
         self.load_pdx_items(Item::PoolSelector, PoolSelector::add);
         self.load_pdx_items(Item::CharacterBackground, CharacterBackground::add);
         self.load_pdx_items(Item::HolySite, HolySite::add);
-        self.load_pdx_items(Item::Environment, Environment::add);
+        self.load_pdx_items(Item::PortraitEnvironment, PortraitEnvironment::add);
         self.load_pdx_items(Item::Struggle, Struggle::add);
         self.load_pdx_items(Item::Catalyst, Catalyst::add);
         self.load_pdx_items(Item::ImportantAction, ImportantAction::add);

@@ -37,7 +37,7 @@ impl DbKind for ScriptedIllustration {
         vd.field_validated_blocks("environment", |block, data| {
             let mut vd = Validator::new(block, data);
             if let Some(token) = vd.field_value("reference") {
-                data.verify_exists(Item::Environment, token);
+                data.verify_exists(Item::PortraitEnvironment, token);
             }
             vd.field_validated_block("trigger", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);

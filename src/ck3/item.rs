@@ -101,7 +101,6 @@ pub enum Item {
     DynastyPerk,
     EffectLocalization,
     Entity,
-    Environment,
     Ethnicity,
     Event,
     EventBackground,
@@ -173,6 +172,7 @@ pub enum Item {
     PoolSelector,
     PortraitAnimation,
     PortraitCamera,
+    PortraitEnvironment,
     PortraitModifierGroup,
     PortraitModifierPack,
     PrisonType,
@@ -329,7 +329,6 @@ impl Item {
             Item::EffectLocalization => "common/effect_localization/",
             Item::Ethnicity => "common/ethnicities/",
             Item::Entity => "gfx/models/",
-            Item::Environment => "gfx/portraits/environments/",
             Item::Event => "events/",
             Item::EventBackground => "common/event_backgrounds/",
             Item::EventNamespace => "events/",
@@ -400,6 +399,7 @@ impl Item {
             Item::PoolSelector => "common/pool_character_selectors/",
             Item::PortraitAnimation => "gfx/portraits/portrait_animations/",
             Item::PortraitCamera => "gfx/portraits/cameras/",
+            Item::PortraitEnvironment => "gfx/portraits/environments/",
             Item::PortraitModifierGroup => "gfx/portraits/portrait_modifiers/",
             Item::PortraitModifierPack => "gfx/portraits/portrait_animations/",
             Item::PrisonType => "",
@@ -511,7 +511,6 @@ impl Item {
             | Item::CultureCreationName
             | Item::CustomLocalization
             | Item::EffectLocalization
-            | Item::Environment
             | Item::Ethnicity
             | Item::EventBackground
             | Item::EventTheme
@@ -530,6 +529,7 @@ impl Item {
             | Item::Nickname
             | Item::PortraitAnimation
             | Item::PortraitCamera
+            | Item::PortraitEnvironment
             | Item::ScriptedIllustration
             | Item::Sound
             | Item::TextFormat

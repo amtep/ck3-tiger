@@ -391,7 +391,7 @@ impl DbKind for ActivityType {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
             vd.field_item("texture", Item::File);
-            vd.field_item("environment", Item::Environment);
+            vd.field_item("environment", Item::PortraitEnvironment);
             vd.field_item("ambience", Item::Sound);
             vd.field_item("music", Item::Music);
         });
@@ -401,7 +401,7 @@ impl DbKind for ActivityType {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
             vd.field_item("texture", Item::File);
-            vd.field_item("environment", Item::Environment);
+            vd.field_item("environment", Item::PortraitEnvironment);
             vd.field_item("ambience", Item::Sound);
             vd.field_item("music", Item::Music);
         });
