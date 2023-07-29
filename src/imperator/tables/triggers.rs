@@ -261,7 +261,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "distress_level", CompareValue),
     (Scopes::Country, "exports_to", Scope(Scopes::Country)),
     (Scopes::Country, "gender_equality", Boolean),
-    (Scopes::Country, "government", Item(Item::Government)),
+    (Scopes::Country, "government", Item(Item::GovernmentType)),
     (Scopes::Country, "has_aggressive_expansion", CompareValue),
     (Scopes::Country, "has_any_great_work_country", Boolean),
     (Scopes::Country, "has_any_omen", Boolean),

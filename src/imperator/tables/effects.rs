@@ -122,7 +122,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "change_country_flag", Unchecked),
     (Scopes::Country, "change_country_name", Item(Item::Localization)),
     (Scopes::Country, "change_country_tag", Unchecked),
-    (Scopes::Country, "change_government", Item(Item::Government)),
+    (Scopes::Country, "change_government", Item(Item::GovernmentType)),
     (Scopes::Country, "change_law", Item(Item::Law)),
     (Scopes::Country, "create_character", Unchecked), // -tdb-
     (Scopes::Country, "create_country_treasure", Unchecked), // -tdb-
