@@ -88,6 +88,11 @@ If you want to build it yourself, you will have to [install the Rust programming
 For `ck3-tiger`, run `cargo build --release -p ck3-tiger` in the project's directory, then run the program as `cargo run --release -p ck3-tiger`.
 For `vic3-tiger`, run `cargo build --release -p vic3-tiger` in the project's directory, then run the program as `cargo run --release -p vic3-tiger`.
 
+## Visual Studio Code extension
+
+User unLomTrois has made a [VS Code extension](https://github.com/unLomTrois/ck3tiger-for-vscode) for `ck3-tiger`.
+It enables you to view the reports directly in the Problems tab.
+
 ## Contributions
 
 I welcome contributions and collaborations! Some forms that contributions can take:
