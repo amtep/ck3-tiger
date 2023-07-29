@@ -225,6 +225,7 @@ pub struct Everything {
     pub(crate) defines: Defines,
 
     /// Processed event files
+    #[cfg(not(feature = "imperator"))]
     pub(crate) events: Events,
 
     pub(crate) scripted_modifiers: ScriptedModifiers,
@@ -234,6 +235,7 @@ pub struct Everything {
     pub(crate) interaction_cats: InteractionCategories,
 
     /// Processed map data
+    #[cfg(not(feature = "imperator"))]
     pub(crate) provinces: Provinces,
 
     /// Processed history/provinces data
@@ -324,11 +326,13 @@ impl Everything {
             localization: Localization::default(),
             scripted_lists: ScriptedLists::default(),
             defines: Defines::default(),
+            #[cfg(not(feature = "imperator"))]
             events: Events::default(),
             scripted_modifiers: ScriptedModifiers::default(),
             on_actions: OnActions::default(),
             #[cfg(feature = "ck3")]
             interaction_cats: InteractionCategories::default(),
+            #[cfg(not(feature = "imperator"))]
             provinces: Provinces::default(),
             #[cfg(feature = "ck3")]
             province_histories: ProvinceHistories::default(),
@@ -547,7 +551,9 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.coas));
 
             // These are items that are different between vic3 and ck3 but share the same name
+            #[cfg(not(feature = "imperator"))]
             s.spawn(|_| self.fileset.handle(&mut self.events));
+            #[cfg(not(feature = "imperator"))]
             s.spawn(|_| self.fileset.handle(&mut self.provinces));
         });
 
@@ -573,9 +579,13 @@ impl Everything {
         self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
 
         // These are items that are different between vic3 and ck3 but share the same name
+        #[cfg(not(feature = "imperator"))]
         self.load_pdx_items(Item::Culture, Culture::add);
+        #[cfg(not(feature = "imperator"))]
         self.load_pdx_items(Item::Decision, Decision::add);
+        #[cfg(not(feature = "imperator"))]
         self.load_pdx_items(Item::Modifier, Modifier::add);
+        #[cfg(not(feature = "imperator"))]
         self.load_pdx_items(Item::Religion, Religion::add);
     }
 
@@ -783,7 +793,9 @@ impl Everything {
         s.spawn(|_| self.on_actions.validate(self));
         s.spawn(|_| self.coas.validate(self));
 
+        #[cfg(not(feature = "imperator"))]
         s.spawn(|_| self.events.validate(self));
+        #[cfg(not(feature = "imperator"))]
         s.spawn(|_| self.provinces.validate(self));
     }
 
@@ -950,6 +962,45 @@ impl Everything {
             Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
             Item::Wargoal => WARGOALS.contains(&key),
             Item::Shortcut | Item::TutorialLesson => true, // TODO
+            _ => self.database.exists(itype, key),
+        }
+    }
+
+    #[cfg(feature = "imperator")]
+    pub(crate) fn item_exists(&self, itype: Item, key: &str) -> bool {
+        match itype {
+            Item::Asset => self.assets.asset_exists(key),
+            Item::BlendShape => self.assets.blend_shape_exists(key),
+            Item::Coa => self.coas.exists(key),
+            Item::CoaTemplate => self.coas.template_exists(key),
+            Item::Define => self.defines.exists(key),
+            Item::Dlc => DLC.contains(&key),
+            Item::DlcFeature => DLC_FEATURES.contains(&key),
+            Item::Entity => self.assets.entity_exists(key),
+            Item::File => self.fileset.exists(key),
+            Item::GeneAttribute => self.assets.attribute_exists(key),
+            Item::GuiLayer => self.gui.layer_exists(key),
+            Item::GuiTemplate => self.gui.template_exists(key),
+            Item::GuiType => self.gui.type_exists(key),
+            Item::Localization => self.localization.exists(key),
+            Item::OnAction => self.on_actions.exists(key),
+            Item::Pdxmesh => self.assets.mesh_exists(key),
+            Item::ScriptedEffect => self.effects.exists(key),
+            Item::ScriptedList => self.scripted_lists.exists(key),
+            Item::ScriptedModifier => self.scripted_modifiers.exists(key),
+            Item::ScriptedTrigger => self.triggers.exists(key),
+            Item::ScriptValue => self.scriptvalues.exists(key),
+            Item::Sound => {
+                if let Some(filename) = key.strip_prefix("file://") {
+                    self.fileset.exists(filename)
+                } else {
+                    SOUNDS.contains(&key)
+                }
+            }
+            Item::TextFormat => self.gui.textformat_exists(key),
+            Item::TextIcon => self.gui.texticon_exists(key),
+            Item::TextureFile => self.assets.texture_exists(key),
+            Item::Shortcut => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }

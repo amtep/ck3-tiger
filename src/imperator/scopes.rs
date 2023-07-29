@@ -7,7 +7,6 @@ use bitflags::bitflags;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::display_choices;
-use crate::item::Item;
 use crate::report::{warn_info, ErrorKey};
 use crate::token::Token;
 
@@ -71,7 +70,7 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "country culture" => Scopes::CountryCulture,
         "area" => Scopes::Area,
         "state" => Scopes::State,
-        "subunit" => Scopes::Subunit,
+        "subunit" => Scopes::SubUnit,
         "governorship" => Scopes::Governorship,
         "region" => Scopes::Region,
         "deity" => Scopes::Deity,
@@ -202,7 +201,7 @@ impl Display for Scopes {
             if self.contains(Scopes::State) {
                 vec.push("state")    
             }
-            if self.contains(Scopes::Subunit) {
+            if self.contains(Scopes::SubUnit) {
                 vec.push("subunit")    
             }
             if self.contains(Scopes::Governorship) {
@@ -302,8 +301,8 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Unit, "unit_objective_destination", Scopes::Province),
     (Scopes::Unit, "unit_owner", Scopes::Country),
     (Scopes::Country.union(Scopes::Character).union(Scopes::Province).union(Scopes::Pop).union(Scopes::Culture), "culture_group", Scopes::CultureGroup),
-    (Scopes::Subunit, "owning_unit", Scopes::Unit),
-    (Scopes::Subunit, "personal_loyalty", Scopes::Character),
+    (Scopes::SubUnit, "owning_unit", Scopes::Unit),
+    (Scopes::SubUnit, "personal_loyalty", Scopes::Character),
     (Scopes::Job, "character", Scopes::Character),
     (Scopes::Province.union(Scopes::State).union(Scopes::Governorship).union(Scopes::Legion), "owner", Scopes::Country),
     (Scopes::Family, "family_country", Scopes::Country),
@@ -392,7 +391,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "countries_at_war_with", Scopes::Country),
     (Scopes::Country, "country_culture", Scopes::CountryCulture),
     (Scopes::Country, "country_state", Scopes::State),
-    (Scopes::Country, "country_sub_unit", Scopes::Subunit),
+    (Scopes::Country, "country_sub_unit", Scopes::SubUnit),
     (Scopes::Country, "country_treasure", Scopes::Treasure),
     (Scopes::Country, "current_war", Scopes::War),
     (Scopes::Country, "family", Scopes::Family),
@@ -420,7 +419,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Area, "area_province", Scopes::Province),
     (Scopes::Area, "area_state", Scopes::State),
     (Scopes::Area, "neighbor_area", Scopes::Area),
-    (Scopes::Unit, "sub_unit", Scopes::Subunit),
+    (Scopes::Unit, "sub_unit", Scopes::SubUnit),
     (Scopes::Family, "family_member", Scopes::Character),
     (Scopes::War, "war_attacker", Scopes::Country),
     (Scopes::War, "war_defender", Scopes::Country),
