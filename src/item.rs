@@ -22,6 +22,7 @@ use crate::report::{Confidence, Severity};
 //
 // Each item is marked with a cfg clause for its game. This is not strictly necessary, but it helps
 // prevent "leakage" between the games, where they accidentally use each other's item types.
+#[rustfmt::skip] // having cfg and the variant on the same line is much more readable
 pub enum Item {
     // Generic items used by all games and assumed to be there by the validators in
     // non-game-specific `data` modules.
@@ -122,460 +123,235 @@ pub enum Item {
     Wargoal,
 
     // Items for ck3
-    #[cfg(feature = "ck3")]
-    AccoladeCategory,
-    #[cfg(feature = "ck3")]
-    AccoladeIcon,
-    #[cfg(feature = "ck3")]
-    AccoladeName,
-    #[cfg(feature = "ck3")]
-    AccoladeParameter,
-    #[cfg(feature = "ck3")]
-    AccoladeType,
-    #[cfg(feature = "ck3")]
-    ActivityIntent,
-    #[cfg(feature = "ck3")]
-    ActivityLocale,
-    #[cfg(feature = "ck3")]
-    ActivityOption,
-    #[cfg(feature = "ck3")]
-    ActivityOptionCategory,
-    #[cfg(feature = "ck3")]
-    ActivityPhase,
-    #[cfg(feature = "ck3")]
-    ActivityState,
-    #[cfg(feature = "ck3")]
-    ActivityType,
-    #[cfg(feature = "ck3")]
-    Amenity,
-    #[cfg(feature = "ck3")]
-    ArtifactFeature,
-    #[cfg(feature = "ck3")]
-    ArtifactFeatureGroup,
-    #[cfg(feature = "ck3")]
-    ArtifactHistory,
-    #[cfg(feature = "ck3")]
-    ArtifactRarity,
-    #[cfg(feature = "ck3")]
-    ArtifactSlot,
-    #[cfg(feature = "ck3")]
-    ArtifactSlotType,
-    #[cfg(feature = "ck3")]
-    ArtifactTemplate,
-    #[cfg(feature = "ck3")]
-    ArtifactType,
-    #[cfg(feature = "ck3")]
-    ArtifactVisual,
-    #[cfg(feature = "ck3")]
-    Bookmark,
-    #[cfg(feature = "ck3")]
-    BookmarkGroup,
-    #[cfg(feature = "ck3")]
-    BookmarkPortrait,
-    #[cfg(feature = "ck3")]
-    BuildingFlag,
-    #[cfg(feature = "ck3")]
-    BuildingGfx,
-    #[cfg(feature = "ck3")]
-    CasusBelli,
-    #[cfg(feature = "ck3")]
-    CasusBelliGroup,
-    #[cfg(feature = "ck3")]
-    Catalyst,
-    #[cfg(feature = "ck3")]
-    Character,
-    #[cfg(feature = "ck3")]
-    CharacterBackground,
-    #[cfg(feature = "ck3")]
-    CharacterInteractionCategory,
-    #[cfg(feature = "ck3")]
-    CharacterTemplate,
-    #[cfg(feature = "ck3")]
-    ClothingGfx,
-    #[cfg(feature = "ck3")]
-    CoaGfx,
-    #[cfg(feature = "ck3")]
-    CoaDynamicDefinition,
-    #[cfg(feature = "ck3")]
-    CombatEffect,
-    #[cfg(feature = "ck3")]
-    CombatPhaseEvent,
-    #[cfg(feature = "ck3")]
-    CouncilPosition,
-    #[cfg(feature = "ck3")]
-    CouncilTask,
-    #[cfg(feature = "ck3")]
-    CourtPosition,
-    #[cfg(feature = "ck3")]
-    CourtPositionCategory,
-    #[cfg(feature = "ck3")]
-    CourtSceneCulture,
-    #[cfg(feature = "ck3")]
-    CourtSceneGroup,
-    #[cfg(feature = "ck3")]
-    CourtSceneRole,
-    #[cfg(feature = "ck3")]
-    CourtSceneSetting,
-    #[cfg(feature = "ck3")]
-    CourtType,
-    #[cfg(feature = "ck3")]
-    CultureAesthetic,
-    #[cfg(feature = "ck3")]
-    CultureCreationName,
-    #[cfg(feature = "ck3")]
-    CultureEra,
-    #[cfg(feature = "ck3")]
-    CultureEthos,
-    #[cfg(feature = "ck3")]
-    CultureHeritage,
-    #[cfg(feature = "ck3")]
-    CultureHistory,
-    #[cfg(feature = "ck3")]
-    CultureParameter,
-    #[cfg(feature = "ck3")]
-    CulturePillar,
-    #[cfg(feature = "ck3")]
-    CultureTradition,
-    #[cfg(feature = "ck3")]
-    DangerType,
-    #[cfg(feature = "ck3")]
-    DiarchyMandate,
-    #[cfg(feature = "ck3")]
-    DiarchyParameter,
-    #[cfg(feature = "ck3")]
-    DiarchyType,
-    #[cfg(feature = "ck3")]
-    Doctrine,
-    #[cfg(feature = "ck3")]
-    DoctrineParameter,
-    #[cfg(feature = "ck3")]
-    Dynasty,
-    #[cfg(feature = "ck3")]
-    DynastyLegacy,
-    #[cfg(feature = "ck3")]
-    DynastyPerk,
-    #[cfg(feature = "ck3")]
-    EventBackground,
-    #[cfg(feature = "ck3")]
-    EventTransition,
-    #[cfg(feature = "ck3")]
-    Faction,
-    #[cfg(feature = "ck3")]
-    Faith,
-    #[cfg(feature = "ck3")]
-    FaithIcon,
-    #[cfg(feature = "ck3")]
-    Flavorization,
-    #[cfg(feature = "ck3")]
-    Focus,
-    #[cfg(feature = "ck3")]
-    GeneticConstraint,
-    #[cfg(feature = "ck3")]
-    GovernmentFlag,
-    #[cfg(feature = "ck3")]
-    GraphicalFaith,
-    #[cfg(feature = "ck3")]
-    GuestInviteRule,
-    #[cfg(feature = "ck3")]
-    GuestSubset,
-    #[cfg(feature = "ck3")]
-    Holding,
-    #[cfg(feature = "ck3")]
-    HoldingFlag,
-    #[cfg(feature = "ck3")]
-    HolySite,
-    #[cfg(feature = "ck3")]
-    HolySiteFlag,
-    #[cfg(feature = "ck3")]
-    Hook,
-    #[cfg(feature = "ck3")]
-    House,
-    #[cfg(feature = "ck3")]
-    ImportantAction,
-    #[cfg(feature = "ck3")]
-    Innovation,
-    #[cfg(feature = "ck3")]
-    InnovationFlag,
-    #[cfg(feature = "ck3")]
-    Inspiration,
-    #[cfg(feature = "ck3")]
-    Language,
-    #[cfg(feature = "ck3")]
-    LawFlag,
-    #[cfg(feature = "ck3")]
-    LawGroup,
-    #[cfg(feature = "ck3")]
-    Lifestyle,
-    #[cfg(feature = "ck3")]
-    MartialCustom,
-    #[cfg(feature = "ck3")]
-    MemoryCategory,
-    #[cfg(feature = "ck3")]
-    MemoryType,
-    #[cfg(feature = "ck3")]
-    MenAtArms,
-    #[cfg(feature = "ck3")]
-    MenAtArmsBase,
-    #[cfg(feature = "ck3")]
-    Message,
-    #[cfg(feature = "ck3")]
-    ModifierFormat,
-    #[cfg(feature = "ck3")]
-    MottoInsert,
-    #[cfg(feature = "ck3")]
-    Motto,
-    #[cfg(feature = "ck3")]
-    Music,
-    #[cfg(feature = "ck3")]
-    NameList,
-    #[cfg(feature = "ck3")]
-    Nickname,
-    #[cfg(feature = "ck3")]
-    OpinionModifier,
-    #[cfg(feature = "ck3")]
-    Perk,
-    #[cfg(feature = "ck3")]
-    PerkTree,
-    #[cfg(feature = "ck3")]
-    PlayableDifficultyInfo,
-    #[cfg(feature = "ck3")]
-    PointOfInterest,
-    #[cfg(feature = "ck3")]
-    PoolSelector,
-    #[cfg(feature = "ck3")]
-    PrisonType,
-    #[cfg(feature = "ck3")]
-    PulseAction,
-    #[cfg(feature = "ck3")]
-    Relation,
-    #[cfg(feature = "ck3")]
-    RelationFlag,
-    #[cfg(feature = "ck3")]
-    ReligionFamily,
-    #[cfg(feature = "ck3")]
-    RewardItem,
-    #[cfg(feature = "ck3")]
-    Scheme,
-    #[cfg(feature = "ck3")]
-    ScriptedAnimation,
-    #[cfg(feature = "ck3")]
-    ScriptedCost,
-    #[cfg(feature = "ck3")]
-    ScriptedIllustration,
-    #[cfg(feature = "ck3")]
-    Secret,
-    #[cfg(feature = "ck3")]
-    Sexuality,
-    #[cfg(feature = "ck3")]
-    Skill,
-    #[cfg(feature = "ck3")]
-    SpecialBuilding,
-    #[cfg(feature = "ck3")]
-    SpecialGuest,
-    #[cfg(feature = "ck3")]
-    Story,
-    #[cfg(feature = "ck3")]
-    Struggle,
-    #[cfg(feature = "ck3")]
-    StrugglePhase,
-    #[cfg(feature = "ck3")]
-    StrugglePhaseParameter,
-    #[cfg(feature = "ck3")]
-    SuccessionElection,
-    #[cfg(feature = "ck3")]
-    Suggestion,
-    #[cfg(feature = "ck3")]
-    Title,
-    #[cfg(feature = "ck3")]
-    TitleHistory,
-    #[cfg(feature = "ck3")]
-    TitleHistoryType,
-    #[cfg(feature = "ck3")]
-    Trait,
-    #[cfg(feature = "ck3")]
-    TraitCategory,
-    #[cfg(feature = "ck3")]
-    TraitFlag,
-    #[cfg(feature = "ck3")]
-    TraitTrack,
-    #[cfg(feature = "ck3")]
-    TravelOption,
-    #[cfg(feature = "ck3")]
-    UnitGfx,
-    #[cfg(feature = "ck3")]
-    VassalContract,
-    #[cfg(feature = "ck3")]
-    VassalContractFlag,
-    #[cfg(feature = "ck3")]
-    VassalObligationLevel,
-    #[cfg(feature = "ck3")]
-    VassalStance,
+    #[cfg(feature = "ck3")] AccoladeCategory,
+    #[cfg(feature = "ck3")] AccoladeIcon,
+    #[cfg(feature = "ck3")] AccoladeName,
+    #[cfg(feature = "ck3")] AccoladeParameter,
+    #[cfg(feature = "ck3")] AccoladeType,
+    #[cfg(feature = "ck3")] ActivityIntent,
+    #[cfg(feature = "ck3")] ActivityLocale,
+    #[cfg(feature = "ck3")] ActivityOption,
+    #[cfg(feature = "ck3")] ActivityOptionCategory,
+    #[cfg(feature = "ck3")] ActivityPhase,
+    #[cfg(feature = "ck3")] ActivityState,
+    #[cfg(feature = "ck3")] ActivityType,
+    #[cfg(feature = "ck3")] Amenity,
+    #[cfg(feature = "ck3")] ArtifactFeature,
+    #[cfg(feature = "ck3")] ArtifactFeatureGroup,
+    #[cfg(feature = "ck3")] ArtifactHistory,
+    #[cfg(feature = "ck3")] ArtifactRarity,
+    #[cfg(feature = "ck3")] ArtifactSlot,
+    #[cfg(feature = "ck3")] ArtifactSlotType,
+    #[cfg(feature = "ck3")] ArtifactTemplate,
+    #[cfg(feature = "ck3")] ArtifactType,
+    #[cfg(feature = "ck3")] ArtifactVisual,
+    #[cfg(feature = "ck3")] Bookmark,
+    #[cfg(feature = "ck3")] BookmarkGroup,
+    #[cfg(feature = "ck3")] BookmarkPortrait,
+    #[cfg(feature = "ck3")] BuildingFlag,
+    #[cfg(feature = "ck3")] BuildingGfx,
+    #[cfg(feature = "ck3")] CasusBelli,
+    #[cfg(feature = "ck3")] CasusBelliGroup,
+    #[cfg(feature = "ck3")] Catalyst,
+    #[cfg(feature = "ck3")] Character,
+    #[cfg(feature = "ck3")] CharacterBackground,
+    #[cfg(feature = "ck3")] CharacterInteractionCategory,
+    #[cfg(feature = "ck3")] CharacterTemplate,
+    #[cfg(feature = "ck3")] ClothingGfx,
+    #[cfg(feature = "ck3")] CoaGfx,
+    #[cfg(feature = "ck3")] CoaDynamicDefinition,
+    #[cfg(feature = "ck3")] CombatEffect,
+    #[cfg(feature = "ck3")] CombatPhaseEvent,
+    #[cfg(feature = "ck3")] CouncilPosition,
+    #[cfg(feature = "ck3")] CouncilTask,
+    #[cfg(feature = "ck3")] CourtPosition,
+    #[cfg(feature = "ck3")] CourtPositionCategory,
+    #[cfg(feature = "ck3")] CourtSceneCulture,
+    #[cfg(feature = "ck3")] CourtSceneGroup,
+    #[cfg(feature = "ck3")] CourtSceneRole,
+    #[cfg(feature = "ck3")] CourtSceneSetting,
+    #[cfg(feature = "ck3")] CourtType,
+    #[cfg(feature = "ck3")] CultureAesthetic,
+    #[cfg(feature = "ck3")] CultureCreationName,
+    #[cfg(feature = "ck3")] CultureEra,
+    #[cfg(feature = "ck3")] CultureEthos,
+    #[cfg(feature = "ck3")] CultureHeritage,
+    #[cfg(feature = "ck3")] CultureHistory,
+    #[cfg(feature = "ck3")] CultureParameter,
+    #[cfg(feature = "ck3")] CulturePillar,
+    #[cfg(feature = "ck3")] CultureTradition,
+    #[cfg(feature = "ck3")] DangerType,
+    #[cfg(feature = "ck3")] DiarchyMandate,
+    #[cfg(feature = "ck3")] DiarchyParameter,
+    #[cfg(feature = "ck3")] DiarchyType,
+    #[cfg(feature = "ck3")] Doctrine,
+    #[cfg(feature = "ck3")] DoctrineParameter,
+    #[cfg(feature = "ck3")] Dynasty,
+    #[cfg(feature = "ck3")] DynastyLegacy,
+    #[cfg(feature = "ck3")] DynastyPerk,
+    #[cfg(feature = "ck3")] EventBackground,
+    #[cfg(feature = "ck3")] EventTransition,
+    #[cfg(feature = "ck3")] Faction,
+    #[cfg(feature = "ck3")] Faith,
+    #[cfg(feature = "ck3")] FaithIcon,
+    #[cfg(feature = "ck3")] Flavorization,
+    #[cfg(feature = "ck3")] Focus,
+    #[cfg(feature = "ck3")] GeneticConstraint,
+    #[cfg(feature = "ck3")] GovernmentFlag,
+    #[cfg(feature = "ck3")] GraphicalFaith,
+    #[cfg(feature = "ck3")] GuestInviteRule,
+    #[cfg(feature = "ck3")] GuestSubset,
+    #[cfg(feature = "ck3")] Holding,
+    #[cfg(feature = "ck3")] HoldingFlag,
+    #[cfg(feature = "ck3")] HolySite,
+    #[cfg(feature = "ck3")] HolySiteFlag,
+    #[cfg(feature = "ck3")] Hook,
+    #[cfg(feature = "ck3")] House,
+    #[cfg(feature = "ck3")] ImportantAction,
+    #[cfg(feature = "ck3")] Innovation,
+    #[cfg(feature = "ck3")] InnovationFlag,
+    #[cfg(feature = "ck3")] Inspiration,
+    #[cfg(feature = "ck3")] Language,
+    #[cfg(feature = "ck3")] LawFlag,
+    #[cfg(feature = "ck3")] LawGroup,
+    #[cfg(feature = "ck3")] Lifestyle,
+    #[cfg(feature = "ck3")] MartialCustom,
+    #[cfg(feature = "ck3")] MemoryCategory,
+    #[cfg(feature = "ck3")] MemoryType,
+    #[cfg(feature = "ck3")] MenAtArms,
+    #[cfg(feature = "ck3")] MenAtArmsBase,
+    #[cfg(feature = "ck3")] Message,
+    #[cfg(feature = "ck3")] ModifierFormat,
+    #[cfg(feature = "ck3")] MottoInsert,
+    #[cfg(feature = "ck3")] Motto,
+    #[cfg(feature = "ck3")] Music,
+    #[cfg(feature = "ck3")] NameList,
+    #[cfg(feature = "ck3")] Nickname,
+    #[cfg(feature = "ck3")] OpinionModifier,
+    #[cfg(feature = "ck3")] Perk,
+    #[cfg(feature = "ck3")] PerkTree,
+    #[cfg(feature = "ck3")] PlayableDifficultyInfo,
+    #[cfg(feature = "ck3")] PointOfInterest,
+    #[cfg(feature = "ck3")] PoolSelector,
+    #[cfg(feature = "ck3")] PrisonType,
+    #[cfg(feature = "ck3")] PulseAction,
+    #[cfg(feature = "ck3")] Relation,
+    #[cfg(feature = "ck3")] RelationFlag,
+    #[cfg(feature = "ck3")] ReligionFamily,
+    #[cfg(feature = "ck3")] RewardItem,
+    #[cfg(feature = "ck3")] Scheme,
+    #[cfg(feature = "ck3")] ScriptedAnimation,
+    #[cfg(feature = "ck3")] ScriptedCost,
+    #[cfg(feature = "ck3")] ScriptedIllustration,
+    #[cfg(feature = "ck3")] Secret,
+    #[cfg(feature = "ck3")] Sexuality,
+    #[cfg(feature = "ck3")] Skill,
+    #[cfg(feature = "ck3")] SpecialBuilding,
+    #[cfg(feature = "ck3")] SpecialGuest,
+    #[cfg(feature = "ck3")] Story,
+    #[cfg(feature = "ck3")] Struggle,
+    #[cfg(feature = "ck3")] StrugglePhase,
+    #[cfg(feature = "ck3")] StrugglePhaseParameter,
+    #[cfg(feature = "ck3")] SuccessionElection,
+    #[cfg(feature = "ck3")] Suggestion,
+    #[cfg(feature = "ck3")] Title,
+    #[cfg(feature = "ck3")] TitleHistory,
+    #[cfg(feature = "ck3")] TitleHistoryType,
+    #[cfg(feature = "ck3")] Trait,
+    #[cfg(feature = "ck3")] TraitCategory,
+    #[cfg(feature = "ck3")] TraitFlag,
+    #[cfg(feature = "ck3")] TraitTrack,
+    #[cfg(feature = "ck3")] TravelOption,
+    #[cfg(feature = "ck3")] UnitGfx,
+    #[cfg(feature = "ck3")] VassalContract,
+    #[cfg(feature = "ck3")] VassalContractFlag,
+    #[cfg(feature = "ck3")] VassalObligationLevel,
+    #[cfg(feature = "ck3")] VassalStance,
 
     // Items specific to vic3
-    #[cfg(feature = "vic3")]
-    AiStrategy,
-    #[cfg(feature = "vic3")]
-    Approval,
-    #[cfg(feature = "vic3")]
-    Attitude,
-    #[cfg(feature = "vic3")]
-    BattleCondition,
-    #[cfg(feature = "vic3")]
-    BuildingGroup,
-    #[cfg(feature = "vic3")]
-    BuildingType,
-    #[cfg(feature = "vic3")]
-    CanalType,
-    #[cfg(feature = "vic3")]
-    CharacterRole,
-    #[cfg(feature = "vic3")]
-    CombatUnit,
-    #[cfg(feature = "vic3")]
-    Country,
-    #[cfg(feature = "vic3")]
-    CountryFormation,
-    #[cfg(feature = "vic3")]
-    CountryRank,
-    #[cfg(feature = "vic3")]
-    CountryTier,
-    #[cfg(feature = "vic3")]
-    CountryType,
-    #[cfg(feature = "vic3")]
-    Decree,
-    #[cfg(feature = "vic3")]
-    DiplomaticAction,
-    #[cfg(feature = "vic3")]
-    DiplomaticPlay,
-    #[cfg(feature = "vic3")]
-    Goods,
-    #[cfg(feature = "vic3")]
-    Ideology,
-    #[cfg(feature = "vic3")]
-    InfamyThreshold,
-    #[cfg(feature = "vic3")]
-    Institution,
-    #[cfg(feature = "vic3")]
-    InterestGroup,
-    #[cfg(feature = "vic3")]
-    InterestGroupTrait,
-    #[cfg(feature = "vic3")]
-    Journalentry,
-    #[cfg(feature = "vic3")]
-    LawGroup,
-    #[cfg(feature = "vic3")]
-    LawType,
-    #[cfg(feature = "vic3")]
-    Level,
-    #[cfg(feature = "vic3")]
-    MapLayer,
-    #[cfg(feature = "vic3")]
-    MediaAlias,
-    #[cfg(feature = "vic3")]
-    ModifierType,
-    #[cfg(feature = "vic3")]
-    Objective,
-    #[cfg(feature = "vic3")]
-    ObjectiveSubgoal,
-    #[cfg(feature = "vic3")]
-    ObjectiveSubgoalCategory,
-    #[cfg(feature = "vic3")]
-    ProductionMethod,
-    #[cfg(feature = "vic3")]
-    ProductionMethodGroup,
-    #[cfg(feature = "vic3")]
-    ScriptedButton,
-    #[cfg(feature = "vic3")]
-    SecretGoal,
-    #[cfg(feature = "vic3")]
-    StateRegion,
-    #[cfg(feature = "vic3")]
-    StateTrait,
-    #[cfg(feature = "vic3")]
-    StrategicRegion,
-    #[cfg(feature = "vic3")]
-    Technology,
-    #[cfg(feature = "vic3")]
-    TechnologyEra,
-    #[cfg(feature = "vic3")]
-    TerrainLabel,
-    #[cfg(feature = "vic3")]
-    TerrainManipulator,
-    #[cfg(feature = "vic3")]
-    TerrainMask,
-    #[cfg(feature = "vic3")]
-    TerrainMaterial,
-    #[cfg(feature = "vic3")]
-    TransferOfPower,
-    #[cfg(feature = "vic3")]
-    TutorialLesson,
+    #[cfg(feature = "vic3")] AiStrategy,
+    #[cfg(feature = "vic3")] Approval,
+    #[cfg(feature = "vic3")] Attitude,
+    #[cfg(feature = "vic3")] BattleCondition,
+    #[cfg(feature = "vic3")] BuildingGroup,
+    #[cfg(feature = "vic3")] BuildingType,
+    #[cfg(feature = "vic3")] CanalType,
+    #[cfg(feature = "vic3")] CharacterRole,
+    #[cfg(feature = "vic3")] CombatUnit,
+    #[cfg(feature = "vic3")] Country,
+    #[cfg(feature = "vic3")] CountryFormation,
+    #[cfg(feature = "vic3")] CountryRank,
+    #[cfg(feature = "vic3")] CountryTier,
+    #[cfg(feature = "vic3")] CountryType,
+    #[cfg(feature = "vic3")] Decree,
+    #[cfg(feature = "vic3")] DiplomaticAction,
+    #[cfg(feature = "vic3")] DiplomaticPlay,
+    #[cfg(feature = "vic3")] Goods,
+    #[cfg(feature = "vic3")] Ideology,
+    #[cfg(feature = "vic3")] InfamyThreshold,
+    #[cfg(feature = "vic3")] Institution,
+    #[cfg(feature = "vic3")] InterestGroup,
+    #[cfg(feature = "vic3")] InterestGroupTrait,
+    #[cfg(feature = "vic3")] Journalentry,
+    #[cfg(feature = "vic3")] LawGroup,
+    #[cfg(feature = "vic3")] LawType,
+    #[cfg(feature = "vic3")] Level,
+    #[cfg(feature = "vic3")] MapLayer,
+    #[cfg(feature = "vic3")] MediaAlias,
+    #[cfg(feature = "vic3")] ModifierType,
+    #[cfg(feature = "vic3")] Objective,
+    #[cfg(feature = "vic3")] ObjectiveSubgoal,
+    #[cfg(feature = "vic3")] ObjectiveSubgoalCategory,
+    #[cfg(feature = "vic3")] ProductionMethod,
+    #[cfg(feature = "vic3")] ProductionMethodGroup,
+    #[cfg(feature = "vic3")] ScriptedButton,
+    #[cfg(feature = "vic3")] SecretGoal,
+    #[cfg(feature = "vic3")] StateRegion,
+    #[cfg(feature = "vic3")] StateTrait,
+    #[cfg(feature = "vic3")] StrategicRegion,
+    #[cfg(feature = "vic3")] Technology,
+    #[cfg(feature = "vic3")] TechnologyEra,
+    #[cfg(feature = "vic3")] TerrainLabel,
+    #[cfg(feature = "vic3")] TerrainManipulator,
+    #[cfg(feature = "vic3")] TerrainMask,
+    #[cfg(feature = "vic3")] TerrainMaterial,
+    #[cfg(feature = "vic3")] TransferOfPower,
+    #[cfg(feature = "vic3")] TutorialLesson,
 
     // Items specific to imperator
-    #[cfg(feature = "imperator")]
-    Ambition,
-    #[cfg(feature = "imperator")]
-    Area,
-    #[cfg(feature = "imperator")]
-    CultureGroup,
-    #[cfg(feature = "imperator")]
-    Deity,
-    #[cfg(feature = "imperator")]
-    DeityCategory,
-    #[cfg(feature = "imperator")]
-    DiplomaticStance,
-    #[cfg(feature = "imperator")]
-    EconomicPolicy,
-    #[cfg(feature = "imperator")]
-    EventPicture,
-    #[cfg(feature = "imperator")]
-    GovernorPolicy,
-    #[cfg(feature = "imperator")]
-    GraphicalCultureType,
-    #[cfg(feature = "imperator")]
-    GreatWorkEffect,
-    #[cfg(feature = "imperator")]
-    GreatWorkCategory,
-    #[cfg(feature = "imperator")]
-    GreatWorkMaterial,
-    #[cfg(feature = "imperator")]
-    Heritage,
-    #[cfg(feature = "imperator")]
-    Idea,
-    #[cfg(feature = "imperator")]
-    Invention,
-    #[cfg(feature = "imperator")]
-    LegionDistinction,
-    #[cfg(feature = "imperator")]
-    LevyTemplate,
-    #[cfg(feature = "imperator")]
-    Loyalty,
-    #[cfg(feature = "imperator")]
-    MilitaryTraditionTree,
-    #[cfg(feature = "imperator")]
-    MilitaryTradition,
-    #[cfg(feature = "imperator")]
-    Mission,
-    #[cfg(feature = "imperator")]
-    MissionTask,
-    #[cfg(feature = "imperator")]
-    Office,
-    #[cfg(feature = "imperator")]
-    Opinion,
-    #[cfg(feature = "imperator")]
-    PartyType,
-    #[cfg(feature = "imperator")]
-    Price,
-    #[cfg(feature = "imperator")]
-    ProvinceRank,
-    #[cfg(feature = "imperator")]
-    TechnologyTable,
-    #[cfg(feature = "imperator")]
-    TradeGood,
-    #[cfg(feature = "imperator")]
-    Treasure,
-    #[cfg(feature = "imperator")]
-    Unit,
-    #[cfg(feature = "imperator")]
-    UnitAbility,
+    #[cfg(feature = "imperator")] Ambition,
+    #[cfg(feature = "imperator")] Area,
+    #[cfg(feature = "imperator")] CultureGroup,
+    #[cfg(feature = "imperator")] Deity,
+    #[cfg(feature = "imperator")] DeityCategory,
+    #[cfg(feature = "imperator")] DiplomaticStance,
+    #[cfg(feature = "imperator")] EconomicPolicy,
+    #[cfg(feature = "imperator")] EventPicture,
+    #[cfg(feature = "imperator")] GovernorPolicy,
+    #[cfg(feature = "imperator")] GraphicalCultureType,
+    #[cfg(feature = "imperator")] GreatWorkEffect,
+    #[cfg(feature = "imperator")] GreatWorkCategory,
+    #[cfg(feature = "imperator")] GreatWorkMaterial,
+    #[cfg(feature = "imperator")] Heritage,
+    #[cfg(feature = "imperator")] Idea,
+    #[cfg(feature = "imperator")] Invention,
+    #[cfg(feature = "imperator")] LegionDistinction,
+    #[cfg(feature = "imperator")] LevyTemplate,
+    #[cfg(feature = "imperator")] Loyalty,
+    #[cfg(feature = "imperator")] MilitaryTraditionTree,
+    #[cfg(feature = "imperator")] MilitaryTradition,
+    #[cfg(feature = "imperator")] Mission,
+    #[cfg(feature = "imperator")] MissionTask,
+    #[cfg(feature = "imperator")] Office,
+    #[cfg(feature = "imperator")] Opinion,
+    #[cfg(feature = "imperator")] PartyType,
+    #[cfg(feature = "imperator")] Price,
+    #[cfg(feature = "imperator")] ProvinceRank,
+    #[cfg(feature = "imperator")] TechnologyTable,
+    #[cfg(feature = "imperator")] TradeGood,
+    #[cfg(feature = "imperator")] Treasure,
+    #[cfg(feature = "imperator")] Unit,
+    #[cfg(feature = "imperator")] UnitAbility,
 }
 
 /// Display items in `separated word case` for maximum friendliness.
