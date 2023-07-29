@@ -49,43 +49,6 @@ bitflags! {
     }
 }
 
-/// LAST UPDATED IR VERSION 2.0.4
-/// See `event_scopes.log` from the game data dumps.
-pub const None: u64 = 0x0000_0001;
-pub const Value: u64 = 0x0000_0002;
-pub const Bool: u64 = 0x0000_0004;
-pub const Flag: u64 = 0x0000_0008;
-pub const Color: u64 = 0x0000_0010;
-pub const Country: u64 = 0x0000_0020;
-pub const Character: u64 = 0x0000_0040;
-pub const Province: u64 = 0x0000_0080;
-pub const Siege: u64 = 0x0000_0100;
-pub const Unit: u64 = 0x0000_0200;
-pub const Pop: u64 = 0x0000_0400;
-pub const Family: u64 = 0x0000_0800;
-pub const Party: u64 = 0x0000_1000;
-pub const Religion: u64 = 0x0000_2000;
-pub const Culture: u64 = 0x0000_4000;
-pub const Job: u64 = 0x0000_8000;
-pub const CultureGroup: u64 = 0x0001_0000;
-pub const CountryCulture: u64 = 0x0002_0000;
-pub const Area: u64 = 0x0004_0000;
-pub const State: u64 = 0x0008_0000;
-pub const SubUnit: u64 = 0x0010_0000;
-pub const Governorship: u64 = 0x0020_0000;
-pub const Region: u64 = 0x0040_0000;
-pub const Deity: u64 = 0x0080_0000;
-pub const GreatWork: u64 = 0x0100_0000;
-pub const Treasure: u64 = 0x0200_0000;
-pub const War: u64 = 0x0400_0000;
-pub const Legion: u64 = 0x0800_0000;
-pub const LevyTemplate: u64 = 0x1000_0000;
-
-pub const ALL: u64 = 0x7fff_ffff_ffff_ffff;
-pub const ALL_BUT_NONE: u64 = 0x7fff_ffff_ffff_fffe;
-#[allow(dead_code)]
-pub const PRIMITIVE: u64 = 0x0000_000e;
-
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
         "none" => Scopes::None,
@@ -117,14 +80,14 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "war" => Scopes::War,
         "legion" => Scopes::Legion,
         "levy_template" => Scopes::LevyTemplate,
-        _ => return std::option::Option::None,
+        _ => return None,
     })
 }
 
 pub fn scope_to_scope(name: &Token) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_TO_SCOPE {
         if name.is(s) {
-            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
+            return Some((*from, *to));
         }
     }
     for (s, version, explanation) in SCOPE_TO_SCOPE_REMOVED {
@@ -134,23 +97,23 @@ pub fn scope_to_scope(name: &Token) -> Option<(Scopes, Scopes)> {
             return Some((Scopes::all(), Scopes::all_but_none()));
         }
     }
-    std::option::Option::None
+    None
 }
 
 pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_FROM_PREFIX {
         if *s == prefix {
-            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
+            return Some((*from, *to));
         }
     }
-    std::option::Option::None
+    None
 }
 
 /// `name` is without the `every_`, `ordered_`, `random_`, or `any_`
 pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_ITERATOR {
         if name.is(s) {
-            return Some((Scopes::from_bits_truncate(*from), Scopes::from_bits_truncate(*to)));
+            return Some((*from, *to));
         }
     }
     for (s, version, explanation) in SCOPE_REMOVED_ITERATOR {
@@ -163,7 +126,7 @@ pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes
     if data.scripted_lists.exists(name.as_str()) {
         return data.scripted_lists.base(name).and_then(|base| scope_iterator(base, data));
     }
-    std::option::Option::None
+    None
 }
 
 impl Display for Scopes {
@@ -287,80 +250,80 @@ pub fn validate_prefix_reference(
 /// LAST UPDATED VERSION 2.0.4
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
-const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
-    (Character, "character_party", Party),
-    (Character, "employer", Country),
-    (Character, "family", Family),
-    (Character, "father", Character),
-    (Character, "home_country", Country),
-    (Character, "job", Job),
-    (Character, "mother", Character),
-    (Character, "next_in_family", Character),
-    (Character, "preferred_heir", Character),
-    (Character, "ruler", Character),
-    (Character, "spouse", Character),
-    (Treasure, "treasure_owner", Country | Character | Province),
-    (Country, "color1", Color),
-    (Country, "color2", Color),
-    (Country, "color3", Color),
-    (Country, "consort", Character),
-    (Country, "current_co_ruler", Character),
-    (Country, "current_heir", Character),
-    (Country, "current_ruler", Character),
-    (Country, "fam", Family),
-    (Country, "overlord", Country),
-    (Country, "party", Party),
-    (Country, "primary_heir", Character),
-    (Country, "secondary_heir", Character),
-    (Character | Pop | Job, "country", Country),
-    (Character | Unit | Governorship, "legion", Legion),
-    (Country | Character | Province | Pop | Deity, "religion", Religion),
-    (Party, "party_country", Country),
-    (Party, "party_leader", Character),
-    (Country | Religion | CultureGroup, "color", Color),
-    (Siege, "siege_controller", Country),
-    (Province | State, "area", Area),
-    (Province | State, "governorship", Governorship),
-    (Country | Province | Pop, "country_culture", CountryCulture),
-    (Deity, "deified_ruler", Character),
-    (Deity, "holy_site", Province),
-    (Character | Siege | Pop, "location", Province),
-    (Province | Area | State, "region", Region),
-    (Color, "blue", Value),
-    (Color, "brightness", Value),
-    (Color, "green", Value),
-    (Color, "hue", Value),
-    (Color, "red", Value),
-    (Color, "saturation", Value),
-    (Unit, "commander", Character),
-    (Unit, "unit_destination", Province),
-    (Unit, "unit_location", Province),
-    (Unit, "unit_next_location", Province),
-    (Unit, "unit_objective_destination", Province),
-    (Unit, "unit_owner", Country),
-    (Country | Character | Province | Pop | Culture, "culture_group", CultureGroup),
-    (Subunit, "owning_unit", Unit),
-    (Subunit, "personal_loyalty", Character),
-    (Job, "character", Character),
-    (Province | State | Governorship | Legion, "owner", Country),
-    (Family, "family_country", Country),
-    (Family, "head_of_family", Country),
-    (Country | Character | Province | Pop | CountryCulture, "culture", Culture),
-    (Province | State | Governorship, "governor", Character),
-    (Province | State | Governorship, "governor_or_ruler", Character),
-    (War, "attacker_warleader", Country),
-    (War, "defender_warleader", Country),
-    (Province, "controller", Country),
-    (Province, "dominant_province_culture", Culture),
-    (Province, "dominant_province_culture_group", CultureGroup),
-    (Province, "dominant_province_religion", Religion),
-    (Province, "holding_owner", Character),
-    (Province, "province_deity", Deity),
-    (Province, "state", State),
-    (Province | Unit, "siege", Siege),
-    (Country | State | Governorship, "capital_scope", Province),
-    (None, "yes", Bool),
-    (None, "no", Bool),
+const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
+    (Scopes::Character, "character_party", Scopes::Party),
+    (Scopes::Character, "employer", Scopes::Country),
+    (Scopes::Character, "family", Scopes::Family),
+    (Scopes::Character, "father", Scopes::Character),
+    (Scopes::Character, "home_country", Scopes::Country),
+    (Scopes::Character, "job", Scopes::Job),
+    (Scopes::Character, "mother", Scopes::Character),
+    (Scopes::Character, "next_in_family", Scopes::Character),
+    (Scopes::Character, "preferred_heir", Scopes::Character),
+    (Scopes::Character, "ruler", Scopes::Character),
+    (Scopes::Character, "spouse", Scopes::Character),
+    (Scopes::Treasure, "treasure_owner", Scopes::Country.union(Scopes::Character).union(Scopes::Province)),
+    (Scopes::Country, "color1", Scopes::Color),
+    (Scopes::Country, "color2", Scopes::Color),
+    (Scopes::Country, "color3", Scopes::Color),
+    (Scopes::Country, "consort", Scopes::Character),
+    (Scopes::Country, "current_co_ruler", Scopes::Character),
+    (Scopes::Country, "current_heir", Scopes::Character),
+    (Scopes::Country, "current_ruler", Scopes::Character),
+    (Scopes::Country, "fam", Scopes::Family),
+    (Scopes::Country, "overlord", Scopes::Country),
+    (Scopes::Country, "party", Scopes::Party),
+    (Scopes::Country, "primary_heir", Scopes::Character),
+    (Scopes::Country, "secondary_heir", Scopes::Character),
+    (Scopes::Character.union(Scopes::Pop).union(Scopes::Job), "country", Scopes::Country),
+    (Scopes::Character.union(Scopes::Unit).union(Scopes::Governorship), "legion", Scopes::Legion),
+    (Scopes::Country.union(Scopes::Character).union(Scopes::Province).union(Scopes::Pop).union(Scopes::Deity), "religion", Scopes::Religion),
+    (Scopes::Party, "party_country", Scopes::Country),
+    (Scopes::Party, "party_leader", Scopes::Character),
+    (Scopes::Country.union(Scopes::Religion).union(Scopes::CultureGroup), "color", Scopes::Color),
+    (Scopes::Siege, "siege_controller", Scopes::Country),
+    (Scopes::Province.union(Scopes::State), "area", Scopes::Area),
+    (Scopes::Province.union(Scopes::State), "governorship", Scopes::Governorship),
+    (Scopes::Country.union(Scopes::Province).union(Scopes::Pop), "country_culture", Scopes::CountryCulture),
+    (Scopes::Deity, "deified_ruler", Scopes::Character),
+    (Scopes::Deity, "holy_site", Scopes::Province),
+    (Scopes::Character.union(Scopes::Siege).union(Scopes::Pop), "location", Scopes::Province),
+    (Scopes::Province.union(Scopes::Area).union(Scopes::State), "region", Scopes::Region),
+    (Scopes::Color, "blue", Scopes::Value),
+    (Scopes::Color, "brightness", Scopes::Value),
+    (Scopes::Color, "green", Scopes::Value),
+    (Scopes::Color, "hue", Scopes::Value),
+    (Scopes::Color, "red", Scopes::Value),
+    (Scopes::Color, "saturation", Scopes::Value),
+    (Scopes::Unit, "commander", Scopes::Character),
+    (Scopes::Unit, "unit_destination", Scopes::Province),
+    (Scopes::Unit, "unit_location", Scopes::Province),
+    (Scopes::Unit, "unit_next_location", Scopes::Province),
+    (Scopes::Unit, "unit_objective_destination", Scopes::Province),
+    (Scopes::Unit, "unit_owner", Scopes::Country),
+    (Scopes::Country.union(Scopes::Character).union(Scopes::Province).union(Scopes::Pop).union(Scopes::Culture), "culture_group", Scopes::CultureGroup),
+    (Scopes::Subunit, "owning_unit", Scopes::Unit),
+    (Scopes::Subunit, "personal_loyalty", Scopes::Character),
+    (Scopes::Job, "character", Scopes::Character),
+    (Scopes::Province.union(Scopes::State).union(Scopes::Governorship).union(Scopes::Legion), "owner", Scopes::Country),
+    (Scopes::Family, "family_country", Scopes::Country),
+    (Scopes::Family, "head_of_family", Scopes::Country),
+    (Scopes::Country.union(Scopes::Character).union(Scopes::Province).union(Scopes::Pop).union(Scopes::CountryCulture), "culture", Scopes::Culture),
+    (Scopes::Province.union(Scopes::State).union(Scopes::Governorship), "governor", Scopes::Character),
+    (Scopes::Province.union(Scopes::State).union(Scopes::Governorship), "governor_or_ruler", Scopes::Character),
+    (Scopes::War, "attacker_warleader", Scopes::Country),
+    (Scopes::War, "defender_warleader", Scopes::Country),
+    (Scopes::Province, "controller", Scopes::Country),
+    (Scopes::Province, "dominant_province_culture", Scopes::Culture),
+    (Scopes::Province, "dominant_province_culture_group", Scopes::CultureGroup),
+    (Scopes::Province, "dominant_province_religion", Scopes::Religion),
+    (Scopes::Province, "holding_owner", Scopes::Character),
+    (Scopes::Province, "province_deity", Scopes::Deity),
+    (Scopes::Province, "state", Scopes::State),
+    (Scopes::Province.union(Scopes::Unit), "siege", Scopes::Siege),
+    (Scopes::Country.union(Scopes::State).union(Scopes::Governorship), "capital_scope", Scopes::Province),
+    (Scopes::None, "yes", Scopes::Bool),
+    (Scopes::None, "no", Scopes::Bool),
 ];
 
 /// LAST UPDATED VERSION 2.0.4
@@ -370,29 +333,29 @@ const SCOPE_TO_SCOPE: &[(u64, &str, u64)] = &[
 /// TODO: add the Item type here, so that it can be checked for existence.
 
 // Basically just search the log for "Requires Data: yes" and put all that here.
-const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
-    (None, "array_define", Value),
-    (Country, "fam", Family),
-    (Country, "party", Party),
-    (Country | Province | State | Governorship, "job", Job),
-    (Country | Province | State | Governorship, "job_holder", Job),
-    (Treasure, "treasure", Treasure),
-    (None, "character", Character),
-    (None, "region", Region),
-    (None, "area", Area),
-    (None, "culture", Culture),
-    (None, "deity", Deity),
-    (None, "c", Country),
-    (None, "char", Character),
-    (None, "define", Value),
-    (None, "religion", Religion),
-    (None, "flag", Flag),
-    (None, "global_var", ALL),
-    (None, "local_var", ALL),
-    (None, "p", Province),
-    (None, "religion", Religion),
-    (None, "scope", ALL),
-    (ALL, "var", ALL),
+const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
+    (Scopes::None, "array_define", Scopes::Value),
+    (Scopes::Country, "fam", Scopes::Family),
+    (Scopes::Country, "party", Scopes::Party),
+    (Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship), "job", Scopes::Job),
+    (Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship), "job_holder", Scopes::Job),
+    (Scopes::Treasure, "treasure", Scopes::Treasure),
+    (Scopes::None, "character", Scopes::Character),
+    (Scopes::None, "region", Scopes::Region),
+    (Scopes::None, "area", Scopes::Area),
+    (Scopes::None, "culture", Scopes::Culture),
+    (Scopes::None, "deity", Scopes::Deity),
+    (Scopes::None, "c", Scopes::Country),
+    (Scopes::None, "char", Scopes::Character),
+    (Scopes::None, "define", Scopes::Value),
+    (Scopes::None, "religion", Scopes::Religion),
+    (Scopes::None, "flag", Scopes::Flag),
+    (Scopes::None, "global_var", Scopes::all()),
+    (Scopes::None, "local_var", Scopes::all()),
+    (Scopes::None, "p", Scopes::Province),
+    (Scopes::None, "religion", Scopes::Religion),
+    (Scopes::None, "scope", Scopes::all()),
+    (Scopes::all(), "var", Scopes::all()),
 ];
 
 // Special:
@@ -408,76 +371,76 @@ const SCOPE_FROM_PREFIX: &[(u64, &str, u64)] = &[
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
-const SCOPE_ITERATOR: &[(u64, &str, u64)] = &[
-    (State, "state_province", Province),
-    (Character, "character_treasure", Treasure),
-    (Character, "character_unit", Unit),
-    (Character, "child", Character),
-    (Character, "friend", Character),
-    (Character, "governor_state", State),
-    (Character, "holdings", Province),
-    (Character, "parent", Character),
-    (Character, "rival", Character),
-    (Character, "sibling", Character),
-    (Character, "support_as_heir", Character),
-    (Governorship, "governorship_state", State),
-    (Country, "allied_country", Country),
-    (Country, "army", Unit),
-    (Country, "available_deity", Deity),
-    (Country, "character", Character),
-    (Country, "commander", Character),
-    (Country, "countries_at_war_with", Country),
-    (Country, "country_culture", CountryCulture),
-    (Country, "country_state", State),
-    (Country, "country_sub_unit", Subunit),
-    (Country, "country_treasure", Treasure),
-    (Country, "current_war", War),
-    (Country, "family", Family),
-    (Country, "governorships", Governorship),
-    (Country, "integrated_culture", CountryCulture),
-    (Country, "legion", Legion),
-    (Country, "navy", Unit),
-    (Country, "neighbour_country", Country),
-    (Country, "owned_holy_site", Province),
-    (Country, "owned_province", Province),
-    (Country, "pantheon_deity", Deity),
-    (Country, "party", Party),
-    (Country, "subject", Country),
-    (Country, "successor", Character),
-    (Country, "unit", Unit),
-    (Party, "party_member", Character),
-    (Legion, "legion_commander", Character),
-    (Legion, "legion_unit", Unit),
-    (Region, "neighbor_region", Region),
-    (Region, "region_area", Area),
-    (Region, "region_province", Province),
-    (Region, "region_province_including_unownable", Province),
-    (Region, "region_state", State),
-    (Area, "area_including_unownable_province", Province),
-    (Area, "area_province", Province),
-    (Area, "area_state", State),
-    (Area, "neighbor_area", Area),
-    (Unit, "sub_unit", Subunit),
-    (Family, "family_member", Character),
-    (War, "war_attacker", Country),
-    (War, "war_defender", Country),
-    (War, "war_participant", Country),
-    (Province, "great_work_in_province", GreatWork),
-    (Province, "neighbor_province", Province),
-    (Province, "pops_in_province", Pop),
-    (Province, "province_treasure", Treasure),
-    (Province, "unit_in_province", Unit),
-    (None, "active_war", War),
-    (None, "area", Area),
-    (None, "country", Country),
-    (None, "deity", Deity),
-    (None, "ended_war", War),
-    (None, "holy_site", Province),
-    (None, "living_character", Character),
-    (None, "ownable_province", Province),
-    (None, "province", Province),
-    (None, "region", Province),
-    (None, "sea_and_river_zone", Province),
+const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
+    (Scopes::State, "state_province", Scopes::Province),
+    (Scopes::Character, "character_treasure", Scopes::Treasure),
+    (Scopes::Character, "character_unit", Scopes::Unit),
+    (Scopes::Character, "child", Scopes::Character),
+    (Scopes::Character, "friend", Scopes::Character),
+    (Scopes::Character, "governor_state", Scopes::State),
+    (Scopes::Character, "holdings", Scopes::Province),
+    (Scopes::Character, "parent", Scopes::Character),
+    (Scopes::Character, "rival", Scopes::Character),
+    (Scopes::Character, "sibling", Scopes::Character),
+    (Scopes::Character, "support_as_heir", Scopes::Character),
+    (Scopes::Governorship, "governorship_state", Scopes::State),
+    (Scopes::Country, "allied_country", Scopes::Country),
+    (Scopes::Country, "army", Scopes::Unit),
+    (Scopes::Country, "available_deity", Scopes::Deity),
+    (Scopes::Country, "character", Scopes::Character),
+    (Scopes::Country, "commander", Scopes::Character),
+    (Scopes::Country, "countries_at_war_with", Scopes::Country),
+    (Scopes::Country, "country_culture", Scopes::CountryCulture),
+    (Scopes::Country, "country_state", Scopes::State),
+    (Scopes::Country, "country_sub_unit", Scopes::Subunit),
+    (Scopes::Country, "country_treasure", Scopes::Treasure),
+    (Scopes::Country, "current_war", Scopes::War),
+    (Scopes::Country, "family", Scopes::Family),
+    (Scopes::Country, "governorships", Scopes::Governorship),
+    (Scopes::Country, "integrated_culture", Scopes::CountryCulture),
+    (Scopes::Country, "legion", Scopes::Legion),
+    (Scopes::Country, "navy", Scopes::Unit),
+    (Scopes::Country, "neighbour_country", Scopes::Country),
+    (Scopes::Country, "owned_holy_site", Scopes::Province),
+    (Scopes::Country, "owned_province", Scopes::Province),
+    (Scopes::Country, "pantheon_deity", Scopes::Deity),
+    (Scopes::Country, "party", Scopes::Party),
+    (Scopes::Country, "subject", Scopes::Country),
+    (Scopes::Country, "successor", Scopes::Character),
+    (Scopes::Country, "unit", Scopes::Unit),
+    (Scopes::Party, "party_member", Scopes::Character),
+    (Scopes::Legion, "legion_commander", Scopes::Character),
+    (Scopes::Legion, "legion_unit", Scopes::Unit),
+    (Scopes::Region, "neighbor_region", Scopes::Region),
+    (Scopes::Region, "region_area", Scopes::Area),
+    (Scopes::Region, "region_province", Scopes::Province),
+    (Scopes::Region, "region_province_including_unownable", Scopes::Province),
+    (Scopes::Region, "region_state", Scopes::State),
+    (Scopes::Area, "area_including_unownable_province", Scopes::Province),
+    (Scopes::Area, "area_province", Scopes::Province),
+    (Scopes::Area, "area_state", Scopes::State),
+    (Scopes::Area, "neighbor_area", Scopes::Area),
+    (Scopes::Unit, "sub_unit", Scopes::Subunit),
+    (Scopes::Family, "family_member", Scopes::Character),
+    (Scopes::War, "war_attacker", Scopes::Country),
+    (Scopes::War, "war_defender", Scopes::Country),
+    (Scopes::War, "war_participant", Scopes::Country),
+    (Scopes::Province, "great_work_in_province", Scopes::GreatWork),
+    (Scopes::Province, "neighbor_province", Scopes::Province),
+    (Scopes::Province, "pops_in_province", Scopes::Pop),
+    (Scopes::Province, "province_treasure", Scopes::Treasure),
+    (Scopes::Province, "unit_in_province", Scopes::Unit),
+    (Scopes::None, "active_war", Scopes::War),
+    (Scopes::None, "area", Scopes::Area),
+    (Scopes::None, "country", Scopes::Country),
+    (Scopes::None, "deity", Scopes::Deity),
+    (Scopes::None, "ended_war", Scopes::War),
+    (Scopes::None, "holy_site", Scopes::Province),
+    (Scopes::None, "living_character", Scopes::Character),
+    (Scopes::None, "ownable_province", Scopes::Province),
+    (Scopes::None, "province", Scopes::Province),
+    (Scopes::None, "region", Scopes::Province),
+    (Scopes::None, "sea_and_river_zone", Scopes::Province),
 ];
 
 /// LAST UPDATED VERSION 2.0.4
