@@ -83,7 +83,7 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     })
 }
 
-pub fn scope_to_scope(name: &Token) -> Option<(Scopes, Scopes)> {
+pub fn scope_to_scope(name: &Token, _inscopes: Scopes) -> Option<(Scopes, Scopes)> {
     for (from, s, to) in SCOPE_TO_SCOPE {
         if name.is(s) {
             return Some((*from, *to));

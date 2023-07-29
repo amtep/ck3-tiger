@@ -3,12 +3,12 @@
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::ModifKinds;
-use crate::report::{err, warn_info, ErrorKey};
+use crate::report::{err, report, warn_info, ErrorKey, Severity};
 use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
 /// Returns None otherwise.
-pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<ModifKinds> {
+pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> Option<ModifKinds> {
     for &(entry_name, mk) in MODIF_TABLE {
         if name.is(entry_name) {
             return Some(ModifKinds::from_bits_truncate(mk));
@@ -23,9 +23,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     if let Some(part) = name.as_str().strip_prefix("local_") {
         for sfx in &["_output", "_desired_pop_ratio", "_happyness"] {
             if let Some(part) = part.strip_suffix(sfx) {
-                if warn {
-                    data.verify_exists_implied(Item::PopType, part, name);
-                }
+                maybe_warn(Item::PopType, part, name, data, warn);
                 return Some(ModifKinds::Province | ModifKinds::State);
             }
         }
@@ -38,9 +36,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     if let Some(part) = name.as_str().strip_prefix("global_") {
         for sfx in &["_output", "_desired_pop_ratio", "_city_desired_pop_ratio", "_happyness"] {
             if let Some(part) = part.strip_suffix(sfx) {
-                if warn {
-                    data.verify_exists_implied(Item::PopType, part, name);
-                }
+                maybe_warn(Item::PopType, part, name, data, warn);
                 return Some(ModifKinds::Country);
             }
         }
@@ -48,26 +44,20 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
 
     // $Price$_cost_modifier
     if let Some(part) = name.as_str().strip_suffix("_cost_modifier") {
-        if warn {
-            data.verify_exists_implied(Item::Price, part, name);
-        }
+        maybe_warn(Item::Price, part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
     // $Party$_party_influence
     if let Some(part) = name.as_str().strip_suffix("_party_influence") {
-        if warn {
-            data.verify_exists_implied(Item::PartyType, part, name);
-        }
+        maybe_warn(Item::PartyType, part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
     // monthly_$Party$_party_conviction
     if let Some(part) = name.as_str().strip_prefix("monthly_") {
         if let Some(part) = part.strip_suffix("_party_conviction") {
-            if warn {
-                data.verify_exists_implied(Item::PartyType, part, name);
-            }
+            maybe_warn(Item::PartyType, part, name, data, warn);
             return Some(ModifKinds::Country);
         }
     }
@@ -87,9 +77,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
         "_movement_speed",
     ] {
         if let Some(part) = name.as_str().strip_suffix(sfx) {
-            if warn {
-                data.verify_exists_implied(Item::Unit, part, name);
-            }
+            maybe_warn(Item::Unit, part, name, data, warn);
             return Some(ModifKinds::Country);
         }
     }
@@ -97,31 +85,39 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // $Terrain$_combat_bonus
     // $Unit$_$Terrain$_combat_bonus
     if let Some(part) = name.as_str().strip_suffix("_combat_bonus") {
-        if warn && !data.item_exists(Item::Terrain, part) && !data.item_exists(Item::Unit, s) {
-            let msg = format!("could not find any {part}");
-            let info = "Could be: $Terrain$_combat_bonus or $Unit$_$Terrain$_combat_bonus";
-            warn_info(name, ErrorKey::MissingItem, &msg, info);
+        if let Some(sev) = warn {
+            if !data.item_exists(Item::Terrain, part) && !data.item_exists(Item::Unit, s) {
+                let msg = format!("could not find any {part}");
+                let info = "Could be: $Terrain$_combat_bonus or $Unit$_$Terrain$_combat_bonus";
+                report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
+            }
         }
         return Some(ModifKinds::Country);
     }
 
     // $Unit$_cost
     if let Some(part) = name.as_str().strip_suffix("_cost") {
-        if warn {
-            data.verify_exists_implied(Item::Unit, part, name);
-        }
+        maybe_warn(Item::Unit, part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
     // $TechnologyTable$_investment
     if let Some(part) = name.as_str().strip_suffix("_investment") {
-        if warn {
-            data.verify_exists_implied(Item::TechnologyTable, part, name);
-        }
+        maybe_warn(Item::TechnologyTable, part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
     None
+}
+
+fn maybe_warn(itype: Item, s: &str, name: &Token, data: &Everything, warn: Option<Severity>) {
+    if let Some(sev) = warn {
+        if !data.item_exists(itype, s) {
+            let msg = format!("could not find {itype} {s}");
+            let info = format!("so the modifier {name} does not exist");
+            report(ErrorKey::MissingItem, sev).strong().msg(msg).info(info).loc(name).push();
+        }
+    }
 }
 
 // Redeclare the `ModifKinds` enums as bare numbers, so that we can do | on them in const tables.
