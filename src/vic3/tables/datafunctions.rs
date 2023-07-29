@@ -2,19 +2,15 @@
 
 use std::str::FromStr;
 
-use strum_macros::{Display, EnumString};
-
-use crate::datatype::{Arg, Args, LookupResult};
+use crate::datatype::{Arg, Args, Datatype, LookupResult, Vic3Datatype};
 use crate::item::Item;
 use crate::scopes::Scopes;
 
 use Arg::*;
 use Datatype::*;
+use Vic3Datatype::*;
 
-// Validate the "code" blocks in localization files and in the gui files.
 // The include/ files are converted from the game's data_type_* output files.
-
-include!("include/datatypes.rs");
 
 pub fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
     if let Ok(idx) = GLOBAL_PROMOTES.binary_search_by_key(&lookup_name, |(name, _, _)| name) {
@@ -126,58 +122,58 @@ pub fn lookup_alternative(
 /// TODO: make a lookup for this table, rather than sequential scanning
 // The ones not found among the datatypes, but which might be there under another name, are commented out.
 const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
-    (Datatype::Country, Scopes::Country),
-    (Datatype::Battle, Scopes::Battle),
-    // (Datatype::BattleSide,Scopes::BattleSide),
-    (Datatype::Building, Scopes::Building),
-    (Datatype::BuildingType, Scopes::BuildingType),
-    (Datatype::CanalType, Scopes::CanalType),
-    (Datatype::Character, Scopes::Character),
-    (Datatype::CivilWar, Scopes::CivilWar),
-    (Datatype::CombatUnit, Scopes::CombatUnit),
-    (Datatype::CommanderOrder, Scopes::CommanderOrder),
-    (Datatype::CommanderOrderType, Scopes::CommanderOrderType),
-    (Datatype::CountryCreation, Scopes::CountryCreation),
-    (Datatype::CountryDefinition, Scopes::CountryDefinition),
-    (Datatype::CountryFormation, Scopes::CountryFormation),
-    (Datatype::Culture, Scopes::Culture),
-    (Datatype::Decree, Scopes::Decree),
-    (Datatype::DiplomaticAction, Scopes::DiplomaticAction),
-    (Datatype::DiplomaticPact, Scopes::DiplomaticPact),
-    (Datatype::DiplomaticPlay, Scopes::DiplomaticPlay),
-    (Datatype::DiplomaticRelations, Scopes::DiplomaticRelations),
-    (Datatype::Front, Scopes::Front),
-    (Datatype::Goods, Scopes::Goods),
-    (Datatype::Hq, Scopes::Hq),
-    (Datatype::Ideology, Scopes::Ideology),
-    (Datatype::Institution, Scopes::Institution),
-    (Datatype::InstitutionType, Scopes::InstitutionType),
-    // (Datatype::InterestMarker,Scopes::InterestMarker),
-    (Datatype::InterestGroup, Scopes::InterestGroup),
-    (Datatype::InterestGroupTrait, Scopes::InterestGroupTrait),
-    // (Datatype::InterestGroupType,Scopes::InterestGroupType),
-    (Datatype::JournalEntry, Scopes::Journalentry),
-    (Datatype::Law, Scopes::Law),
-    (Datatype::LawType, Scopes::LawType),
-    (Datatype::Market, Scopes::Market),
-    (Datatype::MarketGoods, Scopes::MarketGoods),
-    (Datatype::Objective, Scopes::Objective),
-    (Datatype::Party, Scopes::Party),
-    (Datatype::PoliticalMovement, Scopes::PoliticalMovement),
-    (Datatype::Pop, Scopes::Pop),
-    (Datatype::PopType, Scopes::PopType),
-    (Datatype::Province, Scopes::Province),
-    (Datatype::Religion, Scopes::Religion),
-    (Datatype::ShippingLane, Scopes::ShippingLane),
-    (Datatype::State, Scopes::State),
-    (Datatype::StateRegion, Scopes::StateRegion),
-    (Datatype::StateTrait, Scopes::StateTrait),
-    (Datatype::StrategicRegion, Scopes::StrategicRegion),
-    (Datatype::Technology, Scopes::Technology),
-    // (Datatype::TechnologyStatus,Scopes::TechnologyStatus),
-    (Datatype::Theater, Scopes::Theater),
-    (Datatype::TradeRoute, Scopes::TradeRoute),
-    (Datatype::War, Scopes::War),
+    (Vic3(Country), Scopes::Country),
+    (Vic3(Battle), Scopes::Battle),
+    // (Vic3(BattleSide),Scopes::BattleSide),
+    (Vic3(Building), Scopes::Building),
+    (Vic3(BuildingType), Scopes::BuildingType),
+    (Vic3(CanalType), Scopes::CanalType),
+    (Vic3(Character), Scopes::Character),
+    (Vic3(CivilWar), Scopes::CivilWar),
+    (Vic3(CombatUnit), Scopes::CombatUnit),
+    (Vic3(CommanderOrder), Scopes::CommanderOrder),
+    (Vic3(CommanderOrderType), Scopes::CommanderOrderType),
+    (Vic3(CountryCreation), Scopes::CountryCreation),
+    (Vic3(CountryDefinition), Scopes::CountryDefinition),
+    (Vic3(CountryFormation), Scopes::CountryFormation),
+    (Vic3(Culture), Scopes::Culture),
+    (Vic3(Decree), Scopes::Decree),
+    (Vic3(DiplomaticAction), Scopes::DiplomaticAction),
+    (Vic3(DiplomaticPact), Scopes::DiplomaticPact),
+    (Vic3(DiplomaticPlay), Scopes::DiplomaticPlay),
+    (Vic3(DiplomaticRelations), Scopes::DiplomaticRelations),
+    (Vic3(Front), Scopes::Front),
+    (Vic3(Goods), Scopes::Goods),
+    (Vic3(Hq), Scopes::Hq),
+    (Vic3(Ideology), Scopes::Ideology),
+    (Vic3(Institution), Scopes::Institution),
+    (Vic3(InstitutionType), Scopes::InstitutionType),
+    // (Vic3(InterestMarker),Scopes::InterestMarker),
+    (Vic3(InterestGroup), Scopes::InterestGroup),
+    (Vic3(InterestGroupTrait), Scopes::InterestGroupTrait),
+    // (Vic3(InterestGroupType),Scopes::InterestGroupType),
+    (Vic3(JournalEntry), Scopes::Journalentry),
+    (Vic3(Law), Scopes::Law),
+    (Vic3(LawType), Scopes::LawType),
+    (Vic3(Market), Scopes::Market),
+    (Vic3(MarketGoods), Scopes::MarketGoods),
+    (Vic3(Objective), Scopes::Objective),
+    (Vic3(Party), Scopes::Party),
+    (Vic3(PoliticalMovement), Scopes::PoliticalMovement),
+    (Vic3(Pop), Scopes::Pop),
+    (Vic3(PopType), Scopes::PopType),
+    (Vic3(Province), Scopes::Province),
+    (Vic3(Religion), Scopes::Religion),
+    (Vic3(ShippingLane), Scopes::ShippingLane),
+    (Vic3(State), Scopes::State),
+    (Vic3(StateRegion), Scopes::StateRegion),
+    (Vic3(StateTrait), Scopes::StateTrait),
+    (Vic3(StrategicRegion), Scopes::StrategicRegion),
+    (Vic3(Technology), Scopes::Technology),
+    // (Vic3(TechnologyStatus),Scopes::TechnologyStatus),
+    (Vic3(Theater), Scopes::Theater),
+    (Vic3(TradeRoute), Scopes::TradeRoute),
+    (Vic3(War), Scopes::War),
 ];
 
 /// Return the scope type that best matches `dtype`, or `None` if there is no match.

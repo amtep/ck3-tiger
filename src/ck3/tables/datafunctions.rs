@@ -1,20 +1,14 @@
-#![allow(non_camel_case_types)]
-
 use std::str::FromStr;
 
-use strum_macros::{Display, EnumString};
-
-use crate::datatype::{Arg, Args, LookupResult};
+use crate::datatype::{Arg, Args, Ck3Datatype, Datatype, LookupResult};
 use crate::item::Item;
 use crate::scopes::Scopes;
 
 use Arg::*;
+use Ck3Datatype::*;
 use Datatype::*;
 
-// Validate the "code" blocks in localization files and in the gui files.
 // The include/ files are converted from the game's data_type_* output files.
-
-include!("include/datatypes.rs");
 
 pub fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
     if let Ok(idx) = GLOBAL_PROMOTES.binary_search_by_key(&lookup_name, |(name, _, _)| name) {
@@ -125,44 +119,44 @@ pub fn lookup_alternative(
 
 /// TODO: make a lookup for this table, rather than sequential scanning
 const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
-    (Datatype::Character, Scopes::Character),
-    (Datatype::Title, Scopes::LandedTitle),
-    (Datatype::Activity, Scopes::Activity),
-    (Datatype::Secret, Scopes::Secret),
-    (Datatype::Province, Scopes::Province),
-    (Datatype::Scheme, Scopes::Scheme),
-    (Datatype::Combat, Scopes::Combat),
-    (Datatype::CombatSide, Scopes::CombatSide),
-    (Datatype::Faith, Scopes::Faith),
-    (Datatype::GreatHolyWar, Scopes::GreatHolyWar),
-    (Datatype::Religion, Scopes::Religion),
-    (Datatype::War, Scopes::War),
-    (Datatype::Story, Scopes::StoryCycle),
-    (Datatype::CasusBelliItem, Scopes::CasusBelli),
-    (Datatype::Dynasty, Scopes::Dynasty),
-    (Datatype::DynastyHouse, Scopes::DynastyHouse),
-    (Datatype::Faction, Scopes::Faction),
-    (Datatype::Culture, Scopes::Culture),
-    (Datatype::Army, Scopes::Army),
-    (Datatype::HolyOrder, Scopes::HolyOrder),
-    (Datatype::ActiveCouncilTask, Scopes::CouncilTask),
-    (Datatype::MercenaryCompany, Scopes::MercenaryCompany),
-    (Datatype::Artifact, Scopes::Artifact),
-    (Datatype::Inspiration, Scopes::Inspiration),
-    (Datatype::Struggle, Scopes::Struggle),
-    (Datatype::CharacterMemory, Scopes::CharacterMemory),
-    (Datatype::TravelPlan, Scopes::TravelPlan),
-    (Datatype::Accolade, Scopes::Accolade),
-    (Datatype::AccoladeType, Scopes::AccoladeType),
-    (Datatype::Decision, Scopes::Decision),
-    (Datatype::FaithDoctrine, Scopes::Doctrine),
-    (Datatype::ActivityType, Scopes::ActivityType),
-    (Datatype::CultureTradition, Scopes::CultureTradition),
-    (Datatype::CulturePillar, Scopes::CulturePillar),
-    (Datatype::GovernmentType, Scopes::GovernmentType),
-    (Datatype::Trait, Scopes::Trait),
-    (Datatype::VassalContract, Scopes::VassalContract),
-    (Datatype::ObligationLevel, Scopes::VassalObligationLevel),
+    (Ck3(Character), Scopes::Character),
+    (Ck3(Title), Scopes::LandedTitle),
+    (Ck3(Activity), Scopes::Activity),
+    (Ck3(Secret), Scopes::Secret),
+    (Ck3(Province), Scopes::Province),
+    (Ck3(Scheme), Scopes::Scheme),
+    (Ck3(Combat), Scopes::Combat),
+    (Ck3(CombatSide), Scopes::CombatSide),
+    (Ck3(Faith), Scopes::Faith),
+    (Ck3(GreatHolyWar), Scopes::GreatHolyWar),
+    (Ck3(Religion), Scopes::Religion),
+    (Ck3(War), Scopes::War),
+    (Ck3(Story), Scopes::StoryCycle),
+    (Ck3(CasusBelliItem), Scopes::CasusBelli),
+    (Ck3(Dynasty), Scopes::Dynasty),
+    (Ck3(DynastyHouse), Scopes::DynastyHouse),
+    (Ck3(Faction), Scopes::Faction),
+    (Ck3(Culture), Scopes::Culture),
+    (Ck3(Army), Scopes::Army),
+    (Ck3(HolyOrder), Scopes::HolyOrder),
+    (Ck3(ActiveCouncilTask), Scopes::CouncilTask),
+    (Ck3(MercenaryCompany), Scopes::MercenaryCompany),
+    (Ck3(Artifact), Scopes::Artifact),
+    (Ck3(Inspiration), Scopes::Inspiration),
+    (Ck3(Struggle), Scopes::Struggle),
+    (Ck3(CharacterMemory), Scopes::CharacterMemory),
+    (Ck3(TravelPlan), Scopes::TravelPlan),
+    (Ck3(Accolade), Scopes::Accolade),
+    (Ck3(AccoladeType), Scopes::AccoladeType),
+    (Ck3(Decision), Scopes::Decision),
+    (Ck3(FaithDoctrine), Scopes::Doctrine),
+    (Ck3(ActivityType), Scopes::ActivityType),
+    (Ck3(CultureTradition), Scopes::CultureTradition),
+    (Ck3(CulturePillar), Scopes::CulturePillar),
+    (Ck3(GovernmentType), Scopes::GovernmentType),
+    (Ck3(Trait), Scopes::Trait),
+    (Ck3(VassalContract), Scopes::VassalContract),
+    (Ck3(ObligationLevel), Scopes::VassalObligationLevel),
 ];
 
 /// Return the scope type that best matches `dtype`, or `None` if there is no match.

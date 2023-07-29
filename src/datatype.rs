@@ -1,12 +1,15 @@
 use std::borrow::Cow;
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+
+use strum_macros::{Display, EnumString};
 
 #[cfg(feature = "ck3")]
 use crate::ck3::data::religions::CUSTOM_RELIGION_LOCAS;
 #[cfg(feature = "ck3")]
 pub use crate::ck3::tables::datafunctions::{
     datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
-    lookup_global_promote, lookup_promote, scope_from_datatype, Datatype,
+    lookup_global_promote, lookup_promote, scope_from_datatype,
 };
 use crate::context::ScopeContext;
 use crate::data::customloca::CustomLocalization;
@@ -15,7 +18,7 @@ use crate::game::Game;
 #[cfg(feature = "imperator")]
 pub use crate::imperator::tables::datafunctions::{
     datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
-    lookup_global_promote, lookup_promote, scope_from_datatype, Datatype,
+    lookup_global_promote, lookup_promote, scope_from_datatype,
 };
 use crate::item::Item;
 #[cfg(feature = "ck3")]
@@ -26,8 +29,141 @@ use crate::token::Token;
 #[cfg(feature = "vic3")]
 pub use crate::vic3::tables::datafunctions::{
     datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
-    lookup_global_promote, lookup_promote, scope_from_datatype, Datatype,
+    lookup_global_promote, lookup_promote, scope_from_datatype,
 };
+
+// Load the game-specific datatype definitions
+#[cfg(feature = "ck3")]
+include!("ck3/tables/include/datatypes.rs");
+#[cfg(feature = "vic3")]
+include!("vic3/tables/include/datatypes.rs");
+#[cfg(feature = "imperator")]
+include!("imperator/tables/include/datatypes.rs");
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[allow(non_camel_case_types)]
+pub enum Datatype {
+    // Synthetic datatypes for our typechecking
+    Unknown,
+    AnyScope,
+
+    // The generic datatypes
+    CFixedPoint,
+    CString,
+    CUTF8String,
+    CVector2f,
+    CVector2i,
+    CVector3f,
+    CVector3i,
+    CVector4f,
+    CVector4i,
+    Date,
+    Scope,
+    TopScope,
+    bool,
+    double,
+    float,
+    int16,
+    int32,
+    int64,
+    int8,
+    uint16,
+    uint32,
+    uint64,
+    uint8,
+    void,
+
+    // Wrappers for the per-game datatypes
+    #[cfg(feature = "ck3")]
+    Ck3(Ck3Datatype),
+    #[cfg(feature = "vic3")]
+    Vic3(Vic3Datatype),
+    #[cfg(feature = "imperator")]
+    Imperator(ImperatorDatatype),
+}
+
+impl FromStr for Datatype {
+    type Err = strum::ParseError;
+    fn from_str(s: &str) -> Result<Self, strum::ParseError> {
+        // Have to do the generic variants by hand, so that the per-game variants can be done with the macro.
+        match s {
+            "Unknown" => Ok(Datatype::Unknown),
+            "AnyScope" => Ok(Datatype::AnyScope),
+            "CFixedPoint" => Ok(Datatype::CFixedPoint),
+            "CString" => Ok(Datatype::CString),
+            "CUTF8String" => Ok(Datatype::CUTF8String),
+            "CVector2f" => Ok(Datatype::CVector2f),
+            "CVector2i" => Ok(Datatype::CVector2i),
+            "CVector3f" => Ok(Datatype::CVector3f),
+            "CVector3i" => Ok(Datatype::CVector3i),
+            "CVector4f" => Ok(Datatype::CVector4f),
+            "CVector4i" => Ok(Datatype::CVector4i),
+            "Date" => Ok(Datatype::Date),
+            "Scope" => Ok(Datatype::Scope),
+            "TopScope" => Ok(Datatype::TopScope),
+            "bool" => Ok(Datatype::bool),
+            "double" => Ok(Datatype::double),
+            "float" => Ok(Datatype::float),
+            "int16" => Ok(Datatype::int16),
+            "int32" => Ok(Datatype::int32),
+            "int64" => Ok(Datatype::int64),
+            "int8" => Ok(Datatype::int8),
+            "uint16" => Ok(Datatype::uint16),
+            "uint32" => Ok(Datatype::uint32),
+            "uint64" => Ok(Datatype::uint64),
+            "uint8" => Ok(Datatype::uint8),
+            "void" => Ok(Datatype::void),
+            _ => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => Ck3Datatype::from_str(s).map(Datatype::Ck3),
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => Vic3Datatype::from_str(s).map(Datatype::Vic3),
+                #[cfg(feature = "imperator")]
+                Game::Imperator => ImperatorDatatype::from_str(s).map(Datatype::Imperator),
+            },
+        }
+    }
+}
+
+impl Display for Datatype {
+    // Have to do the generic variants by hand, so that the per-game variants can be done with the macro.
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        match *self {
+            Datatype::Unknown => write!(f, "Unknown"),
+            Datatype::AnyScope => write!(f, "AnyScope"),
+            Datatype::CFixedPoint => write!(f, "CFixedPoint"),
+            Datatype::CString => write!(f, "CString"),
+            Datatype::CUTF8String => write!(f, "CUTF8String"),
+            Datatype::CVector2f => write!(f, "CVector2f"),
+            Datatype::CVector2i => write!(f, "CVector2i"),
+            Datatype::CVector3f => write!(f, "CVector3f"),
+            Datatype::CVector3i => write!(f, "CVector3i"),
+            Datatype::CVector4f => write!(f, "CVector4f"),
+            Datatype::CVector4i => write!(f, "CVector4i"),
+            Datatype::Date => write!(f, "Date"),
+            Datatype::Scope => write!(f, "Scope"),
+            Datatype::TopScope => write!(f, "TopScope"),
+            Datatype::bool => write!(f, "bool"),
+            Datatype::double => write!(f, "double"),
+            Datatype::float => write!(f, "float"),
+            Datatype::int16 => write!(f, "int16"),
+            Datatype::int32 => write!(f, "int32"),
+            Datatype::int64 => write!(f, "int64"),
+            Datatype::int8 => write!(f, "int8"),
+            Datatype::uint16 => write!(f, "uint16"),
+            Datatype::uint32 => write!(f, "uint32"),
+            Datatype::uint64 => write!(f, "uint64"),
+            Datatype::uint8 => write!(f, "uint8"),
+            Datatype::void => write!(f, "void"),
+            #[cfg(feature = "ck3")]
+            Datatype::Ck3(dt) => dt.fmt(f),
+            #[cfg(feature = "vic3")]
+            Datatype::Vic3(dt) => dt.fmt(f),
+            #[cfg(feature = "imperator")]
+            Datatype::Imperator(dt) => dt.fmt(f),
+        }
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct CodeChain {
@@ -268,7 +404,7 @@ pub fn validate_datatypes(
         if Game::is_vic3() && !found && data.item_exists(Item::Country, code.name.as_str()) {
             found = true;
             args = Args(&[]);
-            rtype = Datatype::Country;
+            rtype = Datatype::Vic3(Vic3Datatype::Country);
         }
 
         // In vic3, game concepts are unadorned, like [concept_ideology]
@@ -385,7 +521,7 @@ pub fn validate_datatypes(
         // TODO: validate the Faith customs
         #[cfg(feature = "ck3")]
         if Game::is_ck3()
-            && curtype != Datatype::Faith
+            && curtype != Datatype::Ck3(Ck3Datatype::Faith)
             && (code.name.is("Custom") && code.arguments.len() == 1)
             || (code.name.is("Custom2") && code.arguments.len() == 2)
         {

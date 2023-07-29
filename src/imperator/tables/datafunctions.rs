@@ -4,18 +4,16 @@ use std::str::FromStr;
 
 use strum_macros::{Display, EnumString};
 
-use crate::datatype::{Arg, Args, LookupResult};
+use crate::datatype::{Arg, Args, Datatype, ImperatorDatatype, LookupResult};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 
 use Arg::*;
 use Datatype::*;
+use ImperatorDatatype::*;
 
-// Validate the "code" blocks in localization files and in the gui files.
 // The include/ files are converted from the game's data_type_* output files.
-
-include!("include/datatypes.rs");
 
 pub fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
     if let Ok(idx) = GLOBAL_PROMOTES.binary_search_by_key(&lookup_name, |(name, _, _)| name) {
@@ -125,30 +123,30 @@ pub fn lookup_alternative(
 }
 
 const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
-    (Datatype::Country, Scopes::Country),
-    (Datatype::Character, Scopes::Character),
-    (Datatype::Province, Scopes::Province),
-    (Datatype::Siege, Scopes::Siege),
-    (Datatype::Unit, Scopes::Unit),
-    (Datatype::Pop, Scopes::Pop),
-    (Datatype::Family, Scopes::Family),
-    (Datatype::Party, Scopes::Party),
-    (Datatype::Religion, Scopes::Religion),
-    (Datatype::Culture, Scopes::Culture),
-    (Datatype::CharacterJob, Scopes::Job),
-    (Datatype::CultureGroup, Scopes::CultureGroup),
-    (Datatype::CountryCulture, Scopes::CountryCulture),
-    (Datatype::Area, Scopes::Area),
-    (Datatype::State, Scopes::State),
-    (Datatype::SubUnit, Scopes::SubUnit),
-    (Datatype::Governorship, Scopes::Governorship),
-    (Datatype::Region, Scopes::Region),
-    (Datatype::Deity, Scopes::Deity),
-    (Datatype::GreatWork, Scopes::GreatWork),
-    (Datatype::Treasure, Scopes::Treasure),
-    (Datatype::War, Scopes::War),
-    (Datatype::Legion, Scopes::Legion),
-    (Datatype::LevyTemplate, Scopes::LevyTemplate),
+    (Imperator(Country), Scopes::Country),
+    (Imperator(Character), Scopes::Character),
+    (Imperator(Province), Scopes::Province),
+    (Imperator(Siege), Scopes::Siege),
+    (Imperator(Unit), Scopes::Unit),
+    (Imperator(Pop), Scopes::Pop),
+    (Imperator(Family), Scopes::Family),
+    (Imperator(Party), Scopes::Party),
+    (Imperator(Religion), Scopes::Religion),
+    (Imperator(Culture), Scopes::Culture),
+    (Imperator(CharacterJob), Scopes::Job),
+    (Imperator(CultureGroup), Scopes::CultureGroup),
+    (Imperator(CountryCulture), Scopes::CountryCulture),
+    (Imperator(Area), Scopes::Area),
+    (Imperator(State), Scopes::State),
+    (Imperator(SubUnit), Scopes::SubUnit),
+    (Imperator(Governorship), Scopes::Governorship),
+    (Imperator(Region), Scopes::Region),
+    (Imperator(Deity), Scopes::Deity),
+    (Imperator(GreatWork), Scopes::GreatWork),
+    (Imperator(Treasure), Scopes::Treasure),
+    (Imperator(War), Scopes::War),
+    (Imperator(Legion), Scopes::Legion),
+    (Imperator(LevyTemplate), Scopes::LevyTemplate),
 ];
 
 /// Return the scope type that best matches `dtype`, or `None` if there is no match.

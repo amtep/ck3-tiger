@@ -5,8 +5,9 @@ use std::path::PathBuf;
 
 use anyhow::{bail, Context, Result};
 use clap::{Parser, ValueEnum};
+use strum_macros::Display;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum, Display)]
 enum Game {
     /// Crusader Kings 3
     Ck3,
@@ -47,16 +48,43 @@ struct Cli {
 //     bail!("could not parse Datatype from {}", fname.display());
 // }
 
-fn write_types(mut types: HashSet<String>, fname: PathBuf) -> Result<()> {
+const GENERIC_TYPES: &[&str] = &[
+    "Unknown",
+    "AnyScope",
+    "CFixedPoint",
+    "CString",
+    "CUTF8String",
+    "CVector2f",
+    "CVector2i",
+    "CVector3f",
+    "CVector3i",
+    "CVector4f",
+    "CVector4i",
+    "Date",
+    "bool",
+    "double",
+    "float",
+    "int16",
+    "int32",
+    "int64",
+    "int8",
+    "uint16",
+    "uint32",
+    "uint64",
+    "uint8",
+    "void",
+];
+
+fn write_types(mut types: HashSet<String>, fname: PathBuf, game: Game) -> Result<()> {
     let mut outf = File::create(fname)?;
     writeln!(outf, "#[derive(Copy, Clone, Debug, Eq, PartialEq, Display, EnumString)]")?;
-    writeln!(outf, "pub enum Datatype {{")?;
-    writeln!(outf, "    Unknown,")?;
-    writeln!(outf, "    AnyScope,")?;
+    writeln!(outf, "pub enum {game}Datatype {{")?;
     let mut types: Vec<_> = types.drain().collect();
     types.sort();
     for t in types {
-        writeln!(outf, "    {t},")?;
+        if !GENERIC_TYPES.contains(&&*t) {
+            writeln!(outf, "    {t},")?;
+        }
     }
     writeln!(outf, "}}")?;
     Ok(())
@@ -86,7 +114,7 @@ impl Global {
     }
 }
 
-fn load_globals(fname: PathBuf) -> Result<HashMap<String, Global>> {
+fn load_globals(fname: PathBuf, game: Game) -> Result<HashMap<String, Global>> {
     let mut globals = HashMap::new();
     let global = read_to_string(&fname)?;
     if let Some((_, middle)) = global.split_once("[\n") {
@@ -95,12 +123,17 @@ fn load_globals(fname: PathBuf) -> Result<HashMap<String, Global>> {
                 let line = line.strip_prefix("    (\"").context("parse error1")?;
                 let (name, line) = line.split_once("\", Args(&[").context("parse error2")?;
                 let line = line.strip_suffix("),").context("parse error3")?;
-                let (line, rtype) = line.rsplit_once("]), ").context("parse error4")?;
+                let (line, mut rtype) = line.rsplit_once("]), ").context("parse error4")?;
                 let args: Vec<_> = if line.is_empty() {
                     Vec::new()
                 } else {
                     line.split(", ").map(|s| s.to_owned()).collect()
                 };
+                let store;
+                if !GENERIC_TYPES.contains(&rtype) {
+                    store = format!("{game}({rtype})");
+                    rtype = &store;
+                }
                 globals
                     .insert(name.to_owned(), Global::new(name.to_owned(), args, rtype.to_owned()));
             }
@@ -161,7 +194,7 @@ impl NonGlobal {
     }
 }
 
-fn load_nonglobals(fname: PathBuf) -> Result<HashMap<String, NonGlobal>> {
+fn load_nonglobals(fname: PathBuf, game: Game) -> Result<HashMap<String, NonGlobal>> {
     let mut nonglobals = HashMap::new();
     let nonglobal = read_to_string(&fname)?;
     if let Some((_, middle)) = nonglobal.split_once("[\n") {
@@ -169,15 +202,25 @@ fn load_nonglobals(fname: PathBuf) -> Result<HashMap<String, NonGlobal>> {
             for line in middle.lines() {
                 let line = line.strip_prefix("    (\"").context("parse error1")?;
                 let (name, line) = line.split_once("\", ").context("parse error2")?;
-                let (dtype, line) = line.split_once(", Args(&[").context("parse error2b")?;
+                let (mut dtype, line) = line.split_once(", Args(&[").context("parse error2b")?;
                 let line = line.strip_suffix("),").context("parse error3")?;
-                let (line, rtype) = line.rsplit_once("]), ").context("parse error4")?;
+                let (line, mut rtype) = line.rsplit_once("]), ").context("parse error4")?;
+                let store;
+                if !GENERIC_TYPES.contains(&rtype) {
+                    store = format!("{game}({rtype})");
+                    rtype = &store;
+                }
                 let args: Vec<_> = if line.is_empty() {
                     Vec::new()
                 } else {
                     line.split(", ").map(|s| s.to_owned()).collect()
                 };
                 let idx = format!("{dtype}.{name}");
+                let store2;
+                if !GENERIC_TYPES.contains(&dtype) {
+                    store2 = format!("{game}({dtype})");
+                    dtype = &store2;
+                }
                 nonglobals.insert(
                     idx,
                     NonGlobal::new(name.to_owned(), dtype.to_owned(), args, rtype.to_owned()),
@@ -224,6 +267,7 @@ fn parse_datafunction(
     global_functions: &mut HashMap<String, Global>,
     promotes: &mut HashMap<String, NonGlobal>,
     functions: &mut HashMap<String, NonGlobal>,
+    game: Game,
 ) {
     if item.is_empty() {
         return;
@@ -259,6 +303,11 @@ fn parse_datafunction(
     } else if rtype == "_null_type_" {
         rtype = "void";
     }
+    let store;
+    if !GENERIC_TYPES.contains(&rtype) {
+        store = format!("{game}({rtype})");
+        rtype = &store;
+    }
 
     if item.contains("Definition type: Global promote") {
         global_promotes
@@ -270,7 +319,12 @@ fn parse_datafunction(
         return;
     }
 
-    let (dtype, barename) = name.split_once('.').unwrap();
+    let (mut dtype, barename) = name.split_once('.').unwrap();
+    let store2;
+    if !GENERIC_TYPES.contains(&dtype) {
+        store2 = format!("{game}({dtype})");
+        dtype = &store2;
+    }
     if barename == "Self" || barename == "AccessSelf" {
         rtype = dtype;
     }
@@ -300,10 +354,10 @@ fn main() -> Result<()> {
     let concepts: HashSet<_> = concepts_file.split_whitespace().collect();
 
     // let types = load_types(args.out.join("datatypes.rs"))?;
-    let mut global_promotes = load_globals(args.out.join("data_global_promotes.rs"))?;
-    let mut global_functions = load_globals(args.out.join("data_global_functions.rs"))?;
-    let mut promotes = load_nonglobals(args.out.join("data_promotes.rs"))?;
-    let mut functions = load_nonglobals(args.out.join("data_functions.rs"))?;
+    let mut global_promotes = load_globals(args.out.join("data_global_promotes.rs"), args.game)?;
+    let mut global_functions = load_globals(args.out.join("data_global_functions.rs"), args.game)?;
+    let mut promotes = load_nonglobals(args.out.join("data_promotes.rs"), args.game)?;
+    let mut functions = load_nonglobals(args.out.join("data_functions.rs"), args.game)?;
 
     let mut new_types = HashSet::new();
     let mut new_global_promotes = HashMap::new();
@@ -325,6 +379,7 @@ fn main() -> Result<()> {
                 &mut new_global_functions,
                 &mut new_promotes,
                 &mut new_functions,
+                args.game,
             );
         }
     }
@@ -342,7 +397,7 @@ fn main() -> Result<()> {
     merge_nonglobals(&mut promotes, new_promotes);
     merge_nonglobals(&mut functions, new_functions);
 
-    write_types(new_types, args.out.join("datatypes.rs"))?;
+    write_types(new_types, args.out.join("datatypes.rs"), args.game)?;
     write_globals(global_promotes, args.out.join("data_global_promotes.rs"))?;
     write_globals(global_functions, args.out.join("data_global_functions.rs"))?;
     write_nonglobals(promotes, args.out.join("data_promotes.rs"))?;
