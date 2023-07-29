@@ -313,6 +313,7 @@ impl Fileset {
                 FilesError::ModUnreadable { path: loaded_mod.root().to_path_buf(), source: e }
             })?;
         }
+        #[allow(clippy::unnecessary_to_owned)] // borrow checker requires to_path_buf here
         self.scan(&self.the_mod.root().to_path_buf(), FileKind::Mod).map_err(|e| {
             FilesError::ModUnreadable { path: self.the_mod.root().to_path_buf(), source: e }
         })?;
@@ -463,10 +464,10 @@ impl Fileset {
         let mut vec = Vec::new();
         for entry in &self.ordered_files {
             // TODO: avoid the to_string here
-            let path = entry.path.to_string_lossy().to_string();
-            if path.ends_with(".dds")
-                && !path.starts_with("gfx/interface/illustrations/loading_screens")
-                && !self.used.read().unwrap().contains(&path)
+            let pathname = entry.path.to_string_lossy().to_string();
+            if entry.path.extension().map_or(false, |ext| ext.eq_ignore_ascii_case("dds"))
+                && !entry.path.starts_with("gfx/interface/illustrations/loading_screens")
+                && !self.used.read().unwrap().contains(&pathname)
             {
                 vec.push(entry);
             }

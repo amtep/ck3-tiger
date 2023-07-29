@@ -575,7 +575,7 @@ impl<'a> ValueParser<'a> {
         }
 
         // Otherwise, or if it's not vic3, then it's just #tooltip:tooltip
-        self.value.push(LocaValue::Tooltip(Token::new(&value, loc)));
+        self.value.push(LocaValue::Tooltip(Token::new(value, loc)));
     }
 
     fn parse_markup(&mut self) {
@@ -632,7 +632,7 @@ impl<'a> ValueParser<'a> {
                             self.unexpected_char("expected `;`", ErrorKey::Markup);
                         } else if c == ';' {
                             if key.to_lowercase() == "tooltip" {
-                                self.handle_tooltip(&value, loc.clone());
+                                self.handle_tooltip(value, loc.clone());
                             }
                             state = State::InKey(String::new());
                         } else if c == '{' {

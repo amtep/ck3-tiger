@@ -100,6 +100,7 @@ impl Errors {
             Err(_) => WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).ok()?,
         };
         // Strip the BOM, if any
+        #[allow(clippy::map_unwrap_or)] // borrow checker won't allow map_or here
         let contents = contents.strip_prefix('\u{feff}').map(str::to_string).unwrap_or(contents);
         let line = contents.lines().nth(loc.line as usize - 1).map(str::to_string);
         self.filecache.insert(pathname, contents);

@@ -136,7 +136,7 @@ impl Token {
     pub fn combine(&mut self, other: &Token, c: char) {
         let mut s = self.s.to_string();
         s.push(c);
-        s.push_str(&other.s);
+        s.push_str(other.s);
         self.s = StringTable::store(&s);
     }
 

@@ -35,7 +35,7 @@ impl History {
         // except for `GLOBAL`, which is documented to go last.
         let mut names: Vec<&str> =
             self.history.keys().filter(|name| *name != "GLOBAL").map(|name| &**name).collect();
-        names.sort();
+        names.sort_unstable();
         names.push("GLOBAL");
 
         for name in names {

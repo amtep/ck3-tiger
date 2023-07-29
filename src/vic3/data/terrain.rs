@@ -133,6 +133,7 @@ pub struct TerrainMaterial {}
 
 impl TerrainMaterial {
     // This gets the whole file as a Block
+    #[allow(clippy::needless_pass_by_value)] // needs to match the ::add function signature
     pub fn add(db: &mut Db, _key: Token, block: Block) {
         // Structure is { { material } { material } ... } { ... }
         for block in block.iter_blocks_warn() {
