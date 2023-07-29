@@ -27,6 +27,10 @@ use crate::validate::{
 use crate::validate::{validate_compare_duration, validate_modifiers};
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::effects::scope_effect;
+#[cfg(feature = "imperator")]
+use crate::imperator::tables::effects::scope_effect;
+#[cfg(feature = "imperator")]
+use crate::validate::validate_imperator_modifiers;
 
 /// The standard interface to effect validation. Validates an effect in the given [`ScopeContext`].
 ///
@@ -510,6 +514,8 @@ pub fn validate_effect_control(
     if caller == "random" || caller == "random_list" || caller == "duel" {
         #[cfg(feature = "vic3")]
         validate_vic3_modifiers(&mut vd, sc);
+        #[cfg(feature = "imperator")]
+        validate_imperator_modifiers(&mut vd, sc);
         #[cfg(feature = "ck3")]
         validate_modifiers(&mut vd, sc);
     } else {

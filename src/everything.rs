@@ -187,6 +187,10 @@ use crate::vic3::data::{
     technology::{Technology, TechnologyEra},
     terrain::{Terrain, TerrainLabel, TerrainManipulator, TerrainMask, TerrainMaterial},
 };
+#[cfg(feature = "imperator")]
+use crate::imperator::data::{
+    goods::TradeGood,
+};
 
 #[derive(Debug, Error)]
 pub enum FilesError {
@@ -293,6 +297,9 @@ impl Everything {
         let config_file_name = "ck3-tiger.conf";
         #[cfg(feature = "vic3")]
         let config_file_name = "vic3-tiger.conf";
+        #[cfg(feature = "imperator")]
+        let config_file_name = "imperator-tiger.conf";
+
 
         let config_file = mod_root.join(config_file_name);
         let config = if config_file.is_file() {
@@ -747,12 +754,19 @@ impl Everything {
         self.load_json(Item::TerrainMask, TerrainMask::add_json);
     }
 
+    #[cfg(feature = "imperator")]
+    fn load_all_imperator(&mut self) {
+        self.load_pdx_items(Item::TradeGood, TradeGood::add);
+    }
+
     pub fn load_all(&mut self) {
         self.load_all_generic();
         #[cfg(feature = "ck3")]
         self.load_all_ck3();
         #[cfg(feature = "vic3")]
         self.load_all_vic3();
+        #[cfg(feature = "imperator")]
+        self.load_all_imperator();
     }
 
     fn validate_all_generic<'a>(&'a self, s: &Scope<'a>) {
@@ -794,6 +808,8 @@ impl Everything {
         s.spawn(|_| self.history.validate(self));
         s.spawn(|_| StrategicRegion::crosscheck(self));
     }
+
+    // Imperator one goes here when needed
 
     pub fn validate_all(&self) {
         scope(|s| {
@@ -1048,7 +1064,7 @@ impl Everything {
             None
         }
     }
-    #[cfg(feature = "vic3")]
+    #[cfg(any(feature = "imperator", feature = "vic3"))]
     pub(crate) fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
         self.triggers.get(key.as_str())
     }
@@ -1063,7 +1079,7 @@ impl Everything {
             None
         }
     }
-    #[cfg(feature = "vic3")]
+    #[cfg(any(feature = "imperator", feature = "vic3"))]
     pub(crate) fn get_effect(&self, key: &Token) -> Option<&Effect> {
         self.effects.get(key.as_str())
     }

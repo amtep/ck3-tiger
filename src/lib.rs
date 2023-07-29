@@ -21,11 +21,11 @@
 // validation of a field while handling the case of the field not existing.
 #![allow(clippy::blocks_in_if_conditions)]
 
-#[cfg(all(feature = "ck3", feature = "vic3"))]
-compile_error!("features \"ck3\" and \"vic3\" cannot be enabled at the same time");
+#[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator"))]
+compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled at the same time");
 
-#[cfg(all(not(feature = "ck3"), not(feature = "vic3")))]
-compile_error!("exactly one of the features \"ck3\" and \"vic3\" must be enabled");
+#[cfg(all(not(feature = "ck3"), not(feature = "vic3"), not(feature = "imperator")))]
+compile_error!("exactly one of the features \"ck3\", \"vic3\", \"imperator\" must be enabled");
 
 pub mod everything;
 pub mod gamedir;
@@ -36,6 +36,8 @@ pub mod report;
 mod ck3;
 #[cfg(feature = "vic3")]
 mod vic3;
+#[cfg(feature = "imperator")]
+mod imperator;
 
 mod block;
 mod config_load;

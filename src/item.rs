@@ -15,6 +15,8 @@ use std::fmt::{Display, Formatter};
 pub use crate::ck3::item::*;
 #[cfg(feature = "vic3")]
 pub use crate::vic3::item::*;
+#[cfg(feature = "imperator")]
+pub use crate::imperator::item::*;
 
 impl Display for Item {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {

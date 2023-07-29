@@ -189,6 +189,8 @@ pub(crate) fn kind_tag(errors: &Errors, kind: FileKind) -> &str {
         FileKind::Vanilla => "CK3",
         #[cfg(feature = "vic3")]
         FileKind::Vanilla => "Vic3",
+        #[cfg(feature = "imperator")]
+        FileKind::Vanilla => "Imperator",
         FileKind::LoadedMod(idx) => &errors.loaded_mods_labels[idx as usize],
         FileKind::Mod => "MOD",
     }

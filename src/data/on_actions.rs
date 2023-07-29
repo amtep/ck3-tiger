@@ -21,6 +21,8 @@ use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_modifiers_with_base};
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::on_action::on_action_scopecontext;
+#[cfg(feature = "imperator")]
+use crate::imperator::tables::on_action::on_action_scopecontext;
 
 #[derive(Clone, Debug, Default)]
 pub struct OnActions {
@@ -49,7 +51,7 @@ impl OnActions {
 
 impl FileHandler<Block> for OnActions {
     fn subpath(&self) -> PathBuf {
-        #[cfg(feature = "ck3")]
+        #[cfg(any(feature = "imperator", feature = "ck3"))]
         return PathBuf::from("common/on_action");
         #[cfg(feature = "vic3")]
         return PathBuf::from("common/on_actions");

@@ -32,6 +32,8 @@ use crate::validate::{
 };
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::triggers::scope_trigger;
+#[cfg(feature = "imperator")]
+use crate::imperator::tables::triggers::scope_trigger;
 
 /// The standard interface to trigger validation. Validates a trigger in the given [`ScopeContext`].
 ///
@@ -510,7 +512,7 @@ fn match_trigger_bv(
     // True iff it's probably a mistake if the comparator is Comparator::Equals
     #[cfg(feature = "ck3")]
     let mut warn_if_eq = false;
-    #[cfg(feature = "vic3")]
+    #[cfg(any(feature = "imperator", feature = "vic3"))]
     let warn_if_eq = false;
 
     match trigger {
