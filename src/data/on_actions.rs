@@ -144,6 +144,8 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
         vd.field_validated_blocks_sc("delay", sc, validate_duration);
         for token in vd.values() {
             data.verify_exists(Item::Event, token);
+            // TODO: remove this cfg once imperator implements events
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
             data.events.check_scope(token, sc);
         }
         count += 1;
@@ -167,6 +169,8 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
                 continue;
             }
             data.verify_exists(Item::Event, token);
+            // TODO: remove this cfg once imperator implements events
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
             data.events.check_scope(token, sc);
         }
         count += 1;
@@ -183,6 +187,8 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
         let mut vd = Validator::new(b, data);
         for token in vd.values() {
             data.verify_exists(Item::Event, token);
+            // TODO: remove this cfg once imperator implements events
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
             data.events.check_scope(token, sc);
         }
         count += 1;

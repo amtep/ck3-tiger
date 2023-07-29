@@ -1039,6 +1039,7 @@ impl Everything {
             Item::Localization => self.localization.verify_exists_implied(key, token, max_sev),
             #[cfg(feature = "ck3")]
             Item::Music => self.music.verify_exists_implied(key, token, max_sev),
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::Province => self.provinces.verify_exists_implied(key, token, max_sev),
             #[cfg(feature = "ck3")]
             Item::Sound => self.sounds.verify_exists_implied(key, token, self, max_sev),

@@ -497,7 +497,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Province, "province_tax_income", CompareValue),
     (Scopes::Province, "province_unrest", CompareValue),
     (Scopes::Province, "state_loyalty", CompareValue),
-    (Scopes::Province, "terrain", Item(Item::TerrainType)),
+    (Scopes::Province, "terrain", Item(Item::Terrain)),
     (Scopes::Province, "total_population", CompareValue),
     (Scopes::Province, "province_dominant_culture_group", Item(Item::TradeGood)),
     // Country Culture triggers
