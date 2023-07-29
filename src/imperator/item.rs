@@ -1,8 +1,9 @@
-use strum_macros::IntoStaticStr;
+use strum_macros::{EnumIter, IntoStaticStr};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord)]
+use crate::report::{Confidence, Severity};
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord, EnumIter)]
 #[strum(serialize_all = "snake_case")]
-#[cfg(feature = "imperator")]
 pub enum Item {
     Ambition,
     Area,
@@ -145,6 +146,27 @@ impl Item {
             Item::Unit => "common/units/",
             Item::UnitAbility => "common/unit_abilities/",
             Item::WarGoal => "common/wargoals/",
+        }
+    }
+
+    /// Confidence value to use when reporting that an item is missing.
+    /// Should be `Strong` for most, `Weak` for items that aren't defined anywhere but just used (such as gfx flags).
+    pub fn confidence(self) -> Confidence {
+        match self {
+            // TODO
+        }
+    }
+
+    /// Severity value to use when reporting that an item is missing.
+    /// * `Error` - most things
+    /// * `Warning` - things that only impact visuals or presentation
+    /// * `Untidy` - things that don't matter much at all
+    /// * `Fatal` - things that cause crashes if they're missing
+    /// This is only one piece of the severity puzzle. It can also depend on the caller who's expecting the item to exist.
+    /// That part isn't handled yet.
+    pub fn severity(self) -> Severity {
+        match self {
+           // TODO
         }
     }
 }

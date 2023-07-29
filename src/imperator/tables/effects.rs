@@ -1,6 +1,7 @@
 use crate::effect::Effect;
 use crate::effect_validation::*;
 use crate::everything::Everything;
+use crate::imperator::effect_validation::*;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -25,7 +26,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::State, "add_state_food", ScriptValue),
     (Scopes::State, "add_state_modifier", Unchecked), // -tdb-
     (Scopes::State, "remove_state_modifier", Unchecked), // -tdb-
-    (Scopes::State, "set_state_capital", Scope(Scopes::Province) | Integer),
+    (Scopes::State, "set_state_capital", ScopeOrItem(Scopes::Province, Item::Province)),
     (Scopes::Character, "adapt_family_name", Boolean),
     (Scopes::Character, "add_as_governor", Scope(Scopes::Governorship)),
     (Scopes::Character, "add_character_experience", ScriptValue),
@@ -188,7 +189,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::SubUnit, "add_subunit_morale", ScriptValue),
     (Scopes::SubUnit, "add_subunit_strength", ScriptValue),
     (Scopes::SubUnit, "destroy_subunit", Boolean),
-    (Scopes::SubUnit, "remove_subunit_loyalty", Yes | SubUnit),
+    (Scopes::SubUnit, "remove_subunit_loyalty", Vv(validate_remove_subunit_loyalty)),
     (Scopes::SubUnit, "set_personal_loyalty", Scope(Scopes::Character)),
     (Scopes::Family, "add_prestige", ScriptValue),
     (Scopes::Family, "move_family", Scope(Scopes::Country)),

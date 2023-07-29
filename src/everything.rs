@@ -1221,6 +1221,14 @@ const DLC: &[&str] = &["dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006
 const DLC_FEATURES: &[&str] =
     &["voice_of_the_people_content", "voice_of_the_people_preorder", "agitators"];
 
+/// LAST UPDATED IMPERATOR VERSION 2.0.4
+#[cfg(feature = "imperator")]
+const DLC: &[&str] = &[]; // TODO
+
+/// LAST UPDATED IMPERATOR VERSION 2.0.4
+#[cfg(feature = "imperator")]
+const DLC_FEATURES: &[&str] = &[]; // TODO
+
 /// LAST UPDATED VERSION 1.9.2
 #[cfg(feature = "ck3")]
 const REWARD_ITEMS: &[&str] = &["newsletter_crown"];
@@ -1782,3 +1790,8 @@ const SOUNDS: &[&str] = &[
     "event:/SFX/VFX/waterfall",
     "event:/SFX/VFX/whale_exhale",
 ];
+
+/// LAST UPDATED IMPERATOR VERSION 2.0.4
+/// Taken from the object browser
+#[cfg(feature = "imperator")]
+const SOUNDS: &[&str] = &[];

@@ -30,7 +30,7 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
         return Some((Scopes::Province, Trigger::CompareValue));
     }
     if let Some(part) = name.as_str().strip_prefix("num_of_") {
-        if warn && !data.item_exists(Item::Building, part) && !data.item_exists(Item::PopType, s) {
+        if !data.item_exists(Item::Building, part) && !data.item_exists(Item::PopType, part) {
             let msg = format!("could not find any {part}");
             let info = "Possible valid options would be: num_of_$POPTYPE$ or num_of_$BUILDING$";
             warn_info(name, ErrorKey::MissingItem, &msg, info);
@@ -140,8 +140,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_ambition", Item(Item::Ambition)),
     (Scopes::Character, "has_any_office", Boolean),
     (Scopes::Character, "has_character_modifier", Item(Item::Modifier)),
-    (Scopes::Character, "has_culture", Scope(Scopes::Culture) | Item(Item::Culture)),
-    (Scopes::Character, "has_culture_group", Scope(Scopes::Culture) | Item(Item::Culture)),
+    (Scopes::Character, "has_culture", ScopeOrItem(Scopes::Culture, Item::Culture)),
+    (Scopes::Character, "has_culture_group", ScopeOrItem(Scopes::Culture, Item::CultureGroup)),
     (Scopes::Character, "has_father", Boolean),
     (Scopes::Character, "has_holding_in", Scope(Scopes::Province)),
     (Scopes::Character, "has_job", Boolean),
@@ -149,7 +149,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_mother", Boolean),
     (Scopes::Character, "has_nickname", Boolean),
     (Scopes::Character, "has_office", Item(Item::Office)),
-    (Scopes::Character, "has_religion", Scope(Scopes::Religion) | Item(Item::Religion)),
+    (Scopes::Character, "has_religion", ScopeOrItem(Scopes::Religion, Item::Religion)),
     (Scopes::Character, "has_same_culture_group_as", Scope(Scopes::Character)),
     (Scopes::Character, "has_same_family", Scope(Scopes::Character)),
     (Scopes::Character, "has_same_religion_as", Scope(Scopes::Character)),
@@ -224,10 +224,10 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "zeal", CompareValue),
     // Pop Triggers
     (Scopes::Pop, "pop_can_move", Boolean),
-    (Scopes::Pop, "pop_culture", Scope(Scopes::Culture) | Item(Item::Culture)),
-    (Scopes::Pop, "pop_culture_group", Scope(Scopes::CultureGroup) | Item(Item::CultureGroup)),
+    (Scopes::Pop, "pop_culture", ScopeOrItem(Scopes::Culture, Item::Culture)),
+    (Scopes::Pop, "pop_culture_group", ScopeOrItem(Scopes::CultureGroup, Item::CultureGroup)),
     (Scopes::Pop, "pop_hapiness", CompareValue),
-    (Scopes::Pop, "pop_religion", Scope(Scopes::Religion) | Item(Item::CultureGroup)),
+    (Scopes::Pop, "pop_religion", ScopeOrItem(Scopes::Religion, Item::Religion)),
     (Scopes::Pop, "pop_type", Item(Item::PopType)),
     // Country Triggers
     (
@@ -236,9 +236,9 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         CompareValue,
     ),
     (Scopes::Country, "alliance_with", Scope(Scopes::Country)),
-    (Scopes::Country, "biggest_party", Scope(Scopes::Party) | Item(Item::PartyType)),
+    (Scopes::Country, "biggest_party", ScopeOrItem(Scopes::Party, Item::PartyType)),
     (Scopes::Country, "alliance_with", Scope(Scopes::Country)),
-    (Scopes::Country, "can_activate", Scope(Deity)),
+    (Scopes::Country, "can_activate", Scope(Scopes::Deity)),
     (Scopes::Country, "can_change_idea", Item(Item::Idea)),
     (Scopes::Country, "can_pay_price", Item(Item::Price)),
     (Scopes::Country, "centralization", CompareValue),
@@ -291,7 +291,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "has_primary_heir", Boolean),
     (Scopes::Country, "has_senate_approval", CompareValue),
     (Scopes::Country, "has_subject_loyalty", CompareValue),
-    (Scopes::Country, "has_this_omen", Scope(Scopes::Deity) | Item(Item::Deity)),
+    (Scopes::Country, "has_this_omen", ScopeOrItem(Scopes::Deity, Item::Deity)),
     (Scopes::Country, "has_truce_with", Scope(Scopes::Country)),
     (Scopes::Country, "has_war_exhaustion", CompareValue),
     (Scopes::Country, "has_subject_loyalty", CompareValue),
@@ -348,18 +348,18 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "opinion",
         Block(&[("type", Scope(Scopes::Country)), ("value", CompareValue)]),
     ),
-    (Scopes::Country, "owns", Scope(Scopes::Province) | CompareValue),
-    (Scopes::Country, "owns_area", Scope(Scopes::Area) | Item(Item::Area)),
-    (Scopes::Country, "owns_or_subject_owns", Scope(Scopes::Province) | CompareValue),
-    (Scopes::Country, "owns_or_subject_owns_area", Scope(Scopes::Area) | Item(Item::Area)),
-    (Scopes::Country, "owns_or_subject_owns_region", Scope(Scopes::Region) | Item(Item::Region)),
-    (Scopes::Country, "owns_region", Scope(Scopes::Region) | Item(Item::Region)),
+    (Scopes::Country, "owns", ScopeOrItem(Scopes::Province, Item::Province)),
+    (Scopes::Country, "owns_area", ScopeOrItem(Scopes::Area, Item::Area)),
+    (Scopes::Country, "owns_or_subject_owns", ScopeOrItem(Scopes::Province, Item::Province)),
+    (Scopes::Country, "owns_or_subject_owns_area", ScopeOrItem(Scopes::Area, Item::Area)),
+    (Scopes::Country, "owns_or_subject_owns_region", ScopeOrItem(Scopes::Region, Item::Region)),
+    (Scopes::Country, "owns_region", ScopeOrItem(Scopes::Region, Item::Region)),
     (Scopes::Country, "percentage_characters_below_max_loyalty", CompareValue),
     (Scopes::Country, "political_influence", CompareValue),
     (Scopes::Country, "possible_holdings", CompareValue),
-    (Scopes::Country, "primary_culture", Item(Item::Culture) | Scope(Scopes::Culture)),
+    (Scopes::Country, "primary_culture", ScopeOrItem(Scopes::Culture, Item::Culture)),
     (Scopes::Country, "rank", CompareValue),
-    (Scopes::Country, "religion", Item(Item::Religion) | Scope(Scopes::Religion)),
+    (Scopes::Country, "religion", ScopeOrItem(Scopes::Religion, Item::Religion)),
     (Scopes::Country, "religious_unity", CompareValue),
     (Scopes::Country, "safety", CompareValue),
     (Scopes::Country, "stability", CompareValue),
@@ -426,7 +426,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("target", Scope(Scopes::Country)), ("value", CompareValue)]),
     ),
     // Deity triggers
-    (Scopes::Deity, "deity_religion", Item(Item::Religion) | Scope(Scopes::Religion)),
+    (Scopes::Deity, "deity_religion", ScopeOrItem(Scopes::Religion, Item::Religion)),
     (Scopes::Deity, "has_holy_site", Boolean),
     // TODO - These 2 should be country modifiers from ModifKinds::Country
     (Scopes::Deity, "has_active_modifier", UncheckedValue),
@@ -440,12 +440,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Province, "civilization_value", CompareValue),
     (Scopes::Province, "control_range", Scope(Scopes::Country)),
     (Scopes::Province, "distance_to_migration_target", CompareValue),
-    (Scopes::Province, "dominant_province_culture", Item(Item::Culture) | Scope(Scopes::Culture)),
-    (
-        Scopes::Province,
-        "dominant_province_religion",
-        Item(Item::Religion) | Scope(Scopes::Religion),
-    ),
+    (Scopes::Province, "dominant_province_culture", ScopeOrItem(Scopes::Culture, Item::Culture)),
+    (Scopes::Province, "dominant_province_religion", ScopeOrItem(Scopes::Religion, Item::Religion)),
     (Scopes::Province, "fort_level", CompareValue),
     (Scopes::Province, "free_building_slots", CompareValue),
     (Scopes::Province, "governor_policy", Item(Item::GovernorPolicy)),
@@ -476,8 +472,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Province, "is_core_of", Scope(Scopes::Country)),
     (Scopes::Province, "is_holy_site", Boolean),
     (Scopes::Province, "is_importing_trade_good", Item(Item::TradeGood)),
-    (Scopes::Province, "is_in_area", Item(Item::Area)) | Scope(Scopes::Area),
-    (Scopes::Province, "is_in_region", Item(Item::Region) | Scope(Scopes::Region)),
+    (Scopes::Province, "is_in_area", ScopeOrItem(Scopes::Area, Item::Area)),
+    (Scopes::Province, "is_in_region", ScopeOrItem(Scopes::Region, Item::Region)),
     (Scopes::Province, "is_inhabitable", Boolean),
     (Scopes::Province, "is_model_shown", UncheckedValue),
     (Scopes::Province, "is_neighbor", Scope(Scopes::Province)),
@@ -509,7 +505,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::CountryCulture, "has_country_culture_modifier", Item(Item::Modifier)),
     (Scopes::CountryCulture, "has_pop_type_right", Item(Item::PopType)),
     (Scopes::CountryCulture, "integration_progress", CompareValue),
-    (Scopes::CountryCulture, "has_pop_type_right", Item(Item::Culture) | Scope(Scopes::Culture)),
+    (Scopes::CountryCulture, "has_pop_type_right", ScopeOrItem(Scopes::Culture, Item::Culture)),
     (Scopes::CountryCulture, "is_integrated", Boolean),
     // None scope triggers
     (Scopes::all_but_none(), "add_to_temporary_list", Special),
@@ -556,17 +552,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::None,
         "is_target_in_global_variable_list",
-        Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(all_but_none()))]),
+        Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(Scopes::all_but_none()))]),
     ),
     (
         Scopes::None,
         "is_target_in_local_variable_list",
-        Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(all_but_none()))]),
+        Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(Scopes::all_but_none()))]),
     ),
     (
         Scopes::None,
         "is_target_in_variable_list",
-        Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(all_but_none()))]),
+        Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(Scopes::all_but_none()))]),
     ),
     (Scopes::None, "list_size", Block(&[("name", UncheckedValue), ("value", CompareValue)])),
     (
@@ -582,7 +578,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Scopes::None,
         "religion_pops_in_country",
         Block(&[
-            ("target", Scope(Scopes::Religion) | Item(Item::Religion)),
+            ("target", ScopeOrItem(Scopes::Religion, Item::Religion)),
             ("value", CompareValue),
         ]),
     ),
