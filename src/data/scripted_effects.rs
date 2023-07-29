@@ -11,7 +11,7 @@ use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, old_warn, ErrorKey};
-use crate::scopes::{scope_from_snake_case, Scopes};
+use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 
@@ -65,7 +65,7 @@ impl FileHandler<Block> for Effects {
                     scopes = Scopes::all();
                 } else {
                     for part in token.split('|') {
-                        if let Some(scope) = scope_from_snake_case(part.as_str()) {
+                        if let Some(scope) = Scopes::from_snake_case(part.as_str()) {
                             scopes |= scope;
                         } else {
                             let msg = format!("unknown scope type `{part}`");

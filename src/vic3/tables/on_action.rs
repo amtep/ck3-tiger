@@ -5,7 +5,7 @@ use crate::block::BV;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::parse::pdxfile::parse_pdx_internal;
-use crate::scopes::{scope_from_snake_case, Scopes};
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Debug, Clone)]
@@ -331,19 +331,20 @@ fn build_on_action_hashmap(description: &'static str) -> FnvHashMap<String, OnAc
             }
             BV::Block(block) => {
                 let root = block.get_field_value("root").expect("internal error");
-                let root = scope_from_snake_case(root.as_str()).expect("internal error");
+                let root = Scopes::from_snake_case(root.as_str()).expect("internal error");
                 let mut value = OnActionScopeContext { root, names: Vec::new(), lists: Vec::new() };
                 for (key, token) in block.iter_assignments() {
                     if key.is("root") {
                         continue;
                     }
-                    let s = scope_from_snake_case(token.as_str()).expect("internal error");
+                    let s = Scopes::from_snake_case(token.as_str()).expect("internal error");
                     value.names.push((key.to_string(), s));
                 }
                 for (key, block) in block.iter_definitions() {
                     if key.is("list") {
                         for (key, token) in block.iter_assignments() {
-                            let s = scope_from_snake_case(token.as_str()).expect("internal error");
+                            let s =
+                                Scopes::from_snake_case(token.as_str()).expect("internal error");
                             value.lists.push((key.to_string(), s));
                         }
                     }

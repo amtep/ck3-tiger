@@ -17,7 +17,7 @@ use crate::item::Item;
 use crate::pathtable::PathTableIndex;
 use crate::pdxfile::PdxFile;
 use crate::report::{error, error_info, old_warn, warn, warn_info, ErrorKey, Severity};
-use crate::scopes::{scope_from_snake_case, Scopes};
+use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_trigger};
@@ -210,7 +210,7 @@ const WINDOW_TYPES: &[&str] =
 impl Event {
     pub fn new(key: Token, block: Block) -> Self {
         let expects_scope = if let Some(token) = block.get_field_value("scope") {
-            scope_from_snake_case(token.as_str()).unwrap_or(Scopes::non_primitive())
+            Scopes::from_snake_case(token.as_str()).unwrap_or(Scopes::non_primitive())
         } else {
             Scopes::Character
         };
@@ -263,7 +263,7 @@ impl Event {
 
         let mut sc = ScopeContext::new(Scopes::Character, &self.key);
         if let Some(token) = vd.field_value("scope") {
-            if let Some(scope) = scope_from_snake_case(token.as_str()) {
+            if let Some(scope) = Scopes::from_snake_case(token.as_str()) {
                 sc = ScopeContext::new(scope, token);
             } else {
                 old_warn(token, ErrorKey::Scopes, "unknown scope type");

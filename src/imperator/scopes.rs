@@ -1,52 +1,12 @@
 #![allow(non_upper_case_globals)]
 
-use std::fmt::{Display, Formatter};
-
-use bitflags::bitflags;
+use std::fmt::Formatter;
 
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::display_choices;
-use crate::report::{warn_info, ErrorKey};
+use crate::scopes::Scopes;
 use crate::token::Token;
-
-bitflags! {
-    /// LAST UPDATED IR VERSION 2.0.4
-    /// See `event_scopes.log` from the game data dumps.
-    /// Keep in sync with the module constants below.
-    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-    pub struct Scopes: u64 {
-        const None = 0x0000_0001;
-        const Value = 0x0000_0002;
-        const Bool = 0x0000_0004;
-        const Flag = 0x0000_0008;
-        const Color = 0x0000_0010;
-        const Country = 0x0000_0020;
-        const Character = 0x0000_0040;
-        const Province = 0x0000_0080;
-        const Siege = 0x0000_0100;
-        const Unit = 0x0000_0200;
-        const Pop = 0x0000_0400;
-        const Family = 0x0000_0800;
-        const Party = 0x0000_1000;
-        const Religion = 0x0000_2000;
-        const Culture = 0x0000_4000;
-        const Job = 0x0000_8000;
-        const CultureGroup = 0x0001_0000;
-        const CountryCulture = 0x0002_0000;
-        const Area = 0x0004_0000;
-        const State = 0x0008_0000;
-        const SubUnit = 0x0010_0000;
-        const Governorship = 0x0020_0000;
-        const Region = 0x0040_0000;
-        const Deity = 0x0080_0000;
-        const GreatWork = 0x0100_0000;
-        const Treasure = 0x0200_0000;
-        const War = 0x0400_0000;
-        const Legion = 0x0800_0000;
-        const LevyTemplate = 0x1000_0000;
-    }
-}
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
@@ -66,8 +26,8 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "religion" => Scopes::Religion,
         "culture" => Scopes::Culture,
         "job" => Scopes::Job,
-        "culture group" => Scopes::CultureGroup,
-        "country culture" => Scopes::CountryCulture,
+        "culture_group" => Scopes::CultureGroup,
+        "country_culture" => Scopes::CountryCulture,
         "area" => Scopes::Area,
         "state" => Scopes::State,
         "subunit" => Scopes::SubUnit,
@@ -83,154 +43,96 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     })
 }
 
-pub fn scope_to_scope(name: &Token, _inscopes: Scopes) -> Option<(Scopes, Scopes)> {
-    for (from, s, to) in SCOPE_TO_SCOPE {
-        if name.is(s) {
-            return Some((*from, *to));
-        }
+pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+    let mut vec = Vec::new();
+    if s.contains(Scopes::None) {
+        vec.push("none")
     }
-    for (s, version, explanation) in SCOPE_TO_SCOPE_REMOVED {
-        if name.is(s) {
-            let msg = format!("`{name}` was removed in {version}");
-            warn_info(name, ErrorKey::Removed, &msg, explanation);
-            return Some((Scopes::all(), Scopes::all_but_none()));
-        }
+    if s.contains(Scopes::Value) {
+        vec.push("value")
     }
-    None
-}
-
-pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
-    for (from, s, to) in SCOPE_FROM_PREFIX {
-        if *s == prefix {
-            return Some((*from, *to));
-        }
+    if s.contains(Scopes::Bool) {
+        vec.push("bool")
     }
-    None
-}
-
-/// `name` is without the `every_`, `ordered_`, `random_`, or `any_`
-pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes)> {
-    for (from, s, to) in SCOPE_ITERATOR {
-        if name.is(s) {
-            return Some((*from, *to));
-        }
+    if s.contains(Scopes::Flag) {
+        vec.push("flag")
     }
-    for (s, version, explanation) in SCOPE_REMOVED_ITERATOR {
-        if name.is(s) {
-            let msg = format!("`{name}` iterators were removed in {version}");
-            warn_info(name, ErrorKey::Removed, &msg, explanation);
-            return Some((Scopes::all(), Scopes::all()));
-        }
+    if s.contains(Scopes::Color) {
+        vec.push("color")
     }
-    if data.scripted_lists.exists(name.as_str()) {
-        return data.scripted_lists.base(name).and_then(|base| scope_iterator(base, data));
+    if s.contains(Scopes::Country) {
+        vec.push("country")
     }
-    None
-}
-
-impl Display for Scopes {
-    #[allow(clippy::too_many_lines)]
-    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
-        if *self == Scopes::all() {
-            write!(f, "any scope")
-        } else if *self == Scopes::primitive() {
-            write!(f, "any primitive scope")
-        } else if *self == Scopes::non_primitive() {
-            write!(f, "non-primitive scope")
-        } else if *self == Scopes::all_but_none() {
-            write!(f, "any except none scope")
-        } else {
-            let mut vec = Vec::new();
-            if self.contains(Scopes::None) {
-                vec.push("none")
-            }
-            if self.contains(Scopes::Value) {
-                vec.push("value")
-            }
-            if self.contains(Scopes::Bool) {
-                vec.push("bool")
-            }
-            if self.contains(Scopes::Flag) {
-                vec.push("flag")
-            }
-            if self.contains(Scopes::Color) {
-                vec.push("color")
-            }
-            if self.contains(Scopes::Country) {
-                vec.push("country")
-            }
-            if self.contains(Scopes::Character) {
-                vec.push("character")
-            }
-            if self.contains(Scopes::Province) {
-                vec.push("province")
-            }
-            if self.contains(Scopes::Siege) {
-                vec.push("siege")
-            }
-            if self.contains(Scopes::Unit) {
-                vec.push("unit")
-            }
-            if self.contains(Scopes::Pop) {
-                vec.push("pop")
-            }
-            if self.contains(Scopes::Family) {
-                vec.push("family")
-            }
-            if self.contains(Scopes::Party) {
-                vec.push("party")
-            }
-            if self.contains(Scopes::Religion) {
-                vec.push("religion")
-            }
-            if self.contains(Scopes::Culture) {
-                vec.push("culture")
-            }
-            if self.contains(Scopes::Job) {
-                vec.push("job")
-            }
-            if self.contains(Scopes::CultureGroup) {
-                vec.push("culture group")
-            }
-            if self.contains(Scopes::CountryCulture) {
-                vec.push("country culture")
-            }
-            if self.contains(Scopes::Area) {
-                vec.push("area")
-            }
-            if self.contains(Scopes::State) {
-                vec.push("state")
-            }
-            if self.contains(Scopes::SubUnit) {
-                vec.push("subunit")
-            }
-            if self.contains(Scopes::Governorship) {
-                vec.push("governorship")
-            }
-            if self.contains(Scopes::Region) {
-                vec.push("region")
-            }
-            if self.contains(Scopes::Deity) {
-                vec.push("deity")
-            }
-            if self.contains(Scopes::GreatWork) {
-                vec.push("great_work")
-            }
-            if self.contains(Scopes::Treasure) {
-                vec.push("treasure")
-            }
-            if self.contains(Scopes::War) {
-                vec.push("war")
-            }
-            if self.contains(Scopes::Legion) {
-                vec.push("legion")
-            }
-            if self.contains(Scopes::LevyTemplate) {
-                vec.push("levy_template")
-            }
-            display_choices(f, &vec, "or")
-        }
+    if s.contains(Scopes::Character) {
+        vec.push("character")
     }
+    if s.contains(Scopes::Province) {
+        vec.push("province")
+    }
+    if s.contains(Scopes::Siege) {
+        vec.push("siege")
+    }
+    if s.contains(Scopes::Unit) {
+        vec.push("unit")
+    }
+    if s.contains(Scopes::Pop) {
+        vec.push("pop")
+    }
+    if s.contains(Scopes::Family) {
+        vec.push("family")
+    }
+    if s.contains(Scopes::Party) {
+        vec.push("party")
+    }
+    if s.contains(Scopes::Religion) {
+        vec.push("religion")
+    }
+    if s.contains(Scopes::Culture) {
+        vec.push("culture")
+    }
+    if s.contains(Scopes::Job) {
+        vec.push("job")
+    }
+    if s.contains(Scopes::CultureGroup) {
+        vec.push("culture group")
+    }
+    if s.contains(Scopes::CountryCulture) {
+        vec.push("country culture")
+    }
+    if s.contains(Scopes::Area) {
+        vec.push("area")
+    }
+    if s.contains(Scopes::State) {
+        vec.push("state")
+    }
+    if s.contains(Scopes::SubUnit) {
+        vec.push("subunit")
+    }
+    if s.contains(Scopes::Governorship) {
+        vec.push("governorship")
+    }
+    if s.contains(Scopes::Region) {
+        vec.push("region")
+    }
+    if s.contains(Scopes::Deity) {
+        vec.push("deity")
+    }
+    if s.contains(Scopes::GreatWork) {
+        vec.push("great_work")
+    }
+    if s.contains(Scopes::Treasure) {
+        vec.push("treasure")
+    }
+    if s.contains(Scopes::War) {
+        vec.push("war")
+    }
+    if s.contains(Scopes::Legion) {
+        vec.push("legion")
+    }
+    if s.contains(Scopes::LevyTemplate) {
+        vec.push("levy_template")
+    }
+    display_choices(f, &vec, "or")
 }
 
 pub fn validate_prefix_reference(
@@ -249,7 +151,7 @@ pub fn validate_prefix_reference(
 /// LAST UPDATED VERSION 2.0.4
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
-const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
+pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "character_party", Scopes::Party),
     (Scopes::Character, "employer", Scopes::Country),
     (Scopes::Character, "family", Scopes::Family),
@@ -380,7 +282,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
 /// TODO: add the Item type here, so that it can be checked for existence.
 
 // Basically just search the log for "Requires Data: yes" and put all that here.
-const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
+pub const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "array_define", Scopes::Value),
     (Scopes::Country, "fam", Scopes::Family),
     (Scopes::Country, "party", Scopes::Party),
@@ -426,7 +328,7 @@ const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
-const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
+pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::State, "state_province", Scopes::Province),
     (Scopes::Character, "character_treasure", Scopes::Treasure),
     (Scopes::Character, "character_unit", Scopes::Unit),
@@ -500,6 +402,6 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
 
 /// LAST UPDATED VERSION 2.0.4
 /// Every entry represents a every_, ordered_, random_, and any_ version.
-const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[];
+pub const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[];
 
-const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[];
+pub const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[];

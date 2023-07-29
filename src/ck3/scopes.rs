@@ -1,68 +1,13 @@
 #![allow(non_upper_case_globals)]
 
-use std::fmt::{Display, Formatter};
-
-use bitflags::bitflags;
+use std::fmt::Formatter;
 
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::display_choices;
 use crate::item::Item;
-use crate::report::{warn_info, ErrorKey};
+use crate::scopes::Scopes;
 use crate::token::Token;
-
-bitflags! {
-    /// LAST UPDATED CK3 VERSION 1.9.2
-    /// See `event_scopes.log` from the game data dumps.
-    /// Keep in sync with the module constants below.
-    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-    pub struct Scopes: u64 {
-        const None = 0x0000_0001;
-        const Value = 0x0000_0002;
-        const Bool = 0x0000_0004;
-        const Flag = 0x0000_0008;
-        const Character = 0x0000_0010;
-        const LandedTitle = 0x0000_0020;
-        const Activity = 0x0000_0040;
-        const Secret = 0x0000_0080;
-        const Province = 0x0000_0100;
-        const Scheme = 0x0000_0200;
-        const Combat = 0x0000_0400;
-        const CombatSide = 0x0000_0800;
-        const TitleAndVassalChange = 0x0000_1000;
-        const Faith = 0x0000_2000;
-        const GreatHolyWar = 0x0000_4000;
-        const Religion = 0x0000_8000;
-        const War = 0x0001_0000;
-        const StoryCycle = 0x0002_0000;
-        const CasusBelli = 0x0004_0000;
-        const Dynasty = 0x0008_0000;
-        const DynastyHouse = 0x0010_0000;
-        const Faction = 0x0020_0000;
-        const Culture = 0x0040_0000;
-        const Army = 0x0080_0000;
-        const HolyOrder = 0x0100_0000;
-        const CouncilTask = 0x0200_0000;
-        const MercenaryCompany = 0x0400_0000;
-        const Artifact = 0x0800_0000;
-        const Inspiration = 0x1000_0000;
-        const Struggle = 0x2000_0000;
-        const CharacterMemory = 0x4000_0000;
-        const TravelPlan = 0x8000_0000;
-        const Accolade = 0x0000_0001_0000_0000;
-
-        const AccoladeType = 0x0000_0002_0000_0000;
-        const Decision = 0x0000_0004_0000_0000;
-        const Doctrine = 0x0000_0008_0000_0000;
-        const ActivityType = 0x0000_0010_0000_0000;
-        const CultureTradition = 0x0000_0020_0000_0000;
-        const CulturePillar = 0x0000_0040_0000_0000;
-        const GovernmentType = 0x0000_0080_0000_0000;
-        const Trait = 0x0000_0100_0000_0000;
-        const VassalContract = 0x0000_0200_0000_0000;
-        const VassalObligationLevel = 0x0000_0400_0000_0000;
-    }
-}
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
@@ -113,196 +58,138 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     })
 }
 
-pub fn scope_to_scope(name: &Token, _inscopes: Scopes) -> Option<(Scopes, Scopes)> {
-    for (from, s, to) in SCOPE_TO_SCOPE {
-        if name.is(s) {
-            return Some((*from, *to));
-        }
+pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+    let mut vec = Vec::new();
+    if s.contains(Scopes::None) {
+        vec.push("none");
     }
-    for (s, version, explanation) in SCOPE_TO_SCOPE_REMOVED {
-        if name.is(s) {
-            let msg = format!("`{name}` was removed in {version}");
-            warn_info(name, ErrorKey::Removed, &msg, explanation);
-            return Some((Scopes::all(), Scopes::all_but_none()));
-        }
+    if s.contains(Scopes::Value) {
+        vec.push("value");
     }
-    std::option::Option::None
-}
-
-pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
-    for (from, s, to) in SCOPE_FROM_PREFIX {
-        if *s == prefix {
-            return Some((*from, *to));
-        }
+    if s.contains(Scopes::Bool) {
+        vec.push("bool");
     }
-    std::option::Option::None
-}
-
-/// `name` is without the `every_`, `ordered_`, `random_`, or `any_`
-pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes)> {
-    for (from, s, to) in SCOPE_ITERATOR {
-        if name.is(s) {
-            return Some((*from, *to));
-        }
+    if s.contains(Scopes::Flag) {
+        vec.push("flag");
     }
-    for (s, version, explanation) in SCOPE_REMOVED_ITERATOR {
-        if name.is(s) {
-            let msg = format!("`{name}` iterators were removed in {version}");
-            warn_info(name, ErrorKey::Removed, &msg, explanation);
-            return Some((Scopes::all(), Scopes::all()));
-        }
+    if s.contains(Scopes::Character) {
+        vec.push("character");
     }
-    if data.scripted_lists.exists(name.as_str()) {
-        return data.scripted_lists.base(name).and_then(|base| scope_iterator(base, data));
+    if s.contains(Scopes::LandedTitle) {
+        vec.push("landed title");
     }
-    std::option::Option::None
-}
-
-impl Display for Scopes {
-    #[allow(clippy::too_many_lines)]
-    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
-        if *self == Scopes::all() {
-            write!(f, "any scope")
-        } else if *self == Scopes::primitive() {
-            write!(f, "any primitive scope")
-        } else if *self == Scopes::non_primitive() {
-            write!(f, "non-primitive scope")
-        } else if *self == Scopes::all_but_none() {
-            write!(f, "any except none scope")
-        } else {
-            let mut vec = Vec::new();
-            if self.contains(Scopes::None) {
-                vec.push("none");
-            }
-            if self.contains(Scopes::Value) {
-                vec.push("value");
-            }
-            if self.contains(Scopes::Bool) {
-                vec.push("bool");
-            }
-            if self.contains(Scopes::Flag) {
-                vec.push("flag");
-            }
-            if self.contains(Scopes::Character) {
-                vec.push("character");
-            }
-            if self.contains(Scopes::LandedTitle) {
-                vec.push("landed title");
-            }
-            if self.contains(Scopes::Activity) {
-                vec.push("activity");
-            }
-            if self.contains(Scopes::Secret) {
-                vec.push("secret");
-            }
-            if self.contains(Scopes::Province) {
-                vec.push("province");
-            }
-            if self.contains(Scopes::Scheme) {
-                vec.push("scheme");
-            }
-            if self.contains(Scopes::Combat) {
-                vec.push("combat");
-            }
-            if self.contains(Scopes::CombatSide) {
-                vec.push("combat side");
-            }
-            if self.contains(Scopes::TitleAndVassalChange) {
-                vec.push("title and vassal change");
-            }
-            if self.contains(Scopes::Faith) {
-                vec.push("faith");
-            }
-            if self.contains(Scopes::GreatHolyWar) {
-                vec.push("great holy war");
-            }
-            if self.contains(Scopes::Religion) {
-                vec.push("religion");
-            }
-            if self.contains(Scopes::War) {
-                vec.push("war");
-            }
-            if self.contains(Scopes::StoryCycle) {
-                vec.push("story cycle");
-            }
-            if self.contains(Scopes::CasusBelli) {
-                vec.push("casus belli");
-            }
-            if self.contains(Scopes::Dynasty) {
-                vec.push("dynasty");
-            }
-            if self.contains(Scopes::DynastyHouse) {
-                vec.push("dynasty house");
-            }
-            if self.contains(Scopes::Faction) {
-                vec.push("faction");
-            }
-            if self.contains(Scopes::Culture) {
-                vec.push("culture");
-            }
-            if self.contains(Scopes::Army) {
-                vec.push("army");
-            }
-            if self.contains(Scopes::HolyOrder) {
-                vec.push("holy order");
-            }
-            if self.contains(Scopes::CouncilTask) {
-                vec.push("council task");
-            }
-            if self.contains(Scopes::MercenaryCompany) {
-                vec.push("mercenary company");
-            }
-            if self.contains(Scopes::Artifact) {
-                vec.push("artifact");
-            }
-            if self.contains(Scopes::Inspiration) {
-                vec.push("inspiration");
-            }
-            if self.contains(Scopes::Struggle) {
-                vec.push("struggle");
-            }
-            if self.contains(Scopes::CharacterMemory) {
-                vec.push("character memory");
-            }
-            if self.contains(Scopes::TravelPlan) {
-                vec.push("travel plan");
-            }
-            if self.contains(Scopes::Accolade) {
-                vec.push("accolade");
-            }
-            if self.contains(Scopes::AccoladeType) {
-                vec.push("accolade type");
-            }
-            if self.contains(Scopes::Decision) {
-                vec.push("decision");
-            }
-            if self.contains(Scopes::Doctrine) {
-                vec.push("doctrine");
-            }
-            if self.contains(Scopes::ActivityType) {
-                vec.push("activity type");
-            }
-            if self.contains(Scopes::CultureTradition) {
-                vec.push("culture tradition");
-            }
-            if self.contains(Scopes::CulturePillar) {
-                vec.push("culture pillar");
-            }
-            if self.contains(Scopes::GovernmentType) {
-                vec.push("government type");
-            }
-            if self.contains(Scopes::Trait) {
-                vec.push("trait");
-            }
-            if self.contains(Scopes::VassalContract) {
-                vec.push("vassal contract");
-            }
-            if self.contains(Scopes::VassalObligationLevel) {
-                vec.push("vassal obligation level");
-            }
-            display_choices(f, &vec, "or")
-        }
+    if s.contains(Scopes::Activity) {
+        vec.push("activity");
     }
+    if s.contains(Scopes::Secret) {
+        vec.push("secret");
+    }
+    if s.contains(Scopes::Province) {
+        vec.push("province");
+    }
+    if s.contains(Scopes::Scheme) {
+        vec.push("scheme");
+    }
+    if s.contains(Scopes::Combat) {
+        vec.push("combat");
+    }
+    if s.contains(Scopes::CombatSide) {
+        vec.push("combat side");
+    }
+    if s.contains(Scopes::TitleAndVassalChange) {
+        vec.push("title and vassal change");
+    }
+    if s.contains(Scopes::Faith) {
+        vec.push("faith");
+    }
+    if s.contains(Scopes::GreatHolyWar) {
+        vec.push("great holy war");
+    }
+    if s.contains(Scopes::Religion) {
+        vec.push("religion");
+    }
+    if s.contains(Scopes::War) {
+        vec.push("war");
+    }
+    if s.contains(Scopes::StoryCycle) {
+        vec.push("story cycle");
+    }
+    if s.contains(Scopes::CasusBelli) {
+        vec.push("casus belli");
+    }
+    if s.contains(Scopes::Dynasty) {
+        vec.push("dynasty");
+    }
+    if s.contains(Scopes::DynastyHouse) {
+        vec.push("dynasty house");
+    }
+    if s.contains(Scopes::Faction) {
+        vec.push("faction");
+    }
+    if s.contains(Scopes::Culture) {
+        vec.push("culture");
+    }
+    if s.contains(Scopes::Army) {
+        vec.push("army");
+    }
+    if s.contains(Scopes::HolyOrder) {
+        vec.push("holy order");
+    }
+    if s.contains(Scopes::CouncilTask) {
+        vec.push("council task");
+    }
+    if s.contains(Scopes::MercenaryCompany) {
+        vec.push("mercenary company");
+    }
+    if s.contains(Scopes::Artifact) {
+        vec.push("artifact");
+    }
+    if s.contains(Scopes::Inspiration) {
+        vec.push("inspiration");
+    }
+    if s.contains(Scopes::Struggle) {
+        vec.push("struggle");
+    }
+    if s.contains(Scopes::CharacterMemory) {
+        vec.push("character memory");
+    }
+    if s.contains(Scopes::TravelPlan) {
+        vec.push("travel plan");
+    }
+    if s.contains(Scopes::Accolade) {
+        vec.push("accolade");
+    }
+    if s.contains(Scopes::AccoladeType) {
+        vec.push("accolade type");
+    }
+    if s.contains(Scopes::Decision) {
+        vec.push("decision");
+    }
+    if s.contains(Scopes::Doctrine) {
+        vec.push("doctrine");
+    }
+    if s.contains(Scopes::ActivityType) {
+        vec.push("activity type");
+    }
+    if s.contains(Scopes::CultureTradition) {
+        vec.push("culture tradition");
+    }
+    if s.contains(Scopes::CulturePillar) {
+        vec.push("culture pillar");
+    }
+    if s.contains(Scopes::GovernmentType) {
+        vec.push("government type");
+    }
+    if s.contains(Scopes::Trait) {
+        vec.push("trait");
+    }
+    if s.contains(Scopes::VassalContract) {
+        vec.push("vassal contract");
+    }
+    if s.contains(Scopes::VassalObligationLevel) {
+        vec.push("vassal obligation level");
+    }
+    display_choices(f, &vec, "or")
 }
 
 pub fn validate_prefix_reference(
@@ -347,7 +234,7 @@ pub fn validate_prefix_reference(
 /// LAST UPDATED VERSION 1.9.2
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
-const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
+pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Accolade, "acclaimed_knight", Scopes::Character),
     (Scopes::Character, "accolade", Scopes::Accolade),
     (Scopes::Accolade, "accolade_owner", Scopes::Character),
@@ -528,7 +415,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
 /// TODO: add the Item type here, so that it can be checked for existence.
-const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
+pub const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "accolade_type", Scopes::AccoladeType),
     (Scopes::None, "activity_type", Scopes::ActivityType),
     (Scopes::Character, "aptitude", Scopes::Value),
@@ -567,20 +454,11 @@ const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "vassal_contract_obligation_level", Scopes::Value),
 ];
 
-// Special:
-// <lifestyle>_perk_points
-// <lifestyle>_perks
-// <lifestyle>_unlockable_perks
-// <lifestyle>_xp
-//
-// TODO Special:
-// <legacy>_track_perks
-
 /// LAST UPDATED VERSION 1.9.2
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
-const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
+pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "acclaimed_knight", Scopes::Character),
     (Scopes::Character, "accolade", Scopes::Accolade),
     (Scopes::None, "accolade_type", Scopes::AccoladeType),
@@ -844,13 +722,13 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
 
 /// LAST UPDATED VERSION 1.9.2
 /// Every entry represents a every_, ordered_, random_, and any_ version.
-const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
+pub const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
     ("activity_declined", "1.9", ""),
     ("activity_invited", "1.9", ""),
     ("participant", "1.9", ""),
 ];
 
-const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
+pub const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
     ("activity", "1.9", ""),
     ("activity_owner", "1.9", "replaced by `activity_host`"),
     ("activity_province", "1.9", "replaced by `activity_location`"),

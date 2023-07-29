@@ -6,7 +6,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{old_warn, ErrorKey};
-use crate::scopes::{scope_from_snake_case, Scopes};
+use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
@@ -25,7 +25,7 @@ impl DbKind for ScriptedGui {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::None, key);
         if let Some(token) = vd.field_value("scope") {
-            if let Some(scope) = scope_from_snake_case(token.as_str()) {
+            if let Some(scope) = Scopes::from_snake_case(token.as_str()) {
                 sc = ScopeContext::new(scope, token);
             } else {
                 old_warn(token, ErrorKey::Scopes, "unknown scope type");
