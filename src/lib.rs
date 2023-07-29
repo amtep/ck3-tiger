@@ -34,10 +34,10 @@ pub mod report;
 
 #[cfg(feature = "ck3")]
 mod ck3;
-#[cfg(feature = "vic3")]
-mod vic3;
 #[cfg(feature = "imperator")]
 mod imperator;
+#[cfg(feature = "vic3")]
+mod vic3;
 
 mod block;
 mod config_load;

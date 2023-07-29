@@ -974,58 +974,21 @@ fn scope_type_from_name(mut name: &str) -> Option<Scopes> {
 
     #[cfg(feature = "imperator")]
     match name {
-        "party"
-        | "character_party" => return Some(Scopes::Party),
-        "employer"
-        | "party_country"
-        | "country"
-        | "actor"
-        | "overlord"
-        | "unit_owner"
-        | "owner"
-        | "attacker_warleader"
-        | "defender_warleader"
-        | "former_overlord"
-        | "target_subject"
-        | "future_overlord"
-        | "old_country"
-        | "controller"
-        | "owner"
-        | "family_country"
-        | "losing_side"
-        | "home_country" => return Some(Scopes::Country),
-        "fam"
-        | "family" => return Some(Scopes::Family),
-        "preferred_heir"
-        | "deified_ruler"
-        | "personal_loyalty"
-        | "character"
-        | "siege_controller"
-        | "party_leader"
-        | "next_in_family"
-        | "ruler"
-        | "governor"
-        | "governor_or_ruler"
-        | "commander"
-        | "former_ruler"
-        | "newborn"
-        | "spouse"
-        | "job_holder"
-        | "consort"
-        | "current_heir"
-        | "current_ruler"
-        | "primary_heir"
-        | "secondary_heir"
-        | "current_co_ruler"
-        | "head_of_family"
-        | "holding_owner"
-        | "char"
-        | "mother"
-        | "father" => return Some(Scopes::Character),
+        "party" | "character_party" => return Some(Scopes::Party),
+        "employer" | "party_country" | "country" | "actor" | "overlord" | "unit_owner"
+        | "owner" | "attacker_warleader" | "defender_warleader" | "former_overlord"
+        | "target_subject" | "future_overlord" | "old_country" | "controller" | "owner"
+        | "family_country" | "losing_side" | "home_country" => return Some(Scopes::Country),
+        "fam" | "family" => return Some(Scopes::Family),
+        "preferred_heir" | "deified_ruler" | "personal_loyalty" | "character"
+        | "siege_controller" | "party_leader" | "next_in_family" | "ruler" | "governor"
+        | "governor_or_ruler" | "commander" | "former_ruler" | "newborn" | "spouse"
+        | "job_holder" | "consort" | "current_heir" | "current_ruler" | "primary_heir"
+        | "secondary_heir" | "current_co_ruler" | "head_of_family" | "holding_owner" | "char"
+        | "mother" | "father" => return Some(Scopes::Character),
         "job" => return Some(Scopes::Job),
         "legion" => return Some(Scopes::Legion),
-        "dominant_province_religion"
-        | "religion" => return Some(Scopes::Religion),
+        "dominant_province_religion" | "religion" => return Some(Scopes::Religion),
         "area" => return Some(Scopes::Area),
         "region" => return Some(Scopes::Region),
         "governorship" => return Some(Scopes::Governorship),
@@ -1037,13 +1000,10 @@ fn scope_type_from_name(mut name: &str) -> Option<Scopes> {
         | "unit_next_location"
         | "capital_scope"
         | "holy_site" => return Some(Scopes::Province),
-        "dominant_province_culture_group"
-        | "culture_group" => return Some(Scopes::CultureGroup),
-        "dominant_province_culture"
-        | "culture" => return Some(Scopes::Culture),
+        "dominant_province_culture_group" | "culture_group" => return Some(Scopes::CultureGroup),
+        "dominant_province_culture" | "culture" => return Some(Scopes::Culture),
         "owning_unit" => return Some(Scopes::Unit),
-        "deity"
-        | "province_deity" => return Some(Scopes::Deity),
+        "deity" | "province_deity" => return Some(Scopes::Deity),
         "state" => return Some(Scopes::State),
         "treasure" => return Some(Scopes::Treasure),
         "siege" => return Some(Scopes::Siege),

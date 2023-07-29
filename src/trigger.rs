@@ -16,6 +16,8 @@ use crate::everything::{APPROVALS, LEVELS};
 use crate::helpers::stringify_choices;
 #[cfg(feature = "vic3")]
 use crate::helpers::stringify_list;
+#[cfg(feature = "imperator")]
+use crate::imperator::tables::triggers::scope_trigger;
 use crate::item::Item;
 use crate::report::{
     advice_info, err, error, fatal, old_warn, warn2, warn_info, ErrorKey, Severity,
@@ -32,8 +34,6 @@ use crate::validate::{
 };
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::triggers::scope_trigger;
-#[cfg(feature = "imperator")]
-use crate::imperator::tables::triggers::scope_trigger;
 
 /// The standard interface to trigger validation. Validates a trigger in the given [`ScopeContext`].
 ///

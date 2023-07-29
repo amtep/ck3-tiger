@@ -3,7 +3,7 @@
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::ModifKinds;
-use crate::report::{err, ErrorKey, warn_info};
+use crate::report::{err, warn_info, ErrorKey};
 use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
@@ -78,7 +78,14 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // $Unit$_defensive
     // $Unit$_maintenance_cost
     // $Unit$_movement_speed
-    for sfx in &["_discipline", "_morale", "_offensive", "_defensive", "_maintenance_cost", "_movement_speed"] {
+    for sfx in &[
+        "_discipline",
+        "_morale",
+        "_offensive",
+        "_defensive",
+        "_maintenance_cost",
+        "_movement_speed",
+    ] {
         if let Some(part) = name.as_str().strip_suffix(sfx) {
             if warn {
                 data.verify_exists_implied(Item::Unit, part, name);
@@ -90,10 +97,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
     // $Terrain$_combat_bonus
     // $Unit$_$Terrain$_combat_bonus
     if let Some(part) = name.as_str().strip_suffix("_combat_bonus") {
-        if warn
-            && !data.item_exists(Item::Terrain, part)
-            && !data.item_exists(Item::Unit, s)
-        {
+        if warn && !data.item_exists(Item::Terrain, part) && !data.item_exists(Item::Unit, s) {
             let msg = format!("could not find any {part}");
             let info = "Could be: $Terrain$_combat_bonus or $Unit$_$Terrain$_combat_bonus";
             warn_info(name, ErrorKey::MissingItem, &msg, info);
@@ -108,7 +112,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: bool) -> Option<Modif
         }
         return Some(ModifKinds::Country);
     }
-    
+
     // $TechnologyTable$_investment
     if let Some(part) = name.as_str().strip_suffix("_investment") {
         if warn {

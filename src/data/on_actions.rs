@@ -10,6 +10,8 @@ use crate::context::ScopeContext;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+#[cfg(feature = "imperator")]
+use crate::imperator::tables::on_action::on_action_scopecontext;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 #[cfg(feature = "ck3")]
@@ -21,8 +23,6 @@ use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_modifiers_with_base};
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::on_action::on_action_scopecontext;
-#[cfg(feature = "imperator")]
-use crate::imperator::tables::on_action::on_action_scopecontext;
 
 #[derive(Clone, Debug, Default)]
 pub struct OnActions {

@@ -142,91 +142,91 @@ impl Display for Scopes {
         } else {
             let mut vec = Vec::new();
             if self.contains(Scopes::None) {
-                vec.push("none")    
+                vec.push("none")
             }
             if self.contains(Scopes::Value) {
-                vec.push("value")    
+                vec.push("value")
             }
             if self.contains(Scopes::Bool) {
-                vec.push("bool")    
+                vec.push("bool")
             }
             if self.contains(Scopes::Flag) {
-                vec.push("flag")    
+                vec.push("flag")
             }
             if self.contains(Scopes::Color) {
-                vec.push("color")    
+                vec.push("color")
             }
             if self.contains(Scopes::Country) {
-                vec.push("country")    
+                vec.push("country")
             }
             if self.contains(Scopes::Character) {
-                vec.push("character")    
+                vec.push("character")
             }
             if self.contains(Scopes::Province) {
-                vec.push("province")    
+                vec.push("province")
             }
             if self.contains(Scopes::Siege) {
-                vec.push("siege")    
+                vec.push("siege")
             }
             if self.contains(Scopes::Unit) {
-                vec.push("unit")    
+                vec.push("unit")
             }
             if self.contains(Scopes::Pop) {
-                vec.push("pop")    
+                vec.push("pop")
             }
             if self.contains(Scopes::Family) {
-                vec.push("family")    
+                vec.push("family")
             }
             if self.contains(Scopes::Party) {
-                vec.push("party")    
+                vec.push("party")
             }
             if self.contains(Scopes::Religion) {
-                vec.push("religion")    
+                vec.push("religion")
             }
             if self.contains(Scopes::Culture) {
-                vec.push("culture")    
+                vec.push("culture")
             }
             if self.contains(Scopes::Job) {
-                vec.push("job")    
+                vec.push("job")
             }
             if self.contains(Scopes::CultureGroup) {
-                vec.push("culture group")    
+                vec.push("culture group")
             }
             if self.contains(Scopes::CountryCulture) {
-                vec.push("country culture")    
+                vec.push("country culture")
             }
             if self.contains(Scopes::Area) {
-                vec.push("area")    
+                vec.push("area")
             }
             if self.contains(Scopes::State) {
-                vec.push("state")    
+                vec.push("state")
             }
             if self.contains(Scopes::SubUnit) {
-                vec.push("subunit")    
+                vec.push("subunit")
             }
             if self.contains(Scopes::Governorship) {
-                vec.push("governorship")    
+                vec.push("governorship")
             }
             if self.contains(Scopes::Region) {
-                vec.push("region")    
+                vec.push("region")
             }
             if self.contains(Scopes::Deity) {
-                vec.push("deity")    
+                vec.push("deity")
             }
             if self.contains(Scopes::GreatWork) {
-                vec.push("great_work")    
+                vec.push("great_work")
             }
             if self.contains(Scopes::Treasure) {
-                vec.push("treasure")    
+                vec.push("treasure")
             }
             if self.contains(Scopes::War) {
-                vec.push("war")    
+                vec.push("war")
             }
             if self.contains(Scopes::Legion) {
-                vec.push("legion")    
+                vec.push("legion")
             }
             if self.contains(Scopes::LevyTemplate) {
-                vec.push("levy_template")    
+                vec.push("levy_template")
             }
             display_choices(f, &vec, "or")
         }
@@ -261,7 +261,11 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "preferred_heir", Scopes::Character),
     (Scopes::Character, "ruler", Scopes::Character),
     (Scopes::Character, "spouse", Scopes::Character),
-    (Scopes::Treasure, "treasure_owner", Scopes::Country.union(Scopes::Character).union(Scopes::Province)),
+    (
+        Scopes::Treasure,
+        "treasure_owner",
+        Scopes::Country.union(Scopes::Character).union(Scopes::Province),
+    ),
     (Scopes::Country, "color1", Scopes::Color),
     (Scopes::Country, "color2", Scopes::Color),
     (Scopes::Country, "color3", Scopes::Color),
@@ -276,14 +280,26 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "secondary_heir", Scopes::Character),
     (Scopes::Character.union(Scopes::Pop).union(Scopes::Job), "country", Scopes::Country),
     (Scopes::Character.union(Scopes::Unit).union(Scopes::Governorship), "legion", Scopes::Legion),
-    (Scopes::Country.union(Scopes::Character).union(Scopes::Province).union(Scopes::Pop).union(Scopes::Deity), "religion", Scopes::Religion),
+    (
+        Scopes::Country
+            .union(Scopes::Character)
+            .union(Scopes::Province)
+            .union(Scopes::Pop)
+            .union(Scopes::Deity),
+        "religion",
+        Scopes::Religion,
+    ),
     (Scopes::Party, "party_country", Scopes::Country),
     (Scopes::Party, "party_leader", Scopes::Character),
     (Scopes::Country.union(Scopes::Religion).union(Scopes::CultureGroup), "color", Scopes::Color),
     (Scopes::Siege, "siege_controller", Scopes::Country),
     (Scopes::Province.union(Scopes::State), "area", Scopes::Area),
     (Scopes::Province.union(Scopes::State), "governorship", Scopes::Governorship),
-    (Scopes::Country.union(Scopes::Province).union(Scopes::Pop), "country_culture", Scopes::CountryCulture),
+    (
+        Scopes::Country.union(Scopes::Province).union(Scopes::Pop),
+        "country_culture",
+        Scopes::CountryCulture,
+    ),
     (Scopes::Deity, "deified_ruler", Scopes::Character),
     (Scopes::Deity, "holy_site", Scopes::Province),
     (Scopes::Character.union(Scopes::Siege).union(Scopes::Pop), "location", Scopes::Province),
@@ -300,16 +316,44 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Unit, "unit_next_location", Scopes::Province),
     (Scopes::Unit, "unit_objective_destination", Scopes::Province),
     (Scopes::Unit, "unit_owner", Scopes::Country),
-    (Scopes::Country.union(Scopes::Character).union(Scopes::Province).union(Scopes::Pop).union(Scopes::Culture), "culture_group", Scopes::CultureGroup),
+    (
+        Scopes::Country
+            .union(Scopes::Character)
+            .union(Scopes::Province)
+            .union(Scopes::Pop)
+            .union(Scopes::Culture),
+        "culture_group",
+        Scopes::CultureGroup,
+    ),
     (Scopes::SubUnit, "owning_unit", Scopes::Unit),
     (Scopes::SubUnit, "personal_loyalty", Scopes::Character),
     (Scopes::Job, "character", Scopes::Character),
-    (Scopes::Province.union(Scopes::State).union(Scopes::Governorship).union(Scopes::Legion), "owner", Scopes::Country),
+    (
+        Scopes::Province.union(Scopes::State).union(Scopes::Governorship).union(Scopes::Legion),
+        "owner",
+        Scopes::Country,
+    ),
     (Scopes::Family, "family_country", Scopes::Country),
     (Scopes::Family, "head_of_family", Scopes::Country),
-    (Scopes::Country.union(Scopes::Character).union(Scopes::Province).union(Scopes::Pop).union(Scopes::CountryCulture), "culture", Scopes::Culture),
-    (Scopes::Province.union(Scopes::State).union(Scopes::Governorship), "governor", Scopes::Character),
-    (Scopes::Province.union(Scopes::State).union(Scopes::Governorship), "governor_or_ruler", Scopes::Character),
+    (
+        Scopes::Country
+            .union(Scopes::Character)
+            .union(Scopes::Province)
+            .union(Scopes::Pop)
+            .union(Scopes::CountryCulture),
+        "culture",
+        Scopes::Culture,
+    ),
+    (
+        Scopes::Province.union(Scopes::State).union(Scopes::Governorship),
+        "governor",
+        Scopes::Character,
+    ),
+    (
+        Scopes::Province.union(Scopes::State).union(Scopes::Governorship),
+        "governor_or_ruler",
+        Scopes::Character,
+    ),
     (Scopes::War, "attacker_warleader", Scopes::Country),
     (Scopes::War, "defender_warleader", Scopes::Country),
     (Scopes::Province, "controller", Scopes::Country),
@@ -320,7 +364,11 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Province, "province_deity", Scopes::Deity),
     (Scopes::Province, "state", Scopes::State),
     (Scopes::Province.union(Scopes::Unit), "siege", Scopes::Siege),
-    (Scopes::Country.union(Scopes::State).union(Scopes::Governorship), "capital_scope", Scopes::Province),
+    (
+        Scopes::Country.union(Scopes::State).union(Scopes::Governorship),
+        "capital_scope",
+        Scopes::Province,
+    ),
     (Scopes::None, "yes", Scopes::Bool),
     (Scopes::None, "no", Scopes::Bool),
 ];
@@ -336,8 +384,16 @@ const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "array_define", Scopes::Value),
     (Scopes::Country, "fam", Scopes::Family),
     (Scopes::Country, "party", Scopes::Party),
-    (Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship), "job", Scopes::Job),
-    (Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship), "job_holder", Scopes::Job),
+    (
+        Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship),
+        "job",
+        Scopes::Job,
+    ),
+    (
+        Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship),
+        "job_holder",
+        Scopes::Job,
+    ),
     (Scopes::Treasure, "treasure", Scopes::Treasure),
     (Scopes::None, "character", Scopes::Character),
     (Scopes::None, "region", Scopes::Region),
@@ -444,10 +500,6 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
 
 /// LAST UPDATED VERSION 2.0.4
 /// Every entry represents a every_, ordered_, random_, and any_ version.
-const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
+const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[];
 
-];
-
-const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
-
-];
+const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[];

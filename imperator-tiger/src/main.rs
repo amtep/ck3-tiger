@@ -71,7 +71,9 @@ fn main() -> Result<()> {
             if sig.is_file() {
                 eprintln!("Ok.");
             } else {
-                bail!("Cannot find Imperator directory. Please supply it as the --imperator option.");
+                bail!(
+                    "Cannot find Imperator directory. Please supply it as the --imperator option."
+                );
             }
         }
     } else {

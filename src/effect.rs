@@ -6,6 +6,8 @@ use crate::context::{Reason, ScopeContext};
 use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
+#[cfg(feature = "imperator")]
+use crate::imperator::tables::effects::scope_effect;
 use crate::item::Item;
 use crate::report::{advice_info, err, error, fatal, old_warn, warn_info, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
@@ -15,6 +17,8 @@ use crate::tooltipped::Tooltipped;
 #[cfg(feature = "ck3")]
 use crate::trigger::validate_target_ok_this;
 use crate::trigger::{validate_target, validate_trigger};
+#[cfg(feature = "imperator")]
+use crate::validate::validate_imperator_modifiers;
 #[cfg(feature = "ck3")]
 use crate::validate::validate_optional_duration;
 #[cfg(feature = "vic3")]
@@ -27,10 +31,6 @@ use crate::validate::{
 use crate::validate::{validate_compare_duration, validate_modifiers};
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::effects::scope_effect;
-#[cfg(feature = "imperator")]
-use crate::imperator::tables::effects::scope_effect;
-#[cfg(feature = "imperator")]
-use crate::validate::validate_imperator_modifiers;
 
 /// The standard interface to effect validation. Validates an effect in the given [`ScopeContext`].
 ///

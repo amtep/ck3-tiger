@@ -4,8 +4,8 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::validate::validate_color;
 use crate::token::Token;
+use crate::validate::validate_color;
 
 #[derive(Clone, Debug)]
 pub struct TradeGood {}

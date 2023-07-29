@@ -3,10 +3,10 @@ use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::{warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::Trigger;
-use crate::report::{ErrorKey, warn_info};
 
 use Trigger::*;
 
@@ -30,10 +30,7 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
         return Some((Scopes::Province, Trigger::CompareValue));
     }
     if let Some(part) = name.as_str().strip_prefix("num_of_") {
-        if warn
-            && !data.item_exists(Item::Building, part)
-            && !data.item_exists(Item::PopType, s)
-        {
+        if warn && !data.item_exists(Item::Building, part) && !data.item_exists(Item::PopType, s) {
             let msg = format!("could not find any {part}");
             let info = "Possible valid options would be: num_of_$POPTYPE$ or num_of_$BUILDING$";
             warn_info(name, ErrorKey::MissingItem, &msg, info);
@@ -75,9 +72,21 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::State, "state_commerce_income", CompareValue),
     (Scopes::State, "state_level_loyalty", CompareValue),
     (Scopes::State, "state_monthly_food_income", CompareValue),
-    (Scopes::State, "trade_good_exports", Block(&[("target", Item(Item::TradeGood)), ("value", CompareValue)])),
-    (Scopes::State, "trade_good_imports", Block(&[("target", Item(Item::TradeGood)), ("value", CompareValue)])),
-    (Scopes::State, "trade_good_surplus", Block(&[("target", Item(Item::TradeGood)), ("value", CompareValue)])),
+    (
+        Scopes::State,
+        "trade_good_exports",
+        Block(&[("target", Item(Item::TradeGood)), ("value", CompareValue)]),
+    ),
+    (
+        Scopes::State,
+        "trade_good_imports",
+        Block(&[("target", Item(Item::TradeGood)), ("value", CompareValue)]),
+    ),
+    (
+        Scopes::State,
+        "trade_good_surplus",
+        Block(&[("target", Item(Item::TradeGood)), ("value", CompareValue)]),
+    ),
     (Scopes::State, "trade_routes", CompareValue),
     (Scopes::State, "unused_trade_routes", CompareValue),
     // Unit Triggers
@@ -221,7 +230,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Pop, "pop_religion", Scope(Scopes::Religion) | Item(Item::CultureGroup)),
     (Scopes::Pop, "pop_type", Item(Item::PopType)),
     // Country Triggers
-    (Scopes::Country.union(Scopes::Character).union(Scopes::Province), "treasure_count", CompareValue),
+    (
+        Scopes::Country.union(Scopes::Character).union(Scopes::Province),
+        "treasure_count",
+        CompareValue,
+    ),
     (Scopes::Country, "alliance_with", Scope(Scopes::Country)),
     (Scopes::Country, "biggest_party", Scope(Scopes::Party) | Item(Item::PartyType)),
     (Scopes::Country, "alliance_with", Scope(Scopes::Country)),
@@ -232,8 +245,16 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "civil_war_with", Scope(Scopes::Country)),
     (Scopes::Country, "country_culture_group", Item(Item::CultureGroup)),
     (Scopes::Country, "country_population", CompareValue),
-    (Scopes::Country, "country_trade_good_exports", Block(&[("target", Item(Item::TradeGood)), ("value", CompareValue)])),
-    (Scopes::Country, "country_trade_good_imports", Block(&[("target", Item(Item::TradeGood)), ("value", CompareValue)])),
+    (
+        Scopes::Country,
+        "country_trade_good_exports",
+        Block(&[("target", Item(Item::TradeGood)), ("value", CompareValue)]),
+    ),
+    (
+        Scopes::Country,
+        "country_trade_good_imports",
+        Block(&[("target", Item(Item::TradeGood)), ("value", CompareValue)]),
+    ),
     (Scopes::Country, "cultural_unity", CompareValue),
     (Scopes::Country, "days_since_last_war", CompareValue),
     (Scopes::Country, "diplomatic_stance", Item(Item::DiplomaticStance)),
@@ -261,7 +282,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "has_military_bonus", Item(Item::MilitaryTradition)),
     (Scopes::Country, "has_monthly_balance", CompareValue),
     (Scopes::Country, "has_monthly_income", CompareValue),
-    (Scopes::Country, "has_opinion", Block(&[("modifier", Item(Item::Opinion)), ("target", Scope(Scopes::Country))])),
+    (
+        Scopes::Country,
+        "has_opinion",
+        Block(&[("modifier", Item(Item::Opinion)), ("target", Scope(Scopes::Country))]),
+    ),
     (Scopes::Country, "has_party_type", Item(Item::PartyType)),
     (Scopes::Country, "has_primary_heir", Boolean),
     (Scopes::Country, "has_senate_approval", CompareValue),
@@ -312,9 +337,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "num_of_provinces", CompareValue),
     (Scopes::Country, "num_of_religious_ideas", CompareValue),
     (Scopes::Country, "num_of_ships", CompareValue),
-    (Scopes::Country, "num_of_unit_type", Block(&[("type", Item(Item::Unit)), ("value", CompareValue)])),
+    (
+        Scopes::Country,
+        "num_of_unit_type",
+        Block(&[("type", Item(Item::Unit)), ("value", CompareValue)]),
+    ),
     (Scopes::Country, "office_is_empty", Boolean),
-    (Scopes::Country, "opinion", Block(&[("type", Scope(Scopes::Country)), ("value", CompareValue)])),
+    (
+        Scopes::Country,
+        "opinion",
+        Block(&[("type", Scope(Scopes::Country)), ("value", CompareValue)]),
+    ),
     (Scopes::Country, "owns", Scope(Scopes::Province) | CompareValue),
     (Scopes::Country, "owns_area", Scope(Scopes::Area) | Item(Item::Area)),
     (Scopes::Country, "owns_or_subject_owns", Scope(Scopes::Province) | CompareValue),
@@ -339,7 +372,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "tyranny", CompareValue),
     (Scopes::Country, "war", Boolean),
     (Scopes::Country, "war_with", Scope(Scopes::Country)),
-    (Scopes::Country, "culture_pops_in_country", Block(&[("target", Scope(Scopes::CountryCulture)), ("value", CompareValue)])),
+    (
+        Scopes::Country,
+        "culture_pops_in_country",
+        Block(&[("target", Scope(Scopes::CountryCulture)), ("value", CompareValue)]),
+    ),
     (Scopes::Country, "is_monotheist_religion", Boolean),
     // Subunit triggers
     (Scopes::SubUnit, "cohort_food_consumption", CompareValue),
@@ -353,7 +390,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::SubUnit, "subunit_morale_percentage", CompareValue),
     (Scopes::SubUnit, "subunit_strength_percentage", CompareValue),
     // Unit triggers
-    (Scopes::Unit.union(Scopes::Character).union(Scopes::Governorship), "has_legion_trigger", Boolean),
+    (
+        Scopes::Unit.union(Scopes::Character).union(Scopes::Governorship),
+        "has_legion_trigger",
+        Boolean,
+    ),
     // Party triggers
     (Scopes::Party, "has_active_agenda", Boolean),
     (Scopes::Party, "has_power_percentage", CompareValue),
@@ -379,13 +420,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::War, "has_breach", Boolean),
     (Scopes::War, "is_war_leader", Scope(Scopes::Country)),
     (Scopes::War, "is_war_over", Boolean),
-    (Scopes::War, "war_score", Block(&[("target", Scope(Scopes::Country)), ("value", CompareValue)])),
+    (
+        Scopes::War,
+        "war_score",
+        Block(&[("target", Scope(Scopes::Country)), ("value", CompareValue)]),
+    ),
     // Deity triggers
     (Scopes::Deity, "deity_religion", Item(Item::Religion) | Scope(Scopes::Religion)),
     (Scopes::Deity, "has_holy_site", Boolean),
     // TODO - These 2 should be country modifiers from ModifKinds::Country
     (Scopes::Deity, "has_active_modifier", UncheckedValue),
-    (Scopes::Deity, "has_passive_modifier", UncheckedValue), 
+    (Scopes::Deity, "has_passive_modifier", UncheckedValue),
     // Province triggers
     (Scopes::Province, "ai_wants_road", Scope(Scopes::Country)),
     (Scopes::Province, "can_build_building", Item(Item::Building)),
@@ -396,11 +441,19 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Province, "control_range", Scope(Scopes::Country)),
     (Scopes::Province, "distance_to_migration_target", CompareValue),
     (Scopes::Province, "dominant_province_culture", Item(Item::Culture) | Scope(Scopes::Culture)),
-    (Scopes::Province, "dominant_province_religion", Item(Item::Religion) | Scope(Scopes::Religion)),
+    (
+        Scopes::Province,
+        "dominant_province_religion",
+        Item(Item::Religion) | Scope(Scopes::Religion),
+    ),
     (Scopes::Province, "fort_level", CompareValue),
     (Scopes::Province, "free_building_slots", CompareValue),
     (Scopes::Province, "governor_policy", Item(Item::GovernorPolicy)),
-    (Scopes::Province, "great_work_locator_is_free", Choice(&["primary_great_work", "secondary_great_work"])),
+    (
+        Scopes::Province,
+        "great_work_locator_is_free",
+        Choice(&["primary_great_work", "secondary_great_work"]),
+    ),
     (Scopes::Province, "has_ancient_wonder", UncheckedValue),
     (Scopes::Province, "has_building", Item(Item::Building)),
     (Scopes::Province, "has_city_status", Boolean),
@@ -427,7 +480,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Province, "is_in_region", Item(Item::Region) | Scope(Scopes::Region)),
     (Scopes::Province, "is_inhabitable", Boolean),
     (Scopes::Province, "is_model_shown", UncheckedValue),
-    (Scopes::Province, "is_neighbor", Scope(Scopes::Province)),    
+    (Scopes::Province, "is_neighbor", Scope(Scopes::Province)),
     (Scopes::Province, "is_port", Boolean),
     (Scopes::Province, "is_previous_controller", Scope(Scopes::Country)),
     (Scopes::Province, "is_previous_owner", Scope(Scopes::Country)),
@@ -472,13 +525,23 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "exists", Special),
     (Scopes::None, "game_start_date", CompareDate),
     (Scopes::None, "gender_rules", Boolean),
-    (Scopes::
-        None,
+    (
+        Scopes::None,
         "global_variable_list_size",
         Block(&[("name", UncheckedValue), ("value", CompareValue)]),
     ),
     (Scopes::None, "has_agenda", UncheckedValue),
-    (Scopes::None, "has_dlc", Choice(&["Heirs of Alexander", "Epirus Flavor Pack", "Magna Graecia", "The Punic Wars", "Hellenistic World Flavor Pack"])),
+    (
+        Scopes::None,
+        "has_dlc",
+        Choice(&[
+            "Heirs of Alexander",
+            "Epirus Flavor Pack",
+            "Magna Graecia",
+            "The Punic Wars",
+            "Hellenistic World Flavor Pack",
+        ]),
+    ),
     (Scopes::None, "has_global_variable", UncheckedValue),
     (Scopes::None, "has_global_variable_list", UncheckedValue),
     (Scopes::None, "has_local_variable", UncheckedValue),
@@ -490,35 +553,50 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "is_dynamic_tag", Boolean),
     (Scopes::None, "is_iron_man", Boolean),
     (Scopes::None, "is_target_alive", Scope(Scopes::Character)),
-    (Scopes::
-        None,
+    (
+        Scopes::None,
         "is_target_in_global_variable_list",
         Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(all_but_none()))]),
     ),
-    (Scopes::
-        None,
+    (
+        Scopes::None,
         "is_target_in_local_variable_list",
         Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(all_but_none()))]),
     ),
-    (Scopes::
-        None,
+    (
+        Scopes::None,
         "is_target_in_variable_list",
         Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(all_but_none()))]),
     ),
     (Scopes::None, "list_size", Block(&[("name", UncheckedValue), ("value", CompareValue)])),
-    (Scopes::None, "local_variable_list_size", Block(&[("name", UncheckedValue), ("value", CompareValue)])),
+    (
+        Scopes::None,
+        "local_variable_list_size",
+        Block(&[("name", UncheckedValue), ("value", CompareValue)]),
+    ),
     (Scopes::None, "nand", Control),
     (Scopes::None, "nor", Control),
     (Scopes::None, "not", Control),
     (Scopes::None, "or", Control),
-    (Scopes::None, "religion_pops_in_country", Block(&[("target", Scope(Scopes::Religion) | Item(Item::Religion)), ("value", CompareValue)])),
+    (
+        Scopes::None,
+        "religion_pops_in_country",
+        Block(&[
+            ("target", Scope(Scopes::Religion) | Item(Item::Religion)),
+            ("value", CompareValue),
+        ]),
+    ),
     (Scopes::all_but_none(), "save_temporary_scope_as", Special),
     (Scopes::None, "switch", Special),
     (Scopes::None, "target_is_valid_character", Scope(Scopes::Character)),
     (Scopes::None, "trigger_else", Control),
     (Scopes::None, "trigger_else_if", Control),
     (Scopes::None, "trigger_if", Control),
-    (Scopes::None, "variable_list_size", Block(&[("name", UncheckedValue), ("value", CompareValue)])),
+    (
+        Scopes::None,
+        "variable_list_size",
+        Block(&[("name", UncheckedValue), ("value", CompareValue)]),
+    ),
     (Scopes::None, "weighted_calc_true_if", Special),
     (Scopes::None, "in_color_list", UncheckedValue),
     (Scopes::None, "is_color", UncheckedValue),

@@ -137,6 +137,8 @@ use crate::data::{
 use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
+#[cfg(feature = "imperator")]
+use crate::imperator::data::goods::TradeGood;
 use crate::item::Item;
 #[cfg(feature = "vic3")]
 use crate::parse::json::parse_json_file;
@@ -186,10 +188,6 @@ use crate::vic3::data::{
     subject_types::SubjectType,
     technology::{Technology, TechnologyEra},
     terrain::{Terrain, TerrainLabel, TerrainManipulator, TerrainMask, TerrainMaterial},
-};
-#[cfg(feature = "imperator")]
-use crate::imperator::data::{
-    goods::TradeGood,
 };
 
 #[derive(Debug, Error)]
@@ -301,7 +299,6 @@ impl Everything {
         let config_file_name = "vic3-tiger.conf";
         #[cfg(feature = "imperator")]
         let config_file_name = "imperator-tiger.conf";
-
 
         let config_file = mod_root.join(config_file_name);
         let config = if config_file.is_file() {

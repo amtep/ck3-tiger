@@ -123,20 +123,20 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "change_country_tag", Unchecked),
     (Scopes::Country, "change_government", Item(Item::Government)),
     (Scopes::Country, "change_law", Item(Item::Law)),
-    (Scopes::Country, "create_character", Unchecked),  // -tdb-
-    (Scopes::Country, "create_country_treasure", Unchecked),  // -tdb-
+    (Scopes::Country, "create_character", Unchecked), // -tdb-
+    (Scopes::Country, "create_country_treasure", Unchecked), // -tdb-
     (Scopes::Country, "create_family", Scope(Scopes::Character)),
-    (Scopes::Country, "declare_war_with_wargoal", Unchecked),  // -tdb-
-    (Scopes::Country, "imprison", Unchecked),  // -tdb-
+    (Scopes::Country, "declare_war_with_wargoal", Unchecked), // -tdb-
+    (Scopes::Country, "imprison", Unchecked),                 // -tdb-
     (Scopes::Country, "integrate_country_culture", Scope(Scopes::CountryCulture)),
-    (Scopes::Country, "make_subject", Unchecked),  // -tdb-
+    (Scopes::Country, "make_subject", Unchecked), // -tdb-
     (Scopes::Country, "pay_price", Item(Item::Price)),
     (Scopes::Country, "recalc_succession", Boolean),
     (Scopes::Country, "refund_price", Item(Item::Price)),
-    (Scopes::Country, "release_prisoner", Unchecked),  // -tdb-
+    (Scopes::Country, "release_prisoner", Unchecked), // -tdb-
     (Scopes::Country, "remove_country_modifier", Item(Item::Modifier)),
     (Scopes::Country, "remove_gurantee", Scope(Scopes::Country)),
-    (Scopes::Country, "remove_opinion", Unchecked),  // -tdb-
+    (Scopes::Country, "remove_opinion", Unchecked), // -tdb-
     (Scopes::Country, "remove_party_leadership", Scope(Scopes::Party)),
     (Scopes::Country, "reverse_add_opinion", Unchecked), // -tdb-
     (Scopes::Country, "set_as_coruler", Scope(Scopes::Character)),
@@ -199,7 +199,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Province, "add_civilization_value", ScriptValue),
     (Scopes::Province, "add_claim", Scope(Scopes::Country)),
     (Scopes::Province, "add_permanent_province_modifier", Unchecked), // -tdb-
-    (Scopes::Province, "add_province_modifier", Unchecked), // -tdb-
+    (Scopes::Province, "add_province_modifier", Unchecked),           // -tdb-
     (Scopes::Province, "add_road_towards", Scope(Scopes::Province)),
     (Scopes::Province, "add_state_loyalty", ScriptValue),
     (Scopes::Province, "add_vfx", Unchecked),

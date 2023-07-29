@@ -11,6 +11,11 @@ pub use crate::ck3::tables::datafunctions::{
 use crate::context::ScopeContext;
 use crate::data::customloca::CustomLocalization;
 use crate::everything::Everything;
+#[cfg(feature = "imperator")]
+pub use crate::imperator::tables::datafunctions::{
+    datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
+    lookup_global_promote, lookup_promote, scope_from_datatype, Datatype,
+};
 use crate::item::Item;
 #[cfg(feature = "ck3")]
 use crate::report::err;
@@ -19,11 +24,6 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 #[cfg(feature = "vic3")]
 pub use crate::vic3::tables::datafunctions::{
-    datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
-    lookup_global_promote, lookup_promote, scope_from_datatype, Datatype,
-};
-#[cfg(feature = "imperator")]
-pub use crate::imperator::tables::datafunctions::{
     datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
     lookup_global_promote, lookup_promote, scope_from_datatype, Datatype,
 };
@@ -366,7 +366,9 @@ pub fn validate_datatypes(
         }
 
         // Imperator input arguments are hard to determine, so we don't do any checks for most imperator args but still allow some to be specified.
-        if args.nargs() != code.arguments.len() && !(cfg!(feature = "imperator") && args.nargs() == 0) {
+        if args.nargs() != code.arguments.len()
+            && !(cfg!(feature = "imperator") && args.nargs() == 0)
+        {
             let msg = format!(
                 "{} takes {} arguments but was given {} here",
                 code.name,
