@@ -63,7 +63,7 @@ impl DbKind for DiarchyType {
         });
         vd.field_script_value_rooted("swing_balance", Scopes::Character);
 
-        vd.field_item("end_interaction", Item::Interaction);
+        vd.field_item("end_interaction", Item::CharacterInteraction);
 
         vd.field_validated_blocks("liege_modifier", |block, data| {
             let mut vd = Validator::new(block, data);

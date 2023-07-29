@@ -471,11 +471,11 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::DynastyHouse, "remove_house_artifact_claim", Scope(Scopes::Artifact)),
     (Scopes::DynastyHouse, "remove_house_modifier", Item(Item::Modifier)),
     (Scopes::Culture, "remove_innovation", Item(Item::Innovation)),
-    (Scopes::Character, "remove_interaction_cooldown", Item(Item::Interaction)),
+    (Scopes::Character, "remove_interaction_cooldown", Item(Item::CharacterInteraction)),
     (
         Scopes::Character,
         "remove_interaction_cooldown_against",
-        ItemTarget("interaction", Item::Interaction, "target", Scopes::Character),
+        ItemTarget("interaction", Item::CharacterInteraction, "target", Scopes::Character),
     ),
     (Scopes::None, "remove_list_global_variable", Vb(validate_add_to_variable_list)),
     (Scopes::None, "remove_list_local_variable", Vb(validate_add_to_variable_list)),

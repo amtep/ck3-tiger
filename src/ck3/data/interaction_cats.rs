@@ -13,11 +13,11 @@ use crate::report::{error, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
-pub struct InteractionCategories {
+pub struct CharacterInteractionCategories {
     categories: FnvHashMap<String, Category>,
 }
 
-impl InteractionCategories {
+impl CharacterInteractionCategories {
     pub fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.categories.get(key.as_str()) {
             if other.key.loc.kind == key.loc.kind {
@@ -38,7 +38,7 @@ impl InteractionCategories {
     }
 }
 
-impl FileHandler<Block> for InteractionCategories {
+impl FileHandler<Block> for CharacterInteractionCategories {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("common/character_interaction_categories")
     }

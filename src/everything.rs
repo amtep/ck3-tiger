@@ -62,8 +62,8 @@ use crate::ck3::data::{
     important_actions::ImportantAction,
     innovations::Innovation,
     inspirations::Inspiration,
-    interaction_cats::InteractionCategories,
-    interactions::Interaction,
+    interaction_cats::CharacterInteractionCategories,
+    interactions::CharacterInteraction,
     laws::LawGroup,
     lifestyles::Lifestyle,
     maa::MenAtArmsTypes,
@@ -231,7 +231,7 @@ pub struct Everything {
     pub(crate) on_actions: OnActions,
 
     #[cfg(feature = "ck3")]
-    pub(crate) interaction_cats: InteractionCategories,
+    pub(crate) interaction_cats: CharacterInteractionCategories,
 
     /// Processed map data
     #[cfg(not(feature = "imperator"))]
@@ -331,7 +331,7 @@ impl Everything {
             scripted_modifiers: ScriptedModifiers::default(),
             on_actions: OnActions::default(),
             #[cfg(feature = "ck3")]
-            interaction_cats: InteractionCategories::default(),
+            interaction_cats: CharacterInteractionCategories::default(),
             #[cfg(not(feature = "imperator"))]
             provinces: Provinces::default(),
             #[cfg(feature = "ck3")]
@@ -605,7 +605,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.sounds));
             s.spawn(|_| self.fileset.handle(&mut self.music));
         });
-        self.load_pdx_items(Item::Interaction, Interaction::add);
+        self.load_pdx_items(Item::CharacterInteraction, CharacterInteraction::add);
         self.load_pdx_items(Item::ReligionFamily, ReligionFamily::add);
         self.load_pdx_items(Item::Dynasty, Dynasty::add);
         self.load_pdx_items(Item::House, House::add);
@@ -871,6 +871,7 @@ impl Everything {
             Item::Asset => self.assets.asset_exists(key),
             Item::BlendShape => self.assets.blend_shape_exists(key),
             Item::Character => self.characters.exists(key),
+            Item::CharacterInteractionCategory => self.interaction_cats.exists(key),
             Item::Coa => self.coas.exists(key),
             Item::CoaTemplate => self.coas.template_exists(key),
             Item::DangerType => DANGER_TYPES.contains(&key),
@@ -889,7 +890,6 @@ impl Everything {
             Item::GuiLayer => self.gui.layer_exists(key),
             Item::GuiTemplate => self.gui.template_exists(key),
             Item::GuiType => self.gui.type_exists(key),
-            Item::InteractionCategory => self.interaction_cats.exists(key),
             Item::Localization => self.localization.exists(key),
             Item::MenAtArms => self.menatarmstypes.exists(key),
             Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),

@@ -16,15 +16,15 @@ use crate::validate::{
 };
 
 #[derive(Clone, Debug)]
-pub struct Interaction {}
+pub struct CharacterInteraction {}
 
-impl Interaction {
+impl CharacterInteraction {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::Interaction, key, block, Box::new(Self {}));
+        db.add(Item::CharacterInteraction, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Interaction {
+impl DbKind for CharacterInteraction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -89,7 +89,7 @@ impl DbKind for Interaction {
 
         vd.field_numeric("interface_priority");
         vd.field_bool("common_interaction");
-        vd.field_item("category", Item::InteractionCategory);
+        vd.field_item("category", Item::CharacterInteractionCategory);
 
         if let Some(icon_path) =
             data.get_defined_string_warn(key, "NGameIcons|CHARACTER_INTERACTION_ICON_PATH")

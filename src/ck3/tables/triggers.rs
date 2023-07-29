@@ -566,7 +566,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_outstanding_artifact_claims", Boolean),
     (Scopes::Character, "has_owned_scheme", Boolean),
     (Scopes::Character, "has_pending_court_events", Boolean),
-    (Scopes::Character, "has_pending_interaction_of_type", Item(Item::Interaction)),
+    (Scopes::Character, "has_pending_interaction_of_type", Item(Item::CharacterInteraction)),
     (Scopes::Character, "has_perk", Item(Item::Perk)),
     (Scopes::Character, "has_personal_artifact_claim", Scope(Scopes::Artifact)),
     (
@@ -752,7 +752,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "is_character_interaction_potentially_accepted",
         Block(&[
             ("recipient", ScopeOkThis(Scopes::Character)),
-            ("interaction", Item(Item::Interaction)),
+            ("interaction", Item(Item::CharacterInteraction)),
             ("?secondary_actor", ScopeOkThis(Scopes::Character)),
             ("?secondary_recipient", ScopeOkThis(Scopes::Character)),
             ("?target_title", Scope(Scopes::LandedTitle)),
@@ -763,7 +763,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "is_character_interaction_shown",
         Block(&[
             ("recipient", ScopeOkThis(Scopes::Character)),
-            ("interaction", Item(Item::Interaction)),
+            ("interaction", Item(Item::CharacterInteraction)),
         ]),
     ),
     (
@@ -771,7 +771,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "is_character_interaction_valid",
         Block(&[
             ("recipient", ScopeOkThis(Scopes::Character)),
-            ("interaction", Item(Item::Interaction)),
+            ("interaction", Item(Item::CharacterInteraction)),
         ]),
     ),
     (Scopes::Character, "is_character_window_main_character", Boolean),
