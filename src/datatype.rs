@@ -360,7 +360,8 @@ pub fn validate_datatypes(
             rtype = Datatype::Unknown;
         }
 
-        if args.nargs() != code.arguments.len() {
+        // Imperator input arguments are hard to determine, so we don't do any checks for most imperator args but still allow some to be specified.
+        if args.nargs() != code.arguments.len() && !(cfg!(feature = "imperator") && args.nargs() == 0) {
             let msg = format!(
                 "{} takes {} arguments but was given {} here",
                 code.name,
