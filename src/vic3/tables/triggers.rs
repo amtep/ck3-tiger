@@ -408,7 +408,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "investment_pool", CompareValue),
     (Scopes::Country, "investment_pool_gross_income", CompareValue),
     (Scopes::Country, "investment_pool_net_income", CompareValue),
-    (Scopes::Country, "is_adjacent", Scope(Scopes::Country)),
+    // The docs say that is_adjacent takes a country, but testing shows it works with states too
+    (Scopes::Country, "is_adjacent", Scope(Scopes::Country.union(Scopes::State))),
     (Scopes::Character, "is_advancing_on_front", Scope(Scopes::Front)),
     (Scopes::Country, "is_ai", Boolean),
     (Scopes::Country, "is_at_war", Boolean),
