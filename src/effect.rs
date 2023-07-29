@@ -6,6 +6,7 @@ use crate::context::{Reason, ScopeContext};
 use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
+use crate::game::Game;
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::effects::scope_effect;
 use crate::item::Item;
@@ -319,7 +320,8 @@ pub fn validate_effect_internal<'a>(
                         }
                     }
                 }
-                #[cfg(feature = "vic3")]
+                // TODO: does imperator take the same modifier syntax as vic3?
+                #[cfg(any(feature = "vic3", feature = "imperator"))]
                 Effect::AddModifier => {
                     if let Some(block) = bv.expect_block() {
                         let mut vd = Validator::new(block, data);
@@ -481,7 +483,7 @@ pub fn validate_effect_control(
     }
 
     #[cfg(feature = "ck3")]
-    if caller == "send_interface_message" || caller == "send_interface_toast" {
+    if Game::is_ck3() && (caller == "send_interface_message" || caller == "send_interface_toast") {
         vd.field_item("type", Item::Message);
         vd.field_validated_sc("title", sc, validate_desc);
         vd.field_validated_sc("desc", sc, validate_desc);
@@ -513,11 +515,17 @@ pub fn validate_effect_control(
 
     if caller == "random" || caller == "random_list" || caller == "duel" {
         #[cfg(feature = "vic3")]
-        validate_vic3_modifiers(&mut vd, sc);
+        if Game::is_vic3() {
+            validate_vic3_modifiers(&mut vd, sc);
+        }
         #[cfg(feature = "imperator")]
-        validate_imperator_modifiers(&mut vd, sc);
+        if Game::is_imperator() {
+            validate_imperator_modifiers(&mut vd, sc);
+        }
         #[cfg(feature = "ck3")]
-        validate_modifiers(&mut vd, sc);
+        if Game::is_ck3() {
+            validate_modifiers(&mut vd, sc);
+        }
     } else {
         vd.ban_field("modifier", || "`random`, `random_list` or `duel`");
         vd.ban_field("compare_modifier", || "`random`, `random_list` or `duel`");

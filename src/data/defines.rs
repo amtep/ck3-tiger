@@ -35,7 +35,7 @@ impl Defines {
         }
     }
 
-    #[cfg(feature = "ck3")]
+    #[cfg(feature = "ck3")] // vic3 happens not to use
     pub fn get_string(&self, key: &str) -> Option<&Token> {
         self.defines.get(key).and_then(|d| d.bv.get_value())
     }

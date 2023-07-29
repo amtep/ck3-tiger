@@ -5,6 +5,7 @@ use anyhow::{bail, Result};
 use clap::Parser;
 
 use tiger_lib::everything::Everything;
+use tiger_lib::game::Game;
 use tiger_lib::gamedir::find_game_directory_steam;
 use tiger_lib::modfile::ModFile;
 use tiger_lib::report::{
@@ -62,6 +63,8 @@ fn main() -> Result<()> {
     eprintln!("This validator was made for Crusader Kings version 1.9.2.1 (Lance).");
     eprintln!("If you are using a newer version of Crusader Kings, it may be inaccurate.");
     eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
+
+    Game::set(Game::Ck3)?;
 
     if args.ck3.is_none() {
         args.ck3 = find_game_directory_steam(CK3_APP_ID, &PathBuf::from(CK3_DIR));

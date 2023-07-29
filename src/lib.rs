@@ -28,6 +28,7 @@ compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled 
 compile_error!("exactly one of the features \"ck3\", \"vic3\", \"imperator\" must be enabled");
 
 pub mod everything;
+pub mod game;
 pub mod gamedir;
 pub mod modfile;
 pub mod report;

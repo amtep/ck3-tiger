@@ -7,6 +7,7 @@ use crate::context::{Reason, ScopeContext};
 use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
+use crate::game::Game;
 use crate::item::Item;
 use crate::report::{err, error, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity};
 use crate::scopes::{scope_prefix, scope_to_scope, validate_prefix_reference, Scopes};
@@ -430,124 +431,152 @@ pub fn validate_inside_iterator(
     }
 
     #[cfg(feature = "ck3")]
-    if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
-        vd.field_validated_block("filter", |block, data| {
-            validate_trigger(block, data, sc, tooltipped);
-        });
-        vd.field_validated_block("continue", |block, data| {
-            validate_trigger(block, data, sc, tooltipped);
-        });
-    } else {
-        let only_for =
-            || format!("`{listtype}_in_de_facto_hierarchy` or `{listtype}_in_de_jure_hierarchy`");
-        vd.ban_field("filter", only_for);
-        vd.ban_field("continue", only_for);
-    }
-
-    #[cfg(feature = "ck3")]
-    if name == "county_in_region" {
-        vd.req_field("region");
-        vd.field_item("region", Item::Region);
-    } else {
-        vd.ban_field("region", || format!("`{listtype}_county_in_region`"));
-    }
-
-    #[cfg(feature = "ck3")]
-    if name == "court_position_holder" {
-        vd.field_item("type", Item::CourtPosition);
-    } else if name == "relation" {
-        if !block.has_key("type") {
-            let msg = "required field `type` missing";
-            let info =
-                format!("Verified for 1.9.2: with no type, {listtype}_relation will do nothing.");
-            err(ErrorKey::FieldMissing).strong().msg(msg).info(info).loc(block).push();
+    if Game::is_ck3() {
+        if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
+            vd.field_validated_block("filter", |block, data| {
+                validate_trigger(block, data, sc, tooltipped);
+            });
+            vd.field_validated_block("continue", |block, data| {
+                validate_trigger(block, data, sc, tooltipped);
+            });
+        } else {
+            let only_for = || {
+                format!("`{listtype}_in_de_facto_hierarchy` or `{listtype}_in_de_jure_hierarchy`")
+            };
+            vd.ban_field("filter", only_for);
+            vd.ban_field("continue", only_for);
         }
-        vd.field_items("type", Item::Relation);
-    } else {
-        vd.ban_field("type", || {
-            format!("`{listtype}_court_position_holder` or `{listtype}_relation`")
-        });
     }
 
     #[cfg(feature = "ck3")]
-    if name == "claim" {
-        vd.field_choice("explicit", &["yes", "no", "all"]);
-        vd.field_choice("pressed", &["yes", "no", "all"]);
-    } else {
-        vd.ban_field("explicit", || format!("`{listtype}_claim`"));
-        vd.ban_field("pressed", || format!("`{listtype}_claim`"));
-    }
-
-    #[cfg(feature = "ck3")]
-    if name == "pool_character" {
-        vd.req_field("province");
-        if let Some(token) = vd.field_value("province") {
-            validate_target_ok_this(token, data, sc, Scopes::Province);
+    if Game::is_ck3() {
+        if name == "county_in_region" {
+            vd.req_field("region");
+            vd.field_item("region", Item::Region);
+        } else {
+            vd.ban_field("region", || format!("`{listtype}_county_in_region`"));
         }
-    } else {
-        vd.ban_field("province", || format!("`{listtype}_pool_character`"));
     }
 
     #[cfg(feature = "ck3")]
-    if sc.can_be(Scopes::Character) {
-        vd.field_bool("only_if_dead");
-        vd.field_bool("even_if_dead");
-    } else {
-        vd.ban_field("only_if_dead", || "lists of characters");
-        vd.ban_field("even_if_dead", || "lists of characters");
+    if Game::is_ck3() {
+        if name == "court_position_holder" {
+            vd.field_item("type", Item::CourtPosition);
+        } else if name == "relation" {
+            if !block.has_key("type") {
+                let msg = "required field `type` missing";
+                let info = format!(
+                    "Verified for 1.9.2: with no type, {listtype}_relation will do nothing."
+                );
+                err(ErrorKey::FieldMissing).strong().msg(msg).info(info).loc(block).push();
+            }
+            vd.field_items("type", Item::Relation);
+        } else {
+            vd.ban_field("type", || {
+                format!("`{listtype}_court_position_holder` or `{listtype}_relation`")
+            });
+        }
     }
 
     #[cfg(feature = "ck3")]
-    if name == "character_struggle" {
-        vd.field_choice("involvement", &["involved", "interloper"]);
-    } else {
-        vd.ban_field("involvement", || format!("`{listtype}_character_struggle`"));
+    if Game::is_ck3() {
+        if name == "claim" {
+            vd.field_choice("explicit", &["yes", "no", "all"]);
+            vd.field_choice("pressed", &["yes", "no", "all"]);
+        } else {
+            vd.ban_field("explicit", || format!("`{listtype}_claim`"));
+            vd.ban_field("pressed", || format!("`{listtype}_claim`"));
+        }
     }
 
     #[cfg(feature = "ck3")]
-    if name == "connected_county" {
-        // Undocumented
-        vd.field_bool("invert");
-        vd.field_numeric("max_naval_distance");
-        vd.field_bool("allow_one_county_land_gap");
-    } else {
-        let only_for = || format!("`{listtype}_connected_county`");
-        vd.ban_field("invert", only_for);
-        vd.ban_field("max_naval_distance", only_for);
-        vd.ban_field("allow_one_county_land_gap", only_for);
+    if Game::is_ck3() {
+        if name == "pool_character" {
+            vd.req_field("province");
+            if let Some(token) = vd.field_value("province") {
+                validate_target_ok_this(token, data, sc, Scopes::Province);
+            }
+        } else {
+            vd.ban_field("province", || format!("`{listtype}_pool_character`"));
+        }
     }
 
     #[cfg(feature = "ck3")]
-    if name == "activity_phase_location"
-        || name == "activity_phase_location_future"
-        || name == "activity_phase_location_past"
-    {
-        vd.field_bool("unique");
-    } else {
-        let only_for = || format!("the `{listtype}_activity_phase_location` family of iterators");
-        vd.ban_field("unique", only_for);
+    if Game::is_ck3() {
+        if sc.can_be(Scopes::Character) {
+            vd.field_bool("only_if_dead");
+            vd.field_bool("even_if_dead");
+        } else {
+            vd.ban_field("only_if_dead", || "lists of characters");
+            vd.ban_field("even_if_dead", || "lists of characters");
+        }
     }
 
     #[cfg(feature = "ck3")]
-    if name == "guest_subset" || name == "guest_subset_current_phase" {
-        vd.field_item("name", Item::GuestSubset);
-    } else {
-        vd.ban_field("name", || {
-            format!("`{listtype}_guest_subset` and `{listtype}_guest_subset_current_phase`")
-        });
-    }
-    #[cfg(feature = "ck3")]
-    if name == "guest_subset" {
-        vd.field_value("phase"); // TODO
-    } else {
-        vd.ban_field("phase", || format!("`{listtype}_guest_subset`"));
+    if Game::is_ck3() {
+        if name == "character_struggle" {
+            vd.field_choice("involvement", &["involved", "interloper"]);
+        } else {
+            vd.ban_field("involvement", || format!("`{listtype}_character_struggle`"));
+        }
     }
 
     #[cfg(feature = "ck3")]
-    if name == "trait_in_category" {
-        vd.field_value("category"); // TODO
-    } else {
-        // Don't ban, because it's a valid trigger
+    if Game::is_ck3() {
+        if name == "connected_county" {
+            // Undocumented
+            vd.field_bool("invert");
+            vd.field_numeric("max_naval_distance");
+            vd.field_bool("allow_one_county_land_gap");
+        } else {
+            let only_for = || format!("`{listtype}_connected_county`");
+            vd.ban_field("invert", only_for);
+            vd.ban_field("max_naval_distance", only_for);
+            vd.ban_field("allow_one_county_land_gap", only_for);
+        }
+    }
+
+    #[cfg(feature = "ck3")]
+    if Game::is_ck3() {
+        if name == "activity_phase_location"
+            || name == "activity_phase_location_future"
+            || name == "activity_phase_location_past"
+        {
+            vd.field_bool("unique");
+        } else {
+            let only_for =
+                || format!("the `{listtype}_activity_phase_location` family of iterators");
+            vd.ban_field("unique", only_for);
+        }
+    }
+
+    #[cfg(feature = "ck3")]
+    if Game::is_ck3() {
+        if name == "guest_subset" || name == "guest_subset_current_phase" {
+            vd.field_item("name", Item::GuestSubset);
+        } else {
+            vd.ban_field("name", || {
+                format!("`{listtype}_guest_subset` and `{listtype}_guest_subset_current_phase`")
+            });
+        }
+    }
+
+    #[cfg(feature = "ck3")]
+    if Game::is_ck3() {
+        if name == "guest_subset" {
+            vd.field_value("phase"); // TODO
+        } else {
+            vd.ban_field("phase", || format!("`{listtype}_guest_subset`"));
+        }
+    }
+
+    if Game::is_ck3() {
+        #[cfg(feature = "ck3")]
+        if name == "trait_in_category" {
+            vd.field_value("category"); // TODO
+        } else {
+            // Don't ban, because it's a valid trigger
+        }
     }
 }
 
@@ -739,9 +768,10 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
 
     // These are special single-use modifiers
     #[cfg(feature = "ck3")]
-    vd.field_validated_blocks_sc("scheme_modifier", sc, validate_scheme_modifier);
-    #[cfg(feature = "ck3")]
-    vd.field_validated_blocks_sc("activity_modifier", sc, validate_activity_modifier);
+    if Game::is_ck3() {
+        vd.field_validated_blocks_sc("scheme_modifier", sc, validate_scheme_modifier);
+        vd.field_validated_blocks_sc("activity_modifier", sc, validate_activity_modifier);
+    }
 }
 
 #[cfg(feature = "vic3")]

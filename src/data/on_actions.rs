@@ -10,6 +10,7 @@ use crate::context::ScopeContext;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::game::Game;
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::on_action::on_action_scopecontext;
 use crate::item::Item;
@@ -51,10 +52,14 @@ impl OnActions {
 
 impl FileHandler<Block> for OnActions {
     fn subpath(&self) -> PathBuf {
-        #[cfg(any(feature = "imperator", feature = "ck3"))]
-        return PathBuf::from("common/on_action");
-        #[cfg(feature = "vic3")]
-        return PathBuf::from("common/on_actions");
+        match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => PathBuf::from("common/on_action"),
+            #[cfg(feature = "imperator")]
+            Game::Imperator => PathBuf::from("common/on_action"),
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => PathBuf::from("common/on_actions"),
+        }
     }
 
     fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
@@ -143,7 +148,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-        if count == 2 {
+        if Game::is_ck3() && count == 2 {
             // TODO: verify
             let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
             let info = "try combining them into one block";
@@ -166,7 +171,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-        if count == 2 {
+        if Game::is_ck3() && count == 2 {
             let msg = format!("multiple `{key}` blocks in one on_action do not work");
             let info = "try putting each into its own on_action and firing those separately";
             error_info(key, ErrorKey::Validation, &msg, info);
@@ -182,7 +187,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-        if count == 2 {
+        if Game::is_ck3() && count == 2 {
             // TODO: verify
             let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
             let info = "try putting each into its own on_action and firing those separately";
@@ -199,7 +204,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-        if count == 2 {
+        if Game::is_ck3() && count == 2 {
             // TODO: verify
             let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
             let info = "try combining them into one block";
@@ -220,7 +225,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-        if count == 2 {
+        if Game::is_ck3() && count == 2 {
             // TODO: verify
             let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
             let info = "try putting each into its own on_action and firing those separately";
@@ -236,7 +241,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
-        if count == 2 {
+        if Game::is_ck3() && count == 2 {
             // TODO: verify
             let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
             let info = "try putting each into its own on_action and firing those separately";

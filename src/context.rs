@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use fnv::FnvHashMap;
 
+use crate::game::Game;
 use crate::helpers::{stringify_choices, Own};
 use crate::report::{err, warn2, warn3, ErrorKey};
 use crate::scopes::Scopes;
@@ -923,91 +924,97 @@ fn scope_type_from_name(mut name: &str) -> Option<Scopes> {
     }
 
     #[cfg(feature = "ck3")]
-    match name {
-        "accolade" => return Some(Scopes::Accolade),
-        "accolade_type" => return Some(Scopes::AccoladeType),
-        "activity" => return Some(Scopes::Activity),
-        "actor"
-        | "recipient"
-        | "secondary_actor"
-        | "secondary_recipient"
-        | "mother"
-        | "father"
-        | "real_father"
-        | "child"
-        | "councillor"
-        | "liege"
-        | "courtier"
-        | "guest"
-        | "host" => return Some(Scopes::Character),
-        "army" => return Some(Scopes::Army),
-        "artifact" => return Some(Scopes::Artifact),
-        "barony" | "county" | "title" | "landed_title" => return Some(Scopes::LandedTitle),
-        "combat_side" => return Some(Scopes::CombatSide),
-        "council_task" => return Some(Scopes::CouncilTask),
-        "culture" => return Some(Scopes::Culture),
-        "faction" => return Some(Scopes::Faction),
-        "faith" => return Some(Scopes::Faith),
-        "province" => return Some(Scopes::Province),
-        "scheme" => return Some(Scopes::Scheme),
-        "struggle" => return Some(Scopes::Struggle),
-        "story" => return Some(Scopes::StoryCycle),
-        "travel_plan" => return Some(Scopes::TravelPlan),
-        "war" => return Some(Scopes::War),
-        _ => (),
+    if Game::is_ck3() {
+        return match name {
+            "accolade" => Some(Scopes::Accolade),
+            "accolade_type" => Some(Scopes::AccoladeType),
+            "activity" => Some(Scopes::Activity),
+            "actor"
+            | "recipient"
+            | "secondary_actor"
+            | "secondary_recipient"
+            | "mother"
+            | "father"
+            | "real_father"
+            | "child"
+            | "councillor"
+            | "liege"
+            | "courtier"
+            | "guest"
+            | "host" => Some(Scopes::Character),
+            "army" => Some(Scopes::Army),
+            "artifact" => Some(Scopes::Artifact),
+            "barony" | "county" | "title" | "landed_title" => Some(Scopes::LandedTitle),
+            "combat_side" => Some(Scopes::CombatSide),
+            "council_task" => Some(Scopes::CouncilTask),
+            "culture" => Some(Scopes::Culture),
+            "faction" => Some(Scopes::Faction),
+            "faith" => Some(Scopes::Faith),
+            "province" => Some(Scopes::Province),
+            "scheme" => Some(Scopes::Scheme),
+            "struggle" => Some(Scopes::Struggle),
+            "story" => Some(Scopes::StoryCycle),
+            "travel_plan" => Some(Scopes::TravelPlan),
+            "war" => Some(Scopes::War),
+            _ => None,
+        };
     }
 
     #[cfg(feature = "vic3")]
-    // Due to differences in state vs state_region, law vs law_type, etc, less can be deduced
-    // with certainty for vic3.
-    match name {
-        "admiral" | "general" | "character" => return Some(Scopes::Character),
-        "actor" | "country" | "enemy_country" | "initiator" | "target_country" => {
-            return Some(Scopes::Country)
-        }
-        "battle" => return Some(Scopes::Battle),
-        "interest_group" => return Some(Scopes::InterestGroup),
-        "journal_entry" => return Some(Scopes::Journalentry),
-        "market" => return Some(Scopes::Market),
-        _ => (),
+    if Game::is_vic3() {
+        // Due to differences in state vs state_region, law vs law_type, etc, less can be deduced
+        // with certainty for vic3.
+        return match name {
+            "admiral" | "general" | "character" => Some(Scopes::Character),
+            "actor" | "country" | "enemy_country" | "initiator" | "target_country" => {
+                Some(Scopes::Country)
+            }
+            "battle" => Some(Scopes::Battle),
+            "interest_group" => Some(Scopes::InterestGroup),
+            "journal_entry" => Some(Scopes::Journalentry),
+            "market" => Some(Scopes::Market),
+            _ => None,
+        };
     }
 
     #[cfg(feature = "imperator")]
-    match name {
-        "party" | "character_party" => return Some(Scopes::Party),
-        "employer" | "party_country" | "country" | "actor" | "overlord" | "unit_owner"
-        | "owner" | "attacker_warleader" | "defender_warleader" | "former_overlord"
-        | "target_subject" | "future_overlord" | "old_country" | "controller" | "owner"
-        | "family_country" | "losing_side" | "home_country" => return Some(Scopes::Country),
-        "fam" | "family" => return Some(Scopes::Family),
-        "preferred_heir" | "deified_ruler" | "personal_loyalty" | "character"
-        | "siege_controller" | "party_leader" | "next_in_family" | "ruler" | "governor"
-        | "governor_or_ruler" | "commander" | "former_ruler" | "newborn" | "spouse"
-        | "job_holder" | "consort" | "current_heir" | "current_ruler" | "primary_heir"
-        | "secondary_heir" | "current_co_ruler" | "head_of_family" | "holding_owner" | "char"
-        | "mother" | "father" => return Some(Scopes::Character),
-        "job" => return Some(Scopes::Job),
-        "legion" => return Some(Scopes::Legion),
-        "dominant_province_religion" | "religion" => return Some(Scopes::Religion),
-        "area" => return Some(Scopes::Area),
-        "region" => return Some(Scopes::Region),
-        "governorship" => return Some(Scopes::Governorship),
-        "country_culture" => return Some(Scopes::CountryCulture),
-        "location"
-        | "unit_destination"
-        | "unit_objective_destination"
-        | "unit_location"
-        | "unit_next_location"
-        | "capital_scope"
-        | "holy_site" => return Some(Scopes::Province),
-        "dominant_province_culture_group" | "culture_group" => return Some(Scopes::CultureGroup),
-        "dominant_province_culture" | "culture" => return Some(Scopes::Culture),
-        "owning_unit" => return Some(Scopes::Unit),
-        "deity" | "province_deity" => return Some(Scopes::Deity),
-        "state" => return Some(Scopes::State),
-        "treasure" => return Some(Scopes::Treasure),
-        "siege" => return Some(Scopes::Siege),
-        _ => (),
+    if Game::is_imperator() {
+        return match name {
+            "party" | "character_party" => Some(Scopes::Party),
+            "employer" | "party_country" | "country" | "actor" | "overlord" | "unit_owner"
+            | "owner" | "attacker_warleader" | "defender_warleader" | "former_overlord"
+            | "target_subject" | "future_overlord" | "old_country" | "controller" | "owner"
+            | "family_country" | "losing_side" | "home_country" => Some(Scopes::Country),
+            "fam" | "family" => Some(Scopes::Family),
+            "preferred_heir" | "deified_ruler" | "personal_loyalty" | "character"
+            | "siege_controller" | "party_leader" | "next_in_family" | "ruler" | "governor"
+            | "governor_or_ruler" | "commander" | "former_ruler" | "newborn" | "spouse"
+            | "job_holder" | "consort" | "current_heir" | "current_ruler" | "primary_heir"
+            | "secondary_heir" | "current_co_ruler" | "head_of_family" | "holding_owner"
+            | "char" | "mother" | "father" => Some(Scopes::Character),
+            "job" => Some(Scopes::Job),
+            "legion" => Some(Scopes::Legion),
+            "dominant_province_religion" | "religion" => Some(Scopes::Religion),
+            "area" => Some(Scopes::Area),
+            "region" => Some(Scopes::Region),
+            "governorship" => Some(Scopes::Governorship),
+            "country_culture" => Some(Scopes::CountryCulture),
+            "location"
+            | "unit_destination"
+            | "unit_objective_destination"
+            | "unit_location"
+            | "unit_next_location"
+            | "capital_scope"
+            | "holy_site" => Some(Scopes::Province),
+            "dominant_province_culture_group" | "culture_group" => Some(Scopes::CultureGroup),
+            "dominant_province_culture" | "culture" => Some(Scopes::Culture),
+            "owning_unit" => Some(Scopes::Unit),
+            "deity" | "province_deity" => Some(Scopes::Deity),
+            "state" => Some(Scopes::State),
+            "treasure" => Some(Scopes::Treasure),
+            "siege" => Some(Scopes::Siege),
+            _ => None,
+        };
     }
 
     None

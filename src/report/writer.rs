@@ -2,6 +2,7 @@ use ansi_term::{ANSIString, ANSIStrings};
 use unicode_width::UnicodeWidthChar;
 
 use crate::fileset::FileKind;
+use crate::game::Game;
 use crate::report::errors::Errors;
 use crate::report::output_style::Styled;
 use crate::report::{LogReport, PointedMessage, Severity};
@@ -185,12 +186,14 @@ pub(crate) fn kind_tag(errors: &Errors, kind: FileKind) -> &str {
         FileKind::Internal => "Internal",
         FileKind::Clausewitz => "Clausewitz",
         FileKind::Jomini => "Jomini",
-        #[cfg(feature = "ck3")]
-        FileKind::Vanilla => "CK3",
-        #[cfg(feature = "vic3")]
-        FileKind::Vanilla => "Vic3",
-        #[cfg(feature = "imperator")]
-        FileKind::Vanilla => "Imperator",
+        FileKind::Vanilla => match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => "CK3",
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => "Vic3",
+            #[cfg(feature = "imperator")]
+            Game::Imperator => "Imperator",
+        },
         FileKind::LoadedMod(idx) => &errors.loaded_mods_labels[idx as usize],
         FileKind::Mod => "MOD",
     }

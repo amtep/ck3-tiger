@@ -8,6 +8,7 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::game::Game;
 use crate::helpers::{dup_error, exact_dup_advice};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
@@ -193,17 +194,19 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
     });
 
     #[cfg(feature = "vic3")]
-    vd.field_validated_blocks("sub", |subblock, data| {
-        let mut vd = Validator::new(subblock, data);
-        vd.set_max_severity(Severity::Warning);
-        vd.field_item("parent", Item::Coa);
-        vd.field_validated_blocks("instance", validate_instance_offset);
-        for field in &["color1", "color2", "color3", "color4", "color5"] {
-            vd.field_validated(field, |bv, data| {
-                validate_coa_color(bv, Some(block), data);
-            });
-        }
-    });
+    if Game::is_vic3() {
+        vd.field_validated_blocks("sub", |subblock, data| {
+            let mut vd = Validator::new(subblock, data);
+            vd.set_max_severity(Severity::Warning);
+            vd.field_item("parent", Item::Coa);
+            vd.field_validated_blocks("instance", validate_instance_offset);
+            for field in &["color1", "color2", "color3", "color4", "color5"] {
+                vd.field_validated(field, |bv, data| {
+                    validate_coa_color(bv, Some(block), data);
+                });
+            }
+        });
+    }
 }
 
 fn validate_coa_color(bv: &BV, block: Option<&Block>, data: &Everything) {
@@ -342,19 +345,26 @@ where
         let mut vd = Validator::new(block, data);
         vd.set_max_severity(Severity::Warning);
         let mut sc;
-        #[cfg(feature = "ck3")]
-        {
-            sc = ScopeContext::new(Scopes::Character, key); // TODO: may be unset
-            sc.define_name("faith", Scopes::Faith, key);
-            sc.define_name("culture", Scopes::Culture, key);
-            sc.define_name("title", Scopes::LandedTitle, key); // TODO: may be unset
-        }
-        #[cfg(feature = "vic3")]
-        {
-            // TODO: should this be Country or CountryDefinition? Both give errors. Verify.
-            sc = ScopeContext::new(Scopes::Country | Scopes::CountryDefinition, key);
-            sc.define_name("target", Scopes::Country | Scopes::CountryDefinition, key);
-            // ?
+        match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => {
+                sc = ScopeContext::new(Scopes::Character, key); // TODO: may be unset
+                sc.define_name("faith", Scopes::Faith, key);
+                sc.define_name("culture", Scopes::Culture, key);
+                sc.define_name("title", Scopes::LandedTitle, key); // TODO: may be unset
+            }
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => {
+                // TODO: should this be Country or CountryDefinition? Both give errors. Verify.
+                sc = ScopeContext::new(Scopes::Country | Scopes::CountryDefinition, key);
+                sc.define_name("target", Scopes::Country | Scopes::CountryDefinition, key);
+                // ?
+            }
+            #[cfg(feature = "imperator")]
+            Game::Imperator => {
+                // TODO: what is the correct scope here?
+                sc = ScopeContext::new(Scopes::Country, key);
+            }
         }
         vd.field_validated_blocks("trigger", |block, data| {
             validate_trigger_max_sev(block, data, &mut sc, Tooltipped::No, Severity::Warning);

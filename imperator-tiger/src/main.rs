@@ -5,6 +5,7 @@ use anyhow::{bail, Result};
 use clap::Parser;
 
 use tiger_lib::everything::Everything;
+use tiger_lib::game::Game;
 use tiger_lib::gamedir::find_game_directory_steam;
 use tiger_lib::report::{
     disable_ansi_colors, emit_reports, set_mod_root, set_show_loaded_mods, set_show_vanilla,
@@ -54,6 +55,8 @@ fn main() -> Result<()> {
     eprintln!("This validator was made for Imperator Rome version 2.0.4 (Thé à la menthe).");
     eprintln!("If you are using a older version of Imperator Rome, it may be inaccurate.");
     eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
+
+    Game::set(Game::Imperator)?;
 
     if args.imperator.is_none() {
         args.imperator = find_game_directory_steam(IMPERATOR_APP_ID, &PathBuf::from(IMPERATOR_DIR));

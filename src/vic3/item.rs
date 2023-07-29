@@ -4,7 +4,6 @@ use crate::report::{Confidence, Severity};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord, EnumIter)]
 #[strum(serialize_all = "snake_case")]
-#[cfg(feature = "vic3")]
 pub enum Item {
     Accessory,
     AccessoryTag,
@@ -125,7 +124,6 @@ pub enum Item {
 }
 
 impl Item {
-    #[cfg(feature = "vic3")]
     pub fn path(self) -> &'static str {
         #[allow(clippy::match_same_arms)]
         match self {

@@ -6,6 +6,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::game::Game;
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
@@ -404,8 +405,9 @@ fn validate_meshsettings(block: &Block, data: &Everything) {
     }
     vd.field_value("subpass");
     vd.field_value("shadow_shader");
-    #[cfg(feature = "vic3")]
-    vd.field_list("additional_shader_defines");
+    if Game::is_vic3() {
+        vd.field_list("additional_shader_defines");
+    }
 }
 
 fn validate_time_offset(bv: &BV, data: &Everything) {

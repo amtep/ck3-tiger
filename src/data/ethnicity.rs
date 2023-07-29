@@ -3,6 +3,7 @@ use crate::block::Block;
 use crate::data::genes::Gene;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
+use crate::game::Game;
 use crate::item::Item;
 use crate::report::{Confidence, Severity};
 use crate::token::Token;
@@ -23,10 +24,9 @@ impl DbKind for Ethnicity {
         vd.set_max_severity(Severity::Warning);
         vd.field_bool("visible");
         if !block.field_value_is("visible", "no") {
-            #[cfg(feature = "ck3")]
-            data.verify_exists(Item::Localization, key);
-            #[cfg(feature = "vic3")]
-            {
+            if Game::is_ck3() {
+                data.verify_exists(Item::Localization, key);
+            } else if Game::is_vic3() {
                 let loca = format!("ethnicity_{key}");
                 data.verify_exists_implied(Item::Localization, &loca, key);
             }
@@ -54,7 +54,9 @@ impl DbKind for Ethnicity {
                         );
                     });
                     #[cfg(feature = "ck3")]
-                    vd.field_list_items("traits", Item::GeneticConstraint);
+                    if Game::is_ck3() {
+                        vd.field_list_items("traits", Item::GeneticConstraint);
+                    }
                 } else {
                     // for color genes
                     data.validate_use(Item::GeneCategory, key, block);

@@ -6,6 +6,7 @@ use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_control};
 use crate::everything::Everything;
+use crate::game::Game;
 use crate::item::Item;
 use crate::report::Severity;
 use crate::scopes::Scopes;
@@ -226,15 +227,16 @@ pub fn validate_trigger_event(
             vd.set_case_sensitive(false);
             vd.field_item("id", Item::Event);
             #[cfg(feature = "ck3")]
-            vd.field_item("on_action", Item::OnAction);
-            #[cfg(feature = "ck3")]
-            vd.field_target("saved_event_id", sc, Scopes::Flag);
-            #[cfg(feature = "ck3")]
-            vd.field_date("trigger_on_next_date");
-            #[cfg(feature = "ck3")]
-            vd.field_bool("delayed");
+            if Game::is_ck3() {
+                vd.field_item("on_action", Item::OnAction);
+                vd.field_target("saved_event_id", sc, Scopes::Flag);
+                vd.field_date("trigger_on_next_date");
+                vd.field_bool("delayed");
+            }
             #[cfg(feature = "vic3")]
-            vd.field_bool("popup");
+            if Game::is_vic3() {
+                vd.field_bool("popup");
+            }
             validate_optional_duration(&mut vd, sc);
             if let Some(token) = block.get_field_value("id") {
                 data.events.check_scope(token, sc);

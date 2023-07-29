@@ -4,6 +4,8 @@ use crate::context::ScopeContext;
 use crate::data::genes::{AccessoryGene, Gene};
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
+#[cfg(feature = "ck3")]
+use crate::game::Game;
 use crate::item::Item;
 use crate::report::{error, old_warn, Confidence, ErrorKey, Severity};
 use crate::scopes::Scopes;
@@ -31,16 +33,14 @@ impl DbKind for PortraitModifierGroup {
         sc.define_name("culture", Scopes::Culture, key);
         sc.define_name("current_weight", Scopes::Value, key);
         #[cfg(feature = "ck3")]
-        sc.define_name("highest_held_title_tier", Scopes::Value, key);
-        #[cfg(feature = "ck3")]
-        sc.define_name("faith", Scopes::Faith, key);
+        if Game::is_ck3() {
+            sc.define_name("highest_held_title_tier", Scopes::Value, key);
+            sc.define_name("faith", Scopes::Faith, key);
+            sc.define_name("government", Scopes::GovernmentType, key);
+            sc.define_name("prowess", Scopes::Value, key);
+            sc.define_name("ruler_designer", Scopes::Bool, key);
+        }
         sc.define_name("female", Scopes::Bool, key);
-        #[cfg(feature = "ck3")]
-        sc.define_name("government", Scopes::GovernmentType, key);
-        #[cfg(feature = "ck3")]
-        sc.define_name("prowess", Scopes::Value, key);
-        #[cfg(feature = "ck3")]
-        sc.define_name("ruler_designer", Scopes::Bool, key);
         sc.define_name("weight_for_portrait", Scopes::Value, key);
         sc.define_name("year_of_birth", Scopes::Value, key);
 

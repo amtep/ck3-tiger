@@ -14,6 +14,7 @@ use crate::vic3::tables::modifs::lookup_modif;
 use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::everything::Everything;
+use crate::game::Game;
 use crate::item::Item;
 use crate::report::{err, error, ErrorKey, Severity};
 use crate::scriptvalue::validate_non_dynamic_scriptvalue;
@@ -39,13 +40,13 @@ pub fn validate_modifs<'a>(
             kinds.require(mk, key);
             validate_non_dynamic_scriptvalue(bv, data);
             #[cfg(feature = "ck3")]
-            if !key.is("health") && !key.is("negate_health_penalty_add") {
+            if Game::is_ck3() && !key.is("health") && !key.is("negate_health_penalty_add") {
                 data.verify_exists(Item::ModifierFormat, key);
                 // TODO: some modifiers have the loc as MOD_ and then all caps.
                 // data.verify_exists(Item::Localization, key);
             }
             #[cfg(feature = "vic3")]
-            {
+            if Game::is_vic3() {
                 // The Item::ModifierType doesn't need to exist if the defaults are ok,
                 // but the loca should exist.
                 let loca = format!("modifier_{key}");

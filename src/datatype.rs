@@ -11,6 +11,7 @@ pub use crate::ck3::tables::datafunctions::{
 use crate::context::ScopeContext;
 use crate::data::customloca::CustomLocalization;
 use crate::everything::Everything;
+use crate::game::Game;
 #[cfg(feature = "imperator")]
 pub use crate::imperator::tables::datafunctions::{
     datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
@@ -180,17 +181,20 @@ pub fn validate_datatypes(
     let mut i = 0;
     while i < codes.len() {
         #[cfg(feature = "ck3")]
-        while let Some(binding) = data.data_bindings.get(codes[i].name.as_str()) {
-            if let Some(replacement) = binding.replace(&codes[i]) {
-                macro_count += 1;
-                if macro_count > 255 {
-                    let msg = format!("substituted data bindings {macro_count} times, giving up");
-                    err(ErrorKey::Macro).msg(msg).loc(&codes[i].name).push();
+        if Game::is_ck3() {
+            while let Some(binding) = data.data_bindings.get(codes[i].name.as_str()) {
+                if let Some(replacement) = binding.replace(&codes[i]) {
+                    macro_count += 1;
+                    if macro_count > 255 {
+                        let msg =
+                            format!("substituted data bindings {macro_count} times, giving up");
+                        err(ErrorKey::Macro).msg(msg).loc(&codes[i].name).push();
+                        return;
+                    }
+                    codes.to_mut().splice(i..=i, replacement.codes);
+                } else {
                     return;
                 }
-                codes.to_mut().splice(i..=i, replacement.codes);
-            } else {
-                return;
             }
         }
 
@@ -261,7 +265,7 @@ pub fn validate_datatypes(
         }
 
         #[cfg(feature = "vic3")]
-        if !found && data.item_exists(Item::Country, code.name.as_str()) {
+        if Game::is_vic3() && !found && data.item_exists(Item::Country, code.name.as_str()) {
             found = true;
             args = Args(&[]);
             rtype = Datatype::Country;
@@ -270,7 +274,7 @@ pub fn validate_datatypes(
         // In vic3, game concepts are unadorned, like [concept_ideology]
         // Each concept also generates a [concept_ideology_desc]
         #[cfg(feature = "vic3")]
-        if !found && code.name.as_str().starts_with("concept_") {
+        if Game::is_vic3() && !found && code.name.as_str().starts_with("concept_") {
             found = true;
             if let Some(concept) = code.name.as_str().strip_suffix("_desc") {
                 data.verify_exists_implied(Item::GameConcept, concept, &code.name);
@@ -284,7 +288,8 @@ pub fn validate_datatypes(
         // In ck3, allow unadorned game concepts as long as they end with _i
         // (which means they are just the icon). This is a heuristic.
         #[cfg(feature = "ck3")]
-        if !found
+        if Game::is_ck3()
+            && !found
             && code.name.as_str().ends_with("_i")
             && data.item_exists(Item::GameConcept, code.name.as_str())
         {
@@ -366,9 +371,7 @@ pub fn validate_datatypes(
         }
 
         // Imperator input arguments are hard to determine, so we don't do any checks for most imperator args but still allow some to be specified.
-        if args.nargs() != code.arguments.len()
-            && !(cfg!(feature = "imperator") && args.nargs() == 0)
-        {
+        if args.nargs() != code.arguments.len() && !(Game::is_imperator() && args.nargs() == 0) {
             let msg = format!(
                 "{} takes {} arguments but was given {} here",
                 code.name,
@@ -381,7 +384,9 @@ pub fn validate_datatypes(
 
         // TODO: validate the Faith customs
         #[cfg(feature = "ck3")]
-        if curtype != Datatype::Faith && (code.name.is("Custom") && code.arguments.len() == 1)
+        if Game::is_ck3()
+            && curtype != Datatype::Faith
+            && (code.name.is("Custom") && code.arguments.len() == 1)
             || (code.name.is("Custom2") && code.arguments.len() == 2)
         {
             // TODO: for Custom2, get the datatype of the second argument and use it to initialize scope:second
@@ -400,7 +405,7 @@ pub fn validate_datatypes(
         }
 
         #[cfg(feature = "vic3")]
-        if code.name.is("GetCustom") && code.arguments.len() == 1 {
+        if Game::is_vic3() && code.name.is("GetCustom") && code.arguments.len() == 1 {
             if let CodeArg::Literal(ref token) = code.arguments[0] {
                 if let Some(scopes) = scope_from_datatype(curtype) {
                     validate_custom(token, data, scopes, lang);
@@ -415,7 +420,7 @@ pub fn validate_datatypes(
         }
 
         #[cfg(feature = "imperator")]
-        if code.name.is("Custom") && code.arguments.len() == 1 {
+        if Game::is_imperator() && code.name.is("Custom") && code.arguments.len() == 1 {
             if let CodeArg::Literal(ref token) = code.arguments[0] {
                 if let Some(scopes) = scope_from_datatype(curtype) {
                     validate_custom(token, data, scopes, lang);

@@ -137,6 +137,7 @@ use crate::data::{
 use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
+use crate::game::Game;
 #[cfg(feature = "imperator")]
 use crate::imperator::data::goods::TradeGood;
 use crate::item::Item;
@@ -293,12 +294,14 @@ impl Everything {
         let mut fileset =
             Fileset::new(vanilla_dir.to_path_buf(), mod_root.to_path_buf(), replace_paths);
 
-        #[cfg(feature = "ck3")]
-        let config_file_name = "ck3-tiger.conf";
-        #[cfg(feature = "vic3")]
-        let config_file_name = "vic3-tiger.conf";
-        #[cfg(feature = "imperator")]
-        let config_file_name = "imperator-tiger.conf";
+        let config_file_name = match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => "ck3-tiger.conf",
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => "vic3-tiger.conf",
+            #[cfg(feature = "imperator")]
+            Game::Imperator => "imperator-tiger.conf",
+        };
 
         let config_file = mod_root.join(config_file_name);
         let config = if config_file.is_file() {
@@ -768,12 +771,14 @@ impl Everything {
 
     pub fn load_all(&mut self) {
         self.load_all_generic();
-        #[cfg(feature = "ck3")]
-        self.load_all_ck3();
-        #[cfg(feature = "vic3")]
-        self.load_all_vic3();
-        #[cfg(feature = "imperator")]
-        self.load_all_imperator();
+        match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => self.load_all_ck3(),
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => self.load_all_vic3(),
+            #[cfg(feature = "imperator")]
+            Game::Imperator => self.load_all_imperator(),
+        }
     }
 
     fn validate_all_generic<'a>(&'a self, s: &Scope<'a>) {
@@ -823,10 +828,14 @@ impl Everything {
     pub fn validate_all(&self) {
         scope(|s| {
             self.validate_all_generic(s);
-            #[cfg(feature = "ck3")]
-            self.validate_all_ck3(s);
-            #[cfg(feature = "vic3")]
-            self.validate_all_vic3(s);
+            match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => self.validate_all_ck3(s),
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => self.validate_all_vic3(s),
+                #[cfg(feature = "imperator")]
+                Game::Imperator => (), // TODO
+            }
         });
         self.database.validate(self);
     }

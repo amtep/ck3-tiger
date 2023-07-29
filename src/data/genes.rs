@@ -4,6 +4,7 @@ use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
+use crate::game::Game;
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::report::{error, fatal, old_warn, warn2, Confidence, ErrorKey, Severity};
@@ -83,11 +84,13 @@ impl DbKind for ColorGene {
     #[allow(unused_variables)] // vic3 does not use key
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        #[cfg(feature = "ck3")]
-        data.verify_exists(Item::Localization, key);
+        if Game::is_ck3() {
+            data.verify_exists(Item::Localization, key);
+        }
 
-        #[cfg(feature = "ck3")]
-        vd.req_field("group");
+        if Game::is_ck3() {
+            vd.req_field("group");
+        }
         vd.req_field("color");
         vd.req_field("blend_range");
 
@@ -165,8 +168,9 @@ impl DbKind for MorphGene {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        #[cfg(feature = "ck3")]
-        data.verify_exists(Item::Localization, key);
+        if Game::is_ck3() {
+            data.verify_exists(Item::Localization, key);
+        }
 
         vd.field_list("ugliness_feature_categories"); // TODO: options
         vd.field_bool("can_have_portrait_extremity_shift");

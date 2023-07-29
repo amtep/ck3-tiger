@@ -10,6 +10,8 @@ use crate::context::ScopeContext;
 use crate::datatype::{validate_datatypes, CodeChain, Datatype};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
+#[cfg(feature = "ck3")]
+use crate::game::Game;
 use crate::helpers::{dup_error, stringify_list};
 use crate::item::Item;
 use crate::parse::localization::{parse_loca, ValueParser};
@@ -294,11 +296,13 @@ impl Localization {
             LocaValue::Code(chain, fmt) => {
                 // |E is the formatting used for game concepts in ck3
                 #[cfg(feature = "ck3")]
-                if let Some(fmt) = fmt {
-                    if fmt.as_str().contains('E') || fmt.as_str().contains('e') {
-                        if let Some(name) = chain.as_gameconcept() {
-                            data.verify_exists(Item::GameConcept, name);
-                            return;
+                if Game::is_ck3() {
+                    if let Some(fmt) = fmt {
+                        if fmt.as_str().contains('E') || fmt.as_str().contains('e') {
+                            if let Some(name) = chain.as_gameconcept() {
+                                data.verify_exists(Item::GameConcept, name);
+                                return;
+                            }
                         }
                     }
                 }

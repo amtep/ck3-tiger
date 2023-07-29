@@ -13,6 +13,7 @@ use crate::desc::validate_desc;
 use crate::everything::Everything;
 #[cfg(feature = "vic3")]
 use crate::everything::{APPROVALS, LEVELS};
+use crate::game::Game;
 use crate::helpers::stringify_choices;
 #[cfg(feature = "vic3")]
 use crate::helpers::stringify_list;
@@ -1000,37 +1001,41 @@ fn handle_argument<'a>(key: &'a Token, data: &Everything, sc: &mut ScopeContext)
             for part in before.split('.') {
                 if part.as_str().ends_with('(') {
                     #[cfg(feature = "ck3")]
-                    if part.is("vassal_contract_obligation_level_score(") {
-                        validate_target(&arg, data, sc, Scopes::VassalContract);
-                    } else if part.is("squared_distance(") {
-                        validate_target(&arg, data, sc, Scopes::Province);
-                    } else {
-                        let msg = "unexpected argument";
-                        err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
+                    if Game::is_ck3() {
+                        if part.is("vassal_contract_obligation_level_score(") {
+                            validate_target(&arg, data, sc, Scopes::VassalContract);
+                        } else if part.is("squared_distance(") {
+                            validate_target(&arg, data, sc, Scopes::Province);
+                        } else {
+                            let msg = "unexpected argument";
+                            err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
+                        }
                     }
                     // TODO there's got to be a better way to do this
                     #[cfg(feature = "vic3")]
-                    if part.is("ai_army_comparison(")
-                        || part.is("ai_gdp_comparison(")
-                        || part.is("ai_ideological_opinion(")
-                        || part.is("ai_navy_comparison(")
-                        || part.is("average_defense(")
-                        || part.is("average_offense(")
-                        || part.is("diplomatic_pact_other_country(")
-                        || part.is("num_total_battalions(")
-                        || part.is("num_defending_battalions(")
-                        || part.is("tension(")
-                        || part.is("num_alliances_and_defensive_pacts_with_allies(")
-                        || part.is("num_alliances_and_defensive_pacts_with_rivals(")
-                        || part.is("num_mutual_trade_route_levels_with_country(")
-                        || part.is("relations(")
-                    {
-                        validate_target(&arg, data, sc, Scopes::Country);
-                    } else if part.is("num_enemy_units(") {
-                        validate_target(&arg, data, sc, Scopes::Character);
-                    } else {
-                        let msg = "unexpected argument";
-                        err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
+                    if Game::is_vic3() {
+                        if part.is("ai_army_comparison(")
+                            || part.is("ai_gdp_comparison(")
+                            || part.is("ai_ideological_opinion(")
+                            || part.is("ai_navy_comparison(")
+                            || part.is("average_defense(")
+                            || part.is("average_offense(")
+                            || part.is("diplomatic_pact_other_country(")
+                            || part.is("num_total_battalions(")
+                            || part.is("num_defending_battalions(")
+                            || part.is("tension(")
+                            || part.is("num_alliances_and_defensive_pacts_with_allies(")
+                            || part.is("num_alliances_and_defensive_pacts_with_rivals(")
+                            || part.is("num_mutual_trade_route_levels_with_country(")
+                            || part.is("relations(")
+                        {
+                            validate_target(&arg, data, sc, Scopes::Country);
+                        } else if part.is("num_enemy_units(") {
+                            validate_target(&arg, data, sc, Scopes::Character);
+                        } else {
+                            let msg = "unexpected argument";
+                            err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
+                        }
                     }
                 }
             }
@@ -1134,6 +1139,7 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
             s,
             Trigger::CompareValue | Trigger::CompareDate | Trigger::ItemOrCompareValue(_),
         )) => Some(s),
+        // TODO: add imperator
         _ => std::option::Option::None,
     }
 }

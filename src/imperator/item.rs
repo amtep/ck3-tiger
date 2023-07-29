@@ -75,7 +75,6 @@ pub enum Item {
 }
 
 impl Item {
-    #[cfg(feature = "imperator")]
     pub fn path(self) -> &'static str {
         #[allow(clippy::match_same_arms)]
         match self {

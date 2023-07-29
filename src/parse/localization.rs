@@ -4,6 +4,7 @@ use std::str::Chars;
 use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
+use crate::game::Game;
 use crate::report::{warn, ErrorKey};
 use crate::token::{Loc, Token};
 
@@ -561,7 +562,7 @@ impl<'a> ValueParser<'a> {
 
     fn handle_tooltip(&mut self, value: String, loc: Loc) {
         #[cfg(feature = "vic3")]
-        if value.contains(',') {
+        if Game::is_vic3() && value.contains(',') {
             // If the value contains commas, then it's #tooltip:tag,tooltip or #tooltip:tag,tooltip,widget
             // Separate out the tooltip.
             for (i, value) in value.split(',').enumerate() {
@@ -655,7 +656,7 @@ impl<'a> ValueParser<'a> {
                             // of markup. The next thing we see ought to be a comma or a space.
                             self.parse_code();
                             consumed = true;
-                        } else if cfg!(feature = "vic3") && c == ',' {
+                        } else if Game::is_vic3() && c == ',' {
                             value.push(c);
                         } else {
                             break;

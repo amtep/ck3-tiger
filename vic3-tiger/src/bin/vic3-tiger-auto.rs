@@ -6,6 +6,7 @@ use anyhow::{bail, Result};
 use console::Term;
 
 use tiger_lib::everything::Everything;
+use tiger_lib::game::Game;
 use tiger_lib::gamedir::{find_game_directory_steam, find_paradox_directory};
 use tiger_lib::modfile::ModFile;
 use tiger_lib::report::{emit_reports, set_mod_root, set_output_file, set_vanilla_dir};
@@ -47,6 +48,8 @@ fn inner_main() -> Result<()> {
     eprintln!("This validator was made for Victoria 3 version 1.3.6 (Thé à la menthe).");
     eprintln!("If you are using a newer version of Victoria 3, it may be inaccurate.");
     eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
+
+    Game::set(Game::Vic3)?;
 
     let mut vic3 = find_game_directory_steam(VIC3_APP_ID, &PathBuf::from(VIC3_DIR));
     if let Some(ref mut vic3) = vic3 {
