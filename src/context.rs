@@ -391,7 +391,7 @@ impl ScopeContext {
     ///
     /// The purpose is to handle scope chains like `root.liege.primary_title`. Call the `replace_`
     /// functions to update the value of `this`, and at the end either confirm the new scope level
-    /// with [`finalize_builder`] or discard it with [`close`].
+    /// with [`self.finalize_builder`] or discard it with [`self.close`].
     pub fn open_builder(&mut self) {
         self.prev =
             Some(Box::new(ScopeHistory { prev: self.prev.take(), this: self.this.clone() }));
@@ -399,7 +399,7 @@ impl ScopeContext {
         self.is_builder = true;
     }
 
-    /// Declare that the temporary scope level opened with [`open_builder`] is a real scope level.
+    /// Declare that the temporary scope level opened with [`Self::open_builder`] is a real scope level.
     pub fn finalize_builder(&mut self) {
         self.is_builder = false;
     }
@@ -493,7 +493,7 @@ impl ScopeContext {
         }
     }
 
-    /// Same as [`_named_index`], but for lists. No warning is emitted if a new list is created.
+    /// Same as [`self._named_index`], but for lists. No warning is emitted if a new list is created.
     fn _named_list_index(&mut self, name: &str, token: &Token) -> usize {
         if let Some(&idx) = self.list_names.get(name) {
             idx
@@ -792,7 +792,7 @@ impl ScopeContext {
         }
     }
 
-    /// Like [`expect`], but the error emitted will be located at token `key`.
+    /// Like [`self.expect`], but the error emitted will be located at token `key`.
     ///
     /// This function is used when the expectation of scope compatibility comes from `key`, for
     /// example when matching up a caller's scope context with a scripted effect's scope context.
