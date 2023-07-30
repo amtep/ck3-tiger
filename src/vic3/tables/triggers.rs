@@ -527,7 +527,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Journalentry, "is_progressing", Boolean),
     (Scopes::Province, "is_province_land", Boolean),
     (Scopes::Character, "is_repairing", Boolean),
-    (Scopes::Country, "is_researching_technology", Item(Item::Technology)), // TODO: also accepts "any"
+    (Scopes::Country, "is_researching_technology", Special), // also accepts "any"
     (Scopes::Country, "is_researching_technology_category", UncheckedValue), // No examples in vanilla
     (Scopes::Country.union(Scopes::InterestGroup), "is_revolutionary", Boolean),
     (Scopes::PoliticalMovement, "is_revolutionary_movement", Boolean),

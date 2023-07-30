@@ -15,6 +15,7 @@ permissions:
 # allow only one action at a time to write to the Github Pages
 concurrency:
   group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -22,7 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -44,8 +48,11 @@ jobs:
         shell: bash
         run: echo '<meta http-equiv="refresh" content="0; url=tiger-lib">' >target/doc/index.html
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
+      - name: Fix permissions
+        run: |
+          chmod -c -R +rX "target/doc" | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
 
       - name: Upload Documentation Artifact
         uses: actions/upload-pages-artifact@v2

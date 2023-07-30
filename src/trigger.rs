@@ -844,6 +844,13 @@ fn match_trigger_bv(
                 if let Some(value) = bv.expect_value() {
                     sc.expect_list(value);
                 }
+            } else if name.is("is_researching_technology") {
+                #[cfg(feature = "vic3")]
+                if let Some(value) = bv.expect_value() {
+                    if !value.is("any") {
+                        data.verify_exists(Item::Technology, value);
+                    }
+                }
             }
             // TODO: time_of_year
         }
