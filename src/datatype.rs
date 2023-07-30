@@ -6,31 +6,16 @@ use strum_macros::{Display, EnumString};
 
 #[cfg(feature = "ck3")]
 use crate::ck3::data::religions::CUSTOM_RELIGION_LOCAS;
-#[cfg(feature = "ck3")]
-pub use crate::ck3::tables::datafunctions::{
-    datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
-    lookup_global_promote, lookup_promote, scope_from_datatype,
-};
 use crate::context::ScopeContext;
 use crate::data::customloca::CustomLocalization;
 use crate::everything::Everything;
 use crate::game::Game;
-#[cfg(feature = "imperator")]
-pub use crate::imperator::tables::datafunctions::{
-    datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
-    lookup_global_promote, lookup_promote, scope_from_datatype,
-};
 use crate::item::Item;
 #[cfg(feature = "ck3")]
 use crate::report::err;
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
-#[cfg(feature = "vic3")]
-pub use crate::vic3::tables::datafunctions::{
-    datatype_from_scopes, lookup_alternative, lookup_function, lookup_global_function,
-    lookup_global_promote, lookup_promote, scope_from_datatype,
-};
 
 // Load the game-specific datatype definitions
 #[cfg(feature = "ck3")]
@@ -605,4 +590,220 @@ pub fn validate_datatypes(
 
         i += 1;
     }
+}
+
+pub fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
+    let global_promotes = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::datafunctions::GLOBAL_PROMOTES,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::datafunctions::GLOBAL_PROMOTES,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::datafunctions::GLOBAL_PROMOTES,
+    };
+    if let Ok(idx) = global_promotes.binary_search_by_key(&lookup_name, |(name, _, _)| name) {
+        let (_name, args, rtype) = global_promotes[idx];
+        return Some((args, rtype));
+    }
+
+    // Datatypes can be used directly as global promotes, taking their value from the gui context.
+    if let Ok(dtype) = Datatype::from_str(lookup_name) {
+        return Some((Args(&[]), dtype));
+    }
+
+    None
+}
+
+pub fn lookup_global_function(lookup_name: &str) -> Option<(Args, Datatype)> {
+    let global_functions = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::datafunctions::GLOBAL_FUNCTIONS,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::datafunctions::GLOBAL_FUNCTIONS,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::datafunctions::GLOBAL_FUNCTIONS,
+    };
+    if let Ok(idx) = global_functions.binary_search_by_key(&lookup_name, |(name, _, _)| name) {
+        let (_name, args, rtype) = global_functions[idx];
+        return Some((args, rtype));
+    }
+    None
+}
+
+fn lookup_promote_or_function(
+    lookup_name: &str,
+    ltype: Datatype,
+    global: &[(&str, Datatype, Args, Datatype)],
+) -> LookupResult {
+    let start = global.partition_point(|(name, _, _, _)| name < &lookup_name);
+    let mut found_any = false;
+    let mut possible_args = None;
+    let mut possible_rtype = None;
+    for (name, intype, args, rtype) in global.iter().skip(start) {
+        if lookup_name != *name {
+            break;
+        }
+        found_any = true;
+        if ltype == Datatype::Unknown {
+            if possible_rtype.is_none() {
+                possible_args = Some(*args);
+                possible_rtype = Some(*rtype);
+            } else if possible_rtype != Some(*rtype) {
+                possible_rtype = Some(Datatype::Unknown);
+            }
+        } else if ltype == *intype {
+            return LookupResult::Found(*args, *rtype);
+        }
+    }
+
+    if found_any {
+        if ltype == Datatype::Unknown {
+            LookupResult::Found(possible_args.unwrap(), possible_rtype.unwrap())
+        } else {
+            LookupResult::WrongType
+        }
+    } else {
+        LookupResult::NotFound
+    }
+}
+
+pub fn lookup_promote(lookup_name: &str, ltype: Datatype) -> LookupResult {
+    let promotes = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::datafunctions::PROMOTES,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::datafunctions::PROMOTES,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::datafunctions::PROMOTES,
+    };
+    lookup_promote_or_function(lookup_name, ltype, promotes)
+}
+
+pub fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {
+    let functions = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::datafunctions::FUNCTIONS,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::datafunctions::FUNCTIONS,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::datafunctions::FUNCTIONS,
+    };
+    lookup_promote_or_function(lookup_name, ltype, functions)
+}
+
+/// Find an alternative datafunction to suggest when `lookup_name` has not been found.
+/// This is a fairly expensive lookup.
+/// Currently it only looks for different-case variants.
+///
+/// `lookup_name` is the name that failed its lookup.
+/// `first` should be true iff this name is the first in its code chain (so it can be a global).
+/// `last` should be true iff this name is the last in its code chain (so it can be a function).
+// TODO: make it consider misspellings as well
+pub fn lookup_alternative(
+    lookup_name: &str,
+    first: std::primitive::bool,
+    last: std::primitive::bool,
+) -> Option<&'static str> {
+    let global_promotes = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::datafunctions::GLOBAL_PROMOTES,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::datafunctions::GLOBAL_PROMOTES,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::datafunctions::GLOBAL_PROMOTES,
+    };
+    let global_functions = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::datafunctions::GLOBAL_FUNCTIONS,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::datafunctions::GLOBAL_FUNCTIONS,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::datafunctions::GLOBAL_FUNCTIONS,
+    };
+    let promotes = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::datafunctions::PROMOTES,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::datafunctions::PROMOTES,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::datafunctions::PROMOTES,
+    };
+    let functions = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::datafunctions::FUNCTIONS,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::datafunctions::FUNCTIONS,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::datafunctions::FUNCTIONS,
+    };
+    let lc = lookup_name.to_lowercase();
+    if first {
+        for (name, _, _) in global_promotes {
+            if name.to_lowercase() == lc {
+                return Some(name);
+            }
+        }
+        if last {
+            for (name, _, _) in global_functions {
+                if name.to_lowercase() == lc {
+                    return Some(name);
+                }
+            }
+        }
+    } else {
+        for (name, _, _, _) in promotes {
+            if name.to_lowercase() == lc {
+                return Some(name);
+            }
+        }
+        if last {
+            for (name, _, _, _) in functions {
+                if name.to_lowercase() == lc {
+                    return Some(name);
+                }
+            }
+        }
+    }
+    None
+}
+
+/// Return the scope type that best matches `dtype`, or `None` if there is no match.
+/// Nearly every scope type has a matching datatype, but there are far more datatypes than scope types.
+// TODO: do more efficient lookup than this linear scan.
+pub fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
+    let datatype_and_scope = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::datafunctions::DATATYPE_AND_SCOPE,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::datafunctions::DATATYPE_AND_SCOPE,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::datafunctions::DATATYPE_AND_SCOPE,
+    };
+    for (dt, s) in datatype_and_scope {
+        if dtype == *dt {
+            return Some(*s);
+        }
+    }
+    None
+}
+
+/// Return the datatype that best matches `scopes`, or `Datatype::Unknown` if there is no match.
+/// Nearly every scope type has a matching datatype, but there are far more datatypes than scope types.
+/// Note that only `Scopes` values that are narrowed down to a single scope type can be matched.
+// TODO: do more efficient lookup than this linear scan.
+pub fn datatype_from_scopes(scopes: Scopes) -> Datatype {
+    let datatype_and_scope = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::datafunctions::DATATYPE_AND_SCOPE,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::datafunctions::DATATYPE_AND_SCOPE,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::datafunctions::DATATYPE_AND_SCOPE,
+    };
+    for (dt, s) in datatype_and_scope {
+        if scopes == *s {
+            return *dt;
+        }
+    }
+    Datatype::Unknown
 }
