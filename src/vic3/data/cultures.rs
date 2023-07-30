@@ -7,15 +7,15 @@ use crate::token::Token;
 use crate::validate::validate_possibly_named_color;
 
 #[derive(Clone, Debug)]
-pub struct Culture {}
+pub struct Vic3Culture {}
 
-impl Culture {
+impl Vic3Culture {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::Culture, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Culture {
+impl DbKind for Vic3Culture {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

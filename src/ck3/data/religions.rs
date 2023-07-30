@@ -9,9 +9,9 @@ use crate::token::Token;
 use crate::validate::{validate_possibly_named_color, validate_traits};
 
 #[derive(Clone, Debug)]
-pub struct Religion {}
+pub struct Ck3Religion {}
 
-impl Religion {
+impl Ck3Religion {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if let Some(block) = block.get_field_block("faiths") {
             for (faith, block) in block.iter_definitions() {
@@ -42,7 +42,7 @@ impl Religion {
     }
 }
 
-impl DbKind for Religion {
+impl DbKind for Ck3Religion {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_adj");

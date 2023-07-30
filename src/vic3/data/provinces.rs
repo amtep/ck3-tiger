@@ -10,7 +10,7 @@ use crate::report::{err, report, ErrorKey, Severity};
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
-pub struct Provinces {
+pub struct Vic3Provinces {
     /// Colors in the provinces.png
     colors: FnvHashSet<Rgb<u8>>,
 
@@ -18,7 +18,7 @@ pub struct Provinces {
     provinces_png: Option<FileEntry>,
 }
 
-impl Provinces {
+impl Vic3Provinces {
     pub fn verify_exists_implied(&self, key: &str, item: &Token, max_sev: Severity) {
         if !self.exists(key) {
             // TODO: determine the severity of a missing province. Does it cause crashes?
@@ -52,7 +52,7 @@ impl Provinces {
     pub fn validate(&self, _data: &Everything) {}
 }
 
-impl FileHandler<DynamicImage> for Provinces {
+impl FileHandler<DynamicImage> for Vic3Provinces {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("map_data/provinces.png")
     }

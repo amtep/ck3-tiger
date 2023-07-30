@@ -27,14 +27,14 @@ use crate::validate::{
 };
 
 #[derive(Debug, Default)]
-pub struct Events {
+pub struct Ck3Events {
     events: FnvHashMap<(String, u16), Event>,
     namespaces: FnvHashMap<String, Token>,
     triggers: FnvHashMap<(PathTableIndex, String), Trigger>,
     effects: FnvHashMap<(PathTableIndex, String), Effect>,
 }
 
-impl Events {
+impl Ck3Events {
     fn load_event(&mut self, key: Token, block: Block) {
         if let Some((key_a, key_b)) = key.as_str().split_once('.') {
             if let Ok(id) = u16::from_str(key_b) {
@@ -119,7 +119,7 @@ impl Events {
     }
 }
 
-impl FileHandler<Block> for Events {
+impl FileHandler<Block> for Ck3Events {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("events")
     }

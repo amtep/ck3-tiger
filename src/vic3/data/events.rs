@@ -21,12 +21,12 @@ use crate::trigger::validate_trigger;
 use crate::validate::{validate_ai_chance, validate_duration, ListType};
 
 #[derive(Clone, Debug, Default)]
-pub struct Events {
+pub struct Vic3Events {
     events: FnvHashMap<(String, u16), Event>,
     namespaces: FnvHashMap<String, Token>,
 }
 
-impl Events {
+impl Vic3Events {
     fn load_event(&mut self, key: Token, block: Block) {
         if let Some((key_a, key_b)) = key.as_str().split_once('.') {
             if let Ok(id) = u16::from_str(key_b) {
@@ -77,7 +77,7 @@ impl Events {
     }
 }
 
-impl FileHandler<Block> for Events {
+impl FileHandler<Block> for Vic3Events {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("events")
     }

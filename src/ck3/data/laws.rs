@@ -14,9 +14,9 @@ use crate::trigger::validate_trigger;
 use crate::validate::validate_cost;
 
 #[derive(Clone, Debug)]
-pub struct LawGroup {}
+pub struct Ck3LawGroup {}
 
-impl LawGroup {
+impl Ck3LawGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, block) in block.iter_definitions() {
             for token in block.get_field_values("flag") {
@@ -36,7 +36,7 @@ impl LawGroup {
     }
 }
 
-impl DbKind for LawGroup {
+impl DbKind for Ck3LawGroup {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

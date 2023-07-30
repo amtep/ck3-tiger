@@ -7,9 +7,9 @@ use crate::report::{error, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
-pub struct GameRule {}
+pub struct Ck3GameRule {}
 
-impl GameRule {
+impl Ck3GameRule {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, _) in block.iter_definitions() {
             if !key.is("categories") {
@@ -23,7 +23,7 @@ impl GameRule {
 const RULE_FLAGS: &[&str] =
     &["blocks_achievements", "no_end_date", "no_diplomatic_range", "restricted_diplomatic_range"];
 
-impl DbKind for GameRule {
+impl DbKind for Ck3GameRule {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

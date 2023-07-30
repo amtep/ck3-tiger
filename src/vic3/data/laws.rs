@@ -118,15 +118,15 @@ impl DbKind for LawType {
 }
 
 #[derive(Clone, Debug)]
-pub struct LawGroup {}
+pub struct Vic3LawGroup {}
 
-impl LawGroup {
+impl Vic3LawGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::LawGroup, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for LawGroup {
+impl DbKind for Vic3LawGroup {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

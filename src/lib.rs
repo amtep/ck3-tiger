@@ -21,7 +21,7 @@
 // validation of a field while handling the case of the field not existing.
 #![allow(clippy::blocks_in_if_conditions)]
 
-#[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator"))]
+#[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator", not(doc)))]
 compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled at the same time");
 
 #[cfg(all(not(feature = "ck3"), not(feature = "vic3"), not(feature = "imperator")))]

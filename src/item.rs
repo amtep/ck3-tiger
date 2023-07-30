@@ -113,6 +113,8 @@ pub enum Item {
     EventTheme,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
     Law,
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    LawGroup,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     PopType,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
@@ -213,7 +215,6 @@ pub enum Item {
     #[cfg(feature = "ck3")] Inspiration,
     #[cfg(feature = "ck3")] Language,
     #[cfg(feature = "ck3")] LawFlag,
-    #[cfg(feature = "ck3")] LawGroup,
     #[cfg(feature = "ck3")] Lifestyle,
     #[cfg(feature = "ck3")] MartialCustom,
     #[cfg(feature = "ck3")] MemoryCategory,
@@ -293,7 +294,6 @@ pub enum Item {
     #[cfg(feature = "vic3")] InterestGroup,
     #[cfg(feature = "vic3")] InterestGroupTrait,
     #[cfg(feature = "vic3")] Journalentry,
-    #[cfg(feature = "vic3")] LawGroup,
     #[cfg(feature = "vic3")] LawType,
     #[cfg(feature = "vic3")] Level,
     #[cfg(feature = "vic3")] MapLayer,
@@ -521,6 +521,13 @@ impl Item {
             Item::EventTheme => "common/event_themes/",
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::Law => "common/laws/",
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
+            Item::LawGroup => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => "common/laws/",
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => "common/law_groups/",
+            },
             #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::PopType => "common/pop_types/",
             #[cfg(any(feature = "ck3", feature = "imperator"))]
@@ -721,8 +728,6 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::LawFlag => "common/laws/",
             #[cfg(feature = "ck3")]
-            Item::LawGroup => "common/laws/",
-            #[cfg(feature = "ck3")]
             Item::Lifestyle => "common/lifestyles/",
             #[cfg(feature = "ck3")]
             Item::MartialCustom => "common/culture/pillars/",
@@ -877,8 +882,6 @@ impl Item {
             Item::InterestGroupTrait => "common/interest_group_traits/",
             #[cfg(feature = "vic3")]
             Item::Journalentry => "common/journal_entries/",
-            #[cfg(feature = "vic3")]
-            Item::LawGroup => "common/law_groups/",
             #[cfg(feature = "vic3")]
             Item::LawType => "common/laws/",
             #[cfg(feature = "vic3")]

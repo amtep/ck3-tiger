@@ -34,11 +34,12 @@ use crate::ck3::data::{
     courtpos::{CourtPosition, CourtPositionCategory},
     culture_history::CultureHistory,
     cultures::{
-        Culture, CultureAesthetic, CultureCreationName, CultureEra, CulturePillar, CultureTradition,
+        Ck3Culture, CultureAesthetic, CultureCreationName, CultureEra, CulturePillar,
+        CultureTradition,
     },
     data_binding::DataBindings,
     deathreasons::DeathReason,
-    decisions::Decision,
+    decisions::Ck3Decision,
     diarchies::{DiarchyMandate, DiarchyType},
     difficulty::PlayableDifficultyInfo,
     dna::Dna,
@@ -48,12 +49,12 @@ use crate::ck3::data::{
     election::Election,
     environment::PortraitEnvironment,
     event_themes::{EventBackground, EventTheme, EventTransition},
-    events::Events,
+    events::Ck3Events,
     factions::Faction,
     flavorization::Flavorization,
     focus::Focus,
     gameconcepts::GameConcepts,
-    gamerules::GameRule,
+    gamerules::Ck3GameRule,
     government::Government,
     holdings::Holding,
     holysites::HolySite,
@@ -63,8 +64,8 @@ use crate::ck3::data::{
     innovations::Innovation,
     inspirations::Inspiration,
     interaction_cats::CharacterInteractionCategories,
-    interactions::CharacterInteraction,
-    laws::LawGroup,
+    interactions::Ck3CharacterInteraction,
+    laws::Ck3LawGroup,
     lifestyles::Lifestyle,
     maa::MenAtArmsTypes,
     map_environment::MapEnvironment,
@@ -72,7 +73,7 @@ use crate::ck3::data::{
     memories::MemoryType,
     messages::Message,
     modif::ModifierFormat,
-    modifiers::Modifier,
+    modifiers::Ck3Modifier,
     mottos::{Motto, MottoInsert},
     music::Musics,
     namelists::NameList,
@@ -82,10 +83,10 @@ use crate::ck3::data::{
     points_of_interest::PointOfInterest,
     pool::{CharacterBackground, PoolSelector},
     prov_history::ProvinceHistories,
-    provinces::Provinces,
+    provinces::Ck3Provinces,
     regions::Region,
     relations::Relation,
-    religions::{Religion, ReligionFamily},
+    religions::{Ck3Religion, ReligionFamily},
     schemes::Scheme,
     scripted_animations::ScriptedAnimation,
     scripted_costs::ScriptedCost,
@@ -97,7 +98,7 @@ use crate::ck3::data::{
     stories::Story,
     struggle::{Catalyst, Struggle},
     suggestions::Suggestion,
-    terrain::Terrain,
+    terrain::Ck3Terrain,
     title_history::TitleHistories,
     titles::Titles,
     traits::Traits,
@@ -159,16 +160,16 @@ use crate::vic3::data::{
     battle_conditions::BattleCondition,
     buildings::{BuildingGroup, BuildingType},
     canals::CanalType,
-    character_interactions::CharacterInteraction,
+    character_interactions::Vic3CharacterInteraction,
     combat_units::CombatUnit,
     countries::{Country, CountryFormation, CountryRank, CountryType},
-    cultures::Culture,
-    decisions::Decision,
+    cultures::Vic3Culture,
+    decisions::Vic3Decision,
     diplomatic_actions::DiplomaticAction,
     diplomatic_plays::DiplomaticPlay,
-    events::Events,
+    events::Vic3Events,
     gameconcepts::GameConcept,
-    gamerules::GameRule,
+    gamerules::Vic3GameRule,
     goods::Goods,
     governments::GovernmentType,
     history::History,
@@ -176,23 +177,23 @@ use crate::vic3::data::{
     institutions::Institution,
     interest_groups::{InterestGroup, InterestGroupTrait},
     journalentries::Journalentry,
-    laws::{LawGroup, LawType},
+    laws::{LawType, Vic3LawGroup},
     map::MapLayer,
     media_aliases::MediaAlias,
     modifier_types::ModifierType,
-    modifiers::Modifier,
+    modifiers::Vic3Modifier,
     objectives::{Objective, ObjectiveSubgoal, ObjectiveSubgoalCategory},
     pops::PopType,
     production_methods::{ProductionMethod, ProductionMethodGroup},
-    provinces::Provinces,
-    religions::Religion,
+    provinces::Vic3Provinces,
+    religions::Vic3Religion,
     scripted_buttons::ScriptedButton,
     state_regions::StateRegion,
     state_traits::StateTrait,
     strategic_regions::StrategicRegion,
     subject_types::SubjectType,
     technology::{Technology, TechnologyEra},
-    terrain::{Terrain, TerrainLabel, TerrainManipulator, TerrainMask, TerrainMaterial},
+    terrain::{TerrainLabel, TerrainManipulator, TerrainMask, TerrainMaterial, Vic3Terrain},
 };
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::misc::*;
@@ -230,8 +231,10 @@ pub struct Everything {
     pub(crate) defines: Defines,
 
     /// Processed event files
-    #[cfg(not(feature = "imperator"))]
-    pub(crate) events: Events,
+    #[cfg(feature = "ck3")]
+    pub(crate) events_ck3: Ck3Events,
+    #[cfg(feature = "vic3")]
+    pub(crate) events_vic3: Vic3Events,
 
     pub(crate) scripted_modifiers: ScriptedModifiers,
     pub(crate) on_actions: OnActions,
@@ -240,8 +243,10 @@ pub struct Everything {
     pub(crate) interaction_cats: CharacterInteractionCategories,
 
     /// Processed map data
-    #[cfg(not(feature = "imperator"))]
-    pub(crate) provinces: Provinces,
+    #[cfg(feature = "ck3")]
+    pub(crate) provinces_ck3: Ck3Provinces,
+    #[cfg(feature = "vic3")]
+    pub(crate) provinces_vic3: Vic3Provinces,
 
     /// Processed history/provinces data
     #[cfg(feature = "ck3")]
@@ -332,14 +337,18 @@ impl Everything {
             localization: Localization::default(),
             scripted_lists: ScriptedLists::default(),
             defines: Defines::default(),
-            #[cfg(not(feature = "imperator"))]
-            events: Events::default(),
+            #[cfg(feature = "ck3")]
+            events_ck3: Ck3Events::default(),
+            #[cfg(feature = "vic3")]
+            events_vic3: Vic3Events::default(),
             scripted_modifiers: ScriptedModifiers::default(),
             on_actions: OnActions::default(),
             #[cfg(feature = "ck3")]
             interaction_cats: CharacterInteractionCategories::default(),
-            #[cfg(not(feature = "imperator"))]
-            provinces: Provinces::default(),
+            #[cfg(feature = "ck3")]
+            provinces_ck3: Ck3Provinces::default(),
+            #[cfg(feature = "vic3")]
+            provinces_vic3: Vic3Provinces::default(),
             #[cfg(feature = "ck3")]
             province_histories: ProvinceHistories::default(),
             #[cfg(feature = "ck3")]
@@ -555,12 +564,6 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.gui));
             s.spawn(|_| self.fileset.handle(&mut self.on_actions));
             s.spawn(|_| self.fileset.handle(&mut self.coas));
-
-            // These are items that are different between vic3 and ck3 but share the same name
-            #[cfg(not(feature = "imperator"))]
-            s.spawn(|_| self.fileset.handle(&mut self.events));
-            #[cfg(not(feature = "imperator"))]
-            s.spawn(|_| self.fileset.handle(&mut self.provinces));
         });
 
         self.load_pdx_items(Item::Accessory, Accessory::add);
@@ -583,21 +586,12 @@ impl Everything {
             ".modifierpack",
         );
         self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
-
-        // These are items that are different between vic3 and ck3 but share the same name
-        #[cfg(not(feature = "imperator"))]
-        self.load_pdx_items(Item::Culture, Culture::add);
-        #[cfg(not(feature = "imperator"))]
-        self.load_pdx_items(Item::Decision, Decision::add);
-        #[cfg(not(feature = "imperator"))]
-        self.load_pdx_items(Item::Modifier, Modifier::add);
-        #[cfg(not(feature = "imperator"))]
-        self.load_pdx_items(Item::Religion, Religion::add);
     }
 
     #[cfg(feature = "ck3")]
     fn load_all_ck3(&mut self) {
         scope(|s| {
+            s.spawn(|_| self.fileset.handle(&mut self.events_ck3));
             s.spawn(|_| self.fileset.handle(&mut self.interaction_cats));
             s.spawn(|_| self.fileset.handle(&mut self.province_histories));
             s.spawn(|_| self.fileset.handle(&mut self.gameconcepts));
@@ -610,8 +604,13 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.data_bindings));
             s.spawn(|_| self.fileset.handle(&mut self.sounds));
             s.spawn(|_| self.fileset.handle(&mut self.music));
+            s.spawn(|_| self.fileset.handle(&mut self.provinces_ck3));
         });
-        self.load_pdx_items(Item::CharacterInteraction, CharacterInteraction::add);
+        self.load_pdx_items(Item::CharacterInteraction, Ck3CharacterInteraction::add);
+        self.load_pdx_items(Item::Culture, Ck3Culture::add);
+        self.load_pdx_items(Item::Decision, Ck3Decision::add);
+        self.load_pdx_items(Item::Modifier, Ck3Modifier::add);
+        self.load_pdx_items(Item::Religion, Ck3Religion::add);
         self.load_pdx_items(Item::ReligionFamily, ReligionFamily::add);
         self.load_pdx_items(Item::Dynasty, Dynasty::add);
         self.load_pdx_items(Item::House, House::add);
@@ -625,7 +624,7 @@ impl Everything {
         self.load_pdx_items(Item::ScriptedRule, ScriptedRule::add);
         self.load_pdx_items(Item::Faction, Faction::add);
         self.load_pdx_items(Item::Relation, Relation::add);
-        self.load_pdx_items(Item::Terrain, Terrain::add);
+        self.load_pdx_items(Item::Terrain, Ck3Terrain::add);
         self.load_pdx_items(Item::Region, Region::add);
         self.load_pdx_items(Item::ScriptedGui, ScriptedGui::add);
         self.load_pdx_items(Item::Amenity, Amenity::add);
@@ -689,10 +688,10 @@ impl Everything {
         self.load_pdx_items(Item::CourtSceneRole, CourtSceneRole::add);
         self.load_pdx_files_optional_bom(Item::CourtSceneSetting, CourtSceneSetting::add);
         self.load_pdx_files_optional_bom(Item::MapEnvironment, MapEnvironment::add);
-        self.load_pdx_items(Item::GameRule, GameRule::add);
+        self.load_pdx_items(Item::GameRule, Ck3GameRule::add);
         self.load_pdx_items(Item::TravelOption, TravelOption::add);
         self.load_pdx_items(Item::Story, Story::add);
-        self.load_pdx_items(Item::LawGroup, LawGroup::add);
+        self.load_pdx_items(Item::LawGroup, Ck3LawGroup::add);
         self.load_pdx_items(Item::SuccessionElection, Election::add);
         self.load_pdx_items(Item::DiarchyType, DiarchyType::add);
         self.load_pdx_items(Item::DiarchyMandate, DiarchyMandate::add);
@@ -719,21 +718,25 @@ impl Everything {
     #[cfg(feature = "vic3")]
     fn load_all_vic3(&mut self) {
         self.fileset.handle(&mut self.history);
+        self.fileset.handle(&mut self.events_vic3);
+        self.fileset.handle(&mut self.provinces_vic3);
         self.load_pdx_items(Item::AiStrategy, AiStrategy::add);
         self.load_pdx_items(Item::BattleCondition, BattleCondition::add);
         self.load_pdx_items(Item::BuildingGroup, BuildingGroup::add);
         self.load_pdx_items(Item::BuildingType, BuildingType::add);
         self.load_pdx_items(Item::CanalType, CanalType::add);
-        self.load_pdx_items(Item::CharacterInteraction, CharacterInteraction::add);
+        self.load_pdx_items(Item::CharacterInteraction, Vic3CharacterInteraction::add);
         self.load_pdx_items(Item::CombatUnit, CombatUnit::add);
         self.load_pdx_items(Item::Country, Country::add);
         self.load_pdx_items(Item::CountryFormation, CountryFormation::add);
         self.load_pdx_items(Item::CountryType, CountryType::add);
         self.load_pdx_items(Item::CountryRank, CountryRank::add);
+        self.load_pdx_items(Item::Culture, Vic3Culture::add);
+        self.load_pdx_items(Item::Decision, Vic3Decision::add);
         self.load_pdx_items(Item::DiplomaticAction, DiplomaticAction::add);
         self.load_pdx_items(Item::DiplomaticPlay, DiplomaticPlay::add);
         self.load_pdx_items(Item::GameConcept, GameConcept::add);
-        self.load_pdx_items(Item::GameRule, GameRule::add);
+        self.load_pdx_items(Item::GameRule, Vic3GameRule::add);
         self.load_pdx_items(Item::Goods, Goods::add);
         self.load_pdx_items(Item::GovernmentType, GovernmentType::add);
         self.load_pdx_items(Item::Ideology, Ideology::add);
@@ -741,10 +744,11 @@ impl Everything {
         self.load_pdx_items(Item::InterestGroup, InterestGroup::add);
         self.load_pdx_items(Item::InterestGroupTrait, InterestGroupTrait::add);
         self.load_pdx_items(Item::Journalentry, Journalentry::add);
-        self.load_pdx_items(Item::LawGroup, LawGroup::add);
+        self.load_pdx_items(Item::LawGroup, Vic3LawGroup::add);
         self.load_pdx_items(Item::LawType, LawType::add);
         self.load_pdx_items(Item::MapLayer, MapLayer::add);
         self.load_pdx_items(Item::MediaAlias, MediaAlias::add);
+        self.load_pdx_items(Item::Modifier, Vic3Modifier::add);
         self.load_pdx_items(Item::ModifierType, ModifierType::add);
         self.load_pdx_items(Item::Objective, Objective::add);
         self.load_pdx_items(Item::ObjectiveSubgoal, ObjectiveSubgoal::add);
@@ -752,6 +756,7 @@ impl Everything {
         self.load_pdx_items(Item::PopType, PopType::add);
         self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
         self.load_pdx_items(Item::ProductionMethodGroup, ProductionMethodGroup::add);
+        self.load_pdx_items(Item::Religion, Vic3Religion::add);
         self.load_pdx_items(Item::ScriptedButton, ScriptedButton::add);
         self.load_pdx_items(Item::StateRegion, StateRegion::add);
         self.load_pdx_items(Item::StateTrait, StateTrait::add);
@@ -759,7 +764,7 @@ impl Everything {
         self.load_pdx_items(Item::SubjectType, SubjectType::add);
         self.load_pdx_items(Item::Technology, Technology::add);
         self.load_pdx_items(Item::TechnologyEra, TechnologyEra::add);
-        self.load_pdx_items(Item::Terrain, Terrain::add);
+        self.load_pdx_items(Item::Terrain, Vic3Terrain::add);
         self.load_pdx_items(Item::TerrainLabel, TerrainLabel::add);
         self.load_pdx_items(Item::TerrainManipulator, TerrainManipulator::add);
         self.load_pdx_files_optional_bom_ext(
@@ -800,11 +805,6 @@ impl Everything {
         s.spawn(|_| self.gui.validate(self));
         s.spawn(|_| self.on_actions.validate(self));
         s.spawn(|_| self.coas.validate(self));
-
-        #[cfg(not(feature = "imperator"))]
-        s.spawn(|_| self.events.validate(self));
-        #[cfg(not(feature = "imperator"))]
-        s.spawn(|_| self.provinces.validate(self));
     }
 
     #[cfg(feature = "ck3")]
@@ -821,11 +821,15 @@ impl Everything {
         s.spawn(|_| self.data_bindings.validate(self));
         s.spawn(|_| self.sounds.validate(self));
         s.spawn(|_| self.music.validate(self));
+        s.spawn(|_| self.events_ck3.validate(self));
+        s.spawn(|_| self.provinces_ck3.validate(self));
     }
 
     #[cfg(feature = "vic3")]
     fn validate_all_vic3<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.events_vic3.validate(self));
         s.spawn(|_| self.history.validate(self));
+        s.spawn(|_| self.provinces_vic3.validate(self));
         s.spawn(|_| StrategicRegion::crosscheck(self));
     }
 
@@ -881,13 +885,15 @@ impl Everything {
             Item::DlcFeature => DLC_FEATURES_CK3.contains(&key),
             Item::Doctrine => self.doctrines.exists(key),
             Item::DoctrineParameter => self.doctrines.parameter_exists(key),
+            Item::Event => self.events_ck3.exists(key),
+            Item::EventNamespace => self.events_ck3.namespace_exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),
             Item::GeneticConstraint => self.traits.constraint_exists(key),
             Item::MenAtArms => self.menatarmstypes.exists(key),
             Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),
             Item::Music => self.music.exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
-            Item::Province => self.provinces.exists(key),
+            Item::Province => self.provinces_ck3.exists(key),
             Item::RewardItem => REWARD_ITEMS.contains(&key),
             Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
@@ -912,6 +918,8 @@ impl Everything {
             Item::CountryTier => COUNTRY_TIERS.contains(&key),
             Item::Dlc => DLC_VIC3.contains(&key),
             Item::DlcFeature => DLC_FEATURES_VIC3.contains(&key),
+            Item::Event => self.events_vic3.exists(key),
+            Item::EventNamespace => self.events_vic3.namespace_exists(key),
             Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
             Item::Level => LEVELS.contains(&key),
             Item::SecretGoal => SECRET_GOALS.contains(&key),
@@ -953,8 +961,6 @@ impl Everything {
             Item::CoaTemplate => self.coas.template_exists(key),
             Item::Define => self.defines.exists(key),
             Item::Entity => self.assets.entity_exists(key),
-            Item::Event => self.events.exists(key),
-            Item::EventNamespace => self.events.namespace_exists(key),
             Item::File => self.fileset.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::GuiLayer => self.gui.layer_exists(key),
@@ -1012,7 +1018,12 @@ impl Everything {
             #[cfg(feature = "ck3")]
             Item::Music => self.music.verify_exists_implied(key, token, max_sev),
             #[cfg(any(feature = "ck3", feature = "vic3"))]
-            Item::Province => self.provinces.verify_exists_implied(key, token, max_sev),
+            Item::Province => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => self.provinces_ck3.verify_exists_implied(key, token, max_sev),
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => self.provinces_vic3.verify_exists_implied(key, token, max_sev),
+            },
             #[cfg(feature = "ck3")]
             Item::Sound => self.sounds.verify_exists_implied(key, token, self, max_sev),
             Item::TextureFile => {
@@ -1084,34 +1095,44 @@ impl Everything {
         self.database.get_key_block(itype, key)
     }
 
-    #[cfg(feature = "ck3")]
     pub(crate) fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
-        if let Some(trigger) = self.triggers.get(key.as_str()) {
-            Some(trigger)
-        } else if let Some(trigger) = self.events.get_trigger(key) {
-            Some(trigger)
-        } else {
-            None
+        if Game::is_ck3() {
+            #[cfg(feature = "ck3")]
+            if let Some(trigger) = self.triggers.get(key.as_str()) {
+                return Some(trigger);
+            } else if let Some(trigger) = self.events_ck3.get_trigger(key) {
+                return Some(trigger);
+            } else {
+                return None;
+            }
         }
-    }
-    #[cfg(any(feature = "imperator", feature = "vic3"))]
-    pub(crate) fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
         self.triggers.get(key.as_str())
     }
 
-    #[cfg(feature = "ck3")]
     pub(crate) fn get_effect(&self, key: &Token) -> Option<&Effect> {
-        if let Some(effect) = self.effects.get(key.as_str()) {
-            Some(effect)
-        } else if let Some(effect) = self.events.get_effect(key) {
-            Some(effect)
-        } else {
-            None
+        if Game::is_ck3() {
+            #[cfg(feature = "ck3")]
+            if let Some(effect) = self.effects.get(key.as_str()) {
+                return Some(effect);
+            } else if let Some(effect) = self.events_ck3.get_effect(key) {
+                return Some(effect);
+            } else {
+                return None;
+            }
         }
-    }
-    #[cfg(any(feature = "imperator", feature = "vic3"))]
-    pub(crate) fn get_effect(&self, key: &Token) -> Option<&Effect> {
         self.effects.get(key.as_str())
+    }
+
+    #[allow(unused_variables)] // TODO - imperator - does not use
+    pub(crate) fn check_event_scope(&self, token: &Token, sc: &mut ScopeContext) {
+        match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => self.events_ck3.check_scope(token, sc),
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => self.events_vic3.check_scope(token, sc),
+            #[cfg(feature = "imperator")]
+            Game::Imperator => (), // TODO - imperator -
+        };
     }
 
     #[cfg(feature = "ck3")] // happens not to be used by vic3

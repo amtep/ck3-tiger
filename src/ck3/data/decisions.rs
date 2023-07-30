@@ -14,15 +14,15 @@ use crate::trigger::validate_trigger;
 use crate::validate::{validate_cost, validate_duration, validate_modifiers_with_base};
 
 #[derive(Clone, Debug)]
-pub struct Decision {}
+pub struct Ck3Decision {}
 
-impl Decision {
+impl Ck3Decision {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::Decision, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Decision {
+impl DbKind for Ck3Decision {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Character, key);

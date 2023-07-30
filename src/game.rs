@@ -27,9 +27,16 @@ impl Game {
     /// Return which game we are validating. Should only be called after [`Game::set`].
     ///
     /// ## Panics
-    /// Will panic if called before [`Game::Set`].
+    /// Will panic if called before [`Game::set`].
     #[allow(clippy::self_named_constructors)] // not a constructor
+    #[allow(unreachable_code)]
     pub fn game() -> Game {
+        #[cfg(all(feature = "ck3", not(feature = "vic3"), not(feature = "imperator")))]
+        return Game::Ck3;
+        #[cfg(all(feature = "vic3", not(feature = "ck3"), not(feature = "imperator")))]
+        return Game::Vic3;
+        #[cfg(all(feature = "imperator", not(feature = "ck3"), not(feature = "vic3")))]
+        return Game::Imperator;
         *GAME.get().expect("internal error: don't know which game we are validating")
     }
 

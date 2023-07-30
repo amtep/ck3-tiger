@@ -12,15 +12,15 @@ use crate::trigger::validate_trigger;
 use crate::validate::validate_duration;
 
 #[derive(Clone, Debug)]
-pub struct CharacterInteraction {}
+pub struct Vic3CharacterInteraction {}
 
-impl CharacterInteraction {
+impl Vic3CharacterInteraction {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::CharacterInteraction, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for CharacterInteraction {
+impl DbKind for Vic3CharacterInteraction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Character, key);

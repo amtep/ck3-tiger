@@ -7,15 +7,15 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
-pub struct Modifier {}
+pub struct Ck3Modifier {}
 
-impl Modifier {
+impl Ck3Modifier {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add_exact_dup_ok(Item::Modifier, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Modifier {
+impl DbKind for Ck3Modifier {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

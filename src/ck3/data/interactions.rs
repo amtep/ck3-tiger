@@ -16,15 +16,15 @@ use crate::validate::{
 };
 
 #[derive(Clone, Debug)]
-pub struct CharacterInteraction {}
+pub struct Ck3CharacterInteraction {}
 
-impl CharacterInteraction {
+impl Ck3CharacterInteraction {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::CharacterInteraction, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for CharacterInteraction {
+impl DbKind for Ck3CharacterInteraction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

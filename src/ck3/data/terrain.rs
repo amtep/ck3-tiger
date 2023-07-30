@@ -10,15 +10,15 @@ use crate::token::Token;
 use crate::validate::validate_color;
 
 #[derive(Clone, Debug)]
-pub struct Terrain {}
+pub struct Ck3Terrain {}
 
-impl Terrain {
+impl Ck3Terrain {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::Terrain, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Terrain {
+impl DbKind for Ck3Terrain {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::None, key);

@@ -7,9 +7,9 @@ use crate::report::{warn, ErrorKey};
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
-pub struct GameRule {}
+pub struct Vic3GameRule {}
 
-impl GameRule {
+impl Vic3GameRule {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, _) in block.iter_definitions() {
             db.add_flag(Item::GameRuleSetting, key.clone());
@@ -30,7 +30,7 @@ const SIMPLE_GAME_RULE_FLAGS: &[&str] = &[
     "no_subject_map_color",
 ];
 
-impl DbKind for GameRule {
+impl DbKind for Vic3GameRule {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

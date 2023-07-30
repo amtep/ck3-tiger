@@ -220,9 +220,7 @@ pub fn validate_trigger_event(
     match bv {
         BV::Value(token) => {
             data.verify_exists(Item::Event, token);
-            // TODO: remove this cfg once imperator implements events
-            #[cfg(any(feature = "ck3", feature = "vic3"))]
-            data.events.check_scope(token, sc);
+            data.check_event_scope(token, sc);
         }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
@@ -241,9 +239,7 @@ pub fn validate_trigger_event(
             }
             validate_optional_duration(&mut vd, sc);
             if let Some(token) = block.get_field_value("id") {
-                // TODO: remove this cfg once imperator implements events
-                #[cfg(any(feature = "ck3", feature = "vic3"))]
-                data.events.check_scope(token, sc);
+                data.check_event_scope(token, sc);
             }
         }
     }

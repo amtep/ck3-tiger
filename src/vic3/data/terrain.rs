@@ -11,15 +11,15 @@ use crate::token::Token;
 use crate::util::SmartJoin;
 
 #[derive(Clone, Debug)]
-pub struct Terrain {}
+pub struct Vic3Terrain {}
 
-impl Terrain {
+impl Vic3Terrain {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::Terrain, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Terrain {
+impl DbKind for Vic3Terrain {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

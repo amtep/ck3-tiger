@@ -16,7 +16,7 @@ use crate::token::{Loc, Token};
 pub type ProvId = u32;
 
 #[derive(Clone, Debug, Default)]
-pub struct Provinces {
+pub struct Ck3Provinces {
     /// Colors in the provinces.png
     colors: FnvHashSet<Rgb<u8>>,
 
@@ -33,7 +33,7 @@ pub struct Provinces {
     impassable: FnvHashSet<ProvId>,
 }
 
-impl Provinces {
+impl Ck3Provinces {
     fn parse_definition(&mut self, csv: &[Token]) {
         if let Some(province) = Province::parse(csv) {
             if self.provinces.contains_key(&province.id) {
@@ -154,7 +154,7 @@ pub enum FileContent {
     DefaultMap(Block),
 }
 
-impl FileHandler<FileContent> for Provinces {
+impl FileHandler<FileContent> for Ck3Provinces {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("map_data")
     }
@@ -361,7 +361,7 @@ impl Adjacency {
         })
     }
 
-    fn validate(&self, provinces: &Provinces) {
+    fn validate(&self, provinces: &Ck3Provinces) {
         for prov in &[self.from, self.to, self.through] {
             if !provinces.provinces.contains_key(&prov) {
                 let msg = format!("province id {prov} not defined in definitions.csv");

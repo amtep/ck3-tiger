@@ -55,9 +55,9 @@ impl DbKind for CultureEra {
 }
 
 #[derive(Clone, Debug)]
-pub struct Culture {}
+pub struct Ck3Culture {}
 
-impl Culture {
+impl Ck3Culture {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if let Some(list) = block.get_field_list("coa_gfx") {
             for token in list {
@@ -83,7 +83,7 @@ impl Culture {
     }
 }
 
-impl DbKind for Culture {
+impl DbKind for Ck3Culture {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
