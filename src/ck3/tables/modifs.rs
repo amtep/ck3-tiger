@@ -267,18 +267,18 @@ fn modif_check(
 }
 
 // Redeclare the `ModifKinds` enums as bare numbers, so that we can to | on them in const tables.
-const Character: u8 = 0x01;
-const Province: u8 = 0x02;
-const County: u8 = 0x04;
-const Terrain: u8 = 0x08;
-const Culture: u8 = 0x10;
-const Scheme: u8 = 0x20;
-const TravelPlan: u8 = 0x40;
+const Character: u16 = ModifKinds::Character.bits();
+const Province: u16 = ModifKinds::Province.bits();
+const County: u16 = ModifKinds::County.bits();
+const Terrain: u16 = ModifKinds::Terrain.bits();
+const Culture: u16 = ModifKinds::Culture.bits();
+const Scheme: u16 = ModifKinds::Scheme.bits();
+const TravelPlan: u16 = ModifKinds::TravelPlan.bits();
 
 /// LAST UPDATED VERSION 1.9.2
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
-const MODIF_TABLE: &[(&str, u8)] = &[
+const MODIF_TABLE: &[(&str, u16)] = &[
     ("accolade_glory_gain_mult", Character),
     ("active_accolades", Character),
     ("additional_fort_level", Character | Province | County),

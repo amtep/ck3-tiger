@@ -3,8 +3,6 @@ use std::str::FromStr;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Eq::*, Field, BV};
-#[cfg(feature = "ck3")]
-use crate::ck3::tables::triggers::scope_trigger;
 use crate::context::{Reason, ScopeContext};
 use crate::data::genes::Gene;
 use crate::data::trigger_localization::TriggerLocalization;
@@ -15,8 +13,6 @@ use crate::game::Game;
 use crate::helpers::stringify_choices;
 #[cfg(feature = "vic3")]
 use crate::helpers::stringify_list;
-#[cfg(feature = "imperator")]
-use crate::imperator::tables::triggers::scope_trigger;
 use crate::item::Item;
 use crate::report::{
     advice_info, err, error, fatal, old_warn, warn2, warn_info, ErrorKey, Severity,
@@ -33,8 +29,6 @@ use crate::validate::{
 };
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::misc::{APPROVALS, LEVELS};
-#[cfg(feature = "vic3")]
-use crate::vic3::tables::triggers::scope_trigger;
 
 /// The standard interface to trigger validation. Validates a trigger in the given [`ScopeContext`].
 ///
@@ -306,6 +300,15 @@ pub fn validate_trigger_key_bv(
         validate_scriptvalue(bv, data, sc);
         return;
     }
+
+    let scope_trigger = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::triggers::scope_trigger,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::triggers::scope_trigger,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::triggers::scope_trigger,
+    };
 
     let key = handle_argument(key, data, sc);
     let part_vec = key.split('.');
@@ -1124,6 +1127,15 @@ pub enum Trigger {
 ///
 /// Only triggers that take `Scopes::Value` types can be used this way.
 pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
+    let scope_trigger = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::triggers::scope_trigger,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::triggers::scope_trigger,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::triggers::scope_trigger,
+    };
+
     match scope_trigger(name, data) {
         #[cfg(feature = "ck3")]
         Some((

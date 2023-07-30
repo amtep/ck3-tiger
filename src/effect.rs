@@ -1,14 +1,10 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Eq::*, BV};
-#[cfg(feature = "ck3")]
-use crate::ck3::tables::effects::scope_effect;
 use crate::context::{Reason, ScopeContext};
 use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::game::Game;
-#[cfg(feature = "imperator")]
-use crate::imperator::tables::effects::scope_effect;
 use crate::item::Item;
 use crate::report::{advice_info, err, error, fatal, old_warn, warn_info, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
@@ -30,8 +26,6 @@ use crate::validate::{
 };
 #[cfg(feature = "ck3")]
 use crate::validate::{validate_compare_duration, validate_modifiers};
-#[cfg(feature = "vic3")]
-use crate::vic3::tables::effects::scope_effect;
 
 /// The standard interface to effect validation. Validates an effect in the given [`ScopeContext`].
 ///
@@ -155,6 +149,15 @@ pub fn validate_effect_internal<'a>(
             validate_scripted_modifier_call(key, bv, modifier, data, sc);
             return;
         }
+
+        let scope_effect = match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => crate::ck3::tables::effects::scope_effect,
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => crate::vic3::tables::effects::scope_effect,
+            #[cfg(feature = "imperator")]
+            Game::Imperator => crate::imperator::tables::effects::scope_effect,
+        };
 
         if let Some((inscopes, effect)) = scope_effect(key, data) {
             sc.expect(inscopes, &Reason::Token(key.clone()));

@@ -204,19 +204,19 @@ fn maybe_warn(itype: Item, s: &str, name: &Token, data: &Everything, warn: Optio
 }
 
 // Redeclare the `ModifKinds` enums as bare numbers, so that we can do | on them in const tables.
-const NoneModifKind: u16 = 0x0001;
-const Battle: u16 = 0x0002;
-const Building: u16 = 0x0004;
-const Character: u16 = 0x0008;
-const Country: u16 = 0x0010;
-const Front: u16 = 0x0020;
-const InterestGroup: u16 = 0x0040;
-const Market: u16 = 0x0080;
-const PoliticalMovement: u16 = 0x0100;
-const State: u16 = 0x0200;
-const Tariff: u16 = 0x0400;
-const Tax: u16 = 0x0800;
-const Unit: u16 = 0x1000;
+const NoneModifKind: u16 = ModifKinds::NoneModifKind.bits();
+const Battle: u16 = ModifKinds::Battle.bits();
+const Building: u16 = ModifKinds::Building.bits();
+const Character: u16 = ModifKinds::Character.bits();
+const Country: u16 = ModifKinds::Country.bits();
+const Front: u16 = ModifKinds::Front.bits();
+const InterestGroup: u16 = ModifKinds::InterestGroup.bits();
+const Market: u16 = ModifKinds::Market.bits();
+const PoliticalMovement: u16 = ModifKinds::PoliticalMovement.bits();
+const State: u16 = ModifKinds::State.bits();
+const Tariff: u16 = ModifKinds::Tariff.bits();
+const Tax: u16 = ModifKinds::Tax.bits();
+const Unit: u16 = ModifKinds::Unit.bits();
 
 /// LAST UPDATED VERSION 1.9.2
 /// See `modifiers.log` from the game data dumps.

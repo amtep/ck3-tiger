@@ -40,6 +40,7 @@ pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)>
     std::option::Option::None
 }
 
+/// A hashed version of [`SCOPE_EFFECT`], for quick lookup by effect name.
 static SCOPE_EFFECT_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Effect)>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
     for (from, s, effect) in SCOPE_EFFECT {
@@ -48,8 +49,8 @@ static SCOPE_EFFECT_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Effect)>> = Lazy
     hash
 });
 
-/// LAST UPDATED VERSION 1.9.2
-/// See `effects.log` from the game data dumps
+// LAST UPDATED VERSION 1.9.2
+// See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::TravelPlan, "abort_travel_plan", Boolean),
     (

@@ -19,8 +19,8 @@ pub fn scope_effect(name: &Token, _data: &Everything) -> Option<(Scopes, Effect)
     None
 }
 
-/// LAST UPDATED VERSION 2.0.4
-/// See `effects.log` from the game data dumps
+// LAST UPDATED VERSION 2.0.4
+// See `effects.log` from the game data dumps
 // TODO - "-tdb-" marks blocks that still need to be done.
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::State, "add_state_food", ScriptValue),

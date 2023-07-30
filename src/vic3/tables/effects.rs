@@ -19,8 +19,8 @@ pub fn scope_effect(name: &Token, _data: &Everything) -> Option<(Scopes, Effect)
     std::option::Option::None
 }
 
-/// LAST UPDATED VERSION 1.9.2
-/// See `effects.log` from the game data dumps
+// LAST UPDATED VERSION 1.9.2
+// See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::InterestGroup, "abandon_revolution", Boolean),
     (Scopes::State, "activate_building", Item(Item::BuildingType)),
