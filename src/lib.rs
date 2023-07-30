@@ -56,6 +56,7 @@ mod helpers;
 mod item;
 mod macrocache;
 mod modif;
+mod on_action;
 mod parse;
 mod pathtable;
 mod pdxfile;

@@ -4,16 +4,13 @@ use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Field, BV};
-#[cfg(feature = "ck3")]
-use crate::ck3::tables::on_action::on_action_scopecontext;
 use crate::context::ScopeContext;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::game::Game;
-#[cfg(feature = "imperator")]
-use crate::imperator::tables::on_action::on_action_scopecontext;
 use crate::item::Item;
+use crate::on_action::on_action_scopecontext;
 use crate::pdxfile::PdxFile;
 #[cfg(feature = "ck3")]
 use crate::report::{error_info, warn_info, ErrorKey};
@@ -22,8 +19,6 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_modifiers_with_base};
-#[cfg(feature = "vic3")]
-use crate::vic3::tables::on_action::on_action_scopecontext;
 
 #[derive(Clone, Debug, Default)]
 pub struct OnActions {
