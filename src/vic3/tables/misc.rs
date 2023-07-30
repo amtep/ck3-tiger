@@ -36,6 +36,10 @@ pub const INFAMY_THRESHOLDS: &[&str] = &["notorious", "infamous", "pariah"];
 pub const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
 
 // LAST UPDATED VIC3 VERSION 1.3.6
+pub const POLITICAL_MOVEMENTS: &[&str] =
+    &["movement_to_enact", "movement_to_preserve", "movement_to_restore"];
+
+// LAST UPDATED VIC3 VERSION 1.3.6
 pub const SECRET_GOALS: &[&str] =
     &["none", "befriend", "reconcile", "protect", "antagonize", "conquer", "dominate"];
 
@@ -43,6 +47,9 @@ pub const SECRET_GOALS: &[&str] =
 // Deduced from `common/government_types/`
 pub const TRANSFER_OF_POWER: &[&str] =
     &["hereditary", "presidential_elective", "dictatorial", "parliamentary_elective"];
+
+// LAST UPDATED VIC3 VERSION 1.3.6
+pub const STRATA: &[&str] = &["poor", "middle", "rich"];
 
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const WARGOALS: &[&str] = &[

@@ -103,6 +103,8 @@ pub enum Item {
     // Items shared by more than one game
     #[cfg(any(feature = "ck3", feature = "imperator"))]
     Building,
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    CharacterTemplate,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     CharacterTrait,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
@@ -158,7 +160,6 @@ pub enum Item {
     #[cfg(feature = "ck3")] Character,
     #[cfg(feature = "ck3")] CharacterBackground,
     #[cfg(feature = "ck3")] CharacterInteractionCategory,
-    #[cfg(feature = "ck3")] CharacterTemplate,
     #[cfg(feature = "ck3")] ClothingGfx,
     #[cfg(feature = "ck3")] CoaGfx,
     #[cfg(feature = "ck3")] CoaDynamicDefinition,
@@ -279,11 +280,13 @@ pub enum Item {
     #[cfg(feature = "vic3")] CanalType,
     #[cfg(feature = "vic3")] CharacterRole,
     #[cfg(feature = "vic3")] CombatUnit,
+    #[cfg(feature = "vic3")] CommanderOrder,
     #[cfg(feature = "vic3")] Country,
     #[cfg(feature = "vic3")] CountryFormation,
     #[cfg(feature = "vic3")] CountryRank,
     #[cfg(feature = "vic3")] CountryTier,
     #[cfg(feature = "vic3")] CountryType,
+    #[cfg(feature = "vic3")] CultureGraphics,
     #[cfg(feature = "vic3")] Decree,
     #[cfg(feature = "vic3")] DiplomaticAction,
     #[cfg(feature = "vic3")] DiplomaticPlay,
@@ -302,12 +305,15 @@ pub enum Item {
     #[cfg(feature = "vic3")] Objective,
     #[cfg(feature = "vic3")] ObjectiveSubgoal,
     #[cfg(feature = "vic3")] ObjectiveSubgoalCategory,
+    #[cfg(feature = "vic3")] Party,
+    #[cfg(feature = "vic3")] PoliticalMovement,
     #[cfg(feature = "vic3")] ProductionMethod,
     #[cfg(feature = "vic3")] ProductionMethodGroup,
     #[cfg(feature = "vic3")] ScriptedButton,
     #[cfg(feature = "vic3")] SecretGoal,
     #[cfg(feature = "vic3")] StateRegion,
     #[cfg(feature = "vic3")] StateTrait,
+    #[cfg(feature = "vic3")] Strata,
     #[cfg(feature = "vic3")] StrategicRegion,
     #[cfg(feature = "vic3")] Technology,
     #[cfg(feature = "vic3")] TechnologyEra,
@@ -506,6 +512,13 @@ impl Item {
 
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::Building => "common/buildings/",
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
+            Item::CharacterTemplate => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => "common/scripted_character_templates/",
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => "common/character_templates/",
+            },
             #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::CharacterTrait => match Game::game() {
                 #[cfg(feature = "vic3")]
@@ -613,8 +626,6 @@ impl Item {
             Item::CharacterBackground => "common/character_backgrounds/",
             #[cfg(feature = "ck3")]
             Item::CharacterInteractionCategory => "common/character_interaction_categories/",
-            #[cfg(feature = "ck3")]
-            Item::CharacterTemplate => "common/scripted_character_templates/",
             #[cfg(feature = "ck3")]
             Item::ClothingGfx => "common/culture/cultures/",
             #[cfg(feature = "ck3")]
@@ -851,17 +862,21 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::CharacterRole => "",
             #[cfg(feature = "vic3")]
-            Item::CombatUnit => "common/combat_unit_types",
+            Item::CombatUnit => "common/combat_unit_types/",
+            #[cfg(feature = "vic3")]
+            Item::CommanderOrder => "common/commander_orders/",
             #[cfg(feature = "vic3")]
             Item::Country => "common/country_definitions/",
             #[cfg(feature = "vic3")]
             Item::CountryFormation => "common/country_formation/",
             #[cfg(feature = "vic3")]
-            Item::CountryRank => "common/country_ranks",
+            Item::CountryRank => "common/country_ranks/",
             #[cfg(feature = "vic3")]
             Item::CountryTier => "",
             #[cfg(feature = "vic3")]
-            Item::CountryType => "common/country_types",
+            Item::CountryType => "common/country_types/",
+            #[cfg(feature = "vic3")]
+            Item::CultureGraphics => "common/culture_graphics/",
             #[cfg(feature = "vic3")]
             Item::Decree => "common/decrees/",
             #[cfg(feature = "vic3")]
@@ -899,6 +914,10 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::ObjectiveSubgoalCategory => "common/objective_subgoal_categories/",
             #[cfg(feature = "vic3")]
+            Item::Party => "common/parties/",
+            #[cfg(feature = "vic3")]
+            Item::PoliticalMovement => "",
+            #[cfg(feature = "vic3")]
             Item::ProductionMethod => "common/production_methods/",
             #[cfg(feature = "vic3")]
             Item::ProductionMethodGroup => "common/production_method_groups/",
@@ -910,6 +929,8 @@ impl Item {
             Item::StateRegion => "map_data/state_regions/",
             #[cfg(feature = "vic3")]
             Item::StateTrait => "common/state_traits/",
+            #[cfg(feature = "vic3")]
+            Item::Strata => "",
             #[cfg(feature = "vic3")]
             Item::StrategicRegion => "common/strategic_regions/",
             #[cfg(feature = "vic3")]

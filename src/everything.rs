@@ -922,6 +922,7 @@ impl Everything {
             Item::EventNamespace => self.events_vic3.namespace_exists(key),
             Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
             Item::Level => LEVELS.contains(&key),
+            Item::PoliticalMovement => POLITICAL_MOVEMENTS.contains(&key),
             Item::SecretGoal => SECRET_GOALS.contains(&key),
             Item::Sound => {
                 if let Some(filename) = key.strip_prefix("file://") {
@@ -930,9 +931,16 @@ impl Everything {
                     SOUNDS_VIC3.contains(&key)
                 }
             }
+            Item::Strata => STRATA.contains(&key),
             Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
             Item::Wargoal => WARGOALS.contains(&key),
-            Item::TutorialLesson => true, // TODO
+            Item::CharacterTemplate
+            | Item::CharacterTrait
+            | Item::CommanderOrder
+            | Item::Party
+            | Item::CultureGraphics
+            | Item::Decree
+            | Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
