@@ -256,6 +256,7 @@ impl ScopeContext {
     /// Callers should probably check [`Self::is_strict()`] as well.
     pub fn is_name_defined(&mut self, name: &str) -> Option<Scopes> {
         if let Some(&idx) = self.names.get(name) {
+            #[allow(clippy::match_on_vec_items)] // invariant guarantees no panic
             Some(match self.named[idx] {
                 ScopeEntry::Scope(s, _) => s,
                 ScopeEntry::Backref(_) => unreachable!(),

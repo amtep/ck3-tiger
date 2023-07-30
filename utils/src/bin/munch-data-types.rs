@@ -341,7 +341,6 @@ fn parse_datafunction(
             name.to_owned(),
             NonGlobal::new(barename.to_owned(), dtype.to_owned(), args, rtype.to_owned()),
         );
-        return;
     }
 }
 

@@ -1104,29 +1104,29 @@ impl Everything {
     }
 
     pub(crate) fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
+        #[cfg(feature = "ck3")]
         if Game::is_ck3() {
-            #[cfg(feature = "ck3")]
             if let Some(trigger) = self.triggers.get(key.as_str()) {
                 return Some(trigger);
-            } else if let Some(trigger) = self.events_ck3.get_trigger(key) {
-                return Some(trigger);
-            } else {
-                return None;
             }
+            if let Some(trigger) = self.events_ck3.get_trigger(key) {
+                return Some(trigger);
+            }
+            return None;
         }
         self.triggers.get(key.as_str())
     }
 
     pub(crate) fn get_effect(&self, key: &Token) -> Option<&Effect> {
+        #[cfg(feature = "ck3")]
         if Game::is_ck3() {
-            #[cfg(feature = "ck3")]
             if let Some(effect) = self.effects.get(key.as_str()) {
                 return Some(effect);
-            } else if let Some(effect) = self.events_ck3.get_effect(key) {
-                return Some(effect);
-            } else {
-                return None;
             }
+            if let Some(effect) = self.events_ck3.get_effect(key) {
+                return Some(effect);
+            }
+            return None;
         }
         self.effects.get(key.as_str())
     }

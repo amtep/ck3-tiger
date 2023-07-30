@@ -172,11 +172,11 @@ impl Scopes {
         };
         match Game::game() {
             #[cfg(feature = "ck3")]
-            Game::Ck3 => return crate::ck3::scopes::scope_from_snake_case(s),
+            Game::Ck3 => crate::ck3::scopes::scope_from_snake_case(s),
             #[cfg(feature = "vic3")]
-            Game::Vic3 => return crate::vic3::scopes::scope_from_snake_case(s),
+            Game::Vic3 => crate::vic3::scopes::scope_from_snake_case(s),
             #[cfg(feature = "imperator")]
-            Game::Imperator => return crate::imperator::scopes::scope_from_snake_case(s),
+            Game::Imperator => crate::imperator::scopes::scope_from_snake_case(s),
         }
     }
 }

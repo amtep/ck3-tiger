@@ -115,6 +115,8 @@ impl Concept {
                     if tokens.len() == 2 {
                         if let Ok(width) = tokens[0].as_str().parse::<u32>() {
                             if let Ok(height) = tokens[1].as_str().parse::<u32>() {
+                                #[allow(clippy::cast_possible_truncation)] // TODO
+                                #[allow(clippy::cast_sign_loss)]
                                 data.dds.validate_frame(texture, width, height, frame as u32);
                             }
                         }

@@ -174,6 +174,7 @@ impl DbKind for TerrainMaterial {
 pub struct TerrainMask {}
 
 impl TerrainMask {
+    #[allow(clippy::needless_pass_by_value)] // TODO: need drain_blocks_warn()
     pub fn add_json(db: &mut Db, block: Block) {
         // The masks are deeply nested in a json that looks like this:
         // { "masks": [ { ... }, { ... } ] }

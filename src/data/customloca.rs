@@ -72,6 +72,7 @@ impl DbKind for CustomLocalization {
 }
 
 impl CustomLocalization {
+    #[allow(clippy::too_many_arguments)] // nothing can be cut here
     pub fn validate_custom_call(
         key: &Token,
         block: &Block,

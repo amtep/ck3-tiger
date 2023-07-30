@@ -236,7 +236,7 @@ fn validate_argument(
         Arg::DType(expect_type) => {
             match arg {
                 CodeArg::Chain(chain) => {
-                    validate_datatypes(chain, data, sc, expect_type, lang, false)
+                    validate_datatypes(chain, data, sc, expect_type, lang, false);
                 }
                 CodeArg::Literal(token) => {
                     if token.as_str().starts_with('(') && token.as_str().contains(')') {

@@ -62,6 +62,7 @@ impl Calculation {
         while i < calc.len().saturating_sub(1) {
             if let Calculation::Value(value1) = calc[i - 1] {
                 if let Calculation::Value(value2) = calc[i + 1] {
+                    #[allow(clippy::match_on_vec_items)] // guaranteed by while condition
                     match calc[i] {
                         Calculation::Multiply => {
                             calc.splice(i - 1..=i + 1, vec![Calculation::Value(value1 * value2)]);
@@ -92,6 +93,7 @@ impl Calculation {
         while i < calc.len().saturating_sub(1) {
             if let Calculation::Value(value1) = calc[i - 1] {
                 if let Calculation::Value(value2) = calc[i + 1] {
+                    #[allow(clippy::match_on_vec_items)] // guaranteed by while condition
                     match calc[i] {
                         Calculation::Add => {
                             calc.splice(i - 1..=i + 1, vec![Calculation::Value(value1 + value2)]);
@@ -482,13 +484,9 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                         current_id.push(c);
                         token_start = loc.clone();
                         state = State::Id;
-                    } else if c == '$' {
-                        // This can only happen with extreme shenanigans in the input.
+                    } else if c.is_id_char() || c == '$' {
+                        // c == '$' can only happen with extreme shenanigans in the input.
                         // Treat it as just another character.
-                        token_start = loc.clone();
-                        state = State::Id;
-                        current_id.push(c);
-                    } else if c.is_id_char() {
                         token_start = loc.clone();
                         state = State::Id;
                         current_id.push(c);
@@ -650,11 +648,7 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                             current_id.push(c);
                             token_start = loc.clone();
                             state = State::Id;
-                        } else if c == '$' {
-                            token_start = loc.clone();
-                            state = State::Id;
-                            current_id.push(c);
-                        } else if c.is_id_char() {
+                        } else if c.is_id_char() || c == '$' {
                             token_start = loc.clone();
                             state = State::Id;
                             current_id.push(c);

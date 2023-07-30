@@ -79,6 +79,7 @@ pub fn validate_effect_internal<'a>(
         vd.ban_field("limit", || "if/else_if or lists");
     }
 
+    #[allow(clippy::if_not_else)] // for symmetry
     if list_type != ListType::None {
         vd.field_validated_block("filter", |block, data| {
             validate_trigger(block, data, sc, Tooltipped::No);
@@ -132,8 +133,8 @@ pub fn validate_effect_internal<'a>(
                             let info = "supplying an unneeded parameter often causes a crash";
                             fatal(ErrorKey::Macro).msg(msg).info(info).loc(key).push();
                         });
-                        let args = parms.into_iter().zip(vec.into_iter()).collect();
-                        effect.validate_macro_expansion(key, args, data, sc, tooltipped);
+                        let args: Vec<_> = parms.into_iter().zip(vec.into_iter()).collect();
+                        effect.validate_macro_expansion(key, &args, data, sc, tooltipped);
                     }
                 }
             }

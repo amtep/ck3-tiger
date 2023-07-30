@@ -91,10 +91,11 @@ impl Token {
         let mut loc = self.loc.clone();
         let mut lines: u32 = 0;
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
+            let cols = u32::try_from(cols).expect("internal error: 4GB token");
             if c == ch {
                 vec.push(self.subtoken(pos..i, loc.clone()));
                 pos = i + 1;
-                loc.column = self.loc.column + cols as u32 + 1;
+                loc.column = self.loc.column + cols + 1;
                 loc.line = self.loc.line + lines;
             }
             if c == '\n' {
@@ -107,10 +108,11 @@ impl Token {
 
     pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
+            let cols = u32::try_from(cols).expect("internal error: 4GB token");
             if c == ch {
                 let token1 = self.subtoken(..i, self.loc.clone());
                 let mut loc = self.loc.clone();
-                loc.column += cols as u32 + 1;
+                loc.column += cols + 1;
                 let token2 = self.subtoken(i + 1.., loc);
                 return Some((token1, token2));
             }
@@ -121,11 +123,13 @@ impl Token {
     /// Split the token at the first instance of ch, such that ch is part of the first returned token.
     pub fn split_after(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
+            let cols = u32::try_from(cols).expect("internal error: 4GB token");
+            #[allow(clippy::cast_possible_truncation)] // chlen can't be more than 6
             if c == ch {
                 let chlen = ch.len_utf8();
                 let token1 = self.subtoken(..i + chlen, self.loc.clone());
                 let mut loc = self.loc.clone();
-                loc.column += cols as u32 + chlen as u32;
+                loc.column += cols + chlen as u32;
                 let token2 = self.subtoken(i + chlen.., loc);
                 return Some((token1, token2));
             }
@@ -144,6 +148,7 @@ impl Token {
         let mut real_start = None;
         let mut real_end = self.s.len();
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
+            let cols = u32::try_from(cols).expect("internal error: 4GB token");
             if c != ' ' {
                 real_start = Some((cols, i));
                 break;
@@ -155,7 +160,7 @@ impl Token {
         }
         if let Some((cols, i)) = real_start {
             let mut loc = self.loc.clone();
-            loc.column += cols as u32;
+            loc.column += cols;
             self.subtoken(i..real_end, loc)
         } else {
             // all spaces

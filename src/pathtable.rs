@@ -27,7 +27,7 @@ impl PathTable {
     }
 
     fn store_internal(&mut self, pathbuf: PathBuf) -> PathTableIndex {
-        let idx = PathTableIndex(self.paths.len() as u32);
+        let idx = PathTableIndex(u32::try_from(self.paths.len()).expect("internal error"));
         self.paths.push(pathbuf);
         idx
     }

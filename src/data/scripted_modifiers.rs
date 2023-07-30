@@ -123,24 +123,24 @@ impl ScriptedModifier {
     pub fn validate_macro_expansion(
         &self,
         key: &Token,
-        args: Vec<(&str, Token)>,
+        args: &[(&str, Token)],
         data: &Everything,
         sc: &mut ScopeContext,
     ) {
         // Every invocation is treated as different even if the args are the same,
         // because we want to point to the correct one when reporting errors.
-        if !self.cached_compat(key, &args, sc) {
-            if let Some(block) = self.block.expand_macro(&args, key) {
+        if !self.cached_compat(key, args, sc) {
+            if let Some(block) = self.block.expand_macro(args, key) {
                 let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
                 our_sc.set_strict_scopes(false);
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
-                self.cache.insert(key, &args, Tooltipped::No, false, our_sc.clone());
+                self.cache.insert(key, args, Tooltipped::No, false, our_sc.clone());
                 let mut vd = Validator::new(&block, data);
                 validate_modifiers(&mut vd, &mut our_sc);
                 validate_scripted_modifier_calls(vd, data, &mut our_sc);
                 sc.expect_compatibility(&our_sc, key);
-                self.cache.insert(key, &args, Tooltipped::No, false, our_sc);
+                self.cache.insert(key, args, Tooltipped::No, false, our_sc);
             }
         }
     }

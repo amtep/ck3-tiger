@@ -66,8 +66,8 @@ pub fn validate_trigger_max_sev(
 /// `negated` is true iff this trigger is tested in a negative sense, for example if it is
 /// somewhere inside a `NOT = { ... }` block. `negated` is propagated to all sub-blocks and is
 /// flipped when another `NOT` or similar is encountered inside this one.
-///
-/// TODO: `in_list` could be removed if the code checks directly for the `any_` prefix instead.
+// TODO: `in_list` could be removed if the code checks directly for the `any_` prefix instead.
+#[allow(clippy::too_many_arguments)]
 pub fn validate_trigger_internal(
     caller: &str,
     in_list: bool,
@@ -239,6 +239,7 @@ pub fn validate_trigger_internal(
 /// Validate a trigger given its key and argument. It is like [`validate_trigger_internal`] except
 /// that all special cases are assumed to have been handled. This is the interface used for the
 /// `switch` effect, where the key and argument are not together in the script.
+#[allow(clippy::too_many_arguments)] // nothing can be cut
 pub fn validate_trigger_key_bv(
     key: &Token,
     cmp: Comparator,
@@ -287,8 +288,8 @@ pub fn validate_trigger_key_bv(
                         fatal(ErrorKey::Macro).msg(msg).info(info).loc(key).push();
                     });
 
-                    let args = parms.into_iter().zip(vec.into_iter()).collect();
-                    trigger.validate_macro_expansion(key, args, data, sc, tooltipped, negated);
+                    let args: Vec<_> = parms.into_iter().zip(vec.into_iter()).collect();
+                    trigger.validate_macro_expansion(key, &args, data, sc, tooltipped, negated);
                 }
             }
         }
@@ -500,6 +501,7 @@ pub const STANCES: &[&str] =
 
 /// Takes a [`Trigger`] and a trigger field, and validates that the constraints
 /// specified by the `Trigger` hold.
+#[allow(clippy::too_many_arguments)]
 fn match_trigger_bv(
     trigger: &Trigger,
     name: &Token,

@@ -363,7 +363,7 @@ impl Adjacency {
 
     fn validate(&self, provinces: &Ck3Provinces) {
         for prov in &[self.from, self.to, self.through] {
-            if !provinces.provinces.contains_key(&prov) {
+            if !provinces.provinces.contains_key(prov) {
                 let msg = format!("province id {prov} not defined in definitions.csv");
                 fatal(ErrorKey::Crash).msg(msg).loc(&self.line).push();
             }
