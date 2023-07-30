@@ -863,53 +863,29 @@ impl Everything {
     }
 
     #[cfg(feature = "ck3")]
-    pub(crate) fn item_exists(&self, itype: Item, key: &str) -> bool {
+    pub(crate) fn item_exists_ck3(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
             Item::ArtifactRarity => ARTIFACT_RARITY.contains(&key),
-            Item::Asset => self.assets.asset_exists(key),
-            Item::BlendShape => self.assets.blend_shape_exists(key),
             Item::Character => self.characters.exists(key),
             Item::CharacterInteractionCategory => self.interaction_cats.exists(key),
-            Item::Coa => self.coas.exists(key),
-            Item::CoaTemplate => self.coas.template_exists(key),
             Item::DangerType => DANGER_TYPES.contains(&key),
-            Item::Define => self.defines.exists(key),
-            Item::Dlc => DLC.contains(&key),
-            Item::DlcFeature => DLC_FEATURES.contains(&key),
+            Item::Dlc => DLC_CK3.contains(&key),
+            Item::DlcFeature => DLC_FEATURES_CK3.contains(&key),
             Item::Doctrine => self.doctrines.exists(key),
             Item::DoctrineParameter => self.doctrines.parameter_exists(key),
-            Item::Entity => self.assets.entity_exists(key),
-            Item::Event => self.events.exists(key),
-            Item::EventNamespace => self.events.namespace_exists(key),
-            Item::File => self.fileset.exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),
-            Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::GeneticConstraint => self.traits.constraint_exists(key),
-            Item::GuiLayer => self.gui.layer_exists(key),
-            Item::GuiTemplate => self.gui.template_exists(key),
-            Item::GuiType => self.gui.type_exists(key),
-            Item::Localization => self.localization.exists(key),
             Item::MenAtArms => self.menatarmstypes.exists(key),
             Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),
             Item::Music => self.music.exists(key),
-            Item::OnAction => self.on_actions.exists(key),
-            Item::Pdxmesh => self.assets.mesh_exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces.exists(key),
             Item::RewardItem => REWARD_ITEMS.contains(&key),
-            Item::ScriptedEffect => self.effects.exists(key),
-            Item::ScriptedList => self.scripted_lists.exists(key),
-            Item::ScriptedModifier => self.scripted_modifiers.exists(key),
-            Item::ScriptedTrigger => self.triggers.exists(key),
-            Item::ScriptValue => self.scriptvalues.exists(key),
             Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
             Item::Sound => self.sounds.exists(key),
-            Item::TextFormat => self.gui.textformat_exists(key),
-            Item::TextIcon => self.gui.texticon_exists(key),
-            Item::TextureFile => self.assets.texture_exists(key),
             Item::Title => self.titles.exists(key),
             Item::TitleHistory => self.title_history.exists(key),
             Item::TitleHistoryType => TITLE_HISTORY_TYPES.contains(&key),
@@ -917,25 +893,59 @@ impl Everything {
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitTrack => self.traits.track_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::Shortcut => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
 
     #[cfg(feature = "vic3")]
+    pub(crate) fn item_exists_vic3(&self, itype: Item, key: &str) -> bool {
+        match itype {
+            Item::Approval => APPROVALS.contains(&key),
+            Item::Attitude => ATTITUDES.contains(&key),
+            Item::CharacterRole => CHARACTER_ROLES.contains(&key),
+            Item::CountryTier => COUNTRY_TIERS.contains(&key),
+            Item::Dlc => DLC_VIC3.contains(&key),
+            Item::DlcFeature => DLC_FEATURES_VIC3.contains(&key),
+            Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
+            Item::Level => LEVELS.contains(&key),
+            Item::SecretGoal => SECRET_GOALS.contains(&key),
+            Item::Sound => {
+                if let Some(filename) = key.strip_prefix("file://") {
+                    self.fileset.exists(filename)
+                } else {
+                    SOUNDS_VIC3.contains(&key)
+                }
+            }
+            Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
+            Item::Wargoal => WARGOALS.contains(&key),
+            Item::TutorialLesson => true, // TODO
+            _ => self.database.exists(itype, key),
+        }
+    }
+
+    #[cfg(feature = "imperator")]
+    pub(crate) fn item_exists_imperator(&self, itype: Item, key: &str) -> bool {
+        match itype {
+            Item::Dlc => DLC_IMPERATOR.contains(&key),
+            Item::DlcFeature => DLC_FEATURES_IMPERATOR.contains(&key),
+            Item::Sound => {
+                if let Some(filename) = key.strip_prefix("file://") {
+                    self.fileset.exists(filename)
+                } else {
+                    SOUNDS_IMPERATOR.contains(&key)
+                }
+            }
+            _ => self.database.exists(itype, key),
+        }
+    }
+
     pub(crate) fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Asset => self.assets.asset_exists(key),
-            Item::Approval => APPROVALS.contains(&key),
-            Item::Attitude => ATTITUDES.contains(&key),
             Item::BlendShape => self.assets.blend_shape_exists(key),
-            Item::CharacterRole => CHARACTER_ROLES.contains(&key),
             Item::Coa => self.coas.exists(key),
             Item::CoaTemplate => self.coas.template_exists(key),
-            Item::CountryTier => COUNTRY_TIERS.contains(&key),
             Item::Define => self.defines.exists(key),
-            Item::Dlc => DLC.contains(&key),
-            Item::DlcFeature => DLC_FEATURES.contains(&key),
             Item::Entity => self.assets.entity_exists(key),
             Item::Event => self.events.exists(key),
             Item::EventNamespace => self.events.namespace_exists(key),
@@ -944,8 +954,6 @@ impl Everything {
             Item::GuiLayer => self.gui.layer_exists(key),
             Item::GuiTemplate => self.gui.template_exists(key),
             Item::GuiType => self.gui.type_exists(key),
-            Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
-            Item::Level => LEVELS.contains(&key),
             Item::Localization => self.localization.exists(key),
             Item::OnAction => self.on_actions.exists(key),
             Item::Pdxmesh => self.assets.mesh_exists(key),
@@ -954,60 +962,18 @@ impl Everything {
             Item::ScriptedModifier => self.scripted_modifiers.exists(key),
             Item::ScriptedTrigger => self.triggers.exists(key),
             Item::ScriptValue => self.scriptvalues.exists(key),
-            Item::SecretGoal => SECRET_GOALS.contains(&key),
-            Item::Sound => {
-                if let Some(filename) = key.strip_prefix("file://") {
-                    self.fileset.exists(filename)
-                } else {
-                    SOUNDS.contains(&key)
-                }
-            }
-            Item::TextFormat => self.gui.textformat_exists(key),
-            Item::TextIcon => self.gui.texticon_exists(key),
-            Item::TextureFile => self.assets.texture_exists(key),
-            Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
-            Item::Wargoal => WARGOALS.contains(&key),
-            Item::Shortcut | Item::TutorialLesson => true, // TODO
-            _ => self.database.exists(itype, key),
-        }
-    }
-
-    #[cfg(feature = "imperator")]
-    pub(crate) fn item_exists(&self, itype: Item, key: &str) -> bool {
-        match itype {
-            Item::Asset => self.assets.asset_exists(key),
-            Item::BlendShape => self.assets.blend_shape_exists(key),
-            Item::Coa => self.coas.exists(key),
-            Item::CoaTemplate => self.coas.template_exists(key),
-            Item::Define => self.defines.exists(key),
-            Item::Dlc => DLC.contains(&key),
-            Item::DlcFeature => DLC_FEATURES.contains(&key),
-            Item::Entity => self.assets.entity_exists(key),
-            Item::File => self.fileset.exists(key),
-            Item::GeneAttribute => self.assets.attribute_exists(key),
-            Item::GuiLayer => self.gui.layer_exists(key),
-            Item::GuiTemplate => self.gui.template_exists(key),
-            Item::GuiType => self.gui.type_exists(key),
-            Item::Localization => self.localization.exists(key),
-            Item::OnAction => self.on_actions.exists(key),
-            Item::Pdxmesh => self.assets.mesh_exists(key),
-            Item::ScriptedEffect => self.effects.exists(key),
-            Item::ScriptedList => self.scripted_lists.exists(key),
-            Item::ScriptedModifier => self.scripted_modifiers.exists(key),
-            Item::ScriptedTrigger => self.triggers.exists(key),
-            Item::ScriptValue => self.scriptvalues.exists(key),
-            Item::Sound => {
-                if let Some(filename) = key.strip_prefix("file://") {
-                    self.fileset.exists(filename)
-                } else {
-                    SOUNDS.contains(&key)
-                }
-            }
             Item::TextFormat => self.gui.textformat_exists(key),
             Item::TextIcon => self.gui.texticon_exists(key),
             Item::TextureFile => self.assets.texture_exists(key),
             Item::Shortcut => true, // TODO
-            _ => self.database.exists(itype, key),
+            _ => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => self.item_exists_ck3(itype, key),
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => self.item_exists_vic3(itype, key),
+                #[cfg(feature = "imperator")]
+                Game::Imperator => self.item_exists_imperator(itype, key),
+            },
         }
     }
 
@@ -1191,7 +1157,7 @@ const ARTIFACT_HISTORY: &[&str] = &[
 // TODO: parse it from dlc_metadata/ ? Unfortunately Tours and Tournaments
 // is an exception.
 #[cfg(feature = "ck3")]
-const DLC: &[&str] = &[
+const DLC_CK3: &[&str] = &[
     "Fashion of the Abbasid Court",
     "The Northern Lords",
     "Garments of the Holy Roman Empire",
@@ -1205,7 +1171,7 @@ const DLC: &[&str] = &[
 /// LAST UPDATED VERSION 1.9.2
 /// Entries verified in-game by seeing if datafunction `HasDlcFeature` logs an error.
 #[cfg(feature = "ck3")]
-const DLC_FEATURES: &[&str] = &[
+const DLC_FEATURES_CK3: &[&str] = &[
     "garments_of_the_hre",
     "fashion_of_the_abbasid_court",
     "the_northern_lords",
@@ -1224,20 +1190,22 @@ const DLC_FEATURES: &[&str] = &[
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
-const DLC: &[&str] = &["dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006"];
+const DLC_VIC3: &[&str] = &["dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006"];
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 #[cfg(feature = "vic3")]
-const DLC_FEATURES: &[&str] =
+const DLC_FEATURES_VIC3: &[&str] =
     &["voice_of_the_people_content", "voice_of_the_people_preorder", "agitators"];
 
 /// LAST UPDATED IMPERATOR VERSION 2.0.4
 #[cfg(feature = "imperator")]
-const DLC: &[&str] = &[]; // TODO
+// TODO - imperator - copy from has_dlc trigger and make has_dlc take an Item::Dlc
+const DLC_IMPERATOR: &[&str] = &[];
 
 /// LAST UPDATED IMPERATOR VERSION 2.0.4
 #[cfg(feature = "imperator")]
-const DLC_FEATURES: &[&str] = &[]; // TODO
+// TODO - imperator - is this even needed?
+const DLC_FEATURES_IMPERATOR: &[&str] = &[];
 
 /// LAST UPDATED VERSION 1.9.2
 #[cfg(feature = "ck3")]
@@ -1390,8 +1358,9 @@ const CHARACTER_ROLES: &[&str] = &["admiral", "agitator", "general", "politician
 
 /// LAST UPDATED VIC3 VERSION 1.3.6
 /// Taken from the object browser
+// TODO get the snapshot: sounds too, because gui uses them
 #[cfg(feature = "vic3")]
-const SOUNDS: &[&str] = &[
+const SOUNDS_VIC3: &[&str] = &[
     "event:/MUSIC/Main/theme_01",
     "event:/MUSIC/Mood/V3/Base/01_A_Prospering_Country",
     "event:/MUSIC/Mood/V3/Base/02_Rule_The_World",
@@ -1804,4 +1773,5 @@ const SOUNDS: &[&str] = &[
 /// LAST UPDATED IMPERATOR VERSION 2.0.4
 /// Taken from the object browser
 #[cfg(feature = "imperator")]
-const SOUNDS: &[&str] = &[];
+const SOUNDS_IMPERATOR: &[&str] = &[];
+// TODO - imperator - fetch these from the game
