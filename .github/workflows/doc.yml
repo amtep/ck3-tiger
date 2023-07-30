@@ -46,7 +46,7 @@ jobs:
 
       - name: Create index.html
         shell: bash
-        run: echo '<meta http-equiv="refresh" content="0; url=tiger-lib">' >target/doc/index.html
+        run: echo '<meta http-equiv="refresh" content="0; url=tiger_lib">' >target/doc/index.html
 
       - name: Fix permissions
         run: |

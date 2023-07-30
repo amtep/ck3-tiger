@@ -200,7 +200,7 @@ impl ScopeContext {
     }
 
     /// Return whether this `ScopeContext` has strict scopes set to true.
-    /// See [`self.set_strict_scopes`].
+    /// See [`Self::set_strict_scopes`].
     pub fn is_strict(&self) -> bool {
         self.strict_scopes
     }
@@ -222,8 +222,7 @@ impl ScopeContext {
         self.root = ScopeEntry::Scope(root, Reason::Builtin(token.own()));
     }
 
-    /// Declare that this `ScopeContext` contains a named scope of the given name and type,
-    /// for the given reason.
+    #[doc(hidden)]
     fn _define_name(&mut self, name: &str, scopes: Scopes, reason: Reason) {
         if let Some(&idx) = self.names.get(name) {
             self._break_chains_to(idx);
@@ -254,7 +253,7 @@ impl ScopeContext {
 
     /// Look up a named scope and return its scope types if it's known.
     ///
-    /// Callers should probably check [`self.is_strict`] as well.
+    /// Callers should probably check [`Self::is_strict()`] as well.
     pub fn is_name_defined(&mut self, name: &str) -> Option<Scopes> {
         if let Some(&idx) = self.names.get(name) {
             Some(match self.named[idx] {
@@ -285,11 +284,7 @@ impl ScopeContext {
         }
     }
 
-    /// This is like [`Self::_define_name`] but for lists.
-    ///
-    /// Lists (that aren't variable lists) and named scopes exist in different namespaces, but
-    /// under the hood `ScopeContext` treats them the same. This means that lists are expected to
-    /// contain items of a single scope type, which sometimes leads to false positives.
+    #[doc(hidden)]
     pub fn _define_list(&mut self, name: &str, scopes: Scopes, reason: Reason) {
         if let Some(&idx) = self.list_names.get(name) {
             self._break_chains_to(idx);
@@ -305,11 +300,15 @@ impl ScopeContext {
     /// supplied by the game engine.
     ///
     /// The associated `token` will be used in error reports related to this list.
+    ///
+    /// Lists and named scopes exist in different namespaces, but under the hood
+    /// `ScopeContext` treats them the same. This means that lists are expected to
+    /// contain items of a single scope type, which sometimes leads to false positives.
     pub fn define_list<T: Own<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
         self._define_list(name, scopes, Reason::Builtin(token.own()));
     }
 
-    /// This is like [`Self::define_name`], but `scope:name` is declared equal to the current `this`.
+    /// This is like [`Self::define_name()`], but `scope:name` is declared equal to the current `this`.
     pub fn save_current_scope(&mut self, name: &str) {
         if let Some(&idx) = self.names.get(name) {
             self._break_chains_to(idx);
@@ -329,10 +328,9 @@ impl ScopeContext {
         }
     }
 
-    /// If list `name` exists, expect it to have the same scope type as `this`, otherwise define it
+    /// If list `name` exists, narrow its scope type down to `this`, otherwise define it
     /// as having the same scope type as `this`.
-    ///
-    /// TODO: I don't think this is doing the right thing for most callers.
+    // TODO: I don't think this is doing the right thing for most callers.
     pub fn define_or_expect_list(&mut self, name: &Token) {
         if let Some(&idx) = self.list_names.get(name.as_str()) {
             let (s, reason) = self._resolve_named(idx);
@@ -362,7 +360,8 @@ impl ScopeContext {
         }
     }
 
-    /// Cut `idx` out of any `ScopeEntry::Named` chains. This avoids infinite loops.
+    /// Cut `idx` out of any [`ScopeEntry::Named`] chains. This avoids infinite loops.
+    #[doc(hidden)]
     fn _break_chains_to(&mut self, idx: usize) {
         for i in 0..self.named.len() {
             if i == idx {
@@ -391,7 +390,7 @@ impl ScopeContext {
     ///
     /// The purpose is to handle scope chains like `root.liege.primary_title`. Call the `replace_`
     /// functions to update the value of `this`, and at the end either confirm the new scope level
-    /// with [`self.finalize_builder`] or discard it with [`self.close`].
+    /// with [`Self::finalize_builder()`] or discard it with [`Self::close()`].
     pub fn open_builder(&mut self) {
         self.prev =
             Some(Box::new(ScopeHistory { prev: self.prev.take(), this: self.this.clone() }));
@@ -399,7 +398,7 @@ impl ScopeContext {
         self.is_builder = true;
     }
 
-    /// Declare that the temporary scope level opened with [`Self::open_builder`] is a real scope level.
+    /// Declare that the temporary scope level opened with [`Self::open_builder()`] is a real scope level.
     pub fn finalize_builder(&mut self) {
         self.is_builder = false;
     }
@@ -464,6 +463,7 @@ impl ScopeContext {
     /// one.
     ///
     /// If a new index has to be created, and `strict_scopes` is on, then a warning will be emitted.
+    #[doc(hidden)]
     fn _named_index(&mut self, name: &str, token: &Token) -> usize {
         if let Some(&idx) = self.names.get(name) {
             idx
@@ -493,7 +493,8 @@ impl ScopeContext {
         }
     }
 
-    /// Same as [`self._named_index`], but for lists. No warning is emitted if a new list is created.
+    /// Same as [`Self::_named_index()`], but for lists. No warning is emitted if a new list is created.
+    #[doc(hidden)]
     fn _named_list_index(&mut self, name: &str, token: &Token) -> usize {
         if let Some(&idx) = self.list_names.get(name) {
             idx
@@ -517,12 +518,13 @@ impl ScopeContext {
     }
 
     /// Return the possible scope types of this scope level.
-    /// TODO: maybe specialize this function for performance?
+    // TODO: maybe specialize this function for performance?
     pub fn scopes(&self) -> Scopes {
         self.scopes_reason().0
     }
 
     /// Return the possible scope types of `root`, and the reason why we think it has those types
+    #[doc(hidden)]
     fn _resolve_root(&self) -> (Scopes, &Reason) {
         match self.root {
             ScopeEntry::Scope(s, ref reason) => (s, reason),
@@ -534,6 +536,7 @@ impl ScopeContext {
     /// has those types.
     ///
     /// The `idx` must be an index from the `names` or `list_names` vectors.
+    #[doc(hidden)]
     fn _resolve_named(&self, idx: usize) -> (Scopes, &Reason) {
         #[allow(clippy::match_on_vec_items)]
         match self.named[idx] {
@@ -547,6 +550,7 @@ impl ScopeContext {
     /// Search through the scope levels to find out what `this` actually refers to.
     ///
     /// The returned `ScopeEntry` will not be a `ScopeEntry::Backref`.
+    #[doc(hidden)]
     fn _resolve_backrefs(&self) -> &ScopeEntry {
         match self.this {
             ScopeEntry::Backref(r) => self._resolve_backrefs_inner(r),
@@ -554,6 +558,7 @@ impl ScopeContext {
         }
     }
 
+    #[doc(hidden)]
     fn _resolve_backrefs_inner(&self, mut back: usize) -> &ScopeEntry {
         let mut ptr = &self.prev;
         loop {
@@ -585,6 +590,7 @@ impl ScopeContext {
         }
     }
 
+    #[doc(hidden)]
     fn _scopes_reason(&self, mut back: usize) -> (Scopes, &Reason) {
         let mut ptr = &self.prev;
         loop {
@@ -611,6 +617,7 @@ impl ScopeContext {
         }
     }
 
+    #[doc(hidden)]
     fn _expect_check(e: &mut ScopeEntry, scopes: Scopes, reason: &Reason) {
         match e {
             ScopeEntry::Scope(ref mut s, ref mut r) => {
@@ -631,6 +638,7 @@ impl ScopeContext {
         }
     }
 
+    #[doc(hidden)]
     fn _expect_check3(
         e: &mut ScopeEntry,
         scopes: Scopes,
@@ -660,6 +668,7 @@ impl ScopeContext {
     }
 
     // TODO: find a way to report the chain of Named tokens to the user
+    #[doc(hidden)]
     fn _expect_named(&mut self, mut idx: usize, scopes: Scopes, reason: &Reason) {
         loop {
             #[allow(clippy::match_on_vec_items)]
@@ -678,6 +687,7 @@ impl ScopeContext {
         }
     }
 
+    #[doc(hidden)]
     fn _expect_named3(
         &mut self,
         mut idx: usize,
@@ -703,6 +713,7 @@ impl ScopeContext {
         }
     }
 
+    #[doc(hidden)]
     fn _expect(&mut self, scopes: Scopes, reason: &Reason, mut back: usize) {
         // go N steps back and check/modify that scope. If the scope is itself
         // a back reference, go that much further back.
@@ -736,6 +747,7 @@ impl ScopeContext {
         }
     }
 
+    #[doc(hidden)]
     fn _expect3(
         &mut self,
         scopes: Scopes,
@@ -792,7 +804,7 @@ impl ScopeContext {
         }
     }
 
-    /// Like [`self.expect`], but the error emitted will be located at token `key`.
+    /// Like [`Self::expect()`], but the error emitted will be located at token `key`.
     ///
     /// This function is used when the expectation of scope compatibility comes from `key`, for
     /// example when matching up a caller's scope context with a scripted effect's scope context.
