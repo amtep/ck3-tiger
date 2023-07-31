@@ -566,6 +566,17 @@ pub fn validate_datatypes(
         }
 
         for (i, arg) in args.0.iter().enumerate() {
+            // Handle |E that contain a SelectLocalization that chooses between two gameconcepts
+            if code.name.is("SelectLocalization") && i > 0 {
+                if let CodeArg::Chain(chain) = &code.arguments[i] {
+                    if chain.codes.len() == 1
+                        && chain.codes[0].arguments.is_empty()
+                        && data.item_exists(Item::GameConcept, chain.codes[0].name.as_str())
+                    {
+                        continue;
+                    }
+                }
+            }
             validate_argument(&code.arguments[i], data, sc, *arg, lang);
         }
 

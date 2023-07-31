@@ -106,6 +106,10 @@ impl Token {
         vec
     }
 
+    pub fn strip_suffix(&self, sfx: &str) -> Option<Token> {
+        self.s.strip_suffix(sfx).map(|pfx| Token::from_static_str(pfx, self.loc.clone()))
+    }
+
     pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             let cols = u32::try_from(cols).expect("internal error: 4GB token");

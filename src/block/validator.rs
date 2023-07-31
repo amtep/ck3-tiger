@@ -374,7 +374,6 @@ impl<'a> Validator<'a> {
     /// Expect no more than one `name` field.
     /// No other validation is done.
     /// Returns true iff the field is present.
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_block(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| _ = bv.expect_block())
     }
