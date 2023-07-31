@@ -4,7 +4,7 @@ pub(crate) use error_loc::ErrorLoc;
 pub use errors::*;
 pub(crate) use filter::FilterRule;
 pub(crate) use output_style::OutputStyle;
-pub(crate) use report_struct::{Confidence, LogReport, PointedMessage, Severity};
+pub use report_struct::{Confidence, LogReport, PointedMessage, Severity};
 
 mod builder;
 mod error_key;

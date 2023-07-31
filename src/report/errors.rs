@@ -1,3 +1,5 @@
+//! Collect error reports and then write them out.
+
 use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::fs::{read, File};
@@ -41,12 +43,15 @@ pub struct Errors {
     /// Extra loaded mods' error tags
     pub(crate) loaded_mods_labels: Vec<String>,
 
+    /// Files that have been read in to get the lines where errors occurred.
+    /// Cached here to avoid duplicate I/O and UTF-8 parsing.
     filecache: FnvHashMap<PathBuf, String>,
 
     /// Determines whether a report should be printed.
     pub(crate) filter: ReportFilter,
     /// Output color and style configuration.
     pub(crate) styles: OutputStyle,
+    /// Currently unused
     pub(crate) max_line_length: Option<usize>,
 
     /// All reports that passed the checks, stored here to be sorted before being emitted all at once.
@@ -75,6 +80,8 @@ impl Default for Errors {
 }
 
 impl Errors {
+    /// Get the full filesystem path for a path that is anchored at one of the "virtual roots" of
+    /// the game's VFS.
     pub(crate) fn get_fullpath(&mut self, kind: FileKind, path: &Path) -> PathBuf {
         match kind {
             FileKind::Internal => path.to_path_buf(),
@@ -86,6 +93,7 @@ impl Errors {
         }
     }
 
+    /// Fetch the contents of a single line from a script file.
     pub(crate) fn get_line(&mut self, loc: &Loc) -> Option<String> {
         if loc.line == 0 {
             return None;
@@ -108,7 +116,7 @@ impl Errors {
     }
 
     /// Perform some checks to see whether the report should actually be logged.
-    /// If yes, it will do so.
+    /// If yes, it will add it to the storage.
     fn push_report(&mut self, report: LogReport) {
         if !self.filter.should_print_report(&report) {
             return;
@@ -116,24 +124,30 @@ impl Errors {
         self.storage.insert(report);
     }
 
-    pub fn log_abbreviated(&mut self, loc: &Loc, key: ErrorKey) {
+    /// Immediately log a single-line report about this error.
+    ///
+    /// This is intended for voluminous almost-identical errors, such as from the "unused
+    /// localization" check.
+    // TODO: integrate this function into the error reporting framework.
+    pub fn push_abbreviated<E: ErrorLoc>(&mut self, eloc: E, key: ErrorKey) {
+        let loc = eloc.into_loc();
         if loc.line == 0 {
             _ = writeln!(self.output.get_mut(), "({key}) {}", loc.pathname().to_string_lossy());
-        } else if let Some(line) = self.get_line(loc) {
+        } else if let Some(line) = self.get_line(&loc) {
             _ = writeln!(self.output.get_mut(), "({key}) {line}");
         }
     }
 
-    pub fn push_abbreviated<E: ErrorLoc>(&mut self, eloc: E, key: ErrorKey) {
-        let loc = eloc.into_loc();
-        self.log_abbreviated(&loc, key);
-    }
-
+    /// Immediately print an error message. It is intended to introduce a following block of
+    /// messages printed with [`Errors::push_abbreviated`].
+    // TODO: integrate this function into the error reporting framework.
     pub fn push_header(&mut self, _key: ErrorKey, msg: &str) {
         _ = writeln!(self.output.get_mut(), "{msg}");
     }
 
-    pub fn emit_reports(&mut self, json: bool) {
+    /// Extract the stored reports, sort them, and return them as a vector of [`LogReport`].
+    /// The stored reports will be left empty.
+    pub fn take_reports(&mut self) -> Vec<LogReport> {
         let mut reports: Vec<LogReport> = take(&mut self.storage).into_iter().collect();
         reports.sort_unstable_by(|a, b| {
             // Severity in descending order
@@ -164,6 +178,17 @@ impl Errors {
             }
             cmp
         });
+        reports
+    }
+
+    /// Print all the stored reports to the error output.
+    /// Set `json` if they should be printed as a JSON array. Otherwise they are printed in the
+    /// default output format.
+    ///
+    /// Note that the default output format is not stable across versions. It is meant for human
+    /// readability and occasionally gets changed to improve that.
+    pub fn emit_reports(&mut self, json: bool) {
+        let reports = self.take_reports();
         if json {
             _ = writeln!(self.output.get_mut(), "[");
             let mut first = true;
@@ -190,7 +215,10 @@ impl Errors {
         ERRORS.lock().unwrap()
     }
 
-    /// Like [`self.get_mut`] but intended for read-only access.
+    /// Like [`Errors::get_mut`] but intended for read-only access.
+    ///
+    /// Currently there is no difference, but if the locking mechanism changes there may be a
+    /// difference.
     ///
     /// # Panics
     /// May panic when the mutex has been poisoned by another thread.
@@ -199,6 +227,8 @@ impl Errors {
     }
 }
 
+/// Record `dir` as the path to the base game files.
+/// It should be a path to the directory containing the `game` directory.
 pub fn set_vanilla_dir(dir: PathBuf) {
     let mut game = dir.clone();
     game.push("game");
@@ -213,22 +243,27 @@ pub fn set_vanilla_dir(dir: PathBuf) {
     Errors::get_mut().jomini_root = jomini;
 }
 
-pub fn set_mod_root(root: PathBuf) {
-    Errors::get_mut().mod_root = root;
+/// Record `dir` as the path to the mod being validated.
+pub fn set_mod_root(dir: PathBuf) {
+    Errors::get_mut().mod_root = dir;
 }
 
-pub fn add_loaded_mod_root(label: String, root: PathBuf) {
+/// Record `dir` as the path to a secondary mod to be loaded before the one being validated.
+/// `label` is what this mod should be called in the error reports; ideally only a few characters long.
+pub fn add_loaded_mod_root(label: String, dir: PathBuf) {
     let mut errors = Errors::get_mut();
     errors.loaded_mods_labels.push(label);
-    errors.loaded_mods.push(root);
+    errors.loaded_mods.push(dir);
 }
 
+/// Configure the error reports to be written to this file instead of to stdout.
 pub fn set_output_file(file: &Path) -> Result<()> {
     let file = File::create(file)?;
     Errors::get_mut().output = RefCell::new(Box::new(file));
     Ok(())
 }
 
+/// Store an error report to be emitted when [`emit_reports`] is called.
 pub fn log(mut report: LogReport) {
     let mut vec = Vec::new();
     report.pointers.drain(..).for_each(|pointer| {
@@ -262,31 +297,54 @@ pub fn will_maybe_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
     Errors::get().filter.should_maybe_print(key, &eloc.into_loc())
 }
 
+/// Print all the stored reports to the error output.
+/// Set `json` if they should be printed as a JSON array. Otherwise they are printed in the
+/// default output format.
+///
+/// Note that the default output format is not stable across versions. It is meant for human
+/// readability and occasionally gets changed to improve that.
 pub fn emit_reports(json: bool) {
     Errors::get_mut().emit_reports(json);
+}
+
+/// Extract the stored reports, sort them, and return them as a vector of [`LogReport`].
+/// The stored reports will be left empty.
+pub fn take_reports() {
+    Errors::get_mut().take_reports();
 }
 
 // =================================================================================================
 // =============== Deprecated legacy calls to submit reports:
 // =================================================================================================
 
-pub fn error<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
+/// Deprecated. Use [`err`] instead.
+pub(crate) fn error<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
     err(key).msg(msg).loc(eloc).push();
 }
 
-pub fn error_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
+/// Deprecated. Use [`err`] instead.
+pub(crate) fn error_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     err(key).msg(msg).info(info).loc(eloc).push();
 }
 
-pub fn old_warn<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
+/// Deprecated. Use [`warn`] instead.
+pub(crate) fn old_warn<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
     warn(key).msg(msg).loc(eloc).push();
 }
 
-pub fn warn2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
+/// Deprecated. Use [`warn`] instead.
+pub(crate) fn warn2<E: ErrorLoc, F: ErrorLoc>(
+    eloc: E,
+    key: ErrorKey,
+    msg: &str,
+    eloc2: F,
+    msg2: &str,
+) {
     warn(key).msg(msg).loc(eloc).loc(eloc2, msg2).push();
 }
 
-pub fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
+/// Deprecated. Use [`warn`] instead.
+pub(crate) fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
     eloc: E,
     key: ErrorKey,
     msg: &str,
@@ -298,27 +356,27 @@ pub fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
     warn(key).msg(msg).loc(eloc).loc(eloc2, msg2).loc(eloc3, msg3).push();
 }
 
-pub fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
+/// Deprecated. Use [`warn`] instead.
+pub(crate) fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     warn(key).msg(msg).info(info).loc(eloc).push();
 }
 
-pub fn advice<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
-    tips(key).msg(msg).loc(eloc).push();
-}
-
-pub fn advice2<E: ErrorLoc, F: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, eloc2: F, msg2: &str) {
-    tips(key).msg(msg).loc(eloc).loc(eloc2, msg2).push();
-}
-
-pub fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
+/// Deprecated. Use [`tips`] instead.
+pub(crate) fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
     tips(key).msg(msg).info(info).loc(eloc).push();
 }
 
-pub fn warn_header(key: ErrorKey, msg: &str) {
+/// Immediately print an error message. It is intended to introduce a following block of
+/// messages printed with [`warn_abbreviated`].
+pub(crate) fn warn_header(key: ErrorKey, msg: &str) {
     Errors::get_mut().push_header(key, msg);
 }
 
-pub fn warn_abbreviated<E: ErrorLoc>(eloc: E, key: ErrorKey) {
+/// Immediately log a single-line report about this error.
+///
+/// This is intended for voluminous almost-identical errors, such as from the "unused
+/// localization" check.
+pub(crate) fn warn_abbreviated<E: ErrorLoc>(eloc: E, key: ErrorKey) {
     Errors::get_mut().push_abbreviated(eloc, key);
 }
 
@@ -346,14 +404,19 @@ pub fn set_max_line_length(max_line_length: usize) {
 // =============== Configuration (Filter):
 // =================================================================================================
 
+/// Configure the error reporter to show errors that are in the base game code.
+/// Normally those are filtered out, to only show errors that involve the mod's code.
 pub fn set_show_vanilla(v: bool) {
     Errors::get_mut().filter.show_vanilla = v;
 }
 
+/// Configure the error reporter to show errors that are in extra loaded mods.
+/// Normally those are filtered out, to only show errors that involve the mod's code.
 pub fn set_show_loaded_mods(v: bool) {
     Errors::get_mut().filter.show_loaded_mods = v;
 }
 
-pub fn set_predicate(predicate: FilterRule) {
+/// Configure the error reporter to only show errors that match this [`FilterRule`].
+pub(crate) fn set_predicate(predicate: FilterRule) {
     Errors::get_mut().filter.predicate = predicate;
 }
