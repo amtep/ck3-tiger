@@ -1,0 +1,10 @@
+#!/bin/bash
+# If you want to be just as cool as the lead developer,
+# copy this to your .git/hooks/pre_commit
+set -e
+
+cargo fmt --check
+cargo clippy -p ck3-tiger
+cargo clippy -p vic3-tiger
+cargo clippy -p utils
+cargo doc --features "ck3 vic3" --no-deps --document-private-items
