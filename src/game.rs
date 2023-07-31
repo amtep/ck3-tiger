@@ -1,6 +1,14 @@
+//! Dealing with which game we are validating
+
+use std::fmt::{Display, Formatter};
+
 use anyhow::{anyhow, Result};
+use bitflags::bitflags;
 use once_cell::sync::OnceCell;
 
+use crate::helpers::display_choices;
+
+/// Records at runtime which game we are validating, in case there are multiple feature flags set.
 static GAME: OnceCell<Game> = OnceCell::new();
 
 /// Enum specifying which game we are validating.
@@ -68,5 +76,50 @@ impl Game {
         return true;
         #[cfg(all(feature = "imperator", any(feature = "ck3", feature = "vic3")))]
         return GAME.get() == Some(Game::Imperator);
+    }
+}
+
+bitflags! {
+    /// A set of bitflags to indicate for which game something is intended,
+    /// independent of which game we are validating.
+    ///
+    /// This way, error messages about things being used in the wrong game can be given at runtime.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    pub struct GameFlags: u8 {
+        const Ck3 = 0x01;
+        const Vic3 = 0x02;
+        const Imperator = 0x04;
+    }
+}
+
+impl GameFlags {
+    /// Get a [`GameFlags`] value representing the game being validated.
+    /// Useful for checking with `.contains`.
+    pub fn game() -> Self {
+        // Unfortunately we have to translate between the types here.
+        match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => GameFlags::Ck3,
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => GameFlags::Vic3,
+            #[cfg(feature = "imperator")]
+            Game::Imperator => GameFlags::Imperator,
+        }
+    }
+}
+
+impl Display for GameFlags {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        let mut vec = Vec::new();
+        if self.contains(Self::Ck3) {
+            vec.push("Crusader Kings 3");
+        }
+        if self.contains(Self::Vic3) {
+            vec.push("Victoria 3");
+        }
+        if self.contains(Self::Imperator) {
+            vec.push("Imperator: Rome");
+        }
+        display_choices(f, &vec, "and")
     }
 }

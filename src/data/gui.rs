@@ -1,3 +1,5 @@
+//! Validate files in `gui/`
+
 use std::path::{Path, PathBuf};
 
 use fnv::FnvHashMap;
@@ -11,8 +13,8 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 #[cfg(feature = "ck3")]
 use crate::game::Game;
-use crate::helpers::dup_error;
-use crate::helpers::stringify_choices;
+use crate::game::GameFlags;
+use crate::helpers::{dup_error, stringify_choices};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::parse::localization::ValueParser;
@@ -686,6 +688,7 @@ fn validate_known_field(key: &Token, bv: &BV, data: &Everything, validation: Gui
             }
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_max_severity(Severity::Warning);
                 vd.req_tokens_numbers_exactly(2);
             }
         },
@@ -695,6 +698,7 @@ fn validate_known_field(key: &Token, bv: &BV, data: &Everything, validation: Gui
             }
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_max_severity(Severity::Warning);
                 vd.req_tokens_integers_exactly(2);
             }
         },
@@ -704,6 +708,7 @@ fn validate_known_field(key: &Token, bv: &BV, data: &Everything, validation: Gui
             }
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_max_severity(Severity::Warning);
                 vd.req_tokens_numbers_exactly(3);
             }
         },
@@ -713,12 +718,14 @@ fn validate_known_field(key: &Token, bv: &BV, data: &Everything, validation: Gui
             }
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
+                vd.set_max_severity(Severity::Warning);
                 vd.req_tokens_numbers_exactly(4);
             }
         },
         GuiValidation::Color => match bv {
             BV::Value(_) => {
-                validate_datatype_field(Datatype::CVector4f, key, bv, data, false);
+                // TODO: can be CVector4f or CString
+                validate_datatype_field(Datatype::Unknown, key, bv, data, false);
             }
             BV::Block(block) => {
                 validate_gui_color(block, data);
@@ -836,21 +843,6 @@ fn validate_known_field(key: &Token, bv: &BV, data: &Everything, validation: Gui
                 }
             }
         }
-        GuiValidation::SoundBlock => {
-            if let Some(block) = bv.expect_block() {
-                let mut vd = Validator::new(block, data);
-                vd.set_max_severity(Severity::Warning);
-                if let Some(value) = vd.field_value("soundeffect") {
-                    if value.starts_with("[") {
-                        // TODO: need a way to express "stringable" datatype
-                        validate_datatype_field(Datatype::Unknown, key, bv, data, false);
-                    } else {
-                        data.verify_exists(Item::Sound, value);
-                    }
-                }
-                vd.field_block("soundparam"); // TODO
-            }
-        }
         GuiValidation::RawText => {
             if let Some(value) = bv.expect_value() {
                 let valuevec = ValueParser::new(vec![value]).parse_value();
@@ -886,9 +878,15 @@ fn validate_field(field: &Field, data: &Everything) {
     }
 
     let key_lc = key.as_str().to_lowercase();
-    for (name, validation) in GUI_FIELDS {
+    let game = GameFlags::game();
+    for (name, validation, gameflags) in GUI_FIELDS {
         if key_lc == *name {
-            validate_known_field(key, bv, data, *validation);
+            if gameflags.contains(game) {
+                validate_known_field(key, bv, data, *validation);
+            } else {
+                let msg = format!("{key} is only for {gameflags}");
+                err(ErrorKey::WrongGame).weak().msg(msg).loc(key).push();
+            }
             return;
         }
     }
@@ -1062,296 +1060,320 @@ enum GuiValidation {
     Format,
     /// A block containing two textformat names
     FormatOverride,
-    /// A block containing a `soundeffect` field and optionally a `soundparam` block
-    SoundBlock,
     /// Some text. May contain datatypes or loca keys, but it's optional.
     RawText,
     /// Some text. May contain datatypes or loca keys.
     Text,
 }
 
-const GUI_FIELDS: &[(&str, GuiValidation)] = &[
-    ("accept_tabs", Boolean),
-    ("addcolumn", NumberOrPercent),
-    ("addrow", NumberOrPercent),
-    ("align", Align),
-    ("allow_outside", Boolean),
-    ("alpha", Number),
-    ("alwaystransparent", Boolean),
-    ("animation_speed", CVector2f),
-    ("autoresize", Boolean),
-    ("autoresize_slider", Boolean),
-    ("autoresizescrollarea", Boolean),
-    ("autoresizeviewport", Boolean),
-    ("background_texture", Item(Item::File)),
-    ("bezier", CVector4f),
-    ("blend_mode", Blendmode),
-    ("button_ignore", MouseButton(&["both", "none", "left", "right"])),
-    ("button_trigger", UncheckedValue), // only example is "none"
-    ("camera_fov_y_degrees", Integer),
-    ("camera_look_at", CVector3f),
-    ("camera_near_far", CVector2f),
-    ("camera_position", CVector3f),
-    ("camera_rotation_pitch_limits", CVector2f),
-    ("camera_translation_limits", CVector3f),
-    ("camera_zoom_limits", CVector2f),
-    ("checked", Boolean),
-    ("clicksound", ItemOrBlank(Item::Sound)),
-    ("coat_of_arms", Item(Item::File)),
-    ("coat_of_arms_mask", Item(Item::File)),
-    ("coat_of_arms_slot", CVector4f),
-    ("color", Color),
-    ("constantbuffers", Datatype),
-    ("cursorcolor", Color),
-    ("datacontext", Datacontext),
-    ("datamodel", Datamodel),
-    ("datamodel_reuse_widgets", Boolean),
-    ("datamodel_wrap", Integer),
-    ("dec_button", Widget),
-    ("default_clicksound", ItemOrBlank(Item::Sound)),
-    ("default_format", Format),
-    ("delay", Number),
-    ("direction", Choice(&["horizontal", "vertical"])),
-    ("disableframe", Integer),
-    ("distribute_visual_state", Boolean),
-    ("down", Boolean),
-    ("downframe", Integer),
-    ("downhoverframe", Integer),
-    ("downpressedframe", Integer),
-    ("drag_drop_args", CString),
-    ("drag_drop_base_type", Choice(&["icon", "coat_of_arms_icon"])),
-    ("drag_drop_data", Datacontext),
-    ("drag_drop_id", UncheckedValue), // TODO what are the options?
-    ("draggable_by", MouseButtonSet(&["left", "right", "middle"])),
-    ("droptarget", Boolean),
-    ("duration", Number),
-    ("effect", Datatype),
-    ("effectname", UncheckedValue), // TODO validate effect names
-    ("elide", Choice(&["right", "middle", "left"])),
-    ("enabled", Boolean),
-    ("end_sound", SoundBlock),
-    ("entity_instance", Item(Item::Entity)),
-    ("even_row_widget", Widget),
-    ("filter_mouse", MouseButtonSet(&["all", "none", "left", "right", "wheel"])),
-    ("fittype", Choice(&["center", "centercrop", "fill", "end", "start"])),
-    ("flipdirection", Boolean),
-    ("focus_on_visible", Boolean),
-    ("focuspolicy", Choice(&["click", "all", "none"])),
-    ("format_override", FormatOverride),
-    ("font", Item(Item::Font)),
-    ("fontcolor", Color),
-    ("fontsize", Integer),
-    ("fontsize_min", Integer),
-    ("fontweight", UncheckedValue), // TODO: what are the options?
-    ("frame", Integer),
-    ("framesize", CVector2i),
-    ("from", CVector2f),
-    ("fonttintcolor", Color),
-    ("gfx_environment_file", Item(Item::File)),
-    ("gfxtype", UncheckedValue), // TODO: what are the options?
-    ("glow_alpha", Number),
-    ("glow_alpha_mask", Integer),
-    ("glow_blur_passes", Integer),
-    ("glow_ignore_inside_pixels", Boolean),
-    ("glow_radius", Integer),
-    ("glow_texture_downscale", NumberF),
-    ("grayscale", Boolean),
-    ("grid_entity_name", Item(Item::Entity)),
-    ("highlightchecked", Boolean),
-    ("header_height", Integer),
-    ("ignore_in_debug_draw", Boolean),
-    ("ignoreinvisible", Boolean),
-    ("inc_button", Widget),
-    ("indent", Integer),
-    ("index", Integer),
-    ("inherit_data_context", Boolean),
-    ("inherit_visibility", Choice(&["yes", "no", "hidden"])),
-    ("inherit_visual_state", Boolean),
-    ("invert_reticule_color", Boolean),
-    ("invertprogress", Boolean),
-    ("intersectionmask", Boolean),
-    ("intersectionmask_texture", Item(Item::File)),
-    ("layer", Item(Item::GuiLayer)),
-    ("layoutanchor", UncheckedValue), // TODO: only example is "bottomleft"
-    ("layoutpolicy_horizontal", ChoiceSet(LAYOUT_POLICIES)),
-    ("layoutpolicy_vertical", ChoiceSet(LAYOUT_POLICIES)),
-    ("layoutstretchfactor_horizontal", NumberOrInt32),
-    ("layoutstretchfactor_vertical", NumberOrInt32),
-    ("line_cap", Boolean),
-    ("line_feather_distance", Integer),
-    ("line_type", UncheckedValue), // TODO: only example is "nodeline"
-    ("loop", Boolean),
-    ("loopinterval", Number),
-    ("margin", TwoNumberOrPercent),
-    ("margin_bottom", NumberOrInt32),
-    ("margin_left", NumberOrInt32),
-    ("margin_right", NumberOrInt32),
-    ("margin_top", NumberOrInt32),
-    ("mask", Item(Item::File)),
-    ("mask_uv_scale", CVector2f),
-    ("max", NumberOrInt32),
-    ("max_update_rate", Integer),
-    ("max_width", Integer),
-    ("maxcharacters", UnsignedInteger),
-    ("maxhorizontalslots", Integer),
-    ("maxverticalslots", Integer),
-    ("maximumsize", TwoNumberOrPercent),
-    ("min", NumberOrInt32),
-    ("min_dist_from_screen_edge", Integer),
-    ("min_width", Integer),
-    ("minimumsize", TwoNumberOrPercent),
-    ("mipmaplodbias", Integer),
-    ("mirror", Choice(&["horizontal", "vertical"])),
-    ("modal", Boolean),
-    ("modality", UncheckedValue), // TODO: only example is "all"
-    ("movable", Boolean),
-    ("multiline", Boolean),
-    ("name", UncheckedValue),
-    ("next", UncheckedValue), // TODO: choices are states in the same widget
-    ("noprogresstexture", Item(Item::File)),
-    ("odd_row_widget", Widget),
-    ("on_finish", Datatype),
-    ("on_keyframe_move", Datatype),
-    ("on_start", Datatype),
-    ("onchangefinish", Datatype),
-    ("onchangestart", Datatype),
-    ("onclick", Datatype),
-    ("oncolorchanged", Datatype),
-    ("oncoloredited", Datatype),
-    ("oncreate", Datatype),
-    ("ondefault", Datatype),
-    ("ondoubleclick", Datatype),
-    ("oneditingstart", Datatype),
-    ("oneditingfinished", Datatype),
-    ("oneditingfinished_with_changes", Datatype),
-    ("onfocusout", Datatype),
-    ("onmousehierarchyenter", Datatype),
-    ("onmousehierarchyleave", Datatype),
-    ("onpressed", Datatype),
-    ("onreleased", Datatype),
-    ("onreturnpressed", Datatype),
-    ("onrightclick", Datatype),
-    ("onselectionchanged", Datatype),
-    ("onshift", Datatype),
-    ("ontextchanged", Datatype),
-    ("ontextedited", Datatype),
-    ("onvaluechanged", Datatype),
-    ("overframe", Integer),
-    ("oversound", ItemOrBlank(Item::Sound)),
-    ("page", Integer),
-    ("pan_position", CVector2f),
-    ("parentanchor", Align),
-    ("password", Boolean),
-    ("points", Datatype),
-    ("pop_out", Boolean),
-    ("portrait_context", Datatype),
-    ("portrait_offset", CVector2f),
-    ("portrait_scale", CVector2f),
-    ("portrait_texture", Item(Item::File)),
-    ("position", TwoNumberOrPercent),
-    ("position_x", Integer),
-    ("position_y", Integer),
-    ("progress_change_to_duration_curve", CVector4f),
-    ("progresstexture", Item(Item::File)),
-    ("pseudo_localization_enabled", Boolean),
-    ("raw_text", RawText),
-    ("raw_tooltip", RawText),
-    ("reorder_on_mouse", UncheckedValue), // TODO: only example is "presstop"
-    ("recursive", Boolean),
-    ("resizable", Boolean),
-    ("resizeparent", Boolean),
-    ("restart_on_show", Boolean),
-    ("restrictparent_min", Boolean),
-    ("reuse_widgets", Boolean),
-    ("righttoleft", Boolean),
-    ("rotate_uv", Number),
-    ("row_height", Integer),
-    ("scale", Number),
-    ("scale_mode", UncheckedValue), // TODO: only example is "fixedwidth"
-    ("scissor", Boolean),
-    ("scrollbaralign_horizontal", Align),
-    ("scrollbaralign_vertical", Align),
+/// Definitions of all fields that can be used in gui widgets.
+// TODO - imperator - remove the non-imperator ones from GameFlags::all(), and
+// add any that are missing. It may help to define a GameFlags::Ck3Vic3 for convenience.
+const GUI_FIELDS: &[(&str, GuiValidation, GameFlags)] = &[
+    ("accept_tabs", Boolean, GameFlags::all()),
+    ("addcolumn", NumberOrPercent, GameFlags::all()),
+    ("addrow", NumberOrPercent, GameFlags::all()),
+    ("align", Align, GameFlags::all()),
+    ("allow_outside", Boolean, GameFlags::all()),
+    ("alpha", Number, GameFlags::all()),
+    ("alwaystransparent", Boolean, GameFlags::all()),
+    ("animate_negative_changes", Boolean, GameFlags::Vic3),
+    ("animation_speed", CVector2f, GameFlags::all()),
+    ("autoresize", Boolean, GameFlags::all()),
+    ("autoresize_slider", Boolean, GameFlags::all()),
+    ("autoresizescrollarea", Boolean, GameFlags::all()),
+    ("autoresizeviewport", Boolean, GameFlags::all()),
+    ("background_texture", Item(Item::File), GameFlags::all()),
+    ("bezier", CVector4f, GameFlags::all()),
+    ("blend_mode", Blendmode, GameFlags::all()),
+    ("button_ignore", MouseButton(&["both", "none", "left", "right"]), GameFlags::Ck3),
+    ("button_trigger", UncheckedValue, GameFlags::all()), // only example is "none"
+    ("camera_fov_y_degrees", Integer, GameFlags::all()),
+    ("camera_look_at", CVector3f, GameFlags::all()),
+    ("camera_near_far", CVector2f, GameFlags::all()),
+    ("camera_position", CVector3f, GameFlags::all()),
+    ("camera_rotation_pitch_limits", CVector2f, GameFlags::Ck3),
+    ("camera_translation_limits", CVector3f, GameFlags::Ck3),
+    ("camera_zoom_limits", CVector2f, GameFlags::all()),
+    ("checked", Boolean, GameFlags::all()),
+    ("clicksound", ItemOrBlank(Item::Sound), GameFlags::all()),
+    ("coat_of_arms", Item(Item::File), GameFlags::Ck3),
+    ("coat_of_arms_mask", Item(Item::File), GameFlags::Ck3),
+    ("coat_of_arms_slot", CVector4f, GameFlags::all()),
+    ("color", Color, GameFlags::all()),
+    ("constantbuffers", Datatype, GameFlags::all()),
+    ("cursorcolor", Color, GameFlags::all()),
+    ("datacontext", Datacontext, GameFlags::all()),
+    ("datamodel", Datamodel, GameFlags::all()),
+    ("datamodel_reuse_widgets", Boolean, GameFlags::Ck3),
+    ("datamodel_wrap", Integer, GameFlags::all()),
+    ("dec_button", Widget, GameFlags::all()),
+    ("default_clicksound", ItemOrBlank(Item::Sound), GameFlags::Ck3),
+    ("default_format", Format, GameFlags::all()),
+    ("delay", Number, GameFlags::all()),
+    ("direction", Choice(&["horizontal", "vertical"]), GameFlags::all()),
+    ("disableframe", Integer, GameFlags::all()),
+    ("distribute_visual_state", Boolean, GameFlags::all()),
+    ("down", Boolean, GameFlags::all()),
+    ("downframe", Integer, GameFlags::all()),
+    ("downhoverframe", Integer, GameFlags::all()),
+    ("downpressedframe", Integer, GameFlags::all()),
+    ("drag_drop_args", CString, GameFlags::Ck3),
+    ("drag_drop_base_type", Choice(&["icon", "coat_of_arms_icon"]), GameFlags::Ck3),
+    ("drag_drop_data", Datacontext, GameFlags::all()),
+    ("drag_drop_id", UncheckedValue, GameFlags::Ck3), // TODO what are the options?
+    ("draggable_by", MouseButtonSet(&["left", "right", "middle"]), GameFlags::all()),
+    ("droptarget", Boolean, GameFlags::all()),
+    ("duration", Number, GameFlags::all()),
+    ("effect", Datatype, GameFlags::all()),
+    ("effectname", UncheckedValue, GameFlags::all()), // TODO validate effect names
+    ("elide", Choice(&["right", "middle", "left"]), GameFlags::all()),
+    ("enabled", Boolean, GameFlags::all()),
+    ("entity_enable_sound", Boolean, GameFlags::Vic3),
+    ("entity_instance", Item(Item::Entity), GameFlags::all()),
+    ("even_row_widget", Widget, GameFlags::all()),
+    ("filter_mouse", MouseButtonSet(&["all", "none", "left", "right", "wheel"]), GameFlags::all()),
+    ("fittype", Choice(&["center", "centercrop", "fill", "end", "start"]), GameFlags::all()),
+    ("flipdirection", Boolean, GameFlags::all()),
+    ("focus_on_visible", Boolean, GameFlags::all()),
+    ("focuspolicy", Choice(&["click", "all", "none"]), GameFlags::all()),
+    ("font", Item(Item::Font), GameFlags::all()),
+    ("fontcolor", Color, GameFlags::all()),
+    ("fontsize", Integer, GameFlags::all()),
+    ("fontsize_min", Integer, GameFlags::all()),
+    ("fonttintcolor", Color, GameFlags::all()),
+    ("fontweight", UncheckedValue, GameFlags::all()), // TODO: what are the options?
+    ("force_data_properties_update", Boolean, GameFlags::Vic3),
+    ("format_override", FormatOverride, GameFlags::all()),
+    ("frame", Integer, GameFlags::all()),
+    ("framesize", CVector2i, GameFlags::all()),
+    ("from", CVector2f, GameFlags::all()),
+    ("gfx_environment_file", Item(Item::File), GameFlags::all()),
+    ("gfxtype", UncheckedValue, GameFlags::all()), // TODO: what are the options?
+    ("glow_alpha", Number, GameFlags::Ck3),
+    ("glow_alpha_mask", Integer, GameFlags::Ck3),
+    ("glow_blur_passes", Integer, GameFlags::Ck3),
+    ("glow_ignore_inside_pixels", Boolean, GameFlags::Ck3),
+    ("glow_radius", Integer, GameFlags::Ck3),
+    ("glow_texture_downscale", NumberF, GameFlags::Ck3),
+    ("grayscale", Boolean, GameFlags::all()),
+    ("grid_entity_name", Item(Item::Entity), GameFlags::all()),
+    ("highlightchecked", Boolean, GameFlags::Ck3),
+    ("header_height", Integer, GameFlags::all()),
+    ("ignore_in_debug_draw", Boolean, GameFlags::all()),
+    // middle and left are guesses
+    ("ignore_unset_buttons", MouseButtonSet(&["right", "middle", "left"]), GameFlags::Vic3),
+    ("ignoreinvisible", Boolean, GameFlags::all()),
+    ("inc_button", Widget, GameFlags::all()),
+    ("indent", Integer, GameFlags::all()),
+    ("index", Integer, GameFlags::Ck3),
+    ("inherit_data_context", Boolean, GameFlags::Ck3),
+    ("inherit_visibility", Choice(&["yes", "no", "hidden"]), GameFlags::all()),
+    ("inherit_visual_state", Boolean, GameFlags::all()),
+    ("input_action", Item(Item::Shortcut), GameFlags::Vic3),
+    ("intersectionmask", Boolean, GameFlags::all()),
+    ("intersectionmask_texture", Item(Item::File), GameFlags::Ck3),
+    ("invert_reticule_color", Boolean, GameFlags::all()),
+    ("invertprogress", Boolean, GameFlags::all()),
+    ("layer", Item(Item::GuiLayer), GameFlags::all()),
+    ("layoutanchor", UncheckedValue, GameFlags::all()), // TODO: only example is "bottomleft"
+    ("layoutpolicy_horizontal", ChoiceSet(LAYOUT_POLICIES), GameFlags::all()),
+    ("layoutpolicy_vertical", ChoiceSet(LAYOUT_POLICIES), GameFlags::all()),
+    ("layoutstretchfactor_horizontal", NumberOrInt32, GameFlags::all()),
+    ("layoutstretchfactor_vertical", NumberOrInt32, GameFlags::all()),
+    ("line_cap", Boolean, GameFlags::all()),
+    ("line_feather_distance", Integer, GameFlags::all()),
+    ("line_type", UncheckedValue, GameFlags::all()), // TODO: only example is "nodeline"
+    ("loop", Boolean, GameFlags::all()),
+    ("loopinterval", Number, GameFlags::all()),
+    ("margin", TwoNumberOrPercent, GameFlags::all()),
+    ("margin_bottom", NumberOrInt32, GameFlags::all()),
+    ("margin_left", NumberOrInt32, GameFlags::all()),
+    ("margin_right", NumberOrInt32, GameFlags::all()),
+    ("margin_top", NumberOrInt32, GameFlags::all()),
+    ("mask", Item(Item::File), GameFlags::all()),
+    ("mask_uv_scale", CVector2f, GameFlags::all()),
+    ("max", NumberOrInt32, GameFlags::all()),
+    ("max_update_rate", Integer, GameFlags::all()),
+    ("max_width", Integer, GameFlags::all()),
+    ("maxcharacters", UnsignedInteger, GameFlags::all()),
+    ("maxhorizontalslots", Integer, GameFlags::all()),
+    ("maximumsize", TwoNumberOrPercent, GameFlags::all()),
+    ("maxverticalslots", Integer, GameFlags::all()),
+    ("min", NumberOrInt32, GameFlags::all()),
+    ("min_dist_from_screen_edge", Integer, GameFlags::Ck3),
+    ("min_width", Integer, GameFlags::all()),
+    ("minimumsize", TwoNumberOrPercent, GameFlags::all()),
+    ("mipmaplodbias", Integer, GameFlags::all()),
+    ("mirror", Choice(&["horizontal", "vertical"]), GameFlags::all()),
+    ("modal", Boolean, GameFlags::all()),
+    ("modality", UncheckedValue, GameFlags::all()), // TODO: only example is "all"
+    ("movable", Boolean, GameFlags::all()),
+    ("multiline", Boolean, GameFlags::all()),
+    ("name", UncheckedValue, GameFlags::all()),
+    ("next", UncheckedValue, GameFlags::all()), // TODO: choices are states in the same widget
+    ("noprogresstexture", Item(Item::File), GameFlags::all()),
+    ("odd_row_widget", Widget, GameFlags::all()),
+    ("on_finish", Datatype, GameFlags::all()),
+    ("on_keyframe_move", Datatype, GameFlags::all()),
+    ("on_start", Datatype, GameFlags::all()),
+    ("onalt", Datatype, GameFlags::Vic3),
+    ("onchangefinish", Datatype, GameFlags::all()),
+    ("onchangestart", Datatype, GameFlags::all()),
+    ("onclick", Datatype, GameFlags::all()),
+    ("oncolorchanged", Datatype, GameFlags::Ck3),
+    ("oncoloredited", Datatype, GameFlags::Ck3),
+    ("oncreate", Datatype, GameFlags::all()),
+    ("ondefault", Datatype, GameFlags::all()),
+    ("ondoubleclick", Datatype, GameFlags::all()),
+    ("oneditingfinished", Datatype, GameFlags::all()),
+    ("oneditingfinished_with_changes", Datatype, GameFlags::all()),
+    ("oneditingstart", Datatype, GameFlags::all()),
+    ("onfocusout", Datatype, GameFlags::all()),
+    ("onmousehierarchyenter", Datatype, GameFlags::all()),
+    ("onmousehierarchyleave", Datatype, GameFlags::all()),
+    ("onpressed", Datatype, GameFlags::all()),
+    ("onreleased", Datatype, GameFlags::all()),
+    ("onreturnpressed", Datatype, GameFlags::all()),
+    ("onrightclick", Datatype, GameFlags::all()),
+    ("onselectionchanged", Datatype, GameFlags::all()),
+    ("onshift", Datatype, GameFlags::all()),
+    ("ontextchanged", Datatype, GameFlags::all()),
+    ("ontextedited", Datatype, GameFlags::all()),
+    ("onvaluechanged", Datatype, GameFlags::all()),
+    ("overframe", Integer, GameFlags::all()),
+    ("oversound", ItemOrBlank(Item::Sound), GameFlags::all()),
+    ("page", Integer, GameFlags::all()),
+    ("pan_position", CVector2f, GameFlags::all()),
+    ("parentanchor", Align, GameFlags::all()),
+    ("password", Boolean, GameFlags::all()),
+    ("plotpoints", Datatype, GameFlags::Vic3),
+    ("points", Datatype, GameFlags::all()),
+    ("pop_out", Boolean, GameFlags::all()),
+    ("portrait_context", Datatype, GameFlags::all()),
+    ("portrait_offset", CVector2f, GameFlags::all()),
+    ("portrait_scale", CVector2f, GameFlags::all()),
+    ("portrait_texture", Item(Item::File), GameFlags::all()),
+    ("position", TwoNumberOrPercent, GameFlags::all()),
+    ("position_x", Integer, GameFlags::all()),
+    ("position_y", Integer, GameFlags::all()),
+    ("preferscrollwidgetsize", Boolean, GameFlags::Vic3),
+    ("progress_change_to_duration_curve", CVector4f, GameFlags::all()),
+    ("progresstexture", Item(Item::File), GameFlags::all()),
+    ("pseudo_localization_enabled", Boolean, GameFlags::all()),
+    ("raw_text", RawText, GameFlags::all()),
+    ("raw_tooltip", RawText, GameFlags::all()),
+    ("realtime", Boolean, GameFlags::Vic3),
+    ("reorder_on_mouse", UncheckedValue, GameFlags::all()), // TODO: only example is "presstop"
+    ("recursive", Boolean, GameFlags::Ck3),
+    ("resizable", Boolean, GameFlags::all()),
+    ("resizeparent", Boolean, GameFlags::all()),
+    ("restart_on_show", Boolean, GameFlags::Ck3),
+    ("restrictparent_min", Boolean, GameFlags::all()),
+    ("reuse_widgets", Boolean, GameFlags::all()),
+    ("righttoleft", Boolean, GameFlags::all()),
+    ("rotate_uv", Number, GameFlags::all()),
+    ("row_height", Integer, GameFlags::all()),
+    ("scale", Number, GameFlags::all()),
+    ("scale_mode", UncheckedValue, GameFlags::all()), // TODO: only example is "fixedwidth"
+    ("scissor", Boolean, GameFlags::all()),
+    ("scrollbaralign_horizontal", Align, GameFlags::all()),
+    ("scrollbaralign_vertical", Align, GameFlags::all()),
     // TODO: always_on is a guess
-    ("scrollbarpolicy_horizontal", Choice(&["as_needed", "always_off", "always_on"])),
-    ("scrollbarpolicy_vertical", Choice(&["as_needed", "always_off", "always_on"])),
-    ("selectedindex", CVector2i),
-    ("selectallonfocus", Boolean),
-    ("selectioncolor", Color),
-    ("set_parent_size_to_minimum", Boolean),
-    ("setitemsizefromcell", Boolean),
-    ("shaderfile", ItemOrBlank(Item::File)),
-    ("shortcut", Item(Item::Shortcut)),
-    ("size", TwoNumberOrPercent),
-    ("slider", Widget),
-    ("snap_to_pixels", Boolean),
-    ("spacing", Integer),
-    ("spriteborder", CVector2f),
-    ("spriteborder_bottom", Integer),
-    ("spriteborder_left", Integer),
-    ("spriteborder_right", Integer),
-    ("spriteborder_top", Integer),
-    ("spritetype", UncheckedValue), // TODO
-    ("start_sound", SoundBlock),
-    ("step", NumberOrInt32),
-    ("stackmode", UncheckedValue), // TODO only example is "top"
-    ("sticky", Boolean),
-    ("tabfocusroot", Boolean),
-    ("text", Text),
-    ("text_selectable", Boolean),
-    ("text_validator", Datatype),
-    ("texture", Item(Item::File)),
-    ("texture_density", Number),
-    ("timeline_line_height", Integer),
-    ("timeline_line_direction", UncheckedValue), // TODO only example is "up"
-    ("timeline_time_points", Integer),
-    ("tintcolor", Color),
-    ("to", CVector2f),
-    ("tooltip", Text),
-    ("tooltip_enabled", Boolean),
-    ("tooltip_horizontalbehavior", Choice(&["mirror", "slide", "flip"])),
-    ("tooltip_verticalbehavior", Choice(&["mirror", "slide", "flip"])),
-    ("tooltip_offset", TwoNumberOrPercent),
-    ("tooltip_parentanchor", Align),
-    ("tooltip_type", Choice(&["mouse", "widget"])),
-    ("tooltip_widgetanchor", Align),
-    ("tooltipwidget", Widget),
-    ("track", Widget),
-    ("tracknavigation", UncheckedValue), // TODO only example is "direct"
-    ("translate_uv", CVector2f),
-    ("trigger_on_create", Boolean),
-    ("trigger_when", Boolean),
-    ("upframe", Integer),
-    ("uphoverframe", Integer),
-    ("uppressedframe", Integer),
-    ("using", Template),
-    ("uv_scale", CVector2f),
-    ("value", NumberOrInt32),
-    ("video", Item(Item::File)),
-    ("viewportwidget", Widget),
-    ("visible", Boolean),
-    ("visible_at_creation", Boolean),
-    ("wheelstep", NumberOrInt32),
-    ("widgetanchor", Align),
-    ("widgetid", UncheckedValue),
-    ("width", Number),
-    ("zoom", Number),
-    ("zoom_max", Number),
-    ("zoom_min", Number),
-    ("zoom_step", Number),
-    ("zoomwidget", Widget),
+    (
+        "scrollbarpolicy_horizontal",
+        Choice(&["as_needed", "always_off", "always_on"]),
+        GameFlags::all(),
+    ),
+    (
+        "scrollbarpolicy_vertical",
+        Choice(&["as_needed", "always_off", "always_on"]),
+        GameFlags::all(),
+    ),
+    ("selectallonfocus", Boolean, GameFlags::all()),
+    ("selectedindex", CVector2i, GameFlags::all()),
+    ("selectioncolor", Color, GameFlags::all()),
+    ("set_parent_size_to_minimum", Boolean, GameFlags::all()),
+    ("setitemsizefromcell", Boolean, GameFlags::all()),
+    ("shaderfile", ItemOrBlank(Item::File), GameFlags::all()),
+    ("shortcut", Item(Item::Shortcut), GameFlags::all()),
+    ("size", TwoNumberOrPercent, GameFlags::all()),
+    ("skip_initial_animation", Boolean, GameFlags::Vic3),
+    ("slider", Widget, GameFlags::all()),
+    ("snap_to_pixels", Boolean, GameFlags::Ck3),
+    ("soundeffect", Item(Item::Sound), GameFlags::all()),
+    ("spacing", Integer, GameFlags::all()),
+    ("spriteborder", CVector2f, GameFlags::all()),
+    ("spriteborder_bottom", Integer, GameFlags::all()),
+    ("spriteborder_left", Integer, GameFlags::all()),
+    ("spriteborder_right", Integer, GameFlags::all()),
+    ("spriteborder_top", Integer, GameFlags::all()),
+    ("spritetype", UncheckedValue, GameFlags::all()), // TODO
+    ("step", NumberOrInt32, GameFlags::all()),
+    ("stackmode", UncheckedValue, GameFlags::Ck3), // TODO only example is "top"
+    ("sticky", Boolean, GameFlags::all()),
+    ("tabfocusroot", Boolean, GameFlags::all()),
+    ("text", Text, GameFlags::all()),
+    ("text_selectable", Boolean, GameFlags::all()),
+    ("text_validator", Datatype, GameFlags::all()),
+    ("texture", Item(Item::File), GameFlags::all()),
+    ("texture_density", Number, GameFlags::all()),
+    ("timeline_line_direction", UncheckedValue, GameFlags::all()), // TODO only example is "up"
+    ("timeline_line_height", Integer, GameFlags::all()),
+    ("timeline_time_points", Integer, GameFlags::all()),
+    ("tintcolor", Color, GameFlags::all()),
+    ("to", CVector2f, GameFlags::all()),
+    ("tooltip", Text, GameFlags::all()),
+    ("tooltip_enabled", Boolean, GameFlags::all()),
+    ("tooltip_horizontalbehavior", Choice(&["mirror", "slide", "flip"]), GameFlags::all()),
+    ("tooltip_offset", TwoNumberOrPercent, GameFlags::all()),
+    ("tooltip_parentanchor", Align, GameFlags::all()),
+    ("tooltip_type", Choice(&["mouse", "widget"]), GameFlags::all()),
+    ("tooltip_verticalbehavior", Choice(&["mirror", "slide", "flip"]), GameFlags::all()),
+    ("tooltip_widgetanchor", Align, GameFlags::all()),
+    ("tooltipwidget", Widget, GameFlags::all()),
+    ("track", Widget, GameFlags::all()),
+    ("tracknavigation", UncheckedValue, GameFlags::all()), // TODO only example is "direct"
+    ("translate_uv", CVector2f, GameFlags::all()),
+    ("trigger_on_create", Boolean, GameFlags::all()),
+    ("trigger_when", Boolean, GameFlags::all()),
+    ("upframe", Integer, GameFlags::all()),
+    ("uphoverframe", Integer, GameFlags::all()),
+    ("uppressedframe", Integer, GameFlags::all()),
+    ("useragent", UncheckedValue, GameFlags::Vic3),
+    ("using", Template, GameFlags::all()),
+    ("uv_scale", CVector2f, GameFlags::all()),
+    ("value", NumberOrInt32, GameFlags::all()),
+    ("video", Item(Item::File), GameFlags::all()),
+    ("viewportwidget", Widget, GameFlags::all()),
+    ("visible", Boolean, GameFlags::all()),
+    ("visible_at_creation", Boolean, GameFlags::all()),
+    ("wheelstep", NumberOrInt32, GameFlags::all()),
+    ("widgetanchor", Align, GameFlags::all()),
+    ("widgetid", UncheckedValue, GameFlags::all()),
+    ("width", Number, GameFlags::all()),
+    ("zoom", Number, GameFlags::all()),
+    ("zoom_max", Number, GameFlags::all()),
+    ("zoom_min", Number, GameFlags::all()),
+    ("zoom_step", Number, GameFlags::all()),
+    ("zoomwidget", Widget, GameFlags::all()),
 ];
 
 /// Widget types that are defined by the game engine and don't need to be defined in gui script.
-// There might be some more that should be feature = "ck3". TODO: compare vic3 and ck3 vanilla
+// TODO: apply GameFlags here too
 const BUILTIN_TYPES: &[&str] = &[
     "active_item",
     "animation",
     "attachto",
+    #[cfg(feature = "vic3")]
+    "axis",
+    #[cfg(feature = "vic3")]
+    "axis_label",
     "background",
     #[cfg(feature = "vic3")]
     "button",
-    "buttontext",
     "button_group",
+    "buttontext",
     "cameracontrolwidget",
     "checkbutton",
     "click_modifiers",
@@ -1360,12 +1382,16 @@ const BUILTIN_TYPES: &[&str] = &[
     "colorpicker_reticule_icon",
     "container",
     "contextmenu",
+    #[cfg(feature = "ck3")]
     "datacontext_from_model",
+    #[cfg(feature = "ck3")]
     "drag_drop_icon",
+    #[cfg(feature = "ck3")]
     "drag_drop_target",
     "dockable_container",
     "dropdown",
     "dynamicgridbox",
+    "end_sound",
     "editbox",
     "expand_item",
     "expandbutton",
@@ -1373,10 +1399,13 @@ const BUILTIN_TYPES: &[&str] = &[
     "flowcontainer",
     #[cfg(feature = "ck3")]
     "game_button",
+    #[cfg(feature = "ck3")]
     "glow",
+    #[cfg(feature = "ck3")]
     "glow_generation_rules",
     "hbox",
     "icon",
+    #[cfg(feature = "ck3")]
     "icon_button_small_round",
     "item",
     "keyframe_editor_lane_container",
@@ -1401,22 +1430,29 @@ const BUILTIN_TYPES: &[&str] = &[
     "progressbar",
     #[cfg(feature = "vic3")]
     "right_click_menu_widget",
+    #[cfg(feature = "vic3")]
+    "rightclick_modifiers",
     "scrollarea",
     "scrollbar",
     "scrollbar_horizontal",
     "scrollbar_vertical",
     "scrollwidget",
+    #[cfg(feature = "ck3")]
+    "soundparam", // TODO: this contains name and value fields which refer to the parameter:/ sounds
+    "start_sound",
     "state",
     "text_occluder",
     "textbox",
     "timeline_texts",
     "tools_dragdrop_widget",
-    "tools_player_timeline",
     "tools_keyframe_button",
     "tools_keyframe_editor",
     "tools_keyframe_editor_lane",
+    "tools_player_timeline",
     "tools_table",
     "tree",
+    #[cfg(feature = "vic3")]
+    "treemapchart",
     #[cfg(feature = "vic3")]
     "treemapslice",
     "vbox",
