@@ -309,8 +309,8 @@ pub fn emit_reports(json: bool) {
 
 /// Extract the stored reports, sort them, and return them as a vector of [`LogReport`].
 /// The stored reports will be left empty.
-pub fn take_reports() {
-    Errors::get_mut().take_reports();
+pub fn take_reports() -> Vec<LogReport> {
+    Errors::get_mut().take_reports()
 }
 
 // =================================================================================================

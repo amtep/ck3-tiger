@@ -2,14 +2,14 @@ use lazy_static::lazy_static;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-use ck3_tiger::errors::{log_to, set_mod_root, set_vanilla_dir, take_log_to};
-use ck3_tiger::everything::Everything;
+use tiger_lib::everything::Everything;
+use tiger_lib::report::{set_mod_root, set_vanilla_dir, take_reports, LogReport};
 
 lazy_static! {
     static ref TEST_MUTEX: Mutex<()> = Mutex::new(());
 }
 
-fn check_mod_helper(modname: &str) -> String {
+fn check_mod_helper(modname: &str) -> Vec<LogReport> {
     let _guard = TEST_MUTEX.lock().unwrap();
 
     let vanilla_dir = PathBuf::from("tests/files/ck3");
@@ -17,75 +17,133 @@ fn check_mod_helper(modname: &str) -> String {
 
     set_vanilla_dir(vanilla_dir.clone());
     set_mod_root(mod_root.clone());
-    log_to(Box::new(Vec::new()));
 
     let mut everything = Everything::new(&vanilla_dir, &mod_root, Vec::new()).unwrap();
     everything.load_all();
     everything.validate_all();
 
-    let errors = (*take_log_to()).get_logs().unwrap();
-    eprint!("{}", &errors);
-    errors
+    take_reports()
+}
+
+fn take_report_contains(
+    vec: &mut Vec<LogReport>,
+    pathname: &str,
+    msg_contains: &str,
+) -> Option<LogReport> {
+    for (i, report) in vec.iter().enumerate() {
+        if report.msg.contains(msg_contains)
+            && report.pointers[0].loc.pathname() == PathBuf::from(pathname)
+        {
+            let result = (*report).clone();
+            vec.remove(i);
+            return Some(result);
+        }
+    }
+    None
+}
+
+fn take_report(vec: &mut Vec<LogReport>, pathname: &str, msg: &str) -> Option<LogReport> {
+    for (i, report) in vec.iter().enumerate() {
+        if report.msg == msg && report.pointers[0].loc.pathname() == PathBuf::from(pathname) {
+            let result = (*report).clone();
+            vec.remove(i);
+            return Some(result);
+        }
+    }
+    None
 }
 
 #[test]
-fn test_mod_1() {
-    let errors = check_mod_helper("mod1");
+fn test_mod1() {
+    let mut reports = check_mod_helper("mod1");
 
     // TODO: check for absence of duplicate event warning for non-dup.0001
 
-    assert!(errors.contains(
-        "[MOD] file localization/english/bad_loca_name.yml
-ERROR (filename): could not determine language from filename"
-    ));
+    let report = take_report(
+        &mut reports,
+        "localization/english/bad_loca_name.yml",
+        "could not determine language from filename",
+    );
+    report.expect("language from filename test");
 
-    assert!(errors
-        .contains("ERROR (missing-localization): missing english localization key my_decision\n"));
-    assert!(errors.contains(
-        "ERROR (missing-localization): missing english localization key my_decision_tooltip"
-    ));
-    assert!(errors.contains(
-        "ERROR (missing-localization): missing english localization key my_decision_desc"
-    ));
-    assert!(errors.contains(
-        "ERROR (missing-localization): missing english localization key my_decision_confirm"
-    ));
+    let decisions = "common/decisions/decision.txt";
 
-    assert!(errors.contains(
-        "ERROR (missing-localization): missing english localization key my_decision_also"
-    ));
-    assert!(errors.contains(
-        "ERROR (missing-localization): missing english localization key my_decision2_description"
-    ));
-    assert!(errors.contains(
-        "ERROR (missing-localization): missing english localization key totally_different"
-    ));
-    assert!(errors
-        .contains("ERROR (missing-localization): missing english localization key my_decision2_c"));
+    let report =
+        take_report(&mut reports, decisions, "missing english localization key my_decision");
+    report.expect("missing loca key test; decision loca key test");
+    let report =
+        take_report(&mut reports, decisions, "missing english localization key my_decision_desc");
+    report.expect("decision loca key_desc test");
+    let report = take_report(
+        &mut reports,
+        decisions,
+        "missing english localization key my_decision_confirm",
+    );
+    report.expect("decision loca key_confirm test");
+    let report = take_report(
+        &mut reports,
+        decisions,
+        "missing english localization key my_decision_tooltip",
+    );
+    report.expect("decision loca key_tooltip test");
 
-    assert!(errors.contains(
-        "[MOD] file common/decisions/decision.txt
-line 3     picture = \"\"
-line 3               ^
-ERROR (missing-file): referenced file does not exist"
-    ));
+    let report =
+        take_report(&mut reports, decisions, "missing english localization key my_decision_also");
+    report.expect("decision title field test");
+    let report = take_report(
+        &mut reports,
+        decisions,
+        "missing english localization key my_decision2_description",
+    );
+    report.expect("decision desc field test");
+    let report =
+        take_report(&mut reports, decisions, "missing english localization key totally_different");
+    report.expect("decision selection_tooltip field test");
+    let report =
+        take_report(&mut reports, decisions, "missing english localization key my_decision2_c");
+    report.expect("decision confirm field test");
+
+    let report = take_report(&mut reports, decisions, "file  does not exist");
+    let report = report.expect("decision empty picture field test");
+    assert!(report.pointers[0].loc.line == 7);
+
+    let events = "events/non-dup.txt";
+    let report = take_report(&mut reports, events, "required field `option` missing");
+    report.expect("event required field option");
+    let report = take_report_contains(&mut reports, events, "duplicate event");
+    assert!(report.is_none());
+
+    dbg!(&reports);
+    assert!(reports.is_empty());
 }
 
 #[test]
-fn test_mod_2() {
-    let errors = check_mod_helper("mod2");
+fn test_mod2() {
+    let mut reports = check_mod_helper("mod2");
 
-    assert!(errors.contains(
-        "ERROR (missing-localization): missing english localization key test_interaction"
-    ));
-    assert!(errors.contains(
-        "ERROR (missing-localization): missing english localization key test_interaction_extra_icon"
-    ));
-    assert!(errors.contains(
-        "[MOD] file common/character_interactions/interaction.txt
-line 3     extra_icon = \"gfx/also_missing\"
-line 3                  ^
-ERROR (missing-file): referenced file does not exist"
-    ));
-    assert!(errors.contains("ERROR (missing-file): file gfx/interface/icons/character_interactions/missing_icon.dds does not exist"));
+    let interactions = "common/character_interactions/interaction.txt";
+
+    let report = take_report(
+        &mut reports,
+        interactions,
+        "missing english localization key test_interaction",
+    );
+    report.expect("interaction localization key test");
+    let report = take_report(
+        &mut reports,
+        interactions,
+        "missing english localization key test_interaction_extra_icon",
+    );
+    report.expect("interaction localization key_extra_icon test");
+    let report = take_report(&mut reports, interactions, "referenced file does not exist");
+    let report = report.expect("interaction missing extra_icon file test");
+    assert!(report.pointers[0].loc.line == 3);
+    let report = take_report(
+        &mut reports,
+        interactions,
+        "file gfx/interface/icons/character_interactions/missing_icon.dds does not exist",
+    );
+    report.expect("interaction missing icon test");
+
+    assert!(reports.is_empty());
 }

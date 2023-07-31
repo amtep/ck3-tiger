@@ -1,6 +1,6 @@
 ﻿
 my_decision = {
-    picture = ""
+    picture = "gfx/dummy.jpg"
 }
 
 my_decision2 = {
