@@ -11,6 +11,7 @@ use crate::data::customloca::CustomLocalization;
 use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 #[cfg(feature = "ck3")]
 use crate::report::err;
 use crate::report::{warn, ErrorKey};
@@ -472,9 +473,11 @@ pub fn validate_datatypes(
             if sc.is_strict() || code.name.as_str().chars().next().unwrap().is_uppercase() {
                 // TODO: If there is a Custom of the same name, suggest that
                 let msg = format!("unknown datafunction {}", &code.name);
-                if let Some(alternative) =
-                    lookup_alternative(code.name.as_str(), is_first, is_last && !expect_promote)
-                {
+                if let Some(alternative) = lookup_alternative(
+                    &Lowercase::new(code.name.as_str()),
+                    is_first,
+                    is_last && !expect_promote,
+                ) {
                     let info = format!("did you mean {alternative}?");
                     warn(ErrorKey::Datafunctions).msg(msg).info(info).loc(&code.name).push();
                 } else {
@@ -700,7 +703,7 @@ pub fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {
 /// `last` should be true iff this name is the last in its code chain (so it can be a function).
 // TODO: make it consider misspellings as well
 pub fn lookup_alternative(
-    lookup_name: &str,
+    lookup_name: &Lowercase,
     first: std::primitive::bool,
     last: std::primitive::bool,
 ) -> Option<&'static str> {
@@ -736,29 +739,28 @@ pub fn lookup_alternative(
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::tables::datafunctions::FUNCTIONS,
     };
-    let lc = lookup_name.to_lowercase();
     if first {
         for (name, _, _) in global_promotes {
-            if name.to_lowercase() == lc {
+            if lookup_name == name.to_lowercase() {
                 return Some(name);
             }
         }
         if last {
             for (name, _, _) in global_functions {
-                if name.to_lowercase() == lc {
+                if lookup_name == name.to_lowercase() {
                     return Some(name);
                 }
             }
         }
     } else {
         for (name, _, _, _) in promotes {
-            if name.to_lowercase() == lc {
+            if lookup_name == name.to_lowercase() {
                 return Some(name);
             }
         }
         if last {
             for (name, _, _, _) in functions {
-                if name.to_lowercase() == lc {
+                if lookup_name == name.to_lowercase() {
                     return Some(name);
                 }
             }

@@ -9,6 +9,7 @@ use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::report::{err, error, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity};
 use crate::scopes::{scope_prefix, scope_to_scope, validate_prefix_reference, Scopes};
 use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
@@ -343,7 +344,7 @@ pub fn precheck_iterator_fields(
 /// It does not check "limit" because that is shared with the if/else blocks.
 /// Returns true iff the iterator took care of its own tooltips
 pub fn validate_iterator_fields(
-    caller: &str,
+    caller: &Lowercase,
     list_type: ListType,
     _data: &Everything,
     sc: &mut ScopeContext,
@@ -403,7 +404,7 @@ pub fn validate_iterator_fields(
 /// It doesn't check the generic ones like `limit` or the ordering ones for `ordered_*`.
 #[allow(unused_variables)] // vic3 does not use `tooltipped`
 pub fn validate_inside_iterator(
-    name: &str,
+    name: &Lowercase,
     listtype: ListType,
     block: &Block,
     data: &Everything,
@@ -751,7 +752,7 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     });
     vd.field_validated_blocks("modifier", |b, data| {
         validate_trigger_internal(
-            "modifier",
+            &Lowercase::new_unchecked("modifier"),
             false,
             b,
             data,
@@ -859,6 +860,7 @@ pub fn validate_ai_chance(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
 }
 
 /// Validate the left-hand part of a `target = { target_scope }` block.
+///
 /// The caller is expected to have done `sc.open_builder()` before calling and then do `sc.close()` after calling.
 /// Returns true iff validation was complete.
 /// `qeq` is true if the scope chain is to the left of a ?= operator.

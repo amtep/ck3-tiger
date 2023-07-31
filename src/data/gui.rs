@@ -13,6 +13,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::game::Game;
 use crate::helpers::dup_error;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
 use crate::report::{
@@ -194,9 +195,8 @@ impl Gui {
         self.templates.contains_key(key)
     }
 
-    pub fn type_exists(&self, key: &str) -> bool {
-        let key_lc = key.to_lowercase();
-        self.types.contains_key(&key_lc) || BUILTIN_TYPES.contains(&key_lc.as_str())
+    pub fn type_exists(&self, key: &Lowercase) -> bool {
+        self.types.contains_key(key.as_str()) || BUILTIN_TYPES.contains(&key.as_str())
     }
 
     pub fn layer_exists(&self, key: &str) -> bool {

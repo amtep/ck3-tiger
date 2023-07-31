@@ -6,6 +6,7 @@ use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::report::{advice_info, err, error, fatal, old_warn, warn_info, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::scriptvalue::validate_scriptvalue;
@@ -38,7 +39,7 @@ pub fn validate_effect(
     tooltipped: Tooltipped,
 ) {
     let vd = Validator::new(block, data);
-    validate_effect_internal("", ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal(Lowercase::empty(), ListType::None, block, data, sc, vd, tooltipped);
 }
 
 /// The interface to effect validation when [`validate_effect`] is too limited.
@@ -53,7 +54,7 @@ pub fn validate_effect(
 /// `vd` is a `Validator` that may have already been checked for some fields by the caller. This is
 /// because some effects are in contexts where other keys than just the effects are valid.
 pub fn validate_effect_internal<'a>(
-    caller: &str,
+    caller: &Lowercase,
     list_type: ListType,
     block: &Block,
     data: &'a Everything,
@@ -351,7 +352,7 @@ pub fn validate_effect_internal<'a>(
                 Effect::ControlOrLabel => match bv {
                     BV::Value(t) => data.verify_exists(Item::Localization, t),
                     BV::Block(b) => validate_effect_control(
-                        &key.as_str().to_lowercase(),
+                        &Lowercase::new(key.as_str()),
                         b,
                         data,
                         sc,
@@ -361,7 +362,7 @@ pub fn validate_effect_internal<'a>(
                 Effect::Control => {
                     if let Some(block) = bv.expect_block() {
                         validate_effect_control(
-                            &key.as_str().to_lowercase(),
+                            &Lowercase::new(key.as_str()),
                             block,
                             data,
                             sc,
@@ -400,7 +401,7 @@ pub fn validate_effect_internal<'a>(
                     if let Some(b) = bv.get_block() {
                         let vd = Validator::new(b, data);
                         validate_effect_internal(
-                            it_name.as_str(),
+                            &Lowercase::new(it_name.as_str()),
                             ltype,
                             b,
                             data,
@@ -433,7 +434,7 @@ pub fn validate_effect_internal<'a>(
 
 /// Validate an effect that has other effects inside its block.
 pub fn validate_effect_control(
-    caller: &str,
+    caller: &Lowercase,
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,

@@ -14,6 +14,7 @@ use crate::helpers::stringify_choices;
 #[cfg(feature = "vic3")]
 use crate::helpers::stringify_list;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::report::{
     advice_info, err, error, fatal, old_warn, warn2, warn_info, ErrorKey, Severity,
 };
@@ -40,7 +41,16 @@ pub fn validate_trigger(
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
 ) {
-    validate_trigger_internal("", false, block, data, sc, tooltipped, false, Severity::Error);
+    validate_trigger_internal(
+        Lowercase::empty(),
+        false,
+        block,
+        data,
+        sc,
+        tooltipped,
+        false,
+        Severity::Error,
+    );
 }
 
 /// Like [`validate_trigger`] but specifies a maximum [`Severity`] for the reports emitted by this
@@ -52,7 +62,16 @@ pub fn validate_trigger_max_sev(
     tooltipped: Tooltipped,
     max_sev: Severity,
 ) {
-    validate_trigger_internal("", false, block, data, sc, tooltipped, false, max_sev);
+    validate_trigger_internal(
+        Lowercase::empty(),
+        false,
+        block,
+        data,
+        sc,
+        tooltipped,
+        false,
+        max_sev,
+    );
 }
 
 /// The interface to trigger validation when [`validate_trigger`] is too limited.
@@ -69,7 +88,7 @@ pub fn validate_trigger_max_sev(
 // TODO: `in_list` could be removed if the code checks directly for the `any_` prefix instead.
 #[allow(clippy::too_many_arguments)]
 pub fn validate_trigger_internal(
-    caller: &str,
+    caller: &Lowercase,
     in_list: bool,
     block: &Block,
     data: &Everything,
@@ -214,7 +233,7 @@ pub fn validate_trigger_internal(
                         precheck_iterator_fields(ListType::Any, b, data, sc);
                         sc.open_scope(outscope, key.clone());
                         validate_trigger_internal(
-                            it_name.as_str(),
+                            &Lowercase::new(it_name.as_str()),
                             true,
                             b,
                             data,
@@ -437,7 +456,16 @@ pub fn validate_trigger_key_bv(
         }
         BV::Block(b) => {
             sc.finalize_builder();
-            validate_trigger_internal("", false, b, data, sc, tooltipped, negated, max_sev);
+            validate_trigger_internal(
+                Lowercase::empty(),
+                false,
+                b,
+                data,
+                sc,
+                tooltipped,
+                negated,
+                max_sev,
+            );
             sc.close();
         }
     }
@@ -692,19 +720,20 @@ fn match_trigger_bv(
         Trigger::Control => {
             if let Some(block) = bv.expect_block() {
                 let mut negated = negated;
-                if name.lowercase_is("all_false")
-                    || name.lowercase_is("not")
-                    || name.lowercase_is("nand")
-                    || name.lowercase_is("nor")
+                let name_lc = name.as_str().to_lowercase();
+                if name_lc == "all_false"
+                    || name_lc == "not"
+                    || name_lc == "nand"
+                    || name_lc == "nor"
                 {
                     negated = !negated;
                 }
                 let mut tooltipped = tooltipped;
-                if name.lowercase_is("custom_description") {
+                if name_lc == "custom_description" {
                     tooltipped = Tooltipped::No;
                 }
                 validate_trigger_internal(
-                    &name.as_str().to_lowercase(),
+                    &Lowercase::from_string_unchecked(name_lc),
                     false,
                     block,
                     data,
@@ -748,7 +777,7 @@ fn match_trigger_bv(
                     BV::Value(t) => data.verify_exists_max_sev(Item::Localization, t, max_sev),
                     BV::Block(b) => {
                         validate_trigger_internal(
-                            name.as_str(),
+                            &Lowercase::new(name.as_str()),
                             false,
                             b,
                             data,

@@ -54,6 +54,7 @@ mod effect_validation;
 mod fileset;
 mod helpers;
 mod item;
+mod lowercase;
 mod macrocache;
 mod modif;
 mod on_action;

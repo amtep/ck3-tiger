@@ -13,6 +13,7 @@ use crate::effect::{validate_effect, validate_effect_internal};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, error, fatal, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
@@ -397,7 +398,15 @@ impl Character {
             validate_effect(b, data, sc, Tooltipped::No);
         });
 
-        validate_effect_internal("", ListType::None, block, data, sc, vd, Tooltipped::No);
+        validate_effect_internal(
+            Lowercase::empty(),
+            ListType::None,
+            block,
+            data,
+            sc,
+            vd,
+            Tooltipped::No,
+        );
     }
 
     fn validate(&self, data: &Everything) {

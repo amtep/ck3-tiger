@@ -8,6 +8,7 @@ use crate::effect::{validate_effect, validate_effect_control};
 use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::report::Severity;
 use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
@@ -85,13 +86,13 @@ pub fn validate_random_list(
     mut vd: Validator,
     tooltipped: Tooltipped,
 ) {
-    let caller = key.as_str();
+    let caller = Lowercase::new(key.as_str());
     vd.field_integer("pick");
     vd.field_bool("unique"); // don't know what this does
     vd.field_validated_sc("desc", sc, validate_desc);
     vd.unknown_block_fields(|key, block| {
         if key.expect_number().is_some() {
-            validate_effect_control(caller, block, data, sc, tooltipped);
+            validate_effect_control(&caller, block, data, sc, tooltipped);
         }
     });
 }

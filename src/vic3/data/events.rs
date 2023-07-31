@@ -12,6 +12,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
 use crate::report::{error, error_info, warn_info, ErrorKey};
 use crate::scopes::Scopes;
@@ -265,5 +266,13 @@ fn validate_event_option(
     vd.field_bool("highlighted_option");
     vd.field_bool("fallback");
     vd.field_validated_sc("ai_chance", sc, validate_ai_chance);
-    validate_effect_internal("option", ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal(
+        &Lowercase::new_unchecked("option"),
+        ListType::None,
+        block,
+        data,
+        sc,
+        vd,
+        tooltipped,
+    );
 }

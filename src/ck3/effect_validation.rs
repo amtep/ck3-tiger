@@ -6,6 +6,7 @@ use crate::effect::{validate_effect, validate_effect_internal};
 use crate::effect_validation::validate_random_list;
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::report::{error, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::scriptvalue::validate_non_dynamic_scriptvalue;
@@ -25,7 +26,7 @@ pub fn validate_add_activity_log_entry(
     mut vd: Validator,
     tooltipped: Tooltipped,
 ) {
-    let caller = key.as_str().to_lowercase();
+    let caller = Lowercase::new(key.as_str());
     vd.req_field("key");
     vd.req_field("character");
     if let Some(token) = vd.field_value("key") {
@@ -956,6 +957,7 @@ pub fn validate_setup_cb(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
+    let caller = key.as_str().to_lowercase();
     vd.req_field("attacker");
     vd.req_field("defender");
     // vd.req_field("change"); is optional if you just want it to set scope:cb_prestige_factor
@@ -963,16 +965,16 @@ pub fn validate_setup_cb(
     vd.field_target("defender", sc, Scopes::Character);
     vd.field_target("change", sc, Scopes::TitleAndVassalChange);
     vd.field_bool("victory");
-    if key.lowercase_is("setup_claim_cb") {
+    if caller == "setup_claim_cb" {
         vd.req_field("claimant");
         vd.field_target("claimant", sc, Scopes::Character);
         vd.field_bool("take_occupied");
         vd.field_bool("civil_war");
         vd.field_choice("titles", &["target_titles", "faction_titles"]);
     // Undocumented
-    } else if key.lowercase_is("setup_de_jure_cb") {
+    } else if caller == "setup_de_jure_cb" {
         vd.field_target("title", sc, Scopes::LandedTitle);
-    } else if key.lowercase_is("setup_invasion_cb") {
+    } else if caller == "setup_invasion_cb" {
         vd.field_value("titles"); // list name
         vd.field_bool("take_occupied");
     }

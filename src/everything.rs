@@ -146,6 +146,7 @@ use crate::imperator::data::goods::TradeGood;
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::misc::*;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 #[cfg(feature = "vic3")]
 use crate::parse::json::parse_json_file;
 use crate::pdxfile::PdxFile;
@@ -973,7 +974,7 @@ impl Everything {
             Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::GuiLayer => self.gui.layer_exists(key),
             Item::GuiTemplate => self.gui.template_exists(key),
-            Item::GuiType => self.gui.type_exists(key),
+            Item::GuiType => self.gui.type_exists(&Lowercase::new(key)),
             Item::Localization => self.localization.exists(key),
             Item::OnAction => self.on_actions.exists(key),
             Item::Pdxmesh => self.assets.mesh_exists(key),

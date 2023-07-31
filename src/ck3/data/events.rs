@@ -14,6 +14,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::pathtable::PathTableIndex;
 use crate::pdxfile::PdxFile;
 use crate::report::{error, error_info, old_warn, warn, warn_info, ErrorKey, Severity};
@@ -419,7 +420,15 @@ fn validate_event_option(
     vd.field_target("highlight_portrait", sc, Scopes::Character);
     vd.field_bool("show_unlock_reason");
 
-    validate_effect_internal("option", ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal(
+        &Lowercase::new_unchecked("option"),
+        ListType::None,
+        block,
+        data,
+        sc,
+        vd,
+        tooltipped,
+    );
 }
 
 fn validate_court_scene(block: &Block, data: &Everything, sc: &mut ScopeContext) {

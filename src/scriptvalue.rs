@@ -4,6 +4,7 @@ use crate::context::{Reason, ScopeContext};
 use crate::everything::Everything;
 use crate::helpers::TriBool;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::report::{advice_info, err, error, error_info, old_warn, untidy, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::token::Token;
@@ -167,9 +168,17 @@ fn validate_iterator(
     });
 
     let mut tooltipped = Tooltipped::No;
-    validate_iterator_fields("", ltype, data, sc, &mut vd, &mut tooltipped);
+    validate_iterator_fields(Lowercase::empty(), ltype, data, sc, &mut vd, &mut tooltipped);
 
-    validate_inside_iterator(it_name.as_str(), ltype, block, data, sc, &mut vd, Tooltipped::No);
+    validate_inside_iterator(
+        &Lowercase::new(it_name.as_str()),
+        ltype,
+        block,
+        data,
+        sc,
+        &mut vd,
+        Tooltipped::No,
+    );
 
     if !validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc) {
         let msg = "this iterator does not change the scriptvalue";

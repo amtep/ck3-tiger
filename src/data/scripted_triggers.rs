@@ -7,6 +7,7 @@ use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
+use crate::lowercase::Lowercase;
 use crate::macrocache::MacroCache;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, old_warn, ErrorKey, Severity};
@@ -143,7 +144,7 @@ impl Trigger {
             }
             self.cache.insert(key, &[], tooltipped, negated, our_sc.clone());
             validate_trigger_internal(
-                "",
+                Lowercase::empty(),
                 false,
                 &self.block,
                 data,
@@ -200,7 +201,7 @@ impl Trigger {
                 // that dummy context instead of macro-expanding again.
                 self.cache.insert(key, args, tooltipped, negated, our_sc.clone());
                 validate_trigger_internal(
-                    "",
+                    Lowercase::empty(),
                     false,
                     &block,
                     data,
