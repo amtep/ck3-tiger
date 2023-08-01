@@ -19,14 +19,15 @@ use crate::trigger::validate_target_ok_this;
 use crate::trigger::{validate_target, validate_trigger};
 #[cfg(feature = "imperator")]
 use crate::validate::validate_imperator_modifiers;
+#[cfg(feature = "ck3")]
+use crate::validate::validate_modifiers;
 #[cfg(feature = "vic3")]
 use crate::validate::validate_vic3_modifiers;
 use crate::validate::{
-    precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
-    validate_iterator_fields, validate_scope_chain, validate_scripted_modifier_call, ListType,
+    precheck_iterator_fields, validate_compare_duration, validate_ifelse_sequence,
+    validate_inside_iterator, validate_iterator_fields, validate_scope_chain,
+    validate_scripted_modifier_call, ListType,
 };
-#[cfg(feature = "ck3")]
-use crate::validate::{validate_compare_duration, validate_modifiers};
 
 /// The standard interface to effect validation. Validates an effect in the given [`ScopeContext`].
 ///
@@ -277,7 +278,6 @@ pub fn validate_effect_internal<'a>(
                 }
                 #[cfg(feature = "ck3")]
                 Effect::Desc => validate_desc(bv, data, sc),
-                #[cfg(feature = "ck3")]
                 Effect::Timespan => {
                     if let Some(block) = bv.expect_block() {
                         validate_compare_duration(block, data, sc);
@@ -583,7 +583,6 @@ pub enum Effect {
     /// The effect takes a duration, with a `days`, `weeks`, `months`, or `years` scriptvalue.
     ///
     /// * Example: `add_destination_progress = { days = 5 }`
-    #[cfg(feature = "ck3")]
     Timespan,
     /// The effect takes a block that contains other effects.
     ///

@@ -119,7 +119,6 @@ pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut Scop
     }
 }
 
-#[cfg(feature = "ck3")]
 pub fn validate_compare_duration(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;

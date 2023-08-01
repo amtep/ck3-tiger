@@ -69,6 +69,7 @@ pub const WARGOALS: &[&str] = &[
     "open_market",
     "regime_change",
     "return_state",
+    "revoke_all_claims",
     "revoke_claim",
     "secession",
     "take_treaty_port",
