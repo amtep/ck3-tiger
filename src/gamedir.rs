@@ -1,3 +1,5 @@
+//! Helper functions for finding the base and mod directories of the game being validated.
+
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 

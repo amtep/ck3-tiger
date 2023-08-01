@@ -1,3 +1,7 @@
+//! Special validator for the `rivers.png` file.
+//!
+//! The `rivers.png` file has detailed requirements for its image format and the layout of every pixel.
+
 use std::fs::File;
 use std::path::{Path, PathBuf};
 

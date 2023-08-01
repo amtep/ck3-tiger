@@ -1,3 +1,5 @@
+//! Validate effects, which are parts of the script that change the game state.
+
 use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Eq::*, BV};
 use crate::context::{Reason, ScopeContext};

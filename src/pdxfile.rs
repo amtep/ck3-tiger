@@ -1,3 +1,7 @@
+//! Helper functions for loading pdx script files in various character encodings.
+//!
+//! The main entry point is [`PdxFile`].
+
 #[cfg(feature = "ck3")]
 use std::fs::read;
 use std::fs::read_to_string;
@@ -23,6 +27,7 @@ const BOM_FROM_1252: &str = "\u{00ef}\u{00bb}\u{00bf}";
 pub struct PdxFile;
 
 impl PdxFile {
+    /// Internal function to read a file in UTF-8 encoding.
     fn read_utf8(entry: &FileEntry, fullpath: &Path) -> Option<String> {
         match read_to_string(fullpath) {
             Ok(contents) => Some(contents),
@@ -33,6 +38,7 @@ impl PdxFile {
         }
     }
 
+    /// Internal function to read a file in Windows-1252 (similar to Latin-1) encoding.
     #[cfg(feature = "ck3")]
     fn read_1252(entry: &FileEntry, fullpath: &Path) -> Option<String> {
         let bytes = match read(fullpath) {
@@ -45,11 +51,13 @@ impl PdxFile {
         WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).ok()
     }
 
+    /// Parse a UTF-8 file that has no BOM (Byte Order Marker).
     pub fn read_no_bom(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         let contents = Self::read_utf8(entry, fullpath)?;
         Some(parse_pdx(entry, &contents))
     }
 
+    /// Parse a UTF-8 file that should start with a BOM (Byte Order Marker).
     pub fn read(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         let contents = Self::read_utf8(entry, fullpath)?;
         if let Some(bomless) = contents.strip_prefix('\u{feff}') {
@@ -60,6 +68,7 @@ impl PdxFile {
         }
     }
 
+    /// Parse a UTF-8 file that may optionally start with a BOM (Byte Order Marker).
     pub fn read_optional_bom(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         let contents = Self::read_utf8(entry, fullpath)?;
         if let Some(bomless) = contents.strip_prefix('\u{feff}') {
@@ -69,6 +78,8 @@ impl PdxFile {
         }
     }
 
+    /// Parse a file in Windows-1251 encoding (similar to Latin-1).
+    /// Warn if it starts with a UTF-8 BOM.
     #[cfg(feature = "ck3")]
     pub fn read_cp1252(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
         let contents = Self::read_1252(entry, fullpath)?;

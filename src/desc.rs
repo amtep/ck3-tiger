@@ -1,3 +1,10 @@
+//! Validator for triggered description blocks that compose a description from multiple
+//! localization keys.
+//!
+//! Such desc blocks are accepted in many places in the game script.
+//!
+//! The main entry point is [`validate_desc`].
+
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
@@ -8,6 +15,12 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 
+/// Internal function to recurse over the complex description block logic.
+///
+/// `caller` is the name of the key that opened this block.
+/// `block` is the block or sub-block being validated.
+/// `sc` is the scope in which to evaluate any triggers found.
+/// `f` is the closure to run over any strings found.
 fn validate_desc_map_block(
     caller: &str,
     block: &Block,
@@ -71,6 +84,9 @@ fn validate_desc_map_block(
     });
 }
 
+/// Like [`validate_desc`], but allows the caller to decide what to do with the strings found in
+/// the description. This is useful for example for description blocks that resolve an icon name
+/// rather than a description.
 pub fn validate_desc_map(
     bv: &BV,
     data: &Everything,
@@ -89,6 +105,8 @@ pub fn validate_desc_map(
     }
 }
 
+/// Validate a complex description, which may be a simple localization key or a block containing
+/// items like `triggered_desc` or `first_valid`.
 pub fn validate_desc(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     validate_desc_map(bv, data, sc, |token, data, sc| {
         data.verify_exists(Item::Localization, token);

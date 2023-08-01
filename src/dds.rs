@@ -1,3 +1,5 @@
+//! Validator for the `.dds` (picture) files that are used in the game.
+
 use std::fs::{metadata, File};
 use std::io::{Read, Result};
 use std::path::{Path, PathBuf};

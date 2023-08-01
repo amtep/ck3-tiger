@@ -1,3 +1,8 @@
+//! Stores everything known about the game and mod being validated.
+//!
+//! References to [`Everything`] are passed down through nearly all of the validation logic, so
+//! that individual functions can access all the defined game items.
+
 use std::borrow::Cow;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
@@ -209,29 +214,41 @@ pub enum FilesError {
     ConfigUnreadable { path: PathBuf },
 }
 
+/// A record of everything known about the game and mod being validated.
+///
+/// References to [`Everything`] are passed down through nearly all of the validation logic, so
+/// that individual functions can access all the defined game items.
+///
+/// The validator has two main phases: parsing and validation.
+/// * During parsing, the script files are read, parsed, and loaded into the various databases.
+///   `Everything` is mutable during this period.
+/// * During validation, `Everything` is immutable and cross-checking between item types can be done safely.
 #[derive(Debug)]
 pub struct Everything {
     /// Config from file
     config: Block,
 
+    /// A cache of define values (from common/defines) that are missing and that have already been
+    /// warned about as missing. This is to avoid duplicate warnings.
     #[cfg(feature = "ck3")] // happens not to be used by vic3
     warned_defines: RwLock<FnvHashSet<String>>,
 
-    /// The vanilla and mod files
+    /// Tracks all the files (vanilla and mods) that are relevant to the current validation.
     pub(crate) fileset: Fileset,
 
+    /// Tracks specifically the .dds files, and their formats and sizes.
     pub(crate) dds: DdsFiles,
 
+    /// A general database of item types. Most items go here. The ones that need special handling
+    /// go in the separate databases listed below.
     pub(crate) database: Db,
 
-    /// Processed localization files
     pub(crate) localization: Localization,
 
     pub(crate) scripted_lists: ScriptedLists,
 
     pub(crate) defines: Defines,
 
-    /// Processed event files
     #[cfg(feature = "ck3")]
     pub(crate) events_ck3: Ck3Events,
     #[cfg(feature = "vic3")]
@@ -243,21 +260,17 @@ pub struct Everything {
     #[cfg(feature = "ck3")]
     pub(crate) interaction_cats: CharacterInteractionCategories,
 
-    /// Processed map data
     #[cfg(feature = "ck3")]
     pub(crate) provinces_ck3: Ck3Provinces,
     #[cfg(feature = "vic3")]
     pub(crate) provinces_vic3: Vic3Provinces,
 
-    /// Processed history/provinces data
     #[cfg(feature = "ck3")]
     pub(crate) province_histories: ProvinceHistories,
 
-    /// Processed game concepts
     #[cfg(feature = "ck3")]
     pub(crate) gameconcepts: GameConcepts,
 
-    /// Landed titles
     #[cfg(feature = "ck3")]
     pub(crate) titles: Titles,
 

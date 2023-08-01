@@ -1,3 +1,5 @@
+//! Validate triggers, which are parts of the script that specify yes or no conditions.
+
 use std::borrow::Cow;
 use std::str::FromStr;
 

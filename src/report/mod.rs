@@ -1,3 +1,5 @@
+//! Error report collection and printing facilities.
+
 pub(crate) use builder::{err, fatal, report, tips, untidy, warn};
 pub(crate) use error_key::ErrorKey;
 pub(crate) use error_loc::ErrorLoc;

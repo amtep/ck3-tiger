@@ -1,3 +1,9 @@
+//! Validation of scriptvalues, which are values that update dynamically based on rules given in
+//! their math blocks.
+//!
+//! Scriptvalues can also be non-dynamic, in the sense of being just a literal or the name of
+//! another scriptvalue.
+
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Comparator, Eq::*, BV};
 use crate::context::{Reason, ScopeContext};

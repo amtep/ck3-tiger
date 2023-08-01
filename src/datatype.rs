@@ -1,3 +1,6 @@
+//! Validator for the `[ ... ]` code blocks in localization and gui files.
+//! The main entry points are the [`validate_datatypes`] function and the [`Datatype`] enum.
+
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;

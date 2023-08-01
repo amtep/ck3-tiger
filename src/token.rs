@@ -1,3 +1,6 @@
+//! Contains the core [`Token`] and [`Loc`] types, which represent pieces of game script and where
+//! in the game files they came from.
+
 use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::fmt::{Display, Error, Formatter};

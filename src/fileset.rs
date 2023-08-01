@@ -1,3 +1,5 @@
+//! Track all the files (vanilla and mods) that are relevant to the current validation.
+
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
@@ -25,7 +27,7 @@ use crate::token::{Loc, Token};
 /// Note that ordering of these enum values matters.
 /// Files later in the order will override files of the same name before them,
 /// and the warnings about duplicates take that into account.
-/// TODO: verify the relative order of `Clausewitz` and `Jomini`
+// TODO: verify the relative order of `Clausewitz` and `Jomini`
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FileKind {
     /// `Internal` is for parsing tiger's own data. The user should not see warnings from this.

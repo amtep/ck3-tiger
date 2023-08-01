@@ -1,3 +1,7 @@
+//! Validator for `modifs` which is our name for the basic things that modifiers modify.
+//!
+//! The main entry points are the [`validate_modifs`] function and the [`ModifKinds`] type.
+
 use std::fmt::{Display, Formatter};
 
 use bitflags::bitflags;

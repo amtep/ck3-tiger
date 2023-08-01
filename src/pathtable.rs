@@ -1,7 +1,9 @@
-/// This module provides a global table for the pathnames used in `FileEntry` and `Loc`. This will make the often-cloned Loc
-/// faster to copy, since it will just contain an index into the global table. It also makes it faster to compare pathnames,
-/// because the table will be created in lexical order by the caller (`Fileset`), with the exception of some stray files
-/// (such as the config file) where the order doesn't matter.
+//! A global table for the pathnames used in `FileEntry` and `Loc`.
+//!
+//! Using this will make the often-cloned Loc faster to copy, since it will just contain an index into the global table.
+//! It also makes it faster to compare pathnames, because the table will be created in lexical order by the caller
+//! ([`Fileset`](crate::fileset::Fileset)), with the exception of some stray files (such as the config file)
+//! where the order doesn't matter.
 use std::hash::Hash;
 use std::path::{Path, PathBuf};
 use std::sync::RwLock;

@@ -1,3 +1,5 @@
+//! Miscellaneous convenience functions.
+
 use std::fmt::{Display, Formatter};
 
 use crate::report::{tips, warn, ErrorKey};

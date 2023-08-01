@@ -1,3 +1,5 @@
+//! Miscellaneous helper functions related to filesystem operations.
+
 use std::path::{Path, PathBuf};
 
 pub trait SmartJoin {

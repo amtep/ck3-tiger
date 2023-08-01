@@ -1,3 +1,8 @@
+//! Track scope context for the builtin on-actions in the various games.
+//!
+//! On-actions are script items that are called by the game engine, either at scheduled intervals
+//! or when certain things happen.
+
 use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 

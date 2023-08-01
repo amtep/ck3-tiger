@@ -1,3 +1,5 @@
+//! Giant enum for all the [`Item`] types in the game.
+
 use std::fmt::{Display, Formatter};
 
 use strum_macros::{EnumIter, IntoStaticStr};

@@ -1,3 +1,5 @@
+//! [`ScopeContext`] tracks our knowledge of the scope types used in script and validates its consistency.
+
 use std::borrow::Cow;
 
 use fnv::FnvHashMap;

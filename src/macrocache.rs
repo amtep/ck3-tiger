@@ -1,3 +1,8 @@
+//! [`MacroCache`] is a helper for scripted effects, triggers, and modifiers, all of which can
+//! accept macro arguments and which need to be expanded for every macro call.
+//!
+//! The cache helps avoid needless re-expansions for arguments that have already been validated.
+
 use std::sync::RwLock;
 
 use fnv::FnvHashMap;

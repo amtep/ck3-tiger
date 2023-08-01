@@ -1,4 +1,5 @@
-/// A module for validation functions that are useful for more than one data module.
+//! Validation functions that are useful for more than one data module.
+
 use std::fmt::{Display, Formatter};
 
 use crate::block::validator::Validator;

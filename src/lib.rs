@@ -1,3 +1,7 @@
+//! This library forms the bulk of the -tiger family of validators: `ck3-tiger`, `vic3-tiger`, and
+//! `imperator-tiger`. Each executable is a small wrapper around the functions in this library that
+//! start and perform validation.
+
 #![warn(missing_debug_implementations)]
 // Turn on clippy pedantic, but not all of them yet.
 #![warn(clippy::pedantic)]

@@ -1,4 +1,4 @@
-//! This module contains validators for effects that are generic across multiple games.
+//! Validators for effects that are generic across multiple games.
 
 use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Eq::Single, BV};

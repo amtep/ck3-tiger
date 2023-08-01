@@ -1,3 +1,6 @@
+//! Validators for game item types which are generic across all supported games.
+//! Each sub-mod handles a specific item type or group of related item types.
+
 pub mod accessory;
 pub mod assets;
 pub mod coa;

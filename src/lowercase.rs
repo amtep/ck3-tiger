@@ -1,4 +1,4 @@
-//! Type safety wrapper for strings that must be lowercase
+//! Type-safety wrapper for strings that must be lowercase
 
 use std::borrow::{Borrow, Cow};
 

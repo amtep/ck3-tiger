@@ -1,3 +1,5 @@
+//! Loader and validator for the `.mod` files themselves.
+
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};

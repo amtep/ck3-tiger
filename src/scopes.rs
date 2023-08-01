@@ -1,3 +1,5 @@
+//! The core [`Scopes`] type which tracks our knowledge about the types of in-game values.
+
 use std::fmt::{Display, Formatter};
 
 use bitflags::bitflags;
