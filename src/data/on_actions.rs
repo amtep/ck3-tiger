@@ -91,7 +91,7 @@ fn on_action_special_append(first: &mut Block, mut second: Block) {
                     continue;
                 }
             }
-            first.add_key_value(key, cmp, BV::Block(block));
+            first.add_key_bv(key, cmp, BV::Block(block));
         } else {
             first.add_item(item);
         }

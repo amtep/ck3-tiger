@@ -69,10 +69,10 @@ impl Parser {
         self.check_comma(&token.loc);
         self.check_colon(&token.loc);
         if let Some(key) = self.current.key.take() {
-            self.current.block.add_key_value(key, Comparator::Equals(Single), BV::Value(token));
+            self.current.block.add_key_bv(key, Comparator::Equals(Single), BV::Value(token));
             self.current.expect_comma = true;
         } else if self.current.opening_bracket == '[' {
-            self.current.block.add_value(BV::Value(token));
+            self.current.block.add_value(token);
             self.current.expect_comma = true;
         } else {
             self.current.key = Some(token);
@@ -82,9 +82,9 @@ impl Parser {
 
     fn block_value(&mut self, block: Block) {
         if let Some(key) = self.current.key.take() {
-            self.current.block.add_key_value(key, Comparator::Equals(Single), BV::Block(block));
+            self.current.block.add_key_bv(key, Comparator::Equals(Single), BV::Block(block));
         } else {
-            self.current.block.add_value(BV::Block(block));
+            self.current.block.add_block(block);
         }
         self.current.expect_comma = true;
     }
@@ -93,7 +93,7 @@ impl Parser {
         if let Some(key) = self.current.key.take() {
             let msg = "key without value";
             err(ErrorKey::ParseError).msg(msg).loc(&key).push();
-            self.current.block.add_value(BV::Value(key));
+            self.current.block.add_value(key);
         }
     }
 

@@ -1,3 +1,5 @@
+//! [`Block`] is the core type to represent Pdx script code
+
 use std::sync::Arc;
 
 use crate::date::Date;
@@ -54,21 +56,19 @@ impl Block {
         Block { v: Vec::new(), tag: None, loc, source: None }
     }
 
-    /// Add a loose block or value to this `Block`. Mostly used by the parser.
-    ///
-    /// TODO: the function is misnamed, should be `add_bv`.
-    pub fn add_value(&mut self, value: BV) {
-        match value {
-            BV::Value(token) => self.v.push(BlockItem::Value(token)),
-            BV::Block(block) => self.v.push(BlockItem::Block(block)),
-        }
+    /// Add a loose value to this `Block`. Mostly used by the parser.
+    pub fn add_value(&mut self, value: Token) {
+        self.v.push(BlockItem::Value(value));
+    }
+
+    /// Add a loose sub-block to this `Block`. Mostly used by the parser.
+    pub fn add_block(&mut self, block: Block) {
+        self.v.push(BlockItem::Block(block));
     }
 
     /// Add a `key = value` or `key = { ... }` field to this `Block`.
     /// Mostly used by the parser.
-    ///
-    /// TODO: the function is misnamed, should be `add_key_bv`
-    pub fn add_key_value(&mut self, key: Token, cmp: Comparator, value: BV) {
+    pub fn add_key_bv(&mut self, key: Token, cmp: Comparator, value: BV) {
         self.v.push(BlockItem::Field(Field(key, cmp, value)));
     }
 
@@ -447,11 +447,12 @@ impl Block {
                 if let BlockItem::Value(token) = item {
                     // Combine current value with reserved assignment
                     rtoken.combine(&token, '"');
-                    other.add_key_value(rkey, rcmp, BV::Value(rtoken));
+                    other.add_key_bv(rkey, rcmp, BV::Value(rtoken));
                     reserve = None;
+                    // This consumed the current item
                     continue;
                 }
-                other.add_key_value(rkey, rcmp, BV::Value(rtoken));
+                other.add_key_bv(rkey, rcmp, BV::Value(rtoken));
                 reserve = None;
             }
             if let BlockItem::Field(Field(key, cmp, bv)) = item {
@@ -461,10 +462,10 @@ impl Block {
                             reserve = Some((key, cmp, token));
                             continue;
                         }
-                        other.add_key_value(key, cmp, BV::Value(token));
+                        other.add_key_bv(key, cmp, BV::Value(token));
                     }
                     BV::Block(block) => {
-                        other.add_key_value(key, cmp, BV::Block(block.condense_tag(tag)));
+                        other.add_key_bv(key, cmp, BV::Block(block.condense_tag(tag)));
                     }
                 }
             } else {
