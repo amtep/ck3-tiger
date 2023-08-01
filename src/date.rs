@@ -1,3 +1,5 @@
+//! The [`Date`] type represents in-game dates.
+
 use std::fmt::{Display, Error, Formatter};
 use std::str::FromStr;
 

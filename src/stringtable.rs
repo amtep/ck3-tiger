@@ -1,11 +1,13 @@
+//! A global [`StringTable`] for strings that are never deallocated.
+
 use std::cell::RefCell;
 use std::mem::{forget, ManuallyDrop};
 use std::str::from_utf8_unchecked;
 
-/// A global table for strings that are never deallocated, which allows &'static str references to them.
-/// Using this makes `Token` cheaper to clone because it doesn't have to clone the allocated strings.
-/// It also reduces memory usage by making `Token` slightly smaller and not cloning the string
-/// along with the `Token`.
+/// A global table for strings that are never deallocated, which allows `&'static str` references to them.
+/// Using this makes [`Token`](crate::token::Token) cheaper to clone because it doesn't have to clone the
+/// allocated strings. It also reduces memory usage by making `Token` slightly smaller and not cloning the
+/// string along with the `Token`.
 pub struct StringTable {}
 
 // A round number of kilobytes minus some overhead

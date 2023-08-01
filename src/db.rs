@@ -1,3 +1,7 @@
+//! A general database of item types. Most game items go here.
+//!
+//! Items that need special handling are stored separately in the [`Everything`] type.
+
 use std::any::Any;
 use std::fmt::Debug;
 
