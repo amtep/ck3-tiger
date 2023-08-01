@@ -225,6 +225,44 @@ pub fn validate_add_trait_xp(
     vd.field_script_value("value", sc);
 }
 
+/// Used by a variety of `add_..._modifier` effects
+pub fn validate_add_modifier(
+    key: &Token,
+    bv: &BV,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    _tooltipped: Tooltipped,
+) {
+    let caller = key.as_str().to_lowercase();
+    let visible = caller == "add_character_modifier"
+        || caller == "add_house_modifier"
+        || caller == "add_dynasty_modifier"
+        || caller == "add_county_modifier";
+    match bv {
+        BV::Value(token) => {
+            data.verify_exists(Item::Modifier, token);
+            if visible {
+                data.verify_exists(Item::Localization, token);
+            }
+            data.database.validate_property_use(Item::Modifier, token, data, key, "");
+        }
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.set_case_sensitive(false);
+            vd.req_field("modifier");
+            if let Some(token) = vd.field_value("modifier") {
+                data.verify_exists(Item::Modifier, token);
+                if visible && !block.has_key("desc") {
+                    data.verify_exists(Item::Localization, token);
+                }
+                data.database.validate_property_use(Item::Modifier, token, data, key, "");
+            }
+            vd.field_validated_sc("desc", sc, validate_desc);
+            validate_optional_duration(&mut vd, sc);
+        }
+    }
+}
+
 pub fn validate_add_truce(
     _key: &Token,
     block: &Block,

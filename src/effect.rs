@@ -19,8 +19,6 @@ use crate::trigger::validate_target_ok_this;
 use crate::trigger::{validate_target, validate_trigger};
 #[cfg(feature = "imperator")]
 use crate::validate::validate_imperator_modifiers;
-#[cfg(feature = "ck3")]
-use crate::validate::validate_optional_duration;
 #[cfg(feature = "vic3")]
 use crate::validate::validate_vic3_modifiers;
 use crate::validate::{
@@ -283,57 +281,6 @@ pub fn validate_effect_internal<'a>(
                 Effect::Timespan => {
                     if let Some(block) = bv.expect_block() {
                         validate_compare_duration(block, data, sc);
-                    }
-                }
-                #[cfg(feature = "ck3")]
-                Effect::AddModifier => {
-                    let visible = key.is("add_character_modifier")
-                        || key.is("add_house_modifier")
-                        || key.is("add_dynasty_modifier")
-                        || key.is("add_county_modifier");
-                    match bv {
-                        BV::Value(token) => {
-                            data.verify_exists(Item::Modifier, token);
-                            if visible {
-                                data.verify_exists(Item::Localization, token);
-                            }
-                            data.database.validate_property_use(
-                                Item::Modifier,
-                                token,
-                                data,
-                                key,
-                                "",
-                            );
-                        }
-                        BV::Block(block) => {
-                            let mut vd = Validator::new(block, data);
-                            vd.set_case_sensitive(false);
-                            vd.req_field("modifier");
-                            if let Some(token) = vd.field_value("modifier") {
-                                data.verify_exists(Item::Modifier, token);
-                                if visible && !block.has_key("desc") {
-                                    data.verify_exists(Item::Localization, token);
-                                }
-                                data.database.validate_property_use(
-                                    Item::Modifier,
-                                    token,
-                                    data,
-                                    key,
-                                    "",
-                                );
-                            }
-                            vd.field_validated_sc("desc", sc, validate_desc);
-                            validate_optional_duration(&mut vd, sc);
-                        }
-                    }
-                }
-                // TODO: does imperator take the same modifier syntax as vic3?
-                #[cfg(any(feature = "vic3", feature = "imperator"))]
-                Effect::AddModifier => {
-                    if let Some(block) = bv.expect_block() {
-                        let mut vd = Validator::new(block, data);
-                        vd.field_item("name", Item::Modifier);
-                        vd.field_script_value("multiplier", sc);
                     }
                 }
                 Effect::Vb(f) => {
@@ -638,10 +585,6 @@ pub enum Effect {
     /// * Example: `add_destination_progress = { days = 5 }`
     #[cfg(feature = "ck3")]
     Timespan,
-    /// The effect adds a modifier and follows the usual pattern for that. The pattern varies per game.
-    ///
-    /// TODO: this should probably be a special case instead.
-    AddModifier,
     /// The effect takes a block that contains other effects.
     ///
     /// * Examples: `if`, `while`, `custom_description`

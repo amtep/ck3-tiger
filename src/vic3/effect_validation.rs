@@ -33,7 +33,20 @@ pub fn validate_add_culture_sol_modifier(
     vd.req_field("culture");
     vd.field_target("culture", sc, Scopes::Culture);
     vd.field_script_value("months", sc);
-    vd.field_numeric("multiplier"); // seems to be actually an adder
+    vd.field_script_value("multiplier", sc); // seems to be actually an adder
+}
+
+pub fn validate_add_enactment_modifier(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("name");
+    vd.field_item("name", Item::Modifier);
+    vd.field_script_value("multiplier", sc);
 }
 
 pub fn validate_add_journalentry(

@@ -50,7 +50,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
         "add_diplomatic_play_war_support",
         TargetValue("target", Scopes::Country, "value"),
     ),
-    (Scopes::Country, "add_enactment_modifier", AddModifier),
+    (Scopes::Country, "add_enactment_modifier", Vb(validate_add_enactment_modifier)),
     (Scopes::Country, "add_enactment_phase", Integer),
     (Scopes::Country, "add_enactment_setback", Integer),
     (Scopes::Country, "add_era_researched", Item(Item::TechnologyEra)),
