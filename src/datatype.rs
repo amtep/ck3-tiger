@@ -29,6 +29,21 @@ include!("vic3/tables/include/datatypes.rs");
 #[cfg(feature = "imperator")]
 include!("imperator/tables/include/datatypes.rs");
 
+/// All the object types used in `[...]` code in localization and gui files.
+///
+/// The names exactly match the ones in the `data_types` logs from the games,
+/// which is why some of them are lowercase.
+/// Most of the variants are generated directly from those logs.
+///
+/// The enum is divided into the "generic" datatypes, which are valid for all games and which can
+/// be referenced directly in code, and the per-game lists of datatypes which are in game-specific
+/// wrappers. With a few exceptions, the per-game datatypes are only referenced in the per-game tables
+/// of datafunctions and promotes.
+///
+/// The game-specific datatypes are wrapped because otherwise they would still have name
+/// collisions. This is because the list of generic datatypes is only a small selection; there are
+/// many more datatypes that are in effect generic but separating them out would be pointless work.
+/// (Separating them out would be made harder because the lists of variants are generated from the docs).
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum Datatype {
@@ -73,6 +88,7 @@ pub enum Datatype {
 
 impl FromStr for Datatype {
     type Err = strum::ParseError;
+    /// Read a Datatype from a string, without requiring the string to use the game-specific wrappers.
     fn from_str(s: &str) -> Result<Self, strum::ParseError> {
         // Have to do the generic variants by hand, so that the per-game variants can be done with the macro.
         match s {
@@ -115,8 +131,9 @@ impl FromStr for Datatype {
 }
 
 impl Display for Datatype {
-    // Have to do the generic variants by hand, so that the per-game variants can be done with the macro.
+    /// Convert a `Datatype` to string format, while leaving out the game-specific wrappers.
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        // Have to do the generic variants by hand, so that the per-game variants can be done with the macro.
         match *self {
             Datatype::Unknown => write!(f, "Unknown"),
             Datatype::AnyScope => write!(f, "AnyScope"),
@@ -154,29 +171,45 @@ impl Display for Datatype {
     }
 }
 
+/// A [`CodeChain`] represents the full string between `[` and `]` in gui and localization (except for
+/// the trailing format).
+/// It consists of a series of codes separated by dots.
+///
+/// "code" is my name for the things separated by dots. They don't have an official name.
+/// They should be a series of "promotes" followed by a final "function",
+/// each of which can possibly take arguments. The first code should be "global", meaning it
+/// doesn't need a [`Datatype`] from the previous code as input.
+///
+/// There are a few exceptions that don't take a "function" at the end and are just a list of "promotes".
+///
+/// A `CodeChain` can also be very simple and consist of a single identifier, which should be a
+/// global function because it both starts and ends the chain.
 #[derive(Clone, Debug)]
 pub struct CodeChain {
-    // "codes" is my name for the things separated by dots in gui functions.
-    // They should be a series of "promotes" followed by a final "function",
-    // each of which can possibly take arguments.
     pub codes: Vec<Code>,
 }
 
-// Most "codes" are just a name followed by another dot or by the end of the code section.
-// Some have arguments between parentheses, which can be single-quoted strings, or other code chains.
+/// Most codes are just a name followed by another dot or by the end of the code chain.
+/// Some have comma-separated arguments between parentheses.
+/// Those arguments can be single-quoted strings or other code chains.
 #[derive(Clone, Debug)]
 pub struct Code {
     pub name: Token,
     pub arguments: Vec<CodeArg>,
 }
 
+/// `CodeArg` represents a single argument of a [`Code`].
 // Possibly the literal arguments can themselves contain [ ] code blocks.
 // I'll have to test that.
 // A literal argument can be a string that starts with a (datatype) in front
 // of it, such as '(int32)0'.
 #[derive(Clone, Debug)]
 pub enum CodeArg {
+    /// An argument that is itself a [`CodeChain`], though it doesn't need the `[` `]` around it.
     Chain(CodeChain),
+    /// An argument that is a literal string between single quotes. The literal can start with a
+    /// datatype in front of it between parentheses, such as `'(int32)0'`. If it doesn't start
+    /// with a datatype, the literal's type will be `CString`.
     Literal(Token),
 }
 
@@ -200,28 +233,50 @@ impl CodeChain {
     }
 }
 
+/// [`Arg`] is the counterpart to [`CodeArg`]. Where `CodeArg` represents an actual argument given
+/// in a codechain string, the `Arg` represents what kind of argument is expected by a promote or
+/// function.
 #[derive(Copy, Clone, Debug)]
 pub enum Arg {
+    /// The argument is expected to be a code chain whose final function returns this [`Datatype`],
+    /// or a literal that is encoded to be of the expected type.
     DType(Datatype),
+    /// The argument is expected to be a literal containing a key to this [`Item`] type, or a code
+    /// chain that returns a `CString` (in which case the `Item` lookup is not checked).
     IType(Item),
 }
 
+/// [`Args`] is the list of arguments expected by a given promote or function. The actual arguments
+/// from a [`Code`] can be checked against this.
 #[derive(Copy, Clone, Debug)]
 pub struct Args(pub &'static [Arg]);
 
 impl Args {
+    /// Convenience function returning the number of arguments expected.
     pub fn nargs(self) -> usize {
         self.0.len()
     }
 }
 
+/// Result from looking up a name in the promotes or functions tables.
 #[derive(Copy, Clone, Debug)]
-pub enum LookupResult {
+enum LookupResult {
+    /// The name didn't occur in the table at all.
     NotFound,
+    /// The name was in the table, but not associated with the given [`Datatype`].
     WrongType,
+    /// Found a matching entry.
+    /// Returns the expected arguments for this promote or function, and its return type.
     Found(Args, Datatype),
 }
 
+/// Internal function for validating a reference to a custom localization.
+///
+/// * `token`: The name of the localization.
+/// * `scopes`: The scope type of the value being passed in to the custom localization.
+/// * `lang`: The language being validated, can be "" when not applicable (such as in gui files).
+///   Many custom localizations are only meant for one language, and the keys they use only need
+///   to exist in that language.
 fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: &'static str) {
     data.verify_exists(Item::CustomLocalization, token);
     if let Some((key, block)) = data.get_key_block(Item::CustomLocalization, token.as_str()) {
@@ -229,6 +284,13 @@ fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: &'sta
     }
 }
 
+/// Internal function for validating an argument to a datatype code.
+/// If the argument is iself a code chain, this will end up calling `validate_datatypes` recursively.
+///
+/// * `arg`: The actual argument being supplied.
+/// * `sc`: The available named scopes.
+/// * `expect_arg`: The form of argument expected by the promote or function.
+/// * `lang`: The language of the localization file in which this code appears. This is just passed through.
 fn validate_argument(
     arg: &CodeArg,
     data: &Everything,
@@ -609,7 +671,7 @@ pub fn validate_datatypes(
     }
 }
 
-pub fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
+fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
     let global_promotes = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::datafunctions::GLOBAL_PROMOTES,
@@ -631,7 +693,7 @@ pub fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
     None
 }
 
-pub fn lookup_global_function(lookup_name: &str) -> Option<(Args, Datatype)> {
+fn lookup_global_function(lookup_name: &str) -> Option<(Args, Datatype)> {
     let global_functions = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::datafunctions::GLOBAL_FUNCTIONS,
@@ -684,7 +746,7 @@ fn lookup_promote_or_function(
     }
 }
 
-pub fn lookup_promote(lookup_name: &str, ltype: Datatype) -> LookupResult {
+fn lookup_promote(lookup_name: &str, ltype: Datatype) -> LookupResult {
     let promotes = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::datafunctions::PROMOTES,
@@ -696,7 +758,7 @@ pub fn lookup_promote(lookup_name: &str, ltype: Datatype) -> LookupResult {
     lookup_promote_or_function(lookup_name, ltype, promotes)
 }
 
-pub fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {
+fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {
     let functions = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::datafunctions::FUNCTIONS,
@@ -716,7 +778,7 @@ pub fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {
 /// `first` should be true iff this name is the first in its code chain (so it can be a global).
 /// `last` should be true iff this name is the last in its code chain (so it can be a function).
 // TODO: make it consider misspellings as well
-pub fn lookup_alternative(
+fn lookup_alternative(
     lookup_name: &Lowercase,
     first: std::primitive::bool,
     last: std::primitive::bool,
@@ -786,7 +848,7 @@ pub fn lookup_alternative(
 /// Return the scope type that best matches `dtype`, or `None` if there is no match.
 /// Nearly every scope type has a matching datatype, but there are far more datatypes than scope types.
 // TODO: do more efficient lookup than this linear scan.
-pub fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
+fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
     let datatype_and_scope = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::datafunctions::DATATYPE_AND_SCOPE,
@@ -807,7 +869,7 @@ pub fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
 /// Nearly every scope type has a matching datatype, but there are far more datatypes than scope types.
 /// Note that only `Scopes` values that are narrowed down to a single scope type can be matched.
 // TODO: do more efficient lookup than this linear scan.
-pub fn datatype_from_scopes(scopes: Scopes) -> Datatype {
+fn datatype_from_scopes(scopes: Scopes) -> Datatype {
     let datatype_and_scope = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::datafunctions::DATATYPE_AND_SCOPE,

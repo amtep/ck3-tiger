@@ -183,7 +183,6 @@ pub enum LocaValue {
     MarkupEnd(Token),
     Tooltip(Token),
     // The optional token is the formatting
-    // TODO: convert [topic|E] code to something else than Code
     Code(CodeChain, Option<Token>),
     Icon(Token),
     #[default]
