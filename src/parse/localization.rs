@@ -5,7 +5,7 @@ use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
 use crate::game::Game;
-use crate::report::{warn, ErrorKey};
+use crate::report::{untidy, warn, ErrorKey};
 use crate::token::{Loc, Token};
 
 fn is_key_char(c: char) -> bool {
@@ -550,7 +550,22 @@ impl<'a> ValueParser<'a> {
         let chain = self.parse_code_inner();
 
         self.skip_whitespace();
+
+        // The game engine doesn't mind if there are too many `)` before the `]`, so handle
+        // that at "untidy" severity.
+        let mut warned_extra_parens = false;
+        while self.peek() == Some(')') {
+            if !warned_extra_parens {
+                let msg = "too many `)`";
+                untidy(ErrorKey::Datafunctions).msg(msg).loc(&self.loc).push();
+                warned_extra_parens = true;
+            }
+            self.next_char();
+            self.skip_whitespace();
+        }
+
         let format = self.parse_format();
+
         if self.peek() == Some(']') {
             self.next_char();
             self.value.push(LocaValue::Code(chain, format));
