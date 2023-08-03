@@ -208,6 +208,7 @@ impl DbKind for Faith {
             let pathname = format!("{icon_path}/{icon}.dds");
             data.verify_exists_implied(Item::File, &pathname, icon);
         }
+        // TODO: some hints that this causes a crash if not found. Verify.
         if let Some(icon) = vd.field_value("reformed_icon") {
             if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|FAITH_ICON_PATH")
             {

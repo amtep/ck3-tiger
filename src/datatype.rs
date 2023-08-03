@@ -291,18 +291,20 @@ fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: &'sta
 /// * `sc`: The available named scopes.
 /// * `expect_arg`: The form of argument expected by the promote or function.
 /// * `lang`: The language of the localization file in which this code appears. This is just passed through.
+/// * `format`: The formatting code for this code chain. This just passed through.
 fn validate_argument(
     arg: &CodeArg,
     data: &Everything,
     sc: &mut ScopeContext,
     expect_arg: Arg,
     lang: &'static str,
+    format: Option<&Token>,
 ) {
     match expect_arg {
         Arg::DType(expect_type) => {
             match arg {
                 CodeArg::Chain(chain) => {
-                    validate_datatypes(chain, data, sc, expect_type, lang, false);
+                    validate_datatypes(chain, data, sc, expect_type, lang, format, false);
                 }
                 CodeArg::Literal(token) => {
                     if token.as_str().starts_with('(') && token.as_str().contains(')') {
@@ -332,7 +334,7 @@ fn validate_argument(
         }
         Arg::IType(itype) => match arg {
             CodeArg::Chain(chain) => {
-                validate_datatypes(chain, data, sc, Datatype::CString, lang, false);
+                validate_datatypes(chain, data, sc, Datatype::CString, lang, format, false);
             }
             CodeArg::Literal(token) => {
                 data.verify_exists(itype, token);
@@ -344,19 +346,22 @@ fn validate_argument(
 /// Validate a datafunction chain, which is the stuff between [ ] in localization.
 /// * `chain` is the parsed datafunction structure.
 /// * `sc` is a `ScopeContext` used to evaluate scope references in the datafunctions.
-/// If nothing is known about the scope, just pass an empty `ScopeContext` with `set_strict_types(false)`.
+///   If nothing is known about the scope, just pass an empty `ScopeContext` with `set_strict_types(false)`.
 /// * `expect_type` is the datatype that should be returned by this chain, can be `Datatype::Unknown` in many cases.
 /// * `lang` is set to a specific language if `Custom` references in this chain only need to be defined for one language.
-/// It can just be "" otherwise.
+///   It can just be "" otherwise.
+/// * `format` is the formatting code given after `|` in the datatype expression. It's used for
+///   checking that game concepts in ck3 have `|E` formats.
 /// * `expect_promote` is true iff the chain is expected to end on a promote rather than on a function.
-/// Promotes and functions are very similar but they are defined separately in the datafunction tables
-/// and usually only a function can end a chain.
+///   Promotes and functions are very similar but they are defined separately in the datafunction tables
+///   and usually only a function can end a chain.
 pub fn validate_datatypes(
     chain: &CodeChain,
     data: &Everything,
     sc: &mut ScopeContext,
     expect_type: Datatype,
     lang: &'static str,
+    format: Option<&Token>,
     expect_promote: bool,
 ) {
     let mut curtype = Datatype::Unknown;
@@ -392,7 +397,7 @@ pub fn validate_datatypes(
         let mut rtype = Datatype::Unknown;
 
         if code.name.is("") {
-            // TODO: find out if the game engine is okay with this
+            // TODO: verify if the game engine is okay with this
             warn(ErrorKey::Datafunctions).msg("empty fragment").loc(&code.name).push();
             return;
         }
@@ -451,51 +456,6 @@ pub fn validate_datatypes(
             }
         }
 
-        #[cfg(feature = "vic3")]
-        if Game::is_vic3() && !found && data.item_exists(Item::Country, code.name.as_str()) {
-            found = true;
-            args = Args(&[]);
-            rtype = Datatype::Vic3(Vic3Datatype::Country);
-        }
-
-        // In vic3, game concepts are unadorned, like [concept_ideology]
-        // Each concept also generates a [concept_ideology_desc]
-        #[cfg(feature = "vic3")]
-        if Game::is_vic3() && !found && code.name.as_str().starts_with("concept_") {
-            found = true;
-            if let Some(concept) = code.name.as_str().strip_suffix("_desc") {
-                data.verify_exists_implied(Item::GameConcept, concept, &code.name);
-            } else {
-                data.verify_exists(Item::GameConcept, &code.name);
-            }
-            args = Args(&[]);
-            rtype = Datatype::CString;
-        }
-
-        // In ck3, allow unadorned game concepts as long as they end with _i
-        // (which means they are just the icon). This is a heuristic.
-        #[cfg(feature = "ck3")]
-        if Game::is_ck3()
-            && !found
-            && code.name.as_str().ends_with("_i")
-            && data.item_exists(Item::GameConcept, code.name.as_str())
-        {
-            found = true;
-            args = Args(&[]);
-            rtype = Datatype::CString;
-        }
-
-        // See if it's a passed-in scope.
-        // It may still be a passed-in scope even if this check doesn't pass, because sc might be a non-strict scope
-        // where the scope names are not known. That's handled heuristically below.
-        if !found {
-            if let Some(scopes) = sc.is_name_defined(code.name.as_str()) {
-                found = true;
-                args = Args(&[]);
-                rtype = datatype_from_scopes(scopes);
-            }
-        }
-
         if !found {
             // Properly reporting these errors is tricky because `code.name`
             // might be found in any or all of the functions and promotes tables.
@@ -530,33 +490,115 @@ pub fn validate_datatypes(
                 warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 return;
             }
+        }
 
-            // If `code.name` is not found at all in the tables, then it can be some passed-in scope.
-            // Unfortunately we don't have a complete list of those, so accept any lowercase id and
-            // warn if it starts with uppercase. This is not a foolproof check though.
-            // TODO: it's in theory possible to build a complete list of possible scope variable names
-            if sc.is_strict() || code.name.as_str().chars().next().unwrap().is_uppercase() {
-                // TODO: If there is a Custom of the same name, suggest that
-                let msg = format!("unknown datafunction {}", &code.name);
-                if let Some(alternative) = lookup_alternative(
-                    &Lowercase::new(code.name.as_str()),
-                    is_first,
-                    is_last && !expect_promote,
-                ) {
-                    let info = format!("did you mean {alternative}?");
-                    warn(ErrorKey::Datafunctions).msg(msg).info(info).loc(&code.name).push();
-                } else {
-                    warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
-                }
-                return;
+        #[cfg(feature = "vic3")]
+        // Vic3 allows the three-letter country codes to be used unadorned as datatypes.
+        if Game::is_vic3()
+            && !found
+            && is_first
+            && data.item_exists(Item::Country, code.name.as_str())
+        {
+            found = true;
+            args = Args(&[]);
+            rtype = Datatype::Vic3(Vic3Datatype::Country);
+        }
+
+        // In vic3, game concepts are unadorned, like [concept_ideology]
+        // Each concept also generates a [concept_ideology_desc]
+        #[cfg(feature = "vic3")]
+        if Game::is_vic3()
+            && !found
+            && is_first
+            && is_last
+            && code.name.as_str().starts_with("concept_")
+        {
+            found = true;
+            if let Some(concept) = code.name.as_str().strip_suffix("_desc") {
+                data.verify_exists_implied(Item::GameConcept, concept, &code.name);
+            } else {
+                data.verify_exists(Item::GameConcept, &code.name);
+            }
+            args = Args(&[]);
+            rtype = Datatype::CString;
+        }
+
+        #[cfg(feature = "ck3")]
+        if Game::is_ck3()
+            && !found
+            && is_first
+            && is_last
+            && data.item_exists(Item::GameConcept, code.name.as_str())
+        {
+            let game_concept_formatting = format
+                .map_or(false, |fmt| fmt.as_str().contains('E') || fmt.as_str().contains('e'));
+            // In ck3, allow unadorned game concepts as long as they end with _i
+            // (which means they are just an icon). This is a heuristic.
+            // TODO: should also allow unadorned game concepts if inside another format
+            // Many strings leave out the |E from flavor text and the like.
+            // if !code.name.as_str().ends_with("_i") && !game_concept_formatting {
+            //     let msg = "game concept should have |E formatting";
+            //     warn(ErrorKey::Localization).weak().msg(msg).loc(&code.name).push();
+            // }
+
+            // If the game concept is also a passed-in scope, the game concept takes precedence.
+            // This is worth warning about.
+            // Real life example: [ROOT.Char.Custom2('RelationToMeShort', schemer)]
+            if sc.is_name_defined(code.name.as_str()).is_some() && !game_concept_formatting {
+                let msg = format!("`{}` is both a named scope and a game concept here", &code.name);
+                let info = format!("The game concept will take precedence. Do `{}.Self` if you want the named scope.", &code.name);
+                warn(ErrorKey::Datafunctions).msg(msg).info(info).loc(&code.name).push();
             }
 
-            // If it's a passed-in scope, then set args and rtype appropriately.
+            found = true;
+            args = Args(&[]);
+            rtype = Datatype::CString;
+        }
+
+        // See if it's a passed-in scope.
+        // It may still be a passed-in scope even if this check doesn't pass, because sc might be a non-strict scope
+        // where the scope names are not known. That's handled heuristically below.
+        if !found && is_first {
+            if let Some(scopes) = sc.is_name_defined(code.name.as_str()) {
+                found = true;
+                args = Args(&[]);
+                rtype = datatype_from_scopes(scopes);
+            }
+        }
+
+        // If `code.name` is not found yet, then it can be some passed-in scope we don't know about.
+        // Unfortunately we don't have a complete list of those, so accept any id that starts
+        // with a lowercase letter or a number. This is not a foolproof check though.
+        // TODO: it's in theory possible to build a complete list of possible scope variable names
+        let first_char = code.name.as_str().chars().next().unwrap();
+        if !found
+            && is_first
+            && !sc.is_strict()
+            && (first_char.is_lowercase() || first_char.is_ascii_digit())
+        {
+            found = true;
             args = Args(&[]);
             // TODO: this could in theory be reduced to just the scope types.
             // That would be valuable for checks because it will find
             // the common mistake of using .Var directly after one.
             rtype = Datatype::Unknown;
+        }
+
+        // If it's still not found, warn and exit.
+        if !found {
+            // TODO: If there is a Custom of the same name, suggest that
+            let msg = format!("unknown datafunction {}", &code.name);
+            if let Some(alternative) = lookup_alternative(
+                &Lowercase::new(code.name.as_str()),
+                is_first,
+                is_last && !expect_promote,
+            ) {
+                let info = format!("did you mean {alternative}?");
+                warn(ErrorKey::Datafunctions).msg(msg).info(info).loc(&code.name).push();
+            } else {
+                warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
+            }
+            return;
         }
 
         // Imperator input arguments are hard to determine, so we don't do any checks for most imperator args but still allow some to be specified.
@@ -642,7 +684,7 @@ pub fn validate_datatypes(
                     }
                 }
             }
-            validate_argument(&code.arguments[i], data, sc, *arg, lang);
+            validate_argument(&code.arguments[i], data, sc, *arg, lang, format);
         }
 
         curtype = rtype;

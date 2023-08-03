@@ -915,9 +915,17 @@ fn validate_datatype_field(
             if valuevec.len() == 1 {
                 let mut sc = ScopeContext::new(Scopes::None, key);
                 match &valuevec[0] {
-                    // TODO: validate fmt
-                    LocaValue::Code(chain, _) => {
-                        validate_datatypes(chain, data, &mut sc, dtype, "", allow_promote);
+                    // TODO: validate format
+                    LocaValue::Code(chain, format) => {
+                        validate_datatypes(
+                            chain,
+                            data,
+                            &mut sc,
+                            dtype,
+                            "",
+                            format.as_ref(),
+                            allow_promote,
+                        );
                     }
                     LocaValue::Error => (),
                     _ => {
@@ -943,13 +951,12 @@ fn validate_gui_loca(key: &Token, value: LocaValue, data: &Everything) {
                 validate_gui_loca(key, value, data);
             }
         }
-        #[allow(unused_variables)] // vic3 does not use fmt
-        LocaValue::Code(chain, fmt) => {
+        LocaValue::Code(chain, format) => {
             // |E is the formatting used for game concepts in ck3
             #[cfg(feature = "ck3")]
             if Game::is_ck3() {
-                if let Some(fmt) = fmt {
-                    if fmt.as_str().contains('E') || fmt.as_str().contains('e') {
+                if let Some(ref format) = format {
+                    if format.as_str().contains('E') || format.as_str().contains('e') {
                         if let Some(name) = chain.as_gameconcept() {
                             data.verify_exists(Item::GameConcept, name);
                             return;
@@ -959,7 +966,15 @@ fn validate_gui_loca(key: &Token, value: LocaValue, data: &Everything) {
             }
 
             let mut sc = ScopeContext::new(Scopes::None, key);
-            validate_datatypes(&chain, data, &mut sc, Datatype::Unknown, "", false);
+            validate_datatypes(
+                &chain,
+                data,
+                &mut sc,
+                Datatype::Unknown,
+                "",
+                format.as_ref(),
+                false,
+            );
         }
         _ => (),
     }
