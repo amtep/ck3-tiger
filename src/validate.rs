@@ -739,8 +739,8 @@ pub fn validate_scheme_modifier(block: &Block, data: &Everything, sc: &mut Scope
 pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_validated("base", validate_non_dynamic_scriptvalue);
-    vd.field_script_value("add", sc);
-    vd.field_script_value("factor", sc);
+    vd.fields_script_value("add", sc);
+    vd.fields_script_value("factor", sc);
     validate_modifiers(&mut vd, sc);
     validate_scripted_modifier_calls(vd, data, sc);
 }
