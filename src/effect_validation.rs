@@ -9,7 +9,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::Severity;
+use crate::report::{err, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
 use crate::token::Token;
@@ -178,7 +178,7 @@ pub fn validate_set_variable(
 
 /// A specific validator for the `switch` effect, which has a unique syntax.
 pub fn validate_switch(
-    _key: &Token,
+    key: &Token,
     _block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
@@ -190,7 +190,9 @@ pub fn validate_switch(
     if let Some(target) = vd.field_value("trigger") {
         // clone to avoid calling vd again while target is still borrowed
         let target = target.clone();
+        let mut count = 0;
         vd.unknown_block_fields(|key, block| {
+            count += 1;
             if !key.is("fallback") {
                 // Pretend the switch was written as a series of trigger = key lines
                 let synthetic_bv = BV::Value(key.clone());
@@ -208,6 +210,10 @@ pub fn validate_switch(
 
             validate_effect(block, data, sc, tooltipped);
         });
+        if count == 0 {
+            let msg = "switch with no branches";
+            err(ErrorKey::Logic).msg(msg).loc(key).push();
+        }
     }
 }
 

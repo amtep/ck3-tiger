@@ -851,7 +851,9 @@ fn match_trigger_bv(
                     vd.req_field("trigger");
                     if let Some(target) = vd.field_value("trigger") {
                         let target = target.clone();
+                        let mut count = 0;
                         vd.unknown_block_fields(|key, block| {
+                            count += 1;
                             if !key.is("fallback") {
                                 let synthetic_bv = BV::Value(key.clone());
                                 validate_trigger_key_bv(
@@ -867,6 +869,10 @@ fn match_trigger_bv(
                             }
                             validate_trigger(block, data, sc, tooltipped);
                         });
+                        if count == 0 {
+                            let msg = "switch with no branches";
+                            err(ErrorKey::Logic).msg(msg).loc(name).push();
+                        }
                     }
                 }
             } else if name.is("add_to_temporary_list") {

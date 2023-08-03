@@ -8,7 +8,9 @@ use crate::date::Date;
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;
-use crate::report::{fatal, report, ErrorKey, Severity};
+#[cfg(feature = "ck3")]
+use crate::report::fatal;
+use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
 #[cfg(feature = "ck3")]
