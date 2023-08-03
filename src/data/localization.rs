@@ -1,9 +1,12 @@
+//! Validate `.yml` localization files
+
 use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 use std::sync::RwLock;
 
 use fnv::{FnvHashMap, FnvHashSet};
+use rayon::scope;
 
 use crate::block::Block;
 use crate::context::ScopeContext;
@@ -24,15 +27,29 @@ use crate::report::{
 use crate::scopes::Scopes;
 use crate::token::Token;
 
+/// Database of all loaded localization keys and their values, for all supported languages.
 #[derive(Debug)]
 pub struct Localization {
+    /// Which languages to check, according to the config file.
     check_langs: Vec<&'static str>,
-    locas: FnvHashMap<&'static str, FnvHashMap<String, LocaEntry>>,
+    /// Which languages also actually exist in the mod.
+    /// This is used to not warn about missing loca when a mod doesn't have the language at all.
+    /// (This saves them the effort of configuring `check_langs`).
     mod_langs: Vec<&'static str>,
-    used_locas: RwLock<FnvHashSet<String>>,
+    /// Database of all localizations, indexed first by language and then by localization key.
+    locas: FnvHashMap<&'static str, FnvHashMap<String, LocaEntry>>,
+    /// Which localization keys have been "used" (looked up) by the rest of the mod.
+    /// This is used to print out the unused ones if requested.
+    keys_used: RwLock<FnvHashSet<String>>,
+    /// Which localization keys have been validated via [`Localization::validate_use`].
+    /// `validate_use` takes a [`ScopeContext`], so this field is used to avoid re-validating those
+    /// keys with less information during the general validation pass.
+    keys_validated_with_sc: RwLock<FnvHashSet<String>>,
 }
 
-// LAST UPDATED VERSION 1.9.2
+/// List of languages that are supported by the game engine.
+// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED VIC3 VERSION 1.3.6
 pub const KNOWN_LANGUAGES: &[&str] = &[
     "english",
     "spanish",
@@ -51,9 +68,11 @@ pub const KNOWN_LANGUAGES: &[&str] = &[
     "turkish",
 ];
 
+/// List of known built-in keys used between `$...$` in any localization.
+/// This list is used to avoid reporting false positives.
+/// The [`Localization`] module also does a scan of vanilla localization values to see which
+/// all-uppercase keys are used, and adds them to the list here.
 // LAST UPDATED VERSION 1.9.2
-// Most are deduced from the vanilla localization files, but the known ones are
-// hardcoded here.
 pub const BUILTIN_MACROS: &[&str] = &[
     "ACTION",
     "ACTUAL_NEGATION",
@@ -119,11 +138,14 @@ pub const BUILTIN_MACROS: &[&str] = &[
     "WINLOSE",
 ];
 
+/// One parsed key: value line from the localization values.
 #[derive(Clone, Debug)]
 pub struct LocaEntry {
     key: Token,
     value: LocaValue,
-    orig: Option<Token>, // original unparsed value, with enclosing " stripped
+    /// The original unparsed value, with enclosing `"` stripped.
+    /// This is used for macro replacement.
+    orig: Option<Token>,
 }
 
 impl LocaEntry {
@@ -275,9 +297,11 @@ impl Localization {
     }
 
     pub fn mark_used(&self, key: &str) {
-        self.used_locas.write().unwrap().insert(key.to_string());
+        self.keys_used.write().unwrap().insert(key.to_string());
     }
 
+    // Does every `[concept|E]` reference have a defined game concept?
+    // Does every other `[code]` block have valid promotes and functions?
     fn check_loca_code(
         value: &LocaValue,
         data: &Everything,
@@ -368,6 +392,7 @@ impl Localization {
     }
 
     pub fn validate_use(&self, key: &str, data: &Everything, sc: &mut ScopeContext) {
+        self.keys_validated_with_sc.write().unwrap().insert(key.to_string());
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {
                 if let Some(entry) = hash.get(key) {
@@ -377,16 +402,23 @@ impl Localization {
         }
     }
 
-    pub fn validate(&self, data: &Everything) {
-        // Does every `[concept|E]` reference have a defined game concept?
-        // Does every other `[code]` block have valid promotes and functions?
-        for (lang, hash) in &self.locas {
-            for entry in hash.values() {
-                let mut sc = ScopeContext::new_unrooted(Scopes::all(), &entry.key);
-                sc.set_strict_scopes(false);
-                Self::check_loca_code(&entry.value, data, &mut sc, lang);
+    // This is in pass2 to make sure all `keys_validated_with_sc` have been marked.
+    pub fn validate_pass2(&self, data: &Everything) {
+        scope(|s| {
+            // Hold the lock for the whole validation loop, to avoid the overhead of re-acquiring it
+            let already_validated = self.keys_validated_with_sc.read().unwrap();
+            for (lang, hash) in &self.locas {
+                for entry in hash.values() {
+                    if !already_validated.contains(entry.key.as_str()) {
+                        s.spawn(|_| {
+                            let mut sc = ScopeContext::new_unrooted(Scopes::all(), &entry.key);
+                            sc.set_strict_scopes(false);
+                            Self::check_loca_code(&entry.value, data, &mut sc, lang);
+                        });
+                    }
+                }
             }
-        }
+        });
     }
 
     pub fn mark_category_used(&self, prefix: &str) {
@@ -411,7 +443,7 @@ impl Localization {
             if let Some(hash) = self.locas.get(lang) {
                 let mut vec = Vec::new();
                 for (key, entry) in hash.iter() {
-                    if !self.used_locas.read().unwrap().contains(key) {
+                    if !self.keys_used.read().unwrap().contains(key) {
                         vec.push(entry);
                     }
                 }
@@ -610,7 +642,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
                         &mut new_line,
                         &orig_lang,
                         &mut count,
-                        &mut self.used_locas.write().unwrap(),
+                        &mut self.keys_used.write().unwrap(),
                     ) {
                         let mut value = ValueParser::new(new_line).parse_value();
                         entry.value = if value.len() == 1 {
@@ -631,7 +663,8 @@ impl Default for Localization {
             check_langs: Vec::from(KNOWN_LANGUAGES),
             locas: FnvHashMap::default(),
             mod_langs: Vec::default(),
-            used_locas: RwLock::new(FnvHashSet::default()),
+            keys_used: RwLock::new(FnvHashSet::default()),
+            keys_validated_with_sc: RwLock::new(FnvHashSet::default()),
         }
     }
 }

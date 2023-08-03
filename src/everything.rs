@@ -808,7 +808,6 @@ impl Everything {
 
     fn validate_all_generic<'a>(&'a self, s: &Scope<'a>) {
         s.spawn(|_| self.fileset.validate(self));
-        s.spawn(|_| self.localization.validate(self));
         s.spawn(|_| self.scripted_lists.validate(self));
         s.spawn(|_| self.defines.validate(self));
         s.spawn(|_| self.scripted_modifiers.validate(self));
@@ -858,10 +857,12 @@ impl Everything {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => self.validate_all_vic3(s),
                 #[cfg(feature = "imperator")]
-                Game::Imperator => (), // TODO
+                Game::Imperator => (), // TODO - imperator -
             }
         });
         self.database.validate(self);
+
+        self.localization.validate_pass2(self);
     }
 
     pub fn check_rivers(&mut self) {
