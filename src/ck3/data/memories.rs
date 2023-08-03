@@ -5,6 +5,7 @@ use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::validate::validate_duration;
@@ -45,6 +46,11 @@ impl DbKind for MemoryType {
         vd.field_validated_sc("second_perspective_description", &mut sc, validate_desc);
         vd.field_validated_sc("third_perspective_description", &mut sc, validate_desc);
 
+        if !block.has_key("duration") {
+            let msg = "field `duration` missing";
+            let info = "without a duration field, the duration is only 1 day";
+            err(ErrorKey::FieldMissing).msg(msg).info(info).loc(block).push();
+        }
         vd.field_validated_block_rooted("duration", Scopes::Character, validate_duration);
     }
 

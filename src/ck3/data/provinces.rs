@@ -31,6 +31,8 @@ pub struct Ck3Provinces {
     adjacencies: Vec<Adjacency>,
 
     impassable: FnvHashSet<ProvId>,
+
+    sea_or_river: FnvHashSet<ProvId>,
 }
 
 impl Ck3Provinces {
@@ -48,9 +50,9 @@ impl Ck3Provinces {
     }
 
     pub fn load_impassable(&mut self, block: &Block) {
-        enum Expecting {
-            Range,
-            List,
+        enum Expecting<'a> {
+            Range(&'a Token),
+            List(&'a Token),
             Nothing,
         }
 
@@ -66,9 +68,9 @@ impl Ck3Provinces {
                             || key.is("lakes")
                         {
                             if token.is("LIST") {
-                                expecting = Expecting::List;
+                                expecting = Expecting::List(key);
                             } else if token.is("RANGE") {
-                                expecting = Expecting::Range;
+                                expecting = Expecting::Range(key);
                             } else {
                                 expecting = Expecting::Nothing;
                             }
@@ -79,7 +81,7 @@ impl Ck3Provinces {
                         }
                     }
                 }
-                Expecting::Range => {
+                Expecting::Range(key) => {
                     if let Some(block) = item.expect_block() {
                         let vec: Vec<&Token> = block.iter_values().collect();
                         if vec.len() != 2 {
@@ -96,16 +98,22 @@ impl Ck3Provinces {
                         }
                         for provid in from.unwrap()..=to.unwrap() {
                             self.impassable.insert(provid);
+                            if key.is("sea_zones") || key.is("river_provinces") {
+                                self.sea_or_river.insert(provid);
+                            }
                         }
                     }
                     expecting = Expecting::Nothing;
                 }
-                Expecting::List => {
+                Expecting::List(key) => {
                     if let Some(block) = item.expect_block() {
                         for token in block.iter_values() {
                             let provid = token.as_str().parse::<ProvId>();
                             if let Ok(provid) = provid {
                                 self.impassable.insert(provid);
+                                if key.is("sea_zones") || key.is("river_provinces") {
+                                    self.sea_or_river.insert(provid);
+                                }
                             } else {
                                 error(token, ErrorKey::Validation, "invalid LIST item");
                                 break;
@@ -139,9 +147,12 @@ impl Ck3Provinces {
         }
     }
 
-    pub fn validate(&self, _data: &Everything) {
+    pub fn validate(&self, data: &Everything) {
         for item in &self.adjacencies {
             item.validate(self);
+        }
+        for item in self.provinces.values() {
+            item.validate(self, data);
         }
     }
 }
@@ -304,8 +315,6 @@ pub struct Coords {
 #[derive(Clone, Debug)]
 pub struct Adjacency {
     line: Loc,
-    /// TODO: check from, to, and through are valid prov ids
-    /// It seems to cause a crash if they're not.
     from: ProvId,
     to: ProvId,
     /// TODO: check type is "sea" or "river_large"
@@ -375,6 +384,7 @@ impl Adjacency {
 pub struct Province {
     id: ProvId,
     color: Rgb<u8>,
+    // TODO: the "comment" is actually a loca key for seas and rivers (as defined in default.map)
     comment: Token,
 }
 
@@ -398,5 +408,12 @@ impl Province {
         let b = _verify(&csv[3], "expected blue value")?;
         let color = Rgb::from([r, g, b]);
         Some(Province { id, color, comment: csv[4].clone() })
+    }
+
+    fn validate(&self, provinces: &Ck3Provinces, data: &Everything) {
+        if provinces.sea_or_river.contains(&self.id) {
+            // TODO: this really needs an explanation, like "missing .... for sea zone"
+            data.verify_exists(Item::Localization, &self.comment);
+        }
     }
 }
