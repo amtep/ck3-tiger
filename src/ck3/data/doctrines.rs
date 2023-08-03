@@ -77,6 +77,10 @@ impl Doctrines {
     pub fn parameter_exists(&self, key: &str) -> bool {
         self.parameters.contains(key)
     }
+
+    pub fn unreformed(&self, key: &str) -> bool {
+        self.doctrines.get(key).map_or(false, Doctrine::unreformed)
+    }
 }
 
 impl FileHandler<Block> for Doctrines {
@@ -223,15 +227,22 @@ impl Doctrine {
 
         vd.field_validated_block("traits", validate_traits);
     }
+
+    fn unreformed(&self) -> bool {
+        if let Some(block) = self.block.get_field_block("parameters") {
+            return block.field_value_is("unreformed", "yes");
+        }
+        false
+    }
 }
 
 fn validate_parameters(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
 
-    vd.unknown_value_fields(|_, v| {
-        if v.is("yes") || v.is("no") {
+    vd.unknown_value_fields(|_, value| {
+        if value.is("yes") || value.is("no") {
             return;
         }
-        v.expect_number();
+        value.expect_number();
     });
 }

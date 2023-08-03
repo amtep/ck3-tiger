@@ -183,7 +183,10 @@ impl DbKind for Faith {
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        let pagan = block.get_field_bool("pagan_roots").unwrap_or(false);
+        let pagan = block
+            .get_field_values("doctrine")
+            .iter()
+            .any(|value| data.doctrines.unreformed(value.as_str()));
         if pagan {
             let loca = format!("{key}_old");
             data.verify_exists_implied(Item::Localization, &loca, key);
@@ -208,12 +211,16 @@ impl DbKind for Faith {
             let pathname = format!("{icon_path}/{icon}.dds");
             data.verify_exists_implied(Item::File, &pathname, icon);
         }
-        // TODO: some hints that this causes a crash if not found. Verify.
+        if pagan {
+            vd.req_field_fatal("reformed_icon");
+        } else {
+            vd.ban_field("reformed_icon", || "unreformed faiths");
+        }
         if let Some(icon) = vd.field_value("reformed_icon") {
             if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|FAITH_ICON_PATH")
             {
                 let pathname = format!("{icon_path}/{icon}.dds");
-                data.verify_exists_implied(Item::File, &pathname, icon);
+                data.fileset.verify_exists_implied_crashes(&pathname, icon);
             }
         }
         vd.field_value("graphical_faith");

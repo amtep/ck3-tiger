@@ -8,7 +8,7 @@ use crate::date::Date;
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;
-use crate::report::{error, report, ErrorKey, Severity};
+use crate::report::{fatal, report, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::scriptvalue::validate_scriptvalue;
 #[cfg(feature = "ck3")]
@@ -140,6 +140,18 @@ impl<'a> Validator<'a> {
             let msg = format!("required field `{name}` missing");
             let sev = Severity::Warning.at_most(self.max_severity);
             report(ErrorKey::FieldMissing, sev).msg(msg).loc(self.block).push();
+        }
+        found
+    }
+
+    /// Require field `name` to be present in the block, and warn if it isn't there.
+    /// Returns true iff the field is present. Warns at [`Severity::Fatal`] level.
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
+    pub fn req_field_fatal(&mut self, name: &str) -> bool {
+        let found = self.check_key(name);
+        if !found {
+            let msg = format!("required field `{name}` missing");
+            fatal(ErrorKey::FieldMissing).msg(msg).loc(self.block).push();
         }
         found
     }
@@ -1040,7 +1052,8 @@ impl<'a> Validator<'a> {
         }
         if found != expect {
             let msg = format!("expected {expect} numbers");
-            error(self.block, ErrorKey::Validation, &msg);
+            let sev = Severity::Error.at_most(self.max_severity);
+            report(ErrorKey::Validation, sev).msg(msg).loc(self.block).push();
         }
     }
 
