@@ -1,10 +1,10 @@
 use std::iter::Peekable;
+use std::mem::take;
 use std::str::Chars;
 
 use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
-use crate::game::Game;
 use crate::report::{untidy, warn, ErrorKey};
 use crate::token::{Loc, Token};
 
@@ -351,9 +351,9 @@ impl<'a> LocaParser<'a> {
 
         self.skip_line();
         let value = if self.value.len() == 1 {
-            std::mem::take(&mut self.value[0])
+            take(&mut self.value[0])
         } else {
-            LocaValue::Concat(std::mem::take(&mut self.value))
+            LocaValue::Concat(take(&mut self.value))
         };
         Some(LocaEntry::new(key, value, Some(token)))
     }
@@ -576,20 +576,29 @@ impl<'a> ValueParser<'a> {
     }
 
     fn handle_tooltip(&mut self, value: &str, loc: Loc) {
-        #[cfg(feature = "vic3")]
-        if Game::is_vic3() && value.contains(',') {
-            // If the value contains commas, then it's #tooltip:tag,tooltip or #tooltip:tag,tooltip,widget
+        if value.contains(',') {
+            // If the value contains commas, then it's #tooltip:tag,key or #tooltip:tag,key,value
             // Separate out the tooltip.
-            for (i, value) in value.split(',').enumerate() {
-                if i == 1 {
-                    self.value.push(LocaValue::Tooltip(Token::new(value, loc)));
-                    break;
-                }
+            let value = Token::new(value, loc);
+            let values: Vec<_> = value.split(',');
+            // len can't be <2 because we checked for a comma above
+            if values.len() == 2 {
+                self.value.push(LocaValue::ComplexTooltip(
+                    values[0].clone(),
+                    values[1].clone(),
+                    None,
+                ));
+            } else if values.len() == 3 {
+                self.value.push(LocaValue::ComplexTooltip(
+                    values[0].clone(),
+                    values[1].clone(),
+                    Some(values[2].clone()),
+                ));
             }
             return;
         }
 
-        // Otherwise, or if it's not vic3, then it's just #tooltip:tooltip
+        // Otherwise, then it's just #tooltip:tooltip
         self.value.push(LocaValue::Tooltip(Token::new(value, loc)));
     }
 
@@ -612,6 +621,7 @@ impl<'a> ValueParser<'a> {
             // #color:{1.0,1.0,1.0}
             // #font:TitleFont
             // #tooltippable;positive_value;TOOLTIP:expedition_progress_explanation_tt
+            // #TOOLTIP:GAME_TRAIT,lifestyle_physician,[GetNullCharacter]
             enum State {
                 InKey(String),
                 InValue(String, String, Loc, usize),
@@ -671,7 +681,7 @@ impl<'a> ValueParser<'a> {
                             // of markup. The next thing we see ought to be a comma or a space.
                             self.parse_code();
                             consumed = true;
-                        } else if Game::is_vic3() && c == ',' {
+                        } else if c == ',' {
                             value.push(c);
                         } else {
                             break;

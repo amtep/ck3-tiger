@@ -534,9 +534,7 @@ fn validate_gui(block: &Block, data: &Everything) {
                     } else if token.is("blockoverride") {
                         expecting = Expecting::BlockOverride;
                     } else {
-                        // allow unexpected values because we might be parsing a `size = { x y }`
-                        // we can warn about them once we parse such fields selectively
-                        // warn(token, ErrorKey::ParseError, "unexpected value");
+                        warn(ErrorKey::ParseError).msg("unexpected value").loc(token).push();
                     }
                 }
             }
