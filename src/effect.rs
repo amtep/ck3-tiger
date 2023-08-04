@@ -299,7 +299,10 @@ pub fn validate_effect_internal<'a>(
                     f(key, bv, data, sc, tooltipped);
                 }
                 Effect::ControlOrLabel => match bv {
-                    BV::Value(t) => data.verify_exists(Item::Localization, t),
+                    BV::Value(t) => {
+                        data.verify_exists(Item::Localization, t);
+                        data.validate_localization_sc(t.as_str(), sc);
+                    }
                     BV::Block(b) => validate_effect_control(
                         &Lowercase::new(key.as_str()),
                         b,
@@ -403,6 +406,9 @@ pub fn validate_effect_control(
         vd.req_field("text");
         if caller == "custom_tooltip" || caller == "custom_label" {
             vd.field_item("text", Item::Localization);
+            if let Some(value) = block.get_field_value("text") {
+                data.validate_localization_sc(value.as_str(), sc);
+            }
         } else if let Some(token) = vd.field_value("text") {
             data.verify_exists(Item::EffectLocalization, token);
             if let Some((key, block)) = data.get_key_block(Item::EffectLocalization, token.as_str())
