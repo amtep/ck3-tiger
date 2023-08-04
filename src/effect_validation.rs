@@ -11,7 +11,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{err, ErrorKey, Severity};
 use crate::scopes::Scopes;
-use crate::scriptvalue::validate_scriptvalue;
+use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target_ok_this, validate_trigger_key_bv};
@@ -169,7 +169,7 @@ pub fn validate_set_variable(
                 BV::Value(token) => {
                     validate_target_ok_this(token, data, sc, Scopes::all_but_none());
                 }
-                BV::Block(_) => validate_scriptvalue(bv, data, sc),
+                BV::Block(_) => validate_script_value(bv, data, sc),
             });
             validate_optional_duration(&mut vd, sc);
         }

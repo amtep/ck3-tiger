@@ -1,8 +1,8 @@
-//! Validation of scriptvalues, which are values that update dynamically based on rules given in
+//! Validation of script values, which are values that update dynamically based on rules given in
 //! their math blocks.
 //!
 //! Scriptvalues can also be non-dynamic, in the sense of being just a literal or the name of
-//! another scriptvalue.
+//! another script value.
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Comparator, Eq::*, BV};
@@ -21,11 +21,11 @@ use crate::validate::{
     validate_iterator_fields, validate_scope_chain, ListType,
 };
 
-/// Validate a block that's part of a scriptvalue.
-/// * `have_value`: indicates whether this scriptvalue has had some sort of value set already.
+/// Validate a block that's part of a script value.
+/// * `have_value`: indicates whether this script value has had some sort of value set already.
 /// It's used to emit warnings when overwriting this value, or when assuming there is a value
 /// when there isn't one. Has values `True`, `False`, or `Maybe`.
-/// * `check_desc`: indicates whether localization errors are worth warning about. Some scriptvalues
+/// * `check_desc`: indicates whether localization errors are worth warning about. Some script values
 /// only have their breakdowns displayed while debugging, and those can have raw (non-localized)
 /// text in their descs.
 /// Returns true iff this block did something useful. (Used for warnings)
@@ -158,7 +158,7 @@ fn validate_inner(
     made_changes
 }
 
-/// Validate a block inside an iterator that's part of a scriptvalue.
+/// Validate a block inside an iterator that's part of a script value.
 /// Checks some fields and then relies on `validate_inner` for the heavy lifting.
 fn validate_iterator(
     ltype: ListType,
@@ -187,13 +187,13 @@ fn validate_iterator(
     );
 
     if !validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc) {
-        let msg = "this iterator does not change the scriptvalue";
+        let msg = "this iterator does not change the script value";
         let info = "it should be either removed, or changed to do something useful";
         err(ErrorKey::Logic).msg(msg).info(info).loc(block).push();
     }
 }
 
-/// Validate one of the `fixed_range` or `integer_range` scriptvalue operators.
+/// Validate one of the `fixed_range` or `integer_range` script value operators.
 /// These are rarely used.
 fn validate_minmax_range(
     block: &Block,
@@ -212,7 +212,7 @@ fn validate_minmax_range(
     });
 }
 
-/// Validate `if` or `else_if` blocks that are part of a scriptvalue.
+/// Validate `if` or `else_if` blocks that are part of a script value.
 /// Checks the `limit` field and then relies on `validate_inner` for the heavy lifting.
 fn validate_if(
     key: &Token,
@@ -227,14 +227,14 @@ fn validate_if(
         validate_trigger(block, data, sc, Tooltipped::No);
     });
     if !validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc) {
-        let msg = format!("this `{key}` does not change the scriptvalue");
+        let msg = format!("this `{key}` does not change the script value");
         // weak because in an if-if_else sequence you might want some that deliberately do nothing
         // TODO: make this smarter so that it does not warn if followed by an else or else_if
         err(ErrorKey::Logic).weak().msg(msg).loc(key).push();
     }
 }
 
-/// Validate `else` blocks that are part of a scriptvalue.
+/// Validate `else` blocks that are part of a script value.
 /// Just like `validate_if`, but warns if it encounters a `limit` field.
 fn validate_else(
     key: &Token,
@@ -251,17 +251,17 @@ fn validate_else(
         validate_trigger(block, data, sc, Tooltipped::No);
     });
     if !validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc) {
-        let msg = format!("this `{key}` does not change the scriptvalue");
+        let msg = format!("this `{key}` does not change the script value");
         let info = "it should be either removed, or changed to do something useful";
         // only untidy because an empty else is probably not a logic error
         untidy(ErrorKey::Logic).msg(msg).info(info).loc(key).push();
     }
 }
 
-/// Validate a scriptvalue. It can be a block or a value.
-/// As a value, it may be an integer or boolean literal, or a target scope sequence, or a named scriptvalue.
+/// Validate a script value. It can be a block or a value.
+/// As a value, it may be an integer or boolean literal, or a target scope sequence, or a named script value.
 /// As a block, it may be a { min max } range, or a calculation block which is validated with `validate_inner`.
-/// (Boolean scriptvalues are rare but valid. They can't have calculation blocks.)
+/// (Boolean script values are rare but valid. They can't have calculation blocks.)
 fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
     // Using validate_target_ok_this here because when chaining script values to each other, you often do `value = this`
     match bv {
@@ -285,24 +285,24 @@ fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bo
     }
 }
 
-pub fn validate_scriptvalue(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
+pub fn validate_script_value(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     validate_bv(bv, data, sc, true);
 }
 
 #[cfg(feature = "ck3")] // happens not to be used by vic3; silence dead code warning
-pub fn validate_scriptvalue_no_breakdown(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
+pub fn validate_script_value_no_breakdown(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     validate_bv(bv, data, sc, false);
 }
 
-/// Validate a scriptvalue that's not allowed to do calculations. It must be a literal or the name of another scriptvalue
+/// Validate a script value that's not allowed to do calculations. It must be a literal or the name of another script value
 /// that's also not allowed to do calculations.
-pub fn validate_non_dynamic_scriptvalue(bv: &BV, data: &Everything) {
+pub fn validate_non_dynamic_script_value(bv: &BV, data: &Everything) {
     if let Some(token) = bv.get_value() {
         if token.is_number() || token.is("yes") || token.is("no") {
             return;
         }
-        if data.scriptvalues.exists(token.as_str()) {
-            data.scriptvalues.validate_non_dynamic_call(token, data);
+        if data.script_values.exists(token.as_str()) {
+            data.script_values.validate_non_dynamic_call(token, data);
             return;
         }
     }

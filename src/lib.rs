@@ -67,7 +67,7 @@ mod pathtable;
 mod pdxfile;
 mod rivers;
 mod scopes;
-mod scriptvalue;
+mod script_value;
 mod stringtable;
 mod token;
 mod tooltipped;

@@ -6,7 +6,7 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
-use crate::scriptvalue::validate_scriptvalue;
+use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
@@ -57,7 +57,7 @@ impl DbKind for AiStrategy {
         vd.field_validated_key("wargoal_maneuvers_fraction", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("enemy_country", Scopes::Country, key);
-            validate_scriptvalue(bv, data, &mut sc);
+            validate_script_value(bv, data, &mut sc);
         });
         vd.field_script_value_rooted("change_law_chance", Scopes::Country);
 
@@ -68,17 +68,17 @@ impl DbKind for AiStrategy {
         vd.field_validated_key("obligation_value", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("target_country", Scopes::Country, key);
-            validate_scriptvalue(bv, data, &mut sc);
+            validate_script_value(bv, data, &mut sc);
         });
         vd.field_validated_key("recklessness", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("target_country", Scopes::Country, key);
-            validate_scriptvalue(bv, data, &mut sc);
+            validate_script_value(bv, data, &mut sc);
         });
         vd.field_validated_key("aggression", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("target_country", Scopes::Country, key);
-            validate_scriptvalue(bv, data, &mut sc);
+            validate_script_value(bv, data, &mut sc);
         });
         vd.field_script_value_rooted("wanted_construction_sector_levels", Scopes::Country);
         vd.field_script_value_rooted("wanted_army_size", Scopes::Country);
@@ -104,7 +104,7 @@ impl DbKind for AiStrategy {
 
         vd.field_validated_key("weight", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_scriptvalue(bv, data, &mut sc);
+            validate_script_value(bv, data, &mut sc);
         });
     }
 }
@@ -114,7 +114,7 @@ fn validate_institution_scores(key: &Token, block: &Block, data: &Everything) {
     let mut sc = ScopeContext::new(Scopes::Country, key); // TODO verify scope type
     vd.unknown_fields(|key, bv| {
         data.verify_exists(Item::Institution, key);
-        validate_scriptvalue(bv, data, &mut sc);
+        validate_script_value(bv, data, &mut sc);
     });
 }
 
@@ -157,7 +157,7 @@ fn validate_strategic_region_scores(key: &Token, block: &Block, data: &Everythin
     let mut sc = ScopeContext::new(Scopes::Country, key);
     vd.unknown_fields(|key, bv| {
         data.verify_exists(Item::StrategicRegion, key);
-        validate_scriptvalue(bv, data, &mut sc);
+        validate_script_value(bv, data, &mut sc);
     });
 }
 
@@ -167,7 +167,7 @@ fn validate_secret_goal_scores(key: &Token, block: &Block, data: &Everything) {
     sc.define_name("target_country", Scopes::Country, key);
     vd.unknown_fields(|key, bv| {
         data.verify_exists(Item::SecretGoal, key);
-        validate_scriptvalue(bv, data, &mut sc);
+        validate_script_value(bv, data, &mut sc);
     });
 }
 
@@ -186,7 +186,7 @@ fn validate_wargoal_scores(key: &Token, block: &Block, data: &Everything) {
     sc.define_name("target_state", Scopes::State, key); // might not be set
     vd.unknown_fields(|key, bv| {
         data.verify_exists(Item::Wargoal, key);
-        validate_scriptvalue(bv, data, &mut sc);
+        validate_script_value(bv, data, &mut sc);
     });
 }
 

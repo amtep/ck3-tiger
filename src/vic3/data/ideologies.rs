@@ -7,7 +7,7 @@ use crate::helpers::stringify_choices;
 use crate::item::Item;
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
-use crate::scriptvalue::validate_scriptvalue;
+use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_trigger, STANCES};
@@ -42,7 +42,7 @@ impl DbKind for Ideology {
             vd.field_validated_key("leader_weight", |key, bv, data| {
                 let mut sc = ScopeContext::new(Scopes::Character, key);
                 sc.define_name("interest_group", Scopes::InterestGroup, key);
-                validate_scriptvalue(bv, data, &mut sc);
+                validate_script_value(bv, data, &mut sc);
             });
             vd.ban_field("priority", || "character_ideology = no");
         } else {

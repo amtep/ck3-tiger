@@ -12,9 +12,9 @@ use crate::item::Item;
 use crate::report::fatal;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
-use crate::scriptvalue::validate_scriptvalue;
+use crate::script_value::validate_script_value;
 #[cfg(feature = "ck3")]
-use crate::scriptvalue::validate_scriptvalue_no_breakdown;
+use crate::script_value::validate_script_value_no_breakdown;
 use crate::token::Token;
 use crate::trigger::{validate_target, validate_target_ok_this};
 
@@ -495,32 +495,30 @@ impl<'a> Validator<'a> {
         })
     }
 
-    /// Expect field `name`, if present, to be set to a scriptvalue, either a named one (simply `name = scriptvaluename`)
-    /// or an inline one (can be a simple number, or a range `{ min max }`, or a full scriptvalue definition with limits
+    /// Expect field `name`, if present, to be set to a script value, either a named one (simply `name = scriptvaluename`)
+    /// or an inline one (can be a simple number, or a range `{ min max }`, or a full script value definition with limits
     /// and math).
     ///
-    /// The scriptvalue is evaluated in the scope context `sc`, so for example if the scriptvalue does `scope:actor` but
+    /// The script value is evaluated in the scope context `sc`, so for example if the script value does `scope:actor` but
     /// there is no named scope "actor" in the scope context, then a warning is emitted.
     ///
     /// Expect no more than one `name` field in the block.
     /// Returns true iff the field is present.
-    ///
-    /// TODO: standardize on `scriptvalue` vs `script_value`.
     pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             // TODO: pass max_severity value down
-            validate_scriptvalue(bv, self.data, sc);
+            validate_script_value(bv, self.data, sc);
         })
     }
 
-    /// Just like `Validator::field_script_value`, but does not warn if it is an inline scriptvalue and the `desc` fields
-    /// in it do not contain valid localizations. This is generally used for scriptvalues that will never be shown to
+    /// Just like `Validator::field_script_value`, but does not warn if it is an inline script value and the `desc` fields
+    /// in it do not contain valid localizations. This is generally used for script values that will never be shown to
     /// the user except in debugging contexts, such as `ai_will_do`.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_script_value_no_breakdown(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             // TODO: pass max_severity value down
-            validate_scriptvalue_no_breakdown(bv, self.data, sc);
+            validate_script_value_no_breakdown(bv, self.data, sc);
         })
     }
 
@@ -532,18 +530,18 @@ impl<'a> Validator<'a> {
         self.field_check(name, |_, bv| {
             let mut sc = ScopeContext::new(scopes, self.block.get_key(name).unwrap());
             // TODO: pass max_severity value down
-            validate_scriptvalue(bv, self.data, &mut sc);
+            validate_script_value(bv, self.data, &mut sc);
         })
     }
 
-    /// Just like `Validator::field_script_value`, but it can accept a literal `flag:something` value as well as a scriptvalue.
+    /// Just like `Validator::field_script_value`, but it can accept a literal `flag:something` value as well as a script value.
     pub fn field_script_value_or_flag(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             // TODO: pass max_severity value down
             if let Some(token) = bv.get_value() {
                 validate_target(token, self.data, sc, Scopes::Value | Scopes::Bool | Scopes::Flag);
             } else {
-                validate_scriptvalue(bv, self.data, sc);
+                validate_script_value(bv, self.data, sc);
             }
         })
     }
@@ -552,7 +550,7 @@ impl<'a> Validator<'a> {
     pub fn fields_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.fields_check(name, |_, bv| {
             // TODO: pass max_severity value down
-            validate_scriptvalue(bv, self.data, sc);
+            validate_script_value(bv, self.data, sc);
         })
     }
 

@@ -135,11 +135,11 @@ use crate::data::{
     localization::Localization,
     on_actions::OnActions,
     portrait::{PortraitAnimation, PortraitCamera, PortraitModifierGroup, PortraitModifierPack},
+    script_values::ScriptValues,
     scripted_effects::{Effect, Effects},
     scripted_lists::ScriptedLists,
     scripted_modifiers::ScriptedModifiers,
     scripted_triggers::{Trigger, Triggers},
-    scriptvalues::ScriptValues,
     trigger_localization::TriggerLocalization,
 };
 use crate::db::{Db, DbKind};
@@ -277,7 +277,7 @@ pub struct Everything {
     #[cfg(feature = "ck3")]
     pub(crate) characters: Characters,
 
-    pub(crate) scriptvalues: ScriptValues,
+    pub(crate) script_values: ScriptValues,
 
     pub(crate) triggers: Triggers,
     pub(crate) effects: Effects,
@@ -371,7 +371,7 @@ impl Everything {
             titles: Titles::default(),
             #[cfg(feature = "ck3")]
             characters: Characters::default(),
-            scriptvalues: ScriptValues::default(),
+            script_values: ScriptValues::default(),
             triggers: Triggers::default(),
             effects: Effects::default(),
             #[cfg(feature = "ck3")]
@@ -571,7 +571,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.scripted_lists));
             s.spawn(|_| self.fileset.handle(&mut self.defines));
             s.spawn(|_| self.fileset.handle(&mut self.scripted_modifiers));
-            s.spawn(|_| self.fileset.handle(&mut self.scriptvalues));
+            s.spawn(|_| self.fileset.handle(&mut self.script_values));
             s.spawn(|_| self.fileset.handle(&mut self.triggers));
             s.spawn(|_| self.fileset.handle(&mut self.effects));
             s.spawn(|_| self.fileset.handle(&mut self.assets));
@@ -811,7 +811,7 @@ impl Everything {
         s.spawn(|_| self.scripted_lists.validate(self));
         s.spawn(|_| self.defines.validate(self));
         s.spawn(|_| self.scripted_modifiers.validate(self));
-        s.spawn(|_| self.scriptvalues.validate(self));
+        s.spawn(|_| self.script_values.validate(self));
         s.spawn(|_| self.triggers.validate(self));
         s.spawn(|_| self.effects.validate(self));
         s.spawn(|_| self.assets.validate(self));
@@ -996,7 +996,7 @@ impl Everything {
             Item::ScriptedList => self.scripted_lists.exists(key),
             Item::ScriptedModifier => self.scripted_modifiers.exists(key),
             Item::ScriptedTrigger => self.triggers.exists(key),
-            Item::ScriptValue => self.scriptvalues.exists(key),
+            Item::ScriptValue => self.script_values.exists(key),
             Item::TextFormat => self.gui.textformat_exists(key),
             Item::TextIcon => self.gui.texticon_exists(key),
             Item::TextureFile => self.assets.texture_exists(key),

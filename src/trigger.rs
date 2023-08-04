@@ -23,7 +23,7 @@ use crate::report::{
 use crate::scopes::{
     scope_iterator, scope_prefix, scope_to_scope, validate_prefix_reference, Scopes,
 };
-use crate::scriptvalue::validate_scriptvalue;
+use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::{
@@ -202,7 +202,7 @@ pub fn validate_trigger_internal(
 
     vd.unknown_fields_any_cmp(|key, cmp, bv| {
         if key.is("add") || key.is("factor") || key.is("value") {
-            validate_scriptvalue(bv, data, sc);
+            validate_script_value(bv, data, sc);
             return;
         }
 
@@ -317,9 +317,9 @@ pub fn validate_trigger_key_bv(
         return;
     }
 
-    // `10 < scriptvalue` is a valid trigger
+    // `10 < script value` is a valid trigger
     if key.is_number() {
-        validate_scriptvalue(bv, data, sc);
+        validate_script_value(bv, data, sc);
         return;
     }
 
@@ -385,8 +385,8 @@ pub fn validate_trigger_key_bv(
             } else {
                 sc.replace_this();
             }
-        } else if data.scriptvalues.exists(part.as_str()) {
-            data.scriptvalues.validate_call(part, data, sc);
+        } else if data.script_values.exists(part.as_str()) {
+            data.script_values.validate_call(part, data, sc);
             sc.replace(Scopes::Value, part.clone());
         } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
             if inscopes == Scopes::None && !first {
@@ -435,7 +435,7 @@ pub fn validate_trigger_key_bv(
     if !matches!(cmp, Comparator::Equals(Single | Question)) {
         if sc.can_be(Scopes::Value) {
             sc.close();
-            validate_scriptvalue(bv, data, sc);
+            validate_script_value(bv, data, sc);
         } else if matches!(cmp, Comparator::NotEquals | Comparator::Equals(Double)) {
             let scopes = sc.scopes();
             sc.close();
@@ -559,17 +559,17 @@ fn match_trigger_bv(
         }
         Trigger::CompareValue => {
             must_be_eq = false;
-            validate_scriptvalue(bv, data, sc);
+            validate_script_value(bv, data, sc);
         }
         #[cfg(feature = "ck3")]
         Trigger::CompareValueWarnEq => {
             must_be_eq = false;
             warn_if_eq = true;
-            validate_scriptvalue(bv, data, sc);
+            validate_script_value(bv, data, sc);
         }
         #[cfg(feature = "ck3")]
         Trigger::SetValue => {
-            validate_scriptvalue(bv, data, sc);
+            validate_script_value(bv, data, sc);
         }
         Trigger::CompareDate => {
             must_be_eq = false;
@@ -623,7 +623,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.get_value() {
                 validate_target(token, data, sc, *s);
             } else if s.contains(Scopes::Value) {
-                validate_scriptvalue(bv, data, sc);
+                validate_script_value(bv, data, sc);
             } else {
                 bv.expect_value();
             }
@@ -632,7 +632,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.get_value() {
                 validate_target_ok_this(token, data, sc, *s);
             } else if s.contains(Scopes::Value) {
-                validate_scriptvalue(bv, data, sc);
+                validate_script_value(bv, data, sc);
             } else {
                 bv.expect_value();
             }
@@ -820,7 +820,7 @@ fn match_trigger_bv(
                     vd.req_field("value");
                     vd.field_validated("value", |bv, data| match bv {
                         BV::Value(token) => validate_target(token, data, sc, Scopes::primitive()),
-                        BV::Block(_) => validate_scriptvalue(bv, data, sc),
+                        BV::Block(_) => validate_script_value(bv, data, sc),
                     });
                     // TODO: figure out the scope type of `value` and use that
                     if let Some(name) = vd.field_value("name") {
@@ -982,8 +982,8 @@ pub fn validate_target_ok_this(
             }
             sc.expect(inscopes, &Reason::Token(part.clone()));
             sc.replace(outscope, part.clone());
-        } else if data.scriptvalues.exists(part.as_str()) {
-            data.scriptvalues.validate_call(part, data, sc);
+        } else if data.script_values.exists(part.as_str()) {
+            data.script_values.validate_call(part, data, sc);
             sc.replace(Scopes::Value, part.clone());
         } else if let Some(inscopes) = trigger_comparevalue(part, data) {
             if !last {

@@ -11,18 +11,18 @@ use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
 use crate::pdxfile::PdxFile;
 use crate::report::{err, old_warn, ErrorKey};
 use crate::scopes::Scopes;
-use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
+use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::{Loc, Token};
 
 #[derive(Debug, Default)]
 pub struct ScriptValues {
     scope_overrides: FnvHashMap<String, Scopes>,
-    scriptvalues: FnvHashMap<String, ScriptValue>,
+    script_values: FnvHashMap<String, ScriptValue>,
 }
 
 impl ScriptValues {
     fn load_item(&mut self, key: &Token, bv: &BV) {
-        if let Some(other) = self.scriptvalues.get(key.as_str()) {
+        if let Some(other) = self.script_values.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
                 if other.bv.equivalent(bv) {
                     exact_dup_error(key, &other.key, "script value");
@@ -36,29 +36,29 @@ impl ScriptValues {
             err(ErrorKey::NameConflict).strong().msg(msg).loc(key).push();
         } else {
             let scope_override = self.scope_overrides.get(key.as_str()).copied();
-            self.scriptvalues
+            self.script_values
                 .insert(key.to_string(), ScriptValue::new(key.clone(), bv.clone(), scope_override));
         }
     }
 
     pub fn exists(&self, key: &str) -> bool {
-        self.scriptvalues.contains_key(key)
+        self.script_values.contains_key(key)
     }
 
     pub fn validate(&self, data: &Everything) {
-        for item in self.scriptvalues.values() {
+        for item in self.script_values.values() {
             item.validate(data);
         }
     }
 
     pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
-        if let Some(item) = self.scriptvalues.get(key.as_str()) {
+        if let Some(item) = self.script_values.get(key.as_str()) {
             item.validate_call(key, data, sc);
         }
     }
 
     pub fn validate_non_dynamic_call(&self, key: &Token, data: &Everything) {
-        if let Some(item) = self.scriptvalues.get(key.as_str()) {
+        if let Some(item) = self.script_values.get(key.as_str()) {
             item.validate_non_dynamic_call(data);
         }
     }
@@ -150,7 +150,7 @@ impl ScriptValue {
                 our_sc.set_no_warn(true);
             }
             self.cache.write().unwrap().insert(key.loc.clone(), our_sc.clone());
-            validate_scriptvalue(&self.bv, data, &mut our_sc);
+            validate_script_value(&self.bv, data, &mut our_sc);
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key);
                 our_sc.set_strict_scopes(false);
@@ -161,6 +161,6 @@ impl ScriptValue {
     }
 
     pub fn validate_non_dynamic_call(&self, data: &Everything) {
-        validate_non_dynamic_scriptvalue(&self.bv, data);
+        validate_non_dynamic_script_value(&self.bv, data);
     }
 }

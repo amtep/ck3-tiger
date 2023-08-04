@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
-use crate::scriptvalue::validate_scriptvalue;
+use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
@@ -68,7 +68,7 @@ impl DbKind for InterestGroup {
         vd.field_validated_key("pop_weight", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Pop, key);
             sc.define_name("interest_group", Scopes::InterestGroup, key);
-            validate_scriptvalue(bv, data, &mut sc);
+            validate_script_value(bv, data, &mut sc);
         });
         vd.field_script_value_rooted("monarch_weight", Scopes::InterestGroup);
         vd.field_script_value_rooted("agitator_weight", Scopes::InterestGroup);
@@ -83,7 +83,7 @@ impl DbKind for InterestGroup {
         vd.field_validated_key("commander_leader_chance", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::None, key);
             sc.define_name("character", Scopes::Character, key);
-            validate_scriptvalue(bv, data, &mut sc);
+            validate_script_value(bv, data, &mut sc);
         });
     }
 }

@@ -8,7 +8,7 @@ use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
-use crate::scriptvalue::validate_scriptvalue;
+use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 
@@ -137,7 +137,7 @@ fn validate_catalyst_list(block: &Block, data: &Everything) {
         if bv.expect_value().is_some() {
             data.verify_exists(Item::Catalyst, key);
             let mut sc = ScopeContext::new(Scopes::None, key);
-            validate_scriptvalue(bv, data, &mut sc);
+            validate_script_value(bv, data, &mut sc);
         }
     });
 }

@@ -6,7 +6,7 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
-use crate::scriptvalue::validate_non_dynamic_scriptvalue;
+use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
@@ -57,7 +57,7 @@ impl DbKind for BuildingType {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Building, vd);
         });
-        vd.field_validated("required_construction", validate_non_dynamic_scriptvalue);
+        vd.field_validated("required_construction", validate_non_dynamic_script_value);
 
         vd.field_item("owners", Item::PopType);
         vd.field_numeric_range("economic_contribution", 0.0, 1.0);

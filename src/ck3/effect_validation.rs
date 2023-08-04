@@ -9,7 +9,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{error, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
-use crate::scriptvalue::validate_non_dynamic_scriptvalue;
+use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_target_ok_this};
@@ -1147,7 +1147,7 @@ pub fn validate_stress_impact(
     vd.field_script_value("base", sc);
     vd.unknown_fields(|token, bv| {
         data.verify_exists(Item::Trait, token);
-        validate_non_dynamic_scriptvalue(bv, data);
+        validate_non_dynamic_script_value(bv, data);
     });
 }
 

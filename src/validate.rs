@@ -13,7 +13,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{err, error, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity};
 use crate::scopes::{scope_prefix, scope_to_scope, validate_prefix_reference, Scopes};
-use crate::scriptvalue::{validate_non_dynamic_scriptvalue, validate_scriptvalue};
+use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 #[cfg(feature = "ck3")]
@@ -125,7 +125,7 @@ pub fn validate_compare_duration(block: &Block, data: &Everything, sc: &mut Scop
 
     for field in &["days", "weeks", "months", "years"] {
         if let Some(bv) = vd.field_any_cmp(field) {
-            validate_scriptvalue(bv, data, sc);
+            validate_script_value(bv, data, sc);
             count += 1;
         }
     }
@@ -157,7 +157,7 @@ pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext
 }
 
 // Very similar to validate_duration, but validates part of a block that may contain a duration
-// Also does not accept scriptvalues (per the documentation)
+// Also does not accept script values (per the documentation)
 #[cfg(feature = "ck3")]
 pub fn validate_optional_duration_int(vd: &mut Validator) {
     let mut count = 0;
@@ -180,7 +180,7 @@ pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
 
     for field in &["days", "weeks", "months", "years"] {
         vd.field_validated_key(field, |key, bv, data| {
-            validate_scriptvalue(bv, data, sc);
+            validate_script_value(bv, data, sc);
             count += 1;
             if count > 1 {
                 let msg = "must have at most 1 of days, weeks, months, or years";
@@ -190,7 +190,7 @@ pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
     }
 }
 
-// Does not accept scriptvalues (per the documentation)
+// Does not accept script values (per the documentation)
 pub fn validate_color(block: &Block, _data: &Everything) {
     // Reports in this function are `warn` level because a bad color is just an UI issue,
     // and normal confidence level because I'm not 100% sure of the color formats.
@@ -320,19 +320,19 @@ pub fn precheck_iterator_fields(
                         }
                     }
                 }
-                validate_scriptvalue(bv, data, sc);
+                validate_script_value(bv, data, sc);
             }
             if let Some(bv) = block.get_field("count") {
                 match bv {
                     BV::Value(token) if token.is("all") => (),
-                    bv => validate_scriptvalue(bv, data, sc),
+                    bv => validate_script_value(bv, data, sc),
                 }
             };
         }
         ListType::Ordered => {
             for field in &["position", "min", "max"] {
                 if let Some(bv) = block.get_field(field) {
-                    validate_scriptvalue(bv, data, sc);
+                    validate_script_value(bv, data, sc);
                 }
             }
         }
@@ -738,7 +738,7 @@ pub fn validate_scheme_modifier(block: &Block, data: &Everything, sc: &mut Scope
 
 pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    vd.field_validated("base", validate_non_dynamic_scriptvalue);
+    vd.field_validated("base", validate_non_dynamic_script_value);
     vd.fields_script_value("add", sc);
     vd.fields_script_value("factor", sc);
     validate_modifiers(&mut vd, sc);
@@ -778,14 +778,14 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
 #[cfg(feature = "vic3")]
 pub fn validate_vic3_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     vd.field_validated_bvs("modifier", |bv, data| {
-        validate_scriptvalue(bv, data, sc);
+        validate_script_value(bv, data, sc);
     });
 }
 
 #[cfg(feature = "imperator")]
 pub fn validate_imperator_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     vd.field_validated_bvs("modifier", |bv, data| {
-        validate_scriptvalue(bv, data, sc);
+        validate_script_value(bv, data, sc);
     });
 }
 

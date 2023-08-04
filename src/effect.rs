@@ -11,7 +11,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{advice_info, err, error, fatal, old_warn, warn_info, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
-use crate::scriptvalue::validate_scriptvalue;
+use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 #[cfg(feature = "ck3")]
@@ -198,7 +198,7 @@ pub fn validate_effect_internal<'a>(
                             }
                         }
                     }
-                    validate_scriptvalue(bv, data, sc);
+                    validate_script_value(bv, data, sc);
                 }
                 #[cfg(feature = "vic3")]
                 Effect::Date => {
@@ -528,8 +528,8 @@ pub enum Effect {
     /// The effect takes a literal integer. It's not clear whether effects of this type actually
     /// exist or if they're all secrectly [`Effect::ScriptValue`]. TODO: needs testing.
     Integer,
-    /// The effect takes a scriptvalue, which can be a literal number or a named scriptvalue or an
-    /// inline scriptvalue block.
+    /// The effect takes a script value, which can be a literal number or a named script value or an
+    /// inline script value block.
     ScriptValue,
     /// Just like [`Effect::ScriptValue`], but warns if the argument is a negative literal number.
     #[allow(dead_code)]
@@ -565,7 +565,7 @@ pub enum Effect {
     #[cfg(feature = "ck3")]
     Target(&'static str, Scopes),
     /// The effect takes a block with two fields, both named here, where one specifies a target of
-    /// the given [`Scopes`] type and the other specifies a scriptvalue.
+    /// the given [`Scopes`] type and the other specifies a script value.
     ///
     /// * Example: `change_de_jure_drift_progress = { target = root.primary_title value = 5 }`
     TargetValue(&'static str, Scopes, &'static str),
@@ -576,7 +576,7 @@ pub enum Effect {
     #[cfg(feature = "ck3")]
     ItemTarget(&'static str, Item, &'static str, Scopes),
     /// The effect takes a block with two fields, both named here, where one specifies a key for
-    /// the given [`Item`] type and the other specifies a scriptvalue.
+    /// the given [`Item`] type and the other specifies a script value.
     ///
     /// * Example: `set_amenity_level = { type = court_food_quality value = 3 }`
     #[cfg(feature = "ck3")]
@@ -586,7 +586,7 @@ pub enum Effect {
     /// * Example: `set_artifact_name = relic_weapon_name`
     #[cfg(feature = "ck3")]
     Desc,
-    /// The effect takes a duration, with a `days`, `weeks`, `months`, or `years` scriptvalue.
+    /// The effect takes a duration, with a `days`, `weeks`, `months`, or `years` script value.
     ///
     /// * Example: `add_destination_progress = { days = 5 }`
     Timespan,

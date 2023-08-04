@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
-use crate::scriptvalue::validate_scriptvalue;
+use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
@@ -112,7 +112,7 @@ impl DbKind for LawType {
         vd.field_validated_key("ai_enact_weight_modifier", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("law", Scopes::Law, key);
-            validate_scriptvalue(bv, data, &mut sc);
+            validate_script_value(bv, data, &mut sc);
         });
     }
 }

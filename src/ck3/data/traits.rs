@@ -14,7 +14,7 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxFile;
 use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
-use crate::scriptvalue::validate_scriptvalue;
+use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
@@ -297,7 +297,7 @@ fn validate_trait_track(key: &Token, block: &Block, data: &Everything, warn_key:
     let mut vd = Validator::new(block, data);
     vd.unknown_block_fields(|key, block| {
         let mut sc = ScopeContext::new(Scopes::None, warn_key);
-        validate_scriptvalue(&BV::Value(key.clone()), data, &mut sc);
+        validate_script_value(&BV::Value(key.clone()), data, &mut sc);
         if let Some(xp) = key.get_integer() {
             // LAST UPDATED CK3 VERSION 1.9.2.1
             if xp > 100 {

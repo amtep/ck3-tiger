@@ -169,7 +169,7 @@ impl ScopeContext {
     /// types. `token` is used when reporting errors about the use of `this`, `root`, or `prev`.
     ///
     /// This function is useful for the scope contexts created for scripted effects, scripted
-    /// triggers, and scriptvalues. In those, it's not known what the caller's `root` is.
+    /// triggers, and script values. In those, it's not known what the caller's `root` is.
     pub fn new_unrooted<T: Own<Token>>(this: Scopes, token: T) -> Self {
         let token = token.own();
         ScopeContext {
