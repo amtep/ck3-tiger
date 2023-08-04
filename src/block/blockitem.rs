@@ -15,7 +15,7 @@ impl BlockItem {
             Some(field)
         } else {
             let msg = format!("unexpected {}", self.describe());
-            error_info(self, ErrorKey::Validation, &msg, "Did you forget an = ?");
+            error_info(self, ErrorKey::Structure, &msg, "Did you forget an = ?");
             None
         }
     }
@@ -25,7 +25,7 @@ impl BlockItem {
             Some(field)
         } else {
             let msg = format!("unexpected {}", self.describe());
-            error_info(self, ErrorKey::Validation, &msg, "Did you forget an = ?");
+            error_info(self, ErrorKey::Structure, &msg, "Did you forget an = ?");
             None
         }
     }
@@ -63,7 +63,7 @@ impl BlockItem {
             Some(token)
         } else {
             let msg = format!("expected value, found {}", self.describe());
-            error(self, ErrorKey::Validation, &msg);
+            error(self, ErrorKey::Structure, &msg);
             None
         }
     }
@@ -73,7 +73,7 @@ impl BlockItem {
             Some(token)
         } else {
             let msg = format!("expected value, found {}", self.describe());
-            error(self, ErrorKey::Validation, &msg);
+            error(self, ErrorKey::Structure, &msg);
             None
         }
     }
@@ -91,7 +91,7 @@ impl BlockItem {
             Some(block)
         } else {
             let msg = format!("expected block, found {}", self.describe());
-            error(self, ErrorKey::Validation, &msg);
+            error(self, ErrorKey::Structure, &msg);
             None
         }
     }
@@ -101,7 +101,7 @@ impl BlockItem {
             Some(block)
         } else {
             let msg = format!("expected block, found {}", self.describe());
-            error(self, ErrorKey::Validation, &msg);
+            error(self, ErrorKey::Structure, &msg);
             None
         }
     }
@@ -147,7 +147,7 @@ impl BlockItem {
                 }
                 _ => {
                     let msg = format!("expected assignment, found {}", field.describe());
-                    error(self, ErrorKey::Validation, &msg);
+                    error(self, ErrorKey::Structure, &msg);
                 }
             }
         }

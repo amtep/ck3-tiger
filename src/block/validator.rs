@@ -1300,7 +1300,7 @@ impl<'a> Validator<'a> {
                     if !self.accepted_tokens {
                         let msg = format!("found loose value {t}, expected only `key =`");
                         let sev = Severity::Error.at_most(self.max_severity);
-                        report(ErrorKey::Validation, sev).msg(msg).loc(t).push();
+                        report(ErrorKey::Structure, sev).msg(msg).loc(t).push();
                         warned = true;
                     }
                 }
@@ -1308,7 +1308,7 @@ impl<'a> Validator<'a> {
                     if !self.accepted_blocks {
                         let msg = "found sub-block, expected only `key =`";
                         let sev = Severity::Error.at_most(self.max_severity);
-                        report(ErrorKey::Validation, sev).msg(msg).loc(b).push();
+                        report(ErrorKey::Structure, sev).msg(msg).loc(b).push();
                         warned = true;
                     }
                 }

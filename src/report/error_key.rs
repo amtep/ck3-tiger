@@ -13,6 +13,7 @@ pub enum ErrorKey {
     LocalValues,
     Packaging,
     Validation,
+    Structure,
     Filename,
     Encoding,
     Localization,

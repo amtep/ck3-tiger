@@ -67,7 +67,7 @@ impl Field {
             }
             _ => {
                 let msg = format!("expected definition, found {}", self.describe());
-                error(self, ErrorKey::Validation, &msg);
+                error(self, ErrorKey::Structure, &msg);
             }
         }
         None
@@ -81,7 +81,7 @@ impl Field {
             }
             _ => {
                 let msg = format!("expected definition, found {}", self.describe());
-                error(self, ErrorKey::Validation, &msg);
+                error(self, ErrorKey::Structure, &msg);
             }
         }
         None
@@ -125,7 +125,7 @@ impl Field {
             }
             _ => {
                 let msg = format!("expected assignment, found {}", self.describe());
-                error(self, ErrorKey::Validation, &msg);
+                error(self, ErrorKey::Structure, &msg);
             }
         }
         None

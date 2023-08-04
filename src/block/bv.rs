@@ -28,7 +28,7 @@ impl BV {
     pub fn expect_block(&self) -> Option<&Block> {
         match self {
             BV::Value(_) => {
-                error(self, ErrorKey::Validation, "expected block, found value");
+                error(self, ErrorKey::Structure, "expected block, found value");
                 None
             }
             BV::Block(b) => Some(b),
@@ -39,7 +39,7 @@ impl BV {
         match self {
             BV::Value(t) => Some(t),
             BV::Block(_) => {
-                error(self, ErrorKey::Validation, "expected value, found block");
+                error(self, ErrorKey::Structure, "expected value, found block");
                 None
             }
         }
@@ -67,7 +67,7 @@ impl BV {
         match self {
             BV::Value(t) => Some(t),
             BV::Block(_) => {
-                error(self, ErrorKey::Validation, "expected value, found block");
+                error(self, ErrorKey::Structure, "expected value, found block");
                 None
             }
         }
@@ -83,7 +83,7 @@ impl BV {
     pub fn expect_into_block(self) -> Option<Block> {
         match self {
             BV::Value(_) => {
-                error(self, ErrorKey::Validation, "expected block, found value");
+                error(self, ErrorKey::Structure, "expected block, found value");
                 None
             }
             BV::Block(b) => Some(b),
