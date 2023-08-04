@@ -85,7 +85,6 @@ pub const CHARACTER_ROLES: &[&str] = &["admiral", "agitator", "general", "politi
 
 // LAST UPDATED VIC3 VERSION 1.3.6
 // Taken from the object browser
-// TODO get the snapshot: sounds too, because gui uses them
 pub const SOUNDS_VIC3: &[&str] = &[
     "event:/MUSIC/Main/theme_01",
     "event:/MUSIC/Mood/V3/Base/01_A_Prospering_Country",
