@@ -51,7 +51,7 @@ impl TryFrom<&str> for ListType {
             "every" => Ok(ListType::Every),
             "ordered" => Ok(ListType::Ordered),
             "random" => Ok(ListType::Random),
-            _ => Err(Self::Error::default()),
+            _ => Err(std::fmt::Error),
         }
     }
 }

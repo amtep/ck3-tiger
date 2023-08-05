@@ -716,7 +716,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
         // Now expand all the macro values we can, and re-parse them after expansion
         for lang in self.locas.values_mut() {
             let orig_lang = lang.clone();
-            for mut entry in lang.values_mut() {
+            for entry in lang.values_mut() {
                 if matches!(entry.value, LocaValue::Macro(_)) {
                     let mut count = 0;
                     let mut new_line: Vec<&Token> = Vec::new();
