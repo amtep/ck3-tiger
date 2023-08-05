@@ -3,7 +3,7 @@
 
 use std::borrow::Cow;
 use std::ffi::OsStr;
-use std::fmt::{Display, Error, Formatter};
+use std::fmt::{Debug, Display, Error, Formatter};
 use std::ops::RangeBounds;
 use std::path::{Path, PathBuf};
 use std::slice::SliceIndex;
@@ -15,7 +15,7 @@ use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{error, error_info, untidy, ErrorKey};
 use crate::stringtable::StringTable;
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
     pub path: PathTableIndex,
     pub kind: FileKind,
@@ -46,6 +46,20 @@ impl Loc {
 
     pub fn pathname(&self) -> &'static Path {
         PathTable::lookup(self.path)
+    }
+}
+
+impl Debug for Loc {
+    /// Roll our own `Debug` implementation to handle the path field
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        f.debug_struct("Loc")
+            .field("pathname", &self.pathname())
+            .field("pathindex", &self.path)
+            .field("kind", &self.kind)
+            .field("line", &self.line)
+            .field("column", &self.column)
+            .field("link", &self.link)
+            .finish()
     }
 }
 
