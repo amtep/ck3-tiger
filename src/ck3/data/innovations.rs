@@ -1,5 +1,6 @@
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::ck3::validate::validate_maa_stats;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
@@ -10,7 +11,6 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validate::validate_maa_stats;
 
 #[derive(Clone, Debug)]
 pub struct Innovation {}

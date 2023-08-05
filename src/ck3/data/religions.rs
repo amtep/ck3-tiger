@@ -1,12 +1,13 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
+use crate::ck3::validate::validate_traits;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::FileKind;
 use crate::item::Item;
 use crate::report::{old_warn, ErrorKey};
 use crate::token::Token;
-use crate::validate::{validate_possibly_named_color, validate_traits};
+use crate::validate::validate_possibly_named_color;
 
 #[derive(Clone, Debug)]
 pub struct Ck3Religion {}

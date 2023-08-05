@@ -7,6 +7,7 @@ use fnv::{FnvHashMap, FnvHashSet};
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::ck3::data::houses::House;
+use crate::ck3::validate::validate_portrait_modifier_overrides;
 use crate::context::ScopeContext;
 use crate::date::Date;
 use crate::effect::{validate_effect, validate_effect_internal};
@@ -19,9 +20,7 @@ use crate::report::{err, error, fatal, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::validate::{
-    validate_color, validate_portrait_modifier_overrides, validate_prefix_reference_token, ListType,
-};
+use crate::validate::{validate_color, validate_prefix_reference_token, ListType};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Gender {

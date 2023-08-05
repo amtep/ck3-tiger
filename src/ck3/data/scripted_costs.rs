@@ -1,11 +1,11 @@
 use crate::block::Block;
+use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::validate::validate_cost;
 
 #[derive(Clone, Debug)]
 pub struct ScriptedCost {}

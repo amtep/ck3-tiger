@@ -4,6 +4,7 @@ use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::validator::Validator;
 use crate::block::Block;
+use crate::ck3::validate::validate_traits;
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
@@ -16,7 +17,6 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validate::validate_traits;
 
 #[derive(Clone, Debug, Default)]
 pub struct Doctrines {

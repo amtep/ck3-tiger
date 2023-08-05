@@ -5,6 +5,9 @@ use fnv::FnvHashMap;
 
 use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Field, BV};
+use crate::ck3::validate::{
+    validate_theme_background, validate_theme_icon, validate_theme_sound, validate_theme_transition,
+};
 use crate::context::{Reason, ScopeContext};
 use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
@@ -23,8 +26,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_trigger};
 use crate::validate::{
-    validate_ai_chance, validate_duration, validate_modifiers_with_base, validate_theme_background,
-    validate_theme_icon, validate_theme_sound, validate_theme_transition, ListType,
+    validate_ai_chance, validate_duration, validate_modifiers_with_base, ListType,
 };
 
 #[derive(Debug, Default)]

@@ -1,6 +1,7 @@
 use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::ck3::data::scripted_animations::validate_scripted_animation;
+use crate::ck3::validate::validate_cost_with_renown;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -12,7 +13,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validate::{validate_cost_with_renown, validate_duration, validate_modifiers_with_base};
+use crate::validate::{validate_duration, validate_modifiers_with_base};
 
 #[derive(Clone, Debug)]
 pub struct ActivityType {}
