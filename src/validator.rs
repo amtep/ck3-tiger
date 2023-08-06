@@ -1274,7 +1274,7 @@ impl<'a> Validator<'a> {
     /// Returns true iff any warnings were emitted.
     pub fn warn_remaining(&mut self) -> bool {
         let mut warned = false;
-        for item in &self.block.v {
+        for item in self.block.iter_items() {
             match item {
                 BlockItem::Field(Field(key, _, bv)) => match bv {
                     BV::Value(_) => {

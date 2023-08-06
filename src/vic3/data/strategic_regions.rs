@@ -1,6 +1,5 @@
 use fnv::FnvHashMap;
 
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
@@ -8,6 +7,7 @@ use crate::item::Item;
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_possibly_named_color;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct StrategicRegion {}

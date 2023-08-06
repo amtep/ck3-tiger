@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
@@ -7,6 +6,7 @@ use crate::item::Item;
 use crate::modif::{verify_modif_exists, ModifKinds};
 use crate::report::Severity;
 use crate::token::Token;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct ModifierFormat {}

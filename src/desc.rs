@@ -5,7 +5,6 @@
 //!
 //! The main entry point is [`validate_desc`].
 
-use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
@@ -14,6 +13,7 @@ use crate::report::{old_warn, warn_info, ErrorKey};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
+use crate::validator::Validator;
 
 /// Internal function to recurse over the complex description block logic.
 ///

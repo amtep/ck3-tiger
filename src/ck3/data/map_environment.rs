@@ -1,10 +1,10 @@
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::ck3::validate::validate_camera_color;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::token::Token;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct MapEnvironment {}

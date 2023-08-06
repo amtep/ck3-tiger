@@ -6,7 +6,6 @@ use std::fmt::{Display, Formatter};
 
 use bitflags::bitflags;
 
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::game::Game;
@@ -14,6 +13,7 @@ use crate::item::Item;
 use crate::report::{err, error, ErrorKey, Severity};
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
+use crate::validator::Validator;
 
 bitflags! {
     /// All the things a modif can apply to.

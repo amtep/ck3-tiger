@@ -2,7 +2,6 @@ use std::path::{Path, PathBuf};
 
 use fnv::{FnvHashMap, FnvHashSet};
 
-use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Field, BV};
 use crate::context::ScopeContext;
 use crate::effect::validate_effect;
@@ -19,6 +18,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_modifiers_with_base};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct OnActions {

@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 
 use fnv::FnvHashMap;
 
-use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Comparator, Eq::Single, Field, BV};
 use crate::context::ScopeContext;
 use crate::data::localization::LocaValue;
@@ -24,6 +23,7 @@ use crate::report::{
 };
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::validator::Validator;
 
 use GuiValidation::*;
 

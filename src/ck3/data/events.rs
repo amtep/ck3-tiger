@@ -3,7 +3,6 @@ use std::str::FromStr;
 
 use fnv::FnvHashMap;
 
-use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Field, BV};
 use crate::ck3::validate::{
     validate_theme_background, validate_theme_icon, validate_theme_sound, validate_theme_transition,
@@ -28,6 +27,7 @@ use crate::trigger::{validate_target, validate_trigger};
 use crate::validate::{
     validate_ai_chance, validate_duration, validate_modifiers_with_base, ListType,
 };
+use crate::validator::Validator;
 
 #[derive(Debug, Default)]
 pub struct Ck3Events {

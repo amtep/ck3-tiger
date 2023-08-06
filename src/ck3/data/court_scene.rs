@@ -1,6 +1,5 @@
 use std::cmp::max;
 
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::ck3::data::scripted_animations::validate_scripted_animation;
 use crate::context::ScopeContext;
@@ -13,6 +12,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CourtSceneGroup {}

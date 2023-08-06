@@ -4,7 +4,6 @@
 //! Scriptvalues can also be non-dynamic, in the sense of being just a literal or the name of
 //! another script value.
 
-use crate::block::validator::Validator;
 use crate::block::{Block, BlockItem, Comparator, Eq::*, BV};
 use crate::context::{Reason, ScopeContext};
 use crate::everything::Everything;
@@ -20,6 +19,7 @@ use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
     validate_iterator_fields, validate_scope_chain, ListType,
 };
+use crate::validator::Validator;
 
 /// Validate a block that's part of a script value.
 /// * `have_value`: indicates whether this script value has had some sort of value set already.

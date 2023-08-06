@@ -1,6 +1,5 @@
 //! Validate effects, which are parts of the script that change the game state.
 
-use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Eq::*, BV};
 use crate::context::{Reason, ScopeContext};
 use crate::data::effect_localization::EffectLocalization;
@@ -28,6 +27,7 @@ use crate::validate::{
     validate_inside_iterator, validate_iterator_fields, validate_scope_chain,
     validate_scripted_modifier_call, ListType,
 };
+use crate::validator::Validator;
 
 /// The standard interface to effect validation. Validates an effect in the given [`ScopeContext`].
 ///

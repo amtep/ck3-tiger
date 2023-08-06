@@ -1,6 +1,5 @@
 use std::sync::RwLock;
 
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::ck3::validate::{
     validate_theme_background, validate_theme_icon, validate_theme_sound, validate_theme_transition,
@@ -14,6 +13,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
+use crate::validator::Validator;
 
 #[derive(Debug)]
 pub struct EventTheme {

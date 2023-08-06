@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::ck3::validate::{
     validate_random_culture, validate_random_faith, validate_random_traits_list,
@@ -12,6 +11,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target_ok_this;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CharacterTemplate {}

@@ -3,7 +3,6 @@
 use std::borrow::Cow;
 use std::str::FromStr;
 
-use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Eq::*, Field, BV};
 use crate::context::{Reason, ScopeContext};
 use crate::data::genes::Gene;
@@ -30,6 +29,7 @@ use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
     validate_iterator_fields, ListType,
 };
+use crate::validator::Validator;
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::misc::{APPROVALS, LEVELS};
 

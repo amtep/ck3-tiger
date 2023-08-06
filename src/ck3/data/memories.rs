@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
@@ -9,6 +8,7 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::validate::validate_duration;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct MemoryType {}

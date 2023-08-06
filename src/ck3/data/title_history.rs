@@ -2,7 +2,6 @@ use std::path::{Path, PathBuf};
 
 use fnv::FnvHashMap;
 
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::ck3::data::titles::Tier;
 use crate::context::ScopeContext;
@@ -16,6 +15,7 @@ use crate::report::{error, error_info, old_warn, warn2, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct TitleHistories {

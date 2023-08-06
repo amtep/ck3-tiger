@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::Block;
 #[cfg(feature = "ck3")]
 use crate::data::coa::validate_coa_layout;
@@ -8,6 +7,7 @@ use crate::item::Item;
 #[cfg(feature = "ck3")]
 use crate::report::{old_warn, ErrorKey};
 use crate::token::Token;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CoaDesignerColoredEmblem {}

@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::ck3::validate::validate_cost_with_renown;
 use crate::context::ScopeContext;
@@ -13,6 +12,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::{validate_ai_chance, validate_duration, validate_modifiers_with_base};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Ck3CharacterInteraction {}

@@ -2,7 +2,6 @@ use std::path::{Path, PathBuf};
 
 use fnv::{FnvHashMap, FnvHashSet};
 
-use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
@@ -14,6 +13,7 @@ use crate::report::{old_warn, warn2, Confidence, ErrorKey, Severity};
 use crate::token::Token;
 use crate::util::SmartJoin;
 use crate::validate::validate_numeric_range;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct Assets {

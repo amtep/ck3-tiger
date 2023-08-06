@@ -1,6 +1,5 @@
 //! Validation functions that are useful for more than one data module in ck3.
 
-use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
@@ -12,6 +11,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger};
 use crate::validate::{validate_color, validate_modifiers_with_base, validate_scope_chain};
+use crate::validator::Validator;
 
 pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     match bv {

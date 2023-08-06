@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::ck3::data::dna::validate_genes;
 use crate::ck3::validate::validate_portrait_modifier_overrides;
@@ -10,6 +9,7 @@ use crate::item::Item;
 use crate::report::{warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct BookmarkGroup {}

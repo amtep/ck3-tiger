@@ -1,6 +1,5 @@
 //! Validators for effects that are generic across multiple games.
 
-use crate::block::validator::Validator;
 use crate::block::{Block, Comparator, Eq::Single, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
@@ -16,6 +15,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target_ok_this, validate_trigger_key_bv};
 use crate::validate::validate_optional_duration;
+use crate::validator::Validator;
 
 pub fn validate_add_to_list(
     _key: &Token,

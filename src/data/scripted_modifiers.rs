@@ -2,7 +2,6 @@ use std::path::{Path, PathBuf};
 
 use fnv::FnvHashMap;
 
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
@@ -15,6 +14,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::{validate_modifiers, validate_scripted_modifier_calls};
+use crate::validator::Validator;
 
 #[derive(Debug, Default)]
 pub struct ScriptedModifiers {

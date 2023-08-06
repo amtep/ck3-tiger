@@ -4,7 +4,6 @@ use std::sync::Arc;
 
 use fnv::FnvHashMap;
 
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::ck3::data::provinces::ProvId;
 use crate::context::ScopeContext;
@@ -19,6 +18,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct Titles {

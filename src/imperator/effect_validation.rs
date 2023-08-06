@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
@@ -7,6 +6,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
+use crate::validator::Validator;
 
 pub fn validate_remove_subunit_loyalty(
     _key: &Token,

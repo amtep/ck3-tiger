@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::ck3::validate::{
     validate_random_culture, validate_random_faith, validate_random_traits_list,
@@ -19,6 +18,7 @@ use crate::trigger::{validate_target, validate_target_ok_this};
 use crate::validate::{
     validate_duration, validate_optional_duration, validate_optional_duration_int, ListType,
 };
+use crate::validator::Validator;
 
 pub fn validate_add_activity_log_entry(
     key: &Token,

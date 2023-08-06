@@ -1,6 +1,5 @@
 use fnv::FnvHashMap;
 
-use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
@@ -10,6 +9,7 @@ use crate::item::Item;
 use crate::report::{error, fatal, old_warn, warn2, Confidence, ErrorKey, Severity};
 use crate::token::Token;
 use crate::validate::validate_numeric_range;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Gene {}

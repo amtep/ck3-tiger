@@ -2,7 +2,6 @@
 
 use std::fmt::{Display, Formatter};
 
-use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 #[cfg(feature = "ck3")]
 use crate::ck3::validate::{
@@ -23,6 +22,7 @@ use crate::tooltipped::Tooltipped;
 #[cfg(feature = "ck3")]
 use crate::trigger::validate_target_ok_this;
 use crate::trigger::{validate_trigger, validate_trigger_internal};
+use crate::validator::Validator;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ListType {

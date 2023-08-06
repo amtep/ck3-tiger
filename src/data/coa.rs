@@ -2,7 +2,6 @@ use std::path::{Path, PathBuf};
 
 use fnv::FnvHashMap;
 
-use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
@@ -18,6 +17,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger_max_sev;
 use crate::validate::{validate_color, validate_possibly_named_color};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct Coas {

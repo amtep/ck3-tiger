@@ -3,7 +3,6 @@ use std::str::FromStr;
 
 use fnv::FnvHashMap;
 
-use crate::block::validator::Validator;
 use crate::block::{Block, Field, BV};
 use crate::context::{Reason, ScopeContext};
 use crate::desc::validate_desc;
@@ -20,6 +19,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::{validate_ai_chance, validate_duration, ListType};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct Vic3Events {

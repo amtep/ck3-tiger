@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
@@ -11,6 +10,7 @@ use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_trigger, STANCES};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Ideology {}

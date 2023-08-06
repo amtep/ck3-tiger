@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
@@ -7,6 +6,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::validate_optional_duration;
+use crate::validator::Validator;
 
 pub fn validate_activate_production_method(
     _key: &Token,

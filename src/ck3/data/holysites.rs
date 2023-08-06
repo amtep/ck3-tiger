@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::Block;
 use crate::ck3::data::titles::Tier;
 use crate::db::{Db, DbKind};
@@ -7,6 +6,7 @@ use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{fatal, old_warn, ErrorKey};
 use crate::token::Token;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct HolySite {}

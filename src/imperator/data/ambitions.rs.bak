@@ -1,4 +1,4 @@
-use crate::block::validator::Validator;
+use crate::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;

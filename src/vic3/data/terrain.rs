@@ -1,4 +1,3 @@
-use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
@@ -9,6 +8,7 @@ use crate::report::{untidy, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::util::SmartJoin;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Vic3Terrain {}

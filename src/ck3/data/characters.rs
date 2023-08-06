@@ -4,7 +4,6 @@ use std::str::FromStr;
 
 use fnv::{FnvHashMap, FnvHashSet};
 
-use crate::block::validator::Validator;
 use crate::block::{Block, BV};
 use crate::ck3::data::houses::House;
 use crate::ck3::validate::validate_portrait_modifier_overrides;
@@ -21,6 +20,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::{validate_color, validate_prefix_reference_token, ListType};
+use crate::validator::Validator;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Gender {

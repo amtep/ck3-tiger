@@ -10,7 +10,6 @@ mod blockitem;
 mod bv;
 mod comparator;
 mod field;
-pub mod validator;
 
 pub use crate::block::blockitem::BlockItem;
 pub use crate::block::bv::BV;
