@@ -44,7 +44,6 @@ pub fn on_action_scopecontext(key: &Token, data: &Everything) -> Option<ScopeCon
         for (list, s) in &oa_sc.lists {
             sc.define_list(list, *s, key);
         }
-        sc.set_strict_scopes(false);
         return Some(sc);
     }
 
@@ -54,7 +53,6 @@ pub fn on_action_scopecontext(key: &Token, data: &Everything) -> Option<ScopeCon
             if data.item_exists(Item::Relation, relation) {
                 let mut sc = ScopeContext::new(Scopes::Character, key);
                 sc.define_name("quarter", Scopes::Value, key); // undocumented
-                sc.set_strict_scopes(true);
                 return Some(sc);
             }
         } else {
@@ -63,7 +61,6 @@ pub fn on_action_scopecontext(key: &Token, data: &Everything) -> Option<ScopeCon
                     if data.item_exists(Item::Relation, relation) {
                         let mut sc = ScopeContext::new(Scopes::Character, key);
                         sc.define_name("target", Scopes::Character, key); // undocumented
-                        sc.set_strict_scopes(true);
                         return Some(sc);
                     }
                 }

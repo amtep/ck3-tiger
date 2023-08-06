@@ -59,20 +59,20 @@ pub const ON_ACTION_SCOPES: &str = "
 		root = character
 		county = landed_title
 		barony = landed_title
-		previous_controlled = character
+		previous_controller = character
 	}
 	on_county_occupied = {
 		root = character
 		county = landed_title
 		barony = landed_title
-		previous_controlled = character
+		previous_controller = character
 		war = war
 	}
 	on_siege_completion = {
 		root = character
 		county = landed_title
 		barony = landed_title
-		previous_controlled = character
+		previous_controller = character
 		war = war
 		list = { occupied_baronies = landed_title }
 	}
