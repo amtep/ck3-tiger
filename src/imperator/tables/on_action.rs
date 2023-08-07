@@ -113,7 +113,7 @@ pub const ON_ACTION_SCOPES: &str = "
     on_culture_increased_right = {
         root = none
         target_culture = culture
-        target = pop_type
+        target = pop
     }
 
     on_battle_lost_country = {
