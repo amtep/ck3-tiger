@@ -194,7 +194,7 @@ impl Gui {
     }
 
     pub fn type_exists(&self, key: &Lowercase) -> bool {
-        self.types.contains_key(key.as_str()) || BuiltinWidget::is_builtin_current_game(key)
+        self.types.contains_key(key.as_str()) || BuiltinWidget::builtin_current_game(key).is_some()
     }
 
     pub fn layer_exists(&self, key: &str) -> bool {
@@ -527,7 +527,7 @@ impl GuiType {
     pub fn new(key: Token, base: Token, block: Block) -> Self {
         let base_lc = Lowercase::new(base.as_str());
         // Precalculate the builtin field to give the recursive builtin calculation somewhere to terminate.
-        let builtin = Some(BuiltinWidget::try_from(&base_lc).ok());
+        let builtin = BuiltinWidget::builtin_current_game(&base_lc).map(Some);
         let is_builtin_wrapper = base_lc == Lowercase::new(key.as_str());
         Self {
             key,
@@ -542,7 +542,7 @@ impl GuiType {
     pub fn validate(&self, data: &Everything) {
         data.verify_exists(Item::GuiType, &self.base);
         let base_lc = Lowercase::new(self.base.as_str());
-        if self.is_builtin_wrapper && !BuiltinWidget::is_builtin_current_game(&base_lc) {
+        if self.is_builtin_wrapper && BuiltinWidget::builtin_current_game(&base_lc).is_none() {
             err(ErrorKey::Loop)
                 .msg("recursive definition of non-builtin type")
                 .loc(&self.key)

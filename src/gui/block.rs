@@ -126,7 +126,7 @@ impl GuiBlock {
                         } else if let Ok(prop) = WidgetProperty::try_from(&key_lc) {
                             gui.items.push(GuiItem::Property(prop, key.clone(), bv.clone()));
                         } else if types.get(key_lc.as_str()).is_some()
-                            || BuiltinWidget::is_builtin_current_game(&key_lc)
+                            || BuiltinWidget::builtin_current_game(&key_lc).is_some()
                         {
                             if let Some(block) = bv.expect_block() {
                                 let guiblock = GuiBlock::from_block(
@@ -261,39 +261,27 @@ impl GuiBlock {
         gui.clone() // cloning the Arc
     }
 
-    pub fn properties(&self) -> FnvHashMap<WidgetProperty, (&Token, &BV)> {
-        let mut map = self.base.as_ref().map_or(FnvHashMap::default(), |base| base.properties());
+    /// Validate the property fields of this [`GuiBlock`] and all its contents.
+    ///
+    /// `builtin` is extra information to be used if `self.builtin` is `None`.
+    pub fn validate(&self, builtin: Option<BuiltinWidget>, data: &Everything) {
+        let builtin = self.builtin.or(builtin);
+        if let Some(base) = &self.base {
+            base.validate(builtin, data);
+        }
 
         for item in &self.items {
             match item {
                 GuiItem::Property(prop, key, bv) => {
-                    map.insert(*prop, (key, bv));
+                    validate_property(*prop, builtin, key, bv, data);
                 }
-                GuiItem::Subst(_, block) => {
-                    map.extend(block.properties());
-                }
-                GuiItem::Widget(_, _) | GuiItem::Override(_, _) => (),
-            }
-        }
-        map
-    }
-
-    pub fn validate(&self, _builtin: Option<BuiltinWidget>, data: &Everything) {
-        for (prop, (key, bv)) in &self.properties() {
-            // TODO: check that this property can be in this builtin type
-            // TODO: format_override can have multiple values
-            validate_property(*prop, key, bv, data);
-        }
-
-        for item in &self.items {
-            match item {
-                GuiItem::Property(_, _, _) | GuiItem::Override(_, _) => (),
                 GuiItem::Subst(_, gui_block) => {
-                    gui_block.validate(self.builtin, data);
+                    gui_block.validate(builtin, data);
                 }
                 GuiItem::Widget(_, gui_block) => {
                     gui_block.validate(None, data);
                 }
+                GuiItem::Override(_, _) => (),
             }
         }
     }

@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::game::GameFlags;
 use crate::gui::properties::{ALIGN, BLENDMODES};
-use crate::gui::{GuiValidation, WidgetProperty};
+use crate::gui::{BuiltinWidget, GuiValidation, WidgetProperty};
 use crate::helpers::stringify_choices;
 use crate::item::Item;
 use crate::parse::localization::ValueParser;
@@ -16,7 +16,13 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::validator::Validator;
 
-pub fn validate_property(property: WidgetProperty, key: &Token, bv: &BV, data: &Everything) {
+pub fn validate_property(
+    property: WidgetProperty,
+    _builtin: Option<BuiltinWidget>,
+    key: &Token,
+    bv: &BV,
+    data: &Everything,
+) {
     let game = GameFlags::game();
     let gameflags = property.to_game_flags();
     if !gameflags.contains(game) {
@@ -24,6 +30,10 @@ pub fn validate_property(property: WidgetProperty, key: &Token, bv: &BV, data: &
         err(ErrorKey::WrongGame).weak().msg(msg).loc(key).push();
         return;
     }
+    //if let Some(builtin) = _builtin {
+    //    let v = format!("{property} {builtin}");
+    //    dbg!(v);
+    //}
     match GuiValidation::from_property(property) {
         GuiValidation::UncheckedValue | GuiValidation::Format => {
             // TODO: validate Format as a format string

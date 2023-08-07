@@ -1,12 +1,14 @@
 use strum::VariantNames;
-use strum_macros::{EnumVariantNames, FromRepr, IntoStaticStr};
+use strum_macros::{Display, EnumVariantNames, FromRepr, IntoStaticStr};
 use thiserror::Error;
 
 use crate::game::GameFlags;
 use crate::lowercase::Lowercase;
 
 /// Widget types that are defined by the game engine and don't need to be defined in gui script.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, IntoStaticStr, EnumVariantNames, FromRepr)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, IntoStaticStr, EnumVariantNames, FromRepr, Display,
+)]
 #[allow(non_camel_case_types)]
 pub enum BuiltinWidget {
     animation,
@@ -139,11 +141,12 @@ impl BuiltinWidget {
         }
     }
 
-    pub fn is_builtin_current_game(s: &Lowercase) -> bool {
+    pub fn builtin_current_game(s: &Lowercase) -> Option<BuiltinWidget> {
         if let Ok(builtin) = Self::try_from(s) {
-            builtin.to_game_flags().contains(GameFlags::game())
-        } else {
-            false
+            if builtin.to_game_flags().contains(GameFlags::game()) {
+                return Some(builtin);
+            }
         }
+        None
     }
 }
