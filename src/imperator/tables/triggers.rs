@@ -38,7 +38,7 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
         return Some((Scopes::Country, Trigger::CompareValue));
     }
     // This one is weird...the trigger is just Item::TechnologyTable with no suffix or prefix.
-    if data.verify_exists_implied(Item::TechnologyTable, "", name) {
+    if data.item_exists(Item::TechnologyTable, name.as_str()) {
         return Some((Scopes::Country, Trigger::CompareValue));
     }
     None

@@ -28,7 +28,7 @@ impl DbKind for TradeGood {
         vd.field_numeric("gold");
 
         // Unit types are optional
-        vd.field_item("allow_unit_type", Item::UnitType);
+        vd.field_item("allow_unit_type", Item::Unit);
 
         vd.field_validated_block("province", |block, data| {
             let vd = Validator::new(block, data);
