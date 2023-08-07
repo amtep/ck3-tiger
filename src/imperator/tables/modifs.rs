@@ -85,13 +85,17 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // $Terrain$_combat_bonus
     // $Unit$_$Terrain$_combat_bonus
     if let Some(part) = name.as_str().strip_suffix("_combat_bonus") {
-        if let Some(sev) = warn {
-            if !data.item_exists(Item::Terrain, part) && !data.item_exists(Item::Unit, s) {
-                let msg = format!("could not find any {part}");
-                let info = "Could be: $Terrain$_combat_bonus or $Unit$_$Terrain$_combat_bonus";
-                report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
+        // This is tricky because both Unit and Terrain can have `_` in them.
+        // Try each possible separation point in turn.
+        for (i, _) in part.rmatch_indices('_') {
+            if data.item_exists(Item::Terrain, &part[i + 1..]) {
+                // If the Terrain exists, then the prefix must be the Unit.
+                maybe_warn(Item::Unit, &part[..i], name, data, warn);
+                return Some(ModifKinds::Country);
             }
         }
+        // Check if it's the kind without $Unit$
+        maybe_warn(Item::Terrain, part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
