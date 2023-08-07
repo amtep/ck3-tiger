@@ -34,6 +34,9 @@ struct Cli {
     /// Show errors in other loaded mods as well.
     #[clap(long)]
     show_mods: bool,
+    /// Output the reports in JSON format
+    #[clap(long)]
+    json: bool,
     /// Warn about items that are defined but unused.
     #[clap(long)]
     unused: bool,
@@ -52,8 +55,8 @@ fn main() -> Result<()> {
     }
 
     // LAST UPDATED VERSION Imperator 2.0.4
-    eprintln!("This validator was made for Imperator Rome version 2.0.4 (Thé à la menthe).");
-    eprintln!("If you are using a older version of Imperator Rome, it may be inaccurate.");
+    eprintln!("This validator was made for Imperator Rome version 2.0.4.");
+    eprintln!("If you are using an older version of Imperator Rome, it may be inaccurate.");
     eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
 
     Game::set(Game::Imperator)?;
@@ -97,6 +100,11 @@ fn main() -> Result<()> {
         eprintln!("Showing warnings for unused localization. There will be many false positives.");
     }
 
+    if args.no_color {
+        // Disable colors both here and after reading the config, because reading the modfile and config may emit errors.
+        disable_ansi_colors();
+    }
+
     if args.modpath.is_dir() {
         let mut sig = args.modpath.clone();
         sig.push(".metadata/metadata.json");
@@ -113,9 +121,11 @@ fn main() -> Result<()> {
     // Print a blank line between the preamble and the first report:
     eprintln!();
 
-    everything.load_output_settings();
+    everything.load_output_settings(true);
     everything.load_config_filtering_rules();
-    emit_reports();
+    if !args.json {
+        emit_reports(false);
+    }
 
     // We must apply the --no-color flag AFTER loading and applying the config,
     // because we want it to override the config.
@@ -132,7 +142,7 @@ fn main() -> Result<()> {
     everything.load_all();
     everything.validate_all();
     everything.check_rivers();
-    emit_reports();
+    emit_reports(args.json);
     if args.unused {
         everything.check_unused();
     }
