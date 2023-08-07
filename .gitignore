@@ -8,6 +8,9 @@ flamegraph*.svg
 cerr1
 cerr2
 error-collection.txt
+ierr1
+ierr2
+impv.sh
 gameconcepts.txt
 munch_bank.py
 munch_effects.py
