@@ -1,6 +1,7 @@
 //! Type-safety wrapper for strings that must be lowercase
 
 use std::borrow::{Borrow, Cow};
+use std::fmt::{Display, Error, Formatter};
 
 /// Wraps a string (either owned or `&str`) and guarantees that it's lowercase.
 ///
@@ -43,8 +44,18 @@ impl<'a> Lowercase<'a> {
         &self.0
     }
 
+    pub fn into_owned(self) -> Lowercase<'static> {
+        Lowercase(Cow::Owned(self.0.into_owned()))
+    }
+
     pub fn to_uppercase(&self) -> String {
         self.as_str().to_uppercase()
+    }
+}
+
+impl<'a> Display for Lowercase<'a> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -69,6 +80,12 @@ impl Default for Lowercase<'static> {
 impl PartialEq<str> for Lowercase<'_> {
     fn eq(&self, s: &str) -> bool {
         self.as_str() == s
+    }
+}
+
+impl PartialEq<&str> for Lowercase<'_> {
+    fn eq(&self, s: &&str) -> bool {
+        self.as_str() == *s
     }
 }
 

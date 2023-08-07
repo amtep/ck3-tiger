@@ -56,6 +56,7 @@ mod desc;
 mod effect;
 mod effect_validation;
 mod fileset;
+mod gui;
 mod helpers;
 mod item;
 mod lowercase;

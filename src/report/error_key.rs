@@ -61,6 +61,7 @@ pub enum ErrorKey {
     Loop,
     Bookmarks,
     WrongGame,
+    Gui,
 
     PrincesOfDarkness,
 
