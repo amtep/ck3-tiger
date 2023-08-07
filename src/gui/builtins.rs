@@ -123,6 +123,22 @@ impl BuiltinWidget {
 
             BuiltinWidget::dragdropicon | BuiltinWidget::mini_map => GameFlags::Imperator,
 
+            BuiltinWidget::cameracontrolwidget
+            | BuiltinWidget::click_modifiers
+            | BuiltinWidget::colormap_picker
+            | BuiltinWidget::colorpicker_reticule_icon
+            | BuiltinWidget::datacontext_from_model
+            | BuiltinWidget::keyframe_editor_lane_container
+            | BuiltinWidget::rightclick_modifiers
+            | BuiltinWidget::timeline_texts
+            | BuiltinWidget::tools_dragdrop_widget
+            | BuiltinWidget::tools_keyframe_button
+            | BuiltinWidget::tools_keyframe_editor
+            | BuiltinWidget::tools_keyframe_editor_lane
+            | BuiltinWidget::tools_player_timeline
+            | BuiltinWidget::treemapchart
+            | BuiltinWidget::treemapslice => GameFlags::Ck3 | GameFlags::Vic3,
+
             BuiltinWidget::button | BuiltinWidget::webwindow => {
                 GameFlags::Vic3 | GameFlags::Imperator
             }
