@@ -56,6 +56,7 @@ pub const KNOWN_LANGUAGES: &[&str] = &[
     "french",
     "german",
     "russian",
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     "korean",
     "simp_chinese",
     #[cfg(feature = "vic3")]
