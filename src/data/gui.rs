@@ -541,6 +541,10 @@ impl GuiType {
 
     pub fn validate(&self, data: &Everything) {
         data.verify_exists(Item::GuiType, &self.base);
+        //let key_lc = Lowercase::new(self.key.as_str());
+        //if !self.is_builtin_wrapper && BuiltinWidget::builtin_current_game(&key_lc).is_some() {
+        //    dbg!(key_lc.as_str());
+        //}
         let base_lc = Lowercase::new(self.base.as_str());
         if self.is_builtin_wrapper && BuiltinWidget::builtin_current_game(&base_lc).is_none() {
             err(ErrorKey::Loop)

@@ -31,6 +31,7 @@ pub enum BuiltinWidget {
     dockable_container,
     drag_drop_icon,
     drag_drop_target,
+    dragdropicon,
     dropdown,
     dynamicgridbox,
     editbox,
@@ -44,13 +45,13 @@ pub enum BuiltinWidget {
     glow_generation_rules,
     hbox,
     icon,
-    icon_button_small_round,
     keyframe_editor_lane_container,
     line,
     line_deprecated,
     list,
     margin_widget,
     marker,
+    mini_map,
     minimap,
     minimap_window,
     modify_texture,
@@ -112,31 +113,20 @@ impl BuiltinWidget {
     // TODO - imperator - remove the non-imperator ones from GameFlags::all(), and add any that are missing.
     pub fn to_game_flags(self) -> GameFlags {
         match self {
-            BuiltinWidget::datacontext_from_model
-                | BuiltinWidget::drag_drop_icon
-                | BuiltinWidget::drag_drop_target
-                | BuiltinWidget::game_button
-                | BuiltinWidget::glow
-                | BuiltinWidget::glow_generation_rules
-                | BuiltinWidget::icon_button_small_round
-                // TODO: soundparam contains name and value fields which
-                // refer to the parameter:/ sounds
-                | BuiltinWidget::soundparam
-                => GameFlags::Ck3,
-            BuiltinWidget::axis
-                | BuiltinWidget::axis_label
-                | BuiltinWidget::button
-                | BuiltinWidget::minimap
-                | BuiltinWidget::minimap_window
-                | BuiltinWidget::piechart
-                | BuiltinWidget::pieslice
-                | BuiltinWidget::plotline
-                | BuiltinWidget::right_click_menu_widget
-                | BuiltinWidget::rightclick_modifiers
-                | BuiltinWidget::treemapchart
-                | BuiltinWidget::treemapslice
-                | BuiltinWidget::webwindow
-                => GameFlags::Vic3,
+            BuiltinWidget::drag_drop_icon
+            | BuiltinWidget::drag_drop_target
+            | BuiltinWidget::game_button => GameFlags::Ck3,
+
+            BuiltinWidget::minimap
+            | BuiltinWidget::minimap_window
+            | BuiltinWidget::right_click_menu_widget => GameFlags::Vic3,
+
+            BuiltinWidget::dragdropicon | BuiltinWidget::mini_map => GameFlags::Imperator,
+
+            BuiltinWidget::button | BuiltinWidget::webwindow => {
+                GameFlags::Vic3 | GameFlags::Imperator
+            }
+
             _ => GameFlags::all(),
         }
     }
