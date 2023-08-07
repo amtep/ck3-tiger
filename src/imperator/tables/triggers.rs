@@ -15,7 +15,7 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
 
     // TODO: binary search might be faster
     if let Some((from, trigger)) = TRIGGER_MAP.get(&*name_lc) {
-        return Some((*from, trigger.clone()));
+        return Some((*from, *trigger));
     }
     if let Some(conviction) = name_lc.strip_suffix("_conviction") {
         data.verify_exists_implied(Item::PartyType, conviction, name);

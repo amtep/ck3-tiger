@@ -316,7 +316,7 @@ pub fn validate_prefix_reference(
         Game::Vic3 => crate::vic3::scopes::validate_prefix_reference(prefix, arg, data, sc),
         #[cfg(feature = "imperator")]
         Game::Imperator => {
-            crate::imperator::scopes::validate_prefix_reference(prefix, arg, data, sc)
+            crate::imperator::scopes::validate_prefix_reference(prefix, arg, data, sc);
         }
     }
 }

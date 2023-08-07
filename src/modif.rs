@@ -9,6 +9,7 @@ use bitflags::bitflags;
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::game::Game;
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::item::Item;
 use crate::report::{err, error, ErrorKey, Severity};
 use crate::script_value::validate_non_dynamic_script_value;

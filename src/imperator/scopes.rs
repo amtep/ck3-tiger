@@ -46,99 +46,99 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
 pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
     let mut vec = Vec::new();
     if s.contains(Scopes::None) {
-        vec.push("none")
+        vec.push("none");
     }
     if s.contains(Scopes::Value) {
-        vec.push("value")
+        vec.push("value");
     }
     if s.contains(Scopes::Bool) {
-        vec.push("bool")
+        vec.push("bool");
     }
     if s.contains(Scopes::Flag) {
-        vec.push("flag")
+        vec.push("flag");
     }
     if s.contains(Scopes::Color) {
-        vec.push("color")
+        vec.push("color");
     }
     if s.contains(Scopes::Country) {
-        vec.push("country")
+        vec.push("country");
     }
     if s.contains(Scopes::Character) {
-        vec.push("character")
+        vec.push("character");
     }
     if s.contains(Scopes::Province) {
-        vec.push("province")
+        vec.push("province");
     }
     if s.contains(Scopes::Siege) {
-        vec.push("siege")
+        vec.push("siege");
     }
     if s.contains(Scopes::Unit) {
-        vec.push("unit")
+        vec.push("unit");
     }
     if s.contains(Scopes::Pop) {
-        vec.push("pop")
+        vec.push("pop");
     }
     if s.contains(Scopes::Family) {
-        vec.push("family")
+        vec.push("family");
     }
     if s.contains(Scopes::Party) {
-        vec.push("party")
+        vec.push("party");
     }
     if s.contains(Scopes::Religion) {
-        vec.push("religion")
+        vec.push("religion");
     }
     if s.contains(Scopes::Culture) {
-        vec.push("culture")
+        vec.push("culture");
     }
     if s.contains(Scopes::Job) {
-        vec.push("job")
+        vec.push("job");
     }
     if s.contains(Scopes::CultureGroup) {
-        vec.push("culture group")
+        vec.push("culture group");
     }
     if s.contains(Scopes::CountryCulture) {
-        vec.push("country culture")
+        vec.push("country culture");
     }
     if s.contains(Scopes::Area) {
-        vec.push("area")
+        vec.push("area");
     }
     if s.contains(Scopes::State) {
-        vec.push("state")
+        vec.push("state");
     }
     if s.contains(Scopes::SubUnit) {
-        vec.push("subunit")
+        vec.push("subunit");
     }
     if s.contains(Scopes::Governorship) {
-        vec.push("governorship")
+        vec.push("governorship");
     }
     if s.contains(Scopes::Region) {
-        vec.push("region")
+        vec.push("region");
     }
     if s.contains(Scopes::Deity) {
-        vec.push("deity")
+        vec.push("deity");
     }
     if s.contains(Scopes::GreatWork) {
-        vec.push("great_work")
+        vec.push("great_work");
     }
     if s.contains(Scopes::Treasure) {
-        vec.push("treasure")
+        vec.push("treasure");
     }
     if s.contains(Scopes::War) {
-        vec.push("war")
+        vec.push("war");
     }
     if s.contains(Scopes::Legion) {
-        vec.push("legion")
+        vec.push("legion");
     }
     if s.contains(Scopes::LevyTemplate) {
-        vec.push("levy_template")
+        vec.push("levy_template");
     }
     display_choices(f, &vec, "or")
 }
 
 pub fn validate_prefix_reference(
     prefix: &Token,
-    arg: &Token,
-    data: &Everything,
+    _arg: &Token,
+    _data: &Everything,
     _sc: &mut ScopeContext,
 ) {
     // DEMENTIVE - TODO add these once all Item types have been implmented

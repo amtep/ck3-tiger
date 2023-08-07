@@ -999,8 +999,6 @@ impl Item {
             #[cfg(feature = "imperator")]
             Item::MissionTask => "common/missions/",
             #[cfg(feature = "imperator")]
-            Item::Modifier => "common/modifiers/",
-            #[cfg(feature = "imperator")]
             Item::Office => "common/offices/",
             #[cfg(feature = "imperator")]
             Item::Opinion => "common/opinions/",

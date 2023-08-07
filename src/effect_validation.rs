@@ -5,6 +5,7 @@ use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_control};
 use crate::everything::Everything;
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;

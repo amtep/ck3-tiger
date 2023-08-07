@@ -1043,7 +1043,9 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
 /// The function will extract the argument from between the parentheses and validate it.
 /// It will return the key without this argument, or return the key unchanged if there wasn't any.
 /// When deleting the argument, it will leave the '(' in place to signal that there was an argument here.
+#[allow(unused_variables)] // imperator doesn't use any of this function
 fn handle_argument<'a>(key: &'a Token, data: &Everything, sc: &mut ScopeContext) -> Cow<'a, Token> {
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     if let Some((before, after)) = key.split_after('(') {
         if let Some((arg, after)) = after.split_once(')') {
             let arg = arg.trim();
