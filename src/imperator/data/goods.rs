@@ -12,7 +12,7 @@ pub struct TradeGood {}
 
 impl TradeGood {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::TradeGoods, key, block, Box::new(Self {}));
+        db.add(Item::TradeGood, key, block, Box::new(Self {}));
     }
 }
 

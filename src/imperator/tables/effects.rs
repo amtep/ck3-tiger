@@ -223,7 +223,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Province, "set_controller", Scope(Scopes::Country)),
     (Scopes::Province, "set_owned_by", Scope(Scopes::Country)),
     (Scopes::Province, "set_province_deity", Scope(Scopes::Deity)),
-    (Scopes::Province, "set_trade_goods", Scope(Scopes::TradeGood)),
+    (Scopes::Province, "set_trade_goods", Item(Item::TradeGood)),
     (Scopes::Province, "show_animated_text", Unchecked),
     (Scopes::Province, "show_model", Unchecked),
     (Scopes::CountryCulture, "add_country_culture_modifier", Unchecked), // -tdb-
