@@ -110,7 +110,9 @@ impl<'a> TryFrom<&Lowercase<'a>> for BuiltinWidget {
 
 impl BuiltinWidget {
     /// Return which games support the given builtin widget type
-    // TODO - imperator - remove the non-imperator ones from GameFlags::all(), and add any that are missing.
+    // LAST UPDATED CK3 VERSION 1.9.2.1
+    // LAST UPDATED VIC3 VERSION 1.3.6
+    // LAST UPDATED IMPERATOR VERSION 2.0.3
     pub fn to_game_flags(self) -> GameFlags {
         match self {
             BuiltinWidget::drag_drop_icon

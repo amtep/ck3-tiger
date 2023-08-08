@@ -694,47 +694,57 @@ impl GuiValidation {
 
 impl WidgetProperty {
     /// Return which games support a given widget property
-    // TODO - imperator - remove the non-imperator ones from GameFlags::all(), and add any that are missing.
+    // LAST UPDATED CK3 VERSION 1.9.2.1
+    // LAST UPDATED VIC3 VERSION 1.3.6
+    // LAST UPDATED IMPERATOR VERSION 2.0.3
     pub fn to_game_flags(self) -> GameFlags {
+        #[allow(clippy::match_same_arms)] // alphabetic is better
         match self {
-            button_ignore
-            | camera_rotation_pitch_limits
-            | camera_translation_limits
-            | coat_of_arms
-            | coat_of_arms_mask
-            | datamodel_reuse_widgets
-            | default_clicksound
-            | drag_drop_args
-            | drag_drop_base_type
-            | drag_drop_id
-            | glow_alpha
-            | glow_alpha_mask
-            | glow_blur_passes
-            | glow_ignore_inside_pixels
-            | glow_radius
-            | glow_texture_downscale
-            | highlightchecked
-            | index
-            | inherit_data_context
-            | intersectionmask_texture
-            | min_dist_from_screen_edge
-            | oncolorchanged
-            | oncoloredited
-            | recursive
-            | restart_on_show
-            | snap_to_pixels
-            | stackmode => GameFlags::Ck3,
             animate_negative_changes
-            | entity_enable_sound
+            | autoresize_slider
+            | camera_fov_y_degrees
+            | camera_look_at => GameFlags::Ck3 | GameFlags::Vic3,
+
+            coat_of_arms | coat_of_arms_mask => GameFlags::Ck3,
+
+            coat_of_arms_slot => GameFlags::Ck3 | GameFlags::Vic3,
+
+            drag_drop_args | drag_drop_base_type | drag_drop_id => GameFlags::Ck3,
+
+            drag_drop_data
+            | focus_on_visible
             | force_data_properties_update
+            | grid_entity_name
+            | ignore_in_debug_draw
             | ignore_unset_buttons
-            | input_action
+            | index => GameFlags::Ck3 | GameFlags::Vic3,
+
+            input_action => GameFlags::Vic3,
+
+            invert_reticule_color
+            | Loop
+            | max_update_rate
+            | min_dist_from_screen_edge
+            | on_keyframe_move
             | onalt
-            | plotpoints
-            | preferscrollwidgetsize
-            | realtime
+            | ondefault
+            | ondoubleclick
+            | oneditingfinished_with_changes
+            | oneditingstart
+            | onfocusout
+            | onshift
+            | progress_change_to_duration_curve
+            | pseudo_localization_enabled
+            | raw_text
+            | raw_tooltip
+            | restart_on_show
+            | selectallonfocus
             | skip_initial_animation
-            | useragent => GameFlags::Vic3,
+            | timeline_line_direction
+            | timeline_line_height
+            | timeline_time_points
+            | video => GameFlags::Ck3 | GameFlags::Vic3,
+
             _ => GameFlags::all(),
         }
     }
