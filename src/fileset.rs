@@ -241,10 +241,15 @@ impl Fileset {
             if let Some(path) = block.get_field_value("modfile") {
                 let path = PathBuf::from(path.as_str());
                 if let Ok(modfile) = ModFile::read(&path) {
+                    let mod_name_append = if let Some(name) = modfile.display_name() {
+                        format!(" \"{name}\"")
+                    } else {
+                        String::new()
+                    };
                     eprintln!(
                         "Loading secondary mod {label} from: {}{}",
                         modfile.modpath().display(),
-                        modfile.display_name_ext()
+                        mod_name_append,
                     );
                     let kind = FileKind::LoadedMod(mod_idx);
                     let loaded_mod = LoadedMod::new(
