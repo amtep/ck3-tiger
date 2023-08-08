@@ -55,6 +55,13 @@ pub fn validate_property(
                 }
             }
         }
+        GuiValidation::Yes => {
+            if let Some(value) = bv.expect_value() {
+                if !value.is("yes") {
+                    warn(ErrorKey::Validation).msg("expected only yes").loc(value).push();
+                }
+            }
+        }
         GuiValidation::Align => {
             if let Some(value) = bv.expect_value() {
                 for part in value.split('|') {

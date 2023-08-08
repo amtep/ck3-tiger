@@ -28,6 +28,8 @@ pub enum GuiValidation {
     Datamodel,
     /// "yes", "no", or a [`Datatype::bool`] expression.
     Boolean,
+    /// Only a literal "yes" will do.
+    Yes,
     /// A `|`-separated list of values from [`ALIGN`].
     Align,
     /// An integer value or a [`Datatype::int32`] expression.
@@ -605,7 +607,7 @@ impl GuiValidation {
             raw_tooltip => RawText,
             realtime => Boolean,
             reorder_on_mouse => UncheckedValue, // TODO: only example is "presstop"
-            recursive => Boolean,
+            recursive => Yes,
             resizable => Boolean,
             resizeparent => Boolean,
             restart_on_show => Boolean,
@@ -617,8 +619,8 @@ impl GuiValidation {
             scale => Number,
             scale_mode => UncheckedValue, // TODO: only example is "fixedwidth"
             scissor => Boolean,
-            scrollbaralign_horizontal => Align,
-            scrollbaralign_vertical => Align,
+            scrollbaralign_horizontal => Choice(&["top", "bottom"]),
+            scrollbaralign_vertical => Choice(&["left", "right"]),
             // TODO: always_on is a guess
             scrollbarpolicy_horizontal => Choice(&["as_needed", "always_off", "always_on"]),
             scrollbarpolicy_vertical => Choice(&["as_needed", "always_off", "always_on"]),
