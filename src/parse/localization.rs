@@ -670,10 +670,9 @@ impl<'a> ValueParser<'a> {
                                 warn(ErrorKey::Markup).msg(msg).loc(&self.loc).push();
                                 self.value.push(LocaValue::Error);
                             }
-                        } else if (*bracecount > 0 && (c == '.' || c == ','))
-                            || c.is_alphanumeric()
-                            || c == '_'
-                        {
+                        } else if c == '.' || c == ',' || c.is_alphanumeric() || c == '_' {
+                            // . and , are freely allowed in markup values because with #tooltip
+                            // the value might be a loca key.
                             value.push(c);
                         } else if c == '[' {
                             // Generating part of the markup with a code block is valid.
@@ -681,8 +680,6 @@ impl<'a> ValueParser<'a> {
                             // of markup. The next thing we see ought to be a comma or a space.
                             self.parse_code();
                             consumed = true;
-                        } else if c == ',' {
-                            value.push(c);
                         } else {
                             break;
                         }
