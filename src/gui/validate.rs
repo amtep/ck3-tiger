@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::game::GameFlags;
 use crate::gui::properties::{ALIGN, BLENDMODES};
-use crate::gui::{BuiltinWidget, GuiValidation, WidgetProperty};
+use crate::gui::{GuiValidation, PropertyContainer, WidgetProperty};
 use crate::helpers::stringify_choices;
 use crate::item::Item;
 use crate::parse::localization::ValueParser;
@@ -18,7 +18,7 @@ use crate::validator::Validator;
 
 pub fn validate_property(
     property: WidgetProperty,
-    _builtin: Option<BuiltinWidget>,
+    _builtin: Option<PropertyContainer>,
     key: &Token,
     bv: &BV,
     data: &Everything,
@@ -292,14 +292,18 @@ pub fn validate_property(
                     // Templates are validated separately, and this Widget field adds no context to that.
                     // TODO: verify that this is a template containing one widget.
                 }
-                BV::Block(block) => {
-                    if !block.iter_items().count() == 1 {
-                        let msg = format!("{key} should have a block with just one widget");
-                        err(ErrorKey::Validation).msg(msg).loc(block).push();
-                    }
-                    // TODO: validate the widget without endless recursion with infinitely nested tooltips
+                BV::Block(_block) => {
+                    // TODO: verify that this block contains only one widget (though it may also
+                    // have a recursive = yes field).
+                    // TODO: if this block is not recursive, validate it now.
+                    // TODO: perform blockoverrides on this block.
                 }
             }
+        }
+        GuiValidation::ComplexProperty => {
+            // Complex properties have their own item type, where they get a GuiBlock input
+            // rather than a BV.
+            unreachable!();
         }
         GuiValidation::FormatOverride => {
             if let Some(block) = bv.expect_block() {

@@ -2,7 +2,7 @@
 
 pub use self::block::{GuiBlock, GuiBlockFrom};
 pub use self::builtins::BuiltinWidget;
-pub use self::properties::{GuiValidation, WidgetProperty};
+pub use self::properties::{GuiValidation, PropertyContainer, WidgetProperty};
 
 mod block;
 mod builtins;

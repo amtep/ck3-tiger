@@ -7,6 +7,9 @@ use thiserror::Error;
 #[cfg(doc)]
 use crate::datatype::Datatype;
 use crate::game::GameFlags;
+use crate::gui::BuiltinWidget;
+#[cfg(doc)]
+use crate::gui::GuiBlock;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 
@@ -14,7 +17,7 @@ use GuiValidation::*;
 use WidgetProperty::*;
 
 /// The various values or blocks or datatype calculations that the gui properties can take.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GuiValidation {
     /// Accept any value; we don't know.
     UncheckedValue,
@@ -87,6 +90,8 @@ pub enum GuiValidation {
     RawText,
     /// Some text. May contain datatypes or loca keys.
     Text,
+    /// A property that takes a block of other properties. This block may have override blocks in it.
+    ComplexProperty,
 }
 
 /// All the properties that can be used in gui widgets.
@@ -106,16 +111,20 @@ pub enum WidgetProperty {
     alpha,
     alwaystransparent,
     animate_negative_changes,
+    animation,
     animation_speed,
+    attachto,
     autoresize,
     autoresize_slider,
     autoresizescrollarea,
     autoresizeviewport,
+    axis_label,
     background_texture,
     bezier,
     blend_mode,
     button_ignore,
     button_trigger,
+    buttontext,
     camera_fov_y_degrees,
     camera_look_at,
     camera_near_far,
@@ -124,11 +133,13 @@ pub enum WidgetProperty {
     camera_translation_limits,
     camera_zoom_limits,
     checked,
+    click_modifiers,
     clicksound,
     coat_of_arms,
     coat_of_arms_mask,
     coat_of_arms_slot,
     color,
+    colorpicker_reticule_icon,
     constantbuffers,
     cursorcolor,
     datacontext,
@@ -157,9 +168,12 @@ pub enum WidgetProperty {
     effectname,
     elide,
     enabled,
+    end_sound,
     entity_enable_sound,
     entity_instance,
     even_row_widget,
+    expand_item,
+    expandbutton,
     filter_mouse,
     fittype,
     flipdirection,
@@ -178,9 +192,11 @@ pub enum WidgetProperty {
     from,
     gfx_environment_file,
     gfxtype,
+    glow,
     glow_alpha,
     glow_alpha_mask,
     glow_blur_passes,
+    glow_generation_rules,
     glow_ignore_inside_pixels,
     glow_radius,
     glow_texture_downscale,
@@ -203,6 +219,7 @@ pub enum WidgetProperty {
     invert_reticule_color,
     invertprogress,
     item,
+    keyframe_editor_lane_container,
     layer,
     layoutanchor,
     layoutpolicy_horizontal,
@@ -212,6 +229,7 @@ pub enum WidgetProperty {
     line_cap,
     line_feather_distance,
     line_type,
+    list,
     Loop, // titlecased to avoid collision with builtin loop
     loopinterval,
     margin,
@@ -219,6 +237,7 @@ pub enum WidgetProperty {
     margin_left,
     margin_right,
     margin_top,
+    marker,
     mask,
     mask_uv_scale,
     max,
@@ -236,6 +255,7 @@ pub enum WidgetProperty {
     mirror,
     modal,
     modality,
+    modify_texture,
     movable,
     multiline,
     name,
@@ -299,16 +319,20 @@ pub enum WidgetProperty {
     restart_on_show,
     restrictparent_min,
     reuse_widgets,
+    rightclick_modifiers,
     righttoleft,
     rotate_uv,
     row_height,
     scale,
     scale_mode,
     scissor,
+    scrollbar_horizontal,
+    scrollbar_vertical,
     scrollbaralign_horizontal,
     scrollbaralign_vertical,
     scrollbarpolicy_horizontal,
     scrollbarpolicy_vertical,
+    scrollwidget,
     selectallonfocus,
     selectedindex,
     selectioncolor,
@@ -321,6 +345,7 @@ pub enum WidgetProperty {
     slider,
     snap_to_pixels,
     soundeffect,
+    soundparam,
     spacing,
     spriteborder,
     spriteborder_bottom,
@@ -329,6 +354,8 @@ pub enum WidgetProperty {
     spriteborder_top,
     spritetype,
     stackmode,
+    start_sound,
+    state,
     step,
     sticky,
     tabfocusroot,
@@ -339,6 +366,7 @@ pub enum WidgetProperty {
     texture_density,
     timeline_line_direction,
     timeline_line_height,
+    timeline_texts,
     timeline_time_points,
     tintcolor,
     to,
@@ -419,16 +447,20 @@ impl GuiValidation {
             alpha => Number,
             alwaystransparent => Boolean,
             animate_negative_changes => Boolean,
+            animation => ComplexProperty,
             animation_speed => CVector2f,
+            attachto => ComplexProperty,
             autoresize => Boolean,
             autoresize_slider => Boolean,
             autoresizescrollarea => Boolean,
             autoresizeviewport => Boolean,
+            axis_label => Widget,
             background_texture => Item(Item::File),
             bezier => CVector4f,
             blend_mode => Blendmode,
             button_ignore => MouseButton(&["both", "none", "left", "right"]),
             button_trigger => UncheckedValue, // only example is "none"
+            buttontext => Widget,
             camera_fov_y_degrees => Integer,
             camera_look_at => CVector3f,
             camera_near_far => CVector2f,
@@ -437,11 +469,13 @@ impl GuiValidation {
             camera_translation_limits => CVector3f,
             camera_zoom_limits => CVector2f,
             checked => Boolean,
+            click_modifiers => ComplexProperty,
             clicksound => ItemOrBlank(Item::Sound),
             coat_of_arms => Item(Item::File),
             coat_of_arms_mask => Item(Item::File),
             coat_of_arms_slot => CVector4f,
             color => Color,
+            colorpicker_reticule_icon => Widget,
             constantbuffers => DatatypeExpr,
             cursorcolor => Color,
             datacontext => Datacontext,
@@ -470,9 +504,12 @@ impl GuiValidation {
             effectname => UncheckedValue, // TODO validate effect names
             elide => Choice(&["right", "middle", "left"]),
             enabled => Boolean,
+            end_sound => ComplexProperty,
             entity_enable_sound => Boolean,
             entity_instance => Item(Item::Entity),
             even_row_widget => Widget,
+            expand_item => Widget,
+            expandbutton => Widget,
             filter_mouse => MouseButtonSet(&["all", "none", "left", "right", "wheel"]),
             fittype => Choice(&["center", "centercrop", "fill", "end", "start"]),
             flipdirection => Boolean,
@@ -491,9 +528,11 @@ impl GuiValidation {
             from => CVector2f,
             gfx_environment_file => Item(Item::File),
             gfxtype => UncheckedValue, // TODO: what are the options?
+            glow => ComplexProperty,
             glow_alpha => Number,
             glow_alpha_mask => Integer,
             glow_blur_passes => Integer,
+            glow_generation_rules => ComplexProperty,
             glow_ignore_inside_pixels => Boolean,
             glow_radius => Integer,
             glow_texture_downscale => NumberF,
@@ -517,6 +556,7 @@ impl GuiValidation {
             invert_reticule_color => Boolean,
             invertprogress => Boolean,
             item => Widget,
+            keyframe_editor_lane_container => Widget,
             layer => Item(Item::GuiLayer),
             layoutanchor => UncheckedValue, // TODO: only example is "bottomleft"
             layoutpolicy_horizontal => ChoiceSet(LAYOUT_POLICIES),
@@ -526,6 +566,7 @@ impl GuiValidation {
             line_cap => Boolean,
             line_feather_distance => Integer,
             line_type => UncheckedValue, // TODO: only example is "nodeline"
+            list => Widget,
             Loop => Boolean,
             loopinterval => Number,
             margin => TwoNumberOrPercent,
@@ -533,6 +574,7 @@ impl GuiValidation {
             margin_left => NumberOrInt32,
             margin_right => NumberOrInt32,
             margin_top => NumberOrInt32,
+            marker => Widget,
             mask => Item(Item::File),
             mask_uv_scale => CVector2f,
             max => NumberOrInt32,
@@ -550,6 +592,7 @@ impl GuiValidation {
             mirror => Choice(&["horizontal", "vertical"]),
             modal => Boolean,
             modality => UncheckedValue, // TODO: only example is "all"
+            modify_texture => ComplexProperty,
             movable => Boolean,
             multiline => Boolean,
             name => UncheckedValue,
@@ -613,17 +656,21 @@ impl GuiValidation {
             restart_on_show => Boolean,
             restrictparent_min => Boolean,
             reuse_widgets => Boolean,
+            rightclick_modifiers => ComplexProperty,
             righttoleft => Boolean,
             rotate_uv => Number,
             row_height => Integer,
             scale => Number,
             scale_mode => UncheckedValue, // TODO: only example is "fixedwidth"
             scissor => Boolean,
+            scrollbar_horizontal => Widget,
+            scrollbar_vertical => Widget,
             scrollbaralign_horizontal => Choice(&["top", "bottom"]),
             scrollbaralign_vertical => Choice(&["left", "right"]),
             // TODO: always_on is a guess
             scrollbarpolicy_horizontal => Choice(&["as_needed", "always_off", "always_on"]),
             scrollbarpolicy_vertical => Choice(&["as_needed", "always_off", "always_on"]),
+            scrollwidget => Widget,
             selectallonfocus => Boolean,
             selectedindex => CVector2i,
             selectioncolor => Color,
@@ -636,6 +683,7 @@ impl GuiValidation {
             slider => Widget,
             snap_to_pixels => Boolean,
             soundeffect => Item(Item::Sound),
+            soundparam => ComplexProperty,
             spacing => Integer,
             spriteborder => CVector2f,
             spriteborder_bottom => Integer,
@@ -643,8 +691,10 @@ impl GuiValidation {
             spriteborder_right => Integer,
             spriteborder_top => Integer,
             spritetype => UncheckedValue, // TODO
+            stackmode => UncheckedValue,  // TODO only example is "top"
+            start_sound => ComplexProperty,
+            state => ComplexProperty,
             step => NumberOrInt32,
-            stackmode => UncheckedValue, // TODO only example is "top"
             sticky => Boolean,
             tabfocusroot => Boolean,
             text => Text,
@@ -654,6 +704,7 @@ impl GuiValidation {
             texture_density => Number,
             timeline_line_direction => UncheckedValue, // TODO only example is "up"
             timeline_line_height => Integer,
+            timeline_texts => Widget,
             timeline_time_points => Integer,
             tintcolor => Color,
             to => CVector2f,
@@ -705,11 +756,12 @@ impl WidgetProperty {
             animate_negative_changes
             | autoresize_slider
             | camera_fov_y_degrees
-            | camera_look_at => GameFlags::Ck3 | GameFlags::Vic3,
+            | camera_look_at
+            | click_modifiers => GameFlags::Ck3 | GameFlags::Vic3,
 
             coat_of_arms | coat_of_arms_mask => GameFlags::Ck3,
 
-            coat_of_arms_slot => GameFlags::Ck3 | GameFlags::Vic3,
+            coat_of_arms_slot | colorpicker_reticule_icon => GameFlags::Ck3 | GameFlags::Vic3,
 
             drag_drop_args | drag_drop_base_type | drag_drop_id => GameFlags::Ck3,
 
@@ -724,6 +776,7 @@ impl WidgetProperty {
             input_action => GameFlags::Vic3,
 
             invert_reticule_color
+            | keyframe_editor_lane_container
             | Loop
             | max_update_rate
             | min_dist_from_screen_edge
@@ -740,14 +793,48 @@ impl WidgetProperty {
             | raw_text
             | raw_tooltip
             | restart_on_show
+            | rightclick_modifiers
             | selectallonfocus
             | skip_initial_animation
             | timeline_line_direction
             | timeline_line_height
+            | timeline_texts
             | timeline_time_points
             | video => GameFlags::Ck3 | GameFlags::Vic3,
 
             _ => GameFlags::all(),
+        }
+    }
+}
+
+/// The container type of a [`GuiBlock`], which determines which properties are accepted.
+/// Can be either a [`BuiltinWidget`] or a [`WidgetProperty`] of the [`GuiValidation::ComplexProperty`] type.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PropertyContainer {
+    // The widget's ultimate base type.
+    BuiltinWidget(BuiltinWidget),
+    // A property that can hold other properties.
+    ComplexProperty(WidgetProperty),
+}
+
+impl From<BuiltinWidget> for PropertyContainer {
+    fn from(w: BuiltinWidget) -> Self {
+        PropertyContainer::BuiltinWidget(w)
+    }
+}
+#[derive(Debug, Error, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum WidgetPropertyContainerError {
+    #[error("property `{0}` cannot be a container")]
+    WrongPropertyKind(WidgetProperty),
+}
+
+impl TryFrom<WidgetProperty> for PropertyContainer {
+    type Error = WidgetPropertyContainerError;
+    fn try_from(prop: WidgetProperty) -> Result<Self, Self::Error> {
+        if GuiValidation::from_property(prop) == GuiValidation::ComplexProperty {
+            Ok(PropertyContainer::ComplexProperty(prop))
+        } else {
+            Err(WidgetPropertyContainerError::WrongPropertyKind(prop))
         }
     }
 }

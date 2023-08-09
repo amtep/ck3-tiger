@@ -6,7 +6,7 @@ use crate::block::{Block, BlockItem, Comparator, Eq::Single, Field, BV};
 use crate::data::gui::{GuiTemplate, GuiType};
 use crate::everything::Everything;
 use crate::gui::validate::validate_property;
-use crate::gui::{BuiltinWidget, WidgetProperty};
+use crate::gui::{BuiltinWidget, GuiValidation, PropertyContainer, WidgetProperty};
 use crate::lowercase::Lowercase;
 use crate::report::{err, untidy, warn, ErrorKey};
 use crate::token::Token;
@@ -18,6 +18,8 @@ enum GuiItem {
     Property(WidgetProperty, Token, BV),
     /// A contained widget.
     Widget(Lowercase<'static>, Arc<GuiBlock>),
+    /// A property which contains other properties. It can have Subst blocks too.
+    ComplexProperty(WidgetProperty, Token, Arc<GuiBlock>),
     /// A named block whose contents can be substituted. Will be inlined later.
     Subst(String, Arc<GuiBlock>),
     /// A named block whose contents will be inserted into any Subst of the same name.
@@ -29,8 +31,9 @@ enum GuiItem {
 /// A processed version of a [`Block`] meant for `.gui` files.
 #[derive(Debug, Clone, Default)]
 pub struct GuiBlock {
-    /// The widget's ultimate base type, if known.
-    builtin: Option<BuiltinWidget>,
+    /// The widget's ultimate base type or complex property type, if known.
+    /// This determines which properties are valid in this block.
+    container: Option<PropertyContainer>,
     /// The definition of the base type of this widget type.
     base: Option<Arc<GuiBlock>>,
     /// The contents of this block.
@@ -43,15 +46,17 @@ pub struct GuiBlock {
 /// resulting [`GuiBlock`].
 #[derive(Debug, Clone, Copy)]
 pub enum GuiBlockFrom<'a> {
-    /// A template being evaluated standalone
+    /// A template being evaluated standalone.
     Template,
-    /// No parent yet; for example inside a blockoverride
+    /// No parent yet; for example inside a blockoverride.
     NoParent,
-    /// A widget declaration, either at the top of a file or a contained widget
+    /// A widget declaration, either at the top of a file or a contained widget.
     WidgetKey(&'a Token),
-    /// A type declaration
+    /// A widget property that contains other properties.
+    PropertyKey(WidgetProperty),
+    /// A type declaration.
     TypeBase(&'a Token),
-    /// A type declaration that's a wrapper around a builtin type, like `scrollbar = scrollbar {`.
+    /// A type declaration that's a wrapper around a builtin type of the same name, like `scrollbar = scrollbar {`.
     TypeWrapper(&'a Token),
 }
 
@@ -74,26 +79,29 @@ impl GuiBlock {
 
         // Blank slate to work on
         let mut gui = Self {
-            builtin: None,
+            container: None,
             base: None,
             items: Vec::new(),
             substnames: FnvHashSet::default(),
         };
 
-        // Fill in `builtin` and `base` fields if the base type is known
+        // Fill in `container` and `base` fields if known
         match from {
             GuiBlockFrom::Template | GuiBlockFrom::NoParent => (),
             GuiBlockFrom::WidgetKey(base) | GuiBlockFrom::TypeBase(base) => {
                 if let Some(basetype) = types.get(&base.as_str().to_lowercase()) {
-                    gui.builtin = basetype.builtin(types);
+                    gui.container = basetype.builtin(types).map(PropertyContainer::from);
                     let gui_block = basetype.gui_block(types, templates);
                     gui.substnames = gui_block.substnames.clone();
                     gui.base = Some(gui_block);
                 }
             }
+            GuiBlockFrom::PropertyKey(prop) => {
+                gui.container = PropertyContainer::try_from(prop).ok();
+            }
             GuiBlockFrom::TypeWrapper(base) => {
                 if let Some(basetype) = types.get(&base.as_str().to_lowercase()) {
-                    gui.builtin = basetype.builtin(types);
+                    gui.container = basetype.builtin(types).map(PropertyContainer::from);
                 }
             }
         }
@@ -124,7 +132,24 @@ impl GuiBlock {
                                 }
                             }
                         } else if let Ok(prop) = WidgetProperty::try_from(&key_lc) {
-                            gui.items.push(GuiItem::Property(prop, key.clone(), bv.clone()));
+                            if GuiValidation::from_property(prop) == GuiValidation::ComplexProperty
+                            {
+                                if let Some(block) = bv.expect_block() {
+                                    let guiblock = GuiBlock::from_block(
+                                        GuiBlockFrom::PropertyKey(prop),
+                                        block,
+                                        types,
+                                        templates,
+                                    );
+                                    gui.items.push(GuiItem::ComplexProperty(
+                                        prop,
+                                        key.clone(),
+                                        guiblock,
+                                    ));
+                                }
+                            } else {
+                                gui.items.push(GuiItem::Property(prop, key.clone(), bv.clone()));
+                            }
                         } else if types.get(key_lc.as_str()).is_some()
                             || BuiltinWidget::builtin_current_game(&key_lc).is_some()
                         {
@@ -233,7 +258,7 @@ impl GuiBlock {
         for item in &mut self.items {
             match item {
                 GuiItem::Property(_, _, _) | GuiItem::Override(_, _) => (),
-                GuiItem::Widget(_, gui) => {
+                GuiItem::Widget(_, gui) | GuiItem::ComplexProperty(_, _, gui) => {
                     *gui = Self::apply_override_arc(gui, name, overrideblock);
                 }
                 GuiItem::Subst(substname, gui) => {
@@ -264,21 +289,21 @@ impl GuiBlock {
     /// Validate the property fields of this [`GuiBlock`] and all its contents.
     ///
     /// `builtin` is extra information to be used if `self.builtin` is `None`.
-    pub fn validate(&self, builtin: Option<BuiltinWidget>, data: &Everything) {
-        let builtin = self.builtin.or(builtin);
+    pub fn validate(&self, container: Option<PropertyContainer>, data: &Everything) {
+        let container = self.container.or(container);
         if let Some(base) = &self.base {
-            base.validate(builtin, data);
+            base.validate(container, data);
         }
 
         for item in &self.items {
             match item {
                 GuiItem::Property(prop, key, bv) => {
-                    validate_property(*prop, builtin, key, bv, data);
+                    validate_property(*prop, container, key, bv, data);
                 }
                 GuiItem::Subst(_, gui_block) => {
-                    gui_block.validate(builtin, data);
+                    gui_block.validate(container, data);
                 }
-                GuiItem::Widget(_, gui_block) => {
+                GuiItem::Widget(_, gui_block) | GuiItem::ComplexProperty(_, _, gui_block) => {
                     gui_block.validate(None, data);
                 }
                 GuiItem::Override(_, _) => (),

@@ -11,20 +11,14 @@ use crate::lowercase::Lowercase;
 )]
 #[allow(non_camel_case_types)]
 pub enum BuiltinWidget {
-    animation,
-    attachto,
     axis,
-    axis_label,
     background,
     button,
     button_group,
-    buttontext,
     cameracontrolwidget,
     checkbutton,
-    click_modifiers,
     colormap_picker,
     colorpicker,
-    colorpicker_reticule_icon,
     container,
     contextmenu,
     datacontext_from_model,
@@ -35,26 +29,17 @@ pub enum BuiltinWidget {
     dropdown,
     dynamicgridbox,
     editbox,
-    end_sound,
-    expand_item,
-    expandbutton,
     fixedgridbox,
     flowcontainer,
     game_button,
-    glow,
-    glow_generation_rules,
     hbox,
     icon,
-    keyframe_editor_lane_container,
     line,
     line_deprecated,
-    list,
     margin_widget,
-    marker,
     mini_map,
     minimap,
     minimap_window,
-    modify_texture,
     overlappingitembox,
     piechart,
     pieslice,
@@ -62,18 +47,10 @@ pub enum BuiltinWidget {
     portrait_button,
     progressbar,
     right_click_menu_widget,
-    rightclick_modifiers,
     scrollarea,
     scrollbar,
-    scrollbar_horizontal,
-    scrollbar_vertical,
-    scrollwidget,
-    soundparam,
-    start_sound,
-    state,
     text_occluder,
     textbox,
-    timeline_texts,
     tools_dragdrop_widget,
     tools_keyframe_button,
     tools_keyframe_editor,
@@ -126,13 +103,8 @@ impl BuiltinWidget {
             BuiltinWidget::dragdropicon | BuiltinWidget::mini_map => GameFlags::Imperator,
 
             BuiltinWidget::cameracontrolwidget
-            | BuiltinWidget::click_modifiers
             | BuiltinWidget::colormap_picker
-            | BuiltinWidget::colorpicker_reticule_icon
             | BuiltinWidget::datacontext_from_model
-            | BuiltinWidget::keyframe_editor_lane_container
-            | BuiltinWidget::rightclick_modifiers
-            | BuiltinWidget::timeline_texts
             | BuiltinWidget::tools_dragdrop_widget
             | BuiltinWidget::tools_keyframe_button
             | BuiltinWidget::tools_keyframe_editor
