@@ -232,7 +232,7 @@ pub fn validate_trigger_internal(
                 || it_type.is("every")
                 || it_type.is("random")
             {
-                if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
+                if let Some((inscopes, outscope)) = scope_iterator(&it_name, data, sc) {
                     if !it_type.is("any") {
                         let msg = format!("cannot use `{it_type}_` list in a trigger");
                         error(key, ErrorKey::Validation, &msg);

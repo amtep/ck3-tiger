@@ -338,7 +338,7 @@ pub fn validate_effect_internal<'a>(
                 || it_type.is("every")
                 || it_type.is("random")
             {
-                if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
+                if let Some((inscopes, outscope)) = scope_iterator(&it_name, data, sc) {
                     if it_type.is("any") {
                         let msg = "cannot use `any_` lists in an effect";
                         error(key, ErrorKey::Validation, msg);

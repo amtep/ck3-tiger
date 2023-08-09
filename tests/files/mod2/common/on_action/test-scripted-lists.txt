@@ -1,0 +1,7 @@
+﻿yearly_playable_pulse = {
+	effect = {
+		# Verify that this scripted list gives a warning if scope:child is not set.
+		every_courtier_parent = {
+		}
+	}
+}

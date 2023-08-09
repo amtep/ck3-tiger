@@ -122,7 +122,7 @@ fn validate_inner(
                     || it_type.is("random")
                     || it_type.is("any")
                 {
-                    if let Some((inscopes, outscope)) = scope_iterator(&it_name, data) {
+                    if let Some((inscopes, outscope)) = scope_iterator(&it_name, data, sc) {
                         if it_type.is("any") {
                             let msg = "cannot use `any_` iterators in a script value";
                             error(token, ErrorKey::Validation, msg);

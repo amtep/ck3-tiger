@@ -57,8 +57,6 @@ fn take_report(vec: &mut Vec<LogReport>, pathname: &str, msg: &str) -> Option<Lo
 fn test_mod1() {
     let mut reports = check_mod_helper("mod1");
 
-    // TODO: check for absence of duplicate event warning for non-dup.0001
-
     let report = take_report(
         &mut reports,
         "localization/english/bad_loca_name.yml",
@@ -149,5 +147,11 @@ fn test_mod2() {
     );
     report.expect("interaction missing icon test");
 
+    let lists = "common/on_action/test-scripted-lists.txt";
+    let report =
+        take_report(&mut reports, lists, "`courtier_parent` expects scope:child to be set");
+    report.expect("scope check for scripted lists");
+
+    dbg!(&reports);
     assert!(reports.is_empty());
 }

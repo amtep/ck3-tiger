@@ -325,11 +325,16 @@ pub fn validate_prefix_reference(
 /// each applicable scope value. Iterators may be builtin (the usual case) or may be scripted lists.
 ///
 /// `name` is the name of the iterator, without its `any_`, `every_`, `random_` or `ordered_` prefix.
+/// `sc` is a [`ScopeContext`], only used for validating scripted lists.
 ///
 /// Returns a pair of `Scopes`. The first is the scope types this token can accept as input,
 /// and the second is the scope types it may return.
 /// The first will be `Scopes::None` if it needs no input.
-pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes)> {
+pub fn scope_iterator(
+    name: &Token,
+    data: &Everything,
+    sc: &mut ScopeContext,
+) -> Option<(Scopes, Scopes)> {
     let scope_iterators = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::scopes::SCOPE_ITERATOR,
@@ -360,7 +365,8 @@ pub fn scope_iterator(name: &Token, data: &Everything) -> Option<(Scopes, Scopes
         }
     }
     if data.scripted_lists.exists(name.as_str()) {
-        return data.scripted_lists.base(name).and_then(|base| scope_iterator(base, data));
+        data.scripted_lists.validate_call(name, data, sc);
+        return data.scripted_lists.base(name).and_then(|base| scope_iterator(base, data, sc));
     }
     None
 }

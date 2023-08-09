@@ -1,0 +1,31 @@
+﻿namespace = test-script-values
+
+test-script-values.1001 = {
+	orphan = yes
+
+	immediate = {
+		# Neither the if nor the else should give a warning about lacking a body,
+		# because the limit has side effects.
+		add_gold = {
+			if = {
+				limit = {
+					save_temporary_scope_value_as = {
+						name = test_scope
+						value = 1
+					}
+				}
+			}
+			else = {
+				limit = {
+					save_temporary_scope_value_as = {
+						name = test_scope
+						value = 1
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+	}
+}

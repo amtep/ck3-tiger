@@ -1,0 +1,12 @@
+﻿# Example adapted from KeizerHarm.
+# This shouldn't warn about scope:child because lists should be checked
+# with loose scope checking. The list is also used by an event which does
+# set scope:child, which shouldn't cause a warning either.
+# In mod2 there is a check that it DOES cause a warning if the event doesn't
+# set scope:child.
+courtier_parent = {
+	base = courtier
+	conditions = {
+		is_parent_of = scope:child
+	}
+}
