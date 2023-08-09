@@ -113,6 +113,10 @@ fn test_mod1() {
     let report = take_report_contains(&mut reports, events, "duplicate event");
     assert!(report.is_none());
 
+    let events = "events/test-script-values.txt";
+    let report = take_report_contains(&mut reports, events, "`else` with a `limit`");
+    report.expect("scriptvalue else with a limit");
+
     dbg!(&reports);
     assert!(reports.is_empty());
 }

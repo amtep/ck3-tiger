@@ -37,12 +37,14 @@ use crate::vic3::tables::misc::{APPROVALS, LEVELS};
 ///
 /// `tooltipped` determines what warnings are emitted related to tooltippability of the triggers
 /// inside the block.
+///
+/// Returns true iff the trigger had side effects (such as saving scopes).
 pub fn validate_trigger(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
-) {
+) -> bool {
     validate_trigger_internal(
         Lowercase::empty(),
         false,
@@ -52,18 +54,20 @@ pub fn validate_trigger(
         tooltipped,
         false,
         Severity::Error,
-    );
+    )
 }
 
 /// Like [`validate_trigger`] but specifies a maximum [`Severity`] for the reports emitted by this
 /// validation. Used to validate triggers in item definitions that don't warrant the `Error` level.
+///
+/// Returns true iff the trigger had side effects (such as saving scopes).
 pub fn validate_trigger_max_sev(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
     max_sev: Severity,
-) {
+) -> bool {
     validate_trigger_internal(
         Lowercase::empty(),
         false,
@@ -73,7 +77,7 @@ pub fn validate_trigger_max_sev(
         tooltipped,
         false,
         max_sev,
-    );
+    )
 }
 
 /// The interface to trigger validation when [`validate_trigger`] is too limited.
@@ -87,6 +91,8 @@ pub fn validate_trigger_max_sev(
 /// `negated` is true iff this trigger is tested in a negative sense, for example if it is
 /// somewhere inside a `NOT = { ... }` block. `negated` is propagated to all sub-blocks and is
 /// flipped when another `NOT` or similar is encountered inside this one.
+///
+/// Returns true iff the trigger had side effects (such as saving scopes).
 // TODO: `in_list` could be removed if the code checks directly for the `any_` prefix instead.
 #[allow(clippy::too_many_arguments)]
 pub fn validate_trigger_internal(
@@ -98,7 +104,8 @@ pub fn validate_trigger_internal(
     mut tooltipped: Tooltipped,
     negated: bool,
     max_sev: Severity,
-) {
+) -> bool {
+    let mut side_effects = false;
     let mut vd = Validator::new(block, data);
     vd.set_max_severity(max_sev);
 
@@ -131,7 +138,7 @@ pub fn validate_trigger_internal(
                 let info = "normally you would use `trigger_else_if` instead.";
                 advice_info(key, ErrorKey::IfElse, msg, info);
             }
-            validate_trigger(block, data, sc, Tooltipped::No);
+            side_effects |= validate_trigger(block, data, sc, Tooltipped::No);
         });
     } else {
         vd.ban_field("limit", || "`trigger_if`, `trigger_else_if` or `trigger_else`");
@@ -139,7 +146,7 @@ pub fn validate_trigger_internal(
 
     if in_list {
         vd.field_validated_block("filter", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
+            side_effects |= validate_trigger(block, data, sc, Tooltipped::No);
         });
     } else {
         vd.ban_field("filter", || "lists");
@@ -181,7 +188,7 @@ pub fn validate_trigger_internal(
     if caller == "modifier" {
         // add, factor and desc are handled in the loop
         vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
+            side_effects |= validate_trigger(block, data, sc, Tooltipped::No);
         });
     } else {
         vd.ban_field("add", || "`modifier` or script values");
@@ -203,6 +210,7 @@ pub fn validate_trigger_internal(
     vd.unknown_fields_any_cmp(|key, cmp, bv| {
         if key.is("add") || key.is("factor") || key.is("value") {
             validate_script_value(bv, data, sc);
+            side_effects = true;
             return;
         }
 
@@ -231,10 +239,10 @@ pub fn validate_trigger_internal(
                         return;
                     }
                     sc.expect(inscopes, &Reason::Token(key.clone()));
-                    if let Some(b) = bv.get_block() {
+                    if let Some(b) = bv.expect_block() {
                         precheck_iterator_fields(ListType::Any, b, data, sc);
                         sc.open_scope(outscope, key.clone());
-                        validate_trigger_internal(
+                        side_effects |= validate_trigger_internal(
                             &Lowercase::new(it_name.as_str()),
                             true,
                             b,
@@ -245,21 +253,23 @@ pub fn validate_trigger_internal(
                             max_sev,
                         );
                         sc.close();
-                    } else {
-                        error(bv, ErrorKey::Validation, "expected block, found value");
                     }
                     return;
                 }
             }
         }
 
-        validate_trigger_key_bv(key, cmp, bv, data, sc, tooltipped, negated, max_sev);
+        side_effects |=
+            validate_trigger_key_bv(key, cmp, bv, data, sc, tooltipped, negated, max_sev);
     });
+    side_effects
 }
 
 /// Validate a trigger given its key and argument. It is like [`validate_trigger_internal`] except
 /// that all special cases are assumed to have been handled. This is the interface used for the
 /// `switch` effect, where the key and argument are not together in the script.
+///
+/// Returns true iff the trigger had side effects (such as saving scopes).
 #[allow(clippy::too_many_arguments)] // nothing can be cut
 pub fn validate_trigger_key_bv(
     key: &Token,
@@ -270,7 +280,9 @@ pub fn validate_trigger_key_bv(
     tooltipped: Tooltipped,
     negated: bool,
     max_sev: Severity,
-) {
+) -> bool {
+    let mut side_effects = false;
+
     // Scripted trigger?
     if let Some(trigger) = data.get_trigger(key) {
         match bv {
@@ -280,9 +292,10 @@ pub fn validate_trigger_key_bv(
                 }
                 if !trigger.macro_parms().is_empty() {
                     fatal(ErrorKey::Macro).msg("expected macro arguments").loc(token).push();
-                    return;
+                    return side_effects;
                 }
                 let negated = if token.is("no") { !negated } else { negated };
+                // TODO: check side_effects
                 trigger.validate_call(key, data, sc, tooltipped, negated);
             }
             BV::Block(block) => {
@@ -300,7 +313,7 @@ pub fn validate_trigger_key_bv(
                         } else {
                             let msg = format!("this scripted trigger needs parameter {parm}");
                             err(ErrorKey::Macro).msg(msg).loc(block).push();
-                            return;
+                            return side_effects;
                         }
                     }
                     vd.unknown_value_fields(|key, _value| {
@@ -310,17 +323,18 @@ pub fn validate_trigger_key_bv(
                     });
 
                     let args: Vec<_> = parms.into_iter().zip(vec.into_iter()).collect();
+                    // TODO: check side_effects
                     trigger.validate_macro_expansion(key, &args, data, sc, tooltipped, negated);
                 }
             }
         }
-        return;
+        return side_effects;
     }
 
     // `10 < script value` is a valid trigger
     if key.is_number() {
         validate_script_value(bv, data, sc);
-        return;
+        return side_effects;
     }
 
     let scope_trigger = match Game::game() {
@@ -368,7 +382,7 @@ pub fn validate_trigger_key_bv(
                 let msg = format!("unknown prefix `{prefix}:`");
                 error(part, ErrorKey::Validation, &msg);
                 sc.close();
-                return;
+                return side_effects;
             }
         } else if part.lowercase_is("root")
             || part.lowercase_is("prev")
@@ -386,6 +400,7 @@ pub fn validate_trigger_key_bv(
                 sc.replace_this();
             }
         } else if data.script_values.exists(part.as_str()) {
+            // TODO: check side_effects
             data.script_values.validate_call(part, data, sc);
             sc.replace(Scopes::Value, part.clone());
         } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
@@ -400,7 +415,7 @@ pub fn validate_trigger_key_bv(
                 let msg = format!("`{part}` should be the last part");
                 old_warn(part, ErrorKey::Validation, &msg);
                 sc.close();
-                return;
+                return side_effects;
             }
             found_trigger = Some((trigger, part.clone()));
             if inscopes == Scopes::None && !first {
@@ -422,19 +437,21 @@ pub fn validate_trigger_key_bv(
             let msg = format!("unknown token `{part}`");
             error(part, ErrorKey::UnknownField, &msg);
             sc.close();
-            return;
+            return side_effects;
         }
     }
 
     if let Some((trigger, name)) = found_trigger {
         sc.close();
-        match_trigger_bv(&trigger, &name, cmp, bv, data, sc, tooltipped, negated, max_sev);
-        return;
+        side_effects |=
+            match_trigger_bv(&trigger, &name, cmp, bv, data, sc, tooltipped, negated, max_sev);
+        return side_effects;
     }
 
     if !matches!(cmp, Comparator::Equals(Single | Question)) {
         if sc.can_be(Scopes::Value) {
             sc.close();
+            // TODO: check side_effects
             validate_script_value(bv, data, sc);
         } else if matches!(cmp, Comparator::NotEquals | Comparator::Equals(Double)) {
             let scopes = sc.scopes();
@@ -447,7 +464,7 @@ pub fn validate_trigger_key_bv(
             old_warn(key.into_owned(), ErrorKey::Validation, &msg);
             sc.close();
         }
-        return;
+        return side_effects;
     }
 
     match bv {
@@ -458,7 +475,7 @@ pub fn validate_trigger_key_bv(
         }
         BV::Block(b) => {
             sc.finalize_builder();
-            validate_trigger_internal(
+            side_effects |= validate_trigger_internal(
                 Lowercase::empty(),
                 false,
                 b,
@@ -471,6 +488,7 @@ pub fn validate_trigger_key_bv(
             sc.close();
         }
     }
+    side_effects
 }
 
 /// Implementation of the [`Trigger::Block`] variant and its friends. It takes a list of known
@@ -482,6 +500,8 @@ pub fn validate_trigger_key_bv(
 /// * `*` means the field is optional and may occur multiple times
 /// * `+` means the field is required and may occur multiple times
 /// The default is that the field is required and may occur only once.
+///
+/// Returns true iff the trigger had side effects (such as saving scopes).
 fn match_trigger_fields(
     fields: &[(&str, Trigger)],
     block: &Block,
@@ -490,7 +510,8 @@ fn match_trigger_fields(
     tooltipped: Tooltipped,
     negated: bool,
     max_sev: Severity,
-) {
+) -> bool {
+    let mut side_effects = false;
     let mut vd = Validator::new(block, data);
     vd.set_max_severity(max_sev);
     for (field, _) in fields {
@@ -519,10 +540,13 @@ fn match_trigger_fields(
                 field
             };
             if key.is(fieldname) {
-                match_trigger_bv(trigger, key, *cmp, bv, data, sc, tooltipped, negated, max_sev);
+                side_effects |= match_trigger_bv(
+                    trigger, key, *cmp, bv, data, sc, tooltipped, negated, max_sev,
+                );
             }
         }
     }
+    side_effects
 }
 
 #[cfg(feature = "vic3")]
@@ -531,6 +555,8 @@ pub const STANCES: &[&str] =
 
 /// Takes a [`Trigger`] and a trigger field, and validates that the constraints
 /// specified by the `Trigger` hold.
+///
+/// Returns true iff the trigger had side effects (such as saving scopes).
 #[allow(clippy::too_many_arguments)]
 fn match_trigger_bv(
     trigger: &Trigger,
@@ -542,7 +568,8 @@ fn match_trigger_bv(
     tooltipped: Tooltipped,
     negated: bool,
     max_sev: Severity,
-) {
+) -> bool {
+    let mut side_effects = false;
     // True iff the comparator must be Comparator::Equals
     let mut must_be_eq = true;
     // True iff it's probably a mistake if the comparator is Comparator::Equals
@@ -559,16 +586,19 @@ fn match_trigger_bv(
         }
         Trigger::CompareValue => {
             must_be_eq = false;
+            // TODO: check side_effects
             validate_script_value(bv, data, sc);
         }
         #[cfg(feature = "ck3")]
         Trigger::CompareValueWarnEq => {
             must_be_eq = false;
             warn_if_eq = true;
+            // TODO: check side_effects
             validate_script_value(bv, data, sc);
         }
         #[cfg(feature = "ck3")]
         Trigger::SetValue => {
+            // TODO: check side_effects
             validate_script_value(bv, data, sc);
         }
         Trigger::CompareDate => {
@@ -623,6 +653,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.get_value() {
                 validate_target(token, data, sc, *s);
             } else if s.contains(Scopes::Value) {
+                // TODO: check side_effects
                 validate_script_value(bv, data, sc);
             } else {
                 bv.expect_value();
@@ -632,6 +663,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.get_value() {
                 validate_target_ok_this(token, data, sc, *s);
             } else if s.contains(Scopes::Value) {
+                // TODO: check side_effects
                 validate_script_value(bv, data, sc);
             } else {
                 bv.expect_value();
@@ -660,21 +692,24 @@ fn match_trigger_bv(
         }
         Trigger::Block(fields) => {
             if let Some(block) = bv.expect_block() {
-                match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
+                side_effects |=
+                    match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
             }
         }
         #[cfg(feature = "ck3")]
         Trigger::ScopeOrBlock(s, fields) => match bv {
             BV::Value(token) => validate_target(token, data, sc, *s),
             BV::Block(block) => {
-                match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
+                side_effects |=
+                    match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
             }
         },
         #[cfg(feature = "ck3")]
         Trigger::ItemOrBlock(i, fields) => match bv {
             BV::Value(token) => data.verify_exists_max_sev(*i, token, max_sev),
             BV::Block(block) => {
-                match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
+                side_effects |=
+                    match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
             }
         },
         #[cfg(feature = "ck3")]
@@ -684,7 +719,8 @@ fn match_trigger_bv(
                 must_be_eq = false;
             }
             BV::Block(b) => {
-                match_trigger_fields(fields, b, data, sc, tooltipped, negated, max_sev);
+                side_effects |=
+                    match_trigger_fields(fields, b, data, sc, tooltipped, negated, max_sev);
             }
         },
         #[cfg(feature = "ck3")]
@@ -734,7 +770,7 @@ fn match_trigger_bv(
                 if name_lc == "custom_description" {
                     tooltipped = Tooltipped::No;
                 }
-                validate_trigger_internal(
+                side_effects |= validate_trigger_internal(
                     &Lowercase::from_string_unchecked(name_lc),
                     false,
                     block,
@@ -778,7 +814,7 @@ fn match_trigger_bv(
                 match bv {
                     BV::Value(t) => data.verify_exists_max_sev(Item::Localization, t, max_sev),
                     BV::Block(b) => {
-                        validate_trigger_internal(
+                        side_effects |= validate_trigger_internal(
                             &Lowercase::new(name.as_str()),
                             false,
                             b,
@@ -810,6 +846,7 @@ fn match_trigger_bv(
                     vd.field_target("target", sc, Scopes::Character);
                     if let Some(name) = vd.field_value("name") {
                         sc.define_name_token(name.as_str(), Scopes::Value, name);
+                        side_effects = true;
                     }
                 }
             } else if name.is("save_temporary_scope_value_as") {
@@ -825,11 +862,13 @@ fn match_trigger_bv(
                     // TODO: figure out the scope type of `value` and use that
                     if let Some(name) = vd.field_value("name") {
                         sc.define_name_token(name.as_str(), Scopes::primitive(), name);
+                        side_effects = true;
                     }
                 }
             } else if name.is("save_temporary_scope_as") {
                 if let Some(name) = bv.expect_value() {
                     sc.save_current_scope(name.as_str());
+                    side_effects = true;
                 }
             } else if name.is("weighted_calc_true_if") {
                 if let Some(block) = bv.expect_block() {
@@ -841,7 +880,7 @@ fn match_trigger_bv(
                         }
                     }
                     for (_, block) in vd.integer_blocks() {
-                        validate_trigger(block, data, sc, tooltipped);
+                        side_effects |= validate_trigger(block, data, sc, tooltipped);
                     }
                 }
             } else if name.is("switch") {
@@ -867,7 +906,7 @@ fn match_trigger_bv(
                                     max_sev,
                                 );
                             }
-                            validate_trigger(block, data, sc, tooltipped);
+                            side_effects |= validate_trigger(block, data, sc, tooltipped);
                         });
                         if count == 0 {
                             let msg = "switch with no branches";
@@ -878,6 +917,7 @@ fn match_trigger_bv(
             } else if name.is("add_to_temporary_list") {
                 if let Some(value) = bv.expect_value() {
                     sc.define_or_expect_list(value);
+                    side_effects = true;
                 }
             } else if name.is("is_in_list") {
                 if let Some(value) = bv.expect_value() {
@@ -895,6 +935,7 @@ fn match_trigger_bv(
         }
         Trigger::UncheckedValue => {
             bv.expect_value();
+            side_effects = true; // have to assume it's possible
         }
     }
 
@@ -907,6 +948,7 @@ fn match_trigger_bv(
         let msg = format!("unexpected comparator {cmp}");
         old_warn(name, ErrorKey::Validation, &msg);
     }
+    side_effects
 }
 
 /// Validate that `token` is valid as the right-hand side of a field.

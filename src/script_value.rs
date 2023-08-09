@@ -168,9 +168,10 @@ fn validate_iterator(
     sc: &mut ScopeContext,
     check_desc: bool,
 ) {
+    let mut side_effects = false;
     let mut vd = Validator::new(block, data);
     vd.field_validated_block("limit", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
+        side_effects |= validate_trigger(block, data, sc, Tooltipped::No);
     });
 
     let mut tooltipped = Tooltipped::No;
@@ -186,7 +187,8 @@ fn validate_iterator(
         Tooltipped::No,
     );
 
-    if !validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc) {
+    side_effects |= validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
+    if !side_effects {
         let msg = "this iterator does not change the script value";
         let info = "it should be either removed, or changed to do something useful";
         err(ErrorKey::Logic).msg(msg).info(info).loc(block).push();
@@ -221,12 +223,15 @@ fn validate_if(
     sc: &mut ScopeContext,
     check_desc: bool,
 ) {
+    let mut side_effects = false;
     let mut vd = Validator::new(block, data);
     vd.req_field_warn("limit");
     vd.field_validated_block("limit", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
+        side_effects |= validate_trigger(block, data, sc, Tooltipped::No);
     });
-    if !validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc) {
+    side_effects |= validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
+
+    if !side_effects {
         let msg = format!("this `{key}` does not change the script value");
         // weak because in an if-if_else sequence you might want some that deliberately do nothing
         // TODO: make this smarter so that it does not warn if followed by an else or else_if
@@ -243,14 +248,17 @@ fn validate_else(
     sc: &mut ScopeContext,
     check_desc: bool,
 ) {
+    let mut side_effects = false;
     let mut vd = Validator::new(block, data);
     vd.field_validated_key_block("limit", |key, block, data| {
         let msg = "`else` with a `limit` does work, but may indicate a mistake";
         let info = "normally you would use `else_if` instead.";
         advice_info(key, ErrorKey::IfElse, msg, info);
-        validate_trigger(block, data, sc, Tooltipped::No);
+        side_effects |= validate_trigger(block, data, sc, Tooltipped::No);
     });
-    if !validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc) {
+    side_effects |= validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
+
+    if !side_effects {
         let msg = format!("this `{key}` does not change the script value");
         let info = "it should be either removed, or changed to do something useful";
         // only untidy because an empty else is probably not a logic error
