@@ -815,6 +815,8 @@ pub enum PropertyContainer {
     BuiltinWidget(BuiltinWidget),
     // A property that can hold other properties.
     ComplexProperty(WidgetProperty),
+    // A property that can hold a widget.
+    WidgetProperty(WidgetProperty),
 }
 
 impl From<BuiltinWidget> for PropertyContainer {
@@ -831,8 +833,11 @@ pub enum WidgetPropertyContainerError {
 impl TryFrom<WidgetProperty> for PropertyContainer {
     type Error = WidgetPropertyContainerError;
     fn try_from(prop: WidgetProperty) -> Result<Self, Self::Error> {
-        if GuiValidation::from_property(prop) == GuiValidation::ComplexProperty {
+        let validation = GuiValidation::from_property(prop);
+        if validation == GuiValidation::ComplexProperty {
             Ok(PropertyContainer::ComplexProperty(prop))
+        } else if validation == GuiValidation::Widget {
+            Ok(PropertyContainer::WidgetProperty(prop))
         } else {
             Err(WidgetPropertyContainerError::WrongPropertyKind(prop))
         }

@@ -18,8 +18,11 @@ enum GuiItem {
     Property(WidgetProperty, Token, BV),
     /// A contained widget.
     Widget(Lowercase<'static>, Arc<GuiBlock>),
-    /// A property which contains other properties. It can have Subst blocks too.
+    /// A property which contains other properties. It can have `Subst` blocks too.
     ComplexProperty(WidgetProperty, Token, Arc<GuiBlock>),
+    /// A property which contains a widget. It can have Subst blocks too.
+    /// Recursive widgets (ones that have `recursive = yes`) are handled as normal `Property` items instead.
+    WidgetProperty(WidgetProperty, Token, Arc<GuiBlock>),
     /// A named block whose contents can be substituted. Will be inlined later.
     Subst(String, Arc<GuiBlock>),
     /// A named block whose contents will be inserted into any Subst of the same name.
@@ -52,7 +55,7 @@ pub enum GuiBlockFrom<'a> {
     NoParent,
     /// A widget declaration, either at the top of a file or a contained widget.
     WidgetKey(&'a Token),
-    /// A widget property that contains other properties.
+    /// A widget property that contains other gui elements.
     PropertyKey(WidgetProperty),
     /// A type declaration.
     TypeBase(&'a Token),
@@ -132,8 +135,8 @@ impl GuiBlock {
                                 }
                             }
                         } else if let Ok(prop) = WidgetProperty::try_from(&key_lc) {
-                            if GuiValidation::from_property(prop) == GuiValidation::ComplexProperty
-                            {
+                            let validation = GuiValidation::from_property(prop);
+                            if validation == GuiValidation::ComplexProperty {
                                 if let Some(block) = bv.expect_block() {
                                     let guiblock = GuiBlock::from_block(
                                         GuiBlockFrom::PropertyKey(prop),
@@ -146,6 +149,36 @@ impl GuiBlock {
                                         key.clone(),
                                         guiblock,
                                     ));
+                                }
+                            } else if validation == GuiValidation::Widget {
+                                // If the bv is a Value (should be a template name) or if it is a
+                                // Block with recursive = yes, then store it as a normal Property.
+                                // Otherwise store it as a WidgetProperty.
+                                // TODO: tooltipwidget is always treated as recursive
+                                match bv {
+                                    BV::Block(block)
+                                        if !block.field_value_is("recursive", "yes")
+                                            && prop != WidgetProperty::tooltipwidget =>
+                                    {
+                                        let guiblock = GuiBlock::from_block(
+                                            GuiBlockFrom::PropertyKey(prop),
+                                            block,
+                                            types,
+                                            templates,
+                                        );
+                                        gui.items.push(GuiItem::WidgetProperty(
+                                            prop,
+                                            key.clone(),
+                                            guiblock,
+                                        ));
+                                    }
+                                    _ => {
+                                        gui.items.push(GuiItem::Property(
+                                            prop,
+                                            key.clone(),
+                                            bv.clone(),
+                                        ));
+                                    }
                                 }
                             } else {
                                 gui.items.push(GuiItem::Property(prop, key.clone(), bv.clone()));
@@ -258,7 +291,9 @@ impl GuiBlock {
         for item in &mut self.items {
             match item {
                 GuiItem::Property(_, _, _) | GuiItem::Override(_, _) => (),
-                GuiItem::Widget(_, gui) | GuiItem::ComplexProperty(_, _, gui) => {
+                GuiItem::Widget(_, gui)
+                | GuiItem::ComplexProperty(_, _, gui)
+                | GuiItem::WidgetProperty(_, _, gui) => {
                     *gui = Self::apply_override_arc(gui, name, overrideblock);
                 }
                 GuiItem::Subst(substname, gui) => {
@@ -303,7 +338,9 @@ impl GuiBlock {
                 GuiItem::Subst(_, gui_block) => {
                     gui_block.validate(container, data);
                 }
-                GuiItem::Widget(_, gui_block) | GuiItem::ComplexProperty(_, _, gui_block) => {
+                GuiItem::Widget(_, gui_block)
+                | GuiItem::ComplexProperty(_, _, gui_block)
+                | GuiItem::WidgetProperty(_, _, gui_block) => {
                     gui_block.validate(None, data);
                 }
                 GuiItem::Override(_, _) => (),
