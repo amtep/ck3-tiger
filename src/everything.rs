@@ -147,7 +147,39 @@ use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::game::Game;
 #[cfg(feature = "imperator")]
-use crate::imperator::data::goods::TradeGood;
+use crate::imperator::data::{
+    goods::TradeGood,
+    ideas::Idea,
+    legion_distinctions::LegionDistinction,
+    deity_categories::DeityCategory,
+    deity::Deity,
+    decisions::Decision,
+    ambitions::Ambition,
+    buildings::Building,
+    character_interactions::CharacterInteraction,
+    ai_plan_goals::AiPlanGoals,
+    diplomatic_stances::DiplomaticStance,
+    economic_policies::EconomicPolicy,
+    event_pictures::EventPicture,
+    event_themes::EventTheme,
+    governments::GovernmentType,
+    governor_policies::GovernorPolicy,
+    loyalty::Loyalty,
+    offices::Office,
+    opinions::Opinion,
+    party_agendas::PartyAgenda,
+    pop_types::PopType,
+    prices::Price,
+    province_ranks::ProvinceRank,
+    religions::Religion,
+    scripted_guis::ScriptedGui,
+    subject_types::SubjectType,
+    tech_tables::TechnologyTable,
+    terrains::Terrain,
+    traits::CharacterTrait,
+    unit_abilities::UnitAbility,
+    war_goals::Wargoal,
+};
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::misc::*;
 use crate::item::Item;
@@ -792,6 +824,36 @@ impl Everything {
     #[cfg(feature = "imperator")]
     fn load_all_imperator(&mut self) {
         self.load_pdx_items(Item::TradeGood, TradeGood::add);
+        self.load_pdx_items(Item::Idea, Idea::add);
+        self.load_pdx_items(Item::LegionDistinction, LegionDistinction::add);
+        self.load_pdx_items(Item::DeityCategory, DeityCategory::add);
+        self.load_pdx_items(Item::Deity, Deity::add);
+        self.load_pdx_items(Item::Decision, Decision::add);
+        self.load_pdx_items(Item::Ambition, Ambition::add);
+        self.load_pdx_items(Item::Building, Building::add);
+        self.load_pdx_items(Item::CharacterInteraction, CharacterInteraction::add);
+        self.load_pdx_items(Item::AiPlanGoals, AiPlanGoals::add);
+        self.load_pdx_items(Item::DiplomaticStance, DiplomaticStance::add);
+        self.load_pdx_items(Item::EconomicPolicy, EconomicPolicy::add);
+        self.load_pdx_items(Item::EventPicture, EventPicture::add);
+        self.load_pdx_items(Item::EventTheme, EventTheme::add);
+        self.load_pdx_items(Item::GovernmentType, GovernmentType::add);
+        self.load_pdx_items(Item::GovernorPolicy, GovernorPolicy::add);
+        self.load_pdx_items(Item::Loyalty, Loyalty::add);
+        self.load_pdx_items(Item::Office, Office::add);
+        self.load_pdx_items(Item::Opinion, Opinion::add);
+        self.load_pdx_items(Item::PartyAgenda, PartyAgenda::add);
+        self.load_pdx_items(Item::PopType, PopType::add);
+        self.load_pdx_items(Item::Price, Price::add);
+        self.load_pdx_items(Item::ProvinceRank, ProvinceRank::add);
+        self.load_pdx_items(Item::Religion, Religion::add);
+        self.load_pdx_items(Item::ScriptedGui, ScriptedGui::add);
+        self.load_pdx_items(Item::SubjectType, SubjectType::add);
+        self.load_pdx_items(Item::TechnologyTable, TechnologyTable::add);
+        self.load_pdx_items(Item::Terrain, Terrain::add);
+        self.load_pdx_items(Item::CharacterTrait, CharacterTrait::add);
+        self.load_pdx_items(Item::UnitAbility, UnitAbility::add);
+        self.load_pdx_items(Item::Wargoal, Wargoal::add);
     }
 
     pub fn load_all(&mut self) {

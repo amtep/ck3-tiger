@@ -328,6 +328,7 @@ pub enum Item {
 
     // Items specific to imperator
     #[cfg(feature = "imperator")] Ambition,
+    #[cfg(feature = "imperator")] AiPlanGoals,
     #[cfg(feature = "imperator")] Area,
     #[cfg(feature = "imperator")] CultureGroup,
     #[cfg(feature = "imperator")] Deity,
@@ -352,6 +353,7 @@ pub enum Item {
     #[cfg(feature = "imperator")] MissionTask,
     #[cfg(feature = "imperator")] Office,
     #[cfg(feature = "imperator")] Opinion,
+    #[cfg(feature = "imperator")] PartyAgenda,
     #[cfg(feature = "imperator")] PartyType,
     #[cfg(feature = "imperator")] Price,
     #[cfg(feature = "imperator")] ProvinceRank,
@@ -505,7 +507,7 @@ impl Item {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => "common/terrain/",
                 #[cfg(feature = "imperator")]
-                Game::Imperator => "common/terrain/", // TODO
+                Game::Imperator => "common/terrain_types/",
             },
             Item::TextFormat => "gui/",
             Item::TextIcon => "gui/",
@@ -953,6 +955,8 @@ impl Item {
             Item::TutorialLesson => "common/tutorial_lessons/",
 
             #[cfg(feature = "imperator")]
+            Item::AiPlanGoals => "common/ai_plan_goals/",
+            #[cfg(feature = "imperator")]
             Item::Ambition => "common/ambitions/",
             #[cfg(feature = "imperator")]
             Item::Area => "map_data/areas.txt",
@@ -1002,6 +1006,8 @@ impl Item {
             Item::Office => "common/offices/",
             #[cfg(feature = "imperator")]
             Item::Opinion => "common/opinions/",
+            #[cfg(feature = "imperator")]
+            Item::PartyAgenda => "common/party_agendas",
             #[cfg(feature = "imperator")]
             Item::PartyType => "common/party_types/",
             #[cfg(feature = "imperator")]

@@ -5,7 +5,6 @@ use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_control};
 use crate::everything::Everything;
-#[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
@@ -240,6 +239,10 @@ pub fn validate_trigger_event(
                 vd.field_target("saved_event_id", sc, Scopes::Flag);
                 vd.field_date("trigger_on_next_date");
                 vd.field_bool("delayed");
+            }
+            #[cfg(feature = "imperator")]
+            if Game::is_imperator() {
+                vd.field_item("on_action", Item::OnAction);
             }
             #[cfg(feature = "vic3")]
             if Game::is_vic3() {

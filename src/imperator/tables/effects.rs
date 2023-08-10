@@ -3,9 +3,8 @@ use crate::effect_validation::*;
 use crate::everything::Everything;
 use crate::imperator::effect_validation::*;
 use crate::item::Item;
-use crate::scopes::Scopes;
+use crate::scopes::*;
 use crate::token::Token;
-
 use Effect::*;
 
 pub fn scope_effect(name: &Token, _data: &Everything) -> Option<(Scopes, Effect)> {
@@ -21,16 +20,17 @@ pub fn scope_effect(name: &Token, _data: &Everything) -> Option<(Scopes, Effect)
 
 // LAST UPDATED VERSION 2.0.4
 // See `effects.log` from the game data dumps
-// TODO - "-tdb-" marks blocks that still need to be done.
+// Note: There are a lot of effects here that are marked as "Unchecked"
+// Most of these are actually deprecated OR have no example usage so can't really be checked properly
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::State, "add_state_food", ScriptValue),
-    (Scopes::State, "add_state_modifier", Unchecked), // -tdb-
-    (Scopes::State, "remove_state_modifier", Unchecked), // -tdb-
+    (Scopes::State, "add_state_modifier", Vbv(validate_add_modifier)),
+    (Scopes::State, "remove_state_modifier", Item(Item::Modifier)),
     (Scopes::State, "set_state_capital", ScopeOrItem(Scopes::Province, Item::Province)),
     (Scopes::Character, "adapt_family_name", Boolean),
     (Scopes::Character, "add_as_governor", Scope(Scopes::Governorship)),
     (Scopes::Character, "add_character_experience", ScriptValue),
-    (Scopes::Character, "add_character_modifier", Unchecked), // -tdb-
+    (Scopes::Character, "add_character_modifier", Vbv(validate_add_modifier)),
     (Scopes::Character, "add_corruption", ScriptValue),
     (Scopes::Character, "add_friend", Scope(Scopes::Character)),
     (Scopes::Character, "add_gold", ScriptValue),
@@ -40,19 +40,19 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "add_loyal_veterans", ScriptValue),
     (Scopes::Character, "add_loyalty", Item(Item::Loyalty)),
     (Scopes::Character, "add_nickname", Item(Item::Localization)),
-    (Scopes::Character, "add_party_conviction", Unchecked), // -tdb-
+    (Scopes::Character, "add_party_conviction", Vb(validate_add_party_conviction_or_approval)),
     (Scopes::Character, "add_popularity", ScriptValue),
     (Scopes::Character, "add_prominence", ScriptValue),
     (Scopes::Character, "add_rival", Scope(Scopes::Character)),
     (Scopes::Character, "add_ruler_conviction", Unchecked),
     (Scopes::Character, "add_trait", Item(Item::CharacterTrait)),
-    (Scopes::Character, "add_triggered_character_modifier", Unchecked), // -tdb-
+    (Scopes::Character, "add_triggered_character_modifier", Vbv(validate_add_modifier)),
     (Scopes::Character, "adopt", Scope(Scopes::Character)),
     (Scopes::Character, "banish", Scope(Scopes::Country)),
     (Scopes::Character, "change_mercenary_employer", Scope(Scopes::Country)),
     (Scopes::Character, "clear_ambition", Boolean),
-    (Scopes::Character, "death", Unchecked), // -tdb-
-    (Scopes::Character, "deify_character", Unchecked), // -tdb-
+    (Scopes::Character, "death", Vb(validate_death)),
+    (Scopes::Character, "deify_character", Vb(validate_deify_character)),
     (Scopes::Character, "divorce_character", Scope(Scopes::Character)),
     (Scopes::Character, "end_pregnancy", Boolean),
     (Scopes::Character, "force_add_trait", Item(Item::CharacterTrait)),
@@ -60,7 +60,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "marry_character", Scope(Scopes::Character)),
     (Scopes::Character, "move_country", Scope(Scopes::Country)),
     (Scopes::Character, "move_country_with_message", Scope(Scopes::Country)),
-    (Scopes::Character, "pay_gold", Unchecked), // -tdb-
+    (Scopes::Character, "pay_gold", Unchecked),
     (Scopes::Character, "remove_all_offices", Boolean),
     (Scopes::Character, "remove_as_governor", Boolean),
     (Scopes::Character, "remove_as_mercenary", Boolean),
@@ -83,15 +83,15 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "set_home_country", Scope(Scopes::Country)),
     (Scopes::Character, "set_party_leader", Unchecked),
     (Scopes::Character, "update_character", Boolean),
-    (Scopes::Character.union(Scopes::Unit).union(Scopes::Legion), "add_legion_history", Unchecked), // -tdb-
+    (Scopes::Character.union(Scopes::Unit).union(Scopes::Legion), "add_legion_history", Vb(validate_legion_history)),
     (Scopes::Character.union(Scopes::Unit), "add_to_legion", Scope(Scopes::Legion)),
     (Scopes::Character, "disband_legion", Boolean),
     (Scopes::Character, "add_charisma", Integer),
     (Scopes::Character, "add_finesse", Integer),
     (Scopes::Character, "add_martial", Integer),
     (Scopes::Character, "add_zeal", Integer),
-    (Scopes::Character, "make_pregnant", Unchecked), // -tdb-
-    (Scopes::Governorship, "raise_legion", Unchecked), // TODO - these blocks should only check if there is a create_unit call inside of them
+    (Scopes::Character, "make_pregnant", Vb(validate_make_pregnant)),
+    (Scopes::Governorship, "raise_legion", Vb(validate_raise_legion)),
     (Scopes::Treasure, "destroy_treasure", Boolean),
     (Scopes::Treasure, "transfer_treasure_to_character", Scope(Scopes::Character)),
     (Scopes::Treasure, "transfer_treasure_to_country", Scope(Scopes::Country)),
@@ -99,22 +99,22 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "add_aggressive_expansion", ScriptValue),
     (Scopes::Country, "add_alliance", Scope(Scopes::Country)),
     (Scopes::Country, "add_centralization", ScriptValue),
-    (Scopes::Country, "add_country_modifier", Unchecked), // -tdb-
+    (Scopes::Country, "add_country_modifier", Vbv(validate_add_modifier)),
     (Scopes::Country, "add_guarantee", Scope(Scopes::Country)),
     (Scopes::Country, "add_innovation", Integer),
     (Scopes::Country, "add_legitimacy", ScriptValue),
     (Scopes::Country, "add_manpower", ScriptValue),
     (Scopes::Country, "add_military_access", Scope(Scopes::Country)),
     (Scopes::Country, "add_military_experience", ScriptValue),
-    (Scopes::Country, "add_new_family", Unchecked),
-    (Scopes::Country, "add_opinion", Unchecked), // -tdb-
-    (Scopes::Country, "add_party_approval", Unchecked), // -tdb-
+    (Scopes::Country, "add_new_family", Item(Item::Localization)),
+    (Scopes::Country, "add_opinion", Vb(validate_change_opinion)),
+    (Scopes::Country, "add_party_approval", Vb(validate_add_party_conviction_or_approval)),
     (Scopes::Country, "add_political_influence", ScriptValue),
-    (Scopes::Country, "add_research", Unchecked), // -tdb-
+    (Scopes::Country, "add_research", Vb(validate_add_research)),
     (Scopes::Country, "add_stability", ScriptValue),
-    (Scopes::Country, "add_to_war", Unchecked), // -tdb-
+    (Scopes::Country, "add_to_war", Vb(validate_add_to_war)),
     (Scopes::Country, "add_treasury", ScriptValue),
-    (Scopes::Country, "add_truce", Unchecked), // -tdb-
+    (Scopes::Country, "add_truce", Vb(validate_add_truce)),
     (Scopes::Country, "add_tyranny", ScriptValue),
     (Scopes::Country, "add_war_exhaustion", ScriptValue),
     (Scopes::Country, "change_country_adjective", Item(Item::Localization)),
@@ -124,22 +124,22 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "change_country_tag", Unchecked),
     (Scopes::Country, "change_government", Item(Item::GovernmentType)),
     (Scopes::Country, "change_law", Item(Item::Law)),
-    (Scopes::Country, "create_character", Unchecked), // -tdb-
-    (Scopes::Country, "create_country_treasure", Unchecked), // -tdb-
+    (Scopes::Country, "create_character", Vb(validate_create_character)),
+    (Scopes::Country, "create_country_treasure", Vb(validate_create_treasure)),
     (Scopes::Country, "create_family", Scope(Scopes::Character)),
-    (Scopes::Country, "declare_war_with_wargoal", Unchecked), // -tdb-
-    (Scopes::Country, "imprison", Unchecked),                 // -tdb-
+    (Scopes::Country, "declare_war_with_wargoal", Vb(validate_declare_war)),
+    (Scopes::Country, "imprison", Vb(validate_imprison)),
     (Scopes::Country, "integrate_country_culture", Scope(Scopes::CountryCulture)),
-    (Scopes::Country, "make_subject", Unchecked), // -tdb-
+    (Scopes::Country, "make_subject", Vb(validate_make_subject)),
     (Scopes::Country, "pay_price", Item(Item::Price)),
     (Scopes::Country, "recalc_succession", Boolean),
     (Scopes::Country, "refund_price", Item(Item::Price)),
-    (Scopes::Country, "release_prisoner", Unchecked), // -tdb-
+    (Scopes::Country, "release_prisoner", Vbv(validate_release_prisoner)),
     (Scopes::Country, "remove_country_modifier", Item(Item::Modifier)),
     (Scopes::Country, "remove_gurantee", Scope(Scopes::Country)),
-    (Scopes::Country, "remove_opinion", Unchecked), // -tdb-
+    (Scopes::Country, "remove_opinion", Vb(validate_change_opinion)),
     (Scopes::Country, "remove_party_leadership", Scope(Scopes::Party)),
-    (Scopes::Country, "reverse_add_opinion", Unchecked), // -tdb-
+    (Scopes::Country, "reverse_add_opinion", Vb(validate_change_opinion)),
     (Scopes::Country, "set_as_coruler", Scope(Scopes::Character)),
     (Scopes::Country, "set_as_ruler", Scope(Scopes::Character)),
     (Scopes::Country, "set_capital", Scope(Scopes::Province)),
@@ -162,12 +162,12 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Legion, "remove_distinction", Item(Item::LegionDistinction)),
     (Scopes::Legion, "remove_legion_unit", Unchecked),
     (Scopes::Siege, "add_breach", Integer),
-    (Scopes::Legion, "create_unit", Unchecked), // -tdb-
+    (Scopes::Legion, "create_unit", Vb(validate_create_unit)),
     (Scopes::Unit, "add_food", ScriptValue),
     (Scopes::Unit, "add_loyal_subunit", Item(Item::Unit)),
     (Scopes::Unit, "add_morale", ScriptValue),
     (Scopes::Unit, "add_subunit", Item(Item::Unit)),
-    (Scopes::Unit, "add_unit_modifier", Unchecked), // -tdb-
+    (Scopes::Unit, "add_unit_modifier", Vbv(validate_add_modifier)),
     (Scopes::Unit, "change_unit_owner", Scope(Scopes::Country)),
     (Scopes::Unit, "damage_unit_morale_percent", ScriptValue),
     (Scopes::Unit, "damage_unit_percent", ScriptValue),
@@ -199,17 +199,17 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Province, "add_building_level", Item(Item::Building)),
     (Scopes::Province, "add_civilization_value", ScriptValue),
     (Scopes::Province, "add_claim", Scope(Scopes::Country)),
-    (Scopes::Province, "add_permanent_province_modifier", Unchecked), // -tdb-
-    (Scopes::Province, "add_province_modifier", Unchecked),           // -tdb-
+    (Scopes::Province, "add_permanent_province_modifier", Vbv(validate_add_modifier)),
+    (Scopes::Province, "add_province_modifier", Vbv(validate_add_modifier)),
     (Scopes::Province, "add_road_towards", Scope(Scopes::Province)),
     (Scopes::Province, "add_state_loyalty", ScriptValue),
     (Scopes::Province, "add_vfx", Unchecked),
     (Scopes::Province, "begin_great_work_construction", Unchecked),
     (Scopes::Province, "change_province_name", Unchecked),
-    (Scopes::Province, "create_country", Unchecked),
+    (Scopes::Province, "create_country", Vb(validate_create_country)),
     (Scopes::Province, "create_pop", Item(Item::PopType)),
     (Scopes::Province, "create_state_pop", Item(Item::PopType)),
-    (Scopes::Province, "define_pop", Unchecked), // -tdb-
+    (Scopes::Province, "define_pop", Vb(validate_define_pop)),
     (Scopes::Province, "finish_great_work_construction", Unchecked),
     (Scopes::Province, "hide_model", Unchecked),
     (Scopes::Province, "remove_building_level", Item(Item::Building)),
@@ -226,7 +226,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Province, "set_trade_goods", Item(Item::TradeGood)),
     (Scopes::Province, "show_animated_text", Unchecked),
     (Scopes::Province, "show_model", Unchecked),
-    (Scopes::CountryCulture, "add_country_culture_modifier", Unchecked), // -tdb-
+    (Scopes::CountryCulture, "add_country_culture_modifier", Vbv(validate_add_modifier)),
     (Scopes::CountryCulture, "add_integration_progress", ScriptValue),
     (Scopes::CountryCulture, "remove_country_culture_modifier", Item(Item::Modifier)),
     (Scopes::CountryCulture, "set_country_culture_right", Item(Item::PopType)),
@@ -277,6 +277,6 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "set_variable", Vbv(validate_set_variable)),
     (Scopes::None, "show_as_tooltip", Control),
     (Scopes::None, "switch", Vb(validate_switch)),
-    (Scopes::None, "trigger_event", Unchecked),
+    (Scopes::None, "trigger_event", Vbv(validate_trigger_event)),
     (Scopes::None, "while", Control),
 ];

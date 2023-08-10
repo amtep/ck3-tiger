@@ -3,7 +3,6 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::validate::validate_color;
 use crate::token::Token;
 
 #[derive(Clone, Debug)]

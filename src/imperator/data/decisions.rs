@@ -2,13 +2,12 @@ use crate::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
+use crate::context::ScopeContext;
+use crate::scopes::Scopes;
 use crate::item::Item;
-use crate::modif::{validate_modifs, ModifKinds};
-use crate::validate::validate_color;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::desc::validate_desc;
 use crate::effect::validate_effect;
 use crate::validate::validate_modifiers_with_base;
 
@@ -24,6 +23,7 @@ impl Decision {
 impl DbKind for Decision {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+        let mut sc = ScopeContext::new(Scopes::Country, key);
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_desc");

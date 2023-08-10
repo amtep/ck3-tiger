@@ -1,22 +1,21 @@
-use crate::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::validate::validate_color;
 use crate::token::Token;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct LegionDistinctions {}
+pub struct Office {}
 
-impl LegionDistinctions {
+impl Office {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::LegionDistinctions, key, block, Box::new(Self {}));
+        db.add(Item::Office, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for LegionDistinctions {
+impl DbKind for Office {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -24,15 +23,18 @@ impl DbKind for LegionDistinctions {
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.field_item("icon", Item::File);
+        vd.field_choice("type", &["monarchy", "republic", "tribal"]);
+        vd.field_choice("skill", &["martial", "charisma", "zeal", "finesse"]);
 
-        vd.field_validated_block("commander", |block, data| {
+        vd.field_validated_block("skill_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Country, vd);
+        });
+
+        vd.field_validated_block("personal_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
-        vd.field_validated_block("unit", |block, data| {
-            let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Unit, vd);
-        });
+
     }
 }
