@@ -507,41 +507,6 @@ pub fn validate_effect_control(
         vd.ban_field("show_chance", || "`random_list` or `duel`");
     }
 
-    #[cfg(feature = "imperator")]
-    if caller == "raise_legion" {
-        vd.req_field_warn("create_unit");
-    }
-    #[cfg(feature = "imperator")]
-    if caller == "create_character" {
-        vd.field_value("first_name");
-        vd.field_value("dna");
-        vd.field_target("culture", sc, Scopes::Culture);
-        vd.field_target("religion", sc, Scopes::Religion);
-        vd.field_target("family", sc, Scopes::Family);
-        vd.field_target("father", sc, Scopes::Character);
-        vd.field_target("mother", sc, Scopes::Character);
-        vd.field_bool("female");
-        vd.field_bool("no_stats");
-        vd.field_bool("no_traits");
-        vd.field_value("age");
-        vd.field_target_or_integer("birth_province", sc, Scopes::Province);
-    }
-    #[cfg(feature = "imperator")]
-    if caller == "create_unit" {
-        vd.field_value("name");
-        vd.field_target("location", sc, Scopes::Province);
-        vd.field_bool("navy");
-        vd.field_item("sub_unit", Item::Unit);
-    }
-    #[cfg(feature = "imperator")]
-    if caller == "create_country" {
-        vd.field_validated_block("name", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_value("name");
-            vd.field_value("adjective");
-        });
-    }
-
     validate_effect_internal(caller, ListType::None, block, data, sc, vd, tooltipped);
 }
 

@@ -1,6 +1,6 @@
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
-use crate::effect::validate_effect_control;
+use crate::effect::validate_effect_internal;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
@@ -9,25 +9,8 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
-use crate::validate::validate_duration;
-use crate::validate::validate_optional_duration;
+use crate::validate::{validate_duration, validate_optional_duration, ListType};
 use crate::validator::Validator;
-
-// Make sure to add a case to validate_effect_control if the caller of this function has special fields
-fn validate_scoped_block(
-    key: &Token,
-    block: &Block,
-    data: &Everything,
-    sc: &mut ScopeContext,
-    mut _vd: Validator,
-    tooltipped: Tooltipped,
-    scopes: Scopes,
-) {
-    sc.open_scope(scopes, key.clone());
-    let caller = Lowercase::new(key.as_str());
-    validate_effect_control(&caller, block, data, sc, tooltipped);
-    sc.close()
-}
 
 pub fn validate_remove_subunit_loyalty(
     _key: &Token,
@@ -288,10 +271,14 @@ pub fn validate_raise_legion(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    vd: Validator,
+    mut vd: Validator,
     tooltipped: Tooltipped,
 ) {
-    validate_scoped_block(key, block, data, sc, vd, tooltipped, Scopes::Legion);
+    let caller = Lowercase::new(key.as_str());
+    sc.open_scope(Scopes::Legion, key.clone());
+    vd.req_field_warn("create_unit");
+    validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
+    sc.close()
 }
 
 pub fn validate_create_character(
@@ -299,10 +286,25 @@ pub fn validate_create_character(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    vd: Validator,
+    mut vd: Validator,
     tooltipped: Tooltipped,
 ) {
-    validate_scoped_block(key, block, data, sc, vd, tooltipped, Scopes::Character);
+    let caller = Lowercase::new(key.as_str());
+    sc.open_scope(Scopes::Character, key.clone());
+    vd.field_value("first_name");
+    vd.field_value("dna");
+    vd.field_target("culture", sc, Scopes::Culture);
+    vd.field_target("religion", sc, Scopes::Religion);
+    vd.field_target("family", sc, Scopes::Family);
+    vd.field_target("father", sc, Scopes::Character);
+    vd.field_target("mother", sc, Scopes::Character);
+    vd.field_bool("female");
+    vd.field_bool("no_stats");
+    vd.field_bool("no_traits");
+    vd.field_value("age");
+    vd.field_target_or_integer("birth_province", sc, Scopes::Province);
+    validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
+    sc.close()
 }
 
 pub fn validate_create_unit(
@@ -310,10 +312,17 @@ pub fn validate_create_unit(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    vd: Validator,
+    mut vd: Validator,
     tooltipped: Tooltipped,
 ) {
-    validate_scoped_block(key, block, data, sc, vd, tooltipped, Scopes::Unit);
+    let caller = Lowercase::new(key.as_str());
+    sc.open_scope(Scopes::Unit, key.clone());
+    vd.field_value("name");
+    vd.field_target("location", sc, Scopes::Province);
+    vd.field_bool("navy");
+    vd.field_item("sub_unit", Item::Unit);
+    validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
+    sc.close()
 }
 
 pub fn validate_create_country(
@@ -321,8 +330,17 @@ pub fn validate_create_country(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
-    vd: Validator,
+    mut vd: Validator,
     tooltipped: Tooltipped,
 ) {
-    validate_scoped_block(key, block, data, sc, vd, tooltipped, Scopes::Country);
+    let caller = Lowercase::new(key.as_str());
+    sc.open_scope(Scopes::Country, key.clone());
+    vd.field_validated_block("name", |block, data| {
+        let mut vd = Validator::new(block, data);
+        // TODO - imperator - I think these are localization keys
+        vd.field_value("name");
+        vd.field_value("adjective");
+    });
+    validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
+    sc.close()
 }
