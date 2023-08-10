@@ -1,13 +1,13 @@
-use crate::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::context::ScopeContext;
-use crate::scopes::Scopes;
 use crate::item::Item;
+use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Wargoal {}
@@ -31,7 +31,16 @@ impl DbKind for Wargoal {
         });
 
         vd.field_bool("uses_civil_war_conquest");
-        vd.field_choice("type", &["superiority", "take_province", "naval_superiority", "enforce_military_access", "independence"]);
+        vd.field_choice(
+            "type",
+            &[
+                "superiority",
+                "take_province",
+                "naval_superiority",
+                "enforce_military_access",
+                "independence",
+            ],
+        );
         vd.field_numeric("ticking_war_score");
 
         vd.field_validated_block("attacker", |block, data| {

@@ -1,15 +1,15 @@
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::context::ScopeContext;
-use crate::scopes::Scopes;
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::validator::Validator;
 use crate::trigger::validate_trigger;
-use crate::effect::validate_effect;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct SubjectType {}
@@ -29,27 +29,40 @@ impl DbKind for SubjectType {
 
         // Yes! There are actually that many loc keys!
         let prefixes = vec![
-            "OFFER_", "CANCEL_", "BREAK_",
-            "OFFER_", "CANCEL_", "BREAK_",
-            "OFFER_", "CANCEL_", "CANCEL_", "BREAK_",
-            "OFFER_", "CANCEL_", "BREAK_",
-            "OFFER_", "CANCEL_", "BREAK_", 
-            "OFFER_", "OFFER_", "OFFER_",
-            "OFFER_", "CANCEL_", "CANCEL_",
-            "BREAK_", "BREAK_", "AM_", "LEAD_"
+            "OFFER_", "CANCEL_", "BREAK_", "OFFER_", "CANCEL_", "BREAK_", "OFFER_", "CANCEL_",
+            "CANCEL_", "BREAK_", "OFFER_", "CANCEL_", "BREAK_", "OFFER_", "CANCEL_", "BREAK_",
+            "OFFER_", "OFFER_", "OFFER_", "OFFER_", "CANCEL_", "CANCEL_", "BREAK_", "BREAK_",
+            "AM_", "LEAD_",
         ];
 
         let suffixes = vec![
-            "{key}TITLE", "{key}TITLE", "{key}TITLE",
-            "{key}_CATEGORY", "{key}_CATEGORY", "{key}_CATEGORY",
-            "{key}_DESC", "{key}_DESC", "{key}_NEWDESC", "{key}_DESC",
-            "{key}_REQDESC", "{key}_REQDESC", "{key}_REQDESC",
-            "{key}_TOO_LOW", "{key}_NOT_IN_TRUCE", "{key}_NOT_IN_TRUCE", 
-            "{key}_ALREADY_SUBJECT", "{key}_AT_WAR", "{key}_TOOLTIP_HEADER",
-            "{key}_FLAVOR", "{key}_TOOLTIP_HEADER", "{key}_FLAVOR",
-            "{key}_TOOLTIP_HEADER", "{key}_FLAVOR", "{key}", "{key}"
+            "{key}TITLE",
+            "{key}TITLE",
+            "{key}TITLE",
+            "{key}_CATEGORY",
+            "{key}_CATEGORY",
+            "{key}_CATEGORY",
+            "{key}_DESC",
+            "{key}_DESC",
+            "{key}_NEWDESC",
+            "{key}_DESC",
+            "{key}_REQDESC",
+            "{key}_REQDESC",
+            "{key}_REQDESC",
+            "{key}_TOO_LOW",
+            "{key}_NOT_IN_TRUCE",
+            "{key}_NOT_IN_TRUCE",
+            "{key}_ALREADY_SUBJECT",
+            "{key}_AT_WAR",
+            "{key}_TOOLTIP_HEADER",
+            "{key}_FLAVOR",
+            "{key}_TOOLTIP_HEADER",
+            "{key}_FLAVOR",
+            "{key}_TOOLTIP_HEADER",
+            "{key}_FLAVOR",
+            "{key}",
+            "{key}",
         ];
-
 
         for (prefix, suffix) in prefixes.iter().zip(suffixes.iter()) {
             let loca = format!("{}{}", prefix, suffix.replace("{key}", key.as_str()));

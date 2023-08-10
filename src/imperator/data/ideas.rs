@@ -1,14 +1,14 @@
-use crate::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::token::Token;
-use crate::context::ScopeContext;
+use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
+use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::modif::{validate_modifs, ModifKinds};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Idea {}
@@ -36,9 +36,12 @@ impl DbKind for Idea {
             validate_trigger(b, data, &mut sc, Tooltipped::Yes);
         });
 
-        vd.field_choice("group", &["military_ideas", "civic_ideas", "oratory_ideas", "religious_ideas"]);
+        vd.field_choice(
+            "group",
+            &["military_ideas", "civic_ideas", "oratory_ideas", "religious_ideas"],
+        );
         vd.field_item("soundeffect", Item::Sound);
-        
+
         validate_modifs(block, data, ModifKinds::Country, vd);
     }
 }

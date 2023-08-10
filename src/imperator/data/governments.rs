@@ -1,4 +1,3 @@
-use crate::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
@@ -6,6 +5,7 @@ use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::token::Token;
 use crate::validate::validate_color;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct GovernmentType {}
@@ -45,7 +45,7 @@ impl DbKind for GovernmentType {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Country, vd);
         });
-        
-        vd.field_validated_block("color", validate_color);        
+
+        vd.field_validated_block("color", validate_color);
     }
 }

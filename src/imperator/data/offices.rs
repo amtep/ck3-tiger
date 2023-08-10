@@ -35,6 +35,5 @@ impl DbKind for Office {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
-
     }
 }

@@ -26,7 +26,7 @@ impl DbKind for ProvinceRank {
 
         vd.field_numeric("holy_site_treasure_slots");
         vd.field_bool("default");
-        vd.field_bool("is_established_city");        
+        vd.field_bool("is_established_city");
 
         vd.field_validated_block("rank_modifier", |block, data| {
             let vd = Validator::new(block, data);

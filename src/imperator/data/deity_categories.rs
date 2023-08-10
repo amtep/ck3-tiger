@@ -1,9 +1,9 @@
-use crate::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::token::Token;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct DeityCategory {}

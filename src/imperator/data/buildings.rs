@@ -1,15 +1,15 @@
-use crate::validator::Validator;
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::context::ScopeContext;
-use crate::scopes::Scopes;
 use crate::item::Item;
+use crate::modif::{validate_modifs, ModifKinds};
+use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
-use crate::modif::{validate_modifs, ModifKinds};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Building {}
@@ -48,8 +48,7 @@ impl DbKind for Building {
         // TODO - Not sure what to do with modification_display, it is extremely irregular so I just want to not validate the whole block
         // vd.field_validated_block("modification_display", |block, data| {
         // });
-        
-        validate_modifs(block, data, ModifKinds::Country, vd);
 
+        validate_modifs(block, data, ModifKinds::Country, vd);
     }
 }
