@@ -518,7 +518,7 @@ pub fn validate_effect_control(
 /// TODO: adding a "Block" syntax similar to that in triggers may be helpful. It could remove some
 /// of the variants that currently have very few users, and it could remove some of the special
 /// cases.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub enum Effect {
     /// No special value, just `effect = yes`.
     Yes,
