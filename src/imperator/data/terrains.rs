@@ -1,22 +1,22 @@
-use crate::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::validate::validate_color;
 use crate::token::Token;
+use crate::validate::validate_color;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct LegionDistinctions {}
+pub struct Terrain {}
 
-impl LegionDistinctions {
+impl Terrain {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::LegionDistinctions, key, block, Box::new(Self {}));
+        db.add(Item::Terrain, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for LegionDistinctions {
+impl DbKind for Terrain {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -24,15 +24,14 @@ impl DbKind for LegionDistinctions {
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.field_item("icon", Item::File);
+        vd.field_numeric("combat_width");
+        vd.field_numeric("defender");
 
-        vd.field_validated_block("commander", |block, data| {
+        vd.field_validated_block("province", |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Character, vd);
+            validate_modifs(block, data, ModifKinds::Province, vd);
         });
-        vd.field_validated_block("unit", |block, data| {
-            let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Unit, vd);
-        });
+
+        vd.field_validated_block("color", validate_color);
     }
 }

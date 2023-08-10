@@ -1,4 +1,4 @@
-use crate::datatype::{Arg, Args, Datatype, ImperatorDatatype};
+use crate::datatype::{Args, Datatype, ImperatorDatatype};
 use crate::scopes::Scopes;
 
 use Datatype::*;
