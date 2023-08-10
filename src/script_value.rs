@@ -297,7 +297,7 @@ pub fn validate_script_value(bv: &BV, data: &Everything, sc: &mut ScopeContext) 
     validate_bv(bv, data, sc, true);
 }
 
-#[cfg(feature = "ck3")] // happens not to be used by vic3; silence dead code warning
+#[cfg(any(feature = "ck3", feature = "imperator"))]// happens not to be used by vic3; silence dead code warning
 pub fn validate_script_value_no_breakdown(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     validate_bv(bv, data, sc, false);
 }

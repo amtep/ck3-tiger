@@ -4,9 +4,10 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::validate::validate_color;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
+use crate::context::ScopeContext;
+use crate::scopes::Scopes;
 use crate::trigger::validate_trigger;
 use crate::effect::validate_effect;
 
@@ -22,6 +23,7 @@ impl Deity {
 impl DbKind for Deity {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+        let mut sc = ScopeContext::new(Scopes::Country, key);
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("omen_{key}_desc");

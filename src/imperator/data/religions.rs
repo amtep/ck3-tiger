@@ -8,15 +8,15 @@ use crate::validate::validate_color;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct TradeGood {}
+pub struct Religion {}
 
-impl TradeGood {
+impl Religion {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::TradeGood, key, block, Box::new(Self {}));
+        db.add(Item::Religion, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for TradeGood {
+impl DbKind for Religion {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -24,23 +24,16 @@ impl DbKind for TradeGood {
         let loca = format!("{key}DESC");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.req_field("category");
-        vd.req_field("gold");
-        vd.req_field("province");
-        vd.req_field("country");
+        vd.req_field("modifier");
         vd.req_field("color");
+        vd.req_field("religion_category");
 
-        vd.field_numeric("category");
-        vd.field_numeric("gold");
+        vd.field_choice("religion_category", &["prophets", "pantheon", "firetemples", "sages"]);
+        vd.field_bool("can_deify_ruler");
+        vd.field_value("sacrifice_icon");
+        vd.field_item("sacrifice_sound", Item::Sound);
 
-        vd.field_item("allow_unit_type", Item::Unit);
-
-        vd.field_validated_block("province", |block, data| {
-            let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Province, vd);
-        });
-
-        vd.field_validated_block("country", |block, data| {
+        vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Country, vd);
         });

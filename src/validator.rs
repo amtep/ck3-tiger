@@ -13,7 +13,7 @@ use crate::report::fatal;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
-#[cfg(feature = "ck3")]
+#[cfg(any(feature = "ck3", feature = "imperator"))]
 use crate::script_value::validate_script_value_no_breakdown;
 use crate::token::Token;
 use crate::trigger::{validate_target, validate_target_ok_this};
@@ -384,6 +384,25 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// This is a combination of [`Validator::field_integer`] and [`Validator::field_target`].
+    /// Returns true if the field is present.
+    #[cfg(feature = "imperator")] // other games don't use, silence dead code warning.
+    pub fn field_target_or_integer(
+        &mut self,
+        name: &str,
+        sc: &mut ScopeContext,
+        outscopes: Scopes,
+    ) -> bool {
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                if token.expect_integer().is_some() {
+                    // TODO: pass max_severity here
+                    validate_target(token, self.data, sc, outscopes);
+                }
+            }
+        })
+    }
+
     /// Expect field `name`, if present, to be a definition `name = { block }`.
     /// Expect no more than one `name` field.
     /// No other validation is done.
@@ -514,7 +533,7 @@ impl<'a> Validator<'a> {
     /// Just like [`Validator::field_script_value`], but does not warn if it is an inline script value and the `desc` fields
     /// in it do not contain valid localizations. This is generally used for script values that will never be shown to
     /// the user except in debugging contexts, such as `ai_will_do`.
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
+    #[cfg(any(feature = "ck3", feature = "imperator"))] // vic3 happens not to use; silence dead code warning
     pub fn field_script_value_no_breakdown(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             // TODO: pass max_severity value down
