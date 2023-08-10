@@ -1,10 +1,10 @@
-use crate::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::token::Token;
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::token::Token;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CharacterTrait {}
@@ -41,6 +41,5 @@ impl DbKind for CharacterTrait {
         vd.no_warn_remaining();
 
         validate_modifs(block, data, ModifKinds::Character, vd);
-
     }
 }

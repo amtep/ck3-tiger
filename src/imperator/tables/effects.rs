@@ -83,7 +83,11 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "set_home_country", Scope(Scopes::Country)),
     (Scopes::Character, "set_party_leader", Unchecked),
     (Scopes::Character, "update_character", Boolean),
-    (Scopes::Character.union(Scopes::Unit).union(Scopes::Legion), "add_legion_history", Vb(validate_legion_history)),
+    (
+        Scopes::Character.union(Scopes::Unit).union(Scopes::Legion),
+        "add_legion_history",
+        Vb(validate_legion_history),
+    ),
     (Scopes::Character.union(Scopes::Unit), "add_to_legion", Scope(Scopes::Legion)),
     (Scopes::Character, "disband_legion", Boolean),
     (Scopes::Character, "add_charisma", Integer),
