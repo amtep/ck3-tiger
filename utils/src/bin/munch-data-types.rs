@@ -34,6 +34,20 @@ struct Cli {
     out: PathBuf,
 }
 
+fn remove_game_wrapper(sometype: &str) -> &str {
+    if let Some(sfx) = sometype.strip_prefix("Ck3(") {
+        if let Some(result) = sfx.strip_suffix(')') {
+            return result;
+        }
+    }
+    if let Some(sfx) = sometype.strip_prefix("Vic3(") {
+        if let Some(result) = sfx.strip_suffix(')') {
+            return result;
+        }
+    }
+    sometype
+}
+
 // fn load_types(fname: PathBuf) -> Result<HashSet<String>> {
 //     let types = read_to_string(&fname)?;
 //     if let Some((_, middle)) = types.split_once('{') {
@@ -61,6 +75,8 @@ const GENERIC_TYPES: &[&str] = &[
     "CVector4f",
     "CVector4i",
     "Date",
+    "Scope",
+    "TopScope",
     "bool",
     "double",
     "float",
@@ -123,12 +139,13 @@ fn load_globals(fname: PathBuf, game: Game) -> Result<HashMap<String, Global>> {
                 let line = line.strip_prefix("    (\"").context("parse error1")?;
                 let (name, line) = line.split_once("\", Args(&[").context("parse error2")?;
                 let line = line.strip_suffix("),").context("parse error3")?;
-                let (line, mut rtype) = line.rsplit_once("]), ").context("parse error4")?;
+                let (line, rtype) = line.rsplit_once("]), ").context("parse error4")?;
                 let args: Vec<_> = if line.is_empty() {
                     Vec::new()
                 } else {
                     line.split(", ").map(|s| s.to_owned()).collect()
                 };
+                let mut rtype = remove_game_wrapper(rtype);
                 let store;
                 if !GENERIC_TYPES.contains(&rtype) {
                     store = format!("{game}({rtype})");
@@ -202,9 +219,11 @@ fn load_nonglobals(fname: PathBuf, game: Game) -> Result<HashMap<String, NonGlob
             for line in middle.lines() {
                 let line = line.strip_prefix("    (\"").context("parse error1")?;
                 let (name, line) = line.split_once("\", ").context("parse error2")?;
-                let (mut dtype, line) = line.split_once(", Args(&[").context("parse error2b")?;
+                let (dtype, line) = line.split_once(", Args(&[").context("parse error2b")?;
                 let line = line.strip_suffix("),").context("parse error3")?;
-                let (line, mut rtype) = line.rsplit_once("]), ").context("parse error4")?;
+                let (line, rtype) = line.rsplit_once("]), ").context("parse error4")?;
+                let mut dtype = remove_game_wrapper(dtype);
+                let mut rtype = remove_game_wrapper(rtype);
                 let store;
                 if !GENERIC_TYPES.contains(&rtype) {
                     store = format!("{game}({rtype})");
@@ -302,6 +321,12 @@ fn parse_datafunction(
         rtype = "Unknown";
     } else if rtype == "_null_type_" {
         rtype = "void";
+    }
+    // Implement bugfixes to the game's logs
+    if name == "IntToFixedPoint" && rtype == "float" {
+        rtype = "CFixedPoint";
+    } else if name == "IntToUnsigned" && rtype == "float" {
+        rtype = "uint32";
     }
     let store;
     if !GENERIC_TYPES.contains(&rtype) {
