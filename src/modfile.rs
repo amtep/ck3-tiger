@@ -11,6 +11,7 @@ use crate::fileset::{FileEntry, FileKind};
 use crate::pdxfile::PdxFile;
 use crate::report::{untidy, warn, ErrorKey};
 use crate::token::Token;
+use crate::util::fix_slashes_for_target_platform;
 
 /// Representation of a `.mod` file and its contents.
 #[allow(dead_code)] // TODO, see below
@@ -99,7 +100,7 @@ impl ModFile {
         }
 
         let modpath = if let Some(path) = &self.path {
-            dirpath.join(path.as_str())
+            fix_slashes_for_target_platform(dirpath.join(path.as_str()))
         } else {
             eprintln!("No mod path found in modfile {}", modpathname.display());
             dirpath.to_path_buf()

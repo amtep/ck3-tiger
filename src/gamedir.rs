@@ -10,6 +10,8 @@ use winreg::enums::HKEY_LOCAL_MACHINE;
 #[cfg(windows)]
 use winreg::RegKey;
 
+use crate::util::fix_slashes_for_target_platform;
+
 // How to find steamapps dir on different systems
 const STEAM_LINUX: &str = ".local/share/Steam";
 const STEAM_LINUX_PROTON: &str = ".steam/steam";
@@ -40,9 +42,9 @@ pub fn find_game_directory_steam(steam_app_id: &str, game_dir: &Path) -> Option<
                 return steam_dir;
             }
             // Try the default directory too
-            let steam_dir = &home.join(try_dir).join(game_dir);
+            let steam_dir = home.join(try_dir).join(game_dir);
             if steam_dir.is_dir() {
-                return Some(steam_dir.clone());
+                return Some(fix_slashes_for_target_platform(steam_dir));
             }
         }
     }
@@ -55,9 +57,10 @@ pub fn find_game_directory_steam(steam_app_id: &str, game_dir: &Path) -> Option<
     if on_windows.is_some() {
         return on_windows;
     }
+
     let on_windows = PathBuf::from(STEAM_WINDOWS).join(game_dir);
     if on_windows.is_dir() {
-        return Some(on_windows);
+        return Some(fix_slashes_for_target_platform(on_windows));
     }
 
     // If the game is not in the default dirs, go via the registry to find Steam and then find the game
@@ -93,7 +96,7 @@ fn find_game_dir_in_steam_dir(steam_dir: &Path, app_id: &str, game_dir: &Path) -
             } else if key == app_id && found_path.is_some() {
                 let game_path = found_path.unwrap().join(game_dir);
                 if game_path.is_dir() {
-                    return Some(game_path);
+                    return Some(fix_slashes_for_target_platform(game_path));
                 }
                 return None;
             }
@@ -104,17 +107,11 @@ fn find_game_dir_in_steam_dir(steam_dir: &Path, app_id: &str, game_dir: &Path) -
 
 pub fn find_paradox_directory(dir_under: &Path) -> Option<PathBuf> {
     if let Some(home) = home_dir() {
-        let on_linux = home.join(PDX_LINUX).join(dir_under);
-        if on_linux.is_dir() {
-            return Some(on_linux);
-        }
-        let on_mac = home.join(PDX_MAC).join(dir_under);
-        if on_mac.is_dir() {
-            return Some(on_mac);
-        }
-        let on_windows = home.join(PDX_WINDOWS).join(dir_under);
-        if on_windows.is_dir() {
-            return Some(on_windows);
+        for try_dir in &[PDX_LINUX, PDX_MAC, PDX_WINDOWS] {
+            let full_try_dir = home.join(try_dir).join(dir_under);
+            if full_try_dir.is_dir() {
+                return Some(fix_slashes_for_target_platform(full_try_dir));
+            }
         }
     }
     None
