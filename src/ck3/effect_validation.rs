@@ -834,7 +834,7 @@ pub fn validate_pay_income(
     validate_optional_duration(&mut vd, sc);
 }
 
-pub fn validate_remove_from_current_phase_guest_subset(
+pub fn validate_current_phase_guest_subset(
     _key: &Token,
     _block: &Block,
     _data: &Everything,

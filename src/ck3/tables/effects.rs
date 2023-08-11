@@ -156,7 +156,11 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "add_to_activity", Scope(Scopes::Activity)),
     (Scopes::Character, "add_to_activity_without_travel", Scope(Scopes::Activity)),
     // TODO: figure out the name = parameter for this
-    (Scopes::Activity, "add_to_current_phase_guest_subset", UncheckedTodo),
+    (
+        Scopes::Activity,
+        "add_to_current_phase_guest_subset",
+        Vb(validate_current_phase_guest_subset),
+    ),
     (Scopes::None, "add_to_global_variable_list", Vb(validate_add_to_variable_list)),
     // TODO: figure out the parameters for this
     (Scopes::Activity, "add_to_guest_subset", Vb(validate_guest_subset)),
@@ -462,7 +466,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (
         Scopes::Activity,
         "remove_from_current_phase_guest_subset",
-        Vb(validate_remove_from_current_phase_guest_subset),
+        Vb(validate_current_phase_guest_subset),
     ),
     (Scopes::Activity, "remove_from_guest_subset", Vb(validate_guest_subset)),
     (Scopes::all_but_none(), "remove_from_list", Vv(validate_remove_from_list)),
