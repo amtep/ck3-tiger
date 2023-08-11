@@ -5,6 +5,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
+use crate::trigger::validate_target;
 use crate::validate::validate_optional_duration;
 use crate::validator::Validator;
 
@@ -33,6 +34,20 @@ pub fn validate_add_culture_sol_modifier(
 ) {
     vd.req_field("culture");
     vd.field_target("culture", sc, Scopes::Culture);
+    validate_optional_duration(&mut vd, sc);
+    vd.field_script_value("multiplier", sc); // seems to be actually an adder
+}
+
+pub fn validate_add_religion_sol_modifier(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("religion");
+    vd.field_target("religion", sc, Scopes::Religion);
     validate_optional_duration(&mut vd, sc);
     vd.field_script_value("multiplier", sc); // seems to be actually an adder
 }
@@ -138,6 +153,35 @@ pub fn validate_add_war_goal(
     vd.field_bool("primary_demand");
 }
 
+pub fn validate_remove_war_goal(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("who");
+    vd.field_item_or_target("who", sc, Item::Country, Scopes::Country);
+    vd.req_field("war_goal");
+    vd.field_item("war_goal", Item::Wargoal);
+}
+
+pub fn validate_addremove_backers(
+    _key: &Token,
+    _block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    for value in vd.values() {
+        if !data.item_exists(Item::Country, value.as_str()) {
+            validate_target(value, data, sc, Scopes::Country);
+        }
+    }
+}
+
 pub fn validate_call_election(
     _key: &Token,
     _block: &Block,
@@ -162,4 +206,63 @@ pub fn validate_change_institution_investment_level(
     vd.field_item("institution", Item::Institution);
     vd.req_field("investment");
     vd.field_integer("investment");
+}
+
+pub fn validate_diplomatic_pact(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("country");
+    vd.req_field("type");
+    vd.advice_field("tcountry", "documentation says tcountry but it's just country");
+    vd.field_item_or_target("country", sc, Item::Country, Scopes::Country);
+    vd.field_item("type", Item::DiplomaticAction);
+}
+
+pub fn validate_end_truce(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("country");
+    vd.advice_field("tcountry", "documentation says tcountry but it's just country");
+    vd.field_item_or_target("country", sc, Item::Country, Scopes::Country);
+    vd.field_integer("months");
+}
+
+pub fn validate_country_value(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("country");
+    vd.advice_field("tcountry", "documentation says tcountry but it's just country");
+    vd.req_field("value");
+    vd.field_item_or_target("country", sc, Item::Country, Scopes::Country);
+    vd.field_script_value("value", sc);
+}
+
+pub fn validate_set_secret_goal(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("country");
+    vd.advice_field("tcountry", "documentation says tcountry but it's just country");
+    vd.req_field("secret_goal");
+    vd.field_item_or_target("country", sc, Item::Country, Scopes::Country);
+    vd.field_item("secret_goal", Item::SecretGoal);
 }
