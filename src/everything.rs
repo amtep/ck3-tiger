@@ -95,7 +95,6 @@ use crate::ck3::data::{
     schemes::Scheme,
     scripted_animations::ScriptedAnimation,
     scripted_costs::ScriptedCost,
-    scripted_guis::ScriptedGui,
     scripted_illustrations::ScriptedIllustration,
     scripted_rules::ScriptedRule,
     secrets::Secret,
@@ -137,6 +136,7 @@ use crate::data::{
     portrait::{PortraitAnimation, PortraitCamera, PortraitModifierGroup, PortraitModifierPack},
     script_values::ScriptValues,
     scripted_effects::{Effect, Effects},
+    scripted_guis::ScriptedGui,
     scripted_lists::ScriptedLists,
     scripted_modifiers::ScriptedModifiers,
     scripted_triggers::{Trigger, Triggers},
@@ -155,9 +155,8 @@ use crate::imperator::data::{
     goods::TradeGood, governments::GovernmentType, governor_policies::GovernorPolicy, ideas::Idea,
     legion_distinctions::LegionDistinction, loyalty::Loyalty, offices::Office, opinions::Opinion,
     party_agendas::PartyAgenda, pop_types::PopType, prices::Price, province_ranks::ProvinceRank,
-    religions::Religion, scripted_guis::ScriptedGui, subject_types::SubjectType,
-    tech_tables::TechnologyTable, terrains::Terrain, traits::CharacterTrait,
-    unit_abilities::UnitAbility, war_goals::Wargoal,
+    religions::Religion, subject_types::SubjectType, tech_tables::TechnologyTable,
+    terrains::Terrain, traits::CharacterTrait, unit_abilities::UnitAbility, war_goals::Wargoal,
 };
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::misc::*;
@@ -610,6 +609,7 @@ impl Everything {
             PortraitModifierPack::add,
             ".modifierpack",
         );
+        self.load_pdx_items(Item::ScriptedGui, ScriptedGui::add);
         self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
     }
 
@@ -651,7 +651,6 @@ impl Everything {
         self.load_pdx_items(Item::Relation, Relation::add);
         self.load_pdx_items(Item::Terrain, Ck3Terrain::add);
         self.load_pdx_items(Item::Region, Region::add);
-        self.load_pdx_items(Item::ScriptedGui, ScriptedGui::add);
         self.load_pdx_items(Item::Amenity, Amenity::add);
         self.load_pdx_items(Item::CasusBelliGroup, CasusBelliGroup::add);
         self.load_pdx_items(Item::CasusBelli, CasusBelli::add);

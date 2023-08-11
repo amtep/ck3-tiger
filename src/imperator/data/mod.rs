@@ -28,7 +28,6 @@ pub mod pop_types;
 pub mod prices;
 pub mod province_ranks;
 pub mod religions;
-pub mod scripted_guis;
 pub mod subject_types;
 pub mod tech_tables;
 pub mod terrains;

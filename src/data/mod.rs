@@ -18,6 +18,7 @@ pub mod on_actions;
 pub mod portrait;
 pub mod script_values;
 pub mod scripted_effects;
+pub mod scripted_guis;
 pub mod scripted_lists;
 pub mod scripted_modifiers;
 pub mod scripted_triggers;
