@@ -100,23 +100,25 @@ fn main() -> Result<()> {
         eprintln!("Showing warnings for unused localization. There will be many false positives.");
     }
 
+    if args.modpath.is_dir() {
+        args.modpath.push("descriptor.mod");
+    }
     if args.no_color {
         // Disable colors both here and after reading the config, because reading the modfile and config may emit errors.
         disable_ansi_colors();
     }
 
-    if args.modpath.is_dir() {
-        let mut sig = args.modpath.clone();
-        sig.push(".metadata/metadata.json");
-        if !sig.is_file() {
-            bail!("{} does not look like a mod directory.", args.modpath.display());
-        }
+    let modfile = ModFile::read(&args.modpath)?;
+    let modpath = modfile.modpath();
+    if !modpath.exists() {
+        eprintln!("Looking for mod in {}", modpath.display());
+        bail!("Cannot find mod directory. Please make sure the .mod file is correct.");
     }
-    eprintln!("Using mod directory: {}", args.modpath.display());
+    eprintln!("Using mod directory: {}", modpath.display());
 
-    set_mod_root(args.modpath.clone());
+    set_mod_root(modpath.clone());
 
-    let mut everything = Everything::new(&args.imperator.unwrap(), &args.modpath, Vec::new())?;
+    let mut everything = Everything::new(&args.imperator.unwrap(), &modpath, Vec::new())?;
 
     // Print a blank line between the preamble and the first report:
     eprintln!();
