@@ -156,7 +156,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "add_to_activity", Scope(Scopes::Activity)),
     (Scopes::Character, "add_to_activity_without_travel", Scope(Scopes::Activity)),
     // TODO: figure out the name = parameter for this
-    (Scopes::Activity, "add_to_current_phase_guest_subset", Unchecked),
+    (Scopes::Activity, "add_to_current_phase_guest_subset", UncheckedTodo),
     (Scopes::None, "add_to_global_variable_list", Vb(validate_add_to_variable_list)),
     // TODO: figure out the parameters for this
     (Scopes::Activity, "add_to_guest_subset", Vb(validate_guest_subset)),
@@ -325,7 +325,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "end_pregnancy", Yes),
     (Scopes::Scheme, "end_scheme", Yes),
     (Scopes::StoryCycle, "end_story", Yes),
-    (Scopes::Struggle, "end_struggle", Unchecked), // not clear how this parameter is used
+    (Scopes::Struggle, "end_struggle", UncheckedTodo), // not clear how this parameter is used
     // "invalidated" is undocumented
     (Scopes::War, "end_war", Choice(&["attacker", "defender", "white_peace", "invalidated"])),
     (Scopes::Artifact, "equip_artifact_to_owner", Yes),
@@ -675,7 +675,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "start_scheme", Vb(validate_start_scheme)),
     (Scopes::None, "start_struggle", Vb(validate_start_struggle)),
     (Scopes::Character, "start_travel_plan", Vb(validate_start_travel_plan)),
-    (Scopes::None, "start_tutorial_lesson", Unchecked),
+    (Scopes::None, "start_tutorial_lesson", UncheckedTodo),
     (Scopes::Character, "start_war", Vb(validate_start_war)),
     (Scopes::Character, "store_localized_text_in_death", Unchecked),
     (Scopes::Character, "stress_impact", Vb(validate_stress_impact)),

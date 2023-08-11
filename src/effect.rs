@@ -327,7 +327,7 @@ pub fn validate_effect_internal<'a>(
                     let msg = format!("`{key}` was removed in {version}");
                     warn_info(key, ErrorKey::Removed, &msg, explanation);
                 }
-                Effect::Unchecked => (),
+                Effect::Unchecked | Effect::UncheckedTodo => (),
             }
             return;
         }
@@ -598,11 +598,12 @@ pub enum Effect {
     /// This variant is used by `custom_tooltip`.
     ControlOrLabel,
     /// This variant is for effects that can take any argument and it's not validated.
-    /// The effect is too unusual, or not worth checking, or we just haven't gotten around to
-    /// writing a validator for it.
+    /// The effect is too unusual, or not worth checking, or really any argument is fine.
     ///
     /// * Examples: `assert_if`, `debug_log`, `remove_variable`
     Unchecked,
+    /// This variant is for effects that we haven't gotten around to validating yet.
+    UncheckedTodo,
     /// The effect takes a literal string that is one of the options given here.
     ///
     /// * Example: `end_war = white_peace`
