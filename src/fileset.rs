@@ -19,7 +19,7 @@ use crate::item::Item;
 use crate::modfile::ModFile;
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{
-    add_loaded_mod_root, error, fatal, report, warn_abbreviated, warn_header, will_maybe_log,
+    add_loaded_mod_root, err, error, fatal, report, warn_abbreviated, warn_header, will_maybe_log,
     ErrorKey, Severity,
 };
 use crate::token::{Loc, Token};
@@ -238,32 +238,53 @@ impl Fileset {
             let default_label = || format!("MOD{mod_idx}");
             let label =
                 block.get_field_value("label").map_or_else(default_label, ToString::to_string);
-            if let Some(path) = block.get_field_value("modfile") {
-                let path = PathBuf::from(path.as_str());
-                if let Ok(modfile) = ModFile::read(&path) {
-                    let mod_name_append = if let Some(name) = modfile.display_name() {
-                        format!(" \"{name}\"")
-                    } else {
-                        String::new()
-                    };
-                    eprintln!(
-                        "Loading secondary mod {label} from: {}{}",
-                        modfile.modpath().display(),
-                        mod_name_append,
-                    );
-                    let kind = FileKind::LoadedMod(mod_idx);
-                    let loaded_mod = LoadedMod::new(
-                        kind,
-                        label.clone(),
-                        modfile.modpath().clone(),
-                        modfile.replace_paths(),
-                    );
-                    add_loaded_mod_root(label, loaded_mod.root.clone());
-                    self.loaded_mods.push(loaded_mod);
+            if Game::is_ck3() || Game::is_imperator() {
+                if let Some(path) = block.get_field_value("modfile") {
+                    let path = PathBuf::from(path.as_str());
+                    if let Ok(modfile) = ModFile::read(&path) {
+                        let mod_name_append = if let Some(name) = modfile.display_name() {
+                            format!(" \"{name}\"")
+                        } else {
+                            String::new()
+                        };
+                        eprintln!(
+                            "Loading secondary mod {label} from: {}{}",
+                            modfile.modpath().display(),
+                            mod_name_append,
+                        );
+                        let kind = FileKind::LoadedMod(mod_idx);
+                        let loaded_mod = LoadedMod::new(
+                            kind,
+                            label.clone(),
+                            modfile.modpath().clone(),
+                            modfile.replace_paths(),
+                        );
+                        add_loaded_mod_root(label, loaded_mod.root.clone());
+                        self.loaded_mods.push(loaded_mod);
+                    }
+                } else {
+                    let msg = "could not load secondary mod from config; missing `modfile` field";
+                    err(ErrorKey::Config).msg(msg).loc(block).push();
                 }
-            } else {
-                let msg = "could not load secondary mod from config; missing `modfile` field";
-                error(block, ErrorKey::Config, msg);
+            } else if Game::is_vic3() {
+                if let Some(path) = block.get_field_value("mod") {
+                    let pathdir = PathBuf::from(path.as_str());
+                    if pathdir.is_dir() && pathdir.join(".metadata/metadata.json").is_file() {
+                        // TODO: get human-friendly mod name from metadata
+                        eprintln!("Loading secondary mod {label} from: {}", pathdir.display(),);
+                        let kind = FileKind::LoadedMod(mod_idx);
+                        // replace_paths don't seem to be a thing in Vic3
+                        let loaded_mod = LoadedMod::new(kind, label.clone(), pathdir, Vec::new());
+                        add_loaded_mod_root(label, loaded_mod.root.clone());
+                        self.loaded_mods.push(loaded_mod);
+                    } else {
+                        let msg = format!("does not look like a mod dir: {}", pathdir.display());
+                        err(ErrorKey::Config).msg(msg).loc(path).push();
+                    }
+                } else {
+                    let msg = "could not load secondary mod from config; missing `mod` field";
+                    err(ErrorKey::Config).msg(msg).loc(block).push();
+                }
             }
         }
         self.config = Some(config);
