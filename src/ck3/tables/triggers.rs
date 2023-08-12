@@ -173,8 +173,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[
             ("defender", Scope(Scopes::Character)),
             ("casus_belli", Item(Item::CasusBelli)),
-            ("target_titles", ScopeList(Scopes::LandedTitle)),
-            ("claimant", Scope(Scopes::Character)),
+            ("?target_titles", ScopeList(Scopes::LandedTitle)),
+            ("?claimant", Scope(Scopes::Character)),
         ]),
     ),
     (Scopes::Army, "can_disband_army", Boolean),
