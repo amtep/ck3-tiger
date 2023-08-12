@@ -156,8 +156,10 @@ impl Db {
     }
 
     pub fn iter_keys(&self, itype: Item) -> impl Iterator<Item = &Token> {
-        self.database[itype as usize].values().map(|entry| &entry.key).chain(
-        self.flags[itype as usize].values())
+        self.database[itype as usize]
+            .values()
+            .map(|entry| &entry.key)
+            .chain(self.flags[itype as usize].values())
     }
 }
 

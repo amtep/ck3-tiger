@@ -71,7 +71,7 @@ impl FileHandler<Block> for TitleHistories {
             return None;
         }
 
-        PdxFile::read_cp1252(entry, fullpath)
+        PdxFile::read_detect_encoding(entry, fullpath)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {

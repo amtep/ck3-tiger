@@ -417,7 +417,7 @@ impl Everything {
 
     fn _read_config(name: &str, path: &Path) -> Option<Block> {
         let entry = FileEntry::new(PathBuf::from(name), FileKind::Mod);
-        PdxFile::read_no_bom(&entry, path)
+        PdxFile::read_optional_bom(&entry, path)
     }
 
     pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {
@@ -542,14 +542,16 @@ impl Everything {
 
     /// A helper function for categories of items that are unusual in having each item in one file.
     #[cfg(feature = "ck3")] // happens not to be used by vic3
-    fn load_pdx_files_cp1252<F>(&mut self, itype: Item, add: F)
+    fn load_pdx_files_detect_encoding<F>(&mut self, itype: Item, add: F)
     where
         F: Fn(&mut Db, Token, Block) + Sync + Send,
     {
         for (key, block) in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
             let filename = entry.filename().to_string_lossy();
             if let Some(key) = filename.strip_suffix(".txt") {
-                if let Some(block) = PdxFile::read_cp1252(entry, &self.fileset.fullpath(entry)) {
+                if let Some(block) =
+                    PdxFile::read_detect_encoding(entry, &self.fileset.fullpath(entry))
+                {
                     let key = Token::new(key, Loc::for_entry(entry));
                     Some((key, block))
                 } else {
@@ -737,7 +739,7 @@ impl Everything {
         self.load_pdx_items(Item::CombatEffect, CombatEffect::add);
         self.load_pdx_items(Item::ScriptedIllustration, ScriptedIllustration::add);
         self.load_pdx_items(Item::Flavorization, Flavorization::add);
-        self.load_pdx_files_cp1252(Item::CultureHistory, CultureHistory::add);
+        self.load_pdx_files_detect_encoding(Item::CultureHistory, CultureHistory::add);
         self.load_pdx_items(Item::Motto, Motto::add);
         self.load_pdx_items(Item::MottoInsert, MottoInsert::add);
         self.load_pdx_items(Item::CombatPhaseEvent, CombatPhaseEvent::add);

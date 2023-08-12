@@ -222,7 +222,8 @@ impl FileHandler<FileContent> for Ck3Provinces {
                 }
 
                 "default.map" => {
-                    return PdxFile::read_no_bom(entry, fullpath).map(FileContent::DefaultMap);
+                    return PdxFile::read_optional_bom(entry, fullpath)
+                        .map(FileContent::DefaultMap);
                 }
                 _ => (),
             }
