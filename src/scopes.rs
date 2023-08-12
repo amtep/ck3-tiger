@@ -321,6 +321,24 @@ pub fn validate_prefix_reference(
     }
 }
 
+/// Look up a token that's an invalid target, and see if it might be missing a prefix.
+/// Return the prefix if one was found.
+///
+/// `scopes` should be a singular `Scopes` flag.
+///
+/// Example: if the token is "irish" and `scopes` is `Scopes::Culture` then return
+/// `Some("culture")` to indicate that the token should have been "culture:irish".
+pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
+    match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::scopes::needs_prefix(arg, data, scopes),
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::scopes::needs_prefix(arg, data, scopes),
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::scopes::needs_prefix(arg, data, scopes),
+    }
+}
+
 /// Look up an iterator, which is a script element that executes its block multiple times, once for
 /// each applicable scope value. Iterators may be builtin (the usual case) or may be scripted lists.
 ///

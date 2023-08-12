@@ -48,21 +48,25 @@ impl ReportBuilderStage1 {
     fn new(key: ErrorKey, severity: Severity) -> Self {
         Self(key, severity, Confidence::Reasonable)
     }
+
     /// Optional step. Confidence defaults to Reasonable but this overrides it to Weak.
     pub fn weak(mut self) -> Self {
         self.2 = Confidence::Weak;
         self
     }
+
     /// Optional step. Confidence defaults to Reasonable but this overrides it to Strong.
     pub fn strong(mut self) -> Self {
         self.2 = Confidence::Strong;
         self
     }
+
     /// Optional step for when confidence is not known at compile time.
     pub fn conf(mut self, conf: Confidence) -> Self {
         self.2 = conf;
         self
     }
+
     /// Sets the main report message.
     pub fn msg<S: Own<String>>(self, msg: S) -> ReportBuilderStage2 {
         ReportBuilderStage2 { stage1: self, msg: msg.own(), info: None }
@@ -84,6 +88,13 @@ impl ReportBuilderStage2 {
         self.info = if info.is_empty() { None } else { Some(info.own()) };
         self
     }
+
+    /// Optional step. Adds an info section to the report if the `info` parameter is `Some`.
+    pub fn opt_info<S: Own<String>>(mut self, info: Option<S>) -> Self {
+        self.info = info.map(Own::own);
+        self
+    }
+
     pub fn loc<E: ErrorLoc>(self, eloc: E) -> ReportBuilderStage3 {
         let length = eloc.loc_length();
         ReportBuilderStage3 {
@@ -93,6 +104,7 @@ impl ReportBuilderStage2 {
             pointers: vec![PointedMessage { loc: eloc.into_loc(), length, msg: None }],
         }
     }
+
     #[cfg(feature = "ck3")] // vic3 happens not to use
     pub fn loc_msg<E: ErrorLoc, S: Own<String>>(self, eloc: E, msg: S) -> ReportBuilderStage3 {
         let length = eloc.loc_length();
@@ -103,6 +115,7 @@ impl ReportBuilderStage2 {
             pointers: vec![PointedMessage { loc: eloc.into_loc(), length, msg: Some(msg.own()) }],
         }
     }
+
     pub fn pointers(self, pointers: Vec<PointedMessage>) -> ReportBuilderStage3 {
         ReportBuilderStage3 { stage1: self.stage1, msg: self.msg, info: self.info, pointers }
     }

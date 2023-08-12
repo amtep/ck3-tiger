@@ -20,7 +20,7 @@ use crate::report::{
     advice_info, err, error, fatal, old_warn, warn2, warn_info, ErrorKey, Severity,
 };
 use crate::scopes::{
-    scope_iterator, scope_prefix, scope_to_scope, validate_prefix_reference, Scopes,
+    needs_prefix, scope_iterator, scope_prefix, scope_to_scope, validate_prefix_reference, Scopes,
 };
 use crate::script_value::validate_script_value;
 use crate::token::Token;
@@ -1049,10 +1049,20 @@ pub fn validate_target_ok_this(
                 sc.expect(inscopes, &Reason::Token(part.clone()));
             }
             sc.replace(Scopes::Value, part.clone());
-            // TODO: warn if trying to use iterator here
         } else {
+            // The part is not found. Issue an appropriate warning.
+            // TODO: warn if trying to use iterator here
+
+            // See if the user forgot a prefix like `faith:` or `cuture:`
+            let mut opt_info = None;
+            if first && last {
+                if let Some(prefix) = needs_prefix(part.as_str(), data, outscopes) {
+                    opt_info = Some(format!("did you mean `{prefix}:{part}` ?"));
+                }
+            };
+
             let msg = format!("unknown token `{part}`");
-            error(part, ErrorKey::UnknownField, &msg);
+            err(ErrorKey::UnknownField).msg(msg).opt_info(opt_info).loc(part).push();
             sc.close();
             return;
         }
