@@ -553,7 +553,7 @@ impl Localization {
     pub fn check_pod_loca(&self, data: &Everything) {
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {
-                for key in data.database.iter_itype_flags(Item::PerkTree) {
+                for key in data.database.iter_keys(Item::PerkTree) {
                     let loca = format!("{key}_name");
                     if let Some(entry) = hash.get(&loca) {
                         if let LocaValue::Text(token) = &entry.value {

@@ -20,7 +20,7 @@ impl StrategicRegion {
     pub fn crosscheck(data: &Everything) {
         // Each state must be part of one and only one stategic region.
         let mut seen = FnvHashMap::default();
-        for (key, block, _) in data.database.iter_itype(Item::StrategicRegion) {
+        for (key, block) in data.database.iter_key_block(Item::StrategicRegion) {
             if let Some(vec) = block.get_field_list("states") {
                 for token in vec {
                     if let Some(&other) = seen.get(token.as_str()) {
@@ -38,7 +38,7 @@ impl StrategicRegion {
                 }
             }
         }
-        for (key, _, _) in data.database.iter_itype(Item::StateRegion) {
+        for key in data.database.iter_keys(Item::StateRegion) {
             if !seen.contains_key(key.as_str()) {
                 let msg = format!("state {key} is not part of any strategic region");
                 err(ErrorKey::Validation).strong().msg(msg).loc(key).push();

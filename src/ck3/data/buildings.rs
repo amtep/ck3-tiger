@@ -35,7 +35,7 @@ impl Building {
 
     pub fn finalize(db: &mut Db) {
         let mut upgrades = Vec::new();
-        for (_, block, _) in db.iter_itype(Item::Building) {
+        for (_, block) in db.iter_key_block(Item::Building) {
             if let Some(token) = block.get_field_value("next_building") {
                 upgrades.push(token.to_string());
             }

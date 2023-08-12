@@ -151,23 +151,13 @@ impl Db {
         }
     }
 
-    /// TODO: Returns a Vec for now, should become an iterator.
-    pub fn iter_itype(&self, itype: Item) -> Vec<(&Token, &Block, &dyn DbKind)> {
-        let mut vec = Vec::new();
-        for entry in self.database[itype as usize].values() {
-            vec.push((&entry.key, &entry.block, &*entry.kind));
-        }
-        vec
+    pub fn iter_key_block(&self, itype: Item) -> impl Iterator<Item = (&Token, &Block)> {
+        self.database[itype as usize].values().map(|entry| (&entry.key, &entry.block))
     }
 
-    /// TODO: Returns a Vec for now, should become an iterator.
-    #[cfg(feature = "ck3")] // vic3 happens not to use
-    pub fn iter_itype_flags(&self, itype: Item) -> Vec<&Token> {
-        let mut vec = Vec::new();
-        for token in self.flags[itype as usize].values() {
-            vec.push(token);
-        }
-        vec
+    pub fn iter_keys(&self, itype: Item) -> impl Iterator<Item = &Token> {
+        self.database[itype as usize].values().map(|entry| &entry.key).chain(
+        self.flags[itype as usize].values())
     }
 }
 
