@@ -137,7 +137,7 @@ fn validate_mod(ck3: &Path, modpath: &Path, logdir: &Path) -> Result<()> {
     eprintln!("Writing error reports to {} ...", output_file.display());
     eprintln!("This will take a few seconds.");
 
-    let mut everything = Everything::new(ck3, &modpath, modfile.replace_paths())?;
+    let mut everything = Everything::new(Some(ck3), &modpath, modfile.replace_paths())?;
 
     // Unfortunately have to disable the colors by default because
     // on Windows there's no easy way to view a file that contains those escape sequences.

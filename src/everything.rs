@@ -322,13 +322,21 @@ pub struct Everything {
 }
 
 impl Everything {
+    /// Create a new `Everything` instance, ready for validating a mod.
+    ///
+    /// `vanilla_dir` is the path to the base game files. If it's `None`, then no vanilla files
+    /// will be loaded. This will seriously affect validation, but it's ok if you just want to load
+    /// and examine the mod files.
+    ///
+    /// `mod_root` is the path to the mod files. The config file will also be looked for there.
+    ///
+    /// `replace_paths` is from the similarly named field in the `.mod` file.
     pub fn new(
-        vanilla_dir: &Path,
+        vanilla_dir: Option<&Path>,
         mod_root: &Path,
         replace_paths: Vec<PathBuf>,
     ) -> Result<Self, FilesError> {
-        let mut fileset =
-            Fileset::new(vanilla_dir.to_path_buf(), mod_root.to_path_buf(), replace_paths);
+        let mut fileset = Fileset::new(vanilla_dir, mod_root.to_path_buf(), replace_paths);
 
         let config_file_name = match Game::game() {
             #[cfg(feature = "ck3")]

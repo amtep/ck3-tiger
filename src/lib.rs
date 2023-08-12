@@ -34,6 +34,7 @@ compile_error!("exactly one of the features \"ck3\", \"vic3\", \"imperator\" mus
 pub use crate::everything::Everything;
 pub use crate::game::Game;
 pub use crate::gamedir::{find_game_directory_steam, find_paradox_directory};
+pub use crate::item::Item;
 pub use crate::modfile::ModFile;
 pub use crate::report::{
     add_loaded_mod_root, disable_ansi_colors, emit_reports, log, set_mod_root, set_output_file,

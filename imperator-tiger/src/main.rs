@@ -115,7 +115,7 @@ fn main() -> Result<()> {
 
     set_mod_root(modpath.clone());
 
-    let mut everything = Everything::new(&args.imperator.unwrap(), &modpath, Vec::new())?;
+    let mut everything = Everything::new(args.imperator.as_deref(), &modpath, Vec::new())?;
 
     // Print a blank line between the preamble and the first report:
     eprintln!();

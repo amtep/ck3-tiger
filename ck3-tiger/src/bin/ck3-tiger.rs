@@ -120,7 +120,7 @@ fn main() -> Result<()> {
 
     set_mod_root(modpath.clone());
 
-    let mut everything = Everything::new(&args.ck3.unwrap(), &modpath, modfile.replace_paths())?;
+    let mut everything = Everything::new(args.ck3.as_deref(), &modpath, modfile.replace_paths())?;
 
     // Print a blank line between the preamble and the first report:
     eprintln!();

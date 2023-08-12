@@ -19,6 +19,7 @@ use crate::report::{Confidence, Severity};
 /// `german` and don't have the option of supplying something determined at runtime.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord, EnumIter)]
 #[strum(serialize_all = "snake_case")]
+#[non_exhaustive]
 // The item table is in several alphabetized sections. First the generic items, then items used by
 // multiple games, then a section for each game.
 //

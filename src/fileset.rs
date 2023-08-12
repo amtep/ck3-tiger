@@ -171,13 +171,13 @@ impl LoadedMod {
 #[derive(Debug)]
 pub struct Fileset {
     /// The CK3 game directory
-    vanilla_root: PathBuf,
+    vanilla_root: Option<PathBuf>,
 
     /// Extra CK3 directory loaded before vanilla
-    clausewitz_root: PathBuf,
+    clausewitz_root: Option<PathBuf>,
 
     /// Extra CK3 directory loaded before vanilla
-    jomini_root: PathBuf,
+    jomini_root: Option<PathBuf>,
 
     /// The mod being analyzed
     the_mod: LoadedMod,
@@ -202,13 +202,10 @@ pub struct Fileset {
 }
 
 impl Fileset {
-    pub fn new(vanilla_dir: PathBuf, mod_root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
-        let mut vanilla_root = vanilla_dir.clone();
-        vanilla_root.push("game");
-        let mut clausewitz_root = vanilla_dir.clone();
-        clausewitz_root.push("clausewitz");
-        let mut jomini_root = vanilla_dir;
-        jomini_root.push("jomini");
+    pub fn new(vanilla_dir: Option<&Path>, mod_root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
+        let vanilla_root = vanilla_dir.map(|dir| dir.join("game"));
+        let clausewitz_root = vanilla_dir.map(|dir| dir.join("clausewitz"));
+        let jomini_root = vanilla_dir.map(|dir| dir.join("jomini"));
 
         Fileset {
             vanilla_root,
@@ -326,15 +323,21 @@ impl Fileset {
     }
 
     pub fn scan_all(&mut self) -> Result<(), FilesError> {
-        self.scan(&self.clausewitz_root.clone(), FileKind::Clausewitz).map_err(|e| {
-            FilesError::VanillaUnreadable { path: self.clausewitz_root.clone(), source: e }
-        })?;
-        self.scan(&self.jomini_root.clone(), FileKind::Jomini).map_err(|e| {
-            FilesError::VanillaUnreadable { path: self.jomini_root.clone(), source: e }
-        })?;
-        self.scan(&self.vanilla_root.clone(), FileKind::Vanilla).map_err(|e| {
-            FilesError::VanillaUnreadable { path: self.vanilla_root.clone(), source: e }
-        })?;
+        if let Some(clausewitz_root) = self.clausewitz_root.clone() {
+            self.scan(&clausewitz_root.clone(), FileKind::Clausewitz).map_err(|e| {
+                FilesError::VanillaUnreadable { path: clausewitz_root.clone(), source: e }
+            })?;
+        }
+        if let Some(jomini_root) = &self.jomini_root.clone() {
+            self.scan(&jomini_root.clone(), FileKind::Jomini).map_err(|e| {
+                FilesError::VanillaUnreadable { path: jomini_root.clone(), source: e }
+            })?;
+        }
+        if let Some(vanilla_root) = &self.vanilla_root.clone() {
+            self.scan(&vanilla_root.clone(), FileKind::Vanilla).map_err(|e| {
+                FilesError::VanillaUnreadable { path: vanilla_root.clone(), source: e }
+            })?;
+        }
         // loaded_mods is cloned here for the borrow checker
         for loaded_mod in &self.loaded_mods.clone() {
             self.scan(loaded_mod.root(), loaded_mod.kind()).map_err(|e| {
@@ -387,12 +390,18 @@ impl Fileset {
         self.get_files_under(subpath).par_iter().filter_map(f).collect()
     }
 
+    /// Return the full filesystem path for a [`FileEntry`].
+    ///
+    /// ## Panic
+    /// This method may panic if given a `FileEntry` with a vanilla [`FileKind`] when no vanilla dir
+    /// has been configured. This should not be possible as long as you are using `FileKind`
+    /// objects that were supplied by this [`Fileset`] in the first place.
     pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {
         match entry.kind {
             FileKind::Internal => entry.path().to_path_buf(),
-            FileKind::Clausewitz => self.clausewitz_root.join(entry.path()),
-            FileKind::Jomini => self.jomini_root.join(entry.path()),
-            FileKind::Vanilla => self.vanilla_root.join(entry.path()),
+            FileKind::Clausewitz => self.clausewitz_root.as_ref().unwrap().join(entry.path()),
+            FileKind::Jomini => self.jomini_root.as_ref().unwrap().join(entry.path()),
+            FileKind::Vanilla => self.vanilla_root.as_ref().unwrap().join(entry.path()),
             FileKind::LoadedMod(idx) => self.loaded_mods[idx as usize].root.join(entry.path()),
             FileKind::Mod => self.the_mod.root.join(entry.path()),
         }

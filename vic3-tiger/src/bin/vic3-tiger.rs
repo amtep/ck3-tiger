@@ -111,7 +111,7 @@ fn main() -> Result<()> {
 
     set_mod_root(args.modpath.clone());
 
-    let mut everything = Everything::new(&args.vic3.unwrap(), &args.modpath, Vec::new())?;
+    let mut everything = Everything::new(args.vic3.as_deref(), &args.modpath, Vec::new())?;
 
     // Print a blank line between the preamble and the first report:
     eprintln!();
