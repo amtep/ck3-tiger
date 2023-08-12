@@ -38,14 +38,6 @@ impl BlockItem {
         }
     }
 
-    pub fn get_into_field(self) -> Option<Field> {
-        if let BlockItem::Field(field) = self {
-            Some(field)
-        } else {
-            None
-        }
-    }
-
     pub fn is_field(&self) -> bool {
         matches!(self, BlockItem::Field(_))
     }
@@ -78,6 +70,7 @@ impl BlockItem {
         }
     }
 
+    #[allow(dead_code)] // It's here for symmetry
     pub fn get_block(&self) -> Option<&Block> {
         if let BlockItem::Block(block) = self {
             Some(block)
@@ -125,14 +118,6 @@ impl BlockItem {
     pub fn expect_definition(&self) -> Option<(&Token, &Block)> {
         if let Some(field) = self.expect_field() {
             field.expect_definition()
-        } else {
-            None
-        }
-    }
-
-    pub fn get_into_definition(self) -> Option<(Token, Block)> {
-        if let Some(field) = self.get_into_field() {
-            field.get_into_definition()
         } else {
             None
         }

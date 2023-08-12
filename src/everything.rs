@@ -215,6 +215,7 @@ use crate::vic3::data::{
 use crate::vic3::tables::misc::*;
 
 #[derive(Debug, Error)]
+#[allow(clippy::enum_variant_names)]
 pub enum FilesError {
     #[error("Could not read game files at {path}")]
     VanillaUnreadable { path: PathBuf, source: walkdir::Error },

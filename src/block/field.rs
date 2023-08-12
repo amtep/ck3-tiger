@@ -18,6 +18,7 @@ impl Field {
         self.1
     }
 
+    #[allow(dead_code)] // It's here for symmetry
     pub fn into_bv(self) -> BV {
         self.2
     }
@@ -97,7 +98,8 @@ impl Field {
         }
     }
 
-    pub fn get_into_definition(self) -> Option<(Token, Block)> {
+    #[allow(dead_code)] // It's here for symmetry
+    pub fn into_definition(self) -> Option<(Token, Block)> {
         #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
             Field(key, Comparator::Equals(Single | Question), BV::Block(block)) => {
@@ -117,6 +119,7 @@ impl Field {
         }
     }
 
+    #[allow(dead_code)] // It's here for symmetry
     pub fn expect_assignment(&self) -> Option<(&Token, &Token)> {
         #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {

@@ -51,8 +51,6 @@ pub struct Errors {
     pub(crate) filter: ReportFilter,
     /// Output color and style configuration.
     pub(crate) styles: OutputStyle,
-    /// Currently unused
-    pub(crate) max_line_length: Option<usize>,
 
     /// All reports that passed the checks, stored here to be sorted before being emitted all at once.
     /// The "abbreviated" reports don't participate in this. They are still emitted immediately.
@@ -73,7 +71,6 @@ impl Default for Errors {
             filecache: FnvHashMap::default(),
             filter: ReportFilter::default(),
             styles: OutputStyle::default(),
-            max_line_length: None,
             storage: FnvHashSet::default(),
         }
     }
@@ -392,12 +389,6 @@ pub fn set_output_style(style: OutputStyle) {
 /// Disable color in the output.
 pub fn disable_ansi_colors() {
     Errors::get_mut().styles = OutputStyle::no_color();
-}
-
-/// TODO:
-pub fn set_max_line_length(max_line_length: usize) {
-    Errors::get_mut().max_line_length =
-        if max_line_length == 0 { None } else { Some(max_line_length) };
 }
 
 // =================================================================================================

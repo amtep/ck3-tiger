@@ -45,10 +45,7 @@ fn log_pointer(
     indentation: usize,
     severity: Severity,
 ) {
-    if previous.is_none()
-        || previous.unwrap().loc.path != pointer.loc.path
-        || previous.unwrap().loc.kind != pointer.loc.kind
-    {
+    if previous.is_none() || !previous.unwrap().loc.same_file(&pointer.loc) {
         // This pointer is not the same as the previous pointer. Print file location as well:
         log_line_file_location(errors, pointer, indentation);
     }

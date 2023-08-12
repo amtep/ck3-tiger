@@ -17,7 +17,7 @@ use crate::stringtable::StringTable;
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
-    pub path: PathTableIndex,
+    pub(crate) path: PathTableIndex,
     pub kind: FileKind,
     /// line 0 means the loc applies to the file as a whole.
     pub line: u32,
@@ -27,11 +27,13 @@ pub struct Loc {
 }
 
 impl Loc {
-    pub fn for_file(pathname: PathBuf, kind: FileKind) -> Self {
+    #[must_use]
+    pub(crate) fn for_file(pathname: PathBuf, kind: FileKind) -> Self {
         let path = PathTable::store(pathname);
         Loc { path, kind, line: 0, column: 0, link: None }
     }
 
+    #[must_use]
     pub fn for_entry(entry: &FileEntry) -> Self {
         if let Some(path) = entry.path_idx() {
             Loc { path, kind: entry.kind(), line: 0, column: 0, link: None }
@@ -46,6 +48,10 @@ impl Loc {
 
     pub fn pathname(&self) -> &'static Path {
         PathTable::lookup(self.path)
+    }
+
+    pub fn same_file(&self, other: &Loc) -> bool {
+        self.path == other.path && self.kind == other.kind
     }
 }
 
@@ -71,14 +77,17 @@ pub struct Token {
 }
 
 impl Token {
+    #[must_use]
     pub fn new(s: &str, loc: Loc) -> Self {
         Token { s: StringTable::store(s), loc }
     }
 
+    #[must_use]
     pub fn from_static_str(s: &'static str, loc: Loc) -> Self {
         Token { s, loc }
     }
 
+    #[must_use]
     pub fn subtoken<R>(&self, range: R, loc: Loc) -> Token
     where
         R: RangeBounds<usize> + SliceIndex<str, Output = str>,
@@ -102,6 +111,7 @@ impl Token {
         self.s.starts_with(s)
     }
 
+    #[must_use]
     pub fn split(&self, ch: char) -> Vec<Token> {
         let mut pos = 0;
         let mut vec = Vec::new();
@@ -123,10 +133,12 @@ impl Token {
         vec
     }
 
+    #[must_use]
     pub fn strip_suffix(&self, sfx: &str) -> Option<Token> {
         self.s.strip_suffix(sfx).map(|pfx| Token::from_static_str(pfx, self.loc.clone()))
     }
 
+    #[must_use]
     pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             let cols = u32::try_from(cols).expect("internal error: 4GB token");
@@ -142,6 +154,7 @@ impl Token {
     }
 
     /// Split the token at the first instance of ch, such that ch is part of the first returned token.
+    #[must_use]
     pub fn split_after(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             let cols = u32::try_from(cols).expect("internal error: 4GB token");
@@ -165,6 +178,7 @@ impl Token {
         self.s = StringTable::store(&s);
     }
 
+    #[must_use]
     pub fn trim(&self) -> Token {
         let mut real_start = None;
         let mut real_end = self.s.len();

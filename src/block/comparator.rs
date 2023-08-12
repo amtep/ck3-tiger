@@ -1,7 +1,5 @@
 use std::fmt::{Display, Error, Formatter};
 
-use crate::token::Token;
-
 use crate::block::comparator::Eq::*;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -34,6 +32,7 @@ pub enum Eq {
 }
 
 impl Comparator {
+    // TODO: implement FromStr or TryFrom<str> instead
     pub fn from_str(s: &str) -> Option<Self> {
         if s == "=" {
             Some(Comparator::Equals(Single))
@@ -54,9 +53,6 @@ impl Comparator {
         } else {
             None
         }
-    }
-    pub fn from_token(token: &Token) -> Option<Self> {
-        Self::from_str(token.as_str())
     }
 }
 

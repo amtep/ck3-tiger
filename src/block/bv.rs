@@ -45,17 +45,7 @@ impl BV {
         }
     }
 
-    pub fn is_value(&self) -> bool {
-        match self {
-            BV::Value(_) => true,
-            BV::Block(_) => false,
-        }
-    }
-
-    pub fn is_block(&self) -> bool {
-        !self.is_value()
-    }
-
+    #[allow(dead_code)] // It's here for symmetry
     pub fn into_value(self) -> Option<Token> {
         match self {
             BV::Value(t) => Some(t),
@@ -80,6 +70,7 @@ impl BV {
         }
     }
 
+    #[allow(dead_code)] // It's here for symmetry
     pub fn expect_into_block(self) -> Option<Block> {
         match self {
             BV::Value(_) => {

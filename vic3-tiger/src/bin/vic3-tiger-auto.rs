@@ -5,11 +5,10 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Result};
 use console::Term;
 
-use tiger_lib::everything::Everything;
-use tiger_lib::game::Game;
-use tiger_lib::gamedir::{find_game_directory_steam, find_paradox_directory};
-use tiger_lib::modfile::ModFile;
-use tiger_lib::report::{emit_reports, set_mod_root, set_output_file, set_vanilla_dir};
+use tiger_lib::{
+    emit_reports, find_game_directory_steam, find_paradox_directory, set_mod_root, set_output_file,
+    set_vanilla_dir, Everything, Game, ModFile,
+};
 
 /// Steam's code for Victoria 3
 const VIC3_APP_ID: &str = "529340";

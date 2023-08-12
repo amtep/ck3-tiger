@@ -133,11 +133,13 @@ impl Block {
     }
 
     /// Get the value of a literal integer field
+    #[allow(dead_code)] // Not used by all games
     pub fn get_field_integer(&self, name: &str) -> Option<i64> {
         self.get_field_value(name).and_then(Token::get_integer)
     }
 
     /// Get the value of a literal date field
+    #[allow(dead_code)] // Not used by all games
     pub fn get_field_date(&self, name: &str) -> Option<Date> {
         self.get_field_value(name).and_then(Token::get_date)
     }
@@ -241,6 +243,7 @@ impl Block {
     }
 
     /// Return the number of times `name` occurs in this block as a field key.
+    #[allow(dead_code)] // Not used by all games
     pub fn count_keys(&self, name: &str) -> usize {
         let mut count = 0;
         for Field(key, _, _) in self.iter_fields() {
@@ -270,6 +273,7 @@ impl Block {
 
     /// Return an iterator over all the `key = ...` fields in this block, while warning about loose values
     /// and loose blocks.
+    #[allow(dead_code)] // Not used by all games
     pub fn iter_fields_warn(&self) -> IterFields {
         IterFields { iter: self.v.iter(), warn: true }
     }
@@ -281,6 +285,7 @@ impl Block {
 
     /// Return an iterator over all the `key = value` fields in this block, while warning about
     /// every other kind of content.
+    #[allow(dead_code)] // It's here for symmetry
     pub fn iter_assignments_warn(&self) -> IterAssignments {
         IterAssignments { iter: self.v.iter(), warn: true }
     }
@@ -299,6 +304,7 @@ impl Block {
     /// Return an iterator over all the `key = value` and `key = { ... }` fields in this block,
     /// ignoring every other kind of content.
     /// It differs from [`Block::iter_fields`] in that it requires the comparator to be `=`.
+    #[allow(dead_code)] // It's here for symmetry
     pub fn iter_assignments_and_definitions(&self) -> IterAssignmentsAndDefinitions {
         IterAssignmentsAndDefinitions { iter: self.v.iter(), warn: false }
     }
@@ -332,6 +338,7 @@ impl Block {
     }
 
     /// Iterate over the loose sub-blocks in the block, while warning about everything else.
+    #[allow(dead_code)] // It's here for symmetry
     pub fn iter_blocks_warn(&self) -> IterBlocks {
         IterBlocks { iter: self.v.iter(), warn: true }
     }
@@ -340,6 +347,7 @@ impl Block {
     /// field `name` would have at the given `date`. The field value that's directly in this block,
     /// not in any history block, is considered to be the field value at the beginning of time.
     /// History fields are ones that have a date as the key, like `900.1.1 = { ... }`.
+    #[allow(dead_code)] // Not used by all games
     pub fn get_field_at_date(&self, name: &str, date: Date) -> Option<&BV> {
         let mut found_date: Option<Date> = None;
         let mut found: Option<&BV> = None;
@@ -360,6 +368,7 @@ impl Block {
     }
 
     /// Just like [`Block::get_field_at_date`] but only for fields that have values (not blocks).
+    #[allow(dead_code)] // Not used by all games
     pub fn get_field_value_at_date(&self, name: &str, date: Date) -> Option<&Token> {
         self.get_field_at_date(name, date).and_then(BV::get_value)
     }

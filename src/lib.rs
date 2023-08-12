@@ -31,11 +31,16 @@ compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled 
 #[cfg(all(not(feature = "ck3"), not(feature = "vic3"), not(feature = "imperator")))]
 compile_error!("exactly one of the features \"ck3\", \"vic3\", \"imperator\" must be enabled");
 
-pub mod everything;
-pub mod game;
-pub mod gamedir;
-pub mod modfile;
-pub mod report;
+pub use crate::everything::Everything;
+pub use crate::game::Game;
+pub use crate::gamedir::{find_game_directory_steam, find_paradox_directory};
+pub use crate::modfile::ModFile;
+pub use crate::report::{
+    add_loaded_mod_root, disable_ansi_colors, emit_reports, log, set_mod_root, set_output_file,
+    set_output_style, set_show_loaded_mods, set_show_vanilla, set_vanilla_dir, take_reports,
+    Confidence, LogReport, PointedMessage, Severity,
+};
+pub use crate::token::{Loc, Token};
 
 #[cfg(feature = "ck3")]
 mod ck3;
@@ -55,17 +60,22 @@ mod dds;
 mod desc;
 mod effect;
 mod effect_validation;
+mod everything;
 mod fileset;
+mod game;
+mod gamedir;
 mod gui;
 mod helpers;
 mod item;
 mod lowercase;
 mod macrocache;
+mod modfile;
 mod modif;
 mod on_action;
 mod parse;
 mod pathtable;
 mod pdxfile;
+mod report;
 mod rivers;
 mod scopes;
 mod script_value;
