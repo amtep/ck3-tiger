@@ -1,5 +1,6 @@
 //! Track all the files (vanilla and mods) that are relevant to the current validation.
 
+use std::cmp::Ordering;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
@@ -43,7 +44,7 @@ pub enum FileKind {
     Mod,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FileEntry {
     /// Pathname components below the mod directory or the vanilla game dir
     /// Must not be empty.
@@ -54,12 +55,14 @@ pub struct FileEntry {
     /// A `FileEntry` might not have this index, because `FileEntry` needs to be usable before the (ordered)
     /// path table is created.
     idx: Option<PathTableIndex>,
+    /// The full filesystem path of this entry. Not used for ordering or equality.
+    fullpath: PathBuf,
 }
 
 impl FileEntry {
-    pub fn new(path: PathBuf, kind: FileKind) -> Self {
+    pub fn new(path: PathBuf, kind: FileKind, fullpath: PathBuf) -> Self {
         assert!(path.file_name().is_some());
-        Self { path, kind, idx: None }
+        Self { path, kind, idx: None, fullpath }
     }
 
     pub fn kind(&self) -> FileKind {
@@ -68,6 +71,10 @@ impl FileEntry {
 
     pub fn path(&self) -> &Path {
         &self.path
+    }
+
+    pub fn fullpath(&self) -> &Path {
+        &self.fullpath
     }
 
     /// Convenience function
@@ -79,7 +86,7 @@ impl FileEntry {
 
     fn store_in_pathtable(&mut self) {
         assert!(self.idx.is_none());
-        self.idx = Some(PathTable::store(self.path.clone()));
+        self.idx = Some(PathTable::store(self.path.clone(), self.fullpath.clone()));
     }
 
     pub fn path_idx(&self) -> Option<PathTableIndex> {
@@ -90,6 +97,30 @@ impl FileEntry {
 impl Display for FileEntry {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), std::fmt::Error> {
         write!(fmt, "{}", self.path.display())
+    }
+}
+
+impl PartialOrd for FileEntry {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for FileEntry {
+    fn cmp(&self, other: &Self) -> Ordering {
+        // Compare idx if available (for speed), otherwise compare the paths.
+        let path_ord = if self.idx.is_some() && other.idx.is_some() {
+            self.idx.unwrap().cmp(&other.idx.unwrap())
+        } else {
+            self.path.cmp(&other.path)
+        };
+
+        // For same paths, the later [`FileKind`] wins.
+        if path_ord == Ordering::Equal {
+            self.kind.cmp(&other.kind)
+        } else {
+            path_ord
+        }
     }
 }
 
@@ -107,7 +138,7 @@ pub trait FileHandler<T: Send>: Sync + Send {
     /// If a `T` is returned, it will be passed to `handle_file` later.
     /// Since `load_file` is executed multi-threaded while `handle_file`
     /// is single-threaded, try to do the heavy work in this function.
-    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<T>;
+    fn load_file(&self, entry: &FileEntry) -> Option<T>;
 
     /// This is called for each matching file in turn, in lexical order.
     /// That's the order in which the CK3 game engine loads them too.
@@ -249,7 +280,7 @@ impl Fileset {
                             modfile.modpath().clone(),
                             modfile.replace_paths(),
                         );
-                        add_loaded_mod_root(label, loaded_mod.root.clone());
+                        add_loaded_mod_root(label);
                         self.loaded_mods.push(loaded_mod);
                     }
                 } else {
@@ -265,7 +296,7 @@ impl Fileset {
                         let kind = FileKind::LoadedMod(mod_idx);
                         // replace_paths don't seem to be a thing in Vic3
                         let loaded_mod = LoadedMod::new(kind, label.clone(), pathdir, Vec::new());
-                        add_loaded_mod_root(label, loaded_mod.root.clone());
+                        add_loaded_mod_root(label);
                         self.loaded_mods.push(loaded_mod);
                     } else {
                         let msg = format!("does not look like a mod dir: {}", pathdir.display());
@@ -310,7 +341,11 @@ impl Fileset {
             if self.should_replace(inner_dir, kind) {
                 continue;
             }
-            self.files.push(FileEntry::new(inner_path.to_path_buf(), kind));
+            self.files.push(FileEntry::new(
+                inner_path.to_path_buf(),
+                kind,
+                entry.path().to_path_buf(),
+            ));
         }
         Ok(())
     }
@@ -385,30 +420,13 @@ impl Fileset {
         self.get_files_under(subpath).par_iter().filter_map(f).collect()
     }
 
-    /// Return the full filesystem path for a [`FileEntry`].
-    ///
-    /// ## Panic
-    /// This method may panic if given a `FileEntry` with a vanilla [`FileKind`] when no vanilla dir
-    /// has been configured. This should not be possible as long as you are using `FileKind`
-    /// objects that were supplied by this [`Fileset`] in the first place.
-    pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {
-        match entry.kind {
-            FileKind::Internal => entry.path().to_path_buf(),
-            FileKind::Clausewitz => self.clausewitz_root.as_ref().unwrap().join(entry.path()),
-            FileKind::Jomini => self.jomini_root.as_ref().unwrap().join(entry.path()),
-            FileKind::Vanilla => self.vanilla_root.as_ref().unwrap().join(entry.path()),
-            FileKind::LoadedMod(idx) => self.loaded_mods[idx as usize].root.join(entry.path()),
-            FileKind::Mod => self.the_mod.root.join(entry.path()),
-        }
-    }
-
     pub fn handle<T: Send, H: FileHandler<T>>(&self, handler: &mut H) {
         if let Some(config) = &self.config {
             handler.config(config);
         }
         let subpath = handler.subpath();
         let entries = self.filter_map_under(&subpath, |entry| {
-            handler.load_file(entry, &self.fullpath(entry)).map(|loaded| (entry.clone(), loaded))
+            handler.load_file(entry).map(|loaded| (entry.clone(), loaded))
         });
         for (entry, loaded) in entries {
             handler.handle_file(&entry, loaded);

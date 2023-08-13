@@ -3,7 +3,6 @@
 /// Unfortunately can't use serde-json because we need the locations for error reporting.
 use std::fs::read_to_string;
 use std::mem::{swap, take};
-use std::path::Path;
 
 use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
@@ -241,8 +240,8 @@ pub fn parse_json(entry: &FileEntry, content: &str) -> Block {
 }
 
 #[allow(clippy::module_name_repetitions)]
-pub fn parse_json_file(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
-    let contents = match read_to_string(fullpath) {
+pub fn parse_json_file(entry: &FileEntry) -> Option<Block> {
+    let contents = match read_to_string(entry.fullpath()) {
         Ok(contents) => contents,
         Err(e) => {
             error_info(entry, ErrorKey::ReadError, "could not read file", &format!("{e:#}"));

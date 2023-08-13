@@ -603,11 +603,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
         PathBuf::from("localization")
     }
 
-    fn load_file(
-        &self,
-        entry: &FileEntry,
-        fullpath: &Path,
-    ) -> Option<(&'static str, Vec<LocaEntry>)> {
+    fn load_file(&self, entry: &FileEntry) -> Option<(&'static str, Vec<LocaEntry>)> {
         let depth = entry.path().components().count();
         assert!(depth >= 2);
         assert!(entry.path().starts_with("localization"));
@@ -634,7 +630,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
             if filelang != lang && KNOWN_LANGUAGES.contains(&&*lang) {
                 warn_info(entry, ErrorKey::Filename, "localization file with wrong name or in wrong directory", "A localization file should be in a subdirectory corresponding to its language.");
             }
-            match read_to_string(fullpath) {
+            match read_to_string(entry.fullpath()) {
                 Ok(content) => {
                     return Some((filelang, parse_loca(entry, &content, filelang).collect()));
                 }

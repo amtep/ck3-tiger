@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use fnv::FnvHashMap;
 
@@ -126,13 +126,13 @@ impl FileHandler<Option<Block>> for Assets {
     }
 
     /// TODO: should probably simplify this `FileHandler` by keeping the textures in a separate `FileHandler`.
-    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Option<Block>> {
+    fn load_file(&self, entry: &FileEntry) -> Option<Option<Block>> {
         let name = entry.filename().to_string_lossy();
 
         if name.ends_with(".dds") {
             Some(None)
         } else if name.ends_with(".asset") {
-            PdxFile::read_optional_bom(entry, fullpath).map(Some)
+            PdxFile::read_optional_bom(entry).map(Some)
         } else {
             None
         }

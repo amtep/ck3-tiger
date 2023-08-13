@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use fnv::FnvHashMap;
 
@@ -92,12 +92,12 @@ impl FileHandler<Block> for Coas {
         PathBuf::from("common/coat_of_arms/coat_of_arms/")
     }
 
-    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return None;
         }
 
-        PdxFile::read_optional_bom(entry, fullpath)
+        PdxFile::read_optional_bom(entry)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, block: Block) {

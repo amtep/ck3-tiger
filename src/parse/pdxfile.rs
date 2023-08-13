@@ -1083,7 +1083,7 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
 /// Parse a string into a [`Block`]. This function is meant for use by the validator itself, to
 /// allow it to load game description data from internal strings that are in pdx script format.
 pub fn parse_pdx_internal(input: &str, desc: &str) -> Block {
-    let entry = FileEntry::new(PathBuf::from(desc), FileKind::Internal);
+    let entry = FileEntry::new(PathBuf::from(desc), FileKind::Internal, PathBuf::from(desc));
     parse_pdx(&entry, input)
 }
 

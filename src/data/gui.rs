@@ -1,7 +1,7 @@
 //! Validate files in `gui/`
 
 use std::mem::drop;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
 use fnv::FnvHashMap;
@@ -263,12 +263,12 @@ impl FileHandler<Block> for Gui {
         PathBuf::from("gui")
     }
 
-    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".gui") {
             return None;
         }
 
-        PdxFile::read_optional_bom(entry, fullpath)
+        PdxFile::read_optional_bom(entry)
     }
 
     fn handle_file(&mut self, entry: &FileEntry, mut block: Block) {

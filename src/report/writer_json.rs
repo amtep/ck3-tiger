@@ -11,10 +11,11 @@ pub fn log_report_json(errors: &mut Errors, report: &LogReport) {
         .iter()
         .map(|pointer| {
             let path = pointer.loc.pathname();
+            let fullpath = pointer.loc.fullpath();
             json!({
                 "path": path,
                 "from": kind_tag(errors, pointer.loc.kind),
-                "fullpath": errors.get_fullpath(pointer.loc.kind, path),
+                "fullpath": fullpath,
                 "linenr": if pointer.loc.line == 0 { None } else { Some(pointer.loc.line) },
                 "column": if pointer.loc.column == 0 { None } else { Some(pointer.loc.column) },
                 "length": if pointer.length == 0 { None } else { Some(pointer.length) },

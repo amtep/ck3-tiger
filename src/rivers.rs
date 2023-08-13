@@ -273,19 +273,19 @@ impl Rivers {
     }
 }
 
-impl FileHandler<PathBuf> for Rivers {
+impl FileHandler<()> for Rivers {
     fn subpath(&self) -> PathBuf {
         PathBuf::from("map_data/rivers.png")
     }
 
-    fn load_file(&self, _entry: &FileEntry, fullpath: &Path) -> Option<PathBuf> {
-        Some(fullpath.to_owned())
+    fn load_file(&self, _entry: &FileEntry) -> Option<()> {
+        Some(())
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, fullpath: PathBuf) {
+    fn handle_file(&mut self, entry: &FileEntry, _loaded: ()) {
         self.entry = Some(entry.clone());
 
-        if let Err(e) = self.load_png(&fullpath) {
+        if let Err(e) = self.load_png(entry.fullpath()) {
             error_info(entry, ErrorKey::ReadError, "could not read image", &format!("{e:#}"));
         }
     }

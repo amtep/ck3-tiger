@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use fnv::FnvHashSet;
 use image::{DynamicImage, Rgb};
@@ -57,9 +57,9 @@ impl FileHandler<DynamicImage> for Vic3Provinces {
         PathBuf::from("map_data/provinces.png")
     }
 
-    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<DynamicImage> {
+    fn load_file(&self, entry: &FileEntry) -> Option<DynamicImage> {
         if entry.path().components().count() == 2 {
-            let img = match image::open(fullpath) {
+            let img = match image::open(entry.fullpath()) {
                 Ok(img) => img,
                 Err(e) => {
                     let msg = format!("could not read `{}`: {e:#}", entry.path().display());

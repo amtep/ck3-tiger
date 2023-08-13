@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use fnv::FnvHashMap;
 
@@ -104,12 +104,12 @@ impl FileHandler<Block> for Doctrines {
         PathBuf::from("common/religion/doctrines")
     }
 
-    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return None;
         }
 
-        PdxFile::read(entry, fullpath)
+        PdxFile::read(entry)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {

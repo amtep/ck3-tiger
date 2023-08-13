@@ -2,7 +2,7 @@
 
 use std::fs::{metadata, File};
 use std::io::{Read, Result};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use fnv::FnvHashMap;
 
@@ -28,12 +28,12 @@ pub struct DdsFiles {
 }
 
 impl DdsFiles {
-    fn load_dds(entry: &FileEntry, fullpath: &Path) -> Result<Option<DdsInfo>> {
-        if metadata(fullpath)?.len() == 0 {
+    fn load_dds(entry: &FileEntry) -> Result<Option<DdsInfo>> {
+        if metadata(entry.fullpath())?.len() == 0 {
             old_warn(entry, ErrorKey::ImageFormat, "empty file");
             return Ok(None);
         }
-        let mut f = File::open(fullpath)?;
+        let mut f = File::open(entry.fullpath())?;
         let mut buffer = [0; DDS_HEADER_SIZE];
         f.read_exact(&mut buffer)?;
         if buffer.starts_with(b"\x89PNG") {
@@ -77,12 +77,12 @@ impl FileHandler<DdsInfo> for DdsFiles {
         PathBuf::from("gfx")
     }
 
-    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<DdsInfo> {
+    fn load_file(&self, entry: &FileEntry) -> Option<DdsInfo> {
         if !entry.filename().to_string_lossy().ends_with(".dds") {
             return None;
         }
 
-        match Self::load_dds(entry, fullpath) {
+        match Self::load_dds(entry) {
             Ok(info) => info,
             Err(e) => {
                 error_info(

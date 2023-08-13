@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str::FromStr;
 
 use fnv::FnvHashMap;
@@ -52,7 +52,7 @@ impl Ck3Events {
     }
 
     fn load_scripted_trigger(&mut self, key: Token, block: Block) {
-        let index = (key.loc.path, key.to_string());
+        let index = (key.loc.idx, key.to_string());
         if let Some(other) = self.triggers.get(&index) {
             dup_error(&key, &other.key, "scripted trigger");
         }
@@ -60,7 +60,7 @@ impl Ck3Events {
     }
 
     fn load_scripted_effect(&mut self, key: Token, block: Block) {
-        let index = (key.loc.path, key.to_string());
+        let index = (key.loc.idx, key.to_string());
         if let Some(other) = self.effects.get(&index) {
             dup_error(&key, &other.key, "scripted effect");
         }
@@ -68,12 +68,12 @@ impl Ck3Events {
     }
 
     pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
-        let index = (key.loc.path, key.to_string());
+        let index = (key.loc.idx, key.to_string());
         self.triggers.get(&index)
     }
 
     pub fn get_effect(&self, key: &Token) -> Option<&Effect> {
-        let index = (key.loc.path, key.to_string());
+        let index = (key.loc.idx, key.to_string());
         self.effects.get(&index)
     }
 
@@ -135,12 +135,12 @@ impl FileHandler<Block> for Ck3Events {
         PathBuf::from("events")
     }
 
-    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return None;
         }
 
-        PdxFile::read(entry, fullpath)
+        PdxFile::read(entry)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {

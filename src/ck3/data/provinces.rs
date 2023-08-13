@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str::FromStr;
 
 use fnv::{FnvHashMap, FnvHashSet};
@@ -174,11 +174,11 @@ impl FileHandler<FileContent> for Ck3Provinces {
         PathBuf::from("map_data")
     }
 
-    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<FileContent> {
+    fn load_file(&self, entry: &FileEntry) -> Option<FileContent> {
         if entry.path().components().count() == 2 {
             match &*entry.filename().to_string_lossy() {
                 "adjacencies.csv" => {
-                    let content = match read_csv(fullpath) {
+                    let content = match read_csv(entry.fullpath()) {
                         Ok(content) => content,
                         Err(e) => {
                             error(
@@ -193,7 +193,7 @@ impl FileHandler<FileContent> for Ck3Provinces {
                 }
 
                 "definition.csv" => {
-                    let content = match read_csv(fullpath) {
+                    let content = match read_csv(entry.fullpath()) {
                         Ok(content) => content,
                         Err(e) => {
                             let msg =
@@ -206,7 +206,7 @@ impl FileHandler<FileContent> for Ck3Provinces {
                 }
 
                 "provinces.png" => {
-                    let img = match image::open(fullpath) {
+                    let img = match image::open(entry.fullpath()) {
                         Ok(img) => img,
                         Err(e) => {
                             let msg = format!("could not read `{}`: {e:#}", entry.path().display());
@@ -226,8 +226,7 @@ impl FileHandler<FileContent> for Ck3Provinces {
                 }
 
                 "default.map" => {
-                    return PdxFile::read_optional_bom(entry, fullpath)
-                        .map(FileContent::DefaultMap);
+                    return PdxFile::read_optional_bom(entry).map(FileContent::DefaultMap);
                 }
                 _ => (),
             }

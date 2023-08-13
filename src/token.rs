@@ -17,7 +17,7 @@ use crate::stringtable::StringTable;
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
-    pub(crate) path: PathTableIndex,
+    pub(crate) idx: PathTableIndex,
     pub kind: FileKind,
     /// line 0 means the loc applies to the file as a whole.
     pub line: u32,
@@ -28,30 +28,37 @@ pub struct Loc {
 
 impl Loc {
     #[must_use]
-    pub(crate) fn for_file(pathname: PathBuf, kind: FileKind) -> Self {
-        let path = PathTable::store(pathname);
-        Loc { path, kind, line: 0, column: 0, link: None }
+    pub(crate) fn for_file(pathname: PathBuf, kind: FileKind, fullpath: PathBuf) -> Self {
+        let idx = PathTable::store(pathname, fullpath);
+        Loc { idx, kind, line: 0, column: 0, link: None }
     }
 
     pub fn filename(&self) -> Cow<str> {
-        PathTable::lookup(self.path).file_name().unwrap_or_else(|| OsStr::new("")).to_string_lossy()
+        PathTable::lookup_path(self.idx)
+            .file_name()
+            .unwrap_or_else(|| OsStr::new(""))
+            .to_string_lossy()
     }
 
     pub fn pathname(&self) -> &'static Path {
-        PathTable::lookup(self.path)
+        PathTable::lookup_path(self.idx)
+    }
+
+    pub fn fullpath(&self) -> &'static Path {
+        PathTable::lookup_fullpath(self.idx)
     }
 
     pub fn same_file(&self, other: &Loc) -> bool {
-        self.path == other.path && self.kind == other.kind
+        self.idx == other.idx
     }
 }
 
 impl From<&FileEntry> for Loc {
     fn from(entry: &FileEntry) -> Self {
-        if let Some(path) = entry.path_idx() {
-            Loc { path, kind: entry.kind(), line: 0, column: 0, link: None }
+        if let Some(idx) = entry.path_idx() {
+            Loc { idx, kind: entry.kind(), line: 0, column: 0, link: None }
         } else {
-            Self::for_file(entry.path().to_path_buf(), entry.kind())
+            Self::for_file(entry.path().to_path_buf(), entry.kind(), entry.fullpath().to_path_buf())
         }
     }
 }
@@ -72,8 +79,9 @@ impl Debug for Loc {
     /// Roll our own `Debug` implementation to handle the path field
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         f.debug_struct("Loc")
+            .field("pathindex", &self.idx)
             .field("pathname", &self.pathname())
-            .field("pathindex", &self.path)
+            .field("fullpath", &self.fullpath())
             .field("kind", &self.kind)
             .field("line", &self.line)
             .field("column", &self.column)

@@ -14,7 +14,6 @@ use encoding::{DecoderTrap, Encoding};
 use fnv::{FnvHashMap, FnvHashSet};
 use once_cell::sync::Lazy;
 
-use crate::fileset::FileKind;
 use crate::report::error_loc::ErrorLoc;
 use crate::report::filter::ReportFilter;
 use crate::report::writer::log_report;
@@ -30,16 +29,6 @@ static ERRORS: Lazy<Mutex<Errors>> = Lazy::new(|| Mutex::new(Errors::default()))
 pub struct Errors {
     pub(crate) output: RefCell<Box<dyn Write + Send>>,
 
-    /// The base game directory
-    vanilla_root: PathBuf,
-    /// Extra base game directory loaded before `vanilla_root`
-    clausewitz_root: PathBuf,
-    /// Extra base game directory loaded before `vanilla_root`
-    jomini_root: PathBuf,
-    /// The mod directory
-    mod_root: PathBuf,
-    /// Extra loaded mods' directories
-    loaded_mods: Vec<PathBuf>,
     /// Extra loaded mods' error tags
     pub(crate) loaded_mods_labels: Vec<String>,
 
@@ -62,11 +51,6 @@ impl Default for Errors {
     fn default() -> Self {
         Errors {
             output: RefCell::new(Box::new(stdout())),
-            vanilla_root: PathBuf::default(),
-            clausewitz_root: PathBuf::default(),
-            jomini_root: PathBuf::default(),
-            mod_root: PathBuf::default(),
-            loaded_mods: Vec::default(),
             loaded_mods_labels: Vec::default(),
             filecache: FnvHashMap::default(),
             filter: ReportFilter::default(),
@@ -77,29 +61,16 @@ impl Default for Errors {
 }
 
 impl Errors {
-    /// Get the full filesystem path for a path that is anchored at one of the "virtual roots" of
-    /// the game's VFS.
-    pub(crate) fn get_fullpath(&mut self, kind: FileKind, path: &Path) -> PathBuf {
-        match kind {
-            FileKind::Internal => path.to_path_buf(),
-            FileKind::Clausewitz => self.clausewitz_root.join(path),
-            FileKind::Jomini => self.jomini_root.join(path),
-            FileKind::Vanilla => self.vanilla_root.join(path),
-            FileKind::LoadedMod(idx) => self.loaded_mods[idx as usize].join(path),
-            FileKind::Mod => self.mod_root.join(path),
-        }
-    }
-
     /// Fetch the contents of a single line from a script file.
     pub(crate) fn get_line(&mut self, loc: &Loc) -> Option<String> {
         if loc.line == 0 {
             return None;
         }
-        let pathname = self.get_fullpath(loc.kind, loc.pathname());
-        if let Some(contents) = self.filecache.get(&pathname) {
+        let fullpath = loc.fullpath();
+        if let Some(contents) = self.filecache.get(fullpath) {
             return contents.lines().nth(loc.line as usize - 1).map(str::to_string);
         }
-        let bytes = read(&pathname).ok()?;
+        let bytes = read(fullpath).ok()?;
         let contents = match UTF_8.decode(&bytes, DecoderTrap::Strict) {
             Ok(contents) => contents,
             Err(_) => WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).ok()?,
@@ -108,7 +79,7 @@ impl Errors {
         #[allow(clippy::map_unwrap_or)] // borrow checker won't allow map_or here
         let contents = contents.strip_prefix('\u{feff}').map(str::to_string).unwrap_or(contents);
         let line = contents.lines().nth(loc.line as usize - 1).map(str::to_string);
-        self.filecache.insert(pathname, contents);
+        self.filecache.insert(fullpath.to_path_buf(), contents);
         line
     }
 
@@ -224,33 +195,11 @@ impl Errors {
     }
 }
 
-/// Record `dir` as the path to the base game files.
-/// It should be a path to the directory containing the `game` directory.
-pub fn set_vanilla_dir(dir: PathBuf) {
-    let mut game = dir.clone();
-    game.push("game");
-    Errors::get_mut().vanilla_root = game;
-
-    let mut clausewitz = dir.clone();
-    clausewitz.push("clausewitz");
-    Errors::get_mut().clausewitz_root = clausewitz;
-
-    let mut jomini = dir;
-    jomini.push("jomini");
-    Errors::get_mut().jomini_root = jomini;
-}
-
-/// Record `dir` as the path to the mod being validated.
-pub fn set_mod_root(dir: PathBuf) {
-    Errors::get_mut().mod_root = dir;
-}
-
-/// Record `dir` as the path to a secondary mod to be loaded before the one being validated.
-/// `label` is what this mod should be called in the error reports; ideally only a few characters long.
-pub fn add_loaded_mod_root(label: String, dir: PathBuf) {
+/// Record a secondary mod to be loaded before the one being validated.
+/// `label` is what it should be called in the error reports; ideally only a few characters long.
+pub fn add_loaded_mod_root(label: String) {
     let mut errors = Errors::get_mut();
     errors.loaded_mods_labels.push(label);
-    errors.loaded_mods.push(dir);
 }
 
 /// Configure the error reports to be written to this file instead of to stdout.

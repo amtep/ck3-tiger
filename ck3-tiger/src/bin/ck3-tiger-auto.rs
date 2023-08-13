@@ -6,8 +6,8 @@ use anyhow::{bail, Result};
 use console::Term;
 
 use tiger_lib::{
-    emit_reports, find_game_directory_steam, find_paradox_directory, set_mod_root, set_output_file,
-    set_vanilla_dir, Everything, Game, ModFile,
+    emit_reports, find_game_directory_steam, find_paradox_directory, set_output_file, Everything,
+    Game, ModFile,
 };
 
 /// Steam's code for Crusader Kings 3
@@ -61,8 +61,6 @@ fn inner_main() -> Result<()> {
     } else {
         bail!("Cannot find the CK3 directory.");
     }
-
-    set_vanilla_dir(ck3.as_ref().unwrap().clone());
 
     let pdx = find_paradox_directory(&PathBuf::from(CK3_PARADOX_DIR));
     if pdx.is_none() {
@@ -129,7 +127,6 @@ fn validate_mod(ck3: &Path, modpath: &Path, logdir: &Path) -> Result<()> {
     }
     eprintln!("Using mod directory: {}", modpath.display());
 
-    set_mod_root(modpath.clone());
     let output_filename =
         format!("ck3-tiger-{}.log", modpath.file_name().unwrap().to_string_lossy());
     let output_file = &logdir.join(output_filename);

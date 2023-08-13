@@ -70,8 +70,8 @@ fn validate_modfile(block: &Block) -> ModFile {
 impl ModFile {
     /// Take the path to a `.mod` file, validate it, and return its parsed structure.
     pub fn read(pathname: &Path) -> Result<Self> {
-        let entry = FileEntry::new(pathname.to_path_buf(), FileKind::Mod);
-        let block = PdxFile::read_optional_bom(&entry, pathname)
+        let entry = FileEntry::new(pathname.to_path_buf(), FileKind::Mod, pathname.to_path_buf());
+        let block = PdxFile::read_optional_bom(&entry)
             .with_context(|| format!("Could not read .mod file {}", pathname.display()))?;
         Ok(validate_modfile(&block))
     }

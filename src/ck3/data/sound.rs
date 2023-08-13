@@ -66,11 +66,11 @@ impl FileHandler<String> for Sounds {
         PathBuf::from("sound")
     }
 
-    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<String> {
+    fn load_file(&self, entry: &FileEntry) -> Option<String> {
         if entry.path() != PathBuf::from("sound/GUIDs.txt") {
             return None;
         }
-        match read_guids(fullpath) {
+        match read_guids(entry.fullpath()) {
             Ok(content) => Some(content),
             Err(e) => {
                 let msg = format!("could not read file: {e:#}");

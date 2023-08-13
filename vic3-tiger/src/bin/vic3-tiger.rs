@@ -5,8 +5,8 @@ use anyhow::{bail, Result};
 use clap::Parser;
 
 use tiger_lib::{
-    disable_ansi_colors, emit_reports, find_game_directory_steam, set_mod_root,
-    set_show_loaded_mods, set_show_vanilla, set_vanilla_dir, Everything, Game,
+    disable_ansi_colors, emit_reports, find_game_directory_steam, set_show_loaded_mods,
+    set_show_vanilla, Everything, Game,
 };
 
 /// Steam's code for Victoria 3
@@ -81,8 +81,6 @@ fn main() -> Result<()> {
         bail!("Cannot find Vic3 directory. Please supply it as the --vic3 option.");
     }
 
-    set_vanilla_dir(args.vic3.as_ref().unwrap().clone());
-
     if args.show_vanilla {
         eprintln!("Showing warnings for base game files too. There will be many false positives in those.");
     }
@@ -108,8 +106,6 @@ fn main() -> Result<()> {
         }
     }
     eprintln!("Using mod directory: {}", args.modpath.display());
-
-    set_mod_root(args.modpath.clone());
 
     let mut everything = Everything::new(args.vic3.as_deref(), &args.modpath, Vec::new())?;
 

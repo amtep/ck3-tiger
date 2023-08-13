@@ -5,8 +5,8 @@ use anyhow::{bail, Result};
 use clap::Parser;
 
 use tiger_lib::{
-    disable_ansi_colors, emit_reports, find_game_directory_steam, set_mod_root,
-    set_show_loaded_mods, set_show_vanilla, set_vanilla_dir, Everything, Game, ModFile,
+    disable_ansi_colors, emit_reports, find_game_directory_steam, set_show_loaded_mods,
+    set_show_vanilla, Everything, Game, ModFile,
 };
 
 /// Steam's code for Crusader Kings 3
@@ -85,8 +85,6 @@ fn main() -> Result<()> {
         bail!("Cannot find CK3 directory. Please supply it as the --ck3 option.");
     }
 
-    set_vanilla_dir(args.ck3.as_ref().unwrap().clone());
-
     if args.show_vanilla {
         eprintln!("Showing warnings for base game files too. There will be many false positives in those.");
     }
@@ -117,8 +115,6 @@ fn main() -> Result<()> {
         bail!("Cannot find mod directory. Please make sure the .mod file is correct.");
     }
     eprintln!("Using mod directory: {}", modpath.display());
-
-    set_mod_root(modpath.clone());
 
     let mut everything = Everything::new(args.ck3.as_deref(), &modpath, modfile.replace_paths())?;
 

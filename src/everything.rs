@@ -352,7 +352,7 @@ impl Everything {
             Self::_read_config(config_file_name, &config_file)
                 .ok_or(FilesError::ConfigUnreadable { path: config_file })?
         } else {
-            Block::new(Loc::for_file(config_file, FileKind::Mod))
+            Block::new(Loc::for_file(config_file.clone(), FileKind::Mod, config_file.clone()))
         };
 
         fileset.config(config.clone());
@@ -416,12 +416,8 @@ impl Everything {
     }
 
     fn _read_config(name: &str, path: &Path) -> Option<Block> {
-        let entry = FileEntry::new(PathBuf::from(name), FileKind::Mod);
-        PdxFile::read_optional_bom(&entry, path)
-    }
-
-    pub fn fullpath(&self, entry: &FileEntry) -> PathBuf {
-        self.fileset.fullpath(entry)
+        let entry = FileEntry::new(PathBuf::from(name), FileKind::Mod, path.to_path_buf());
+        PdxFile::read_optional_bom(&entry)
     }
 
     pub fn load_config_filtering_rules(&self) {
@@ -478,7 +474,7 @@ impl Everything {
     {
         for mut block in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
             if entry.filename().to_string_lossy().ends_with(ext) {
-                PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
+                PdxFile::read_optional_bom(entry)
             } else {
                 None
             }
@@ -497,7 +493,7 @@ impl Everything {
     {
         for mut block in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
             if entry.filename().to_string_lossy().ends_with(ext) {
-                PdxFile::read(entry, &self.fileset.fullpath(entry))
+                PdxFile::read(entry)
             } else {
                 None
             }
@@ -516,9 +512,7 @@ impl Everything {
         for (key, block) in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
             let filename = entry.filename().to_string_lossy();
             if let Some(key) = filename.strip_suffix(ext) {
-                if let Some(block) =
-                    PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
-                {
+                if let Some(block) = PdxFile::read_optional_bom(entry) {
                     let key = Token::new(key, Loc::from(entry));
                     Some((key, block))
                 } else {
@@ -549,9 +543,7 @@ impl Everything {
         for (key, block) in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
             let filename = entry.filename().to_string_lossy();
             if let Some(key) = filename.strip_suffix(".txt") {
-                if let Some(block) =
-                    PdxFile::read_detect_encoding(entry, &self.fileset.fullpath(entry))
-                {
+                if let Some(block) = PdxFile::read_detect_encoding(entry) {
                     let key = Token::new(key, Loc::from(entry));
                     Some((key, block))
                 } else {
@@ -572,7 +564,7 @@ impl Everything {
     {
         for block in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
             if entry.filename().to_string_lossy().ends_with(".json") {
-                parse_json_file(entry, &self.fileset.fullpath(entry))
+                parse_json_file(entry)
             } else {
                 None
             }

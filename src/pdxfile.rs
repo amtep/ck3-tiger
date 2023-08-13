@@ -5,7 +5,6 @@
 #[cfg(feature = "ck3")]
 use std::fs::read;
 use std::fs::read_to_string;
-use std::path::Path;
 
 #[cfg(feature = "ck3")]
 use encoding::all::UTF_8;
@@ -28,8 +27,8 @@ pub struct PdxFile;
 
 impl PdxFile {
     /// Internal function to read a file in UTF-8 encoding.
-    fn read_utf8(entry: &FileEntry, fullpath: &Path) -> Option<String> {
-        match read_to_string(fullpath) {
+    fn read_utf8(entry: &FileEntry) -> Option<String> {
+        match read_to_string(entry.fullpath()) {
             Ok(contents) => Some(contents),
             Err(e) => {
                 let msg = "could not read file";
@@ -41,8 +40,8 @@ impl PdxFile {
     }
 
     /// Parse a UTF-8 file that should start with a BOM (Byte Order Marker).
-    pub fn read(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
-        let contents = Self::read_utf8(entry, fullpath)?;
+    pub fn read(entry: &FileEntry) -> Option<Block> {
+        let contents = Self::read_utf8(entry)?;
         if let Some(bomless) = contents.strip_prefix('\u{feff}') {
             Some(parse_pdx(entry, bomless))
         } else {
@@ -53,8 +52,8 @@ impl PdxFile {
     }
 
     /// Parse a UTF-8 file that may optionally start with a BOM (Byte Order Marker).
-    pub fn read_optional_bom(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
-        let contents = Self::read_utf8(entry, fullpath)?;
+    pub fn read_optional_bom(entry: &FileEntry) -> Option<Block> {
+        let contents = Self::read_utf8(entry)?;
         if let Some(bomless) = contents.strip_prefix('\u{feff}') {
             Some(parse_pdx(entry, bomless))
         } else {
@@ -64,8 +63,8 @@ impl PdxFile {
 
     /// Parse a file that may be in UTF-8 with BOM encoding, or Windows-1252 encoding.
     #[cfg(feature = "ck3")]
-    pub fn read_detect_encoding(entry: &FileEntry, fullpath: &Path) -> Option<Block> {
-        let bytes = match read(fullpath) {
+    pub fn read_detect_encoding(entry: &FileEntry) -> Option<Block> {
+        let bytes = match read(entry.fullpath()) {
             Ok(bytes) => bytes,
             Err(e) => {
                 let msg = "could not read file";

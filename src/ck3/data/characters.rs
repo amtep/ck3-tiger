@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str::FromStr;
 
 use fnv::{FnvHashMap, FnvHashSet};
@@ -224,12 +224,12 @@ impl FileHandler<Block> for Characters {
         PathBuf::from("history/characters")
     }
 
-    fn load_file(&self, entry: &FileEntry, fullpath: &Path) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return None;
         }
 
-        PdxFile::read(entry, fullpath)
+        PdxFile::read(entry)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {

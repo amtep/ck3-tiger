@@ -10,7 +10,7 @@ use clap::Parser;
 use serde_json::{json, to_string_pretty, Value};
 use strum::IntoEnumIterator;
 
-use tiger_lib::{set_mod_root, Everything, FileKind, Game, Item, ModFile};
+use tiger_lib::{Everything, FileKind, Game, Item, ModFile};
 
 #[derive(Parser)]
 struct Cli {
@@ -41,8 +41,6 @@ fn main() -> Result<()> {
         bail!("Cannot find mod directory. Please make sure the .mod file is correct.");
     }
     eprintln!("Using mod directory: {}", modpath.display());
-
-    set_mod_root(modpath.clone());
 
     let mut everything = Everything::new(None, &modpath, modfile.replace_paths())?;
 

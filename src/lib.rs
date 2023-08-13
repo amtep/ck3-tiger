@@ -38,9 +38,9 @@ pub use crate::gamedir::{find_game_directory_steam, find_paradox_directory};
 pub use crate::item::Item;
 pub use crate::modfile::ModFile;
 pub use crate::report::{
-    add_loaded_mod_root, disable_ansi_colors, emit_reports, log, set_mod_root, set_output_file,
-    set_output_style, set_show_loaded_mods, set_show_vanilla, set_vanilla_dir, take_reports,
-    Confidence, LogReport, PointedMessage, Severity,
+    add_loaded_mod_root, disable_ansi_colors, emit_reports, log, set_output_file, set_output_style,
+    set_show_loaded_mods, set_show_vanilla, take_reports, Confidence, LogReport, PointedMessage,
+    Severity,
 };
 pub use crate::token::{Loc, Token};
 
