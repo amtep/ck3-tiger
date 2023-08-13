@@ -33,15 +33,6 @@ impl Loc {
         Loc { path, kind, line: 0, column: 0, link: None }
     }
 
-    #[must_use]
-    pub fn for_entry(entry: &FileEntry) -> Self {
-        if let Some(path) = entry.path_idx() {
-            Loc { path, kind: entry.kind(), line: 0, column: 0, link: None }
-        } else {
-            Self::for_file(entry.path().to_path_buf(), entry.kind())
-        }
-    }
-
     pub fn filename(&self) -> Cow<str> {
         PathTable::lookup(self.path).file_name().unwrap_or_else(|| OsStr::new("")).to_string_lossy()
     }
@@ -52,6 +43,28 @@ impl Loc {
 
     pub fn same_file(&self, other: &Loc) -> bool {
         self.path == other.path && self.kind == other.kind
+    }
+}
+
+impl From<&FileEntry> for Loc {
+    fn from(entry: &FileEntry) -> Self {
+        if let Some(path) = entry.path_idx() {
+            Loc { path, kind: entry.kind(), line: 0, column: 0, link: None }
+        } else {
+            Self::for_file(entry.path().to_path_buf(), entry.kind())
+        }
+    }
+}
+
+impl From<&mut FileEntry> for Loc {
+    fn from(entry: &mut FileEntry) -> Self {
+        (&*entry).into()
+    }
+}
+
+impl From<FileEntry> for Loc {
+    fn from(entry: FileEntry) -> Self {
+        (&entry).into()
     }
 }
 

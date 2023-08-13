@@ -45,6 +45,10 @@ impl ScriptValues {
         self.script_values.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.script_values.values().map(|item| &item.key)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.script_values.values() {
             item.validate(data);

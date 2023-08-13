@@ -817,7 +817,7 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
 /// less memory.
 #[allow(clippy::module_name_repetitions)]
 pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
-    let mut loc = Loc::for_entry(entry);
+    let mut loc = Loc::from(entry);
     let mut parser = Parser::new(loc.clone(), LocalMacros::default());
     loc.line = 1;
     loc.column = 1;

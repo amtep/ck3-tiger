@@ -92,13 +92,13 @@ impl ErrorLoc for &BV {
 
 impl ErrorLoc for FileEntry {
     fn into_loc(self) -> Loc {
-        Loc::for_entry(&self)
+        Loc::from(&self)
     }
 }
 
 impl ErrorLoc for &FileEntry {
     fn into_loc(self) -> Loc {
-        Loc::for_entry(self)
+        Loc::from(self)
     }
 }
 

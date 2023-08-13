@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use fnv::{FnvHashMap, FnvHashSet};
+use fnv::FnvHashMap;
 
 use crate::block::Block;
 use crate::ck3::validate::validate_traits;
@@ -22,7 +22,7 @@ use crate::validator::Validator;
 pub struct Doctrines {
     groups: FnvHashMap<String, DoctrineGroup>,
     doctrines: FnvHashMap<String, Doctrine>,
-    parameters: FnvHashSet<String>, // only the boolean parameters
+    parameters: FnvHashMap<String, Token>, // only the boolean parameters
 }
 
 impl Doctrines {
@@ -48,7 +48,7 @@ impl Doctrines {
             if let Some(b) = block.get_field_block("parameters") {
                 for (k, v) in b.iter_assignments() {
                     if v.is("yes") || v.is("no") {
-                        self.parameters.insert(k.to_string());
+                        self.parameters.insert(k.to_string(), k.clone());
                     }
                 }
             }
@@ -74,8 +74,24 @@ impl Doctrines {
         self.doctrines.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.doctrines.values().map(|item| &item.key)
+    }
+
+    pub fn group_exists(&self, key: &str) -> bool {
+        self.groups.contains_key(key)
+    }
+
+    pub fn iter_group_keys(&self) -> impl Iterator<Item = &Token> {
+        self.groups.values().map(|item| &item.key)
+    }
+
     pub fn parameter_exists(&self, key: &str) -> bool {
-        self.parameters.contains(key)
+        self.parameters.contains_key(key)
+    }
+
+    pub fn iter_parameter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.parameters.values()
     }
 
     pub fn unreformed(&self, key: &str) -> bool {

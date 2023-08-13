@@ -147,6 +147,10 @@ impl Ck3Provinces {
         }
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.provinces.values().map(|item| &item.key)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in &self.adjacencies {
             item.validate(self);
@@ -383,9 +387,9 @@ impl Adjacency {
 
 #[derive(Clone, Debug)]
 pub struct Province {
+    key: Token,
     id: ProvId,
     color: Rgb<u8>,
-    // TODO: the "comment" is actually a loca key for seas and rivers (as defined in default.map)
     comment: Token,
 }
 
@@ -395,11 +399,9 @@ impl Province {
             return None;
         }
 
-        let line = csv[0].loc.clone();
-
         if csv.len() < 5 {
             let msg = "too few fields for this line, expected 5";
-            error(line, ErrorKey::ParseError, msg);
+            error(&csv[0].loc, ErrorKey::ParseError, msg);
             return None;
         }
 
@@ -408,7 +410,7 @@ impl Province {
         let g = _verify(&csv[2], "expected green value")?;
         let b = _verify(&csv[3], "expected blue value")?;
         let color = Rgb::from([r, g, b]);
-        Some(Province { id, color, comment: csv[4].clone() })
+        Some(Province { key: csv[0].clone(), id, color, comment: csv[4].clone() })
     }
 
     fn validate(&self, provinces: &Ck3Provinces, data: &Everything) {

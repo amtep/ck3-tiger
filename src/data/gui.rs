@@ -193,20 +193,40 @@ impl Gui {
         self.templates.contains_key(key)
     }
 
+    pub fn iter_template_keys(&self) -> impl Iterator<Item = &Token> {
+        self.templates.values().map(|item| &item.key)
+    }
+
     pub fn type_exists(&self, key: &Lowercase) -> bool {
         self.types.contains_key(key.as_str()) || BuiltinWidget::builtin_current_game(key).is_some()
+    }
+
+    pub fn iter_type_keys(&self) -> impl Iterator<Item = &Token> {
+        self.types.values().map(|item| &item.key)
     }
 
     pub fn layer_exists(&self, key: &str) -> bool {
         self.layers.contains_key(key)
     }
 
+    pub fn iter_layer_keys(&self) -> impl Iterator<Item = &Token> {
+        self.layers.values().map(|item| &item.key)
+    }
+
     pub fn texticon_exists(&self, key: &str) -> bool {
         self.texticons.contains_key(key)
     }
 
+    pub fn iter_texticon_keys(&self) -> impl Iterator<Item = &Token> {
+        self.texticons.values().flat_map(|v| v.iter().map(|item| &item.key))
+    }
+
     pub fn textformat_exists(&self, key: &str) -> bool {
         self.textformats.contains_key(key)
+    }
+
+    pub fn iter_textformat_keys(&self) -> impl Iterator<Item = &Token> {
+        self.textformats.values().map(|item| &item.key)
     }
 
     pub fn validate(&self, data: &Everything) {

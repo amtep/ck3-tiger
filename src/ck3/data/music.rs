@@ -36,6 +36,10 @@ impl Musics {
         self.musics.contains_key(key) || DLC_MUSIC.contains(&key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.musics.values().map(|item| &item.key)
+    }
+
     pub fn verify_exists_implied(&self, key: &str, item: &Token, max_sev: Severity) {
         if !self.exists(key) {
             let msg = if key == item.as_str() {

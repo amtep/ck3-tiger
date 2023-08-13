@@ -22,7 +22,7 @@ use crate::report::{
     add_loaded_mod_root, err, error, fatal, report, warn_abbreviated, warn_header, will_maybe_log,
     ErrorKey, Severity,
 };
-use crate::token::{Loc, Token};
+use crate::token::Token;
 
 /// Note that ordering of these enum values matters.
 /// Files later in the order will override files of the same name before them,
@@ -90,18 +90,6 @@ impl FileEntry {
 impl Display for FileEntry {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), std::fmt::Error> {
         write!(fmt, "{}", self.path.display())
-    }
-}
-
-impl From<&FileEntry> for Loc {
-    fn from(entry: &FileEntry) -> Self {
-        Loc::for_entry(entry)
-    }
-}
-
-impl From<&FileEntry> for Token {
-    fn from(entry: &FileEntry) -> Self {
-        Token::from(Loc::from(entry))
     }
 }
 
@@ -194,6 +182,10 @@ pub struct Fileset {
     /// The CK3 and mod files in the order the game would load them
     ordered_files: Vec<FileEntry>,
 
+    /// Filename Tokens for the files in `ordered_files`.
+    /// Used for [`Fileset::iter_keys()`].
+    filename_tokens: Vec<Token>,
+
     /// All filenames from ordered_files, for quick lookup
     filenames: FnvHashSet<PathBuf>,
 
@@ -216,6 +208,7 @@ impl Fileset {
             config: None,
             files: Vec::new(),
             ordered_files: Vec::new(),
+            filename_tokens: Vec::new(),
             filenames: FnvHashSet::default(),
             used: RwLock::new(FnvHashSet::default()),
         }
@@ -370,6 +363,8 @@ impl Fileset {
         }
 
         for entry in &mut self.ordered_files {
+            let token = Token::new(&entry.filename().to_string_lossy(), (&*entry).into());
+            self.filename_tokens.push(token);
             entry.store_in_pathtable();
             self.filenames.insert(entry.path.clone());
         }
@@ -430,6 +425,10 @@ impl Fileset {
         let key = key.strip_prefix('/').unwrap_or(key);
         let filepath = PathBuf::from(key);
         self.filenames.contains(&filepath)
+    }
+
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.filename_tokens.iter()
     }
 
     #[cfg(feature = "ck3")] // vic3 happens not to use

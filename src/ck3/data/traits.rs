@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use fnv::{FnvHashMap, FnvHashSet};
+use fnv::FnvHashMap;
 
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
@@ -22,10 +22,10 @@ use crate::validator::Validator;
 #[derive(Clone, Debug, Default)]
 pub struct Traits {
     traits: FnvHashMap<String, Trait>,
-    groups: FnvHashSet<String>,
-    tracks: FnvHashSet<String>,
-    constraints: FnvHashSet<String>,
-    flags: FnvHashSet<String>,
+    groups: FnvHashMap<String, Token>,
+    tracks: FnvHashMap<String, Token>,
+    constraints: FnvHashMap<String, Token>,
+    flags: FnvHashMap<String, Token>,
 }
 
 impl Traits {
@@ -36,46 +36,62 @@ impl Traits {
             }
         }
         if let Some(token) = block.get_field_value("group") {
-            self.groups.insert(token.to_string());
+            self.groups.insert(token.to_string(), token.clone());
         }
         for token in block.get_field_values("flag") {
-            self.flags.insert(token.to_string());
+            self.flags.insert(token.to_string(), token.clone());
         }
         for field in
             &["genetic_constraint_all", "genetic_constraint_men", "genetic_constraint_women"]
         {
             if let Some(token) = block.get_field_value(field) {
-                self.constraints.insert(token.to_string());
+                self.constraints.insert(token.to_string(), token.clone());
             }
         }
         if let Some(token) = block.get_field_value("group_equivalence") {
-            self.groups.insert(token.to_string());
+            self.groups.insert(token.to_string(), token.clone());
         }
         if block.has_key("track") {
-            self.tracks.insert(key.to_string());
+            self.tracks.insert(key.to_string(), key.clone());
         }
         if let Some(block) = block.get_field_block("tracks") {
             for (key, _) in block.iter_definitions() {
-                self.tracks.insert(key.to_string());
+                self.tracks.insert(key.to_string(), key.clone());
             }
         }
         self.traits.insert(key.to_string(), Trait::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
-        self.traits.contains_key(key) || self.groups.contains(key)
+        self.traits.contains_key(key) || self.groups.contains_key(key)
+    }
+
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.traits.values().map(|item| &item.key).chain(self.groups.values())
     }
 
     pub fn constraint_exists(&self, key: &str) -> bool {
-        self.constraints.contains(key)
+        self.constraints.contains_key(key)
+    }
+
+    pub fn iter_constraint_keys(&self) -> impl Iterator<Item = &Token> {
+        self.constraints.values()
     }
 
     pub fn flag_exists(&self, key: &str) -> bool {
-        self.flags.contains(key)
+        self.flags.contains_key(key)
+    }
+
+    pub fn iter_flag_keys(&self) -> impl Iterator<Item = &Token> {
+        self.flags.values()
     }
 
     pub fn track_exists(&self, key: &str) -> bool {
-        self.tracks.contains(key)
+        self.tracks.contains_key(key)
+    }
+
+    pub fn iter_track_keys(&self) -> impl Iterator<Item = &Token> {
+        self.tracks.values()
     }
 
     // Is the trait itself a track? Different than a trait having multiple tracks

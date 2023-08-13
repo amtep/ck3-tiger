@@ -37,6 +37,10 @@ impl GameConcepts {
         self.concepts.contains_key(key) || self.aliases.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.concepts.values().map(|item| &item.key)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.concepts.values() {
             item.validate(data);

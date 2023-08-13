@@ -32,6 +32,10 @@ impl Sounds {
         self.sounds.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.sounds.values().map(|item| &item.key)
+    }
+
     pub fn verify_exists_implied(
         &self,
         key: &str,
@@ -79,7 +83,7 @@ impl FileHandler<String> for Sounds {
     fn handle_file(&mut self, entry: &FileEntry, content: String) {
         let mut linenr = 1;
         for line in content.lines() {
-            let mut loc = Loc::for_entry(entry);
+            let mut loc = Loc::from(entry);
             loc.line = linenr;
             loc.column = 1;
             let token = Token::new(line, loc);

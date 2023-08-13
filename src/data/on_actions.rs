@@ -38,6 +38,10 @@ impl OnActions {
         self.on_actions.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.on_actions.values().map(|item| &item.key)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.on_actions.values() {
             item.validate(data);

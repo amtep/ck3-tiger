@@ -96,6 +96,10 @@ impl Ck3Events {
         self.namespaces.contains_key(key)
     }
 
+    pub fn iter_namespace_keys(&self) -> impl Iterator<Item = &Token> {
+        self.namespaces.values()
+    }
+
     pub fn exists(&self, key: &str) -> bool {
         if let Some((namespace, id)) = key.split_once('.') {
             if let Ok(id) = u16::from_str(id) {
@@ -105,6 +109,10 @@ impl Ck3Events {
             }
         }
         false
+    }
+
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.events.values().map(|item| &item.key)
     }
 
     pub fn validate(&self, data: &Everything) {

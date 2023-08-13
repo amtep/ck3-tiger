@@ -45,6 +45,10 @@ impl Effects {
         self.effects.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.effects.values().map(|item| &item.key)
+    }
+
     pub fn get(&self, key: &str) -> Option<&Effect> {
         self.effects.get(key)
     }

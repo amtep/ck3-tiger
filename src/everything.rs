@@ -519,7 +519,7 @@ impl Everything {
                 if let Some(block) =
                     PdxFile::read_optional_bom(entry, &self.fileset.fullpath(entry))
                 {
-                    let key = Token::new(key, Loc::for_entry(entry));
+                    let key = Token::new(key, Loc::from(entry));
                     Some((key, block))
                 } else {
                     None
@@ -552,7 +552,7 @@ impl Everything {
                 if let Some(block) =
                     PdxFile::read_detect_encoding(entry, &self.fileset.fullpath(entry))
                 {
-                    let key = Token::new(key, Loc::for_entry(entry));
+                    let key = Token::new(key, Loc::from(entry));
                     Some((key, block))
                 } else {
                     None
@@ -939,7 +939,7 @@ impl Everything {
     }
 
     #[cfg(feature = "ck3")]
-    pub(crate) fn item_exists_ck3(&self, itype: Item, key: &str) -> bool {
+    fn item_exists_ck3(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
@@ -950,6 +950,7 @@ impl Everything {
             Item::Dlc => DLC_CK3.contains(&key),
             Item::DlcFeature => DLC_FEATURES_CK3.contains(&key),
             Item::Doctrine => self.doctrines.exists(key),
+            Item::DoctrineGroup => self.doctrines.group_exists(key),
             Item::DoctrineParameter => self.doctrines.parameter_exists(key),
             Item::Event => self.events_ck3.exists(key),
             Item::EventNamespace => self.events_ck3.namespace_exists(key),
@@ -976,7 +977,7 @@ impl Everything {
     }
 
     #[cfg(feature = "vic3")]
-    pub(crate) fn item_exists_vic3(&self, itype: Item, key: &str) -> bool {
+    fn item_exists_vic3(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Approval => APPROVALS.contains(&key),
             Item::Attitude => ATTITUDES.contains(&key),
@@ -1012,7 +1013,7 @@ impl Everything {
     }
 
     #[cfg(feature = "imperator")]
-    pub(crate) fn item_exists_imperator(&self, itype: Item, key: &str) -> bool {
+    fn item_exists_imperator(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Dlc => DLC_IMPERATOR.contains(&key),
             Item::DlcFeature => DLC_FEATURES_IMPERATOR.contains(&key),
@@ -1225,5 +1226,80 @@ impl Everything {
             cache.insert(key.to_string());
         }
         result
+    }
+
+    #[cfg(feature = "ck3")]
+    pub fn iter_keys_ck3<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
+        match itype {
+            Item::Character => Box::new(self.characters.iter_keys()),
+            Item::CharacterInteractionCategory => Box::new(self.interaction_cats.iter_keys()),
+            Item::Doctrine => Box::new(self.doctrines.iter_keys()),
+            Item::DoctrineGroup => Box::new(self.doctrines.iter_group_keys()),
+            Item::DoctrineParameter => Box::new(self.doctrines.iter_parameter_keys()),
+            Item::Event => Box::new(self.events_ck3.iter_keys()),
+            Item::EventNamespace => Box::new(self.events_ck3.iter_namespace_keys()),
+            Item::GameConcept => Box::new(self.gameconcepts.iter_keys()),
+            Item::GeneticConstraint => Box::new(self.traits.iter_constraint_keys()),
+            Item::MenAtArms => Box::new(self.menatarmstypes.iter_keys()),
+            Item::MenAtArmsBase => Box::new(self.menatarmstypes.iter_base_keys()),
+            Item::Music => Box::new(self.music.iter_keys()),
+            Item::Province => Box::new(self.provinces_ck3.iter_keys()),
+            Item::Sound => Box::new(self.sounds.iter_keys()),
+            Item::Title => Box::new(self.titles.iter_keys()),
+            Item::TitleHistory => Box::new(self.title_history.iter_keys()),
+            Item::Trait => Box::new(self.traits.iter_keys()),
+            Item::TraitFlag => Box::new(self.traits.iter_flag_keys()),
+            Item::TraitTrack => Box::new(self.traits.iter_track_keys()),
+            _ => Box::new(self.database.iter_keys(itype)),
+        }
+    }
+
+    #[cfg(feature = "vic3")]
+    fn iter_keys_vic3<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
+        match itype {
+            Item::Event => Box::new(self.events_vic3.iter_keys()),
+            Item::EventNamespace => Box::new(self.events_vic3.iter_namespace_keys()),
+            _ => Box::new(self.database.iter_keys(itype)),
+        }
+    }
+
+    #[cfg(feature = "imperator")]
+    fn iter_keys_imperator<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
+        Box::new(self.database.iter_keys(itype))
+    }
+
+    pub fn iter_keys<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
+        match itype {
+            Item::Asset => Box::new(self.assets.iter_asset_keys()),
+            Item::BlendShape => Box::new(self.assets.iter_blend_shape_keys()),
+            Item::Coa => Box::new(self.coas.iter_keys()),
+            Item::CoaTemplate => Box::new(self.coas.iter_template_keys()),
+            Item::Define => Box::new(self.defines.iter_keys()),
+            Item::Entity => Box::new(self.assets.iter_entity_keys()),
+            Item::File => Box::new(self.fileset.iter_keys()),
+            Item::GeneAttribute => Box::new(self.assets.iter_attribute_keys()),
+            Item::GuiLayer => Box::new(self.gui.iter_layer_keys()),
+            Item::GuiTemplate => Box::new(self.gui.iter_template_keys()),
+            Item::GuiType => Box::new(self.gui.iter_type_keys()),
+            Item::Localization => Box::new(self.localization.iter_keys()),
+            Item::OnAction => Box::new(self.on_actions.iter_keys()),
+            Item::Pdxmesh => Box::new(self.assets.iter_mesh_keys()),
+            Item::ScriptedEffect => Box::new(self.effects.iter_keys()),
+            Item::ScriptedList => Box::new(self.scripted_lists.iter_keys()),
+            Item::ScriptedModifier => Box::new(self.scripted_modifiers.iter_keys()),
+            Item::ScriptedTrigger => Box::new(self.triggers.iter_keys()),
+            Item::ScriptValue => Box::new(self.script_values.iter_keys()),
+            Item::TextFormat => Box::new(self.gui.iter_textformat_keys()),
+            Item::TextIcon => Box::new(self.gui.iter_texticon_keys()),
+            Item::TextureFile => Box::new(self.assets.iter_texture_keys()),
+            _ => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => self.iter_keys_ck3(itype),
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => self.iter_keys_vic3(itype),
+                #[cfg(feature = "imperator")]
+                Game::Imperator => self.iter_keys_imperator(itype),
+            },
+        }
     }
 }

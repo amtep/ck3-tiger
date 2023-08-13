@@ -127,6 +127,10 @@ impl Titles {
         self.titles.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.titles.values().map(|item| &item.key)
+    }
+
     pub fn get(&self, key: &str) -> Option<Arc<Title>> {
         self.titles.get(key).cloned()
     }

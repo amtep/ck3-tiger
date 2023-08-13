@@ -234,7 +234,7 @@ fn parse(blockloc: Loc, content: &str) -> Block {
 
 #[allow(clippy::module_name_repetitions)]
 pub fn parse_json(entry: &FileEntry, content: &str) -> Block {
-    let mut loc = Loc::for_entry(entry);
+    let mut loc = Loc::from(entry);
     loc.line = 1;
     loc.column = 1;
     parse(loc, content)

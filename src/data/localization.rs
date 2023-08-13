@@ -246,6 +246,13 @@ impl Localization {
         true
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.mod_langs
+            .iter()
+            .filter_map(|lang| self.locas.get(lang))
+            .flat_map(|hash| hash.values().map(|item| &item.key))
+    }
+
     pub fn verify_exists(&self, token: &Token) {
         self.verify_exists_implied(token.as_str(), token, Severity::Error);
     }

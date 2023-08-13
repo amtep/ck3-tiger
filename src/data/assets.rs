@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use fnv::{FnvHashMap, FnvHashSet};
+use fnv::FnvHashMap;
 
 use crate::block::{Block, BV};
 use crate::everything::Everything;
@@ -18,9 +18,9 @@ use crate::validator::Validator;
 #[derive(Clone, Debug, Default)]
 pub struct Assets {
     assets: FnvHashMap<String, Asset>,
-    attributes: FnvHashSet<String>,
-    blend_shapes: FnvHashSet<String>,
-    textures: FnvHashMap<String, FileEntry>,
+    attributes: FnvHashMap<String, Token>,
+    blend_shapes: FnvHashMap<String, Token>,
+    textures: FnvHashMap<String, (FileEntry, Token)>,
 }
 
 impl Assets {
@@ -29,7 +29,7 @@ impl Assets {
             for (key, block) in block.iter_definitions() {
                 if key.is("blend_shape") {
                     if let Some(id) = block.get_field_value("id") {
-                        self.blend_shapes.insert(id.to_string());
+                        self.blend_shapes.insert(id.to_string(), id.clone());
                     }
                 }
             }
@@ -37,7 +37,7 @@ impl Assets {
             for (key, block) in block.iter_definitions() {
                 if key.is("attribute") {
                     if let Some(name) = block.get_field_value("name") {
-                        self.attributes.insert(name.to_string());
+                        self.attributes.insert(name.to_string(), name.clone());
                     }
                 }
             }
@@ -48,12 +48,17 @@ impl Assets {
                     dup_error(name, &other.key, "asset");
                 }
             }
-            self.assets.insert(name.to_string(), Asset::new(key.clone(), block.clone()));
+            self.assets
+                .insert(name.to_string(), Asset::new(key.clone(), name.clone(), block.clone()));
         }
     }
 
     pub fn asset_exists(&self, key: &str) -> bool {
         self.assets.contains_key(key)
+    }
+
+    pub fn iter_asset_keys(&self) -> impl Iterator<Item = &Token> {
+        self.assets.values().map(|item| &item.name)
     }
 
     pub fn mesh_exists(&self, key: &str) -> bool {
@@ -64,6 +69,10 @@ impl Assets {
         }
     }
 
+    pub fn iter_mesh_keys(&self) -> impl Iterator<Item = &Token> {
+        self.assets.values().filter(|item| item.key.is("pdxmesh")).map(|item| &item.name)
+    }
+
     pub fn entity_exists(&self, key: &str) -> bool {
         if let Some(asset) = self.assets.get(key) {
             asset.key.is("entity")
@@ -72,20 +81,36 @@ impl Assets {
         }
     }
 
+    pub fn iter_entity_keys(&self) -> impl Iterator<Item = &Token> {
+        self.assets.values().filter(|item| item.key.is("entity")).map(|item| &item.name)
+    }
+
     pub fn blend_shape_exists(&self, key: &str) -> bool {
-        self.blend_shapes.contains(key)
+        self.blend_shapes.contains_key(key)
+    }
+
+    pub fn iter_blend_shape_keys(&self) -> impl Iterator<Item = &Token> {
+        self.blend_shapes.values()
     }
 
     pub fn attribute_exists(&self, key: &str) -> bool {
-        self.attributes.contains(key)
+        self.attributes.contains_key(key)
+    }
+
+    pub fn iter_attribute_keys(&self) -> impl Iterator<Item = &Token> {
+        self.attributes.values()
     }
 
     pub fn texture_exists(&self, key: &str) -> bool {
         self.textures.contains_key(key)
     }
 
+    pub fn iter_texture_keys(&self) -> impl Iterator<Item = &Token> {
+        self.textures.values().map(|(_, token)| token)
+    }
+
     pub fn get_texture(&self, key: &str) -> Option<&FileEntry> {
-        self.textures.get(key)
+        self.textures.get(key).map(|(entry, _)| entry)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -116,7 +141,7 @@ impl FileHandler<Option<Block>> for Assets {
     fn handle_file(&mut self, entry: &FileEntry, loaded: Option<Block>) {
         let name = entry.filename().to_string_lossy();
         if name.ends_with(".dds") {
-            if let Some(other) = self.textures.get(&name.to_string()) {
+            if let Some((other, _)) = self.textures.get(&name.to_string()) {
                 if other.kind() >= entry.kind() {
                     warn2(
                         other,
@@ -127,7 +152,8 @@ impl FileHandler<Option<Block>> for Assets {
                     );
                 }
             }
-            self.textures.insert(name.to_string(), entry.clone());
+            let entry_token = Token::new(&entry.filename().to_string_lossy(), entry.into());
+            self.textures.insert(name.to_string(), (entry.clone(), entry_token));
             return;
         }
 
@@ -141,12 +167,13 @@ impl FileHandler<Option<Block>> for Assets {
 #[derive(Clone, Debug)]
 pub struct Asset {
     key: Token,
+    name: Token,
     block: Block,
 }
 
 impl Asset {
-    pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+    pub fn new(key: Token, name: Token, block: Block) -> Self {
+        Self { key, name, block }
     }
 
     pub fn validate_mesh(&self, data: &Everything) {

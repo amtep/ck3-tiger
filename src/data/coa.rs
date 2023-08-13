@@ -65,8 +65,16 @@ impl Coas {
         self.coas.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.coas.values().map(|item| &item.key)
+    }
+
     pub fn template_exists(&self, key: &str) -> bool {
         self.templates.contains_key(key)
+    }
+
+    pub fn iter_template_keys(&self) -> impl Iterator<Item = &Token> {
+        self.templates.values().map(|item| &item.key)
     }
 
     pub fn validate(&self, data: &Everything) {

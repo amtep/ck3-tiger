@@ -804,7 +804,7 @@ impl<'a> Iterator for LocaReader<'a> {
 }
 
 pub fn parse_loca<'a>(entry: &FileEntry, content: &'a str, lang: &'static str) -> LocaReader<'a> {
-    let mut loc = Loc::for_entry(entry);
+    let mut loc = Loc::from(entry);
     loc.line = 1;
     loc.column = 1;
     let parser = LocaParser::new(loc, content, lang);

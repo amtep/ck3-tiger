@@ -29,6 +29,11 @@ impl Defines {
         self.defines.contains_key(key)
     }
 
+    // TODO: figure out some way to represent the group as well
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.defines.values().map(|item| &item.name)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.defines.values() {
             item.validate(data);

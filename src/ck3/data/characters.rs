@@ -103,6 +103,13 @@ impl Characters {
         self.characters.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.characters
+            .values()
+            .map(|ch| &ch.key)
+            .chain(self.duplicate_characters.iter().map(|ch| &ch.key))
+    }
+
     pub fn is_alive(&self, item: &Token, date: Date) -> bool {
         if let Some(item) = self.characters.get(item.as_str()) {
             item.is_alive(date)
@@ -236,6 +243,7 @@ impl FileHandler<Block> for Characters {
         for item in self.characters.values() {
             let mut checking = FnvHashSet::default();
             let cycle_vec = self._check_ancestors(item, item.key.as_str(), &mut checking);
+            // TODO: make this a report with a pointer for every character in the cycle
             if !cycle_vec.is_empty() {
                 let msg = "character is their own ancestor";
                 let info = format!("via {}", cycle_vec.join(", "));

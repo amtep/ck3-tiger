@@ -45,6 +45,10 @@ impl TitleHistories {
         self.histories.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.histories.values().map(|item| &item.key)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.histories.values() {
             item.validate(data);

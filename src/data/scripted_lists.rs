@@ -35,6 +35,10 @@ impl ScriptedLists {
         self.lists.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.lists.values().map(|item| &item.key)
+    }
+
     pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
         if let Some(item) = self.lists.get(key.as_str()) {
             item.validate_call(key, data, sc);

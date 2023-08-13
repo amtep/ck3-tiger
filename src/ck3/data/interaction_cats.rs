@@ -31,6 +31,10 @@ impl CharacterInteractionCategories {
         self.categories.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.categories.values().map(|item| &item.key)
+    }
+
     pub fn validate(&self, data: &Everything) {
         for item in self.categories.values() {
             item.validate(data);

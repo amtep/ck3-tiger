@@ -50,6 +50,10 @@ impl Triggers {
         self.triggers.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.triggers.values().map(|item| &item.key)
+    }
+
     pub fn get(&self, key: &str) -> Option<&Trigger> {
         self.triggers.get(key)
     }

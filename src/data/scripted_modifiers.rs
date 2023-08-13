@@ -40,6 +40,10 @@ impl ScriptedModifiers {
         self.scripted_modifiers.contains_key(key)
     }
 
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.scripted_modifiers.values().map(|item| &item.key)
+    }
+
     pub fn get(&self, key: &str) -> Option<&ScriptedModifier> {
         self.scripted_modifiers.get(key)
     }

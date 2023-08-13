@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use fnv::{FnvHashMap, FnvHashSet};
+use fnv::FnvHashMap;
 
 use crate::block::Block;
 use crate::ck3::validate::{validate_cost, validate_maa_stats};
@@ -19,7 +19,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct MenAtArmsTypes {
-    menatarmsbasetypes: FnvHashSet<String>,
+    menatarmsbasetypes: FnvHashMap<String, Token>,
     menatarmstypes: FnvHashMap<String, MenAtArmsType>,
 }
 
@@ -32,18 +32,26 @@ impl MenAtArmsTypes {
         }
 
         if let Some(base) = block.get_field_value("type") {
-            self.menatarmsbasetypes.insert(base.to_string());
+            self.menatarmsbasetypes.insert(base.to_string(), base.clone());
         }
 
         self.menatarmstypes.insert(key.to_string(), MenAtArmsType::new(key, block));
     }
 
     pub fn base_exists(&self, key: &str) -> bool {
-        self.menatarmsbasetypes.contains(key)
+        self.menatarmsbasetypes.contains_key(key)
+    }
+
+    pub fn iter_base_keys(&self) -> impl Iterator<Item = &Token> {
+        self.menatarmsbasetypes.values()
     }
 
     pub fn exists(&self, key: &str) -> bool {
         self.menatarmstypes.contains_key(key)
+    }
+
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
+        self.menatarmstypes.values().map(|item| &item.key)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -260,7 +268,7 @@ fn validate_era_bonus(block: &Block, data: &Everything) {
 
 fn validate_counters(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for key in &data.menatarmstypes.menatarmsbasetypes {
+    for key in data.menatarmstypes.menatarmsbasetypes.keys() {
         vd.field_numeric(key);
     }
 }
