@@ -188,6 +188,9 @@ dependencies = [
  "anyhow",
  "clap",
  "console",
+ "serde",
+ "serde_json",
+ "strum",
  "tiger-lib",
 ]
 

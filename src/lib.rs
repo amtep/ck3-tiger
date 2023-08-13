@@ -32,6 +32,7 @@ compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled 
 compile_error!("exactly one of the features \"ck3\", \"vic3\", \"imperator\" must be enabled");
 
 pub use crate::everything::Everything;
+pub use crate::fileset::FileKind;
 pub use crate::game::Game;
 pub use crate::gamedir::{find_game_directory_steam, find_paradox_directory};
 pub use crate::item::Item;
