@@ -1,21 +1,26 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::token::Token;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Vic3Modifier {}
+pub struct Modifier {}
 
-impl Vic3Modifier {
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::Modifier, Modifier::add)
+}
+
+impl Modifier {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add_exact_dup_ok(Item::Modifier, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Vic3Modifier {
+impl DbKind for Modifier {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

@@ -3,7 +3,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -13,6 +14,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct ScriptedButton {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::ScriptedButton, ScriptedButton::add)
+}
 
 impl ScriptedButton {
     pub fn add(db: &mut Db, key: Token, block: Block) {

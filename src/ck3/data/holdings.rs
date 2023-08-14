@@ -1,12 +1,17 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::token::Token;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Holding {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::Holding, Holding::add)
+}
 
 impl Holding {
     pub fn add(db: &mut Db, key: Token, block: Block) {

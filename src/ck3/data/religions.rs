@@ -3,16 +3,21 @@ use crate::ck3::validate::validate_traits;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::FileKind;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::{old_warn, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Ck3Religion {}
+pub struct Religion {}
 
-impl Ck3Religion {
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::Religion, Religion::add)
+}
+
+impl Religion {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if let Some(block) = block.get_field_block("faiths") {
             for (faith, block) in block.iter_definitions() {
@@ -43,7 +48,7 @@ impl Ck3Religion {
     }
 }
 
-impl DbKind for Ck3Religion {
+impl DbKind for Religion {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_adj");
@@ -149,6 +154,7 @@ fn validate_holy_order_names(block: &Block, data: &Everything) {
     }
 }
 
+/// Loaded via [`Religion`]
 #[derive(Clone, Debug)]
 pub struct Faith {
     religion: Token,
@@ -273,6 +279,10 @@ impl DbKind for Faith {
 
 #[derive(Clone, Debug)]
 pub struct ReligionFamily {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ReligionFamily, ReligionFamily::add)
+}
 
 impl ReligionFamily {
     pub fn add(db: &mut Db, key: Token, block: Block) {

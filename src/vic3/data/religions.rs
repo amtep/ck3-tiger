@@ -1,21 +1,26 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::token::Token;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Vic3Religion {}
+pub struct Religion {}
 
-impl Vic3Religion {
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::Religion, Religion::add)
+}
+
+impl Religion {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::Religion, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Vic3Religion {
+impl DbKind for Religion {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

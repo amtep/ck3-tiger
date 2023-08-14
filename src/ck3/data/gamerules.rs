@@ -1,15 +1,20 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::{error, ErrorKey};
 use crate::token::Token;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Ck3GameRule {}
+pub struct GameRule {}
 
-impl Ck3GameRule {
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::GameRule, GameRule::add)
+}
+
+impl GameRule {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, _) in block.iter_definitions() {
             if !key.is("categories") {
@@ -23,7 +28,7 @@ impl Ck3GameRule {
 const RULE_FLAGS: &[&str] =
     &["blocks_achievements", "no_end_date", "no_diplomatic_range", "restricted_diplomatic_range"];
 
-impl DbKind for Ck3GameRule {
+impl DbKind for GameRule {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

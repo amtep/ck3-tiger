@@ -2,7 +2,8 @@ use crate::block::Block;
 use crate::ck3::validate::validate_cost;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -13,6 +14,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Amenity {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::Amenity, Amenity::add)
+}
 
 impl Amenity {
     pub fn add(db: &mut Db, key: Token, block: Block) {

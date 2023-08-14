@@ -3,13 +3,18 @@ use fnv::FnvHashSet;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::{untidy, ErrorKey};
 use crate::token::Token;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct MediaAlias {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::MediaAlias, MediaAlias::add)
+}
 
 impl MediaAlias {
     pub fn add(db: &mut Db, key: Token, block: Block) {

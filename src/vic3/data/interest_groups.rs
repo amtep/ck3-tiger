@@ -3,7 +3,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
@@ -15,6 +16,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct InterestGroup {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::InterestGroup, InterestGroup::add)
+}
 
 impl InterestGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -90,6 +95,10 @@ impl DbKind for InterestGroup {
 
 #[derive(Clone, Debug)]
 pub struct InterestGroupTrait {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::InterestGroupTrait, InterestGroupTrait::add)
+}
 
 impl InterestGroupTrait {
     pub fn add(db: &mut Db, key: Token, block: Block) {

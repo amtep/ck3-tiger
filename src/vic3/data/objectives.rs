@@ -3,7 +3,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -12,6 +13,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Objective {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::Objective, Objective::add)
+}
 
 impl Objective {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -46,6 +51,10 @@ impl DbKind for Objective {
 #[derive(Clone, Debug)]
 pub struct ObjectiveSubgoal {}
 
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::ObjectiveSubgoal, ObjectiveSubgoal::add)
+}
+
 impl ObjectiveSubgoal {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::ObjectiveSubgoal, key, block, Box::new(Self {}));
@@ -78,6 +87,10 @@ impl DbKind for ObjectiveSubgoal {
 
 #[derive(Clone, Debug)]
 pub struct ObjectiveSubgoalCategory {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::ObjectiveSubgoalCategory, ObjectiveSubgoalCategory::add)
+}
 
 impl ObjectiveSubgoalCategory {
     pub fn add(db: &mut Db, key: Token, block: Block) {

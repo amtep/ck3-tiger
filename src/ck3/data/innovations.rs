@@ -3,7 +3,8 @@ use crate::ck3::validate::validate_maa_stats;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{error, ErrorKey};
 use crate::scopes::Scopes;
@@ -14,6 +15,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Innovation {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::Innovation, Innovation::add)
+}
 
 impl Innovation {
     pub fn add(db: &mut Db, key: Token, block: Block) {

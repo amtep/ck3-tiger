@@ -1,7 +1,8 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::token::Token;
 use crate::validate::validate_color;
@@ -9,6 +10,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct PopType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Imperator, Item::PopType, PopType::add)
+}
 
 impl PopType {
     pub fn add(db: &mut Db, key: Token, block: Block) {

@@ -3,7 +3,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -14,6 +15,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CustomLocalization {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::all(), Item::CustomLocalization, CustomLocalization::add)
+}
 
 impl CustomLocalization {
     pub fn add(db: &mut Db, key: Token, block: Block) {

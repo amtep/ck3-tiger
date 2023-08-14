@@ -4,7 +4,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -15,6 +16,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CultureEra {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CultureEra, CultureEra::add)
+}
 
 impl CultureEra {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -56,9 +61,13 @@ impl DbKind for CultureEra {
 }
 
 #[derive(Clone, Debug)]
-pub struct Ck3Culture {}
+pub struct Culture {}
 
-impl Ck3Culture {
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::Culture, Culture::add)
+}
+
+impl Culture {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if let Some(list) = block.get_field_list("coa_gfx") {
             for token in list {
@@ -84,7 +93,7 @@ impl Ck3Culture {
     }
 }
 
-impl DbKind for Ck3Culture {
+impl DbKind for Culture {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -137,6 +146,10 @@ impl DbKind for Ck3Culture {
 
 #[derive(Clone, Debug)]
 pub struct CulturePillar {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CulturePillar, CulturePillar::add)
+}
 
 impl CulturePillar {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -205,6 +218,10 @@ impl DbKind for CulturePillar {
 
 #[derive(Clone, Debug)]
 pub struct CultureTradition {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CultureTradition, CultureTradition::add)
+}
 
 impl CultureTradition {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -296,6 +313,10 @@ fn validate_modifiers(vd: &mut Validator) {
 #[derive(Clone, Debug)]
 pub struct CultureAesthetic {}
 
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CultureAesthetic, CultureAesthetic::add)
+}
+
 impl CultureAesthetic {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::CultureAesthetic, key, block, Box::new(Self {}));
@@ -325,6 +346,10 @@ impl DbKind for CultureAesthetic {
 
 #[derive(Clone, Debug)]
 pub struct CultureCreationName {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CultureCreationName, CultureCreationName::add)
+}
 
 impl CultureCreationName {
     pub fn add(db: &mut Db, key: Token, block: Block) {

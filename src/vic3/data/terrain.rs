@@ -2,8 +2,10 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{verify_modif_exists, ModifKinds};
+use crate::pdxfile::PdxEncoding;
 use crate::report::{untidy, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -11,15 +13,19 @@ use crate::util::SmartJoin;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Vic3Terrain {}
+pub struct Terrain {}
 
-impl Vic3Terrain {
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::Terrain, Terrain::add)
+}
+
+impl Terrain {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::Terrain, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Vic3Terrain {
+impl DbKind for Terrain {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -64,6 +70,10 @@ impl DbKind for Vic3Terrain {
 #[derive(Clone, Debug)]
 pub struct TerrainLabel {}
 
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::TerrainLabel, TerrainLabel::add)
+}
+
 impl TerrainLabel {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::TerrainLabel, key, block, Box::new(Self {}));
@@ -88,6 +98,10 @@ impl DbKind for TerrainLabel {
 
 #[derive(Clone, Debug)]
 pub struct TerrainManipulator {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::TerrainManipulator, TerrainManipulator::add)
+}
 
 impl TerrainManipulator {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -130,6 +144,10 @@ impl DbKind for TerrainManipulator {
 
 #[derive(Clone, Debug)]
 pub struct TerrainMaterial {}
+
+inventory::submit! {
+    ItemLoader::Full(GameFlags::Vic3, Item::TerrainMaterial, PdxEncoding::Utf8OptionalBom, ".settings", true, TerrainMaterial::add)
+}
 
 impl TerrainMaterial {
     // This gets the whole file as a Block

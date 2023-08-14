@@ -19,148 +19,35 @@ use thiserror::Error;
 use crate::block::Block;
 #[cfg(feature = "ck3")]
 use crate::ck3::data::{
-    accolades::{AccoladeIcon, AccoladeName, AccoladeType},
-    activities::{ActivityIntent, ActivityLocale, ActivityType, GuestInviteRule, PulseAction},
-    amenities::Amenity,
-    artifacts::{
-        ArtifactFeature, ArtifactFeatureGroup, ArtifactSlot, ArtifactTemplate, ArtifactType,
-        ArtifactVisual,
-    },
-    bookmarks::{Bookmark, BookmarkGroup, BookmarkPortrait},
-    buildings::Building,
-    casusbelli::{CasusBelli, CasusBelliGroup},
-    character_templates::CharacterTemplate,
-    characters::Characters,
-    combat::CombatPhaseEvent,
-    combat_effects::CombatEffect,
-    council::{CouncilPosition, CouncilTask},
-    court_scene::{CourtSceneCulture, CourtSceneGroup, CourtSceneRole, CourtSceneSetting},
-    court_type::CourtType,
-    courtpos::{CourtPosition, CourtPositionCategory},
-    culture_history::CultureHistory,
-    cultures::{
-        Ck3Culture, CultureAesthetic, CultureCreationName, CultureEra, CulturePillar,
-        CultureTradition,
-    },
-    data_binding::DataBindings,
-    deathreasons::DeathReason,
-    decisions::Ck3Decision,
-    diarchies::{DiarchyMandate, DiarchyType},
-    difficulty::PlayableDifficultyInfo,
-    dna::Dna,
-    doctrines::Doctrines,
-    dynasties::Dynasty,
-    dynasty_legacies::{DynastyLegacy, DynastyPerk},
-    election::Election,
-    environment::PortraitEnvironment,
-    event_themes::{EventBackground, EventTheme, EventTransition},
-    events::Ck3Events,
-    factions::Faction,
-    flavorization::Flavorization,
-    focus::Focus,
-    gameconcepts::GameConcepts,
-    gamerules::Ck3GameRule,
-    government::Government,
-    holdings::Holding,
-    holysites::HolySite,
-    hooks::Hook,
-    houses::House,
-    important_actions::ImportantAction,
-    innovations::Innovation,
-    inspirations::Inspiration,
-    interaction_cats::CharacterInteractionCategories,
-    interactions::Ck3CharacterInteraction,
-    laws::Ck3LawGroup,
-    lifestyles::Lifestyle,
-    maa::MenAtArmsTypes,
-    map_environment::MapEnvironment,
-    mapmodes::MapMode,
-    memories::MemoryType,
-    messages::Message,
-    modif::ModifierFormat,
-    modifiers::Ck3Modifier,
-    mottos::{Motto, MottoInsert},
-    music::Musics,
-    namelists::NameList,
-    nickname::Nickname,
-    opinions::OpinionModifier,
-    perks::Perk,
-    points_of_interest::PointOfInterest,
-    pool::{CharacterBackground, PoolSelector},
-    prov_history::ProvinceHistories,
-    provinces::Ck3Provinces,
-    regions::Region,
-    relations::Relation,
-    religions::{Ck3Religion, ReligionFamily},
-    schemes::Scheme,
-    scripted_animations::ScriptedAnimation,
-    scripted_costs::ScriptedCost,
-    scripted_illustrations::ScriptedIllustration,
-    scripted_rules::ScriptedRule,
-    secrets::Secret,
-    sound::Sounds,
-    stories::Story,
-    struggle::{Catalyst, Struggle},
-    suggestions::Suggestion,
-    terrain::Ck3Terrain,
-    title_history::TitleHistories,
-    titles::Titles,
-    traits::Traits,
-    travel::TravelOption,
-    vassalcontract::VassalContract,
-    vassalstance::VassalStance,
+    characters::Characters, data_binding::DataBindings, doctrines::Doctrines, events::Ck3Events,
+    gameconcepts::GameConcepts, interaction_cats::CharacterInteractionCategories,
+    maa::MenAtArmsTypes, music::Musics, prov_history::ProvinceHistories, provinces::Ck3Provinces,
+    sound::Sounds, title_history::TitleHistories, titles::Titles, traits::Traits,
 };
 #[cfg(feature = "ck3")]
 use crate::ck3::tables::misc::*;
 use crate::config_load::{check_for_legacy_ignore, load_filter};
 use crate::context::ScopeContext;
-#[cfg(feature = "ck3")]
-use crate::data::coa::CoaDynamicDefinition;
-#[cfg(feature = "ck3")]
-use crate::data::coadesigner::{CoaDesignerColorPalette, CoaDesignerEmblemLayout};
 use crate::data::{
-    accessory::{Accessory, AccessoryVariation},
     assets::Assets,
-    coa::{CoaTemplateList, Coas},
-    coadesigner::{CoaDesignerColoredEmblem, CoaDesignerPattern},
-    colors::NamedColor,
-    customloca::CustomLocalization,
+    coa::Coas,
     defines::Defines,
-    effect_localization::EffectLocalization,
-    ethnicity::Ethnicity,
-    fonts::Font,
-    genes::Gene,
     gui::Gui,
     localization::Localization,
     on_actions::OnActions,
-    portrait::{PortraitAnimation, PortraitCamera, PortraitModifierGroup, PortraitModifierPack},
     script_values::ScriptValues,
     scripted_effects::{Effect, Effects},
-    scripted_guis::ScriptedGui,
     scripted_lists::ScriptedLists,
     scripted_modifiers::ScriptedModifiers,
     scripted_triggers::{Trigger, Triggers},
-    trigger_localization::TriggerLocalization,
 };
 use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::game::Game;
 #[cfg(feature = "imperator")]
-use crate::imperator::data::{
-    ai_plan_goals::AiPlanGoals, ambitions::Ambition, buildings::Building,
-    character_interactions::CharacterInteraction, decisions::Decision, deity::Deity,
-    deity_categories::DeityCategory, diplomatic_stances::DiplomaticStance,
-    economic_policies::EconomicPolicy, event_pictures::EventPicture, event_themes::EventTheme,
-    goods::TradeGood, governments::GovernmentType, governor_policies::GovernorPolicy, ideas::Idea,
-    legion_distinctions::LegionDistinction, loyalty::Loyalty, offices::Office, opinions::Opinion,
-    party_agendas::PartyAgenda, pop_types::PopType, prices::Price, province_ranks::ProvinceRank,
-    religions::Religion, subject_types::SubjectType, tech_tables::TechnologyTable,
-    terrains::Terrain, traits::CharacterTrait, unit_abilities::UnitAbility, war_goals::Wargoal,
-};
-#[cfg(feature = "imperator")]
 use crate::imperator::tables::misc::*;
-use crate::item::Item;
+use crate::item::{Item, ItemLoader};
 use crate::lowercase::Lowercase;
 #[cfg(feature = "vic3")]
 use crate::parse::json::parse_json_file;
@@ -172,44 +59,8 @@ use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
 use crate::vic3::data::{
-    ai_strategies::AiStrategy,
-    battle_conditions::BattleCondition,
-    buildings::{BuildingGroup, BuildingType},
-    canals::CanalType,
-    character_interactions::Vic3CharacterInteraction,
-    combat_units::CombatUnit,
-    countries::{Country, CountryFormation, CountryRank, CountryType},
-    cultures::Vic3Culture,
-    decisions::Vic3Decision,
-    diplomatic_actions::DiplomaticAction,
-    diplomatic_plays::DiplomaticPlay,
-    events::Vic3Events,
-    gameconcepts::GameConcept,
-    gamerules::Vic3GameRule,
-    goods::Goods,
-    governments::GovernmentType,
-    history::History,
-    ideologies::Ideology,
-    institutions::Institution,
-    interest_groups::{InterestGroup, InterestGroupTrait},
-    journalentries::Journalentry,
-    laws::{LawType, Vic3LawGroup},
-    map::MapLayer,
-    media_aliases::MediaAlias,
-    modifier_types::ModifierType,
-    modifiers::Vic3Modifier,
-    objectives::{Objective, ObjectiveSubgoal, ObjectiveSubgoalCategory},
-    pops::PopType,
-    production_methods::{ProductionMethod, ProductionMethodGroup},
-    provinces::Vic3Provinces,
-    religions::Vic3Religion,
-    scripted_buttons::ScriptedButton,
-    state_regions::StateRegion,
-    state_traits::StateTrait,
-    strategic_regions::StrategicRegion,
-    subject_types::SubjectType,
-    technology::{Technology, TechnologyEra},
-    terrain::{TerrainLabel, TerrainManipulator, TerrainMask, TerrainMaterial, Vic3Terrain},
+    events::Vic3Events, history::History, provinces::Vic3Provinces,
+    strategic_regions::StrategicRegion, terrain::TerrainMask,
 };
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::misc::*;
@@ -450,111 +301,8 @@ impl Everything {
         style
     }
 
-    /// A helper function for categories of items that follow the usual pattern of
-    /// `.txt` files containing a block with definitions
-    fn load_pdx_items<F>(&mut self, itype: Item, add: F)
-    where
-        F: Fn(&mut Db, Token, Block) + Sync + Send,
-    {
-        self.load_pdx_items_ext(itype, add, ".txt");
-    }
-
-    /// Like `load_pdx_items` but does not complain about a missing BOM
-    fn load_pdx_items_optional_bom<F>(&mut self, itype: Item, add: F)
-    where
-        F: Fn(&mut Db, Token, Block) + Sync + Send,
-    {
-        self.load_pdx_items_optional_bom_ext(itype, add, ".txt");
-    }
-
-    /// Like `load_pdx_items_ext` but does not complain about a missing BOM
-    fn load_pdx_items_optional_bom_ext<F>(&mut self, itype: Item, add: F, ext: &str)
-    where
-        F: Fn(&mut Db, Token, Block) + Sync + Send,
-    {
-        for mut block in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
-            if entry.filename().to_string_lossy().ends_with(ext) {
-                PdxFile::read_optional_bom(entry)
-            } else {
-                None
-            }
-        }) {
-            for (key, block) in block.drain_definitions_warn() {
-                add(&mut self.database, key, block);
-            }
-        }
-    }
-
-    /// A helper function for categories of items that follow the usual pattern of
-    /// files containing a block with definitions
-    fn load_pdx_items_ext<F>(&mut self, itype: Item, add: F, ext: &str)
-    where
-        F: Fn(&mut Db, Token, Block) + Sync + Send,
-    {
-        for mut block in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
-            if entry.filename().to_string_lossy().ends_with(ext) {
-                PdxFile::read(entry)
-            } else {
-                None
-            }
-        }) {
-            for (key, block) in block.drain_definitions_warn() {
-                add(&mut self.database, key, block);
-            }
-        }
-    }
-
-    /// A helper function for categories of items that are unusual in having each item in one file.
-    fn load_pdx_files_optional_bom_ext<F>(&mut self, itype: Item, add: F, ext: &str)
-    where
-        F: Fn(&mut Db, Token, Block) + Sync + Send,
-    {
-        for (key, block) in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
-            let filename = entry.filename().to_string_lossy();
-            if let Some(key) = filename.strip_suffix(ext) {
-                if let Some(block) = PdxFile::read_optional_bom(entry) {
-                    let key = Token::new(key, Loc::from(entry));
-                    Some((key, block))
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        }) {
-            add(&mut self.database, key, block);
-        }
-    }
-
-    #[cfg(feature = "ck3")] // happens not to be used by vic3
-    fn load_pdx_files_optional_bom<F>(&mut self, itype: Item, add: F)
-    where
-        F: Fn(&mut Db, Token, Block) + Sync + Send,
-    {
-        self.load_pdx_files_optional_bom_ext(itype, add, ".txt");
-    }
-
-    /// A helper function for categories of items that are unusual in having each item in one file.
-    #[cfg(feature = "ck3")] // happens not to be used by vic3
-    fn load_pdx_files_detect_encoding<F>(&mut self, itype: Item, add: F)
-    where
-        F: Fn(&mut Db, Token, Block) + Sync + Send,
-    {
-        for (key, block) in self.fileset.filter_map_under(&PathBuf::from(itype.path()), |entry| {
-            let filename = entry.filename().to_string_lossy();
-            if let Some(key) = filename.strip_suffix(".txt") {
-                if let Some(block) = PdxFile::read_detect_encoding(entry) {
-                    let key = Token::new(key, Loc::from(entry));
-                    Some((key, block))
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        }) {
-            add(&mut self.database, key, block);
-        }
+    pub fn load_output_settings(&self, default_colors: bool) {
+        set_output_style(self.load_output_styles(default_colors));
     }
 
     #[cfg(feature = "vic3")]
@@ -573,8 +321,35 @@ impl Everything {
         }
     }
 
-    pub fn load_output_settings(&self, default_colors: bool) {
-        set_output_style(self.load_output_styles(default_colors));
+    fn load_pdx_files(&mut self, loader: &ItemLoader) {
+        let path = PathBuf::from(loader.itype().path());
+        for mut block in self.fileset.filter_map_under(&path, |entry| {
+            if entry.filename().to_string_lossy().ends_with(loader.extension()) {
+                PdxFile::read_encoded(entry, loader.encoding())
+            } else {
+                None
+            }
+        }) {
+            if loader.whole_file() {
+                let fname = block.loc.filename();
+                // unwrap is safe here because of the ends_with check above.
+                let key = fname.strip_suffix(loader.extension()).unwrap();
+                let key = Token::new(key, block.loc.clone());
+                (loader.adder())(&mut self.database, key, block);
+            } else {
+                for (key, block) in block.drain_definitions_warn() {
+                    (loader.adder())(&mut self.database, key, block);
+                }
+            }
+        }
+    }
+
+    fn load_all_normal_pdx_files(&mut self) {
+        for loader in inventory::iter::<ItemLoader> {
+            if loader.for_game(Game::game()) {
+                self.load_pdx_files(loader);
+            }
+        }
     }
 
     fn load_all_generic(&mut self) {
@@ -593,27 +368,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.coas));
         });
 
-        self.load_pdx_items(Item::Accessory, Accessory::add);
-        self.load_pdx_items(Item::AccessoryVariation, AccessoryVariation::add);
-        self.load_pdx_items(Item::CoaDesignerColoredEmblem, CoaDesignerColoredEmblem::add);
-        self.load_pdx_items(Item::CoaDesignerPattern, CoaDesignerPattern::add);
-        self.load_pdx_items_optional_bom(Item::CoaTemplateList, CoaTemplateList::add);
-        self.load_pdx_items(Item::CustomLocalization, CustomLocalization::add);
-        self.load_pdx_items(Item::EffectLocalization, EffectLocalization::add);
-        self.load_pdx_items(Item::Ethnicity, Ethnicity::add);
-        self.load_pdx_items_optional_bom_ext(Item::Font, Font::add, ".font");
-        self.load_pdx_items(Item::GeneCategory, Gene::add);
-        self.load_pdx_items_optional_bom(Item::NamedColor, NamedColor::add);
-        self.load_pdx_items(Item::PortraitAnimation, PortraitAnimation::add);
-        self.load_pdx_items(Item::PortraitCamera, PortraitCamera::add);
-        self.load_pdx_items(Item::PortraitModifierGroup, PortraitModifierGroup::add);
-        self.load_pdx_items_ext(
-            Item::PortraitModifierPack,
-            PortraitModifierPack::add,
-            ".modifierpack",
-        );
-        self.load_pdx_items(Item::ScriptedGui, ScriptedGui::add);
-        self.load_pdx_items(Item::TriggerLocalization, TriggerLocalization::add);
+        self.load_all_normal_pdx_files();
     }
 
     #[cfg(feature = "ck3")]
@@ -634,208 +389,16 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.music));
             s.spawn(|_| self.fileset.handle(&mut self.provinces_ck3));
         });
-        self.load_pdx_items(Item::CharacterInteraction, Ck3CharacterInteraction::add);
-        self.load_pdx_items(Item::Culture, Ck3Culture::add);
-        self.load_pdx_items(Item::Decision, Ck3Decision::add);
-        self.load_pdx_items(Item::Modifier, Ck3Modifier::add);
-        self.load_pdx_items(Item::Religion, Ck3Religion::add);
-        self.load_pdx_items(Item::ReligionFamily, ReligionFamily::add);
-        self.load_pdx_items(Item::Dynasty, Dynasty::add);
-        self.load_pdx_items(Item::House, House::add);
-        self.load_pdx_items(Item::NameList, NameList::add);
-        self.load_pdx_items(Item::Lifestyle, Lifestyle::add);
-        self.load_pdx_items(Item::CourtPositionCategory, CourtPositionCategory::add);
-        self.load_pdx_items(Item::CourtPosition, CourtPosition::add);
-        self.load_pdx_items(Item::EventTheme, EventTheme::add);
-        self.load_pdx_items(Item::EventBackground, EventBackground::add);
-        self.load_pdx_items(Item::EventTransition, EventTransition::add);
-        self.load_pdx_items(Item::ScriptedRule, ScriptedRule::add);
-        self.load_pdx_items(Item::Faction, Faction::add);
-        self.load_pdx_items(Item::Relation, Relation::add);
-        self.load_pdx_items(Item::Terrain, Ck3Terrain::add);
-        self.load_pdx_items(Item::Region, Region::add);
-        self.load_pdx_items(Item::Amenity, Amenity::add);
-        self.load_pdx_items(Item::CasusBelliGroup, CasusBelliGroup::add);
-        self.load_pdx_items(Item::CasusBelli, CasusBelli::add);
-        self.load_pdx_items(Item::Holding, Holding::add);
-        self.load_pdx_items(Item::Focus, Focus::add);
-        self.load_pdx_items(Item::Perk, Perk::add);
-        self.load_pdx_items(Item::OpinionModifier, OpinionModifier::add);
-        self.load_pdx_items(Item::CharacterTemplate, CharacterTemplate::add);
-        self.load_pdx_items(Item::DeathReason, DeathReason::add);
-        self.load_pdx_items(Item::ArtifactSlot, ArtifactSlot::add);
-        self.load_pdx_items(Item::ArtifactType, ArtifactType::add);
-        self.load_pdx_items(Item::ArtifactTemplate, ArtifactTemplate::add);
-        self.load_pdx_items(Item::ArtifactVisual, ArtifactVisual::add);
-        self.load_pdx_items(Item::ArtifactFeature, ArtifactFeature::add);
-        self.load_pdx_items(Item::ArtifactFeatureGroup, ArtifactFeatureGroup::add);
-        self.load_pdx_items(Item::Nickname, Nickname::add);
-        self.load_pdx_items(Item::Building, Building::add);
-        self.load_pdx_items(Item::CultureEra, CultureEra::add);
-        self.load_pdx_items(Item::CulturePillar, CulturePillar::add);
-        self.load_pdx_items(Item::CultureTradition, CultureTradition::add);
-        self.load_pdx_items(Item::CultureAesthetic, CultureAesthetic::add);
-        self.load_pdx_items(Item::CultureCreationName, CultureCreationName::add);
-        self.load_pdx_items(Item::Innovation, Innovation::add);
-        self.load_pdx_items(Item::AccoladeIcon, AccoladeIcon::add);
-        self.load_pdx_items(Item::AccoladeName, AccoladeName::add);
-        self.load_pdx_items(Item::AccoladeType, AccoladeType::add);
-        self.load_pdx_items(Item::VassalStance, VassalStance::add);
-        self.load_pdx_items(Item::Dna, Dna::add);
-        self.load_pdx_items(Item::Bookmark, Bookmark::add);
-        self.load_pdx_items(Item::BookmarkGroup, BookmarkGroup::add);
-        self.load_pdx_items_optional_bom(Item::BookmarkPortrait, BookmarkPortrait::add);
-        self.load_pdx_items(Item::GovernmentType, Government::add);
-        self.load_pdx_items(Item::Hook, Hook::add);
-        self.load_pdx_items(Item::CouncilPosition, CouncilPosition::add);
-        self.load_pdx_items(Item::CouncilTask, CouncilTask::add);
-        self.load_pdx_items(Item::PoolSelector, PoolSelector::add);
-        self.load_pdx_items(Item::CharacterBackground, CharacterBackground::add);
-        self.load_pdx_items(Item::HolySite, HolySite::add);
-        self.load_pdx_items(Item::PortraitEnvironment, PortraitEnvironment::add);
-        self.load_pdx_items(Item::Struggle, Struggle::add);
-        self.load_pdx_items(Item::Catalyst, Catalyst::add);
-        self.load_pdx_items(Item::ImportantAction, ImportantAction::add);
-        self.load_pdx_items(Item::Suggestion, Suggestion::add);
-        self.load_pdx_items(Item::Scheme, Scheme::add);
-        self.load_pdx_items(Item::ModifierFormat, ModifierFormat::add);
-        self.load_pdx_items(Item::MemoryType, MemoryType::add);
-        self.load_pdx_items(Item::MapMode, MapMode::add);
-        self.load_pdx_items(Item::VassalContract, VassalContract::add);
-        self.load_pdx_items(Item::CourtType, CourtType::add);
-        self.load_pdx_items(Item::Secret, Secret::add);
-        self.load_pdx_items(Item::ActivityType, ActivityType::add);
-        self.load_pdx_items(Item::ActivityLocale, ActivityLocale::add);
-        self.load_pdx_items(Item::ActivityIntent, ActivityIntent::add);
-        self.load_pdx_items(Item::GuestInviteRule, GuestInviteRule::add);
-        self.load_pdx_items(Item::PulseAction, PulseAction::add);
-        self.load_pdx_items(Item::ScriptedAnimation, ScriptedAnimation::add);
-        self.load_pdx_items(Item::CourtSceneCulture, CourtSceneCulture::add);
-        self.load_pdx_items(Item::CourtSceneGroup, CourtSceneGroup::add);
-        self.load_pdx_items(Item::CourtSceneRole, CourtSceneRole::add);
-        self.load_pdx_files_optional_bom(Item::CourtSceneSetting, CourtSceneSetting::add);
-        self.load_pdx_files_optional_bom(Item::MapEnvironment, MapEnvironment::add);
-        self.load_pdx_items(Item::GameRule, Ck3GameRule::add);
-        self.load_pdx_items(Item::TravelOption, TravelOption::add);
-        self.load_pdx_items(Item::Story, Story::add);
-        self.load_pdx_items(Item::LawGroup, Ck3LawGroup::add);
-        self.load_pdx_items(Item::SuccessionElection, Election::add);
-        self.load_pdx_items(Item::DiarchyType, DiarchyType::add);
-        self.load_pdx_items(Item::DiarchyMandate, DiarchyMandate::add);
-        self.load_pdx_items(Item::Inspiration, Inspiration::add);
-        self.load_pdx_items(Item::CoaDesignerColorPalette, CoaDesignerColorPalette::add);
-        self.load_pdx_items(Item::CoaDesignerEmblemLayout, CoaDesignerEmblemLayout::add);
-        self.load_pdx_items(Item::PointOfInterest, PointOfInterest::add);
-        self.load_pdx_items(Item::DynastyLegacy, DynastyLegacy::add);
-        self.load_pdx_items(Item::DynastyPerk, DynastyPerk::add);
-        self.load_pdx_items(Item::CombatEffect, CombatEffect::add);
-        self.load_pdx_items(Item::ScriptedIllustration, ScriptedIllustration::add);
-        self.load_pdx_items(Item::Flavorization, Flavorization::add);
-        self.load_pdx_files_detect_encoding(Item::CultureHistory, CultureHistory::add);
-        self.load_pdx_items(Item::Motto, Motto::add);
-        self.load_pdx_items(Item::MottoInsert, MottoInsert::add);
-        self.load_pdx_items(Item::CombatPhaseEvent, CombatPhaseEvent::add);
-        self.load_pdx_items(Item::ScriptedCost, ScriptedCost::add);
-        self.load_pdx_items(Item::PlayableDifficultyInfo, PlayableDifficultyInfo::add);
-        self.load_pdx_items(Item::Message, Message::add);
-        self.load_pdx_items(Item::CoaDynamicDefinition, CoaDynamicDefinition::add);
-        Building::finalize(&mut self.database);
+        crate::ck3::data::buildings::Building::finalize(&mut self.database);
     }
 
     #[cfg(feature = "vic3")]
     fn load_all_vic3(&mut self) {
-        self.fileset.handle(&mut self.history);
-        self.fileset.handle(&mut self.events_vic3);
-        self.fileset.handle(&mut self.provinces_vic3);
-        self.load_pdx_items(Item::AiStrategy, AiStrategy::add);
-        self.load_pdx_items(Item::BattleCondition, BattleCondition::add);
-        self.load_pdx_items(Item::BuildingGroup, BuildingGroup::add);
-        self.load_pdx_items(Item::BuildingType, BuildingType::add);
-        self.load_pdx_items(Item::CanalType, CanalType::add);
-        self.load_pdx_items(Item::CharacterInteraction, Vic3CharacterInteraction::add);
-        self.load_pdx_items(Item::CombatUnit, CombatUnit::add);
-        self.load_pdx_items(Item::Country, Country::add);
-        self.load_pdx_items(Item::CountryFormation, CountryFormation::add);
-        self.load_pdx_items(Item::CountryType, CountryType::add);
-        self.load_pdx_items(Item::CountryRank, CountryRank::add);
-        self.load_pdx_items(Item::Culture, Vic3Culture::add);
-        self.load_pdx_items(Item::Decision, Vic3Decision::add);
-        self.load_pdx_items(Item::DiplomaticAction, DiplomaticAction::add);
-        self.load_pdx_items(Item::DiplomaticPlay, DiplomaticPlay::add);
-        self.load_pdx_items(Item::GameConcept, GameConcept::add);
-        self.load_pdx_items(Item::GameRule, Vic3GameRule::add);
-        self.load_pdx_items(Item::Goods, Goods::add);
-        self.load_pdx_items(Item::GovernmentType, GovernmentType::add);
-        self.load_pdx_items(Item::Ideology, Ideology::add);
-        self.load_pdx_items(Item::Institution, Institution::add);
-        self.load_pdx_items(Item::InterestGroup, InterestGroup::add);
-        self.load_pdx_items(Item::InterestGroupTrait, InterestGroupTrait::add);
-        self.load_pdx_items(Item::Journalentry, Journalentry::add);
-        self.load_pdx_items(Item::LawGroup, Vic3LawGroup::add);
-        self.load_pdx_items(Item::LawType, LawType::add);
-        self.load_pdx_items(Item::MapLayer, MapLayer::add);
-        self.load_pdx_items(Item::MediaAlias, MediaAlias::add);
-        self.load_pdx_items(Item::Modifier, Vic3Modifier::add);
-        self.load_pdx_items(Item::ModifierType, ModifierType::add);
-        self.load_pdx_items(Item::Objective, Objective::add);
-        self.load_pdx_items(Item::ObjectiveSubgoal, ObjectiveSubgoal::add);
-        self.load_pdx_items(Item::ObjectiveSubgoalCategory, ObjectiveSubgoalCategory::add);
-        self.load_pdx_items(Item::PopType, PopType::add);
-        self.load_pdx_items(Item::ProductionMethod, ProductionMethod::add);
-        self.load_pdx_items(Item::ProductionMethodGroup, ProductionMethodGroup::add);
-        self.load_pdx_items(Item::Religion, Vic3Religion::add);
-        self.load_pdx_items(Item::ScriptedButton, ScriptedButton::add);
-        self.load_pdx_items(Item::StateRegion, StateRegion::add);
-        self.load_pdx_items(Item::StateTrait, StateTrait::add);
-        self.load_pdx_items(Item::StrategicRegion, StrategicRegion::add);
-        self.load_pdx_items(Item::SubjectType, SubjectType::add);
-        self.load_pdx_items(Item::Technology, Technology::add);
-        self.load_pdx_items(Item::TechnologyEra, TechnologyEra::add);
-        self.load_pdx_items(Item::Terrain, Vic3Terrain::add);
-        self.load_pdx_items(Item::TerrainLabel, TerrainLabel::add);
-        self.load_pdx_items(Item::TerrainManipulator, TerrainManipulator::add);
-        self.load_pdx_files_optional_bom_ext(
-            Item::TerrainMaterial,
-            TerrainMaterial::add,
-            ".settings",
-        );
         self.load_json(Item::TerrainMask, TerrainMask::add_json);
     }
 
     #[cfg(feature = "imperator")]
-    fn load_all_imperator(&mut self) {
-        self.load_pdx_items(Item::TradeGood, TradeGood::add);
-        self.load_pdx_items(Item::Idea, Idea::add);
-        self.load_pdx_items(Item::LegionDistinction, LegionDistinction::add);
-        self.load_pdx_items(Item::DeityCategory, DeityCategory::add);
-        self.load_pdx_items(Item::Deity, Deity::add);
-        self.load_pdx_items(Item::Decision, Decision::add);
-        self.load_pdx_items(Item::Ambition, Ambition::add);
-        self.load_pdx_items(Item::Building, Building::add);
-        self.load_pdx_items(Item::CharacterInteraction, CharacterInteraction::add);
-        self.load_pdx_items(Item::AiPlanGoals, AiPlanGoals::add);
-        self.load_pdx_items(Item::DiplomaticStance, DiplomaticStance::add);
-        self.load_pdx_items(Item::EconomicPolicy, EconomicPolicy::add);
-        self.load_pdx_items(Item::EventPicture, EventPicture::add);
-        self.load_pdx_items(Item::EventTheme, EventTheme::add);
-        self.load_pdx_items(Item::GovernmentType, GovernmentType::add);
-        self.load_pdx_items(Item::GovernorPolicy, GovernorPolicy::add);
-        self.load_pdx_items(Item::Loyalty, Loyalty::add);
-        self.load_pdx_items(Item::Office, Office::add);
-        self.load_pdx_items(Item::Opinion, Opinion::add);
-        self.load_pdx_items(Item::PartyAgenda, PartyAgenda::add);
-        self.load_pdx_items(Item::PopType, PopType::add);
-        self.load_pdx_items(Item::Price, Price::add);
-        self.load_pdx_items(Item::ProvinceRank, ProvinceRank::add);
-        self.load_pdx_items(Item::Religion, Religion::add);
-        self.load_pdx_items(Item::ScriptedGui, ScriptedGui::add);
-        self.load_pdx_items(Item::SubjectType, SubjectType::add);
-        self.load_pdx_items(Item::TechnologyTable, TechnologyTable::add);
-        self.load_pdx_items(Item::Terrain, Terrain::add);
-        self.load_pdx_items(Item::CharacterTrait, CharacterTrait::add);
-        self.load_pdx_items(Item::UnitAbility, UnitAbility::add);
-        self.load_pdx_items(Item::Wargoal, Wargoal::add);
-    }
+    fn load_all_imperator(&mut self) {}
 
     pub fn load_all(&mut self) {
         self.load_all_generic();

@@ -1,13 +1,19 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
+use crate::pdxfile::PdxEncoding;
 use crate::report::{old_warn, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_color;
 
 #[derive(Clone, Debug)]
 pub struct NamedColor {}
+
+inventory::submit! {
+    ItemLoader::Full(GameFlags::all(), Item::NamedColor, PdxEncoding::Utf8OptionalBom, ".txt", false, NamedColor::add)
+}
 
 impl NamedColor {
     pub fn add(db: &mut Db, key: Token, mut block: Block) {

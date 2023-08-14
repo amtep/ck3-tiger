@@ -5,7 +5,9 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 #[cfg(feature = "ck3")]
 use crate::game::Game;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
+use crate::pdxfile::PdxEncoding;
 use crate::report::{error, old_warn, Confidence, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -16,6 +18,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct PortraitModifierGroup {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::all(), Item::PortraitModifierGroup, PortraitModifierGroup::add)
+}
 
 impl PortraitModifierGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -206,6 +212,10 @@ fn validate_add_accessory_modifiers(
 #[derive(Clone, Debug)]
 pub struct PortraitAnimation {}
 
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::all(), Item::PortraitAnimation, PortraitAnimation::add)
+}
+
 impl PortraitAnimation {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::PortraitAnimation, key, block, Box::new(Self {}));
@@ -286,6 +296,10 @@ fn validate_animation(block: &Block, data: &Everything) {
 #[derive(Clone, Debug)]
 pub struct PortraitModifierPack {}
 
+inventory::submit! {
+    ItemLoader::Full(GameFlags::all(), Item::PortraitModifierPack, PdxEncoding::Utf8Bom, ".modifierpack", false, PortraitModifierPack::add)
+}
+
 impl PortraitModifierPack {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::PortraitModifierPack, key, block, Box::new(Self {}));
@@ -318,6 +332,10 @@ fn validate_portrait_modifiers(_block: &Block, data: &Everything, mut vd: Valida
 
 #[derive(Clone, Debug)]
 pub struct PortraitCamera {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::all(), Item::PortraitCamera, PortraitCamera::add)
+}
 
 impl PortraitCamera {
     pub fn add(db: &mut Db, key: Token, block: Block) {

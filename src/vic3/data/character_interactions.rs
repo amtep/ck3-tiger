@@ -3,7 +3,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -12,15 +13,19 @@ use crate::validate::validate_duration;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Vic3CharacterInteraction {}
+pub struct CharacterInteraction {}
 
-impl Vic3CharacterInteraction {
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::CharacterInteraction, CharacterInteraction::add)
+}
+
+impl CharacterInteraction {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::CharacterInteraction, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Vic3CharacterInteraction {
+impl DbKind for CharacterInteraction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Character, key);

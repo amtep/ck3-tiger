@@ -6,7 +6,8 @@ use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -17,6 +18,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct ActivityType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ActivityType, ActivityType::add)
+}
 
 impl ActivityType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -595,6 +600,10 @@ fn validate_special_guest(
 #[derive(Clone, Debug)]
 pub struct ActivityLocale {}
 
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ActivityLocale, ActivityLocale::add)
+}
+
 impl ActivityLocale {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::ActivityLocale, key, block, Box::new(Self {}));
@@ -645,6 +654,10 @@ fn validate_visuals(key: &Token, bv: &BV, data: &Everything) {
 #[derive(Clone, Debug)]
 pub struct GuestInviteRule {}
 
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::GuestInviteRule, GuestInviteRule::add)
+}
+
 impl GuestInviteRule {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::GuestInviteRule, key, block, Box::new(Self {}));
@@ -666,6 +679,10 @@ impl DbKind for GuestInviteRule {
 
 #[derive(Clone, Debug)]
 pub struct PulseAction {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::PulseAction, PulseAction::add)
+}
 
 impl PulseAction {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -700,6 +717,10 @@ impl DbKind for PulseAction {
 
 #[derive(Clone, Debug)]
 pub struct ActivityIntent {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ActivityIntent, ActivityIntent::add)
+}
 
 impl ActivityIntent {
     pub fn add(db: &mut Db, key: Token, block: Block) {

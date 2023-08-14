@@ -3,7 +3,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
@@ -14,6 +15,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct LawType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::LawType, LawType::add)
+}
 
 impl LawType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -118,15 +123,19 @@ impl DbKind for LawType {
 }
 
 #[derive(Clone, Debug)]
-pub struct Vic3LawGroup {}
+pub struct LawGroup {}
 
-impl Vic3LawGroup {
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::LawGroup, LawGroup::add)
+}
+
+impl LawGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::LawGroup, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Vic3LawGroup {
+impl DbKind for LawGroup {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

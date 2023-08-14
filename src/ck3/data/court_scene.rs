@@ -6,7 +6,9 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
+use crate::pdxfile::PdxEncoding;
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -16,6 +18,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CourtSceneGroup {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CourtSceneGroup, CourtSceneGroup::add)
+}
 
 impl CourtSceneGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -36,6 +42,10 @@ impl DbKind for CourtSceneGroup {
 
 #[derive(Clone, Debug)]
 pub struct CourtSceneRole {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CourtSceneRole, CourtSceneRole::add)
+}
 
 impl CourtSceneRole {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -64,6 +74,10 @@ impl DbKind for CourtSceneRole {
 #[derive(Clone, Debug)]
 pub struct CourtSceneCulture {}
 
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CourtSceneCulture, CourtSceneCulture::add)
+}
+
 impl CourtSceneCulture {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::CourtSceneCulture, key, block, Box::new(Self {}));
@@ -83,6 +97,10 @@ impl DbKind for CourtSceneCulture {
 
 #[derive(Clone, Debug)]
 pub struct CourtSceneSetting {}
+
+inventory::submit! {
+    ItemLoader::Full(GameFlags::Ck3, Item::CourtSceneSetting, PdxEncoding::Utf8OptionalBom, ".txt", true, CourtSceneSetting::add)
+}
 
 impl CourtSceneSetting {
     pub fn add(db: &mut Db, key: Token, block: Block) {

@@ -4,7 +4,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
@@ -15,6 +16,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CourtPositionCategory {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CourtPositionCategory, CourtPositionCategory::add)
+}
 
 impl CourtPositionCategory {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -32,6 +37,10 @@ impl DbKind for CourtPositionCategory {
 
 #[derive(Clone, Debug)]
 pub struct CourtPosition {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CourtPosition, CourtPosition::add)
+}
 
 impl CourtPosition {
     pub fn add(db: &mut Db, key: Token, block: Block) {

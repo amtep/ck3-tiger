@@ -5,7 +5,8 @@ use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -15,15 +16,19 @@ use crate::validate::{validate_ai_chance, validate_duration, validate_modifiers_
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Ck3CharacterInteraction {}
+pub struct CharacterInteraction {}
 
-impl Ck3CharacterInteraction {
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CharacterInteraction, CharacterInteraction::add)
+}
+
+impl CharacterInteraction {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::CharacterInteraction, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Ck3CharacterInteraction {
+impl DbKind for CharacterInteraction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

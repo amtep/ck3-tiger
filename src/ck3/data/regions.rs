@@ -1,7 +1,8 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::{error, fatal, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_color;
@@ -10,6 +11,10 @@ use crate::validator::Validator;
 #[derive(Clone, Debug)]
 pub struct Region {
     generates_modifiers: bool,
+}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::Region, Region::add)
 }
 
 impl Region {

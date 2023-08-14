@@ -2,8 +2,9 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
+use crate::game::GameFlags;
 use crate::helpers::stringify_choices;
-use crate::item::Item;
+use crate::item::{Item, ItemLoader};
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
@@ -14,6 +15,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Ideology {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::Ideology, Ideology::add)
+}
 
 impl Ideology {
     pub fn add(db: &mut Db, key: Token, block: Block) {

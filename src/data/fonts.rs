@@ -1,13 +1,19 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
+use crate::pdxfile::PdxEncoding;
 use crate::report::{untidy, warn, ErrorKey, Severity};
 use crate::token::Token;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Font {}
+
+inventory::submit! {
+    ItemLoader::Full(GameFlags::all(), Item::Font, PdxEncoding::Utf8OptionalBom, ".font", false, Font::add)
+}
 
 impl Font {
     pub fn add(db: &mut Db, key: Token, block: Block) {

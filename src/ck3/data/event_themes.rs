@@ -7,7 +7,8 @@ use crate::ck3::validate::{
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::Severity;
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -18,6 +19,10 @@ use crate::validator::Validator;
 #[derive(Debug)]
 pub struct EventTheme {
     validated_scopes: RwLock<Scopes>,
+}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::EventTheme, EventTheme::add)
 }
 
 impl EventTheme {
@@ -73,6 +78,10 @@ pub struct EventBackground {
     validated_scopes: RwLock<Scopes>,
 }
 
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::EventBackground, EventBackground::add)
+}
+
 impl EventBackground {
     pub fn new() -> Self {
         let validated_scopes = RwLock::new(Scopes::empty());
@@ -125,6 +134,10 @@ impl DbKind for EventBackground {
 #[derive(Debug)]
 pub struct EventTransition {
     validated_scopes: RwLock<Scopes>,
+}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::EventTransition, EventTransition::add)
 }
 
 impl EventTransition {

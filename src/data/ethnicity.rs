@@ -2,8 +2,8 @@ use crate::block::Block;
 use crate::data::genes::Gene;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::game::Game;
-use crate::item::Item;
+use crate::game::{Game, GameFlags};
+use crate::item::{Item, ItemLoader};
 use crate::report::{Confidence, Severity};
 use crate::token::Token;
 use crate::validate::validate_numeric_range;
@@ -11,6 +11,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Ethnicity {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::all(), Item::Ethnicity, Ethnicity::add)
+}
 
 impl Ethnicity {
     pub fn add(db: &mut Db, key: Token, block: Block) {

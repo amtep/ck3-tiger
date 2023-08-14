@@ -2,7 +2,8 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -13,6 +14,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Country {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::Country, Country::add)
+}
 
 impl Country {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -50,6 +55,10 @@ impl DbKind for Country {
 #[derive(Clone, Debug)]
 pub struct CountryType {}
 
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::CountryType, CountryType::add)
+}
+
 impl CountryType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::CountryType, key, block, Box::new(Self {}));
@@ -77,6 +86,10 @@ impl DbKind for CountryType {
 
 #[derive(Clone, Debug)]
 pub struct CountryRank {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::CountryRank, CountryRank::add)
+}
 
 impl CountryRank {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -112,6 +125,10 @@ impl DbKind for CountryRank {
 
 #[derive(Clone, Debug)]
 pub struct CountryFormation {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::CountryFormation, CountryFormation::add)
+}
 
 impl CountryFormation {
     pub fn add(db: &mut Db, key: Token, block: Block) {

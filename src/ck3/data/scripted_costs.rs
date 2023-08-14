@@ -3,12 +3,17 @@ use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 
 #[derive(Clone, Debug)]
 pub struct ScriptedCost {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ScriptedCost, ScriptedCost::add)
+}
 
 impl ScriptedCost {
     pub fn add(db: &mut Db, key: Token, block: Block) {

@@ -2,7 +2,8 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -10,15 +11,19 @@ use crate::validate::validate_color;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Ck3Terrain {}
+pub struct Terrain {}
 
-impl Ck3Terrain {
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::Terrain, Terrain::add)
+}
+
+impl Terrain {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::Terrain, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Ck3Terrain {
+impl DbKind for Terrain {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::None, key);

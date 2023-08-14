@@ -1,13 +1,18 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::{error, old_warn, ErrorKey};
 use crate::token::Token;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Accessory {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::all(), Item::Accessory, Accessory::add)
+}
 
 impl Accessory {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -50,6 +55,10 @@ impl DbKind for Accessory {
 
 #[derive(Clone, Debug)]
 pub struct AccessoryVariation {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::all(), Item::AccessoryVariation, AccessoryVariation::add)
+}
 
 impl AccessoryVariation {
     pub fn add(db: &mut Db, key: Token, block: Block) {

@@ -3,7 +3,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -14,6 +15,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Struggle {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::Struggle, Struggle::add)
+}
 
 impl Struggle {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -193,6 +198,10 @@ fn validate_struggle_parameters(block: &Block, data: &Everything) {
 
 #[derive(Clone, Debug)]
 pub struct Catalyst {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::Catalyst, Catalyst::add)
+}
 
 impl Catalyst {
     pub fn add(db: &mut Db, key: Token, block: Block) {

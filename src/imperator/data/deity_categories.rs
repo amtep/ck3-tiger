@@ -1,12 +1,17 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::token::Token;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct DeityCategory {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Imperator, Item::DeityCategory, DeityCategory::add)
+}
 
 impl DeityCategory {
     pub fn add(db: &mut Db, key: Token, block: Block) {

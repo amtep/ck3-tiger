@@ -1,7 +1,8 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -9,6 +10,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Technology {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::Technology, Technology::add)
+}
 
 impl Technology {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -43,6 +48,10 @@ impl DbKind for Technology {
 
 #[derive(Clone, Debug)]
 pub struct TechnologyEra {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::TechnologyEra, TechnologyEra::add)
+}
 
 impl TechnologyEra {
     pub fn add(db: &mut Db, key: Token, block: Block) {

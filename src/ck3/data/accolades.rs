@@ -4,7 +4,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{error, ErrorKey};
 use crate::scopes::Scopes;
@@ -15,6 +16,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct AccoladeIcon {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::AccoladeIcon, AccoladeIcon::add)
+}
 
 impl AccoladeIcon {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -41,6 +46,10 @@ impl DbKind for AccoladeIcon {
 
 #[derive(Clone, Debug)]
 pub struct AccoladeName {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::AccoladeName, AccoladeName::add)
+}
 
 impl AccoladeName {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -89,6 +98,10 @@ impl DbKind for AccoladeName {
 
 #[derive(Clone, Debug)]
 pub struct AccoladeType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::AccoladeType, AccoladeType::add)
+}
 
 impl AccoladeType {
     pub fn add(db: &mut Db, key: Token, block: Block) {

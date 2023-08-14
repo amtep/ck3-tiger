@@ -4,7 +4,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{error, ErrorKey};
 use crate::scopes::Scopes;
@@ -14,9 +15,13 @@ use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Ck3LawGroup {}
+pub struct LawGroup {}
 
-impl Ck3LawGroup {
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::LawGroup, LawGroup::add)
+}
+
+impl LawGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, block) in block.iter_definitions() {
             for token in block.get_field_values("flag") {
@@ -36,7 +41,7 @@ impl Ck3LawGroup {
     }
 }
 
-impl DbKind for Ck3LawGroup {
+impl DbKind for LawGroup {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

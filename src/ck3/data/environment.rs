@@ -2,12 +2,17 @@ use crate::block::{Block, BV};
 use crate::ck3::validate::validate_camera_color;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::token::Token;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct PortraitEnvironment {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::PortraitEnvironment, PortraitEnvironment::add)
+}
 
 impl PortraitEnvironment {
     pub fn add(db: &mut Db, key: Token, block: Block) {

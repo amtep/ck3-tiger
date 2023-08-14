@@ -2,7 +2,8 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::FileKind;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{verify_modif_exists, ModifKinds};
 use crate::report::Severity;
 use crate::token::Token;
@@ -10,6 +11,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct ModifierFormat {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ModifierFormat, ModifierFormat::add)
+}
 
 impl ModifierFormat {
     pub fn add(db: &mut Db, key: Token, block: Block) {

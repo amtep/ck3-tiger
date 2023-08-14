@@ -3,7 +3,8 @@ use fnv::FnvHashMap;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_possibly_named_color;
@@ -11,6 +12,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct StrategicRegion {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::StrategicRegion, StrategicRegion::add)
+}
 
 impl StrategicRegion {
     pub fn add(db: &mut Db, key: Token, block: Block) {

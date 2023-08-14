@@ -4,8 +4,14 @@ use std::fmt::{Display, Formatter};
 
 use strum_macros::{EnumIter, IntoStaticStr};
 
-use crate::game::Game;
+use crate::block::Block;
+use crate::db::Db;
+#[cfg(doc)]
+use crate::everything::Everything;
+use crate::game::{Game, GameFlags};
+use crate::pdxfile::PdxEncoding;
 use crate::report::{Confidence, Severity};
+use crate::token::Token;
 
 /// "items" are all the things that can be looked up in the game databases.
 /// Anything that can be looked up in script with a literal string key, or that's loaded into
@@ -1129,6 +1135,81 @@ impl Item {
             | Item::TerrainMaterial => Severity::Warning,
 
             _ => Severity::Error,
+        }
+    }
+}
+
+/// The callback type for adding one item instance to the database.
+pub(crate) type ItemAdder = fn(&mut Db, Token, Block);
+
+/// The specification for loading an [`Item`] type into the [`Db`].
+///
+/// An instance of this can be placed in every `data` module using the `inventory::collect!` macro.
+/// This will register the loader so that the [`Everything`] object can load all defined items.
+// Note that this is an enum so that users can more conveniently construct it. It used to be a
+// struct with various constructor functions, but that didn't work because the ItemAdder type has a
+// &mut in it, and that wasn't allowed in const functions even though the function pointer itself
+// is const. See https://github.com/rust-lang/rust/issues/57349 for details.
+// TODO: once that issue stabilizes, we can revisit the ItemLoader type.
+pub(crate) enum ItemLoader {
+    /// A convenience variant for loaders that are the most common type.
+    ///
+    /// * [`GameFlags`] is which games this item loader is for.
+    /// * [`Item`] is the item type being loaded.
+    /// The [`ItemAdder`] function does not have to load exclusively this type of item.
+    /// Related items are ok. The main use of the [`Item`] field is to get the path for this item
+    /// type, so that files are loaded from that folder.
+    Normal(GameFlags, Item, ItemAdder),
+    /// A variant that allows the full range of item loader behvavior.
+    /// * [`PdxEncoding`] indicates whether to expect utf-8 and/or a BOM in the files.
+    /// * The `&'static str` is the file extension to look for (including the dot).
+    /// * The `bool` is whether to load the whole file as one item, or treat it as normal with a
+    /// series of items in one file.
+    Full(GameFlags, Item, PdxEncoding, &'static str, bool, ItemAdder),
+}
+
+inventory::collect!(ItemLoader);
+
+impl ItemLoader {
+    pub fn for_game(&self, game: Game) -> bool {
+        let game_flags = match self {
+            ItemLoader::Normal(game_flags, _, _) | ItemLoader::Full(game_flags, _, _, _, _, _) => {
+                game_flags
+            }
+        };
+        game_flags.contains(GameFlags::from(game))
+    }
+
+    pub fn itype(&self) -> Item {
+        match self {
+            ItemLoader::Normal(_, itype, _) | ItemLoader::Full(_, itype, _, _, _, _) => *itype,
+        }
+    }
+
+    pub fn encoding(&self) -> PdxEncoding {
+        match self {
+            ItemLoader::Normal(_, _, _) => PdxEncoding::Utf8Bom,
+            ItemLoader::Full(_, _, encoding, _, _, _) => *encoding,
+        }
+    }
+
+    pub fn extension(&self) -> &'static str {
+        match self {
+            ItemLoader::Normal(_, _, _) => ".txt",
+            ItemLoader::Full(_, _, _, extension, _, _) => extension,
+        }
+    }
+
+    pub fn whole_file(&self) -> bool {
+        match self {
+            ItemLoader::Normal(_, _, _) => false,
+            ItemLoader::Full(_, _, _, _, whole_file, _) => *whole_file,
+        }
+    }
+
+    pub fn adder(&self) -> ItemAdder {
+        match self {
+            ItemLoader::Normal(_, _, adder) | ItemLoader::Full(_, _, _, _, _, adder) => *adder,
         }
     }
 }

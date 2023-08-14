@@ -606,6 +606,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "inventory"
+version = "0.3.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a53088c87cf71c9d4f3372a2cb9eea1e7b8a0b1bf8b7f7d23fe5b76dbb07e63b"
+
+[[package]]
 name = "is-terminal"
 version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1086,6 +1092,7 @@ dependencies = [
  "fnv",
  "home",
  "image",
+ "inventory",
  "lazy_static",
  "once_cell",
  "png",

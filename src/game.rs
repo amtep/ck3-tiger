@@ -123,3 +123,17 @@ impl Display for GameFlags {
         display_choices(f, &vec, "and")
     }
 }
+
+impl From<Game> for GameFlags {
+    /// Convert a [`Game`] into a [`GameFlags`] with just that game's flag set.
+    fn from(game: Game) -> Self {
+        match game {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => GameFlags::Ck3,
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => GameFlags::Vic3,
+            #[cfg(feature = "imperator")]
+            Game::Imperator => GameFlags::Imperator,
+        }
+    }
+}

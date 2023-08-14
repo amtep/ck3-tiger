@@ -18,12 +18,18 @@ use crate::fileset::FileEntry;
 use crate::parse::pdxfile::parse_pdx;
 use crate::report::{err, warn, ErrorKey};
 
-/// If a windows-1252 file mistakenly starts with a UTF-8 BOM, this is
-/// what it will look like after decoding
 #[cfg(feature = "ck3")]
 const BOM_AS_BYTES: &[u8] = b"\xef\xbb\xbf";
 
-pub struct PdxFile;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PdxEncoding {
+    Utf8Bom,
+    Utf8OptionalBom,
+    #[cfg(feature = "ck3")]
+    Detect,
+}
+
+pub struct PdxFile {}
 
 impl PdxFile {
     /// Internal function to read a file in UTF-8 encoding.
@@ -95,5 +101,14 @@ impl PdxFile {
             }
         };
         opt_contents.map(|c| parse_pdx(entry, &c))
+    }
+
+    pub fn read_encoded(entry: &FileEntry, encoding: PdxEncoding) -> Option<Block> {
+        match encoding {
+            PdxEncoding::Utf8Bom => Self::read(entry),
+            PdxEncoding::Utf8OptionalBom => Self::read_optional_bom(entry),
+            #[cfg(feature = "ck3")]
+            PdxEncoding::Detect => Self::read_detect_encoding(entry),
+        }
     }
 }

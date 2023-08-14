@@ -2,7 +2,8 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{old_warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -13,6 +14,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct ArtifactSlot {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ArtifactSlot, ArtifactSlot::add)
+}
 
 impl ArtifactSlot {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -46,6 +51,10 @@ impl DbKind for ArtifactSlot {
 #[derive(Clone, Debug)]
 pub struct ArtifactType {}
 
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ArtifactType, ArtifactType::add)
+}
+
 impl ArtifactType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::ArtifactType, key, block, Box::new(Self {}));
@@ -68,6 +77,10 @@ impl DbKind for ArtifactType {
 
 #[derive(Clone, Debug)]
 pub struct ArtifactTemplate {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ArtifactTemplate, ArtifactTemplate::add)
+}
 
 impl ArtifactTemplate {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -106,6 +119,10 @@ impl DbKind for ArtifactTemplate {
 
 #[derive(Clone, Debug)]
 pub struct ArtifactVisual {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ArtifactVisual, ArtifactVisual::add)
+}
 
 impl ArtifactVisual {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -188,6 +205,10 @@ impl DbKind for ArtifactVisual {
 #[derive(Clone, Debug)]
 pub struct ArtifactFeature {}
 
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ArtifactFeature, ArtifactFeature::add)
+}
+
 impl ArtifactFeature {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::ArtifactFeature, key, block, Box::new(Self {}));
@@ -217,6 +238,10 @@ impl DbKind for ArtifactFeature {
 
 #[derive(Clone, Debug)]
 pub struct ArtifactFeatureGroup {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ArtifactFeatureGroup, ArtifactFeatureGroup::add)
+}
 
 impl ArtifactFeatureGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {

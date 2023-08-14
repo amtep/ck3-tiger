@@ -5,7 +5,8 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::parse::pdxfile::parse_pdx_internal;
 use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
@@ -15,6 +16,10 @@ use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct ScriptedRule {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ScriptedRule, ScriptedRule::add)
+}
 
 impl ScriptedRule {
     pub fn add(db: &mut Db, key: Token, block: Block) {

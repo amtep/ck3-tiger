@@ -3,7 +3,8 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::context::ScopeContext;
-use crate::item::Item;
+use crate::item::{Item, ItemLoader};
+use crate::game::GameFlags;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
@@ -11,6 +12,10 @@ use crate::validate::validate_color;
 
 #[derive(Clone, Debug)]
 pub struct CultureGroup {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Imperator, Item::CultureGroup, CultureGroup::add)
+}
 
 impl CultureGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {

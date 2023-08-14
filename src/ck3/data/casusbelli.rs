@@ -5,7 +5,8 @@ use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -15,6 +16,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CasusBelli {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CasusBelli, CasusBelli::add)
+}
 
 impl CasusBelli {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -244,6 +249,10 @@ impl DbKind for CasusBelli {
 
 #[derive(Clone, Debug)]
 pub struct CasusBelliGroup {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CasusBelliGroup, CasusBelliGroup::add)
+}
 
 impl CasusBelliGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {

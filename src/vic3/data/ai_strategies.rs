@@ -2,7 +2,8 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
@@ -13,6 +14,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct AiStrategy {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::AiStrategy, AiStrategy::add)
+}
 
 impl AiStrategy {
     pub fn add(db: &mut Db, key: Token, block: Block) {

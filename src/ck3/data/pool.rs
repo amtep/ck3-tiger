@@ -2,7 +2,8 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -12,6 +13,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct PoolSelector {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::PoolSelector, PoolSelector::add)
+}
 
 impl PoolSelector {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -51,6 +56,10 @@ impl DbKind for PoolSelector {
 
 #[derive(Clone, Debug)]
 pub struct CharacterBackground {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CharacterBackground, CharacterBackground::add)
+}
 
 impl CharacterBackground {
     pub fn add(db: &mut Db, key: Token, block: Block) {

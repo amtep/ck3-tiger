@@ -3,7 +3,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -13,6 +14,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct DynastyLegacy {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::DynastyLegacy, DynastyLegacy::add)
+}
 
 impl DynastyLegacy {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -47,6 +52,10 @@ impl DbKind for DynastyLegacy {
 
 #[derive(Clone, Debug)]
 pub struct DynastyPerk {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::DynastyPerk, DynastyPerk::add)
+}
 
 impl DynastyPerk {
     pub fn add(db: &mut Db, key: Token, block: Block) {

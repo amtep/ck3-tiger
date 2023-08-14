@@ -7,10 +7,10 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::game::Game;
+use crate::game::{Game, GameFlags};
 use crate::helpers::{dup_error, exact_dup_advice};
-use crate::item::Item;
-use crate::pdxfile::PdxFile;
+use crate::item::{Item, ItemLoader};
+use crate::pdxfile::{PdxEncoding, PdxFile};
 use crate::report::{old_warn, untidy, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -248,6 +248,10 @@ fn validate_coa_color(bv: &BV, block: Option<&Block>, data: &Everything) {
 #[derive(Clone, Debug)]
 pub struct CoaTemplateList {}
 
+inventory::submit! {
+    ItemLoader::Full(GameFlags::all(), Item::CoaTemplateList, PdxEncoding::Utf8OptionalBom, ".txt", false, CoaTemplateList::add)
+}
+
 impl CoaTemplateList {
     pub fn add(db: &mut Db, key: Token, mut block: Block) {
         if key.is("coat_of_arms_template_lists") {
@@ -393,6 +397,11 @@ where
 #[cfg(feature = "ck3")]
 #[derive(Clone, Debug)]
 pub struct CoaDynamicDefinition {}
+
+#[cfg(feature = "ck3")]
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CoaDynamicDefinition, CoaDynamicDefinition::add)
+}
 
 #[cfg(feature = "ck3")]
 impl CoaDynamicDefinition {

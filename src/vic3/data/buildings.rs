@@ -2,7 +2,8 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::script_value::validate_non_dynamic_script_value;
@@ -13,6 +14,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct BuildingType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::BuildingType, BuildingType::add)
+}
 
 impl BuildingType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -111,6 +116,10 @@ impl DbKind for BuildingType {
 
 #[derive(Clone, Debug)]
 pub struct BuildingGroup {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::BuildingGroup, BuildingGroup::add)
+}
 
 impl BuildingGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {

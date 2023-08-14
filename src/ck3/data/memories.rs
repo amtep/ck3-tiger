@@ -3,7 +3,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -12,6 +13,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct MemoryType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::MemoryType, MemoryType::add)
+}
 
 impl MemoryType {
     pub fn add(db: &mut Db, key: Token, block: Block) {

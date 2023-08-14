@@ -5,7 +5,9 @@ use crate::context::ScopeContext;
 use crate::date::Date;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
+use crate::pdxfile::PdxEncoding;
 use crate::report::{warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -13,6 +15,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct BookmarkGroup {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::BookmarkGroup, BookmarkGroup::add)
+}
 
 impl BookmarkGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -29,6 +35,10 @@ impl DbKind for BookmarkGroup {
 
 #[derive(Clone, Debug)]
 pub struct Bookmark {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::Bookmark, Bookmark::add)
+}
 
 impl Bookmark {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -161,6 +171,10 @@ fn validate_bookmark_character(
 
 #[derive(Clone, Debug)]
 pub struct BookmarkPortrait {}
+
+inventory::submit! {
+    ItemLoader::Full(GameFlags::Ck3, Item::BookmarkPortrait, PdxEncoding::Utf8OptionalBom, ".txt", false, BookmarkPortrait::add)
+}
 
 impl BookmarkPortrait {
     pub fn add(db: &mut Db, key: Token, block: Block) {

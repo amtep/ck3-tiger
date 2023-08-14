@@ -2,7 +2,8 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -12,6 +13,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct DiarchyType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::DiarchyType, DiarchyType::add)
+}
 
 impl DiarchyType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -82,6 +87,10 @@ impl DbKind for DiarchyType {
 
 #[derive(Clone, Debug)]
 pub struct DiarchyMandate {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::DiarchyMandate, DiarchyMandate::add)
+}
 
 impl DiarchyMandate {
     pub fn add(db: &mut Db, key: Token, block: Block) {

@@ -3,7 +3,8 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -13,6 +14,10 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct VassalContract {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::VassalContract, VassalContract::add)
+}
 
 impl VassalContract {
     pub fn add(db: &mut Db, key: Token, block: Block) {
