@@ -49,7 +49,10 @@ impl DbKind for ProductionMethod {
         vd.field_list_items("unlocking_production_methods", Item::ProductionMethod);
         vd.field_list_items("unlocking_global_technologies", Item::Technology);
 
+        // TODO: verify ai_weight and ai_value; do both work?
+        // Only ai_value is used in vanilla (once). ai_weight is not used.
         vd.field_numeric("ai_weight");
+        vd.field_numeric("ai_value");
         vd.field_numeric("pollution_generation");
     }
 }
