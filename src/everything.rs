@@ -394,6 +394,9 @@ impl Everything {
 
     #[cfg(feature = "vic3")]
     fn load_all_vic3(&mut self) {
+        self.fileset.handle(&mut self.history);
+        self.fileset.handle(&mut self.events_vic3);
+        self.fileset.handle(&mut self.provinces_vic3);
         self.load_json(Item::TerrainMask, TerrainMask::add_json);
     }
 
