@@ -74,7 +74,7 @@ impl DbKind for PortraitModifierGroup {
                 old_warn(token, ErrorKey::MissingItem, msg);
             }
         }
-        vd.field_validated_blocks("add_accessory_modifiers", |block, data| {
+        vd.multi_field_validated_block("add_accessory_modifiers", |block, data| {
             validate_add_accessory_modifiers(block, data, caller, &mut sc);
         });
         vd.unknown_block_fields(|key, block| {
@@ -138,9 +138,9 @@ fn validate_portrait_modifier(
         validate_trigger(block, data, sc, Tooltipped::No);
     });
 
-    vd.field_validated_blocks("dna_modifiers", |block, data| {
+    vd.multi_field_validated_block("dna_modifiers", |block, data| {
         let mut vd = Validator::new(block, data);
-        vd.field_validated_blocks("morph", |block, data| {
+        vd.multi_field_validated_block("morph", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_choice("mode", &["add", "replace", "modify", "modify_multiply"]);
             vd.field_item("gene", Item::GeneCategory);
@@ -154,14 +154,14 @@ fn validate_portrait_modifier(
                 validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
             });
         });
-        vd.field_validated_blocks("color", |block, data| {
+        vd.multi_field_validated_block("color", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_choice("mode", &["add", "replace", "modify", "modify_multiply"]);
             vd.field_item("gene", Item::GeneCategory);
             vd.field_numeric("x");
             vd.field_numeric("y");
         });
-        vd.field_validated_blocks("accessory", |block, data| {
+        vd.multi_field_validated_block("accessory", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_choice("mode", &["add", "replace", "modify", "modify_multiply"]);
             vd.field_item("gene", Item::GeneCategory);
@@ -178,7 +178,7 @@ fn validate_portrait_modifier(
             vd.field_choice("type", &["male", "female", "boy", "girl"]);
         });
     });
-    vd.field_validated_blocks_sc("weight", sc, validate_modifiers_with_base);
+    vd.multi_field_validated_block_sc("weight", sc, validate_modifiers_with_base);
 }
 
 fn validate_add_accessory_modifiers(
@@ -206,7 +206,7 @@ fn validate_add_accessory_modifiers(
     vd.field_validated_block("is_valid_custom", |block, data| {
         validate_trigger(block, data, sc, Tooltipped::No);
     });
-    vd.field_validated_blocks_sc("weight", sc, validate_modifiers_with_base);
+    vd.multi_field_validated_block_sc("weight", sc, validate_modifiers_with_base);
 }
 
 #[derive(Clone, Debug)]
@@ -256,7 +256,7 @@ fn validate_animation(block: &Block, data: &Everything) {
         vd.field_value("torso"); // TODO
     });
 
-    vd.field_validated_blocks("portrait_modifier", |block, data| {
+    vd.multi_field_validated_block("portrait_modifier", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
             validate_trigger(block, data, sc, Tooltipped::No);
@@ -310,7 +310,7 @@ impl DbKind for PortraitModifierPack {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_validated_blocks("portrait_modifier", |block, data| {
+        vd.multi_field_validated_block("portrait_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
                 validate_trigger(block, data, sc, Tooltipped::No);

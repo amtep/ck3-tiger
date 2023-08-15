@@ -100,9 +100,9 @@ impl DbKind for Decision {
 
         // cost can have multiple definitions and they will be combined
         // however, two costs of the same type are not summed
-        vd.field_validated_blocks("cost", |b, data| validate_cost(b, data, &mut sc));
+        vd.multi_field_validated_block("cost", |b, data| validate_cost(b, data, &mut sc));
         check_cost(&block.get_field_blocks("cost"));
-        vd.field_validated_blocks("minimum_cost", |b, data| validate_cost(b, data, &mut sc));
+        vd.multi_field_validated_block("minimum_cost", |b, data| validate_cost(b, data, &mut sc));
         check_cost(&block.get_field_blocks("minimum_cost"));
 
         vd.field_validated_block("effect", |b, data| {

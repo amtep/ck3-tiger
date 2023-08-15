@@ -57,7 +57,7 @@ impl DbKind for GameRule {
             let loca = format!("setting_{key}_desc");
             data.verify_exists_implied(Item::Localization, &loca, key);
 
-            vd.field_validated_values("flag", |_, value, _| {
+            vd.multi_field_validated_value("flag", |_, value, _| {
                 if SIMPLE_GAME_RULE_FLAGS.contains(&value.as_str()) {
                     return;
                 }

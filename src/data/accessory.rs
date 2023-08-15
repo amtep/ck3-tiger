@@ -29,7 +29,7 @@ impl DbKind for Accessory {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_validated_blocks("entity", |block, data| {
+        vd.multi_field_validated_block("entity", |block, data| {
             let mut vd = Validator::new(block, data);
             if let Some(token) = vd.field_value("required_tags") {
                 for tag in token.split(',') {
@@ -45,7 +45,7 @@ impl DbKind for Accessory {
             vd.field_item("entity", Item::Entity);
         });
 
-        for token in vd.field_values("set_tags") {
+        for token in vd.multi_field_value("set_tags") {
             for _tag in token.split(',') {
                 // TODO (these tags are mentioned in required_tags in gene settings)
             }
@@ -102,7 +102,7 @@ impl DbKind for AccessoryVariation {
         let mut vd = Validator::new(block, data);
 
         vd.field_value("name");
-        vd.field_validated_blocks("pattern", |block, data| {
+        vd.multi_field_validated_block("pattern", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_numeric("weight");
             for field in &["r", "g", "b", "a"] {
@@ -113,7 +113,7 @@ impl DbKind for AccessoryVariation {
                 });
             }
         });
-        vd.field_validated_blocks("color_palette", |block, data| {
+        vd.multi_field_validated_block("color_palette", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_numeric("weight");
             vd.field_item("texture", Item::File);

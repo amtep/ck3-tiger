@@ -34,7 +34,7 @@ impl DbKind for CombatUnit {
 
         vd.field_item("icon", Item::File);
 
-        vd.field_validated_key_blocks("combat_unit_image", |key, block, data| {
+        vd.multi_field_validated_key_block("combat_unit_image", |key, block, data| {
             let mut vd = Validator::new(block, data);
             let mut sc = ScopeContext::new(Scopes::CombatUnit, key);
             vd.field_validated_block("trigger", |block, data| {

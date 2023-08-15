@@ -37,8 +37,8 @@ impl DbKind for CultureHistory {
 fn validate_history(_date: Date, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
 
-    vd.field_items("discover_innovation", Item::Innovation);
-    vd.field_validated_blocks("add_innovation_progress", |block, data| {
+    vd.multi_field_item("discover_innovation", Item::Innovation);
+    vd.multi_field_validated_block("add_innovation_progress", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_item("culture_innovation", Item::Innovation);
         vd.field_numeric_range("progress", 0.0, 100.0);

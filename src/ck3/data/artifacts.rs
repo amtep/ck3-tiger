@@ -143,7 +143,7 @@ impl DbKind for ArtifactVisual {
         vd.field_value("support_type"); // TODO
 
         let mut unconditional = false;
-        vd.field_validated_bvs("icon", |bv, data| match bv {
+        vd.multi_field_validated("icon", |bv, data| match bv {
             BV::Value(icon) => {
                 unconditional = true;
                 if let Some(icon_path) =
@@ -177,7 +177,7 @@ impl DbKind for ArtifactVisual {
         }
 
         unconditional = false;
-        vd.field_validated_bvs("asset", |bv, data| match bv {
+        vd.multi_field_validated("asset", |bv, data| match bv {
             BV::Value(asset) => {
                 unconditional = true;
                 data.verify_exists(Item::Asset, asset);

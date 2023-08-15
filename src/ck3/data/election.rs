@@ -53,7 +53,7 @@ impl DbKind for Election {
 }
 
 fn validate_candidates(vd: &mut Validator, sc: &mut ScopeContext) {
-    vd.field_validated_bvs("add", |bv, data| match bv {
+    vd.multi_field_validated("add", |bv, data| match bv {
         BV::Value(token) => {
             if !CANDIDATE_TYPES.contains(&token.as_str()) {
                 let msg = "unknown candidate category";

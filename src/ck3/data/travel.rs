@@ -41,12 +41,12 @@ impl DbKind for TravelOption {
 
         vd.field_validated_block_sc("cost", &mut sc, validate_cost);
 
-        vd.field_validated_blocks("travel_modifier", |block, data| {
+        vd.multi_field_validated_block("travel_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::TravelPlan, vd);
         });
 
-        vd.field_validated_blocks("owner_modifier", |block, data| {
+        vd.multi_field_validated_block("owner_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });

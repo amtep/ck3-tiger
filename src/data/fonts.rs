@@ -43,7 +43,7 @@ impl DbKind for Font {
         let mut vd = Validator::new(block, data);
         vd.set_max_severity(Severity::Warning);
         vd.field_value("name");
-        vd.field_validated_blocks("fontstyle", |block, data| {
+        vd.multi_field_validated_block("fontstyle", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_value("style", |_, value, _data| {
                 for style in value.split('|') {
@@ -59,7 +59,7 @@ impl DbKind for Font {
             });
             vd.field_item("fontfiles", Item::Fontfiles);
         });
-        vd.field_validated_blocks("underlineformats", |block, data| {
+        vd.multi_field_validated_block("underlineformats", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.unknown_block_fields(|_key, block| {
                 // only known key is "default" but there may be others
@@ -81,7 +81,7 @@ impl DbKind for Fontfiles {
         vd.field_value("name");
         vd.field_bool("always_load");
 
-        vd.field_validated_blocks("group", |block, data| {
+        vd.multi_field_validated_block("group", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_list("languages"); // TODO
             vd.field_list_items("files", Item::File);

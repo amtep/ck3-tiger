@@ -49,7 +49,7 @@ impl DbKind for CouncilPosition {
         vd.field_validated_sc("can_change_once", &mut sc, validate_yes_no_trigger);
 
         let mut count = 0;
-        vd.field_validated_blocks_rooted("modifier", Scopes::Character, |block, data, sc| {
+        vd.multi_field_validated_block_rooted("modifier", Scopes::Character, |block, data, sc| {
             let mut vd = Validator::new(block, data);
             vd.field_item("name", Item::Localization);
             vd.field_script_value("scale", sc);
@@ -61,7 +61,7 @@ impl DbKind for CouncilPosition {
             }
         });
         count = 0;
-        vd.field_validated_blocks_rooted(
+        vd.multi_field_validated_block_rooted(
             "council_owner_modifier",
             Scopes::Character,
             |block, data, sc| {
@@ -190,7 +190,7 @@ impl DbKind for CouncilTask {
         vd.field_bool("restart_on_finish");
         vd.field_bool("highlight_own_realm");
 
-        vd.field_validated_blocks_rooted(
+        vd.multi_field_validated_block_rooted(
             "councillor_modifier",
             Scopes::Character,
             |block, data, sc| {
@@ -200,7 +200,7 @@ impl DbKind for CouncilTask {
                 validate_modifs(block, data, ModifKinds::Character, vd);
             },
         );
-        vd.field_validated_blocks_rooted(
+        vd.multi_field_validated_block_rooted(
             "council_owner_modifier",
             Scopes::Character,
             |block, data, sc| {
@@ -211,7 +211,7 @@ impl DbKind for CouncilTask {
             },
         );
         if block.field_value_is("task_type", "task_type_county") {
-            vd.field_validated_blocks_rooted(
+            vd.multi_field_validated_block_rooted(
                 "county_modifier",
                 Scopes::Character,
                 |block, data, sc| {

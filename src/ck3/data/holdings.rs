@@ -42,7 +42,7 @@ impl DbKind for Holding {
         data.verify_exists_implied(Item::ModifierFormat, &modif, key);
 
         let mut vd = Validator::new(block, data);
-        vd.field_values("flag");
+        vd.multi_field_value("flag");
         vd.field_item("primary_building", Item::Building);
         vd.field_list_items("buildings", Item::Building);
         vd.field_bool("can_be_inherited");

@@ -40,7 +40,7 @@ impl DbKind for MapMode {
 
         vd.field_bool("select_holdings_on_close_zoom");
 
-        vd.field_blocks("gradient_parameters");
+        vd.multi_field_block("gradient_parameters");
 
         let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
         vd.field_validated_sc("barony_description", &mut sc, validate_desc);

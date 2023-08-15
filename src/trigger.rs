@@ -200,7 +200,7 @@ pub fn validate_trigger_internal(
     if caller == "calc_true_if" {
         vd.req_field("amount");
         // TODO: verify these are integers
-        vd.fields_any_cmp("amount");
+        vd.multi_field_any_cmp("amount");
     } else if !in_list {
         vd.ban_field("amount", || "`calc_true_if`");
     }
@@ -518,10 +518,10 @@ fn match_trigger_fields(
         if let Some(opt) = field.strip_prefix('?') {
             vd.field_any_cmp(opt);
         } else if let Some(mlt) = field.strip_prefix('*') {
-            vd.fields_any_cmp(mlt);
+            vd.multi_field_any_cmp(mlt);
         } else if let Some(mlt) = field.strip_prefix('+') {
             vd.req_field(mlt);
-            vd.fields_any_cmp(mlt);
+            vd.multi_field_any_cmp(mlt);
         } else {
             vd.req_field(field);
             vd.field_any_cmp(field);

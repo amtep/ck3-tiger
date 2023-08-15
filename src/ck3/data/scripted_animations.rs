@@ -35,7 +35,7 @@ pub fn validate_scripted_animation(bv: &BV, data: &Everything, sc: &mut ScopeCon
         BV::Value(token) => data.verify_exists(Item::ScriptedAnimation, token),
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
-            vd.field_validated_blocks("triggered_animation", |block, data| {
+            vd.multi_field_validated_block("triggered_animation", |block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.field_validated_block("trigger", |block, data| {
                     validate_trigger(block, data, sc, Tooltipped::No);

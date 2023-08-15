@@ -168,7 +168,7 @@ impl<'a> Validator<'a> {
         S: Borrow<str> + Display,
     {
         let sev = Severity::Error.at_most(self.max_severity);
-        self.fields_check(name, |key, _| {
+        self.multi_field_check(name, |key, _| {
             let msg = format!("`{name} = ` is only for {}", only_for());
             report(ErrorKey::Validation, sev).msg(msg).loc(key).push();
         });
@@ -179,7 +179,7 @@ impl<'a> Validator<'a> {
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn replaced_field(&mut self, name: &str, replaced_by: &str) {
         let sev = Severity::Error.at_most(self.max_severity);
-        self.fields_check(name, |key, _| {
+        self.multi_field_check(name, |key, _| {
             let msg = format!("`{name}` has been replaced by {replaced_by}");
             report(ErrorKey::Validation, sev).msg(msg).loc(key).push();
         });
@@ -218,7 +218,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
-    fn fields_check<F>(&mut self, name: &str, mut f: F) -> bool
+    fn multi_field_check<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &BV),
     {
@@ -307,11 +307,11 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_validated_value`], but expect any number of `name` fields in the block.
-    pub fn field_validated_values<F>(&mut self, name: &str, mut f: F) -> bool
+    pub fn multi_field_validated_value<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &Token, &Everything),
     {
-        self.fields_check(name, |k, bv| {
+        self.multi_field_check(name, |k, bv| {
             if let Some(token) = bv.expect_value() {
                 f(k, token, self.data);
             }
@@ -567,7 +567,7 @@ impl<'a> Validator<'a> {
 
     /// Just like [`Validator::field_script_value`], but it it expects any number of `name` fields.
     pub fn fields_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
-        self.fields_check(name, |_, bv| {
+        self.multi_field_check(name, |_, bv| {
             // TODO: pass max_severity value down
             validate_script_value(bv, self.data, sc);
         })
@@ -590,9 +590,9 @@ impl<'a> Validator<'a> {
 
     /// Just like [`Validator::field_choice`], but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn fields_choice(&mut self, name: &str, choices: &[&str]) -> bool {
+    pub fn multi_field_choice(&mut self, name: &str, choices: &[&str]) -> bool {
         let sev = Severity::Error.at_most(self.max_severity);
-        self.fields_check(name, |_, bv| {
+        self.multi_field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if !choices.contains(&token.as_str()) {
                     let msg = format!("expected one of {}", choices.join(", "));
@@ -639,11 +639,11 @@ impl<'a> Validator<'a> {
 
     /// Just like [`Validator::field_validated_list`], but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn fields_validated_list<F>(&mut self, name: &str, mut f: F) -> bool
+    pub fn multi_field_validated_list<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &Everything),
     {
-        self.fields_check(name, |_, bv| {
+        self.multi_field_check(name, |_, bv| {
             if let Some(block) = bv.expect_block() {
                 for token in block.iter_values_warn() {
                     f(token, self.data);
@@ -654,15 +654,15 @@ impl<'a> Validator<'a> {
 
     /// Just like [`Validator::field_list_items`], but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn fields_list_items(&mut self, name: &str, item: Item) -> bool {
+    pub fn multi_field_list_items(&mut self, name: &str, item: Item) -> bool {
         let sev = self.max_severity;
-        self.fields_validated_list(name, |token, data| {
+        self.multi_field_validated_list(name, |token, data| {
             data.verify_exists_max_sev(item, token, sev);
         })
     }
 
     /// Just like [`Validator::field_value`], but expect any number of `name` fields in the block.
-    pub fn field_values(&mut self, name: &str) -> Vec<&Token> {
+    pub fn multi_field_value(&mut self, name: &str) -> Vec<&Token> {
         let mut vec = Vec::new();
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if key.is(name) {
@@ -677,7 +677,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_item`], but expect any number of `name` fields in the block.
-    pub fn field_items(&mut self, name: &str, itype: Item) {
+    pub fn multi_field_item(&mut self, name: &str, itype: Item) {
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if key.is(name) {
                 self.known_fields.push(key.as_str());
@@ -690,7 +690,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_any_cmp`], but expect any number of `name` fields in the block.
-    pub fn fields_any_cmp(&mut self, name: &str) -> bool {
+    pub fn multi_field_any_cmp(&mut self, name: &str) -> bool {
         let mut found = false;
         for Field(key, _, _) in self.block.iter_fields() {
             if key.is(name) {
@@ -771,7 +771,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_validated`], but expect any number of `name` fields in the block.
-    pub fn field_validated_bvs<F>(&mut self, name: &str, mut f: F) -> bool
+    pub fn multi_field_validated<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&BV, &Everything),
     {
@@ -789,7 +789,7 @@ impl<'a> Validator<'a> {
 
     /// Just like [`Validator::field_validated_key`], but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn field_validated_key_bvs<F>(&mut self, name: &str, mut f: F) -> bool
+    pub fn multi_field_validated_key<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &BV, &Everything),
     {
@@ -807,15 +807,20 @@ impl<'a> Validator<'a> {
 
     /// Just like [`Validator::field_validated_sc`], but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn field_validated_bvs_sc<F>(&mut self, name: &str, sc: &mut ScopeContext, mut f: F) -> bool
+    pub fn multi_field_validated_sc<F>(
+        &mut self,
+        name: &str,
+        sc: &mut ScopeContext,
+        mut f: F,
+    ) -> bool
     where
         F: FnMut(&BV, &Everything, &mut ScopeContext),
     {
-        self.field_validated_bvs(name, |b, data| f(b, data, sc))
+        self.multi_field_validated(name, |b, data| f(b, data, sc))
     }
 
     /// Just like [`Validator::field_validated_block`], but expect any number of `name` fields in the block.
-    pub fn field_validated_blocks<F>(&mut self, name: &str, mut f: F) -> bool
+    pub fn multi_field_validated_block<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Block, &Everything),
     {
@@ -834,7 +839,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_validated_block_sc`], but expect any number of `name` fields in the block.
-    pub fn field_validated_blocks_sc<F>(
+    pub fn multi_field_validated_block_sc<F>(
         &mut self,
         name: &str,
         sc: &mut ScopeContext,
@@ -843,7 +848,7 @@ impl<'a> Validator<'a> {
     where
         F: FnMut(&Block, &Everything, &mut ScopeContext),
     {
-        self.field_validated_blocks(name, |b, data| f(b, data, sc))
+        self.multi_field_validated_block(name, |b, data| f(b, data, sc))
     }
 
     /// Expect field `name`, if present, to be a definition `name = { block }`.
@@ -894,7 +899,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_validated_key_block`], but expect any number of `name` fields in the block.
-    pub fn field_validated_key_blocks<F>(&mut self, name: &str, mut f: F) -> bool
+    pub fn multi_field_validated_key_block<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &Block, &Everything),
     {
@@ -953,7 +958,7 @@ impl<'a> Validator<'a> {
 
     /// Just like [`Validator::field_validated_block_rooted`], but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn field_validated_blocks_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F)
+    pub fn multi_field_validated_block_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F)
     where
         F: FnMut(&Block, &Everything, &mut ScopeContext),
     {
@@ -1005,7 +1010,7 @@ impl<'a> Validator<'a> {
 
     /// Just like [`Validator::field_block`], but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn field_blocks(&mut self, name: &str) -> bool {
+    pub fn multi_field_block(&mut self, name: &str) -> bool {
         let mut found = false;
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if key.is(name) {

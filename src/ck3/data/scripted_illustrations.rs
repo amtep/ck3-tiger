@@ -29,7 +29,7 @@ impl DbKind for ScriptedIllustration {
         // TODO: validate the call from gui
         let mut sc = ScopeContext::new(Scopes::all(), key);
 
-        vd.field_validated_bvs("texture", |bv, data| match bv {
+        vd.multi_field_validated("texture", |bv, data| match bv {
             BV::Value(token) => validate_texture(key, token, data),
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
@@ -39,7 +39,7 @@ impl DbKind for ScriptedIllustration {
                 });
             }
         });
-        vd.field_validated_blocks("environment", |block, data| {
+        vd.multi_field_validated_block("environment", |block, data| {
             let mut vd = Validator::new(block, data);
             if let Some(token) = vd.field_value("reference") {
                 data.verify_exists(Item::PortraitEnvironment, token);

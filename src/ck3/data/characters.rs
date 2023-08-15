@@ -341,14 +341,14 @@ impl Character {
             validate_prefix_reference_token(token, data, "culture");
         }
 
-        vd.field_items("trait", Item::Trait);
-        vd.field_items("add_trait", Item::Trait);
-        vd.field_items("remove_trait", Item::Trait);
+        vd.multi_field_item("trait", Item::Trait);
+        vd.multi_field_item("add_trait", Item::Trait);
+        vd.multi_field_item("remove_trait", Item::Trait);
 
-        for token in vd.field_values("add_pressed_claim") {
+        for token in vd.multi_field_value("add_pressed_claim") {
             validate_prefix_reference_token(token, data, "title");
         }
-        for token in vd.field_values("remove_claim") {
+        for token in vd.multi_field_value("remove_claim") {
             validate_prefix_reference_token(token, data, "title");
         }
 
@@ -360,31 +360,31 @@ impl Character {
         }
 
         let gender = Gender::from_female_bool(parent.get_field_bool("female").unwrap_or(false));
-        for token in vd.field_values("add_spouse") {
+        for token in vd.multi_field_value("add_spouse") {
             data.characters.verify_exists_gender(token, gender.flip());
             if data.item_exists(Item::Character, token.as_str()) {
                 data.characters.verify_alive(token, date);
             }
         }
-        for token in vd.field_values("add_matrilineal_spouse") {
+        for token in vd.multi_field_value("add_matrilineal_spouse") {
             data.characters.verify_exists_gender(token, gender.flip());
             if data.item_exists(Item::Character, token.as_str()) {
                 data.characters.verify_alive(token, date);
             }
         }
-        for token in vd.field_values("add_same_sex_spouse") {
+        for token in vd.multi_field_value("add_same_sex_spouse") {
             data.characters.verify_exists_gender(token, gender);
             if data.item_exists(Item::Character, token.as_str()) {
                 data.characters.verify_alive(token, date);
             }
         }
-        for token in vd.field_values("add_concubine") {
+        for token in vd.multi_field_value("add_concubine") {
             data.characters.verify_exists_gender(token, gender.flip());
             if data.item_exists(Item::Character, token.as_str()) {
                 data.characters.verify_alive(token, date);
             }
         }
-        for token in vd.field_values("remove_spouse") {
+        for token in vd.multi_field_value("remove_spouse") {
             // TODO: also check that they were a spouse
             data.characters.verify_exists_gender(token, gender.flip());
         }
@@ -401,7 +401,7 @@ impl Character {
         // TODO: check if they have an employer at this date?
         vd.field_item("give_council_position", Item::CouncilPosition);
 
-        vd.field_validated_blocks("effect", |b, data| {
+        vd.multi_field_validated_block("effect", |b, data| {
             validate_effect(b, data, sc, Tooltipped::No);
         });
 
@@ -438,7 +438,7 @@ impl Character {
         vd.field_integer("intrigue");
         vd.field_integer("stewardship");
         vd.field_integer("learning");
-        vd.field_items("trait", Item::Trait);
+        vd.multi_field_item("trait", Item::Trait);
 
         if let Some(ch) = vd.field_value("father") {
             data.characters.verify_exists_gender(ch, Gender::Male);

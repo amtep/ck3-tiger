@@ -52,7 +52,7 @@ impl DbKind for StateRegion {
                 value.expect_integer();
             });
         });
-        vd.field_validated_blocks("resource", |block, data| {
+        vd.multi_field_validated_block("resource", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("type");
             vd.field_item("type", Item::BuildingGroup);

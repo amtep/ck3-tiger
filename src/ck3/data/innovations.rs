@@ -72,17 +72,17 @@ impl DbKind for Innovation {
             validate_modifs(block, data, ModifKinds::Province, vd);
         });
 
-        vd.field_values("flag");
+        vd.multi_field_value("flag");
 
-        vd.field_items("unlock_building", Item::Building);
-        vd.field_items("unlock_decision", Item::Decision);
-        vd.field_items("unlock_casus_belli", Item::CasusBelli);
-        vd.field_items("unlock_maa", Item::MenAtArms);
-        vd.field_items("unlock_law", Item::Law);
+        vd.multi_field_item("unlock_building", Item::Building);
+        vd.multi_field_item("unlock_decision", Item::Decision);
+        vd.multi_field_item("unlock_casus_belli", Item::CasusBelli);
+        vd.multi_field_item("unlock_maa", Item::MenAtArms);
+        vd.multi_field_item("unlock_law", Item::Law);
 
-        vd.field_items("custom", Item::Localization);
+        vd.multi_field_item("custom", Item::Localization);
 
-        vd.field_validated_blocks("maa_upgrade", |block, data| {
+        vd.multi_field_validated_block("maa_upgrade", |block, data| {
             let mut vd = Validator::new(block, data);
             if let Some(token) = vd.field_value("type") {
                 if !data.item_exists(Item::MenAtArms, token.as_str())

@@ -69,9 +69,9 @@ impl DbKind for Religion {
         vd.field_item("family", Item::ReligionFamily);
 
         vd.req_field("doctrine");
-        vd.field_items("doctrine", Item::Doctrine);
+        vd.multi_field_item("doctrine", Item::Doctrine);
 
-        vd.field_validated_blocks("doctrine_selection_pair", |block, data| {
+        vd.multi_field_validated_block("doctrine_selection_pair", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("requires_dlc_flag", Item::DlcFeature);
             vd.field_item("doctrine", Item::Doctrine);
@@ -244,10 +244,10 @@ impl DbKind for Faith {
 
         vd.field_item("religious_head", Item::Title);
         vd.req_field("holy_site");
-        vd.field_items("holy_site", Item::HolySite);
+        vd.multi_field_item("holy_site", Item::HolySite);
         vd.req_field("doctrine");
-        vd.field_items("doctrine", Item::Doctrine);
-        vd.field_validated_blocks("doctrine_selection_pair", |block, data| {
+        vd.multi_field_item("doctrine", Item::Doctrine);
+        vd.multi_field_validated_block("doctrine_selection_pair", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("requires_dlc_flag", Item::DlcFeature);
             vd.field_item("doctrine", Item::Doctrine);

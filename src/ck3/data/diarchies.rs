@@ -56,13 +56,13 @@ impl DbKind for DiarchyType {
         vd.field_script_value_rooted("aptitude_score", Scopes::Character);
         vd.field_script_value_rooted("loyalty_score", Scopes::Character);
 
-        vd.field_items("mandate", Item::DiarchyMandate);
+        vd.multi_field_item("mandate", Item::DiarchyMandate);
 
-        vd.field_validated_blocks("power_level", |block, data| {
+        vd.multi_field_validated_block("power_level", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_integer("swing");
-            vd.field_items("parameter", Item::Localization);
-            vd.field_validated_values("hidden_parameter", |_, value, data| {
+            vd.multi_field_item("parameter", Item::Localization);
+            vd.multi_field_validated_value("hidden_parameter", |_, value, data| {
                 data.mark_used(Item::Localization, value.as_str());
             });
         });
@@ -70,13 +70,13 @@ impl DbKind for DiarchyType {
 
         vd.field_item("end_interaction", Item::CharacterInteraction);
 
-        vd.field_validated_blocks("liege_modifier", |block, data| {
+        vd.multi_field_validated_block("liege_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("name", Item::Localization);
             vd.field_script_value_rooted("scale", Scopes::Character);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
-        vd.field_validated_blocks("diarch_modifier", |block, data| {
+        vd.multi_field_validated_block("diarch_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("name", Item::Localization);
             vd.field_script_value_rooted("scale", Scopes::Character);

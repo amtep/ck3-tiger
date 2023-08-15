@@ -155,7 +155,7 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
         validate_coa_color(bv, None, data);
     });
 
-    vd.field_validated_blocks("colored_emblem", |subblock, data| {
+    vd.multi_field_validated_block("colored_emblem", |subblock, data| {
         let mut vd = Validator::new(subblock, data);
         vd.set_max_severity(Severity::Warning);
         vd.req_field("texture");
@@ -173,7 +173,7 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
                 validate_coa_color(bv, Some(block), data);
             });
         }
-        vd.field_validated_blocks("instance", validate_instance);
+        vd.multi_field_validated_block("instance", validate_instance);
         vd.field_validated_block("mask", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.set_max_severity(Severity::Warning);
@@ -186,7 +186,7 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
             }
         });
     });
-    vd.field_validated_blocks("textured_emblem", |block, data| {
+    vd.multi_field_validated_block("textured_emblem", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.set_max_severity(Severity::Warning);
         vd.req_field("texture");
@@ -198,16 +198,16 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
                 data.verify_exists_implied(Item::File, &pathname, token);
             }
         }
-        vd.field_validated_blocks("instance", validate_instance);
+        vd.multi_field_validated_block("instance", validate_instance);
     });
 
     #[cfg(feature = "vic3")]
     if Game::is_vic3() {
-        vd.field_validated_blocks("sub", |subblock, data| {
+        vd.multi_field_validated_block("sub", |subblock, data| {
             let mut vd = Validator::new(subblock, data);
             vd.set_max_severity(Severity::Warning);
             vd.field_item("parent", Item::Coa);
-            vd.field_validated_blocks("instance", validate_instance_offset);
+            vd.multi_field_validated_block("instance", validate_instance_offset);
             for field in &["color1", "color2", "color3", "color4", "color5"] {
                 vd.field_validated(field, |bv, data| {
                     validate_coa_color(bv, Some(block), data);
@@ -353,7 +353,7 @@ where
 
     vd.integer_keys(|_, bv| f(bv, data));
 
-    vd.field_validated_key_blocks("special_selection", |key, block, data| {
+    vd.multi_field_validated_key_block("special_selection", |key, block, data| {
         let mut vd = Validator::new(block, data);
         vd.set_max_severity(Severity::Warning);
         let mut sc;
@@ -378,15 +378,15 @@ where
                 sc = ScopeContext::new(Scopes::Country, key);
             }
         }
-        vd.field_validated_blocks("trigger", |block, data| {
+        vd.multi_field_validated_block("trigger", |block, data| {
             validate_trigger_max_sev(block, data, &mut sc, Tooltipped::No, Severity::Warning);
         });
         vd.integer_keys(|_, bv| f(bv, data));
         // special_selection can be nested. TODO: how far?
-        vd.field_validated_blocks("special_selection", |block, data| {
+        vd.multi_field_validated_block("special_selection", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.set_max_severity(Severity::Warning);
-            vd.field_validated_blocks("trigger", |block, data| {
+            vd.multi_field_validated_block("trigger", |block, data| {
                 validate_trigger_max_sev(block, data, &mut sc, Tooltipped::No, Severity::Warning);
             });
             vd.integer_keys(|_, bv| f(bv, data));
@@ -417,7 +417,7 @@ impl DbKind for CoaDynamicDefinition {
         vd.set_max_severity(Severity::Warning);
         let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
 
-        vd.field_validated_blocks("item", |block, data| {
+        vd.multi_field_validated_block("item", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.set_max_severity(Severity::Warning);
             vd.field_validated_block("trigger", |block, data| {

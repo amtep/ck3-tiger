@@ -116,8 +116,8 @@ impl ProvinceHistory {
             }
         }
         vd.field_list_items("buildings", Item::Building);
-        vd.field_items("special_building_slot", Item::SpecialBuilding);
-        vd.field_items("special_building", Item::SpecialBuilding);
+        vd.multi_field_item("special_building_slot", Item::SpecialBuilding);
+        vd.multi_field_item("special_building", Item::SpecialBuilding);
         // TODO: check if province is duchy capital
         // TODO: check if building is duchy capital building
         vd.field_item("duchy_capital_building", Item::Building);

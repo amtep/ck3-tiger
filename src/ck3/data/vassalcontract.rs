@@ -82,7 +82,7 @@ impl DbKind for VassalContract {
                 vd.field_item("unclamped_contribution_label", Item::Localization);
                 vd.field_item("min_contribution_label", Item::Localization);
                 vd.field_integer("vassal_opinion");
-                vd.field_values("flag");
+                vd.multi_field_value("flag");
                 vd.field_integer("score");
                 vd.field_script_value("ai_liege_desire", &mut sc);
                 vd.field_script_value("ai_vassal_desire", &mut sc);

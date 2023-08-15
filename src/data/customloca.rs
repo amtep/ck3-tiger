@@ -58,7 +58,7 @@ impl DbKind for CustomLocalization {
 
         vd.field_bool("random_valid");
 
-        vd.field_validated_blocks("text", |block, data| {
+        vd.multi_field_validated_block("text", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("setup_scope", |block, data| {
                 validate_effect(block, data, &mut sc, Tooltipped::No);

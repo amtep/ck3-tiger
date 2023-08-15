@@ -70,7 +70,7 @@ impl DbKind for Bookmark {
         data.verify_exists_implied(Item::File, &pathname, key);
 
         let start_date = block.get_field_date("start_date");
-        vd.field_validated_blocks("character", |block, data| {
+        vd.multi_field_validated_block("character", |block, data| {
             if let Some(name) = block.get_field_value("name") {
                 let pathname = format!("gfx/interface/bookmarks/{key}_{name}.dds");
                 data.verify_exists_implied(Item::File, &pathname, name);
@@ -164,7 +164,7 @@ fn validate_bookmark_character(
             }
         }
     }
-    vd.field_validated_blocks("character", |block, data| {
+    vd.multi_field_validated_block("character", |block, data| {
         validate_bookmark_character(block, data, false, start_date);
     });
 }

@@ -448,11 +448,11 @@ pub fn validate_create_artifact(
     vd.field_validated_sc("description", sc, validate_desc);
     vd.field_item("rarity", Item::ArtifactRarity);
     vd.field_item("type", Item::ArtifactType);
-    vd.field_items("modifier", Item::Modifier);
+    vd.multi_field_item("modifier", Item::Modifier);
     vd.field_script_value("durability", sc);
     vd.field_script_value("max_durability", sc);
     vd.field_bool("decaying");
-    vd.field_validated_blocks_sc("history", sc, validate_artifact_history);
+    vd.multi_field_validated_block_sc("history", sc, validate_artifact_history);
     vd.field_item("template", Item::ArtifactTemplate);
     vd.field_item("visuals", Item::ArtifactVisual);
     vd.field_bool("generate_history");
@@ -505,8 +505,8 @@ pub fn validate_create_character(
     }
     vd.field_script_value("gender_female_chance", sc);
     vd.field_target_ok_this("opposite_gender", sc, Scopes::Character);
-    vd.field_items("trait", Item::Trait);
-    vd.field_validated_blocks_sc("random_traits_list", sc, validate_random_traits_list);
+    vd.multi_field_item("trait", Item::Trait);
+    vd.multi_field_validated_block_sc("random_traits_list", sc, validate_random_traits_list);
     vd.field_bool("random_traits");
     vd.field_script_value("health", sc);
     vd.field_script_value("fertility", sc);
@@ -1032,7 +1032,7 @@ pub fn validate_spawn_army(
     // TODO: either levies or men_at_arms
     vd.req_field("location");
     vd.field_script_value("levies", sc);
-    vd.field_validated_blocks("men_at_arms", |b, data| {
+    vd.multi_field_validated_block("men_at_arms", |b, data| {
         let mut vd = Validator::new(b, data);
         vd.req_field("type");
         vd.field_item("type", Item::MenAtArms);
@@ -1093,11 +1093,11 @@ pub fn validate_start_travel_plan(
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("destination");
-    for token in vd.field_values("destination") {
+    for token in vd.multi_field_value("destination") {
         validate_target(token, data, sc, Scopes::Province);
     }
     vd.field_target("travel_leader", sc, Scopes::Character);
-    for token in vd.field_values("companion") {
+    for token in vd.multi_field_value("companion") {
         validate_target(token, data, sc, Scopes::Character);
     }
     vd.field_bool("players_use_planner");
@@ -1133,7 +1133,7 @@ pub fn validate_start_war(
     vd.field_item("cb", Item::CasusBelli);
     vd.field_target("target", sc, Scopes::Character);
     vd.field_target_ok_this("claimant", sc, Scopes::Character);
-    for token in vd.field_values("target_title") {
+    for token in vd.multi_field_value("target_title") {
         validate_target(token, data, sc, Scopes::LandedTitle);
     }
 }
@@ -1306,7 +1306,7 @@ pub fn validate_add_character_flag(
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);
             vd.req_field("flag");
-            vd.field_values("flag");
+            vd.multi_field_value("flag");
             validate_optional_duration(&mut vd, sc);
         }
     }
@@ -1545,7 +1545,7 @@ pub fn validate_set_owner(
             vd.set_case_sensitive(false);
             vd.req_field("target");
             vd.field_target("target", sc, Scopes::Character);
-            vd.field_validated_blocks_sc("history", sc, validate_artifact_history);
+            vd.multi_field_validated_block_sc("history", sc, validate_artifact_history);
             vd.field_bool("generate_history");
         }
     }

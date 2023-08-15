@@ -76,7 +76,7 @@ impl DbKind for AccoladeName {
         }
 
         let mut count = 0;
-        vd.field_validated_bvs("option", |bv, data| {
+        vd.multi_field_validated("option", |bv, data| {
             count += 1;
             validate_desc(bv, data, &mut sc);
         });

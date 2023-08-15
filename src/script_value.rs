@@ -206,10 +206,10 @@ fn validate_minmax_range(
     let mut vd = Validator::new(block, data);
     vd.req_field("min");
     vd.req_field("max");
-    vd.field_validated_bvs("min", |bv, data| {
+    vd.multi_field_validated("min", |bv, data| {
         validate_bv(bv, data, sc, check_desc);
     });
-    vd.field_validated_bvs("max", |bv, data| {
+    vd.multi_field_validated("max", |bv, data| {
         validate_bv(bv, data, sc, check_desc);
     });
 }

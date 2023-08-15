@@ -80,7 +80,7 @@ impl DbKind for GameRule {
                 });
             });
 
-            vd.fields_choice("flag", RULE_FLAGS);
+            vd.multi_field_choice("flag", RULE_FLAGS);
         });
     }
 }

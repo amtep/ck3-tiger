@@ -53,9 +53,9 @@ impl DbKind for HolySite {
             }
         }
 
-        vd.field_values("flag");
+        vd.multi_field_value("flag");
 
-        vd.field_validated_blocks("character_modifier", |block, data| {
+        vd.multi_field_validated_block("character_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             if let Some(token) = vd.field_value("name") {
                 data.verify_exists(Item::Localization, token);

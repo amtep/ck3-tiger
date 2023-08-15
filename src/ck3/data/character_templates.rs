@@ -54,8 +54,8 @@ impl DbKind for CharacterTemplate {
                 validate_target_ok_this(token, data, sc, Scopes::Character);
             }
         }
-        vd.field_items("trait", Item::Trait);
-        vd.field_validated_blocks_sc("random_traits_list", sc, validate_random_traits_list);
+        vd.multi_field_item("trait", Item::Trait);
+        vd.multi_field_validated_block_sc("random_traits_list", sc, validate_random_traits_list);
         vd.field_bool("random_traits");
         vd.field_script_value("gender_female_chance", sc);
         if from_block.has_key("culture") {
@@ -68,8 +68,8 @@ impl DbKind for CharacterTemplate {
         } else {
             vd.field_target("faith", sc, Scopes::Faith);
         }
-        vd.field_validated_blocks_sc("random_culture", sc, validate_random_culture);
-        vd.field_validated_blocks_sc("random_faith", sc, validate_random_faith);
+        vd.multi_field_validated_block_sc("random_culture", sc, validate_random_culture);
+        vd.multi_field_validated_block_sc("random_faith", sc, validate_random_faith);
         vd.field_script_value("health", sc);
         vd.field_script_value("diplomacy", sc);
         vd.field_script_value("intrigue", sc);

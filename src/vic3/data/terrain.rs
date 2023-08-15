@@ -30,10 +30,10 @@ impl DbKind for Terrain {
         let mut vd = Validator::new(block, data);
 
         data.verify_exists(Item::Localization, key);
-        vd.field_items("label", Item::TerrainLabel);
+        vd.multi_field_item("label", Item::TerrainLabel);
 
         vd.field_script_value_rooted("weight", Scopes::Province);
-        vd.field_validated_key_blocks("textures", |key, block, data| {
+        vd.multi_field_validated_key_block("textures", |key, block, data| {
             let mut vd = Validator::new(block, data);
             vd.validated_blocks(|block, data| {
                 let mut vd = Validator::new(block, data);

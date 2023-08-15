@@ -190,7 +190,7 @@ impl Event {
             validate_effect(block, data, &mut sc, tooltipped_immediate);
         });
 
-        vd.field_validated_blocks("event_image", |block, data| {
+        vd.multi_field_validated_block("event_image", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);
@@ -236,7 +236,7 @@ impl Event {
         if !hidden {
             vd.req_field("option");
         }
-        vd.field_validated_blocks("option", |block, data| {
+        vd.multi_field_validated_block("option", |block, data| {
             validate_event_option(block, data, &mut sc, tooltipped);
         });
     }
@@ -252,7 +252,7 @@ fn validate_event_option(
     // in the name or tooltip.
 
     let mut vd = Validator::new(block, data);
-    vd.field_validated_bvs("name", |bv, data| match bv {
+    vd.multi_field_validated("name", |bv, data| match bv {
         BV::Value(t) => {
             data.localization.verify_exists(t);
         }

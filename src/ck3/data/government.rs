@@ -101,7 +101,7 @@ impl DbKind for Government {
 
         vd.field_list_items("vassal_contract", Item::VassalContract);
         vd.field_validated_block("ai", validate_ai);
-        vd.field_validated_blocks("character_modifier", |block, data| {
+        vd.multi_field_validated_block("character_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
@@ -109,7 +109,7 @@ impl DbKind for Government {
 
         // undocumented
 
-        vd.field_values("flag");
+        vd.multi_field_value("flag");
         vd.field_bool("dynasty_named_realms");
         vd.field_script_value_rooted("opinion_of_liege", Scopes::Character);
         vd.field_validated_key("opinion_of_liege_desc", |key, bv, data| {

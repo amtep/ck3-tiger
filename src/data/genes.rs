@@ -508,9 +508,9 @@ fn validate_morph_gene(block: &Block, data: &Everything) {
                 }
                 BV::Block(block) => {
                     let mut vd = Validator::new(block, data);
-                    vd.field_validated_blocks("setting", validate_gene_setting);
-                    vd.field_validated_blocks("decal", validate_gene_decal);
-                    vd.field_validated_blocks("texture_override", validate_texture_override);
+                    vd.multi_field_validated_block("setting", validate_gene_setting);
+                    vd.multi_field_validated_block("decal", validate_gene_decal);
+                    vd.multi_field_validated_block("texture_override", validate_texture_override);
                     vd.field_validated_block("hair_hsv_shift_curve", validate_shift_curve);
                     vd.field_validated_block("eye_hsv_shift_curve", validate_shift_curve);
                     vd.field_validated_block("skin_hsv_shift_curve", validate_shift_curve);
@@ -581,9 +581,9 @@ fn validate_gene_decal(block: &Block, data: &Everything) {
     vd.req_field("textures");
     vd.req_field("priority");
     vd.field_value("body_part"); // TODO
-    vd.field_validated_blocks("textures", validate_decal_textures);
-    vd.field_validated_blocks("alpha_curve", validate_curve);
-    vd.field_validated_blocks("blend_modes", validate_blend_modes);
+    vd.multi_field_validated_block("textures", validate_decal_textures);
+    vd.multi_field_validated_block("alpha_curve", validate_curve);
+    vd.multi_field_validated_block("blend_modes", validate_blend_modes);
     vd.field_integer("priority");
     vd.field_validated("age", validate_age_field);
     vd.field_choice("decal_apply_order", &["pre_skin_color", "post_skin_color"]);

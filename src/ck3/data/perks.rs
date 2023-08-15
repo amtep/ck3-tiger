@@ -58,7 +58,7 @@ impl DbKind for Perk {
 
         vd.field_item("lifestyle", Item::Lifestyle);
         // TODO: check for loops in perk parents
-        for parent in vd.field_values("parent") {
+        for parent in vd.multi_field_value("parent") {
             data.verify_exists(Item::Perk, parent);
         }
 
@@ -76,16 +76,16 @@ impl DbKind for Perk {
             validate_effect(block, data, sc, Tooltipped::Yes);
         });
 
-        vd.field_validated_blocks("character_modifier", |block, data| {
+        vd.multi_field_validated_block("character_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
-        vd.field_validated_blocks("doctrine_character_modifier", |block, data| {
+        vd.multi_field_validated_block("doctrine_character_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("doctrine", Item::Doctrine);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
-        vd.field_validated_blocks("culture_character_modifier", |block, data| {
+        vd.multi_field_validated_block("culture_character_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("parameter", Item::CultureParameter);
             validate_modifs(block, data, ModifKinds::Character, vd);

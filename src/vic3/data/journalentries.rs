@@ -47,7 +47,7 @@ impl DbKind for Journalentry {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
-        vd.field_items("scripted_button", Item::ScriptedButton);
+        vd.multi_field_item("scripted_button", Item::ScriptedButton);
 
         vd.field_validated_block("possible", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);

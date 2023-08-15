@@ -48,7 +48,7 @@ impl DbKind for VassalStance {
         let modif = format!("{key}_tax_contribution_mult");
         data.verify_exists_implied(Item::ModifierFormat, &modif, key);
 
-        vd.field_validated_blocks("is_valid", |block, data| {
+        vd.multi_field_validated_block("is_valid", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 

@@ -203,7 +203,7 @@ impl DbKind for CasusBelli {
 
         vd.field_integer("truce_days"); // not used in vanilla
 
-        vd.field_values("ignore_effect"); // TODO
+        vd.multi_field_value("ignore_effect"); // TODO
 
         let choices = &["invalidate", "inherit", "inherit_faction"];
         vd.field_choice("on_primary_attacker_death", choices);

@@ -138,9 +138,9 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
 
     let mut count = 0;
     #[allow(unused_variables)] // vic3 doesn't use `key`
-    vd.field_validated_key_blocks("events", |key, b, data| {
+    vd.multi_field_validated_key_block("events", |key, b, data| {
         let mut vd = Validator::new(b, data);
-        vd.field_validated_blocks_sc("delay", sc, validate_duration);
+        vd.multi_field_validated_block_sc("delay", sc, validate_duration);
         for token in vd.values() {
             data.verify_exists(Item::Event, token);
             data.check_event_scope(token, sc);
@@ -156,11 +156,11 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
     });
     count = 0;
     #[allow(unused_variables)] // vic3 doesn't use `key`
-    vd.field_validated_key_blocks("random_events", |key, b, data| {
+    vd.multi_field_validated_key_block("random_events", |key, b, data| {
         let mut vd = Validator::new(b, data);
         vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
         vd.field_script_value("chance_of_no_event", sc);
-        vd.field_validated_blocks_sc("delay", sc, validate_duration); // undocumented
+        vd.multi_field_validated_block_sc("delay", sc, validate_duration); // undocumented
         for (_key, token) in vd.integer_values() {
             if token.is("0") {
                 continue;
@@ -178,7 +178,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
     });
     count = 0;
     #[allow(unused_variables)] // vic3 doesn't use `key`
-    vd.field_validated_key_blocks("first_valid", |key, b, data| {
+    vd.multi_field_validated_key_block("first_valid", |key, b, data| {
         let mut vd = Validator::new(b, data);
         for token in vd.values() {
             data.verify_exists(Item::Event, token);
@@ -195,9 +195,9 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
     });
     count = 0;
     #[allow(unused_variables)] // vic3 doesn't use `key`
-    vd.field_validated_key_blocks("on_actions", |key, b, data| {
+    vd.multi_field_validated_key_block("on_actions", |key, b, data| {
         let mut vd = Validator::new(b, data);
-        vd.field_validated_blocks_sc("delay", sc, validate_duration);
+        vd.multi_field_validated_block_sc("delay", sc, validate_duration);
         for token in vd.values() {
             data.verify_exists(Item::OnAction, token);
         }
@@ -212,7 +212,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
     });
     count = 0;
     #[allow(unused_variables)] // vic3 doesn't use `key`
-    vd.field_validated_key_blocks("random_on_action", |key, b, data| {
+    vd.multi_field_validated_key_block("random_on_action", |key, b, data| {
         let mut vd = Validator::new(b, data);
         vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
         vd.field_script_value("chance_of_no_event", sc);
@@ -233,7 +233,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
     });
     count = 0;
     #[allow(unused_variables)] // vic3 doesn't use `key`
-    vd.field_validated_key_blocks("first_valid_on_action", |key, b, data| {
+    vd.multi_field_validated_key_block("first_valid_on_action", |key, b, data| {
         let mut vd = Validator::new(b, data);
         for token in vd.values() {
             data.verify_exists(Item::OnAction, token);

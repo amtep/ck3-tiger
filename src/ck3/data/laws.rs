@@ -53,7 +53,7 @@ impl DbKind for LawGroup {
         }
         vd.field_bool("cumulative");
 
-        vd.field_values("flag");
+        vd.multi_field_value("flag");
         // The laws. They are validated in the Law class.
         vd.unknown_block_fields(|_, _| ());
     }
@@ -117,12 +117,12 @@ impl DbKind for Law {
         vd.field_validated_block_rooted("pass_cost", Scopes::Character, validate_cost);
         vd.field_validated_block_rooted("revoke_cost", Scopes::Character, validate_cost);
 
-        vd.field_validated_blocks("modifier", |block, data| {
+        vd.multi_field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
 
-        vd.field_values("flag");
+        vd.multi_field_value("flag");
         vd.field_validated_block("triggered_flag", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("trigger");

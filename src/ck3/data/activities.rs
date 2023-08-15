@@ -381,7 +381,7 @@ impl DbKind for ActivityType {
         let mut sc = ScopeContext::new(Scopes::Activity, key);
         sc.define_name("host", Scopes::Character, key);
         sc.define_name("activity", Scopes::Activity, key);
-        vd.field_validated_bvs("map_entity", |bv, data| match bv {
+        vd.multi_field_validated("map_entity", |bv, data| match bv {
             BV::Value(token) => data.verify_exists(Item::Entity, token),
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
@@ -391,7 +391,7 @@ impl DbKind for ActivityType {
                 vd.field_item("reference", Item::Entity);
             }
         });
-        vd.field_validated_blocks("background", |block, data| {
+        vd.multi_field_validated_block("background", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);
@@ -401,7 +401,7 @@ impl DbKind for ActivityType {
             vd.field_item("ambience", Item::Sound);
             vd.field_item("music", Item::Music);
         });
-        vd.field_validated_blocks("locale_background", |block, data| {
+        vd.multi_field_validated_block("locale_background", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);
@@ -631,7 +631,7 @@ impl DbKind for ActivityLocale {
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
         vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
 
-        vd.field_validated_key_bvs("visuals", validate_visuals);
+        vd.multi_field_validated_key("visuals", validate_visuals);
     }
 }
 
@@ -767,8 +767,8 @@ impl DbKind for ActivityIntent {
         sc.define_name("activity", Scopes::Activity, key);
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
 
-        vd.field_blocks("ai_targets"); // TODO, see also interactions
-        vd.field_blocks("ai_target_quick_trigger"); // TODO, see also interactions
+        vd.multi_field_block("ai_targets"); // TODO, see also interactions
+        vd.multi_field_block("ai_target_quick_trigger"); // TODO, see also interactions
 
         let mut sc = ScopeContext::new(Scopes::Character, key);
         sc.define_name("target", Scopes::Character, key);

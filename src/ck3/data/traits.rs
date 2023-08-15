@@ -174,10 +174,10 @@ impl Trait {
         }
 
         vd.field_item("category", Item::TraitCategory);
-        vd.field_validated_blocks("culture_modifier", validate_culture_modifier);
-        vd.field_validated_blocks("faith_modifier", validate_faith_modifier);
+        vd.multi_field_validated_block("culture_modifier", validate_culture_modifier);
+        vd.multi_field_validated_block("faith_modifier", validate_faith_modifier);
         vd.field_item("culture_succession_prio", Item::CultureParameter);
-        vd.field_validated_blocks("triggered_opinion", validate_triggered_opinion);
+        vd.multi_field_validated_block("triggered_opinion", validate_triggered_opinion);
 
         vd.field_validated_block("tracks", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -255,7 +255,7 @@ impl Trait {
         );
         vd.field_bool("incapacitating");
         vd.field_bool("disables_combat_leadership");
-        for token in vd.field_values("flag") {
+        for token in vd.multi_field_value("flag") {
             // These are optional
             let loca = format!("TRAIT_FLAG_DESC_{token}");
             data.mark_used(Item::Localization, &loca);
@@ -323,8 +323,8 @@ fn validate_trait_track(key: &Token, block: &Block, data: &Everything, warn_key:
         }
 
         let mut vd = Validator::new(block, data);
-        vd.field_validated_blocks("culture_modifier", validate_culture_modifier);
-        vd.field_validated_blocks("faith_modifier", validate_faith_modifier);
+        vd.multi_field_validated_block("culture_modifier", validate_culture_modifier);
+        vd.multi_field_validated_block("faith_modifier", validate_faith_modifier);
         validate_modifs(block, data, ModifKinds::Character, vd);
     });
     // let modif = format!("{key}_xp_degradation_mult");

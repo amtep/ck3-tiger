@@ -65,11 +65,11 @@ impl DbKind for EventTheme {
         vd.req_field("icon");
         vd.req_field("sound");
 
-        vd.field_validated_bvs_sc("background", sc, validate_theme_background);
-        vd.field_validated_blocks_sc("icon", sc, validate_theme_icon);
-        vd.field_validated_blocks_sc("sound", sc, validate_theme_sound);
+        vd.multi_field_validated_sc("background", sc, validate_theme_background);
+        vd.multi_field_validated_block_sc("icon", sc, validate_theme_icon);
+        vd.multi_field_validated_block_sc("sound", sc, validate_theme_sound);
         // `transition` is not documented but presumably works the same way
-        vd.field_validated_blocks_sc("transition", sc, validate_theme_transition);
+        vd.multi_field_validated_block_sc("transition", sc, validate_theme_transition);
     }
 }
 
@@ -116,7 +116,7 @@ impl DbKind for EventBackground {
         let mut vd = Validator::new(block, data);
         vd.set_max_severity(Severity::Warning);
         vd.req_field("background");
-        vd.field_validated_blocks("background", |block, data| {
+        vd.multi_field_validated_block("background", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.set_max_severity(Severity::Warning);
             vd.field_validated_block("trigger", |block, data| {
@@ -172,7 +172,7 @@ impl DbKind for EventTransition {
         let mut vd = Validator::new(block, data);
         vd.set_max_severity(Severity::Warning);
         vd.req_field("transition");
-        vd.field_validated_blocks("transition", |block, data| {
+        vd.multi_field_validated_block("transition", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.set_max_severity(Severity::Warning);
             vd.field_validated_block("trigger", |block, data| {

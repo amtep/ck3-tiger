@@ -269,7 +269,7 @@ pub fn validate_iterator_fields(
 
     // undocumented
     if list_type != ListType::None && list_type != ListType::Any {
-        vd.field_validated_blocks("alternative_limit", |b, data| {
+        vd.multi_field_validated_block("alternative_limit", |b, data| {
             validate_trigger(b, data, sc, *tooltipped);
         });
     } else {
@@ -380,7 +380,7 @@ pub fn validate_inside_iterator(
                 );
                 err(ErrorKey::FieldMissing).strong().msg(msg).info(info).loc(block).push();
             }
-            vd.field_items("type", Item::Relation);
+            vd.multi_field_item("type", Item::Relation);
         } else {
             vd.ban_field("type", || {
                 format!("`{listtype}_court_position_holder` or `{listtype}_relation`")
@@ -500,11 +500,11 @@ pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut S
 }
 
 pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
-    vd.field_validated_blocks("first_valid", |b, data| {
+    vd.multi_field_validated_block("first_valid", |b, data| {
         let mut vd = Validator::new(b, data);
         validate_modifiers(&mut vd, sc);
     });
-    vd.field_validated_blocks("modifier", |b, data| {
+    vd.multi_field_validated_block("modifier", |b, data| {
         validate_trigger_internal(
             &Lowercase::new_unchecked("modifier"),
             false,
@@ -518,27 +518,31 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     });
     #[cfg(feature = "ck3")]
     if Game::is_ck3() {
-        vd.field_validated_blocks_sc("compare_modifier", sc, validate_compare_modifier);
-        vd.field_validated_blocks_sc("opinion_modifier", sc, validate_opinion_modifier);
-        vd.field_validated_blocks_sc("ai_value_modifier", sc, validate_ai_value_modifier);
-        vd.field_validated_blocks_sc("compatibility_modifier", sc, validate_compatibility_modifier);
+        vd.multi_field_validated_block_sc("compare_modifier", sc, validate_compare_modifier);
+        vd.multi_field_validated_block_sc("opinion_modifier", sc, validate_opinion_modifier);
+        vd.multi_field_validated_block_sc("ai_value_modifier", sc, validate_ai_value_modifier);
+        vd.multi_field_validated_block_sc(
+            "compatibility_modifier",
+            sc,
+            validate_compatibility_modifier,
+        );
 
         // These are special single-use modifiers
-        vd.field_validated_blocks_sc("scheme_modifier", sc, validate_scheme_modifier);
-        vd.field_validated_blocks_sc("activity_modifier", sc, validate_activity_modifier);
+        vd.multi_field_validated_block_sc("scheme_modifier", sc, validate_scheme_modifier);
+        vd.multi_field_validated_block_sc("activity_modifier", sc, validate_activity_modifier);
     }
 }
 
 #[cfg(feature = "vic3")]
 pub fn validate_vic3_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
-    vd.field_validated_bvs("modifier", |bv, data| {
+    vd.multi_field_validated("modifier", |bv, data| {
         validate_script_value(bv, data, sc);
     });
 }
 
 #[cfg(feature = "imperator")]
 pub fn validate_imperator_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
-    vd.field_validated_bvs("modifier", |bv, data| {
+    vd.multi_field_validated("modifier", |bv, data| {
         validate_script_value(bv, data, sc);
     });
 }

@@ -45,13 +45,13 @@ impl DbKind for CourtType {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
-        vd.field_validated_blocks("level_perk", |block, data| {
+        vd.multi_field_validated_block("level_perk", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_integer("court_grandeur");
             validate_court_modifiers(vd);
         });
 
-        vd.field_validated_blocks("time_perk", |block, data| {
+        vd.multi_field_validated_block("time_perk", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_integer("required_months_in_court");
             validate_court_modifiers(vd);

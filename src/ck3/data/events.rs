@@ -338,7 +338,7 @@ impl Event {
             validate_portrait(bv, data, &mut sc);
         });
         // TODO: check that artifacts are not in the same position as a character
-        vd.field_validated_blocks_sc("artifact", &mut sc, validate_artifact);
+        vd.multi_field_validated_block_sc("artifact", &mut sc, validate_artifact);
         vd.field_validated_block_sc("court_scene", &mut sc, validate_court_scene);
         if let Some(token) = vd.field_value("theme") {
             data.verify_exists(Item::EventTheme, token);
@@ -348,11 +348,15 @@ impl Event {
         if evtype == "court_event" {
             vd.advice_field("override_background", "not needed for court_event");
         } else {
-            vd.field_validated_bvs_sc("override_background", &mut sc, validate_theme_background);
+            vd.multi_field_validated_sc("override_background", &mut sc, validate_theme_background);
         }
-        vd.field_validated_blocks_sc("override_icon", &mut sc, validate_theme_icon);
-        vd.field_validated_blocks_sc("override_sound", &mut sc, validate_theme_sound);
-        vd.field_validated_blocks_sc("override_transition", &mut sc, validate_theme_transition);
+        vd.multi_field_validated_block_sc("override_icon", &mut sc, validate_theme_icon);
+        vd.multi_field_validated_block_sc("override_sound", &mut sc, validate_theme_sound);
+        vd.multi_field_validated_block_sc(
+            "override_transition",
+            &mut sc,
+            validate_theme_transition,
+        );
         // Note: override_environment seems to be unused, and themes defined in
         // common/event_themes don't have environments. So I left it out even though
         // it's in the docs.
@@ -360,7 +364,7 @@ impl Event {
         if !self.block.get_field_bool("hidden").unwrap_or(false) {
             vd.req_field("option");
         }
-        vd.field_validated_blocks("option", |block, data| {
+        vd.multi_field_validated_block("option", |block, data| {
             validate_event_option(block, data, &mut sc, tooltipped);
         });
 
@@ -383,7 +387,7 @@ fn validate_event_option(
     tooltipped: Tooltipped,
 ) {
     let mut vd = Validator::new(block, data);
-    vd.field_validated_bvs("name", |bv, data| match bv {
+    vd.multi_field_validated("name", |bv, data| match bv {
         BV::Value(t) => {
             data.localization.verify_exists(t);
         }
@@ -412,8 +416,8 @@ fn validate_event_option(
     vd.field_value("reason"); // arbitrary string passed to the UI
 
     // "this option is available because you have the ... trait"
-    vd.field_items("trait", Item::Trait);
-    vd.field_items("skill", Item::Skill);
+    vd.multi_field_item("trait", Item::Trait);
+    vd.multi_field_item("skill", Item::Skill);
 
     vd.field_validated_sc("ai_chance", sc, validate_ai_chance);
 
@@ -451,7 +455,7 @@ fn validate_court_scene(block: &Block, data: &Everything, sc: &mut ScopeContext)
     vd.field_bool("should_pause_time");
     vd.field_target("court_owner", sc, Scopes::Character);
     vd.field_item("scripted_animation", Item::ScriptedAnimation);
-    vd.field_validated_blocks("roles", |b, data| {
+    vd.multi_field_validated_block("roles", |b, data| {
         for (key, bv) in b.iter_assignments_and_definitions_warn() {
             match bv {
                 BV::Block(block) => {
@@ -460,7 +464,7 @@ fn validate_court_scene(block: &Block, data: &Everything, sc: &mut ScopeContext)
                     vd.req_field("group");
                     vd.field_item("group", Item::CourtSceneGroup);
                     vd.field_item("animation", Item::PortraitAnimation);
-                    vd.field_validated_blocks("triggered_animation", |b, data| {
+                    vd.multi_field_validated_block("triggered_animation", |b, data| {
                         validate_triggered_animation(b, data, sc);
                     });
                 }
@@ -556,13 +560,13 @@ fn validate_portrait(v: &BV, data: &Everything, sc: &mut ScopeContext) {
                 validate_trigger(b, data, sc, Tooltipped::No);
             });
             validate_animations(&mut vd);
-            vd.field_validated_blocks("triggered_animation", |b, data| {
+            vd.multi_field_validated_block("triggered_animation", |b, data| {
                 validate_triggered_animation(b, data, sc);
             });
             vd.field_list("outfit_tags"); // TODO
             vd.field_bool("remove_default_outfit");
             vd.field_bool("hide_info");
-            vd.field_validated_blocks("triggered_outfit", |b, data| {
+            vd.multi_field_validated_block("triggered_outfit", |b, data| {
                 validate_triggered_outfit(b, data, sc);
             });
             vd.field_item("camera", Item::PortraitCamera);

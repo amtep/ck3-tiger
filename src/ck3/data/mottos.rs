@@ -57,7 +57,7 @@ impl DbKind for Motto {
         data.verify_exists_implied(Item::Localization, &loca, key);
         let n = block.count_keys("insert") as i64;
         data.localization.verify_key_has_options(&loca, key, n, "");
-        vd.field_items("insert", Item::MottoInsert);
+        vd.multi_field_item("insert", Item::MottoInsert);
         vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
             validate_trigger(block, data, sc, Tooltipped::No);
         });

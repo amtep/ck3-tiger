@@ -39,21 +39,21 @@ impl DbKind for CultureEra {
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.field_item("invalid_for_government", Item::GovernmentType);
-        vd.field_items("custom", Item::Localization);
+        vd.multi_field_item("custom", Item::Localization);
 
         validate_modifiers(&mut vd);
 
-        vd.field_validated_blocks("maa_upgrade", |block, data| {
+        vd.multi_field_validated_block("maa_upgrade", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("men_at_arms", Item::MenAtArms);
             validate_maa_stats(&mut vd);
         });
 
-        vd.field_items("unlock_building", Item::Building);
-        vd.field_items("unlock_decision", Item::Decision);
-        vd.field_items("unlock_casus_belli", Item::CasusBelli);
-        vd.field_items("unlock_maa", Item::MenAtArms);
-        vd.field_items("unlock_law", Item::Law);
+        vd.multi_field_item("unlock_building", Item::Building);
+        vd.multi_field_item("unlock_decision", Item::Decision);
+        vd.multi_field_item("unlock_casus_belli", Item::CasusBelli);
+        vd.multi_field_item("unlock_maa", Item::MenAtArms);
+        vd.multi_field_item("unlock_law", Item::Law);
     }
 
     // TODO: validate that none have the same year
@@ -117,11 +117,11 @@ impl DbKind for Culture {
         vd.field_item("martial_custom", Item::MartialCustom);
 
         vd.field_list_items("traditions", Item::CultureTradition);
-        vd.field_items("name_list", Item::NameList);
+        vd.multi_field_item("name_list", Item::NameList);
 
-        vd.fields_list_items("coa_gfx", Item::Localization);
+        vd.multi_field_list_items("coa_gfx", Item::Localization);
         vd.field_list_items("building_gfx", Item::Localization);
-        vd.fields_list_items("clothing_gfx", Item::Localization);
+        vd.multi_field_list_items("clothing_gfx", Item::Localization);
         vd.field_list_items("unit_gfx", Item::Localization);
 
         vd.field_validated_block("ethnicities", |block, data| {
@@ -131,7 +131,7 @@ impl DbKind for Culture {
             }
         });
 
-        vd.field_validated_blocks("dlc_tradition", |block, data| {
+        vd.multi_field_validated_block("dlc_tradition", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("trait");
             vd.req_field("requires_dlc_flag");
@@ -195,7 +195,7 @@ impl DbKind for CulturePillar {
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
-        vd.field_validated_blocks("character_modifier", |block, data| {
+        vd.multi_field_validated_block("character_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
@@ -267,7 +267,7 @@ impl DbKind for CultureTradition {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         validate_modifiers(&mut vd);
-        vd.field_validated_blocks("doctrine_character_modifier", |block, data| {
+        vd.multi_field_validated_block("doctrine_character_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("doctrine", Item::Doctrine);
             vd.field_item("name", Item::Localization);
@@ -292,19 +292,19 @@ impl DbKind for CultureTradition {
 }
 
 fn validate_modifiers(vd: &mut Validator) {
-    vd.field_validated_blocks("character_modifier", |block, data| {
+    vd.multi_field_validated_block("character_modifier", |block, data| {
         let vd = Validator::new(block, data);
         validate_modifs(block, data, ModifKinds::Character, vd);
     });
-    vd.field_validated_blocks("culture_modifier", |block, data| {
+    vd.multi_field_validated_block("culture_modifier", |block, data| {
         let vd = Validator::new(block, data);
         validate_modifs(block, data, ModifKinds::Culture, vd);
     });
-    vd.field_validated_blocks("county_modifier", |block, data| {
+    vd.multi_field_validated_block("county_modifier", |block, data| {
         let vd = Validator::new(block, data);
         validate_modifs(block, data, ModifKinds::County, vd);
     });
-    vd.field_validated_blocks("province_modifier", |block, data| {
+    vd.multi_field_validated_block("province_modifier", |block, data| {
         let vd = Validator::new(block, data);
         validate_modifs(block, data, ModifKinds::Province, vd);
     });

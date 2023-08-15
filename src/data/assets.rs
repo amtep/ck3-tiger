@@ -187,9 +187,9 @@ impl Asset {
         vd.field_numeric("scale");
         vd.field_numeric("cull_distance");
 
-        vd.field_validated_blocks("lod_percentages", |block, data| {
+        vd.multi_field_validated_block("lod_percentages", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_validated_blocks("lod", |block, data| {
+            vd.multi_field_validated_block("lod", |block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("index");
                 vd.req_field("percent");
@@ -198,8 +198,8 @@ impl Asset {
             });
         });
 
-        vd.field_validated_blocks("meshsettings", validate_meshsettings);
-        vd.field_validated_blocks("blend_shape", |block, data| {
+        vd.multi_field_validated_block("meshsettings", validate_meshsettings);
+        vd.multi_field_validated_block("blend_shape", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("id");
             vd.req_field("type");
@@ -211,7 +211,7 @@ impl Asset {
             vd.field_value("data"); // TODO
         });
 
-        vd.field_validated_blocks("animation", |block, data| {
+        vd.multi_field_validated_block("animation", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("id");
             vd.req_field("type");
@@ -221,7 +221,7 @@ impl Asset {
                 data.fileset.verify_exists_implied_crashes(&path.to_string_lossy(), token);
             }
         });
-        vd.field_validated_blocks("additive_animation", |block, data| {
+        vd.multi_field_validated_block("additive_animation", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("id");
             vd.req_field("type");
@@ -232,7 +232,7 @@ impl Asset {
             }
         });
 
-        vd.field_validated_blocks("import", |block, data| {
+        vd.multi_field_validated_block("import", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_value("type"); // TODO
             vd.field_item("name", Item::Asset);
@@ -246,7 +246,7 @@ impl Asset {
         vd.field_bool("get_state_from_parent");
         vd.field_numeric("scale");
         vd.field_numeric("cull_radius");
-        vd.field_validated_blocks("attribute", |block, data| {
+        vd.multi_field_validated_block("attribute", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("name");
             vd.req_field_one_of(&["blend_shape", "additive_animation"]);
@@ -255,19 +255,19 @@ impl Asset {
             vd.field_item("blend_shape", Item::BlendShape);
             vd.field_numeric("default");
         });
-        vd.field_validated_blocks("meshsettings", validate_meshsettings);
-        vd.field_validated_blocks("game_data", |block, data| {
+        vd.multi_field_validated_block("meshsettings", validate_meshsettings);
+        vd.multi_field_validated_block("game_data", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_validated_blocks("portrait_entity_user_data", |block, data| {
+            vd.multi_field_validated_block("portrait_entity_user_data", |block, data| {
                 let mut vd = Validator::new(block, data);
-                vd.field_validated_blocks("portrait_accessory", |block, data| {
+                vd.multi_field_validated_block("portrait_accessory", |block, data| {
                     let mut vd = Validator::new(block, data);
                     vd.field_item("pattern_mask", Item::File);
                     vd.field_item("variation", Item::AccessoryVariation);
                 });
-                vd.field_validated_blocks("color_mask_remap_interval", |block, data| {
+                vd.multi_field_validated_block("color_mask_remap_interval", |block, data| {
                     let mut vd = Validator::new(block, data);
-                    vd.field_validated_blocks("interval", |block, data| {
+                    vd.multi_field_validated_block("interval", |block, data| {
                         validate_numeric_range(
                             block,
                             data,
@@ -278,23 +278,23 @@ impl Asset {
                         );
                     });
                 });
-                vd.field_validated_blocks("portrait_decal", |block, data| {
+                vd.multi_field_validated_block("portrait_decal", |block, data| {
                     let mut vd = Validator::new(block, data);
                     vd.field_value("body_part"); // TODO
                 });
                 vd.field_item("coa_mask", Item::File);
             });
-            vd.field_validated_blocks("throne_entity_user_data", |block, data| {
+            vd.multi_field_validated_block("throne_entity_user_data", |block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.field_item("animation", Item::PortraitAnimation);
                 vd.field_bool("use_throne_transform");
             });
-            vd.field_validated_blocks("court_entity_user_data", |block, data| {
+            vd.multi_field_validated_block("court_entity_user_data", |block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.field_bool("coat_of_arms");
             });
         });
-        vd.field_validated_blocks("state", |block, data| {
+        vd.multi_field_validated_block("state", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("name");
             vd.field_value("name");
@@ -306,9 +306,9 @@ impl Asset {
             vd.field_value("animation"); // TODO
             vd.field_numeric("animation_blend_time");
             vd.field_validated("time_offset", validate_time_offset);
-            vd.field_validated_blocks("start_event", validate_event);
-            vd.field_validated_blocks("event", validate_event);
-            vd.field_validated_bvs("propagate_state", |bv, data| {
+            vd.multi_field_validated_block("start_event", validate_event);
+            vd.multi_field_validated_block("event", validate_event);
+            vd.multi_field_validated("propagate_state", |bv, data| {
                 match bv {
                     BV::Value(_token) => (), // TODO
                     BV::Block(block) => {
@@ -320,21 +320,21 @@ impl Asset {
             });
         });
         vd.field_value("default_state"); // TODO: must be a state name
-        vd.field_validated_blocks("locator", |block, data| {
+        vd.multi_field_validated_block("locator", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("name");
             vd.field_value("name");
-            vd.field_validated_blocks("position", |block, data| {
+            vd.multi_field_validated_block("position", |block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.req_tokens_numbers_exactly(3);
             });
-            vd.field_validated_blocks("rotation", |block, data| {
+            vd.multi_field_validated_block("rotation", |block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.req_tokens_numbers_exactly(3);
             });
             vd.field_numeric("scale");
         });
-        vd.field_validated_blocks("attach", |block, data| {
+        vd.multi_field_validated_block("attach", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.unknown_value_fields(|_, token| {
                 // TODO: what are the keys here?
@@ -347,8 +347,8 @@ impl Asset {
         let mut vd = Validator::new(&self.block, data);
         vd.field_value("name");
         vd.req_field("reference_skeleton");
-        vd.field_items("reference_skeleton", Item::Pdxmesh);
-        vd.field_validated_blocks("animation", |block, data| {
+        vd.multi_field_item("reference_skeleton", Item::Pdxmesh);
+        vd.multi_field_validated_block("animation", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("id");
             vd.req_field("type");
@@ -392,14 +392,14 @@ fn validate_event(block: &Block, data: &Everything) {
     vd.field_value("attachment_id"); // TODO
     vd.field_value("remove_attachment"); // TODO
     vd.field_item("entity", Item::Entity);
-    vd.field_validated_blocks("soundparameter", |block, data| {
+    vd.multi_field_validated_block("soundparameter", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.unknown_value_fields(|_, token| {
             // TODO: what are the keys here?
             token.expect_number();
         });
     });
-    vd.field_validated_blocks("sound", |block, data| {
+    vd.multi_field_validated_block("sound", |block, data| {
         let mut vd = Validator::new(block, data);
         if let Some(token) = vd.field_value("soundeffect") {
             if !token.is("") {

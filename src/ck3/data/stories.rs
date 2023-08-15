@@ -45,7 +45,7 @@ impl DbKind for Story {
             validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
-        vd.field_validated_key_blocks("effect_group", |key, block, data| {
+        vd.multi_field_validated_key_block("effect_group", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::StoryCycle, key);
             sc.define_name("story", Scopes::StoryCycle, key);
             let mut vd = Validator::new(block, data);
@@ -72,15 +72,15 @@ impl DbKind for Story {
 }
 
 fn validate_complex_effect(vd: &mut Validator, sc: &mut ScopeContext) {
-    vd.field_validated_blocks("first_valid", |block, data| {
+    vd.multi_field_validated_block("first_valid", |block, data| {
         let mut vd = Validator::new(block, data);
         validate_complex_effect(&mut vd, sc);
     });
-    vd.field_validated_blocks("random_valid", |block, data| {
+    vd.multi_field_validated_block("random_valid", |block, data| {
         let mut vd = Validator::new(block, data);
         validate_complex_effect(&mut vd, sc);
     });
-    vd.field_validated_blocks("triggered_effect", |block, data| {
+    vd.multi_field_validated_block("triggered_effect", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block("trigger", |block, data| {
             validate_trigger(block, data, sc, Tooltipped::No);

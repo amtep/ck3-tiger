@@ -88,7 +88,7 @@ impl DbKind for CharacterInteraction {
         vd.field_validated_block("ai_set_target", |b, data| {
             validate_effect(b, data, &mut sc, Tooltipped::No);
         });
-        vd.field_blocks("ai_targets"); // TODO
+        vd.multi_field_block("ai_targets"); // TODO
         vd.field_block("ai_target_quick_trigger"); // TODO
 
         vd.field_numeric("interface_priority");
@@ -236,7 +236,7 @@ impl DbKind for CharacterInteraction {
 
         vd.field_block("localization_values"); // TODO
 
-        vd.field_validated_blocks("send_option", |b, data| {
+        vd.multi_field_validated_block("send_option", |b, data| {
             let mut vd = Validator::new(b, data);
             vd.req_field("flag");
             // If localization field is not set, then flag is used as the localization

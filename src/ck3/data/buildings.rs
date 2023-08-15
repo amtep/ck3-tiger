@@ -84,7 +84,7 @@ impl DbKind for Building {
         vd.field_script_value_rooted("construction_time", Scopes::None);
         vd.field_choice("type", &["regular", "special", "duchy_capital"]);
 
-        vd.field_validated_blocks("asset", validate_asset);
+        vd.multi_field_validated_block("asset", validate_asset);
 
         vd.field_validated_block_rooted("is_enabled", Scopes::Province, |block, data, sc| {
             sc.define_name("holder", Scopes::Character, key);
@@ -125,52 +125,52 @@ impl DbKind for Building {
         vd.field_item("next_building", Item::Building);
         vd.field_validated_rooted("effect_desc", Scopes::None, validate_desc);
 
-        vd.field_validated_blocks("character_modifier", |block, data| {
+        vd.multi_field_validated_block("character_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
-        vd.field_validated_blocks("character_culture_modifier", |block, data| {
+        vd.multi_field_validated_block("character_culture_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("parameter");
             vd.field_item("parameter", Item::CultureParameter);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
-        vd.field_validated_blocks("character_dynasty_modifier", |block, data| {
+        vd.multi_field_validated_block("character_dynasty_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("county_holder_dynasty_perk");
             vd.field_item("county_holder_dynasty_perk", Item::DynastyPerk);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
 
-        vd.field_validated_blocks("province_modifier", |block, data| {
+        vd.multi_field_validated_block("province_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Province, vd);
         });
-        vd.field_validated_blocks("province_culture_modifier", |block, data| {
+        vd.multi_field_validated_block("province_culture_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("parameter");
             vd.field_item("parameter", Item::CultureParameter);
             validate_modifs(block, data, ModifKinds::Province, vd);
         });
-        vd.field_validated_blocks("province_terrain_modifier", |block, data| {
+        vd.multi_field_validated_block("province_terrain_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("parameter", Item::CultureParameter);
             vd.field_item("terrain", Item::Terrain);
             vd.field_bool("is_coastal");
             validate_modifs(block, data, ModifKinds::Province, vd);
         });
-        vd.field_validated_blocks("province_dynasty_modifier", |block, data| {
+        vd.multi_field_validated_block("province_dynasty_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("county_holder_dynasty_perk");
             vd.field_item("county_holder_dynasty_perk", Item::DynastyPerk);
             validate_modifs(block, data, ModifKinds::Province, vd);
         });
 
-        vd.field_validated_blocks("county_modifier", |block, data| {
+        vd.multi_field_validated_block("county_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::County, vd);
         });
-        vd.field_validated_blocks("county_culture_modifier", |block, data| {
+        vd.multi_field_validated_block("county_culture_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("parameter");
             vd.field_item("parameter", Item::CultureParameter);
@@ -179,11 +179,11 @@ impl DbKind for Building {
 
         if let Some(token) = block.get_field_value("type") {
             if token.is("duchy_capital") {
-                vd.field_validated_blocks("duchy_capital_county_modifier", |block, data| {
+                vd.multi_field_validated_block("duchy_capital_county_modifier", |block, data| {
                     let vd = Validator::new(block, data);
                     validate_modifs(block, data, ModifKinds::County, vd);
                 });
-                vd.field_validated_blocks(
+                vd.multi_field_validated_block(
                     "duchy_capital_county_culture_modifier",
                     |block, data| {
                         let mut vd = Validator::new(block, data);
@@ -201,24 +201,24 @@ impl DbKind for Building {
             vd.ban_field("duchy_capital_county_culture_modifier", || "duchy_capital buildings");
         }
 
-        vd.field_validated_blocks("county_holding_modifier", |block, data| {
+        vd.multi_field_validated_block("county_holding_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("holding");
             vd.field_item("holding", Item::Holding);
             validate_modifs(block, data, ModifKinds::County, vd);
         });
-        vd.field_validated_blocks("county_dynasty_modifier", |block, data| {
+        vd.multi_field_validated_block("county_dynasty_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("county_holder_dynasty_perk");
             vd.field_item("county_holder_dynasty_perk", Item::DynastyPerk);
             validate_modifs(block, data, ModifKinds::County, vd);
         });
-        vd.field_validated_blocks("county_holder_character_modifier", |block, data| {
+        vd.multi_field_validated_block("county_holder_character_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
 
-        vd.field_values("flag");
+        vd.multi_field_value("flag");
 
         vd.field_validated_block_rooted("on_complete", Scopes::Province, |block, data, sc| {
             validate_effect(block, data, sc, Tooltipped::No);
