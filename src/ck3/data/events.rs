@@ -492,32 +492,28 @@ fn validate_artifact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
 }
 
 fn validate_animations(vd: &mut Validator) {
-    vd.field_validated_value("animation", |_, value, data| {
-        if !data.item_exists(Item::PortraitAnimation, value.as_str())
-            && data.item_exists(Item::ScriptedAnimation, value.as_str())
-        {
+    vd.field_validated_value("animation", |_, mut vd| {
+        if !vd.maybe_item(Item::PortraitAnimation) && vd.maybe_item(Item::ScriptedAnimation) {
             let msg = format!(
-                "portrait animation {value} not defined in {}",
+                "portrait animation {vd} not defined in {}",
                 Item::PortraitAnimation.path()
             );
-            let info = format!("Did you mean `scripted_animation = {value}`?");
-            warn(ErrorKey::MissingItem).strong().msg(msg).info(info).loc(value).push();
+            let info = format!("Did you mean `scripted_animation = {vd}`?");
+            warn(ErrorKey::MissingItem).strong().msg(msg).info(info).loc(vd).push();
         } else {
-            data.verify_exists(Item::PortraitAnimation, value);
+            vd.item(Item::PortraitAnimation);
         }
     });
-    vd.field_validated_value("scripted_animation", |_, value, data| {
-        if !data.item_exists(Item::ScriptedAnimation, value.as_str())
-            && data.item_exists(Item::PortraitAnimation, value.as_str())
-        {
+    vd.field_validated_value("scripted_animation", |_, mut vd| {
+        if !vd.maybe_item(Item::ScriptedAnimation) && vd.maybe_item(Item::PortraitAnimation) {
             let msg = format!(
-                "scripted animation {value} not defined in {}",
+                "scripted animation {vd} not defined in {}",
                 Item::ScriptedAnimation.path()
             );
-            let info = format!("Did you mean `animation = {value}`?");
-            warn(ErrorKey::MissingItem).strong().msg(msg).info(info).loc(value).push();
+            let info = format!("Did you mean `animation = {vd}`?");
+            warn(ErrorKey::MissingItem).strong().msg(msg).info(info).loc(vd).push();
         } else {
-            data.verify_exists(Item::ScriptedAnimation, value);
+            vd.item(Item::ScriptedAnimation);
         }
     });
 }

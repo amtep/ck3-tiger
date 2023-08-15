@@ -57,16 +57,10 @@ impl DbKind for GameRule {
             let loca = format!("setting_{key}_desc");
             data.verify_exists_implied(Item::Localization, &loca, key);
 
-            vd.multi_field_validated_value("flag", |_, value, _| {
-                if SIMPLE_GAME_RULE_FLAGS.contains(&value.as_str()) {
-                    return;
-                }
-                if let Some(pm) = value.as_str().strip_prefix("disable_") {
-                    data.verify_exists_implied(Item::ProductionMethod, pm, value);
-                }
-                if let Some(pm) = value.as_str().strip_prefix("force_") {
-                    data.verify_exists_implied(Item::ProductionMethod, pm, value);
-                }
+            vd.multi_field_validated_value("flag", |_, mut vd| {
+                vd.maybe_prefix_item("disable_", Item::ProductionMethod);
+                vd.maybe_prefix_item("force_", Item::ProductionMethod);
+                vd.choice(SIMPLE_GAME_RULE_FLAGS);
             });
         });
     }

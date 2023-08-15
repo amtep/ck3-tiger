@@ -35,6 +35,7 @@ impl DbKind for StateRegion {
         vd.field_list_items("impassable", Item::Province);
         vd.field_list_items("traits", Item::StateTrait);
 
+        // TODO: verify that they're all there? except "port" for non-coastal state regions.
         for hub in &["city", "port", "mine", "farm", "wood"] {
             // TODO verify that these provinces are in the state region
             if vd.field_item(hub, Item::Province) {

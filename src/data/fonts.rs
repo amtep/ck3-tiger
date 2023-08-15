@@ -45,16 +45,9 @@ impl DbKind for Font {
         vd.field_value("name");
         vd.multi_field_validated_block("fontstyle", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_validated_value("style", |_, value, _data| {
-                for style in value.split('|') {
-                    if !(style.is("regular")
-                        || style.is("bold")
-                        || style.is("extrabold")
-                        || style.is("italic"))
-                    {
-                        let msg = format!("unknown font style {style}");
-                        warn(ErrorKey::Choice).msg(msg).loc(style).push();
-                    }
+            vd.field_validated_value("style", |_, mut vd| {
+                for mut vd in vd.split('|') {
+                    vd.choice(&["regular", "bold", "extrabold", "italic"]);
                 }
             });
             vd.field_item("fontfiles", Item::Fontfiles);

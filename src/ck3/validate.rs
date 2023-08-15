@@ -151,8 +151,8 @@ pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut Scop
     // `value` and `factor` are evaluated in the scope created by `target`
     sc.open_builder();
     let mut valid_target = false;
-    vd.field_validated_value("target", |_, token, data| {
-        valid_target = validate_scope_chain(token, data, sc, false);
+    vd.field_validated_value("target", |_, vd| {
+        valid_target = validate_scope_chain(vd.value(), data, sc, false);
     });
     sc.finalize_builder();
     if valid_target {

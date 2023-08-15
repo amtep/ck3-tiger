@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{error, old_warn, ErrorKey};
+use crate::report::{err, error, old_warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -140,15 +140,16 @@ impl DbKind for CouncilTask {
             }
         }
 
-        vd.field_validated_value("default_task", |key, value, _data| {
-            if value.is("yes") {
+        vd.field_validated_value("default_task", |key, mut vd| {
+            vd.bool();
+            if vd.value().is("yes") {
                 if !block.field_value_is("task_type", "task_type_general") {
                     let msg = "`default_task` is only available for `task_type_general` tasks";
-                    old_warn(key, ErrorKey::Validation, msg);
+                    err(ErrorKey::Validation).msg(msg).loc(key).push();
                 }
                 if !block.field_value_is("task_progress", "task_progress_infinite") {
                     let msg = "`default_task` is only available for `task_progress_infinite` tasks";
-                    old_warn(key, ErrorKey::Validation, msg);
+                    err(ErrorKey::Validation).msg(msg).loc(key).push();
                 }
             }
         });

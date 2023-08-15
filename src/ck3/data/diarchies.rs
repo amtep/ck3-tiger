@@ -62,9 +62,7 @@ impl DbKind for DiarchyType {
             let mut vd = Validator::new(block, data);
             vd.field_integer("swing");
             vd.multi_field_item("parameter", Item::Localization);
-            vd.multi_field_validated_value("hidden_parameter", |_, value, data| {
-                data.mark_used(Item::Localization, value.as_str());
-            });
+            vd.multi_field_value("hidden_parameter"); // TODO: localization?
         });
         vd.field_script_value_rooted("swing_balance", Scopes::Character);
 

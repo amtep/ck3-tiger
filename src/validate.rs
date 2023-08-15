@@ -104,12 +104,12 @@ pub fn validate_optional_duration_int(vd: &mut Validator) {
     let mut count = 0;
 
     for field in &["days", "weeks", "months", "years"] {
-        vd.field_validated_value(field, |key, value, _| {
-            value.expect_integer();
+        vd.field_validated_value(field, |key, mut vd| {
+            vd.integer();
             count += 1;
             if count > 1 {
                 let msg = "must have at most 1 of days, weeks, months, or years";
-                error(key, ErrorKey::Validation, msg);
+                err(ErrorKey::Validation).msg(msg).loc(key).push();
             }
         });
     }
@@ -125,7 +125,7 @@ pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
             count += 1;
             if count > 1 {
                 let msg = "must have at most 1 of days, weeks, months, or years";
-                error(key, ErrorKey::Validation, msg);
+                err(ErrorKey::Validation).msg(msg).loc(key).push();
             }
         });
     }

@@ -161,13 +161,8 @@ impl DbKind for ArtifactVisual {
                 vd.field_validated_block("trigger", |block, data| {
                     validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
-                vd.field_validated_value("reference", |_, icon, data| {
-                    if let Some(icon_path) =
-                        data.get_defined_string_warn(icon, "NGameIcons|ARTIFACT_ICON_PATH")
-                    {
-                        let pathname = format!("{icon_path}/{icon}");
-                        data.verify_exists_implied(Item::File, &pathname, icon);
-                    }
+                vd.field_validated_value("reference", |_, mut vd| {
+                    vd.defined_dir_file("NGameIcons|ARTIFACT_ICON_PATH");
                 });
             }
         });
@@ -190,8 +185,8 @@ impl DbKind for ArtifactVisual {
                 vd.field_validated_block("trigger", |block, data| {
                     validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
-                vd.field_validated_value("reference", |_, asset, data| {
-                    data.verify_exists(Item::Asset, asset);
+                vd.field_validated_value("reference", |_, mut vd| {
+                    vd.item(Item::Asset);
                 });
             }
         });

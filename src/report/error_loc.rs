@@ -1,6 +1,7 @@
 use crate::block::{Block, BlockItem, Field, BV};
 use crate::fileset::FileEntry;
 use crate::token::{Loc, Token};
+use crate::validator::ValueValidator;
 
 /// This trait lets the error reporting functions accept a variety of things as the error locator.
 pub trait ErrorLoc {
@@ -8,6 +9,36 @@ pub trait ErrorLoc {
         0
     }
     fn into_loc(self) -> Loc;
+}
+
+impl<'a> ErrorLoc for ValueValidator<'a> {
+    fn loc_length(&self) -> usize {
+        self.value().loc_length()
+    }
+
+    fn into_loc(self) -> Loc {
+        self.value().into_loc()
+    }
+}
+
+impl<'a> ErrorLoc for &ValueValidator<'a> {
+    fn loc_length(&self) -> usize {
+        self.value().loc_length()
+    }
+
+    fn into_loc(self) -> Loc {
+        self.value().into_loc()
+    }
+}
+
+impl<'a> ErrorLoc for &mut ValueValidator<'a> {
+    fn loc_length(&self) -> usize {
+        self.value().loc_length()
+    }
+
+    fn into_loc(self) -> Loc {
+        self.value().into_loc()
+    }
 }
 
 impl ErrorLoc for BlockItem {

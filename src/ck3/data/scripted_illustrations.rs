@@ -8,7 +8,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validator::Validator;
+use crate::validator::{Validator, ValueValidator};
 
 #[derive(Clone, Debug)]
 pub struct ScriptedIllustration {}
@@ -30,7 +30,7 @@ impl DbKind for ScriptedIllustration {
         let mut sc = ScopeContext::new(Scopes::all(), key);
 
         vd.multi_field_validated("texture", |bv, data| match bv {
-            BV::Value(token) => validate_texture(key, token, data),
+            BV::Value(token) => validate_texture(key, ValueValidator::new(token, data)),
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.field_validated_value("reference", validate_texture);
@@ -51,7 +51,6 @@ impl DbKind for ScriptedIllustration {
     }
 }
 
-fn validate_texture(_key: &Token, token: &Token, data: &Everything) {
-    let pathname = format!("gfx/interface/illustrations/{token}");
-    data.verify_exists_implied(Item::File, &pathname, token);
+fn validate_texture(_key: &Token, mut vd: ValueValidator) {
+    vd.dir_file("gfx/interface/illustrations");
 }

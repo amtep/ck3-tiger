@@ -187,8 +187,8 @@ impl DbKind for CharacterInteraction {
         if !key.as_str().starts_with("ai_") {
             data.localization.verify_exists(key);
         }
-        vd.field_validated_value("extra_icon", |k, token, data| {
-            data.fileset.verify_exists(token);
+        vd.field_validated_value("extra_icon", |k, mut vd| {
+            vd.item(Item::File);
             let loca = format!("{key}_extra_icon");
             data.verify_exists_implied(Item::Localization, &loca, k);
         });

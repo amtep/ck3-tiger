@@ -18,13 +18,17 @@ use crate::script_value::validate_script_value_no_breakdown;
 use crate::token::Token;
 use crate::trigger::{validate_target, validate_target_ok_this};
 
+pub use self::value_validator::ValueValidator;
+
+mod value_validator;
+
 /// A validator for one `Block`.
 /// The intended usage is that you wrap the `Block` in a validator, then call validation functions on it
 /// until you've validated all the possible legitimate contents of the `Block`, and then the `Validator`
 /// will warn the user about anything left over when it goes out of scope. This way you don't have to worry
 /// about checking for unknown fields yourself.
 ///
-/// The validator is mostly for checking *fields* (`key = value` and `key = { block }` items in the block),
+/// The validator is mostly for checking "fields" (`key = value` and `key = { block }` items in the block),
 /// but it can validate loose blocks and loose values and comparisons as well.
 pub struct Validator<'a> {
     /// The block being validated
@@ -70,7 +74,7 @@ impl<'a> Debug for Validator<'a> {
 }
 
 impl<'a> Validator<'a> {
-    /// Construct a new `Validator` for a `Block`. The `data` reference is there to help out some of the convenience
+    /// Construct a new `Validator` for a [`Block`]. The `data` reference is there to help out some of the convenience
     /// functions, and also to pass along to closures so that you can easily pass independent functions as the closures.
     pub fn new(block: &'a Block, data: &'a Everything) -> Self {
         Validator {
@@ -293,27 +297,34 @@ impl<'a> Validator<'a> {
 
     /// Expect field `name`, if present, to be an assignment (`name = value`).
     /// Expect no more than one `name` field in the block.
-    /// Runs the validation closure `f(key, value, data)` for every matching field.
+    /// Runs the validation closure `f(key, vd)` for every matching field.
     /// Returns true iff the field is present.
     pub fn field_validated_value<F>(&mut self, name: &str, mut f: F) -> bool
     where
-        F: FnMut(&Token, &Token, &Everything),
+        F: FnMut(&Token, ValueValidator),
     {
+        let max_sev = self.max_severity;
         self.field_check(name, |k, bv| {
-            if let Some(token) = bv.expect_value() {
-                f(k, token, self.data);
+            if let Some(value) = bv.expect_value() {
+                let mut vd = ValueValidator::new(value, self.data);
+                vd.set_max_severity(max_sev);
+                f(k, vd);
             }
         })
     }
 
     /// Just like [`Validator::field_validated_value`], but expect any number of `name` fields in the block.
+    #[cfg(feature = "vic3")] // silence dead code warning
     pub fn multi_field_validated_value<F>(&mut self, name: &str, mut f: F) -> bool
     where
-        F: FnMut(&Token, &Token, &Everything),
+        F: FnMut(&Token, ValueValidator),
     {
+        let max_sev = self.max_severity;
         self.multi_field_check(name, |k, bv| {
-            if let Some(token) = bv.expect_value() {
-                f(k, token, self.data);
+            if let Some(value) = bv.expect_value() {
+                let mut vd = ValueValidator::new(value, self.data);
+                vd.set_max_severity(max_sev);
+                f(k, vd);
             }
         })
     }

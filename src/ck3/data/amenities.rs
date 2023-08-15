@@ -5,7 +5,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -28,11 +28,11 @@ impl Amenity {
 impl DbKind for Amenity {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        vd.field_validated_value("default", |_, token, _| {
-            if !block.has_key(token.as_str()) {
-                old_warn(token, ErrorKey::MissingItem, "default not found in amenity");
+        if let Some(value) = vd.field_value("default") {
+            if !block.has_key(value.as_str()) {
+                err(ErrorKey::MissingItem).msg("default not found in amenity").loc(value).push();
             }
-        });
+        }
         vd.unknown_block_fields(|key, block| {
             validate_amenity_setting(key, block, data);
         });
