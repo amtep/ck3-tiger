@@ -287,6 +287,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] BattleCondition,
     #[cfg(feature = "vic3")] BuildingGroup,
     #[cfg(feature = "vic3")] BuildingType,
+    #[cfg(feature = "vic3")] BuyPackage,
     #[cfg(feature = "vic3")] CanalType,
     #[cfg(feature = "vic3")] CharacterRole,
     #[cfg(feature = "vic3")] CombatUnit,
@@ -317,6 +318,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] ObjectiveSubgoalCategory,
     #[cfg(feature = "vic3")] Party,
     #[cfg(feature = "vic3")] PoliticalMovement,
+    #[cfg(feature = "vic3")] PopNeed,
     #[cfg(feature = "vic3")] ProductionMethod,
     #[cfg(feature = "vic3")] ProductionMethodGroup,
     #[cfg(feature = "vic3")] ScriptedButton,
@@ -872,6 +874,8 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::BuildingType => "common/buildings/",
             #[cfg(feature = "vic3")]
+            Item::BuyPackage => "common/buy_packages/",
+            #[cfg(feature = "vic3")]
             Item::CanalType => "common/canals/",
             #[cfg(feature = "vic3")]
             Item::CharacterRole => "",
@@ -931,6 +935,8 @@ impl Item {
             Item::Party => "common/parties/",
             #[cfg(feature = "vic3")]
             Item::PoliticalMovement => "",
+            #[cfg(feature = "vic3")]
+            Item::PopNeed => "common/pop_needs",
             #[cfg(feature = "vic3")]
             Item::ProductionMethod => "common/production_methods/",
             #[cfg(feature = "vic3")]

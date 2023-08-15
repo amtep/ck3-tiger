@@ -11,7 +11,7 @@ use png::{ColorType, Decoder};
 
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::report::{error, error_info, will_maybe_log, ErrorKey};
+use crate::report::{err, warn, will_maybe_log, ErrorKey};
 
 #[derive(Clone, Debug, Default)]
 pub struct Rivers {
@@ -102,10 +102,10 @@ impl Rivers {
                     if special_neighbors.len() > 1 {
                         let msg =
                             format!("({}, {}) river pixel connects two special pixels", c.0, c.1);
-                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                        warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
                     } else if special_neighbors.is_empty() {
                         let msg = format!("({}, {}) orphan river pixel", c.0, c.1);
-                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                        warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
                     } else {
                         let s = special_neighbors[0];
                         if specials[&s] {
@@ -113,7 +113,10 @@ impl Rivers {
                                 "({}, {}) pixel terminates multiple river segments",
                                 s.0, s.1
                             );
-                            error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                            warn(ErrorKey::Rivers)
+                                .msg(msg)
+                                .loc(self.entry.as_ref().unwrap())
+                                .push();
                         } else {
                             specials.insert(s, true);
                         }
@@ -127,13 +130,13 @@ impl Rivers {
                             "({}, {}) - ({}, {}) orphan river segment",
                             c1.0, c1.1, c2.0, c2.1
                         );
-                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                        warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
                     } else if special_neighbors.len() > 1 {
                         let msg = format!(
                             "({}, {}) - ({}, {}) river segment has two terminators",
                             c1.0, c1.1, c2.0, c2.1
                         );
-                        error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                        warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
                     } else {
                         let s = special_neighbors[0];
                         if specials[&s] {
@@ -141,7 +144,10 @@ impl Rivers {
                                 "({}, {}) pixel terminates multiple river segments",
                                 s.0, s.1
                             );
-                            error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                            warn(ErrorKey::Rivers)
+                                .msg(msg)
+                                .loc(self.entry.as_ref().unwrap())
+                                .push();
                         } else {
                             specials.insert(s, true);
                         }
@@ -155,20 +161,14 @@ impl Rivers {
         // TODO: check image width and height against world defines
 
         if self.color_type != Some(ColorType::Indexed) {
-            error(
-                self.entry.as_ref().unwrap(),
-                ErrorKey::ImageFormat,
-                "rivers.png should be in indexed color format (with 8-bit palette)",
-            );
+            let msg = "rivers.png should be in indexed color format (with 8-bit palette)";
+            err(ErrorKey::ImageFormat).msg(msg).loc(self.entry.as_ref().unwrap()).push();
             return;
         }
 
         if self.palette.is_none() {
-            error(
-                self.entry.as_ref().unwrap(),
-                ErrorKey::ImageFormat,
-                "rivers.png must have an 8-bit palette",
-            );
+            let msg = "rivers.png must have an 8-bit palette";
+            err(ErrorKey::ImageFormat).msg(msg).loc(self.entry.as_ref().unwrap()).push();
             return;
         }
 
@@ -192,7 +192,10 @@ impl Rivers {
                         } else {
                             let msg =
                                 format!("({x}, {y}) river source (green) not at source of a river");
-                            error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                            warn(ErrorKey::Rivers)
+                                .msg(msg)
+                                .loc(self.entry.as_ref().unwrap())
+                                .push();
                             bad_problem = true;
                         }
                     }
@@ -203,7 +206,10 @@ impl Rivers {
                             let msg = format!(
                                 "({x}, {y}) river tributary (red) not joining another river",
                             );
-                            error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                            warn(ErrorKey::Rivers)
+                                .msg(msg)
+                                .loc(self.entry.as_ref().unwrap())
+                                .push();
                             bad_problem = true;
                         }
                     }
@@ -214,7 +220,10 @@ impl Rivers {
                             let msg = format!(
                                 "({x}, {y}) river split (yellow) not splitting off from a river",
                             );
-                            error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                            warn(ErrorKey::Rivers)
+                                .msg(msg)
+                                .loc(self.entry.as_ref().unwrap())
+                                .push();
                             bad_problem = true;
                         }
                     }
@@ -232,11 +241,10 @@ impl Rivers {
                                     RiverSegment::Stream(c1, c2) => {
                                         if are_neighbors(c1, (x, y)) && are_neighbors(c2, (x, y)) {
                                             let msg = format!("({x}, {y}) river forms a loop");
-                                            error(
-                                                self.entry.as_ref().unwrap(),
-                                                ErrorKey::Rivers,
-                                                &msg,
-                                            );
+                                            warn(ErrorKey::Rivers)
+                                                .msg(msg)
+                                                .loc(self.entry.as_ref().unwrap())
+                                                .push();
                                             bad_problem = true;
                                         } else if are_neighbors(c1, (x, y)) {
                                             *segment = RiverSegment::Stream((x, y), c2);
@@ -259,7 +267,10 @@ impl Rivers {
                         } else {
                             let msg =
                                 format!("({x}, {y}) river pixel has {river_neighbors} neighbors",);
-                            error(self.entry.as_ref().unwrap(), ErrorKey::Rivers, &msg);
+                            warn(ErrorKey::Rivers)
+                                .msg(msg)
+                                .loc(self.entry.as_ref().unwrap())
+                                .push();
                             bad_problem = true;
                         }
                     }
@@ -286,7 +297,11 @@ impl FileHandler<()> for Rivers {
         self.entry = Some(entry.clone());
 
         if let Err(e) = self.load_png(entry.fullpath()) {
-            error_info(entry, ErrorKey::ReadError, "could not read image", &format!("{e:#}"));
+            err(ErrorKey::ReadError)
+                .msg("could not read image")
+                .info(format!("{e:#}"))
+                .loc(entry)
+                .push();
         }
     }
 }

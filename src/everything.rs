@@ -59,7 +59,7 @@ use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
 use crate::vic3::data::{
-    events::Vic3Events, history::History, provinces::Vic3Provinces,
+    buy_packages::BuyPackage, events::Vic3Events, history::History, provinces::Vic3Provinces,
     strategic_regions::StrategicRegion, terrain::TerrainMask,
 };
 #[cfg(feature = "vic3")]
@@ -453,6 +453,7 @@ impl Everything {
         s.spawn(|_| self.history.validate(self));
         s.spawn(|_| self.provinces_vic3.validate(self));
         s.spawn(|_| StrategicRegion::crosscheck(self));
+        s.spawn(|_| BuyPackage::crosscheck(self));
     }
 
     // Imperator one goes here when needed
@@ -562,9 +563,10 @@ impl Everything {
             Item::CharacterTemplate
             | Item::CharacterTrait
             | Item::CommanderOrder
-            | Item::Party
             | Item::CultureGraphics
             | Item::Decree
+            | Item::Party
+            | Item::PopNeed
             | Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
         }

@@ -1,6 +1,7 @@
 pub mod ai_strategies;
 pub mod battle_conditions;
 pub mod buildings;
+pub mod buy_packages;
 pub mod canals;
 pub mod character_interactions;
 pub mod combat_units;

@@ -160,6 +160,16 @@ impl Token {
     }
 
     #[must_use]
+    pub fn strip_prefix(&self, pfx: &str) -> Option<Token> {
+        #[allow(clippy::cast_possible_truncation)]
+        self.s.strip_prefix(pfx).map(|sfx| {
+            let mut loc = self.loc.clone();
+            loc.column += pfx.chars().count() as u32;
+            Token::from_static_str(sfx, loc)
+        })
+    }
+
+    #[must_use]
     pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             let cols = u32::try_from(cols).expect("internal error: 4GB token");
