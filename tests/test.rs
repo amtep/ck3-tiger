@@ -2,8 +2,7 @@ use lazy_static::lazy_static;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-use tiger_lib::everything::Everything;
-use tiger_lib::report::{set_mod_root, set_vanilla_dir, take_reports, LogReport};
+use tiger_lib::{take_reports, Everything, LogReport};
 
 lazy_static! {
     static ref TEST_MUTEX: Mutex<()> = Mutex::new(());
@@ -15,10 +14,7 @@ fn check_mod_helper(modname: &str) -> Vec<LogReport> {
     let vanilla_dir = PathBuf::from("tests/files/ck3");
     let mod_root = PathBuf::from(format!("tests/files/{}", modname));
 
-    set_vanilla_dir(vanilla_dir.clone());
-    set_mod_root(mod_root.clone());
-
-    let mut everything = Everything::new(&vanilla_dir, &mod_root, Vec::new()).unwrap();
+    let mut everything = Everything::new(Some(&vanilla_dir), &mod_root, Vec::new()).unwrap();
     everything.load_all();
     everything.validate_all();
 
@@ -137,7 +133,7 @@ fn test_mod2() {
         "missing english localization key test_interaction_extra_icon",
     );
     report.expect("interaction localization key_extra_icon test");
-    let report = take_report(&mut reports, interactions, "referenced file does not exist");
+    let report = take_report(&mut reports, interactions, "file gfx/also_missing does not exist");
     let report = report.expect("interaction missing extra_icon file test");
     assert!(report.pointers[0].loc.line == 3);
     let report = take_report(
