@@ -10,18 +10,16 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
 use crate::validate::{validate_duration, validate_optional_duration, ListType};
-use crate::validator::Validator;
+use crate::validator::{Validator, ValueValidator};
 
 pub fn validate_remove_subunit_loyalty(
     _key: &Token,
-    value: &Token,
-    data: &Everything,
+    mut vd: ValueValidator,
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    if !value.is("yes") {
-        validate_target(value, data, sc, Scopes::SubUnit);
-    }
+    vd.maybe_is("yes");
+    vd.target(sc, Scopes::SubUnit);
 }
 
 pub fn validate_add_modifier(

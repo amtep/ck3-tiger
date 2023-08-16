@@ -18,7 +18,7 @@ use crate::trigger::{validate_target, validate_target_ok_this};
 use crate::validate::{
     validate_duration, validate_optional_duration, validate_optional_duration_int, ListType,
 };
-use crate::validator::Validator;
+use crate::validator::{Validator, ValueValidator};
 
 pub fn validate_add_activity_log_entry(
     key: &Token,
@@ -1209,12 +1209,11 @@ pub fn validate_vassal_contract_set_obligation_level(
 
 pub fn validate_add_artifact_modifier(
     _key: &Token,
-    value: &Token,
-    data: &Everything,
+    mut vd: ValueValidator,
     _sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    data.verify_exists(Item::Modifier, value);
+    vd.item(Item::Modifier);
     // TODO: this causes hundreds of warnings. Probably because the tooltip tracking isn't smart enough to figure out
     // things like "scope:newly_created_artifact does not exist yet at tooltipping time, so the body of the if won't
     // be tooltipped here".
@@ -1226,51 +1225,42 @@ pub fn validate_add_artifact_modifier(
 
 pub fn validate_generate_coa(
     _key: &Token,
-    value: &Token,
-    data: &Everything,
+    mut vd: ValueValidator,
     _sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    if !value.is("yes") {
-        data.verify_exists(Item::CoaTemplateList, value);
-    }
+    vd.maybe_is("yes");
+    vd.item(Item::CoaTemplateList);
 }
 
 pub fn validate_set_coa(
     _key: &Token,
-    value: &Token,
-    data: &Everything,
+    mut vd: ValueValidator,
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    if !data.item_exists(Item::Coa, value.as_str()) {
-        let options = Scopes::LandedTitle | Scopes::Dynasty | Scopes::DynastyHouse;
-        validate_target(value, data, sc, options);
-    }
+    let options = Scopes::LandedTitle | Scopes::Dynasty | Scopes::DynastyHouse;
+    vd.item_or_target(sc, Item::Coa, options);
 }
 
 pub fn validate_set_focus(
     _key: &Token,
-    value: &Token,
-    data: &Everything,
+    mut vd: ValueValidator,
     _sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    if !value.is("no") {
-        data.verify_exists(Item::Focus, value);
-    }
+    vd.maybe_is("no");
+    vd.item(Item::Focus);
 }
 
 pub fn validate_set_title_name(
     _key: &Token,
-    value: &Token,
-    data: &Everything,
+    mut vd: ValueValidator,
     _sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    data.verify_exists(Item::Localization, value);
-    let loca = format!("{value}_adj");
-    data.mark_used(Item::Localization, &loca);
+    vd.item(Item::Localization);
+    vd.item_used_with_suffix(Item::Localization, "_adj");
 }
 
 pub fn validate_activate_struggle_catalyst(

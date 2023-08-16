@@ -74,6 +74,11 @@ impl<'a> ValueValidator<'a> {
         &self.value
     }
 
+    /// Mark this value as valid, without placing any restrictions on it.
+    pub fn accept(&mut self) {
+        self.validated = true;
+    }
+
     /// Expect the value to be the key of an `itype` item the game database.
     /// The item is looked up and must exist.
     #[cfg(feature = "ck3")] // silence dead code warning
@@ -83,6 +88,14 @@ impl<'a> ValueValidator<'a> {
         }
         self.validated = true;
         self.data.verify_exists_max_sev(itype, &self.value, self.max_severity);
+    }
+
+    /// Add the given suffix to the value and mark that as a used item, without doing any validation.
+    /// This is used for very weakly required localization, for example, where no warning is warranted.
+    #[cfg(feature = "ck3")] // silence dead code warning
+    pub fn item_used_with_suffix(&mut self, itype: Item, sfx: &str) {
+        let implied = format!("{}{sfx}", self.value);
+        self.data.mark_used(itype, &implied);
     }
 
     /// Check if the value is be the key of an `itype` item the game database.
@@ -294,6 +307,19 @@ impl<'a> ValueValidator<'a> {
         if !choices.contains(&self.value.as_str()) {
             let msg = format!("expected one of {}", choices.join(", "));
             report(ErrorKey::Choice, sev).msg(msg).loc(self).push();
+        }
+    }
+
+    /// Check if the value is equal to the given string.
+    /// If it is, mark this value as validated.
+    /// Return whether the value matched the string.
+    #[cfg(any(feature = "ck3", feature = "imperator"))] // silence dead code warning
+    pub fn maybe_is(&mut self, s: &str) -> bool {
+        if self.value.is(s) {
+            self.validated = true;
+            true
+        } else {
+            false
         }
     }
 

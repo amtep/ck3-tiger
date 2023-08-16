@@ -15,16 +15,16 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target_ok_this, validate_trigger_key_bv};
 use crate::validate::validate_optional_duration;
-use crate::validator::Validator;
+use crate::validator::{Validator, ValueValidator};
 
 pub fn validate_add_to_list(
     _key: &Token,
-    value: &Token,
-    _data: &Everything,
+    mut vd: ValueValidator,
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    sc.define_or_expect_list(value);
+    sc.define_or_expect_list(vd.value());
+    vd.accept();
 }
 
 /// A specific validator for the three `add_to_variable_list` effects (`global`, `local`, and default).
@@ -99,12 +99,12 @@ pub fn validate_random_list(
 
 pub fn validate_remove_from_list(
     _key: &Token,
-    value: &Token,
-    _data: &Everything,
+    mut vd: ValueValidator,
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    sc.expect_list(value);
+    sc.expect_list(vd.value());
+    vd.accept();
 }
 
 /// A specific validator for the three `round_variable` effects (`global`, `local`, and default).
@@ -124,12 +124,12 @@ pub fn validate_round_variable(
 
 pub fn validate_save_scope(
     _key: &Token,
-    value: &Token,
-    _data: &Everything,
+    mut vd: ValueValidator,
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    sc.save_current_scope(value.as_str());
+    sc.save_current_scope(vd.value().as_str());
+    vd.accept();
 }
 
 /// A specific validator for the `save_scope_value` effect.

@@ -27,7 +27,7 @@ use crate::validate::{
     validate_inside_iterator, validate_iterator_fields, validate_scope_chain,
     validate_scripted_modifier_call, ListType,
 };
-use crate::validator::Validator;
+use crate::validator::{Validator, ValueValidator};
 
 /// The standard interface to effect validation. Validates an effect in the given [`ScopeContext`].
 ///
@@ -292,7 +292,8 @@ pub fn validate_effect_internal<'a>(
                 }
                 Effect::Vv(f) => {
                     if let Some(token) = bv.expect_value() {
-                        f(key, token, data, sc, tooltipped);
+                        let vd = ValueValidator::new(token, data);
+                        f(key, vd, sc, tooltipped);
                     }
                 }
                 Effect::Vbv(f) => {
@@ -618,5 +619,5 @@ pub enum Effect {
     /// The effect takes a block or value that will be validated by this function
     Vbv(fn(&Token, &BV, &Everything, &mut ScopeContext, Tooltipped)),
     /// The effect takes a value that will be validated by this function
-    Vv(fn(&Token, &Token, &Everything, &mut ScopeContext, Tooltipped)),
+    Vv(fn(&Token, ValueValidator, &mut ScopeContext, Tooltipped)),
 }
