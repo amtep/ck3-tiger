@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::game::GameFlags;
 use crate::gui::properties::{ALIGN, BLENDMODES};
-use crate::gui::{GuiValidation, PropertyContainer, WidgetProperty};
+use crate::gui::{GuiCategories, GuiValidation, PropertyContainer, WidgetProperty};
 use crate::helpers::stringify_choices;
 use crate::item::Item;
 use crate::parse::localization::ValueParser;
@@ -18,7 +18,7 @@ use crate::validator::Validator;
 
 pub fn validate_property(
     property: WidgetProperty,
-    _builtin: Option<PropertyContainer>,
+    container: Option<PropertyContainer>,
     key: &Token,
     bv: &BV,
     data: &Everything,
@@ -30,10 +30,21 @@ pub fn validate_property(
         err(ErrorKey::WrongGame).weak().msg(msg).loc(key).push();
         return;
     }
-    //if let Some(builtin) = _builtin {
-    //    let v = format!("{property} {builtin}");
-    //    dbg!(v);
-    //}
+    if let Some(container) = container {
+        let allowed_properties = match container {
+            PropertyContainer::BuiltinWidget(builtin) => {
+                GuiCategories::widget_as_container(builtin)
+            }
+            PropertyContainer::ComplexProperty(prop) | PropertyContainer::WidgetProperty(prop) => {
+                GuiCategories::property_as_container(prop)
+            }
+        };
+        let allowed_containers = GuiCategories::property_in_container(property);
+        if !allowed_containers.intersects(allowed_properties) {
+            let msg = format!("property {property} is not allowed in {container}");
+            err(ErrorKey::Gui).weak().msg(msg).loc(key).push();
+        }
+    }
     match GuiValidation::from_property(property) {
         GuiValidation::UncheckedValue | GuiValidation::Format => {
             // TODO: validate Format as a format string

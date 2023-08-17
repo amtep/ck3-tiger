@@ -323,7 +323,7 @@ impl GuiBlock {
 
     /// Validate the property fields of this [`GuiBlock`] and all its contents.
     ///
-    /// `builtin` is extra information to be used if `self.builtin` is `None`.
+    /// `container` is extra information to be used if `self.container` is `None`.
     pub fn validate(&self, container: Option<PropertyContainer>, data: &Everything) {
         let container = self.container.or(container);
         if let Some(base) = &self.base {

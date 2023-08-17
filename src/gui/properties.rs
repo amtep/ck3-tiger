@@ -1,3 +1,4 @@
+use std::fmt::{Display, Error, Formatter};
 use std::hash::Hash;
 
 use strum::VariantNames;
@@ -824,6 +825,7 @@ impl From<BuiltinWidget> for PropertyContainer {
         PropertyContainer::BuiltinWidget(w)
     }
 }
+
 #[derive(Debug, Error, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum WidgetPropertyContainerError {
     #[error("property `{0}` cannot be a container")]
@@ -840,6 +842,16 @@ impl TryFrom<WidgetProperty> for PropertyContainer {
             Ok(PropertyContainer::WidgetProperty(prop))
         } else {
             Err(WidgetPropertyContainerError::WrongPropertyKind(prop))
+        }
+    }
+}
+
+impl Display for PropertyContainer {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        match self {
+            PropertyContainer::BuiltinWidget(builtin) => write!(f, "builtin widget {builtin}"),
+            PropertyContainer::ComplexProperty(prop) => write!(f, "complex property {prop}"),
+            PropertyContainer::WidgetProperty(prop) => write!(f, "widget property {prop}"),
         }
     }
 }
