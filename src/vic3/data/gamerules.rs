@@ -33,6 +33,13 @@ const SIMPLE_GAME_RULE_FLAGS: &[&str] = &[
     "high_ai_aggression",
     "no_subject_flags",
     "no_subject_map_color",
+    // undocumented flags follow
+    "autonomous_investment",
+    "no_pop_consolidation",
+    "minor_pop_consolidation",
+    "moderate_pop_consolidation",
+    "aggressive_pop_consolidation",
+    "directly_controlled_investment",
 ];
 
 impl DbKind for GameRule {

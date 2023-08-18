@@ -81,7 +81,6 @@ impl<'a> ValueValidator<'a> {
 
     /// Expect the value to be the key of an `itype` item the game database.
     /// The item is looked up and must exist.
-    #[cfg(feature = "ck3")] // silence dead code warning
     pub fn item(&mut self, itype: Item) {
         if self.validated {
             return;
@@ -213,7 +212,6 @@ impl<'a> ValueValidator<'a> {
     }
 
     /// Expect the value to be an integer.
-    #[cfg(feature = "ck3")] // silence dead code warning
     pub fn integer(&mut self) {
         if self.validated {
             return;
@@ -313,7 +311,6 @@ impl<'a> ValueValidator<'a> {
     /// Check if the value is equal to the given string.
     /// If it is, mark this value as validated.
     /// Return whether the value matched the string.
-    #[cfg(any(feature = "ck3", feature = "imperator"))] // silence dead code warning
     pub fn maybe_is(&mut self, s: &str) -> bool {
         if self.value.is(s) {
             self.validated = true;
