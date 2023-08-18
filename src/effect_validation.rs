@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, ErrorKey, Severity};
+use crate::report::{err, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;
@@ -91,7 +91,17 @@ pub fn validate_random_list(
     vd.field_bool("unique"); // don't know what this does
     vd.field_validated_sc("desc", sc, validate_desc);
     vd.unknown_block_fields(|key, block| {
-        if key.expect_number().is_some() {
+        if let Some(n) = key.expect_number() {
+            if n < 0.0 {
+                let msg = "negative weights make the whole `random_list` fail";
+                err(ErrorKey::Range).strong().msg(msg).loc(key).push();
+            } else if n > 0.0 && n < 1.0 {
+                let msg = "fractional weights are treated as just 0 in `random_list`";
+                err(ErrorKey::Range).strong().msg(msg).loc(key).push();
+            } else if n.fract() != 0.0 {
+                let msg = "fractions are discarded in `random_list` weights";
+                warn(ErrorKey::Range).strong().msg(msg).loc(key).push();
+            }
             validate_effect_control(&caller, block, data, sc, tooltipped);
         }
     });
