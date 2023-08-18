@@ -5,6 +5,7 @@ pub mod buy_packages;
 pub mod canals;
 pub mod character_interactions;
 pub mod character_templates;
+pub mod character_traits;
 pub mod combat_units;
 pub mod countries;
 pub mod cultures;
