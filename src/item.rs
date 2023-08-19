@@ -302,6 +302,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] Decree,
     #[cfg(feature = "vic3")] DiplomaticAction,
     #[cfg(feature = "vic3")] DiplomaticPlay,
+    #[cfg(feature = "vic3")] DiscriminationTrait,
     #[cfg(feature = "vic3")] Goods,
     #[cfg(feature = "vic3")] Ideology,
     #[cfg(feature = "vic3")] InfamyThreshold,
@@ -904,6 +905,8 @@ impl Item {
             Item::DiplomaticAction => "common/diplomatic_actions/",
             #[cfg(feature = "vic3")]
             Item::DiplomaticPlay => "common/diplomatic_plays/",
+            #[cfg(feature = "vic3")]
+            Item::DiscriminationTrait => "common/discrimination_traits/",
             #[cfg(feature = "vic3")]
             Item::Goods => "common/goods/",
             #[cfg(feature = "vic3")]
