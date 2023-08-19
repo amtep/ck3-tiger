@@ -13,6 +13,7 @@ pub mod decisions;
 pub mod diplomatic_actions;
 pub mod diplomatic_plays;
 pub mod discrimination_traits;
+pub mod dynamic_country;
 pub mod events;
 pub mod gameconcepts;
 pub mod gamerules;
