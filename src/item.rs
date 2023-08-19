@@ -305,6 +305,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] DiscriminationTrait,
     #[cfg(feature = "vic3")] DynamicCountryMapColor,
     #[cfg(feature = "vic3")] DynamicCountryName,
+    #[cfg(feature = "vic3")] FlagDefinition,
     #[cfg(feature = "vic3")] Goods,
     #[cfg(feature = "vic3")] Ideology,
     #[cfg(feature = "vic3")] InfamyThreshold,
@@ -913,6 +914,8 @@ impl Item {
             Item::DynamicCountryMapColor => "common/dynamic_country_map_colors/",
             #[cfg(feature = "vic3")]
             Item::DynamicCountryName => "common/dynamic_country_names/",
+            #[cfg(feature = "vic3")]
+            Item::FlagDefinition => "common/flag_definitions/",
             #[cfg(feature = "vic3")]
             Item::Goods => "common/goods/",
             #[cfg(feature = "vic3")]

@@ -15,6 +15,7 @@ pub mod diplomatic_plays;
 pub mod discrimination_traits;
 pub mod dynamic_country;
 pub mod events;
+pub mod flag_definitions;
 pub mod gameconcepts;
 pub mod gamerules;
 pub mod goods;
