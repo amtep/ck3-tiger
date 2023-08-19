@@ -166,3 +166,40 @@ impl DbKind for CountryFormation {
         });
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct CountryCreation {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::CountryCreation, CountryCreation::add)
+}
+
+impl CountryCreation {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CountryCreation, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for CountryCreation {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        vd.set_case_sensitive(false);
+        let mut sc = ScopeContext::new(Scopes::Country, key);
+
+        data.verify_exists(Item::Country, key);
+
+        // TODO: verify if `use_culture_states = yes` together with a `states` list is an error
+
+        vd.field_bool("use_culture_states");
+        vd.field_integer("required_num_states");
+        vd.field_list_items("states", Item::StateRegion);
+        vd.field_list_items("provinces", Item::Province);
+
+        vd.field_validated_block("possible", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
+        vd.field_validated_block("ai_will_do", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+    }
+}
