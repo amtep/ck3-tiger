@@ -8,6 +8,7 @@ pub mod coadesigner;
 pub mod colors;
 pub mod customloca;
 pub mod defines;
+pub mod dna;
 pub mod effect_localization;
 pub mod ethnicity;
 pub mod fonts;

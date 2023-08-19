@@ -1,3 +1,5 @@
+//! Character DNA for portraits. Used in CK3 and Vic3 but not Imperator.
+
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
@@ -10,7 +12,7 @@ use crate::validator::Validator;
 pub struct Dna {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Ck3, Item::Dna, Dna::add)
+    ItemLoader::Normal(GameFlags::Ck3.union(GameFlags::Vic3), Item::Dna, Dna::add)
 }
 
 impl Dna {
