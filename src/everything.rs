@@ -549,6 +549,7 @@ impl Everything {
             Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
             Item::Level => LEVELS.contains(&key),
             Item::PoliticalMovement => POLITICAL_MOVEMENTS.contains(&key),
+            Item::RelationsThreshold => RELATIONS.contains(&key),
             Item::SecretGoal => SECRET_GOALS.contains(&key),
             Item::Sound => {
                 if let Some(filename) = key.strip_prefix("file://") {

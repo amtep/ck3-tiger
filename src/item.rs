@@ -327,6 +327,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] PopNeed,
     #[cfg(feature = "vic3")] ProductionMethod,
     #[cfg(feature = "vic3")] ProductionMethodGroup,
+    #[cfg(feature = "vic3")] RelationsThreshold,
     #[cfg(feature = "vic3")] ScriptedButton,
     #[cfg(feature = "vic3")] SecretGoal,
     #[cfg(feature = "vic3")] StateRegion,
@@ -957,6 +958,8 @@ impl Item {
             Item::ProductionMethod => "common/production_methods/",
             #[cfg(feature = "vic3")]
             Item::ProductionMethodGroup => "common/production_method_groups/",
+            #[cfg(feature = "vic3")]
+            Item::RelationsThreshold => "",
             #[cfg(feature = "vic3")]
             Item::ScriptedButton => "common/scripted_buttons/",
             #[cfg(feature = "vic3")]

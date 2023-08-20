@@ -40,6 +40,11 @@ pub const POLITICAL_MOVEMENTS: &[&str] =
     &["movement_to_enact", "movement_to_preserve", "movement_to_restore"];
 
 // LAST UPDATED VIC3 VERSION 1.3.6
+// TODO: verify if "neutral" really exists. It doesn't make much sense.
+pub const RELATIONS: &[&str] =
+    &["friendly", "amicable", "cordial", "neutral", "poor", "cold", "hostile"];
+
+// LAST UPDATED VIC3 VERSION 1.3.6
 pub const SECRET_GOALS: &[&str] =
     &["none", "befriend", "reconcile", "protect", "antagonize", "conquer", "dominate"];
 

@@ -301,10 +301,10 @@ pub fn validate_prefix_reference(
         // "num_pending_events" =>
         "p" => data.verify_exists(Item::Province, arg),
         "pop_type" => data.verify_exists(Item::PopType, arg),
-        // "py" => data.verify_exists(Item::Party, arg),
-        // "rank_value" =>
+        "py" => data.verify_exists(Item::Party, arg),
+        "rank_value" => data.verify_exists(Item::CountryRank, arg),
         "rel" => data.verify_exists(Item::Religion, arg),
-        // "relations_threshold" =>
+        "relations_threshold" => data.verify_exists(Item::RelationsThreshold, arg),
         "s" => data.verify_exists(Item::StateRegion, arg),
         // "scope"
         "sr" => data.verify_exists(Item::StrategicRegion, arg),
