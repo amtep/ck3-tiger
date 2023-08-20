@@ -28,6 +28,7 @@ pub mod journalentries;
 pub mod laws;
 pub mod map;
 pub mod media_aliases;
+pub mod messages;
 pub mod modifier_types;
 pub mod modifiers;
 pub mod objectives;

@@ -126,6 +126,8 @@ pub enum Item {
     Law,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     LawGroup,
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    Message,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     PopType,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
@@ -232,7 +234,6 @@ pub enum Item {
     #[cfg(feature = "ck3")] MemoryType,
     #[cfg(feature = "ck3")] MenAtArms,
     #[cfg(feature = "ck3")] MenAtArmsBase,
-    #[cfg(feature = "ck3")] Message,
     #[cfg(feature = "ck3")] ModifierFormat,
     #[cfg(feature = "ck3")] MottoInsert,
     #[cfg(feature = "ck3")] Motto,
@@ -560,6 +561,8 @@ impl Item {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => "common/law_groups/",
             },
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
+            Item::Message => "common/messages",
             #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::PopType => "common/pop_types/",
             #[cfg(any(feature = "ck3", feature = "imperator"))]
@@ -771,8 +774,6 @@ impl Item {
             Item::MenAtArms => "common/men_at_arms_types/",
             #[cfg(feature = "ck3")]
             Item::MenAtArmsBase => "common/men_at_arms_types/",
-            #[cfg(feature = "ck3")]
-            Item::Message => "common/messages",
             #[cfg(feature = "ck3")]
             Item::ModifierFormat => "common/modifier_definition_formats/",
             #[cfg(feature = "ck3")]

@@ -7,7 +7,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
 use crate::validate::validate_optional_duration;
-use crate::validator::Validator;
+use crate::validator::{Validator, ValueValidator};
 
 pub fn validate_activate_production_method(
     _key: &Token,
@@ -265,4 +265,16 @@ pub fn validate_set_secret_goal(
     vd.req_field("secret_goal");
     vd.field_item_or_target("country", sc, Item::Country, Scopes::Country);
     vd.field_item("secret_goal", Item::SecretGoal);
+}
+
+pub fn validate_post_notification(
+    _key: &Token,
+    mut vd: ValueValidator,
+    sc: &mut ScopeContext,
+    _tooltipped: Tooltipped,
+) {
+    vd.item(Item::Message);
+    vd.implied_localization_sc("notification_", "_name", sc);
+    vd.implied_localization_sc("notification_", "_desc", sc);
+    vd.implied_localization_sc("notification_", "_tooltip", sc);
 }

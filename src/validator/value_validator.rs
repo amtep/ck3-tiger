@@ -97,7 +97,14 @@ impl<'a> ValueValidator<'a> {
         self.data.mark_used(itype, &implied);
     }
 
-    /// Check if the value is be the key of an `itype` item the game database.
+    /// Validate a localization whose key is derived from the value, in the given [`ScopeContext`].
+    #[allow(dead_code)]
+    pub fn implied_localization_sc(&mut self, pfx: &str, sfx: &str, sc: &mut ScopeContext) {
+        let implied = format!("{pfx}{}{sfx}", self.value);
+        self.data.validate_localization_sc(&implied, sc);
+    }
+
+    /// Check if the value is the key of an `itype` item the game database.
     /// The item is looked up, and if it exists then this validator is considered validated.
     /// Return whether the item exists.
     #[cfg(feature = "ck3")] // silence dead code warning

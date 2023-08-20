@@ -562,7 +562,6 @@ impl Everything {
             Item::Wargoal => WARGOALS.contains(&key),
             Item::CommanderOrder
             | Item::CultureGraphics
-            | Item::Dna
             | Item::Decree
             | Item::Party
             | Item::PopNeed

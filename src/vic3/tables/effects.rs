@@ -181,7 +181,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Pop, "move_pop", Scope(Scopes::State)),
     (Scopes::Character, "place_character_in_void", ScriptValue),
     (Scopes::Country, "play_as", Scope(Scopes::Country)),
-    (Scopes::None, "post_notification", UncheckedTodo),
+    (Scopes::None, "post_notification", Vv(validate_post_notification)),
     (Scopes::None, "post_proposal", UncheckedTodo),
     (Scopes::None, "random", Control),
     (Scopes::None, "random_list", Vb(validate_random_list)),
