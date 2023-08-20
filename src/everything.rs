@@ -563,7 +563,6 @@ impl Everything {
             Item::CommanderOrder
             | Item::CultureGraphics
             | Item::Decree
-            | Item::Party
             | Item::PopNeed
             | Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),

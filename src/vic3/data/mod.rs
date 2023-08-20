@@ -32,6 +32,7 @@ pub mod messages;
 pub mod modifier_types;
 pub mod modifiers;
 pub mod objectives;
+pub mod parties;
 pub mod pops;
 pub mod production_methods;
 pub mod provinces;
