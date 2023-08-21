@@ -25,16 +25,12 @@ impl DbKind for LevyTemplate {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_bool("default");
-        // TODO - How to do the units like that?
-        // levy_anatolian = {  #General Anatolian
-        //     default = no
-
-        //     light_infantry = 0.7
-        //     light_cavalry = 0.15
-
-        //     heavy_cavalry = 0.1
-        //     chariots = 0.05
-        // }
+        vd.unknown_block_fields(|key, block| {
+            vd.field_bool("default");
+            let mut vd = Validator::new(block, data);
+            vd.unknown_value_fields(|_, value| {
+                data.verify_exists(Item::UnitType, value);
+            });
+        });
     }
 }

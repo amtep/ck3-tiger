@@ -28,7 +28,15 @@ impl DbKind for AiPlanGoals {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Country, key);
 
+        // Nothing else can be validated other than the country scoped trigger here
+        // This is because all other fields are "ai factors" and there are hundreds of them
         vd.no_warn_remaining();
+
+        vd.field_integer("migration_chance");
+        vd.field_integer("aggressive");
+        vd.field_integer("trustworthy");
+        vd.field_integer("ae_ceiling");
+        vd.field_integer("economy_exponent");
 
         vd.field_validated_block("trigger", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);

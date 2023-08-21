@@ -28,6 +28,10 @@ impl DbKind for GovernorPolicy {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::State, key);
 
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
         vd.field_validated_block("province", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::State, vd);
