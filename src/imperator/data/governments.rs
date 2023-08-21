@@ -22,8 +22,16 @@ impl GovernmentType {
 }
 
 impl DbKind for GovernmentType {
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_desc");
+        let loca2 = format!("{key}_ruler");
+        let loca3 = format!("{key}_ruler_female");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+        data.verify_exists_implied(Item::Localization, &loca2, key);
+        data.verify_exists_implied(Item::Localization, &loca3, key);
 
         vd.field_integer("oratory_ideas");
         vd.field_integer("military_ideas");

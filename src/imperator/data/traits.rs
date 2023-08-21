@@ -42,8 +42,8 @@ impl DbKind for CharacterTrait {
             validate_modifs(block, data, ModifKinds::Country, vd);
         });
 
-        // TODO - dna_modifiers block should be ignored
-        vd.no_warn_remaining();
+        // dna_modifiers block gets ignored
+        vd.field_block("dna_modifiers");
 
         validate_modifs(block, data, ModifKinds::Character, vd);
     }

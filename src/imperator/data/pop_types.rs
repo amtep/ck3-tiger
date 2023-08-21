@@ -22,8 +22,10 @@ impl PopType {
 }
 
 impl DbKind for PopType {
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
 
         vd.field_validated_block("output_modifier", |block, data| {
             let vd = Validator::new(block, data);
@@ -62,9 +64,6 @@ impl DbKind for PopType {
 
         vd.field_validated_block("color", validate_color);
 
-        vd.no_warn_remaining();
-        // TODO - Not sure what to do with modification_display, it is extremely irregular so I just want to not validate the whole block
-        // vd.field_validated_block("modification_display", |block, data| {
-        // });
+        vd.field_block("modification_display");  // TODO
     }
 }

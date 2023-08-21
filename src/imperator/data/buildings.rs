@@ -51,8 +51,7 @@ impl DbKind for Building {
         vd.no_warn_remaining();
 
         // TODO - Not sure what to do with modification_display, it is extremely irregular so I just want to not validate the whole block
-        // vd.field_validated_block("modification_display", |block, data| {
-        // });
+        vd.field_block("modification_display"); // TODO
 
         validate_modifs(block, data, ModifKinds::Country, vd);
     }

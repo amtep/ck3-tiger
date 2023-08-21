@@ -23,15 +23,15 @@ impl DbKind for PartyType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Country, key);
-        let mut sc2 = ScopeContext::new(Scopes::Character, key);
 
         data.verify_exists(Item::Localization, key);
 
         vd.field_validated_block("allow", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
-        vd.field_validated_block("can_character_belong", |b, data| {
-            validate_trigger(b, data, &mut sc2, Tooltipped::No);
+        vd.field_validated_key_block("can_character_belong", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_block("province", |block, data| {

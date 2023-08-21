@@ -27,6 +27,18 @@ impl DbKind for CultureGroup {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
+        data.verify_exists(Item::Localization, key);
+        let loca1 = format!("{key}_malename");
+        let loca2 = format!("{key}_femalename");
+        let loca3 = format!("ARMY_NAME_{key}");
+        let loca4 = format!("NAVY_NAME_{key}");
+        let loca5 = format!("COHORT_NAME_{key}");
+        data.verify_exists_implied(Item::Localization, &loca1, key);
+        data.verify_exists_implied(Item::Localization, &loca2, key);
+        data.verify_exists_implied(Item::Localization, &loca3, key);
+        data.verify_exists_implied(Item::Localization, &loca4, key);
+        data.verify_exists_implied(Item::Localization, &loca5, key);
+
         vd.field_validated_block("color", validate_color);
         vd.field_item("primary", Item::Unit);
         vd.field_item("second", Item::Unit);
@@ -44,9 +56,7 @@ impl DbKind for CultureGroup {
 
         // TODO - How do I do the Culture item here? cultures are defined inside of the CultureGroup item...
 
-        vd.accepted_block_fields = true;
         // TODO - Not sure what to do with ethnicities...
-        // vd.field_validated_block("ethnicities", |block, data| {
-        // });
+        vd.field_block("ethnicities")
     }
 }
