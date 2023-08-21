@@ -10,6 +10,7 @@ pub mod combat_units;
 pub mod countries;
 pub mod cultures;
 pub mod decisions;
+pub mod decrees;
 pub mod diplomatic_actions;
 pub mod diplomatic_plays;
 pub mod discrimination_traits;

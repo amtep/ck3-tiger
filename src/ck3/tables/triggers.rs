@@ -1350,7 +1350,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "stress_level", CompareValue),
     (Scopes::Character, "strife_opinion", CompareValue),
     (Scopes::Character, "sub_realm_size", CompareValue),
-    (Scopes::None, "switch", Special), // TODO
+    (Scopes::None, "switch", Special),
     (Scopes::LandedTitle, "target_is_de_facto_liege_or_above", Scope(Scopes::LandedTitle)),
     (Scopes::LandedTitle, "target_is_de_jure_liege_or_above", Scope(Scopes::LandedTitle)),
     (Scopes::Character, "target_is_liege_or_above", Scope(Scopes::Character)),
