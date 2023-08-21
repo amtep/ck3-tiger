@@ -132,7 +132,7 @@ const EVENT_TYPES: &[&str] = &[
     "minor_country_event",
     "major_country_event",
     "state_event",
-    "province_event"
+    "province_event",
 ];
 
 impl Event {

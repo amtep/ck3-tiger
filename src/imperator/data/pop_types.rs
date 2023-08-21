@@ -64,6 +64,6 @@ impl DbKind for PopType {
 
         vd.field_validated_block("color", validate_color);
 
-        vd.field_block("modification_display");  // TODO
+        vd.field_block("modification_display"); // TODO
     }
 }

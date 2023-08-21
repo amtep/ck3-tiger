@@ -267,7 +267,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::StrategicRegion, "has_diplomatic_play", Boolean),
     (Scopes::Country, "has_diplomatic_relevance", Scope(Scopes::Country)),
     (Scopes::Country, "has_diplomats_expelled", Scope(Scopes::Country)),
-    (Scopes::Culture.union(Scopes::Religion), "has_discrimination_trait", UncheckedValue), // TODO
+    (
+        Scopes::Culture.union(Scopes::Religion),
+        "has_discrimination_trait",
+        Item(Item::DiscriminationTrait),
+    ),
     (Scopes::None, "has_dlc_feature", Item(Item::DlcFeature)),
     (
         Scopes::Building,
