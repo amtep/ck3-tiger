@@ -34,3 +34,4 @@ pub mod terrains;
 pub mod traits;
 pub mod unit_abilities;
 pub mod war_goals;
+pub mod events;
