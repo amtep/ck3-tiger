@@ -435,7 +435,19 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::Character, "has_character_flag", UncheckedValue),
     (Scopes::Character, "has_character_modifier", Item(Item::Modifier)),
-    (Scopes::Character, "has_character_modifier_duration_remaining", Item(Item::Modifier)),
+    // TODO for all the duration_remaining items: verify if multiple comparators work. Verify if
+    // "weeks" works. If multiple comparators work, warn if they can never be satisfied.
+    (
+        Scopes::Character,
+        "has_character_modifier_duration_remaining",
+        Block(&[
+            ("modifier", Item(Item::Modifier)),
+            ("*days", CompareValue),
+            ("*weeks", CompareValue),
+            ("*months", CompareValue),
+            ("*years", CompareValue),
+        ]),
+    ),
     (Scopes::LandedTitle, "has_character_nominiated", Scope(Scopes::Character)), // sic
     (Scopes::Character, "has_claim_on", Scope(Scopes::LandedTitle)),
     (Scopes::Culture, "has_clothing_gfx", Item(Item::ClothingGfx)),
@@ -465,7 +477,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         ]),
     ),
     (Scopes::LandedTitle, "has_county_modifier", Item(Item::Modifier)),
-    (Scopes::LandedTitle, "has_county_modifier_duration_remaining", Item(Item::Modifier)),
+    (
+        Scopes::LandedTitle,
+        "has_county_modifier_duration_remaining",
+        Block(&[
+            ("modifier", Item(Item::Modifier)),
+            ("*days", CompareValue),
+            ("*weeks", CompareValue),
+            ("*months", CompareValue),
+            ("*years", CompareValue),
+        ]),
+    ),
     (Scopes::Character, "has_court_language", Item(Item::Language)),
     (Scopes::Character, "has_court_language_of_culture", Scope(Scopes::Culture)),
     (Scopes::Character, "has_court_position", Item(Item::CourtPosition)),
@@ -494,7 +516,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::Character, "has_dynasty", Boolean),
     (Scopes::Dynasty, "has_dynasty_modifier", Item(Item::Modifier)),
-    (Scopes::Dynasty, "has_dynasty_modifier_duration_remaining", Item(Item::Modifier)),
+    (
+        Scopes::Dynasty,
+        "has_dynasty_modifier_duration_remaining",
+        Block(&[
+            ("modifier", Item(Item::Modifier)),
+            ("*days", CompareValue),
+            ("*weeks", CompareValue),
+            ("*months", CompareValue),
+            ("*years", CompareValue),
+        ]),
+    ),
     (Scopes::Dynasty, "has_dynasty_perk", Item(Item::DynastyPerk)),
     (
         Scopes::Character,
@@ -528,7 +560,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::DynastyHouse, "has_house_artifact_claim", Scope(Scopes::Artifact)),
     (Scopes::DynastyHouse, "has_house_modifier", Item(Item::Modifier)),
-    (Scopes::DynastyHouse, "has_house_modifier_duration_remaining", Item(Item::Modifier)),
+    (
+        Scopes::DynastyHouse,
+        "has_house_modifier_duration_remaining",
+        Block(&[
+            ("modifier", Item(Item::Modifier)),
+            ("*days", CompareValue),
+            ("*weeks", CompareValue),
+            ("*months", CompareValue),
+            ("*years", CompareValue),
+        ]),
+    ),
     (Scopes::Faith, "has_icon", Item(Item::FaithIcon)),
     (Scopes::Character, "has_imprisonment_reason", Scope(Scopes::Character)),
     (Scopes::Character, "has_inactive_trait", Item(Item::Trait)),
@@ -602,7 +644,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_primary_title", Scope(Scopes::LandedTitle)),
     (Scopes::Character, "has_prisoners", Boolean),
     (Scopes::Province, "has_province_modifier", Item(Item::Modifier)),
-    (Scopes::Province, "has_province_modifier_duration_remaining", Item(Item::Modifier)),
+    (
+        Scopes::Province,
+        "has_province_modifier_duration_remaining",
+        Block(&[
+            ("modifier", Item(Item::Modifier)),
+            ("*days", CompareValue),
+            ("*weeks", CompareValue),
+            ("*months", CompareValue),
+            ("*years", CompareValue),
+        ]),
+    ),
     (Scopes::Character, "has_raid_immunity_against", Scope(Scopes::Character)),
     (Scopes::Character, "has_raised_armies", Boolean),
     (Scopes::Character, "has_realm_law", Item(Item::Law)),
