@@ -3,9 +3,8 @@ use std::iter::Peekable;
 use std::path::Path;
 use std::str::Chars;
 
-use anyhow::Result;
-use encoding::all::WINDOWS_1252;
-use encoding::{DecoderTrap, Encoding};
+use anyhow::{bail, Result};
+use encoding_rs::WINDOWS_1252;
 
 use crate::fileset::FileEntry;
 use crate::report::ErrorLoc;
@@ -117,7 +116,11 @@ impl<'a> Iterator for CsvReader<'a> {
 
 pub fn read_csv(fullpath: &Path) -> Result<String> {
     let bytes = read(fullpath)?;
-    WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).map_err(anyhow::Error::msg)
+    let (content, errors) = WINDOWS_1252.decode_without_bom_handling(&bytes);
+    if errors {
+        bail!("invalid characters");
+    }
+    Ok(content.into_owned())
 }
 
 #[allow(clippy::module_name_repetitions)]

@@ -9,8 +9,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
 
 use anyhow::Result;
-use encoding::all::{UTF_8, WINDOWS_1252};
-use encoding::{DecoderTrap, Encoding};
+use encoding_rs::{UTF_8, WINDOWS_1252};
 use fnv::{FnvHashMap, FnvHashSet};
 use once_cell::sync::Lazy;
 
@@ -71,15 +70,14 @@ impl Errors {
             return contents.lines().nth(loc.line as usize - 1).map(str::to_string);
         }
         let bytes = read(fullpath).ok()?;
-        let contents = match UTF_8.decode(&bytes, DecoderTrap::Strict) {
-            Ok(contents) => contents,
-            Err(_) => WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).ok()?,
+        // Try decoding it as UTF-8. If that succeeds without errors, use it, otherwise fall back
+        // to WINDOWS_1252. The decode method will do BOM stripping.
+        let contents = match UTF_8.decode(&bytes) {
+            (contents, _, false) => contents,
+            (_, _, true) => WINDOWS_1252.decode(&bytes).0,
         };
-        // Strip the BOM, if any
-        #[allow(clippy::map_unwrap_or)] // borrow checker won't allow map_or here
-        let contents = contents.strip_prefix('\u{feff}').map(str::to_string).unwrap_or(contents);
         let line = contents.lines().nth(loc.line as usize - 1).map(str::to_string);
-        self.filecache.insert(fullpath.to_path_buf(), contents);
+        self.filecache.insert(fullpath.to_path_buf(), contents.into_owned());
         line
     }
 

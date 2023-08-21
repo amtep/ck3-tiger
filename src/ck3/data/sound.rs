@@ -1,9 +1,8 @@
 use std::fs::read;
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
-use encoding::all::WINDOWS_1252;
-use encoding::{DecoderTrap, Encoding};
+use anyhow::{bail, Result};
+use encoding_rs::WINDOWS_1252;
 use fnv::FnvHashMap;
 
 use crate::everything::Everything;
@@ -110,5 +109,10 @@ impl Sound {
 
 fn read_guids(fullpath: &Path) -> Result<String> {
     let bytes = read(fullpath)?;
-    WINDOWS_1252.decode(&bytes, DecoderTrap::Strict).map_err(anyhow::Error::msg)
+
+    let (content, errors) = WINDOWS_1252.decode_without_bom_handling(&bytes);
+    if errors {
+        bail!("invalid characters");
+    }
+    Ok(content.into_owned())
 }

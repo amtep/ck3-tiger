@@ -7,11 +7,7 @@ use std::fs::read;
 use std::fs::read_to_string;
 
 #[cfg(feature = "ck3")]
-use encoding::all::UTF_8;
-#[cfg(feature = "ck3")]
-use encoding::all::WINDOWS_1252;
-#[cfg(feature = "ck3")]
-use encoding::{DecoderTrap, Encoding};
+use encoding_rs::{UTF_8, WINDOWS_1252};
 
 use crate::block::Block;
 use crate::fileset::FileEntry;
@@ -79,28 +75,25 @@ impl PdxFile {
                 return None;
             }
         };
-        let opt_contents = if bytes.starts_with(BOM_AS_BYTES) {
-            match UTF_8.decode(&bytes[3..], DecoderTrap::Strict) {
-                Ok(contents) => Some(contents),
-                Err(e) => {
-                    let msg = "could not decode UTF-8 file";
-                    let info = format!("{e:#}");
-                    err(ErrorKey::Encoding).msg(msg).info(info).loc(entry).push();
-                    None
-                }
+        if bytes.starts_with(BOM_AS_BYTES) {
+            let (contents, errors) = UTF_8.decode_without_bom_handling(&bytes[3..]);
+            if errors {
+                let msg = "could not decode UTF-8 file";
+                err(ErrorKey::Encoding).msg(msg).loc(entry).push();
+                None
+            } else {
+                Some(parse_pdx(entry, &contents))
             }
         } else {
-            match WINDOWS_1252.decode(&bytes, DecoderTrap::Strict) {
-                Ok(contents) => Some(contents),
-                Err(e) => {
-                    let msg = "could not decode WINDOWS-1252 file";
-                    let info = format!("{e:#}");
-                    err(ErrorKey::Encoding).msg(msg).info(info).loc(entry).push();
-                    None
-                }
+            let (contents, errors) = WINDOWS_1252.decode_without_bom_handling(&bytes);
+            if errors {
+                let msg = "could not decode WINDOWS-1252 file";
+                err(ErrorKey::Encoding).msg(msg).loc(entry).push();
+                None
+            } else {
+                Some(parse_pdx(entry, &contents))
             }
-        };
-        opt_contents.map(|c| parse_pdx(entry, &c))
+        }
     }
 
     pub fn read_encoded(entry: &FileEntry, encoding: PdxEncoding) -> Option<Block> {
