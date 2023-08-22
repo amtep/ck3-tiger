@@ -1,3 +1,4 @@
+// LAST UPDATED CK3 VERSION 1.10.0
 pub const ON_ACTION_SCOPES: &str = "
 	on_accolade_rank_change = {
 		root = accolade
@@ -500,4 +501,19 @@ pub const ON_ACTION_SCOPES: &str = "
 	on_war_won_defender = on_war_started
 	on_war_white_peace = on_war_started
 	on_war_invalidated = on_war_started
+
+	on_hostage_taken = {
+		root = character
+		hostage = character
+		warden = character
+		home_court = character
+	}
+	on_hostage_released = on_hostage_taken
+	on_hostage_invalidated = {
+		root = character
+		warden = character
+		home_court = character
+		imprisoner = character
+		reason = flag
+	}
 ";
