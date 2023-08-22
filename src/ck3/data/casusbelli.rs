@@ -76,6 +76,7 @@ impl DbKind for CasusBelli {
         vd.field_bool("full_occupation_by_defender_gives_victory");
         vd.field_bool("full_occupation_by_attacker_gives_victory");
         vd.field_bool("landless_attacker_needs_armies");
+        vd.field_bool("allow_hostages");
 
         vd.field_numeric("occupation_participation_mult");
         vd.field_numeric("siege_participation_mult");

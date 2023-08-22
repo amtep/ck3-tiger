@@ -209,6 +209,7 @@ impl MenAtArmsType {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
+        vd.field_integer("max");
         validate_maa_stats(&mut vd);
         vd.field_integer("siege_tier");
         vd.field_bool("fights_in_main_phase");
@@ -227,13 +228,13 @@ impl MenAtArmsType {
 
         vd.field_numeric("stack");
         vd.field_numeric("hired_stack_size");
-        vd.field_integer("max_sub_regiments"); // undocumented
+        vd.field_integer("max_sub_regiments");
 
         vd.field_script_value_rooted("ai_quality", Scopes::Character);
-        vd.field_bool("allowed_in_hired_troops"); // undocumented
+        vd.field_bool("allowed_in_hired_troops");
         vd.field_bool("fallback_in_hired_troops_if_unlocked");
-        vd.field_bool("mercenary_fallback"); // undocumented
-        vd.field_bool("holy_order_fallback"); // undocumented
+        vd.field_bool("mercenary_fallback");
+        vd.field_bool("holy_order_fallback");
     }
 }
 

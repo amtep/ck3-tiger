@@ -138,6 +138,7 @@ impl DbKind for CharacterInteraction {
         vd.field_bool("pause_on_receive");
         vd.field_bool("force_notification");
         vd.field_bool("ai_accept_negotiation");
+        vd.field_bool("secondary_scopes_optional");
 
         vd.field_bool("hidden");
 
@@ -289,15 +290,10 @@ impl DbKind for CharacterInteraction {
 
         vd.field_integer("ai_frequency"); // months
 
-        // This seems to be in character scope
-        vd.field_validated_block_rerooted(
-            "ai_potential",
-            &sc,
-            Scopes::Character,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::Yes);
-            },
-        );
+        // This is in character scope with no other named scopes builtin
+        vd.field_validated_block_rooted("ai_potential", Scopes::Character, |block, data, sc| {
+            validate_trigger(block, data, sc, Tooltipped::Yes);
+        });
         if let Some(token) = block.get_key("ai_potential") {
             if block.get_field_integer("ai_frequency").unwrap_or(0) == 0
                 && !key.is("revoke_title_interaction")

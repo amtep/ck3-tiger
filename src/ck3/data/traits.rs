@@ -238,6 +238,7 @@ impl Trait {
         vd.field_integer_range("inherit_chance", 0, 100);
         vd.field_integer_range("both_parent_has_trait_inherit_chance", 0, 100);
         vd.advice_field("can_inherit", "no longer used");
+        vd.field_bool("inherit_from_real_mother");
         vd.field_bool("inherit_from_real_father");
         vd.field_choice("parent_inheritance_sex", &["male", "female", "all"]);
         vd.field_choice("child_inheritance_sex", &["male", "female", "all"]);

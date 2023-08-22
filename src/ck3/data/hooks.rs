@@ -33,6 +33,7 @@ impl DbKind for Hook {
 
         vd.field_integer("expiration_days");
         vd.field_bool("strong");
+        vd.field_bool("perpetual");
         vd.field_bool("requires_secret");
 
         vd.field_validated_block("on_used", |block, data| {
