@@ -130,4 +130,5 @@ pub const BANNED_NAMES: &[&str] = &[
     "limit",
     "filter",
     "switch",
+    "take_hostage", // actually used by vanilla CK3
 ];

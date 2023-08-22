@@ -27,6 +27,7 @@ impl Sounds {
         self.sounds.insert(key.to_string(), Sound::new(key));
     }
 
+    #[allow(dead_code)] // TODO temporarily turned off
     pub fn exists(&self, key: &str) -> bool {
         self.sounds.contains_key(key)
     }
@@ -35,6 +36,7 @@ impl Sounds {
         self.sounds.values().map(|item| &item.key)
     }
 
+    #[allow(dead_code)] // TODO temporarily turned off
     pub fn verify_exists_implied(
         &self,
         key: &str,

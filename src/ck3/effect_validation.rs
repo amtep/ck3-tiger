@@ -1038,6 +1038,7 @@ pub fn validate_spawn_army(
         vd.field_item("type", Item::MenAtArms);
         vd.field_script_value("men", sc);
         vd.field_script_value("stacks", sc);
+        vd.field_bool("inheritable"); // undocumented
     });
     vd.field_target("location", sc, Scopes::Province);
     vd.field_target("origin", sc, Scopes::Province);
@@ -1554,7 +1555,8 @@ pub fn validate_set_relation(
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);
             vd.req_field("target");
-            vd.req_field("reason");
+            // Sometimes both are used and I don't know what that means. TODO: verify
+            // vd.req_field_one_of(&["reason", "copy_reason"]);
             vd.field_target("target", sc, Scopes::Character);
             vd.field_item("reason", Item::Localization);
             vd.field_item("copy_reason", Item::Relation);

@@ -245,9 +245,11 @@ impl Trait {
         if genetic {
             vd.field_numeric_range("birth", 0.0, 1.0);
             vd.field_numeric_range("random_creation", 0.0, 1.0);
+            vd.ban_field("random_creation_weight", || "genetic = no");
         } else {
             vd.ban_field("birth", || "genetic = yes");
             vd.ban_field("random_creation", || "genetic = yes");
+            vd.field_numeric("random_creation_weight");
         }
         vd.replaced_field("blocks_from_claim_inheritance", "`claim_inheritance_blocker = all`");
         vd.replaced_field(

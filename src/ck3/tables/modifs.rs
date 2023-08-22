@@ -136,22 +136,22 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
-    // $LIFESTYLE$_xp_gain_mult
-    if let Some(s) = name.as_str().strip_suffix("_xp_gain_mult") {
-        return modif_check(name, s, Item::Lifestyle, ModifKinds::Character, data, warn);
-    }
-
     // The names of individual tracks in a multi-track trait start with `trait_track_` before the track name.
     // It's also possible to use the names of traits that have one or more tracks directly, without the trait_track_.
     // Presumably it applies to all of a trait's tracks in that case.
+    // $LIFESTYLE$_xp_gain_mult needs to be handled here too.
     for sfx in &["_xp_degradation_mult", "_xp_gain_mult", "_xp_loss_mult"] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
             if let Some(s) = s.strip_prefix("trait_track_") {
                 return modif_check(name, s, Item::TraitTrack, ModifKinds::Character, data, warn);
             }
+            // It can be a lifestyle or a trait.
             if let Some(sev) = warn {
-                data.verify_exists_implied(Item::Trait, s, name);
-                if !data.traits.has_track(s) {
+                if !data.item_exists(Item::Lifestyle, s) && !data.item_exists(Item::Trait, s) {
+                    let msg = "`{s}` was not found as a trait or lifestyle";
+                    let info = format!("so the modifier {name} does not exist");
+                    report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
+                } else if data.item_exists(Item::Trait, s) && !data.traits.has_track(s) {
                     let msg = format!("trait {s} does not have an xp track");
                     let info = format!("so the modifier {name} does not exist");
                     report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();

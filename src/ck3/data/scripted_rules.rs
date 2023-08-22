@@ -109,7 +109,7 @@ fn build_scripted_rule_hashmap(
 /// `root` is the root of the scope context. Other fields are added named scopes.
 ///
 /// For ease of updating, the rules are in the order they are found in the game files.
-// LAST UPDATED CK3 VERSION 1.9.2.1
+// LAST UPDATED CK3 VERSION 1.10.0
 // Taken from information in common/scripted_rules/00_rules.txt
 const SCRIPTED_RULES: &str = "
 	can_command_troops = {
@@ -363,6 +363,11 @@ const SCRIPTED_RULES: &str = "
 	}
 
 	can_be_acclaimed_knight = {
+		tooltipped = no
+		root = character
+	}
+
+	is_hostage_valid = {
 		tooltipped = no
 		root = character
 	}

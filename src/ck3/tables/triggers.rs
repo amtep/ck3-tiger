@@ -188,7 +188,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             Scopes::CultureTradition,
             &[
                 ("tradition", Scope(Scopes::CultureTradition)),
-                ("replace", Scope(Scopes::CultureTradition)),
+                ("?replace", Scope(Scopes::CultureTradition)),
             ],
         ),
     ),

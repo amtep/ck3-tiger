@@ -523,7 +523,8 @@ impl Everything {
             Item::RewardItem => REWARD_ITEMS.contains(&key),
             Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
-            Item::Sound => self.sounds.exists(key),
+            // TODO: sound existence temporarily deactivated because so many sounds were removed from sound/GUIDs.txt
+            // Item::Sound => self.sounds.exists(key),
             Item::Title => self.titles.exists(key),
             Item::TitleHistory => self.title_history.exists(key),
             Item::TitleHistoryType => TITLE_HISTORY_TYPES.contains(&key),
@@ -531,7 +532,7 @@ impl Everything {
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitTrack => self.traits.track_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::CultureTraditionCategory => true, // TODO
+            Item::CultureTraditionCategory | Item::Sound => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
@@ -654,8 +655,9 @@ impl Everything {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => self.provinces_vic3.verify_exists_implied(key, token, max_sev),
             },
-            #[cfg(feature = "ck3")]
-            Item::Sound => self.sounds.verify_exists_implied(key, token, self, max_sev),
+            // TODO Temporarily turned off
+            // #[cfg(feature = "ck3")]
+            // Item::Sound => self.sounds.verify_exists_implied(key, token, self, max_sev),
             Item::TextureFile => {
                 if let Some(entry) = self.assets.get_texture(key) {
                     // TODO: avoid allocating a string here
