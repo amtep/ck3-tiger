@@ -49,7 +49,7 @@ static SCOPE_EFFECT_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Effect)>> = Lazy
     hash
 });
 
-// LAST UPDATED VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.10.0
 // See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::TravelPlan, "abort_travel_plan", Boolean),
@@ -84,7 +84,11 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::TravelPlan, "add_companion", Scope(Scopes::Character)),
     (Scopes::LandedTitle, "add_county_modifier", Vbv(validate_add_modifier)),
     (Scopes::Character, "add_courtier", Scope(Scopes::Character)),
-    (Scopes::Culture, "add_culture_tradition", Item(Item::CultureTradition)),
+    (
+        Scopes::Culture,
+        "add_culture_tradition",
+        ScopeOrItem(Scopes::CultureTradition, Item::CultureTradition),
+    ),
     (Scopes::War, "add_defender", Scope(Scopes::Character)),
     (Scopes::TravelPlan, "add_destination_progress", Timespan),
     (Scopes::Character, "add_diplomacy_skill", ScriptValue),
@@ -182,6 +186,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "add_unpressed_claim", Scope(Scopes::LandedTitle)),
     (Scopes::Character, "add_visiting_courtier", Scope(Scopes::Character)),
     (Scopes::Character, "add_war_chest_gold", ScriptValue),
+    (Scopes::Character, "adopt", Scope(Scopes::Character)),
     (Scopes::Character, "allow_alliance", Scope(Scopes::Character)),
     (Scopes::Character, "allow_in_scheme", Scope(Scopes::Scheme)),
     (Scopes::Character, "apply_ai_vassal_obligation_liege_most_desired", Yes),
@@ -457,7 +462,11 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "remove_concubine", Scope(Scopes::Character)),
     (Scopes::LandedTitle, "remove_county_modifier", Item(Item::Modifier)),
     (Scopes::Character, "remove_courtier_or_guest", Vbv(validate_remove_courtier_or_guest)),
-    (Scopes::Culture, "remove_culture_tradition", Item(Item::CultureTradition)),
+    (
+        Scopes::Culture,
+        "remove_culture_tradition",
+        ScopeOrItem(Scopes::CultureTradition, Item::CultureTradition),
+    ),
     (Scopes::Character, "remove_decision_cooldown", Item(Item::Decision)),
     (Scopes::Faith, "remove_doctrine", Item(Item::Doctrine)),
     (Scopes::Dynasty, "remove_dynasty_modifier", Item(Item::Modifier)),
@@ -530,6 +539,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "resolve_title_and_vassal_change", Scope(Scopes::TitleAndVassalChange)),
     (Scopes::TravelPlan, "resume_travel_plan", Boolean),
     (Scopes::TravelPlan, "resume_travel_plan_mp", Boolean),
+    (Scopes::Character, "return_hostage", Yes),
     (Scopes::Character, "return_to_court", Yes),
     (Scopes::Secret, "reveal_to", Scope(Scopes::Character)),
     (Scopes::Character, "reverse_add_opinion", Vb(validate_add_opinion)),
@@ -646,6 +656,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "set_primary_spouse", Scope(Scopes::Character)),
     (Scopes::Character, "set_primary_title_to", Scope(Scopes::LandedTitle)),
     (Scopes::Character, "set_real_father", Scope(Scopes::Character)),
+    (Scopes::Character, "set_real_mother", Scope(Scopes::Character)),
     (Scopes::Character, "set_realm_capital", Scope(Scopes::LandedTitle)),
     (Scopes::Faith, "set_religious_head_title", Scope(Scopes::LandedTitle)),
     (Scopes::Character, "set_reserved_gold_maximum", ScriptValue),
@@ -684,6 +695,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "store_localized_text_in_death", Unchecked),
     (Scopes::Character, "stress_impact", Vb(validate_stress_impact)),
     (Scopes::None, "switch", Vb(validate_switch)),
+    (Scopes::Character, "take_hostage", Scope(Scopes::Character)),
     (
         Scopes::LandedTitle,
         "title_create_faction",

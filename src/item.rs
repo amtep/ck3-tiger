@@ -194,6 +194,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] CultureParameter,
     #[cfg(feature = "ck3")] CulturePillar,
     #[cfg(feature = "ck3")] CultureTradition,
+    #[cfg(feature = "ck3")] CultureTraditionCategory,
     #[cfg(feature = "ck3")] DangerType,
     #[cfg(feature = "ck3")] DiarchyMandate,
     #[cfg(feature = "ck3")] DiarchyParameter,
@@ -695,6 +696,8 @@ impl Item {
             Item::CulturePillar => "common/culture/pillars/",
             #[cfg(feature = "ck3")]
             Item::CultureTradition => "common/culture/traditions/",
+            #[cfg(feature = "ck3")]
+            Item::CultureTraditionCategory => "common/culture/traditions/",
             #[cfg(feature = "ck3")]
             Item::DangerType => "",
             #[cfg(feature = "ck3")]

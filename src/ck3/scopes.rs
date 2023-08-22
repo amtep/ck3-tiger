@@ -9,6 +9,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 
+// LAST UPDATED CK3 VERSION 1.10.0
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
         "none" => Scopes::None,
@@ -58,6 +59,7 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     })
 }
 
+// LAST UPDATED CK3 VERSION 1.10.0
 pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
     let mut vec = Vec::new();
     if s.contains(Scopes::None) {
@@ -192,6 +194,7 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     display_choices(f, &vec, "or")
 }
 
+// LAST UPDATED CK3 VERSION 1.10.0
 pub fn validate_prefix_reference(
     prefix: &Token,
     arg: &Token,
@@ -218,6 +221,7 @@ pub fn validate_prefix_reference(
         "government_type" => data.verify_exists(Item::GovernmentType, arg),
         "house" => data.verify_exists(Item::House, arg),
         "mandate_type_qualification" => data.verify_exists(Item::DiarchyMandate, arg),
+        "num_discovered_innovations_in_era" => data.verify_exists(Item::CultureEra, arg),
         "province" => data.verify_exists(Item::Province, arg),
         "religion" => data.verify_exists(Item::Religion, arg),
         "special_guest" => data.verify_exists(Item::SpecialGuest, arg),
@@ -231,6 +235,7 @@ pub fn validate_prefix_reference(
     }
 }
 
+// LAST UPDATED CK3 VERSION 1.10.0
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
     if scopes == Scopes::AccoladeType && data.item_exists(Item::AccoladeType, arg) {
         return Some("accolade_type");
@@ -289,7 +294,7 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     None
 }
 
-/// LAST UPDATED VERSION 1.9.2
+/// LAST UPDATED CK3 VERSION 1.10.0
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
@@ -382,6 +387,7 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Faith, "great_holy_war", Scopes::GreatHolyWar),
     (Scopes::LandedTitle, "holder", Scopes::Character),
     (Scopes::HolyOrder, "holy_order_patron", Scopes::Character),
+    (Scopes::Character, "home_court", Scopes::Character),
     (Scopes::Character, "host", Scopes::Character),
     (Scopes::Character, "house", Scopes::DynastyHouse),
     (Scopes::DynastyHouse, "house_founder", Scopes::Character),
@@ -429,6 +435,7 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Accolade, "primary_type", Scopes::AccoladeType),
     (Scopes::Province, "province_owner", Scopes::Character),
     (Scopes::Character, "real_father", Scopes::Character),
+    (Scopes::Character, "real_mother", Scopes::Character),
     (Scopes::Character, "realm_priest", Scopes::Character),
     (
         Scopes::Character
@@ -465,10 +472,11 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     // "value" special
     (Scopes::VassalObligationLevel, "vassal_contract_type", Scopes::VassalContract),
     (Scopes::CasusBelli, "war", Scopes::War),
+    (Scopes::Character, "warden", Scopes::Character),
     (Scopes::None, "yes", Scopes::Bool),
 ];
 
-/// LAST UPDATED VERSION 1.9.2
+/// LAST UPDATED CK3 VERSION 1.10.0
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
@@ -500,6 +508,7 @@ pub const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "list_size", Scopes::Value),
     (Scopes::Character, "mandate_type_qualification", Scopes::Value),
     (Scopes::CharacterMemory, "memory_participant", Scopes::Character),
+    (Scopes::Culture, "num_discovered_innovations_in_era", Scopes::Value),
     (Scopes::None, "province", Scopes::Province),
     (Scopes::None, "religion", Scopes::Religion),
     (Scopes::None, "scope", Scopes::all()),
@@ -512,7 +521,7 @@ pub const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "vassal_contract_obligation_level", Scopes::Value),
 ];
 
-/// LAST UPDATED VERSION 1.9.2
+/// LAST UPDATED CK3 VERSION 1.10.0
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
@@ -640,6 +649,7 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "held_title", Scopes::LandedTitle),
     (Scopes::Character, "hired_mercenary", Scopes::MercenaryCompany),
     (Scopes::Faith, "holy_site", Scopes::LandedTitle),
+    (Scopes::Character, "home_court_hostage", Scopes::Character),
     (Scopes::Character, "hooked_character", Scopes::Character),
     (Scopes::Character, "hostile_raider", Scopes::Character),
     (Scopes::DynastyHouse, "house_claimed_artifact", Scopes::Artifact),
@@ -761,6 +771,7 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::LandedTitle, "title_to_title_neighboring_duchy", Scopes::LandedTitle),
     (Scopes::LandedTitle, "title_to_title_neighboring_empire", Scopes::LandedTitle),
     (Scopes::LandedTitle, "title_to_title_neighboring_kingdom", Scopes::LandedTitle),
+    (Scopes::Culture, "tradition", Scopes::CultureTradition),
     (Scopes::None, "trait", Scopes::Trait),
     (Scopes::None, "trait_in_category", Scopes::Trait),
     (Scopes::Character, "traveling_family_member", Scopes::Character),
@@ -776,9 +787,10 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::War, "war_defender", Scopes::Character),
     (Scopes::Character, "war_enemy", Scopes::Character),
     (Scopes::War, "war_participant", Scopes::Character),
+    (Scopes::Character, "warden_hostage", Scopes::Character),
 ];
 
-/// LAST UPDATED VERSION 1.9.2
+/// LAST UPDATED CK3 VERSION 1.10.0
 /// Every entry represents a every_, ordered_, random_, and any_ version.
 pub const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
     ("activity_declined", "1.9", ""),
@@ -786,6 +798,7 @@ pub const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
     ("participant", "1.9", ""),
 ];
 
+/// LAST UPDATED CK3 VERSION 1.10.0
 pub const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
     ("activity", "1.9", ""),
     ("activity_owner", "1.9", "replaced by `activity_host`"),

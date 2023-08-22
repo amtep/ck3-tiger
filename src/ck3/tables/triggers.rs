@@ -9,6 +9,7 @@ use crate::trigger::Trigger;
 
 use Trigger::*;
 
+/// LAST UPDATED CK3 VERSION 1.10.0
 pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger)> {
     let name_lc = name.as_str().to_lowercase();
 
@@ -63,7 +64,7 @@ static TRIGGER_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::ne
     hash
 });
 
-/// LAST UPDATED VERSION 1.9.2
+/// LAST UPDATED CK3 VERSION 1.10.0
 /// See `triggers.log` from the game data dumps
 /// special:
 ///    `<legacy>_track_perks`
@@ -180,6 +181,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Army, "can_disband_army", Boolean),
     (Scopes::Character, "can_diverge", Boolean),
     (Scopes::Character, "can_diverge_excluding_cost", Boolean),
+    (
+        Scopes::Character,
+        "can_embrace_tradition",
+        ScopeOrBlock(
+            Scopes::CultureTradition,
+            &[
+                ("tradition", Scope(Scopes::CultureTradition)),
+                ("replace", Scope(Scopes::CultureTradition)),
+            ],
+        ),
+    ),
     (Scopes::Character, "can_employ_court_position_type", Item(Item::CourtPosition)),
     (Scopes::Character, "can_equip_artifact", Scope(Scopes::Artifact)),
     (Scopes::Character, "can_execute_decision", ScopeOrItem(Scopes::Decision, Item::Decision)),
@@ -220,6 +232,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "character_has_commander_trait_scope_does_not", Scope(Scopes::Character)),
     (Scopes::Character, "character_is_land_realm_neighbor", Scope(Scopes::Character)),
     (Scopes::Character, "character_is_realm_neighbor", Scope(Scopes::Character)),
+    (Scopes::Character, "character_men_at_arms_expense_gold_relative", CompareValue),
+    (Scopes::Character, "character_men_at_arms_expense_prestige_relative", CompareValue),
     (Scopes::Province, "combined_building_level", CompareValue),
     (Scopes::Character, "completely_controls", Scope(Scopes::LandedTitle)),
     (Scopes::Character, "completely_controls_region", Item(Item::Region)),
@@ -356,6 +370,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "focus_progress", CompareValue),
     (Scopes::Province, "fort_level", CompareValue),
     (Scopes::Province, "free_building_slots", CompareValue),
+    (Scopes::Culture, "free_tradition_slot", CompareValue),
     (Scopes::None, "game_start_date", CompareDate),
     (Scopes::Province, "geographical_region", Item(Item::Region)),
     (Scopes::GreatHolyWar, "ghw_attackers_strength", CompareValue),
@@ -415,6 +430,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Artifact, "has_artifact_feature", Item(Item::ArtifactFeature)),
     (Scopes::Artifact, "has_artifact_feature_group", Item(Item::ArtifactFeatureGroup)),
     (Scopes::Artifact, "has_artifact_modifier", Item(Item::Modifier)),
+    (Scopes::Character, "has_away_hostages", Boolean),
     (Scopes::Character, "has_bad_nickname", Boolean),
     (Scopes::Character, "has_banish_reason", Scope(Scopes::Character)),
     (Scopes::Province, "has_building", Item(Item::Building)),
@@ -495,7 +511,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Culture, "has_cultural_era_or_later", Item(Item::CultureEra)),
     (Scopes::Culture, "has_cultural_parameter", Item(Item::CultureParameter)),
     (Scopes::Culture, "has_cultural_pillar", Item(Item::CulturePillar)),
-    (Scopes::Culture, "has_cultural_tradition", Item(Item::CultureTradition)),
+    (
+        Scopes::Culture,
+        "has_cultural_tradition",
+        ScopeOrItem(Scopes::CultureTradition, Item::CultureTradition),
+    ),
     (Scopes::Character, "has_culture", Scope(Scopes::Culture)),
     (Scopes::Activity, "has_current_phase", Item(Item::ActivityPhase)),
     (Scopes::Character, "has_de_jure_claim_on", Scope(Scopes::Character)),
@@ -703,6 +723,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_title", Scope(Scopes::LandedTitle)),
     (Scopes::LandedTitle, "has_title_law", Item(Item::Law)),
     (Scopes::LandedTitle, "has_title_law_flag", Item(Item::LawFlag)),
+    (Scopes::CultureTradition, "has_tradition_category", Item(Item::CultureTraditionCategory)),
     (Scopes::Character, "has_trait", ScopeOrItem(Scopes::Trait, Item::Trait)),
     (Scopes::Trait, "has_trait_category", Item(Item::TraitCategory)),
     (Scopes::Trait, "has_trait_flag", Item(Item::TraitFlag)),
@@ -750,6 +771,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "highest_skill", Item(Item::Skill)),
     (Scopes::Character, "holds_landed_title", Boolean),
     (Scopes::Faith, "holy_sites_controlled", CompareValue),
+    // TODO: verify "weeks" works here
+    (
+        Scopes::Character,
+        "hostage_duration",
+        Block(&[
+            ("*days", CompareValue),
+            ("*weeks", CompareValue),
+            ("*months", CompareValue),
+            ("*years", CompareValue),
+        ]),
+    ),
     (Scopes::Character, "important_action_is_valid_but_invisible", Item(Item::ImportantAction)),
     (Scopes::Character, "important_action_is_visible", Item(Item::ImportantAction)),
     (Scopes::Character, "in_diplomatic_range", Scope(Scopes::Character)),
@@ -912,6 +944,10 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::LandedTitle, "is_holy_site", Boolean),
     (Scopes::LandedTitle, "is_holy_site_controlled_by", Scope(Scopes::Character)),
     (Scopes::LandedTitle, "is_holy_site_of", Scope(Scopes::Faith)),
+    (Scopes::Character, "is_hostage", Boolean),
+    (Scopes::Character, "is_hostage_from", Scope(Scopes::Character)),
+    (Scopes::Character, "is_hostage_of", Scope(Scopes::Character)),
+    (Scopes::Character, "is_hostage_warden", Boolean),
     (Scopes::Scheme, "is_hostile", Boolean),
     (Scopes::Culture, "is_hybrid_culture", Boolean),
     (Scopes::Character, "is_immortal", Boolean),
@@ -1124,6 +1160,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "monthly_character_income_reserved", CompareValueWarnEq),
     (Scopes::Character, "monthly_character_income_short_term", CompareValueWarnEq),
     (Scopes::Character, "monthly_character_income_war_chest", CompareValueWarnEq),
+    (Scopes::Character, "monthly_character_men_at_arms_expense_gold", CompareValueWarnEq),
+    (Scopes::Character, "monthly_character_men_at_arms_expense_prestige", CompareValueWarnEq),
     (Scopes::Province, "monthly_income", CompareValueWarnEq),
     (Scopes::Character, "months_as_ruler", CompareValueWarnEq),
     (Scopes::Faction, "months_until_max_discontent", CompareValueWarnEq),
@@ -1152,6 +1190,12 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Province, "num_buildings", CompareValue),
     (Scopes::Faith, "num_character_followers", CompareValue),
     (Scopes::Faith, "num_county_followers", CompareValue),
+    (Scopes::Culture, "num_discovered_innovations", CompareValue),
+    (
+        Scopes::Culture,
+        "num_discovered_innovations_in_era",
+        Block(&[("era", Item(Item::CultureEra)), ("value", CompareValue)]),
+    ),
     (Scopes::CombatSide, "num_enemies_killed", CompareValue),
     (Scopes::TravelPlan, "num_entourage_characters", CompareValue),
     (Scopes::Activity, "num_future_phases", CompareValue),
@@ -1546,11 +1590,14 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::TravelPlan, "was_activity_completed", Boolean),
     (Scopes::TravelPlan, "was_activity_invalidated", Boolean),
     (Scopes::War, "was_called", Scope(Scopes::Character)),
+    (Scopes::Character, "was_hostage_child", Boolean),
     (Scopes::None, "weighted_calc_true_if", Special),
     (Scopes::Character, "year_of_birth", CompareValue),
     (Scopes::Character, "yearly_character_balance", CompareValueWarnEq),
     (Scopes::Character, "yearly_character_expenses", CompareValueWarnEq),
     (Scopes::Character, "yearly_character_income", CompareValueWarnEq),
+    (Scopes::Character, "yearly_character_men_at_arms_expense_gold", CompareValueWarnEq),
+    (Scopes::Character, "yearly_character_men_at_arms_expense_prestige", CompareValueWarnEq),
     (Scopes::Character, "years_as_diarch", CompareValueWarnEq),
     (Scopes::Character, "years_as_ruler", CompareValueWarnEq),
     (Scopes::None, "years_from_game_start", CompareValueWarnEq),

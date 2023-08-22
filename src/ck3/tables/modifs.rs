@@ -8,6 +8,7 @@ use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
 /// Returns None otherwise.
+// LAST UPDATED CK3 VERSION 1.10.0
 pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> Option<ModifKinds> {
     for &(entry_name, mk) in MODIF_TABLE {
         if name.is(entry_name) {
@@ -133,6 +134,11 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         if let Some(s) = s.strip_suffix("_xp_gain_mult") {
             return modif_check(name, s, Item::Lifestyle, ModifKinds::Character, data, warn);
         }
+    }
+
+    // $LIFESTYLE$_xp_gain_mult
+    if let Some(s) = name.as_str().strip_suffix("_xp_gain_mult") {
+        return modif_check(name, s, Item::Lifestyle, ModifKinds::Character, data, warn);
     }
 
     // The names of individual tracks in a multi-track trait start with `trait_track_` before the track name.
@@ -275,7 +281,7 @@ const Culture: u16 = ModifKinds::Culture.bits();
 const Scheme: u16 = ModifKinds::Scheme.bits();
 const TravelPlan: u16 = ModifKinds::TravelPlan.bits();
 
-/// LAST UPDATED VERSION 1.9.2
+/// LAST UPDATED CK3 VERSION 1.10.0
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, u16)] = &[
@@ -404,6 +410,10 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("holding_build_speed", Character | Province | County),
     ("holy_order_hire_cost_add", Character),
     ("holy_order_hire_cost_mult", Character),
+    ("hostage_income_mult", Character),
+    ("hostage_piety_mult", Character),
+    ("hostage_prestige_mult", Character),
+    ("hostage_renown_mult", Character),
     ("hostile_county_attrition", Character),
     ("hostile_county_attrition_raiding", Character),
     ("hostile_raid_time", Character | Province | County),

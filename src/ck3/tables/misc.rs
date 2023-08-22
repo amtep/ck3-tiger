@@ -25,7 +25,7 @@ pub const ARTIFACT_HISTORY: &[&str] = &[
     "reforged",
 ];
 
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.10.0
 // TODO: parse it from dlc_metadata/ ? Unfortunately Tours and Tournaments
 // is an exception.
 pub const DLC_CK3: &[&str] = &[
@@ -37,9 +37,10 @@ pub const DLC_CK3: &[&str] = &[
     "Friends and Foes",
     "tours_and_tournaments",
     "Elegance of the Empire",
+    "Wards and Wardens", // guessed
 ];
 
-/// LAST UPDATED CK3 VERSION 1.9.2
+/// LAST UPDATED CK3 VERSION 1.10.0
 /// Entries verified in-game by seeing if datafunction `HasDlcFeature` logs an error.
 pub const DLC_FEATURES_CK3: &[&str] = &[
     "garments_of_the_hre",
@@ -56,6 +57,7 @@ pub const DLC_FEATURES_CK3: &[&str] = &[
     "advanced_activities",
     "accolades",
     "elegance_of_the_empire",
+    "wards_and_wardens",
 ];
 
 // LAST UPDATED CK3 VERSION 1.9.2
