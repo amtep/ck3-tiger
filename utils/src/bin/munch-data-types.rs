@@ -262,8 +262,8 @@ fn merge_nonglobals(
             if old.args.len() == v.args.len() && (v.rtype == "Unknown" || old.rtype == v.rtype) {
                 continue;
             }
-            nonglobals.insert(k, v);
         }
+        nonglobals.insert(k, v);
     }
 }
 

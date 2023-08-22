@@ -465,6 +465,7 @@ pub enum Ck3Datatype {
     HolySite,
     HolySiteIcon,
     Hook,
+    HostageExchangeWindow,
     HouseCustomizationWindow,
     HouseOrderOption,
     HudBottomWidget,
