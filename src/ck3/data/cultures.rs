@@ -232,6 +232,9 @@ impl CultureTradition {
                 }
             }
         }
+        if let Some(value) = block.get_field_value("category") {
+            db.add_flag(Item::CultureTraditionCategory, value.clone());
+        }
         db.add(Item::CultureTradition, key, block, Box::new(Self {}));
     }
 }
