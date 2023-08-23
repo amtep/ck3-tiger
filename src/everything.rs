@@ -22,7 +22,7 @@ use crate::ck3::data::{
     characters::Characters, data_binding::DataBindings, doctrines::Doctrines, events::Ck3Events,
     gameconcepts::GameConcepts, interaction_cats::CharacterInteractionCategories,
     maa::MenAtArmsTypes, music::Musics, prov_history::ProvinceHistories, provinces::Ck3Provinces,
-    sound::Sounds, title_history::TitleHistories, titles::Titles, traits::Traits,
+    title_history::TitleHistories, titles::Titles, traits::Traits,
 };
 #[cfg(feature = "ck3")]
 use crate::ck3::tables::misc::*;
@@ -162,8 +162,6 @@ pub struct Everything {
 
     pub(crate) assets: Assets,
     #[cfg(feature = "ck3")]
-    pub(crate) sounds: Sounds,
-    #[cfg(feature = "ck3")]
     pub(crate) music: Musics,
 
     pub(crate) coas: Coas,
@@ -256,8 +254,6 @@ impl Everything {
             #[cfg(feature = "ck3")]
             data_bindings: DataBindings::default(),
             assets: Assets::default(),
-            #[cfg(feature = "ck3")]
-            sounds: Sounds::default(),
             #[cfg(feature = "ck3")]
             music: Musics::default(),
             coas: Coas::default(),
@@ -385,7 +381,6 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.doctrines));
             s.spawn(|_| self.fileset.handle(&mut self.menatarmstypes));
             s.spawn(|_| self.fileset.handle(&mut self.data_bindings));
-            s.spawn(|_| self.fileset.handle(&mut self.sounds));
             s.spawn(|_| self.fileset.handle(&mut self.music));
             s.spawn(|_| self.fileset.handle(&mut self.provinces_ck3));
         });
@@ -441,7 +436,6 @@ impl Everything {
         s.spawn(|_| self.doctrines.validate(self));
         s.spawn(|_| self.menatarmstypes.validate(self));
         s.spawn(|_| self.data_bindings.validate(self));
-        s.spawn(|_| self.sounds.validate(self));
         s.spawn(|_| self.music.validate(self));
         s.spawn(|_| self.events_ck3.validate(self));
         s.spawn(|_| self.provinces_ck3.validate(self));
@@ -523,8 +517,14 @@ impl Everything {
             Item::RewardItem => REWARD_ITEMS.contains(&key),
             Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
-            // TODO: sound existence temporarily deactivated because so many sounds were removed from sound/GUIDs.txt
-            // Item::Sound => self.sounds.exists(key),
+            Item::Sound => {
+                // TODO: verify that file:/ values work
+                if let Some(filename) = key.strip_prefix("file:/") {
+                    self.fileset.exists(filename)
+                } else {
+                    SOUNDS_CK3.contains(&key)
+                }
+            }
             Item::Title => self.titles.exists(key),
             Item::TitleHistory => self.title_history.exists(key),
             Item::TitleHistoryType => TITLE_HISTORY_TYPES.contains(&key),
@@ -532,7 +532,7 @@ impl Everything {
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitTrack => self.traits.track_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::CultureTraditionCategory | Item::Sound => true, // TODO
+            Item::CultureTraditionCategory => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
@@ -554,7 +554,8 @@ impl Everything {
             Item::RelationsThreshold => RELATIONS.contains(&key),
             Item::SecretGoal => SECRET_GOALS.contains(&key),
             Item::Sound => {
-                if let Some(filename) = key.strip_prefix("file://") {
+                // TODO: verify that file:/ values work
+                if let Some(filename) = key.strip_prefix("file:/") {
                     self.fileset.exists(filename)
                 } else {
                     SOUNDS_VIC3.contains(&key)
@@ -655,9 +656,6 @@ impl Everything {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => self.provinces_vic3.verify_exists_implied(key, token, max_sev),
             },
-            // TODO Temporarily turned off
-            // #[cfg(feature = "ck3")]
-            // Item::Sound => self.sounds.verify_exists_implied(key, token, self, max_sev),
             Item::TextureFile => {
                 if let Some(entry) = self.assets.get_texture(key) {
                     // TODO: avoid allocating a string here
@@ -801,7 +799,6 @@ impl Everything {
             Item::MenAtArmsBase => Box::new(self.menatarmstypes.iter_base_keys()),
             Item::Music => Box::new(self.music.iter_keys()),
             Item::Province => Box::new(self.provinces_ck3.iter_keys()),
-            Item::Sound => Box::new(self.sounds.iter_keys()),
             Item::Title => Box::new(self.titles.iter_keys()),
             Item::TitleHistory => Box::new(self.title_history.iter_keys()),
             Item::Trait => Box::new(self.traits.iter_keys()),

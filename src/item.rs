@@ -511,14 +511,7 @@ impl Item {
             Item::ScriptedTrigger => "common/scripted_triggers/",
             Item::ScriptValue => "common/script_values/",
             Item::Shortcut => "gui/shortcuts.shortcuts",
-            Item::Sound => match Game::game() {
-                #[cfg(feature = "ck3")]
-                Game::Ck3 => "sound/GUIDs.txt",
-                #[cfg(feature = "vic3")]
-                Game::Vic3 => "",
-                #[cfg(feature = "imperator")]
-                Game::Imperator => "", // TODO
-            },
+            Item::Sound => "",
             Item::Terrain => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/terrain_types/",

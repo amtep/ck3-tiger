@@ -70,7 +70,6 @@ pub mod scripted_costs;
 pub mod scripted_illustrations;
 pub mod scripted_rules;
 pub mod secrets;
-pub mod sound;
 pub mod stories;
 pub mod struggle;
 pub mod suggestions;
