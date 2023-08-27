@@ -600,7 +600,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_choice`], but expect any number of `name` fields in the block.
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
+    #[allow(dead_code)] // not currently used
     pub fn multi_field_choice(&mut self, name: &str, choices: &[&str]) -> bool {
         let sev = Severity::Error.at_most(self.max_severity);
         self.multi_field_check(name, |_, bv| {

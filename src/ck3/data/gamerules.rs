@@ -25,9 +25,6 @@ impl GameRule {
     }
 }
 
-const RULE_FLAGS: &[&str] =
-    &["blocks_achievements", "no_end_date", "no_diplomatic_range", "restricted_diplomatic_range"];
-
 impl DbKind for GameRule {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
@@ -80,7 +77,9 @@ impl DbKind for GameRule {
                 });
             });
 
-            vd.multi_field_choice("flag", RULE_FLAGS);
+            // Flags can be checked in gui with datatype function GameRuleSetting.HasFlag,
+            // so allow arbitrary flags.
+            vd.multi_field_value("flag");
         });
     }
 }
