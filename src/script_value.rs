@@ -81,7 +81,7 @@ fn validate_inner(
             }
             validate_bv(bv, data, sc, check_desc);
             made_changes = true;
-        } else if token.is("round") || token.is("ceiling") || token.is("floor") {
+        } else if token.is("round") || token.is("ceiling") || token.is("floor") || token.is("abs") {
             if have_value == TriBool::False {
                 let msg = format!("nothing to {token} yet");
                 old_warn(token, ErrorKey::Logic, &msg);
