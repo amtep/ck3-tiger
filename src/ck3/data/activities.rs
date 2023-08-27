@@ -517,10 +517,11 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, has_special_opt
     vd.field_validated_block("can_pick", |block, data| {
         validate_trigger(block, data, &mut sc, Tooltipped::Yes);
     });
-    let mut sc = ScopeContext::new(Scopes::Character, key);
-    sc.define_name("province", Scopes::Province, key);
-    sc.define_name("host", Scopes::Character, key);
-    vd.field_validated_block("is_valid", |block, data| {
+
+    vd.field_validated_key_block("is_valid", |key, block, data| {
+        let mut sc = ScopeContext::new(Scopes::Activity, key);
+        sc.define_name("host", Scopes::Character, key);
+        sc.define_name("province", Scopes::Province, key);
         validate_trigger(block, data, &mut sc, Tooltipped::No);
     });
 
