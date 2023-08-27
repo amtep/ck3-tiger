@@ -25,10 +25,8 @@ impl GameConcepts {
                 dup_error(&key, &other.key, "game concept");
             }
         }
-        if let Some(list) = block.get_field_list("alias") {
-            for token in list {
-                self.aliases.insert(token.to_string(), key.to_string());
-            }
+        for token in block.get_multi_field_list("alias") {
+            self.aliases.insert(token.to_string(), key.to_string());
         }
         self.concepts.insert(key.to_string(), Concept::new(key, block));
     }
@@ -91,13 +89,10 @@ impl Concept {
         data.verify_exists_implied(Item::Localization, &loca, &self.key);
 
         let mut vd = Validator::new(&self.block, data);
-        vd.field_list("alias");
-        if let Some(aliases) = self.block.get_field_list("alias") {
-            for alias in aliases {
-                let loca = format!("game_concept_{alias}");
-                data.verify_exists_implied(Item::Localization, &loca, &alias);
-            }
-        }
+        vd.multi_field_validated_list("alias", |alias, data| {
+            let loca = format!("game_concept_{alias}");
+            data.verify_exists_implied(Item::Localization, &loca, alias);
+        });
 
         vd.field_item("parent", Item::GameConcept);
         if let Some(token) = vd.field_value("texture") {

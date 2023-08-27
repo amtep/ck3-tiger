@@ -200,6 +200,25 @@ impl Block {
         None
     }
 
+    /// Get the combined values of any number of `name = { value value ... }` list
+    #[allow(dead_code)] // not used by all games
+    pub fn get_multi_field_list(&self, name: &str) -> Vec<Token> {
+        let mut vec = Vec::new();
+        for item in &self.v {
+            if let BlockItem::Field(Field(key, _, bv)) = item {
+                if key.is(name) {
+                    match bv {
+                        BV::Value(_) => (),
+                        BV::Block(b) => {
+                            vec.extend(b.iter_values().cloned());
+                        }
+                    }
+                }
+            }
+        }
+        vec
+    }
+
     /// Get the value or block on the right-hand side of a field `name`.
     pub fn get_field(&self, name: &str) -> Option<&BV> {
         for item in self.v.iter().rev() {
