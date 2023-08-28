@@ -19,7 +19,7 @@ pub fn scope_effect(name: &Token, _data: &Everything) -> Option<(Scopes, Effect)
     std::option::Option::None
 }
 
-// LAST UPDATED VERSION 1.9.2
+// LAST UPDATED VIC3 VERSION 1.4.0
 // See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::InterestGroup, "abandon_revolution", Boolean),
@@ -174,6 +174,8 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "if", Control),
     (Scopes::InterestGroup, "join_revolution", Boolean),
     (Scopes::Character, "kill_character", UncheckedTodo),
+    (Scopes::Country, "kill_population", UncheckedTodo),
+    (Scopes::Country, "kill_population_in_state", UncheckedTodo),
     (Scopes::Country, "kill_population_percent", UncheckedTodo),
     (Scopes::State, "kill_population_percent_in_state", UncheckedTodo),
     (Scopes::TradeRoute, "lock_trade_route", Timespan),

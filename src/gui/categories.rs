@@ -12,7 +12,7 @@ bitflags! {
 /// There is a special category `Unknown` for where we don't know the categories.
 /// An `Unknown` property will fit into any container, and an `Unknown` container can hold any property.
 // LAST UPDATED CK3 VERSION 1.9.2
-// LAST UPDATED VIC3 VERSOIN 1.3.6
+// LAST UPDATED VIC3 VERSION 1.3.6
 // LAST UPDATED IR VERSION 2.0.3
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct GuiCategories: u8 {

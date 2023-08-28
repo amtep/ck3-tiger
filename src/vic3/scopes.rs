@@ -260,7 +260,7 @@ pub fn validate_prefix_reference(
     // TODO there are more to match
     // TODO integrate this to the SCOPE_FROM_PREFIX table
     match prefix.as_str() {
-        // "active_law"
+        "active_law" => data.verify_exists(Item::LawGroup, arg),
         "ai_army_comparison"
         | "ai_gdp_comparison"
         | "ai_ideological_opinion"
@@ -315,9 +315,6 @@ pub fn validate_prefix_reference(
 }
 
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
-    if scopes == Scopes::Law && data.item_exists(Item::LawType, arg) {
-        return Some("active_law");
-    }
     if scopes == Scopes::Building && data.item_exists(Item::BuildingType, arg) {
         return Some("b");
     }
@@ -384,7 +381,7 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     None
 }
 
-/// LAST UPDATED VIC3 VERSION 1.3.6
+/// LAST UPDATED VIC3 VERSION 1.4.0
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
@@ -450,6 +447,7 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Institution, "investment", Scopes::Value),
     (Scopes::Institution, "investment_max", Scopes::Value),
     (Scopes::None, "is_setup", Scopes::Value),
+    (Scopes::Country, "je_tutorial", Scopes::Journalentry),
     (Scopes::Province.union(Scopes::State), "land_hq", Scopes::Hq),
     (Scopes::InterestGroup, "leader", Scopes::Character),
     (Scopes::Country, "legitimacy", Scopes::Value),
@@ -583,7 +581,7 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "top_overlord", Scopes::Country),
     (Scopes::Market, "trade_center", Scopes::State),
     (Scopes::Building, "training_rate", Scopes::Value),
-    // TODO: special case for the scope types here
+    // The input and output scopes for this are special cased
     (
         Scopes::Building
             .union(Scopes::CommanderOrder)
@@ -603,7 +601,7 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "YES", Scopes::Bool),
 ];
 
-/// LAST UPDATED VIC3 VERSION 1.3.6
+/// LAST UPDATED VIC3 VERSION 1.4.0
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
@@ -635,7 +633,6 @@ pub const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "infamy_threshold", Scopes::Value),
     (Scopes::Country, "institution", Scopes::Institution),
     (Scopes::Country, "je", Scopes::Journalentry),
-    (Scopes::Country, "je_tutorial", Scopes::Journalentry),
     (Scopes::None, "law_type", Scopes::LawType),
     (Scopes::None, "local_var", Scopes::all()),
     (Scopes::Market, "mg", Scopes::MarketGoods),
@@ -673,7 +670,7 @@ pub const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
     (Scopes::all(), "var", Scopes::all()),
 ];
 
-/// LAST UPDATED VIC3 VERSION 1.3.6
+/// LAST UPDATED VIC3 VERSION 1.4.0
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
@@ -683,9 +680,13 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "character_in_exile_pool", Scopes::Character),
     (Scopes::None, "character_in_void", Scopes::Character),
     (Scopes::Country, "civil_war", Scopes::CivilWar),
+    (Scopes::Country, "cobelligerent_in_diplo_play", Scopes::Country),
+    (Scopes::Country, "cobelligerent_in_war", Scopes::Country),
     (Scopes::Building.union(Scopes::Character), "combat_units", Scopes::CombatUnit),
     (Scopes::None, "country", Scopes::Country),
     (Scopes::None, "diplomatic_play", Scopes::DiplomaticPlay),
+    (Scopes::Country, "enemy_in_diplo_play", Scopes::Country),
+    (Scopes::Country, "enemy_in_war", Scopes::Country),
     (Scopes::None, "in_global_list", Scopes::all_but_none()),
     (Scopes::Country, "in_hierarchy", Scopes::Country),
     (Scopes::None, "in_list", Scopes::all_but_none()),
@@ -726,7 +727,6 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
         "scope_character",
         Scopes::Character,
     ),
-    (Scopes::Country, "scope_cobelligerent", Scopes::Country),
     (Scopes::Market, "scope_country", Scopes::Country),
     (Scopes::Country.union(Scopes::State), "scope_culture", Scopes::Culture),
     (Scopes::Country, "scope_diplomatic_pact", Scopes::DiplomaticPact),
@@ -780,6 +780,10 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     ),
 ];
 
-pub const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[];
+pub const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[(
+    "scope_cobelligerent",
+    "1.4.0",
+    "replaced with _cobelligerent_in_diplo_play, _cobelligerent_in_war",
+)];
 
 pub const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[];

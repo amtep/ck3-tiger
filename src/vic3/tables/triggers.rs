@@ -17,7 +17,7 @@ pub fn scope_trigger(name: &Token, _data: &Everything) -> Option<(Scopes, Trigge
     std::option::Option::None
 }
 
-/// LAST UPDATED VIC3 VERSION 1.3.6
+/// LAST UPDATED VIC3 VERSION 1.4.0
 /// See `triggers.log` from the game data dumps
 /// A key ends with '(' if it is the version that takes a parenthesized argument in script.
 const TRIGGER: &[(Scopes, &str, Trigger)] = &[
@@ -82,6 +82,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "can_have_as_subject",
         Block(&[("who", Scope(Scopes::Country)), ("type", Item(Item::SubjectType))]),
     ),
+    (Scopes::StrategicRegion, "can_have_declared_interest_here", Scope(Scopes::Country)),
     (Scopes::Country, "can_have_subjects", Boolean),
     (Scopes::Building, "can_queue_building_levels", CompareValue),
     (Scopes::Country, "can_research", Item(Item::Technology)),
@@ -171,6 +172,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "current_tooltip_depth", CompareValue),
     (Scopes::None, "custom_description", Control),
     (Scopes::None, "custom_tooltip", Special),
+    (Scopes::None, "day_value", CompareValue),
+    (Scopes::None, "daynight_value", CompareValue),
     (Scopes::None, "debug_log", UncheckedValue),
     (Scopes::None, "debug_log_details", Boolean),
     (Scopes::State, "devastation", CompareValue),
@@ -212,6 +215,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::None, "game_date", CompareDate),
     (Scopes::Country, "global_country_ranking", CompareValue),
+    (Scopes::None, "global_population", CompareValue),
     (
         Scopes::None,
         "global_variable_list_size",
@@ -346,6 +350,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_religion", Scope(Scopes::Religion)),
     (Scopes::Country, "has_researchable_technology", Boolean),
     (Scopes::Country, "has_revolution", Boolean),
+    (Scopes::Country, "has_revolution_over_law_type", Scope(Scopes::LawType)),
     (Scopes::Character, "has_role", Item(Item::CharacterRole)),
     (Scopes::Country, "has_ruling_interest_group", Item(Item::InterestGroup)),
     (Scopes::Country, "has_ruling_interest_group_count", CompareValue),
@@ -642,10 +647,12 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "military_wage_level", CompareLevel),
     (Scopes::Country, "military_wage_level_value", CompareValue),
     (Scopes::Character, "mobilization_cost", CompareValue),
+    (Scopes::None, "month", CompareValue), // TODO: 0 to 11
     (Scopes::InterestGroup, "most_powerful_strata", Item(Item::Strata)),
     (Scopes::State, "most_prominent_revolting_interest_group", Item(Item::InterestGroup)),
     (Scopes::None, "nand", Control),
     (Scopes::Country, "navy_reserves", CompareValue),
+    (Scopes::None, "night_value", CompareValue),
     (Scopes::None, "nor", Control),
     (Scopes::None, "not", Control),
     (Scopes::Country, "num_alliances_and_defensive_pacts_with_allies(", CompareValue),
@@ -698,6 +705,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("pop_type", UncheckedValue), ("percent", CompareValue)]),
     ),
     (
+        Scopes::State,
+        "pop_type_percent_state",
+        Block(&[("target", Scope(Scopes::PopType)), ("value", CompareValue)]),
+    ),
+    (
         Scopes::InterestGroup,
         "prefers_law",
         Block(&[("law", Scope(Scopes::LawType)), ("comparison_law", Scope(Scopes::LawType))]),
@@ -722,12 +734,12 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Pop, "religion_accepted", Boolean),
     (
         Scopes::Country,
-        "pop_type_percent_country",
+        "religion_percent_country",
         Block(&[("target", Scope(Scopes::Religion)), ("value", CompareValue)]),
     ),
     (
         Scopes::State,
-        "pop_type_percent_state",
+        "religion_percent_state",
         Block(&[("target", Scope(Scopes::Religion)), ("value", CompareValue)]),
     ),
     (Scopes::Country, "relations(", CompareValue),
@@ -768,6 +780,9 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "tax_level_value", CompareValue),
     (Scopes::Country, "tension(", CompareValue),
     (Scopes::Country, "total_population", CompareValue),
+    (Scopes::Country, "total_population_including_subjects", CompareValue),
+    (Scopes::Country, "total_population_including_subjects_share", CompareValue),
+    (Scopes::Country, "total_population_share", CompareValue),
     (Scopes::State, "total_urbanization", CompareValue),
     (Scopes::TradeRoute, "trade_route_needs_convoys_to_grow", Boolean),
     (Scopes::Character, "trait_value", CompareValue),

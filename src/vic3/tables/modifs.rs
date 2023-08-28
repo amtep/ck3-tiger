@@ -15,6 +15,16 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
+    for &(entry_name, info) in MODIF_REMOVED {
+        if name.is(entry_name) {
+            if let Some(sev) = warn {
+                let msg = format!("{name} has been removed");
+                report(ErrorKey::Removed, sev).msg(msg).info(info).loc(name).push();
+            }
+            return None;
+        }
+    }
+
     // Look up generated modifs, in a careful order because of possibly overlapping suffixes.
 
     // building_employment_$PopType$_add
@@ -218,7 +228,7 @@ const Tariff: u16 = ModifKinds::Tariff.bits();
 const Tax: u16 = ModifKinds::Tax.bits();
 const Unit: u16 = ModifKinds::Unit.bits();
 
-/// LAST UPDATED VERSION 1.9.2
+/// LAST UPDATED VIC3 VERSION 1.4.0
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, u16)] = &[
@@ -301,10 +311,9 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("country_max_declared_interests_add", Country),
     ("country_max_declared_interests_mult", Country),
     ("country_military_goods_cost_mult", Country),
-    ("country_military_tech_cost_mult", Country),
+    ("country_military_tech_research_speed_mult", Country),
     ("country_military_tech_spread_mult", Country),
     ("country_military_wages_mult", Country),
-    ("country_military_weekly_innovation_mult", Country),
     ("country_minting_add", Country),
     ("country_minting_mult", Country),
     ("country_navy_power_projection_add", Country),
@@ -314,9 +323,8 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("country_prestige_mult", Country),
     ("country_private_buildings_protected", Country),
     ("country_private_construction_allocation_mult", Country),
-    ("country_production_tech_cost_mult", Country),
+    ("country_production_tech_research_speed_mult", Country),
     ("country_production_tech_spread_mult", Country),
-    ("country_production_weekly_innovation_mult", Country),
     ("country_promotion_ig_attraction_mult", Country),
     ("country_radicals_from_conquest_mult", Country),
     ("country_radicals_from_legitimacy_mult", Country),
@@ -328,12 +336,12 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("country_secession_clock_time_add", Country),
     ("country_secession_progress_add", Country),
     ("country_secession_progress_mult", Country),
-    ("country_society_tech_cost_mult", Country),
+    ("country_society_tech_research_speed_mult", Country),
     ("country_society_tech_spread_mult", Country),
-    ("country_society_weekly_innovation_mult", Country),
     ("country_subsidies_all", Country),
     ("country_suppression_ig_attraction_mult", Country),
     ("country_tax_income_add", Country),
+    ("country_tech_research_speed_mult", Country),
     ("country_tech_spread_add", Country),
     ("country_tech_spread_mult", Country),
     ("country_tension_decay_mult", Country),
@@ -447,12 +455,13 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("tax_income_add", Tax),
     ("tax_land_add", Tax),
     ("tax_per_capita_add", Tax),
-    ("technology_invention_cost_mult", NoneModifKind),
     ("unit_advancement_speed_mult", Unit),
     ("unit_army_defense_add", Unit),
     ("unit_army_defense_mult", Unit),
     ("unit_army_offense_add", Unit),
     ("unit_army_offense_mult", Unit),
+    ("unit_convoy_defense_mult", Unit),
+    ("unit_convoy_raiding_interception_mult", Unit),
     ("unit_convoy_raiding_mult", Unit),
     ("unit_convoy_requirements_mult", Unit),
     ("unit_defense_add", Unit),
@@ -497,4 +506,32 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("unit_provinces_lost_mult", Unit),
     ("unit_recovery_rate_add", Unit),
     ("unit_supply_consumption_mult", Unit),
+];
+
+const MODIF_REMOVED: &[(&str, &str)] = &[
+    ("technology_invention_cost_mult", "replaced in 1.4.0 with country_tech_research_speed_mult"),
+    (
+        "country_production_tech_cost_mult",
+        "replaced in 1.4.0 with country_production_tech_research_speed_mult",
+    ),
+    (
+        "country_production_weekly_innovation_mult",
+        "replaced in 1.4.0 with country_production_tech_research_speed_mult",
+    ),
+    (
+        "country_military_tech_cost_mult",
+        "replaced in 1.4.0 with country_military_tech_research_speed_mult",
+    ),
+    (
+        "country_military_weekly_innovation_mult",
+        "replaced in 1.4.0 with country_military_tech_research_speed_mult",
+    ),
+    (
+        "country_society_tech_cost_mult",
+        "replaced in 1.4.0 with country_society_tech_research_speed_mult",
+    ),
+    (
+        "country_society_weekly_innovation_mult",
+        "replaced in 1.4.0 with country_society_tech_research_speed_mult",
+    ),
 ];

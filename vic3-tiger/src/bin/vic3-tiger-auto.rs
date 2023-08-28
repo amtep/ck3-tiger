@@ -43,8 +43,8 @@ fn inner_main() -> Result<()> {
         eprintln!("Failed to enable ANSI support for Windows10 users. Continuing anyway.")
     });
 
-    // LAST UPDATED VIC3 VERSION 1.3.6
-    eprintln!("This validator was made for Victoria 3 version 1.3.6 (Thé à la menthe).");
+    // LAST UPDATED VIC3 VERSION 1.4.0
+    eprintln!("This validator was made for Victoria 3 version 1.4.0 (Irish Breakfast).");
     eprintln!("If you are using a newer version of Victoria 3, it may be inaccurate.");
     eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
 
