@@ -44,7 +44,7 @@ include!("imperator/tables/include/datatypes.rs");
 /// collisions. This is because the list of generic datatypes is only a small selection; there are
 /// many more datatypes that are in effect generic but separating them out would be pointless work.
 /// (Separating them out would be made harder because the lists of variants are generated from the docs).
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 #[allow(non_camel_case_types)]
 pub enum Datatype {
     // Synthetic datatypes for our typechecking
@@ -236,7 +236,7 @@ impl CodeChain {
 /// [`Arg`] is the counterpart to [`CodeArg`]. Where `CodeArg` represents an actual argument given
 /// in a codechain string, the `Arg` represents what kind of argument is expected by a promote or
 /// function.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Arg {
     /// The argument is expected to be a code chain whose final function returns this [`Datatype`],
     /// or a literal that is encoded to be of the expected type.
@@ -247,15 +247,12 @@ pub enum Arg {
 }
 
 /// [`Args`] is the list of arguments expected by a given promote or function. The actual arguments
-/// from a [`Code`] can be checked against this.
-#[derive(Copy, Clone, Debug)]
-pub struct Args(pub &'static [Arg]);
-
-impl Args {
-    /// Convenience function returning the number of arguments expected.
-    pub fn nargs(self) -> usize {
-        self.0.len()
-    }
+/// from a [`Code`] can be checked against this. The special value `Args::Unknown` means that all
+/// arguments are accepted.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum Args {
+    Unknown,
+    Args(&'static [Arg]),
 }
 
 /// Result from looking up a name in the promotes or functions tables.
@@ -393,7 +390,7 @@ pub fn validate_datatypes(
         let code = &codes[i];
         let is_first = i == 0;
         let is_last = i == codes.len() - 1;
-        let mut args = Args(&[]);
+        let mut args = Args::Args(&[]);
         let mut rtype = Datatype::Unknown;
 
         if code.name.is("") {
@@ -500,7 +497,7 @@ pub fn validate_datatypes(
             && data.item_exists(Item::Country, code.name.as_str())
         {
             found = true;
-            args = Args(&[]);
+            args = Args::Args(&[]);
             rtype = Datatype::Vic3(Vic3Datatype::Country);
         }
 
@@ -519,7 +516,7 @@ pub fn validate_datatypes(
             } else {
                 data.verify_exists(Item::GameConcept, &code.name);
             }
-            args = Args(&[]);
+            args = Args::Args(&[]);
             rtype = Datatype::CString;
         }
 
@@ -551,7 +548,7 @@ pub fn validate_datatypes(
             }
 
             found = true;
-            args = Args(&[]);
+            args = Args::Args(&[]);
             rtype = Datatype::CString;
         }
 
@@ -561,7 +558,7 @@ pub fn validate_datatypes(
         if !found && is_first {
             if let Some(scopes) = sc.is_name_defined(code.name.as_str()) {
                 found = true;
-                args = Args(&[]);
+                args = Args::Args(&[]);
                 rtype = datatype_from_scopes(scopes);
             }
         }
@@ -577,7 +574,7 @@ pub fn validate_datatypes(
             && (first_char.is_lowercase() || first_char.is_ascii_digit())
         {
             found = true;
-            args = Args(&[]);
+            args = Args::Args(&[]);
             // TODO: this could in theory be reduced to just the scope types.
             // That would be valuable for checks because it will find
             // the common mistake of using .Var directly after one.
@@ -601,16 +598,18 @@ pub fn validate_datatypes(
             return;
         }
 
-        // Imperator input arguments are hard to determine, so we don't do any checks for most imperator args but still allow some to be specified.
-        if args.nargs() != code.arguments.len() && !(Game::is_imperator() && args.nargs() == 0) {
-            let msg = format!(
-                "{} takes {} arguments but was given {} here",
-                code.name,
-                args.nargs(),
-                code.arguments.len()
-            );
-            warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
-            return;
+        // This `if let` skips this check if args is `Args::Unknown`
+        if let Args::Args(a) = args {
+            if a.len() != code.arguments.len() {
+                let msg = format!(
+                    "{} takes {} arguments but was given {} here",
+                    code.name,
+                    a.len(),
+                    code.arguments.len()
+                );
+                warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
+                return;
+            }
         }
 
         // TODO: validate the Faith customs
@@ -672,19 +671,21 @@ pub fn validate_datatypes(
             }
         }
 
-        for (i, arg) in args.0.iter().enumerate() {
-            // Handle |E that contain a SelectLocalization that chooses between two gameconcepts
-            if code.name.is("SelectLocalization") && i > 0 {
-                if let CodeArg::Chain(chain) = &code.arguments[i] {
-                    if chain.codes.len() == 1
-                        && chain.codes[0].arguments.is_empty()
-                        && data.item_exists(Item::GameConcept, chain.codes[0].name.as_str())
-                    {
-                        continue;
+        if let Args::Args(a) = args {
+            for (i, arg) in a.iter().enumerate() {
+                // Handle |E that contain a SelectLocalization that chooses between two gameconcepts
+                if code.name.is("SelectLocalization") && i > 0 {
+                    if let CodeArg::Chain(chain) = &code.arguments[i] {
+                        if chain.codes.len() == 1
+                            && chain.codes[0].arguments.is_empty()
+                            && data.item_exists(Item::GameConcept, chain.codes[0].name.as_str())
+                        {
+                            continue;
+                        }
                     }
                 }
+                validate_argument(&code.arguments[i], data, sc, *arg, lang, format);
             }
-            validate_argument(&code.arguments[i], data, sc, *arg, lang, format);
         }
 
         curtype = rtype;
@@ -729,7 +730,7 @@ fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
 
     // Datatypes can be used directly as global promotes, taking their value from the gui context.
     if let Ok(dtype) = Datatype::from_str(lookup_name) {
-        return Some((Args(&[]), dtype));
+        return Some((Args::Args(&[]), dtype));
     }
 
     None
@@ -769,8 +770,13 @@ fn lookup_promote_or_function(
             if possible_rtype.is_none() {
                 possible_args = Some(*args);
                 possible_rtype = Some(*rtype);
-            } else if possible_rtype != Some(*rtype) {
-                possible_rtype = Some(Datatype::Unknown);
+            } else {
+                if possible_rtype != Some(*rtype) {
+                    possible_rtype = Some(Datatype::Unknown);
+                }
+                if possible_args != Some(*args) {
+                    possible_args = Some(Args::Unknown);
+                }
             }
         } else if ltype == *intype {
             return LookupResult::Found(*args, *rtype);
@@ -781,6 +787,7 @@ fn lookup_promote_or_function(
         if ltype == Datatype::Unknown {
             LookupResult::Found(possible_args.unwrap(), possible_rtype.unwrap())
         } else {
+            // If it was the right type, it would already have bee returned as `Found`, above.
             LookupResult::WrongType
         }
     } else {

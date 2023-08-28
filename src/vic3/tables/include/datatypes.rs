@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Display, EnumString)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Display, EnumString)]
 pub enum Vic3Datatype {
     AIAttitude,
     AIStrategy,

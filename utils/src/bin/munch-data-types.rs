@@ -93,7 +93,7 @@ const GENERIC_TYPES: &[&str] = &[
 
 fn write_types(mut types: HashSet<String>, fname: PathBuf, game: Game) -> Result<()> {
     let mut outf = File::create(fname)?;
-    writeln!(outf, "#[derive(Copy, Clone, Debug, Eq, PartialEq, Display, EnumString)]")?;
+    writeln!(outf, "#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Display, EnumString)]")?;
     writeln!(outf, "pub enum {game}Datatype {{")?;
     let mut types: Vec<_> = types.drain().collect();
     types.sort();
@@ -121,7 +121,7 @@ impl Global {
     fn print<F: Write>(&self, outf: &mut F) -> Result<()> {
         writeln!(
             outf,
-            "    (\"{}\", Args(&[{}]), {}),",
+            "    (\"{}\", Args::Args(&[{}]), {}),",
             self.name,
             self.args.join(", "),
             self.rtype
@@ -137,7 +137,7 @@ fn load_globals(fname: PathBuf, game: Game) -> Result<HashMap<String, Global>> {
         if let Some((middle, _)) = middle.rsplit_once(']') {
             for line in middle.lines() {
                 let line = line.strip_prefix("    (\"").context("parse error1")?;
-                let (name, line) = line.split_once("\", Args(&[").context("parse error2")?;
+                let (name, line) = line.split_once("\", Args::Args(&[").context("parse error2")?;
                 let line = line.strip_suffix("),").context("parse error3")?;
                 let (line, rtype) = line.rsplit_once("]), ").context("parse error4")?;
                 let args: Vec<_> = if line.is_empty() {
@@ -201,7 +201,7 @@ impl NonGlobal {
     fn print<F: Write>(&self, outf: &mut F) -> Result<()> {
         writeln!(
             outf,
-            "    (\"{}\", {}, Args(&[{}]), {}),",
+            "    (\"{}\", {}, Args::Args(&[{}]), {}),",
             self.name,
             self.dtype,
             self.args.join(", "),
@@ -219,7 +219,7 @@ fn load_nonglobals(fname: PathBuf, game: Game) -> Result<HashMap<String, NonGlob
             for line in middle.lines() {
                 let line = line.strip_prefix("    (\"").context("parse error1")?;
                 let (name, line) = line.split_once("\", ").context("parse error2")?;
-                let (dtype, line) = line.split_once(", Args(&[").context("parse error2b")?;
+                let (dtype, line) = line.split_once(", Args::Args(&[").context("parse error2b")?;
                 let line = line.strip_suffix("),").context("parse error3")?;
                 let (line, rtype) = line.rsplit_once("]), ").context("parse error4")?;
                 let mut dtype = remove_game_wrapper(dtype);
