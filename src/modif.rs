@@ -33,20 +33,19 @@ bitflags! {
     #[rustfmt::skip] // table looks better with cfg on same line
     pub struct ModifKinds: u16 {
         // ModifKinds used by more than one game
+        const Character = 0x0001;
         #[cfg(any(feature = "vic3", feature = "imperator"))]
-        const NoneModifKind = 0x0001;
-        const Character = 0x0002;
+        const Country = 0x0002;
         #[cfg(any(feature = "vic3", feature = "imperator"))]
-        const Country = 0x0004;
-        #[cfg(any(feature = "vic3", feature = "imperator"))]
-        const State = 0x0008;
+        const State = 0x0004;
+        #[cfg(any(feature = "ck3", feature = "imperator"))]
+        const Province = 0x0008;
 
-        #[cfg(feature = "ck3")] const Province = 0x0010;
-        #[cfg(feature = "ck3")] const County = 0x0020;
-        #[cfg(feature = "ck3")] const Terrain = 0x0040;
-        #[cfg(feature = "ck3")] const Culture = 0x0080;
-        #[cfg(feature = "ck3")] const Scheme = 0x0100;
-        #[cfg(feature = "ck3")] const TravelPlan = 0x0200;
+        #[cfg(feature = "ck3")] const County = 0x0010;
+        #[cfg(feature = "ck3")] const Terrain = 0x0020;
+        #[cfg(feature = "ck3")] const Culture = 0x0040;
+        #[cfg(feature = "ck3")] const Scheme = 0x0080;
+        #[cfg(feature = "ck3")] const TravelPlan = 0x0100;
 
         #[cfg(feature = "vic3")] const Battle = 0x0010;
         #[cfg(feature = "vic3")] const Building = 0x0020;
@@ -57,8 +56,6 @@ bitflags! {
         #[cfg(feature = "vic3")] const Tariff = 0x0400;
         #[cfg(feature = "vic3")] const Tax = 0x0800;
         #[cfg(feature = "vic3")] const Unit = 0x1000;
-
-        #[cfg(feature = "imperator")] const Province = 0x0010;
     }
 }
 

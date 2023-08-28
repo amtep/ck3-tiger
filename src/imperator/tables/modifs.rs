@@ -125,7 +125,6 @@ fn maybe_warn(itype: Item, s: &str, name: &Token, data: &Everything, warn: Optio
 }
 
 // Redeclare the `ModifKinds` enums as bare numbers, so that we can do | on them in const tables.
-const NoneModifKind: u16 = ModifKinds::NoneModifKind.bits();
 const Character: u16 = ModifKinds::Character.bits();
 const Country: u16 = ModifKinds::Country.bits();
 const Province: u16 = ModifKinds::Province.bits();

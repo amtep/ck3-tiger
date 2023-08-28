@@ -4,9 +4,6 @@ use crate::modif::ModifKinds;
 
 pub fn display_fmt(mk: ModifKinds, f: &mut Formatter) -> Result<(), std::fmt::Error> {
     let mut vec = Vec::new();
-    if mk.contains(ModifKinds::NoneModifKind) {
-        vec.push("none");
-    }
     if mk.contains(ModifKinds::Battle) {
         vec.push("battle");
     }
