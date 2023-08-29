@@ -3,7 +3,7 @@
 use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 
 use fnv::{FnvHashMap, FnvHashSet};
 use rayon::scope;
@@ -25,7 +25,7 @@ use crate::report::{
     Severity,
 };
 use crate::scopes::Scopes;
-use crate::token::Token;
+use crate::token::{Loc, Token};
 
 /// Database of all loaded localization keys and their values, for all supported languages.
 #[derive(Debug)]
@@ -157,10 +157,11 @@ impl LocaEntry {
     // returns false to abort expansion in case of an error
     fn expand_macros<'a>(
         &'a self,
-        vec: &mut Vec<&'a Token>,
+        vec: &mut Vec<Token>,
         from: &'a FnvHashMap<String, LocaEntry>,
         count: &mut usize,
         used: &mut FnvHashSet<String>,
+        link: Option<&Arc<Loc>>,
     ) -> bool {
         // Are we (probably) stuck in a macro loop?
         if *count > 250 {
@@ -171,11 +172,17 @@ impl LocaEntry {
         if let LocaValue::Macro(v) = &self.value {
             for macrovalue in v {
                 match macrovalue {
-                    MacroValue::Text(ref token) => vec.push(token),
+                    MacroValue::Text(ref token) => vec.push(token.clone().linked(link.cloned())),
                     MacroValue::Keyword(k, _) => {
                         used.insert(k.to_string());
                         if let Some(entry) = from.get(k.as_str()) {
-                            if !entry.expand_macros(vec, from, count, used) {
+                            if !entry.expand_macros(
+                                vec,
+                                from,
+                                count,
+                                used,
+                                Some(&Arc::new(k.loc.clone())),
+                            ) {
                                 return false;
                             }
                         } else {
@@ -186,7 +193,7 @@ impl LocaEntry {
             }
             true
         } else if let Some(orig) = &self.orig {
-            vec.push(orig);
+            vec.push(orig.clone().linked(link.cloned()));
             true
         } else {
             false
@@ -676,7 +683,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
 
     /// Do checks that can only be done after having all of the loca values
     fn finalize(&mut self) {
-        // Does every macro use refer to a defined key?
+        // Check that every macro use refers to a defined key.
         // First build the list of builtin macros by just checking which ones vanilla uses.
         // TODO: scan the character interactions, which can also define macros
         let mut builtins = FnvHashSet::default();
@@ -723,14 +730,16 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
             for entry in lang.values_mut() {
                 if matches!(entry.value, LocaValue::Macro(_)) {
                     let mut count = 0;
-                    let mut new_line: Vec<&Token> = Vec::new();
+                    let mut new_line: Vec<Token> = Vec::new();
                     if entry.expand_macros(
                         &mut new_line,
                         &orig_lang,
                         &mut count,
                         &mut self.keys_used.write().unwrap(),
+                        None,
                     ) {
-                        let mut value = ValueParser::new(new_line).parse_value();
+                        let new_line_as_ref = new_line.iter().collect();
+                        let mut value = ValueParser::new(new_line_as_ref).parse_value();
                         entry.value = if value.len() == 1 {
                             std::mem::take(&mut value[0])
                         } else {

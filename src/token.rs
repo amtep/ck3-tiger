@@ -309,6 +309,12 @@ impl Token {
     pub fn is_date(&self) -> bool {
         self.s.parse::<Date>().is_ok()
     }
+
+    #[must_use]
+    pub fn linked(mut self, link: Option<Arc<Loc>>) -> Self {
+        self.loc.link = link;
+        self
+    }
 }
 
 /// Tokens are compared for equality regardless of their loc.

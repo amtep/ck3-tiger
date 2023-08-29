@@ -422,9 +422,7 @@ impl Block {
             for part in source {
                 odd = !odd;
                 if odd {
-                    let mut part = part.clone();
-                    part.loc.link = Some(link.clone());
-                    content.push(part);
+                    content.push(part.clone().linked(Some(link.clone())));
                 } else {
                     for (arg, val) in args {
                         if part.is(arg) {
