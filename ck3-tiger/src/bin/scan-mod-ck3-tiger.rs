@@ -24,8 +24,8 @@ struct Cli {
 fn main() -> Result<()> {
     let mut args = Cli::parse();
 
-    // LAST UPDATED VERSION 1.9.2.1
-    eprintln!("This scanner was made for Crusader Kings version 1.9.2.1 (Lance).");
+    // LAST UPDATED VERSION 1.10.1
+    eprintln!("This scanner was made for Crusader Kings version 1.10.1 (Quill).");
     eprintln!("If you are using a newer version of Crusader Kings, it may be inaccurate.");
     eprintln!("The scanner does not find 100% of types of items in the mod.");
 
