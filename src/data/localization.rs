@@ -430,6 +430,7 @@ impl Localization {
                         // TODO "ai_personality" => data.verify_exists(Item::AiPersonality, token),
                         "accolade_type" => data.verify_exists(Item::AccoladeType, token),
                         "travel_option" => data.verify_exists(Item::TravelOption, token),
+                        "game_concept" => data.verify_exists(Item::GameConcept, token),
                         _ => {
                             // TODO: should this be validated with validate_localization_sc ? (remember to avoid infinite loops)
                             data.localization.verify_exists_lang(token, lang);
