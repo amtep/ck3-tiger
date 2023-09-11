@@ -202,9 +202,19 @@ impl Event {
         }
         vd.field_item("picture", Item::EventPicture);
 
-        // TODO - there can be up to 3 left_portrait and 3 right_portrait fields in an event, not sure how to do this
-        vd.field_target("left_portrait", &mut sc, Scopes::Character);
-        vd.field_target("right_portrait", &mut sc, Scopes::Character);
+        for field in &["left_portrait", "right_portrait"] {
+            let mut count = 0;
+            vd.multi_field_validated_key_block(field, |key, block, data| {
+                count += 1;
+                let mut vd = Validator::new(block, data);
+                vd.field_target(field, &mut sc, Scopes::Character);
+                if count >= 4 {
+                    let msg = "Event has more than 3 left_portrait or right_portrait attributes";
+                    let info = "Events can only have up to 3 portraits displayed at a time.";
+                    warn_info(&self.key, ErrorKey::Bugs, msg, info);
+                }
+            });
+        }
 
         vd.field_validated_block_sc("weight_multiplier", &mut sc, validate_modifiers_with_base);
 

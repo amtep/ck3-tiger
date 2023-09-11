@@ -23,7 +23,7 @@ impl DbKind for DeityCategory {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        let loca = format!("{key}").to_uppercase();
+        let loca = key.as_str().to_uppercase();
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.field_item("icon", Item::File);

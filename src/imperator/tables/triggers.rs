@@ -527,17 +527,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("name", UncheckedValue), ("value", CompareValue)]),
     ),
     (Scopes::None, "has_agenda", UncheckedValue),
-    (
-        Scopes::None,
-        "has_dlc",
-        Choice(&[
-            "Heirs of Alexander",
-            "Epirus Flavor Pack",
-            "Magna Graecia",
-            "The Punic Wars",
-            "Hellenistic World Flavor Pack",
-        ]),
-    ),
+    (Scopes::None, "has_dlc", Item(Item::Dlc)),
     (Scopes::None, "has_global_variable", UncheckedValue),
     (Scopes::None, "has_global_variable_list", UncheckedValue),
     (Scopes::None, "has_local_variable", UncheckedValue),

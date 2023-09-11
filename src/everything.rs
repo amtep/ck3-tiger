@@ -581,7 +581,6 @@ impl Everything {
     fn item_exists_imperator(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Dlc => DLC_IMPERATOR.contains(&key),
-            Item::DlcFeature => DLC_FEATURES_IMPERATOR.contains(&key),
             Item::Sound => {
                 if let Some(filename) = key.strip_prefix("file://") {
                     self.fileset.exists(filename)

@@ -1,14 +1,11 @@
-use crate::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::context::ScopeContext;
-use crate::item::{Item, ItemLoader};
 use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::token::Token;
-use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_color;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CultureGroup {}
@@ -19,6 +16,11 @@ inventory::submit! {
 
 impl CultureGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        if let Some(block) = block.get_field_block("culture") {
+            for (culture, block) in block.iter_definitions() {
+                db.add(Item::Culture, culture.clone(), block.clone(), Box::new(Culture {}));
+            }
+        }
         db.add(Item::CultureGroup, key, block, Box::new(Self {}));
     }
 }
@@ -54,9 +56,34 @@ impl DbKind for CultureGroup {
         vd.field_list("family");
         vd.field_list("barbarian_names");
 
-        // TODO - How do I do the Culture item here? cultures are defined inside of the CultureGroup item...
+        vd.field_validated_block("culture", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_block_fields(|_, _| ()); // validated by Culture class
+        });
 
         // TODO - Not sure what to do with ethnicities...
-        vd.field_block("ethnicities")
+        vd.field_block("ethnicities");
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Culture {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Imperator, Item::Culture, Culture::add)
+}
+
+impl Culture {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::Culture, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for Culture {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+        vd.field_item("levy_template", Item::LevyTemplate);
     }
 }
