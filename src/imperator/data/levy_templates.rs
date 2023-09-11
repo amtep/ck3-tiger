@@ -1,12 +1,10 @@
-use crate::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::context::ScopeContext;
-use crate::item::{Item, ItemLoader};
 use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::token::Token;
-use crate::tooltipped::Tooltipped;
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct LevyTemplate {}
@@ -17,7 +15,7 @@ inventory::submit! {
 
 impl LevyTemplate {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::AiPlanGoals, key, block, Box::new(Self {}));
+        db.add(Item::LevyTemplate, key, block, Box::new(Self {}));
     }
 }
 
@@ -26,10 +24,12 @@ impl DbKind for LevyTemplate {
         let mut vd = Validator::new(block, data);
 
         vd.unknown_block_fields(|key, block| {
-            vd.field_bool("default");
             let mut vd = Validator::new(block, data);
+
+            vd.field_bool("default");
             vd.unknown_value_fields(|_, value| {
-                data.verify_exists(Item::UnitType, value);
+                data.verify_exists(Item::UnitType, key);
+                value.expect_number();
             });
         });
     }

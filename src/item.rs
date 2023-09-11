@@ -80,6 +80,7 @@ pub enum Item {
     GuiLayer,
     GuiTemplate,
     GuiType,
+    LawGroup,
     Localization,
     MapEnvironment,
     MapMode,
@@ -124,8 +125,6 @@ pub enum Item {
     EventTheme,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
     Law,
-    #[cfg(any(feature = "ck3", feature = "vic3"))]
-    LawGroup,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     Message,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
@@ -991,6 +990,8 @@ impl Item {
             Item::Ambition => "common/ambitions/",
             #[cfg(feature = "imperator")]
             Item::Area => "map_data/areas.txt",
+            #[cfg(feature = "imperator")]
+            Item::CombatTactic => "common/combat_tactics/",
             #[cfg(feature = "imperator")]
             Item::CultureGroup => "common/cultures/",
             #[cfg(feature = "imperator")]
