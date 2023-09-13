@@ -27,8 +27,8 @@ impl DbKind for LevyTemplate {
             let mut vd = Validator::new(block, data);
 
             vd.field_bool("default");
-            vd.unknown_value_fields(|_, value| {
-                data.verify_exists(Item::UnitType, key);
+            vd.unknown_value_fields(|key, value| {
+                data.verify_exists(Item::Unit, key);
                 value.expect_number();
             });
         });

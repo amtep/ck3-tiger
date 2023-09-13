@@ -150,7 +150,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "set_country_heritage", Item(Item::Heritage)),
     (Scopes::Country, "set_country_religion", Scope(Scopes::Religion)),
     (Scopes::Country, "set_gender_equality", Boolean),
-    (Scopes::Country, "set_graphical_culture", Item(Item::Ethnicity)),
+    (Scopes::Country, "set_graphical_culture", Item(Item::GraphicalCultureType)),
     (Scopes::Country, "set_ignore_senate_approval", Boolean),
     (Scopes::Country, "set_legion_recruitment", Choice(&["enabled", "disabled", "capital"])),
     (Scopes::Country, "set_primary_culture", Item(Item::Culture)),

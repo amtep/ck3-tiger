@@ -58,16 +58,6 @@ impl DbKind for MilitaryTraditionTree {
 #[derive(Clone, Debug)]
 pub struct MilitaryTradition {}
 
-inventory::submit! {
-    ItemLoader::Normal(GameFlags::Imperator, Item::MilitaryTradition, MilitaryTradition::add)
-}
-
-impl MilitaryTradition {
-    pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::MilitaryTradition, key, block, Box::new(Self {}));
-    }
-}
-
 impl DbKind for MilitaryTradition {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
@@ -81,9 +71,7 @@ impl DbKind for MilitaryTradition {
         vd.field_item("enable_tactic", Item::CombatTactic);
         vd.field_item("enable_ability", Item::UnitAbility);
 
-        vd.field_validated_block("requires", |b, data| {
-            data.verify_exists(Item::MilitaryTradition, key);
-        });
+        vd.field_list_items("requires", Item::MilitaryTradition);
 
         vd.field_validated_block("potential", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);

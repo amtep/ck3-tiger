@@ -37,6 +37,12 @@ impl DbKind for Decision {
         vd.field_validated_block("potential", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
+        vd.field_validated_block("highlight", |b, data| {
+            let mut vd = Validator::new(b, data);
+            let mut sc = ScopeContext::new(Scopes::Province, key);
+            // scope:province is optional in highlight blocks so we need to pick up a new scope context here
+            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
+        });
         vd.field_validated_block("allow", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::Yes);
         });

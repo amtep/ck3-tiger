@@ -13,22 +13,22 @@ use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct MissionTree {}
+pub struct Mission {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Imperator, Item::MissionTree, MissionTree::add)
+    ItemLoader::Normal(GameFlags::Imperator, Item::Mission, Mission::add)
 }
 
-impl MissionTree {
+impl Mission {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, block) in block.iter_definitions() {
             db.add(Item::MissionTask, key.clone(), block.clone(), Box::new(MissionTask {}));
         }
-        db.add(Item::MissionTree, key, block, Box::new(Self {}));
+        db.add(Item::Mission, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for MissionTree {
+impl DbKind for Mission {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Country, key);
@@ -78,16 +78,6 @@ impl DbKind for MissionTree {
 #[derive(Clone, Debug)]
 pub struct MissionTask {}
 
-inventory::submit! {
-    ItemLoader::Normal(GameFlags::Imperator, Item::MissionTask, MissionTask::add)
-}
-
-impl MissionTask {
-    pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::MissionTask, key, block, Box::new(Self {}));
-    }
-}
-
 impl DbKind for MissionTask {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
@@ -102,21 +92,14 @@ impl DbKind for MissionTask {
         vd.field_item("monthly_on_action", Item::OnAction);
         vd.field_bool("final");
 
-        vd.field_validated_block("requires", |b, data| {
-            data.verify_exists(Item::MissionTask, key);
-        });
+        vd.field_list_items("requires", Item::MissionTask);
+        vd.field_list_items("prevented_by", Item::MissionTask);
 
-        vd.field_validated_block("prevented_by", |b, data| {
-            data.verify_exists(Item::MissionTask, key);
-        });
-
-        // TODO - there is a better way to do this, scope:province just has to be present inside of the highlight block AND inside scope:province context is province
         vd.field_validated_block("highlight", |b, data| {
             let mut vd = Validator::new(b, data);
-            vd.field_validated_block("scope:province", |b, data| {
-                let mut sc = ScopeContext::new(Scopes::Province, key);
-                validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-            });
+            let mut sc = ScopeContext::new(Scopes::Province, key);
+            // scope:province is optional in highlight blocks so we need to pick up a new scope context here
+            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
         });
 
         vd.field_validated_block("potential", |b, data| {

@@ -204,14 +204,13 @@ impl Event {
 
         for field in &["left_portrait", "right_portrait"] {
             let mut count = 0;
-            vd.multi_field_validated_key_block(field, |key, block, data| {
+            vd.multi_field_validated_value(field, |_, mut vd| {
                 count += 1;
-                let mut vd = Validator::new(block, data);
                 vd.field_target(field, &mut sc, Scopes::Character);
-                if count >= 4 {
-                    let msg = "Event has more than 3 left_portrait or right_portrait attributes";
+                if count == 4 {
+                    let msg = format!("Event has more than 3 {field} attributes.");
                     let info = "Events can only have up to 3 portraits displayed at a time.";
-                    warn_info(&self.key, ErrorKey::Bugs, msg, info);
+                    warn_info(&self.key, ErrorKey::Validation, &msg, info);
                 }
             });
         }
