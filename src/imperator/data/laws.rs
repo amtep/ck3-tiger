@@ -47,17 +47,6 @@ impl DbKind for LawGroup {
 #[derive(Clone, Debug)]
 pub struct Law {}
 
-// TODO - Check if this actually needs to be submitted, same for the Culture Item
-inventory::submit! {
-    ItemLoader::Normal(GameFlags::Imperator, Item::Law, Law::add)
-}
-
-impl Law {
-    pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::Law, key, block, Box::new(Self {}));
-    }
-}
-
 impl DbKind for Law {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);

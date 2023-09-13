@@ -56,28 +56,19 @@ impl DbKind for CultureGroup {
         vd.field_list("family");
         vd.field_list("barbarian_names");
 
-        vd.field_validated_block("culture", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.unknown_block_fields(|_, _| ()); // validated by Culture class
-        });
+        vd.field_block("culture"); // validated by Culture class
 
-        // TODO - Not sure what to do with ethnicities...
-        vd.field_block("ethnicities");
+        vd.field_validated_block("ethnicities", |block, data| {
+            vd.unknown_value_fields(|key, value| {
+                data.verify_exists(Item::Ethnicity, key);
+                value.expect_number();
+            });
+        });
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct Culture {}
-
-inventory::submit! {
-    ItemLoader::Normal(GameFlags::Imperator, Item::Culture, Culture::add)
-}
-
-impl Culture {
-    pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::Culture, key, block, Box::new(Self {}));
-    }
-}
 
 impl DbKind for Culture {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {

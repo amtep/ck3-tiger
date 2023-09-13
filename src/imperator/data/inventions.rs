@@ -45,16 +45,6 @@ impl DbKind for InventionGroup {
 #[derive(Clone, Debug)]
 pub struct Invention {}
 
-inventory::submit! {
-    ItemLoader::Normal(GameFlags::Imperator, Item::Invention, Invention::add)
-}
-
-impl Invention {
-    pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::Invention, key, block, Box::new(Self {}));
-    }
-}
-
 impl DbKind for Invention {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
@@ -69,13 +59,8 @@ impl DbKind for Invention {
 
         // TODO - check if this is the correct way to validate this:
         // requires = { agressive_expansion_impact_inv_5 }
-        vd.field_validated_block("requires", |b, data| {
-            data.verify_exists(Item::Invention, key);
-        });
-
-        vd.field_validated_block("requires_or", |b, data| {
-            data.verify_exists(Item::Invention, key);
-        });
+        vd.field_list_items("requires", Item::Invention);
+        vd.field_list_items("requires_or", Item::Invention);
 
         vd.field_validated_block("potential", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::Yes);

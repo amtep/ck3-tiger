@@ -32,12 +32,14 @@ impl DbKind for Deity {
 
         data.verify_exists(Item::Localization, key);
         let key_str = key.to_string();
+
         // Slice "deity_" off the front of the key
-        let deity_key = key_str.char_indices().nth(6).map_or(key_str.len(), |(i, _)| i);
-        let loca = format!("omen_{deity_key}");
-        let loca2 = format!("omen_{deity_key}_desc");
-        data.verify_exists_implied(Item::Localization, &loca, key);
-        data.verify_exists_implied(Item::Localization, &loca2, key);
+        if let Some(deity_key) = key_str.strip_prefix("deity_") {
+            let loca = format!("omen_{}", deity_key);
+            let loca2 = format!("omen_{}_desc", deity_key);
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            data.verify_exists_implied(Item::Localization, &loca2, key);
+        }
 
         vd.field_validated_block("trigger", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
