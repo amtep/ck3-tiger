@@ -991,6 +991,8 @@ impl Item {
             #[cfg(feature = "imperator")]
             Item::Area => "map_data/areas.txt",
             #[cfg(feature = "imperator")]
+            Item::Country => "setup/countries/countries.txt",
+            #[cfg(feature = "imperator")]
             Item::CombatTactic => "common/combat_tactics/",
             #[cfg(feature = "imperator")]
             Item::CultureGroup => "common/cultures/",
