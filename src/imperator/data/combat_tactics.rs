@@ -19,7 +19,7 @@ Example:
     <combat_tactic> = 0.20
     <combat_tactic> = -0.1
     <combat_tactic> = -0.1
-    
+
     casualties = 0.1
 
     effective_composition = {
@@ -66,7 +66,7 @@ impl DbKind for CombatTactic {
 
         vd.field_validated_block("effective_composition", |block, data| {
             data.verify_exists(Item::Unit, key);
-            value.expect_number();
+            //value.expect_number();
         });
     }
 }
