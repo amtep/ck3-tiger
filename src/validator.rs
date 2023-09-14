@@ -1071,6 +1071,24 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect this [`Block`] to be a block at least `expect` loose values that are integers.
+    /// So it's of the form `{ 1 2 3 }`.
+    #[cfg(feature = "imperator")]
+    pub fn req_tokens_integers_at_least(&mut self, expect: usize) {
+        self.accepted_tokens = true;
+        let mut found = 0;
+        for token in self.block.iter_values() {
+            if token.expect_integer().is_some() {
+                found += 1;
+            }
+        }
+        if found < expect {
+            let msg = format!("expected {expect} integers");
+            let sev = Severity::Error.at_most(self.max_severity);
+            report(ErrorKey::Validation, sev).msg(msg).loc(self.block).push();
+        }
+    }
+
     /// Expect this [`Block`] to be a block with exactly `expect` loose values that are numeric with up to 5 decimals.
     /// So it's of the form `{ 0.0 0.5 1.0 }`
     pub fn req_tokens_numbers_exactly(&mut self, expect: usize) {

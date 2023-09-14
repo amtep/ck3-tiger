@@ -48,9 +48,6 @@ impl DbKind for SetupMain {
         vd.field_validated_block("trade", |block, data| {
             validate_trade(block, data);
         });
-        vd.field_validated_block("provinces", |block, data| {
-            validate_provinces(block, data);
-        });
         vd.field_validated_block("great_work_manager", |block, data| {
             validate_great_works(block, data);
         });
@@ -81,7 +78,9 @@ impl FileHandler<Block> for SetupMain {
 fn validate_treasures(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.field_validated_block("database", |block, data| {
+        let mut vd = Validator::new(block, data);
         for (_, block) in vd.integer_blocks() {
+            let mut vd = Validator::new(block, data);
             vd.field_item("key", Item::Localization);
             vd.choice(DLC_IMPERATOR);
             vd.field("icon"); // TODO - icon can be any icon declared in "gfx/interface/icons/treasures", how to check that?
@@ -95,9 +94,11 @@ fn validate_treasures(block: &Block, data: &Everything) {
 fn validate_families(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.field_validated_block("families", |block, data| {
+        let mut vd = Validator::new(block, data);
         for (_, block) in vd.integer_blocks() {
+            let mut vd = Validator::new(block, data);
             vd.field_item("key", Item::Localization);
-            vd.field_item("owner", Item::Country); // can be any 3 letter country tag declared in setup
+            vd.field_item("owner", Item::Country); // can be any country tag declared in setup
             vd.field_item("culture", Item::Country);
             vd.field_integer("prestige");
             vd.field_integer("color");
@@ -105,33 +106,190 @@ fn validate_families(block: &Block, data: &Everything) {
     });
 }
 fn validate_diplomacy(block: &Block, data: &Everything) {
-    vd.multi_field_validated_block("dependency", |block, data| {
+    let mut vd = Validator::new(block, data);
+    vd.multi_field_validated_block("defensive_league", |block, data| {
+        let mut vd = Validator::new(block, data);
         vd.multi_field_item("member", Item::Country);
     });
-    for field in &["defensive_league", "dependency", "guarantee", "alliance"] {
-
+    for field in &["dependency", "dependency", "guarantee", "alliance"] {
+        vd.multi_field_validated_block(field, |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("first", Item::Country);
+            vd.field_item("second", Item::Country);
+            if field == "dependency" {
+                vd.field_item("subject_type", Item::SubjectType);
+            }
+        });
     }
-    vd.multi_field_validated_block("defensive_league", |block, data| {
-        vd.field_item("first", Item::Country);
-        vd.field_item("second", Item::Country);
-        vd.field_item("subject_type", Item::SubjectType);
-    });
+    /* 
+    TODO - imperator - This block also has a trade_access section with irregular syntax, not sure how to do this, it has two nested Item::Country basically
+    Example:
+        MAC = {
+            EGY = {
+                trade_access=yes
+            }
+        }
+        EGY = {
+            MAC = {
+                trade_access=yes
+            }
+        }
+    */
 }
 fn validate_provinces(block: &Block, data: &Everything) {
-    // todo
+    let mut vd = Validator::new(block, data);
+
+    for (_, block) in vd.integer_blocks() {
+        let mut vd = Validator::new(block, data);
+        vd.field_validated_block("treasure_slots", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_block("treasures", |block, data| {
+                let mut vd = Validator::new(block, data);
+                vd.req_tokens_integers_at_least(1);
+            });
+        });
+        vd.field_validated_block("modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.multi_field_item("modifier", Item::Modifier);
+            vd.field_bool("always");
+        });
+        vd.field_integer("great_work");
+        vd.unknown_value_fields(|key, value| {
+            data.verify_exists(Item::Building, key);
+            value.expect_number();
+        });
+    }
 }
 fn validate_roads(block: &Block, data: &Everything) {
-    // todo
+    // This is just 2 provinces connected like
+    /*
+        1 = 2
+        100 = 110
+    */
+    let mut vd = Validator::new(block, data);
+
+    vd.unknown_value_fields(|key, value| {
+        value.expect_number();
+    });
 }
 fn validate_countries(block: &Block, data: &Everything) {
-    // todo
+    /*
+        Example:
+        <country> = {
+            family = 0
+            family = 1
+            family = 2
+            government = <government>
+            diplomatic_stance=<diplo stance>
+            primary_culture = <culture>
+            religion = <religion>
+            
+            technology={
+                military_tech={ level=2 progress=0 }
+                civic_tech={ level=2 progress=0 }
+                oratory_tech={ level=2 progress=0 }
+                religious_tech= { level=2 progress=0  }
+            }
+            
+            capital = 1
+            pantheon = {
+            
+            { deity = 1 }
+            { deity = 2 } 
+            { deity = 6 } 
+            { deity = 4 }
+            
+            }
+            is_antagonist = yes
+        
+            treasures = { 201 61 39 }
+        
+            own_control_core =  {
+                1 2 3 4 5 6 7 8 15 16 18 19 20 24 25 26 27 31 37 40 36 39 50
+            }
+            
+            <law_name> = yes
+            #professional_soldiers = yes
+            #organized_recruitment = yes
+        }
+    */
+
+    let mut vd = Validator::new(block, data);
+
+    vd.field_validated_block("countries", |block, data| {
+        let mut vd = Validator::new(block, data);
+
+        vd.validated_blocks(|block, data| {
+            let mut vd = Validator::new(block, data);
+
+            vd.field_item("government", Item::Government);
+            vd.field_item("diplomatic_stance", Item::DiplomaticStance);
+            vd.field_item("religion", Item::Religion);
+            vd.field_item("culture", Item::Culture);
+
+            vd.field_integer("family");
+            vd.field_integer("capital");
+            vd.field_bool("is_antagonist");
+
+            vd.field_validated_block("treasures", |block, data| {
+                let mut vd = Validator::new(block, data);
+                vd.req_tokens_integers_at_least(1);
+            )};
+            vd.field_validated_block("own_control_core", |block, data| {
+                let mut vd = Validator::new(block, data);
+                vd.req_tokens_integers_at_least(1);
+            });
+
+            // TODO - laws, deities, and technology
+        });
+    });
 }
+
 fn validate_trade(block: &Block, data: &Everything) {
-    // todo
+    let mut vd = Validator::new(block, data);
+
+    vd.multi_field_validated_block("route", |block, data| {
+        let mut vd = Validator::new(block, data);
+
+        vd.field_integer("from");
+        vd.field_integer("to");
+        vd.field_item("trade_goods", Item::TradeGood);
+    });
 }
-fn validate_provinces(block: &Block, data: &Everything) {
-    // todo
-}
+
 fn validate_great_works(block: &Block, data: &Everything) {
-    // todo
+    /*
+        Example:
+        1={
+            ancient_wonder = yes
+            key="temple_of_jupiter"
+            great_work_category="building"
+            great_work_state=great_work_state_completed
+            finished_date=450.10.1
+
+            great_work_name={
+                name="wonder_jupiter_temple"
+            }
+            great_work_components={
+                {
+                    great_work_module="wonder_temple_of_jupiter"
+                }
+            }
+
+            great_work_effect_selections={
+                {
+                    great_work_effect="gw_effect_omen_doctrine"
+                    great_work_effect_tier = "gw_effect_tier_4"
+                }
+            }
+        }
+
+        How to match the loose brackets in the great_work_components and great_work_effect_selections blocks???
+    */
+    let mut vd = Validator::new(block, data);
+    vd.field_validated_block("great_works_database", |block, data| {
+        // todo
+        let mut vd = Validator::new(block, data);
+        vd.field_bool("ancient_wonder");
+    });
 }
