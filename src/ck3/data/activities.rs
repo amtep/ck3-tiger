@@ -170,6 +170,7 @@ impl DbKind for ActivityType {
             validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
         });
 
+        vd.field_bool("can_always_plan");
         vd.field_script_value("num_pickable_phases", &mut sc);
         vd.field_script_value("max_pickable_phases_per_province", &mut sc);
         vd.field_validated_block_sc("wait_time_before_start", &mut sc, validate_duration);
