@@ -323,7 +323,7 @@ pub fn validate_effect_internal<'a>(
                         );
                     }
                 }
-                #[cfg(feature = "ck3")]
+                #[cfg(any(feature = "ck3", feature = "vic3"))]
                 Effect::Removed(version, explanation) => {
                     let msg = format!("`{key}` was removed in {version}");
                     warn_info(key, ErrorKey::Removed, &msg, explanation);
@@ -612,7 +612,7 @@ pub enum Effect {
     /// The effect is no longer valid; warn if it's still being used.
     /// The first string is the game version number where it was removed and the second string is
     /// an explanation that suggests a different effect to try. The second string may be empty.
-    #[cfg(feature = "ck3")]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     Removed(&'static str, &'static str),
     /// The effect takes a block that will be validated by this function
     Vb(fn(&Token, &Block, &Everything, &mut ScopeContext, Validator, Tooltipped)),

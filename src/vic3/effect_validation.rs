@@ -220,6 +220,8 @@ pub fn validate_diplomatic_pact(
     vd.req_field("type");
     vd.advice_field("tcountry", "documentation says tcountry but it's just country");
     vd.field_item_or_target("country", sc, Item::Country, Scopes::Country);
+    vd.field_item_or_target("first_state", sc, Item::StateRegion, Scopes::State);
+    vd.field_item_or_target("second_state", sc, Item::StateRegion, Scopes::State);
     vd.field_item("type", Item::DiplomaticAction);
 }
 

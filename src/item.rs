@@ -300,6 +300,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] CombatUnit,
     #[cfg(feature = "vic3")] CommanderOrder,
     #[cfg(feature = "vic3")] CommanderRank,
+    #[cfg(feature = "vic3")] CompanyType,
     #[cfg(feature = "vic3")] Country,
     #[cfg(feature = "vic3")] CountryCreation,
     #[cfg(feature = "vic3")] CountryFormation,
@@ -325,6 +326,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] Level,
     #[cfg(feature = "vic3")] MapLayer,
     #[cfg(feature = "vic3")] MediaAlias,
+    #[cfg(feature = "vic3")] MobilizationOption,
     #[cfg(feature = "vic3")] ModifierType,
     #[cfg(feature = "vic3")] Objective,
     #[cfg(feature = "vic3")] ObjectiveSubgoal,
@@ -913,6 +915,8 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::CommanderRank => "common/commander_ranks/",
             #[cfg(feature = "vic3")]
+            Item::CompanyType => "common/company_types/",
+            #[cfg(feature = "vic3")]
             Item::Country => "common/country_definitions/",
             #[cfg(feature = "vic3")]
             Item::CountryCreation => "common/country_creation/",
@@ -962,6 +966,8 @@ impl Item {
             Item::MapLayer => "gfx/map/map_object_data/layers.txt",
             #[cfg(feature = "vic3")]
             Item::MediaAlias => "gfx/media_aliases/",
+            #[cfg(feature = "vic3")]
+            Item::MobilizationOption => "common/mobilization_options/",
             #[cfg(feature = "vic3")]
             Item::ModifierType => "common/modifier_types/",
             #[cfg(feature = "vic3")]

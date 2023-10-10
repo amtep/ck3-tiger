@@ -84,20 +84,20 @@ fn build_on_action_hashmap(description: &'static str) -> FnvHashMap<String, OnAc
             }
             BV::Block(block) => {
                 let root = block.get_field_value("root").expect("internal error");
-                let root = Scopes::from_snake_case(root.as_str()).expect("internal error");
+                let root = Scopes::from_snake_case_multi(root.as_str()).expect("internal error");
                 let mut value = OnActionScopeContext { root, names: Vec::new(), lists: Vec::new() };
                 for (key, token) in block.iter_assignments() {
                     if key.is("root") {
                         continue;
                     }
-                    let s = Scopes::from_snake_case(token.as_str()).expect("internal error");
+                    let s = Scopes::from_snake_case_multi(token.as_str()).expect("internal error");
                     value.names.push((key.to_string(), s));
                 }
                 for (key, block) in block.iter_definitions() {
                     if key.is("list") {
                         for (key, token) in block.iter_assignments() {
-                            let s =
-                                Scopes::from_snake_case(token.as_str()).expect("internal error");
+                            let s = Scopes::from_snake_case_multi(token.as_str())
+                                .expect("internal error");
                             value.lists.push((key.to_string(), s));
                         }
                     }

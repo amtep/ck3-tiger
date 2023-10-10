@@ -49,13 +49,14 @@ bitflags! {
 
         #[cfg(feature = "vic3")] const Battle = 0x0010;
         #[cfg(feature = "vic3")] const Building = 0x0020;
-        #[cfg(feature = "vic3")] const Front = 0x0040;
-        #[cfg(feature = "vic3")] const InterestGroup = 0x0080;
-        #[cfg(feature = "vic3")] const Market = 0x0100;
-        #[cfg(feature = "vic3")] const PoliticalMovement = 0x0200;
-        #[cfg(feature = "vic3")] const Tariff = 0x0400;
-        #[cfg(feature = "vic3")] const Tax = 0x0800;
-        #[cfg(feature = "vic3")] const Unit = 0x1000;
+        #[cfg(feature = "vic3")] const InterestGroup = 0x0040;
+        #[cfg(feature = "vic3")] const Market = 0x0080;
+        #[cfg(feature = "vic3")] const PoliticalMovement = 0x0100;
+        #[cfg(feature = "vic3")] const Tariff = 0x0200;
+        #[cfg(feature = "vic3")] const Tax = 0x0400;
+        #[cfg(feature = "vic3")] const Unit = 0x0800;
+        #[cfg(feature = "vic3")] const Goods = 0x1000;
+        #[cfg(feature = "vic3")] const MilitaryFormation = 0x2000;
     }
 }
 

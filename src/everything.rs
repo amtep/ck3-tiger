@@ -565,7 +565,9 @@ impl Everything {
             Item::Wargoal => WARGOALS.contains(&key),
             Item::CommanderRank
             | Item::CommanderOrder
+            | Item::CompanyType
             | Item::CultureGraphics
+            | Item::MobilizationOption
             | Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
         }
