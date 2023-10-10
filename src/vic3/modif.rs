@@ -16,9 +16,6 @@ pub fn display_fmt(mk: ModifKinds, f: &mut Formatter) -> Result<(), std::fmt::Er
     if mk.contains(ModifKinds::Country) {
         vec.push("country");
     }
-    if mk.contains(ModifKinds::Front) {
-        vec.push("front");
-    }
     if mk.contains(ModifKinds::InterestGroup) {
         vec.push("interest group");
     }
@@ -39,6 +36,12 @@ pub fn display_fmt(mk: ModifKinds, f: &mut Formatter) -> Result<(), std::fmt::Er
     }
     if mk.contains(ModifKinds::Unit) {
         vec.push("unit");
+    }
+    if mk.contains(ModifKinds::Goods) {
+        vec.push("goods");
+    }
+    if mk.contains(ModifKinds::MilitaryFormation) {
+        vec.push("military formation");
     }
     write!(f, "{}", vec.join(", "))
 }

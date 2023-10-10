@@ -278,4 +278,36 @@ pub const ON_ACTION_SCOPES: &str = "
 		general = character
 		state = state
 	}
+
+    on_company_established = {
+        root = country
+        company = company
+    }
+    on_company_disbanded = on_company_established
+
+    on_military_formation_created = { root = military_formation }
+
+    on_travel_deploy_to_sea_node_cancelled = {
+        root = military_formation
+        province = province
+        target = hq|province
+    }
+
+    on_travel_track_formation_cancelled = {
+        root = military_formation
+        formation = military_formation
+        target = hq|province
+    }
+
+    on_travel_station_in_hq_cancelled = {
+        root = military_formation
+        hq = hq
+        target = hq|province
+    }
+
+    on_travel_to_front_cancelled = {
+        root = military_formation
+        front = front
+        target = hq|province
+    }
 ";

@@ -21,7 +21,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
                 let msg = format!("{name} has been removed");
                 report(ErrorKey::Removed, sev).msg(msg).info(info).loc(name).push();
             }
-            return None;
+            return Some(ModifKinds::all());
         }
     }
 
@@ -44,8 +44,10 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // building_group_$BuildingGroup$_fertility_mult
     // building_group_$BuildingGroup$_mortality_mult
     // building_group_$BuildingGroup$_standard_of_living_add
-    // building_group_$BuildingGroup$_throughput_mult
+    // building_group_$BuildingGroup$_throughput_mult (obsolete)
+    // building_group_$BuildingGroup$_throughput_add
     // building_group_$BuildingGroup$_tax_mult
+    // building_group_$BuildingGroup$_unincorporated_throughput_add
     if let Some(part) = name.as_str().strip_prefix("building_group_") {
         for sfx in &["_fertility_mult", "_mortality_mult", "_standard_of_living_add"] {
             if let Some(part) = part.strip_suffix(sfx) {
@@ -61,16 +63,37 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
                 return Some(ModifKinds::Building);
             }
         }
-        for sfx in &["_employee_mult", "_tax_mult", "_throughput_mult"] {
+        for sfx in
+            &["_employee_mult", "_tax_mult", "_throughput_add", "_unincorporated_throughput_add"]
+        {
             if let Some(part) = part.strip_suffix(sfx) {
                 maybe_warn(Item::BuildingGroup, part, name, data, warn);
                 return Some(ModifKinds::Building);
             }
         }
+        if let Some(part) = part.strip_suffix("_throughput_mult") {
+            maybe_warn(Item::BuildingGroup, part, name, data, warn);
+            if let Some(sev) = warn {
+                let msg = format!("`{name}` was removed in 1.5");
+                let info = "it was replaced with `_add`";
+                report(ErrorKey::Removed, sev).msg(msg).info(info).loc(name).push();
+            }
+            return Some(ModifKinds::Building);
+        }
     }
 
-    // $BuildingType$_throughput_mult
+    // $BuildingType$_throughput_mult (obsolete)
     if let Some(part) = name.as_str().strip_suffix("_throughput_mult") {
+        maybe_warn(Item::BuildingType, part, name, data, warn);
+        if let Some(sev) = warn {
+            let msg = format!("`{name}` was removed in 1.5");
+            let info = "it was replaced with `_add`";
+            report(ErrorKey::Removed, sev).msg(msg).info(info).loc(name).push();
+        }
+        return Some(ModifKinds::Building);
+    }
+    // $BuildingType$_throughput_add
+    if let Some(part) = name.as_str().strip_suffix("_throughput_add") {
         maybe_warn(Item::BuildingType, part, name, data, warn);
         return Some(ModifKinds::Building);
     }
@@ -88,22 +111,54 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
-    // building_input_$Goods$_add
+    // building_input_$Goods$_add (obsolete)
     if let Some(part) = name.as_str().strip_prefix("building_input_") {
         if let Some(part) = part.strip_suffix("_add") {
             maybe_warn(Item::Goods, part, name, data, warn);
+            if let Some(sev) = warn {
+                let msg = format!("`{name}` was removed in 1.5");
+                let info = format!("replaced with `goods_input_{part}_add`");
+                report(ErrorKey::Removed, sev).msg(msg).info(info).loc(name).push();
+            }
             return Some(ModifKinds::Building);
         }
     }
+    // TODO: the _mult doesn't exist for all goods
+    // goods_input_$Goods$_add
+    // goods_input_$Goods$_mult
+    if let Some(part) = name.as_str().strip_prefix("goods_input_") {
+        for sfx in &["_add", "_mult"] {
+            if let Some(part) = part.strip_suffix(sfx) {
+                maybe_warn(Item::Goods, part, name, data, warn);
+                return Some(ModifKinds::Goods);
+            }
+        }
+    }
 
-    // building_output_$Goods$_add
-    // building_output_$Goods$_mult
+    // building_output_$Goods$_add (obsolete)
+    // building_output_$Goods$_mult (obsolete)
     if let Some(part) = name.as_str().strip_prefix("building_output_") {
         // TODO: some goods don't have the _mult version. Figure out why.
         for sfx in &["_add", "_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
                 maybe_warn(Item::Goods, part, name, data, warn);
+                if let Some(sev) = warn {
+                    let msg = format!("`{name}` was removed in 1.5");
+                    let info = format!("it was replaced with `goods_output_{part}{sfx}`");
+                    report(ErrorKey::Removed, sev).msg(msg).info(info).loc(name).push();
+                }
                 return Some(ModifKinds::Building);
+            }
+        }
+    }
+    // goods_output_$Goods$_add
+    // goods_output_$Goods$_mult
+    if let Some(part) = name.as_str().strip_prefix("goods_output_") {
+        // TODO: some goods don't have the _mult version. Figure out why.
+        for sfx in &["_add", "_mult"] {
+            if let Some(part) = part.strip_suffix(sfx) {
+                maybe_warn(Item::Goods, part, name, data, warn);
+                return Some(ModifKinds::Goods);
             }
         }
     }
@@ -198,6 +253,18 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
+    // TODO: not all of these exist for all unit types
+    // unit_$CombatUnit$_offense_mult
+    // unit_$CombatUnit$_offense_add
+    if let Some(part) = name.as_str().strip_prefix("unit_)") {
+        for sfx in &["_offense_add", "_offense_mult"] {
+            if let Some(part) = part.strip_suffix(sfx) {
+                maybe_warn(Item::CombatUnit, part, name, data, warn);
+                return Some(ModifKinds::Unit);
+            }
+        }
+    }
+
     // TODO: modifiers from terrain labels
 
     None
@@ -218,7 +285,6 @@ const Battle: u16 = ModifKinds::Battle.bits();
 const Building: u16 = ModifKinds::Building.bits();
 const Character: u16 = ModifKinds::Character.bits();
 const Country: u16 = ModifKinds::Country.bits();
-const Front: u16 = ModifKinds::Front.bits();
 const InterestGroup: u16 = ModifKinds::InterestGroup.bits();
 const Market: u16 = ModifKinds::Market.bits();
 const PoliticalMovement: u16 = ModifKinds::PoliticalMovement.bits();
@@ -226,8 +292,10 @@ const State: u16 = ModifKinds::State.bits();
 const Tariff: u16 = ModifKinds::Tariff.bits();
 const Tax: u16 = ModifKinds::Tax.bits();
 const Unit: u16 = ModifKinds::Unit.bits();
+// const Goods: u16 = ModifKinds::Goods.bits();
+const MilitaryFormation: u16 = ModifKinds::MilitaryFormation.bits();
 
-/// LAST UPDATED VIC3 VERSION 1.4.0
+/// LAST UPDATED VIC3 VERSION 1.5.2
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, u16)] = &[
@@ -243,7 +311,7 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("building_subsistence_output_add", Building),
     ("building_subsistence_output_mult", Building),
     ("building_input_mult", Building),
-    ("building_throughput_mult", Building),
+    ("building_throughput_add", Building),
     ("building_throughput_oil_mult", Building),
     ("building_training_rate_add", Building),
     ("building_training_rate_mult", Building),
@@ -251,27 +319,31 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("building_unincorporated_throughput_add", Building),
     ("building_workforce_shares_add", Building),
     ("building_working_conditions_mult", Building),
-    ("character_attrition_risk_add", Character),
-    ("character_attrition_risk_mult", Character),
+    ("character_advancement_speed_add", Character),
+    ("character_command_limit_add", Character),
     ("character_command_limit_combat_unit_conscript_add", Character),
     ("character_command_limit_combat_unit_flotilla_add", Character),
     ("character_command_limit_combat_unit_regular_add", Character),
     ("character_command_limit_mult", Character),
+    ("character_convoy_protection_mult", Character),
+    ("character_convoy_raiding_mult", Character),
     ("character_expedition_events_explorer_mult", Character),
     ("character_health_add", Character),
+    ("character_interception_add", Character),
     ("character_morale_cap_add", Character),
     ("character_popularity_add", Character),
     ("character_supply_route_cost_mult", Character),
     ("country_agitator_slots_add", Country),
+    ("country_all_buildings_protected", Country),
     ("country_allow_multiple_alliances", Country),
-    ("country_army_power_projection_add", Country),
-    ("country_army_power_projection_mult", Country),
     ("country_authority_add", Country),
     ("country_authority_mult", Country),
     ("country_bureaucracy_add", Country),
     ("country_bureaucracy_investment_cost_factor_mult", Country),
     ("country_bureaucracy_mult", Country),
     ("country_cannot_enact_laws", Country),
+    ("country_company_construction_efficiency_bonus_add", Country),
+    ("country_company_throughput_bonus_add", Country),
     ("country_construction_add", Country),
     ("country_consumption_tax_cost_mult", Country),
     ("country_convoys_capacity_add", Country),
@@ -285,7 +357,9 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("country_disallow_migration", Country),
     ("country_expedition_events_explorer_mult", Country),
     ("country_expenses_add", Country),
+    ("country_free_trade_routes_add", Country),
     ("country_gold_reserve_limit_mult", Country),
+    ("country_government_buildings_protected", Country),
     ("country_government_wages_mult", Country),
     ("country_ignores_landing_craft_penalty", Country),
     ("country_improve_relations_speed_mult", Country),
@@ -307,18 +381,21 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("country_loan_interest_rate_mult", Country),
     ("country_loyalists_from_legitimacy_mult", Country),
     ("country_mandate_subsidies", Country),
+    ("country_max_companies_add", Country),
     ("country_max_declared_interests_add", Country),
     ("country_max_declared_interests_mult", Country),
+    ("country_max_weekly_construction_progress_add", Country),
     ("country_military_goods_cost_mult", Country),
     ("country_military_tech_research_speed_mult", Country),
     ("country_military_tech_spread_mult", Country),
     ("country_military_wages_mult", Country),
     ("country_minting_add", Country),
     ("country_minting_mult", Country),
-    ("country_navy_power_projection_add", Country),
-    ("country_navy_power_projection_mult", Country),
+    ("country_must_have_movement_to_enact_laws", Country),
     ("country_opposition_ig_approval_add", Country),
     ("country_prestige_add", Country),
+    ("country_prestige_from_army_power_projection_mult", Country),
+    ("country_prestige_from_navy_power_projection_mult", Country),
     ("country_prestige_mult", Country),
     ("country_private_buildings_protected", Country),
     ("country_private_construction_allocation_mult", Country),
@@ -346,8 +423,6 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("country_tension_decay_mult", Country),
     ("country_trade_route_competitiveness_mult", Country),
     ("country_trade_route_cost_mult", Country),
-    ("country_trade_route_exports_add", Country),
-    ("country_trade_route_imports_add", Country),
     ("country_trade_route_quantity_mult", Country),
     ("country_voting_power_base_add", Country),
     ("country_voting_power_from_literacy_add", Country),
@@ -356,10 +431,6 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("country_weekly_innovation_add", Country),
     ("country_weekly_innovation_max_add", Country),
     ("country_weekly_innovation_mult", Country),
-    ("front_advancement_speed_add", Front),
-    ("front_advancement_speed_mult", Front),
-    ("front_enemy_advancement_speed_add", Front),
-    ("front_enemy_advancement_speed_mult", Front),
     ("interest_group_approval_add", InterestGroup),
     ("interest_group_in_government_approval_add", InterestGroup),
     ("interest_group_in_government_attraction_mult", InterestGroup),
@@ -371,6 +442,14 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("market_land_trade_capacity_add", Market),
     ("market_max_exports_add", Market),
     ("market_max_imports_add", Market),
+    ("military_formation_movement_speed_add", MilitaryFormation),
+    ("military_formation_movement_speed_mult", MilitaryFormation),
+    ("military_formation_mobilization_speed_add", MilitaryFormation),
+    ("military_formation_mobilization_speed_mult", MilitaryFormation),
+    ("military_formation_organization_gain_add", MilitaryFormation),
+    ("military_formation_organization_gain_mult", MilitaryFormation),
+    ("military_formation_attrition_risk_add", MilitaryFormation),
+    ("military_formation_attrition_risk_mult", MilitaryFormation),
     ("political_movement_radicalism_add", PoliticalMovement),
     ("political_movement_radicalism_mult", PoliticalMovement),
     ("political_movement_support_add", PoliticalMovement),
@@ -414,6 +493,7 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("state_migration_pull_unincorporated_mult", State),
     ("state_migration_push_mult", State),
     ("state_minimum_wealth_add", State),
+    ("state_market_access_price_impact", State),
     ("state_mortality_mult", State),
     ("state_mortality_turmoil_mult", State),
     ("state_mortality_wealth_mult", State),
@@ -434,6 +514,7 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("state_radicals_from_sol_change_mult", State),
     ("state_rich_expected_sol", State),
     ("state_rich_standard_of_living_add", State),
+    ("state_slave_import_mult", State),
     ("state_standard_of_living_add", State),
     ("state_tax_capacity_add", State),
     ("state_tax_capacity_mult", State),
@@ -444,6 +525,8 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("state_unincorporated_starting_wages_mult", State),
     ("state_urbanization_add", State),
     ("state_urbanization_mult", State),
+    ("state_urbanization_per_level_add", State),
+    ("state_urbanization_per_level_mult", State),
     ("state_welfare_payments_add", State),
     ("state_working_adult_ratio_add", State),
     ("tariff_export_add", Tariff),
@@ -479,6 +562,7 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("unit_defense_water_mult", Unit),
     ("unit_devastation_mult", Unit),
     ("unit_kill_rate_add", Unit),
+    ("unit_mobilization_speed_mult", Unit),
     ("unit_morale_damage_mult", Unit),
     ("unit_morale_loss_add", Unit),
     ("unit_morale_loss_mult", Unit),
@@ -508,6 +592,7 @@ const MODIF_TABLE: &[(&str, u16)] = &[
 ];
 
 const MODIF_REMOVED: &[(&str, &str)] = &[
+    ("building_throughput_mult", "replaced in 1.5 with building_throughput_add"),
     ("technology_invention_cost_mult", "replaced in 1.4.0 with country_tech_research_speed_mult"),
     (
         "country_production_tech_cost_mult",
@@ -533,4 +618,30 @@ const MODIF_REMOVED: &[(&str, &str)] = &[
         "country_society_weekly_innovation_mult",
         "replaced in 1.4.0 with country_society_tech_research_speed_mult",
     ),
+    ("country_trade_route_exports_add", "removed in 1.5"),
+    ("country_trade_route_imports_add", "removed in 1.5"),
+    (
+        "country_army_power_projection_add",
+        "replaced in 1.5 with country_prestige_from_army_power_projection_mult",
+    ),
+    (
+        "country_army_power_projection_mult",
+        "replaced in 1.5 with country_prestige_from_army_power_projection_mult",
+    ),
+    (
+        "country_navy_power_projection_add",
+        "replaced in 1.5 with country_prestige_from_navy_power_projection_mult",
+    ),
+    (
+        "country_navy_power_projection_mult",
+        "replaced in 1.5 with country_prestige_from_navy_power_projection_mult",
+    ),
+    ("character_attrition_risk_add", "removed in 1.5"),
+    ("character_attrition_risk_mult", "removed in 1.5"),
+    ("character_convoy_protection_add", "replaced in 1.5 with character_country_protection_mult"),
+    ("character_convoy_raiding_add", "replaced in 1.5 with character_country_raiding_mult"),
+    ("front_advancement_speed_add", "removed in 1.5"),
+    ("front_advancement_speed_mult", "removed in 1.5"),
+    ("front_enemy_advancement_speed_add", "removed in 1.5"),
+    ("front_enemy_advancement_speed_mult", "removed in 1.5"),
 ];

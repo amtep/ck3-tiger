@@ -19,7 +19,7 @@ pub fn scope_effect(name: &Token, _data: &Everything) -> Option<(Scopes, Effect)
     std::option::Option::None
 }
 
-// LAST UPDATED VIC3 VERSION 1.4.0
+// LAST UPDATED VIC3 VERSION 1.5.11
 // See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::InterestGroup, "abandon_revolution", Boolean),
@@ -37,6 +37,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::CivilWar, "add_civil_war_progress", ScriptValue),
     (Scopes::StateRegion, "add_claim", Scope(Scopes::Country)),
     (Scopes::Character, "add_commander_rank", Integer),
+    (Scopes::Country, "add_company", Scope(Scopes::CompanyType)),
     (Scopes::Culture, "add_cultural_obsession", Item(Item::Goods)),
     (
         Scopes::State,
@@ -69,7 +70,6 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
         Scopes::Country
             .union(Scopes::Building)
             .union(Scopes::Character)
-            .union(Scopes::Front)
             .union(Scopes::Institution)
             .union(Scopes::InterestGroup)
             .union(Scopes::Journalentry)
@@ -79,6 +79,8 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
         Vbv(validate_add_modifier),
     ),
     (Scopes::Party, "add_momentum", ScriptValue),
+    (Scopes::NewCombatUnit, "add_morale", ScriptValue),
+    (Scopes::MilitaryFormation, "add_organization", ScriptValue), // not used in vanilla
     (Scopes::StateRegion, "add_pollution", Integer),
     (Scopes::Pop, "add_pop_wealth", UncheckedTodo), // no examples in vanilla
     (Scopes::Country, "add_primary_culture", Scope(Scopes::Culture)),
@@ -91,6 +93,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
         Vb(validate_add_religion_sol_modifier),
     ),
     (Scopes::InterestGroup, "add_ruling_interest_group", Boolean),
+    (Scopes::StateRegion, "add_state_trait", Item(Item::StateTrait)),
     (Scopes::DiplomaticPlay, "add_target_backers", Vb(validate_addremove_backers)),
     (Scopes::Country, "add_taxed_goods", Scope(Scopes::Goods)),
     (Scopes::Country, "add_technology_progress", Vb(validate_add_technology_progress)),
@@ -107,10 +110,12 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::War, "add_war_war_support", TargetValue("target", Scopes::Country, "value")),
     (Scopes::Country, "annex", Scope(Scopes::Country)),
     (Scopes::Country, "annex_as_civil_war", Scope(Scopes::Country)),
+    (Scopes::Country, "annex_with_incorporation", Scope(Scopes::Country)),
     (Scopes::None, "assert_if", Unchecked),
     (Scopes::None, "assert_read", Unchecked),
     (Scopes::Country, "call_election", Vb(validate_call_election)),
     (Scopes::Country, "cancel_enactment", Yes),
+    (Scopes::Character, "change_character_culture", Scope(Scopes::Culture)),
     (Scopes::Character, "change_character_religion", Scope(Scopes::Religion)),
     (Scopes::None, "change_global_variable", Vb(validate_change_variable)),
     (Scopes::None, "change_infamy", ScriptValue),
@@ -140,12 +145,16 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "clear_variable_list", Unchecked),
     (Scopes::Country, "complete_objective_subgoal", Item(Item::ObjectiveSubgoal)),
     (Scopes::State, "convert_population", TargetValue("target", Scopes::Religion, "value")),
+    (Scopes::Country, "copy_laws", Scope(Scopes::Country)),
     (Scopes::State, "create_building", UncheckedTodo),
     (Scopes::Country, "create_character", UncheckedTodo),
     (Scopes::None, "create_country", UncheckedTodo),
     (Scopes::Country, "create_diplomatic_pact", Vb(validate_diplomatic_pact)),
     (Scopes::Country, "create_diplomatic_play", UncheckedTodo),
+    (Scopes::None, "create_dynamic_country", UncheckedTodo),
     (Scopes::Country, "create_incident", Vb(validate_country_value)),
+    (Scopes::State, "create_mass_migration", UncheckedTodo),
+    (Scopes::Country, "create_military_formation", UncheckedTodo),
     (Scopes::State, "create_pop", UncheckedTodo),
     (Scopes::StateRegion, "create_state", UncheckedTodo),
     (Scopes::Country, "create_trade_route", UncheckedTodo),
@@ -159,7 +168,8 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "deactivate_parties", Yes),
     (Scopes::None, "debug_log", Unchecked),
     (Scopes::None, "debug_log_scopes", Boolean),
-    (Scopes::Character, "demobilize", Yes),
+    (Scopes::Character, "demobilize", Removed("1.11", "")),
+    (Scopes::MilitaryFormation, "deploy_to_front", Scope(Scopes::Front)),
     (Scopes::Party, "disband_party", Yes),
     (Scopes::Character, "disinherit_character", Yes),
     (Scopes::None, "else", Control),
@@ -170,6 +180,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::State, "force_resource_depletion", Item(Item::BuildingGroup)),
     (Scopes::State, "force_resource_discovery", Item(Item::BuildingGroup)),
     (Scopes::Character, "free_character_from_void", Yes),
+    (Scopes::MilitaryFormation, "fully_mobilize_army", Yes),
     (Scopes::None, "hidden_effect", Control),
     (Scopes::None, "if", Control),
     (Scopes::InterestGroup, "join_revolution", Boolean),
@@ -180,6 +191,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::State, "kill_population_percent_in_state", UncheckedTodo),
     (Scopes::TradeRoute, "lock_trade_route", Timespan),
     (Scopes::Country, "make_independent", Boolean),
+    (Scopes::MilitaryFormation, "mobilize_army", Yes),
     (Scopes::Pop, "move_pop", Scope(Scopes::State)),
     (Scopes::Character, "place_character_in_void", ScriptValue),
     (Scopes::Country, "play_as", Scope(Scopes::Country)),
@@ -195,12 +207,13 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::State, "remove_building", Item(Item::BuildingType)),
     (Scopes::Character, "remove_character_role", Item(Item::CharacterRole)),
     (Scopes::StateRegion, "remove_claim", Scope(Scopes::Country)),
+    (Scopes::Country, "remove_company", Scope(Scopes::CompanyType)),
     (Scopes::Culture, "remove_cultural_obsession", Item(Item::Goods)),
     (Scopes::Country, "remove_diplomatic_pact", Vb(validate_diplomatic_pact)),
     (Scopes::Country, "remove_enactment_modifier", UncheckedTodo), // No examples in vanilla
     (Scopes::all_but_none(), "remove_from_list", Vv(validate_remove_from_list)),
     (Scopes::None, "remove_global_variable", Unchecked),
-    (Scopes::StateRegion, "remove_homeland", ScopeOrItem(Scopes::Culture, Item::Culture)),
+    (Scopes::StateRegion, "remove_homeland", Scope(Scopes::Culture)),
     (Scopes::InterestGroup, "remove_ideology", Item(Item::Ideology)),
     (Scopes::Party, "remove_ig_from_party", Scope(Scopes::InterestGroup)),
     (Scopes::DiplomaticPlay, "remove_initiator_backers", Vb(validate_addremove_backers)),
@@ -212,7 +225,6 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
         Scopes::Country
             .union(Scopes::Building)
             .union(Scopes::Character)
-            .union(Scopes::Front)
             .union(Scopes::Institution)
             .union(Scopes::InterestGroup)
             .union(Scopes::Journalentry)
@@ -223,6 +235,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     ),
     (Scopes::Country, "remove_primary_culture", Scope(Scopes::Culture)),
     (Scopes::InterestGroup, "remove_ruling_interest_group", Boolean),
+    (Scopes::StateRegion, "remove_state_trait", Item(Item::StateTrait)),
     (Scopes::DiplomaticPlay, "remove_target_backers", Vb(validate_addremove_backers)),
     (Scopes::Country, "remove_taxed_goods", Scope(Scopes::Goods)),
     (Scopes::Character, "remove_trait", Item(Item::CharacterTrait)),
@@ -241,8 +254,15 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::State, "set_available_for_autonomous_investment", Scope(Scopes::BuildingType)),
     (Scopes::Country, "set_capital", Item(Item::StateRegion)),
     (Scopes::Character, "set_character_as_ruler", Yes),
-    (Scopes::Character, "set_character_busy", Boolean),
+    (
+        Scopes::Character,
+        "set_character_busy",
+        Removed("1.11", "replaced with set_character_busy_and_immortal"),
+    ),
+    (Scopes::Character, "set_character_busy_and_immortal", Boolean),
+    (Scopes::Character, "set_character_immortal", Boolean),
     (Scopes::Character, "set_commander_rank", Integer),
+    (Scopes::Company, "set_company_establishment_date", Date),
     (Scopes::Country, "set_country_type", Item(Item::CountryType)),
     (Scopes::StateRegion, "set_devastation", Integer),
     (Scopes::Country, "set_diplomats_expelled", Scope(Scopes::Country)),
@@ -254,6 +274,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::InterestGroup, "set_ig_bolstering", Boolean),
     (Scopes::InterestGroup, "set_ig_suppression", Boolean),
     (Scopes::InterestGroup, "set_ig_trait", Scope(Scopes::InterestGroupTrait)),
+    (Scopes::Country, "set_immune_to_revolutions", Boolean),
     (Scopes::Country, "set_institution_investment_level", UncheckedTodo),
     (Scopes::InterestGroup, "set_interest_group_name", Item(Item::Localization)),
     (Scopes::DiplomaticPlay, "set_key", Item(Item::Localization)),
@@ -286,12 +307,15 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::DiplomaticPlay, "set_war", Boolean),
     (Scopes::None, "show_as_tooltip", Control),
     (Scopes::State, "start_building_construction", Item(Item::BuildingType)),
+    (Scopes::Country, "start_enactment", Scope(Scopes::LawType)),
     (Scopes::State, "start_privately_funded_building_construction", Item(Item::BuildingType)),
     (Scopes::Country, "start_research_random_technology", Yes),
     (Scopes::None, "start_tutorial_lesson", UncheckedTodo),
     (Scopes::None, "switch", Vb(validate_switch)),
     (Scopes::Country, "take_on_scaled_debt", TargetValue("who", Scopes::Country, "value")),
+    (Scopes::MilitaryFormation, "teleport_to_front", Scope(Scopes::Front)),
     (Scopes::Character, "transfer_character", Scope(Scopes::Country)),
+    (Scopes::Character, "transfer_to_formation", Scope(Scopes::MilitaryFormation)),
     (Scopes::None, "trigger_event", Vbv(validate_trigger_event)),
     (Scopes::State, "unset_available_for_autonomous_investment", Scope(Scopes::BuildingType)),
     (Scopes::Country, "update_party_support", Yes),

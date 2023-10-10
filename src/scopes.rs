@@ -10,6 +10,12 @@ use crate::game::Game;
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
 
+/// vic3 needs more than 64 bits, but the others don't.
+#[cfg(feature = "vic3")]
+type ScopesBits = u128;
+#[cfg(not(feature = "vic3"))]
+type ScopesBits = u64;
+
 bitflags! {
     /// This type represents our knowledge about the set of scope types that a script value can
     /// have. In most cases it's narrowed down to a single scope type, but not always.
@@ -17,15 +23,15 @@ bitflags! {
     /// The available scope types depend on the game.
     /// They are listed in `event_scopes.log` from the game data dumps.
     // LAST UPDATED CK3 VERSION 1.11.3
-    // LAST UPDATED VIC3 VERSION 1.3.6
+    // LAST UPDATED VIC3 VERSION 1.5.3
     // LAST UPDATED IR VERSION 2.0.4
     //
-    // Each scope type gets one bitflag. In order to keep it down to 64 bits, scope types from
+    // Each scope type gets one bitflag. In order to keep the bit count down, scope types from
     // the different games have overlapping bitflags. Therefore, scope types from different games
     // should be kept carefully separated.
     #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     #[rustfmt::skip] // having the cfg and the flag on one line is much more readable
-    pub struct Scopes: u64 {
+    pub struct Scopes: ScopesBits {
         // Generic scope types
         const None = 0x0000_0001;
         const Value = 0x0000_0002;
@@ -96,7 +102,7 @@ bitflags! {
         #[cfg(feature = "vic3")] const CanalType = 0x0010_0000;
         #[cfg(feature = "vic3")] const CivilWar = 0x0020_0000;
         #[cfg(feature = "vic3")] const CombatUnit = 0x0040_0000;
-        #[cfg(feature = "vic3")] const CommanderOrder = 0x0080_0000;
+        #[cfg(feature = "vic3")] const NewCombatUnit = 0x0080_0000;
         #[cfg(feature = "vic3")] const CommanderOrderType = 0x0100_0000;
         #[cfg(feature = "vic3")] const CountryCreation = 0x0200_0000;
         #[cfg(feature = "vic3")] const CountryDefinition = 0x0400_0000;
@@ -132,6 +138,19 @@ bitflags! {
         #[cfg(feature = "vic3")] const TechnologyStatus = 0x0100_0000_0000_0000;
         #[cfg(feature = "vic3")] const Theater = 0x0200_0000_0000_0000;
         #[cfg(feature = "vic3")] const TradeRoute = 0x0400_0000_0000_0000;
+        #[cfg(feature = "vic3")] const CombatUnitType = 0x1000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const MilitaryFormation = 0x2000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const Sway = 0x4000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const StateGoods = 0x8000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const DiplomaticDemand = 0x0000_0000_0000_0001_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const Company = 0x0000_0000_0000_0002_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const CompanyType = 0x0000_0000_0000_0004_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const TravelNode = 0x0000_0000_0000_0008_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const TravelNodeDefinition = 0x0000_0000_0000_0010_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const TravelConnection = 0x0000_0000_0000_0020_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const TravelConnectionDefinition = 0x0000_0000_0000_0040_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const NavalInvasion = 0x0000_0000_0000_0080_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const MobilizationOption = 0x0000_0000_0000_0100_0000_0000_0000_0000;
 
         #[cfg(feature = "imperator")] const Area = 0x0001_0000;
         #[cfg(feature = "imperator")] const CountryCulture = 0x0002_0000;
@@ -167,6 +186,7 @@ impl Scopes {
         Scopes::all().difference(Scopes::None)
     }
 
+    /// Read a scope type in string form and return it as a [`Scopes`] value.
     pub fn from_snake_case(s: &str) -> Option<Scopes> {
         match s {
             "none" => return Some(Scopes::None),
@@ -183,6 +203,25 @@ impl Scopes {
             #[cfg(feature = "imperator")]
             Game::Imperator => crate::imperator::scopes::scope_from_snake_case(s),
         }
+    }
+
+    /// Similar to `from_snake_case`, but allows multiple scopes separated by `|`
+    /// Returns None if any of the conversions fail.
+    pub fn from_snake_case_multi(s: &str) -> Option<Scopes> {
+        let mut scopes = Scopes::empty();
+        for part in s.split('|') {
+            if let Some(scope) = Scopes::from_snake_case(part) {
+                scopes |= scope;
+            } else {
+                return None;
+            }
+        }
+        // If `scopes` is still empty then probably `s` was empty.
+        // Remember that `Scopes::empty()` is different from a bitfield containing `Scopes::None`.
+        if scopes == Scopes::empty() {
+            return None;
+        }
+        Some(scopes)
     }
 }
 
@@ -248,9 +287,6 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
                 if inscopes.contains(Scopes::Building) {
                     outscopes |= Scopes::BuildingType;
                 }
-                if inscopes.contains(Scopes::CommanderOrder) {
-                    outscopes |= Scopes::CommanderOrderType;
-                }
                 if inscopes.contains(Scopes::Institution) {
                     outscopes |= Scopes::InstitutionType;
                 }
@@ -259,6 +295,9 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
                 }
                 if inscopes.contains(Scopes::Law) {
                     outscopes |= Scopes::LawType;
+                }
+                if inscopes.contains(Scopes::Company) {
+                    outscopes |= Scopes::CompanyType;
                 }
                 if !outscopes.is_empty() {
                     return Some((*from, outscopes));
