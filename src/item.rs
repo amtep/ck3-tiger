@@ -299,6 +299,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] CharacterRole,
     #[cfg(feature = "vic3")] CombatUnit,
     #[cfg(feature = "vic3")] CommanderOrder,
+    #[cfg(feature = "vic3")] CommanderRank,
     #[cfg(feature = "vic3")] Country,
     #[cfg(feature = "vic3")] CountryCreation,
     #[cfg(feature = "vic3")] CountryFormation,
@@ -909,6 +910,8 @@ impl Item {
             Item::CombatUnit => "common/combat_unit_types/",
             #[cfg(feature = "vic3")]
             Item::CommanderOrder => "common/commander_orders/",
+            #[cfg(feature = "vic3")]
+            Item::CommanderRank => "common/commander_ranks/",
             #[cfg(feature = "vic3")]
             Item::Country => "common/country_definitions/",
             #[cfg(feature = "vic3")]

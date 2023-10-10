@@ -85,7 +85,7 @@ impl DbKind for CharacterTemplate {
         vd.field_item("hq", Item::StrategicRegion);
         vd.field_validated_value("commander_rank", |_, mut vd| {
             vd.maybe_is("default");
-            vd.integer();
+            vd.item(Item::CommanderRank);
         });
         vd.field_bool("ruler");
         vd.field_bool("heir");
