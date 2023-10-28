@@ -57,7 +57,6 @@ impl DbKind for Invention {
         vd.field_bool("keystone");
         vd.field_choice("icon_override", &["gw_icon", "war"]);
 
-        // TODO - check if this is the correct way to validate this:
         // requires = { agressive_expansion_impact_inv_5 }
         vd.field_list_items("requires", Item::Invention);
         vd.field_list_items("requires_or", Item::Invention);

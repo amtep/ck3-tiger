@@ -1156,7 +1156,7 @@ impl<'a> Validator<'a> {
 
     /// Expect the block to contain any number of loose sub-blocks (possibly in addition to other things).
     /// Run the closure `f(block, data)` for every sub-block.
-    #[cfg(feature = "vic3")] // ck3 happens not to use; silence dead code warning
+    #[cfg(any(feature = "ck3", feature = "imperator"))] // ck3 happens not to use; silence dead code warning
     pub fn validated_blocks<F>(&mut self, mut f: F)
     where
         F: FnMut(&Block, &Everything),

@@ -54,27 +54,6 @@ impl DbKind for SetupMain {
     }
 }
 
-impl FileHandler<Block> for SetupMain {
-    // TODO - Is this impl needed? Copied it from src/vic3/data/history.rs
-    fn subpath(&self) -> PathBuf {
-        PathBuf::from("setup/main/")
-    }
-
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
-        if !entry.filename().to_string_lossy().ends_with(".txt") {
-            return None;
-        }
-
-        PdxFile::read(entry)
-    }
-
-    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
-        for (key, block) in block.drain_definitions_warn() {
-            self.load_item(key, block);
-        }
-    }
-}
-
 fn validate_treasures(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.field_validated_block("database", |block, data| {
@@ -83,7 +62,7 @@ fn validate_treasures(block: &Block, data: &Everything) {
             let mut vd = Validator::new(block, data);
             vd.field_item("key", Item::Localization);
             vd.choice(DLC_IMPERATOR);
-            vd.field("icon"); // TODO - icon can be any icon declared in "gfx/interface/icons/treasures", how to check that?
+            vd.field("icon");
             vd.multi_field_validated_block("state_modifier", |block, data| {
                 validate_modifs(block, data, ModifKinds::Country | ModifKinds::Province | ModifKinds::State, vd);
             });
@@ -111,7 +90,7 @@ fn validate_diplomacy(block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         vd.multi_field_item("member", Item::Country);
     });
-    for field in &["dependency", "dependency", "guarantee", "alliance"] {
+    for field in &["dependency", "guarantee", "alliance"] {
         vd.multi_field_validated_block(field, |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("first", Item::Country);
@@ -121,20 +100,14 @@ fn validate_diplomacy(block: &Block, data: &Everything) {
             }
         });
     }
-    /* 
-    TODO - imperator - This block also has a trade_access section with irregular syntax, not sure how to do this, it has two nested Item::Country basically
-    Example:
-        MAC = {
-            EGY = {
-                trade_access=yes
-            }
-        }
-        EGY = {
-            MAC = {
-                trade_access=yes
-            }
-        }
-    */
+    vd.unknown_block_fields(|key, block| {
+        data.verify_exists(Item::Country, key);
+        let mut vd = Validator::new(block, data);
+        vd.unknown_value_fields(|key, value| {
+            data.verify_exists(Item::Country, key);
+            vd.field_bool("trade_access");
+        });
+    });
 }
 fn validate_provinces(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
@@ -288,8 +261,37 @@ fn validate_great_works(block: &Block, data: &Everything) {
     */
     let mut vd = Validator::new(block, data);
     vd.field_validated_block("great_works_database", |block, data| {
-        // todo
         let mut vd = Validator::new(block, data);
-        vd.field_bool("ancient_wonder");
+        for (_, block) in vd.integer_blocks() {
+            vd.field_bool("ancient_wonder");
+            vd.field("key");
+            vd.field("great_work_state_completed");
+            vd.field_item("great_work_category", Item::GreatWorkCategory);
+            vd.field_date("finished_date");
+            // Validate name
+            vd.field_validated_block("great_work_name", |block, data| {
+                vd.field_item("name", Item::Localization);
+            });
+            // Validate components
+            vd.field_validated_block("great_work_components", |block, data| {
+                let mut vd = Validator::new(block, data);
+                vd.validated_blocks(|block, data| {
+                    let mut vd = Validator::new(block, data);
+
+                    vd.field_item("great_work_module", Item::GreatWorkModule);
+                    vd.field_item("great_work_material", Item::GreatWorkMaterial);
+                });
+            });
+            // Validate selections
+            vd.field_validated_block("great_work_effect_selections", |block, data| {
+                let mut vd = Validator::new(block, data);
+                vd.validated_blocks(|block, data| {
+                    let mut vd = Validator::new(block, data);
+
+                    vd.field_item("great_work_effect", Item::GreatWorkEffect);
+                    vd.field_item("great_work_effect_tier", Item::GreatWorkEffectTier);
+                });
+            });
+        }
     });
 }
