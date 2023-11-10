@@ -206,7 +206,7 @@ impl Event {
             let mut count = 0;
             vd.multi_field_validated_value(field, |_, mut vd| {
                 count += 1;
-                vd.field_target(field, &mut sc, Scopes::Character);
+                vd.target(&mut sc, Scopes::Character);
                 if count == 4 {
                     let msg = format!("Event has more than 3 {field} attributes.");
                     let info = "Events can only have up to 3 portraits displayed at a time.";
@@ -240,7 +240,7 @@ fn validate_event_option(
     tooltipped: Tooltipped,
 ) {
     let mut vd = Validator::new(block, data);
-    vd.field_validated_sc("name", &mut sc, validate_desc);
+    vd.field_validated_sc("name", sc, validate_desc);
 
     vd.field_validated_block("trigger", |b, data| {
         validate_trigger(b, data, sc, Tooltipped::No);
