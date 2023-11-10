@@ -64,9 +64,8 @@ impl DbKind for CombatTactic {
             value.expect_number();
         });
 
-        vd.field_validated_block("effective_composition", |block, data| {
+        vd.field_validated_block("effective_composition", |_block, data| {
             data.verify_exists(Item::Unit, key);
-            //value.expect_number();
         });
     }
 }
