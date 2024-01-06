@@ -569,7 +569,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Faith, "has_graphical_faith", Item(Item::GraphicalFaith)),
     (Scopes::Character, "has_had_focus_for_days", CompareValue),
     (Scopes::Province, "has_holding", Boolean),
-    (Scopes::Province, "has_holding_type", Item(Item::Holding)),
+    (Scopes::Province, "has_holding_type", Item(Item::HoldingType)),
     (Scopes::LandedTitle, "has_holy_site_flag", Item(Item::HolySiteFlag)),
     (Scopes::Character, "has_hook", Scope(Scopes::Character)),
     (Scopes::Character, "has_hook_from_secret", Scope(Scopes::Secret)),

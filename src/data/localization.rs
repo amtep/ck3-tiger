@@ -409,7 +409,7 @@ impl Localization {
                         "perk" => data.verify_exists(Item::Perk, token),
                         "dynasty_perk" => data.verify_exists(Item::DynastyPerk, token),
                         // "obligation_level", TODO: contract type?
-                        "holding" => data.verify_exists(Item::Holding, token),
+                        "holding" => data.verify_exists(Item::HoldingType, token),
                         "secret_type" => data.verify_exists(Item::Secret, token),
                         "geographical_region" => data.verify_exists(Item::Region, token),
                         "culture_pillar" => data.verify_exists(Item::CulturePillar, token),

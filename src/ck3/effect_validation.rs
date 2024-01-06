@@ -1367,12 +1367,12 @@ pub fn validate_begin_create_holding(
     _tooltipped: Tooltipped,
 ) {
     match bv {
-        BV::Value(token) => data.verify_exists(Item::Holding, token),
+        BV::Value(token) => data.verify_exists(Item::HoldingType, token),
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);
             vd.req_field("type");
-            vd.field_item("type", Item::Holding);
+            vd.field_item("type", Item::HoldingType);
             vd.field_validated_block("refund_cost", |b, data| {
                 let mut vd = Validator::new(b, data);
                 vd.set_case_sensitive(false);
