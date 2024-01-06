@@ -44,7 +44,9 @@ pub const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
     (Ck3(CultureTradition), Scopes::CultureTradition),
     (Ck3(CulturePillar), Scopes::CulturePillar),
     (Ck3(GovernmentType), Scopes::GovernmentType),
+    (Ck3(HoldingType), Scopes::HoldingType),
     (Ck3(Trait), Scopes::Trait),
+    (Ck3(TaxSlot), Scopes::TaxSlot),
     (Ck3(VassalContract), Scopes::VassalContract),
     (Ck3(ObligationLevel), Scopes::VassalObligationLevel),
 ];

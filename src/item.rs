@@ -218,6 +218,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] GuestSubset,
     #[cfg(feature = "ck3")] Holding,
     #[cfg(feature = "ck3")] HoldingFlag,
+    #[cfg(feature = "ck3")] HoldingType,
     #[cfg(feature = "ck3")] HolySite,
     #[cfg(feature = "ck3")] HolySiteFlag,
     #[cfg(feature = "ck3")] Hook,
@@ -267,6 +268,10 @@ pub enum Item {
     #[cfg(feature = "ck3")] StrugglePhaseParameter,
     #[cfg(feature = "ck3")] SuccessionElection,
     #[cfg(feature = "ck3")] Suggestion,
+    #[cfg(feature = "ck3")] TaxSlot,
+    #[cfg(feature = "ck3")] TaxSlotFlag,
+    #[cfg(feature = "ck3")] TaxSlotObligation,
+    #[cfg(feature = "ck3")] TaxSlotType,
     #[cfg(feature = "ck3")] Title,
     #[cfg(feature = "ck3")] TitleHistory,
     #[cfg(feature = "ck3")] TitleHistoryType,
@@ -745,6 +750,8 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::HoldingFlag => "common/holdings/",
             #[cfg(feature = "ck3")]
+            Item::HoldingType => "common/holdings/",
+            #[cfg(feature = "ck3")]
             Item::HolySite => "common/religion/holy_sites/",
             #[cfg(feature = "ck3")]
             Item::HolySiteFlag => "common/religion/holy_sites/",
@@ -842,6 +849,14 @@ impl Item {
             Item::SuccessionElection => "common/succession_election/",
             #[cfg(feature = "ck3")]
             Item::Suggestion => "common/suggestions/",
+            #[cfg(feature = "ck3")]
+            Item::TaxSlot => "common/tax_slots/",
+            #[cfg(feature = "ck3")]
+            Item::TaxSlotFlag => "common/tax_slots/obligations",
+            #[cfg(feature = "ck3")]
+            Item::TaxSlotObligation => "common/tax_slots/obligations",
+            #[cfg(feature = "ck3")]
+            Item::TaxSlotType => "common/tax_slits/types",
             #[cfg(feature = "ck3")]
             Item::Title => "common/landed_titles/",
             #[cfg(feature = "ck3")]
