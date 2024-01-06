@@ -640,7 +640,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "set_global_variable", Vbv(validate_set_variable)),
     (Scopes::GreatHolyWar, "set_great_holy_war_target", Vb(validate_set_ghw_target)),
     (Scopes::Culture, "set_heritage_from", Scope(Scopes::Culture)),
-    (Scopes::Province, "set_holding_type", Item(Item::Holding)),
+    (Scopes::Province, "set_holding_type", Item(Item::HoldingType)),
     (Scopes::Character, "set_house", Scope(Scopes::DynastyHouse)),
     (Scopes::DynastyHouse, "set_house_head", Scope(Scopes::Character)),
     (Scopes::DynastyHouse, "set_house_name", Item(Item::Localization)),

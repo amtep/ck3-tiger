@@ -207,11 +207,11 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // holding type
     for sfx in &["_build_gold_cost", "_build_piety_cost", "_build_prestige_cost", "_build_speed"] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
-            if data.item_exists(Item::Holding, s) {
+            if data.item_exists(Item::HoldingType, s) {
                 return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
             }
             if let Some(s) = s.strip_suffix("_holding") {
-                if data.item_exists(Item::Holding, s) {
+                if data.item_exists(Item::HoldingType, s) {
                     return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
                 }
             }

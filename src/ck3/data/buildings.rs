@@ -204,7 +204,7 @@ impl DbKind for Building {
         vd.multi_field_validated_block("county_holding_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("holding");
-            vd.field_item("holding", Item::Holding);
+            vd.field_item("holding", Item::HoldingType);
             validate_modifs(block, data, ModifKinds::County, vd);
         });
         vd.multi_field_validated_block("county_dynasty_modifier", |block, data| {

@@ -217,7 +217,6 @@ pub enum Item {
     #[cfg(feature = "ck3")] GraphicalFaith,
     #[cfg(feature = "ck3")] GuestInviteRule,
     #[cfg(feature = "ck3")] GuestSubset,
-    #[cfg(feature = "ck3")] Holding,
     #[cfg(feature = "ck3")] HoldingFlag,
     #[cfg(feature = "ck3")] HoldingType,
     #[cfg(feature = "ck3")] HolySite,
@@ -740,8 +739,6 @@ impl Item {
             Item::GuestInviteRule => "common/activities/guest_invite_rules/",
             #[cfg(feature = "ck3")]
             Item::GuestSubset => "common/activities/activity_types/",
-            #[cfg(feature = "ck3")]
-            Item::Holding => "common/holdings/",
             #[cfg(feature = "ck3")]
             Item::HoldingFlag => "common/holdings/",
             #[cfg(feature = "ck3")]

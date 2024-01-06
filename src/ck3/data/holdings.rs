@@ -7,22 +7,22 @@ use crate::token::Token;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Holding {}
+pub struct HoldingType {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Ck3, Item::Holding, Holding::add)
+    ItemLoader::Normal(GameFlags::Ck3, Item::HoldingType, HoldingType::add)
 }
 
-impl Holding {
+impl HoldingType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for token in block.get_field_values("flag") {
             db.add_flag(Item::HoldingFlag, token.clone());
         }
-        db.add(Item::Holding, key, block, Box::new(Self {}));
+        db.add(Item::HoldingType, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Holding {
+impl DbKind for HoldingType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let modif = format!("{key}_build_speed");
         data.verify_exists_implied(Item::ModifierFormat, &modif, key);
