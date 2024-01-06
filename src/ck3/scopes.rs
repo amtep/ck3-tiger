@@ -9,7 +9,7 @@ use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 
-// LAST UPDATED CK3 VERSION 1.10.0
+// LAST UPDATED CK3 VERSION 1.11.3
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
         "none" => Scopes::None,
@@ -52,14 +52,16 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "culture_tradition" => Scopes::CultureTradition,
         "culture_pillar" => Scopes::CulturePillar,
         "government_type" => Scopes::GovernmentType,
+        "holding_type" => Scopes::HoldingType,
         "trait" => Scopes::Trait,
+        "tax_slot" => Scopes::TaxSlot,
         "vassal_contract" => Scopes::VassalContract,
         "vassal_contract_obligation_level" => Scopes::VassalObligationLevel,
         _ => return std::option::Option::None,
     })
 }
 
-// LAST UPDATED CK3 VERSION 1.10.0
+// LAST UPDATED CK3 VERSION 1.11.3
 pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
     let mut vec = Vec::new();
     if s.contains(Scopes::None) {
@@ -182,8 +184,14 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::GovernmentType) {
         vec.push("government type");
     }
+    if s.contains(Scopes::HoldingType) {
+        vec.push("holding type");
+    }
     if s.contains(Scopes::Trait) {
         vec.push("trait");
+    }
+    if s.contains(Scopes::TaxSlot) {
+        vec.push("tax slot");
     }
     if s.contains(Scopes::VassalContract) {
         vec.push("vassal contract");
@@ -194,7 +202,7 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     display_choices(f, &vec, "or")
 }
 
-// LAST UPDATED CK3 VERSION 1.10.0
+// LAST UPDATED CK3 VERSION 1.11.3
 pub fn validate_prefix_reference(
     prefix: &Token,
     arg: &Token,
@@ -219,6 +227,7 @@ pub fn validate_prefix_reference(
         "event_id" => data.verify_exists(Item::Event, arg),
         "faith" => data.verify_exists(Item::Faith, arg),
         "government_type" => data.verify_exists(Item::GovernmentType, arg),
+        "holding_type" => data.verify_exists(Item::HoldingType, arg),
         "house" => data.verify_exists(Item::House, arg),
         "mandate_type_qualification" => data.verify_exists(Item::DiarchyMandate, arg),
         "num_discovered_innovations_in_era" => data.verify_exists(Item::CultureEra, arg),
@@ -226,6 +235,7 @@ pub fn validate_prefix_reference(
         "religion" => data.verify_exists(Item::Religion, arg),
         "special_guest" => data.verify_exists(Item::SpecialGuest, arg),
         "struggle" => data.verify_exists(Item::Struggle, arg),
+        "tax_slot" => data.verify_exists(Item::TaxSlot, arg),
         "title" => data.verify_exists(Item::Title, arg),
         "trait" => data.verify_exists(Item::Trait, arg),
         "vassal_contract" | "vassal_contract_obligation_level" => {
@@ -235,7 +245,7 @@ pub fn validate_prefix_reference(
     }
 }
 
-// LAST UPDATED CK3 VERSION 1.10.0
+// LAST UPDATED CK3 VERSION 1.11.3
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
     if scopes == Scopes::AccoladeType && data.item_exists(Item::AccoladeType, arg) {
         return Some("accolade_type");
@@ -273,6 +283,9 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     if scopes == Scopes::GovernmentType && data.item_exists(Item::GovernmentType, arg) {
         return Some("government_type");
     }
+    if scopes == Scopes::HoldingType && data.item_exists(Item::HoldingType, arg) {
+        return Some("holding_type");
+    }
     if scopes == Scopes::DynastyHouse && data.item_exists(Item::House, arg) {
         return Some("house");
     }
@@ -285,6 +298,9 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     if scopes == Scopes::Struggle && data.item_exists(Item::Struggle, arg) {
         return Some("struggle");
     }
+    if scopes == Scopes::TaxSlot && data.item_exists(Item::TaxSlot, arg) {
+        return Some("tax_slot");
+    }
     if scopes == Scopes::LandedTitle && data.item_exists(Item::Title, arg) {
         return Some("title");
     }
@@ -294,7 +310,7 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     None
 }
 
-/// LAST UPDATED CK3 VERSION 1.10.0
+/// LAST UPDATED CK3 VERSION 1.11.3
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
@@ -309,6 +325,7 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Army, "army_owner", Scopes::Character),
     (Scopes::Artifact, "artifact_age", Scopes::Value),
     (Scopes::Artifact, "artifact_owner", Scopes::Character),
+    (Scopes::Character, "assigned_tax_slot", Scopes::TaxSlot),
     (Scopes::LandedTitle.union(Scopes::Province), "barony", Scopes::LandedTitle),
     (Scopes::LandedTitle.union(Scopes::Province), "barony_controller", Scopes::Character),
     (Scopes::Character, "betrothed", Scopes::Character),
@@ -454,6 +471,7 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Scheme, "scheme_owner", Scopes::Character),
     (Scopes::Scheme, "scheme_target", Scopes::Character),
     (Scopes::Accolade, "secondary_type", Scopes::AccoladeType),
+    (Scopes::Character, "secret_faith", Scopes::Faith),
     (Scopes::Secret, "secret_owner", Scopes::Character),
     (Scopes::Secret, "secret_target", Scopes::Character),
     (Scopes::CombatSide, "side_commander", Scopes::Character),
@@ -462,6 +480,9 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Faction, "special_title", Scopes::LandedTitle),
     (Scopes::StoryCycle, "story_owner", Scopes::Character),
     // "this" special
+    (Scopes::TaxSlot, "tax_collector", Scopes::Character),
+    (Scopes::Character, "tax_slot", Scopes::TaxSlot),
+    (Scopes::TaxSlot, "tax_slot_liege", Scopes::Character),
     (Scopes::HolyOrder, "title", Scopes::LandedTitle),
     (Scopes::LandedTitle, "title_capital_county", Scopes::LandedTitle),
     (Scopes::LandedTitle, "title_province", Scopes::Province),
@@ -471,12 +492,13 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "top_liege", Scopes::Character),
     // "value" special
     (Scopes::VassalObligationLevel, "vassal_contract_type", Scopes::VassalContract),
+    (Scopes::Character, "vassal_tax_collector", Scopes::Character),
     (Scopes::CasusBelli, "war", Scopes::War),
     (Scopes::Character, "warden", Scopes::Character),
     (Scopes::None, "yes", Scopes::Bool),
 ];
 
-/// LAST UPDATED CK3 VERSION 1.10.0
+/// LAST UPDATED CK3 VERSION 1.11.3
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
@@ -503,6 +525,7 @@ pub const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "flag", Scopes::Flag),
     (Scopes::None, "global_var", Scopes::all()),
     (Scopes::None, "government_type", Scopes::GovernmentType),
+    (Scopes::None, "holding_type", Scopes::HoldingType),
     (Scopes::None, "house", Scopes::DynastyHouse),
     (Scopes::None, "local_var", Scopes::all()),
     (Scopes::None, "list_size", Scopes::Value),
@@ -521,7 +544,7 @@ pub const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "vassal_contract_obligation_level", Scopes::Value),
 ];
 
-/// LAST UPDATED CK3 VERSION 1.10.0
+/// LAST UPDATED CK3 VERSION 1.11.3
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
@@ -648,12 +671,14 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "heir_to_title", Scopes::LandedTitle),
     (Scopes::Character, "held_title", Scopes::LandedTitle),
     (Scopes::Character, "hired_mercenary", Scopes::MercenaryCompany),
+    (Scopes::None, "holding_type", Scopes::HoldingType),
     (Scopes::Faith, "holy_site", Scopes::LandedTitle),
     (Scopes::Character, "home_court_hostage", Scopes::Character),
     (Scopes::Character, "hooked_character", Scopes::Character),
     (Scopes::Character, "hostile_raider", Scopes::Character),
     (Scopes::DynastyHouse, "house_claimed_artifact", Scopes::Artifact),
     (Scopes::DynastyHouse, "house_member", Scopes::Character),
+    (Scopes::DynastyHouse, "house_unity_member", Scopes::Character),
     (Scopes::LandedTitle, "in_de_facto_hierarchy", Scopes::LandedTitle),
     (Scopes::LandedTitle, "in_de_jure_hierarchy", Scopes::LandedTitle),
     (Scopes::None, "in_global_list", Scopes::all()),
@@ -666,6 +691,7 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "intrigue_councillor", Scopes::Character),
     (Scopes::Character, "invited_activity", Scopes::Activity),
     (Scopes::Activity, "invited_character", Scopes::Character),
+    (Scopes::Struggle, "involved_county", Scopes::LandedTitle),
     (Scopes::Struggle, "involved_ruler", Scopes::Character),
     (Scopes::Character.union(Scopes::Artifact), "killed_character", Scopes::Character),
     (Scopes::None, "kingdom", Scopes::LandedTitle),
@@ -748,6 +774,10 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "targeting_faction", Scopes::Faction),
     (Scopes::Character, "targeting_scheme", Scopes::Scheme),
     (Scopes::Character, "targeting_secret", Scopes::Secret),
+    (Scopes::Character, "tax_collector", Scopes::Character),
+    (Scopes::Character, "tax_collector_vassal", Scopes::Character),
+    (Scopes::Character, "tax_slot", Scopes::TaxSlot),
+    (Scopes::TaxSlot, "tax_slot_vassal", Scopes::Character),
     (Scopes::LandedTitle, "this_title_or_de_jure_above", Scopes::LandedTitle),
     (Scopes::LandedTitle, "title_heir", Scopes::Character),
     (Scopes::LandedTitle, "title_joined_faction", Scopes::Faction),
@@ -777,6 +807,7 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "traveling_family_member", Scopes::Character),
     (Scopes::Character, "truce_holder", Scopes::Character),
     (Scopes::Character, "truce_target", Scopes::Character),
+    (Scopes::Character, "unassigned_taxpayers", Scopes::Character),
     (Scopes::Character, "unspent_known_secret", Scopes::Secret),
     (Scopes::Character, "vassal", Scopes::Character),
     (Scopes::None, "vassal_contract", Scopes::VassalContract),
@@ -790,7 +821,7 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "warden_hostage", Scopes::Character),
 ];
 
-/// LAST UPDATED CK3 VERSION 1.10.0
+/// LAST UPDATED CK3 VERSION 1.11.3
 /// Every entry represents a every_, ordered_, random_, and any_ version.
 pub const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
     ("activity_declined", "1.9", ""),
@@ -798,7 +829,7 @@ pub const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
     ("participant", "1.9", ""),
 ];
 
-/// LAST UPDATED CK3 VERSION 1.10.0
+/// LAST UPDATED CK3 VERSION 1.11.3
 pub const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
     ("activity", "1.9", ""),
     ("activity_owner", "1.9", "replaced by `activity_host`"),

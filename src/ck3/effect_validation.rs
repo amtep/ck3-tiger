@@ -11,7 +11,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{error, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
-use crate::script_value::validate_non_dynamic_script_value;
+use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_target_ok_this};
@@ -239,7 +239,8 @@ pub fn validate_add_modifier(
     let visible = caller == "add_character_modifier"
         || caller == "add_house_modifier"
         || caller == "add_dynasty_modifier"
-        || caller == "add_county_modifier";
+        || caller == "add_county_modifier"
+        || caller == "add_house_unity_modifier";
     match bv {
         BV::Value(token) => {
             data.verify_exists(Item::Modifier, token);
@@ -285,6 +286,21 @@ pub fn validate_add_truce(
         let msg = "cannot use both `war` and `casus_belli`";
         error(block, ErrorKey::Validation, msg);
     }
+}
+
+pub fn validate_add_unity(
+    _key: &Token,
+    block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("value");
+    vd.req_field("character");
+    vd.field_script_value("value", sc);
+    vd.field_target("character", sc, Scopes::Character);
+    vd.field_validated_sc("desc", sc, validate_desc);
 }
 
 pub fn validate_assign_council_task(
@@ -367,6 +383,46 @@ pub fn validate_change_liege(
     vd.req_field("change");
     vd.field_target("liege", sc, Scopes::Character);
     vd.field_target("change", sc, Scopes::TitleAndVassalChange);
+}
+
+pub fn validate_change_struggle_phase(
+    key: &Token,
+    bv: &BV,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    _tooltipped: Tooltipped,
+) {
+    match bv {
+        BV::Value(token) => {
+            data.verify_exists(Item::StrugglePhase, token);
+        }
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.set_case_sensitive(false);
+            vd.req_field("struggle_phase");
+            vd.req_field("with_transition");
+            vd.field_item("struggle_phase", Item::StrugglePhase);
+            vd.field_bool("with_transition");
+        }
+    }
+}
+
+pub fn validate_change_struggle_phase_duration(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("duration");
+    vd.field_validated_block_sc("duration", sc, |block, data, sc| {
+        if let Some(bv) = block.get_field("points") {
+            validate_script_value(bv, data, sc);
+        } else {
+            validate_duration(block, data, sc);
+        }
+    });
 }
 
 pub fn validate_change_title_holder(
