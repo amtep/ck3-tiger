@@ -24,7 +24,7 @@ bitflags! {
     /// The logic for it is only really applicable to CK3, because in Vic3 all modifs are accepted
     /// in most places; for example you can add Building and Unit modifiers to a State.
     /// For Imperator it is not yet known how important this is.
-    // LAST UPDATED CK3 1.9.2.1
+    // LAST UPDATED CK3 1.11.3
     // LAST UPDATED VIC3 1.3.6
     // LAST UPDATED IMPERATOR 2.0.4
     // Taken from the game's `modifers.log`
