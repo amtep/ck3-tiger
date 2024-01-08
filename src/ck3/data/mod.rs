@@ -36,6 +36,7 @@ pub mod government;
 pub mod holdings;
 pub mod holysites;
 pub mod hooks;
+pub mod house_unities;
 pub mod houses;
 pub mod important_actions;
 pub mod innovations;

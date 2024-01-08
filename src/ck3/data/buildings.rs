@@ -237,6 +237,14 @@ impl DbKind for Building {
         });
 
         vd.field_bool("is_graphical_background");
+
+        for field in ["on_start", "on_cancelled", "on_complete"] {
+            vd.field_validated_key_block(field, |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Province, key);
+                sc.define_name("character", Scopes::Character, key);
+                validate_effect(block, data, &mut sc, Tooltipped::No);
+            });
+        }
     }
 
     fn set_property(&mut self, _key: &Token, _block: &Block, property: &str) {

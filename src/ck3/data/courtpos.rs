@@ -7,6 +7,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;
@@ -164,16 +165,23 @@ fn validate_breakpoints(block: &Block, data: &Everything) {
 
 fn validate_scaling_employer_modifiers(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    for field in &[
+
+    for field in ["terrible", "poor", "average", "good", "excellent"] {
+        vd.field_validated_block(field, |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+    }
+
+    for field in [
         "aptitude_level_1",
         "aptitude_level_2",
         "aptitude_level_3",
         "aptitude_level_4",
         "aptitude_level_5",
     ] {
-        vd.field_validated_block(field, |block, data| {
-            let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Character, vd);
-        });
+        if let Some(key) = block.get_key(field) {
+            err(ErrorKey::Removed).msg("the aptitude_level_N fields have been replaced in 1.11 with terrible, poor, average, good, and excellent").loc(key).push();
+        }
     }
 }
