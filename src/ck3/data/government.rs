@@ -100,6 +100,7 @@ impl DbKind for Government {
         });
 
         vd.field_list_items("vassal_contract", Item::VassalContract);
+        vd.field_item("house_unity", Item::HouseUnity);
         vd.field_validated_block("ai", validate_ai);
         vd.multi_field_validated_block("character_modifier", |block, data| {
             let vd = Validator::new(block, data);
