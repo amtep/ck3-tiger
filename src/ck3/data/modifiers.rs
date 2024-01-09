@@ -1,4 +1,7 @@
+#![allow(non_upper_case_globals)]
+
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -42,6 +45,30 @@ impl DbKind for Modifier {
         vd.field_bool("stacking");
         vd.field_bool("hide_effects");
         validate_modifs(block, data, ModifKinds::all(), vd);
+
+        // Cannot validate `scale` without surrounding scope context
+    }
+
+    fn validate_call(
+        &self,
+        key: &Token,
+        block: &Block,
+        _from: &Token,
+        _from_block: &Block,
+        data: &Everything,
+        sc: &mut ScopeContext,
+    ) {
+        let mut vd = Validator::new(block, data);
+        // Currently `ROOT` is NOT the object using the modifier; use `THIS`
+        vd.field_validated_block("scale", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("value");
+            vd.field_script_value("value", sc);
+            vd.field_item("desc", Item::Localization);
+            // Undocumented `display_mode`
+            // TODO: get all possible values
+            vd.field_choice("display_mode", &["scaled"]);
+        });
     }
 
     fn validate_property_use(
@@ -57,17 +84,39 @@ impl DbKind for Modifier {
         vd.field("icon");
         vd.field("stacking");
         vd.field("hide_effects");
-        let kind = match property.as_str() {
-            "add_character_modifier" | "add_dynasty_modifier" | "add_house_modifier" => {
-                ModifKinds::Character
-            }
-            "add_county_modifier" => ModifKinds::County,
-            "add_province_modifier" => ModifKinds::Province,
-            "add_scheme_modifier" => ModifKinds::Scheme,
-            "add_travel_plan_modifier" => ModifKinds::TravelPlan,
-            _ => ModifKinds::all(),
-        };
+
         // TODO: make validate_modifs explain why it expected this kind
-        validate_modifs(block, data, kind, vd);
+        validate_modifs(block, data, get_modif_kinds(property.as_str()), vd);
     }
+}
+
+// LAST UPDATED CK3 VERSION 1.11.3
+/// Get the modifier kinds from property name
+/// See `effects.log` from the game data dumps.
+fn get_modif_kinds(name: &str) -> ModifKinds {
+    for substr in [
+        "artifact_modifier",
+        "character_modifier",
+        "dynasty_modifier",
+        "house_modifier",
+        "house_unity_modifier",
+    ] {
+        if name.contains(substr) {
+            return ModifKinds::Character
+        }
+    }
+    if name.contains("county_modifier") {
+        return ModifKinds::County
+    }
+    if name.contains("province_modifier") {
+        return ModifKinds::Province
+    }
+    if name.contains("scheme_modifier") {
+        return ModifKinds::Scheme
+    }
+    if name.contains("travel_plan_modifier") {
+        return ModifKinds::TravelPlan
+    }
+
+    ModifKinds::empty()
 }

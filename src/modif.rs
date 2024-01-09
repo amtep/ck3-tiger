@@ -73,11 +73,13 @@ impl Display for ModifKinds {
 }
 
 impl ModifKinds {
-    pub fn require(self, other: Self, token: &Token) {
-        if !self.intersects(other) {
+    pub fn require(self, other: Self, token: &Token) -> Self {
+        let after = self & other;
+        if after.is_empty() {
             let msg = format!("`{token}` is a modifier for {other} but expected {self}");
             error(token, ErrorKey::Modifiers, &msg);
         }
+        after
     }
 }
 
@@ -86,7 +88,7 @@ pub fn validate_modifs<'a>(
     data: &'a Everything,
     kinds: ModifKinds,
     mut vd: Validator<'a>,
-) {
+) -> ModifKinds {
     let lookup_modif = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::modifs::lookup_modif,
@@ -95,10 +97,11 @@ pub fn validate_modifs<'a>(
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::tables::modifs::lookup_modif,
     };
-
+    
+    let mut possible_kinds = kinds;
     vd.unknown_fields(|key, bv| {
         if let Some(mk) = lookup_modif(key, data, Some(Severity::Error)) {
-            kinds.require(mk, key);
+            possible_kinds = possible_kinds.require(mk, key);
             validate_non_dynamic_script_value(bv, data);
             #[cfg(feature = "ck3")]
             if Game::is_ck3() && !key.is("health") && !key.is("negate_health_penalty_add") {
@@ -120,6 +123,8 @@ pub fn validate_modifs<'a>(
             err(ErrorKey::UnknownField).msg(msg).loc(key).push();
         }
     });
+
+    possible_kinds
 }
 
 pub fn verify_modif_exists(key: &Token, data: &Everything, kinds: ModifKinds, sev: Severity) {
