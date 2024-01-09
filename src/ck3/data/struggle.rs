@@ -6,11 +6,12 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{old_warn, ErrorKey, warn};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
+use crate::validate::validate_duration;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -62,6 +63,7 @@ impl DbKind for Struggle {
         vd.field_list_items("faiths", Item::Faith);
         vd.field_list_items("regions", Item::Region);
 
+        vd.field_validated_block_sc("transition_state_duration", &mut sc, validate_duration);
         vd.field_numeric_range("involvement_prerequisite_percentage", 0.0, 1.0);
 
         vd.req_field("phase_list");
@@ -102,38 +104,61 @@ impl DbKind for Struggle {
         vd.field_validated_block("on_change_phase", |block, data| {
             validate_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
         });
-        vd.field_validated_key_block("on_join", |key, block, data| {
-            // Docs say it's Struggle scope but that's wrong.
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
+        vd.field_validated_block_rooted("on_join", Scopes::Character, |block, data, sc| {
+            validate_effect(block, data, sc, Tooltipped::No); // TODO: check tooltipped
+        });
+        vd.field_validated_block("on_monthly", |block, data| {
+            validate_effect(block, data, &mut sc, Tooltipped::No);
         });
     }
 }
 
 fn validate_phase(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    vd.field_item("background", Item::File);
-    vd.req_field("future_phases");
-    vd.field_validated_block("future_phases", |block, data| {
-        let mut vd = Validator::new(block, data);
-        let mut has_one = false;
-        vd.unknown_block_fields(|key, block| {
-            let mut vd = Validator::new(block, data);
-            has_one = true;
-            data.verify_exists(Item::StrugglePhase, key); // TODO: check that it belongs to this struggle
-            vd.field_bool("default");
-            vd.field_validated_block("catalysts", validate_catalyst_list);
+
+    // Ending phase
+    if vd.field_block("on_start") {
+        // Undocumented
+        vd.field_bool("save_progress");
+        vd.field_validated_block_rooted("on_start", Scopes::Struggle, |block, data, sc| {
+            validate_effect(block, data, sc, Tooltipped::No); // TODO: check tooltipped
         });
-        if !has_one {
-            old_warn(block, ErrorKey::Validation, "must have at least one future phase");
+        vd.unknown_fields(|key, _| {
+            let msg = format!("Ending phase should not have {key}, which will be ignored");
+            warn(ErrorKey::UnknownField).msg(msg).loc(key).push()
+        });
+    } else {
+        vd.field_validated_block_rooted("duration", Scopes::None, |block, data, sc| {
+            if let Some(bv) = block.get_field("points") {
+                validate_script_value(bv, data, sc);
+            } else {
+                validate_duration(block, data, sc);
+            }
+        });
+
+        vd.field_item("background", Item::File);
+        vd.req_field("future_phases");
+        vd.field_validated_block("future_phases", |block, data| {
+            let mut vd = Validator::new(block, data);
+            let mut has_one = false;
+            vd.unknown_block_fields(|key, block| {
+                let mut vd = Validator::new(block, data);
+                has_one = true;
+                data.verify_exists(Item::StrugglePhase, key); // TODO: check that it belongs to this struggle
+                vd.field_bool("default");
+                vd.field_validated_block("catalysts", validate_catalyst_list);
+            });
+            if !has_one {
+                old_warn(block, ErrorKey::Validation, "must have at least one future phase");
+            }
+        });
+
+        for field in &["war_effects", "culture_effects", "faith_effects", "other_effects"] {
+            vd.field_validated_block(field, validate_phase_effects);
         }
-    });
 
-    for field in &["war_effects", "culture_effects", "faith_effects", "other_effects"] {
-        vd.field_validated_block(field, validate_phase_effects);
+        vd.field_list_items("ending_decisions", Item::Decision);
     }
-
-    vd.field_list_items("ending_decisions", Item::Decision);
 }
 
 fn validate_catalyst_list(block: &Block, data: &Everything) {
@@ -149,6 +174,7 @@ fn validate_catalyst_list(block: &Block, data: &Everything) {
 
 fn validate_phase_effects(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
+    vd.field_item("name", Item::Localization);
     vd.field_validated_block("common_parameters", validate_struggle_parameters);
     vd.field_validated_block("involved_parameters", validate_struggle_parameters);
     vd.field_validated_block("interloper_parameters", validate_struggle_parameters);
