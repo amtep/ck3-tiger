@@ -246,6 +246,9 @@ impl Title {
         vd.field_validated_block("can_create_on_partition", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
+        vd.field_validated_block("can_destroy", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
 
         vd.field_validated_block("cultural_names", |block, data| {
             let mut vd = Validator::new(block, data);

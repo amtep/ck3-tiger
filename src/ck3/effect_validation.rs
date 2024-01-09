@@ -247,6 +247,8 @@ pub fn validate_add_modifier(
             if visible {
                 data.verify_exists(Item::Localization, token);
             }
+            let block = Block::new(key.loc.clone());
+            data.database.validate_call(Item::Modifier, token, &block, data, sc);
             data.database.validate_property_use(Item::Modifier, token, data, key, "");
         }
         BV::Block(block) => {
@@ -258,6 +260,7 @@ pub fn validate_add_modifier(
                 if visible && !block.has_key("desc") {
                     data.verify_exists(Item::Localization, token);
                 }
+                data.database.validate_call(Item::Modifier, token, block, data, sc);
                 data.database.validate_property_use(Item::Modifier, token, data, key, "");
             }
             vd.field_validated_sc("desc", sc, validate_desc);
@@ -1265,12 +1268,13 @@ pub fn validate_vassal_contract_set_obligation_level(
 }
 
 pub fn validate_add_artifact_modifier(
-    _key: &Token,
+    key: &Token,
     mut vd: ValueValidator,
     _sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
     vd.item(Item::Modifier);
+    // TODO validate `property_use`
     // TODO: this causes hundreds of warnings. Probably because the tooltip tracking isn't smart enough to figure out
     // things like "scope:newly_created_artifact does not exist yet at tooltipping time, so the body of the if won't
     // be tooltipped here".
