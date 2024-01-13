@@ -33,13 +33,11 @@ impl HouseUnity {
 }
 
 impl DbKind for HouseUnity {
-    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-
         vd.req_field("default_value");
-        // TODO: Verify against `field_integer`
-        vd.field_script_value_rooted("default_value", Scopes::None);
-        vd.field_script_value_rooted("min_value", Scopes::None);
+        vd.field_integer("default_value");
+        vd.field_integer("min_value");
 
         for (token, block) in block.iter_definitions() {
             validate_stage(token, block, data);
@@ -50,27 +48,48 @@ impl DbKind for HouseUnity {
 fn validate_stage(key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
 
-    vd.req_field("points");
-    vd.field_script_value_rooted("points", Scopes::None);
+    data.verify_exists(Item::Localization, key);
+    let loca = format!("{key}_desc");
+    data.verify_exists_implied(Item::Localization, &loca, key);    
 
-    if let Some(icon) = vd.field_value("icon") {
-        if let Some(icon_path) =
-            data.get_defined_string_warn(key, "gfx/interface/icons/currencies/house_unity")
-        {
-            let pathname = format!("{icon_path}/{icon}");
-            data.verify_exists_implied(Item::File, &pathname, icon);
-        }
+    vd.req_field("points");
+    vd.field_integer("points");
+
+    // icon
+    let icon = vd.field_value("icon").unwrap_or(key);
+    if let Some(icon_path) =
+        data.get_defined_string_warn(key, "NGameIcons|HOUSE_UNITY_STAGE_ICON_PATH")
+    {
+        let pathname = format!("{icon_path}/{icon}.dds");
+        data.verify_exists_implied(Item::File, &pathname, icon);
     }
 
-    // TODO: Verify no character scope needed; otherwise use `_rooted`
+    // progress bar
+    if let Some(progress_bar_path) =
+        data.get_defined_string_warn(key, "NGameIcons|HOUSE_UNITY_STAGE_PROGRESS_BAR_PATH")
+    {
+        let pathname = format!("{progress_bar_path}/{key}.dds");
+        data.verify_exists_implied(Item::File, &pathname, key);
+    }
+
+    // background
+    if let Some(background_path) =
+        data.get_defined_string_warn(key, "NGameIcons|HOUSE_UNITY_STAGE_BACKGROUND_PATH")
+    {
+        let pathname = format!("{background_path}/{key}.dds");
+        data.verify_exists_implied(Item::File, &pathname, key);
+    }
+
     vd.field_validated_block("parameters", |block, data| {
-        for (_, value) in block.iter_assignments_warn() {
+        for (key, value) in block.iter_assignments_warn() {
             ValueValidator::new(value, data).bool();
+            let loca = format!("house_unity_parameter_{key}");
+            data.verify_exists_implied(Item::Localization, &loca, key);
         }
     });
 
-    vd.field_validated_block_rooted("modifiers", Scopes::Character, |block, data, sc| {
-        let mut vd = Validator::new(block, data);
+    vd.field_validated_block("modifiers", |block, data| {
+        let vd = Validator::new(block, data);
         validate_modifs(block, data, ModifKinds::Character, vd);
     });
 

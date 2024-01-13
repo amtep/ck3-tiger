@@ -293,7 +293,7 @@ pub fn validate_add_truce(
 
 pub fn validate_add_unity(
     _key: &Token,
-    block: &Block,
+    _block: &Block,
     _data: &Everything,
     sc: &mut ScopeContext,
     mut vd: Validator,
@@ -389,10 +389,10 @@ pub fn validate_change_liege(
 }
 
 pub fn validate_change_struggle_phase(
-    key: &Token,
+    _key: &Token,
     bv: &BV,
     data: &Everything,
-    sc: &mut ScopeContext,
+    _sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
     match bv {
@@ -1268,7 +1268,7 @@ pub fn validate_vassal_contract_set_obligation_level(
 }
 
 pub fn validate_add_artifact_modifier(
-    key: &Token,
+    _key: &Token,
     mut vd: ValueValidator,
     _sc: &mut ScopeContext,
     _tooltipped: Tooltipped,

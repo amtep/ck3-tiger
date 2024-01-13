@@ -74,6 +74,7 @@ pub mod secrets;
 pub mod stories;
 pub mod struggle;
 pub mod suggestions;
+pub mod tax_slots;
 pub mod terrain;
 pub mod title_history;
 pub mod titles;
