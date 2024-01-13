@@ -51,7 +51,7 @@ impl DbKind for Modifier {
 
     fn validate_call(
         &self,
-        key: &Token,
+        _key: &Token,
         block: &Block,
         _from: &Token,
         _from_block: &Block,

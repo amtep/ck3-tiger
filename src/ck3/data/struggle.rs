@@ -6,7 +6,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{old_warn, ErrorKey, warn};
+use crate::report::{old_warn, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;
@@ -70,6 +70,7 @@ impl DbKind for Struggle {
         vd.field_validated_block("phase_list", |block, data| {
             let mut has_one = false;
             let mut has_ending = false;
+            let phases = block.iter_definitions_warn().map(|(key, _)| key).collect::<Vec<_>>();
             let mut vd = Validator::new(block, data);
             vd.unknown_block_fields(|key, block| {
                 data.verify_exists(Item::Localization, key);
@@ -78,7 +79,7 @@ impl DbKind for Struggle {
                 let pathname = format!("gfx/interface/icons/struggle_types/{key}.dds");
                 data.verify_exists_implied(Item::File, &pathname, key);
                 has_one = true;
-                validate_phase(block, data);
+                validate_phase(block, data, &phases);
                 if let Some(vec) = block.get_field_list("ending_decisions") {
                     has_ending |= !vec.is_empty();
                 }
@@ -86,6 +87,7 @@ impl DbKind for Struggle {
             if !has_one {
                 old_warn(block, ErrorKey::Validation, "must have at least one phase");
             }
+            // TODO: Verify if it is OK to have an ending phase but no ending decisions
             if !has_ending {
                 let msg = "must have at least one phase with ending_decisions";
                 old_warn(block, ErrorKey::Validation, msg);
@@ -113,7 +115,7 @@ impl DbKind for Struggle {
     }
 }
 
-fn validate_phase(block: &Block, data: &Everything) {
+fn validate_phase(block: &Block, data: &Everything, phases: &[&Token]) {
     let mut vd = Validator::new(block, data);
 
     // Ending phase
@@ -121,16 +123,18 @@ fn validate_phase(block: &Block, data: &Everything) {
         // Undocumented
         vd.field_bool("save_progress");
         vd.field_validated_block_rooted("on_start", Scopes::Struggle, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No); // TODO: check tooltipped
+            validate_effect(block, data, sc, Tooltipped::Yes);
         });
         vd.unknown_fields(|key, _| {
-            let msg = format!("Ending phase should not have {key}, which will be ignored");
-            warn(ErrorKey::UnknownField).msg(msg).loc(key).push()
+            let msg = format!("ending phase should not have {key}, which will be ignored");
+            warn(ErrorKey::UnknownField).msg(msg).loc(key).push();
         });
     } else {
         vd.field_validated_block_rooted("duration", Scopes::None, |block, data, sc| {
             if let Some(bv) = block.get_field("points") {
-                validate_script_value(bv, data, sc);
+                if let Some(token) = bv.expect_value() {
+                    token.expect_integer();
+                }
             } else {
                 validate_duration(block, data, sc);
             }
@@ -144,7 +148,11 @@ fn validate_phase(block: &Block, data: &Everything) {
             vd.unknown_block_fields(|key, block| {
                 let mut vd = Validator::new(block, data);
                 has_one = true;
-                data.verify_exists(Item::StrugglePhase, key); // TODO: check that it belongs to this struggle
+                data.verify_exists(Item::StrugglePhase, key);
+                if !phases.contains(&key) {
+                    let msg = format!("{key} is not a struggle phase of this struggle");
+                    warn(ErrorKey::UnknownField).msg(msg).loc(key).push();
+                }
                 vd.field_bool("default");
                 vd.field_validated_block("catalysts", validate_catalyst_list);
             });
