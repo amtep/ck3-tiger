@@ -97,7 +97,7 @@ pub fn validate_modifs<'a>(
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::tables::modifs::lookup_modif,
     };
-    
+
     let mut possible_kinds = kinds;
     vd.unknown_fields(|key, bv| {
         if let Some(mk) = lookup_modif(key, data, Some(Severity::Error)) {
