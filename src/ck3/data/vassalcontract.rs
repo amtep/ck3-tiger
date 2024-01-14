@@ -40,9 +40,11 @@ impl DbKind for VassalContract {
         data.verify_exists(Item::Localization, key);
 
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new(Scopes::Character, key);
+        let mut sc = ScopeContext::new(Scopes::None, key);
         sc.define_name("liege", Scopes::Character, key);
         sc.define_name("vassal", Scopes::Character, key);
+        sc.define_name("tax_slot", Scopes::TaxSlot, key);
+        sc.define_name("tax_collector", Scopes::Character, key);
 
         vd.field_bool("uses_opinion_of_liege");
         if let Some(token) = block.get_field_value("uses_opinion_of_liege") {
