@@ -9,7 +9,7 @@ use crate::trigger::Trigger;
 
 use Trigger::*;
 
-/// LAST UPDATED CK3 VERSION 1.10.0
+/// LAST UPDATED CK3 VERSION 1.11.3
 pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger)> {
     let name_lc = name.as_str().to_lowercase();
 
