@@ -19,7 +19,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // Look up generated modifs, in a careful order because of possibly overlapping suffixes.
 
     // Vassal stance opinions
-    for sfx in &[
+    for sfx in [
         "_ai_boldness",
         "_ai_compassion",
         "_ai_energy",

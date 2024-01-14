@@ -29,24 +29,29 @@ impl DbKind for VassalStance {
         let mut sc = ScopeContext::new(Scopes::Character, key);
         sc.define_name("liege", Scopes::Character, key);
 
-        let modif = format!("{key}_opinion");
-        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
-        let modif = format!("{key}_same_faith_opinion");
-        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
-        let modif = format!("{key}_same_culture_opinion");
-        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
-        let modif = format!("{key}_different_faith_opinion");
-        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
-        let modif = format!("{key}_different_culture_opinion");
-        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
-        let modif = format!("{key}_levy_contribution_add");
-        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
-        let modif = format!("{key}_levy_contribution_mult");
-        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
-        let modif = format!("{key}_tax_contribution_add");
-        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
-        let modif = format!("{key}_tax_contribution_mult");
-        data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        for sfx in [
+            "_opinion",
+            "_same_faith_opinion",
+            "_different_faith_opinion",
+            "_same_culture_opinion",
+            "_different_culture_opinion",
+            "_tax_contribution_add",
+            "_tax_contribution_mult",
+            "_levy_contribution_add",
+            "_levy_contribution_mult",
+            "_ai_honor",
+            "_ai_greed",
+            "_ai_rationality",
+            "_ai_energy",
+            "_ai_boldness",
+            "_ai_zeal",
+            "_ai_vengefulness",
+            "_ai_compassion",
+            "_ai_sociability",
+        ] {
+            let modif = format!("{key}{sfx}");
+            data.verify_exists_implied(Item::ModifierFormat, &modif, key);
+        }
 
         vd.multi_field_validated_block("is_valid", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
