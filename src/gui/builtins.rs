@@ -87,7 +87,7 @@ impl<'a> TryFrom<&Lowercase<'a>> for BuiltinWidget {
 
 impl BuiltinWidget {
     /// Return which games support the given builtin widget type
-    // LAST UPDATED CK3 VERSION 1.9.2.1
+    // LAST UPDATED CK3 VERSION 1.11.3
     // LAST UPDATED VIC3 VERSION 1.3.6
     // LAST UPDATED IMPERATOR VERSION 2.0.3
     pub fn to_game_flags(self) -> GameFlags {

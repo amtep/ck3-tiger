@@ -120,7 +120,7 @@ impl Music {
 }
 
 /// A list of music provided by DLCs, for people who don't have them
-/// LAST UPDATED VERSION 1.9.2.1
+/// LAST UPDATED VERSION 1.11.3
 const DLC_MUSIC: &[&str] = &[
     // FP1
     "mx_raid",
