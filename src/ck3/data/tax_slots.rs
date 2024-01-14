@@ -5,7 +5,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::modif::{ModifKinds, validate_modifs};
+use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value_no_breakdown;
 use crate::token::Token;

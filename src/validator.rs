@@ -571,10 +571,10 @@ impl<'a> Validator<'a> {
     where
         F: FnMut(&Token) -> ScopeContext,
     {
-        self.field_check(name, |key, bv| {          
+        self.field_check(name, |key, bv| {
             let mut sc = f(key);
             // TODO: pass max_severity value down
-            validate_script_value(bv, self.data, &mut sc);  
+            validate_script_value(bv, self.data, &mut sc);
         })
     }
 

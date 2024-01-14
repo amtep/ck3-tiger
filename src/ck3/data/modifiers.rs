@@ -102,20 +102,20 @@ fn get_modif_kinds(name: &str) -> ModifKinds {
         "house_unity_modifier",
     ] {
         if name.contains(substr) {
-            return ModifKinds::Character
+            return ModifKinds::Character;
         }
     }
     if name.contains("county_modifier") {
-        return ModifKinds::County
+        return ModifKinds::County;
     }
     if name.contains("province_modifier") {
-        return ModifKinds::Province
+        return ModifKinds::Province;
     }
     if name.contains("scheme_modifier") {
-        return ModifKinds::Scheme
+        return ModifKinds::Scheme;
     }
     if name.contains("travel_plan_modifier") {
-        return ModifKinds::TravelPlan
+        return ModifKinds::TravelPlan;
     }
 
     ModifKinds::empty()

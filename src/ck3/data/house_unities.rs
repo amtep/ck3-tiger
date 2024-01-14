@@ -50,7 +50,7 @@ fn validate_stage(key: &Token, block: &Block, data: &Everything) {
 
     data.verify_exists(Item::Localization, key);
     let loca = format!("{key}_desc");
-    data.verify_exists_implied(Item::Localization, &loca, key);    
+    data.verify_exists_implied(Item::Localization, &loca, key);
 
     vd.req_field("points");
     vd.field_integer("points");
