@@ -235,7 +235,7 @@ pub fn validate_prefix_reference(
         "religion" => data.verify_exists(Item::Religion, arg),
         "special_guest" => data.verify_exists(Item::SpecialGuest, arg),
         "struggle" => data.verify_exists(Item::Struggle, arg),
-        "tax_slot" => data.verify_exists(Item::TaxSlot, arg),
+        "tax_slot" => data.verify_exists(Item::TaxSlotType, arg),
         "title" => data.verify_exists(Item::Title, arg),
         "trait" => data.verify_exists(Item::Trait, arg),
         "vassal_contract" | "vassal_contract_obligation_level" => {
@@ -298,7 +298,7 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     if scopes == Scopes::Struggle && data.item_exists(Item::Struggle, arg) {
         return Some("struggle");
     }
-    if scopes == Scopes::TaxSlot && data.item_exists(Item::TaxSlot, arg) {
+    if scopes == Scopes::TaxSlot && data.item_exists(Item::TaxSlotType, arg) {
         return Some("tax_slot");
     }
     if scopes == Scopes::LandedTitle && data.item_exists(Item::Title, arg) {
