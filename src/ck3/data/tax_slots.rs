@@ -164,8 +164,10 @@ impl DbKind for TaxSlotObligation {
         // Undocumented; may have more scopes available
         vd.field_validated_key("ai_will_do", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::None, key);
+            sc.define_name("is_current_obligation", Scopes::Bool, key);
             sc.define_name("liege", Scopes::Character, key);
             sc.define_name("num_slots_with_obligation", Scopes::Value, key);
+            sc.define_name("num_vassal_slots", Scopes::Value, key);
             validate_script_value_no_breakdown(bv, data, &mut sc);
         });
     }
