@@ -178,7 +178,7 @@ pub const ON_ACTION_SCOPES: &str = "
 
 	on_became_house_head = {
 		root = character
-		house = house
+		house = dynasty_house
 	}
 
 	on_trigger_court_events = {
@@ -486,12 +486,12 @@ pub const ON_ACTION_SCOPES: &str = "
 	on_travel_plan_abort = on_travel_plan_movement
 	on_travel_plan_cancel = on_travel_plan_movement
 
-	on_travel_activity_complete = { # TODO Verify
-		root = character
+	on_travel_activity_complete = {
+		root = character # TODO Verify
 		travel_plan = travel_plan
 	}
-	#on_travel_activity_invalidated = { # TODO Verify
-		root = character
+	on_travel_activity_invalidated = { 
+		root = character # TODO Verify
 		travel_plan = travel_plan
 	}
 	on_travel_activity_arrival_too_late = {
