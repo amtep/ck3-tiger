@@ -1641,6 +1641,13 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
 ];
 
+pub fn scope_trigger_special_value(name: &Token) -> Option<(Scopes, Trigger)> {
+    let name_lc = name.as_str().to_lowercase();
+    TRIGGER_SPECIAL_VALUE_MAP.get(&*name_lc).map(|(from, trigger)| {
+        (*from, *trigger)
+    })
+}
+
 static TRIGGER_SPECIAL_VALUE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
     for (from, s, trigger) in TRIGGER_SPECIAL_VALUE {

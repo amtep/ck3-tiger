@@ -4,6 +4,7 @@ use std::borrow::Cow;
 use std::str::FromStr;
 
 use crate::block::{Block, Comparator, Eq::*, Field, BV};
+use crate::ck3::tables::triggers::scope_trigger_special_value;
 use crate::context::{Reason, ScopeContext};
 use crate::data::genes::Gene;
 use crate::data::trigger_localization::TriggerLocalization;
@@ -17,7 +18,7 @@ use crate::helpers::stringify_list;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{
-    advice_info, err, error, fatal, old_warn, warn2, warn_info, ErrorKey, Severity,
+    advice_info, err, error, fatal, old_warn, warn, warn2, warn_info, ErrorKey, Severity,
 };
 use crate::scopes::{
     needs_prefix, scope_iterator, scope_prefix, scope_to_scope, validate_prefix_reference, Scopes,
@@ -1098,59 +1099,58 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
 /// This function is for keys that use the unusual syntax `"scope:province.squared_distance(scope:other)"`
 /// The function will extract the argument from between the parentheses and validate it.
 /// It will return the key without this argument, or return the key unchanged if there wasn't any.
-/// When deleting the argument, it will leave the '(' in place to signal that there was an argument here.
 #[allow(unused_variables)] // imperator doesn't use any of this function
 fn handle_argument<'a>(key: &'a Token, data: &Everything, sc: &mut ScopeContext) -> Cow<'a, Token> {
     #[cfg(any(feature = "ck3", feature = "vic3"))]
-    if let Some((before, after)) = key.split_after('(') {
+    if let Some((before, after)) = key.split_once('(') {
         if let Some((arg, after)) = after.split_once(')') {
             let arg = arg.trim();
-            for part in before.split('.') {
-                if part.as_str().ends_with('(') {
-                    #[cfg(feature = "ck3")]
-                    if Game::is_ck3() {
-                        if part.is("vassal_contract_obligation_level_score(") {
-                            validate_target(&arg, data, sc, Scopes::VassalContract);
-                        } else if part.is("squared_distance(") {
-                            validate_target(&arg, data, sc, Scopes::Province);
-                        } else {
-                            let msg = "unexpected argument";
-                            err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
-                        }
+            let parts = before.split('.');
+            // Special value trigger is only allowed to be at the end of a scope chain since output is value.
+            // SAFETY: before will always have one or more parts
+            let trigger = parts.last().unwrap();
+            #[cfg(feature = "ck3")]
+            if Game::is_ck3() {
+                if let Some((from, argument)) = scope_trigger_special_value(trigger) {
+                    use Trigger::*;
+                    match argument {
+                        Item(item) => data.verify_exists(item, &arg),
+                        Scope(scope) => validate_target(&arg, data, sc, scope),
+                        UncheckedValue => (),
+                        _ => unimplemented!(),
                     }
-                    // TODO there's got to be a better way to do this
-                    #[cfg(feature = "vic3")]
-                    if Game::is_vic3() {
-                        if part.is("ai_army_comparison(")
-                            || part.is("ai_gdp_comparison(")
-                            || part.is("ai_ideological_opinion(")
-                            || part.is("ai_navy_comparison(")
-                            || part.is("average_defense(")
-                            || part.is("average_offense(")
-                            || part.is("diplomatic_pact_other_country(")
-                            || part.is("num_total_battalions(")
-                            || part.is("num_defending_battalions(")
-                            || part.is("tension(")
-                            || part.is("num_alliances_and_defensive_pacts_with_allies(")
-                            || part.is("num_alliances_and_defensive_pacts_with_rivals(")
-                            || part.is("num_mutual_trade_route_levels_with_country(")
-                            || part.is("relations(")
-                        {
-                            validate_target(&arg, data, sc, Scopes::Country);
-                        } else if part.is("num_enemy_units(") {
-                            validate_target(&arg, data, sc, Scopes::Character);
-                        } else {
-                            let msg = "unexpected argument";
-                            err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
-                        }
+                } else {
+                    err(ErrorKey::Validation).weak().msg("unexpected argument").loc(&arg).push();
+                }
+            }
+            #[cfg(feature = "vic3")]
+            if Game::is_vic3() {
+                match trigger.as_str() {
+                    "ai_army_comparison"
+                    | "ai_gdp_comparison"
+                    | "ai_ideological_opinion"
+                    | "ai_navy_comparison"
+                    | "average_defense"
+                    | "average_offense"
+                    | "diplomatic_pact_other_country"
+                    | "num_total_battalions"
+                    | "num_defending_battalions"
+                    | "tension"
+                    | "num_alliances_and_defensive_pacts_with_allies"
+                    | "num_alliances_and_defensive_pacts_with_rivals"
+                    | "num_mutual_trade_route_levels_with_country"
+                    | "relations" => validate_target(&arg, data, sc, Scopes::Country),
+                    "num_enemy_units" => validate_target(&arg, data, sc, Scopes::Character),
+                    _ => {
+                        err(ErrorKey::Validation).weak().msg("unexpected argument").loc(&arg).push()
                     }
                 }
             }
-            let mut new_key = before;
+
             if !after.as_str().is_empty() {
-                new_key.combine(&after, '.');
+                warn(ErrorKey::Validation).msg("cannot chain after value").loc(&after).push();
             }
-            return Cow::Owned(new_key);
+            return Cow::Owned(before);
         }
     }
     Cow::Borrowed(key)
