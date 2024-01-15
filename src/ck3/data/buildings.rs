@@ -204,7 +204,7 @@ impl DbKind for Building {
         vd.multi_field_validated_block("county_holding_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("holding");
-            vd.field_item("holding", Item::Holding);
+            vd.field_item("holding", Item::HoldingType);
             validate_modifs(block, data, ModifKinds::County, vd);
         });
         vd.multi_field_validated_block("county_dynasty_modifier", |block, data| {
@@ -237,6 +237,14 @@ impl DbKind for Building {
         });
 
         vd.field_bool("is_graphical_background");
+
+        for field in ["on_start", "on_cancelled", "on_complete"] {
+            vd.field_validated_key_block(field, |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Province, key);
+                sc.define_name("character", Scopes::Character, key);
+                validate_effect(block, data, &mut sc, Tooltipped::No);
+            });
+        }
     }
 
     fn set_property(&mut self, _key: &Token, _block: &Block, property: &str) {

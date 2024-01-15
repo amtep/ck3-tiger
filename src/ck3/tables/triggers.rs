@@ -9,7 +9,7 @@ use crate::trigger::Trigger;
 
 use Trigger::*;
 
-/// LAST UPDATED CK3 VERSION 1.10.0
+/// LAST UPDATED CK3 VERSION 1.11.3
 pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger)> {
     let name_lc = name.as_str().to_lowercase();
 
@@ -64,7 +64,7 @@ static TRIGGER_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::ne
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.10.0
+/// LAST UPDATED CK3 VERSION 1.11.3
 /// See `triggers.log` from the game data dumps
 /// special:
 ///    `<legacy>_track_perks`
@@ -136,6 +136,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::War, "attacker_war_score", CompareValue),
     (Scopes::Character, "attraction", CompareValue),
     (Scopes::Province, "available_loot", CompareValueWarnEq),
+    (Scopes::TaxSlot, "available_taxpayer_slots", CompareValue),
     (Scopes::Character, "average_amenity_level", CompareValue),
     (Scopes::Faction, "average_faction_opinion", CompareValue),
     (Scopes::Faction, "average_faction_opinion_not_powerful_vassal", CompareValue),
@@ -153,6 +154,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("target", Scope(Scopes::Character)), ("type", Item(Item::Hook))]),
     ),
     (Scopes::Character, "can_arrive_in_time_to_activity_minimum", Scope(Scopes::Activity)),
+    (Scopes::Character, "can_assign_to_tax_slot", Scope(Scopes::TaxSlot)),
     (Scopes::Character, "can_attack_in_hierarchy", Scope(Scopes::Character)),
     (Scopes::Character, "can_be_acclaimed", Boolean),
     (Scopes::Character, "can_be_child_of", Scope(Scopes::Character)),
@@ -348,6 +350,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Dynasty, "dynasty_prestige_level", CompareValue),
     (Scopes::Character, "effective_age", CompareValue),
     (Scopes::Character, "employs_court_position", Item(Item::CourtPosition)),
+    (Scopes::Character, "employs_tax_collector", Boolean),
     (Scopes::Faith, "estimated_faith_strength", CompareValue),
     (Scopes::None, "exists", Special),
     (Scopes::Faction, "faction_can_press_demands", Boolean),
@@ -569,7 +572,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Faith, "has_graphical_faith", Item(Item::GraphicalFaith)),
     (Scopes::Character, "has_had_focus_for_days", CompareValue),
     (Scopes::Province, "has_holding", Boolean),
-    (Scopes::Province, "has_holding_type", Item(Item::Holding)),
+    (Scopes::Province, "has_holding_type", Item(Item::HoldingType)),
     (Scopes::LandedTitle, "has_holy_site_flag", Item(Item::HolySiteFlag)),
     (Scopes::Character, "has_hook", Scope(Scopes::Character)),
     (Scopes::Character, "has_hook_from_secret", Scope(Scopes::Secret)),
@@ -591,6 +594,21 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             ("*years", CompareValue),
         ]),
     ),
+    (Scopes::DynastyHouse, "has_house_unity", Boolean),
+    (Scopes::DynastyHouse, "has_house_unity_modifier", Item(Item::Modifier)),
+    (
+        Scopes::DynastyHouse,
+        "has_house_unity_modifier_duration_remaining",
+        Block(&[
+            ("modifier", Item(Item::Modifier)),
+            ("*days", CompareValue),
+            ("*weeks", CompareValue),
+            ("*months", CompareValue),
+            ("*years", CompareValue),
+        ]),
+    ),
+    (Scopes::DynastyHouse, "has_house_unity_parameter", Item(Item::HouseUnityParameter)),
+    (Scopes::DynastyHouse, "has_house_unity_stage", Item(Item::HouseUnityStage)),
     (Scopes::Faith, "has_icon", Item(Item::FaithIcon)),
     (Scopes::Character, "has_imprisonment_reason", Scope(Scopes::Character)),
     (Scopes::Character, "has_inactive_trait", Item(Item::Trait)),
@@ -720,6 +738,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_strong_usable_hook", Scope(Scopes::Character)),
     (Scopes::Struggle, "has_struggle_phase_parameter", Item(Item::StrugglePhaseParameter)),
     (Scopes::Character, "has_targeting_faction", Boolean),
+    (Scopes::Character, "has_tax_collector", Boolean),
     (Scopes::Character, "has_title", Scope(Scopes::LandedTitle)),
     (Scopes::LandedTitle, "has_title_law", Item(Item::Law)),
     (Scopes::LandedTitle, "has_title_law_flag", Item(Item::LawFlag)),
@@ -782,6 +801,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             ("*years", CompareValue),
         ]),
     ),
+    (Scopes::DynastyHouse, "house_unity_value", CompareValueWarnEq),
     (Scopes::Character, "important_action_is_valid_but_invisible", Item(Item::ImportantAction)),
     (Scopes::Character, "important_action_is_visible", Item(Item::ImportantAction)),
     (Scopes::Character, "in_diplomatic_range", Scope(Scopes::Character)),
@@ -800,6 +820,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "is_acclaimed", Boolean),
     (Scopes::Accolade, "is_accolade_active", Boolean),
     (Scopes::Character, "is_accolade_successor", Boolean),
+    (Scopes::TaxSlot, "is_active_obligation", Item(Item::TaxSlotObligation)),
     (Scopes::Activity, "is_activity_complete", Boolean),
     (Scopes::Character, "is_activity_type_on_cooldown", Scope(Scopes::ActivityType)),
     (Scopes::Character, "is_adult", Boolean),
@@ -1065,6 +1086,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(Scopes::all_but_none()))]),
     ),
     (Scopes::LandedTitle, "is_target_of_council_task", Item(Item::CouncilTask)),
+    (Scopes::Character, "is_tax_collector", Boolean),
+    (Scopes::Character, "is_tax_collector_of", Scope(Scopes::Character)),
     (Scopes::Character, "is_theocratic_lessee", Boolean),
     (Scopes::LandedTitle, "is_title_created", Boolean),
     (Scopes::LandedTitle, "is_titular", Boolean),
@@ -1116,6 +1139,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("target", Scope(Scopes::Character)), ("+value", CompareValue), ("?abs", Boolean)]),
     ),
     (Scopes::Character, "learning_for_portrait", CompareValue),
+    (Scopes::Character, "levies_to_liege", CompareValueWarnEq),
     (Scopes::None, "list_size", Block(&[("name", UncheckedValue), ("+value", CompareValue)])),
     (Scopes::Secret, "local_player_knows_this_secret", Boolean),
     (
@@ -1453,6 +1477,12 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "target_is_same_character_or_above", Scope(Scopes::Character)),
     (Scopes::Character, "target_is_vassal_or_below", Scope(Scopes::Character)),
     (Scopes::Character, "target_weight", CompareValue),
+    (
+        Scopes::Character,
+        "tax_collector_aptitude",
+        Block(&[("target", Item(Item::TaxSlotType)), ("+value", CompareValue)]),
+    ),
+    (Scopes::Character, "tax_to_liege", CompareValueWarnEq),
     (Scopes::Province, "terrain", Item(Item::Terrain)),
     (Scopes::LandedTitle, "tier", CompareValue), // TODO: advice if this is compared to a bare number
     (

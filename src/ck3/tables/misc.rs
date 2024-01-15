@@ -1,9 +1,9 @@
 //! Miscellaneous tables used to back `Item` variants.
 
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.11.3
 pub const ACTIVITY_STATES: &[&str] = &["passive", "travel", "active"];
 
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.11.3
 // Taken from the create_artifact description in effects.log
 pub const ARTIFACT_HISTORY: &[&str] = &[
     "created_before_history",
@@ -25,23 +25,23 @@ pub const ARTIFACT_HISTORY: &[&str] = &[
     "reforged",
 ];
 
-// LAST UPDATED CK3 VERSION 1.10.0
-// TODO: parse it from dlc_metadata/ ? Unfortunately Tours and Tournaments
-// is an exception.
+// LAST UPDATED CK3 VERSION 1.11.3
+// TODO: parse it from dlc_metadata/
 pub const DLC_CK3: &[&str] = &[
+    "Garments of the Holy Roman Empire",
     "Fashion of the Abbasid Court",
     "The Northern Lords",
-    "Garments of the Holy Roman Empire",
-    "The Fate of Iberia",
     "The Royal Court",
+    "The Fate of Iberia",
     "Friends and Foes",
     "tours_and_tournaments",
     "Elegance of the Empire",
-    "Wards and Wardens", // guessed
+    "Wards and Wardens",
+    "Legacy of Persia",
 ];
 
-/// LAST UPDATED CK3 VERSION 1.10.0
-/// Entries verified in-game by seeing if datafunction `HasDlcFeature` logs an error.
+/// LAST UPDATED CK3 VERSION 1.11.3
+/// Taken from has_dlc_feature in triggers.log
 pub const DLC_FEATURES_CK3: &[&str] = &[
     "garments_of_the_hre",
     "fashion_of_the_abbasid_court",
@@ -56,26 +56,27 @@ pub const DLC_FEATURES_CK3: &[&str] = &[
     "tours_and_tournaments",
     "advanced_activities",
     "accolades",
+    "legacy_of_persia",
     "elegance_of_the_empire",
     "wards_and_wardens",
 ];
 
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.11.3
 // Gathered from vanilla game files
 pub const REWARD_ITEMS: &[&str] = &["newsletter_crown"];
 
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.11.3
 // Gathered from vanilla game files
 pub const PRISON_TYPES: &[&str] = &["dungeon", "house_arrest"];
 
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.11.3
 pub const SKILLS: &[&str] =
     &["diplomacy", "intrigue", "learning", "martial", "prowess", "stewardship"];
 
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.11.3
 pub const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual", "none"];
 
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.11.3
 // Taken from recent_history description in triggers.log
 pub const TITLE_HISTORY_TYPES: &[&str] = &[
     "conquest",
@@ -98,7 +99,7 @@ pub const TITLE_HISTORY_TYPES: &[&str] = &[
     "swear_fealty",
 ];
 
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.11.3
 // Gathered from vanilla common/traits/
 pub const TRAIT_CATEGORIES: &[&str] = &[
     "personality",
@@ -112,7 +113,7 @@ pub const TRAIT_CATEGORIES: &[&str] = &[
     "health",
 ];
 
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.11.3
 // Gathered from vanilla game files
 pub const DANGER_TYPES: &[&str] = &[
     "default",
@@ -126,12 +127,19 @@ pub const DANGER_TYPES: &[&str] = &[
     "owner_opinion",
 ];
 
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.11.3
 pub const ARTIFACT_RARITY: &[&str] = &["common", "masterwork", "famed", "illustrious"];
 
-// LAST UPDATED CK3 VERSION 1.10.0
+// LAST UPDATED CK3 VERSION 1.11.3
 // Taken from the object browser
 pub const SOUNDS_CK3: &[&str] = &[
+    "event:/DLC/BP1/MUSIC/moodtrack/mx_BP1Mood_Generic",
+    "event:/DLC/BP1/MUSIC/moodtrack/mx_BP1Mood_MiddleEastern",
+    "event:/DLC/BP1/MUSIC/moodtrack/mx_BP1Mood_Western",
+    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_01",
+    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_02",
+    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_03",
+    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_04",
     "event:/DLC/EP1/MX/Cuetracks/mx_cuetrack_01_middleeasterncourt",
     "event:/DLC/EP1/MX/Cuetracks/mx_cuetrack_02_europeancourt",
     "event:/DLC/EP1/MX/Cuetracks/mx_cuetrack_03_indiancourt",
@@ -177,6 +185,24 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/DLC/EP1/SFX/UI/hold_court",
     "event:/DLC/EP1/SFX/UI/inventory_artifact_place",
     "event:/DLC/EP1/SFX/courtcamera",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_01_tournament_west",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_02_tournament_mena",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_03_tournament_india",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_04_tournament_end",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_05_tour_west",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_06_tour_mena",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_07_tour_india",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_08_tour_end",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_09_wedding_west",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_10_wedding_mena",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_11_wedding_india",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_12_wedding_end",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_13_murder_feast",
+    "event:/DLC/EP2/MX/Maintheme/mx_mep2_maintheme",
+    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_01",
+    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_02",
+    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_03",
+    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_04",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_crowd_base",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_crowd_base_rise",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_crowd_negative_reaction",
@@ -184,6 +210,8 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_crowd_surprise_reaction",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_begin_set",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_locale",
+    "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_locale_close",
+    "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_locale_open",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_outcome_set",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_pivotal_set",
     "event:/DLC/EP2/SFX/Animation/ep2_anim_char_mena_female_walk",
@@ -357,39 +385,53 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/DLC/FP2/SFX/UI/fp2_struggle_view_close",
     "event:/DLC/FP2/SFX/UI/fp2_struggle_view_open",
     "event:/DLC/FP2/SFX/UI/fp2_ui_war_declare_war",
+    "event:/DLC/FP3/MX/Cuetracks/mx_cuetracks_01_struggle_starts",
+    "event:/DLC/FP3/MX/Cuetracks/mx_cuetracks_02_struggle_ends",
+    "event:/DLC/FP3/MX/Cuetracks/mx_cuetracks_03_war_during_struggle",
+    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_01",
+    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_02",
+    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_03",
+    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_04",
+    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_05",
+    "event:/DLC/FP3/SFX/Ambience/3DMapEmitters/Holdings/fp3_ambience_3D_holdings_imamrezashrine",
+    "event:/DLC/FP3/SFX/Ambience/3DMapEmitters/Holdings/fp3_ambience_3D_holdings_minaret",
+    "event:/DLC/FP3/SFX/Ambience/3DMapEmitters/Holdings/fp3_ambience_3D_holdings_soltaniyeh",
+    "event:/DLC/FP3/SFX/UI/Generic/fp3_ui_war_declare_war",
+    "event:/DLC/FP3/SFX/UI/Notifications/Toasts/struggle_end_negative",
+    "event:/DLC/FP3/SFX/UI/Notifications/Toasts/struggle_end_positive",
     "event:/Error/Errorhof",
     "event:/Error/placeholder_obnoxious_ui",
     "event:/MUSIC/Cues/Events/Banquet/mx_banquet_track_01",
     "event:/MUSIC/Cues/Events/Banquet/mx_banquet_track_02",
     "event:/MUSIC/Cues/Events/Banquet/mx_cue_banquet",
     "event:/MUSIC/Cues/Events/Birth/mx_cue_birth",
-    "event:/MUSIC/Cues/Events/CK3 Vocal Main Theme/mx_cue_ck3_vocal_maintheme",
+    "event:/MUSIC/Cues/Events/CK3VocalMainTheme/mx_cue_ck3_vocal_maintheme",
     "event:/MUSIC/Cues/Events/Combat/mx_cue_combat_2",
     "event:/MUSIC/Cues/Events/Combat/mx_cue_combat_3",
     "event:/MUSIC/Cues/Events/Combat/mx_cue_combat_stinger",
-    "event:/MUSIC/Cues/Events/Crusade Starts/mx_cue_crusade_starts",
+    "event:/MUSIC/Cues/Events/CrusadeStarts/mx_cue_crusade_starts",
     "event:/MUSIC/Cues/Events/Death/mx_cue_death",
-    "event:/MUSIC/Cues/Events/General Crusade Event/mx_cue_general_crusade_event_1",
-    "event:/MUSIC/Cues/Events/General Crusade Event/mx_cue_general_crusade_event_2",
-    "event:/MUSIC/Cues/Events/General Crusade Event/mx_cue_general_crusade_event_3",
-    "event:/MUSIC/Cues/Events/High Stress/mx_cue_stress",
+    "event:/MUSIC/Cues/Events/GeneralCrusadeEvent/mx_cue_general_crusade_event_1",
+    "event:/MUSIC/Cues/Events/GeneralCrusadeEvent/mx_cue_general_crusade_event_2",
+    "event:/MUSIC/Cues/Events/GeneralCrusadeEvent/mx_cue_general_crusade_event_3",
+    "event:/MUSIC/Cues/Events/HighStress/mx_cue_stress",
     "event:/MUSIC/Cues/Events/Illness/mx_cue_illness",
-    "event:/MUSIC/Cues/Events/Low Key Positive/mx_cue_low_key_postive",
+    "event:/MUSIC/Cues/Events/LowKeyPositive/mx_cue_low_key_postive",
     "event:/MUSIC/Cues/Events/Marriage/mx_cue_marriage",
     "event:/MUSIC/Cues/Events/Murder/mx_cue_murder",
-    "event:/MUSIC/Cues/Events/Pagan Rite/mx_cue_sacredrite",
+    "event:/MUSIC/Cues/Events/PaganRite/mx_cue_sacredrite",
     "event:/MUSIC/Cues/Events/Peace_ensues/mx_cue_peace_ensues",
     "event:/MUSIC/Cues/Events/Positive/mx_cue_postive_effect",
     "event:/MUSIC/Cues/Events/Prison/mx_cue_prison",
-    "event:/MUSIC/Cues/Events/Sacral Happening/mx_cue_epic_sacral_moment",
+    "event:/MUSIC/Cues/Events/SacralHappening/mx_cue_epic_sacral_moment",
     "event:/MUSIC/Cues/Events/Secret/mx_cue_secret",
     "event:/MUSIC/Cues/Events/Seduction/mx_cue_seduction",
     "event:/MUSIC/Cues/Events/Succession/mx_cue_succession",
     "event:/MUSIC/Cues/Events/Succession/mx_cue_succession_instrumental",
     "event:/MUSIC/Cues/Events/Tavern/mx_cue_in_taberna_instrumental",
     "event:/MUSIC/Cues/Events/Tavern/mx_cue_meadandwine",
-    "event:/MUSIC/Cues/Events/Touching Moment/mx_cue_touching_moment",
-    "event:/MUSIC/Cues/Events/War Declared/mx_cue_war_declared",
+    "event:/MUSIC/Cues/Events/TouchingMoment/mx_cue_touching_moment",
+    "event:/MUSIC/Cues/Events/WarDeclared/mx_cue_war_declared",
     "event:/MUSIC/Cues/Events/faith_conversion/mx_cue_faith_conversion",
     "event:/MUSIC/Cues/Events/kill_mx_cue",
     "event:/MUSIC/MainTheme/Maintheme",
@@ -715,7 +757,7 @@ pub const SOUNDS_CK3: &[&str] = &[
     "snapshot:/States/mute_frontend_shimmer",
 ];
 
-// LAST UPDATED CK3 VERSION 1.9.1
+// LAST UPDATED CK3 VERSION 1.11.3
 pub const COMMON_DIRS: &[&str] = &[
     "common/accolade_icons",
     "common/accolade_names",
@@ -797,6 +839,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/guest_system",
     "common/holdings",
     "common/hook_types",
+    "common/house_unities",
     "common/important_actions",
     "common/inspirations",
     "common/landed_titles",
@@ -839,6 +882,8 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/struggle/struggles",
     "common/succession_election",
     "common/suggestions",
+    "common/tax_slots/obligations",
+    "common/tax_slots/types",
     "common/terrain_types",
     "common/traits",
     "common/travel/point_of_interest_types",

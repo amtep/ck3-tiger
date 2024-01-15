@@ -72,9 +72,9 @@ impl DbKind for Government {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
-        vd.field_item("primary_holding", Item::Holding);
-        vd.field_list_items("valid_holdings", Item::Holding);
-        vd.field_list_items("required_county_holdings", Item::Holding);
+        vd.field_item("primary_holding", Item::HoldingType);
+        vd.field_list_items("valid_holdings", Item::HoldingType);
+        vd.field_list_items("required_county_holdings", Item::HoldingType);
 
         vd.field_list_items("primary_cultures", Item::Culture);
         vd.field_list_items("primary_heritages", Item::CultureHeritage);
@@ -100,6 +100,7 @@ impl DbKind for Government {
         });
 
         vd.field_list_items("vassal_contract", Item::VassalContract);
+        vd.field_item("house_unity", Item::HouseUnity);
         vd.field_validated_block("ai", validate_ai);
         vd.multi_field_validated_block("character_modifier", |block, data| {
             let vd = Validator::new(block, data);

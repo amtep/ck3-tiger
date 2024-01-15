@@ -48,7 +48,7 @@ pub struct Localization {
 }
 
 /// List of languages that are supported by the game engine.
-// LAST UPDATED CK3 VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.11.3
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const KNOWN_LANGUAGES: &[&str] = &[
     "english",
@@ -373,7 +373,7 @@ impl Localization {
                 if Game::is_ck3() && !token.starts_with("[") && !token.starts_with("$") {
                     // The list of tag types can be found in ck3
                     // localization/english/tooltip_structs_l_english.yml
-                    // LAST UPDATED CK3 VERSION 1.9.2.1
+                    // LAST UPDATED CK3 VERSION 1.11.3
                     match &*tag.as_str().to_lowercase() {
                         "accolade"
                         | "activity"
@@ -383,6 +383,7 @@ impl Localization {
                         | "scheme"
                         | "secret"
                         | "travel_plan" => (), // runtime id
+                        "game_concept" => data.verify_exists(Item::GameConcept, token),
                         "culture" | "culture_innovation" | "culture_era" => {
                             data.verify_exists(Item::Culture, token);
                         }
@@ -401,6 +402,8 @@ impl Localization {
                         "title" => data.verify_exists(Item::Title, token),
                         "government_type" => data.verify_exists(Item::GovernmentType, token),
                         "static_modifier" => data.verify_exists(Item::Modifier, token),
+                        // TODO: Verify modifier has `scale`
+                        "scaled_static_modifier" => data.verify_exists(Item::Modifier, token),
                         "law" => data.verify_exists(Item::Law, token),
                         "terrain" => data.verify_exists(Item::Terrain, token),
                         "game_faith_doctrine" => data.verify_exists(Item::Doctrine, token),
@@ -408,8 +411,8 @@ impl Localization {
                         "focus" => data.verify_exists(Item::Focus, token),
                         "perk" => data.verify_exists(Item::Perk, token),
                         "dynasty_perk" => data.verify_exists(Item::DynastyPerk, token),
-                        // "obligation_level", TODO: contract type?
-                        "holding" => data.verify_exists(Item::Holding, token),
+                        // TODO "obligation_level", TODO: contract type?
+                        "holding" => data.verify_exists(Item::HoldingType, token),
                         "secret_type" => data.verify_exists(Item::Secret, token),
                         "geographical_region" => data.verify_exists(Item::Region, token),
                         "culture_pillar" => data.verify_exists(Item::CulturePillar, token),
@@ -430,7 +433,9 @@ impl Localization {
                         // TODO "ai_personality" => data.verify_exists(Item::AiPersonality, token),
                         "accolade_type" => data.verify_exists(Item::AccoladeType, token),
                         "travel_option" => data.verify_exists(Item::TravelOption, token),
-                        "game_concept" => data.verify_exists(Item::GameConcept, token),
+                        "house_unity_stage" => data.verify_exists(Item::HouseUnityStage, token),
+                        "decision" => data.verify_exists(Item::Decision, token),
+                        "tax_slot_obligation" => data.verify_exists(Item::TaxSlotObligation, token),
                         _ => {
                             // TODO: should this be validated with validate_localization_sc ? (remember to avoid infinite loops)
                             data.localization.verify_exists_lang(token, lang);

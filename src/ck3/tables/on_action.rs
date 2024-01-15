@@ -1,4 +1,4 @@
-// LAST UPDATED CK3 VERSION 1.10.0
+// LAST UPDATED CK3 VERSION 1.11.3
 pub const ON_ACTION_SCOPES: &str = "
 	on_accolade_rank_change = {
 		root = accolade
@@ -99,6 +99,14 @@ pub const ON_ACTION_SCOPES: &str = "
 		root = province
 	}
 
+	on_building_started = {
+		root = province
+	}
+
+	on_building_cancelled = {
+		root = province
+	}
+
 	on_birth_mother = {
 		root = character
 		child = character
@@ -161,6 +169,16 @@ pub const ON_ACTION_SCOPES: &str = "
 
 	on_dynasty_created = { # undocumented
 		root = dynasty
+	}
+
+	on_became_dynasty_head = {
+		root = character
+		dynasty = dynasty
+	}
+
+	on_became_house_head = {
+		root = character
+		house = dynasty_house
 	}
 
 	on_trigger_court_events = {
@@ -454,6 +472,10 @@ pub const ON_ACTION_SCOPES: &str = "
 		liege = character
 		title = landed_title
 	}
+	on_realm_capital_change = {
+		root = landed_title
+		old_capital = landed_title
+	}
 
 	on_travel_plan_movement = {
 		root = character
@@ -464,8 +486,14 @@ pub const ON_ACTION_SCOPES: &str = "
 	on_travel_plan_abort = on_travel_plan_movement
 	on_travel_plan_cancel = on_travel_plan_movement
 
-	#on_travel_activity_complete = ? TODO
-	#on_travel_activity_invalidated = ? TODO
+	on_travel_activity_complete = {
+		root = character # TODO Verify
+		travel_plan = travel_plan
+	}
+	on_travel_activity_invalidated = { 
+		root = character # TODO Verify
+		travel_plan = travel_plan
+	}
 	on_travel_activity_arrival_too_late = {
 		root = character
 		travel_plan = travel_plan

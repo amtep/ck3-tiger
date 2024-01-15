@@ -24,7 +24,7 @@ bitflags! {
     /// The logic for it is only really applicable to CK3, because in Vic3 all modifs are accepted
     /// in most places; for example you can add Building and Unit modifiers to a State.
     /// For Imperator it is not yet known how important this is.
-    // LAST UPDATED CK3 1.9.2.1
+    // LAST UPDATED CK3 1.11.3
     // LAST UPDATED VIC3 1.3.6
     // LAST UPDATED IMPERATOR 2.0.4
     // Taken from the game's `modifers.log`
@@ -73,11 +73,13 @@ impl Display for ModifKinds {
 }
 
 impl ModifKinds {
-    pub fn require(self, other: Self, token: &Token) {
-        if !self.intersects(other) {
+    pub fn require(self, other: Self, token: &Token) -> Self {
+        let after = self & other;
+        if after.is_empty() {
             let msg = format!("`{token}` is a modifier for {other} but expected {self}");
             error(token, ErrorKey::Modifiers, &msg);
         }
+        after
     }
 }
 
@@ -86,7 +88,7 @@ pub fn validate_modifs<'a>(
     data: &'a Everything,
     kinds: ModifKinds,
     mut vd: Validator<'a>,
-) {
+) -> ModifKinds {
     let lookup_modif = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::modifs::lookup_modif,
@@ -96,9 +98,10 @@ pub fn validate_modifs<'a>(
         Game::Imperator => crate::imperator::tables::modifs::lookup_modif,
     };
 
+    let mut possible_kinds = kinds;
     vd.unknown_fields(|key, bv| {
         if let Some(mk) = lookup_modif(key, data, Some(Severity::Error)) {
-            kinds.require(mk, key);
+            possible_kinds = possible_kinds.require(mk, key);
             validate_non_dynamic_script_value(bv, data);
             #[cfg(feature = "ck3")]
             if Game::is_ck3() && !key.is("health") && !key.is("negate_health_penalty_add") {
@@ -120,6 +123,8 @@ pub fn validate_modifs<'a>(
             err(ErrorKey::UnknownField).msg(msg).loc(key).push();
         }
     });
+
+    possible_kinds
 }
 
 pub fn verify_modif_exists(key: &Token, data: &Everything, kinds: ModifKinds, sev: Severity) {

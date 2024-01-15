@@ -42,7 +42,7 @@ impl DbKind for Flavorization {
         vd.field_list_items("titles", Item::Title);
         vd.field_list_items("de_jure_liege", Item::Title);
         vd.field_item("council_position", Item::CouncilPosition);
-        vd.field_item("holding", Item::Holding);
+        vd.field_item("holding", Item::HoldingType);
         vd.field_bool("top_liege");
         vd.field_bool("only_holder");
         vd.field_bool("only_independent");

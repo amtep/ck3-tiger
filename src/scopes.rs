@@ -16,7 +16,7 @@ bitflags! {
     ///
     /// The available scope types depend on the game.
     /// They are listed in `event_scopes.log` from the game data dumps.
-    // LAST UPDATED CK3 VERSION 1.9.2
+    // LAST UPDATED CK3 VERSION 1.11.3
     // LAST UPDATED VIC3 VERSION 1.3.6
     // LAST UPDATED IR VERSION 2.0.4
     //
@@ -85,6 +85,9 @@ bitflags! {
         #[cfg(feature = "ck3")] const TravelPlan = 0x0000_8000_0000_0000;
         #[cfg(feature = "ck3")] const VassalContract = 0x0001_0000_0000_0000;
         #[cfg(feature = "ck3")] const VassalObligationLevel = 0x0002_0000_0000_0000;
+        // CK3 1.11
+        #[cfg(feature = "ck3")] const HoldingType = 0x0004_0000_0000_0000;
+        #[cfg(feature = "ck3")] const TaxSlot = 0x0008_0000_0000_0000;
 
         #[cfg(feature = "vic3")] const Battle = 0x0001_0000;
         #[cfg(feature = "vic3")] const BattleSide = 0x0002_0000;

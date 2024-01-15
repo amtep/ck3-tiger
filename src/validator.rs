@@ -557,8 +557,22 @@ impl<'a> Validator<'a> {
     /// `root` type with the key of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated
     /// with a key that is further away.
     pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
-        self.field_check(name, |_, bv| {
-            let mut sc = ScopeContext::new(scopes, self.block.get_key(name).unwrap());
+        self.field_check(name, |key, bv| {
+            let mut sc = ScopeContext::new(scopes, key);
+            // TODO: pass max_severity value down
+            validate_script_value(bv, self.data, &mut sc);
+        })
+    }
+
+    /// Just like [`Validator::field_script_value`], but it takes a closure that uses the field key token
+    /// as the input to build and output a [`ScopeContext`]. This is a convenient way to associate the `root` type with the key
+    /// of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated with a key that is further away.
+    pub fn field_script_value_key<F>(&mut self, name: &str, mut f: F) -> bool
+    where
+        F: FnMut(&Token) -> ScopeContext,
+    {
+        self.field_check(name, |key, bv| {
+            let mut sc = f(key);
             // TODO: pass max_severity value down
             validate_script_value(bv, self.data, &mut sc);
         })

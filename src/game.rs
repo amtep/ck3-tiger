@@ -55,7 +55,7 @@ impl Game {
         #[cfg(all(feature = "ck3", not(feature = "vic3"), not(feature = "imperator")))]
         return true;
         #[cfg(all(feature = "ck3", any(feature = "vic3", feature = "imperator")))]
-        return GAME.get() == Some(Game::Ck3);
+        return GAME.get() == Some(&Game::Ck3);
     }
 
     /// Convenience function indicating whether we are validating Victoria 3 mods.
@@ -65,7 +65,7 @@ impl Game {
         #[cfg(all(feature = "vic3", not(feature = "ck3"), not(feature = "imperator")))]
         return true;
         #[cfg(all(feature = "vic3", any(feature = "ck3", feature = "imperator")))]
-        return GAME.get() == Some(Game::Vic3);
+        return GAME.get() == Some(&Game::Vic3);
     }
 
     /// Convenience function indicating whether we are validating Imperator: Rome mods.
@@ -75,7 +75,7 @@ impl Game {
         #[cfg(all(feature = "imperator", not(feature = "ck3"), not(feature = "vic3")))]
         return true;
         #[cfg(all(feature = "imperator", any(feature = "ck3", feature = "vic3")))]
-        return GAME.get() == Some(Game::Imperator);
+        return GAME.get() == Some(&Game::Imperator);
     }
 }
 

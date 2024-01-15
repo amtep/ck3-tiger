@@ -49,7 +49,7 @@ static SCOPE_EFFECT_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Effect)>> = Lazy
     hash
 });
 
-// LAST UPDATED CK3 VERSION 1.10.0
+// LAST UPDATED CK3 VERSION 1.11.3
 // See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::TravelPlan, "abort_travel_plan", Boolean),
@@ -109,6 +109,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "add_hook_no_toast", Vb(validate_add_hook)),
     (Scopes::DynastyHouse, "add_house_artifact_claim", Scope(Scopes::Artifact)),
     (Scopes::DynastyHouse, "add_house_modifier", Vbv(validate_add_modifier)),
+    (Scopes::DynastyHouse, "add_house_unity_modifier", Vbv(validate_add_modifier)),
     (Scopes::Culture, "add_innovation", Item(Item::Innovation)),
     (Scopes::None, "add_internal_flag", Unchecked),
     (Scopes::Character, "add_intrigue_skill", ScriptValue),
@@ -183,6 +184,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "add_truce_both_ways", Vb(validate_add_truce)),
     (Scopes::Character, "add_truce_one_way", Vb(validate_add_truce)),
     (Scopes::Character, "add_tyranny", ScriptValue),
+    (Scopes::DynastyHouse, "add_unity_value", Vb(validate_add_unity)),
     (Scopes::Character, "add_unpressed_claim", Scope(Scopes::LandedTitle)),
     (Scopes::Character, "add_visiting_courtier", Scope(Scopes::Character)),
     (Scopes::Character, "add_war_chest_gold", ScriptValue),
@@ -232,7 +234,12 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "change_local_variable", Vb(validate_change_variable)),
     (Scopes::Character, "change_prison_type", Item(Item::PrisonType)),
     (Scopes::Character, "change_strife_opinion", ScriptValue),
-    (Scopes::Struggle, "change_struggle_phase", Item(Item::StrugglePhase)),
+    (Scopes::Struggle, "change_struggle_phase", Vbv(validate_change_struggle_phase)),
+    (
+        Scopes::Struggle,
+        "change_struggle_phase_duration",
+        Vb(validate_change_struggle_phase_duration),
+    ),
     (Scopes::Character, "change_target_weight", ScriptValue),
     (Scopes::LandedTitle, "change_title_holder", Vb(validate_change_title_holder)),
     (Scopes::LandedTitle, "change_title_holder_include_vassals", Vb(validate_change_title_holder)),
@@ -348,6 +355,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Faction, "faction_start_war", Vb(validate_faction_start_war)),
     (Scopes::Character, "finish_council_task", Yes),
     (Scopes::Character, "fire_councillor", Scope(Scopes::Character)),
+    (Scopes::Character, "fire_tax_collector", Scope(Scopes::Character)),
     (Scopes::Character, "forbid_from_scheme", Scope(Scopes::Scheme)),
     (Scopes::Character, "force_add_to_scheme", Vb(validate_force_add_to_scheme)),
     (Scopes::Character, "force_character_skill_recalculation", Yes),
@@ -449,6 +457,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::LandedTitle, "remove_all_county_modifier_instances", Item(Item::Modifier)),
     (Scopes::Dynasty, "remove_all_dynasty_modifier_instances", Item(Item::Modifier)),
     (Scopes::DynastyHouse, "remove_all_house_modifier_instances", Item(Item::Modifier)),
+    (Scopes::DynastyHouse, "remove_all_house_unity_modifier_instances", Item(Item::Modifier)),
     (Scopes::Province, "remove_all_province_modifier_instances", Item(Item::Modifier)),
     (Scopes::TravelPlan, "remove_all_travel_plan_modifier_instances", Item(Item::Modifier)),
     (Scopes::Artifact, "remove_artifact_feature_group", Item(Item::ArtifactFeatureGroup)),
@@ -457,6 +466,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::TravelPlan, "remove_character", Scope(Scopes::Character)),
     (Scopes::Character, "remove_character_flag", Unchecked),
     (Scopes::Character, "remove_character_modifier", Item(Item::Modifier)),
+    (Scopes::Character, "remove_character_secret_faith", Yes),
     (Scopes::Character, "remove_claim", Scope(Scopes::LandedTitle)),
     (Scopes::Army, "remove_commanded", Yes),
     (Scopes::Character, "remove_concubine", Scope(Scopes::Character)),
@@ -484,6 +494,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "remove_hook", ItemTarget("type", Item::Hook, "target", Scopes::Character)),
     (Scopes::DynastyHouse, "remove_house_artifact_claim", Scope(Scopes::Artifact)),
     (Scopes::DynastyHouse, "remove_house_modifier", Item(Item::Modifier)),
+    (Scopes::DynastyHouse, "remove_house_unity_modifier", Item(Item::Modifier)),
     (Scopes::Culture, "remove_innovation", Item(Item::Innovation)),
     (Scopes::Character, "remove_interaction_cooldown", Item(Item::CharacterInteraction)),
     (
@@ -580,6 +591,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "set_character_faith", Scope(Scopes::Faith)),
     (Scopes::Character, "set_character_faith_history", Scope(Scopes::Faith)),
     (Scopes::Character, "set_character_faith_with_conversion", Scope(Scopes::Faith)),
+    (Scopes::Character, "set_character_secret_faith", Scope(Scopes::Faith)),
     (Scopes::Character, "set_child_of_concubine_on_pregnancy", Boolean),
     (
         Scopes::LandedTitle.union(Scopes::Dynasty).union(Scopes::DynastyHouse),
@@ -628,8 +640,9 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "set_global_variable", Vbv(validate_set_variable)),
     (Scopes::GreatHolyWar, "set_great_holy_war_target", Vb(validate_set_ghw_target)),
     (Scopes::Culture, "set_heritage_from", Scope(Scopes::Culture)),
-    (Scopes::Province, "set_holding_type", Item(Item::Holding)),
+    (Scopes::Province, "set_holding_type", Item(Item::HoldingType)),
     (Scopes::Character, "set_house", Scope(Scopes::DynastyHouse)),
+    (Scopes::DynastyHouse, "set_house_head", Scope(Scopes::Character)),
     (Scopes::DynastyHouse, "set_house_name", Item(Item::Localization)),
     (Scopes::DynastyHouse, "set_house_name_from_dynasty", Scope(Scopes::Dynasty)),
     (Scopes::DynastyHouse, "set_house_name_from_house", Scope(Scopes::DynastyHouse)),

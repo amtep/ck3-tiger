@@ -8,7 +8,7 @@ use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
 /// Returns None otherwise.
-// LAST UPDATED CK3 VERSION 1.10.0
+// LAST UPDATED CK3 VERSION 1.11.3
 pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> Option<ModifKinds> {
     for &(entry_name, mk) in MODIF_TABLE {
         if name.is(entry_name) {
@@ -19,7 +19,16 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // Look up generated modifs, in a careful order because of possibly overlapping suffixes.
 
     // Vassal stance opinions
-    for sfx in &[
+    for sfx in [
+        "_ai_boldness",
+        "_ai_compassion",
+        "_ai_energy",
+        "_ai_greed",
+        "_ai_honor",
+        "_ai_rationality",
+        "_ai_sociability",
+        "_ai_vengefulness",
+        "_ai_zeal",
         "_different_culture_opinion",
         "_different_faith_opinion",
         "_same_culture_opinion",
@@ -177,6 +186,11 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
+    // $TAX_SLOT_TYPE$_add
+    if let Some(s) = name.as_str().strip_suffix("_add") {
+        return modif_check(name, s, Item::TaxSlotType, ModifKinds::Character, data, warn);
+    }
+
     // geographical region or terrain
     for sfx in &["_development_growth", "_development_growth_factor"] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
@@ -207,11 +221,11 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // holding type
     for sfx in &["_build_gold_cost", "_build_piety_cost", "_build_prestige_cost", "_build_speed"] {
         if let Some(s) = name.as_str().strip_suffix(sfx) {
-            if data.item_exists(Item::Holding, s) {
+            if data.item_exists(Item::HoldingType, s) {
                 return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
             }
             if let Some(s) = s.strip_suffix("_holding") {
-                if data.item_exists(Item::Holding, s) {
+                if data.item_exists(Item::HoldingType, s) {
                     return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
                 }
             }
@@ -281,7 +295,7 @@ const Culture: u16 = ModifKinds::Culture.bits();
 const Scheme: u16 = ModifKinds::Scheme.bits();
 const TravelPlan: u16 = ModifKinds::TravelPlan.bits();
 
-/// LAST UPDATED CK3 VERSION 1.10.0
+/// LAST UPDATED CK3 VERSION 1.11.3
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, u16)] = &[
@@ -633,6 +647,7 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("supply_limit_mult", Character | Province | County),
     ("supply_loss_winter", Province),
     ("tax_mult", Character | Province | County),
+    ("tax_slot_add", Character),
     ("title_creation_cost", Character),
     ("title_creation_cost_mult", Character),
     ("tolerance_advantage_mod", Character),
