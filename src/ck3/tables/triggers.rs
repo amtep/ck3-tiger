@@ -14,8 +14,8 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
     let name_lc = name.as_str().to_lowercase();
 
     // TODO: binary search might be faster
-    if let Some((from, trigger)) = TRIGGER_MAP.get(&*name_lc) {
-        return Some((*from, *trigger));
+    if let Some(&(from, trigger)) = TRIGGER_MAP.get(&*name_lc) {
+        return Some((from, trigger));
     }
     if let Some(relation) = name_lc.strip_prefix("has_relation_") {
         data.verify_exists_implied(Item::Relation, relation, name);
@@ -58,8 +58,8 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
 
 static TRIGGER_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
-    for (from, s, trigger) in TRIGGER {
-        hash.insert(*s, (*from, *trigger));
+    for &(from, s, trigger) in TRIGGER {
+        hash.insert(s, (from, trigger));
     }
     hash
 });
@@ -1643,22 +1643,21 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
 
 pub fn scope_trigger_special_value(name: &Token) -> Option<(Scopes, Trigger)> {
     let name_lc = name.as_str().to_lowercase();
-    TRIGGER_SPECIAL_VALUE_MAP.get(&*name_lc).map(|(from, trigger)| {
-        (*from, *trigger)
-    })
+    TRIGGER_SPECIAL_VALUE_MAP.get(&*name_lc).map(Clone::clone)
 }
 
-static TRIGGER_SPECIAL_VALUE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
-    let mut hash = FnvHashMap::default();
-    for (from, s, trigger) in TRIGGER_SPECIAL_VALUE {
-        hash.insert(*s, (*from, *trigger));
-    }
-    hash
-});
+static TRIGGER_SPECIAL_VALUE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> =
+    Lazy::new(|| {
+        let mut hash = FnvHashMap::default();
+        for &(from, s, trigger) in TRIGGER_SPECIAL_VALUE {
+            hash.insert(s, (from, trigger));
+        }
+        hash
+    });
 
 /// LAST UPDATED CK3 VERSION 1.11.3
 /// See `triggers.log` from the game data dumps
-/// `(inscopes, trigger name, argscopes)`
+/// `(inscopes, trigger name, argtype)`
 /// Currently only works with single argument triggers
 // TODO Verify triggers
 const TRIGGER_SPECIAL_VALUE: &[(Scopes, &str, Trigger)] = &[

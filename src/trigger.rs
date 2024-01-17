@@ -4,7 +4,6 @@ use std::borrow::Cow;
 use std::str::FromStr;
 
 use crate::block::{Block, Comparator, Eq::*, Field, BV};
-use crate::ck3::tables::triggers::scope_trigger_special_value;
 use crate::context::{Reason, ScopeContext};
 use crate::data::genes::Gene;
 use crate::data::trigger_localization::TriggerLocalization;
@@ -1132,6 +1131,7 @@ fn handle_argument<'a>(
                 let trigger = parts.last().unwrap();
                 #[cfg(feature = "ck3")]
                 if Game::is_ck3() {
+                    use crate::ck3::tables::triggers::scope_trigger_special_value;
                     if let Some((from, argument)) = scope_trigger_special_value(trigger) {
                         use Trigger::*;
                         match argument {
@@ -1145,26 +1145,17 @@ fn handle_argument<'a>(
                 }
                 #[cfg(feature = "vic3")]
                 if Game::is_vic3() {
-                    match trigger.as_str() {
-                        "ai_army_comparison"
-                        | "ai_gdp_comparison"
-                        | "ai_ideological_opinion"
-                        | "ai_navy_comparison"
-                        | "average_defense"
-                        | "average_offense"
-                        | "diplomatic_pact_other_country"
-                        | "num_total_battalions"
-                        | "num_defending_battalions"
-                        | "tension"
-                        | "num_alliances_and_defensive_pacts_with_allies"
-                        | "num_alliances_and_defensive_pacts_with_rivals"
-                        | "num_mutual_trade_route_levels_with_country"
-                        | "relations" => validate_target(&arg, data, sc, Scopes::Country),
-                        "num_enemy_units" => validate_target(&arg, data, sc, Scopes::Character),
-                        _ => (),
+                    use crate::vic3::tables::triggers::scope_trigger_special_value;
+                    if let Some((from, argument)) = scope_trigger_special_value(trigger) {
+                        use Trigger::*;
+                        match argument {
+                            Item(item) => data.verify_exists(item, &arg),
+                            Scope(scope) => validate_target(&arg, data, sc, scope),
+                            UncheckedValue => (),
+                            _ => unimplemented!(),
+                        }
+                        return (Cow::Owned(before), Some(from));
                     }
-                    // TODO implement scope_trigger_special_value for vic3
-                    return (Cow::Owned(before), Some(Scopes::None));
                 }
             }
         }

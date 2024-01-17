@@ -4,18 +4,23 @@ use crate::scopes::*;
 use crate::token::Token;
 use crate::trigger::Trigger;
 
+use fnv::FnvHashMap;
+use once_cell::sync::Lazy;
 use Trigger::*;
 
 pub fn scope_trigger(name: &Token, _data: &Everything) -> Option<(Scopes, Trigger)> {
     let name_lc = name.as_str().to_lowercase();
 
-    for (from, s, trigger) in TRIGGER {
-        if name_lc == *s {
-            return Some((*from, *trigger));
-        }
-    }
-    std::option::Option::None
+    TRIGGER_MAP.get(&*name_lc).map(Clone::clone)
 }
+
+static TRIGGER_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for &(from, s, trigger) in TRIGGER {
+        hash.insert(s, (from, trigger));
+    }
+    hash
+});
 
 /// LAST UPDATED VIC3 VERSION 1.5.3
 /// See `triggers.log` from the game data dumps
@@ -918,3 +923,24 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "weighted_calc_true_if", Special),
     (Scopes::None, "year", CompareValue),
 ];
+
+pub fn scope_trigger_special_value(name: &Token) -> Option<(Scopes, Trigger)> {
+    let name_lc = name.as_str().to_lowercase();
+    TRIGGER_SPECIAL_VALUE_MAP.get(&*name_lc).map(Clone::clone)
+}
+
+static TRIGGER_SPECIAL_VALUE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> =
+    Lazy::new(|| {
+        let mut hash = FnvHashMap::default();
+        for &(from, s, trigger) in TRIGGER_SPECIAL_VALUE {
+            hash.insert(s, (from, trigger));
+        }
+        hash
+    });
+
+/// LAST UPDATED VIC3 VERSION N/A
+/// See `triggers.log` from the game data dumps
+/// `(inscopes, trigger name, argtype)`
+/// Currently only works with single argument triggers
+// TODO Verify triggers
+const TRIGGER_SPECIAL_VALUE: &[(Scopes, &str, Trigger)] = &[];
