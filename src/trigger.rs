@@ -18,7 +18,7 @@ use crate::helpers::stringify_list;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{
-    advice_info, err, error, fatal, old_warn, warn, warn2, warn_info, ErrorKey, Severity,
+    advice_info, err, error, fatal, old_warn, warn2, warn_info, ErrorKey, Severity,
 };
 use crate::scopes::{
     needs_prefix, scope_iterator, scope_prefix, scope_to_scope, validate_prefix_reference, Scopes,
@@ -347,7 +347,7 @@ pub fn validate_trigger_key_bv(
         Game::Imperator => crate::imperator::tables::triggers::scope_trigger,
     };
 
-    let key = handle_argument(key, data, sc);
+    let (key, special_value_inscopes) = handle_argument(key, data, sc);
     let part_vec = key.split('.');
     sc.open_builder();
     let mut found_trigger = None;
@@ -411,6 +411,11 @@ pub fn validate_trigger_key_bv(
             }
             sc.expect(inscopes, &Reason::Token(part.clone()));
             sc.replace(outscope, part.clone());
+        } else if last && special_value_inscopes.is_some() {
+            // valid special value
+            // SAFETY: `special_value_inscopes` is `Some`
+            sc.expect(special_value_inscopes.unwrap(), &Reason::Token(part.clone()));
+            found_trigger = Some((Trigger::CompareValue, part.clone()));
         } else if let Some((inscopes, trigger)) = scope_trigger(part, data) {
             if !last {
                 let msg = format!("`{part}` should be the last part");
@@ -974,7 +979,7 @@ pub fn validate_target_ok_this(
         }
         return;
     }
-    let token = handle_argument(token, data, sc);
+    let (token, special_value_inscopes) = handle_argument(token, data, sc);
     let part_vec = token.split('.');
     sc.open_builder();
     for i in 0..part_vec.len() {
@@ -1031,6 +1036,11 @@ pub fn validate_target_ok_this(
             sc.replace(outscope, part.clone());
         } else if data.script_values.exists(part.as_str()) {
             data.script_values.validate_call(part, data, sc);
+            sc.replace(Scopes::Value, part.clone());
+        } else if last && special_value_inscopes.is_some() {
+            // valid special value
+            // SAFETY: `special_value_inscopes` is `Some`
+            sc.expect(special_value_inscopes.unwrap(), &Reason::Token(part.clone()));
             sc.replace(Scopes::Value, part.clone());
         } else if let Some(inscopes) = trigger_comparevalue(part, data) {
             if !last {
@@ -1100,60 +1110,66 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
 /// The function will extract the argument from between the parentheses and validate it.
 /// It will return the key without this argument, or return the key unchanged if there wasn't any.
 #[allow(unused_variables)] // imperator doesn't use any of this function
-fn handle_argument<'a>(key: &'a Token, data: &Everything, sc: &mut ScopeContext) -> Cow<'a, Token> {
+fn handle_argument<'a>(
+    key: &'a Token,
+    data: &Everything,
+    sc: &mut ScopeContext,
+) -> (Cow<'a, Token>, Option<Scopes>) {
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     if let Some((before, after)) = key.split_once('(') {
         if let Some((arg, after)) = after.split_once(')') {
-            let arg = arg.trim();
-            let parts = before.split('.');
-            // Special value trigger is only allowed to be at the end of a scope chain since output is value.
-            // SAFETY: before will always have one or more parts
-            let trigger = parts.last().unwrap();
-            #[cfg(feature = "ck3")]
-            if Game::is_ck3() {
-                if let Some((from, argument)) = scope_trigger_special_value(trigger) {
-                    use Trigger::*;
-                    match argument {
-                        Item(item) => data.verify_exists(item, &arg),
-                        Scope(scope) => validate_target(&arg, data, sc, scope),
-                        UncheckedValue => (),
-                        _ => unimplemented!(),
-                    }
-                } else {
-                    err(ErrorKey::Validation).weak().msg("unexpected argument").loc(&arg).push();
-                }
-            }
-            #[cfg(feature = "vic3")]
-            if Game::is_vic3() {
-                match trigger.as_str() {
-                    "ai_army_comparison"
-                    | "ai_gdp_comparison"
-                    | "ai_ideological_opinion"
-                    | "ai_navy_comparison"
-                    | "average_defense"
-                    | "average_offense"
-                    | "diplomatic_pact_other_country"
-                    | "num_total_battalions"
-                    | "num_defending_battalions"
-                    | "tension"
-                    | "num_alliances_and_defensive_pacts_with_allies"
-                    | "num_alliances_and_defensive_pacts_with_rivals"
-                    | "num_mutual_trade_route_levels_with_country"
-                    | "relations" => validate_target(&arg, data, sc, Scopes::Country),
-                    "num_enemy_units" => validate_target(&arg, data, sc, Scopes::Character),
-                    _ => {
-                        err(ErrorKey::Validation).weak().msg("unexpected argument").loc(&arg).push()
-                    }
-                }
-            }
-
             if !after.as_str().is_empty() {
-                warn(ErrorKey::Validation).msg("cannot chain after value").loc(&after).push();
+                // more parts after value
+                err(ErrorKey::Validation)
+                    .msg("cannot chain after special value")
+                    .loc(&after)
+                    .push();
+            } else {
+                let arg = arg.trim();
+                let parts = before.split('.');
+                // Special value trigger is only allowed to be at the end of a scope chain since output is value.
+                // SAFETY: before will always have one or more parts
+                let trigger = parts.last().unwrap();
+                #[cfg(feature = "ck3")]
+                if Game::is_ck3() {
+                    if let Some((from, argument)) = scope_trigger_special_value(trigger) {
+                        use Trigger::*;
+                        match argument {
+                            Item(item) => data.verify_exists(item, &arg),
+                            Scope(scope) => validate_target(&arg, data, sc, scope),
+                            UncheckedValue => (),
+                            _ => unimplemented!(),
+                        }
+                        return (Cow::Owned(before), Some(from));
+                    }
+                }
+                #[cfg(feature = "vic3")]
+                if Game::is_vic3() {
+                    match trigger.as_str() {
+                        "ai_army_comparison"
+                        | "ai_gdp_comparison"
+                        | "ai_ideological_opinion"
+                        | "ai_navy_comparison"
+                        | "average_defense"
+                        | "average_offense"
+                        | "diplomatic_pact_other_country"
+                        | "num_total_battalions"
+                        | "num_defending_battalions"
+                        | "tension"
+                        | "num_alliances_and_defensive_pacts_with_allies"
+                        | "num_alliances_and_defensive_pacts_with_rivals"
+                        | "num_mutual_trade_route_levels_with_country"
+                        | "relations" => validate_target(&arg, data, sc, Scopes::Country),
+                        "num_enemy_units" => validate_target(&arg, data, sc, Scopes::Character),
+                        _ => (),
+                    }
+                    // TODO implement scope_trigger_special_value for vic3
+                    return (Cow::Owned(before), Some(Scopes::None));
+                }
             }
-            return Cow::Owned(before);
         }
     }
-    Cow::Borrowed(key)
+    (Cow::Borrowed(key), None)
 }
 
 /// A description of the constraints on the right-hand side of a given trigger.

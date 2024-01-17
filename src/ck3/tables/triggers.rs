@@ -1658,8 +1658,7 @@ static TRIGGER_SPECIAL_VALUE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger
 
 /// LAST UPDATED CK3 VERSION 1.11.3
 /// See `triggers.log` from the game data dumps
-/// Special triggers that takes a block and supports "Traits: <, <=, =, !=, >, >="
-/// (supported scopes, trigger name, supported target object)
+/// `(inscopes, trigger name, argscopes)`
 /// Currently only works with single argument triggers
 // TODO Verify triggers
 const TRIGGER_SPECIAL_VALUE: &[(Scopes, &str, Trigger)] = &[
