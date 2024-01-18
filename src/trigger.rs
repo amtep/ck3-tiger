@@ -346,7 +346,7 @@ pub fn validate_trigger_key_bv(
         Game::Imperator => crate::imperator::tables::triggers::scope_trigger,
     };
 
-    let (key, special_value_inscopes) = handle_argument(key, data, sc);
+    let (key, complex_inscopes) = handle_argument(key, data, sc);
     let part_vec = key.split('.');
     sc.open_builder();
     let mut found_trigger = None;
@@ -410,10 +410,10 @@ pub fn validate_trigger_key_bv(
             }
             sc.expect(inscopes, &Reason::Token(part.clone()));
             sc.replace(outscope, part.clone());
-        } else if last && special_value_inscopes.is_some() {
-            // valid special value
-            // SAFETY: `special_value_inscopes` is `Some`
-            sc.expect(special_value_inscopes.unwrap(), &Reason::Token(part.clone()));
+        } else if last && complex_inscopes.is_some() {
+            // valid complex comparison trigger
+            // SAFETY: `complex_inscopes` is `Some`
+            sc.expect(complex_inscopes.unwrap(), &Reason::Token(part.clone()));
             found_trigger = Some((Trigger::CompareValue, part.clone()));
         } else if let Some((inscopes, trigger)) = scope_trigger(part, data) {
             if !last {
@@ -978,7 +978,7 @@ pub fn validate_target_ok_this(
         }
         return;
     }
-    let (token, special_value_inscopes) = handle_argument(token, data, sc);
+    let (token, complex_inscopes) = handle_argument(token, data, sc);
     let part_vec = token.split('.');
     sc.open_builder();
     for i in 0..part_vec.len() {
@@ -1036,10 +1036,10 @@ pub fn validate_target_ok_this(
         } else if data.script_values.exists(part.as_str()) {
             data.script_values.validate_call(part, data, sc);
             sc.replace(Scopes::Value, part.clone());
-        } else if last && special_value_inscopes.is_some() {
-            // valid special value
-            // SAFETY: `special_value_inscopes` is `Some`
-            sc.expect(special_value_inscopes.unwrap(), &Reason::Token(part.clone()));
+        } else if last && complex_inscopes.is_some() {
+            // valid complex comparison trigger
+            // SAFETY: `complex_inscopes` is `Some`
+            sc.expect(complex_inscopes.unwrap(), &Reason::Token(part.clone()));
             sc.replace(Scopes::Value, part.clone());
         } else if let Some(inscopes) = trigger_comparevalue(part, data) {
             if !last {
@@ -1120,19 +1120,19 @@ fn handle_argument<'a>(
             if !after.as_str().is_empty() {
                 // more parts after value
                 err(ErrorKey::Validation)
-                    .msg("cannot chain after special value")
+                    .msg("cannot chain after complex comparison trigger")
                     .loc(&after)
                     .push();
             } else {
                 let arg = arg.trim();
                 let parts = before.split('.');
-                // Special value trigger is only allowed to be at the end of a scope chain since output is value.
+                // Complex comparison trigger is only allowed to be at the end of a scope chain since output is value.
                 // SAFETY: before will always have one or more parts
                 let trigger = parts.last().unwrap();
                 #[cfg(feature = "ck3")]
                 if Game::is_ck3() {
-                    use crate::ck3::tables::triggers::scope_trigger_special_value;
-                    if let Some((from, argument)) = scope_trigger_special_value(trigger) {
+                    use crate::ck3::tables::triggers::scope_trigger_complex;
+                    if let Some((from, argument)) = scope_trigger_complex(trigger) {
                         use Trigger::*;
                         match argument {
                             Item(item) => data.verify_exists(item, &arg),
@@ -1145,8 +1145,8 @@ fn handle_argument<'a>(
                 }
                 #[cfg(feature = "vic3")]
                 if Game::is_vic3() {
-                    use crate::vic3::tables::triggers::scope_trigger_special_value;
-                    if let Some((from, argument)) = scope_trigger_special_value(trigger) {
+                    use crate::vic3::tables::triggers::scope_trigger_complex;
+                    if let Some((from, argument)) = scope_trigger_complex(trigger) {
                         use Trigger::*;
                         match argument {
                             Item(item) => data.verify_exists(item, &arg),

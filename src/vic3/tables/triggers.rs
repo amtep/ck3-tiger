@@ -914,26 +914,25 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "year", CompareValue),
 ];
 
-pub fn scope_trigger_special_value(name: &Token) -> Option<(Scopes, Trigger)> {
+pub fn scope_trigger_complex(name: &Token) -> Option<(Scopes, Trigger)> {
     let name_lc = name.as_str().to_lowercase();
-    TRIGGER_SPECIAL_VALUE_MAP.get(&*name_lc).copied()
+    TRIGGER_COMPLEX_MAP.get(&*name_lc).copied()
 }
 
-static TRIGGER_SPECIAL_VALUE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> =
-    Lazy::new(|| {
-        let mut hash = FnvHashMap::default();
-        for (from, s, trigger) in TRIGGER_SPECIAL_VALUE.iter().copied() {
-            hash.insert(s, (from, trigger));
-        }
-        hash
-    });
+static TRIGGER_COMPLEX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, trigger) in TRIGGER_COMPLEX.iter().copied() {
+        hash.insert(s, (from, trigger));
+    }
+    hash
+});
 
 /// LAST UPDATED VIC3 VERSION 1.5.12
 /// See `triggers.log` from the game data dumps
 /// `(inscopes, trigger name, argtype)`
 /// Currently only works with single argument triggers
 // TODO Update argtype when vic3 updated to 1.5+
-const TRIGGER_SPECIAL_VALUE: &[(Scopes, &str, Trigger)] = &[
+const TRIGGER_COMPLEX: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "additional_war_exhaustion", Scope(Scopes::DiplomaticPlay)),
     (Scopes::Country, "army_mobilization_option_fraction", UncheckedValue), // TODO Item(Item::MobilizationOption)
     // (Scopes::Battle, "battle_side_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
