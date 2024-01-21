@@ -10,7 +10,7 @@ members = [
 
 [package]
 name = "tiger-lib"
-version = "0.8.7"
+version = "0.8.8"
 edition = "2021"
 license = "GPL-3.0-or-later"
 description = "Library used by the tools ck3-tiger, vic3-tiger, and imperator-tiger. This library holds the bulk of the code for them. It can be built either for ck3-tiger with the feature ck3, or for vic3-tiger with the feature vic3, or for imperator-tiger with the feature imperator, but not both at the same time."
