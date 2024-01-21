@@ -1,17 +1,9 @@
-flamegraph: flamegraph-apw flamegraph-pod
-
-flamegraph-apw: flamegraph-apw.svg
-
-flamegraph-pod: flamegraph-pod.svg
-
-flamegraph-apw.svg: always
-	mv flamegraph-apw.svg flamegraph-apw.old.svg
-	cargo flamegraph -v --bench criterion --skip-after criterion::main -o $@ -- --bench --profile-time 5 apw
+flamegraph: always
+	cargo flamegraph --profile bench --package=$(PACKAGE) --output=flamegraph.svg -- "$(MOD)"
 	rm -f perf.data perf.data.old
 
-flamegraph-pod.svg: always
-	mv flamegraph-pod.svg flamegraph-pod.old.svg
-	cargo flamegraph -v --bench criterion --skip-after criterion::main -o $@ -- --bench --profile-time 5 pod
+flamegraph-single: always
+	RAYON_NUM_THREADS=1 cargo flamegraph --profile bench --package=$(PACKAGE) --output=flamegraph-single.svg -- "$(MOD)"
 	rm -f perf.data perf.data.old
 
 .PHONY: always
