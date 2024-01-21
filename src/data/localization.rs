@@ -401,9 +401,10 @@ impl Localization {
                         "faction" => data.verify_exists(Item::Faction, token),
                         "title" => data.verify_exists(Item::Title, token),
                         "government_type" => data.verify_exists(Item::GovernmentType, token),
-                        "static_modifier" => data.verify_exists(Item::Modifier, token),
-                        // TODO: Verify modifier has `scale`
-                        "scaled_static_modifier" => data.verify_exists(Item::Modifier, token),
+                        // TODO: Verify scaled modifier has `scale`
+                        "static_modifier" | "scaled_static_modifier" => {
+                            data.verify_exists(Item::Modifier, token);
+                        }
                         "law" => data.verify_exists(Item::Law, token),
                         "terrain" => data.verify_exists(Item::Terrain, token),
                         "game_faith_doctrine" => data.verify_exists(Item::Doctrine, token),

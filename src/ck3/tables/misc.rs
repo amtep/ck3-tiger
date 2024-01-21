@@ -41,7 +41,7 @@ pub const DLC_CK3: &[&str] = &[
 ];
 
 /// LAST UPDATED CK3 VERSION 1.11.3
-/// Taken from has_dlc_feature in triggers.log
+/// Taken from `has_dlc_feature` in triggers.log
 pub const DLC_FEATURES_CK3: &[&str] = &[
     "garments_of_the_hre",
     "fashion_of_the_abbasid_court",
