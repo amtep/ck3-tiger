@@ -567,6 +567,7 @@ impl<'a> Validator<'a> {
     /// Just like [`Validator::field_script_value`], but it takes a closure that uses the field key token
     /// as the input to build and output a [`ScopeContext`]. This is a convenient way to associate the `root` type with the key
     /// of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated with a key that is further away.
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn field_script_value_key<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token) -> ScopeContext,
