@@ -48,7 +48,7 @@ unicode-width = "0.1.9"
 walkdir = "2"
 
 [target.'cfg(windows)'.dependencies]
-winreg = "0.51"
+winreg = "0.52"
 
 [dev-dependencies]
 toml = "0.8.8"
