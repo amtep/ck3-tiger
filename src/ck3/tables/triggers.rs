@@ -1480,7 +1480,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::Character,
         "tax_collector_aptitude",
-        Block(&[("target", Item(Item::TaxSlotType)), ("+value", CompareValue)]),
+        Block(&[("tax_slot_type", Item(Item::TaxSlotType)), ("+value", CompareValue)]),
     ),
     (Scopes::Character, "tax_to_liege", CompareValueWarnEq),
     (Scopes::Province, "terrain", Item(Item::Terrain)),
