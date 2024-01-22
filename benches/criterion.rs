@@ -37,7 +37,7 @@ fn bench_multiple(c: &mut Criterion) {
             ),
             &modfile,
             |b, modfile_ref| {
-                b.iter_with_large_drop(|| bench_mod(&config.vanilla_dir, modfile_ref));
+                b.iter(|| bench_mod(&config.vanilla_dir, modfile_ref));
             },
         );
     }
