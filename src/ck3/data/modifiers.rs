@@ -44,9 +44,9 @@ impl DbKind for Modifier {
 
         vd.field_bool("stacking");
         vd.field_bool("hide_effects");
+        // `scale` is validated in `validate_call`
+        vd.field_block("scale");
         validate_modifs(block, data, ModifKinds::all(), vd);
-
-        // Cannot validate `scale` without surrounding scope context
     }
 
     fn validate_call(
@@ -59,7 +59,8 @@ impl DbKind for Modifier {
         sc: &mut ScopeContext,
     ) {
         let mut vd = Validator::new(block, data);
-        // Currently `ROOT` is NOT the object using the modifier; use `THIS`
+        // docs say that the object the scale is applied to is `root`, but I suspect it's really `this`.
+        // TODO: verify
         vd.field_validated_block("scale", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("value");
@@ -69,6 +70,7 @@ impl DbKind for Modifier {
             // TODO: get all possible values
             vd.field_choice("display_mode", &["scaled"]);
         });
+        vd.no_warn_remaining();
     }
 
     fn validate_property_use(
