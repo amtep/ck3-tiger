@@ -36,7 +36,7 @@ fn bench_multiple(c: &mut Criterion) {
     }
 
     let mut group = c.benchmark_group("benchmark");
-    group.sample_size(config.sample_size.unwrap_or(30));
+    group.sample_size(config.sample_size.unwrap_or(10));
     for (index, modfile_path) in modfile_paths.iter().enumerate() {
         let modfile = ModFile::read(modfile_path).unwrap();
         group.bench_with_input(
