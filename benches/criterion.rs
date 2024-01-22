@@ -9,27 +9,36 @@ use tiger_lib::{Everything, ModFile};
 static CONFIG_PATH: &str = "./benches/config.toml";
 
 // Sample Config File:
-// vanilla_dir = "path"
-// modpaths = ["mod_path_1", "mod_path_2"]
-// sample_size = 50
+// vanilla_dir = "..."
+// modfile_dir = "..."
+// modfile_paths = ["...", "..."]
+// sample_size = 30
 
 #[derive(Deserialize)]
 struct Config {
     vanilla_dir: String,
-    modpaths: Vec<String>,
+    modfile_dir: Option<String>,
+    modfile_paths: Vec<String>,
     sample_size: Option<usize>,
 }
 
 fn bench_multiple(c: &mut Criterion) {
     let content = fs::read_to_string(CONFIG_PATH).unwrap();
     let config: Config = toml::from_str(&content).unwrap();
+    let mut modfile_paths = config.modfile_paths.iter().map(PathBuf::from).collect::<Vec<_>>();
+
+    if let Some(modfile_dir) = config.modfile_dir {
+        let iter =
+            fs::read_dir(modfile_dir).unwrap().filter_map(|entry| entry.ok()).filter_map(|entry| {
+                entry.file_name().to_string_lossy().ends_with(".mod").then(|| entry.path())
+            });
+        modfile_paths.extend(iter);
+    }
 
     let mut group = c.benchmark_group("benchmark");
     group.sample_size(config.sample_size.unwrap_or(30));
-    for (index, modpath) in config.modpaths.iter().enumerate() {
-        let mut modpath = PathBuf::from(modpath);
-        modpath.push("descriptor.mod");
-        let modfile = ModFile::read(&modpath).unwrap();
+    for (index, modfile_path) in modfile_paths.iter().enumerate() {
+        let modfile = ModFile::read(modfile_path).unwrap();
         group.bench_with_input(
             BenchmarkId::new(
                 "mods",
@@ -45,13 +54,12 @@ fn bench_multiple(c: &mut Criterion) {
     group.finish();
 }
 
-fn bench_mod(vanilla_dir: &str, modfile: &ModFile) -> Everything {
+fn bench_mod(vanilla_dir: &str, modfile: &ModFile) {
     let mut everything =
         Everything::new(Some(Path::new(vanilla_dir)), &modfile.modpath(), modfile.replace_paths())
             .unwrap();
     everything.load_all();
     everything.validate_all();
-    everything
 }
 
 criterion_group!(benches, bench_multiple);
