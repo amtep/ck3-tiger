@@ -202,5 +202,9 @@ impl DbKind for Law {
 
         vd.field_bool("shown_in_encyclopedia"); // undocumented
         vd.field_integer("title_allegiance_opinion"); // undocumented
+        vd.field_validated_block_rooted("potential", Scopes::Character, |block, data, sc| {
+            // undocumented
+            validate_trigger(block, data, sc, Tooltipped::No);
+        });
     }
 }
