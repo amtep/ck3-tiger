@@ -1,6 +1,6 @@
 [package]
 name = "utils"
-version = "0.8.8"
+version = "0.8.9"
 edition = "2021"
 license = "GPL-3.0-or-later"
 description = "Utilities for maintaining tiger-lib"
