@@ -11,19 +11,19 @@ use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct CombatUnit {}
+pub struct OldCombatUnit {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Vic3, Item::CombatUnit, CombatUnit::add)
+    ItemLoader::Normal(GameFlags::Vic3, Item::OldCombatUnit, OldCombatUnit::add)
 }
 
-impl CombatUnit {
+impl OldCombatUnit {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::CombatUnit, key, block, Box::new(Self {}));
+        db.add(Item::OldCombatUnit, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for CombatUnit {
+impl DbKind for OldCombatUnit {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
