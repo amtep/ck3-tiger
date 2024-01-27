@@ -568,6 +568,7 @@ impl Everything {
             | Item::CompanyType
             | Item::CultureGraphics
             | Item::MobilizationOption
+            | Item::OldCombatUnit
             | Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
         }

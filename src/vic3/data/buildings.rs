@@ -44,7 +44,7 @@ impl DbKind for BuildingType {
         vd.field_bool("enable_air_connection");
         vd.field_bool("port");
 
-        vd.field_item("recruits_combat_unit", Item::CombatUnit); // undocumented
+        vd.field_item("recruits_combat_unit", Item::OldCombatUnit); // undocumented
 
         vd.field_list_items("unlocking_technologies", Item::Technology);
         vd.field_validated_block("can_build", |block, data| {
