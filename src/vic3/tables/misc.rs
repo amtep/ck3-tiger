@@ -1,9 +1,10 @@
-// LAST UPDATED VIC3 VERSION 1.3.6
-pub const DLC_VIC3: &[&str] = &["dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006"];
+// LAST UPDATED VIC3 VERSION 1.5.12
+pub const DLC_VIC3: &[&str] =
+    &["dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006", "dlc007", "dlc008"];
 
-// LAST UPDATED VIC3 VERSION 1.3.6
+// LAST UPDATED VIC3 VERSION 1.5.12
 pub const DLC_FEATURES_VIC3: &[&str] =
-    &["voice_of_the_people_content", "voice_of_the_people_preorder", "agitators"];
+    &["voice_of_the_people_content", "voice_of_the_people_preorder", "agitators", "rp1_content"];
 
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const APPROVALS: &[&str] = &["angry", "unhappy", "neutral", "happy", "loyal"];
@@ -56,7 +57,9 @@ pub const TRANSFER_OF_POWER: &[&str] =
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const STRATA: &[&str] = &["poor", "middle", "rich"];
 
-// LAST UPDATED VIC3 VERSION 1.3.6
+// LAST UPDATED VIC3 VERSION 1.5.12
+// Taken from `localization/english/diplomatic_plays_l_english.yml` entries
+// that start with `war_goal_`.
 pub const WARGOALS: &[&str] = &[
     "annex_country",
     "ban_slavery",
@@ -65,17 +68,19 @@ pub const WARGOALS: &[&str] = &[
     "contain_threat",
     "force_recognition",
     "humiliation",
+    "increase_autonomy",
     "independence",
     "liberate_country",
     "liberate_subject",
-    "make_dominion",
-    "make_puppet",
-    "make_vassal",
+    "make_protectorate",
+    "make_tributary",
     "open_market",
+    "reduce_autonomy",
     "regime_change",
     "return_state",
     "revoke_all_claims",
     "revoke_claim",
+    "revolution",
     "secession",
     "take_treaty_port",
     "transfer_subject",
@@ -546,6 +551,8 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/coat_of_arms/coat_of_arms",
     "common/coat_of_arms/options",
     "common/coat_of_arms/template_lists",
+    "common/combat_unit_experience_levels",
+    "common/combat_unit_groups",
     "common/combat_unit_types",
     "common/commander_orders",
     "common/commander_ranks",
@@ -565,6 +572,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/diplomatic_plays",
     "common/discrimination_traits",
     "common/dna_data",
+    "common/dynamic_company_names",
     "common/dynamic_country_map_colors",
     "common/dynamic_country_names",
     "common/effect_localization",
@@ -581,12 +589,15 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/interest_group_traits",
     "common/interest_groups",
     "common/journal_entries",
+    "common/journal_entry_groups",
     "common/labels",
     "common/law_groups",
     "common/laws",
     "common/legitimacy_levels",
     "common/map_interaction_types",
     "common/messages",
+    "common/military_formation_flags",
+    "common/mobilization_option_groups",
     "common/mobilization_options",
     "common/modifier_types",
     "common/modifiers",
@@ -594,6 +605,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/objective_subgoal_categories",
     "common/objective_subgoals",
     "common/objectives",
+    "common/old_combat_unit_types",
     "common/on_actions",
     "common/opinion_modifiers",
     "common/parties",
