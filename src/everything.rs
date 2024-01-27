@@ -563,12 +563,12 @@ impl Everything {
             Item::Strata => STRATA.contains(&key),
             Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
             Item::Wargoal => WARGOALS.contains(&key),
-            Item::CommanderRank
+            Item::CombatUnit
+            | Item::CommanderRank
             | Item::CommanderOrder
             | Item::CompanyType
             | Item::CultureGraphics
             | Item::MobilizationOption
-            | Item::OldCombatUnit
             | Item::TutorialLesson => true, // TODO
             _ => self.database.exists(itype, key),
         }
