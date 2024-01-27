@@ -45,9 +45,9 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // building_group_$BuildingGroup$_mortality_mult
     // building_group_$BuildingGroup$_standard_of_living_add
     // building_group_$BuildingGroup$_throughput_mult (obsolete)
+    // building_group_$BuildingGroup$_unincorporated_throughput_add
     // building_group_$BuildingGroup$_throughput_add
     // building_group_$BuildingGroup$_tax_mult
-    // building_group_$BuildingGroup$_unincorporated_throughput_add
     if let Some(part) = name.as_str().strip_prefix("building_group_") {
         for sfx in &["_fertility_mult", "_mortality_mult", "_standard_of_living_add"] {
             if let Some(part) = part.strip_suffix(sfx) {
@@ -64,7 +64,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
             }
         }
         for sfx in
-            &["_employee_mult", "_tax_mult", "_throughput_add", "_unincorporated_throughput_add"]
+            &["_employee_mult", "_tax_mult", "_unincorporated_throughput_add", "_throughput_add"]
         {
             if let Some(part) = part.strip_suffix(sfx) {
                 maybe_warn(Item::BuildingGroup, part, name, data, warn);
