@@ -502,6 +502,8 @@ const MODIF_TABLE: &[(&str, u16)] = &[
     ("state_political_strength_from_discrimination_mult", State),
     ("state_political_strength_from_wealth_mult", State),
     ("state_political_strength_from_welfare_mult", State),
+    ("state_pollution_generation_add", State),
+    ("state_pollution_reduction_health_mult", State),
     ("state_poor_expected_sol", State),
     ("state_poor_standard_of_living_add", State),
     ("state_pop_pol_str_add", State),
