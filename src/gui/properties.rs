@@ -590,7 +590,7 @@ impl GuiValidation {
             min_width => Integer,
             minimumsize => TwoNumberOrPercent,
             mipmaplodbias => Integer,
-            mirror => Choice(&["horizontal", "vertical"]),
+            mirror => ChoiceSet(&["horizontal", "vertical"]),
             modal => Boolean,
             modality => UncheckedValue, // TODO: only example is "all"
             modify_texture => ComplexProperty,
