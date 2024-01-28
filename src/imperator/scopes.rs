@@ -9,8 +9,9 @@ use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::display_choices;
 use crate::item::Item;
-use crate::scopes::{ArgumentType, Scopes};
+use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::trigger::Trigger;
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
@@ -336,11 +337,11 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
 ];
 
 #[inline]
-pub fn scope_prefix(name: &str) -> Option<(Scopes, Scopes, ArgumentType)> {
+pub fn scope_prefix(name: &str) -> Option<(Scopes, Scopes, Trigger)> {
     SCOPE_PREFIX_MAP.get(name).copied()
 }
 
-static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, ArgumentType)>> =
+static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)>> =
     Lazy::new(|| {
         let mut hash = FnvHashMap::default();
         for (from, s, to, argument) in SCOPE_PREFIX.iter().copied() {
@@ -353,40 +354,43 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Argument
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
-/// TODO: add the Item type here, so that it can be checked for existence.
 
 // Basically just search the log for "Requires Data: yes" and put all that here.
-const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentType)] = &[
-    (Scopes::None, "array_define", Scopes::Value),
-    (Scopes::Country, "fam", Scopes::Family),
-    (Scopes::Country, "party", Scopes::Party),
-    (
-        Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship),
-        "job",
-        Scopes::Job,
-    ),
-    (
-        Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship),
-        "job_holder",
-        Scopes::Job,
-    ),
-    (Scopes::Treasure, "treasure", Scopes::Treasure),
-    (Scopes::None, "character", Scopes::Character),
-    (Scopes::None, "region", Scopes::Region),
-    (Scopes::None, "area", Scopes::Area),
-    (Scopes::None, "culture", Scopes::Culture),
-    (Scopes::None, "deity", Scopes::Deity),
-    (Scopes::None, "c", Scopes::Country),
-    (Scopes::None, "char", Scopes::Character),
-    (Scopes::None, "define", Scopes::Value),
-    (Scopes::None, "flag", Scopes::Flag),
-    (Scopes::None, "global_var", Scopes::all()),
-    (Scopes::None, "local_var", Scopes::all()),
-    (Scopes::None, "p", Scopes::Province),
-    (Scopes::None, "religion", Scopes::Religion),
-    (Scopes::None, "scope", Scopes::all()),
-    (Scopes::None, "var", Scopes::all()),
-];
+const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
+    use Trigger::*;
+    //FIXME: delete add argument type required
+    &[
+        (Scopes::None, "array_define", Scopes::Value),
+        (Scopes::Country, "fam", Scopes::Family),
+        (Scopes::Country, "party", Scopes::Party),
+        (
+            Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship),
+            "job",
+            Scopes::Job,
+        ),
+        (
+            Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship),
+            "job_holder",
+            Scopes::Job,
+        ),
+        (Scopes::Treasure, "treasure", Scopes::Treasure),
+        (Scopes::None, "character", Scopes::Character),
+        (Scopes::None, "region", Scopes::Region),
+        (Scopes::None, "area", Scopes::Area),
+        (Scopes::None, "culture", Scopes::Culture),
+        (Scopes::None, "deity", Scopes::Deity),
+        (Scopes::None, "c", Scopes::Country),
+        (Scopes::None, "char", Scopes::Character),
+        (Scopes::None, "define", Scopes::Value),
+        (Scopes::None, "flag", Scopes::Flag),
+        (Scopes::None, "global_var", Scopes::all()),
+        (Scopes::None, "local_var", Scopes::all()),
+        (Scopes::None, "p", Scopes::Province),
+        (Scopes::None, "religion", Scopes::Religion),
+        (Scopes::None, "scope", Scopes::all()),
+        (Scopes::all(), "var", Scopes::all()),
+    ]
+};
 
 #[inline]
 pub fn scope_iterator(name: &str) -> Option<(Scopes, Scopes)> {

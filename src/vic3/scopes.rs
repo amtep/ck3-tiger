@@ -680,7 +680,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
         (Scopes::State, "ai_state_value", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::Country, "ai_subject_value", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::State, "ai_treaty_port_value", Scopes::Value, Scope(Scopes::Country)),
-        (Scopes::None, "array_UncheckedValue", Scopes::Value, UncheckedValue),
+        (Scopes::None, "array_define", Scopes::Value, UncheckedValue),
         (Scopes::Front, "average_defense", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::Front, "average_offense", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::State, "b", Scopes::Building, Item(Item::BuildingType)),
@@ -691,7 +691,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
         (Scopes::None, "company_type", Scopes::CompanyType, Item(Item::CompanyType)),
         (Scopes::None, "cu", Scopes::Culture, Item(Item::Culture)),
         (Scopes::Country, "decree_cost", Scopes::Value, Item(Item::Decree)),
-        (Scopes::None, "UncheckedValue", Scopes::Value, UncheckedValue),
+        (Scopes::None, "define", Scopes::Value, UncheckedValue),
         (Scopes::None, "flag", Scopes::Flag, UncheckedValue),
         (Scopes::None, "g", Scopes::Goods, Item(Item::Goods)),
         (Scopes::Country, "get_ruler_for", Scopes::Character, Item(Item::TransferOfPower)),
@@ -745,7 +745,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
         (Scopes::Country, "tension", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::None, "tension_threshold", Scopes::Value, UncheckedValue),
         (Scopes::None, "unit_type", Scopes::CombatUnitType, Item(Item::CombatUnit)),
-        (Scopes::None, "var", Scopes::all(), UncheckedValue),
+        (Scopes::all(), "var", Scopes::all(), UncheckedValue),
     ]
 };
 

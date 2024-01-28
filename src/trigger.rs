@@ -1057,7 +1057,7 @@ pub fn validate_target_ok_this(
                             opt_info = Some(format!("did you mean `{prefix}:{part}` ?"));
                         }
                     }
-                    
+
                     // TODO: warn if trying to use iterator here
                     let msg = format!("unknown token `{part}`");
                     err(ErrorKey::UnknownField).msg(msg).opt_info(opt_info).loc(part).push();
@@ -1072,11 +1072,7 @@ pub fn validate_target_ok_this(
         let part = &part_vec[part_vec.len() - 1];
         let msg = format!("`{part}` produces {final_scopes} but expected {outscopes}");
         let msg2 = format!("scope was {}", because.msg());
-        warn(ErrorKey::Scopes)
-            .msg(msg)
-            .loc(part)
-            .loc(because.token(), msg2)
-            .push();
+        warn(ErrorKey::Scopes).msg(msg).loc(part).loc(because.token(), msg2).push();
     }
     sc.close();
 }
@@ -1183,6 +1179,7 @@ pub fn partition(token: &Token) -> Vec<Part> {
 
                     parts.push(Part::TokenArgument(func_token, arg_token));
                     has_part_argument = true;
+                    paren_depth -= 1;
                 } else if paren_depth == 2 {
                     // Cannot have nested parentheses
                     let mut loc = token.loc.clone();
@@ -1192,8 +1189,8 @@ pub fn partition(token: &Token) -> Vec<Part> {
                         .msg("cannot have nested parentheses")
                         .loc(nested_paren_token)
                         .push();
+                    paren_depth -= 1;
                 }
-                paren_depth -= 1;
             }
             _ => {
                 // an argument can only be the last part or followed by point `.` AND hasn't erred from it yet
@@ -1254,7 +1251,12 @@ pub fn warn_not_first(name: &Token) {
 }
 
 /// Validate inscopes
-pub fn validate_inscopes(part_flags: PartFlags, name: &Token, inscopes: Scopes, sc: &mut ScopeContext) {
+pub fn validate_inscopes(
+    part_flags: PartFlags,
+    name: &Token,
+    inscopes: Scopes,
+    sc: &mut ScopeContext,
+) {
     // scope_agnostic inscopes does not need to be chained
     if inscopes == Scopes::None && !part_flags.contains(PartFlags::First) {
         warn_not_first(name);
@@ -1304,7 +1306,7 @@ pub fn validate_argument_scope(
     }
 }
 
-/// Validate that the prefix token does exist and match the `wanted` string, 
+/// Validate that the prefix token does exist and match the `wanted` string,
 /// and that the argument is valid.
 #[cfg(feature = "ck3")]
 pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted: &str) {
@@ -1362,14 +1364,18 @@ mod tests {
     use super::*;
     #[test]
     fn test_partition() {
-        let loc = Loc::for_file(
-            PathBuf::from_str("./test.txt"),
+        let path = "./test.txt";
+        let mut loc = Loc::for_file(
+            PathBuf::from_str(path).unwrap(),
             FileKind::Mod,
-            PathBuf::from_str("./test.txt"),
+            PathBuf::from_str(path).unwrap(),
         );
-        let token = Token::new("father.cp(councillor_steward).prowess_diff(root.liege)", loc);
-
+        loc.line += 1;
+        loc.column += 1;
+        let str = std::fs::read_to_string(path).unwrap();
+        let token = Token::new(&str, loc);
         let partitioned = partition(&token);
+        dbg!(token);
         dbg!(partitioned);
         emit_reports(false);
     }
