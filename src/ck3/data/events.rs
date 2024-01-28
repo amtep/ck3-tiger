@@ -434,6 +434,9 @@ fn validate_event_option(
     vd.field_target("highlight_portrait", sc, Scopes::Character);
     vd.field_bool("show_unlock_reason");
 
+    // undocumented
+    vd.field_item("clicksound", Item::Sound);
+
     validate_effect_internal(
         &Lowercase::new_unchecked("option"),
         ListType::None,
