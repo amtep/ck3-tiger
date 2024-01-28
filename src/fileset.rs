@@ -515,8 +515,8 @@ impl Fileset {
                 let msg = "file should be in common/on_actions/";
                 error(entry, ErrorKey::Filename, msg);
             } else {
-                let msg = "file in unexpected directory";
-                error(entry, ErrorKey::Filename, msg);
+                let msg = format!("file in unexpected directory `{}`", dirname.display());
+                error(entry, ErrorKey::Filename, &msg);
             }
             warned.push(dirname);
         }
