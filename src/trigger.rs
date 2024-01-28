@@ -998,7 +998,7 @@ pub fn validate_target_ok_this(
                     // event_id have multiple parts separated by `.`
                     let is_event_id = prefix.lowercase_is("event_id");
                     if is_event_id {
-                        arg = part.split_once(':').unwrap().1;
+                        arg = token.split_once(':').unwrap().1;
                     }
                     // known prefix
                     if let Some(entry) = scope_prefix(&prefix) {
