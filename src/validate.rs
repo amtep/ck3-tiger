@@ -8,20 +8,22 @@ use crate::ck3::validate::{
     validate_activity_modifier, validate_ai_value_modifier, validate_compare_modifier,
     validate_compatibility_modifier, validate_opinion_modifier, validate_scheme_modifier,
 };
-use crate::context::{Reason, ScopeContext};
+use crate::context::ScopeContext;
 use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{err, error, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity};
-use crate::scopes::{scope_prefix, scope_to_scope, validate_prefix_reference, Scopes};
+use crate::scopes::{scope_prefix, scope_to_scope, Scopes};
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 #[cfg(feature = "ck3")]
 use crate::trigger::validate_target_ok_this;
-use crate::trigger::{validate_trigger, validate_trigger_internal};
+use crate::trigger::{
+    partition, validate_argument, validate_argument_scope, validate_inscopes, validate_trigger, validate_trigger_internal, warn_not_first, Part, PartFlags
+};
 use crate::validator::Validator;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -195,19 +197,6 @@ pub fn validate_possibly_named_color(bv: &BV, data: &Everything) {
         BV::Value(token) => data.verify_exists(Item::NamedColor, token),
         BV::Block(block) => validate_color(block, data),
     }
-}
-
-#[cfg(feature = "ck3")]
-pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted: &str) {
-    if let Some((prefix, arg)) = token.split_once(':') {
-        let mut sc = ScopeContext::new(Scopes::None, token);
-        validate_prefix_reference(&prefix, &arg, data, &mut sc);
-        if prefix.is(wanted) {
-            return;
-        }
-    }
-    let msg = format!("should start with `{wanted}:` here");
-    error(token, ErrorKey::Validation, &msg);
 }
 
 /// Check some iterator fields *before* the list scope has opened.
@@ -628,58 +617,56 @@ pub fn validate_scope_chain(
     sc: &mut ScopeContext,
     qeq: bool,
 ) -> bool {
-    let part_vec = token.split('.');
+    let part_vec = partition(token);
     for i in 0..part_vec.len() {
-        let first = i == 0;
-        let last = i + 1 == part_vec.len();
+        let mut part_flags = PartFlags::empty();
+        if i == 0 {
+            part_flags |= PartFlags::First;
+        }
+        if i + 1 == part_vec.len() {
+            part_flags |= PartFlags::Last;
+        }
+        if qeq {
+            part_flags |= PartFlags::Question;
+        }
         let part = &part_vec[i];
-        if let Some((prefix, arg)) = part.split_once(':') {
-            if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
-                if inscopes == Scopes::None && !first {
-                    let msg = format!("`{prefix}:` makes no sense except as first part");
-                    old_warn(part, ErrorKey::Validation, &msg);
-                }
-                sc.expect(inscopes, &Reason::Token(prefix.clone()));
-                validate_prefix_reference(&prefix, &arg, data, sc);
-                if prefix.is("scope") {
-                    if last && qeq {
-                        sc.exists_scope(arg.as_str(), part);
+
+        match part {
+            Part::TokenArgument(func, arg) => validate_argument(part_flags, func, arg, data, sc),
+            Part::Token(part) => {
+                // prefixed scope transition, e.g. cp:councillor_steward
+                if let Some((prefix, arg)) = part.split_once(':') {
+                    // known prefix
+                    if let Some(entry) = scope_prefix(&prefix) {
+                        validate_argument_scope(part_flags, entry, &prefix, &arg, data, sc);
+                    } else {
+                        let msg = format!("unknown prefix `{prefix}:`");
+                        err(ErrorKey::Validation).msg(msg).loc(prefix).push();
+                        return false;
                     }
-                    sc.replace_named_scope(arg.as_str(), part);
-                } else {
+                } else if part.lowercase_is("root")
+                    || part.lowercase_is("prev")
+                    || part.lowercase_is("this")
+                {
+                    if !part_flags.contains(PartFlags::First) {
+                        warn_not_first(part)
+                    }
+                    if part.lowercase_is("root") {
+                        sc.replace_root();
+                    } else if part.lowercase_is("prev") {
+                        sc.replace_prev();
+                    } else {
+                        sc.replace_this();
+                    }
+                } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
+                    validate_inscopes(part_flags, part, inscopes, sc);
                     sc.replace(outscope, part.clone());
+                } else {
+                    let msg = format!("unknown token `{part}`");
+                    err(ErrorKey::UnknownField).msg(msg).loc(part).push();
+                    return false;
                 }
-            } else {
-                let msg = format!("unknown prefix `{prefix}:`");
-                error(part, ErrorKey::Validation, &msg);
-                return false;
-            }
-        } else if part.lowercase_is("root")
-            || part.lowercase_is("prev")
-            || part.lowercase_is("this")
-        {
-            if !first {
-                let msg = format!("`{part}` makes no sense except as first part");
-                old_warn(part, ErrorKey::Validation, &msg);
-            }
-            if part.lowercase_is("root") {
-                sc.replace_root();
-            } else if part.lowercase_is("prev") {
-                sc.replace_prev();
-            } else {
-                sc.replace_this();
-            }
-        } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
-            if inscopes == Scopes::None && !first {
-                let msg = format!("`{part}` makes no sense except as first part");
-                old_warn(part, ErrorKey::Validation, &msg);
-            }
-            sc.expect(inscopes, &Reason::Token(part.clone()));
-            sc.replace(outscope, part.clone());
-        } else {
-            let msg = format!("unknown token `{part}`");
-            error(part, ErrorKey::UnknownField, &msg);
-            return false;
+            } 
         }
     }
     true

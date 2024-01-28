@@ -914,9 +914,9 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "year", CompareValue),
 ];
 
-pub fn scope_trigger_complex(name: &Token) -> Option<(Scopes, Trigger)> {
-    let name_lc = name.as_str().to_lowercase();
-    TRIGGER_COMPLEX_MAP.get(&*name_lc).copied()
+#[inline]
+pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, Trigger)> {
+    TRIGGER_COMPLEX_MAP.get(name).copied()
 }
 
 static TRIGGER_COMPLEX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
@@ -955,7 +955,7 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, Trigger)] = &[
     (Scopes::War, "has_war_support", Item(Item::Country)),
     (Scopes::State, "ig_state_pol_strength_share", Scope(Scopes::InterestGroup)),
     (Scopes::Country, "institution_investment_level", Item(Item::Institution)),
-    (Scopes::all(), "list_size", UncheckedValue),
+    (Scopes::None, "list_size", UncheckedValue),
     // loyalist_fraction
     (Scopes::War, "num_country_casualties", Scope(Scopes::Country)),
     (Scopes::War, "num_country_dead", Scope(Scopes::Country)),

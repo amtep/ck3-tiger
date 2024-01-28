@@ -1641,9 +1641,9 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
 ];
 
-pub fn scope_trigger_complex(name: &Token) -> Option<(Scopes, Trigger)> {
-    let name_lc = name.as_str().to_lowercase();
-    TRIGGER_COMPLEX_MAP.get(&*name_lc).copied()
+#[inline]
+pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, Trigger)> {
+    TRIGGER_COMPLEX_MAP.get(name).copied()
 }
 
 static TRIGGER_COMPLEX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
