@@ -7,16 +7,11 @@ description = "Utilities for maintaining tiger-lib"
 homepage = "https://github.com/amtep/ck3-tiger"
 repository = "https://github.com/amtep/ck3-tiger"
 readme = "../README.md"
+rust-version = "1.70"
 publish = false
 
 [dependencies]
-anstream = "^0.4"
-anstyle = "=1.0.2"
-anstyle-parse = "=0.2.1"
-anstyle-query = "=1.0.0"
-clap_lex = "=0.5.0"
-
 anyhow = "1"
-clap = { version = "=4.3.24", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
 strum = "0.26"
 strum_macros = "0.26"

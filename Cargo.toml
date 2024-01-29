@@ -17,7 +17,7 @@ description = "Library used by the tools ck3-tiger, vic3-tiger, and imperator-ti
 homepage = "https://github.com/amtep/ck3-tiger"
 repository = "https://github.com/amtep/ck3-tiger"
 readme = "README.md"
-rust-version = "1.67"
+rust-version = "1.70"
 
 [features]
 default = ["ck3"]
@@ -32,8 +32,8 @@ as-any = "0.3.0"
 bitflags = "2.3.3"
 encoding_rs = "0.8.32"
 fnv = "1"
-half = "=2.2.1"
-home = "=0.5.5"
+half = "2"
+home = "0.5"
 image = "0.24"
 inventory = "0.3.11"
 lazy_static = "1"
