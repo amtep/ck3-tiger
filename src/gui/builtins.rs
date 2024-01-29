@@ -1,5 +1,5 @@
 use strum::VariantNames;
-use strum_macros::{Display, EnumVariantNames, FromRepr, IntoStaticStr};
+use strum_macros::{Display, VariantNames, FromRepr, IntoStaticStr};
 use thiserror::Error;
 
 use crate::game::GameFlags;
@@ -7,7 +7,7 @@ use crate::lowercase::Lowercase;
 
 /// Widget types that are defined by the game engine and don't need to be defined in gui script.
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, IntoStaticStr, EnumVariantNames, FromRepr, Display,
+    Debug, Clone, Copy, PartialEq, Eq, Hash, IntoStaticStr, VariantNames, FromRepr, Display,
 )]
 #[allow(non_camel_case_types)]
 pub enum BuiltinWidget {

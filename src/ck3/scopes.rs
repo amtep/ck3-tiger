@@ -7,7 +7,6 @@ use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
 use crate::helpers::display_choices;
-use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::trigger::Trigger;
 
@@ -206,6 +205,7 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
 
 // LAST UPDATED CK3 VERSION 1.11.3
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
+    use crate::item::Item;
     if scopes == Scopes::AccoladeType && data.item_exists(Item::AccoladeType, arg) {
         return Some("accolade_type");
     }
@@ -490,7 +490,7 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)
 /// a key (like `root.cp:councillor_steward`)
 const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
     use crate::trigger::Trigger::*;
-    use crate::Item;
+    use crate::item::Item;
     &[
         (Scopes::None, "accolade_type", Scopes::AccoladeType, Item(Item::AccoladeType)),
         (Scopes::None, "activity_type", Scopes::ActivityType, Item(Item::ActivityType)),
