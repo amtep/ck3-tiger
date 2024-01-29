@@ -7,7 +7,6 @@ use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
 use crate::helpers::display_choices;
-use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::trigger::Trigger;
 
@@ -303,6 +302,7 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
 }
 
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
+    use crate::item::Item;
     if scopes == Scopes::Building && data.item_exists(Item::BuildingType, arg) {
         return Some("b");
     }
