@@ -722,6 +722,12 @@ impl<'a> ValueParser<'a> {
         self.next_char(); // eat the @
 
         if let Some(c) = self.peek() {
+            // Imperator allows the following syntax: "@[GetCountry('CAR').GetFlag]!"...weird but it's allowed
+            // So break if a '[' character is found in imperator-tiger, probably a better way to do this.
+            #[cfg(feature = "imperator")]
+            if c == '[' {
+                return;
+            }
             if is_key_char(c) {
                 let key = self.get_key();
                 self.value.push(LocaValue::Icon(key));
