@@ -1071,7 +1071,8 @@ pub fn validate_target_ok_this(
     if !outscopes.intersects(final_scopes | Scopes::None) {
         let part = &part_vec[part_vec.len() - 1];
         let msg = format!("`{part}` produces {final_scopes} but expected {outscopes}");
-        let opt_loc = (part.loc().clone() == because.token().loc).then(|| because.token());
+        // Must not be at the same location to avoid spurious error messages
+        let opt_loc = (part.loc().clone() != because.token().loc).then(|| because.token());
         let msg2 = format!("scope was {}", because.msg());
         warn(ErrorKey::Scopes).msg(msg).loc(part).opt_loc(opt_loc, msg2).push();
     }
