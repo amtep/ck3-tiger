@@ -184,12 +184,26 @@ impl ErrorLoc for Part {
             Part::Token(t) | Part::TokenArgument(t, _) => t.loc
         }
     }
+
+    fn loc_length(&self) -> usize {
+        match self {
+            Part::Token(t) => t.loc_length(),
+            Part::TokenArgument(func, arg) => func.loc_length() + arg.loc_length() + 2,
+        }
+    }
 }
 
 impl ErrorLoc for &Part {
     fn into_loc(self) -> Loc {
         match self {
             Part::Token(t) | Part::TokenArgument(t, _) => t.loc.clone()
+        }
+    }
+
+    fn loc_length(&self) -> usize {
+        match self {
+            Part::Token(t) => t.loc_length(),
+            Part::TokenArgument(func, arg) => func.loc_length() + arg.loc_length() + 2,
         }
     }
 }

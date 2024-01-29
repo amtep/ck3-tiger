@@ -1119,12 +1119,6 @@ impl Part {
 /// or a token-argument pair when using the `()`-syntax, e.g. `"prowess_diff(liege)"`. It does not validate the tokens
 /// or arguments, but simply parses and detects any syntactical errors.
 pub fn partition(token: &Token) -> Vec<Part> {
-    #[cfg(feature = "imperator")]
-    if Game::is_imperator() {
-        // Imperator does not use `()`
-        return token.split('.').into_iter().map(|t| Part::Token(t)).collect();
-    }
-
     let mut parts = Vec::new();
 
     let mut has_part_argument = false;
@@ -1335,7 +1329,6 @@ pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted:
 
 /// Validate that the argument passed through is valid, either being of a complex trigger compare value,
 /// or a scope prefix.
-// Imperator does not use `()`
 #[allow(unreachable_code, unused_variables)]
 pub fn validate_argument(
     part_flags: PartFlags,
@@ -1344,13 +1337,23 @@ pub fn validate_argument(
     data: &Everything,
     sc: &mut ScopeContext,
 ) {
+    #[cfg(feature = "imperator")]
+    if Game::is_imperator() {
+        // Imperator does not use `()`
+        let msg = format!("imperator does not support the `()` syntax");
+        let mut opening_paren_loc = arg.loc.clone();
+        opening_paren_loc.column -= 1;
+        err(ErrorKey::Validation).msg(msg).loc(opening_paren_loc).push();
+        return;
+    }
+
     let scope_trigger_complex: fn(&str) -> Option<(Scopes, Trigger)> = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::triggers::scope_trigger_complex,
         #[cfg(feature = "vic3")]
         Game::Vic3 => crate::vic3::tables::triggers::scope_trigger_complex,
         #[cfg(feature = "imperator")]
-        Game::Imperator => unimplemented!(),
+        Game::Imperator => unreachable!(),
     };
 
     let func_lc = func.as_str().to_lowercase();
