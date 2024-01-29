@@ -47,7 +47,7 @@ fn main() -> Result<()> {
     everything.load_all();
 
     let mut grand_json = json!({});
-    for itype in <Item as IntoEnumIterator>::iter() {
+    for itype in Item::iter() {
         let mut vec = Vec::new();
         for token in everything.iter_keys(itype).filter(|token| token.loc.kind == FileKind::Mod) {
             let json = json!({
