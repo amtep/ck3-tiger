@@ -1325,6 +1325,8 @@ pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted:
 
 /// Validate that the argument passed through is valid, either being of a complex trigger compare value,
 /// or a scope prefix.
+// Imperator does not use `()`
+#[allow(unreachable_code, unused_variables)]
 pub fn validate_argument(
     part_flags: PartFlags,
     func: &Token,
@@ -1332,13 +1334,12 @@ pub fn validate_argument(
     data: &Everything,
     sc: &mut ScopeContext,
 ) {
-    let scope_trigger_complex = match Game::game() {
+    let scope_trigger_complex: fn(&str) -> Option<(Scopes, Trigger)> = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::triggers::scope_trigger_complex,
         #[cfg(feature = "vic3")]
         Game::Vic3 => crate::vic3::tables::triggers::scope_trigger_complex,
         #[cfg(feature = "imperator")]
-        // Imperator does not use `()`
         Game::Imperator => unimplemented!(),
     };
 

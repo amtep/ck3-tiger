@@ -15,7 +15,7 @@ use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{err, error, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity};
-use crate::scopes::{scope_prefix, scope_to_scope, Scopes};
+use crate::scopes::{scope_prefix, scope_to_scope};
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -393,7 +393,7 @@ pub fn validate_inside_iterator(
         if name == "pool_character" {
             vd.req_field("province");
             if let Some(token) = vd.field_value("province") {
-                validate_target_ok_this(token, data, sc, Scopes::Province);
+                validate_target_ok_this(token, data, sc, crate::scopes::Scopes::Province);
             }
         } else {
             vd.ban_field("province", || format!("`{listtype}_pool_character`"));
@@ -402,7 +402,7 @@ pub fn validate_inside_iterator(
 
     #[cfg(feature = "ck3")]
     if Game::is_ck3() {
-        if sc.can_be(Scopes::Character) {
+        if sc.can_be(crate::scopes::Scopes::Character) {
             vd.field_bool("only_if_dead");
             vd.field_bool("even_if_dead");
         } else {

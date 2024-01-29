@@ -257,9 +257,6 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     if scopes == Scopes::Struggle && data.item_exists(Item::Struggle, arg) {
         return Some("struggle");
     }
-    if scopes == Scopes::TaxSlot && data.item_exists(Item::TaxSlotType, arg) {
-        return Some("tax_slot");
-    }
     if scopes == Scopes::LandedTitle && data.item_exists(Item::Title, arg) {
         return Some("title");
     }

@@ -5,12 +5,10 @@ use std::fmt::Formatter;
 use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
-use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::display_choices;
 use crate::item::Item;
 use crate::scopes::Scopes;
-use crate::token::Token;
 use crate::trigger::Trigger;
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
@@ -138,19 +136,6 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
         vec.push("levy_template");
     }
     display_choices(f, &vec, "or")
-}
-
-pub fn validate_prefix_reference(
-    prefix: &Token,
-    _arg: &Token,
-    _data: &Everything,
-    _sc: &mut ScopeContext,
-) {
-    // DEMENTIVE - TODO add these once all Item types have been implmented
-    match prefix.as_str() {
-        // "accolade_type" => data.verify_exists(Item::AccoladeType, arg),
-        &_ => (),
-    }
 }
 
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
@@ -358,37 +343,45 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)
 // Basically just search the log for "Requires Data: yes" and put all that here.
 const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
     use Trigger::*;
-    //FIXME: delete add argument type required
+    //TODO: Remove `UncheckedValue` for correct validation
     &[
-        (Scopes::None, "array_define", Scopes::Value),
-        (Scopes::Country, "fam", Scopes::Family),
-        (Scopes::Country, "party", Scopes::Party),
+        (Scopes::None, "array_define", Scopes::Value, UncheckedValue),
+        (Scopes::Country, "fam", Scopes::Family, UncheckedValue),
+        (Scopes::Country, "party", Scopes::Party, UncheckedValue),
         (
-            Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship),
+            Scopes::Country
+                .union(Scopes::Province)
+                .union(Scopes::State)
+                .union(Scopes::Governorship),
             "job",
             Scopes::Job,
+            UncheckedValue,
         ),
         (
-            Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship),
+            Scopes::Country
+                .union(Scopes::Province)
+                .union(Scopes::State)
+                .union(Scopes::Governorship),
             "job_holder",
             Scopes::Job,
+            UncheckedValue,
         ),
-        (Scopes::Treasure, "treasure", Scopes::Treasure),
-        (Scopes::None, "character", Scopes::Character),
-        (Scopes::None, "region", Scopes::Region),
-        (Scopes::None, "area", Scopes::Area),
-        (Scopes::None, "culture", Scopes::Culture),
-        (Scopes::None, "deity", Scopes::Deity),
-        (Scopes::None, "c", Scopes::Country),
-        (Scopes::None, "char", Scopes::Character),
-        (Scopes::None, "define", Scopes::Value),
-        (Scopes::None, "flag", Scopes::Flag),
-        (Scopes::None, "global_var", Scopes::all()),
-        (Scopes::None, "local_var", Scopes::all()),
-        (Scopes::None, "p", Scopes::Province),
-        (Scopes::None, "religion", Scopes::Religion),
-        (Scopes::None, "scope", Scopes::all()),
-        (Scopes::all(), "var", Scopes::all()),
+        (Scopes::Treasure, "treasure", Scopes::Treasure, UncheckedValue),
+        (Scopes::None, "character", Scopes::Character, UncheckedValue),
+        (Scopes::None, "region", Scopes::Region, UncheckedValue),
+        (Scopes::None, "area", Scopes::Area, UncheckedValue),
+        (Scopes::None, "culture", Scopes::Culture, UncheckedValue),
+        (Scopes::None, "deity", Scopes::Deity, UncheckedValue),
+        (Scopes::None, "c", Scopes::Country, UncheckedValue),
+        (Scopes::None, "char", Scopes::Character, UncheckedValue),
+        (Scopes::None, "define", Scopes::Value, UncheckedValue),
+        (Scopes::None, "flag", Scopes::Flag, UncheckedValue),
+        (Scopes::None, "global_var", Scopes::all(), UncheckedValue),
+        (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
+        (Scopes::None, "p", Scopes::Province, UncheckedValue),
+        (Scopes::None, "religion", Scopes::Religion, UncheckedValue),
+        (Scopes::None, "scope", Scopes::all(), UncheckedValue),
+        (Scopes::all(), "var", Scopes::all(), UncheckedValue),
     ]
 };
 
