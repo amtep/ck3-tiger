@@ -940,7 +940,7 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::DynamicCountryName => "common/dynamic_country_names/",
             #[cfg(feature = "vic3")]
-            Item::EventCategory => "events/",
+            Item::EventCategory => "",
             #[cfg(feature = "vic3")]
             Item::FlagDefinition => "common/flag_definitions/",
             #[cfg(feature = "vic3")]

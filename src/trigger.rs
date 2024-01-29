@@ -1071,8 +1071,9 @@ pub fn validate_target_ok_this(
     if !outscopes.intersects(final_scopes | Scopes::None) {
         let part = &part_vec[part_vec.len() - 1];
         let msg = format!("`{part}` produces {final_scopes} but expected {outscopes}");
+        let opt_loc = (part.loc().clone() == because.token().loc).then(|| because.token());
         let msg2 = format!("scope was {}", because.msg());
-        warn(ErrorKey::Scopes).msg(msg).loc(part).loc(because.token(), msg2).push();
+        warn(ErrorKey::Scopes).msg(msg).loc(part).opt_loc(opt_loc, msg2).push();
     }
     sc.close();
 }
@@ -1101,6 +1102,14 @@ impl std::fmt::Display for Part {
         match self {
             Part::Token(token) => token.fmt(f),
             Part::TokenArgument(func, arg) => write!(f, "{func}({arg})"),
+        }
+    }
+}
+
+impl Part {
+    fn loc(&self) -> &crate::Loc {
+        match self {
+            Part::Token(t) | Part::TokenArgument(t, _) => &t.loc,
         }
     }
 }
@@ -1353,32 +1362,6 @@ pub fn validate_argument(
     } else {
         let msg = format!("unknown token `{func}`");
         err(ErrorKey::Validation).msg(msg).loc(func).push();
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::path::PathBuf;
-
-    use crate::{emit_reports, FileKind, Loc};
-
-    use super::*;
-    #[test]
-    fn test_partition() {
-        let path = "./test.txt";
-        let mut loc = Loc::for_file(
-            PathBuf::from_str(path).unwrap(),
-            FileKind::Mod,
-            PathBuf::from_str(path).unwrap(),
-        );
-        loc.line += 1;
-        loc.column += 1;
-        let str = std::fs::read_to_string(path).unwrap();
-        let token = Token::new(&str, loc);
-        let partitioned = partition(&token);
-        dbg!(token);
-        dbg!(partitioned);
-        emit_reports(false);
     }
 }
 

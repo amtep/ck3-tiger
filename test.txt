@@ -1,1 +1,0 @@
-father.cp(councillor_steward).prowess_diff(root.liege.var(bad))
