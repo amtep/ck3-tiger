@@ -453,6 +453,8 @@ pub fn validate_datatypes(
             }
         }
 
+        // Ignore for imperator since everything in imperator-tiger is a promote, probably a better way to do this.
+        #[cfg(not(feature = "imperator"))]
         if !found {
             // Properly reporting these errors is tricky because `code.name`
             // might be found in any or all of the functions and promotes tables.
@@ -499,6 +501,17 @@ pub fn validate_datatypes(
             found = true;
             args = Args::Args(&[]);
             rtype = Datatype::Vic3(Vic3Datatype::Country);
+        }
+
+        #[cfg(feature = "imperator")]
+        if Game::is_imperator()
+            && !found
+            && is_first
+            && data.item_exists(Item::Country, code.name.as_str())
+        {
+            found = true;
+            args = Args::Args(&[]);
+            rtype = Datatype::Imperator(ImperatorDatatype::Country);
         }
 
         // In vic3, game concepts are unadorned, like [concept_ideology]
