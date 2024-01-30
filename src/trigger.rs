@@ -204,7 +204,10 @@ pub fn validate_trigger_internal(
     }
 
     if caller == "modifier" {
-        // add, factor and desc are handled in the loop
+        // desc is handled in the loop
+        // mark add and factor as known
+        vd.multi_field("add");
+        vd.multi_field("factor");
         vd.field_validated_block("trigger", |block, data| {
             side_effects |= validate_trigger(block, data, sc, Tooltipped::No);
         });
@@ -226,7 +229,7 @@ pub fn validate_trigger_internal(
     validate_ifelse_sequence(block, "trigger_if", "trigger_else_if", "trigger_else");
 
     vd.unknown_fields_any_cmp(|key, cmp, bv| {
-        if key.is("add") || key.is("factor") || key.is("value") {
+        if key.is("value") {
             validate_script_value(bv, data, sc);
             side_effects = true;
             return;
@@ -280,6 +283,21 @@ pub fn validate_trigger_internal(
         side_effects |=
             validate_trigger_key_bv(key, cmp, bv, data, sc, tooltipped, negated, max_sev);
     });
+
+    if caller == "modifier" {
+        // check add and factor at the end, accounting for any temporary scope saved
+        // elsewhere in the block.
+        vd.multi_field_validated("add", |bv, data| {
+            validate_script_value(bv, data, sc);
+            side_effects = true;
+        });
+
+        vd.multi_field_validated("factor", |bv, data| {
+            validate_script_value(bv, data, sc);
+            side_effects = true;
+        });
+    }
+
     side_effects
 }
 

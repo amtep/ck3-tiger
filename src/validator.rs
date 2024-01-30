@@ -247,6 +247,11 @@ impl<'a> Validator<'a> {
         self.field_check(name, |_, _| ())
     }
 
+    /// Just like [`Validator::field`], but expects any number of `name` fields in the block.
+    pub fn multi_field(&mut self, name: &str) -> bool {
+        self.multi_field_check(name, |_, _| ())
+    }
+
     /// Expect field `name`, if present, to be... present.
     /// Expect no more than one `name` field in the block.
     /// Returns the field's `BV` (block or value) if the field is present.
