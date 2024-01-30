@@ -1279,6 +1279,11 @@ fn validate_argument_internal(
     match trigger {
         Item(item) => data.verify_exists(item, arg),
         Scope(scope) => validate_target(arg, data, sc, scope),
+        ScopeOrItem(scope, item) => {
+            if !data.item_exists(item, arg.as_str()) {
+                validate_target(arg, data, sc, scope);
+            }
+        }
         UncheckedValue => (),
         _ => unimplemented!(),
     }

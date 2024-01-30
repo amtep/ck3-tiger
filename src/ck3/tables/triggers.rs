@@ -1696,7 +1696,11 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "tax_collector_aptitude", Item(Item::TaxSlotType)),
     (Scopes::Character, "time_to_hook_expiry", Scope(Scopes::Character)),
     (Scopes::Character, "vassal_contract_obligation_level", Item(Item::VassalContract)),
-    (Scopes::Character, "vassal_contract_obligation_level_score", Item(Item::VassalContract)),
+    (
+        Scopes::Character,
+        "vassal_contract_obligation_level_score",
+        ScopeOrItem(Scopes::VassalObligationLevel, Item::VassalContract),
+    ),
     // (Scopes::LandedTitle, "title_create_faction_type_chance", Item(Item::Faction), Scope(Scopes::Character)),
     (Scopes::LandedTitle, "title_join_faction_chance", Scope(Scopes::Faction)),
     (Scopes::LandedTitle.union(Scopes::Province), "squared_distance", Scope(Scopes::Province)),
