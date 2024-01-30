@@ -4,7 +4,7 @@
 use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::fmt::{Debug, Display, Error, Formatter};
-use std::ops::RangeBounds;
+use std::ops::{Bound, Range, RangeBounds};
 use std::path::{Path, PathBuf};
 use std::slice::SliceIndex;
 use std::sync::Arc;
@@ -108,11 +108,44 @@ impl Token {
         Token { s, loc }
     }
 
+    /// Create a `Token` from a substring of the given `Token`.
     #[must_use]
     pub fn subtoken<R>(&self, range: R, loc: Loc) -> Token
     where
         R: RangeBounds<usize> + SliceIndex<str, Output = str>,
     {
+        Token { s: &self.s[range], loc }
+    }
+
+    /// Create a `Token` from a subtring of the given `Token`,
+    /// stripping any whitespace from the created token.
+    #[must_use]
+    pub fn subtoken_stripped(&self, mut range: Range<usize>, mut loc: Loc) -> Token {
+        let mut start = match range.start_bound() {
+            Bound::Included(&i) => i,
+            Bound::Excluded(&i) => i + 1,
+            Bound::Unbounded => 0,
+        };
+        let mut end = match range.end_bound() {
+            Bound::Included(&i) => i + 1,
+            Bound::Excluded(&i) => i,
+            Bound::Unbounded => self.s.len(),
+        };
+        for (i, c) in self.s[range.clone()].char_indices() {
+            if !c.is_whitespace() {
+                start += i;
+                range = start..end;
+                break;
+            }
+            loc.column += 1;
+        }
+        for (i, c) in self.s[range.clone()].char_indices().rev() {
+            if !c.is_whitespace() {
+                end = start + i + c.len_utf8();
+                range = start..end;
+                break;
+            }
+        }
         Token { s: &self.s[range], loc }
     }
 

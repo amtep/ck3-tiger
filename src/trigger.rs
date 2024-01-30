@@ -1179,7 +1179,7 @@ pub fn partition(token: &Token) -> Vec<Part> {
 
                     let mut arg_loc = token.loc.clone();
                     arg_loc.column += first_paren_col + 1;
-                    let arg_token = token.subtoken(first_paren_idx + 1..idx, arg_loc);
+                    let arg_token = token.subtoken_stripped(first_paren_idx + 1..idx, arg_loc);
 
                     parts.push(Part::TokenArgument(func_token, arg_token));
                     has_part_argument = true;
@@ -1197,12 +1197,12 @@ pub fn partition(token: &Token) -> Vec<Part> {
                 }
             }
             _ => {
-                // an argument can only be the last part or followed by point `.` AND hasn't erred from it yet
+                // an argument can only be the last part or followed by dot `.` AND hasn't erred from it yet
                 if has_part_argument && !has_part_argument_erred {
                     let mut loc = token.loc.clone();
                     loc.column += col;
                     err(ErrorKey::Validation)
-                        .msg("argument can only be the last part or followed by point `.`")
+                        .msg("argument can only be the last part or followed by dot `.`")
                         .loc(loc)
                         .push();
                     has_part_argument_erred = true;
@@ -1226,7 +1226,7 @@ pub fn partition(token: &Token) -> Vec<Part> {
         // Trailing `.`
         let mut loc = token.loc.clone();
         loc.column += part_col;
-        err(ErrorKey::Validation).msg("trailing point `.`").loc(loc).push();
+        err(ErrorKey::Validation).msg("trailing dot `.`").loc(loc).push();
     } else if !has_part_argument {
         // final part (without argument)
         let mut part_loc = token.loc.clone();
