@@ -181,7 +181,7 @@ impl ErrorLoc for &Block {
 impl ErrorLoc for Part {
     fn into_loc(self) -> Loc {
         match self {
-            Part::Token(t) | Part::TokenArgument(t, _) => t.loc
+            Part::Token(t) | Part::TokenArgument(t, _) => t.loc,
         }
     }
 
@@ -196,7 +196,7 @@ impl ErrorLoc for Part {
 impl ErrorLoc for &Part {
     fn into_loc(self) -> Loc {
         match self {
-            Part::Token(t) | Part::TokenArgument(t, _) => t.loc.clone()
+            Part::Token(t) | Part::TokenArgument(t, _) => t.loc.clone(),
         }
     }
 

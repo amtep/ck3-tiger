@@ -22,7 +22,8 @@ use crate::tooltipped::Tooltipped;
 #[cfg(feature = "ck3")]
 use crate::trigger::validate_target_ok_this;
 use crate::trigger::{
-    partition, validate_argument, validate_argument_scope, validate_inscopes, validate_trigger, validate_trigger_internal, warn_not_first, Part, PartFlags
+    partition, validate_argument, validate_argument_scope, validate_inscopes, validate_trigger,
+    validate_trigger_internal, warn_not_first, Part, PartFlags,
 };
 use crate::validator::Validator;
 
@@ -666,7 +667,7 @@ pub fn validate_scope_chain(
                     err(ErrorKey::UnknownField).msg(msg).loc(part).push();
                     return false;
                 }
-            } 
+            }
         }
     }
     true

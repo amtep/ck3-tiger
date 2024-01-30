@@ -668,8 +668,8 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
 const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
-    use Trigger::*;
     use crate::item::Item;
+    use Trigger::*;
     &[
         (Scopes::Country, "active_law", Scopes::Law, Item(Item::LawGroup)),
         (Scopes::Country, "ai_army_comparison", Scopes::Value, Scope(Scopes::Country)),
@@ -707,7 +707,12 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
         (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
         (Scopes::Market, "mg", Scopes::MarketGoods, Item(Item::Goods)),
         // TODO: the docs give a huge list of scopes instead of MobilizationOption
-        (Scopes::None, "mobilization_option", Scopes::MobilizationOption, Item(Item::MobilizationOption)),
+        (
+            Scopes::None,
+            "mobilization_option",
+            Scopes::MobilizationOption,
+            Item(Item::MobilizationOption),
+        ),
         (
             Scopes::Country
                 .union(Scopes::BattleSide)
@@ -721,11 +726,26 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
             Item(Item::Modifier),
         ),
         (Scopes::State, "nf", Scopes::Decree, Item(Item::Decree)),
-        (Scopes::Country, "num_alliances_and_defensive_pacts_with_allies", Scopes::Value, Scope(Scopes::Country)),
-        (Scopes::Country, "num_alliances_and_defensive_pacts_with_rivals", Scopes::Value, Scope(Scopes::Country)),
+        (
+            Scopes::Country,
+            "num_alliances_and_defensive_pacts_with_allies",
+            Scopes::Value,
+            Scope(Scopes::Country),
+        ),
+        (
+            Scopes::Country,
+            "num_alliances_and_defensive_pacts_with_rivals",
+            Scopes::Value,
+            Scope(Scopes::Country),
+        ),
         (Scopes::Front, "num_defending_battalions", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::Front, "num_enemy_units", Scopes::Value, Scope(Scopes::Country)),
-        (Scopes::Country, "num_mutual_trade_route_levels_with_country", Scopes::Value, Scope(Scopes::Country)),
+        (
+            Scopes::Country,
+            "num_mutual_trade_route_levels_with_country",
+            Scopes::Value,
+            Scope(Scopes::Country),
+        ),
         (Scopes::Country, "num_pending_events", Scopes::Value, Item(Item::EventCategory)),
         (Scopes::Country, "num_shared_rivals", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::Front, "num_total_battalions", Scopes::Value, Item(Item::EventCategory)),

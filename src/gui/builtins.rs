@@ -1,5 +1,5 @@
 use strum::VariantNames;
-use strum_macros::{Display, VariantNames, FromRepr, IntoStaticStr};
+use strum_macros::{Display, FromRepr, IntoStaticStr, VariantNames};
 use thiserror::Error;
 
 use crate::game::GameFlags;

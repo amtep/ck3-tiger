@@ -7,8 +7,7 @@ pub const DLC_FEATURES_VIC3: &[&str] =
     &["voice_of_the_people_content", "voice_of_the_people_preorder", "agitators", "rp1_content"];
 
 // LAST UPDATED VIC3 VERSION 1.3.6
-pub const EVENT_CATEGORIES: &[&str] = 
-    &["enactment", "revolution"];
+pub const EVENT_CATEGORIES: &[&str] = &["enactment", "revolution"];
 
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const APPROVALS: &[&str] = &["angry", "unhappy", "neutral", "happy", "loyal"];

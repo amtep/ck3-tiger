@@ -2,7 +2,7 @@ use std::fmt::{Display, Error, Formatter};
 use std::hash::Hash;
 
 use strum::VariantNames;
-use strum_macros::{Display, VariantNames, FromRepr, IntoStaticStr};
+use strum_macros::{Display, FromRepr, IntoStaticStr, VariantNames};
 use thiserror::Error;
 
 #[cfg(doc)]

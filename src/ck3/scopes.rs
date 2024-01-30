@@ -486,8 +486,8 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
 const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
-    use crate::trigger::Trigger::*;
     use crate::item::Item;
+    use crate::trigger::Trigger::*;
     &[
         (Scopes::None, "accolade_type", Scopes::AccoladeType, Item(Item::AccoladeType)),
         (Scopes::None, "activity_type", Scopes::ActivityType, Item(Item::ActivityType)),
@@ -499,12 +499,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
         (Scopes::Character, "cp", Scopes::Character, Item(Item::CouncilPosition)), // councillor
         (Scopes::None, "culture", Scopes::Culture, Item(Item::Culture)),
         (Scopes::None, "culture_pillar", Scopes::CulturePillar, Item(Item::CulturePillar)),
-        (
-            Scopes::None,
-            "culture_tradition",
-            Scopes::CultureTradition,
-            Item(Item::CultureTradition),
-        ),
+        (Scopes::None, "culture_tradition", Scopes::CultureTradition, Item(Item::CultureTradition)),
         (Scopes::None, "decision", Scopes::Decision, Item(Item::Decision)),
         (Scopes::None, "define", Scopes::Value, UncheckedValue),
         (Scopes::None, "doctrine", Scopes::Doctrine, Item(Item::Doctrine)),

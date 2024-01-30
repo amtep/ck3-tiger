@@ -319,8 +319,8 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
 ///
 /// Some prefixes have an input scope, and they look up something related to the input scope value.
 ///
-/// Returns a pair of `Scopes` and the type of argument it accepts. 
-/// The first `Scopes` is the scope types this token can accept as input, and the second one is 
+/// Returns a pair of `Scopes` and the type of argument it accepts.
+/// The first `Scopes` is the scope types this token can accept as input, and the second one is
 /// the scope types it may return. The first will be `Scopes::None` if it needs no input.
 pub fn scope_prefix(prefix: &Token) -> Option<(Scopes, Scopes, Trigger)> {
     let scope_prefix = match Game::game() {
