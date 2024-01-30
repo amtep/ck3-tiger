@@ -231,7 +231,7 @@ fn validate_event_option(
     tooltipped: Tooltipped,
 ) {
     let mut vd = Validator::new(block, data);
-    vd.field_validated_sc("name", &mut sc, validate_desc);
+    vd.field_validated_sc("name", sc, validate_desc);
 
     vd.field_validated_block("trigger", |b, data| {
         validate_trigger(b, data, sc, Tooltipped::No);

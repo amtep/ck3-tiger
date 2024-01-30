@@ -4,18 +4,22 @@ use crate::scopes::*;
 use crate::token::Token;
 use crate::trigger::Trigger;
 
+use fnv::FnvHashMap;
+use once_cell::sync::Lazy;
 use Trigger::*;
 
 pub fn scope_trigger(name: &Token, _data: &Everything) -> Option<(Scopes, Trigger)> {
     let name_lc = name.as_str().to_lowercase();
-
-    for (from, s, trigger) in TRIGGER {
-        if name_lc == *s {
-            return Some((*from, *trigger));
-        }
-    }
-    std::option::Option::None
+    TRIGGER_MAP.get(&*name_lc).copied()
 }
+
+static TRIGGER_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, trigger) in TRIGGER.iter().copied() {
+        hash.insert(s, (from, trigger));
+    }
+    hash
+});
 
 /// LAST UPDATED VIC3 VERSION 1.5.3
 /// See `triggers.log` from the game data dumps
@@ -28,10 +32,6 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "additional_war_exhaustion", CompareValue),
     (Scopes::Character, "age", CompareValue),
     (Scopes::Country, "aggressive_diplomatic_plays_permitted", Boolean),
-    (Scopes::Country, "ai_army_comparison(", CompareValue),
-    (Scopes::Country, "ai_gdp_comparison(", CompareValue),
-    (Scopes::Country, "ai_ideological_opinion(", CompareValue),
-    (Scopes::Country, "ai_navy_comparison(", CompareValue),
     (Scopes::None, "all_false", Control),
     (Scopes::None, "always", Boolean),
     (Scopes::None, "and", Control),
@@ -50,7 +50,6 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "authority", CompareValue),
     (Scopes::State, "available_jobs", CompareValue),
     (Scopes::Country, "average_country_infrastructure", CompareValue),
-    (Scopes::Front, "average_defense(", CompareValue),
     (Scopes::Country, "average_incorporated_country_infrastructure", CompareValue),
     (Scopes::Front, "average_offense(", CompareValue),
     (Scopes::Country, "battalion_manpower", CompareValue),
@@ -737,8 +736,6 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "night_value", CompareValue),
     (Scopes::None, "nor", Control),
     (Scopes::None, "not", Control),
-    (Scopes::Country, "num_alliances_and_defensive_pacts_with_allies(", CompareValue),
-    (Scopes::Country, "num_alliances_and_defensive_pacts_with_rivals(", CompareValue),
     (Scopes::War, "num_casualties", CompareValue),
     (
         Scopes::War,
@@ -763,7 +760,6 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Theater, "num_provinces_in_theater", CompareValue),
     (Scopes::Country, "num_mutual_trade_route_levels_with_country(", CompareValue),
     (Scopes::Country, "num_taxed_goods", CompareValue),
-    (Scopes::Front, "num_total_battalions(", CompareValue),
     (Scopes::War, "num_wounded", CompareValue),
     (Scopes::Country, "number_of_possible_decisions", CompareValue),
     (Scopes::Building, "occupancy", CompareValue),
@@ -830,7 +826,6 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "religion_percent_state",
         Block(&[("target", Scope(Scopes::Religion)), ("value", CompareValue)]),
     ),
-    (Scopes::Country, "relations(", CompareValue),
     (
         Scopes::StateRegion,
         "remaining_undepleted",
@@ -917,4 +912,61 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Building, "weekly_profit", CompareValue),
     (Scopes::None, "weighted_calc_true_if", Special),
     (Scopes::None, "year", CompareValue),
+];
+
+#[inline]
+pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, Trigger)> {
+    TRIGGER_COMPLEX_MAP.get(name).copied()
+}
+
+static TRIGGER_COMPLEX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, trigger) in TRIGGER_COMPLEX.iter().copied() {
+        hash.insert(s, (from, trigger));
+    }
+    hash
+});
+
+/// LAST UPDATED VIC3 VERSION 1.5.12
+/// See `triggers.log` from the game data dumps
+/// `(inscopes, trigger name, argtype)`
+/// Currently only works with single argument triggers
+// TODO Update argtype when vic3 updated to 1.5+
+const TRIGGER_COMPLEX: &[(Scopes, &str, Trigger)] = &[
+    (Scopes::Country, "additional_war_exhaustion", Scope(Scopes::DiplomaticPlay)),
+    (Scopes::Country, "army_mobilization_option_fraction", UncheckedValue), // TODO Item(Item::MobilizationOption)
+    // (Scopes::Battle, "battle_side_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
+    // (Scopes::Character, "commander_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
+    (Scopes::Country, "country_army_unit_type_fraction", UncheckedValue), // TODO Item(Item::UnitType))
+    (Scopes::Country, "country_has_building_group_levels", Item(Item::BuildingGroup)),
+    (Scopes::Country, "country_has_building_type_levels", Item(Item::BuildingType)),
+    (Scopes::Country, "country_navy_unity_type_fraction", UncheckedValue), // TODO Item(Item::UnitType)
+    // (Scopes::Country, "country_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
+    (Scopes::Country, "culture_percent_country", Item(Item::Culture)),
+    (Scopes::State, "culture_percent_state", Item(Item::Culture)),
+    (Scopes::Culture, "culture_secession_progress", Scope(Scopes::Country)),
+    // (Scopes::DiplomaticPlay, "diplomatic_play_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
+    (Scopes::Country, "enemy_contested_wargoals", Scope(Scopes::War)),
+    // TODO (Scopes::MilitaryFormation, "formation_army_unit_type_fraction", Item(Item::UnitType)),
+    // TODO (Scopes::MilitaryFormation, "formation_navy_unit_type_fraction", Item(Item::UnitType)),
+    // (Scopes::Front, "front_side_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
+    (Scopes::Country, "has_technology_progress", Item(Item::Technology)),
+    (Scopes::War, "has_war_exhaustion", Item(Item::Country)),
+    (Scopes::War, "has_war_support", Item(Item::Country)),
+    (Scopes::State, "ig_state_pol_strength_share", Scope(Scopes::InterestGroup)),
+    (Scopes::Country, "institution_investment_level", Item(Item::Institution)),
+    (Scopes::None, "list_size", UncheckedValue),
+    // loyalist_fraction
+    (Scopes::War, "num_country_casualties", Scope(Scopes::Country)),
+    (Scopes::War, "num_country_dead", Scope(Scopes::Country)),
+    (Scopes::War, "num_country_wounded", Scope(Scopes::Country)),
+    (Scopes::Country, "pop_type_percent_country", Item(Item::PopType)),
+    (Scopes::State, "pop_type_percent_state", Item(Item::PopType)),
+    // radical_fraction
+    (Scopes::Country, "religion_percent_country", Item(Item::Religion)),
+    (Scopes::State, "religion_percent_state", Item(Item::Religion)),
+    (Scopes::StateRegion, "remaining_undepleted", Item(Item::BuildingGroup)),
+    (Scopes::Country, "size_weighted_lost_battles_fraction", Scope(Scopes::War)),
+    (Scopes::State, "state_has_building_group_levels", Item(Item::BuildingGroup)),
+    (Scopes::State, "state_has_building_type_levels", Item(Item::BuildingType)),
 ];

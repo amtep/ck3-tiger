@@ -546,6 +546,7 @@ impl Everything {
             Item::Dlc => DLC_VIC3.contains(&key),
             Item::DlcFeature => DLC_FEATURES_VIC3.contains(&key),
             Item::Event => self.events_vic3.exists(key),
+            Item::EventCategory => EVENT_CATEGORIES.contains(&key),
             Item::EventNamespace => self.events_vic3.namespace_exists(key),
             Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
             Item::Level => LEVELS.contains(&key),

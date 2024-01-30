@@ -1,6 +1,7 @@
 //! Validate triggers, which are parts of the script that specify yes or no conditions.
 
-use std::borrow::Cow;
+use bitflags::bitflags;
+
 use std::str::FromStr;
 
 use crate::block::{Block, Comparator, Eq::*, Field, BV};
@@ -17,11 +18,9 @@ use crate::helpers::stringify_list;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{
-    advice_info, err, error, fatal, old_warn, warn2, warn_info, ErrorKey, Severity,
+    advice_info, err, error, fatal, old_warn, warn, warn_info, ErrorKey, Severity,
 };
-use crate::scopes::{
-    needs_prefix, scope_iterator, scope_prefix, scope_to_scope, validate_prefix_reference, Scopes,
-};
+use crate::scopes::{needs_prefix, scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -32,6 +31,25 @@ use crate::validate::{
 use crate::validator::Validator;
 #[cfg(feature = "vic3")]
 use crate::vic3::tables::misc::{APPROVALS, LEVELS};
+
+/// Look up a trigger token that evaluates to a trigger value.
+///
+/// `name` is the token. `data` is used in special cases to verify the name dynamically,
+/// for example, `<lifestyle>_xp` is only a valid trigger if `<lifestyle>` is present in
+/// the database.
+///
+/// Returns the inscopes valid for the trigger and the output trigger value type.
+pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger)> {
+    let scope_trigger = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::triggers::scope_trigger,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::triggers::scope_trigger,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::triggers::scope_trigger,
+    };
+    scope_trigger(name, data)
+}
 
 /// The standard interface to trigger validation. Validates a trigger in the given [`ScopeContext`].
 ///
@@ -288,7 +306,7 @@ pub fn validate_trigger_key_bv(
         match bv {
             BV::Value(token) => {
                 if !(token.is("yes") || token.is("no") || token.is("YES") || token.is("NO")) {
-                    old_warn(token, ErrorKey::Validation, "expected yes or no");
+                    warn(ErrorKey::Validation).msg("expected yes or no").loc(token).push();
                 }
                 if !trigger.macro_parms().is_empty() {
                     fatal(ErrorKey::Macro).msg("expected macro arguments").loc(token).push();
@@ -337,115 +355,102 @@ pub fn validate_trigger_key_bv(
         return side_effects;
     }
 
-    let scope_trigger = match Game::game() {
-        #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::tables::triggers::scope_trigger,
-        #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::tables::triggers::scope_trigger,
-        #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::tables::triggers::scope_trigger,
-    };
-
-    let key = handle_argument(key, data, sc);
-    let part_vec = key.split('.');
+    let part_vec = partition(key);
     sc.open_builder();
-    let mut found_trigger = None;
     for i in 0..part_vec.len() {
-        let first = i == 0;
-        let last = i + 1 == part_vec.len();
+        let mut part_flags = PartFlags::empty();
+        if i == 0 {
+            part_flags |= PartFlags::First;
+        }
+        if i + 1 == part_vec.len() {
+            part_flags |= PartFlags::Last;
+        }
+        if matches!(cmp, Comparator::Equals(Question)) {
+            part_flags |= PartFlags::Question;
+        }
         let part = &part_vec[i];
 
-        if let Some((prefix, mut arg)) = part.split_once(':') {
-            if prefix.is("event_id") {
-                arg = key.split_once(':').unwrap().1;
-            }
-            if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
-                if inscopes == Scopes::None && !first {
-                    let msg = format!("`{prefix}:` makes no sense except as first part");
-                    old_warn(part, ErrorKey::Validation, &msg);
-                }
-                sc.expect(inscopes, &Reason::Token(prefix.clone()));
-                validate_prefix_reference(&prefix, &arg, data, sc);
-                if prefix.is("scope") {
-                    if last && matches!(cmp, Comparator::Equals(Question)) {
-                        // If the comparator is ?=, it's an implicit existence check
-                        sc.exists_scope(arg.as_str(), part);
+        match part {
+            Part::TokenArgument(func, arg) => validate_argument(part_flags, func, arg, data, sc),
+            Part::Token(part) => {
+                // prefixed scope transition, e.g. cp:councillor_steward
+                if let Some((prefix, mut arg)) = part.split_once(':') {
+                    // event_id have multiple parts separated by `.`
+                    let is_event_id = prefix.lowercase_is("event_id");
+                    if is_event_id {
+                        arg = key.split_once(':').unwrap().1;
                     }
-                    sc.replace_named_scope(arg.as_str(), part);
-                } else {
+                    // known prefix
+                    if let Some(entry) = scope_prefix(&prefix) {
+                        validate_argument_scope(part_flags, entry, &prefix, &arg, data, sc);
+                        if is_event_id {
+                            break; // force last part
+                        }
+                    } else {
+                        let msg = format!("unknown prefix `{prefix}:`");
+                        err(ErrorKey::Validation).msg(msg).loc(prefix).push();
+                        sc.close();
+                        return side_effects;
+                    }
+                } else if part.lowercase_is("root")
+                    || part.lowercase_is("prev")
+                    || part.lowercase_is("this")
+                {
+                    if !part_flags.contains(PartFlags::First) {
+                        warn_not_first(part)
+                    }
+                    if part.lowercase_is("root") {
+                        sc.replace_root();
+                    } else if part.lowercase_is("prev") {
+                        sc.replace_prev();
+                    } else {
+                        sc.replace_this();
+                    }
+                } else if data.script_values.exists(part.as_str()) {
+                    // TODO: check side_effects
+                    data.script_values.validate_call(part, data, sc);
+                    sc.replace(Scopes::Value, part.clone());
+                } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
+                    validate_inscopes(part_flags, part, inscopes, sc);
                     sc.replace(outscope, part.clone());
+                } else if let Some((inscopes, trigger)) = scope_trigger(part, data) {
+                    if !part_flags.contains(PartFlags::Last) {
+                        let msg = format!("`{part}` should be the last part");
+                        warn(ErrorKey::Validation).msg(msg).loc(part).push();
+                        sc.close();
+                        return side_effects;
+                    }
+                    validate_inscopes(part_flags, part, inscopes, sc);
+                    if sc.scopes() == Scopes::None && part.lowercase_is("current_year") {
+                        warn_info(
+                            part,
+                            ErrorKey::Bugs,
+                            "current_year does not work in empty scope",
+                            "try using current_date, or dummy_male.current_year",
+                        );
+                    }
+                    sc.close();
+                    side_effects |= match_trigger_bv(
+                        &trigger,
+                        &part.clone(),
+                        cmp,
+                        bv,
+                        data,
+                        sc,
+                        tooltipped,
+                        negated,
+                        max_sev,
+                    );
+                    return side_effects;
+                } else {
+                    // TODO: warn if trying to use iterator here
+                    let msg = format!("unknown token `{part}`");
+                    err(ErrorKey::UnknownField).msg(msg).loc(part).push();
+                    sc.close();
+                    return side_effects;
                 }
-                if prefix.is("event_id") {
-                    break; // force last part
-                }
-            } else {
-                let msg = format!("unknown prefix `{prefix}:`");
-                error(part, ErrorKey::Validation, &msg);
-                sc.close();
-                return side_effects;
             }
-        } else if part.lowercase_is("root")
-            || part.lowercase_is("prev")
-            || part.lowercase_is("this")
-        {
-            if !first {
-                let msg = format!("`{part}` makes no sense except as first part");
-                old_warn(part, ErrorKey::Validation, &msg);
-            }
-            if part.lowercase_is("root") {
-                sc.replace_root();
-            } else if part.lowercase_is("prev") {
-                sc.replace_prev();
-            } else {
-                sc.replace_this();
-            }
-        } else if data.script_values.exists(part.as_str()) {
-            // TODO: check side_effects
-            data.script_values.validate_call(part, data, sc);
-            sc.replace(Scopes::Value, part.clone());
-        } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
-            if inscopes == Scopes::None && !first {
-                let msg = format!("`{part}` makes no sense except as first part");
-                old_warn(part, ErrorKey::Validation, &msg);
-            }
-            sc.expect(inscopes, &Reason::Token(part.clone()));
-            sc.replace(outscope, part.clone());
-        } else if let Some((inscopes, trigger)) = scope_trigger(part, data) {
-            if !last {
-                let msg = format!("`{part}` should be the last part");
-                old_warn(part, ErrorKey::Validation, &msg);
-                sc.close();
-                return side_effects;
-            }
-            found_trigger = Some((trigger, part.clone()));
-            if inscopes == Scopes::None && !first {
-                let msg = format!("`{part}` makes no sense except as only part");
-                old_warn(part, ErrorKey::Validation, &msg);
-            }
-            if part.is("current_year") && sc.scopes() == Scopes::None {
-                warn_info(
-                    part,
-                    ErrorKey::Bugs,
-                    "current_year does not work in empty scope",
-                    "try using current_date, or dummy_male.current_year",
-                );
-            } else {
-                sc.expect(inscopes, &Reason::Token(part.clone()));
-            }
-        } else {
-            // TODO: warn if trying to use iterator here
-            let msg = format!("unknown token `{part}`");
-            error(part, ErrorKey::UnknownField, &msg);
-            sc.close();
-            return side_effects;
         }
-    }
-
-    if let Some((trigger, name)) = found_trigger {
-        sc.close();
-        side_effects |=
-            match_trigger_bv(&trigger, &name, cmp, bv, data, sc, tooltipped, negated, max_sev);
-        return side_effects;
     }
 
     if !matches!(cmp, Comparator::Equals(Single | Question)) {
@@ -461,7 +466,7 @@ pub fn validate_trigger_key_bv(
             }
         } else {
             let msg = format!("unexpected comparator {cmp}");
-            old_warn(key.into_owned(), ErrorKey::Validation, &msg);
+            warn(ErrorKey::Validation).msg(msg).loc(key).push();
             sc.close();
         }
         return side_effects;
@@ -973,114 +978,103 @@ pub fn validate_target_ok_this(
         }
         return;
     }
-    let token = handle_argument(token, data, sc);
-    let part_vec = token.split('.');
+    let part_vec = partition(token);
     sc.open_builder();
     for i in 0..part_vec.len() {
-        let first = i == 0;
-        let last = i + 1 == part_vec.len();
+        let mut part_flags = PartFlags::empty();
+        if i == 0 {
+            part_flags |= PartFlags::First;
+        }
+        if i + 1 == part_vec.len() {
+            part_flags |= PartFlags::Last;
+        }
         let part = &part_vec[i];
 
-        if let Some((prefix, mut arg)) = part.split_once(':') {
-            if prefix.is("event_id") {
-                arg = token.split_once(':').unwrap().1;
-            }
-            if let Some((inscopes, outscope)) = scope_prefix(prefix.as_str()) {
-                if inscopes == Scopes::None && !first {
-                    let msg = format!("`{prefix}:` makes no sense except as first part");
-                    old_warn(part, ErrorKey::Validation, &msg);
-                }
-                sc.expect(inscopes, &Reason::Token(prefix.clone()));
-                validate_prefix_reference(&prefix, &arg, data, sc);
-                if prefix.is("scope") {
-                    sc.replace_named_scope(arg.as_str(), part);
-                } else {
+        match part {
+            Part::TokenArgument(func, arg) => validate_argument(part_flags, func, arg, data, sc),
+            Part::Token(part) => {
+                // prefixed scope transition, e.g. cp:councillor_steward
+                if let Some((prefix, mut arg)) = part.split_once(':') {
+                    // event_id have multiple parts separated by `.`
+                    let is_event_id = prefix.lowercase_is("event_id");
+                    if is_event_id {
+                        arg = token.split_once(':').unwrap().1;
+                    }
+                    // known prefix
+                    if let Some(entry) = scope_prefix(&prefix) {
+                        validate_argument_scope(part_flags, entry, &prefix, &arg, data, sc);
+                        if is_event_id {
+                            break; // force last part
+                        }
+                    } else {
+                        let msg = format!("unknown prefix `{prefix}:`");
+                        err(ErrorKey::Validation).msg(msg).loc(prefix).push();
+                        sc.close();
+                        return;
+                    }
+                } else if part.lowercase_is("root")
+                    || part.lowercase_is("prev")
+                    || part.lowercase_is("this")
+                {
+                    if !part_flags.contains(PartFlags::First) {
+                        warn_not_first(part)
+                    }
+                    if part.lowercase_is("root") {
+                        sc.replace_root();
+                    } else if part.lowercase_is("prev") {
+                        sc.replace_prev();
+                    } else {
+                        sc.replace_this();
+                    }
+                } else if data.script_values.exists(part.as_str()) {
+                    // TODO: check side_effects
+                    data.script_values.validate_call(part, data, sc);
+                    sc.replace(Scopes::Value, part.clone());
+                } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
+                    validate_inscopes(part_flags, part, inscopes, sc);
                     sc.replace(outscope, part.clone());
-                }
-                if prefix.is("event_id") {
-                    break; // force last part
-                }
-            } else {
-                let msg = format!("unknown prefix `{prefix}:`");
-                error(part, ErrorKey::Validation, &msg);
-                sc.close();
-                return;
-            }
-        } else if part.lowercase_is("root")
-            || part.lowercase_is("prev")
-            || part.lowercase_is("this")
-        {
-            if !first {
-                let msg = format!("`{part}` makes no sense except as first part");
-                old_warn(part, ErrorKey::Validation, &msg);
-            }
-            if part.lowercase_is("root") {
-                sc.replace_root();
-            } else if part.lowercase_is("prev") {
-                sc.replace_prev();
-            } else {
-                sc.replace_this();
-            }
-        } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
-            if inscopes == Scopes::None && !first {
-                let msg = format!("`{part}` makes no sense except as first part");
-                old_warn(part, ErrorKey::Validation, &msg);
-            }
-            sc.expect(inscopes, &Reason::Token(part.clone()));
-            sc.replace(outscope, part.clone());
-        } else if data.script_values.exists(part.as_str()) {
-            data.script_values.validate_call(part, data, sc);
-            sc.replace(Scopes::Value, part.clone());
-        } else if let Some(inscopes) = trigger_comparevalue(part, data) {
-            if !last {
-                let msg = format!("`{part}` only makes sense as the last part");
-                old_warn(part, ErrorKey::Scopes, &msg);
-                sc.close();
-                return;
-            }
-            if inscopes == Scopes::None && !first {
-                let msg = format!("`{part}` makes no sense except as first part");
-                old_warn(part, ErrorKey::Validation, &msg);
-            }
-            if part.is("current_year") && sc.scopes() == Scopes::None {
-                warn_info(
-                    part,
-                    ErrorKey::Bugs,
-                    "current_year does not work in empty scope",
-                    "try using current_date, or dummy_male.current_year",
-                );
-            } else {
-                sc.expect(inscopes, &Reason::Token(part.clone()));
-            }
-            sc.replace(Scopes::Value, part.clone());
-        } else {
-            // The part is not found. Issue an appropriate warning.
-            // TODO: warn if trying to use iterator here
+                } else if let Some(inscopes) = trigger_comparevalue(part, data) {
+                    if !part_flags.contains(PartFlags::Last) {
+                        let msg = format!("`{part}` should be the last part");
+                        warn(ErrorKey::Validation).msg(msg).loc(part).push();
+                        sc.close();
+                        return;
+                    }
+                    validate_inscopes(part_flags, part, inscopes, sc);
+                    if sc.scopes() == Scopes::None && part.lowercase_is("current_year") {
+                        warn(ErrorKey::Bugs)
+                            .msg("current_year does not work in empty scope")
+                            .info("try using current_date, or dummy_male.current_year")
+                            .loc(part)
+                            .push();
+                    }
+                    sc.replace(Scopes::Value, part.clone());
+                } else {
+                    // See if the user forgot a prefix like `faith:` or `culture:`
+                    let mut opt_info = None;
+                    if part_flags.contains(PartFlags::First | PartFlags::Last) {
+                        if let Some(prefix) = needs_prefix(part.as_str(), data, outscopes) {
+                            opt_info = Some(format!("did you mean `{prefix}:{part}` ?"));
+                        }
+                    }
 
-            // See if the user forgot a prefix like `faith:` or `cuture:`
-            let mut opt_info = None;
-            if first && last {
-                if let Some(prefix) = needs_prefix(part.as_str(), data, outscopes) {
-                    opt_info = Some(format!("did you mean `{prefix}:{part}` ?"));
+                    // TODO: warn if trying to use iterator here
+                    let msg = format!("unknown token `{part}`");
+                    err(ErrorKey::UnknownField).msg(msg).opt_info(opt_info).loc(part).push();
+                    sc.close();
+                    return;
                 }
-            };
-
-            let msg = format!("unknown token `{part}`");
-            err(ErrorKey::UnknownField).msg(msg).opt_info(opt_info).loc(part).push();
-            sc.close();
-            return;
+            }
         }
     }
     let (final_scopes, because) = sc.scopes_reason();
     if !outscopes.intersects(final_scopes | Scopes::None) {
         let part = &part_vec[part_vec.len() - 1];
         let msg = format!("`{part}` produces {final_scopes} but expected {outscopes}");
-        if part == because.token() && part.loc == because.token().loc {
-            old_warn(part, ErrorKey::Scopes, &msg);
-        } else {
-            let msg2 = format!("scope was {}", because.msg());
-            warn2(part, ErrorKey::Scopes, &msg, because.token(), &msg2);
-        }
+        // Must not be at the same location to avoid spurious error messages
+        let opt_loc = (part.loc().clone() != because.token().loc).then(|| because.token());
+        let msg2 = format!("scope was {}", because.msg());
+        warn(ErrorKey::Scopes).msg(msg).loc(part).opt_loc(opt_loc, msg2).push();
     }
     sc.close();
 }
@@ -1095,65 +1089,284 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
     }
 }
 
-/// This function is for keys that use the unusual syntax `"scope:province.squared_distance(scope:other)"`
-/// The function will extract the argument from between the parentheses and validate it.
-/// It will return the key without this argument, or return the key unchanged if there wasn't any.
-/// When deleting the argument, it will leave the '(' in place to signal that there was an argument here.
-#[allow(unused_variables)] // imperator doesn't use any of this function
-fn handle_argument<'a>(key: &'a Token, data: &Everything, sc: &mut ScopeContext) -> Cow<'a, Token> {
-    #[cfg(any(feature = "ck3", feature = "vic3"))]
-    if let Some((before, after)) = key.split_after('(') {
-        if let Some((arg, after)) = after.split_once(')') {
-            let arg = arg.trim();
-            for part in before.split('.') {
-                if part.as_str().ends_with('(') {
-                    #[cfg(feature = "ck3")]
-                    if Game::is_ck3() {
-                        if part.is("vassal_contract_obligation_level_score(") {
-                            validate_target(&arg, data, sc, Scopes::VassalContract);
-                        } else if part.is("squared_distance(") {
-                            validate_target(&arg, data, sc, Scopes::Province);
-                        } else {
-                            let msg = "unexpected argument";
-                            err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
-                        }
-                    }
-                    // TODO there's got to be a better way to do this
-                    #[cfg(feature = "vic3")]
-                    if Game::is_vic3() {
-                        if part.is("ai_army_comparison(")
-                            || part.is("ai_gdp_comparison(")
-                            || part.is("ai_ideological_opinion(")
-                            || part.is("ai_navy_comparison(")
-                            || part.is("average_defense(")
-                            || part.is("average_offense(")
-                            || part.is("diplomatic_pact_other_country(")
-                            || part.is("num_total_battalions(")
-                            || part.is("num_defending_battalions(")
-                            || part.is("tension(")
-                            || part.is("num_alliances_and_defensive_pacts_with_allies(")
-                            || part.is("num_alliances_and_defensive_pacts_with_rivals(")
-                            || part.is("num_mutual_trade_route_levels_with_country(")
-                            || part.is("relations(")
-                        {
-                            validate_target(&arg, data, sc, Scopes::Country);
-                        } else if part.is("num_enemy_units(") {
-                            validate_target(&arg, data, sc, Scopes::Character);
-                        } else {
-                            let msg = "unexpected argument";
-                            err(ErrorKey::Validation).weak().msg(msg).loc(&arg).push();
-                        }
-                    }
-                }
-            }
-            let mut new_key = before;
-            if !after.as_str().is_empty() {
-                new_key.combine(&after, '.');
-            }
-            return Cow::Owned(new_key);
+/// A part in a token chain
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Part {
+    /// A simple token
+    Token(Token),
+    /// Function and argument tokens
+    TokenArgument(Token, Token),
+}
+
+impl std::fmt::Display for Part {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Part::Token(token) => token.fmt(f),
+            Part::TokenArgument(func, arg) => write!(f, "{func}({arg})"),
         }
     }
-    Cow::Borrowed(key)
+}
+
+impl Part {
+    fn loc(&self) -> &crate::Loc {
+        match self {
+            Part::Token(t) | Part::TokenArgument(t, _) => &t.loc,
+        }
+    }
+}
+
+/// This function partitions the input token into parts separated by `.`. Each part may contain either a token
+/// or a token-argument pair when using the `()`-syntax, e.g. `"prowess_diff(liege)"`. It does not validate the tokens
+/// or arguments, but simply parses and detects any syntactical errors.
+pub fn partition(token: &Token) -> Vec<Part> {
+    let mut parts = Vec::new();
+
+    let mut has_part_argument = false;
+    let mut has_part_argument_erred = false;
+    let mut paren_depth = 0;
+    let (mut part_idx, mut part_col) = (0, 0);
+    let (mut first_paren_idx, mut first_paren_col) = (0, 0);
+    let (mut second_paren_idx, mut second_paren_col) = (0, 0);
+
+    for (col, (idx, ch)) in token.as_str().char_indices().enumerate() {
+        let col = u32::try_from(col).expect("internal error: 4GB token");
+        match ch {
+            '.' => {
+                if paren_depth == 0 {
+                    if part_idx == idx {
+                        // Empty part; err but skip it since it's likely a typo
+                        let mut loc = token.loc.clone();
+                        loc.column += col;
+                        err(ErrorKey::Validation).msg("empty part").loc(loc).push();
+                    } else if !has_part_argument {
+                        // The just completed part has no argument
+                        let mut part_loc = token.loc.clone();
+                        part_loc.column += part_col;
+                        let part_token = token.subtoken(part_idx..idx, part_loc);
+                        parts.push(Part::Token(part_token));
+                    }
+                    has_part_argument = false;
+                    has_part_argument_erred = false;
+                    part_col = col + 1;
+                    part_idx = idx + 1;
+                }
+            }
+            '(' => {
+                if paren_depth == 0 {
+                    first_paren_col = col;
+                    first_paren_idx = idx;
+                } else if paren_depth == 1 {
+                    second_paren_col = col;
+                    second_paren_idx = idx;
+                }
+
+                paren_depth += 1;
+            }
+            ')' => {
+                if paren_depth == 0 {
+                    // Missing opening parenthesis `(`
+                    let mut loc = token.loc.clone();
+                    loc.column += col;
+                    err(ErrorKey::Validation)
+                        .msg("closing without opening parenthesis `(`")
+                        .loc(loc)
+                        .push();
+                } else if paren_depth == 1 {
+                    // Argument between parentheses
+                    let mut func_loc = token.loc.clone();
+                    func_loc.column += part_col;
+                    let func_token = token.subtoken(part_idx..first_paren_idx, func_loc);
+
+                    let mut arg_loc = token.loc.clone();
+                    arg_loc.column += first_paren_col + 1;
+                    let arg_token = token.subtoken(first_paren_idx + 1..idx, arg_loc);
+
+                    parts.push(Part::TokenArgument(func_token, arg_token));
+                    has_part_argument = true;
+                    paren_depth -= 1;
+                } else if paren_depth == 2 {
+                    // Cannot have nested parentheses
+                    let mut loc = token.loc.clone();
+                    loc.column += second_paren_col;
+                    let nested_paren_token = token.subtoken(second_paren_idx..=idx, loc);
+                    err(ErrorKey::Validation)
+                        .msg("cannot have nested parentheses")
+                        .loc(nested_paren_token)
+                        .push();
+                    paren_depth -= 1;
+                }
+            }
+            _ => {
+                // an argument can only be the last part or followed by point `.` AND hasn't erred from it yet
+                if has_part_argument && !has_part_argument_erred {
+                    let mut loc = token.loc.clone();
+                    loc.column += col;
+                    err(ErrorKey::Validation)
+                        .msg("argument can only be the last part or followed by point `.`")
+                        .loc(loc)
+                        .push();
+                    has_part_argument_erred = true;
+                }
+            }
+        }
+    }
+
+    if paren_depth > 0 {
+        // Missing closing parenthesis `)`
+        let mut loc = token.loc.clone();
+        loc.column += first_paren_col;
+        let broken_token = token.subtoken(first_paren_idx.., loc);
+        err(ErrorKey::Validation)
+            .msg("opening without closing parenthesis `)`")
+            .loc(broken_token)
+            .push();
+    }
+
+    if part_idx == token.as_str().len() {
+        // Trailing `.`
+        let mut loc = token.loc.clone();
+        loc.column += part_col;
+        err(ErrorKey::Validation).msg("trailing point `.`").loc(loc).push();
+    } else if !has_part_argument {
+        // final part (without argument)
+        let mut part_loc = token.loc.clone();
+        part_loc.column += part_col;
+        // SAFETY: part_idx < token.as_str.len()
+        let part_token = token.subtoken(part_idx.., part_loc);
+        parts.push(Part::Token(part_token));
+    }
+    return parts;
+}
+
+bitflags! {
+    // Attributes can be applied to flags types
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct PartFlags: u8 {
+        const First = 0b_0000_0001;
+        const Last = 0b_0000_0010;
+        const Question = 0b_0000_0100;
+    }
+}
+
+#[inline]
+pub fn warn_not_first(name: &Token) {
+    let msg = format!("`{name}:` makes no sense except as first part");
+    warn(ErrorKey::Validation).msg(msg).loc(name).push();
+}
+
+/// Validate inscopes
+pub fn validate_inscopes(
+    part_flags: PartFlags,
+    name: &Token,
+    inscopes: Scopes,
+    sc: &mut ScopeContext,
+) {
+    // scope_agnostic inscopes does not need to be chained
+    if inscopes == Scopes::None && !part_flags.contains(PartFlags::First) {
+        warn_not_first(name);
+    }
+    // validate inscopes
+    sc.expect(inscopes, &Reason::Token(name.clone()));
+}
+
+fn validate_argument_internal(
+    arg: &Token,
+    trigger: Trigger,
+    data: &Everything,
+    sc: &mut ScopeContext,
+) {
+    use Trigger::*;
+    match trigger {
+        Item(item) => data.verify_exists(item, arg),
+        Scope(scope) => validate_target(arg, data, sc, scope),
+        UncheckedValue => (),
+        _ => unimplemented!(),
+    }
+}
+
+/// Validate for scope and not trigger arguments
+pub fn validate_argument_scope(
+    part_flags: PartFlags,
+    (inscopes, outscopes, trigger): (Scopes, Scopes, Trigger),
+    func: &Token,
+    arg: &Token,
+    data: &Everything,
+    sc: &mut ScopeContext,
+) {
+    // validate inscopes
+    validate_inscopes(part_flags, func, inscopes, sc);
+    // validate argument
+    validate_argument_internal(arg, trigger, data, sc);
+    // change to outscopes
+    let mut outscopes_token = func.clone();
+    outscopes_token.combine(arg, ':');
+    if func.lowercase_is("scope") {
+        sc.replace_named_scope(arg.as_str(), &outscopes_token);
+        if part_flags.contains(PartFlags::Last | PartFlags::Question) {
+            sc.exists_scope(arg.as_str(), outscopes_token);
+        }
+    } else {
+        sc.replace(outscopes, outscopes_token);
+    }
+}
+
+/// Validate that the prefix token does exist and match the `wanted` string,
+/// and that the argument is valid.
+#[cfg(feature = "ck3")]
+pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted: &str) {
+    if let Some((prefix, arg)) = token.split_once(':') {
+        let mut sc = ScopeContext::new(Scopes::None, token);
+        if let Some((_, _, trigger)) = scope_prefix(&prefix) {
+            validate_argument_internal(&arg, trigger, data, &mut sc);
+        }
+        if prefix.lowercase_is(wanted) {
+            return;
+        }
+    }
+    let msg = format!("should start with `{wanted}:` here");
+    error(token, ErrorKey::Validation, &msg);
+}
+
+/// Validate that the argument passed through is valid, either being of a complex trigger compare value,
+/// or a scope prefix.
+#[allow(unreachable_code, unused_variables)]
+pub fn validate_argument(
+    part_flags: PartFlags,
+    func: &Token,
+    arg: &Token,
+    data: &Everything,
+    sc: &mut ScopeContext,
+) {
+    #[cfg(feature = "imperator")]
+    if Game::is_imperator() {
+        // Imperator does not use `()`
+        let msg = format!("imperator does not support the `()` syntax");
+        let mut opening_paren_loc = arg.loc.clone();
+        opening_paren_loc.column -= 1;
+        err(ErrorKey::Validation).msg(msg).loc(opening_paren_loc).push();
+        return;
+    }
+
+    let scope_trigger_complex: fn(&str) -> Option<(Scopes, Trigger)> = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::triggers::scope_trigger_complex,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::triggers::scope_trigger_complex,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => unreachable!(),
+    };
+
+    let func_lc = func.as_str().to_lowercase();
+    if let Some((inscopes, trigger)) = scope_trigger_complex(&func_lc) {
+        sc.expect(inscopes, &Reason::Token(func.clone()));
+        validate_argument_internal(arg, trigger, data, sc);
+        sc.replace(Scopes::Value, func.clone());
+    } else if let Some(entry) = scope_prefix(func) {
+        validate_argument_scope(part_flags, entry, func, arg, data, sc);
+    } else {
+        let msg = format!("unknown token `{func}`");
+        err(ErrorKey::Validation).msg(msg).loc(func).push();
+    }
 }
 
 /// A description of the constraints on the right-hand side of a given trigger.
@@ -1234,15 +1447,6 @@ pub enum Trigger {
 ///
 /// Only triggers that take `Scopes::Value` types can be used this way.
 pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
-    let scope_trigger = match Game::game() {
-        #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::tables::triggers::scope_trigger,
-        #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::tables::triggers::scope_trigger,
-        #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::tables::triggers::scope_trigger,
-    };
-
     match scope_trigger(name, data) {
         #[cfg(feature = "ck3")]
         Some((

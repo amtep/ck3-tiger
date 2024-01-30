@@ -14,8 +14,8 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
     let name_lc = name.as_str().to_lowercase();
 
     // TODO: binary search might be faster
-    if let Some((from, trigger)) = TRIGGER_MAP.get(&*name_lc) {
-        return Some((*from, *trigger));
+    if let result @ Some(_) = TRIGGER_MAP.get(&*name_lc).copied() {
+        return result;
     }
     if let Some(relation) = name_lc.strip_prefix("has_relation_") {
         data.verify_exists_implied(Item::Relation, relation, name);
@@ -58,8 +58,8 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
 
 static TRIGGER_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
-    for (from, s, trigger) in TRIGGER {
-        hash.insert(*s, (*from, *trigger));
+    for (from, s, trigger) in TRIGGER.iter().copied() {
+        hash.insert(s, (from, trigger));
     }
     hash
 });
@@ -1457,7 +1457,6 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             ("+value", CompareValue),
         ]),
     ),
-    (Scopes::LandedTitle.union(Scopes::Province), "squared_distance(", CompareValue),
     (Scopes::Character, "stewardship", CompareValue),
     (
         Scopes::Character,
@@ -1603,7 +1602,6 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "vassal_contract_obligation_level_can_be_increased",
         Item(Item::VassalContract),
     ),
-    (Scopes::Character, "vassal_contract_obligation_level_score(", CompareValue),
     (Scopes::Character, "vassal_count", CompareValue),
     (Scopes::Character, "vassal_limit", CompareValue),
     (Scopes::Character, "vassal_limit_available", CompareValue),
@@ -1641,4 +1639,65 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             ("target_candidate", Scope(Scopes::Character)),
         ]),
     ),
+];
+
+#[inline]
+pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, Trigger)> {
+    TRIGGER_COMPLEX_MAP.get(name).copied()
+}
+
+static TRIGGER_COMPLEX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, trigger) in TRIGGER_COMPLEX.iter().copied() {
+        hash.insert(s, (from, trigger));
+    }
+    hash
+});
+
+/// LAST UPDATED CK3 VERSION 1.11.3
+/// See `triggers.log` from the game data dumps
+/// `(inscopes, trigger name, argtype)`
+/// Currently only works with single argument triggers
+// TODO Verify triggers
+const TRIGGER_COMPLEX: &[(Scopes, &str, Trigger)] = &[
+    (Scopes::Culture, "cultural_acceptance", Scope(Scopes::Culture)),
+    (Scopes::Faith, "faith_hostility_level", Scope(Scopes::Faith)),
+    (Scopes::None, "list_size", UncheckedValue),
+    (Scopes::Province, "travel_danger_value", Scope(Scopes::TravelPlan)),
+    (Scopes::Character, "amenity_level", Item(Item::Amenity)),
+    // (Scopes::Character, "create_faction_type_chance", Item(Item::Faction), Scope(Scopes::Character)),
+    // All `<lifestyle>_diff` without `abs` field
+    (Scopes::Character, "diplomacy_diff", Scope(Scopes::Character)),
+    // Use `|` for multi-track traits, e.g. `has_trait_xp(lifestyle_traveler|danger)`
+    // (Scopes::Character, "has_trait_xp", Item(Item::Trait)),
+    (Scopes::Character, "intrigue_diff", Scope(Scopes::Character)),
+    (Scopes::Character, "join_faction_chance", Scope(Scopes::Faction)),
+    (Scopes::Character, "learning_diff", Scope(Scopes::Character)),
+    (Scopes::Character, "martial_diff", Scope(Scopes::Character)),
+    (Scopes::Character, "max_number_maa_soldiers_of_base_type", Item(Item::MenAtArmsBase)),
+    (Scopes::Character, "max_number_maa_soldiers_of_type", Item(Item::MenAtArms)),
+    // (Scopes::Character, "morph_gene_attribute", Item(Item::GeneCategory), Item(Item::GeneAttribute)),
+    (Scopes::Character, "morph_gene_value", Item(Item::GeneCategory)),
+    (Scopes::Character, "num_sinful_traits", Scope(Scopes::Faith)),
+    (Scopes::Character, "num_virtuous_traits", Scope(Scopes::Faith)),
+    (Scopes::Character, "number_maa_regiments_of_base_type", Item(Item::MenAtArmsBase)),
+    (Scopes::Character, "number_maa_regiments_of_type", Item(Item::MenAtArms)),
+    (Scopes::Character, "number_maa_soldiers_of_base_type", Item(Item::MenAtArmsBase)),
+    (Scopes::Character, "number_maa_soldiers_of_type", Item(Item::MenAtArms)),
+    (Scopes::Character, "number_of_election_votes", Scope(Scopes::LandedTitle)),
+    (Scopes::Character, "number_of_sinful_traits_in_common", Scope(Scopes::Character)),
+    (Scopes::Character, "number_of_traits_in_common", Scope(Scopes::Character)),
+    (Scopes::Character, "number_of_virtue_traits_in_common", Scope(Scopes::Character)),
+    (Scopes::Character, "perks_in_tree", Item(Item::PerkTree)),
+    (Scopes::Character, "player_heir_position", Scope(Scopes::Character)),
+    (Scopes::Character, "prowess_diff", Scope(Scopes::Character)),
+    (Scopes::Character, "realm_to_title_distance_squared", Scope(Scopes::LandedTitle)),
+    (Scopes::Character, "stewardship_diff", Scope(Scopes::Character)),
+    (Scopes::Character, "tax_collector_aptitude", Item(Item::TaxSlotType)),
+    (Scopes::Character, "time_to_hook_expiry", Scope(Scopes::Character)),
+    (Scopes::Character, "vassal_contract_obligation_level", Item(Item::VassalContract)),
+    (Scopes::Character, "vassal_contract_obligation_level_score", Item(Item::VassalContract)),
+    // (Scopes::LandedTitle, "title_create_faction_type_chance", Item(Item::Faction), Scope(Scopes::Character)),
+    (Scopes::LandedTitle, "title_join_faction_chance", Scope(Scopes::Faction)),
+    (Scopes::LandedTitle.union(Scopes::Province), "squared_distance", Scope(Scopes::Province)),
 ];

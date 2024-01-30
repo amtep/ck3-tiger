@@ -9,6 +9,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
+use crate::trigger::Trigger;
 
 /// vic3 needs more than 64 bits, but the others don't.
 #[cfg(feature = "vic3")]
@@ -261,59 +262,55 @@ impl Display for Scopes {
 pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)> {
     let scope_to_scope = match Game::game() {
         #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::scopes::SCOPE_TO_SCOPE,
+        Game::Ck3 => crate::ck3::scopes::scope_to_scope,
         #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::scopes::SCOPE_TO_SCOPE,
+        Game::Vic3 => crate::vic3::scopes::scope_to_scope,
         #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::scopes::SCOPE_TO_SCOPE,
+        Game::Imperator => crate::imperator::scopes::scope_to_scope,
     };
     let scope_to_scope_removed = match Game::game() {
         #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::scopes::SCOPE_TO_SCOPE_REMOVED,
+        Game::Ck3 => crate::ck3::scopes::scope_to_scope_removed,
         #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::scopes::SCOPE_TO_SCOPE_REMOVED,
+        Game::Vic3 => crate::vic3::scopes::scope_to_scope_removed,
         #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::scopes::SCOPE_TO_SCOPE_REMOVED,
+        Game::Imperator => crate::imperator::scopes::scope_to_scope_removed,
     };
 
     let name_lc = name.as_str().to_lowercase();
-    for (from, s, to) in scope_to_scope {
-        if name_lc == *s {
-            #[cfg(feature = "vic3")]
-            if Game::is_vic3() && *s == "type" {
-                // Special case for "type" because it goes from specific scope types to specific
-                // other scope types.
-                let mut outscopes = Scopes::empty();
-                if inscopes.contains(Scopes::Building) {
-                    outscopes |= Scopes::BuildingType;
-                }
-                if inscopes.contains(Scopes::Institution) {
-                    outscopes |= Scopes::InstitutionType;
-                }
-                if inscopes.contains(Scopes::InterestGroup) {
-                    outscopes |= Scopes::InterestGroupType;
-                }
-                if inscopes.contains(Scopes::Law) {
-                    outscopes |= Scopes::LawType;
-                }
-                if inscopes.contains(Scopes::Company) {
-                    outscopes |= Scopes::CompanyType;
-                }
-                if !outscopes.is_empty() {
-                    return Some((*from, outscopes));
-                }
+    if let scopes @ Some((from, _)) = scope_to_scope(&name_lc) {
+        #[cfg(feature = "vic3")]
+        if Game::is_vic3() && name_lc == "type" {
+            // Special case for "type" because it goes from specific scope types to specific
+            // other scope types.
+            let mut outscopes = Scopes::empty();
+            if inscopes.contains(Scopes::Building) {
+                outscopes |= Scopes::BuildingType;
             }
-            return Some((*from, *to));
+            if inscopes.contains(Scopes::Institution) {
+                outscopes |= Scopes::InstitutionType;
+            }
+            if inscopes.contains(Scopes::InterestGroup) {
+                outscopes |= Scopes::InterestGroupType;
+            }
+            if inscopes.contains(Scopes::Law) {
+                outscopes |= Scopes::LawType;
+            }
+            if inscopes.contains(Scopes::Company) {
+                outscopes |= Scopes::CompanyType;
+            }
+            if !outscopes.is_empty() {
+                return Some((from, outscopes));
+            }
         }
+        scopes
+    } else if let Some((version, explanation)) = scope_to_scope_removed(&name_lc) {
+        let msg = format!("`{name}` was removed in {version}");
+        err(ErrorKey::Removed).strong().msg(msg).info(explanation).loc(name).push();
+        return Some((Scopes::all(), Scopes::all_but_none()));
+    } else {
+        None
     }
-    for (s, version, explanation) in scope_to_scope_removed {
-        if name_lc == *s {
-            let msg = format!("`{name}` was removed in {version}");
-            err(ErrorKey::Removed).strong().msg(msg).info(*explanation).loc(name).push();
-            return Some((Scopes::all(), Scopes::all_but_none()));
-        }
-    }
-    None
 }
 
 /// Look up a prefixed token that is used to look up items in the game database.
@@ -322,45 +319,20 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
 ///
 /// Some prefixes have an input scope, and they look up something related to the input scope value.
 ///
-/// Returns a pair of `Scopes`. The first is the scope types this token can accept as input,
-/// and the second is the scope types it may return.
-/// The first will be `Scopes::None` if it needs no input.
-pub fn scope_prefix(prefix: &str) -> Option<(Scopes, Scopes)> {
-    let scope_from_prefix = match Game::game() {
+/// Returns a pair of `Scopes` and the type of argument it accepts. 
+/// The first `Scopes` is the scope types this token can accept as input, and the second one is 
+/// the scope types it may return. The first will be `Scopes::None` if it needs no input.
+pub fn scope_prefix(prefix: &Token) -> Option<(Scopes, Scopes, Trigger)> {
+    let scope_prefix = match Game::game() {
         #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::scopes::SCOPE_FROM_PREFIX,
+        Game::Ck3 => crate::ck3::scopes::scope_prefix,
         #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::scopes::SCOPE_FROM_PREFIX,
+        Game::Vic3 => crate::vic3::scopes::scope_prefix,
         #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::scopes::SCOPE_FROM_PREFIX,
+        Game::Imperator => crate::imperator::scopes::scope_prefix,
     };
-    let prefix_lc = prefix.to_lowercase();
-    for (from, s, to) in scope_from_prefix {
-        if prefix_lc == *s {
-            return Some((*from, *to));
-        }
-    }
-    None
-}
-
-/// Look up a prefixed token that is used to look up items in the game database, and verify that
-/// its argument is a valid item of the type it expects.
-pub fn validate_prefix_reference(
-    prefix: &Token,
-    arg: &Token,
-    data: &Everything,
-    sc: &mut ScopeContext,
-) {
-    match Game::game() {
-        #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::scopes::validate_prefix_reference(prefix, arg, data, sc),
-        #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::scopes::validate_prefix_reference(prefix, arg, data, sc),
-        #[cfg(feature = "imperator")]
-        Game::Imperator => {
-            crate::imperator::scopes::validate_prefix_reference(prefix, arg, data, sc);
-        }
-    }
+    let prefix_lc = prefix.as_str().to_lowercase();
+    scope_prefix(&prefix_lc)
 }
 
 /// Look up a token that's an invalid target, and see if it might be missing a prefix.
@@ -395,38 +367,36 @@ pub fn scope_iterator(
     data: &Everything,
     sc: &mut ScopeContext,
 ) -> Option<(Scopes, Scopes)> {
-    let scope_iterators = match Game::game() {
+    let scope_iterator = match Game::game() {
         #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::scopes::SCOPE_ITERATOR,
+        Game::Ck3 => crate::ck3::scopes::scope_iterator,
         #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::scopes::SCOPE_ITERATOR,
+        Game::Vic3 => crate::vic3::scopes::scope_iterator,
         #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::scopes::SCOPE_ITERATOR,
+        Game::Imperator => crate::imperator::scopes::scope_iterator,
     };
-    let scope_removed_iterators = match Game::game() {
+    let scope_iterator_removed = match Game::game() {
         #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::scopes::SCOPE_REMOVED_ITERATOR,
+        Game::Ck3 => crate::ck3::scopes::scope_iterator_removed,
         #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::scopes::SCOPE_REMOVED_ITERATOR,
+        Game::Vic3 => crate::vic3::scopes::scope_iterator_removed,
         #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::scopes::SCOPE_REMOVED_ITERATOR,
+        Game::Imperator => crate::imperator::scopes::scope_iterator_removed,
     };
+
     let name_lc = name.as_str().to_lowercase();
-    for (from, s, to) in scope_iterators {
-        if name_lc == *s {
-            return Some((*from, *to));
-        }
-    }
-    for (s, version, explanation) in scope_removed_iterators {
-        if name_lc == *s {
-            let msg = format!("`{name}` iterators were removed in {version}");
-            err(ErrorKey::Removed).strong().msg(msg).info(*explanation).loc(name).push();
-            return Some((Scopes::all(), Scopes::all()));
-        }
-    }
-    if data.scripted_lists.exists(name.as_str()) {
+    if let scopes @ Some(_) = scope_iterator(&name_lc) {
+        return scopes;
+    } else if let Some((version, explanation)) = scope_iterator_removed(&name_lc) {
+        let msg = format!("`{name}` iterators were removed in {version}");
+        err(ErrorKey::Removed).strong().msg(msg).info(explanation).loc(name).push();
+        return Some((Scopes::all(), Scopes::all()));
+    } else if data.scripted_lists.exists(name.as_str()) {
         data.scripted_lists.validate_call(name, data, sc);
-        return data.scripted_lists.base(name).and_then(|base| scope_iterator(base, data, sc));
+        return data
+            .scripted_lists
+            .base(name)
+            .and_then(|base| scope_iterator(&base.as_str().to_lowercase()));
     }
     None
 }

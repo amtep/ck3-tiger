@@ -2,15 +2,13 @@
 
 use std::fmt::Formatter;
 
-use crate::context::ScopeContext;
+use fnv::FnvHashMap;
+use once_cell::sync::Lazy;
+
 use crate::everything::Everything;
 use crate::helpers::display_choices;
-use crate::item::Item;
-use crate::modif::{verify_modif_exists, ModifKinds};
-use crate::report::Severity;
 use crate::scopes::Scopes;
-use crate::token::Token;
-use crate::trigger::validate_target;
+use crate::trigger::Trigger;
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
@@ -303,77 +301,8 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     display_choices(f, &vec, "or")
 }
 
-pub fn validate_prefix_reference(
-    prefix: &Token,
-    arg: &Token,
-    data: &Everything,
-    sc: &mut ScopeContext,
-) {
-    // TODO there are more to match
-    // TODO integrate this to the SCOPE_FROM_PREFIX table
-    match prefix.as_str() {
-        "active_law" => data.verify_exists(Item::LawGroup, arg),
-        "ai_army_comparison"
-        | "ai_gdp_comparison"
-        | "ai_ideological_opinion"
-        | "ai_navy_comparison"
-        | "ai_state_value"
-        | "ai_subject_value"
-        | "ai_treaty_port_value"
-        | "average_defense"
-        | "average_offense"
-        | "num_defending_battalions"
-        | "num_shared_rivals"
-        | "num_total_battalions"
-        | "relations"
-        | "tension"
-        | "num_alliances_and_defensive_pacts_with_allies"
-        | "num_alliances_and_defensive_pacts_with_rivals"
-        | "num_mutual_trade_route_levels_with_country" => {
-            validate_target(arg, data, sc, Scopes::Country);
-        }
-        // "array_define"
-        "b" | "bt" => data.verify_exists(Item::BuildingType, arg),
-        "c" | "cd" | "region_state" => data.verify_exists(Item::Country, arg),
-        "company_type" => data.verify_exists(Item::CompanyType, arg),
-        "cu" => data.verify_exists(Item::Culture, arg),
-        "decree_cost" | "nf" => data.verify_exists(Item::Decree, arg),
-        // "define"
-        // "diplomatic_pact_other_country"
-        // "flag"
-        "g" | "mg" | "sg" => data.verify_exists(Item::Goods, arg),
-        // "get_ruler_for"
-        // "global_var"
-        "i" | "ideology" => data.verify_exists(Item::Ideology, arg),
-        "ig" => data.verify_exists(Item::InterestGroup, arg),
-        "ig_trait" => data.verify_exists(Item::InterestGroupTrait, arg),
-        // "ig_type" => data.verify_exists(Item::InterestGroupType, arg),
-        "infamy_threshold" => data.verify_exists(Item::InfamyThreshold, arg),
-        "institution" => data.verify_exists(Item::Institution, arg),
-        "je" => data.verify_exists(Item::Journalentry, arg),
-        "law_type" => data.verify_exists(Item::LawType, arg),
-        // "local_var"
-        "mobilization_option" => data.verify_exists(Item::MobilizationOption, arg),
-        "modifier" => verify_modif_exists(arg, data, ModifKinds::all(), Severity::Error),
-        "num_enemy_units" => validate_target(arg, data, sc, Scopes::Character), // TODO verify type
-        // "num_pending_events" =>
-        "p" => data.verify_exists(Item::Province, arg),
-        "pop_type" => data.verify_exists(Item::PopType, arg),
-        "py" => data.verify_exists(Item::Party, arg),
-        "rank_value" => data.verify_exists(Item::CountryRank, arg),
-        "rel" => data.verify_exists(Item::Religion, arg),
-        "relations_threshold" => data.verify_exists(Item::RelationsThreshold, arg),
-        "s" => data.verify_exists(Item::StateRegion, arg),
-        // "scope"
-        "sr" => data.verify_exists(Item::StrategicRegion, arg),
-        // "tension_threshold" =>
-        "unit_type" => data.verify_exists(Item::CombatUnit, arg),
-        // "var"
-        &_ => (),
-    }
-}
-
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
+    use crate::item::Item;
     if scopes == Scopes::Building && data.item_exists(Item::BuildingType, arg) {
         return Some("b");
     }
@@ -449,10 +378,23 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     None
 }
 
+#[inline]
+pub fn scope_to_scope(name: &str) -> Option<(Scopes, Scopes)> {
+    SCOPE_TO_SCOPE_MAP.get(name).copied()
+}
+
+static SCOPE_TO_SCOPE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, to) in SCOPE_TO_SCOPE.iter().copied() {
+        hash.insert(s, (from, to));
+    }
+    hash
+});
+
 /// LAST UPDATED VIC3 VERSION 1.5.12
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
-pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
+const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (
         Scopes::Country.union(Scopes::StrategicRegion),
         "active_diplomatic_play",
@@ -707,92 +649,123 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "YES", Scopes::Bool),
 ];
 
+#[inline]
+pub fn scope_prefix(name: &str) -> Option<(Scopes, Scopes, Trigger)> {
+    SCOPE_PREFIX_MAP.get(name).copied()
+}
+
+static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)>> =
+    Lazy::new(|| {
+        let mut hash = FnvHashMap::default();
+        for (from, s, to, argument) in SCOPE_PREFIX.iter().copied() {
+            hash.insert(s, (from, to, argument));
+        }
+        hash
+    });
+
 /// LAST UPDATED VIC3 VERSION 1.5.3
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
-/// TODO: add the Item type here, so that it can be checked for existence.
-pub const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
-    (Scopes::Country, "active_law", Scopes::Law),
-    (Scopes::Country, "ai_army_comparison", Scopes::Value),
-    (Scopes::Country, "ai_gdp_comparison", Scopes::Value),
-    (Scopes::Country, "ai_ideological_opinion", Scopes::Value),
-    (Scopes::Country, "ai_navy_comparison", Scopes::Value),
-    (Scopes::State, "ai_state_value", Scopes::Value),
-    (Scopes::Country, "ai_subject_value", Scopes::Value),
-    (Scopes::State, "ai_treaty_port_value", Scopes::Value),
-    (Scopes::None, "array_define", Scopes::Value),
-    (Scopes::Front, "average_defense", Scopes::Value),
-    (Scopes::Front, "average_offense", Scopes::Value),
-    (Scopes::State, "b", Scopes::Building),
-    (Scopes::None, "bt", Scopes::BuildingType),
-    (Scopes::None, "c", Scopes::Country),
-    (Scopes::None, "cd", Scopes::CountryDefinition),
-    (Scopes::Country, "company", Scopes::Company),
-    (Scopes::None, "company_type", Scopes::CompanyType),
-    (Scopes::None, "cu", Scopes::Culture),
-    (Scopes::Country, "decree_cost", Scopes::Value),
-    (Scopes::None, "define", Scopes::Value),
-    (Scopes::None, "flag", Scopes::Flag),
-    (Scopes::None, "g", Scopes::Goods),
-    (Scopes::Country, "get_ruler_for", Scopes::Character),
-    (Scopes::None, "global_var", Scopes::all()),
-    (Scopes::None, "i", Scopes::Ideology),
-    (Scopes::None, "ideology", Scopes::Ideology), // TODO difference with i:
-    (Scopes::Country, "ig", Scopes::InterestGroup),
-    (Scopes::None, "ig_trait", Scopes::InterestGroupTrait),
-    (Scopes::None, "ig_type", Scopes::InterestGroupType),
-    (Scopes::None, "infamy_threshold", Scopes::Value),
-    (Scopes::Country, "institution", Scopes::Institution),
-    (Scopes::Country, "je", Scopes::Journalentry),
-    (Scopes::None, "law_type", Scopes::LawType),
-    (Scopes::None, "local_var", Scopes::all()),
-    (Scopes::Market, "mg", Scopes::MarketGoods),
-    // TODO: the docs give a huge list of scopes instead of MobilizationOption
-    (Scopes::None, "mobilization_option", Scopes::MobilizationOption),
-    (
-        Scopes::Country
-            .union(Scopes::BattleSide)
-            .union(Scopes::Building)
-            .union(Scopes::Character)
-            .union(Scopes::InterestGroup)
-            .union(Scopes::Market)
-            .union(Scopes::State),
-        "modifier",
-        Scopes::Value.union(Scopes::Bool),
-    ),
-    (Scopes::State, "nf", Scopes::Decree),
-    (Scopes::Country, "num_alliances_and_defensive_pacts_with_allies", Scopes::Value),
-    (Scopes::Country, "num_alliances_and_defensive_pacts_with_rivals", Scopes::Value),
-    (Scopes::Front, "num_defending_battalions", Scopes::Value),
-    (Scopes::Front, "num_enemy_units", Scopes::Value),
-    (Scopes::Country, "num_mutual_trade_route_levels_with_country", Scopes::Value),
-    (Scopes::Country, "num_pending_events", Scopes::Value),
-    (Scopes::Country, "num_shared_rivals", Scopes::Value),
-    (Scopes::Front, "num_total_battalions", Scopes::Value),
-    (Scopes::None, "p", Scopes::Province),
-    (Scopes::None, "pop_type", Scopes::PopType),
-    (Scopes::Country, "py", Scopes::Party),
-    (Scopes::None, "rank_value", Scopes::Value),
-    (Scopes::StateRegion, "region_state", Scopes::State), // undocumented
-    (Scopes::None, "rel", Scopes::Religion),
-    (Scopes::Country, "relations", Scopes::Value),
-    (Scopes::None, "relations_threshold", Scopes::Value),
-    (Scopes::None, "s", Scopes::StateRegion),
-    (Scopes::None, "scope", Scopes::all()),
-    (Scopes::State, "sg", Scopes::StateGoods),
-    (Scopes::None, "sr", Scopes::StrategicRegion),
-    (Scopes::Country, "tension", Scopes::Value),
-    (Scopes::None, "tension_threshold", Scopes::Value),
-    (Scopes::None, "unit_type", Scopes::CombatUnitType),
-    (Scopes::all(), "var", Scopes::all()),
-];
+const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
+    use Trigger::*;
+    use crate::item::Item;
+    &[
+        (Scopes::Country, "active_law", Scopes::Law, Item(Item::LawGroup)),
+        (Scopes::Country, "ai_army_comparison", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "ai_gdp_comparison", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "ai_ideological_opinion", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "ai_navy_comparison", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::State, "ai_state_value", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "ai_subject_value", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::State, "ai_treaty_port_value", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::None, "array_define", Scopes::Value, UncheckedValue),
+        (Scopes::Front, "average_defense", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Front, "average_offense", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::State, "b", Scopes::Building, Item(Item::BuildingType)),
+        (Scopes::None, "bt", Scopes::BuildingType, Item(Item::BuildingType)),
+        (Scopes::None, "c", Scopes::Country, Item(Item::Country)),
+        (Scopes::None, "cd", Scopes::CountryDefinition, Item(Item::Country)),
+        (Scopes::Country, "company", Scopes::Company, Item(Item::CompanyType)),
+        (Scopes::None, "company_type", Scopes::CompanyType, Item(Item::CompanyType)),
+        (Scopes::None, "cu", Scopes::Culture, Item(Item::Culture)),
+        (Scopes::Country, "decree_cost", Scopes::Value, Item(Item::Decree)),
+        (Scopes::None, "define", Scopes::Value, UncheckedValue),
+        (Scopes::None, "flag", Scopes::Flag, UncheckedValue),
+        (Scopes::None, "g", Scopes::Goods, Item(Item::Goods)),
+        (Scopes::Country, "get_ruler_for", Scopes::Character, Item(Item::TransferOfPower)),
+        (Scopes::None, "global_var", Scopes::all(), UncheckedValue),
+        (Scopes::None, "i", Scopes::Ideology, Item(Item::Ideology)),
+        (Scopes::None, "ideology", Scopes::Ideology, Item(Item::Ideology)), // TODO difference with i:
+        (Scopes::Country, "ig", Scopes::InterestGroup, Item(Item::InterestGroup)),
+        (Scopes::None, "ig_trait", Scopes::InterestGroupTrait, Item(Item::InterestGroupTrait)),
+        (Scopes::None, "ig_type", Scopes::InterestGroupType, Item(Item::InterestGroup)),
+        (Scopes::None, "infamy_threshold", Scopes::Value, Item(Item::InfamyThreshold)),
+        (Scopes::Country, "institution", Scopes::Institution, Item(Item::Institution)),
+        (Scopes::Country, "je", Scopes::Journalentry, Item(Item::Journalentry)),
+        (Scopes::None, "law_type", Scopes::LawType, Item(Item::LawType)),
+        (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
+        (Scopes::Market, "mg", Scopes::MarketGoods, Item(Item::Goods)),
+        // TODO: the docs give a huge list of scopes instead of MobilizationOption
+        (Scopes::None, "mobilization_option", Scopes::MobilizationOption, Item(Item::MobilizationOption)),
+        (
+            Scopes::Country
+                .union(Scopes::BattleSide)
+                .union(Scopes::Building)
+                .union(Scopes::Character)
+                .union(Scopes::InterestGroup)
+                .union(Scopes::Market)
+                .union(Scopes::State),
+            "modifier",
+            Scopes::Value.union(Scopes::Bool),
+            Item(Item::Modifier),
+        ),
+        (Scopes::State, "nf", Scopes::Decree, Item(Item::Decree)),
+        (Scopes::Country, "num_alliances_and_defensive_pacts_with_allies", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "num_alliances_and_defensive_pacts_with_rivals", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Front, "num_defending_battalions", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Front, "num_enemy_units", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "num_mutual_trade_route_levels_with_country", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "num_pending_events", Scopes::Value, Item(Item::EventCategory)),
+        (Scopes::Country, "num_shared_rivals", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Front, "num_total_battalions", Scopes::Value, Item(Item::EventCategory)),
+        (Scopes::None, "p", Scopes::Province, Item(Item::Province)),
+        (Scopes::None, "pop_type", Scopes::PopType, Item(Item::PopType)),
+        (Scopes::Country, "py", Scopes::Party, Item(Item::Party)),
+        (Scopes::None, "rank_value", Scopes::Value, Item(Item::CountryRank)),
+        (Scopes::StateRegion, "region_state", Scopes::State, Item(Item::Country)), // undocumented
+        (Scopes::None, "rel", Scopes::Religion, Item(Item::Religion)),
+        (Scopes::Country, "relations", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::None, "relations_threshold", Scopes::Value, Item(Item::RelationsThreshold)),
+        (Scopes::None, "s", Scopes::StateRegion, Item(Item::StateRegion)),
+        (Scopes::None, "scope", Scopes::all(), UncheckedValue),
+        (Scopes::State, "sg", Scopes::StateGoods, Item(Item::Goods)),
+        (Scopes::None, "sr", Scopes::StrategicRegion, Item(Item::StrategicRegion)),
+        (Scopes::Country, "tension", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::None, "tension_threshold", Scopes::Value, UncheckedValue),
+        (Scopes::None, "unit_type", Scopes::CombatUnitType, Item(Item::CombatUnit)),
+        (Scopes::all(), "var", Scopes::all(), UncheckedValue),
+    ]
+};
+
+#[inline]
+pub fn scope_iterator(name: &str) -> Option<(Scopes, Scopes)> {
+    SCOPE_ITERATOR_MAP.get(name).copied()
+}
+
+static SCOPE_ITERATOR_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, to) in SCOPE_ITERATOR.iter().copied() {
+        hash.insert(s, (from, to));
+    }
+    hash
+});
 
 /// LAST UPDATED VIC3 VERSION 1.5.3
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
-pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
+const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "active_party", Scopes::Party),
     (Scopes::None, "character", Scopes::Character),
     (Scopes::None, "character_in_exile_pool", Scopes::Character),
@@ -931,10 +904,28 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "valid_mass_migration_culture", Scopes::Culture),
 ];
 
-pub const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[(
+pub fn scope_iterator_removed(name: &str) -> Option<(&'static str, &'static str)> {
+    for (removed_name, version, explanation) in SCOPE_ITERATOR_REMOVED.iter().copied() {
+        if name == removed_name {
+            return Some((version, explanation));
+        }
+    }
+    None
+}
+
+const SCOPE_ITERATOR_REMOVED: &[(&str, &str, &str)] = &[(
     "scope_cobelligerent",
     "1.4.0",
     "replaced with _cobelligerent_in_diplo_play, _cobelligerent_in_war",
 )];
 
-pub const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[];
+pub fn scope_to_scope_removed(name: &str) -> Option<(&'static str, &'static str)> {
+    for (removed_name, version, explanation) in SCOPE_TO_SCOPE_REMOVED.iter().copied() {
+        if name == removed_name {
+            return Some((version, explanation));
+        }
+    }
+    None
+}
+
+const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[];

@@ -136,7 +136,6 @@ impl ReportBuilderStage3 {
         self.pointers.push(PointedMessage { loc: eloc.into_loc(), length, msg: Some(msg.own()) });
         self
     }
-    #[cfg(feature = "ck3")] // vic3 happens not to use
     pub fn opt_loc<E: ErrorLoc, S: Own<String>>(mut self, eloc: Option<E>, msg: S) -> Self {
         if let Some(eloc) = eloc {
             let length = eloc.loc_length();

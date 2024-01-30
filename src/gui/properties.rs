@@ -2,7 +2,7 @@ use std::fmt::{Display, Error, Formatter};
 use std::hash::Hash;
 
 use strum::VariantNames;
-use strum_macros::{Display, EnumVariantNames, FromRepr, IntoStaticStr};
+use strum_macros::{Display, VariantNames, FromRepr, IntoStaticStr};
 use thiserror::Error;
 
 #[cfg(doc)]
@@ -98,7 +98,7 @@ pub enum GuiValidation {
 /// All the properties that can be used in gui widgets.
 // These need to be in lexical order, for the `TryFrom` implementation to work right.
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, IntoStaticStr, EnumVariantNames, FromRepr, Display,
+    Debug, Clone, Copy, PartialEq, Eq, Hash, IntoStaticStr, VariantNames, FromRepr, Display,
 )]
 #[allow(non_camel_case_types)]
 #[strum(serialize_all = "lowercase")] // for "loop"

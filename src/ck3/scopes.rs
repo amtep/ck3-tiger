@@ -2,12 +2,13 @@
 
 use std::fmt::Formatter;
 
-use crate::context::ScopeContext;
+use fnv::FnvHashMap;
+use once_cell::sync::Lazy;
+
 use crate::everything::Everything;
 use crate::helpers::display_choices;
-use crate::item::Item;
 use crate::scopes::Scopes;
-use crate::token::Token;
+use crate::trigger::Trigger;
 
 // LAST UPDATED CK3 VERSION 1.11.3
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
@@ -203,50 +204,8 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
 }
 
 // LAST UPDATED CK3 VERSION 1.11.3
-pub fn validate_prefix_reference(
-    prefix: &Token,
-    arg: &Token,
-    data: &Everything,
-    _sc: &mut ScopeContext,
-) {
-    // TODO there are more to match
-    // TODO integrate this to the SCOPE_FROM_PREFIX table
-    match prefix.as_str() {
-        "accolade_type" => data.verify_exists(Item::AccoladeType, arg),
-        "activity_type" => data.verify_exists(Item::ActivityType, arg),
-        "aptitude" | "court_position" => data.verify_exists(Item::CourtPosition, arg),
-        "array_define" | "define" => data.verify_exists(Item::Define, arg),
-        "character" => data.verify_exists(Item::Character, arg),
-        "council_task" | "cp" => data.verify_exists(Item::CouncilPosition, arg),
-        "culture" => data.verify_exists(Item::Culture, arg),
-        "culture_pillar" => data.verify_exists(Item::CulturePillar, arg),
-        "culture_tradition" => data.verify_exists(Item::CultureTradition, arg),
-        "decision" => data.verify_exists(Item::Decision, arg),
-        "doctrine" => data.verify_exists(Item::Doctrine, arg),
-        "dynasty" => data.verify_exists(Item::Dynasty, arg),
-        "event_id" => data.verify_exists(Item::Event, arg),
-        "faith" => data.verify_exists(Item::Faith, arg),
-        "government_type" => data.verify_exists(Item::GovernmentType, arg),
-        "holding_type" => data.verify_exists(Item::HoldingType, arg),
-        "house" => data.verify_exists(Item::House, arg),
-        "mandate_type_qualification" => data.verify_exists(Item::DiarchyMandate, arg),
-        "num_discovered_innovations_in_era" => data.verify_exists(Item::CultureEra, arg),
-        "province" => data.verify_exists(Item::Province, arg),
-        "religion" => data.verify_exists(Item::Religion, arg),
-        "special_guest" => data.verify_exists(Item::SpecialGuest, arg),
-        "struggle" => data.verify_exists(Item::Struggle, arg),
-        "tax_slot" => data.verify_exists(Item::TaxSlotType, arg),
-        "title" => data.verify_exists(Item::Title, arg),
-        "trait" => data.verify_exists(Item::Trait, arg),
-        "vassal_contract" | "vassal_contract_obligation_level" => {
-            data.verify_exists(Item::VassalContract, arg);
-        }
-        &_ => (),
-    }
-}
-
-// LAST UPDATED CK3 VERSION 1.11.3
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
+    use crate::item::Item;
     if scopes == Scopes::AccoladeType && data.item_exists(Item::AccoladeType, arg) {
         return Some("accolade_type");
     }
@@ -298,9 +257,6 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     if scopes == Scopes::Struggle && data.item_exists(Item::Struggle, arg) {
         return Some("struggle");
     }
-    if scopes == Scopes::TaxSlot && data.item_exists(Item::TaxSlotType, arg) {
-        return Some("tax_slot");
-    }
     if scopes == Scopes::LandedTitle && data.item_exists(Item::Title, arg) {
         return Some("title");
     }
@@ -310,10 +266,23 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     None
 }
 
+#[inline]
+pub fn scope_to_scope(name: &str) -> Option<(Scopes, Scopes)> {
+    SCOPE_TO_SCOPE_MAP.get(name).copied()
+}
+
+static SCOPE_TO_SCOPE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, to) in SCOPE_TO_SCOPE.iter().copied() {
+        hash.insert(s, (from, to));
+    }
+    hash
+});
+
 /// LAST UPDATED CK3 VERSION 1.11.3
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
-pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
+const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Accolade, "acclaimed_knight", Scopes::Character),
     (Scopes::Character, "accolade", Scopes::Accolade),
     (Scopes::Accolade, "accolade_owner", Scopes::Character),
@@ -498,57 +467,105 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "yes", Scopes::Bool),
 ];
 
+#[inline]
+pub fn scope_prefix(name: &str) -> Option<(Scopes, Scopes, Trigger)> {
+    SCOPE_PREFIX_MAP.get(name).copied()
+}
+
+static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)>> =
+    Lazy::new(|| {
+        let mut hash = FnvHashMap::default();
+        for (from, s, to, argument) in SCOPE_PREFIX.iter().copied() {
+            hash.insert(s, (from, to, argument));
+        }
+        hash
+    });
+
 /// LAST UPDATED CK3 VERSION 1.11.3
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
-/// TODO: add the Item type here, so that it can be checked for existence.
-pub const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
-    (Scopes::None, "accolade_type", Scopes::AccoladeType),
-    (Scopes::None, "activity_type", Scopes::ActivityType),
-    (Scopes::Character, "aptitude", Scopes::Value),
-    (Scopes::None, "array_define", Scopes::Value),
-    (Scopes::None, "character", Scopes::Character),
-    (Scopes::Value, "compare_complex_value", Scopes::Value),
-    (Scopes::Character, "council_task", Scopes::CouncilTask),
-    (Scopes::Character, "court_position", Scopes::Character),
-    (Scopes::Character, "cp", Scopes::Character), // councillor
-    (Scopes::None, "culture", Scopes::Culture),
-    (Scopes::None, "culture_pillar", Scopes::CulturePillar),
-    (Scopes::None, "culture_tradition", Scopes::CultureTradition),
-    (Scopes::None, "decision", Scopes::Decision),
-    (Scopes::None, "define", Scopes::Value),
-    (Scopes::None, "doctrine", Scopes::Doctrine),
-    (Scopes::None, "dynasty", Scopes::Dynasty),
-    (Scopes::None, "event_id", Scopes::Flag),
-    (Scopes::None, "faith", Scopes::Faith),
-    (Scopes::None, "flag", Scopes::Flag),
-    (Scopes::None, "global_var", Scopes::all()),
-    (Scopes::None, "government_type", Scopes::GovernmentType),
-    (Scopes::None, "holding_type", Scopes::HoldingType),
-    (Scopes::None, "house", Scopes::DynastyHouse),
-    (Scopes::None, "local_var", Scopes::all()),
-    (Scopes::None, "list_size", Scopes::Value),
-    (Scopes::Character, "mandate_type_qualification", Scopes::Value),
-    (Scopes::CharacterMemory, "memory_participant", Scopes::Character),
-    (Scopes::Culture, "num_discovered_innovations_in_era", Scopes::Value),
-    (Scopes::None, "province", Scopes::Province),
-    (Scopes::None, "religion", Scopes::Religion),
-    (Scopes::None, "scope", Scopes::all()),
-    (Scopes::Activity, "special_guest", Scopes::Character),
-    (Scopes::None, "struggle", Scopes::Struggle),
-    (Scopes::None, "title", Scopes::LandedTitle),
-    (Scopes::None, "trait", Scopes::Trait),
-    (Scopes::all(), "var", Scopes::all()),
-    (Scopes::None, "vassal_contract", Scopes::VassalContract),
-    (Scopes::Character, "vassal_contract_obligation_level", Scopes::Value),
-];
+const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
+    use crate::trigger::Trigger::*;
+    use crate::item::Item;
+    &[
+        (Scopes::None, "accolade_type", Scopes::AccoladeType, Item(Item::AccoladeType)),
+        (Scopes::None, "activity_type", Scopes::ActivityType, Item(Item::ActivityType)),
+        (Scopes::Character, "aptitude", Scopes::Value, Item(Item::CourtPosition)),
+        (Scopes::None, "array_define", Scopes::Value, UncheckedValue),
+        (Scopes::None, "character", Scopes::Character, Item(Item::Character)),
+        (Scopes::Character, "council_task", Scopes::CouncilTask, Item(Item::CouncilPosition)),
+        (Scopes::Character, "court_position", Scopes::Character, Item(Item::CourtPosition)),
+        (Scopes::Character, "cp", Scopes::Character, Item(Item::CouncilPosition)), // councillor
+        (Scopes::None, "culture", Scopes::Culture, Item(Item::Culture)),
+        (Scopes::None, "culture_pillar", Scopes::CulturePillar, Item(Item::CulturePillar)),
+        (
+            Scopes::None,
+            "culture_tradition",
+            Scopes::CultureTradition,
+            Item(Item::CultureTradition),
+        ),
+        (Scopes::None, "decision", Scopes::Decision, Item(Item::Decision)),
+        (Scopes::None, "define", Scopes::Value, UncheckedValue),
+        (Scopes::None, "doctrine", Scopes::Doctrine, Item(Item::Doctrine)),
+        (Scopes::None, "dynasty", Scopes::Dynasty, Item(Item::Dynasty)),
+        (Scopes::None, "event_id", Scopes::Flag, Item(Item::Event)),
+        (Scopes::None, "faith", Scopes::Faith, Item(Item::Faith)),
+        (Scopes::None, "flag", Scopes::Flag, UncheckedValue),
+        (Scopes::None, "global_var", Scopes::all(), UncheckedValue),
+        (Scopes::None, "government_type", Scopes::GovernmentType, Item(Item::GovernmentType)),
+        (Scopes::None, "holding_type", Scopes::HoldingType, Item(Item::GovernmentType)),
+        (Scopes::None, "house", Scopes::DynastyHouse, Item(Item::House)),
+        (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
+        (
+            Scopes::Character,
+            "mandate_type_qualification",
+            Scopes::Value,
+            Item(Item::DiarchyMandate),
+        ),
+        (Scopes::CharacterMemory, "memory_participant", Scopes::Character, UncheckedValue),
+        (
+            Scopes::Culture,
+            "num_discovered_innovations_in_era",
+            Scopes::Value,
+            Item(Item::CultureEra),
+        ),
+        (Scopes::None, "province", Scopes::Province, Item(Item::Province)),
+        (Scopes::None, "religion", Scopes::Religion, Item(Item::Religion)),
+        (Scopes::None, "scope", Scopes::all(), UncheckedValue),
+        (Scopes::Activity, "special_guest", Scopes::Character, Item(Item::SpecialGuest)),
+        (Scopes::None, "struggle", Scopes::Struggle, Item(Item::Struggle)),
+        (Scopes::None, "title", Scopes::LandedTitle, Item(Item::Title)),
+        (Scopes::None, "trait", Scopes::Trait, Item(Item::Trait)),
+        (Scopes::all(), "var", Scopes::all(), UncheckedValue),
+        (Scopes::None, "vassal_contract", Scopes::VassalContract, Item(Item::VassalContract)),
+        (
+            Scopes::Character,
+            "vassal_contract_obligation_level",
+            Scopes::Value,
+            Item(Item::VassalContract),
+        ),
+    ]
+};
+
+#[inline]
+pub fn scope_iterator(name: &str) -> Option<(Scopes, Scopes)> {
+    SCOPE_ITERATOR_MAP.get(name).copied()
+}
+
+static SCOPE_ITERATOR_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, to) in SCOPE_ITERATOR.iter().copied() {
+        hash.insert(s, (from, to));
+    }
+    hash
+});
 
 /// LAST UPDATED CK3 VERSION 1.11.3
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
-pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
+const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "acclaimed_knight", Scopes::Character),
     (Scopes::Character, "accolade", Scopes::Accolade),
     (Scopes::None, "accolade_type", Scopes::AccoladeType),
@@ -821,16 +838,34 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "warden_hostage", Scopes::Character),
 ];
 
+pub fn scope_iterator_removed(name: &str) -> Option<(&'static str, &'static str)> {
+    for (removed_name, version, explanation) in SCOPE_ITERATOR_REMOVED.iter().copied() {
+        if name == removed_name {
+            return Some((version, explanation));
+        }
+    }
+    None
+}
+
 /// LAST UPDATED CK3 VERSION 1.11.3
 /// Every entry represents a every_, ordered_, random_, and any_ version.
-pub const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[
+const SCOPE_ITERATOR_REMOVED: &[(&str, &str, &str)] = &[
     ("activity_declined", "1.9", ""),
     ("activity_invited", "1.9", ""),
     ("participant", "1.9", ""),
 ];
 
+pub fn scope_to_scope_removed(name: &str) -> Option<(&'static str, &'static str)> {
+    for (removed_name, version, explanation) in SCOPE_TO_SCOPE_REMOVED.iter().copied() {
+        if name == removed_name {
+            return Some((version, explanation));
+        }
+    }
+    None
+}
+
 /// LAST UPDATED CK3 VERSION 1.11.3
-pub const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
+const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
     ("activity", "1.9", ""),
     ("activity_owner", "1.9", "replaced by `activity_host`"),
     ("activity_province", "1.9", "replaced by `activity_location`"),

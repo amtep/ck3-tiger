@@ -20,6 +20,7 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::{validate_ai_chance, validate_duration, ListType};
 use crate::validator::Validator;
+use crate::vic3::tables::misc::EVENT_CATEGORIES;
 
 #[derive(Clone, Debug, Default)]
 pub struct Vic3Events {
@@ -167,7 +168,7 @@ impl Event {
         vd.field_choice("type", EVENT_TYPES);
 
         // TODO: what is this for and what else can it be?
-        vd.field_choice("category", &["enactment", "revolution"]);
+        vd.field_choice("category", EVENT_CATEGORIES);
 
         vd.field_bool("orphan");
 

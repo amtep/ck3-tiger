@@ -19,7 +19,8 @@ use crate::report::{err, error, fatal, old_warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::validate::{validate_color, validate_prefix_reference_token, ListType};
+use crate::trigger::validate_prefix_reference_token;
+use crate::validate::{validate_color, ListType};
 use crate::validator::Validator;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]

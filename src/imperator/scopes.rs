@@ -2,12 +2,14 @@
 
 use std::fmt::Formatter;
 
-use crate::context::ScopeContext;
+use fnv::FnvHashMap;
+use once_cell::sync::Lazy;
+
 use crate::everything::Everything;
 use crate::helpers::display_choices;
 use crate::item::Item;
 use crate::scopes::Scopes;
-use crate::token::Token;
+use crate::trigger::Trigger;
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
@@ -136,19 +138,6 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     display_choices(f, &vec, "or")
 }
 
-pub fn validate_prefix_reference(
-    prefix: &Token,
-    _arg: &Token,
-    _data: &Everything,
-    _sc: &mut ScopeContext,
-) {
-    // DEMENTIVE - TODO add these once all Item types have been implmented
-    match prefix.as_str() {
-        // "accolade_type" => data.verify_exists(Item::AccoladeType, arg),
-        &_ => (),
-    }
-}
-
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
     // TODO: - imperator - add this when Item::Family exists
     // if scopes == Scopes::Family && data.item_exists(Item::Family, arg) {
@@ -192,10 +181,23 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     None
 }
 
+#[inline]
+pub fn scope_to_scope(name: &str) -> Option<(Scopes, Scopes)> {
+    SCOPE_TO_SCOPE_MAP.get(name).copied()
+}
+
+static SCOPE_TO_SCOPE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, to) in SCOPE_TO_SCOPE.iter().copied() {
+        hash.insert(s, (from, to));
+    }
+    hash
+});
+
 /// LAST UPDATED VERSION 2.0.4
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
-pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
+const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "character_party", Scopes::Party),
     (Scopes::Character, "employer", Scopes::Country),
     (Scopes::Character, "family", Scopes::Family),
@@ -319,50 +321,88 @@ pub const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "no", Scopes::Bool),
 ];
 
+#[inline]
+pub fn scope_prefix(name: &str) -> Option<(Scopes, Scopes, Trigger)> {
+    SCOPE_PREFIX_MAP.get(name).copied()
+}
+
+static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)>> =
+    Lazy::new(|| {
+        let mut hash = FnvHashMap::default();
+        for (from, s, to, argument) in SCOPE_PREFIX.iter().copied() {
+            hash.insert(s, (from, to, argument));
+        }
+        hash
+    });
+
 /// LAST UPDATED VERSION 2.0.4
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
-/// TODO: add the Item type here, so that it can be checked for existence.
 
 // Basically just search the log for "Requires Data: yes" and put all that here.
-pub const SCOPE_FROM_PREFIX: &[(Scopes, &str, Scopes)] = &[
-    (Scopes::None, "array_define", Scopes::Value),
-    (Scopes::Country, "fam", Scopes::Family),
-    (Scopes::Country, "party", Scopes::Party),
-    (
-        Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship),
-        "job",
-        Scopes::Job,
-    ),
-    (
-        Scopes::Country.union(Scopes::Province).union(Scopes::State).union(Scopes::Governorship),
-        "job_holder",
-        Scopes::Job,
-    ),
-    (Scopes::Treasure, "treasure", Scopes::Treasure),
-    (Scopes::None, "character", Scopes::Character),
-    (Scopes::None, "region", Scopes::Region),
-    (Scopes::None, "area", Scopes::Area),
-    (Scopes::None, "culture", Scopes::Culture),
-    (Scopes::None, "deity", Scopes::Deity),
-    (Scopes::None, "c", Scopes::Country),
-    (Scopes::None, "char", Scopes::Character),
-    (Scopes::None, "define", Scopes::Value),
-    (Scopes::None, "flag", Scopes::Flag),
-    (Scopes::None, "global_var", Scopes::all()),
-    (Scopes::None, "local_var", Scopes::all()),
-    (Scopes::None, "p", Scopes::Province),
-    (Scopes::None, "religion", Scopes::Religion),
-    (Scopes::None, "scope", Scopes::all()),
-    (Scopes::all(), "var", Scopes::all()),
-];
+const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
+    use Trigger::*;
+    //TODO: Remove `UncheckedValue` for correct validation
+    &[
+        (Scopes::None, "array_define", Scopes::Value, UncheckedValue),
+        (Scopes::Country, "fam", Scopes::Family, UncheckedValue),
+        (Scopes::Country, "party", Scopes::Party, UncheckedValue),
+        (
+            Scopes::Country
+                .union(Scopes::Province)
+                .union(Scopes::State)
+                .union(Scopes::Governorship),
+            "job",
+            Scopes::Job,
+            UncheckedValue,
+        ),
+        (
+            Scopes::Country
+                .union(Scopes::Province)
+                .union(Scopes::State)
+                .union(Scopes::Governorship),
+            "job_holder",
+            Scopes::Job,
+            UncheckedValue,
+        ),
+        (Scopes::Treasure, "treasure", Scopes::Treasure, UncheckedValue),
+        (Scopes::None, "character", Scopes::Character, UncheckedValue),
+        (Scopes::None, "region", Scopes::Region, UncheckedValue),
+        (Scopes::None, "area", Scopes::Area, UncheckedValue),
+        (Scopes::None, "culture", Scopes::Culture, UncheckedValue),
+        (Scopes::None, "deity", Scopes::Deity, UncheckedValue),
+        (Scopes::None, "c", Scopes::Country, UncheckedValue),
+        (Scopes::None, "char", Scopes::Character, UncheckedValue),
+        (Scopes::None, "define", Scopes::Value, UncheckedValue),
+        (Scopes::None, "flag", Scopes::Flag, UncheckedValue),
+        (Scopes::None, "global_var", Scopes::all(), UncheckedValue),
+        (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
+        (Scopes::None, "p", Scopes::Province, UncheckedValue),
+        (Scopes::None, "religion", Scopes::Religion, UncheckedValue),
+        (Scopes::None, "scope", Scopes::all(), UncheckedValue),
+        (Scopes::all(), "var", Scopes::all(), UncheckedValue),
+    ]
+};
+
+#[inline]
+pub fn scope_iterator(name: &str) -> Option<(Scopes, Scopes)> {
+    SCOPE_ITERATOR_MAP.get(name).copied()
+}
+
+static SCOPE_ITERATOR_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, to) in SCOPE_ITERATOR.iter().copied() {
+        hash.insert(s, (from, to));
+    }
+    hash
+});
 
 /// LAST UPDATED VERSION 2.0.4
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
-pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
+const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::State, "state_province", Scopes::Province),
     (Scopes::Character, "character_treasure", Scopes::Treasure),
     (Scopes::Character, "character_unit", Scopes::Unit),
@@ -434,8 +474,26 @@ pub const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "sea_and_river_zone", Scopes::Province),
 ];
 
+pub fn scope_iterator_removed(name: &str) -> Option<(&'static str, &'static str)> {
+    for (removed_name, version, explanation) in SCOPE_ITERATOR_REMOVED.iter().copied() {
+        if name == removed_name {
+            return Some((version, explanation));
+        }
+    }
+    None
+}
+
 /// LAST UPDATED VERSION 2.0.4
 /// Every entry represents a every_, ordered_, random_, and any_ version.
-pub const SCOPE_REMOVED_ITERATOR: &[(&str, &str, &str)] = &[];
+const SCOPE_ITERATOR_REMOVED: &[(&str, &str, &str)] = &[];
 
-pub const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[];
+pub fn scope_to_scope_removed(name: &str) -> Option<(&'static str, &'static str)> {
+    for (removed_name, version, explanation) in SCOPE_TO_SCOPE_REMOVED.iter().copied() {
+        if name == removed_name {
+            return Some((version, explanation));
+        }
+    }
+    None
+}
+
+const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[];
