@@ -460,11 +460,16 @@ impl Parser {
         if self.current.key.is_none() {
             let msg = format!("Unexpected comparator '{s}'");
             error(&loc, ErrorKey::ParseError, &msg);
-        } else {
-            if self.current.cmp.is_some() {
+        } else if let Some((cmp, _)) = self.current.cmp {
+            // Double comparator is valid in macro parameters, such as `OPERATOR = >=`.
+            if cmp == Comparator::Equals(Single) {
+                let token = Token::new(s, loc);
+                self.token(token);
+            } else {
                 let msg = &format!("Double comparator '{s}'");
                 error(&loc, ErrorKey::ParseError, msg);
             }
+        } else {
             self.current.cmp = Some((cmp, loc));
         }
     }
