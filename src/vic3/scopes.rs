@@ -667,7 +667,6 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
-/// TODO: add the Item type here, so that it can be checked for existence.
 const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
     use Trigger::*;
     use crate::item::Item;
@@ -708,7 +707,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
         (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
         (Scopes::Market, "mg", Scopes::MarketGoods, Item(Item::Goods)),
         // TODO: the docs give a huge list of scopes instead of MobilizationOption
-        (Scopes::None, "mobilization_option", Scopes::MobilizationOptionm, Item(Item::MobilizationOption)),
+        (Scopes::None, "mobilization_option", Scopes::MobilizationOption, Item(Item::MobilizationOption)),
         (
             Scopes::Country
                 .union(Scopes::BattleSide)

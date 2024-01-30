@@ -9,6 +9,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
+use crate::trigger::Trigger;
 
 /// vic3 needs more than 64 bits, but the others don't.
 #[cfg(feature = "vic3")]
