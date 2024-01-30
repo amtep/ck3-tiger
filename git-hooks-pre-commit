@@ -1,11 +1,14 @@
 #!/bin/bash
-# If you want to be just as cool as the lead developer,
-# copy this to your .git/hooks/pre_commit
 set -e
+
+# This is the recommended pre-commit hook when developing ck3-tiger.
+# Copy it to .git/hooks/pre-commit to start using it.
+# It will run automatically before every commit, and abort the commit
+# if an error is found.
 
 cargo fmt --check
 cargo clippy -p ck3-tiger
 cargo clippy -p vic3-tiger
 cargo clippy -p utils
 cargo doc --features "ck3 vic3 imperator" --no-deps --document-private-items
-cargo +1.67 check
+cargo +1.70 check
