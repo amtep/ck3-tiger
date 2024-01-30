@@ -704,6 +704,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
         (Scopes::Country, "institution", Scopes::Institution, Item(Item::Institution)),
         (Scopes::Country, "je", Scopes::Journalentry, Item(Item::Journalentry)),
         (Scopes::None, "law_type", Scopes::LawType, Item(Item::LawType)),
+        (Scopes::None, "list_size", Scopes::Value, UncheckedValue),
         (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
         (Scopes::Market, "mg", Scopes::MarketGoods, Item(Item::Goods)),
         // TODO: the docs give a huge list of scopes instead of MobilizationOption

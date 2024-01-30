@@ -511,6 +511,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
         (Scopes::None, "government_type", Scopes::GovernmentType, Item(Item::GovernmentType)),
         (Scopes::None, "holding_type", Scopes::HoldingType, Item(Item::GovernmentType)),
         (Scopes::None, "house", Scopes::DynastyHouse, Item(Item::House)),
+        (Scopes::None, "list_size", Scopes::Value, UncheckedValue),
         (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
         (
             Scopes::Character,
