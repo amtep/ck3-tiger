@@ -397,7 +397,7 @@ pub fn validate_trigger_key_bv(
                     || part.lowercase_is("this")
                 {
                     if !part_flags.contains(PartFlags::First) {
-                        warn_not_first(part)
+                        warn_not_first(part);
                     }
                     if part.lowercase_is("root") {
                         sc.replace_root();
@@ -1017,7 +1017,7 @@ pub fn validate_target_ok_this(
                     || part.lowercase_is("this")
                 {
                     if !part_flags.contains(PartFlags::First) {
-                        warn_not_first(part)
+                        warn_not_first(part);
                     }
                     if part.lowercase_is("root") {
                         sc.replace_root();
@@ -1235,7 +1235,7 @@ pub fn partition(token: &Token) -> Vec<Part> {
         let part_token = token.subtoken(part_idx.., part_loc);
         parts.push(Part::Token(part_token));
     }
-    return parts;
+    parts
 }
 
 bitflags! {

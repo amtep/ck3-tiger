@@ -15,7 +15,9 @@ use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{err, error, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity};
-use crate::scopes::{scope_prefix, scope_to_scope, Scopes};
+#[cfg(feature = "ck3")]
+use crate::scopes::Scopes;
+use crate::scopes::{scope_prefix, scope_to_scope};
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -650,7 +652,7 @@ pub fn validate_scope_chain(
                     || part.lowercase_is("this")
                 {
                     if !part_flags.contains(PartFlags::First) {
-                        warn_not_first(part)
+                        warn_not_first(part);
                     }
                     if part.lowercase_is("root") {
                         sc.replace_root();
