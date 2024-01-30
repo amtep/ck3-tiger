@@ -39,9 +39,9 @@ impl DbKind for HouseUnity {
         vd.field_integer("default_value");
         vd.field_integer("min_value");
 
-        for (token, block) in block.iter_definitions() {
+        vd.unknown_block_fields(|token, block| {
             validate_stage(token, block, data);
-        }
+        });
     }
 }
 
