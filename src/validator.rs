@@ -1278,7 +1278,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Expect the block to contain any number of unknown `key = value` fields.
-    /// Run the closure `f(key, block)` on every matching *unknown* field. Previously-validated fields will be skipped.
+    /// Run the closure `f(key, value)` on every matching *unknown* field. Previously-validated fields will be skipped.
     pub fn unknown_value_fields<F: FnMut(&Token, &Token)>(&mut self, mut f: F) {
         self.accepted_value_fields = true;
         for Field(key, cmp, bv) in self.block.iter_fields() {

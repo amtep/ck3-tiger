@@ -81,11 +81,12 @@ fn validate_stage(key: &Token, block: &Block, data: &Everything) {
     }
 
     vd.field_validated_block("parameters", |block, data| {
-        for (key, value) in block.iter_assignments_warn() {
+        let mut vd = Validator::new(block, data);
+        vd.unknown_value_fields(|key, value| {
             ValueValidator::new(value, data).bool();
             let loca = format!("house_unity_parameter_{key}");
             data.verify_exists_implied(Item::Localization, &loca, key);
-        }
+        });
     });
 
     vd.field_validated_block("modifiers", |block, data| {

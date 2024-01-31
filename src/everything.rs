@@ -599,6 +599,7 @@ impl Everything {
             Item::CoaTemplate => self.coas.template_exists(key),
             Item::Define => self.defines.exists(key),
             Item::Entity => self.assets.entity_exists(key),
+            Item::Entry => self.fileset.entry_exists(key),
             Item::File => self.fileset.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::GuiLayer => self.gui.layer_exists(key),
@@ -651,6 +652,7 @@ impl Everything {
         max_sev: Severity,
     ) {
         match itype {
+            Item::Entry => self.fileset.verify_entry_exists(key, token, max_sev),
             Item::File => self.fileset.verify_exists_implied(key, token, max_sev),
             Item::Localization => self.localization.verify_exists_implied(key, token, max_sev),
             #[cfg(feature = "ck3")]
@@ -773,13 +775,31 @@ impl Everything {
 
     #[cfg(feature = "ck3")] // happens not to be used by vic3
     pub(crate) fn get_defined_string(&self, key: &str) -> Option<&Token> {
-        self.defines.get_string(key)
+        self.defines.get_bv(key).and_then(|bv| bv.get_value())
+    }
+
+    #[cfg(feature = "ck3")] // happens not to be used by vic3
+    pub(crate) fn get_defined_array(&self, key: &str) -> Option<&Block> {
+        self.defines.get_bv(key).and_then(|bv| bv.get_block())
     }
 
     #[allow(clippy::missing_panics_doc)] // only panics on poisoned mutex
     #[cfg(feature = "ck3")] // happens not to be used by vic3
     pub(crate) fn get_defined_string_warn(&self, token: &Token, key: &str) -> Option<&Token> {
         let result = self.get_defined_string(key);
+        let mut cache = self.warned_defines.write().unwrap();
+        if result.is_none() && !cache.contains(key) {
+            let msg = format!("{key} not defined in common/defines/");
+            err(ErrorKey::MissingItem).msg(msg).loc(token).push();
+            cache.insert(key.to_string());
+        }
+        result
+    }
+
+    #[allow(clippy::missing_panics_doc)] // only panics on poisoned mutex
+    #[cfg(feature = "ck3")] // happens not to be used by vic3
+    pub(crate) fn get_defined_array_warn(&self, token: &Token, key: &str) -> Option<&Block> {
+        let result = self.get_defined_array(key);
         let mut cache = self.warned_defines.write().unwrap();
         if result.is_none() && !cache.contains(key) {
             let msg = format!("{key} not defined in common/defines/");

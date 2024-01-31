@@ -7,12 +7,13 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
-use crate::validator::Validator;
+use crate::validator::{Validator, ValueValidator};
 
 #[derive(Clone, Debug)]
 pub struct CultureEra {}
@@ -252,9 +253,47 @@ impl DbKind for CultureTradition {
             let loca = format!("{key}_desc");
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
-        vd.field_block("parameters");
+        vd.field_validated_block("parameters", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_value_fields(|key, value| {
+                if matches!(key.as_str(), "number_of_spouses" | "number_of_consorts") {
+                    ValueValidator::new(value, data).integer_range(0, i64::MAX);
+                } else {
+                    ValueValidator::new(value, data).bool();
+                }
+                let loca = format!("culture_parameter_{key}");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+            });
+        });
         vd.field_value("category");
-        vd.field_block("layers"); // TODO
+        vd.field_validated_block("layers", |block, data| {
+            let mut layer_path = Vec::new();
+            if let Some(block) =
+                data.get_defined_array_warn(key, "NGraphics|CULTURE_TRADITION_LAYER_PATHS")
+            {
+                for path in block.iter_values_warn() {
+                    layer_path.push(path.as_str());
+                }
+            }
+
+            let mut vd = Validator::new(block, data);
+            vd.unknown_value_fields(|key, value| {
+                if let Some(layer_idx) = key.expect_integer().and_then(|i| {
+                    // short circuit evaluation so no panic
+                    if i >= 0 || (i as usize) < layer_path.len() {
+                        Some(i as usize)
+                    } else {
+                        let msg =
+                            format!("layer index out of range between 0 and {}", layer_path.len());
+                        err(ErrorKey::Validation).msg(msg).loc(key).push();
+                        None
+                    }
+                }) {
+                    let loca = format!("{}/{}", layer_path[layer_idx], value);
+                    data.verify_exists_implied(Item::Entry, &loca, value);
+                }
+            });
+        });
 
         vd.field_validated_key_block("can_pick", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Culture, key);

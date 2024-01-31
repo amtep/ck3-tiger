@@ -220,6 +220,9 @@ pub struct Fileset {
     /// All filenames from ordered_files, for quick lookup
     filenames: FnvHashSet<PathBuf>,
 
+    /// All directories that have been looked up, for quick lookup
+    directories: RwLock<FnvHashSet<PathBuf>>,
+
     /// Filenames that have been looked up during validation. Used to filter the --unused output.
     used: RwLock<FnvHashSet<String>>,
 }
@@ -241,6 +244,7 @@ impl Fileset {
             ordered_files: Vec::new(),
             filename_tokens: Vec::new(),
             filenames: FnvHashSet::default(),
+            directories: RwLock::new(FnvHashSet::default()),
             used: RwLock::new(FnvHashSet::default()),
         }
     }
@@ -449,9 +453,48 @@ impl Fileset {
         self.filename_tokens.iter()
     }
 
+    pub fn entry_exists(&self, key: &str) -> bool {
+        // file exists
+        if self.exists(key) {
+            return true;
+        }
+
+        // directory lookup - check if there are any files within the directory
+        let dir = key.strip_prefix('/').unwrap_or(key);
+        let dirpath = Path::new(dir);
+
+        if self.directories.read().unwrap().contains(dirpath) {
+            return true;
+        }
+
+        match self.ordered_files.binary_search_by_key(&dirpath, |fe| fe.path.as_path()) {
+            // should be handled in `exists` already; something must be wrong
+            Ok(_) => unreachable!(),
+            Err(idx) => {
+                // there exists a file in the given directory
+                if self.ordered_files[idx].path.starts_with(&dirpath) {
+                    self.directories.write().unwrap().insert(dirpath.to_path_buf());
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    pub fn verify_entry_exists(&self, entry: &str, token: &Token, max_sev: Severity) {
+        self.mark_used(entry);
+        if !self.entry_exists(entry) {
+            let msg = format!("file or directory {entry} does not exist");
+            report(ErrorKey::MissingFile, Item::File.severity().at_most(max_sev))
+                .msg(msg)
+                .loc(token)
+                .push();
+        }
+    }
+
     #[cfg(feature = "ck3")] // vic3 happens not to use
     pub fn verify_exists(&self, file: &Token) {
-        self.mark_used(&file.as_str().replace("//", "/"));
+        self.mark_used(file.as_str());
         if !self.exists(file.as_str()) {
             let msg = "referenced file does not exist";
             report(ErrorKey::MissingFile, Item::File.severity()).msg(msg).loc(file).push();
@@ -459,7 +502,7 @@ impl Fileset {
     }
 
     pub fn verify_exists_implied(&self, file: &str, t: &Token, max_sev: Severity) {
-        self.mark_used(&file.replace("//", "/"));
+        self.mark_used(file);
         if !self.exists(file) {
             let msg = format!("file {file} does not exist");
             report(ErrorKey::MissingFile, Item::File.severity().at_most(max_sev))
@@ -470,7 +513,7 @@ impl Fileset {
     }
 
     pub fn verify_exists_implied_crashes(&self, file: &str, t: &Token) {
-        self.mark_used(&file.replace("//", "/"));
+        self.mark_used(file);
         if !self.exists(file) {
             let msg = format!("file {file} does not exist");
             fatal(ErrorKey::Crash).msg(msg).loc(t).push();
@@ -525,11 +568,10 @@ impl Fileset {
     pub fn check_unused_dds(&self, _data: &Everything) {
         let mut vec = Vec::new();
         for entry in &self.ordered_files {
-            // TODO: avoid the to_string here
-            let pathname = entry.path.to_string_lossy().to_string();
+            let pathname = entry.path.to_string_lossy();
             if entry.path.extension().map_or(false, |ext| ext.eq_ignore_ascii_case("dds"))
                 && !entry.path.starts_with("gfx/interface/illustrations/loading_screens")
-                && !self.used.read().unwrap().contains(&pathname)
+                && !self.used.read().unwrap().contains(pathname.as_ref())
             {
                 vec.push(entry);
             }
