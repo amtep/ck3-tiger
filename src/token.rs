@@ -4,6 +4,7 @@
 use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::fmt::{Debug, Display, Error, Formatter};
+use std::hash::Hash;
 use std::ops::{Bound, Range, RangeBounds};
 use std::path::{Path, PathBuf};
 use std::slice::SliceIndex;
@@ -358,6 +359,12 @@ impl PartialEq for Token {
 }
 
 impl Eq for Token {}
+
+impl Hash for Token {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.s.hash(state);
+    }
+}
 
 impl From<Loc> for Token {
     fn from(loc: Loc) -> Self {
