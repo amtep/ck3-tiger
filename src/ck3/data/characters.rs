@@ -1,26 +1,26 @@
+use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
 use std::str::FromStr;
 
 use fnv::{FnvHashMap, FnvHashSet};
 
-use crate::block::{Block, BV};
+use crate::block::{Block, Comparator, Eq::*, BV};
 use crate::ck3::data::houses::House;
 use crate::ck3::validate::validate_portrait_modifier_overrides;
 use crate::context::ScopeContext;
 use crate::date::Date;
-use crate::effect::{validate_effect, validate_effect_internal};
+use crate::effect::{validate_effect, validate_effect_field};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, error, fatal, old_warn, warn_info, ErrorKey};
+use crate::report::{err, error, fatal, old_warn, warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_prefix_reference_token;
-use crate::validate::{validate_color, ListType};
+use crate::validate::validate_color;
 use crate::validator::Validator;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -301,120 +301,223 @@ impl Character {
             .or_else(|| self.block.get_field_value_at_date("religion", date))
     }
 
-    pub fn validate_history(
+    fn validate_life_event(
         date: Date,
-        block: &Block,
-        parent: &Block,
+        gender: Gender,
+        key: &Token,
+        bv: &BV,
         data: &Everything,
         sc: &mut ScopeContext,
-    ) {
-        let mut vd = Validator::new(block, data);
-        vd.field_item("name", Item::Localization);
+    ) -> Option<(LifeEventType, Token)> {
+        use LifeEventType::*;
 
-        if let Some(token) = vd.field_value("birth") {
-            if !token.is("yes") && Date::from_str(token.as_str()).is_err() {
-                let msg = "expected `yes` or a date";
-                old_warn(token, ErrorKey::Validation, msg);
+        match bv {
+            BV::Value(value) => {
+                if matches!(key.as_str(), "trait" | "add_trait") && value.as_str() == "saint" {
+                    return Some((Posthumous, value.clone()));
+                }
+
+                match key.as_str() {
+                    "name" => {
+                        data.verify_exists(Item::Localization, value);
+                        return None;
+                    }
+                    "birth" => {
+                        if !value.is("yes") && Date::from_str(value.as_str()).is_err() {
+                            let msg = "expected `yes` or a date";
+                            err(ErrorKey::Validation).msg(msg).loc(value).push();
+                        }
+                        return Some((Birth, key.clone()));
+                    }
+                    "death" => {
+                        if !value.is("yes") && !value.is_date() {
+                            data.verify_exists(Item::DeathReason, value);
+                        }
+                        return Some((Death, key.clone()));
+                    }
+                    // religion and faith both mean faith here
+                    "religion" | "faith" => {
+                        data.verify_exists(Item::Faith, value);
+                        return None;
+                    }
+                    "culture" => {
+                        data.verify_exists(Item::Culture, value);
+                        return None;
+                    }
+                    "trait" => {
+                        data.verify_exists(Item::Trait, value);
+                        return None;
+                    }
+                    "employer" => {
+                        if !value.is("0") {
+                            data.verify_exists(Item::Character, value);
+                            if data.item_exists(Item::Character, value.as_str()) {
+                                data.characters.verify_alive(value, date);
+                            }
+                        }
+                        return Some((Employed, key.clone()));
+                    }
+                    "moved_to_pool" => {
+                        if !value.is("yes") {
+                            let msg = "expected `yes`";
+                            err(ErrorKey::Validation).msg(msg).loc(value).push();
+                        }
+                        return Some((Unemployed, key.clone()));
+                    }
+                    "give_council_position" => {
+                        data.verify_exists(Item::CouncilPosition, value);
+                        return Some((GiveCouncilPosition, key.clone()));
+                    }
+                    "capital" => {
+                        data.verify_exists(Item::Title, value);
+                        if !value.as_str().starts_with("c_") {
+                            error(value, ErrorKey::Validation, "capital must be a county");
+                        }
+                        return None;
+                    }
+                    "add_spouse" | "add_matrilineal_spouse" => {
+                        data.characters.verify_exists_gender(value, gender.flip());
+                        if data.item_exists(Item::Character, value.as_str()) {
+                            data.characters.verify_alive(value, date);
+                        }
+                        return Some((AddSpouse, value.clone()));
+                    }
+                    "add_same_sex_spouse" => {
+                        data.characters.verify_exists_gender(value, gender);
+                        if data.item_exists(Item::Character, value.as_str()) {
+                            data.characters.verify_alive(value, date);
+                        }
+                        return Some((AddSpouse, value.clone()));
+                    }
+                    "add_concubine" => {
+                        data.characters.verify_exists_gender(value, gender.flip());
+                        if data.item_exists(Item::Character, value.as_str()) {
+                            data.characters.verify_alive(value, date);
+                        }
+                        return None;
+                    }
+                    "remove_spouse" => return Some((RemoveSpouse, value.clone())),
+                    "dynasty" => {
+                        data.verify_exists(Item::Dynasty, value);
+                        return None;
+                    }
+                    "dynasty_house" => {
+                        data.verify_exists(Item::House, value);
+                        return None;
+                    }
+                    _ => (),
+                }
             }
-        }
+            BV::Block(block) => match key.as_str() {
+                "death" => {
+                    let mut vd = Validator::new(block, data);
+                    vd.req_field("death_reason");
+                    vd.field_item("death_reason", Item::DeathReason);
+                    vd.field_item("killer", Item::Character);
+                    return Some((Death, key.clone()));
+                }
+                "effect" => {
+                    validate_effect(block, data, sc, Tooltipped::No);
+                    return None;
+                }
+                _ => (),
+            },
+        };
 
-        vd.field_validated("death", validate_history_death);
+        // unknown effect field
+        validate_effect_field(
+            &Lowercase::empty(),
+            key,
+            Comparator::Equals(Single),
+            bv,
+            data,
+            sc,
+            Tooltipped::No,
+        );
 
-        // religion and faith both mean faith here
-        vd.field_item("religion", Item::Faith);
-        vd.field_item("faith", Item::Faith);
+        None
+    }
 
-        if let Some(token) = vd.field_value("set_character_faith") {
-            validate_prefix_reference_token(token, data, "faith");
-        }
+    fn validate_life(character: &Token, life_events: Vec<LifeEvent>) {
+        let mut birth = None;
+        let mut death = None;
+        let mut spouses = FnvHashSet::<Token>::default();
+        let mut employed = false;
 
-        if let Some(token) = vd.field_value("employer") {
-            if !token.is("0") {
-                data.verify_exists(Item::Character, token);
-                if data.item_exists(Item::Character, token.as_str()) {
-                    data.characters.verify_alive(token, date);
+        for LifeEvent { date, index: _, token, event } in life_events.into_iter() {
+            use LifeEventType::*;
+
+            if birth.is_none() && event != Birth {
+                let msg = format!("{character} was not born yet on {date}");
+                let mut loc = token.loc.clone();
+                loc.column = 0;
+                warn(ErrorKey::History).msg(msg).loc(loc).push();
+            }
+
+            if let Some((death_date, death_loc)) = &death {
+                if event != Posthumous {
+                    let msg = format!(
+                        "{character} was not alive on {date}, had already died on {death_date}"
+                    );
+                    let mut loc = token.loc.clone();
+                    loc.column = 0;
+                    warn(ErrorKey::History).msg(msg).loc(loc).loc(death_loc, "from here").push();
+                }
+            }
+
+            match event {
+                Birth => {
+                    let mut loc = token.loc.clone();
+                    loc.column = 0;
+
+                    if let Some((birth_date, birth_loc)) = &birth {
+                        let msg = format!("{character} couldn't be born again on {date}, was born already on {birth_date}");
+                        warn(ErrorKey::History)
+                            .msg(msg)
+                            .loc(loc.clone())
+                            .loc(birth_loc, "from here")
+                            .push();
+                    }
+                    birth = Some((date, loc));
+                }
+                AddSpouse => {
+                    if !spouses.insert(token.clone()) {
+                        let msg = format!("{character} already had {token} as a spouse on {date}");
+                        let curr_token = spouses.get(&token).unwrap();
+                        warn(ErrorKey::History)
+                            .msg(msg)
+                            .loc(token)
+                            .loc(curr_token, "from here")
+                            .push();
+                    }
+                }
+                RemoveSpouse => {
+                    if !spouses.remove(&token) {
+                        let msg = format!("{character} did not have {token} as a spouse on {date}");
+                        warn(ErrorKey::History).msg(msg).loc(token).push();
+                    }
+                }
+                Employed => employed = true,
+                Unemployed => employed = false,
+                GiveCouncilPosition => {
+                    if !employed {
+                        let msg = format!("{character} was not at court with `employed` on {date}");
+                        warn(ErrorKey::History).msg(msg).loc(token).push();
+                    }
+                }
+                Death => {
+                    let mut loc = token.loc.clone();
+                    loc.column = 0;
+                    death = Some((date, loc))
+                }
+                Posthumous => {
+                    if death.is_none() {
+                        let msg = format!("{character} had not died yet on {date}");
+                        warn(ErrorKey::History).msg(msg).loc(token).push();
+                    }
                 }
             }
         }
-
-        vd.field_item("culture", Item::Culture);
-        if let Some(token) = vd.field_value("set_culture") {
-            validate_prefix_reference_token(token, data, "culture");
-        }
-
-        vd.multi_field_item("trait", Item::Trait);
-        vd.multi_field_item("add_trait", Item::Trait);
-        vd.multi_field_item("remove_trait", Item::Trait);
-
-        for token in vd.multi_field_value("add_pressed_claim") {
-            validate_prefix_reference_token(token, data, "title");
-        }
-        for token in vd.multi_field_value("remove_claim") {
-            validate_prefix_reference_token(token, data, "title");
-        }
-
-        if let Some(token) = vd.field_value("capital") {
-            data.verify_exists(Item::Title, token);
-            if !token.as_str().starts_with("c_") {
-                error(token, ErrorKey::Validation, "capital must be a county");
-            }
-        }
-
-        let gender = Gender::from_female_bool(parent.get_field_bool("female").unwrap_or(false));
-        for token in vd.multi_field_value("add_spouse") {
-            data.characters.verify_exists_gender(token, gender.flip());
-            if data.item_exists(Item::Character, token.as_str()) {
-                data.characters.verify_alive(token, date);
-            }
-        }
-        for token in vd.multi_field_value("add_matrilineal_spouse") {
-            data.characters.verify_exists_gender(token, gender.flip());
-            if data.item_exists(Item::Character, token.as_str()) {
-                data.characters.verify_alive(token, date);
-            }
-        }
-        for token in vd.multi_field_value("add_same_sex_spouse") {
-            data.characters.verify_exists_gender(token, gender);
-            if data.item_exists(Item::Character, token.as_str()) {
-                data.characters.verify_alive(token, date);
-            }
-        }
-        for token in vd.multi_field_value("add_concubine") {
-            data.characters.verify_exists_gender(token, gender.flip());
-            if data.item_exists(Item::Character, token.as_str()) {
-                data.characters.verify_alive(token, date);
-            }
-        }
-        for token in vd.multi_field_value("remove_spouse") {
-            // TODO: also check that they were a spouse
-            data.characters.verify_exists_gender(token, gender.flip());
-        }
-
-        vd.field_item("dynasty", Item::Dynasty);
-        vd.field_item("dynasty_house", Item::House);
-
-        vd.field_item("give_nickname", Item::Nickname);
-
-        vd.field_numeric("add_prestige");
-        vd.field_numeric("add_piety");
-        vd.field_numeric("add_gold");
-
-        // TODO: check if they have an employer at this date?
-        vd.field_item("give_council_position", Item::CouncilPosition);
-
-        vd.multi_field_validated_block("effect", |b, data| {
-            validate_effect(b, data, sc, Tooltipped::No);
-        });
-
-        validate_effect_internal(
-            Lowercase::empty(),
-            ListType::None,
-            block,
-            data,
-            sc,
-            vd,
-            Tooltipped::No,
-        );
     }
 
     fn validate(&self, data: &Everything) {
@@ -474,9 +577,25 @@ impl Character {
             vd.field_validated_block("hair", validate_color);
         });
 
-        vd.validate_history_blocks(|date, b, data| {
-            Self::validate_history(date, b, &self.block, data, &mut sc);
+        let mut life_events = Vec::new();
+        let gender = Gender::from_female_bool(self.block.get_field_bool("female").unwrap_or(false));
+        vd.validate_history_blocks(|date, block, data| {
+            for (index, (key, bv)) in block.iter_assignments_and_definitions_warn().enumerate() {
+                if let Some((life_event_type, token)) =
+                    Self::validate_life_event(date, gender, key, bv, data, &mut sc)
+                {
+                    life_events.push(LifeEvent {
+                        date,
+                        index: index as u16,
+                        event: life_event_type,
+                        token,
+                    });
+                }
+            }
         });
+
+        life_events.sort_unstable();
+        Self::validate_life(&self.key, life_events);
     }
 
     fn check_pod_flags(&self, _data: &Everything) {
@@ -546,18 +665,57 @@ fn block_has_flag(block: &Block, flag: &str) -> bool {
     false
 }
 
-fn validate_history_death(bv: &BV, data: &Everything) {
-    match bv {
-        BV::Value(token) => {
-            if !token.is("yes") && !token.is_date() {
-                data.verify_exists(Item::DeathReason, token);
-            }
+#[derive(Debug)]
+enum LifeEventType {
+    /// All other events must happen after birth
+    Birth,
+    AddSpouse,
+    RemoveSpouse,
+    Employed,
+    /// Must be employed already
+    Unemployed,
+    GiveCouncilPosition,
+    /// All other events must happen before death
+    Death,
+    Posthumous,
+    // TODO add Effect validation, e.g. `add_trait`
+}
+
+impl PartialEq for LifeEventType {
+    fn eq(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
+impl Eq for LifeEventType {}
+
+#[derive(Debug)]
+struct LifeEvent {
+    date: Date,
+    index: u16,
+    event: LifeEventType,
+    token: Token,
+}
+
+impl PartialEq for LifeEvent {
+    fn eq(&self, other: &Self) -> bool {
+        self.date == other.date && self.index == other.index
+    }
+}
+
+impl Eq for LifeEvent {}
+
+impl Ord for LifeEvent {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.date.cmp(&other.date) {
+            Ordering::Equal => self.index.cmp(&other.index),
+            other => other,
         }
-        BV::Block(block) => {
-            let mut vd = Validator::new(block, data);
-            vd.req_field("death_reason");
-            vd.field_item("death_reason", Item::DeathReason);
-            vd.field_item("killer", Item::Character);
-        }
+    }
+}
+
+impl PartialOrd for LifeEvent {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
