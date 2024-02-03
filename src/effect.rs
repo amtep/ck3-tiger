@@ -100,289 +100,295 @@ pub fn validate_effect_internal<'a>(
 
     vd.set_allow_questionmark_equals(true);
     vd.unknown_fields_cmp(|key, cmp, bv| {
-        if let Some(effect) = data.get_effect(key) {
-            match bv {
-                BV::Value(token) => {
-                    if !effect.macro_parms().is_empty() {
-                        fatal(ErrorKey::Macro).msg("expected macro arguments").loc(token).push();
-                    } else if !token.is("yes") {
-                        old_warn(token, ErrorKey::Validation, "expected just effect = yes");
-                    }
-                    effect.validate_call(key, data, sc, tooltipped);
+        validate_effect_field(caller, key, cmp, bv, data, sc, tooltipped);
+    });
+}
+
+/// Validate a single effect field
+pub fn validate_effect_field(
+    caller: &Lowercase,
+    key: &Token,
+    cmp: Comparator,
+    bv: &BV,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    tooltipped: Tooltipped,
+) {
+    if let Some(effect) = data.get_effect(key) {
+        match bv {
+            BV::Value(token) => {
+                if !effect.macro_parms().is_empty() {
+                    fatal(ErrorKey::Macro).msg("expected macro arguments").loc(token).push();
+                } else if !token.is("yes") {
+                    old_warn(token, ErrorKey::Validation, "expected just effect = yes");
                 }
-                BV::Block(block) => {
-                    let parms = effect.macro_parms();
-                    if parms.is_empty() {
-                        err(ErrorKey::Macro)
-                            .msg("this scripted effect does not need macro arguments")
-                            .info("you can just use it as effect = yes")
-                            .loc(block)
-                            .push();
-                    } else {
-                        let mut vec = Vec::new();
-                        let mut vd = Validator::new(block, data);
-                        for parm in &parms {
-                            if let Some(token) = vd.field_value(parm) {
-                                vec.push(token.clone());
+                effect.validate_call(key, data, sc, tooltipped);
+            }
+            BV::Block(block) => {
+                let parms = effect.macro_parms();
+                if parms.is_empty() {
+                    err(ErrorKey::Macro)
+                        .msg("this scripted effect does not need macro arguments")
+                        .info("you can just use it as effect = yes")
+                        .loc(block)
+                        .push();
+                } else {
+                    let mut vec = Vec::new();
+                    let mut vd = Validator::new(block, data);
+                    for parm in &parms {
+                        if let Some(token) = vd.field_value(parm) {
+                            vec.push(token.clone());
+                        } else {
+                            let msg = format!("this scripted effect needs parameter {parm}");
+                            err(ErrorKey::Macro).msg(msg).loc(block).push();
+                            return;
+                        }
+                    }
+                    vd.unknown_value_fields(|key, _value| {
+                        let msg = format!("this scripted effect does not need parameter {key}");
+                        let info = "supplying an unneeded parameter often causes a crash";
+                        fatal(ErrorKey::Macro).msg(msg).info(info).loc(key).push();
+                    });
+                    let args: Vec<_> = parms.into_iter().zip(vec.into_iter()).collect();
+                    effect.validate_macro_expansion(key, &args, data, sc, tooltipped);
+                }
+            }
+        }
+        return;
+    }
+
+    if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
+        if caller != "random" && caller != "random_list" && caller != "duel" {
+            let msg = "cannot use scripted modifier here";
+            error(key, ErrorKey::Validation, msg);
+            return;
+        }
+        validate_scripted_modifier_call(key, bv, modifier, data, sc);
+        return;
+    }
+
+    let scope_effect = match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => crate::ck3::tables::effects::scope_effect,
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => crate::vic3::tables::effects::scope_effect,
+        #[cfg(feature = "imperator")]
+        Game::Imperator => crate::imperator::tables::effects::scope_effect,
+    };
+
+    if let Some((inscopes, effect)) = scope_effect(key, data) {
+        sc.expect(inscopes, &Reason::Token(key.clone()));
+        match effect {
+            Effect::Yes => {
+                if let Some(token) = bv.expect_value() {
+                    if !token.is("yes") {
+                        let msg = format!("expected just `{key} = yes`");
+                        old_warn(token, ErrorKey::Validation, &msg);
+                    }
+                }
+            }
+            Effect::Boolean => {
+                if let Some(token) = bv.expect_value() {
+                    validate_target(token, data, sc, Scopes::Bool);
+                }
+            }
+            Effect::Integer => {
+                if let Some(token) = bv.expect_value() {
+                    token.expect_integer();
+                }
+            }
+            Effect::ScriptValue | Effect::NonNegativeValue => {
+                if let Some(token) = bv.get_value() {
+                    if let Some(number) = token.get_number() {
+                        if matches!(effect, Effect::NonNegativeValue) && number < 0.0 {
+                            if key.is("add_gold") {
+                                let msg = "add_gold does not take negative numbers";
+                                let info = "try remove_short_term_gold instead";
+                                warn_info(token, ErrorKey::Range, msg, info);
                             } else {
-                                let msg = format!("this scripted effect needs parameter {parm}");
-                                err(ErrorKey::Macro).msg(msg).loc(block).push();
-                                return;
+                                let msg = format!("{key} does not take negative numbers");
+                                old_warn(token, ErrorKey::Range, &msg);
                             }
                         }
-                        vd.unknown_value_fields(|key, _value| {
-                            let msg = format!("this scripted effect does not need parameter {key}");
-                            let info = "supplying an unneeded parameter often causes a crash";
-                            fatal(ErrorKey::Macro).msg(msg).info(info).loc(key).push();
-                        });
-                        let args: Vec<_> = parms.into_iter().zip(vec.into_iter()).collect();
-                        effect.validate_macro_expansion(key, &args, data, sc, tooltipped);
                     }
                 }
+                validate_script_value(bv, data, sc);
             }
-            return;
-        }
-
-        if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
-            if caller != "random" && caller != "random_list" && caller != "duel" {
-                let msg = "cannot use scripted modifier here";
-                error(key, ErrorKey::Validation, msg);
-                return;
-            }
-            validate_scripted_modifier_call(key, bv, modifier, data, sc);
-            return;
-        }
-
-        let scope_effect = match Game::game() {
-            #[cfg(feature = "ck3")]
-            Game::Ck3 => crate::ck3::tables::effects::scope_effect,
             #[cfg(feature = "vic3")]
-            Game::Vic3 => crate::vic3::tables::effects::scope_effect,
-            #[cfg(feature = "imperator")]
-            Game::Imperator => crate::imperator::tables::effects::scope_effect,
-        };
-
-        if let Some((inscopes, effect)) = scope_effect(key, data) {
-            sc.expect(inscopes, &Reason::Token(key.clone()));
-            match effect {
-                Effect::Yes => {
-                    if let Some(token) = bv.expect_value() {
-                        if !token.is("yes") {
-                            let msg = format!("expected just `{key} = yes`");
-                            old_warn(token, ErrorKey::Validation, &msg);
-                        }
-                    }
+            Effect::Date => {
+                if let Some(token) = bv.expect_value() {
+                    token.expect_date();
                 }
-                Effect::Boolean => {
-                    if let Some(token) = bv.expect_value() {
-                        validate_target(token, data, sc, Scopes::Bool);
-                    }
+            }
+            Effect::Scope(outscopes) => {
+                if let Some(token) = bv.expect_value() {
+                    validate_target(token, data, sc, outscopes);
                 }
-                Effect::Integer => {
-                    if let Some(token) = bv.expect_value() {
-                        token.expect_integer();
-                    }
+            }
+            #[cfg(feature = "ck3")]
+            Effect::ScopeOkThis(outscopes) => {
+                if let Some(token) = bv.expect_value() {
+                    validate_target_ok_this(token, data, sc, outscopes);
                 }
-                Effect::ScriptValue | Effect::NonNegativeValue => {
-                    if let Some(token) = bv.get_value() {
-                        if let Some(number) = token.get_number() {
-                            if matches!(effect, Effect::NonNegativeValue) && number < 0.0 {
-                                if key.is("add_gold") {
-                                    let msg = "add_gold does not take negative numbers";
-                                    let info = "try remove_short_term_gold instead";
-                                    warn_info(token, ErrorKey::Range, msg, info);
-                                } else {
-                                    let msg = format!("{key} does not take negative numbers");
-                                    old_warn(token, ErrorKey::Range, &msg);
-                                }
-                            }
-                        }
-                    }
-                    validate_script_value(bv, data, sc);
+            }
+            Effect::Item(itype) => {
+                if let Some(token) = bv.expect_value() {
+                    data.verify_exists(itype, token);
                 }
-                #[cfg(feature = "vic3")]
-                Effect::Date => {
-                    if let Some(token) = bv.expect_value() {
-                        token.expect_date();
-                    }
-                }
-                Effect::Scope(outscopes) => {
-                    if let Some(token) = bv.expect_value() {
+            }
+            Effect::ScopeOrItem(outscopes, itype) => {
+                if let Some(token) = bv.expect_value() {
+                    if !data.item_exists(itype, token.as_str()) {
                         validate_target(token, data, sc, outscopes);
                     }
                 }
-                #[cfg(feature = "ck3")]
-                Effect::ScopeOkThis(outscopes) => {
-                    if let Some(token) = bv.expect_value() {
-                        validate_target_ok_this(token, data, sc, outscopes);
+            }
+            #[cfg(feature = "ck3")]
+            Effect::Target(key, outscopes) => {
+                if let Some(block) = bv.expect_block() {
+                    let mut vd = Validator::new(block, data);
+                    vd.set_case_sensitive(false);
+                    vd.req_field(key);
+                    vd.field_target(key, sc, outscopes);
+                }
+            }
+            Effect::TargetValue(key, outscopes, valuekey) => {
+                if let Some(block) = bv.expect_block() {
+                    let mut vd = Validator::new(block, data);
+                    vd.set_case_sensitive(false);
+                    vd.req_field(key);
+                    vd.req_field(valuekey);
+                    vd.field_target(key, sc, outscopes);
+                    vd.field_script_value(valuekey, sc);
+                }
+            }
+            #[cfg(feature = "ck3")]
+            Effect::ItemTarget(ikey, itype, tkey, outscopes) => {
+                if let Some(block) = bv.expect_block() {
+                    let mut vd = Validator::new(block, data);
+                    vd.set_case_sensitive(false);
+                    vd.field_item(ikey, itype);
+                    vd.field_target(tkey, sc, outscopes);
+                }
+            }
+            #[cfg(feature = "ck3")]
+            Effect::ItemValue(key, itype) => {
+                if let Some(block) = bv.expect_block() {
+                    let mut vd = Validator::new(block, data);
+                    vd.set_case_sensitive(false);
+                    vd.req_field(key);
+                    vd.req_field("value");
+                    vd.field_item(key, itype);
+                    vd.field_script_value("value", sc);
+                }
+            }
+            Effect::Choice(choices) => {
+                if let Some(token) = bv.expect_value() {
+                    if !choices.contains(&token.as_str()) {
+                        let msg = format!("expected one of {}", choices.join(", "));
+                        error(token, ErrorKey::Choice, &msg);
                     }
                 }
-                Effect::Item(itype) => {
-                    if let Some(token) = bv.expect_value() {
-                        data.verify_exists(itype, token);
-                    }
+            }
+            #[cfg(feature = "ck3")]
+            Effect::Desc => validate_desc(bv, data, sc),
+            Effect::Timespan => {
+                if let Some(block) = bv.expect_block() {
+                    validate_compare_duration(block, data, sc);
                 }
-                Effect::ScopeOrItem(outscopes, itype) => {
-                    if let Some(token) = bv.expect_value() {
-                        if !data.item_exists(itype, token.as_str()) {
-                            validate_target(token, data, sc, outscopes);
-                        }
-                    }
+            }
+            Effect::Vb(f) => {
+                if let Some(block) = bv.expect_block() {
+                    let mut vd = Validator::new(block, data);
+                    vd.set_case_sensitive(false);
+                    f(key, block, data, sc, vd, tooltipped);
                 }
-                #[cfg(feature = "ck3")]
-                Effect::Target(key, outscopes) => {
-                    if let Some(block) = bv.expect_block() {
-                        let mut vd = Validator::new(block, data);
-                        vd.set_case_sensitive(false);
-                        vd.req_field(key);
-                        vd.field_target(key, sc, outscopes);
-                    }
+            }
+            Effect::Vv(f) => {
+                if let Some(token) = bv.expect_value() {
+                    let vd = ValueValidator::new(token, data);
+                    f(key, vd, sc, tooltipped);
                 }
-                Effect::TargetValue(key, outscopes, valuekey) => {
-                    if let Some(block) = bv.expect_block() {
-                        let mut vd = Validator::new(block, data);
-                        vd.set_case_sensitive(false);
-                        vd.req_field(key);
-                        vd.req_field(valuekey);
-                        vd.field_target(key, sc, outscopes);
-                        vd.field_script_value(valuekey, sc);
-                    }
+            }
+            Effect::Vbv(f) => {
+                f(key, bv, data, sc, tooltipped);
+            }
+            Effect::ControlOrLabel => match bv {
+                BV::Value(t) => {
+                    data.verify_exists(Item::Localization, t);
+                    data.validate_localization_sc(t.as_str(), sc);
                 }
-                #[cfg(feature = "ck3")]
-                Effect::ItemTarget(ikey, itype, tkey, outscopes) => {
-                    if let Some(block) = bv.expect_block() {
-                        let mut vd = Validator::new(block, data);
-                        vd.set_case_sensitive(false);
-                        vd.field_item(ikey, itype);
-                        vd.field_target(tkey, sc, outscopes);
-                    }
+                BV::Block(b) => {
+                    validate_effect_control(&Lowercase::new(key.as_str()), b, data, sc, tooltipped)
                 }
-                #[cfg(feature = "ck3")]
-                Effect::ItemValue(key, itype) => {
-                    if let Some(block) = bv.expect_block() {
-                        let mut vd = Validator::new(block, data);
-                        vd.set_case_sensitive(false);
-                        vd.req_field(key);
-                        vd.req_field("value");
-                        vd.field_item(key, itype);
-                        vd.field_script_value("value", sc);
-                    }
-                }
-                Effect::Choice(choices) => {
-                    if let Some(token) = bv.expect_value() {
-                        if !choices.contains(&token.as_str()) {
-                            let msg = format!("expected one of {}", choices.join(", "));
-                            error(token, ErrorKey::Choice, &msg);
-                        }
-                    }
-                }
-                #[cfg(feature = "ck3")]
-                Effect::Desc => validate_desc(bv, data, sc),
-                Effect::Timespan => {
-                    if let Some(block) = bv.expect_block() {
-                        validate_compare_duration(block, data, sc);
-                    }
-                }
-                Effect::Vb(f) => {
-                    if let Some(block) = bv.expect_block() {
-                        let mut vd = Validator::new(block, data);
-                        vd.set_case_sensitive(false);
-                        f(key, block, data, sc, vd, tooltipped);
-                    }
-                }
-                Effect::Vv(f) => {
-                    if let Some(token) = bv.expect_value() {
-                        let vd = ValueValidator::new(token, data);
-                        f(key, vd, sc, tooltipped);
-                    }
-                }
-                Effect::Vbv(f) => {
-                    f(key, bv, data, sc, tooltipped);
-                }
-                Effect::ControlOrLabel => match bv {
-                    BV::Value(t) => {
-                        data.verify_exists(Item::Localization, t);
-                        data.validate_localization_sc(t.as_str(), sc);
-                    }
-                    BV::Block(b) => validate_effect_control(
+            },
+            Effect::Control => {
+                if let Some(block) = bv.expect_block() {
+                    validate_effect_control(
                         &Lowercase::new(key.as_str()),
-                        b,
+                        block,
                         data,
                         sc,
                         tooltipped,
-                    ),
-                },
-                Effect::Control => {
-                    if let Some(block) = bv.expect_block() {
-                        validate_effect_control(
-                            &Lowercase::new(key.as_str()),
-                            block,
-                            data,
-                            sc,
-                            tooltipped,
-                        );
-                    }
+                    );
                 }
-                #[cfg(any(feature = "ck3", feature = "vic3"))]
-                Effect::Removed(version, explanation) => {
-                    let msg = format!("`{key}` was removed in {version}");
-                    warn_info(key, ErrorKey::Removed, &msg, explanation);
-                }
-                Effect::Unchecked | Effect::UncheckedTodo => (),
             }
-            return;
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
+            Effect::Removed(version, explanation) => {
+                let msg = format!("`{key}` was removed in {version}");
+                warn_info(key, ErrorKey::Removed, &msg, explanation);
+            }
+            Effect::Unchecked | Effect::UncheckedTodo => (),
         }
+        return;
+    }
 
-        if let Some((it_type, it_name)) = key.split_once('_') {
-            if it_type.is("any")
-                || it_type.is("ordered")
-                || it_type.is("every")
-                || it_type.is("random")
-            {
-                if let Some((inscopes, outscope)) = scope_iterator(&it_name, data, sc) {
-                    if it_type.is("any") {
-                        let msg = "cannot use `any_` lists in an effect";
-                        error(key, ErrorKey::Validation, msg);
-                        return;
-                    }
-                    sc.expect(inscopes, &Reason::Token(key.clone()));
-                    let ltype = ListType::try_from(it_type.as_str()).unwrap();
-                    if let Some(b) = bv.expect_block() {
-                        precheck_iterator_fields(ltype, b, data, sc);
-                    }
-                    sc.open_scope(outscope, key.clone());
-                    if let Some(b) = bv.get_block() {
-                        let vd = Validator::new(b, data);
-                        validate_effect_internal(
-                            &Lowercase::new(it_name.as_str()),
-                            ltype,
-                            b,
-                            data,
-                            sc,
-                            vd,
-                            tooltipped,
-                        );
-                    }
-                    sc.close();
+    if let Some((it_type, it_name)) = key.split_once('_') {
+        if it_type.is("any") || it_type.is("ordered") || it_type.is("every") || it_type.is("random")
+        {
+            if let Some((inscopes, outscope)) = scope_iterator(&it_name, data, sc) {
+                if it_type.is("any") {
+                    let msg = "cannot use `any_` lists in an effect";
+                    error(key, ErrorKey::Validation, msg);
                     return;
                 }
+                sc.expect(inscopes, &Reason::Token(key.clone()));
+                let ltype = ListType::try_from(it_type.as_str()).unwrap();
+                if let Some(b) = bv.expect_block() {
+                    precheck_iterator_fields(ltype, b, data, sc);
+                }
+                sc.open_scope(outscope, key.clone());
+                if let Some(b) = bv.get_block() {
+                    let vd = Validator::new(b, data);
+                    validate_effect_internal(
+                        &Lowercase::new(it_name.as_str()),
+                        ltype,
+                        b,
+                        data,
+                        sc,
+                        vd,
+                        tooltipped,
+                    );
+                }
+                sc.close();
+                return;
             }
         }
+    }
 
-        // Check if it's a target = { target_scope } block.
-        sc.open_builder();
-        if validate_scope_chain(key, data, sc, matches!(cmp, Comparator::Equals(Question))) {
-            sc.finalize_builder();
-            if key.starts_with("flag:") {
-                let msg = "as of 1.9, flag literals can not be used on the left-hand side";
-                error(key, ErrorKey::Scopes, msg);
-            }
-            if let Some(block) = bv.expect_block() {
-                validate_effect(block, data, sc, tooltipped);
-            }
+    // Check if it's a target = { target_scope } block.
+    sc.open_builder();
+    if validate_scope_chain(key, data, sc, matches!(cmp, Comparator::Equals(Question))) {
+        sc.finalize_builder();
+        if key.starts_with("flag:") {
+            let msg = "as of 1.9, flag literals can not be used on the left-hand side";
+            error(key, ErrorKey::Scopes, msg);
         }
-        sc.close();
-    });
+        if let Some(block) = bv.expect_block() {
+            validate_effect(block, data, sc, tooltipped);
+        }
+    }
+    sc.close();
 }
 
 /// Validate an effect that has other effects inside its block.
