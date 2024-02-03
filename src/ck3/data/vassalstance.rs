@@ -29,6 +29,8 @@ impl DbKind for VassalStance {
         let mut sc = ScopeContext::new(Scopes::Character, key);
         sc.define_name("liege", Scopes::Character, key);
 
+        // `_ai_<value>` are checked in `lookup_modif` when called
+        // as their format may not be defined if not used
         for sfx in [
             "_opinion",
             "_same_faith_opinion",
@@ -39,15 +41,6 @@ impl DbKind for VassalStance {
             "_tax_contribution_mult",
             "_levy_contribution_add",
             "_levy_contribution_mult",
-            "_ai_honor",
-            "_ai_greed",
-            "_ai_rationality",
-            "_ai_energy",
-            "_ai_boldness",
-            "_ai_zeal",
-            "_ai_vengefulness",
-            "_ai_compassion",
-            "_ai_sociability",
         ] {
             let modif = format!("{key}{sfx}");
             data.verify_exists_implied(Item::ModifierFormat, &modif, key);
