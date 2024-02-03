@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use fnv::{FnvHashMap, FnvHashSet};
 
-use crate::block::{Block, BV};
+use crate::block::{Block, Comparator, Eq::*, BV};
 use crate::ck3::data::houses::House;
 use crate::ck3::validate::validate_portrait_modifier_overrides;
 use crate::context::ScopeContext;
@@ -14,6 +14,7 @@ use crate::effect::{validate_effect, validate_effect_field};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, error, fatal, old_warn, warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
@@ -425,13 +426,13 @@ impl Character {
 
         // unknown effect field
         validate_effect_field(
-            &crate::lowercase::Lowercase::empty(),
+            &Lowercase::empty(),
             key,
-            crate::block::Comparator::Equals(crate::block::Eq::Single),
+            Comparator::Equals(Single),
             bv,
             data,
             sc,
-            Tooltipped::No
+            Tooltipped::No,
         );
 
         None
@@ -447,16 +448,17 @@ impl Character {
             use LifeEventType::*;
 
             if birth.is_none() && event != Birth {
-                let msg = format!("{character} was not born yet");
+                let msg = format!("{character} was not born yet on {date}");
                 let mut loc = token.loc.clone();
                 loc.column = 0;
                 warn(ErrorKey::History).msg(msg).loc(loc).push();
             }
 
-            if let Some((date, death_loc)) = &death {
-                // Pothumous 
+            if let Some((death_date, death_loc)) = &death {
                 if event != Posthumous {
-                    let msg = format!("{character} had died already on {date}");
+                    let msg = format!(
+                        "{character} was not alive on {date}, had already died on {death_date}"
+                    );
                     let mut loc = token.loc.clone();
                     loc.column = 0;
                     warn(ErrorKey::History).msg(msg).loc(loc).loc(death_loc, "from here").push();
@@ -468,8 +470,8 @@ impl Character {
                     let mut loc = token.loc.clone();
                     loc.column = 0;
 
-                    if let Some((date, birth_loc)) = &birth {
-                        let msg = format!("{character} was born already on {date}");
+                    if let Some((birth_date, birth_loc)) = &birth {
+                        let msg = format!("{character} couldn't be born again on {date}, was born already on {birth_date}");
                         warn(ErrorKey::History)
                             .msg(msg)
                             .loc(loc.clone())
@@ -480,7 +482,7 @@ impl Character {
                 }
                 AddSpouse => {
                     if !spouses.insert(token.clone()) {
-                        let msg = format!("{character} had already added {token} as spouse");
+                        let msg = format!("{character} already had {token} as a spouse on {date}");
                         let curr_token = spouses.get(&token).unwrap();
                         warn(ErrorKey::History)
                             .msg(msg)
@@ -491,7 +493,7 @@ impl Character {
                 }
                 RemoveSpouse => {
                     if !spouses.remove(&token) {
-                        let msg = format!("{character} did not have {token} as a spouse");
+                        let msg = format!("{character} did not have {token} as a spouse on {date}");
                         warn(ErrorKey::History).msg(msg).loc(token).push();
                     }
                 }
@@ -499,7 +501,7 @@ impl Character {
                 Unemployed => employed = false,
                 GiveCouncilPosition => {
                     if !employed {
-                        let msg = format!("{character} was not employed");
+                        let msg = format!("{character} was not at court with `employed` on {date}");
                         warn(ErrorKey::History).msg(msg).loc(token).push();
                     }
                 }
@@ -510,7 +512,7 @@ impl Character {
                 }
                 Posthumous => {
                     if death.is_none() {
-                        let msg = format!("{character} had not died yet");
+                        let msg = format!("{character} had not died yet on {date}");
                         warn(ErrorKey::History).msg(msg).loc(token).push();
                     }
                 }
