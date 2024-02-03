@@ -6,18 +6,23 @@ use crate::scopes::*;
 use crate::token::Token;
 use crate::vic3::effect_validation::*;
 
+use fnv::FnvHashMap;
+use once_cell::sync::Lazy;
 use Effect::*;
 
 pub fn scope_effect(name: &Token, _data: &Everything) -> Option<(Scopes, Effect)> {
-    let lwname = name.as_str().to_lowercase();
-
-    for (from, s, effect) in SCOPE_EFFECT {
-        if lwname == *s {
-            return Some((*from, *effect));
-        }
-    }
-    std::option::Option::None
+    let name_lc = name.as_str().to_lowercase();
+    SCOPE_EFFECT_MAP.get(&*name_lc).copied()
 }
+
+/// A hashed version of [`SCOPE_EFFECT`], for quick lookup by effect name.
+static SCOPE_EFFECT_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Effect)>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (from, s, effect) in SCOPE_EFFECT.iter().copied() {
+        hash.insert(s, (from, effect));
+    }
+    hash
+});
 
 // LAST UPDATED VIC3 VERSION 1.5.11
 // See `effects.log` from the game data dumps
