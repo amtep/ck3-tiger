@@ -280,7 +280,7 @@ impl DbKind for CultureTradition {
             vd.unknown_value_fields(|key, value| {
                 if let Some(layer_idx) = key.expect_integer().and_then(|i| {
                     // short circuit evaluation so no panic
-                    if i >= 0 || (i as usize) < layer_path.len() {
+                    if i >= 0 && (i as usize) < layer_path.len() {
                         Some(i as usize)
                     } else {
                         let msg =
