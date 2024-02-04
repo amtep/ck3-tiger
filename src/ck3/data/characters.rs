@@ -16,7 +16,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, error, fatal, old_warn, warn, warn_info, ErrorKey};
+use crate::report::{err, error, fatal, old_warn, untidy, warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -349,11 +349,12 @@ impl Character {
                         return None;
                     }
                     "employer" => {
-                        if !value.is("0") {
-                            data.verify_exists(Item::Character, value);
-                            if data.item_exists(Item::Character, value.as_str()) {
-                                data.characters.verify_alive(value, date);
-                            }
+                        if value.is("0") {
+                            return Some((Unemployed, key.clone()));
+                        }
+                        data.verify_exists(Item::Character, value);
+                        if data.item_exists(Item::Character, value.as_str()) {
+                            data.characters.verify_alive(value, date);
                         }
                         return Some((Employed, key.clone()));
                     }
@@ -366,7 +367,7 @@ impl Character {
                     }
                     "give_council_position" => {
                         data.verify_exists(Item::CouncilPosition, value);
-                        return Some((GiveCouncilPosition, key.clone()));
+                        return None;
                     }
                     "capital" => {
                         data.verify_exists(Item::Title, value);
@@ -498,12 +499,12 @@ impl Character {
                     }
                 }
                 Employed => employed = true,
-                Unemployed => employed = false,
-                GiveCouncilPosition => {
+                Unemployed => {
                     if !employed {
-                        let msg = format!("{character} was not at court with `employed` on {date}");
-                        warn(ErrorKey::History).msg(msg).loc(token).push();
+                        let msg = format!("{character} was unemployed anyway on {date}");
+                        untidy(ErrorKey::History).msg(msg).loc(token).push();
                     }
+                    employed = false;
                 }
                 Death => {
                     let mut loc = token.loc.clone();
@@ -674,7 +675,6 @@ enum LifeEventType {
     Employed,
     /// Must be employed already
     Unemployed,
-    GiveCouncilPosition,
     /// All other events must happen before death
     Death,
     Posthumous,
