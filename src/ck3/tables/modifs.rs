@@ -300,22 +300,18 @@ fn modif_check(
     Some(mk)
 }
 
-/// Return the modifier localization if it has one. If the modifier is static,
+/// Return the modifier localization. If the modifier is static,
 /// i.e. a code defined modifier, it begins with `MOD_` and may have a different body in special cases.
-/// If the modifier is dynamic, i.e. generated from script defined items, then it is returned unchanged.
-/// AI values do not have a localization, and hence return `None`.
-pub fn modif_loc(name: &Token) -> Option<Cow<'static, str>> {
+/// If the modifier is dynamic, i.e. generated from script defined items, then its name is returned unchanged.
+pub fn modif_loc(name: &Token) -> Cow<'static, str> {
     let name_lc = name.as_str().to_lowercase();
-    if name_lc.starts_with("ai_") {
-        return None;
-    }
 
     if let Some(body) = SPECIAL_MODIF_LOC_MAP.get(&*name_lc).copied() {
-        Some(Cow::Borrowed(body))
+        Cow::Borrowed(body)
     } else if MODIF_MAP.contains_key(&*name_lc) {
-        Some(Cow::Owned(format!("MOD_{}", name_lc.to_uppercase())))
+        Cow::Owned(format!("MOD_{}", name_lc.to_uppercase()))
     } else {
-        Some(Cow::Owned(name_lc))
+        Cow::Owned(name_lc)
     }
 }
 
@@ -820,15 +816,30 @@ const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[
     // County
     ("development_growth_factor", "MOD_MONTHLY_DEVELOPMENT_GROWTH_FACTOR"),
     ("development_growth", "MOD_MONTHLY_DEVELOPMENT_GROWTH"),
-    ("character_capital_county_monthly_development_growth_add", "MOD_CHARACTER_CAPITAL_MONTHLY_DEVELOPMENT_GROWTH_ADD"),
+    (
+        "character_capital_county_monthly_development_growth_add",
+        "MOD_CHARACTER_CAPITAL_MONTHLY_DEVELOPMENT_GROWTH_ADD",
+    ),
     ("monthly_county_control_change_add", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH"),
     ("monthly_county_control_change_factor", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_FACTOR"),
-    ("monthly_county_control_change_add_even_if_baron", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_EVEN_IF_BARON"),
-    ("monthly_county_control_change_factor_even_if_baron", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_FACTOR_EVEN_IF_BARON"),
+    (
+        "monthly_county_control_change_add_even_if_baron",
+        "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_EVEN_IF_BARON",
+    ),
+    (
+        "monthly_county_control_change_factor_even_if_baron",
+        "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_FACTOR_EVEN_IF_BARON",
+    ),
     ("monthly_county_control_change_at_war_add", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_AT_WAR"),
-    ("monthly_county_control_change_at_war_mult", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_FACTOR_AT_WAR"),
+    (
+        "monthly_county_control_change_at_war_mult",
+        "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_FACTOR_AT_WAR",
+    ),
     ("different_faith_county_opinion_mult", "MOD_COUNTY_OPINION_DIFFERENT_FAITH_MULT"),
-    ("different_faith_county_opinion_mult_even_if_baron", "MOD_COUNTY_OPINION_DIFFERENT_FAITH_MULT_EVEN_IF_BARON"),
+    (
+        "different_faith_county_opinion_mult_even_if_baron",
+        "MOD_COUNTY_OPINION_DIFFERENT_FAITH_MULT_EVEN_IF_BARON",
+    ),
     // Culture
     ("mercenary_count_mult", "MOD_CULTURE_MERCENARY_MULT"),
     ("cultural_head_fascination_add", "MOD_CULTURAL_FASCINATION_INNOVATION_ADD"),

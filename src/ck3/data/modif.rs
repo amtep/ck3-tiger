@@ -26,10 +26,13 @@ impl DbKind for ModifierFormat {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        if let Some(loca) = modif_loc(key) {
+        if let Some("yes") = vd.field_value("hidden").map(Token::as_str) {
+            // hidden hence no localization check needed, e.g. `ai_<value>`
+        } else {
+            let loca = modif_loc(key);
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
-        
+
         verify_modif_exists(key, data, ModifKinds::all(), Severity::Untidy);
 
         vd.field_integer("decimals");
