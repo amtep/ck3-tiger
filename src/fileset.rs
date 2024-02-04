@@ -472,7 +472,7 @@ impl Fileset {
             Ok(_) => unreachable!(),
             Err(idx) => {
                 // there exists a file in the given directory
-                if self.ordered_files[idx].path.starts_with(&dirpath) {
+                if self.ordered_files[idx].path.starts_with(dirpath) {
                     self.directories.write().unwrap().insert(dirpath.to_path_buf());
                     return true;
                 }

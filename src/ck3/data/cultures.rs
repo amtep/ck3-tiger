@@ -278,17 +278,19 @@ impl DbKind for CultureTradition {
 
             let mut vd = Validator::new(block, data);
             vd.unknown_value_fields(|key, value| {
-                if let Some(layer_idx) = key.expect_integer().and_then(|i| {
-                    // short circuit evaluation so no panic
-                    if i >= 0 && (i as usize) < layer_path.len() {
-                        Some(i as usize)
-                    } else {
-                        let msg =
-                            format!("layer index out of range between 0 and {}", layer_path.len());
-                        err(ErrorKey::Validation).msg(msg).loc(key).push();
-                        None
-                    }
-                }) {
+                if let Some(layer_idx) =
+                    key.expect_integer().and_then(|i| match usize::try_from(i) {
+                        Ok(u) if u < layer_path.len() => Some(u),
+                        _ => {
+                            let msg = format!(
+                                "layer index out of range between 0 and {}",
+                                layer_path.len()
+                            );
+                            err(ErrorKey::Range).msg(msg).loc(key).push();
+                            None
+                        }
+                    })
+                {
                     let loca = format!("{}/{}", layer_path[layer_idx], value);
                     data.verify_exists_implied(Item::Entry, &loca, value);
                 }

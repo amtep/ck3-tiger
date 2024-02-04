@@ -18,6 +18,8 @@ use thiserror::Error;
 
 use crate::block::Block;
 #[cfg(feature = "ck3")]
+use crate::block::BV;
+#[cfg(feature = "ck3")]
 use crate::ck3::data::{
     characters::Characters, data_binding::DataBindings, doctrines::Doctrines, events::Ck3Events,
     gameconcepts::GameConcepts, interaction_cats::CharacterInteractionCategories,
@@ -775,12 +777,12 @@ impl Everything {
 
     #[cfg(feature = "ck3")] // happens not to be used by vic3
     pub(crate) fn get_defined_string(&self, key: &str) -> Option<&Token> {
-        self.defines.get_bv(key).and_then(|bv| bv.get_value())
+        self.defines.get_bv(key).and_then(BV::get_value)
     }
 
     #[cfg(feature = "ck3")] // happens not to be used by vic3
     pub(crate) fn get_defined_array(&self, key: &str) -> Option<&Block> {
-        self.defines.get_bv(key).and_then(|bv| bv.get_block())
+        self.defines.get_bv(key).and_then(BV::get_block)
     }
 
     #[allow(clippy::missing_panics_doc)] // only panics on poisoned mutex
