@@ -25,17 +25,6 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // Vassal stance opinions
     for sfx in [
-        "_different_culture_opinion",
-        "_different_faith_opinion",
-        "_same_culture_opinion",
-        "_same_faith_opinion",
-    ] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
-            return modif_check(name, s, Item::VassalStance, ModifKinds::Character, data, warn);
-        }
-    }
-
-    for sfx in [
         "_ai_boldness",
         "_ai_compassion",
         "_ai_energy",
@@ -45,10 +34,12 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         "_ai_sociability",
         "_ai_vengefulness",
         "_ai_zeal",
+        "_different_culture_opinion",
+        "_different_faith_opinion",
+        "_same_culture_opinion",
+        "_same_faith_opinion",
     ] {
         if let Some(s) = name_lc.strip_suffix(sfx) {
-            // Verify modifier format
-            data.verify_exists(Item::ModifierFormat, name);
             return modif_check(name, s, Item::VassalStance, ModifKinds::Character, data, warn);
         }
     }
