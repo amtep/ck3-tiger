@@ -1333,23 +1333,6 @@ pub fn validate_argument_scope(
     }
 }
 
-/// Validate that the prefix token does exist and match the `wanted` string,
-/// and that the argument is valid.
-#[cfg(feature = "ck3")]
-pub fn validate_prefix_reference_token(token: &Token, data: &Everything, wanted: &str) {
-    if let Some((prefix, arg)) = token.split_once(':') {
-        let mut sc = ScopeContext::new(Scopes::None, token);
-        if let Some((_, _, trigger)) = scope_prefix(&prefix) {
-            validate_argument_internal(&arg, trigger, data, &mut sc);
-        }
-        if prefix.lowercase_is(wanted) {
-            return;
-        }
-    }
-    let msg = format!("should start with `{wanted}:` here");
-    error(token, ErrorKey::Validation, &msg);
-}
-
 /// Validate that the argument passed through is valid, either being of a complex trigger compare value,
 /// or a scope prefix.
 #[allow(unreachable_code, unused_variables)]

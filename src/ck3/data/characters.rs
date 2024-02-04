@@ -427,7 +427,7 @@ impl Character {
 
         // unknown effect field
         validate_effect_field(
-            &Lowercase::empty(),
+            Lowercase::empty(),
             key,
             Comparator::Equals(Single),
             bv,
@@ -445,7 +445,7 @@ impl Character {
         let mut spouses = FnvHashSet::<Token>::default();
         let mut employed = false;
 
-        for LifeEvent { date, index: _, token, event } in life_events.into_iter() {
+        for LifeEvent { date, index: _, token, event } in life_events {
             use LifeEventType::*;
 
             if birth.is_none() && event != Birth {
@@ -509,7 +509,7 @@ impl Character {
                 Death => {
                     let mut loc = token.loc.clone();
                     loc.column = 0;
-                    death = Some((date, loc))
+                    death = Some((date, loc));
                 }
                 Posthumous => {
                     if death.is_none() {
@@ -585,12 +585,7 @@ impl Character {
                 if let Some((life_event_type, token)) =
                     Self::validate_life_event(date, gender, key, bv, data, &mut sc)
                 {
-                    life_events.push(LifeEvent {
-                        date,
-                        index: index as u16,
-                        event: life_event_type,
-                        token,
-                    });
+                    life_events.push(LifeEvent { date, index, event: life_event_type, token });
                 }
             }
         });
@@ -692,7 +687,7 @@ impl Eq for LifeEventType {}
 #[derive(Debug)]
 struct LifeEvent {
     date: Date,
-    index: u16,
+    index: usize,
     event: LifeEventType,
     token: Token,
 }

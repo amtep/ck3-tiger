@@ -319,7 +319,7 @@ pub fn validate_effect_field(
                     data.validate_localization_sc(t.as_str(), sc);
                 }
                 BV::Block(b) => {
-                    validate_effect_control(&Lowercase::new(key.as_str()), b, data, sc, tooltipped)
+                    validate_effect_control(&Lowercase::new(key.as_str()), b, data, sc, tooltipped);
                 }
             },
             Effect::Control => {
