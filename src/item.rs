@@ -81,6 +81,7 @@ pub enum Item {
     GuiLayer,
     GuiTemplate,
     GuiType,
+    LawGroup,
     Localization,
     MapEnvironment,
     MapMode,
@@ -125,8 +126,6 @@ pub enum Item {
     EventTheme,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
     Law,
-    #[cfg(any(feature = "ck3", feature = "vic3"))]
-    LawGroup,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     Message,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
@@ -361,6 +360,8 @@ pub enum Item {
     #[cfg(feature = "imperator")] AiPlanGoals,
     #[cfg(feature = "imperator")] Area,
     #[cfg(feature = "imperator")] CultureGroup,
+    #[cfg(feature = "imperator")] CombatTactic,
+    #[cfg(feature = "imperator")] Country,
     #[cfg(feature = "imperator")] Deity,
     #[cfg(feature = "imperator")] DeityCategory,
     #[cfg(feature = "imperator")] DiplomaticStance,
@@ -368,12 +369,15 @@ pub enum Item {
     #[cfg(feature = "imperator")] EventPicture,
     #[cfg(feature = "imperator")] GovernorPolicy,
     #[cfg(feature = "imperator")] GraphicalCultureType,
+    #[cfg(feature = "imperator")] GreatWorkEffectTier,
     #[cfg(feature = "imperator")] GreatWorkEffect,
     #[cfg(feature = "imperator")] GreatWorkCategory,
     #[cfg(feature = "imperator")] GreatWorkMaterial,
+    #[cfg(feature = "imperator")] GreatWorkModule,
     #[cfg(feature = "imperator")] Heritage,
     #[cfg(feature = "imperator")] Idea,
     #[cfg(feature = "imperator")] Invention,
+    #[cfg(feature = "imperator")] InventionGroup,
     #[cfg(feature = "imperator")] LegionDistinction,
     #[cfg(feature = "imperator")] LevyTemplate,
     #[cfg(feature = "imperator")] Loyalty,
@@ -562,10 +566,11 @@ impl Item {
             Item::EventTheme => "common/event_themes/",
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::Law => "common/laws/",
-            #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::LawGroup => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/laws/",
+                #[cfg(feature = "imperator")]
+                Game::Imperator => "common/laws/",
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => "common/law_groups/",
             },
@@ -1027,6 +1032,10 @@ impl Item {
             #[cfg(feature = "imperator")]
             Item::Area => "map_data/areas.txt",
             #[cfg(feature = "imperator")]
+            Item::Country => "setup/countries/countries.txt",
+            #[cfg(feature = "imperator")]
+            Item::CombatTactic => "common/combat_tactics/",
+            #[cfg(feature = "imperator")]
             Item::CultureGroup => "common/cultures/",
             #[cfg(feature = "imperator")]
             Item::Deity => "common/deities/",
@@ -1045,15 +1054,21 @@ impl Item {
             #[cfg(feature = "imperator")]
             Item::GreatWorkEffect => "common/great_work_effects/",
             #[cfg(feature = "imperator")]
+            Item::GreatWorkEffectTier => "common/great_work_effect_tiers/",
+            #[cfg(feature = "imperator")]
             Item::GreatWorkCategory => "common/great_work_categories/",
             #[cfg(feature = "imperator")]
             Item::GreatWorkMaterial => "common/great_work_materials/",
+            #[cfg(feature = "imperator")]
+            Item::GreatWorkModule => "common/great_work_modules/",
             #[cfg(feature = "imperator")]
             Item::Heritage => "common/heritage/",
             #[cfg(feature = "imperator")]
             Item::Idea => "common/ideas/",
             #[cfg(feature = "imperator")]
             Item::Invention => "common/inventions/",
+            #[cfg(feature = "imperator")]
+            Item::InventionGroup => "common/inventions/",
             #[cfg(feature = "imperator")]
             Item::LegionDistinction => "common/legion_distinctions/",
             #[cfg(feature = "imperator")]

@@ -30,6 +30,9 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
         return Some((Scopes::Province, Trigger::CompareValue));
     }
     if let Some(part) = name.as_str().strip_prefix("num_of_") {
+        if data.item_exists(Item::Building, part) {
+            return Some((Scopes::Province, Trigger::CompareValue));
+        }
         if !data.item_exists(Item::Building, part) && !data.item_exists(Item::PopType, part) {
             let msg = format!("could not find any {part}");
             let info = "Possible valid options would be: num_of_$POPTYPE$ or num_of_$BUILDING$";
@@ -348,9 +351,9 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "opinion",
         Block(&[("type", Scope(Scopes::Country)), ("value", CompareValue)]),
     ),
-    (Scopes::Country, "owns", ScopeOrItem(Scopes::Province, Item::Province)),
+    (Scopes::Country, "owns", Scope(Scopes::Province)),
     (Scopes::Country, "owns_area", ScopeOrItem(Scopes::Area, Item::Area)),
-    (Scopes::Country, "owns_or_subject_owns", ScopeOrItem(Scopes::Province, Item::Province)),
+    (Scopes::Country, "owns_or_subject_owns", Scope(Scopes::Province)),
     (Scopes::Country, "owns_or_subject_owns_area", ScopeOrItem(Scopes::Area, Item::Area)),
     (Scopes::Country, "owns_or_subject_owns_region", ScopeOrItem(Scopes::Region, Item::Region)),
     (Scopes::Country, "owns_region", ScopeOrItem(Scopes::Region, Item::Region)),
@@ -527,17 +530,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("name", UncheckedValue), ("value", CompareValue)]),
     ),
     (Scopes::None, "has_agenda", UncheckedValue),
-    (
-        Scopes::None,
-        "has_dlc",
-        Choice(&[
-            "Heirs of Alexander",
-            "Epirus Flavor Pack",
-            "Magna Graecia",
-            "The Punic Wars",
-            "Hellenistic World Flavor Pack",
-        ]),
-    ),
+    (Scopes::None, "has_dlc", Item(Item::Dlc)),
     (Scopes::None, "has_global_variable", UncheckedValue),
     (Scopes::None, "has_global_variable_list", UncheckedValue),
     (Scopes::None, "has_local_variable", UncheckedValue),

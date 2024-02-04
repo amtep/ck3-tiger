@@ -319,7 +319,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_validated_value`], but expect any number of `name` fields in the block.
-    #[cfg(feature = "vic3")] // silence dead code warning
+    #[cfg(any(feature = "vic3", feature = "imperator"))] // silence dead code warning
     pub fn multi_field_validated_value<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, ValueValidator),
@@ -1071,6 +1071,24 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Expect this [`Block`] to be a block at least `expect` loose values that are integers.
+    /// So it's of the form `{ 1 2 3 }`.
+    #[cfg(feature = "imperator")]
+    pub fn req_tokens_integers_at_least(&mut self, expect: usize) {
+        self.accepted_tokens = true;
+        let mut found = 0;
+        for token in self.block.iter_values() {
+            if token.expect_integer().is_some() {
+                found += 1;
+            }
+        }
+        if found < expect {
+            let msg = format!("expected {expect} integers");
+            let sev = Severity::Error.at_most(self.max_severity);
+            report(ErrorKey::Validation, sev).msg(msg).loc(self.block).push();
+        }
+    }
+
     /// Expect this [`Block`] to be a block with exactly `expect` loose values that are numeric with up to 5 decimals.
     /// So it's of the form `{ 0.0 0.5 1.0 }`
     pub fn req_tokens_numbers_exactly(&mut self, expect: usize) {
@@ -1158,7 +1176,7 @@ impl<'a> Validator<'a> {
 
     /// Expect the block to contain any number of loose sub-blocks (possibly in addition to other things).
     /// Run the closure `f(block, data)` for every sub-block.
-    #[cfg(feature = "vic3")] // ck3 happens not to use; silence dead code warning
+    #[cfg(any(feature = "ck3", feature = "imperator"))] // ck3 happens not to use; silence dead code warning
     pub fn validated_blocks<F>(&mut self, mut f: F)
     where
         F: FnMut(&Block, &Everything),

@@ -22,7 +22,7 @@
     ("GREAT_WORK", Args::Unknown, Imperator(GreatWork)),
     ("GetBuilding", Args::Unknown, Imperator(Building)),
     ("GetCharacter", Args::Unknown, Imperator(Character)),
-    ("GetCountry", Args::Unknown, Imperator(Country)),
+    ("GetCountry", Args::Args(&[DType(Unknown)]), Imperator(Country)),
     ("GetCulture", Args::Unknown, Imperator(Culture)),
     ("GetCultureGroup", Args::Unknown, Imperator(CultureGroup)),
     ("GetDeityDefinition", Args::Unknown, Imperator(Deity)),
