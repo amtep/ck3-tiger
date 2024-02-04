@@ -12,28 +12,29 @@ use crate::token::Token;
 use Effect::*;
 
 pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)> {
-    let lwname = name.as_str().to_lowercase();
+    let name_lc = name.as_str().to_lowercase();
 
-    if let Some((from, effect)) = SCOPE_EFFECT_MAP.get(&*lwname) {
-        return Some((*from, *effect));
+    if let result @ Some(_) = SCOPE_EFFECT_MAP.get(&*name_lc).copied() {
+        return result;
     }
-    if let Some(x) = lwname.strip_suffix("_perk_points") {
+
+    if let Some(x) = name_lc.strip_suffix("_perk_points") {
         if let Some(lifestyle) = x.strip_prefix("add_") {
             data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
             return Some((Scopes::Character, Effect::Integer));
         }
     }
-    if let Some(x) = lwname.strip_suffix("_xp") {
+    if let Some(x) = name_lc.strip_suffix("_xp") {
         if let Some(lifestyle) = x.strip_prefix("add_") {
             data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
             return Some((Scopes::Character, Effect::ScriptValue));
         }
     }
-    if let Some(relation) = lwname.strip_prefix("set_relation_") {
+    if let Some(relation) = name_lc.strip_prefix("set_relation_") {
         data.verify_exists_implied(Item::Relation, relation, name);
         return Some((Scopes::Character, Vbv(validate_set_relation)));
     }
-    if let Some(relation) = lwname.strip_prefix("remove_relation_") {
+    if let Some(relation) = name_lc.strip_prefix("remove_relation_") {
         data.verify_exists_implied(Item::Relation, relation, name);
         return Some((Scopes::Character, Effect::Scope(Scopes::Character)));
     }
@@ -43,8 +44,8 @@ pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)>
 /// A hashed version of [`SCOPE_EFFECT`], for quick lookup by effect name.
 static SCOPE_EFFECT_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Effect)>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
-    for (from, s, effect) in SCOPE_EFFECT {
-        hash.insert(*s, (*from, *effect));
+    for (from, s, effect) in SCOPE_EFFECT.iter().copied() {
+        hash.insert(s, (from, effect));
     }
     hash
 });

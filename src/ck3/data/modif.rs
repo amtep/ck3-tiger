@@ -1,7 +1,7 @@
 use crate::block::Block;
+use crate::ck3::tables::modifs::modif_loc;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::fileset::FileKind;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{verify_modif_exists, ModifKinds};
@@ -26,13 +26,10 @@ impl DbKind for ModifierFormat {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        // TODO: figure out exactly when a localization is needed
-        if block.loc.kind == FileKind::Vanilla {
-            data.localization.mark_used(key.as_str());
-        } else {
-            data.localization.verify_exists(key);
+        if let Some(loca) = modif_loc(key) {
+            data.verify_exists_implied(Item::Localization, &loca, key);
         }
-
+        
         verify_modif_exists(key, data, ModifKinds::all(), Severity::Untidy);
 
         vd.field_integer("decimals");

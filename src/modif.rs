@@ -104,8 +104,6 @@ pub fn validate_modifs<'a>(
             #[cfg(feature = "ck3")]
             if Game::is_ck3() && !key.is("health") && !key.is("negate_health_penalty_add") {
                 data.verify_exists(Item::ModifierFormat, key);
-                // TODO: some modifiers have the loc as MOD_ and then all caps.
-                // data.verify_exists(Item::Localization, key);
             }
             #[cfg(feature = "vic3")]
             if Game::is_vic3() {

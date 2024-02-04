@@ -1,5 +1,10 @@
 #![allow(non_upper_case_globals)]
 
+use std::borrow::Cow;
+
+use fnv::FnvHashMap;
+use once_cell::sync::Lazy;
+
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::modif::ModifKinds;
@@ -10,10 +15,10 @@ use crate::token::Token;
 /// Returns None otherwise.
 // LAST UPDATED CK3 VERSION 1.11.3
 pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> Option<ModifKinds> {
-    for &(entry_name, mk) in MODIF_TABLE {
-        if name.is(entry_name) {
-            return Some(ModifKinds::from_bits_truncate(mk));
-        }
+    let name_lc = name.as_str().to_lowercase();
+
+    if let result @ Some(_) = MODIF_MAP.get(&*name_lc).copied() {
+        return result;
     }
 
     // Look up generated modifs, in a careful order because of possibly overlapping suffixes.
@@ -41,7 +46,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         "_ai_vengefulness",
         "_ai_zeal",
     ] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix(sfx) {
             // Verify modifier format
             data.verify_exists(Item::ModifierFormat, name);
             return modif_check(name, s, Item::VassalStance, ModifKinds::Character, data, warn);
@@ -50,13 +55,13 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // government type opinions
     for sfx in &["_vassal_opinion", "_opinion_same_faith"] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix(sfx) {
             return modif_check(name, s, Item::GovernmentType, ModifKinds::Character, data, warn);
         }
     }
 
     // other opinions
-    if let Some(s) = name.as_str().strip_suffix("_opinion") {
+    if let Some(s) = name_lc.strip_suffix("_opinion") {
         if let Some(sev) = warn {
             if !data.item_exists(Item::Culture, s)
                 && !data.item_exists(Item::Faith, s)
@@ -80,7 +85,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         "_tax_contribution_add",
         "_tax_contribution_mult",
     ] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix(sfx) {
             if let Some(sev) = warn {
                 if !data.item_exists(Item::GovernmentType, s)
                     && !data.item_exists(Item::VassalStance, s)
@@ -107,7 +112,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         "_toughness_add",
         "_toughness_mult",
     ] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix(sfx) {
             if let Some(s) = s.strip_prefix("stationed_") {
                 return modif_check(name, s, Item::MenAtArmsBase, ModifKinds::Province, data, warn);
             }
@@ -117,7 +122,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // men-at-arms types, non-stationed
     for sfx in &["_maintenance_mult", "_max_size_add", "_max_size_mult", "_recruitment_cost_mult"] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix(sfx) {
             return modif_check(name, s, Item::MenAtArmsBase, ModifKinds::Character, data, warn);
         }
     }
@@ -129,7 +134,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         "_scheme_resistance_add",
         "_scheme_resistance_mult",
     ] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix(sfx) {
             return modif_check(name, s, Item::Scheme, ModifKinds::Character, data, warn);
         }
     }
@@ -142,13 +147,13 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         "_max_combat_roll",
         "_min_combat_roll",
     ] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix(sfx) {
             return modif_check(name, s, Item::Terrain, ModifKinds::Character, data, warn);
         }
     }
 
     // monthly_$LIFESTYLE$_xp_gain_mult
-    if let Some(s) = name.as_str().strip_prefix("monthly_") {
+    if let Some(s) = name_lc.strip_prefix("monthly_") {
         if let Some(s) = s.strip_suffix("_xp_gain_mult") {
             return modif_check(name, s, Item::Lifestyle, ModifKinds::Character, data, warn);
         }
@@ -159,7 +164,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // Presumably it applies to all of a trait's tracks in that case.
     // $LIFESTYLE$_xp_gain_mult needs to be handled here too.
     for sfx in &["_xp_degradation_mult", "_xp_gain_mult", "_xp_loss_mult"] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix(sfx) {
             if let Some(s) = s.strip_prefix("trait_track_") {
                 return modif_check(name, s, Item::TraitTrack, ModifKinds::Character, data, warn);
             }
@@ -180,14 +185,14 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // max_$SCHEME_TYPE$_schemes_add
-    if let Some(s) = name.as_str().strip_prefix("max_") {
+    if let Some(s) = name_lc.strip_prefix("max_") {
         if let Some(s) = s.strip_suffix("_schemes_add") {
             return modif_check(name, s, Item::Scheme, ModifKinds::Character, data, warn);
         }
     }
 
     // scheme power against scripted relation
-    if let Some(s) = name.as_str().strip_prefix("scheme_power_against_") {
+    if let Some(s) = name_lc.strip_prefix("scheme_power_against_") {
         for sfx in &["_add", "_mult"] {
             if let Some(s) = s.strip_suffix(sfx) {
                 return modif_check(name, s, Item::Relation, ModifKinds::Character, data, warn);
@@ -196,13 +201,13 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // $TAX_SLOT_TYPE$_add
-    if let Some(s) = name.as_str().strip_suffix("_add") {
+    if let Some(s) = name_lc.strip_suffix("_add") {
         return modif_check(name, s, Item::TaxSlotType, ModifKinds::Character, data, warn);
     }
 
     // geographical region or terrain
     for sfx in &["_development_growth", "_development_growth_factor"] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix(sfx) {
             if data.item_exists(Item::Region, s) {
                 if let Some(sev) = warn {
                     if !data.item_has_property(Item::Region, s, "generates_modifiers") {
@@ -229,7 +234,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // holding type
     for sfx in &["_build_gold_cost", "_build_piety_cost", "_build_prestige_cost", "_build_speed"] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix(sfx) {
             if data.item_exists(Item::HoldingType, s) {
                 return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
             }
@@ -261,7 +266,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         "_tax_mult",
         "_travel_danger",
     ] {
-        if let Some(s) = name.as_str().strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix(sfx) {
             return modif_check(
                 name,
                 s,
@@ -295,389 +300,542 @@ fn modif_check(
     Some(mk)
 }
 
-// Redeclare the `ModifKinds` enums as bare numbers, so that we can to | on them in const tables.
-const Character: u16 = ModifKinds::Character.bits();
-const Province: u16 = ModifKinds::Province.bits();
-const County: u16 = ModifKinds::County.bits();
-const Terrain: u16 = ModifKinds::Terrain.bits();
-const Culture: u16 = ModifKinds::Culture.bits();
-const Scheme: u16 = ModifKinds::Scheme.bits();
-const TravelPlan: u16 = ModifKinds::TravelPlan.bits();
+/// Return the modifier localization if it has one. If the modifier is static,
+/// i.e. a code defined modifier, it begins with `MOD_` and may have a different body in special cases.
+/// If the modifier is dynamic, i.e. generated from script defined items, then it is returned unchanged.
+/// AI values do not have a localization, and hence return `None`.
+pub fn modif_loc(name: &Token) -> Option<Cow<'static, str>> {
+    let name_lc = name.as_str().to_lowercase();
+    if name_lc.starts_with("ai_") {
+        return None;
+    }
+
+    if let Some(body) = SPECIAL_MODIF_LOC_MAP.get(&*name_lc).copied() {
+        Some(Cow::Borrowed(body))
+    } else if MODIF_MAP.contains_key(&*name_lc) {
+        Some(Cow::Owned(format!("MOD_{}", name_lc.to_uppercase())))
+    } else {
+        Some(Cow::Owned(name_lc))
+    }
+}
+
+static MODIF_MAP: Lazy<FnvHashMap<&'static str, ModifKinds>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (s, kind) in MODIF_TABLE.iter().copied() {
+        hash.insert(s, kind);
+    }
+    hash
+});
 
 /// LAST UPDATED CK3 VERSION 1.11.3
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
-const MODIF_TABLE: &[(&str, u16)] = &[
-    ("accolade_glory_gain_mult", Character),
-    ("active_accolades", Character),
-    ("additional_fort_level", Character | Province | County),
-    ("advantage", Character),
-    ("advantage_against_coreligionists", Character),
-    ("ai_amenity_spending", Character),
-    ("ai_amenity_target_baseline", Character),
-    ("ai_boldness", Character),
-    ("ai_compassion", Character),
-    ("ai_energy", Character),
-    ("ai_greed", Character),
-    ("ai_honor", Character),
-    ("ai_rationality", Character),
-    ("ai_sociability", Character),
-    ("ai_vengefulness", Character),
-    ("ai_war_chance", Character),
-    ("ai_war_cooldown", Character),
-    ("ai_zeal", Character),
-    ("army_damage_mult", Character),
-    ("army_maintenance_mult", Character),
-    ("army_pursuit_mult", Character),
-    ("army_screen_mult", Character),
-    ("army_siege_value_mult", Character),
-    ("army_toughness_mult", Character),
-    ("artifact_decay_reduction_mult", Character | Province | County),
-    ("attacker_advantage", Character),
-    ("attraction_opinion", Character),
-    ("build_gold_cost", Character | Province | County),
-    ("building_slot_add", Character | Province | County),
-    ("build_piety_cost", Character | Province | County),
-    ("build_prestige_cost", Character | Province | County),
-    ("build_speed", Character | Province | County),
-    ("character_capital_county_monthly_development_growth_add", Character),
-    ("character_travel_safety", Character),
-    ("character_travel_safety_mult", Character),
-    ("character_travel_speed", Character),
-    ("character_travel_speed_mult", Character),
-    ("child_except_player_heir_opinion", Character),
-    ("child_opinion", Character),
-    ("clergy_opinion", Character),
-    ("close_relative_opinion", Character),
-    ("coastal_advantage", Character),
-    ("controlled_province_advantage", Character),
-    ("councillor_opinion", Character),
-    ("counter_efficiency", Character | Terrain),
-    ("counter_resistance", Character | Terrain),
-    ("county_opinion_add", Character | County),
-    ("county_opinion_add_even_if_baron", Character),
-    ("court_grandeur_baseline_add", Character),
-    ("courtier_and_guest_opinion", Character),
-    ("courtier_opinion", Character),
-    ("cowed_vassal_levy_contribution_add", Character),
-    ("cowed_vassal_levy_contribution_mult", Character),
-    ("cowed_vassal_tax_contribution_add", Character),
-    ("cowed_vassal_tax_contribution_mult", Character),
-    ("cultural_acceptance_gain_mult", Culture),
-    ("cultural_head_acceptance_gain_mult", Character),
-    ("cultural_head_fascination_add", Character),
-    ("cultural_head_fascination_mult", Character),
-    ("culture_tradition_max_add", Culture),
-    ("defender_advantage", Character),
-    ("defender_holding_advantage", Character | Province | County),
-    ("defender_winter_advantage", Province),
-    ("development_growth", Character | Province | County),
-    ("development_growth_factor", Character | Province | County),
-    ("different_culture_opinion", Character),
-    ("different_faith_county_opinion_mult", Character),
-    ("different_faith_county_opinion_mult_even_if_baron", Character),
-    ("different_faith_liege_opinion", Character),
-    ("different_faith_opinion", Character),
-    ("diplomacy", Character),
-    ("diplomacy_per_piety_level", Character),
-    ("diplomacy_per_prestige_level", Character),
-    ("diplomacy_per_stress_level", Character),
-    ("diplomacy_scheme_power", Character),
-    ("diplomacy_scheme_resistance", Character),
-    ("diplomatic_range_mult", Character),
-    ("direct_vassal_opinion", Character),
-    ("domain_limit", Character),
-    ("domain_tax_different_faith_mult", Character),
-    ("domain_tax_different_faith_mult_even_if_baron", Character),
-    ("domain_tax_mult", Character),
-    ("domain_tax_mult_even_if_baron", Character),
-    ("domain_tax_same_faith_mult", Character),
-    ("domain_tax_same_faith_mult_even_if_baron", Character),
-    ("dread_baseline_add", Character),
-    ("dread_decay_add", Character),
-    ("dread_decay_mult", Character),
-    ("dread_gain_mult", Character),
-    ("dread_loss_mult", Character),
-    ("dread_per_tyranny_add", Character),
-    ("dread_per_tyranny_mult", Character),
-    ("dynasty_house_opinion", Character),
-    ("dynasty_opinion", Character),
-    ("eligible_child_except_player_heir_opinion", Character),
-    ("eligible_child_opinion", Character),
-    ("embarkation_cost_mult", Character),
-    ("enemy_hard_casualty_modifier", Character | Terrain),
-    ("enemy_hostile_scheme_success_chance_add", Character),
-    ("enemy_personal_scheme_success_chance_add", Character),
-    ("enemy_terrain_advantage", Character),
-    ("faith_conversion_piety_cost_add", Character),
-    ("faith_conversion_piety_cost_mult", Character),
-    ("faith_creation_piety_cost_add", Character),
-    ("faith_creation_piety_cost_mult", Character),
-    ("fellow_vassal_opinion", Character),
-    ("fertility", Character),
-    ("fort_level", Character | Province | County),
-    ("garrison_size", Character | Province | County),
-    ("general_opinion", Character),
-    ("genetic_trait_strengthen_chance", Character),
-    ("guest_opinion", Character),
-    ("happy_powerful_vassal_levy_contribution_add", Character),
-    ("happy_powerful_vassal_levy_contribution_mult", Character),
-    ("happy_powerful_vassal_tax_contribution_add", Character),
-    ("happy_powerful_vassal_tax_contribution_mult", Character),
-    ("hard_casualty_modifier", Character | Terrain),
-    ("hard_casualty_winter", Province),
-    ("health", Character),
-    ("holding_build_gold_cost", Character | Province | County),
-    ("holding_build_piety_cost", Character | Province | County),
-    ("holding_build_prestige_cost", Character | Province | County),
-    ("holding_build_speed", Character | Province | County),
-    ("holy_order_hire_cost_add", Character),
-    ("holy_order_hire_cost_mult", Character),
-    ("hostage_income_mult", Character),
-    ("hostage_piety_mult", Character),
-    ("hostage_prestige_mult", Character),
-    ("hostage_renown_mult", Character),
-    ("hostile_county_attrition", Character),
-    ("hostile_county_attrition_raiding", Character),
-    ("hostile_raid_time", Character | Province | County),
-    ("hostile_scheme_power_add", Character),
-    ("hostile_scheme_power_mult", Character),
-    ("hostile_scheme_resistance_add", Character),
-    ("hostile_scheme_resistance_mult", Character),
-    ("ignore_different_faith_opinion", Character),
-    ("ignore_negative_culture_opinion", Character),
-    ("ignore_negative_opinion_of_culture", Character),
-    ("ignore_opinion_of_different_faith", Character),
-    ("inbreeding_chance", Character),
-    ("independent_primary_defender_advantage_add", Character),
-    ("independent_ruler_opinion", Character),
-    ("intimidated_vassal_levy_contribution_add", Character),
-    ("intimidated_vassal_levy_contribution_mult", Character),
-    ("intimidated_vassal_tax_contribution_add", Character),
-    ("intimidated_vassal_tax_contribution_mult", Character),
-    ("intrigue", Character),
-    ("intrigue_per_piety_level", Character),
-    ("intrigue_per_prestige_level", Character),
-    ("intrigue_per_stress_level", Character),
-    ("intrigue_scheme_power", Character),
-    ("intrigue_scheme_resistance", Character),
-    ("knight_effectiveness_mult", Character),
-    ("knight_effectiveness_per_dread", Character),
-    ("knight_effectiveness_per_tyranny", Character),
-    ("knight_limit", Character),
-    ("learning", Character),
-    ("learning_per_piety_level", Character),
-    ("learning_per_prestige_level", Character),
-    ("learning_per_stress_level", Character),
-    ("learning_scheme_power", Character),
-    ("learning_scheme_resistance", Character),
-    ("led_by_owner_extra_advantage_add", Character),
-    ("levy_attack", Character),
-    ("levy_maintenance", Character),
-    ("levy_pursuit", Character),
-    ("levy_reinforcement_rate", Character | Province | County),
-    ("levy_reinforcement_rate_different_faith", Character),
-    ("levy_reinforcement_rate_different_faith_even_if_baron", Character),
-    ("levy_reinforcement_rate_even_if_baron", Character),
-    ("levy_reinforcement_rate_friendly_territory", Character | Province | County),
-    ("levy_reinforcement_rate_same_faith", Character),
-    ("levy_reinforcement_rate_same_faith_even_if_baron", Character),
-    ("levy_screen", Character),
-    ("levy_siege", Character),
-    ("levy_size", Character | Province | County),
-    ("levy_toughness", Character),
-    ("liege_opinion", Character),
-    ("life_expectancy", Character),
-    ("long_reign_bonus_mult", Character),
-    ("maa_damage_add", Character),
-    ("maa_damage_mult", Character),
-    ("maa_pursuit_add", Character),
-    ("maa_pursuit_mult", Character),
-    ("maa_screen_add", Character),
-    ("maa_screen_mult", Character),
-    ("maa_siege_value_add", Character),
-    ("maa_siege_value_mult", Character),
-    ("maa_toughness_add", Character),
-    ("maa_toughness_mult", Character),
-    ("martial", Character),
-    ("martial_per_piety_level", Character),
-    ("martial_per_prestige_level", Character),
-    ("martial_per_stress_level", Character),
-    ("martial_scheme_power", Character),
-    ("martial_scheme_resistance", Character),
-    ("max_combat_roll", Character),
-    ("max_hostile_schemes_add", Character),
-    ("max_loot_mult", Character),
-    ("max_personal_schemes_add", Character),
-    ("men_at_arms_cap", Character),
-    ("men_at_arms_limit", Character),
-    ("men_at_arms_maintenance", Character),
-    ("men_at_arms_maintenance_per_dread_mult", Character),
-    ("men_at_arms_recruitment_cost", Character),
-    ("mercenary_count_mult", Culture),
-    ("mercenary_hire_cost_add", Character),
-    ("mercenary_hire_cost_mult", Character),
-    ("min_combat_roll", Character),
-    ("monthly_county_control_change_add", Character | Province | County),
-    ("monthly_county_control_change_add_even_if_baron", Character),
-    ("monthly_county_control_change_at_war_add", Character | Province | County),
-    ("monthly_county_control_change_at_war_mult", Character | Province | County),
-    ("monthly_county_control_change_factor", Character | Province | County),
-    ("monthly_county_control_change_factor_even_if_baron", Character),
-    ("monthly_court_grandeur_change_add", Character),
-    ("monthly_court_grandeur_change_mult", Character),
-    ("monthly_dread", Character),
-    ("monthly_dynasty_prestige", Character),
-    ("monthly_dynasty_prestige_mult", Character),
-    ("monthly_income", Character | Province),
-    ("monthly_income_mult", Character),
-    ("monthly_income_per_stress_level_add", Character),
-    ("monthly_income_per_stress_level_mult", Character),
-    ("monthly_lifestyle_xp_gain_mult", Character),
-    ("monthly_piety", Character),
-    ("monthly_piety_from_buildings_mult", Character),
-    ("monthly_piety_gain_mult", Character),
-    ("monthly_piety_gain_per_dread_add", Character),
-    ("monthly_piety_gain_per_dread_mult", Character),
-    ("monthly_piety_gain_per_happy_powerful_vassal_add", Character),
-    ("monthly_piety_gain_per_happy_powerful_vassal_mult", Character),
-    ("monthly_piety_gain_per_knight_add", Character),
-    ("monthly_piety_gain_per_knight_mult", Character),
-    ("monthly_prestige", Character),
-    ("monthly_prestige_from_buildings_mult", Character),
-    ("monthly_prestige_gain_mult", Character),
-    ("monthly_prestige_gain_per_dread_add", Character),
-    ("monthly_prestige_gain_per_dread_mult", Character),
-    ("monthly_prestige_gain_per_happy_powerful_vassal_add", Character),
-    ("monthly_prestige_gain_per_happy_powerful_vassal_mult", Character),
-    ("monthly_prestige_gain_per_knight_add", Character),
-    ("monthly_prestige_gain_per_knight_mult", Character),
-    ("monthly_tyranny", Character),
-    ("monthly_war_income_add", Character),
-    ("monthly_war_income_mult", Character),
-    ("movement_speed", Character),
-    ("movement_speed_land_raiding", Character),
-    ("naval_movement_speed_mult", Character),
-    ("negate_diplomacy_penalty_add", Character),
-    ("negate_fertility_penalty_add", Character),
-    ("negate_health_penalty_add", Character),
-    ("negate_intrigue_penalty_add", Character),
-    ("negate_learning_penalty_add", Character),
-    ("negate_martial_penalty_add", Character),
-    ("negate_prowess_penalty_add", Character),
-    ("negate_stewardship_penalty_add", Character),
-    ("negative_inactive_inheritance_chance", Character),
-    ("negative_random_genetic_chance", Character),
-    ("no_disembark_penalty", Character),
-    ("no_prowess_loss_from_age", Character),
-    ("no_water_crossing_penalty", Character),
-    ("opinion_of_different_culture", Character),
-    ("opinion_of_different_faith", Character),
-    ("opinion_of_different_faith_liege", Character),
-    ("opinion_of_female_rulers", Character),
-    ("opinion_of_liege", Character),
-    ("opinion_of_male_rulers", Character),
-    ("opinion_of_parents", Character),
-    ("opinion_of_same_culture", Character),
-    ("opinion_of_same_faith", Character),
-    ("opinion_of_vassal", Character),
-    ("owned_hostile_scheme_success_chance_add", Character),
-    ("owned_personal_scheme_success_chance_add", Character),
-    ("owned_scheme_secrecy_add", Character),
-    ("personal_scheme_power_add", Character),
-    ("personal_scheme_power_mult", Character),
-    ("personal_scheme_resistance_add", Character),
-    ("personal_scheme_resistance_mult", Character),
-    ("piety_level_impact_mult", Character),
-    ("player_heir_opinion", Character),
-    ("positive_inactive_inheritance_chance", Character),
-    ("positive_random_genetic_chance", Character),
-    ("powerful_vassal_opinion", Character),
-    ("prestige_level_impact_mult", Character),
-    ("prisoner_opinion", Character),
-    ("prowess", Character),
-    ("prowess_no_portrait", Character),
-    ("prowess_per_piety_level", Character),
-    ("prowess_per_prestige_level", Character),
-    ("prowess_per_stress_level", Character),
-    ("prowess_scheme_power", Character),
-    ("prowess_scheme_resistance", Character),
-    ("pursue_efficiency", Character | Terrain),
-    ("raid_speed", Character),
-    ("random_advantage", Character),
-    ("realm_priest_opinion", Character),
-    ("religious_head_opinion", Character),
-    ("religious_vassal_opinion", Character),
-    ("retreat_losses", Character | Terrain),
-    ("revolting_siege_morale_loss_add", Character),
-    ("revolting_siege_morale_loss_mult", Character),
-    ("same_culture_holy_order_hire_cost_add", Character),
-    ("same_culture_holy_order_hire_cost_mult", Character),
-    ("same_culture_mercenary_hire_cost_add", Character),
-    ("same_culture_mercenary_hire_cost_mult", Character),
-    ("same_culture_opinion", Character),
-    ("same_faith_opinion", Character),
-    ("same_heritage_county_advantage_add", Character),
-    ("scheme_discovery_chance_mult", Character),
-    ("scheme_power", Scheme),
-    ("scheme_resistance", Scheme),
-    ("scheme_secrecy", Scheme),
-    ("scheme_success_chance", Scheme),
-    ("short_reign_duration_mult", Character),
-    ("siege_morale_loss", Character),
-    ("siege_phase_time", Character),
-    ("spouse_opinion", Character),
-    ("stationed_maa_damage_add", Province),
-    ("stationed_maa_damage_mult", Province),
-    ("stationed_maa_pursuit_add", Province),
-    ("stationed_maa_pursuit_mult", Province),
-    ("stationed_maa_screen_add", Province),
-    ("stationed_maa_screen_mult", Province),
-    ("stationed_maa_siege_value_add", Province),
-    ("stationed_maa_siege_value_mult", Province),
-    ("stationed_maa_toughness_add", Province),
-    ("stationed_maa_toughness_mult", Province),
-    ("stewardship", Character),
-    ("stewardship_per_piety_level", Character),
-    ("stewardship_per_prestige_level", Character),
-    ("stewardship_per_stress_level", Character),
-    ("stewardship_scheme_power", Character),
-    ("stewardship_scheme_resistance", Character),
-    ("stress_gain_mult", Character),
-    ("stress_loss_mult", Character),
-    ("stress_loss_per_piety_level", Character),
-    ("stress_loss_per_prestige_level", Character),
-    ("strife_opinion_gain_mult", Character),
-    ("strife_opinion_loss_mult", Character),
-    ("supply_capacity_add", Character),
-    ("supply_capacity_mult", Character),
-    ("supply_duration", Character),
-    ("supply_limit", Character | Province | County),
-    ("supply_limit_mult", Character | Province | County),
-    ("supply_loss_winter", Province),
-    ("tax_mult", Character | Province | County),
-    ("tax_slot_add", Character),
-    ("title_creation_cost", Character),
-    ("title_creation_cost_mult", Character),
-    ("tolerance_advantage_mod", Character),
-    ("travel_companion_opinion", Character),
-    ("travel_danger", Character | Province | County),
-    ("travel_safety_mult", TravelPlan),
-    ("travel_safety", TravelPlan),
-    ("travel_speed_mult", TravelPlan),
-    ("travel_speed", TravelPlan),
-    ("twin_opinion", Character),
-    ("tyranny_gain_mult", Character),
-    ("tyranny_loss_mult", Character),
-    ("uncontrolled_province_advantage", Character),
-    ("vassal_levy_contribution_add", Character),
-    ("vassal_levy_contribution_mult", Character),
-    ("vassal_limit", Character),
-    ("vassal_opinion", Character),
-    ("vassal_tax_contribution_add", Character),
-    ("vassal_tax_contribution_mult", Character),
-    ("vassal_tax_mult", Character),
-    ("winter_advantage", Character),
-    ("winter_movement_speed", Character),
-    ("years_of_fertility", Character),
+const MODIF_TABLE: &[(&str, ModifKinds)] = &[
+    ("accolade_glory_gain_mult", ModifKinds::Character),
+    ("active_accolades", ModifKinds::Character),
+    (
+        "additional_fort_level",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("advantage", ModifKinds::Character),
+    ("advantage_against_coreligionists", ModifKinds::Character),
+    ("ai_amenity_spending", ModifKinds::Character),
+    ("ai_amenity_target_baseline", ModifKinds::Character),
+    ("ai_boldness", ModifKinds::Character),
+    ("ai_compassion", ModifKinds::Character),
+    ("ai_energy", ModifKinds::Character),
+    ("ai_greed", ModifKinds::Character),
+    ("ai_honor", ModifKinds::Character),
+    ("ai_rationality", ModifKinds::Character),
+    ("ai_sociability", ModifKinds::Character),
+    ("ai_vengefulness", ModifKinds::Character),
+    ("ai_war_chance", ModifKinds::Character),
+    ("ai_war_cooldown", ModifKinds::Character),
+    ("ai_zeal", ModifKinds::Character),
+    ("army_damage_mult", ModifKinds::Character),
+    ("army_maintenance_mult", ModifKinds::Character),
+    ("army_pursuit_mult", ModifKinds::Character),
+    ("army_screen_mult", ModifKinds::Character),
+    ("army_siege_value_mult", ModifKinds::Character),
+    ("army_toughness_mult", ModifKinds::Character),
+    (
+        "artifact_decay_reduction_mult",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("attacker_advantage", ModifKinds::Character),
+    ("attraction_opinion", ModifKinds::Character),
+    (
+        "build_gold_cost",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "building_slot_add",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "build_piety_cost",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "build_prestige_cost",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("build_speed", ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County)),
+    ("character_capital_county_monthly_development_growth_add", ModifKinds::Character),
+    ("character_travel_safety", ModifKinds::Character),
+    ("character_travel_safety_mult", ModifKinds::Character),
+    ("character_travel_speed", ModifKinds::Character),
+    ("character_travel_speed_mult", ModifKinds::Character),
+    ("child_except_player_heir_opinion", ModifKinds::Character),
+    ("child_opinion", ModifKinds::Character),
+    ("clergy_opinion", ModifKinds::Character),
+    ("close_relative_opinion", ModifKinds::Character),
+    ("coastal_advantage", ModifKinds::Character),
+    ("controlled_province_advantage", ModifKinds::Character),
+    ("councillor_opinion", ModifKinds::Character),
+    ("counter_efficiency", ModifKinds::Character.union(ModifKinds::Terrain)),
+    ("counter_resistance", ModifKinds::Character.union(ModifKinds::Terrain)),
+    ("county_opinion_add", ModifKinds::Character.union(ModifKinds::County)),
+    ("county_opinion_add_even_if_baron", ModifKinds::Character),
+    ("court_grandeur_baseline_add", ModifKinds::Character),
+    ("courtier_and_guest_opinion", ModifKinds::Character),
+    ("courtier_opinion", ModifKinds::Character),
+    ("cowed_vassal_levy_contribution_add", ModifKinds::Character),
+    ("cowed_vassal_levy_contribution_mult", ModifKinds::Character),
+    ("cowed_vassal_tax_contribution_add", ModifKinds::Character),
+    ("cowed_vassal_tax_contribution_mult", ModifKinds::Character),
+    ("cultural_acceptance_gain_mult", ModifKinds::Culture),
+    ("cultural_head_acceptance_gain_mult", ModifKinds::Character),
+    ("cultural_head_fascination_add", ModifKinds::Character),
+    ("cultural_head_fascination_mult", ModifKinds::Character),
+    ("culture_tradition_max_add", ModifKinds::Culture),
+    ("defender_advantage", ModifKinds::Character),
+    (
+        "defender_holding_advantage",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("defender_winter_advantage", ModifKinds::Province),
+    (
+        "development_growth",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "development_growth_factor",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("different_culture_opinion", ModifKinds::Character),
+    ("different_faith_county_opinion_mult", ModifKinds::Character),
+    ("different_faith_county_opinion_mult_even_if_baron", ModifKinds::Character),
+    ("different_faith_liege_opinion", ModifKinds::Character),
+    ("different_faith_opinion", ModifKinds::Character),
+    ("diplomacy", ModifKinds::Character),
+    ("diplomacy_per_piety_level", ModifKinds::Character),
+    ("diplomacy_per_prestige_level", ModifKinds::Character),
+    ("diplomacy_per_stress_level", ModifKinds::Character),
+    ("diplomacy_scheme_power", ModifKinds::Character),
+    ("diplomacy_scheme_resistance", ModifKinds::Character),
+    ("diplomatic_range_mult", ModifKinds::Character),
+    ("direct_vassal_opinion", ModifKinds::Character),
+    ("domain_limit", ModifKinds::Character),
+    ("domain_tax_different_faith_mult", ModifKinds::Character),
+    ("domain_tax_different_faith_mult_even_if_baron", ModifKinds::Character),
+    ("domain_tax_mult", ModifKinds::Character),
+    ("domain_tax_mult_even_if_baron", ModifKinds::Character),
+    ("domain_tax_same_faith_mult", ModifKinds::Character),
+    ("domain_tax_same_faith_mult_even_if_baron", ModifKinds::Character),
+    ("dread_baseline_add", ModifKinds::Character),
+    ("dread_decay_add", ModifKinds::Character),
+    ("dread_decay_mult", ModifKinds::Character),
+    ("dread_gain_mult", ModifKinds::Character),
+    ("dread_loss_mult", ModifKinds::Character),
+    ("dread_per_tyranny_add", ModifKinds::Character),
+    ("dread_per_tyranny_mult", ModifKinds::Character),
+    ("dynasty_house_opinion", ModifKinds::Character),
+    ("dynasty_opinion", ModifKinds::Character),
+    ("eligible_child_except_player_heir_opinion", ModifKinds::Character),
+    ("eligible_child_opinion", ModifKinds::Character),
+    ("embarkation_cost_mult", ModifKinds::Character),
+    ("enemy_hard_casualty_modifier", ModifKinds::Character.union(ModifKinds::Terrain)),
+    ("enemy_hostile_scheme_success_chance_add", ModifKinds::Character),
+    ("enemy_personal_scheme_success_chance_add", ModifKinds::Character),
+    ("enemy_terrain_advantage", ModifKinds::Character),
+    ("faith_conversion_piety_cost_add", ModifKinds::Character),
+    ("faith_conversion_piety_cost_mult", ModifKinds::Character),
+    ("faith_creation_piety_cost_add", ModifKinds::Character),
+    ("faith_creation_piety_cost_mult", ModifKinds::Character),
+    ("fellow_vassal_opinion", ModifKinds::Character),
+    ("fertility", ModifKinds::Character),
+    ("fort_level", ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County)),
+    ("garrison_size", ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County)),
+    ("general_opinion", ModifKinds::Character),
+    ("genetic_trait_strengthen_chance", ModifKinds::Character),
+    ("guest_opinion", ModifKinds::Character),
+    ("happy_powerful_vassal_levy_contribution_add", ModifKinds::Character),
+    ("happy_powerful_vassal_levy_contribution_mult", ModifKinds::Character),
+    ("happy_powerful_vassal_tax_contribution_add", ModifKinds::Character),
+    ("happy_powerful_vassal_tax_contribution_mult", ModifKinds::Character),
+    ("hard_casualty_modifier", ModifKinds::Character.union(ModifKinds::Terrain)),
+    ("hard_casualty_winter", ModifKinds::Province),
+    ("health", ModifKinds::Character),
+    (
+        "holding_build_gold_cost",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "holding_build_piety_cost",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "holding_build_prestige_cost",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "holding_build_speed",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("holy_order_hire_cost_add", ModifKinds::Character),
+    ("holy_order_hire_cost_mult", ModifKinds::Character),
+    ("hostage_income_mult", ModifKinds::Character),
+    ("hostage_piety_mult", ModifKinds::Character),
+    ("hostage_prestige_mult", ModifKinds::Character),
+    ("hostage_renown_mult", ModifKinds::Character),
+    ("hostile_county_attrition", ModifKinds::Character),
+    ("hostile_county_attrition_raiding", ModifKinds::Character),
+    (
+        "hostile_raid_time",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("hostile_scheme_power_add", ModifKinds::Character),
+    ("hostile_scheme_power_mult", ModifKinds::Character),
+    ("hostile_scheme_resistance_add", ModifKinds::Character),
+    ("hostile_scheme_resistance_mult", ModifKinds::Character),
+    ("ignore_different_faith_opinion", ModifKinds::Character),
+    ("ignore_negative_culture_opinion", ModifKinds::Character),
+    ("ignore_negative_opinion_of_culture", ModifKinds::Character),
+    ("ignore_opinion_of_different_faith", ModifKinds::Character),
+    ("inbreeding_chance", ModifKinds::Character),
+    ("independent_primary_defender_advantage_add", ModifKinds::Character),
+    ("independent_ruler_opinion", ModifKinds::Character),
+    ("intimidated_vassal_levy_contribution_add", ModifKinds::Character),
+    ("intimidated_vassal_levy_contribution_mult", ModifKinds::Character),
+    ("intimidated_vassal_tax_contribution_add", ModifKinds::Character),
+    ("intimidated_vassal_tax_contribution_mult", ModifKinds::Character),
+    ("intrigue", ModifKinds::Character),
+    ("intrigue_per_piety_level", ModifKinds::Character),
+    ("intrigue_per_prestige_level", ModifKinds::Character),
+    ("intrigue_per_stress_level", ModifKinds::Character),
+    ("intrigue_scheme_power", ModifKinds::Character),
+    ("intrigue_scheme_resistance", ModifKinds::Character),
+    ("knight_effectiveness_mult", ModifKinds::Character),
+    ("knight_effectiveness_per_dread", ModifKinds::Character),
+    ("knight_effectiveness_per_tyranny", ModifKinds::Character),
+    ("knight_limit", ModifKinds::Character),
+    ("learning", ModifKinds::Character),
+    ("learning_per_piety_level", ModifKinds::Character),
+    ("learning_per_prestige_level", ModifKinds::Character),
+    ("learning_per_stress_level", ModifKinds::Character),
+    ("learning_scheme_power", ModifKinds::Character),
+    ("learning_scheme_resistance", ModifKinds::Character),
+    ("led_by_owner_extra_advantage_add", ModifKinds::Character),
+    ("levy_attack", ModifKinds::Character),
+    ("levy_maintenance", ModifKinds::Character),
+    ("levy_pursuit", ModifKinds::Character),
+    (
+        "levy_reinforcement_rate",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("levy_reinforcement_rate_different_faith", ModifKinds::Character),
+    ("levy_reinforcement_rate_different_faith_even_if_baron", ModifKinds::Character),
+    ("levy_reinforcement_rate_even_if_baron", ModifKinds::Character),
+    (
+        "levy_reinforcement_rate_friendly_territory",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("levy_reinforcement_rate_same_faith", ModifKinds::Character),
+    ("levy_reinforcement_rate_same_faith_even_if_baron", ModifKinds::Character),
+    ("levy_screen", ModifKinds::Character),
+    ("levy_siege", ModifKinds::Character),
+    ("levy_size", ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County)),
+    ("levy_toughness", ModifKinds::Character),
+    ("liege_opinion", ModifKinds::Character),
+    ("life_expectancy", ModifKinds::Character),
+    ("long_reign_bonus_mult", ModifKinds::Character),
+    ("maa_damage_add", ModifKinds::Character),
+    ("maa_damage_mult", ModifKinds::Character),
+    ("maa_pursuit_add", ModifKinds::Character),
+    ("maa_pursuit_mult", ModifKinds::Character),
+    ("maa_screen_add", ModifKinds::Character),
+    ("maa_screen_mult", ModifKinds::Character),
+    ("maa_siege_value_add", ModifKinds::Character),
+    ("maa_siege_value_mult", ModifKinds::Character),
+    ("maa_toughness_add", ModifKinds::Character),
+    ("maa_toughness_mult", ModifKinds::Character),
+    ("martial", ModifKinds::Character),
+    ("martial_per_piety_level", ModifKinds::Character),
+    ("martial_per_prestige_level", ModifKinds::Character),
+    ("martial_per_stress_level", ModifKinds::Character),
+    ("martial_scheme_power", ModifKinds::Character),
+    ("martial_scheme_resistance", ModifKinds::Character),
+    ("max_combat_roll", ModifKinds::Character),
+    ("max_hostile_schemes_add", ModifKinds::Character),
+    ("max_loot_mult", ModifKinds::Character),
+    ("max_personal_schemes_add", ModifKinds::Character),
+    ("men_at_arms_cap", ModifKinds::Character),
+    ("men_at_arms_limit", ModifKinds::Character),
+    ("men_at_arms_maintenance", ModifKinds::Character),
+    ("men_at_arms_maintenance_per_dread_mult", ModifKinds::Character),
+    ("men_at_arms_recruitment_cost", ModifKinds::Character),
+    ("mercenary_count_mult", ModifKinds::Culture),
+    ("mercenary_hire_cost_add", ModifKinds::Character),
+    ("mercenary_hire_cost_mult", ModifKinds::Character),
+    ("min_combat_roll", ModifKinds::Character),
+    (
+        "monthly_county_control_change_add",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("monthly_county_control_change_add_even_if_baron", ModifKinds::Character),
+    (
+        "monthly_county_control_change_at_war_add",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "monthly_county_control_change_at_war_mult",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "monthly_county_control_change_factor",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("monthly_county_control_change_factor_even_if_baron", ModifKinds::Character),
+    ("monthly_court_grandeur_change_add", ModifKinds::Character),
+    ("monthly_court_grandeur_change_mult", ModifKinds::Character),
+    ("monthly_dread", ModifKinds::Character),
+    ("monthly_dynasty_prestige", ModifKinds::Character),
+    ("monthly_dynasty_prestige_mult", ModifKinds::Character),
+    ("monthly_income", ModifKinds::Character.union(ModifKinds::Province)),
+    ("monthly_income_mult", ModifKinds::Character),
+    ("monthly_income_per_stress_level_add", ModifKinds::Character),
+    ("monthly_income_per_stress_level_mult", ModifKinds::Character),
+    ("monthly_lifestyle_xp_gain_mult", ModifKinds::Character),
+    ("monthly_piety", ModifKinds::Character),
+    ("monthly_piety_from_buildings_mult", ModifKinds::Character),
+    ("monthly_piety_gain_mult", ModifKinds::Character),
+    ("monthly_piety_gain_per_dread_add", ModifKinds::Character),
+    ("monthly_piety_gain_per_dread_mult", ModifKinds::Character),
+    ("monthly_piety_gain_per_happy_powerful_vassal_add", ModifKinds::Character),
+    ("monthly_piety_gain_per_happy_powerful_vassal_mult", ModifKinds::Character),
+    ("monthly_piety_gain_per_knight_add", ModifKinds::Character),
+    ("monthly_piety_gain_per_knight_mult", ModifKinds::Character),
+    ("monthly_prestige", ModifKinds::Character),
+    ("monthly_prestige_from_buildings_mult", ModifKinds::Character),
+    ("monthly_prestige_gain_mult", ModifKinds::Character),
+    ("monthly_prestige_gain_per_dread_add", ModifKinds::Character),
+    ("monthly_prestige_gain_per_dread_mult", ModifKinds::Character),
+    ("monthly_prestige_gain_per_happy_powerful_vassal_add", ModifKinds::Character),
+    ("monthly_prestige_gain_per_happy_powerful_vassal_mult", ModifKinds::Character),
+    ("monthly_prestige_gain_per_knight_add", ModifKinds::Character),
+    ("monthly_prestige_gain_per_knight_mult", ModifKinds::Character),
+    ("monthly_tyranny", ModifKinds::Character),
+    ("monthly_war_income_add", ModifKinds::Character),
+    ("monthly_war_income_mult", ModifKinds::Character),
+    ("movement_speed", ModifKinds::Character),
+    ("movement_speed_land_raiding", ModifKinds::Character),
+    ("naval_movement_speed_mult", ModifKinds::Character),
+    ("negate_diplomacy_penalty_add", ModifKinds::Character),
+    ("negate_fertility_penalty_add", ModifKinds::Character),
+    ("negate_health_penalty_add", ModifKinds::Character),
+    ("negate_intrigue_penalty_add", ModifKinds::Character),
+    ("negate_learning_penalty_add", ModifKinds::Character),
+    ("negate_martial_penalty_add", ModifKinds::Character),
+    ("negate_prowess_penalty_add", ModifKinds::Character),
+    ("negate_stewardship_penalty_add", ModifKinds::Character),
+    ("negative_inactive_inheritance_chance", ModifKinds::Character),
+    ("negative_random_genetic_chance", ModifKinds::Character),
+    ("no_disembark_penalty", ModifKinds::Character),
+    ("no_prowess_loss_from_age", ModifKinds::Character),
+    ("no_water_crossing_penalty", ModifKinds::Character),
+    ("opinion_of_different_culture", ModifKinds::Character),
+    ("opinion_of_different_faith", ModifKinds::Character),
+    ("opinion_of_different_faith_liege", ModifKinds::Character),
+    ("opinion_of_female_rulers", ModifKinds::Character),
+    ("opinion_of_liege", ModifKinds::Character),
+    ("opinion_of_male_rulers", ModifKinds::Character),
+    ("opinion_of_parents", ModifKinds::Character),
+    ("opinion_of_same_culture", ModifKinds::Character),
+    ("opinion_of_same_faith", ModifKinds::Character),
+    ("opinion_of_vassal", ModifKinds::Character),
+    ("owned_hostile_scheme_success_chance_add", ModifKinds::Character),
+    ("owned_personal_scheme_success_chance_add", ModifKinds::Character),
+    ("owned_scheme_secrecy_add", ModifKinds::Character),
+    ("personal_scheme_power_add", ModifKinds::Character),
+    ("personal_scheme_power_mult", ModifKinds::Character),
+    ("personal_scheme_resistance_add", ModifKinds::Character),
+    ("personal_scheme_resistance_mult", ModifKinds::Character),
+    ("piety_level_impact_mult", ModifKinds::Character),
+    ("player_heir_opinion", ModifKinds::Character),
+    ("positive_inactive_inheritance_chance", ModifKinds::Character),
+    ("positive_random_genetic_chance", ModifKinds::Character),
+    ("powerful_vassal_opinion", ModifKinds::Character),
+    ("prestige_level_impact_mult", ModifKinds::Character),
+    ("prisoner_opinion", ModifKinds::Character),
+    ("prowess", ModifKinds::Character),
+    ("prowess_no_portrait", ModifKinds::Character),
+    ("prowess_per_piety_level", ModifKinds::Character),
+    ("prowess_per_prestige_level", ModifKinds::Character),
+    ("prowess_per_stress_level", ModifKinds::Character),
+    ("prowess_scheme_power", ModifKinds::Character),
+    ("prowess_scheme_resistance", ModifKinds::Character),
+    ("pursue_efficiency", ModifKinds::Character.union(ModifKinds::Terrain)),
+    ("raid_speed", ModifKinds::Character),
+    ("random_advantage", ModifKinds::Character),
+    ("realm_priest_opinion", ModifKinds::Character),
+    ("religious_head_opinion", ModifKinds::Character),
+    ("religious_vassal_opinion", ModifKinds::Character),
+    ("retreat_losses", ModifKinds::Character.union(ModifKinds::Terrain)),
+    ("revolting_siege_morale_loss_add", ModifKinds::Character),
+    ("revolting_siege_morale_loss_mult", ModifKinds::Character),
+    ("same_culture_holy_order_hire_cost_add", ModifKinds::Character),
+    ("same_culture_holy_order_hire_cost_mult", ModifKinds::Character),
+    ("same_culture_mercenary_hire_cost_add", ModifKinds::Character),
+    ("same_culture_mercenary_hire_cost_mult", ModifKinds::Character),
+    ("same_culture_opinion", ModifKinds::Character),
+    ("same_faith_opinion", ModifKinds::Character),
+    ("same_heritage_county_advantage_add", ModifKinds::Character),
+    ("scheme_discovery_chance_mult", ModifKinds::Character),
+    ("scheme_power", ModifKinds::Scheme),
+    ("scheme_resistance", ModifKinds::Scheme),
+    ("scheme_secrecy", ModifKinds::Scheme),
+    ("scheme_success_chance", ModifKinds::Scheme),
+    ("short_reign_duration_mult", ModifKinds::Character),
+    ("siege_morale_loss", ModifKinds::Character),
+    ("siege_phase_time", ModifKinds::Character),
+    ("spouse_opinion", ModifKinds::Character),
+    ("stationed_maa_damage_add", ModifKinds::Province),
+    ("stationed_maa_damage_mult", ModifKinds::Province),
+    ("stationed_maa_pursuit_add", ModifKinds::Province),
+    ("stationed_maa_pursuit_mult", ModifKinds::Province),
+    ("stationed_maa_screen_add", ModifKinds::Province),
+    ("stationed_maa_screen_mult", ModifKinds::Province),
+    ("stationed_maa_siege_value_add", ModifKinds::Province),
+    ("stationed_maa_siege_value_mult", ModifKinds::Province),
+    ("stationed_maa_toughness_add", ModifKinds::Province),
+    ("stationed_maa_toughness_mult", ModifKinds::Province),
+    ("stewardship", ModifKinds::Character),
+    ("stewardship_per_piety_level", ModifKinds::Character),
+    ("stewardship_per_prestige_level", ModifKinds::Character),
+    ("stewardship_per_stress_level", ModifKinds::Character),
+    ("stewardship_scheme_power", ModifKinds::Character),
+    ("stewardship_scheme_resistance", ModifKinds::Character),
+    ("stress_gain_mult", ModifKinds::Character),
+    ("stress_loss_mult", ModifKinds::Character),
+    ("stress_loss_per_piety_level", ModifKinds::Character),
+    ("stress_loss_per_prestige_level", ModifKinds::Character),
+    ("strife_opinion_gain_mult", ModifKinds::Character),
+    ("strife_opinion_loss_mult", ModifKinds::Character),
+    ("supply_capacity_add", ModifKinds::Character),
+    ("supply_capacity_mult", ModifKinds::Character),
+    ("supply_duration", ModifKinds::Character),
+    ("supply_limit", ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County)),
+    (
+        "supply_limit_mult",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("supply_loss_winter", ModifKinds::Province),
+    ("tax_mult", ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County)),
+    ("tax_slot_add", ModifKinds::Character),
+    ("title_creation_cost", ModifKinds::Character),
+    ("title_creation_cost_mult", ModifKinds::Character),
+    ("tolerance_advantage_mod", ModifKinds::Character),
+    ("travel_companion_opinion", ModifKinds::Character),
+    ("travel_danger", ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County)),
+    ("travel_safety_mult", ModifKinds::TravelPlan),
+    ("travel_safety", ModifKinds::TravelPlan),
+    ("travel_speed_mult", ModifKinds::TravelPlan),
+    ("travel_speed", ModifKinds::TravelPlan),
+    ("twin_opinion", ModifKinds::Character),
+    ("tyranny_gain_mult", ModifKinds::Character),
+    ("tyranny_loss_mult", ModifKinds::Character),
+    ("uncontrolled_province_advantage", ModifKinds::Character),
+    ("vassal_levy_contribution_add", ModifKinds::Character),
+    ("vassal_levy_contribution_mult", ModifKinds::Character),
+    ("vassal_limit", ModifKinds::Character),
+    ("vassal_opinion", ModifKinds::Character),
+    ("vassal_tax_contribution_add", ModifKinds::Character),
+    ("vassal_tax_contribution_mult", ModifKinds::Character),
+    ("vassal_tax_mult", ModifKinds::Character),
+    ("winter_advantage", ModifKinds::Character),
+    ("winter_movement_speed", ModifKinds::Character),
+    ("years_of_fertility", ModifKinds::Character),
+];
+
+static SPECIAL_MODIF_LOC_MAP: Lazy<FnvHashMap<&'static str, &'static str>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (s, loc) in SPECIAL_MODIF_LOC_TABLE.iter().copied() {
+        hash.insert(s, loc);
+    }
+    hash
+});
+
+/// LAST UPDATED CK3 VERSION 1.11.4
+/// Special cases for static modifs defined in `modifiers/modifiers_l_english.yml`
+const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[
+    // Negate penalty
+    ("negate_diplomacy_penalty_add", "MOD_DIPLOMACY_NEGATE_PENALTY"),
+    ("negate_intrigue_penalty_add", "MOD_INTRIGUE_NEGATE_PENALTY"),
+    ("negate_learning_penalty_add", "MOD_LEARNING_NEGATE_PENALTY"),
+    ("negate_martial_penalty_add", "MOD_MARTIAL_NEGATE_PENALTY"),
+    ("negate_prowess_penalty_add", "MOD_PROWESS_NEGATE_PENALTY"),
+    ("negate_stewardship_penalty_add", "MOD_STEWARDSHIP_NEGATE_PENALTY"),
+    ("negate_fertility_penalty_add", "MOD_FERTILITY_NEGATE_PENALTY"),
+    // Combat
+    ("pursue_efficiency", "MOD_COMBAT_PURSUE_EFFICIENCY"),
+    ("counter_efficiency", "MOD_COMBAT_COUNTER_EFFICIENCY"),
+    ("counter_resistance", "MOD_COMBAT_COUNTER_RESISTANCE"),
+    // Scheme
+    ("scheme_success_chance", "MOD_SCHEME_SUCCESS"),
+    ("owned_hostile_scheme_success_chance_add", "MOD_OWNED_HOSTILE_SCHEME_SUCCESS_ADD"),
+    ("enemy_hostile_scheme_success_chance_add", "MOD_ENEMY_HOSTILE_SCHEME_SUCCESS_ADD"),
+    ("owned_personal_scheme_success_chance_add", "MOD_OWNED_PERSONAL_SCHEME_SUCCESS_ADD"),
+    ("enemy_personal_scheme_success_chance_add", "MOD_ENEMY_PERSONAL_SCHEME_SUCCESS_ADD"),
+    // Advantage
+    ("tolerance_advantage_mod", "MOD_FAITH_HOSTILITY_ADVANTAGE_MOD"),
+    ("advantage_against_coreligionists", "MOD_CORELIGIONIST_ADVANTAGE_MOD"),
+    ("led_by_owner_extra_advantage_add", "MOD_LEAD_BY_OWNER_ADVANTAGE"),
+    ("same_heritage_county_advantage_add", "MOD_SAME_HERITAGE_COUNTY_ADVANTAGE"),
+    ("independent_primary_defender_advantage_add", "MOD_INDEPENDENT_PRIMARY_DEFENDER_ADVANTAGE"),
+    // Fort level
+    ("fort_level", "MOD_HOLDING_FORT_LEVEL"),
+    ("additional_fort_level", "MOD_ADDITIONAL_HOLDING_FORT_LEVEL"),
+    // Construction
+    ("build_speed", "MOD_CONSTRUCTION_SPEED"),
+    ("build_gold_cost", "MOD_CONSTRUCTION_GOLD_COST"),
+    ("build_piety_cost", "MOD_CONSTRUCTION_PIETY_COST"),
+    ("build_prestige_cost", "MOD_CONSTRUCTION_PRESTIGE_COST"),
+    ("holding_build_speed", "MOD_HOLDING_CONSTRUCTION_SPEED"),
+    ("holding_build_gold_cost", "MOD_HOLDING_CONSTRUCTION_GOLD_COST"),
+    ("holding_build_piety_cost", "MOD_HOLDING_CONSTRUCTION_PIETY_COST"),
+    ("holding_build_prestige_cost", "MOD_HOLDING_CONSTRUCTION_PRESTIGE_COST"),
+    // Building Slot
+    ("building_slot_add", "MOD_NUM_BUILDING_SLOTS"),
+    // County
+    ("development_growth_factor", "MOD_MONTHLY_DEVELOPMENT_GROWTH_FACTOR"),
+    ("development_growth", "MOD_MONTHLY_DEVELOPMENT_GROWTH"),
+    ("character_capital_county_monthly_development_growth_add", "MOD_CHARACTER_CAPITAL_MONTHLY_DEVELOPMENT_GROWTH_ADD"),
+    ("monthly_county_control_change_add", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH"),
+    ("monthly_county_control_change_factor", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_FACTOR"),
+    ("monthly_county_control_change_add_even_if_baron", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_EVEN_IF_BARON"),
+    ("monthly_county_control_change_factor_even_if_baron", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_FACTOR_EVEN_IF_BARON"),
+    ("monthly_county_control_change_at_war_add", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_AT_WAR"),
+    ("monthly_county_control_change_at_war_mult", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_FACTOR_AT_WAR"),
+    ("different_faith_county_opinion_mult", "MOD_COUNTY_OPINION_DIFFERENT_FAITH_MULT"),
+    ("different_faith_county_opinion_mult_even_if_baron", "MOD_COUNTY_OPINION_DIFFERENT_FAITH_MULT_EVEN_IF_BARON"),
+    // Culture
+    ("mercenary_count_mult", "MOD_CULTURE_MERCENARY_MULT"),
+    ("cultural_head_fascination_add", "MOD_CULTURAL_FASCINATION_INNOVATION_ADD"),
+    ("cultural_head_fascination_mult", "MOD_CULTURAL_FASCINATION_INNOVATION_MULT"),
+    ("culture_tradition_max_add", "MODE_CULTURE_TRADITION_MAX_ADD"), // sic
+    // Court
+    ("court_grandeur_baseline_add", "MOD_COURT_GRANDEUR_BASELINE"),
+    // Tax Slot
+    ("tax_slot_add", "MOD_NUM_TAX_SLOTS"),
 ];
