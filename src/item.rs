@@ -118,6 +118,8 @@ pub enum Item {
     CharacterTemplate,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     CharacterTrait,
+    #[cfg(any(feature = "vic3", feature = "imperator"))]
+    Country,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
     DeathReason,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
@@ -302,7 +304,6 @@ pub enum Item {
     #[cfg(feature = "vic3")] CommanderOrder,
     #[cfg(feature = "vic3")] CommanderRank,
     #[cfg(feature = "vic3")] CompanyType,
-    #[cfg(feature = "vic3")] Country,
     #[cfg(feature = "vic3")] CountryCreation,
     #[cfg(feature = "vic3")] CountryFormation,
     #[cfg(feature = "vic3")] CountryRank,
@@ -361,7 +362,6 @@ pub enum Item {
     #[cfg(feature = "imperator")] Area,
     #[cfg(feature = "imperator")] CultureGroup,
     #[cfg(feature = "imperator")] CombatTactic,
-    #[cfg(feature = "imperator")] Country,
     #[cfg(feature = "imperator")] Deity,
     #[cfg(feature = "imperator")] DeityCategory,
     #[cfg(feature = "imperator")] DiplomaticStance,
@@ -557,6 +557,13 @@ impl Item {
                 Game::Vic3 => "common/character_traits",
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/traits",
+            },
+            #[cfg(any(feature = "vic3", feature = "imperator"))]
+            Item::Country => match Game::game() {
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => "common/country_definitions/",
+                #[cfg(feature = "imperator")]
+                Game::Imperator => "setup/countries/countries.txt",
             },
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::DeathReason => "common/deathreasons/",
@@ -921,8 +928,6 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::CompanyType => "common/company_types/",
             #[cfg(feature = "vic3")]
-            Item::Country => "common/country_definitions/",
-            #[cfg(feature = "vic3")]
             Item::CountryCreation => "common/country_creation/",
             #[cfg(feature = "vic3")]
             Item::CountryFormation => "common/country_formation/",
@@ -1031,8 +1036,6 @@ impl Item {
             Item::Ambition => "common/ambitions/",
             #[cfg(feature = "imperator")]
             Item::Area => "map_data/areas.txt",
-            #[cfg(feature = "imperator")]
-            Item::Country => "setup/countries/countries.txt",
             #[cfg(feature = "imperator")]
             Item::CombatTactic => "common/combat_tactics/",
             #[cfg(feature = "imperator")]

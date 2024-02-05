@@ -1,6 +1,6 @@
 use crate::datatype::{Arg, Args, Datatype, ImperatorDatatype};
-use crate::scopes::Scopes;
 use crate::item::Item;
+use crate::scopes::Scopes;
 
 use Arg::*;
 use Datatype::*;
