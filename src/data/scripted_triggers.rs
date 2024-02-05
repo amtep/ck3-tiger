@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
 use crate::lowercase::Lowercase;
-use crate::macrocache::MacroCache;
+use crate::macros::{MacroCache, MACRO_MAP};
 use crate::pdxfile::PdxFile;
 use crate::report::{err, old_warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
@@ -42,6 +42,9 @@ impl Triggers {
                 .get(key.as_str())
                 .copied()
                 .or_else(|| builtin_scope_overrides(&key));
+            if block.source.is_some() {
+                MACRO_MAP.insert_loc(key.loc.clone());
+            }
             self.triggers.insert(key.to_string(), Trigger::new(key, block, scope_override));
         }
     }

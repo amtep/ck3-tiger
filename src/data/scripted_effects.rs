@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::path::PathBuf;
 
 use fnv::FnvHashMap;
@@ -8,7 +9,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
-use crate::macrocache::MacroCache;
+use crate::macros::{MacroCache, MACRO_MAP};
 use crate::pdxfile::PdxFile;
 use crate::report::{err, old_warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -37,6 +38,9 @@ impl Effects {
             err(ErrorKey::NameConflict).strong().msg(msg).loc(key).push();
         } else {
             let scope_override = self.scope_overrides.get(key.as_str()).copied();
+            if block.source.is_some() {
+                MACRO_MAP.insert_loc(key.loc.clone());
+            }
             self.effects.insert(key.to_string(), Effect::new(key, block, scope_override));
         }
     }

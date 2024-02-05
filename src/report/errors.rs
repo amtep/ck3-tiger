@@ -13,6 +13,7 @@ use encoding_rs::{UTF_8, WINDOWS_1252};
 use fnv::{FnvHashMap, FnvHashSet};
 use once_cell::sync::Lazy;
 
+use crate::macros::MACRO_MAP;
 use crate::report::error_loc::ErrorLoc;
 use crate::report::filter::ReportFilter;
 use crate::report::writer::log_report;
@@ -224,9 +225,9 @@ pub fn log(mut report: LogReport) {
 /// longer available, adding a newly created `PointedMessage` to the given `Vec` for each linked
 /// location.
 fn recursive_pointed_msg_expansion(vec: &mut Vec<PointedMessage>, pointer: &PointedMessage) {
-    if let Some(link) = &pointer.loc.link {
+    if let Some(link) = pointer.loc.link_idx {
         let from_here = PointedMessage {
-            loc: link.as_ref().into_loc(),
+            loc: MACRO_MAP.get_loc(link).unwrap(),
             length: 0,
             msg: Some("from here".to_owned()),
         };

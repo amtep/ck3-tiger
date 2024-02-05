@@ -29,6 +29,7 @@ imperator = []
 ansi_term = "0.12.1"
 anyhow = "1"
 as-any = "0.3.0"
+bimap = "0.6.3"
 bitflags = "2.3.3"
 encoding_rs = "0.8.32"
 fnv = "1"

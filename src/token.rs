@@ -5,10 +5,10 @@ use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::hash::Hash;
+use std::num::NonZeroU32;
 use std::ops::{Bound, Range, RangeBounds};
 use std::path::{Path, PathBuf};
 use std::slice::SliceIndex;
-use std::sync::Arc;
 
 use crate::date::Date;
 use crate::fileset::{FileEntry, FileKind};
@@ -22,16 +22,17 @@ pub struct Loc {
     pub kind: FileKind,
     /// line 0 means the loc applies to the file as a whole.
     pub line: u32,
-    pub column: u32,
+    pub column: u16,
     /// Used in macro expansions to point to the macro invocation
-    pub link: Option<Arc<Loc>>,
+    /// in the macro table
+    pub link_idx: Option<NonZeroU32>,
 }
 
 impl Loc {
     #[must_use]
     pub(crate) fn for_file(pathname: PathBuf, kind: FileKind, fullpath: PathBuf) -> Self {
         let idx = PathTable::store(pathname, fullpath);
-        Loc { idx, kind, line: 0, column: 0, link: None }
+        Loc { idx, kind, line: 0, column: 0, link_idx: None }
     }
 
     pub fn filename(&self) -> Cow<str> {
@@ -57,7 +58,7 @@ impl Loc {
 impl From<&FileEntry> for Loc {
     fn from(entry: &FileEntry) -> Self {
         if let Some(idx) = entry.path_idx() {
-            Loc { idx, kind: entry.kind(), line: 0, column: 0, link: None }
+            Loc { idx, kind: entry.kind(), line: 0, column: 0, link_idx: None }
         } else {
             Self::for_file(entry.path().to_path_buf(), entry.kind(), entry.fullpath().to_path_buf())
         }
@@ -86,7 +87,7 @@ impl Debug for Loc {
             .field("kind", &self.kind)
             .field("line", &self.line)
             .field("column", &self.column)
-            .field("link", &self.link)
+            .field("linkindex", &self.link_idx)
             .finish()
     }
 }
@@ -173,7 +174,7 @@ impl Token {
         let mut loc = self.loc.clone();
         let mut lines: u32 = 0;
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u32::try_from(cols).expect("internal error: 4GB token");
+            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
             if c == ch {
                 vec.push(self.subtoken(pos..i, loc.clone()));
                 pos = i + 1;
@@ -198,7 +199,7 @@ impl Token {
         #[allow(clippy::cast_possible_truncation)]
         self.s.strip_prefix(pfx).map(|sfx| {
             let mut loc = self.loc.clone();
-            loc.column += pfx.chars().count() as u32;
+            loc.column += pfx.chars().count() as u16;
             Token::from_static_str(sfx, loc)
         })
     }
@@ -206,7 +207,7 @@ impl Token {
     #[must_use]
     pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u32::try_from(cols).expect("internal error: 4GB token");
+            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
             if c == ch {
                 let token1 = self.subtoken(..i, self.loc.clone());
                 let mut loc = self.loc.clone();
@@ -222,13 +223,13 @@ impl Token {
     #[must_use]
     pub fn split_after(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u32::try_from(cols).expect("internal error: 4GB token");
+            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
             #[allow(clippy::cast_possible_truncation)] // chlen can't be more than 6
             if c == ch {
                 let chlen = ch.len_utf8();
                 let token1 = self.subtoken(..i + chlen, self.loc.clone());
                 let mut loc = self.loc.clone();
-                loc.column += cols + chlen as u32;
+                loc.column += cols + chlen as u16;
                 let token2 = self.subtoken(i + chlen.., loc);
                 return Some((token1, token2));
             }
@@ -248,7 +249,7 @@ impl Token {
         let mut real_start = None;
         let mut real_end = self.s.len();
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u32::try_from(cols).expect("internal error: 4GB token");
+            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
             if c != ' ' {
                 real_start = Some((cols, i));
                 break;
@@ -345,8 +346,8 @@ impl Token {
     }
 
     #[must_use]
-    pub fn linked(mut self, link: Option<Arc<Loc>>) -> Self {
-        self.loc.link = link;
+    pub fn linked(mut self, link_idx: Option<NonZeroU32>) -> Self {
+        self.loc.link_idx = link_idx;
         self
     }
 }

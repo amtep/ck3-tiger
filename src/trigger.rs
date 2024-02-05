@@ -1147,7 +1147,7 @@ pub fn partition(token: &Token) -> Vec<Part> {
     let (mut second_paren_idx, mut second_paren_col) = (0, 0);
 
     for (col, (idx, ch)) in token.as_str().char_indices().enumerate() {
-        let col = u32::try_from(col).expect("internal error: 4GB token");
+        let col = u16::try_from(col).expect("internal error: 2^16 columns");
         match ch {
             '.' => {
                 if paren_depth == 0 {

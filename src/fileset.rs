@@ -39,7 +39,7 @@ pub enum FileKind {
     /// The base game files.
     Vanilla,
     /// Other mods loaded as directed by the config file. 0-based indexing.
-    LoadedMod(u16),
+    LoadedMod(u8),
     /// The mod under scrutiny. Usually, warnings are not emitted unless they touch `Mod` files.
     Mod,
 }
@@ -252,7 +252,7 @@ impl Fileset {
     pub fn config(&mut self, config: Block) {
         for block in config.get_field_blocks("load_mod") {
             let mod_idx;
-            if let Ok(idx) = u16::try_from(self.loaded_mods.len()) {
+            if let Ok(idx) = u8::try_from(self.loaded_mods.len()) {
                 mod_idx = idx;
             } else {
                 let msg = "too many loaded mods, cannot process more";

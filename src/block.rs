@@ -1,8 +1,7 @@
 //! [`Block`] is the core type to represent Pdx script code
 
-use std::sync::Arc;
-
 use crate::date::Date;
+use crate::macros::MACRO_MAP;
 use crate::parse::pdxfile::{parse_pdx_macro, LocalMacros};
 use crate::token::{Loc, Token};
 
@@ -414,25 +413,26 @@ impl Block {
     /// Expand a block that has macro parameters by substituting arguments for those parameters,
     /// then re-parsing the script.
     pub fn expand_macro(&self, args: &[(&str, Token)], link: &Token) -> Option<Block> {
-        let link = Arc::new(link.loc.clone());
+        let link_index = MACRO_MAP.get_index(&link.loc);
+
         if let Some(source_box) = &self.source {
-            let (source, local_macros) = &**source_box;
+            let (source, local_macros) = source_box.as_ref();
             let mut content = Vec::new();
             let mut odd = false;
             for part in source {
                 odd = !odd;
                 if odd {
-                    content.push(part.clone().linked(Some(link.clone())));
+                    content.push(part.clone().linked(link_index));
                 } else {
                     for (arg, val) in args {
                         if part.is(arg) {
                             // Make the replacement be a token that has the substituted content, but the original's loc,
                             // and a loc.link back to the caller's parameter. This gives the best error messages.
                             let mut val = val.clone();
-                            let orig_loc = val.loc.clone();
+                            let orig_loc = val.loc;
                             val.loc = part.loc.clone();
                             val.loc.column -= 1; // point at the $, it looks better
-                            val.loc.link = Some(Arc::new(orig_loc));
+                            val.loc.link_idx = Some(MACRO_MAP.get_or_insert_loc(&orig_loc));
                             content.push(val);
                             break;
                         }

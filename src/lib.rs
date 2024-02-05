@@ -70,7 +70,7 @@ mod gui;
 mod helpers;
 mod item;
 mod lowercase;
-mod macrocache;
+mod macros;
 mod modfile;
 mod modif;
 mod on_action;
