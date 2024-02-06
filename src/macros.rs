@@ -3,7 +3,6 @@
 //!
 //! The cache helps avoid needless re-expansions for arguments that have already been validated.
 
-use std::collections::hash_map::RandomState;
 use std::hash::Hash;
 use std::num::NonZeroU32;
 use std::sync::RwLock;
@@ -87,8 +86,7 @@ impl<T> Default for MacroCache<T> {
 type BiFnvHashMap<L, R> = BiHashMap<L, R, FnvBuildHasher, FnvBuildHasher>;
 
 /// Global macro map
-pub(crate) static MACRO_MAP: Lazy<MacroMap> =
-    Lazy::new(|| MacroMap::default());
+pub(crate) static MACRO_MAP: Lazy<MacroMap> = Lazy::new(|| MacroMap::default());
 
 #[derive(Default)]
 pub struct MacroMap(RwLock<MacroMapInner>);
@@ -121,7 +119,8 @@ impl MacroMap {
         let mut guard = self.0.write().unwrap();
         let counter = guard.counter;
         guard.bi_map.insert(counter, loc);
-        guard.counter = guard.counter.checked_add(1).expect("internal error: 2^32 macro map entries");
+        guard.counter =
+            guard.counter.checked_add(1).expect("internal error: 2^32 macro map entries");
         counter
     }
 
