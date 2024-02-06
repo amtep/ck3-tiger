@@ -86,7 +86,7 @@ impl<T> Default for MacroCache<T> {
 type BiFnvHashMap<L, R> = BiHashMap<L, R, FnvBuildHasher, FnvBuildHasher>;
 
 /// Global macro map
-pub(crate) static MACRO_MAP: Lazy<MacroMap> = Lazy::new(|| MacroMap::default());
+pub(crate) static MACRO_MAP: Lazy<MacroMap> = Lazy::new(MacroMap::default);
 
 #[derive(Default)]
 pub struct MacroMap(RwLock<MacroMapInner>);

@@ -197,11 +197,11 @@ fn parse(blockloc: Loc, content: &str) -> Block {
             }
             State::QString => {
                 if c == '"' {
-                    let token = Token::new(&take(&mut current_id), token_start.clone());
+                    let token = Token::new(&take(&mut current_id), token_start);
                     parser.token(token);
                     state = State::Neutral;
                 } else if c == '\n' {
-                    let token = Token::new(&take(&mut current_id), token_start.clone());
+                    let token = Token::new(&take(&mut current_id), token_start);
                     old_warn(token, ErrorKey::ParseError, "Quoted string not closed");
                     state = State::Neutral;
                 } else {

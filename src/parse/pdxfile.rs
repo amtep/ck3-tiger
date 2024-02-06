@@ -620,7 +620,7 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                 }
                 State::QString => {
                     if c == '"' {
-                        let token = Token::new(&take(&mut current_id), token_start.clone());
+                        let token = Token::new(&take(&mut current_id), token_start);
                         parser.token(token);
                         state = State::Neutral;
                     } else if c == '\n' {
@@ -638,7 +638,7 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                     } else if c.is_id_char() {
                         current_id.push(c);
                     } else {
-                        let token = Token::new(&take(&mut current_id), token_start.clone());
+                        let token = Token::new(&take(&mut current_id), token_start);
                         parser.token(token);
 
                         if c.is_comparator_char() {
@@ -686,10 +686,8 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                     } else if c == ')' {
                         parser.calculation_pop(loc);
                     } else if c == ']' {
-                        let token = Token::new(
-                            &parser.calculation_result().to_string(),
-                            calculation_start.clone(),
-                        );
+                        let token =
+                            Token::new(&parser.calculation_result().to_string(), calculation_start);
                         parser.token(token);
                         state = State::Neutral;
                     } else if c.is_id_char() {
@@ -707,7 +705,7 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                         || c == '('
                         || c == ')'
                     {
-                        let token = Token::new(&take(&mut current_id), token_start.clone());
+                        let token = Token::new(&take(&mut current_id), token_start);
                         parser.calculation_next(&token);
                         state = State::Calculation;
                         if c == '+' {
@@ -724,13 +722,11 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                             parser.calculation_pop(loc);
                         }
                     } else if c == ']' {
-                        let token = Token::new(&take(&mut current_id), token_start.clone());
+                        let token = Token::new(&take(&mut current_id), token_start);
                         parser.calculation_next(&token);
 
-                        let token = Token::new(
-                            &parser.calculation_result().to_string(),
-                            calculation_start.clone(),
-                        );
+                        let token =
+                            Token::new(&parser.calculation_result().to_string(), calculation_start);
                         parser.token(token);
                         state = State::Neutral;
                     } else if c.is_id_char() {
@@ -748,7 +744,7 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                     if c.is_comparator_char() {
                         current_id.push(c);
                     } else {
-                        parser.comparator(&take(&mut current_id), token_start.clone());
+                        parser.comparator(&take(&mut current_id), token_start);
 
                         if c == '"' {
                             token_start = loc;
@@ -880,10 +876,8 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
             }
             State::QString => {
                 if c == '"' {
-                    let token = Token::from_static_str(
-                        &content[token_start_offset..i],
-                        token_start.clone(),
-                    );
+                    let token =
+                        Token::from_static_str(&content[token_start_offset..i], token_start);
                     parser.token(token);
                     state = State::Neutral;
                 } else if c == '\n' {
@@ -898,10 +892,8 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
                     parser.calculation_start();
                 } else if c.is_id_char() {
                 } else {
-                    let token = Token::from_static_str(
-                        &content[token_start_offset..i],
-                        token_start.clone(),
-                    );
+                    let token =
+                        Token::from_static_str(&content[token_start_offset..i], token_start);
                     parser.token(token);
 
                     if c.is_comparator_char() {
@@ -949,10 +941,8 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
                 } else if c == ')' {
                     parser.calculation_pop(loc);
                 } else if c == ']' {
-                    let token = Token::new(
-                        &parser.calculation_result().to_string(),
-                        calculation_start.clone(),
-                    );
+                    let token =
+                        Token::new(&parser.calculation_result().to_string(), calculation_start);
                     parser.token(token);
                     state = State::Neutral;
                 } else if c.is_id_char() {
@@ -970,10 +960,8 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
                     || c == '('
                     || c == ')'
                 {
-                    let token = Token::from_static_str(
-                        &content[token_start_offset..i],
-                        token_start.clone(),
-                    );
+                    let token =
+                        Token::from_static_str(&content[token_start_offset..i], token_start);
                     parser.calculation_next(&token);
                     state = State::Calculation;
                     if c == '+' {
@@ -990,16 +978,12 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
                         parser.calculation_pop(loc);
                     }
                 } else if c == ']' {
-                    let token = Token::from_static_str(
-                        &content[token_start_offset..i],
-                        token_start.clone(),
-                    );
+                    let token =
+                        Token::from_static_str(&content[token_start_offset..i], token_start);
                     parser.calculation_next(&token);
 
-                    let token = Token::new(
-                        &parser.calculation_result().to_string(),
-                        calculation_start.clone(),
-                    );
+                    let token =
+                        Token::new(&parser.calculation_result().to_string(), calculation_start);
                     parser.token(token);
                     state = State::Neutral;
                 } else if c.is_id_char() {
@@ -1014,7 +998,7 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
             State::Comparator => {
                 if c.is_comparator_char() {
                 } else {
-                    parser.comparator(&content[token_start_offset..i], token_start.clone());
+                    parser.comparator(&content[token_start_offset..i], token_start);
 
                     if c == '"' {
                         token_start = loc;

@@ -22,7 +22,7 @@ use crate::report::{
 };
 use crate::scopes::{needs_prefix, scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::script_value::validate_script_value;
-use crate::token::Token;
+use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
 use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
@@ -1090,7 +1090,7 @@ pub fn validate_target_ok_this(
         let part = &part_vec[part_vec.len() - 1];
         let msg = format!("`{part}` produces {final_scopes} but expected {outscopes}");
         // Must not be at the same location to avoid spurious error messages
-        let opt_loc = (part.loc().clone() != because.token().loc).then(|| because.token());
+        let opt_loc = (part.loc() != because.token().loc).then(|| because.token());
         let msg2 = format!("scope was {}", because.msg());
         warn(ErrorKey::Scopes).msg(msg).loc(part).opt_loc(opt_loc, msg2).push();
     }
@@ -1126,9 +1126,9 @@ impl std::fmt::Display for Part {
 }
 
 impl Part {
-    fn loc(&self) -> &crate::Loc {
+    fn loc(&self) -> Loc {
         match self {
-            Part::Token(t) | Part::TokenArgument(t, _) => &t.loc,
+            Part::Token(t) | Part::TokenArgument(t, _) => t.loc,
         }
     }
 }
