@@ -411,10 +411,9 @@ impl Block {
     }
 
     /// Expand a block that has macro parameters by substituting arguments for those parameters,
-    /// then re-parsing the script.
-    pub fn expand_macro(&self, args: &[(&str, Token)], link: &Token) -> Option<Block> {
-        let link_index = MACRO_MAP.get_index(link.loc);
-
+    /// then re-parsing the script, that links the expanded content back to `loc`.
+    pub fn expand_macro(&self, args: &[(&str, Token)], loc: Loc) -> Option<Block> {
+        let link_index = MACRO_MAP.get_or_insert_loc(loc);
         if let Some(source_box) = &self.source {
             let (source, local_macros) = source_box.as_ref();
             let mut content = Vec::new();
@@ -422,7 +421,7 @@ impl Block {
             for part in source {
                 odd = !odd;
                 if odd {
-                    content.push(part.clone().linked(link_index));
+                    content.push(part.clone().linked(Some(link_index)));
                 } else {
                     for (arg, val) in args {
                         if part.is(arg) {
