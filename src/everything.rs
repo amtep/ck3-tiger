@@ -282,7 +282,7 @@ impl Everything {
         // Treat a missing output_style block and an empty output_style block exactly the same.
         let block = match self.config.get_field_block("output_style") {
             Some(block) => Cow::Borrowed(block),
-            None => Cow::Owned(Block::new(self.config.loc.clone())),
+            None => Cow::Owned(Block::new(self.config.loc)),
         };
         if !block.get_field_bool("enable").unwrap_or(default_color) {
             return OutputStyle::no_color();
@@ -333,7 +333,7 @@ impl Everything {
                 let fname = block.loc.filename();
                 // unwrap is safe here because of the ends_with check above.
                 let key = fname.strip_suffix(loader.extension()).unwrap();
-                let key = Token::new(key, block.loc.clone());
+                let key = Token::new(key, block.loc);
                 (loader.adder())(&mut self.database, key, block);
             } else {
                 for (key, block) in block.drain_definitions_warn() {

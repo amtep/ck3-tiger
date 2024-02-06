@@ -39,7 +39,7 @@ impl Effects {
         } else {
             let scope_override = self.scope_overrides.get(key.as_str()).copied();
             if block.source.is_some() {
-                MACRO_MAP.insert_loc(key.loc.clone());
+                MACRO_MAP.insert_loc(key.loc);
             }
             self.effects.insert(key.to_string(), Effect::new(key, block, scope_override));
         }

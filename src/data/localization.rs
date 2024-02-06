@@ -183,7 +183,7 @@ impl LocaEntry {
                                 from,
                                 count,
                                 used,
-                                Some(MACRO_MAP.get_or_insert_loc(&k.loc)),
+                                Some(MACRO_MAP.get_or_insert_loc(k.loc)),
                             ) {
                                 return false;
                             }

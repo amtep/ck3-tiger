@@ -17,7 +17,7 @@ pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeConte
     match bv {
         BV::Value(token) => {
             data.verify_exists(Item::EventBackground, token);
-            let block = Block::new(token.loc.clone());
+            let block = Block::new(token.loc);
             data.validate_call(Item::EventBackground, token, &block, sc);
         }
         BV::Block(block) => {

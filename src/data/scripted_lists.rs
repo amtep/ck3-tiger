@@ -134,10 +134,10 @@ impl List {
         if !self.cached_compat(key, sc) {
             let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
             our_sc.set_strict_scopes(false);
-            self.cache.write().unwrap().insert(key.loc.clone(), our_sc.clone());
+            self.cache.write().unwrap().insert(key.loc, our_sc.clone());
             Self::validate_conditions(&self.block, data, &mut our_sc);
             sc.expect_compatibility(&our_sc, key);
-            self.cache.write().unwrap().insert(key.loc.clone(), our_sc);
+            self.cache.write().unwrap().insert(key.loc, our_sc);
         }
     }
 }

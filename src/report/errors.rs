@@ -62,7 +62,7 @@ impl Default for Errors {
 
 impl Errors {
     /// Fetch the contents of a single line from a script file.
-    pub(crate) fn get_line(&mut self, loc: &Loc) -> Option<String> {
+    pub(crate) fn get_line(&mut self, loc: Loc) -> Option<String> {
         if loc.line == 0 {
             return None;
         }
@@ -100,7 +100,7 @@ impl Errors {
         let loc = eloc.into_loc();
         if loc.line == 0 {
             _ = writeln!(self.output.get_mut(), "({key}) {}", loc.pathname().to_string_lossy());
-        } else if let Some(line) = self.get_line(&loc) {
+        } else if let Some(line) = self.get_line(loc) {
             _ = writeln!(self.output.get_mut(), "({key}) {line}");
         }
     }
@@ -239,7 +239,7 @@ fn recursive_pointed_msg_expansion(vec: &mut Vec<PointedMessage>, pointer: &Poin
 
 /// Tests whether the report might be printed. If false, the report will definitely not be printed.
 pub fn will_maybe_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
-    Errors::get().filter.should_maybe_print(key, &eloc.into_loc())
+    Errors::get().filter.should_maybe_print(key, eloc.into_loc())
 }
 
 /// Print all the stored reports to the error output.

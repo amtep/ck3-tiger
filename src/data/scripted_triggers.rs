@@ -43,7 +43,7 @@ impl Triggers {
                 .copied()
                 .or_else(|| builtin_scope_overrides(&key));
             if block.source.is_some() {
-                MACRO_MAP.insert_loc(key.loc.clone());
+                MACRO_MAP.insert_loc(key.loc);
             }
             self.triggers.insert(key.to_string(), Trigger::new(key, block, scope_override));
         }

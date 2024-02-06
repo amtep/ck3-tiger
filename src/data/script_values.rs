@@ -153,14 +153,14 @@ impl ScriptValue {
             if self.scope_override.is_some() {
                 our_sc.set_no_warn(true);
             }
-            self.cache.write().unwrap().insert(key.loc.clone(), our_sc.clone());
+            self.cache.write().unwrap().insert(key.loc, our_sc.clone());
             validate_script_value(&self.bv, data, &mut our_sc);
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key);
                 our_sc.set_strict_scopes(false);
             }
             sc.expect_compatibility(&our_sc, key);
-            self.cache.write().unwrap().insert(key.loc.clone(), our_sc);
+            self.cache.write().unwrap().insert(key.loc, our_sc);
         }
     }
 

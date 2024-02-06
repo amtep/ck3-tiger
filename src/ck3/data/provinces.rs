@@ -346,7 +346,7 @@ impl Adjacency {
             return None;
         }
 
-        let line = csv[0].loc.clone();
+        let line = csv[0].loc;
 
         if csv.len() != 9 {
             let msg = "wrong number of fields for this line, expected 9";
@@ -378,7 +378,7 @@ impl Adjacency {
         for prov in &[self.from, self.to, self.through] {
             if !provinces.provinces.contains_key(prov) {
                 let msg = format!("province id {prov} not defined in definitions.csv");
-                fatal(ErrorKey::Crash).msg(msg).loc(&self.line).push();
+                fatal(ErrorKey::Crash).msg(msg).loc(self.line).push();
             }
         }
     }
@@ -400,7 +400,7 @@ impl Province {
 
         if csv.len() < 5 {
             let msg = "too few fields for this line, expected 5";
-            error(&csv[0].loc, ErrorKey::ParseError, msg);
+            error(csv[0].loc, ErrorKey::ParseError, msg);
             return None;
         }
 

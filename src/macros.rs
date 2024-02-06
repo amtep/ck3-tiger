@@ -55,7 +55,7 @@ impl<T> MacroCache<T> {
         mut f: impl FnMut(&T),
     ) -> bool {
         // TODO: find a way to avoid all the cloning for creating a MacroKey just to look it up in the cache
-        let key = MacroKey::new(key.loc.clone(), args, tooltipped, negated);
+        let key = MacroKey::new(key.loc, args, tooltipped, negated);
         if let Some(x) = self.cache.read().unwrap().get(&key) {
             f(x);
             true
@@ -72,7 +72,7 @@ impl<T> MacroCache<T> {
         negated: bool,
         value: T,
     ) {
-        let key = MacroKey::new(key.loc.clone(), args, tooltipped, negated);
+        let key = MacroKey::new(key.loc, args, tooltipped, negated);
         self.cache.write().unwrap().insert(key, value);
     }
 }
@@ -107,11 +107,11 @@ impl Default for MacroMapInner {
 impl MacroMap {
     /// Get the loc associated with the index
     pub fn get_loc(&self, index: NonZeroU32) -> Option<Loc> {
-        self.0.read().unwrap().bi_map.get_by_left(&index).cloned()
+        self.0.read().unwrap().bi_map.get_by_left(&index).copied()
     }
     /// Get the index associated with the loc
-    pub fn get_index(&self, loc: &Loc) -> Option<NonZeroU32> {
-        self.0.read().unwrap().bi_map.get_by_right(loc).copied()
+    pub fn get_index(&self, loc: Loc) -> Option<NonZeroU32> {
+        self.0.read().unwrap().bi_map.get_by_right(&loc).copied()
     }
 
     /// Insert a loc and output the index it is associated with
@@ -125,11 +125,11 @@ impl MacroMap {
     }
 
     /// Get the index or insert the loc if it is not present
-    pub fn get_or_insert_loc(&self, loc: &Loc) -> NonZeroU32 {
+    pub fn get_or_insert_loc(&self, loc: Loc) -> NonZeroU32 {
         if let Some(index) = self.get_index(loc) {
             index
         } else {
-            self.insert_loc(loc.clone())
+            self.insert_loc(loc)
         }
     }
 

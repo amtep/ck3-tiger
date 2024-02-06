@@ -100,8 +100,8 @@ impl DataBinding {
         if let Some(rep) = block.get_field_value("replace_with") {
             // TODO: restructure ValueParser to have a separate DatafunctionParser,
             // so that we don't have to synthesize these brackets.
-            let open_bracket = Token::from_static_str("[", rep.loc.clone());
-            let close_bracket = Token::from_static_str("]", rep.loc.clone());
+            let open_bracket = Token::from_static_str("[", rep.loc);
+            let close_bracket = Token::from_static_str("]", rep.loc);
             let to_parse = vec![&open_bracket, rep, &close_bracket];
             let valuevec = ValueParser::new(to_parse).parse_value();
             if valuevec.len() == 1 {

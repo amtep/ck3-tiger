@@ -413,7 +413,7 @@ impl Block {
     /// Expand a block that has macro parameters by substituting arguments for those parameters,
     /// then re-parsing the script.
     pub fn expand_macro(&self, args: &[(&str, Token)], link: &Token) -> Option<Block> {
-        let link_index = MACRO_MAP.get_index(&link.loc);
+        let link_index = MACRO_MAP.get_index(link.loc);
 
         if let Some(source_box) = &self.source {
             let (source, local_macros) = source_box.as_ref();
@@ -430,9 +430,9 @@ impl Block {
                             // and a loc.link back to the caller's parameter. This gives the best error messages.
                             let mut val = val.clone();
                             let orig_loc = val.loc;
-                            val.loc = part.loc.clone();
+                            val.loc = part.loc;
                             val.loc.column -= 1; // point at the $, it looks better
-                            val.loc.link_idx = Some(MACRO_MAP.get_or_insert_loc(&orig_loc));
+                            val.loc.link_idx = Some(MACRO_MAP.get_or_insert_loc(orig_loc));
                             content.push(val);
                             break;
                         }

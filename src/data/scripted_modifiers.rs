@@ -33,7 +33,7 @@ impl ScriptedModifiers {
             err(ErrorKey::NameConflict).strong().msg(msg).loc(key).push();
         } else {
             if block.source.is_some() {
-                MACRO_MAP.insert_loc(key.loc.clone());
+                MACRO_MAP.insert_loc(key.loc);
             }
             self.scripted_modifiers.insert(key.to_string(), ScriptedModifier::new(key, block));
         }

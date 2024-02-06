@@ -16,7 +16,7 @@ use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{error, error_info, untidy, ErrorKey};
 use crate::stringtable::StringTable;
 
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
     pub(crate) idx: PathTableIndex,
     pub kind: FileKind,
@@ -50,7 +50,7 @@ impl Loc {
         PathTable::lookup_fullpath(self.idx)
     }
 
-    pub fn same_file(&self, other: &Loc) -> bool {
+    pub fn same_file(&self, other: Loc) -> bool {
         self.idx == other.idx
     }
 }
@@ -93,6 +93,7 @@ impl Debug for Loc {
 }
 
 /// A Token consists of a string (stored in a `StringTable`) and its location in the parsed files.
+#[allow(missing_copy_implementations)]
 #[derive(Clone, Debug)]
 pub struct Token {
     s: &'static str,
@@ -171,12 +172,12 @@ impl Token {
     pub fn split(&self, ch: char) -> Vec<Token> {
         let mut pos = 0;
         let mut vec = Vec::new();
-        let mut loc = self.loc.clone();
+        let mut loc = self.loc;
         let mut lines: u32 = 0;
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
             if c == ch {
-                vec.push(self.subtoken(pos..i, loc.clone()));
+                vec.push(self.subtoken(pos..i, loc));
                 pos = i + 1;
                 loc.column = self.loc.column + cols + 1;
                 loc.line = self.loc.line + lines;
@@ -191,14 +192,14 @@ impl Token {
 
     #[must_use]
     pub fn strip_suffix(&self, sfx: &str) -> Option<Token> {
-        self.s.strip_suffix(sfx).map(|pfx| Token::from_static_str(pfx, self.loc.clone()))
+        self.s.strip_suffix(sfx).map(|pfx| Token::from_static_str(pfx, self.loc))
     }
 
     #[must_use]
     pub fn strip_prefix(&self, pfx: &str) -> Option<Token> {
         #[allow(clippy::cast_possible_truncation)]
         self.s.strip_prefix(pfx).map(|sfx| {
-            let mut loc = self.loc.clone();
+            let mut loc = self.loc;
             loc.column += pfx.chars().count() as u16;
             Token::from_static_str(sfx, loc)
         })
@@ -209,8 +210,8 @@ impl Token {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
             if c == ch {
-                let token1 = self.subtoken(..i, self.loc.clone());
-                let mut loc = self.loc.clone();
+                let token1 = self.subtoken(..i, self.loc);
+                let mut loc = self.loc;
                 loc.column += cols + 1;
                 let token2 = self.subtoken(i + 1.., loc);
                 return Some((token1, token2));
@@ -227,8 +228,8 @@ impl Token {
             #[allow(clippy::cast_possible_truncation)] // chlen can't be more than 6
             if c == ch {
                 let chlen = ch.len_utf8();
-                let token1 = self.subtoken(..i + chlen, self.loc.clone());
-                let mut loc = self.loc.clone();
+                let token1 = self.subtoken(..i + chlen, self.loc);
+                let mut loc = self.loc;
                 loc.column += cols + chlen as u16;
                 let token2 = self.subtoken(i + chlen.., loc);
                 return Some((token1, token2));
@@ -260,12 +261,12 @@ impl Token {
             real_end -= 1;
         }
         if let Some((cols, i)) = real_start {
-            let mut loc = self.loc.clone();
+            let mut loc = self.loc;
             loc.column += cols;
             self.subtoken(i..real_end, loc)
         } else {
             // all spaces
-            Token::from_static_str("", self.loc.clone())
+            Token::from_static_str("", self.loc)
         }
     }
 
@@ -370,12 +371,6 @@ impl Hash for Token {
 impl From<Loc> for Token {
     fn from(loc: Loc) -> Self {
         Token { s: "", loc }
-    }
-}
-
-impl From<&Loc> for Token {
-    fn from(loc: &Loc) -> Self {
-        Token { s: "", loc: loc.clone() }
     }
 }
 
