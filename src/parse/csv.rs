@@ -77,7 +77,7 @@ impl<'a> CsvParser<'a> {
         self.chars.peek()?;
 
         let mut vec = Vec::new();
-        let mut loc = self.loc.clone();
+        let mut loc = self.loc;
         let mut start_offset = self.offset;
 
         while let Some(c) = self.chars.peek() {
@@ -87,7 +87,7 @@ impl<'a> CsvParser<'a> {
                     vec.push(Token::new(s, loc));
                     if c == &';' {
                         self.next_char();
-                        loc = self.loc.clone();
+                        loc = self.loc;
                         start_offset = self.offset;
                     } else {
                         break;

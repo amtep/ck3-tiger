@@ -7,7 +7,7 @@ use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, BANNED_NAMES};
-use crate::macrocache::MacroCache;
+use crate::macros::{MacroCache, MACRO_MAP};
 use crate::pdxfile::PdxFile;
 use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
@@ -32,6 +32,9 @@ impl ScriptedModifiers {
             let msg = "scripted modifier has the same name as an important builtin";
             err(ErrorKey::NameConflict).strong().msg(msg).loc(key).push();
         } else {
+            if block.source.is_some() {
+                MACRO_MAP.insert_loc(key.loc);
+            }
             self.scripted_modifiers.insert(key.to_string(), ScriptedModifier::new(key, block));
         }
     }
@@ -134,7 +137,7 @@ impl ScriptedModifier {
         // Every invocation is treated as different even if the args are the same,
         // because we want to point to the correct one when reporting errors.
         if !self.cached_compat(key, args, sc) {
-            if let Some(block) = self.block.expand_macro(args, key) {
+            if let Some(block) = self.block.expand_macro(args, key.loc) {
                 let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
                 our_sc.set_strict_scopes(false);
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit

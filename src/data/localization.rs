@@ -2,8 +2,9 @@
 
 use std::ffi::OsStr;
 use std::fs::read_to_string;
+use std::num::NonZeroU32;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
 use fnv::{FnvHashMap, FnvHashSet};
 use rayon::scope;
@@ -17,6 +18,7 @@ use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::game::Game;
 use crate::helpers::{dup_error, stringify_list};
 use crate::item::Item;
+use crate::macros::MACRO_MAP;
 use crate::parse::localization::{parse_loca, ValueParser};
 #[cfg(feature = "ck3")]
 use crate::report::warn2;
@@ -25,7 +27,7 @@ use crate::report::{
     Severity,
 };
 use crate::scopes::Scopes;
-use crate::token::{Loc, Token};
+use crate::token::Token;
 
 /// Database of all loaded localization keys and their values, for all supported languages.
 #[derive(Debug)]
@@ -161,7 +163,7 @@ impl LocaEntry {
         from: &'a FnvHashMap<String, LocaEntry>,
         count: &mut usize,
         used: &mut FnvHashSet<String>,
-        link: Option<&Arc<Loc>>,
+        link: Option<NonZeroU32>,
     ) -> bool {
         // Are we (probably) stuck in a macro loop?
         if *count > 250 {
@@ -172,7 +174,7 @@ impl LocaEntry {
         if let LocaValue::Macro(v) = &self.value {
             for macrovalue in v {
                 match macrovalue {
-                    MacroValue::Text(ref token) => vec.push(token.clone().linked(link.cloned())),
+                    MacroValue::Text(ref token) => vec.push(token.clone().linked(link)),
                     MacroValue::Keyword(k, _) => {
                         used.insert(k.to_string());
                         if let Some(entry) = from.get(k.as_str()) {
@@ -181,7 +183,7 @@ impl LocaEntry {
                                 from,
                                 count,
                                 used,
-                                Some(&Arc::new(k.loc.clone())),
+                                Some(MACRO_MAP.get_or_insert_loc(k.loc)),
                             ) {
                                 return false;
                             }
@@ -193,7 +195,7 @@ impl LocaEntry {
             }
             true
         } else if let Some(orig) = &self.orig {
-            vec.push(orig.clone().linked(link.cloned()));
+            vec.push(orig.clone().linked(link));
             true
         } else {
             false

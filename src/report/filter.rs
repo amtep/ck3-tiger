@@ -42,7 +42,7 @@ impl ReportFilter {
     }
 
     /// TODO: Check the filter rules to be more sure.
-    pub fn should_maybe_print(&self, key: ErrorKey, loc: &Loc) -> bool {
+    pub fn should_maybe_print(&self, key: ErrorKey, loc: Loc) -> bool {
         if key == ErrorKey::Config {
             // Any errors concerning the Config should be easy to fix and will fundamentally
             // undermine the operation of the application. They must always be printed.

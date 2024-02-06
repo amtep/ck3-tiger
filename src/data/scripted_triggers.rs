@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
 use crate::lowercase::Lowercase;
-use crate::macrocache::MacroCache;
+use crate::macros::{MacroCache, MACRO_MAP};
 use crate::pdxfile::PdxFile;
 use crate::report::{err, old_warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
@@ -42,6 +42,9 @@ impl Triggers {
                 .get(key.as_str())
                 .copied()
                 .or_else(|| builtin_scope_overrides(&key));
+            if block.source.is_some() {
+                MACRO_MAP.insert_loc(key.loc);
+            }
             self.triggers.insert(key.to_string(), Trigger::new(key, block, scope_override));
         }
     }
@@ -195,7 +198,7 @@ impl Trigger {
         // Every invocation is treated as different even if the args are the same,
         // because we want to point to the correct one when reporting errors.
         if !self.cached_compat(key, args, tooltipped, negated, sc) {
-            if let Some(block) = self.block.expand_macro(args, key) {
+            if let Some(block) = self.block.expand_macro(args, key.loc) {
                 let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
                 our_sc.set_strict_scopes(false);
                 if self.scope_override.is_some() {

@@ -45,7 +45,7 @@ fn log_pointer(
     indentation: usize,
     severity: Severity,
 ) {
-    if previous.is_none() || !previous.unwrap().loc.same_file(&pointer.loc) {
+    if previous.is_none() || !previous.unwrap().loc.same_file(pointer.loc) {
         // This pointer is not the same as the previous pointer. Print file location as well:
         log_line_file_location(errors, pointer, indentation);
     }
@@ -54,7 +54,7 @@ fn log_pointer(
         // not any particular location within the file.
         return;
     }
-    if let Some(line) = errors.get_line(&pointer.loc) {
+    if let Some(line) = errors.get_line(pointer.loc) {
         let (line, removed, spaces) = line_spacing(line);
         log_line_from_source(errors, pointer, indentation, &line, spaces);
         log_line_carets(errors, pointer, indentation, &line, removed, spaces, severity);

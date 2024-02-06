@@ -247,7 +247,7 @@ pub fn validate_add_modifier(
             if visible {
                 data.verify_exists(Item::Localization, token);
             }
-            let block = Block::new(key.loc.clone());
+            let block = Block::new(key.loc);
             data.database.validate_call(Item::Modifier, token, &block, data, sc);
             data.database.validate_property_use(Item::Modifier, token, data, key, "");
         }

@@ -450,17 +450,17 @@ impl Character {
 
             if birth.is_none() && event != Birth {
                 let msg = format!("{character} was not born yet on {date}");
-                let mut loc = token.loc.clone();
+                let mut loc = token.loc;
                 loc.column = 0;
                 warn(ErrorKey::History).msg(msg).loc(loc).push();
             }
 
-            if let Some((death_date, death_loc)) = &death {
+            if let Some((death_date, death_loc)) = death {
                 if event != Posthumous {
                     let msg = format!(
                         "{character} was not alive on {date}, had already died on {death_date}"
                     );
-                    let mut loc = token.loc.clone();
+                    let mut loc = token.loc;
                     loc.column = 0;
                     warn(ErrorKey::History).msg(msg).loc(loc).loc(death_loc, "from here").push();
                 }
@@ -468,14 +468,14 @@ impl Character {
 
             match event {
                 Birth => {
-                    let mut loc = token.loc.clone();
+                    let mut loc = token.loc;
                     loc.column = 0;
 
-                    if let Some((birth_date, birth_loc)) = &birth {
+                    if let Some((birth_date, birth_loc)) = birth {
                         let msg = format!("{character} couldn't be born again on {date}, was born already on {birth_date}");
                         warn(ErrorKey::History)
                             .msg(msg)
-                            .loc(loc.clone())
+                            .loc(loc)
                             .loc(birth_loc, "from here")
                             .push();
                     }
@@ -507,7 +507,7 @@ impl Character {
                     employed = false;
                 }
                 Death => {
-                    let mut loc = token.loc.clone();
+                    let mut loc = token.loc;
                     loc.column = 0;
                     death = Some((date, loc));
                 }

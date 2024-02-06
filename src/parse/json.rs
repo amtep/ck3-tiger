@@ -36,28 +36,28 @@ impl Parser {
         error(loc, ErrorKey::ParseError, &msg);
     }
 
-    fn colon(&mut self, loc: &Loc) {
+    fn colon(&mut self, loc: Loc) {
         if !self.current.expect_colon {
             err(ErrorKey::ParseError).msg("unexpected `:`").loc(loc).push();
         }
         self.current.expect_colon = false;
     }
 
-    fn check_colon(&mut self, loc: &Loc) {
+    fn check_colon(&mut self, loc: Loc) {
         if self.current.expect_colon {
             err(ErrorKey::ParseError).msg("expected `:`").loc(loc).push();
             self.current.expect_comma = false;
         }
     }
 
-    fn comma(&mut self, loc: &Loc) {
+    fn comma(&mut self, loc: Loc) {
         if !self.current.expect_comma {
             err(ErrorKey::ParseError).msg("unexpected `,`").loc(loc).push();
         }
         self.current.expect_comma = false;
     }
 
-    fn check_comma(&mut self, loc: &Loc) {
+    fn check_comma(&mut self, loc: Loc) {
         if self.current.expect_comma {
             err(ErrorKey::ParseError).msg("expected `,`").loc(loc).push();
             self.current.expect_comma = false;
@@ -65,8 +65,8 @@ impl Parser {
     }
 
     fn token(&mut self, token: Token) {
-        self.check_comma(&token.loc);
-        self.check_colon(&token.loc);
+        self.check_comma(token.loc);
+        self.check_colon(token.loc);
         if let Some(key) = self.current.key.take() {
             self.current.block.add_key_bv(key, Comparator::Equals(Single), BV::Value(token));
             self.current.expect_comma = true;
@@ -97,10 +97,10 @@ impl Parser {
     }
 
     fn open_bracket(&mut self, loc: Loc, bracket: char) {
-        self.check_colon(&loc);
-        self.check_comma(&loc);
+        self.check_colon(loc);
+        self.check_comma(loc);
         if self.current.opening_bracket == '{' && self.current.key.is_none() {
-            err(ErrorKey::ParseError).msg("expected key not block").loc(&loc).push();
+            err(ErrorKey::ParseError).msg("expected key not block").loc(loc).push();
         }
         let mut new_level = ParseLevel {
             block: Block::new(loc),
@@ -114,7 +114,7 @@ impl Parser {
         self.stack.push(new_level);
     }
 
-    fn close_bracket(&mut self, loc: &Loc, bracket: char) {
+    fn close_bracket(&mut self, loc: Loc, bracket: char) {
         self.end_assign();
         if let Some(mut prev_level) = self.stack.pop() {
             swap(&mut self.current, &mut prev_level);
@@ -124,7 +124,7 @@ impl Parser {
                     .strong()
                     .msg(msg)
                     .loc(loc)
-                    .loc(&prev_level.block.loc, "here")
+                    .loc(prev_level.block.loc, "here")
                     .push();
             }
             self.block_value(prev_level.block);
@@ -144,7 +144,7 @@ impl Parser {
         self.end_assign();
         while let Some(mut prev_level) = self.stack.pop() {
             error(
-                &prev_level.block.loc,
+                prev_level.block.loc,
                 ErrorKey::ParseError,
                 &format!("Opening {} was never closed", prev_level.opening_bracket),
             );
@@ -158,7 +158,7 @@ impl Parser {
 fn parse(blockloc: Loc, content: &str) -> Block {
     let mut parser = Parser {
         current: ParseLevel {
-            block: Block::new(blockloc.clone()),
+            block: Block::new(blockloc),
             key: None,
             expect_colon: false,
             expect_comma: false,
@@ -168,7 +168,7 @@ fn parse(blockloc: Loc, content: &str) -> Block {
         stack: Vec::new(),
     };
     let mut state = State::Neutral;
-    let mut token_start = blockloc.clone();
+    let mut token_start = blockloc;
     let mut current_id = String::new();
 
     let mut loc = blockloc;
@@ -177,31 +177,31 @@ fn parse(blockloc: Loc, content: &str) -> Block {
             State::Neutral => {
                 if c.is_ascii_whitespace() {
                 } else if c == '"' {
-                    token_start = loc.clone();
+                    token_start = loc;
                     state = State::QString;
                 } else if c == ':' {
-                    parser.colon(&loc);
+                    parser.colon(loc);
                 } else if c == ',' {
-                    parser.comma(&loc);
+                    parser.comma(loc);
                 } else if c == '{' {
-                    parser.open_bracket(loc.clone(), '{');
+                    parser.open_bracket(loc, '{');
                 } else if c == '}' {
-                    parser.close_bracket(&loc, '}');
+                    parser.close_bracket(loc, '}');
                 } else if c == '[' {
-                    parser.open_bracket(loc.clone(), '[');
+                    parser.open_bracket(loc, '[');
                 } else if c == ']' {
-                    parser.close_bracket(&loc, ']');
+                    parser.close_bracket(loc, ']');
                 } else {
-                    Parser::unknown_char(c, loc.clone());
+                    Parser::unknown_char(c, loc);
                 }
             }
             State::QString => {
                 if c == '"' {
-                    let token = Token::new(&take(&mut current_id), token_start.clone());
+                    let token = Token::new(&take(&mut current_id), token_start);
                     parser.token(token);
                     state = State::Neutral;
                 } else if c == '\n' {
-                    let token = Token::new(&take(&mut current_id), token_start.clone());
+                    let token = Token::new(&take(&mut current_id), token_start);
                     old_warn(token, ErrorKey::ParseError, "Quoted string not closed");
                     state = State::Neutral;
                 } else {

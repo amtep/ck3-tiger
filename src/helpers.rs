@@ -37,9 +37,9 @@ pub fn dup_assign_error(key: &Token, other: &Token) {
     // Don't trace back macro invocations for duplicate field errors,
     // because they're just confusing.
     let mut key = key.clone();
-    key.loc.link = None;
+    key.loc.link_idx = None;
     let mut other = other.clone();
-    other.loc.link = None;
+    other.loc.link_idx = None;
 
     warn(ErrorKey::DuplicateField)
         .msg(format!("`{other}` is redefined in a following line").as_str())

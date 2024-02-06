@@ -41,13 +41,13 @@ impl<'a> LocaParser<'a> {
             if chars.peek() == Some(&'\u{feff}') {
                 let msg = "double BOM in localization file";
                 let info = "This will make the game engine skip the whole file.";
-                warn(ErrorKey::Encoding).strong().msg(msg).info(info).loc(&loc).push();
+                warn(ErrorKey::Encoding).strong().msg(msg).info(info).loc(loc).push();
                 offset += '\u{feff}'.len_utf8();
                 loc.column += 1;
                 chars.next();
             }
         } else {
-            warn(ErrorKey::Encoding).msg("Expected UTF-8 BOM encoding").loc(&loc).push();
+            warn(ErrorKey::Encoding).msg("Expected UTF-8 BOM encoding").loc(loc).push();
         }
         LocaParser {
             loc,
@@ -113,7 +113,7 @@ impl<'a> LocaParser<'a> {
     }
 
     fn get_key(&mut self) -> Token {
-        let loc = self.loc.clone();
+        let loc = self.loc;
         let start_offset = self.offset;
         while let Some(c) = self.chars.peek() {
             if is_key_char(*c) {
@@ -130,11 +130,11 @@ impl<'a> LocaParser<'a> {
         match self.chars.peek() {
             None => warn(ErrorKey::Localization)
                 .msg(format!("Unexpected end of file, {expected}"))
-                .loc(&self.loc)
+                .loc(self.loc)
                 .push(),
             Some(c) => warn(ErrorKey::Localization)
                 .msg(format!("Unexpected character `{c}`, {expected}"))
-                .loc(&self.loc)
+                .loc(self.loc)
                 .push(),
         };
     }
@@ -157,7 +157,7 @@ impl<'a> LocaParser<'a> {
     fn parse_format(&mut self) -> Option<Token> {
         if self.chars.peek() == Some(&'|') {
             self.next_char(); // eat the |
-            let loc = self.loc.clone();
+            let loc = self.loc;
             let mut text = String::new();
             while let Some(&c) = self.chars.peek() {
                 if c == '$' || c == ']' || c == '\n' {
@@ -186,7 +186,7 @@ impl<'a> LocaParser<'a> {
     fn parse_macros(&mut self) {
         // TODO: vanilla uses $[DATE_MIN.GetStringShort|V]$ which breaks all my assumptions
         let mut v = Vec::new();
-        let mut loc = self.loc.clone();
+        let mut loc = self.loc;
         let mut offset = self.offset;
         while let Some(&c) = self.chars.peek() {
             if c == '$' {
@@ -199,7 +199,7 @@ impl<'a> LocaParser<'a> {
                     self.value.push(LocaValue::Error);
                     return;
                 }
-                loc = self.loc.clone();
+                loc = self.loc;
                 offset = self.offset;
             } else if c == '"' && self.offset == self.loca_end {
                 let s = &self.content[offset..self.offset];
@@ -218,7 +218,7 @@ impl<'a> LocaParser<'a> {
 
     fn parse_keyword(&mut self) -> Option<MacroValue> {
         self.next_char(); // Skip the $
-        let loc = self.loc.clone();
+        let loc = self.loc;
         let start_offset = self.offset;
         let key = self.get_key();
         let end_offset = self.offset;
@@ -315,13 +315,13 @@ impl<'a> LocaParser<'a> {
             self.loca_end = i;
         } else {
             let msg = "localization entry without ending quote";
-            warn(ErrorKey::Localization).msg(msg).loc(&self.loc).push();
+            warn(ErrorKey::Localization).msg(msg).loc(self.loc).push();
             return self.error_line(key);
         }
 
         self.value = Vec::new();
         let s = &self.content[self.offset..self.loca_end];
-        let token = Token::new(s, self.loc.clone());
+        let token = Token::new(s, self.loc);
 
         // We also need to pre-parse because $macros$ can appear anywhere and
         // we don't know how to parse the results until we know what to
@@ -345,7 +345,7 @@ impl<'a> LocaParser<'a> {
             None | Some('#' | '\n') => (),
             _ => {
                 let msg = "content after final `\"` on line";
-                warn(ErrorKey::Localization).strong().msg(msg).loc(&self.loc).push();
+                warn(ErrorKey::Localization).strong().msg(msg).loc(self.loc).push();
             }
         }
 
@@ -374,7 +374,7 @@ impl<'a> ValueParser<'a> {
         assert!(!content.is_empty());
 
         Self {
-            loc: content[0].loc.clone(),
+            loc: content[0].loc,
             offset: 0,
             content_iters: content.iter().map(|t| t.as_str().chars().peekable()).collect(),
             content,
@@ -390,7 +390,7 @@ impl<'a> ValueParser<'a> {
                 None
             } else {
                 self.content_idx += 1;
-                self.loc = self.content[self.content_idx].loc.clone();
+                self.loc = self.content[self.content_idx].loc;
                 self.offset = 0;
                 self.peek()
             }
@@ -423,11 +423,11 @@ impl<'a> ValueParser<'a> {
         // TODO: handle EOF better
         let c = self.peek().unwrap_or(' ');
         let msg = format!("Unexpected character `{c}`, {expected}");
-        warn(errorkey).msg(msg).loc(&self.loc).push();
+        warn(errorkey).msg(msg).loc(self.loc).push();
     }
 
     fn get_key(&mut self) -> Token {
-        let loc = self.loc.clone();
+        let loc = self.loc;
         let mut text = String::new();
         while let Some(c) = self.peek() {
             if is_key_char(c) {
@@ -443,7 +443,7 @@ impl<'a> ValueParser<'a> {
     fn parse_format(&mut self) -> Option<Token> {
         if self.peek() == Some('|') {
             self.next_char(); // eat the |
-            let loc = self.loc.clone();
+            let loc = self.loc;
             let mut text = String::new();
             while let Some(c) = self.peek() {
                 if c == '$' || c == ']' {
@@ -466,7 +466,7 @@ impl<'a> ValueParser<'a> {
             self.skip_whitespace();
             if self.peek() == Some('\'') {
                 self.next_char();
-                let loc = self.loc.clone();
+                let loc = self.loc;
                 let mut text = String::new();
                 let mut parens: isize = 0;
                 while let Some(c) = self.peek() {
@@ -474,13 +474,13 @@ impl<'a> ValueParser<'a> {
                         '\'' => break,
                         ']' | ')' if parens == 0 => warn(ErrorKey::Localization)
                             .msg("Possible unterminated argument string")
-                            .loc(&self.loc)
+                            .loc(self.loc)
                             .push(),
                         '(' => parens += 1,
                         ')' => parens -= 1,
                         '\u{feff}' => {
                             let msg = "found unicode BOM in middle of file";
-                            warn(ErrorKey::ParseError).strong().msg(msg).loc(&loc).push();
+                            warn(ErrorKey::ParseError).strong().msg(msg).loc(loc).push();
                         }
                         _ => (),
                     }
@@ -513,7 +513,7 @@ impl<'a> ValueParser<'a> {
     }
 
     fn parse_code_code(&mut self) -> Code {
-        let loc = self.loc.clone();
+        let loc = self.loc;
         let mut text = String::new();
         while let Some(c) = self.peek() {
             if is_code_char(c) {
@@ -557,7 +557,7 @@ impl<'a> ValueParser<'a> {
         while self.peek() == Some(')') {
             if !warned_extra_parens {
                 let msg = "too many `)`";
-                untidy(ErrorKey::Datafunctions).msg(msg).loc(&self.loc).push();
+                untidy(ErrorKey::Datafunctions).msg(msg).loc(self.loc).push();
                 warned_extra_parens = true;
             }
             self.next_char();
@@ -603,7 +603,7 @@ impl<'a> ValueParser<'a> {
     }
 
     fn parse_markup(&mut self) {
-        let loc = self.loc.clone();
+        let loc = self.loc;
         let mut text = "#".to_string();
         self.next_char(); // skip the #
         if self.peek() == Some('#') {
@@ -638,7 +638,7 @@ impl<'a> ValueParser<'a> {
                             if s.is_empty() {
                                 self.unexpected_char("expected markup key", ErrorKey::Markup);
                             }
-                            state = State::InValue(s.clone(), String::new(), self.loc.clone(), 0);
+                            state = State::InValue(s.clone(), String::new(), self.loc, 0);
                         } else if c == ';' {
                             if s.is_empty() {
                                 self.unexpected_char("expected markup key", ErrorKey::Markup);
@@ -657,7 +657,7 @@ impl<'a> ValueParser<'a> {
                             self.unexpected_char("expected `;`", ErrorKey::Markup);
                         } else if c == ';' {
                             if key.to_lowercase() == "tooltip" {
-                                self.handle_tooltip(value, loc.clone());
+                                self.handle_tooltip(value, *loc);
                             }
                             state = State::InKey(String::new());
                         } else if c == '{' {
@@ -667,7 +667,7 @@ impl<'a> ValueParser<'a> {
                                 *bracecount -= 1;
                             } else {
                                 let msg = "mismatched braces in markup";
-                                warn(ErrorKey::Markup).msg(msg).loc(&self.loc).push();
+                                warn(ErrorKey::Markup).msg(msg).loc(self.loc).push();
                                 self.value.push(LocaValue::Error);
                             }
                         } else if c == '.' || c == ',' || c.is_alphanumeric() || c == '_' {
@@ -697,11 +697,11 @@ impl<'a> ValueParser<'a> {
                 }
                 State::InValue(key, value, loc, bracecount) => {
                     if key.to_lowercase() == "tooltip" {
-                        self.handle_tooltip(&value, loc.clone());
+                        self.handle_tooltip(&value, loc);
                     }
                     if bracecount > 0 {
                         let msg = "mismatched braces in markup";
-                        warn(ErrorKey::Markup).msg(msg).loc(&self.loc).push();
+                        warn(ErrorKey::Markup).msg(msg).loc(self.loc).push();
                         self.value.push(LocaValue::Error);
                     } else {
                         self.value.push(LocaValue::Markup(Token::new(&text, loc)));
@@ -712,7 +712,7 @@ impl<'a> ValueParser<'a> {
                 self.next_char();
             } else {
                 let msg = "#markup should be followed by a space";
-                warn(ErrorKey::Markup).msg(msg).loc(&self.loc).push();
+                warn(ErrorKey::Markup).msg(msg).loc(self.loc).push();
                 self.value.push(LocaValue::Error);
             }
         }
@@ -751,7 +751,7 @@ impl<'a> ValueParser<'a> {
     }
 
     fn parse_escape(&mut self) {
-        let loc = self.loc.clone();
+        let loc = self.loc;
         self.next_char(); // Skip the \
         let s = match self.peek() {
             Some('n') => '\n'.to_string(),
@@ -766,7 +766,7 @@ impl<'a> ValueParser<'a> {
     }
 
     fn parse_text(&mut self) {
-        let loc = self.loc.clone();
+        let loc = self.loc;
         let mut text = String::new();
         while let Some(c) = self.peek() {
             match c {

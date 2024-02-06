@@ -22,7 +22,7 @@ use crate::report::{
 };
 use crate::scopes::{needs_prefix, scope_iterator, scope_prefix, scope_to_scope, Scopes};
 use crate::script_value::validate_script_value;
-use crate::token::Token;
+use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
 use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
@@ -1090,7 +1090,7 @@ pub fn validate_target_ok_this(
         let part = &part_vec[part_vec.len() - 1];
         let msg = format!("`{part}` produces {final_scopes} but expected {outscopes}");
         // Must not be at the same location to avoid spurious error messages
-        let opt_loc = (part.loc().clone() != because.token().loc).then(|| because.token());
+        let opt_loc = (part.loc() != because.token().loc).then(|| because.token());
         let msg2 = format!("scope was {}", because.msg());
         warn(ErrorKey::Scopes).msg(msg).loc(part).opt_loc(opt_loc, msg2).push();
     }
@@ -1126,9 +1126,9 @@ impl std::fmt::Display for Part {
 }
 
 impl Part {
-    fn loc(&self) -> &crate::Loc {
+    fn loc(&self) -> Loc {
         match self {
-            Part::Token(t) | Part::TokenArgument(t, _) => &t.loc,
+            Part::Token(t) | Part::TokenArgument(t, _) => t.loc,
         }
     }
 }
@@ -1147,18 +1147,18 @@ pub fn partition(token: &Token) -> Vec<Part> {
     let (mut second_paren_idx, mut second_paren_col) = (0, 0);
 
     for (col, (idx, ch)) in token.as_str().char_indices().enumerate() {
-        let col = u32::try_from(col).expect("internal error: 4GB token");
+        let col = u16::try_from(col).expect("internal error: 2^16 columns");
         match ch {
             '.' => {
                 if paren_depth == 0 {
                     if part_idx == idx {
                         // Empty part; err but skip it since it's likely a typo
-                        let mut loc = token.loc.clone();
+                        let mut loc = token.loc;
                         loc.column += col;
                         err(ErrorKey::Validation).msg("empty part").loc(loc).push();
                     } else if !has_part_argument {
                         // The just completed part has no argument
-                        let mut part_loc = token.loc.clone();
+                        let mut part_loc = token.loc;
                         part_loc.column += part_col;
                         let part_token = token.subtoken(part_idx..idx, part_loc);
                         parts.push(Part::Token(part_token));
@@ -1183,7 +1183,7 @@ pub fn partition(token: &Token) -> Vec<Part> {
             ')' => {
                 if paren_depth == 0 {
                     // Missing opening parenthesis `(`
-                    let mut loc = token.loc.clone();
+                    let mut loc = token.loc;
                     loc.column += col;
                     err(ErrorKey::Validation)
                         .msg("closing without opening parenthesis `(`")
@@ -1191,11 +1191,11 @@ pub fn partition(token: &Token) -> Vec<Part> {
                         .push();
                 } else if paren_depth == 1 {
                     // Argument between parentheses
-                    let mut func_loc = token.loc.clone();
+                    let mut func_loc = token.loc;
                     func_loc.column += part_col;
                     let func_token = token.subtoken(part_idx..first_paren_idx, func_loc);
 
-                    let mut arg_loc = token.loc.clone();
+                    let mut arg_loc = token.loc;
                     arg_loc.column += first_paren_col + 1;
                     let arg_token = token.subtoken_stripped(first_paren_idx + 1..idx, arg_loc);
 
@@ -1204,7 +1204,7 @@ pub fn partition(token: &Token) -> Vec<Part> {
                     paren_depth -= 1;
                 } else if paren_depth == 2 {
                     // Cannot have nested parentheses
-                    let mut loc = token.loc.clone();
+                    let mut loc = token.loc;
                     loc.column += second_paren_col;
                     let nested_paren_token = token.subtoken(second_paren_idx..=idx, loc);
                     err(ErrorKey::Validation)
@@ -1217,7 +1217,7 @@ pub fn partition(token: &Token) -> Vec<Part> {
             _ => {
                 // an argument can only be the last part or followed by dot `.` AND hasn't erred from it yet
                 if has_part_argument && !has_part_argument_erred {
-                    let mut loc = token.loc.clone();
+                    let mut loc = token.loc;
                     loc.column += col;
                     err(ErrorKey::Validation)
                         .msg("argument can only be the last part or followed by dot `.`")
@@ -1231,7 +1231,7 @@ pub fn partition(token: &Token) -> Vec<Part> {
 
     if paren_depth > 0 {
         // Missing closing parenthesis `)`
-        let mut loc = token.loc.clone();
+        let mut loc = token.loc;
         loc.column += first_paren_col;
         let broken_token = token.subtoken(first_paren_idx.., loc);
         err(ErrorKey::Validation)
@@ -1242,12 +1242,12 @@ pub fn partition(token: &Token) -> Vec<Part> {
 
     if part_idx == token.as_str().len() {
         // Trailing `.`
-        let mut loc = token.loc.clone();
+        let mut loc = token.loc;
         loc.column += part_col;
         err(ErrorKey::Validation).msg("trailing dot `.`").loc(loc).push();
     } else if !has_part_argument {
         // final part (without argument)
-        let mut part_loc = token.loc.clone();
+        let mut part_loc = token.loc;
         part_loc.column += part_col;
         // SAFETY: part_idx < token.as_str.len()
         let part_token = token.subtoken(part_idx.., part_loc);
@@ -1347,7 +1347,7 @@ pub fn validate_argument(
     if Game::is_imperator() {
         // Imperator does not use `()`
         let msg = format!("imperator does not support the `()` syntax");
-        let mut opening_paren_loc = arg.loc.clone();
+        let mut opening_paren_loc = arg.loc;
         opening_paren_loc.column -= 1;
         err(ErrorKey::Validation).msg(msg).loc(opening_paren_loc).push();
         return;

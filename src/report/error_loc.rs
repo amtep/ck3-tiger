@@ -140,12 +140,6 @@ impl ErrorLoc for Loc {
     }
 }
 
-impl ErrorLoc for &Loc {
-    fn into_loc(self) -> Loc {
-        self.clone()
-    }
-}
-
 impl ErrorLoc for Token {
     fn loc_length(&self) -> usize {
         self.as_str().chars().count()
@@ -162,7 +156,7 @@ impl ErrorLoc for &Token {
     }
 
     fn into_loc(self) -> Loc {
-        self.loc.clone()
+        self.loc
     }
 }
 
@@ -174,7 +168,7 @@ impl ErrorLoc for Block {
 
 impl ErrorLoc for &Block {
     fn into_loc(self) -> Loc {
-        self.loc.clone()
+        self.loc
     }
 }
 
@@ -196,7 +190,7 @@ impl ErrorLoc for Part {
 impl ErrorLoc for &Part {
     fn into_loc(self) -> Loc {
         match self {
-            Part::Token(t) | Part::TokenArgument(t, _) => t.loc.clone(),
+            Part::Token(t) | Part::TokenArgument(t, _) => t.loc,
         }
     }
 

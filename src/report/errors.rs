@@ -13,6 +13,7 @@ use encoding_rs::{UTF_8, WINDOWS_1252};
 use fnv::{FnvHashMap, FnvHashSet};
 use once_cell::sync::Lazy;
 
+use crate::macros::MACRO_MAP;
 use crate::report::error_loc::ErrorLoc;
 use crate::report::filter::ReportFilter;
 use crate::report::writer::log_report;
@@ -61,7 +62,7 @@ impl Default for Errors {
 
 impl Errors {
     /// Fetch the contents of a single line from a script file.
-    pub(crate) fn get_line(&mut self, loc: &Loc) -> Option<String> {
+    pub(crate) fn get_line(&mut self, loc: Loc) -> Option<String> {
         if loc.line == 0 {
             return None;
         }
@@ -99,7 +100,7 @@ impl Errors {
         let loc = eloc.into_loc();
         if loc.line == 0 {
             _ = writeln!(self.output.get_mut(), "({key}) {}", loc.pathname().to_string_lossy());
-        } else if let Some(line) = self.get_line(&loc) {
+        } else if let Some(line) = self.get_line(loc) {
             _ = writeln!(self.output.get_mut(), "({key}) {line}");
         }
     }
@@ -224,9 +225,9 @@ pub fn log(mut report: LogReport) {
 /// longer available, adding a newly created `PointedMessage` to the given `Vec` for each linked
 /// location.
 fn recursive_pointed_msg_expansion(vec: &mut Vec<PointedMessage>, pointer: &PointedMessage) {
-    if let Some(link) = &pointer.loc.link {
+    if let Some(link) = pointer.loc.link_idx {
         let from_here = PointedMessage {
-            loc: link.as_ref().into_loc(),
+            loc: MACRO_MAP.get_loc(link).unwrap(),
             length: 0,
             msg: Some("from here".to_owned()),
         };
@@ -238,7 +239,7 @@ fn recursive_pointed_msg_expansion(vec: &mut Vec<PointedMessage>, pointer: &Poin
 
 /// Tests whether the report might be printed. If false, the report will definitely not be printed.
 pub fn will_maybe_log<E: ErrorLoc>(eloc: E, key: ErrorKey) -> bool {
-    Errors::get().filter.should_maybe_print(key, &eloc.into_loc())
+    Errors::get().filter.should_maybe_print(key, eloc.into_loc())
 }
 
 /// Print all the stored reports to the error output.
