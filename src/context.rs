@@ -448,8 +448,8 @@ impl ScopeContext {
     ///
     /// This is used when a scope chain starts with `scope:name`. The `token` is expected to be the
     /// `scope:name` token.
-    pub fn replace_named_scope(&mut self, name: &str, token: &Token) {
-        self.this = ScopeEntry::Named(self._named_index(name, token), Reason::Token(token.clone()));
+    pub fn replace_named_scope(&mut self, name: &str, token: Token) {
+        self.this = ScopeEntry::Named(self._named_index(name, &token), Reason::Token(token));
     }
 
     /// Replace the `this` in a temporary scope level with a reference to the scope type of the

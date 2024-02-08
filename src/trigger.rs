@@ -1324,10 +1324,10 @@ pub fn validate_argument_scope(
     let mut outscopes_token = func.clone();
     outscopes_token.combine(arg, ':');
     if func.lowercase_is("scope") {
-        sc.replace_named_scope(arg.as_str(), &outscopes_token);
         if part_flags.contains(PartFlags::Last | PartFlags::Question) {
-            sc.exists_scope(arg.as_str(), outscopes_token);
+            sc.exists_scope(arg.as_str(), outscopes_token.clone());
         }
+        sc.replace_named_scope(arg.as_str(), outscopes_token);
     } else {
         sc.replace(outscopes, outscopes_token);
     }
