@@ -1,4 +1,20 @@
 # ck3-tiger
+
+<p align="center">
+  <a href="https://github.com/amtep/ck3-tiger/releases">
+    <img alt="GitHub Release" src="https://img.shields.io/github/v/release/amtep/ck3-tiger"
+  /></a>
+  <a href="https://github.com/amtep/ck3-tiger/blob/readme/LICENSE">
+    <img alt="GitHub License" src="https://img.shields.io/github/license/amtep/ck3-tiger"
+  /></a>
+  <a href="https://docs.rs/tiger-lib/latest/tiger_lib/">
+    <img alt="tiger-lib docs.rs" src="https://img.shields.io/docsrs/tiger-lib?label=tiger-lib%20docs"
+  /></a>
+  <a href="https://discord.gg/3uQVCJ8uVf">
+    <img alt="Discord" src="https://img.shields.io/discord/1137432658067062784?logo=discord&label=discord&labelColor=1137432658067062784&color=royalblue"
+  /></a>
+</p>
+
 Pounces on bugs. Checks Crusader Kings 3 user mod files for mistakes and warns about them. For example: missing localizations, or using a faith trigger on a character.
 
 Crusader Kings 3 is a grand strategy game made by Paradox Interactive, and user mods are made by the players to enhance or change their game experience. This tool is for the people who make the mods.
@@ -6,11 +22,13 @@ Crusader Kings 3 is a grand strategy game made by Paradox Interactive, and user 
 `ck3-tiger` now also comes with `vic3-tiger`, which does the same thing for Victoria 3.
 
 ## Status
+
 This project is maturing but not yet stable. It will warn about some things that are actually correct.
 
 `vic3-tiger` is somewhat younger than `ck3-tiger` and will have less accurate warnings.
 
 ## Features
+
 `ck3-tiger` (or `vic3-tiger`) will read the relevant vanilla files and your mod's files, and it will complain about everything in your mod that looks wrong. Where possible, it will tell you why it thinks the thing is wrong and (still in very few cases) what you should do instead.
 
 * Syntax validation: are you using the right key = value pairs? No misspellings?
@@ -34,6 +52,7 @@ This project is maturing but not yet stable. It will warn about some things that
 ## How to use
 
 ### `ck3-tiger`
+
 Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere.
 
 On Windows, if everything works out, you can then just double-click on `ck3-tiger-auto` and it will try its best.
@@ -55,6 +74,7 @@ ck3-tiger <i>path/to/your/</i>descriptor.mod ><i>filename</i>
 </pre>
 
 ### `vic3-tiger`
+
 Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere.
 
 On Windows, if everything works out, you can then just double-click on `vic3-tiger-auto` and it will try its best.
@@ -76,11 +96,13 @@ vic3-tiger <i>path/to/your/mod</i> ><i>filename</i>
 </pre>
 
 ## How to configure
+
 You can place a file `ck3-tiger.conf` (or `vic3-tiger.conf`) in your mod directory. You can use it to select which languages to check localizations for, and to suppress messages about things you don't want to fix.
 
 There is a sample [`ck3-tiger.conf`](ck3-tiger.conf) file and [`vic3-tiger.conf`](vic3-tiger.conf) file in the release, with an explanation of what goes in it. There is also a [guide](filter.md).
 
 ## How to build
+
 You can unpack the archive from the "Release" page on GitHub and use it that way.
 
 If you want to build it yourself, you will have to [install the Rust programming language](https://www.rust-lang.org/tools/install).
@@ -121,4 +143,3 @@ See the [CODING](https://github.com/amtep/ck3-tiger/wiki/Overview-for-coders) wi
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [`LICENSE`](LICENSE) file for more details.
-
