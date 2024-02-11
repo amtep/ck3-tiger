@@ -1,19 +1,9 @@
 # ck3-tiger
 
-<p align="center">
-  <a href="https://github.com/amtep/ck3-tiger/releases">
-    <img alt="GitHub Release" src="https://img.shields.io/github/v/release/amtep/ck3-tiger"
-  /></a>
-  <a href="https://github.com/amtep/ck3-tiger/blob/readme/LICENSE">
-    <img alt="GitHub License" src="https://img.shields.io/github/license/amtep/ck3-tiger"
-  /></a>
-  <a href="https://docs.rs/tiger-lib/latest/tiger_lib/">
-    <img alt="tiger-lib docs.rs" src="https://img.shields.io/docsrs/tiger-lib?label=tiger-lib%20docs"
-  /></a>
-  <a href="https://discord.gg/3uQVCJ8uVf">
-    <img alt="Discord" src="https://img.shields.io/discord/1137432658067062784?logo=discord&label=discord&labelColor=1137432658067062784&color=royalblue"
-  /></a>
-</p>
+[![GitHub Release](https://img.shields.io/github/v/release/amtep/ck3-tiger)](https://github.com/amtep/ck3-tiger/releases)
+[![GitHub License](https://img.shields.io/github/license/amtep/ck3-tiger)](https://github.com/amtep/ck3-tiger/blob/main/LICENSE)
+[![tiger-lib docs.rs](https://img.shields.io/docsrs/tiger-lib?label=tiger-lib%20docs)](https://docs.rs/tiger-lib/latest/tiger_lib/)
+[![Discord](https://img.shields.io/discord/1137432658067062784?logo=discord&label=discord&labelColor=1137432658067062784&color=royalblue)](https://discord.gg/3uQVCJ8uVf)
 
 Pounces on bugs. Checks Crusader Kings 3 user mod files for mistakes and warns about them. For example: missing localizations, or using a faith trigger on a character.
 
