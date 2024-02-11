@@ -1,11 +1,11 @@
-# ck3-tiger
+# ![Tiger Banner](banner.png)
 
 [![GitHub Release](https://img.shields.io/github/v/release/amtep/ck3-tiger)](https://github.com/amtep/ck3-tiger/releases)
 [![GitHub License](https://img.shields.io/github/license/amtep/ck3-tiger)](https://github.com/amtep/ck3-tiger/blob/main/LICENSE)
 [![tiger-lib docs.rs](https://img.shields.io/docsrs/tiger-lib?label=tiger-lib%20docs)](https://docs.rs/tiger-lib/latest/tiger_lib/)
 [![Discord](https://img.shields.io/discord/1137432658067062784?logo=discord&label=discord&labelColor=1137432658067062784&color=royalblue)](https://discord.gg/3uQVCJ8uVf)
 
-Pounces on bugs. Checks Crusader Kings 3 user mod files for mistakes and warns about them. For example: missing localizations, or using a faith trigger on a character.
+Tiger pounces on bugs. Checks Crusader Kings 3 user mod files for mistakes and warns about them. For example: missing localizations, or using a faith trigger on a character.
 
 Crusader Kings 3 is a grand strategy game made by Paradox Interactive, and user mods are made by the players to enhance or change their game experience. This tool is for the people who make the mods.
 
