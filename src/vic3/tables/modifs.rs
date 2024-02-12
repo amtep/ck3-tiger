@@ -268,6 +268,13 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // TODO: modifiers from terrain labels
 
+    // User-defined modifs are accepted in Vic3.
+    // They must have a ModifierType entry to be accepted by the game engine,
+    // so if that exists then accept the modif.
+    if data.item_exists(Item::ModifierType, name_lc.as_str()) {
+        return Some(ModifKinds::all());
+    }
+
     None
 }
 

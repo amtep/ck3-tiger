@@ -109,6 +109,7 @@ pub fn validate_modifs<'a>(
             if Game::is_vic3() {
                 // The Item::ModifierType doesn't need to exist if the defaults are ok,
                 // but the loca should exist.
+                // TODO: should the key be lowercased?
                 let loca = format!("modifier_{key}");
                 data.verify_exists_implied(Item::Localization, &loca, key);
                 let loca = format!("modifier_{key}_desc");
