@@ -257,7 +257,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // TODO: not all of these exist for all unit types
     // unit_$CombatUnit$_offense_mult
     // unit_$CombatUnit$_offense_add
-    if let Some(part) = name_lc.strip_prefix("unit_)") {
+    if let Some(part) = name_lc.strip_prefix("unit_") {
         for sfx in &["_offense_add", "_offense_mult"] {
             if let Some(part) = part.strip_suffix(sfx) {
                 maybe_warn(Item::CombatUnit, part, name, data, warn);
