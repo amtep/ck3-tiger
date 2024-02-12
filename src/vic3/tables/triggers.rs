@@ -915,58 +915,63 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
 ];
 
 #[inline]
-pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, Trigger)> {
+pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, ArgumentValue)> {
     TRIGGER_COMPLEX_MAP.get(name).copied()
 }
 
-static TRIGGER_COMPLEX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
-    let mut hash = FnvHashMap::default();
-    for (from, s, trigger) in TRIGGER_COMPLEX.iter().copied() {
-        hash.insert(s, (from, trigger));
-    }
-    hash
-});
+static TRIGGER_COMPLEX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, ArgumentValue)>> =
+    Lazy::new(|| {
+        let mut hash = FnvHashMap::default();
+        for (from, s, trigger) in TRIGGER_COMPLEX.iter().copied() {
+            hash.insert(s, (from, trigger));
+        }
+        hash
+    });
 
 /// LAST UPDATED VIC3 VERSION 1.5.12
 /// See `triggers.log` from the game data dumps
 /// `(inscopes, trigger name, argtype)`
 /// Currently only works with single argument triggers
 // TODO Update argtype when vic3 updated to 1.5+
-const TRIGGER_COMPLEX: &[(Scopes, &str, Trigger)] = &[
-    (Scopes::Country, "additional_war_exhaustion", Scope(Scopes::DiplomaticPlay)),
-    (Scopes::Country, "army_mobilization_option_fraction", UncheckedValue), // TODO Item(Item::MobilizationOption)
-    // (Scopes::Battle, "battle_side_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
-    // (Scopes::Character, "commander_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
-    (Scopes::Country, "country_army_unit_type_fraction", UncheckedValue), // TODO Item(Item::UnitType))
-    (Scopes::Country, "country_has_building_group_levels", Item(Item::BuildingGroup)),
-    (Scopes::Country, "country_has_building_type_levels", Item(Item::BuildingType)),
-    (Scopes::Country, "country_navy_unity_type_fraction", UncheckedValue), // TODO Item(Item::UnitType)
-    // (Scopes::Country, "country_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
-    (Scopes::Country, "culture_percent_country", Item(Item::Culture)),
-    (Scopes::State, "culture_percent_state", Item(Item::Culture)),
-    (Scopes::Culture, "culture_secession_progress", Scope(Scopes::Country)),
-    // (Scopes::DiplomaticPlay, "diplomatic_play_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
-    (Scopes::Country, "enemy_contested_wargoals", Scope(Scopes::War)),
-    // TODO (Scopes::MilitaryFormation, "formation_army_unit_type_fraction", Item(Item::UnitType)),
-    // TODO (Scopes::MilitaryFormation, "formation_navy_unit_type_fraction", Item(Item::UnitType)),
-    // (Scopes::Front, "front_side_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
-    (Scopes::Country, "has_technology_progress", Item(Item::Technology)),
-    (Scopes::War, "has_war_exhaustion", Item(Item::Country)),
-    (Scopes::War, "has_war_support", Item(Item::Country)),
-    (Scopes::State, "ig_state_pol_strength_share", Scope(Scopes::InterestGroup)),
-    (Scopes::Country, "institution_investment_level", Item(Item::Institution)),
-    (Scopes::None, "list_size", UncheckedValue),
-    // loyalist_fraction
-    (Scopes::War, "num_country_casualties", Scope(Scopes::Country)),
-    (Scopes::War, "num_country_dead", Scope(Scopes::Country)),
-    (Scopes::War, "num_country_wounded", Scope(Scopes::Country)),
-    (Scopes::Country, "pop_type_percent_country", Item(Item::PopType)),
-    (Scopes::State, "pop_type_percent_state", Item(Item::PopType)),
-    // radical_fraction
-    (Scopes::Country, "religion_percent_country", Item(Item::Religion)),
-    (Scopes::State, "religion_percent_state", Item(Item::Religion)),
-    (Scopes::StateRegion, "remaining_undepleted", Item(Item::BuildingGroup)),
-    (Scopes::Country, "size_weighted_lost_battles_fraction", Scope(Scopes::War)),
-    (Scopes::State, "state_has_building_group_levels", Item(Item::BuildingGroup)),
-    (Scopes::State, "state_has_building_type_levels", Item(Item::BuildingType)),
-];
+const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue)] = {
+    use crate::item::Item;
+    use ArgumentValue::*;
+    &[
+        (Scopes::Country, "additional_war_exhaustion", Scope(Scopes::DiplomaticPlay)),
+        (Scopes::Country, "army_mobilization_option_fraction", UncheckedValue), // TODO Item(Item::MobilizationOption)
+        // (Scopes::Battle, "battle_side_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
+        // (Scopes::Character, "commander_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
+        (Scopes::Country, "country_army_unit_type_fraction", UncheckedValue), // TODO Item(Item::UnitType))
+        (Scopes::Country, "country_has_building_group_levels", Item(Item::BuildingGroup)),
+        (Scopes::Country, "country_has_building_type_levels", Item(Item::BuildingType)),
+        (Scopes::Country, "country_navy_unity_type_fraction", UncheckedValue), // TODO Item(Item::UnitType)
+        // (Scopes::Country, "country_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
+        (Scopes::Country, "culture_percent_country", Item(Item::Culture)),
+        (Scopes::State, "culture_percent_state", Item(Item::Culture)),
+        (Scopes::Culture, "culture_secession_progress", Scope(Scopes::Country)),
+        // (Scopes::DiplomaticPlay, "diplomatic_play_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
+        (Scopes::Country, "enemy_contested_wargoals", Scope(Scopes::War)),
+        // TODO (Scopes::MilitaryFormation, "formation_army_unit_type_fraction", Item(Item::UnitType)),
+        // TODO (Scopes::MilitaryFormation, "formation_navy_unit_type_fraction", Item(Item::UnitType)),
+        // (Scopes::Front, "front_side_pm_usage", Scope(Scopes::Country), Item(Item::ProductionMethod)),
+        (Scopes::Country, "has_technology_progress", Item(Item::Technology)),
+        (Scopes::War, "has_war_exhaustion", Item(Item::Country)),
+        (Scopes::War, "has_war_support", Item(Item::Country)),
+        (Scopes::State, "ig_state_pol_strength_share", Scope(Scopes::InterestGroup)),
+        (Scopes::Country, "institution_investment_level", Item(Item::Institution)),
+        (Scopes::None, "list_size", UncheckedValue),
+        // loyalist_fraction
+        (Scopes::War, "num_country_casualties", Scope(Scopes::Country)),
+        (Scopes::War, "num_country_dead", Scope(Scopes::Country)),
+        (Scopes::War, "num_country_wounded", Scope(Scopes::Country)),
+        (Scopes::Country, "pop_type_percent_country", Item(Item::PopType)),
+        (Scopes::State, "pop_type_percent_state", Item(Item::PopType)),
+        // radical_fraction
+        (Scopes::Country, "religion_percent_country", Item(Item::Religion)),
+        (Scopes::State, "religion_percent_state", Item(Item::Religion)),
+        (Scopes::StateRegion, "remaining_undepleted", Item(Item::BuildingGroup)),
+        (Scopes::Country, "size_weighted_lost_battles_fraction", Scope(Scopes::War)),
+        (Scopes::State, "state_has_building_group_levels", Item(Item::BuildingGroup)),
+        (Scopes::State, "state_has_building_type_levels", Item(Item::BuildingType)),
+    ]
+};

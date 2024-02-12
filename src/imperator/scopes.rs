@@ -8,8 +8,7 @@ use once_cell::sync::Lazy;
 use crate::everything::Everything;
 use crate::helpers::display_choices;
 use crate::item::Item;
-use crate::scopes::Scopes;
-use crate::trigger::Trigger;
+use crate::scopes::{ArgumentValue, Scopes};
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
@@ -322,11 +321,11 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
 ];
 
 #[inline]
-pub fn scope_prefix(name: &str) -> Option<(Scopes, Scopes, Trigger)> {
+pub fn scope_prefix(name: &str) -> Option<(Scopes, Scopes, ArgumentValue)> {
     SCOPE_PREFIX_MAP.get(name).copied()
 }
 
-static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)>> =
+static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, ArgumentValue)>> =
     Lazy::new(|| {
         let mut hash = FnvHashMap::default();
         for (from, s, to, argument) in SCOPE_PREFIX.iter().copied() {
@@ -341,8 +340,8 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)
 /// a key (like `root.cp:councillor_steward`)
 
 // Basically just search the log for "Requires Data: yes" and put all that here.
-const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
-    use Trigger::*;
+const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
+    use ArgumentValue::*;
     //TODO: Remove `UncheckedValue` for correct validation
     &[
         (Scopes::None, "array_define", Scopes::Value, UncheckedValue),
