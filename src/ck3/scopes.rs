@@ -7,8 +7,7 @@ use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
 use crate::helpers::display_choices;
-use crate::scopes::Scopes;
-use crate::trigger::Trigger;
+use crate::scopes::{ArgumentValue, Scopes};
 
 // LAST UPDATED CK3 VERSION 1.11.3
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
@@ -468,11 +467,11 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
 ];
 
 #[inline]
-pub fn scope_prefix(name: &str) -> Option<(Scopes, Scopes, Trigger)> {
+pub fn scope_prefix(name: &str) -> Option<(Scopes, Scopes, ArgumentValue)> {
     SCOPE_PREFIX_MAP.get(name).copied()
 }
 
-static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)>> =
+static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, ArgumentValue)>> =
     Lazy::new(|| {
         let mut hash = FnvHashMap::default();
         for (from, s, to, argument) in SCOPE_PREFIX.iter().copied() {
@@ -485,9 +484,9 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Trigger)
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
-const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
+const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
     use crate::item::Item;
-    use crate::trigger::Trigger::*;
+    use crate::scopes::ArgumentValue::*;
     &[
         (Scopes::None, "accolade_type", Scopes::AccoladeType, Item(Item::AccoladeType)),
         (Scopes::None, "activity_type", Scopes::ActivityType, Item(Item::ActivityType)),

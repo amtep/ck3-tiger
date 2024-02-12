@@ -7,9 +7,9 @@ use bitflags::bitflags;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::game::Game;
+use crate::item::Item;
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
-use crate::trigger::Trigger;
 
 /// vic3 needs more than 64 bits, but the others don't.
 #[cfg(feature = "vic3")]
@@ -249,6 +249,23 @@ impl Display for Scopes {
     }
 }
 
+/// A description of the constraints on a value with a prefix such as `var:` or `list_size:`
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ArgumentValue {
+    /// The value must be an expression that resolves to a scope object of the given type.
+    Scope(Scopes),
+    /// The value must be the name of an item of the given item type.
+    Item(Item),
+    /// The value can be either a Scope or an Item
+    #[cfg(feature = "ck3")]
+    ScopeOrItem(Scopes, Item),
+    /// The value must be the name of a modif
+    #[cfg(feature = "vic3")]
+    Modif,
+    /// The value can be anything
+    UncheckedValue,
+}
+
 /// Look up an "event link", which is a script token that looks up something related
 /// to a scope value and returns another scope value.
 ///
@@ -322,7 +339,7 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
 /// Returns a pair of `Scopes` and the type of argument it accepts.
 /// The first `Scopes` is the scope types this token can accept as input, and the second one is
 /// the scope types it may return. The first will be `Scopes::None` if it needs no input.
-pub fn scope_prefix(prefix: &Token) -> Option<(Scopes, Scopes, Trigger)> {
+pub fn scope_prefix(prefix: &Token) -> Option<(Scopes, Scopes, ArgumentValue)> {
     let scope_prefix = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::scopes::scope_prefix,

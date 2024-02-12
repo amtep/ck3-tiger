@@ -17,10 +17,14 @@ use crate::helpers::stringify_choices;
 use crate::helpers::stringify_list;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
+#[cfg(feature = "vic3")]
+use crate::modif::{verify_modif_exists, ModifKinds};
 use crate::report::{
     advice_info, err, error, fatal, old_warn, warn, warn_info, ErrorKey, Severity,
 };
-use crate::scopes::{needs_prefix, scope_iterator, scope_prefix, scope_to_scope, Scopes};
+use crate::scopes::{
+    needs_prefix, scope_iterator, scope_prefix, scope_to_scope, ArgumentValue, Scopes,
+};
 use crate::script_value::validate_script_value;
 use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
@@ -1289,28 +1293,32 @@ pub fn validate_inscopes(
 
 fn validate_argument_internal(
     arg: &Token,
-    trigger: Trigger,
+    validation: ArgumentValue,
     data: &Everything,
     sc: &mut ScopeContext,
 ) {
-    use Trigger::*;
-    match trigger {
-        Item(item) => data.verify_exists(item, arg),
-        Scope(scope) => validate_target(arg, data, sc, scope),
-        ScopeOrItem(scope, item) => {
+    match validation {
+        ArgumentValue::Item(item) => data.verify_exists(item, arg),
+        ArgumentValue::Scope(scope) => validate_target(arg, data, sc, scope),
+        #[cfg(feature = "ck3")]
+        ArgumentValue::ScopeOrItem(scope, item) => {
             if !data.item_exists(item, arg.as_str()) {
                 validate_target(arg, data, sc, scope);
             }
         }
-        UncheckedValue => (),
-        _ => unimplemented!(),
+        #[cfg(feature = "vic3")]
+        ArgumentValue::Modif => {
+            // TODO: deduce the ModifKinds from the `this` scope
+            verify_modif_exists(arg, data, ModifKinds::all(), Severity::Warning);
+        }
+        ArgumentValue::UncheckedValue => (),
     }
 }
 
 /// Validate for scope and not trigger arguments
 pub fn validate_argument_scope(
     part_flags: PartFlags,
-    (inscopes, outscopes, trigger): (Scopes, Scopes, Trigger),
+    (inscopes, outscopes, validation): (Scopes, Scopes, ArgumentValue),
     func: &Token,
     arg: &Token,
     data: &Everything,
@@ -1319,7 +1327,7 @@ pub fn validate_argument_scope(
     // validate inscopes
     validate_inscopes(part_flags, func, inscopes, sc);
     // validate argument
-    validate_argument_internal(arg, trigger, data, sc);
+    validate_argument_internal(arg, validation, data, sc);
     // change to outscopes
     let mut outscopes_token = func.clone();
     outscopes_token.combine(arg, ':');
@@ -1353,7 +1361,7 @@ pub fn validate_argument(
         return;
     }
 
-    let scope_trigger_complex: fn(&str) -> Option<(Scopes, Trigger)> = match Game::game() {
+    let scope_trigger_complex: fn(&str) -> Option<(Scopes, ArgumentValue)> = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::triggers::scope_trigger_complex,
         #[cfg(feature = "vic3")]
@@ -1363,9 +1371,9 @@ pub fn validate_argument(
     };
 
     let func_lc = func.as_str().to_lowercase();
-    if let Some((inscopes, trigger)) = scope_trigger_complex(&func_lc) {
+    if let Some((inscopes, validation)) = scope_trigger_complex(&func_lc) {
         sc.expect(inscopes, &Reason::Token(func.clone()));
-        validate_argument_internal(arg, trigger, data, sc);
+        validate_argument_internal(arg, validation, data, sc);
         sc.replace(Scopes::Value, func.clone());
     } else if let Some(entry) = scope_prefix(func) {
         validate_argument_scope(part_flags, entry, func, arg, data, sc);
