@@ -192,6 +192,7 @@ pub fn validate_effect_field(
                     validate_target(token, data, sc, Scopes::Bool);
                 }
             }
+            #[cfg(any(feature = "ck3", feature = "imperator"))]
             Effect::Integer => {
                 if let Some(token) = bv.expect_value() {
                     token.expect_integer();
@@ -530,10 +531,13 @@ pub enum Effect {
     /// No special value, just `effect = yes`.
     Yes,
     /// Yes and no are both meaningful. The difference between this and [`Effect::Yes`] can be hard
-    /// to distinguish. TODO: needs testing.
+    /// to distinguish.
+    /// TODO: needs testing.
     Boolean,
     /// The effect takes a literal integer. It's not clear whether effects of this type actually
-    /// exist or if they're all secrectly [`Effect::ScriptValue`]. TODO: needs testing.
+    /// exist or if they're all secrectly [`Effect::ScriptValue`].
+    /// TODO: needs testing.
+    #[cfg(any(feature = "ck3", feature = "imperator"))]
     Integer,
     /// The effect takes a script value, which can be a literal number or a named script value or an
     /// inline script value block.
