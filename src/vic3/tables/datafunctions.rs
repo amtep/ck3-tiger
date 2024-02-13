@@ -39,7 +39,7 @@ pub const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
     (Vic3(InterestGroup), Scopes::InterestGroup),
     (Vic3(InterestGroupTrait), Scopes::InterestGroupTrait),
     // (Vic3(InterestGroupType),Scopes::InterestGroupType),
-    (Vic3(JournalEntry), Scopes::Journalentry),
+    (Vic3(JournalEntry), Scopes::JournalEntry),
     (Vic3(Law), Scopes::Law),
     (Vic3(LawType), Scopes::LawType),
     (Vic3(Market), Scopes::Market),

@@ -14,19 +14,19 @@ use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Journalentry {}
+pub struct JournalEntry {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Vic3, Item::Journalentry, Journalentry::add)
+    ItemLoader::Normal(GameFlags::Vic3, Item::JournalEntry, JournalEntry::add)
 }
 
-impl Journalentry {
+impl JournalEntry {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::Journalentry, key, block, Box::new(Self {}));
+        db.add(Item::JournalEntry, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for Journalentry {
+impl DbKind for JournalEntry {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -38,7 +38,7 @@ impl DbKind for Journalentry {
         data.mark_used(Item::Localization, &loca);
 
         let mut sc = ScopeContext::new(Scopes::Country, key);
-        sc.define_name("journal_entry", Scopes::Journalentry, key);
+        sc.define_name("journal_entry", Scopes::JournalEntry, key);
         sc.define_name("target", Scopes::all(), key);
 
         vd.field_item("icon", Item::File);

@@ -97,7 +97,7 @@ pub fn validate_add_journalentry(
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("type");
-    vd.field_item("type", Item::Journalentry);
+    vd.field_item("type", Item::JournalEntry);
     vd.field_item("objective_subgoal", Item::ObjectiveSubgoal); // undocumented
     vd.field_target("target", sc, Scopes::all());
 }

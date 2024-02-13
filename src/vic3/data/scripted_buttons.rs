@@ -31,7 +31,7 @@ impl DbKind for ScriptedButton {
 
         // TODO: assuming that the scopes from the journalentry are available
         let mut sc = ScopeContext::new(Scopes::Country, key);
-        sc.define_name("journal_entry", Scopes::Journalentry, key);
+        sc.define_name("journal_entry", Scopes::JournalEntry, key);
         sc.define_name("target", Scopes::all(), key);
 
         vd.field_item("name", Item::Localization);

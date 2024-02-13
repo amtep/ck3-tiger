@@ -367,7 +367,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "has_interest_marker_in_region",
         ScopeOrItem(Scopes::StrategicRegion, Item::StrategicRegion),
     ),
-    (Scopes::Country, "has_journal_entry", Item(Item::Journalentry)),
+    (Scopes::Country, "has_journal_entry", Item(Item::JournalEntry)),
     (Scopes::Province, "has_label", Item(Item::TerrainLabel)),
     (Scopes::Country, "has_law", Scope(Scopes::LawType)),
     (Scopes::None, "has_local_variable", UncheckedValue),
@@ -385,7 +385,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             .union(Scopes::Character)
             .union(Scopes::Institution)
             .union(Scopes::InterestGroup)
-            .union(Scopes::Journalentry)
+            .union(Scopes::JournalEntry)
             .union(Scopes::PoliticalMovement)
             .union(Scopes::State),
         "has_modifier",
@@ -541,7 +541,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::MilitaryFormation, "is_fully_mobilized", Boolean),
     (Scopes::None, "is_game_paused", Boolean),
     (Scopes::None, "is_gamestate_tutorial_active", Boolean),
-    (Scopes::Journalentry, "is_goal_complete", Boolean),
+    (Scopes::JournalEntry, "is_goal_complete", Boolean),
     (Scopes::Building, "is_government_funded", Boolean),
     (Scopes::Character, "is_heir", Boolean),
     (Scopes::Character, "is_historical", Boolean),
@@ -612,7 +612,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             ("production_method", Item(Item::ProductionMethod)),
         ]),
     ),
-    (Scopes::Journalentry, "is_progressing", Boolean),
+    (Scopes::JournalEntry, "is_progressing", Boolean),
     (Scopes::Province, "is_province_land", Boolean),
     (Scopes::Character, "is_repairing", Boolean),
     (Scopes::Country, "is_researching_technology", Special), // also accepts "any"

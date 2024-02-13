@@ -324,7 +324,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] Institution,
     #[cfg(feature = "vic3")] InterestGroup,
     #[cfg(feature = "vic3")] InterestGroupTrait,
-    #[cfg(feature = "vic3")] Journalentry,
+    #[cfg(feature = "vic3")] JournalEntry,
     #[cfg(feature = "vic3")] LawType,
     #[cfg(feature = "vic3")] Level,
     #[cfg(feature = "vic3")] MapLayer,
@@ -968,7 +968,7 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::InterestGroupTrait => "common/interest_group_traits/",
             #[cfg(feature = "vic3")]
-            Item::Journalentry => "common/journal_entries/",
+            Item::JournalEntry => "common/journal_entries/",
             #[cfg(feature = "vic3")]
             Item::LawType => "common/laws/",
             #[cfg(feature = "vic3")]

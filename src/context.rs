@@ -984,7 +984,7 @@ fn scope_type_from_name(mut name: &str) -> Option<Scopes> {
             }
             "battle" => Some(Scopes::Battle),
             "interest_group" => Some(Scopes::InterestGroup),
-            "journal_entry" => Some(Scopes::Journalentry),
+            "journal_entry" => Some(Scopes::JournalEntry),
             "market" => Some(Scopes::Market),
             _ => None,
         };
