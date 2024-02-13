@@ -56,6 +56,7 @@ impl Display for Gender {
 }
 
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_field_names)]
 pub struct Characters {
     config_only_born: Option<Date>,
 
@@ -63,7 +64,7 @@ pub struct Characters {
 
     /// These are characters with duplicate ids. We can't put them in the `characters` map because of the ids,
     /// but we do want to validate them.
-    duplicate_characters: Vec<Character>,
+    duplicates: Vec<Character>,
 }
 
 impl Characters {
@@ -82,7 +83,7 @@ impl Characters {
                     .loc(&other.key)
                     .loc(&key, "duplicate")
                     .push();
-                self.duplicate_characters.push(Character::new(key, block));
+                self.duplicates.push(Character::new(key, block));
             }
         } else {
             self.characters.insert(key.to_string(), Character::new(key, block));
@@ -105,10 +106,7 @@ impl Characters {
     }
 
     pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
-        self.characters
-            .values()
-            .map(|ch| &ch.key)
-            .chain(self.duplicate_characters.iter().map(|ch| &ch.key))
+        self.characters.values().map(|ch| &ch.key).chain(self.duplicates.iter().map(|ch| &ch.key))
     }
 
     pub fn is_alive(&self, item: &Token, date: Date) -> bool {
@@ -157,7 +155,7 @@ impl Characters {
                 item.validate(data);
             }
         }
-        for item in &self.duplicate_characters {
+        for item in &self.duplicates {
             if item.born_by(self.config_only_born) {
                 item.validate(data);
             }

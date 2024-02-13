@@ -21,7 +21,7 @@ pub struct Rivers {
     height: u32,
     color_type: Option<ColorType>,
     palette: Option<Vec<u8>>,
-    rivers_buf: Vec<u8>,
+    pixels: Vec<u8>,
 }
 
 impl Rivers {
@@ -37,8 +37,8 @@ impl Rivers {
             self.palette = Some(palette.into_owned());
         }
 
-        self.rivers_buf = vec![0; reader.output_buffer_size()];
-        let frame_info = reader.next_frame(&mut self.rivers_buf)?;
+        self.pixels = vec![0; reader.output_buffer_size()];
+        let frame_info = reader.next_frame(&mut self.pixels)?;
 
         if frame_info.width != self.width
             || frame_info.height != self.height
@@ -87,7 +87,7 @@ impl Rivers {
 
     fn pixel(&self, x: u32, y: u32) -> u8 {
         let idx = (x + self.width * y) as usize;
-        self.rivers_buf[idx]
+        self.pixels[idx]
     }
 
     fn validate_segments(

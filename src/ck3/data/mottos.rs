@@ -55,6 +55,7 @@ impl DbKind for Motto {
         let mut vd = Validator::new(block, data);
         let loca = format!("motto_{key}");
         data.verify_exists_implied(Item::Localization, &loca, key);
+        #[allow(clippy::cast_possible_wrap)]
         let n = block.count_keys("insert") as i64;
         data.localization.verify_key_has_options(&loca, key, n, "");
         vd.multi_field_item("insert", Item::MottoInsert);

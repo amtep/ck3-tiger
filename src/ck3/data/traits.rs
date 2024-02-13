@@ -20,6 +20,7 @@ use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_field_names)]
 pub struct Traits {
     traits: FnvHashMap<String, Trait>,
     groups: FnvHashMap<String, Token>,

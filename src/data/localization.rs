@@ -548,7 +548,7 @@ impl Localization {
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {
                 let mut vec = Vec::new();
-                for (key, entry) in hash.iter() {
+                for (key, entry) in hash {
                     if !self.keys_used.read().unwrap().contains(key) {
                         vec.push(entry);
                     }

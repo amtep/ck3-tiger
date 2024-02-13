@@ -169,6 +169,11 @@ impl Token {
     }
 
     #[must_use]
+    /// Split the token into one or more subtokens, with `ch` as the delimiter.
+    /// Updates the locs for the created subtokens.
+    /// This is not meant for multiline tokens.
+    /// # Panics
+    /// May panic if the token's column location exceeds 65535.
     pub fn split(&self, ch: char) -> Vec<Token> {
         let mut pos = 0;
         let mut vec = Vec::new();
@@ -206,6 +211,12 @@ impl Token {
     }
 
     #[must_use]
+    /// Split the token into two subtokens, with the split at the first occurrence of `ch`.
+    /// Updates the locs for the created subtokens.
+    /// This is not meant for multiline tokens.
+    /// Returns `None` if `ch` was not found in the token.
+    /// # Panics
+    /// May panic if the token's column location exceeds 65535.
     pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
@@ -220,7 +231,12 @@ impl Token {
         None
     }
 
-    /// Split the token at the first instance of ch, such that ch is part of the first returned token.
+    /// Split the token into two subtokens, with the split at the first instance of `ch`, such that `ch` is part of the first returned token.
+    /// Updates the locs for the created subtokens.
+    /// This is not meant for multiline tokens.
+    /// Returns `None` if `ch` was not found in the token.
+    /// # Panics
+    /// May panic if the token's column location exceeds 65535.
     #[must_use]
     pub fn split_after(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
@@ -238,6 +254,7 @@ impl Token {
         None
     }
 
+    /// Create a new token that is a concatenation of this token and `other`, with `c` between them.
     pub fn combine(&mut self, other: &Token, c: char) {
         let mut s = self.s.to_string();
         s.push(c);
@@ -246,6 +263,11 @@ impl Token {
     }
 
     #[must_use]
+    /// Return a subtoken of this token, such that all whitespace is removed from the start and end.
+    /// Will update the loc of the subtoken.
+    /// This is not meant for multiline tokens.
+    /// # Panics
+    /// May panic if the token's column location exceeds 65535.
     pub fn trim(&self) -> Token {
         let mut real_start = None;
         let mut real_end = self.s.len();

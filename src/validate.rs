@@ -580,7 +580,7 @@ pub fn validate_scripted_modifier_call(
                     let info = "supplying an unneeded parameter often causes a crash";
                     fatal(ErrorKey::Macro).msg(msg).info(info).loc(key).push();
                 });
-                let args: Vec<_> = parms.into_iter().zip(vec.into_iter()).collect();
+                let args: Vec<_> = parms.into_iter().zip(vec).collect();
                 modifier.validate_macro_expansion(key, &args, data, sc);
             }
         }

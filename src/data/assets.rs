@@ -16,6 +16,7 @@ use crate::validate::validate_numeric_range;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_field_names)]
 pub struct Assets {
     assets: FnvHashMap<String, Asset>,
     attributes: FnvHashMap<String, Token>,

@@ -362,7 +362,7 @@ pub fn validate_trigger_key_bv(
                         fatal(ErrorKey::Macro).msg(msg).info(info).loc(key).push();
                     });
 
-                    let args: Vec<_> = parms.into_iter().zip(vec.into_iter()).collect();
+                    let args: Vec<_> = parms.into_iter().zip(vec).collect();
                     // TODO: check side_effects
                     trigger.validate_macro_expansion(key, &args, data, sc, tooltipped, negated);
                 }

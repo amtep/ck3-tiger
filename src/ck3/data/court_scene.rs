@@ -133,6 +133,7 @@ impl DbKind for CourtSceneSetting {
             }
         });
 
+        #[allow(clippy::cast_possible_wrap)] // We're not going to have 2^63 cameras
         vd.field_integer_range("default_camera", 0, max(cameras.len() as i64 - 1, 0));
         vd.field_precise_numeric("shadows_fade");
         vd.field_precise_numeric("shadows_strength");

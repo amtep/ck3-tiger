@@ -19,6 +19,7 @@ use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_field_names)]
 pub struct Doctrines {
     groups: FnvHashMap<String, DoctrineGroup>,
     doctrines: FnvHashMap<String, Doctrine>,
