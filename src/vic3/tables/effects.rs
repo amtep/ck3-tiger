@@ -77,7 +77,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
             .union(Scopes::Character)
             .union(Scopes::Institution)
             .union(Scopes::InterestGroup)
-            .union(Scopes::Journalentry)
+            .union(Scopes::JournalEntry)
             .union(Scopes::PoliticalMovement)
             .union(Scopes::State),
         "add_modifier",
@@ -232,7 +232,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
             .union(Scopes::Character)
             .union(Scopes::Institution)
             .union(Scopes::InterestGroup)
-            .union(Scopes::Journalentry)
+            .union(Scopes::JournalEntry)
             .union(Scopes::PoliticalMovement)
             .union(Scopes::State),
         "remove_modifier",
@@ -302,7 +302,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::State, "set_state_type", UncheckedTodo),
     (Scopes::Country, "set_strategy", Item(Item::AiStrategy)),
     (Scopes::Building, "set_subsidized", Boolean),
-    (Scopes::Journalentry, "set_target_technology", Scope(Scopes::Technology)),
+    (Scopes::JournalEntry, "set_target_technology", Scope(Scopes::Technology)),
     (Scopes::Country, "set_tariffs_export_priority", Scope(Scopes::Goods)),
     (Scopes::Country, "set_tariffs_import_priority", Scope(Scopes::Goods)),
     (Scopes::Country, "set_tariffs_no_priority", Scope(Scopes::Goods)),

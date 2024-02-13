@@ -123,7 +123,7 @@ bitflags! {
         #[cfg(feature = "vic3")] const InterestGroup = 0x0000_0100_0000_0000;
         #[cfg(feature = "vic3")] const InterestGroupTrait = 0x0000_0200_0000_0000;
         #[cfg(feature = "vic3")] const InterestGroupType = 0x0000_0400_0000_0000;
-        #[cfg(feature = "vic3")] const Journalentry = 0x0000_0800_0000_0000;
+        #[cfg(feature = "vic3")] const JournalEntry = 0x0000_0800_0000_0000;
         #[cfg(feature = "vic3")] const Law = 0x0000_1000_0000_0000;
         #[cfg(feature = "vic3")] const LawType = 0x0000_2000_0000_0000;
         #[cfg(feature = "vic3")] const Market = 0x0000_4000_0000_0000;

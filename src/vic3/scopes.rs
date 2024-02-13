@@ -50,7 +50,7 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "interest_group" => Scopes::InterestGroup,
         "interest_group_trait" => Scopes::InterestGroupTrait,
         "interest_group_type" => Scopes::InterestGroupType,
-        "journalentry" => Scopes::Journalentry,
+        "journalentry" => Scopes::JournalEntry,
         "law" => Scopes::Law,
         "law_type" => Scopes::LawType,
         "market" => Scopes::Market,
@@ -205,7 +205,7 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::InterestGroupType) {
         vec.push("interest group_type");
     }
-    if s.contains(Scopes::Journalentry) {
+    if s.contains(Scopes::JournalEntry) {
         vec.push("journalentry");
     }
     if s.contains(Scopes::Law) {
@@ -339,7 +339,7 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     if scopes == Scopes::Institution && data.item_exists(Item::Institution, arg) {
         return Some("institution");
     }
-    if scopes == Scopes::Journalentry && data.item_exists(Item::Journalentry, arg) {
+    if scopes == Scopes::JournalEntry && data.item_exists(Item::JournalEntry, arg) {
         return Some("je");
     }
     if scopes == Scopes::LawType && data.item_exists(Item::LawType, arg) {
@@ -459,7 +459,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Front, "front_length", Scopes::Value),
     (Scopes::Country.union(Scopes::State), "gdp", Scopes::Value),
     (Scopes::None, "global_gdp", Scopes::Value),
-    (Scopes::Journalentry, "goal_value", Scopes::Value),
+    (Scopes::JournalEntry, "goal_value", Scopes::Value),
     (
         Scopes::MarketGoods.union(Scopes::StateGoods).union(Scopes::TradeRoute),
         "goods",
@@ -480,7 +480,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Institution, "investment_max", Scopes::Value),
     (Scopes::Country, "investment_pool_income", Scopes::Value),
     (Scopes::None, "is_setup", Scopes::Value),
-    (Scopes::Country, "je_tutorial", Scopes::Journalentry),
+    (Scopes::Country, "je_tutorial", Scopes::JournalEntry),
     (Scopes::Province.union(Scopes::State), "land_controller_hq", Scopes::Hq),
     (Scopes::Province.union(Scopes::State), "land_hq", Scopes::Hq),
     (Scopes::InterestGroup, "leader", Scopes::Character),
@@ -568,7 +568,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
             .union(Scopes::Institution)
             .union(Scopes::InterestMarker)
             .union(Scopes::InterestGroup)
-            .union(Scopes::Journalentry)
+            .union(Scopes::JournalEntry)
             .union(Scopes::Law)
             .union(Scopes::Market)
             .union(Scopes::MarketGoods)
@@ -620,7 +620,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     ),
     (Scopes::State, "state_region", Scopes::StateRegion),
     (Scopes::Character, "supply", Scopes::Value),
-    (Scopes::DiplomaticPlay.union(Scopes::Journalentry), "target", Scopes::all()), // TODO: scope type?
+    (Scopes::DiplomaticPlay.union(Scopes::JournalEntry), "target", Scopes::all()), // TODO: scope type?
     (Scopes::TradeRoute, "target_market", Scopes::Market),
     (Scopes::Country, "technology_being_researched", Scopes::Technology),
     (Scopes::Country, "techs_researched", Scopes::Value),
@@ -702,7 +702,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, Trigger)] = {
         (Scopes::None, "ig_type", Scopes::InterestGroupType, Item(Item::InterestGroup)),
         (Scopes::None, "infamy_threshold", Scopes::Value, Item(Item::InfamyThreshold)),
         (Scopes::Country, "institution", Scopes::Institution, Item(Item::Institution)),
-        (Scopes::Country, "je", Scopes::Journalentry, Item(Item::Journalentry)),
+        (Scopes::Country, "je", Scopes::JournalEntry, Item(Item::JournalEntry)),
         (Scopes::None, "law_type", Scopes::LawType, Item(Item::LawType)),
         (Scopes::None, "list_size", Scopes::Value, UncheckedValue),
         (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
