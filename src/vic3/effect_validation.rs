@@ -123,12 +123,12 @@ pub fn validate_add_technology_progress(
     _key: &Token,
     _block: &Block,
     _data: &Everything,
-    sc: &mut ScopeContext,
+    _sc: &mut ScopeContext,
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("progress");
-    vd.field_script_value("progress", sc);
+    vd.field_numeric("progress");
     vd.req_field("technology");
     vd.field_item("technology", Item::Technology);
 }
@@ -198,14 +198,14 @@ pub fn validate_change_institution_investment_level(
     _key: &Token,
     _block: &Block,
     _data: &Everything,
-    sc: &mut ScopeContext,
+    _sc: &mut ScopeContext,
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("institution");
     vd.field_item("institution", Item::Institution);
     vd.req_field("investment");
-    vd.field_script_value("investment", sc);
+    vd.field_integer("investment");
 }
 
 pub fn validate_diplomatic_pact(

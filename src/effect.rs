@@ -192,7 +192,6 @@ pub fn validate_effect_field(
                     validate_target(token, data, sc, Scopes::Bool);
                 }
             }
-            #[cfg(any(feature = "ck3", feature = "imperator"))]
             Effect::Integer => {
                 if let Some(token) = bv.expect_value() {
                     token.expect_integer();
@@ -537,7 +536,6 @@ pub enum Effect {
     /// The effect takes a literal integer. It's not clear whether effects of this type actually
     /// exist or if they're all secrectly [`Effect::ScriptValue`].
     /// TODO: needs testing.
-    #[cfg(any(feature = "ck3", feature = "imperator"))]
     Integer,
     /// The effect takes a script value, which can be a literal number or a named script value or an
     /// inline script value block.
