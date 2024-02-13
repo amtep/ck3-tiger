@@ -41,6 +41,8 @@ impl DbKind for JournalEntry {
         sc.define_name("journal_entry", Scopes::JournalEntry, key);
         sc.define_name("target", Scopes::all(), key);
 
+        vd.field_item("group", Item::JournalEntryGroup);
+
         vd.field_item("icon", Item::File);
 
         vd.field_validated_block("is_shown_when_inactive", |block, data| {
@@ -126,5 +128,28 @@ impl DbKind for JournalEntry {
 
         vd.field_integer("active_update_frequency");
         vd.field_bool("should_update_on_player_command");
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct JournalEntryGroup {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::JournalEntryGroup, JournalEntryGroup::add)
+}
+
+impl JournalEntryGroup {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::JournalEntryGroup, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for JournalEntryGroup {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        // Since journal entry groups have no defined fields, this Validator
+        // is just here to warn about unknown fields when it is dropped.
+        Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
     }
 }
