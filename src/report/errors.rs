@@ -98,10 +98,12 @@ impl Errors {
     // TODO: integrate this function into the error reporting framework.
     pub fn push_abbreviated<E: ErrorLoc>(&mut self, eloc: E, key: ErrorKey) {
         let loc = eloc.into_loc();
-        if loc.line == 0 {
-            _ = writeln!(self.output.get_mut(), "({key}) {}", loc.pathname().to_string_lossy());
-        } else if let Some(line) = self.get_line(loc) {
-            _ = writeln!(self.output.get_mut(), "({key}) {line}");
+        if self.filter.should_maybe_print(key, loc) {
+            if loc.line == 0 {
+                _ = writeln!(self.output.get_mut(), "({key}) {}", loc.pathname().to_string_lossy());
+            } else if let Some(line) = self.get_line(loc) {
+                _ = writeln!(self.output.get_mut(), "({key}) {line}");
+            }
         }
     }
 
