@@ -162,8 +162,11 @@ impl DbKind for BuildingGroup {
         vd.field_numeric("urbanization");
 
         vd.field_numeric("hiring_rate");
+        vd.field_numeric("min_hiring_rate");
+        vd.field_numeric("max_hiring_rate");
         vd.field_numeric("proportionality_limit");
         vd.field_bool("hires_unemployed_only");
+        vd.field_bool("ignores_productivity_when_hiring");
 
         vd.field_validated_block_rooted(
             "should_auto_expand",

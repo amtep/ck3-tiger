@@ -54,6 +54,9 @@ impl DbKind for ProductionMethod {
         vd.field_numeric("ai_weight");
         vd.field_numeric("ai_value");
         vd.field_numeric("pollution_generation");
+
+        // TODO: comment says "needs to match city_graphics_data.settings color array"
+        vd.field_integer("city_lights_color_index");
     }
 }
 

@@ -267,8 +267,12 @@ fn validate_event_option(
         }
     });
 
-    vd.field_validated_block("trigger", |b, data| {
-        validate_trigger(b, data, sc, Tooltipped::No);
+    vd.field_validated_block("trigger", |block, data| {
+        validate_trigger(block, data, sc, Tooltipped::No);
+    });
+    // undocumented
+    vd.field_validated_block("show_as_unavailable", |block, data| {
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
 
     vd.field_bool("default_option");
