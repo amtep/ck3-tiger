@@ -9,7 +9,7 @@ rust-version = "1.70"
 [dependencies]
 tiger-lib = { version = "0.8.11", path = "..", default-features = false, features = ["imperator"] }
 anyhow = "1"
-clap = { version = "4", features = ["derive"] }
+clap = { version = "~4.4", features = ["derive"] }
 
 [target.'cfg(windows)'.dependencies]
 ansi_term = "0.12.1"
