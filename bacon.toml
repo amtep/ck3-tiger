@@ -1,0 +1,34 @@
+default_job = "build_ck3"
+
+[jobs.build_ck3]
+command = ["cargo", "build", "--color", "always", "-p", "ck3-tiger", "--release"]
+need_stdout = false
+
+[jobs.build_vic3]
+command = ["cargo", "build", "--color", "always", "-p", "vic3-tiger", "--release"]
+need_stdout = false
+
+[jobs.build_imperator]
+command = ["cargo", "build", "--color", "always", "-p", "imperator-tiger", "--release"]
+need_stdout = false
+
+[jobs.clippy_ck3]
+command = ["cargo", "clippy", "--color", "always", "-p", "ck3-tiger", "--release"]
+need_stdout = false
+
+[jobs.clippy_vic3]
+command = ["cargo", "clippy", "--color", "always", "-p", "vic3-tiger", "--release"]
+need_stdout = false
+
+[jobs.clippy_imperator]
+command = ["cargo", "clippy", "--color", "always", "-p", "imperator-tiger", "--release"]
+need_stdout = false
+
+[keybindings]
+1 = "job:build_ck3"
+2 = "job:build_vic3"
+3 = "job:build_imperator"
+"!" = "job:clippy_ck3"
+"@" = "job:clippy_vic3"
+"#" = "job:clippy_imperator"
+
