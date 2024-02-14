@@ -23,8 +23,8 @@ use crate::parse::localization::{parse_loca, ValueParser};
 #[cfg(feature = "ck3")]
 use crate::report::warn2;
 use crate::report::{
-    error_info, report, warn, warn_abbreviated, warn_header, warn_info, will_maybe_log, ErrorKey,
-    Severity,
+    err, error_info, report, warn, warn_abbreviated, warn_header, warn_info, will_maybe_log,
+    ErrorKey, Severity,
 };
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -623,7 +623,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
         let depth = entry.path().components().count();
         assert!(depth >= 2);
         assert!(entry.path().starts_with("localization"));
-        if entry.filename().to_string_lossy().ends_with(".info") {
+        if !entry.filename().to_string_lossy().ends_with(".yml") {
             return None;
         }
 
@@ -650,7 +650,11 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
                 Ok(content) => {
                     return Some((filelang, parse_loca(entry, &content, filelang).collect()));
                 }
-                Err(e) => eprintln!("{e:#}"),
+                Err(e) => {
+                    let msg = "could not read file";
+                    let info = &format!("{e:#}");
+                    err(ErrorKey::ReadError).msg(msg).info(info).loc(entry).push();
+                }
             }
         } else if entry.kind() >= FileKind::Vanilla {
             // Check for `FileKind::Vanilla` because Jomini and Clausewitz support more languages
