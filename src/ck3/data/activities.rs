@@ -227,6 +227,7 @@ impl DbKind for ActivityType {
             let mut vd = Validator::new(block, data);
             vd.unknown_block_fields(|key, block| {
                 // option categories
+                data.verify_exists(Item::Localization, key);
                 let mut vd = Validator::new(block, data);
                 let mut is_special_option = false;
                 if let Some(special) = special_option_category {
@@ -479,6 +480,10 @@ fn validate_window_characters(key: &Token, block: &Block, data: &Everything) {
 }
 
 fn validate_phase(key: &Token, block: &Block, data: &Everything, has_special_option: bool) {
+    data.verify_exists(Item::Localization, key);
+    let loca = format!("{key}_desc");
+    data.verify_exists_implied(Item::Localization, &loca, key);
+
     let mut vd = Validator::new(block, data);
     vd.field_bool("is_predefined");
     let mut sc = ScopeContext::new(Scopes::None, key);
