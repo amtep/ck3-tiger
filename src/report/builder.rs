@@ -4,7 +4,6 @@
 //! - The user is forced to add at least one pointer, making it impossible to create a report
 //!     without pointers, which would lead to panics.
 
-use crate::helpers::Own;
 use crate::report::{log, Confidence, ErrorKey, ErrorLoc, LogReport, PointedMessage, Severity};
 
 // =================================================================================================
@@ -68,8 +67,8 @@ impl ReportBuilderStage1 {
     }
 
     /// Sets the main report message.
-    pub fn msg<S: Own<String>>(self, msg: S) -> ReportBuilderStage2 {
-        ReportBuilderStage2 { stage1: self, msg: msg.own(), info: None }
+    pub fn msg<S: Into<String>>(self, msg: S) -> ReportBuilderStage2 {
+        ReportBuilderStage2 { stage1: self, msg: msg.into(), info: None }
     }
 }
 
@@ -83,15 +82,15 @@ pub struct ReportBuilderStage2 {
 
 impl ReportBuilderStage2 {
     /// Optional step. Adds an info section to the report.
-    pub fn info<S: Own<String>>(mut self, info: S) -> Self {
-        let info = info.own();
-        self.info = if info.is_empty() { None } else { Some(info.own()) };
+    pub fn info<S: Into<String>>(mut self, info: S) -> Self {
+        let info = info.into();
+        self.info = if info.is_empty() { None } else { Some(info) };
         self
     }
 
     /// Optional step. Adds an info section to the report if the `info` parameter is `Some`.
-    pub fn opt_info<S: Own<String>>(mut self, info: Option<S>) -> Self {
-        self.info = info.map(Own::own);
+    pub fn opt_info<S: Into<String>>(mut self, info: Option<S>) -> Self {
+        self.info = info.map(Into::into);
         self
     }
 
@@ -106,13 +105,13 @@ impl ReportBuilderStage2 {
     }
 
     #[cfg(feature = "ck3")] // vic3 happens not to use
-    pub fn loc_msg<E: ErrorLoc, S: Own<String>>(self, eloc: E, msg: S) -> ReportBuilderStage3 {
+    pub fn loc_msg<E: ErrorLoc, S: Into<String>>(self, eloc: E, msg: S) -> ReportBuilderStage3 {
         let length = eloc.loc_length();
         ReportBuilderStage3 {
             stage1: self.stage1,
             msg: self.msg,
             info: self.info,
-            pointers: vec![PointedMessage { loc: eloc.into_loc(), length, msg: Some(msg.own()) }],
+            pointers: vec![PointedMessage { loc: eloc.into_loc(), length, msg: Some(msg.into()) }],
         }
     }
 
@@ -131,18 +130,18 @@ pub struct ReportBuilderStage3 {
 }
 
 impl ReportBuilderStage3 {
-    pub fn loc<E: ErrorLoc, S: Own<String>>(mut self, eloc: E, msg: S) -> Self {
+    pub fn loc<E: ErrorLoc, S: Into<String>>(mut self, eloc: E, msg: S) -> Self {
         let length = eloc.loc_length();
-        self.pointers.push(PointedMessage { loc: eloc.into_loc(), length, msg: Some(msg.own()) });
+        self.pointers.push(PointedMessage { loc: eloc.into_loc(), length, msg: Some(msg.into()) });
         self
     }
-    pub fn opt_loc<E: ErrorLoc, S: Own<String>>(mut self, eloc: Option<E>, msg: S) -> Self {
+    pub fn opt_loc<E: ErrorLoc, S: Into<String>>(mut self, eloc: Option<E>, msg: S) -> Self {
         if let Some(eloc) = eloc {
             let length = eloc.loc_length();
             self.pointers.push(PointedMessage {
                 loc: eloc.into_loc(),
                 length,
-                msg: Some(msg.own()),
+                msg: Some(msg.into()),
             });
         }
         self

@@ -375,6 +375,12 @@ impl Token {
     }
 }
 
+impl From<&Token> for Token {
+    fn from(token: &Token) -> Token {
+        token.clone()
+    }
+}
+
 /// Tokens are compared for equality regardless of their loc.
 impl PartialEq for Token {
     fn eq(&self, other: &Self) -> bool {

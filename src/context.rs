@@ -5,7 +5,7 @@ use std::borrow::Cow;
 use fnv::FnvHashMap;
 
 use crate::game::Game;
-use crate::helpers::{stringify_choices, Own};
+use crate::helpers::stringify_choices;
 use crate::report::{err, warn2, warn3, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -136,8 +136,8 @@ impl Reason {
 }
 
 impl ScopeEntry {
-    fn deduce<T: Own<Token>>(token: T) -> ScopeEntry {
-        let token = token.own();
+    fn deduce<T: Into<Token>>(token: T) -> ScopeEntry {
+        let token = token.into();
         if let Some(scopes) = scope_type_from_name(token.as_str()) {
             ScopeEntry::Scope(scopes, Reason::Name(token))
         } else {
@@ -149,11 +149,11 @@ impl ScopeEntry {
 impl ScopeContext {
     /// Make a new `ScopeContext`, with `this` and `root` the same, and `root` of the given scope
     /// types. `token` is used when reporting errors about the use of `root`.
-    pub fn new<T: Own<Token>>(root: Scopes, token: T) -> Self {
+    pub fn new<T: Into<Token>>(root: Scopes, token: T) -> Self {
         ScopeContext {
             prev: None,
             this: ScopeEntry::Rootref,
-            root: ScopeEntry::Scope(root, Reason::Builtin(token.own())),
+            root: ScopeEntry::Scope(root, Reason::Builtin(token.into())),
             names: FnvHashMap::default(),
             list_names: FnvHashMap::default(),
             named: Vec::new(),
@@ -170,8 +170,8 @@ impl ScopeContext {
     ///
     /// This function is useful for the scope contexts created for scripted effects, scripted
     /// triggers, and script values. In those, it's not known what the caller's `root` is.
-    pub fn new_unrooted<T: Own<Token>>(this: Scopes, token: T) -> Self {
-        let token = token.own();
+    pub fn new_unrooted<T: Into<Token>>(this: Scopes, token: T) -> Self {
+        let token = token.into();
         ScopeContext {
             prev: Some(Box::new(ScopeHistory {
                 prev: None,
@@ -220,8 +220,8 @@ impl ScopeContext {
     /// It's a bit of a hack and shouldn't be used.
     /// TODO: get rid of this.
     #[cfg(feature = "ck3")] // happens not to be used by vic3
-    pub fn change_root<T: Own<Token>>(&mut self, root: Scopes, token: T) {
-        self.root = ScopeEntry::Scope(root, Reason::Builtin(token.own()));
+    pub fn change_root<T: Into<Token>>(&mut self, root: Scopes, token: T) {
+        self.root = ScopeEntry::Scope(root, Reason::Builtin(token.into()));
     }
 
     #[doc(hidden)]
@@ -240,8 +240,8 @@ impl ScopeContext {
     /// supplied by the game engine.
     ///
     /// The associated `token` will be used in error reports related to this named scope.
-    pub fn define_name<T: Own<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
-        self._define_name(name, scopes, Reason::Builtin(token.own()));
+    pub fn define_name<T: Into<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
+        self._define_name(name, scopes, Reason::Builtin(token.into()));
     }
 
     /// Declare that this `ScopeContext` contains a named scope of the given name and type,
@@ -249,8 +249,8 @@ impl ScopeContext {
     ///
     /// The associated `token` will be used in error reports related to this named scope.
     /// The token should reflect why we think the named scope has the scope type it has.
-    pub fn define_name_token<T: Own<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
-        self._define_name(name, scopes, Reason::Token(token.own()));
+    pub fn define_name_token<T: Into<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
+        self._define_name(name, scopes, Reason::Token(token.into()));
     }
 
     /// Look up a named scope and return its scope types if it's known.
@@ -278,7 +278,7 @@ impl ScopeContext {
     /// The `ScopeContext` is not smart enough to track optionally existing scopes. It assumes
     /// that if you do `exists` on a scope, then from that point on it exists. Improving this would
     /// be a big project.
-    pub fn exists_scope<T: Own<Token>>(&mut self, name: &str, token: T) {
+    pub fn exists_scope<T: Into<Token>>(&mut self, name: &str, token: T) {
         if !self.names.contains_key(name) {
             let idx = self.named.len();
             self.names.insert(name.to_string(), idx);
@@ -307,8 +307,8 @@ impl ScopeContext {
     /// Lists and named scopes exist in different namespaces, but under the hood
     /// `ScopeContext` treats them the same. This means that lists are expected to
     /// contain items of a single scope type, which sometimes leads to false positives.
-    pub fn define_list<T: Own<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
-        self._define_list(name, scopes, Reason::Builtin(token.own()));
+    pub fn define_list<T: Into<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
+        self._define_list(name, scopes, Reason::Builtin(token.into()));
     }
 
     /// This is like [`Self::define_name()`], but `scope:name` is declared equal to the current `this`.
