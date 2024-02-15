@@ -24,6 +24,10 @@ need_stdout = false
 command = ["cargo", "clippy", "--color", "always", "-p", "imperator-tiger", "--release"]
 need_stdout = false
 
+[jobs.test]
+command = ["cargo", "test", "--color", "always"]
+need_stdout = true
+
 [keybindings]
 1 = "job:build_ck3"
 2 = "job:build_vic3"
