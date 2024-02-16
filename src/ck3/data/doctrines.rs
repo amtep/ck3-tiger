@@ -21,16 +21,16 @@ use crate::validator::Validator;
 #[derive(Clone, Debug, Default)]
 #[allow(clippy::struct_field_names)]
 pub struct Doctrines {
-    groups: FnvHashMap<String, DoctrineGroup>,
+    categories: FnvHashMap<String, DoctrineCategory>,
     doctrines: FnvHashMap<String, Doctrine>,
     parameters: FnvHashMap<String, Token>, // only the boolean parameters
 }
 
 impl Doctrines {
     fn load_item(&mut self, key: Token, block: Block) {
-        if let Some(other) = self.groups.get(key.as_str()) {
+        if let Some(other) = self.categories.get(key.as_str()) {
             if other.key.loc.kind >= key.loc.kind {
-                dup_error(&key, &other.key, "doctrine group");
+                dup_error(&key, &other.key, "doctrine category");
             }
         }
 
@@ -59,12 +59,12 @@ impl Doctrines {
             );
         }
 
-        self.groups.insert(key.to_string(), DoctrineGroup::new(key, block));
+        self.categories.insert(key.to_string(), DoctrineCategory::new(key, block));
     }
 
     pub fn validate(&self, data: &Everything) {
-        for group in self.groups.values() {
-            group.validate(data);
+        for category in self.categories.values() {
+            category.validate(data);
         }
         for doctrine in self.doctrines.values() {
             doctrine.validate(data);
@@ -79,12 +79,12 @@ impl Doctrines {
         self.doctrines.values().map(|item| &item.key)
     }
 
-    pub fn group_exists(&self, key: &str) -> bool {
-        self.groups.contains_key(key)
+    pub fn category_exists(&self, key: &str) -> bool {
+        self.categories.contains_key(key)
     }
 
-    pub fn iter_group_keys(&self) -> impl Iterator<Item = &Token> {
-        self.groups.values().map(|item| &item.key)
+    pub fn iter_category_keys(&self) -> impl Iterator<Item = &Token> {
+        self.categories.values().map(|item| &item.key)
     }
 
     pub fn parameter_exists(&self, key: &str) -> bool {
@@ -121,12 +121,12 @@ impl FileHandler<Block> for Doctrines {
 }
 
 #[derive(Clone, Debug)]
-pub struct DoctrineGroup {
+pub struct DoctrineCategory {
     key: Token,
     block: Block,
 }
 
-impl DoctrineGroup {
+impl DoctrineCategory {
     pub fn new(key: Token, block: Block) -> Self {
         Self { key, block }
     }
@@ -176,12 +176,12 @@ impl DoctrineGroup {
 pub struct Doctrine {
     key: Token,
     block: Block,
-    group: Token,
+    category: Token,
 }
 
 impl Doctrine {
-    pub fn new(key: Token, block: Block, group: Token) -> Self {
-        Self { key, block, group }
+    pub fn new(key: Token, block: Block, category: Token) -> Self {
+        Self { key, block, category }
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -195,7 +195,7 @@ impl Doctrine {
             if let Some(icon) = vd.field_value("icon") {
                 let path = format!("{icon_path}/{icon}.dds");
                 data.verify_exists_implied(Item::File, &path, icon);
-            } else if data.doctrines.groups[self.group.as_str()].needs_icon(data) {
+            } else if data.doctrines.categories[self.category.as_str()].needs_icon(data) {
                 let path = format!("{icon_path}/{}.dds", &self.key);
                 data.verify_exists_implied(Item::File, &path, &self.key);
             }
