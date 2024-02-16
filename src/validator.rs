@@ -1253,7 +1253,7 @@ impl<'a> Validator<'a> {
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn validate_history_blocks<F>(&mut self, mut f: F)
     where
-        F: FnMut(Date, &Block, &Everything),
+        F: FnMut(Date, &Token, &Block, &Everything),
     {
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if let Ok(date) = Date::try_from(key) {
@@ -1261,7 +1261,7 @@ impl<'a> Validator<'a> {
                 self.known_fields.push(key.as_str());
                 self.expect_eq_qeq(key, *cmp);
                 if let Some(block) = bv.expect_block() {
-                    f(date, block, self.data);
+                    f(date, key, block, self.data);
                 }
             }
         }
