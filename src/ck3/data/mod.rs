@@ -82,3 +82,4 @@ pub mod traits;
 pub mod travel;
 pub mod vassalcontract;
 pub mod vassalstance;
+pub mod wars;

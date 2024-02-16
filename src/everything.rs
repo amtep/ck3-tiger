@@ -24,7 +24,7 @@ use crate::ck3::data::{
     characters::Characters, data_binding::DataBindings, doctrines::Doctrines, events::Ck3Events,
     gameconcepts::GameConcepts, interaction_cats::CharacterInteractionCategories,
     maa::MenAtArmsTypes, music::Musics, prov_history::ProvinceHistories, provinces::Ck3Provinces,
-    title_history::TitleHistories, titles::Titles, traits::Traits,
+    title_history::TitleHistories, titles::Titles, traits::Traits, wars::Wars,
 };
 #[cfg(feature = "ck3")]
 use crate::ck3::tables::misc::*;
@@ -171,6 +171,9 @@ pub struct Everything {
 
     #[cfg(feature = "vic3")]
     pub(crate) history: History,
+
+    #[cfg(feature = "ck3")]
+    pub(crate) wars: Wars,
 }
 
 impl Everything {
@@ -262,6 +265,8 @@ impl Everything {
             coas: Coas::default(),
             #[cfg(feature = "vic3")]
             history: History::default(),
+            #[cfg(feature = "ck3")]
+            wars: Wars::default(),
         })
     }
 
@@ -386,6 +391,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.data_bindings));
             s.spawn(|_| self.fileset.handle(&mut self.music));
             s.spawn(|_| self.fileset.handle(&mut self.provinces_ck3));
+            s.spawn(|_| self.fileset.handle(&mut self.wars));
         });
         crate::ck3::data::buildings::Building::finalize(&mut self.database);
     }
@@ -442,6 +448,7 @@ impl Everything {
         s.spawn(|_| self.music.validate(self));
         s.spawn(|_| self.events_ck3.validate(self));
         s.spawn(|_| self.provinces_ck3.validate(self));
+        s.spawn(|_| self.wars.validate(self));
     }
 
     #[cfg(feature = "vic3")]
