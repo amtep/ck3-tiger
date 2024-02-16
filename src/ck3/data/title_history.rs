@@ -200,6 +200,8 @@ impl TitleHistory {
         data.verify_exists(Item::Title, &self.key);
 
         let mut vd = Validator::new(&self.block, data);
-        vd.validate_history_blocks(|date, block, data| self.validate_history(date, block, data));
+        vd.validate_history_blocks(|date, _key, block, data| {
+            self.validate_history(date, block, data);
+        });
     }
 }

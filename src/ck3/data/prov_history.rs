@@ -127,7 +127,7 @@ impl ProvinceHistory {
         });
     }
 
-    fn validate_history(_date: Date, block: &Block, data: &Everything) {
+    fn validate_history(_date: Date, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         Self::validate_common(&mut vd, data);
     }

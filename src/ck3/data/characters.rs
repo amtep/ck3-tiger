@@ -578,7 +578,7 @@ impl Character {
 
         let mut life_events = Vec::new();
         let gender = Gender::from_female_bool(self.block.get_field_bool("female").unwrap_or(false));
-        vd.validate_history_blocks(|date, block, data| {
+        vd.validate_history_blocks(|date, _key, block, data| {
             for (index, (key, bv)) in block.iter_assignments_and_definitions_warn().enumerate() {
                 if let Some((life_event_type, token)) =
                     Self::validate_life_event(date, gender, key, bv, data, &mut sc)
