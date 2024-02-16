@@ -1,3 +1,5 @@
+use fnv::FnvHashMap;
+
 use crate::block::{Block, BV};
 use crate::ck3::validate::validate_traits;
 use crate::db::{Db, DbKind};
@@ -5,7 +7,7 @@ use crate::everything::Everything;
 use crate::fileset::FileKind;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{err, old_warn, warn, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
@@ -69,7 +71,44 @@ impl DbKind for Religion {
         vd.field_item("family", Item::ReligionFamily);
 
         vd.req_field("doctrine");
-        vd.multi_field_item("doctrine", Item::Doctrine);
+        let mut categories: FnvHashMap<&str, Vec<Token>> = FnvHashMap::default();
+        vd.multi_field_validated_value("doctrine", |_, mut vd| {
+            vd.item(Item::Doctrine);
+            if let Some(category) = data.doctrines.category(vd.value().as_str()) {
+                let doctrine = vd.value();
+                if let Some(seen) = categories.get_mut(category.as_str()) {
+                    let picks = data.doctrines.number_of_picks(category.as_str());
+                    #[allow(clippy::cast_possible_wrap)]
+                    if picks == 1 {
+                        // SAFETY: we never push empty vecs into this hash
+                        let other_doctrine = &seen[0];
+                        if doctrine == other_doctrine {
+                            let msg = format!("duplicate doctrine {doctrine}");
+                            warn(ErrorKey::DuplicateField)
+                                .msg(msg)
+                                .loc_msg(doctrine, "doctrine")
+                                .loc(other_doctrine, "earlier doctrine")
+                                .push();
+                        } else {
+                            let msg =
+                                format!("{doctrine} and {other_doctrine} are both from {category}");
+                            err(ErrorKey::Conflict)
+                                .msg(msg)
+                                .loc_msg(doctrine, "doctrine")
+                                .loc(other_doctrine, "earlier doctrine")
+                                .push();
+                        }
+                    } else if picks == (seen.len() as i64) {
+                        let msg =
+                            format!("religion has more than {picks} doctrines from {category}");
+                        err(ErrorKey::Conflict).msg(msg).loc(doctrine).push();
+                    }
+                    seen.push(doctrine.clone());
+                } else {
+                    categories.insert(category.as_str(), vec![doctrine.clone()]);
+                }
+            }
+        });
 
         vd.multi_field_validated_block("doctrine_selection_pair", |block, data| {
             let mut vd = Validator::new(block, data);

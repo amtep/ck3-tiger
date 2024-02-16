@@ -83,6 +83,14 @@ impl Doctrines {
         self.categories.contains_key(key)
     }
 
+    pub fn category(&self, key: &str) -> Option<&Token> {
+        self.doctrines.get(key).map(|d| &d.category)
+    }
+
+    pub fn number_of_picks(&self, category: &str) -> i64 {
+        self.categories.get(category).map_or(1, |c| c.picks)
+    }
+
     pub fn iter_category_keys(&self) -> impl Iterator<Item = &Token> {
         self.categories.values().map(|item| &item.key)
     }
@@ -124,11 +132,13 @@ impl FileHandler<Block> for Doctrines {
 pub struct DoctrineCategory {
     key: Token,
     block: Block,
+    picks: i64,
 }
 
 impl DoctrineCategory {
     pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+        let picks = block.get_field_integer("number_of_picks").unwrap_or(1);
+        Self { key, block, picks }
     }
 
     pub fn needs_icon(&self, data: &Everything) -> bool {
