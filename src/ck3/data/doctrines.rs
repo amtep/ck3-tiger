@@ -87,8 +87,8 @@ impl Doctrines {
         self.doctrines.get(key).map(|d| &d.category)
     }
 
-    pub fn number_of_picks(&self, category: &str) -> i64 {
-        self.categories.get(category).map_or(1, |c| c.picks)
+    pub fn number_of_picks(&self, category: &str) -> Option<&Token> {
+        self.categories.get(category).and_then(|c| c.picks.as_ref())
     }
 
     pub fn iter_category_keys(&self) -> impl Iterator<Item = &Token> {
@@ -132,12 +132,12 @@ impl FileHandler<Block> for Doctrines {
 pub struct DoctrineCategory {
     key: Token,
     block: Block,
-    picks: i64,
+    picks: Option<Token>,
 }
 
 impl DoctrineCategory {
     pub fn new(key: Token, block: Block) -> Self {
-        let picks = block.get_field_integer("number_of_picks").unwrap_or(1);
+        let picks = block.get_field_value("number_of_picks").cloned();
         Self { key, block, picks }
     }
 
