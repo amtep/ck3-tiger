@@ -532,14 +532,28 @@ impl Fileset {
         // Check the files in directories in common/ to make sure they are in known directories
         let mut warned: Vec<&Path> = Vec::new();
         'outer: for entry in &self.ordered_files {
-            if !entry.path.starts_with("common") || !entry.path.to_string_lossy().ends_with(".txt")
-            {
+            if !entry.path.to_string_lossy().ends_with(".txt") {
                 continue;
             }
             let dirname = entry.path.parent().unwrap();
             if warned.contains(&dirname) {
                 continue;
             }
+            if !entry.path.starts_with("common") {
+                // Check if the modder forgot the common/ part
+                let joined = Path::new("common").join(&entry.path);
+                for valid in common_dirs {
+                    if joined.starts_with(valid) {
+                        let msg = format!("file in unexpected directory {}", dirname.display());
+                        let info = format!("did you mean common/{} ?", dirname.display());
+                        err(ErrorKey::Filename).msg(msg).info(info).loc(entry).push();
+                        warned.push(dirname);
+                        continue 'outer;
+                    }
+                }
+                continue;
+            }
+
             // TODO: check if subdirectories are ok in the different common/ directories
             for valid in common_dirs {
                 if entry.path.starts_with(valid) {
@@ -548,18 +562,18 @@ impl Fileset {
             }
             if entry.path.starts_with("common/scripted_values") {
                 let msg = "file should be in common/script_values/";
-                error(entry, ErrorKey::Filename, msg);
+                err(ErrorKey::Filename).msg(msg).loc(entry).push();
             } else if (Game::is_ck3() || Game::is_imperator())
                 && entry.path.starts_with("common/on_actions")
             {
                 let msg = "file should be in common/on_action/";
-                error(entry, ErrorKey::Filename, msg);
+                err(ErrorKey::Filename).msg(msg).loc(entry).push();
             } else if Game::is_vic3() && entry.path.starts_with("common/on_action") {
                 let msg = "file should be in common/on_actions/";
-                error(entry, ErrorKey::Filename, msg);
+                err(ErrorKey::Filename).msg(msg).loc(entry).push();
             } else {
                 let msg = format!("file in unexpected directory `{}`", dirname.display());
-                error(entry, ErrorKey::Filename, &msg);
+                err(ErrorKey::Filename).msg(msg).loc(entry).push();
             }
             warned.push(dirname);
         }
