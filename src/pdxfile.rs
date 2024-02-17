@@ -11,11 +11,12 @@ use encoding_rs::{UTF_8, WINDOWS_1252};
 
 use crate::block::Block;
 use crate::fileset::FileEntry;
-use crate::parse::pdxfile::parse_pdx;
+use crate::parse::pdxfile::parse_pdx_file;
 use crate::report::{err, warn, ErrorKey};
 
-#[cfg(feature = "ck3")]
 const BOM_AS_BYTES: &[u8] = b"\xef\xbb\xbf";
+const BOM_LEN: usize = BOM_AS_BYTES.len();
+const BOM_CHAR: char = '\u{feff}';
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PdxEncoding {
@@ -23,6 +24,17 @@ pub enum PdxEncoding {
     Utf8OptionalBom,
     #[cfg(feature = "ck3")]
     Detect,
+}
+
+fn strip_bom(contents: String) -> String {
+    // leak so does not deallocate memory
+    let contents = contents.leak();
+    let ptr = contents.as_mut_ptr();
+    unsafe {
+        // This would cause a memory leak for the first three bytes and any excess capacity of `contents`,
+        // but is deemed acceptable
+        String::from_raw_parts(ptr.add(BOM_LEN), contents.len() - BOM_LEN, contents.len() - BOM_LEN)
+    }
 }
 
 pub struct PdxFile {}
@@ -44,22 +56,22 @@ impl PdxFile {
     /// Parse a UTF-8 file that should start with a BOM (Byte Order Marker).
     pub fn read(entry: &FileEntry) -> Option<Block> {
         let contents = Self::read_utf8(entry)?;
-        if let Some(bomless) = contents.strip_prefix('\u{feff}') {
-            Some(parse_pdx(entry, bomless))
+        if contents.starts_with(BOM_CHAR) {
+            Some(parse_pdx_file(entry, strip_bom(contents)))
         } else {
             let msg = "file must start with a UTF-8 BOM";
             warn(ErrorKey::Encoding).msg(msg).loc(entry).push();
-            Some(parse_pdx(entry, &contents))
+            Some(parse_pdx_file(entry, contents))
         }
     }
 
     /// Parse a UTF-8 file that may optionally start with a BOM (Byte Order Marker).
     pub fn read_optional_bom(entry: &FileEntry) -> Option<Block> {
         let contents = Self::read_utf8(entry)?;
-        if let Some(bomless) = contents.strip_prefix('\u{feff}') {
-            Some(parse_pdx(entry, bomless))
+        if contents.starts_with(BOM_CHAR) {
+            Some(parse_pdx_file(entry, strip_bom(contents)))
         } else {
-            Some(parse_pdx(entry, &contents))
+            Some(parse_pdx_file(entry, contents))
         }
     }
 
@@ -76,13 +88,13 @@ impl PdxFile {
             }
         };
         if bytes.starts_with(BOM_AS_BYTES) {
-            let (contents, errors) = UTF_8.decode_without_bom_handling(&bytes[3..]);
+            let (contents, errors) = UTF_8.decode_without_bom_handling(&bytes[BOM_LEN..]);
             if errors {
                 let msg = "could not decode UTF-8 file";
                 err(ErrorKey::Encoding).msg(msg).loc(entry).push();
                 None
             } else {
-                Some(parse_pdx(entry, &contents))
+                Some(parse_pdx_file(entry, contents.into_owned()))
             }
         } else {
             let (contents, errors) = WINDOWS_1252.decode_without_bom_handling(&bytes);
@@ -91,7 +103,7 @@ impl PdxFile {
                 err(ErrorKey::Encoding).msg(msg).loc(entry).push();
                 None
             } else {
-                Some(parse_pdx(entry, &contents))
+                Some(parse_pdx_file(entry, contents.into_owned()))
             }
         }
     }

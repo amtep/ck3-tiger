@@ -10,9 +10,8 @@ use fnv::FnvHashMap;
 use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
 use crate::fileset::{FileEntry, FileKind};
-use crate::report::{err, error, old_warn, untidy, warn_info, ErrorKey};
-use crate::stringtable::StringTable;
-use crate::token::{Loc, Token};
+use crate::report::{err, error, fatal, old_warn, untidy, warn, warn_info, ErrorKey};
+use crate::token::{leak, Loc, Token};
 
 /// ^Z is by convention an end-of-text marker, and the game engine treats it as such.
 const CONTROL_Z: char = '\u{001A}';
@@ -29,9 +28,7 @@ enum State {
     /// Parsing a comparator like `=` or `<=`.
     Comparator,
     /// Parsing a `@[ ... ]` local value calculation.
-    Calculation,
-    /// Parsing a local value id in a `Calculation`.
-    CalculationId,
+    Calculation(Option<usize>),
     /// Parsing a comment till end of line.
     Comment,
 }
@@ -68,6 +65,75 @@ impl Calculation {
             | Calculation::Multiply
             | Calculation::Divide(_) => false,
         }
+    }
+}
+
+/// Keeps the stack of calculations and current, top of the stack for processing.
+#[derive(Debug)]
+struct Calculator {
+    stack: Vec<Vec<Calculation>>,
+    current: Vec<Calculation>,
+}
+
+impl Calculator {
+    fn new() -> Self {
+        Self { stack: Vec::new(), current: Vec::new() }
+    }
+
+    fn start(&mut self) {
+        self.stack.clear();
+        self.current.clear();
+    }
+
+    /// Register a part of a calculation, either an operator or a [`Value`](`Calculation::Value`).
+    fn op(&mut self, op: Calculation, loc: Loc) {
+        if let Some(Calculation::Value(_)) = self.current.last() {
+            self.current.push(op);
+        } else if let Calculation::Subtract = op {
+            // accept negation
+            self.current.push(op);
+        } else {
+            let msg = "operator `{op}` without left-hand value";
+            err(ErrorKey::LocalValues).msg(msg).loc(loc).push();
+        }
+    }
+
+    /// Register a named local value being used in a `@[ ... ]` calculation.
+    ///
+    /// The numeric value of this local value will be looked up and inserted in the calculation.
+    /// If there's no such value, log an error message.
+    fn next(&mut self, local_value: &str, local_values: &LocalValues, loc: Loc) {
+        if let Some(value) = local_values.get_value(local_value) {
+            self.current.push(Calculation::Value(value));
+        } else {
+            let msg = format!("local value {local_value} not defined");
+            err(ErrorKey::LocalValues).msg(msg).loc(loc).push();
+        }
+    }
+
+    /// Register an opening `(` in a local value calculation.
+    fn push(&mut self, loc: Loc) {
+        if let Some(Calculation::Value(_)) = self.current.last() {
+            let msg = "calculation has two values with no operator in between";
+            err(ErrorKey::LocalValues).msg(msg).loc(loc).push();
+        }
+        self.stack.push(take(&mut self.current));
+    }
+
+    /// Register a closing `)` in a local value calculation.
+    fn pop(&mut self, loc: Loc) {
+        if let Some(mut calc) = self.stack.pop() {
+            calc.push(Calculation::Value(self.result()));
+            self.current = calc;
+        } else {
+            let msg = "found `)` without corresponding `(`";
+            warn(ErrorKey::LocalValues).msg(msg).loc(loc).push();
+        }
+    }
+
+    /// Register the end of a `@[ ... ]` calculation, and return the resulting numerical value.
+    fn result(&mut self) -> f64 {
+        Self::calculate(take(&mut self.current))
     }
 
     /// Evaluate a completely parsed formula, hopefully resulting in a single [`Calculation::Value`].
@@ -155,6 +221,8 @@ impl Calculation {
 trait CharExt {
     /// Can the char be part of an unquoted [`Id`](State::Id)?
     fn is_id_char(self) -> bool;
+    /// Can the char be part of a local value?
+    fn is_local_value_char(self) -> bool;
     /// Can the char be part of a [`Comparator`](State::Comparator)?
     fn is_comparator_char(self) -> bool;
 }
@@ -176,6 +244,10 @@ impl CharExt for char {
             || self == ']' // added for parsing .gui files
     }
 
+    fn is_local_value_char(self) -> bool {
+        self.is_alphabetic() || self.is_ascii_digit()
+    }
+
     fn is_comparator_char(self) -> bool {
         self == '<' || self == '>' || self == '!' || self == '=' || self == '?'
     }
@@ -184,15 +256,14 @@ impl CharExt for char {
 /// Tracks the @-values defined in this file.
 /// Values starting with `@` are local to a file, and are evaluated at parse time.
 #[derive(Clone, Debug, Default)]
-// TODO: rename this to LocalValues for consistency
-pub struct LocalMacros {
+pub struct LocalValues {
     /// @-values defined as numbers. Calculations can be done with these in `@[ ... ]` blocks.
     values: FnvHashMap<String, f64>,
     /// @-values defined as text. These can be substituted at other locations in the script.
     text: FnvHashMap<String, String>,
 }
 
-impl LocalMacros {
+impl LocalValues {
     /// Get the value of a numeric @-value or numeric literal.
     /// This is used in the [`State::Calculation`] state.
     ///
@@ -253,20 +324,14 @@ struct Parser {
     stack: Vec<ParseLevel>,
     /// A store of local @-values.
     /// Identifiers that start with `@` are local per-file definitions and are processed at parse time.
-    local_macros: LocalMacros,
-    /// The formulas leading up to `calculation`.
-    calculation_stack: Vec<Vec<Calculation>>,
-    /// The operations in an `@[ ... ]` calculation. This vector holds the current `( ... )`
-    /// grouping (if any), with the calculations that led up to it on the `calculation_stack`.
-    calculation: Vec<Calculation>,
+    local_values: LocalValues,
+    /// calculator used to store and calculate local variable calculations.
+    calculator: Calculator,
 }
 
 impl Parser {
     /// Construct a parser for a block or file starting at `loc`.
-    ///
-    /// The `local_macros` generally start as default (empty), but when re-parsing a macro, the
-    /// local macros from that file should be re-used.
-    fn new(loc: Loc, local_macros: LocalMacros) -> Self {
+    fn new(loc: Loc) -> Self {
         Self {
             current: ParseLevel {
                 block: Block::new(loc),
@@ -277,93 +342,16 @@ impl Parser {
                 contains_macro_parms: false,
             },
             stack: Vec::new(),
-            local_macros,
-            calculation_stack: Vec::new(),
-            calculation: Vec::new(),
+            local_values: LocalValues::default(),
+            calculator: Calculator::new(),
         }
-    }
-
-    /// Found a character that doesn't fit anywhere. Log an error message about it and then ignore it.
-    fn unknown_char(c: char, loc: Loc) {
-        let msg = format!("Unrecognized character {c}");
-        error(loc, ErrorKey::ParseError, &msg);
-    }
-
-    /// Found a ^Z character. Log an error message about it and then ignore it. The lexer should
-    /// stop after calling this method.
-    fn control_z(loc: Loc, at_end: bool) {
-        let msg = "^Z in file";
-        if at_end {
-            let info = "This control code means stop reading the file here, which will cause trouble if you add more code later.";
-            untidy(ErrorKey::ParseError).msg(msg).info(info).loc(loc).push();
-        } else {
-            let info = "This control code means stop reading the file here. Nothing that follows will be read.";
-            err(ErrorKey::ParseError).msg(msg).info(info).loc(loc).push();
-        }
-    }
-
-    /// Register the start of a `@[ ... ]` block. Prepare for a new calculation.
-    fn calculation_start(&mut self) {
-        self.calculation = Vec::new();
-        self.calculation_stack = Vec::new();
-    }
-
-    /// Register a part of a calculation, either an operator or a [`Value`](`Calculation::Value`).
-    fn calculation_op(&mut self, op: Calculation, loc: Loc) {
-        if let Some(Calculation::Value(_)) = self.calculation.last() {
-            self.calculation.push(op);
-        } else if let Calculation::Subtract = op {
-            // accept negation
-            self.calculation.push(op);
-        } else {
-            let msg = "operator `{op}` without left-hand value";
-            error(loc, ErrorKey::LocalValues, msg);
-        }
-    }
-
-    /// Register a named local value being used in a `@[ ... ]` calculation.
-    ///
-    /// The numeric value of this local value will be looked up and inserted in the calculation.
-    /// If there's no such value, log an error message.
-    fn calculation_next(&mut self, local_macro: &Token) {
-        if let Some(value) = self.local_macros.get_value(local_macro.as_str()) {
-            self.calculation.push(Calculation::Value(value));
-        } else {
-            let msg = format!("local value {local_macro} not defined");
-            err(ErrorKey::LocalValues).msg(msg).loc(local_macro).push();
-        }
-    }
-
-    /// Register an opening `(` in a local value calculation.
-    fn calculation_push(&mut self, loc: Loc) {
-        if let Some(Calculation::Value(_)) = self.calculation.last() {
-            let msg = "calculation has two values with no operator in between";
-            error(loc, ErrorKey::LocalValues, msg);
-        }
-        self.calculation_stack.push(take(&mut self.calculation));
-    }
-
-    /// Register a closing `)` in a local value calculation.
-    fn calculation_pop(&mut self, loc: Loc) {
-        if let Some(mut calc) = self.calculation_stack.pop() {
-            calc.push(Calculation::Value(self.calculation_result()));
-            self.calculation = calc;
-        } else {
-            let msg = "found `)` without corresponding `(`";
-            old_warn(loc, ErrorKey::LocalValues, msg);
-        }
-    }
-
-    /// Register the end of a `@[ ... ]` calculation, and return the resulting numerical value.
-    fn calculation_result(&mut self) -> f64 {
-        Calculation::calculate(take(&mut self.calculation))
     }
 
     /// Register a single [`Token`]. Can be the result of a quoted or unquoted string; no distinction
     /// between them is made after lexing.
     ///
     /// The token may be a local value id (starting with `@`), in which case it is looked up or
-    /// inserted in the [`Parser::local_macros`] field as appropriate.
+    /// inserted in the [`Parser::local_values`] field as appropriate.
     ///
     /// The parser will take care of deciding whether this token is a loose value or part of a [`Field`](crate::block::Field).
     fn token(&mut self, token: Token) {
@@ -377,40 +365,47 @@ impl Parser {
             self.current.tag = Some(token);
             return;
         }
+
         if self.stack.is_empty() && self.current.contains_macro_parms {
             let msg = "$-substitutions only work inside blocks, not at top level";
             error(&token, ErrorKey::ParseError, msg);
             self.current.contains_macro_parms = false;
         }
+
         if let Some(key) = self.current.key.take() {
             if let Some((cmp, _)) = self.current.cmp.take() {
-                // TODO: this needs some cleaning up and deduplication
-                if let Some(local_macro) = key.as_str().strip_prefix('@') {
-                    if let Some(local_macro_value) = token.as_str().strip_prefix('@') {
-                        if let Some(value) = self.local_macros.get_as_string(local_macro_value) {
-                            self.local_macros.insert(local_macro, &value);
+                if let Some(local_value_key) = key.as_str().strip_prefix('@') {
+                    // @local_value_key = ...
+                    if let Some(local_value) = token.as_str().strip_prefix('@') {
+                        // @local_value_key = @local_value
+                        if let Some(value) = self.local_values.get_as_string(local_value) {
+                            self.local_values.insert(local_value_key, &value);
                         } else {
                             error(token, ErrorKey::LocalValues, "local value not defined");
                         }
                     } else {
-                        self.local_macros.insert(local_macro, token.as_str());
+                        // @localvalue_key = value
+                        self.local_values.insert(local_value_key, token.as_str());
                     }
-                } else if let Some(local_macro) = token.as_str().strip_prefix('@') {
-                    // Check for a '!' to avoid looking up macros in gui code that uses @icon! syntax
+                } else if let Some(local_value) = token.as_str().strip_prefix('@') {
+                    // key = @local_value
                     if token.as_str().contains('!') {
+                        // Check for a '!' to avoid looking up macros in gui code that uses @icon! syntax
                         self.current.block.add_key_bv(key, cmp, BV::Value(token));
-                    } else if let Some(value) = self.local_macros.get_as_string(local_macro) {
+                    } else if let Some(value) = self.local_values.get_as_string(local_value) {
                         let token = Token::new(&value, token.loc);
                         self.current.block.add_key_bv(key, cmp, BV::Value(token));
                     } else {
-                        error(token, ErrorKey::LocalValues, "local value not defined");
+                        error(&token, ErrorKey::LocalValues, "local value not defined");
+                        self.current.block.add_key_bv(key, cmp, BV::Value(token));
                     }
                 } else {
                     self.current.block.add_key_bv(key, cmp, BV::Value(token));
                 }
             } else {
-                if let Some(local_macro) = key.as_str().strip_prefix('@') {
-                    if let Some(value) = self.local_macros.get_as_string(local_macro) {
+                if let Some(local_value) = key.as_str().strip_prefix('@') {
+                    // value1 value2 ... @local_value ...
+                    if let Some(value) = self.local_values.get_as_string(local_value) {
                         let token = Token::new(&value, key.loc);
                         self.current.block.add_value(token);
                     } else {
@@ -481,8 +476,8 @@ impl Parser {
             if let Some((_, cmp_loc)) = self.current.cmp.take() {
                 error(cmp_loc, ErrorKey::ParseError, "Comparator without value");
             }
-            if let Some(local_macro) = key.as_str().strip_prefix('@') {
-                if let Some(value) = self.local_macros.get_as_string(local_macro) {
+            if let Some(local_value) = key.as_str().strip_prefix('@') {
+                if let Some(value) = self.local_values.get_as_string(local_value) {
                     let token = Token::new(&value, key.loc);
                     self.current.block.add_value(token);
                 } else {
@@ -525,8 +520,7 @@ impl Parser {
                 let mut loc = prev_level.block.loc;
                 loc.column += 1;
                 let token = Token::new(s, prev_level.block.loc);
-                prev_level.block.source =
-                    Some(Box::new((split_macros(&token), self.local_macros.clone())));
+                prev_level.block.source = Some(split_macros(&token, &self.local_values));
             } else {
                 self.current.contains_macro_parms |= prev_level.contains_macro_parms;
             }
@@ -559,17 +553,35 @@ impl Parser {
     }
 }
 
+/// Found a character that doesn't fit anywhere. Log an error message about it and then ignore it.
+fn unknown_char(c: char, loc: Loc) {
+    let msg = format!("Unrecognized character {c}");
+    error(loc, ErrorKey::ParseError, &msg);
+}
+
+/// Found a ^Z character. Log an error message about it and then ignore it. The lexer should
+/// stop after calling this method.
+fn control_z(loc: Loc, at_end: bool) {
+    let msg = "^Z in file";
+    if at_end {
+        let info = "This control code means stop reading the file here, which will cause trouble if you add more code later.";
+        untidy(ErrorKey::ParseError).msg(msg).info(info).loc(loc).push();
+    } else {
+        let info = "This control code means stop reading the file here. Nothing that follows will be read.";
+        err(ErrorKey::ParseError).msg(msg).info(info).loc(loc).push();
+    }
+}
+
 /// Re-parse a macro (which is a scripted effect, trigger, or modifier that uses $ parameters)
 /// after argument substitution. A full re-parse is needed because the game engine allows tricks
 /// such as passing `#` as a macro argument in order to comment out the rest of a line.
 // TODO: efficiency could be improved by constructing subtokens if a token is contained completely
 // within one of the input tokens.
-pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
+pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
     let blockloc = inputs[0].loc;
-    let mut parser = Parser::new(blockloc, local_macros);
+    let mut parser = Parser::new(blockloc);
     let mut state = State::Neutral;
     let mut token_start = blockloc;
-    let mut calculation_start = blockloc;
     let mut current_id = String::new();
 
     for token in inputs {
@@ -590,12 +602,6 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                         token_start = loc;
                         state = State::Comparator;
                         current_id.push(c);
-                    } else if c == '@' {
-                        // @ can start tokens but is special
-                        calculation_start = loc;
-                        current_id.push(c);
-                        token_start = loc;
-                        state = State::Id;
                     } else if c.is_id_char() || c == '$' {
                         // c == '$' can only happen with extreme shenanigans in the input.
                         // Treat it as just another character.
@@ -606,11 +612,8 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                         parser.open_brace(loc, i);
                     } else if c == '}' {
                         parser.close_brace(loc, content, i);
-                    } else if c == CONTROL_Z {
-                        Parser::control_z(loc, content[i + 1..].trim().is_empty());
-                        break;
                     } else {
-                        Parser::unknown_char(c, loc);
+                        unknown_char(c, loc);
                     }
                 }
                 State::Comment => {
@@ -630,12 +633,7 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                     }
                 }
                 State::Id => {
-                    if c == '$' {
-                        current_id.push(c);
-                    } else if c == '[' && current_id == "@" {
-                        state = State::Calculation;
-                        parser.calculation_start();
-                    } else if c.is_id_char() {
+                    if c == '$' || c.is_id_char() {
                         current_id.push(c);
                     } else {
                         let token = Token::new(&take(&mut current_id), token_start);
@@ -661,83 +659,10 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                             state = State::QString;
                             token_start = loc;
                             token_start.column += 1;
-                        } else if c == CONTROL_Z {
-                            Parser::control_z(loc, content[i + 1..].trim().is_empty());
-                            break;
                         } else {
-                            Parser::unknown_char(c, loc);
+                            unknown_char(c, loc);
                             state = State::Neutral;
                         }
-                    }
-                }
-                State::Calculation => {
-                    current_id.clear();
-                    if c.is_ascii_whitespace() {
-                    } else if c == '+' {
-                        parser.calculation_op(Calculation::Add, loc);
-                    } else if c == '-' {
-                        parser.calculation_op(Calculation::Subtract, loc);
-                    } else if c == '*' {
-                        parser.calculation_op(Calculation::Multiply, loc);
-                    } else if c == '/' {
-                        parser.calculation_op(Calculation::Divide(loc), loc);
-                    } else if c == '(' {
-                        parser.calculation_push(loc);
-                    } else if c == ')' {
-                        parser.calculation_pop(loc);
-                    } else if c == ']' {
-                        let token =
-                            Token::new(&parser.calculation_result().to_string(), calculation_start);
-                        parser.token(token);
-                        state = State::Neutral;
-                    } else if c.is_id_char() {
-                        token_start = loc;
-                        state = State::CalculationId;
-                        current_id.push(c);
-                    }
-                }
-                State::CalculationId => {
-                    if c.is_ascii_whitespace()
-                        || c == '+'
-                        || c == '/'
-                        || c == '*'
-                        || c == '-'
-                        || c == '('
-                        || c == ')'
-                    {
-                        let token = Token::new(&take(&mut current_id), token_start);
-                        parser.calculation_next(&token);
-                        state = State::Calculation;
-                        if c == '+' {
-                            parser.calculation_op(Calculation::Add, loc);
-                        } else if c == '-' {
-                            parser.calculation_op(Calculation::Subtract, loc);
-                        } else if c == '*' {
-                            parser.calculation_op(Calculation::Multiply, loc);
-                        } else if c == '/' {
-                            parser.calculation_op(Calculation::Divide(loc), loc);
-                        } else if c == '(' {
-                            parser.calculation_push(loc);
-                        } else if c == ')' {
-                            parser.calculation_pop(loc);
-                        }
-                    } else if c == ']' {
-                        let token = Token::new(&take(&mut current_id), token_start);
-                        parser.calculation_next(&token);
-
-                        let token =
-                            Token::new(&parser.calculation_result().to_string(), calculation_start);
-                        parser.token(token);
-                        state = State::Neutral;
-                    } else if c.is_id_char() {
-                        current_id.push(c);
-                    } else if c == CONTROL_Z {
-                        Parser::control_z(loc, content[i + 1..].trim().is_empty());
-                        break;
-                    } else {
-                        Parser::unknown_char(c, loc);
-                        current_id.clear();
-                        state = State::Neutral;
                     }
                 }
                 State::Comparator => {
@@ -750,12 +675,6 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                             token_start = loc;
                             token_start.column += 1;
                             state = State::QString;
-                        } else if c == '@' {
-                            // @ can start tokens but is special
-                            calculation_start = loc;
-                            current_id.push(c);
-                            token_start = loc;
-                            state = State::Id;
                         } else if c.is_id_char() || c == '$' {
                             token_start = loc;
                             state = State::Id;
@@ -770,18 +689,20 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
                         } else if c == '}' {
                             parser.close_brace(loc, content, i);
                             state = State::Neutral;
-                        } else if c == CONTROL_Z {
-                            Parser::control_z(loc, content[i + 1..].trim().is_empty());
-                            break;
                         } else {
-                            Parser::unknown_char(c, loc);
+                            unknown_char(c, loc);
                             state = State::Neutral;
                         }
                     }
                 }
+                // No @local_value is possible since they have been all substituted in `split_macros`
+                State::Calculation(_) => unreachable!(),
             }
 
-            if c == '\n' {
+            if c == CONTROL_Z {
+                control_z(loc, content[i + 1..].trim().is_empty());
+                break;
+            } else if c == '\n' {
                 loc.line += 1;
                 loc.column = 1;
             } else {
@@ -817,16 +738,14 @@ pub fn parse_pdx_macro(inputs: &[Token], local_macros: LocalMacros) -> Block {
 /// [`Token`] objects that are just references into that string. It's much faster that way and uses
 /// less memory.
 #[allow(clippy::module_name_repetitions)]
-pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
+fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
     let mut loc = Loc::from(entry);
-    let mut parser = Parser::new(loc, LocalMacros::default());
+    let mut parser = Parser::new(loc);
     loc.line = 1;
     loc.column = 1;
     let mut state = State::Neutral;
     let mut token_start = loc;
-    let mut calculation_start = loc;
     let mut token_start_offset = 0;
-    let content = StringTable::store(content);
 
     for (i, c) in content.char_indices() {
         match state {
@@ -845,7 +764,6 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
                     state = State::Comparator;
                 } else if c == '@' {
                     // @ can start tokens but is special
-                    calculation_start = loc;
                     token_start = loc;
                     token_start_offset = i;
                     state = State::Id;
@@ -862,11 +780,8 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
                     parser.open_brace(loc, i);
                 } else if c == '}' {
                     parser.close_brace(loc, content, i);
-                } else if c == CONTROL_Z {
-                    Parser::control_z(loc, content[i + 1..].trim().is_empty());
-                    break;
                 } else {
-                    Parser::unknown_char(c, loc);
+                    unknown_char(c, loc);
                 }
             }
             State::Comment => {
@@ -888,8 +803,8 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
                 if c == '$' {
                     parser.current.contains_macro_parms = true;
                 } else if c == '[' && &content[token_start_offset..i] == "@" {
-                    state = State::Calculation;
-                    parser.calculation_start();
+                    parser.calculator.start();
+                    state = State::Calculation(None);
                 } else if c.is_id_char() {
                 } else {
                     let token =
@@ -917,82 +832,42 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
                         token_start.column += 1;
                         token_start_offset = i + 1;
                         state = State::QString;
-                    } else if c == CONTROL_Z {
-                        Parser::control_z(loc, content[i + 1..].trim().is_empty());
-                        break;
                     } else {
-                        Parser::unknown_char(c, loc);
+                        unknown_char(c, loc);
                         state = State::Neutral;
                     }
                 }
             }
-            State::Calculation => {
-                if c.is_ascii_whitespace() {
-                } else if c == '+' {
-                    parser.calculation_op(Calculation::Add, loc);
-                } else if c == '-' {
-                    parser.calculation_op(Calculation::Subtract, loc);
-                } else if c == '*' {
-                    parser.calculation_op(Calculation::Multiply, loc);
-                } else if c == '/' {
-                    parser.calculation_op(Calculation::Divide(loc), loc);
-                } else if c == '(' {
-                    parser.calculation_push(loc);
-                } else if c == ')' {
-                    parser.calculation_pop(loc);
-                } else if c == ']' {
-                    let token =
-                        Token::new(&parser.calculation_result().to_string(), calculation_start);
-                    parser.token(token);
-                    state = State::Neutral;
-                } else if c.is_id_char() {
-                    token_start = loc;
-                    token_start_offset = i;
-                    state = State::CalculationId;
-                }
-            }
-            State::CalculationId => {
-                if c.is_ascii_whitespace()
-                    || c == '+'
-                    || c == '/'
-                    || c == '*'
-                    || c == '-'
-                    || c == '('
-                    || c == ')'
+            State::Calculation(current_value) => {
+                let calculator = &mut parser.calculator;
+                if matches!(c, '+' | '-' | '*' | '/' | '(' | ')' | ']' | _ if c.is_ascii_whitespace())
                 {
-                    let token =
-                        Token::from_static_str(&content[token_start_offset..i], token_start);
-                    parser.calculation_next(&token);
-                    state = State::Calculation;
-                    if c == '+' {
-                        parser.calculation_op(Calculation::Add, loc);
-                    } else if c == '-' {
-                        parser.calculation_op(Calculation::Subtract, loc);
-                    } else if c == '*' {
-                        parser.calculation_op(Calculation::Multiply, loc);
-                    } else if c == '/' {
-                        parser.calculation_op(Calculation::Divide(loc), loc);
-                    } else if c == '(' {
-                        parser.calculation_push(loc);
-                    } else if c == ')' {
-                        parser.calculation_pop(loc);
+                    if let Some(offset) = current_value {
+                        calculator.next(&content[offset..i], &parser.local_values, loc);
+                        state = State::Calculation(None);
                     }
-                } else if c == ']' {
-                    let token =
-                        Token::from_static_str(&content[token_start_offset..i], token_start);
-                    parser.calculation_next(&token);
+                }
 
-                    let token =
-                        Token::new(&parser.calculation_result().to_string(), calculation_start);
-                    parser.token(token);
-                    state = State::Neutral;
-                } else if c.is_id_char() {
-                } else if c == CONTROL_Z {
-                    Parser::control_z(loc, content[i + 1..].trim().is_empty());
-                    break;
-                } else {
-                    Parser::unknown_char(c, loc);
-                    state = State::Neutral;
+                match c {
+                    _ if c.is_ascii_whitespace() => (),
+                    '+' => calculator.op(Calculation::Add, loc),
+                    '-' => calculator.op(Calculation::Subtract, loc),
+                    '*' => calculator.op(Calculation::Multiply, loc),
+                    '/' => calculator.op(Calculation::Divide(loc), loc),
+                    '(' => calculator.push(loc),
+                    ')' => calculator.pop(loc),
+                    ']' => {
+                        let token = Token::new(&calculator.result().to_string(), token_start);
+                        parser.token(token);
+                        state = State::Neutral;
+                    }
+                    _ if c.is_local_value_char() => {
+                        state = State::Calculation(Some(i));
+                    }
+                    _ => {
+                        unknown_char(c, loc);
+                        state = State::Neutral;
+                    }
                 }
             }
             State::Comparator => {
@@ -1007,7 +882,6 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
                         state = State::QString;
                     } else if c == '@' {
                         // @ can start tokens but is special
-                        calculation_start = loc;
                         token_start = loc;
                         token_start_offset = i;
                         state = State::Id;
@@ -1030,18 +904,18 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
                     } else if c == '}' {
                         parser.close_brace(loc, content, i);
                         state = State::Neutral;
-                    } else if c == CONTROL_Z {
-                        Parser::control_z(loc, content[i + 1..].trim().is_empty());
-                        break;
                     } else {
-                        Parser::unknown_char(c, loc);
+                        unknown_char(c, loc);
                         state = State::Neutral;
                     }
                 }
             }
         }
 
-        if c == '\n' {
+        if c == CONTROL_Z {
+            control_z(loc, content[i + 1..].trim().is_empty());
+            break;
+        } else if c == '\n' {
             loc.line += 1;
             loc.column = 1;
         } else {
@@ -1069,57 +943,182 @@ pub fn parse_pdx(entry: &FileEntry, content: &str) -> Block {
     parser.eof()
 }
 
+/// Parse the content associated with the [`FileEntry`].
+pub fn parse_pdx_file(entry: &FileEntry, content: String) -> Block {
+    let content = leak(content);
+    parse_pdx(entry, content)
+}
+
 /// Parse a string into a [`Block`]. This function is meant for use by the validator itself, to
 /// allow it to load game description data from internal strings that are in pdx script format.
-pub fn parse_pdx_internal(input: &str, desc: &str) -> Block {
+pub fn parse_pdx_internal(input: &'static str, desc: &str) -> Block {
     let entry = FileEntry::new(PathBuf::from(desc), FileKind::Internal, PathBuf::from(desc));
     parse_pdx(&entry, input)
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+/// Kinds of [`MacroComponent`].
+pub enum MacroComponentKind {
+    Source,
+    LocalValue,
+    Macro,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+/// Macro components outputted from [`split_macros`].
+pub struct MacroComponent {
+    kind: MacroComponentKind,
+    token: Token,
+}
+
+impl MacroComponent {
+    pub fn kind(&self) -> MacroComponentKind {
+        self.kind
+    }
+
+    pub fn token(&self) -> &Token {
+        &self.token
+    }
+}
+
 /// Split a block that contains macro parameters (represented here as a [`Token`] containing its
-/// source script) into an alternating series of [text, parameter, text, parameter, ... text]
-/// tokens.
+/// source script) into [`MacroComponent`].
 ///
 /// Having this available will speed up macro re-parsing later.
 ///
 /// The function is aware of comments and quoted strings and will avoid detecting macro parameters
 /// inside those.
 // TODO: is it actually correct to ignore macro params in comments and quoted strings? Verify.
-fn split_macros(content: &Token) -> Vec<Token> {
+fn split_macros(content: &Token, local_values: &LocalValues) -> Vec<MacroComponent> {
     #[derive(Eq, PartialEq)]
     enum State {
-        Normal,
-        InQString,
-        InComment,
+        Neutral,
+        QString,
+        Comment,
+        LocalValue,
+        Calculation(Option<usize>),
+        Macro,
     }
-    let mut state = State::Normal;
+    let mut state = State::Neutral;
+    let mut calculator = Calculator::new();
     let mut vec = Vec::new();
     let mut loc = content.loc;
     let mut last_loc = loc;
     let mut last_pos = 0;
     for (i, c) in content.as_str().char_indices() {
         match state {
-            State::InComment => {
+            State::Comment => {
                 if c == '\n' {
-                    state = State::Normal;
+                    state = State::Neutral;
                 }
             }
-            State::InQString => {
+            State::QString => {
                 if c == '\n' || c == '"' {
-                    state = State::Normal;
+                    state = State::Neutral;
                 }
             }
-            State::Normal => {
+            State::Neutral => {
                 if c == '#' {
-                    state = State::InComment;
+                    state = State::Comment;
                 } else if c == '"' {
-                    state = State::InQString;
-                } else if c == '$' {
-                    vec.push(content.subtoken(last_pos..i, last_loc));
+                    state = State::QString;
+                } else if c == '$' || c == '@' {
+                    vec.push(MacroComponent {
+                        kind: MacroComponentKind::Source,
+                        token: content.subtoken(last_pos..i, last_loc),
+                    });
                     last_loc = loc;
-                    // Skip the current '$'
+                    // Skip the current '$' or '@'
                     last_loc.column += 1;
                     last_pos = i + 1;
+                    state = if c == '$' { State::Macro } else { State::LocalValue };
+                }
+            }
+            State::LocalValue => {
+                if c == '[' {
+                    calculator.start();
+                    state = State::Calculation(None);
+                } else if c.is_ascii_whitespace() {
+                    if last_pos != i {
+                        let str = &content.as_str()[last_pos..i];
+                        if let Some(value) = local_values.get_as_string(str) {
+                            let token = Token::new(&value, last_loc);
+                            vec.push(MacroComponent {
+                                kind: MacroComponentKind::LocalValue,
+                                token,
+                            });
+                        } else {
+                            let err_token = Token::new(str, last_loc);
+                            err(ErrorKey::LocalValues)
+                                .msg("local value not defined")
+                                .loc(err_token)
+                                .push();
+                        }
+                    } else {
+                        err(ErrorKey::ParseError).msg("empty local value").loc(last_loc).push();
+                    }
+                    state = State::Neutral;
+                } else if c == '!' {
+                    if let Some("icon") = content.as_str().get(i - 4..i) {
+                        // TODO test that '!' is followed by a whitespace
+                    } else {
+                        err(ErrorKey::LocalValues)
+                            .msg("incorrect format; should be `@<name>_icon! `")
+                            .loc(last_loc)
+                            .push();
+                    }
+                } else if !c.is_local_value_char() {
+                    unknown_char(c, loc);
+                }
+            }
+            State::Calculation(current_value) => {
+                if matches!(c, '+' | '-' | '*' | '/' | '(' | ')' | ']' | _ if c.is_ascii_whitespace())
+                {
+                    if let Some(offset) = current_value {
+                        calculator.next(&content.as_str()[offset..i], local_values, loc);
+                        state = State::Calculation(None);
+                    }
+                }
+
+                match c {
+                    _ if c.is_ascii_whitespace() => (),
+                    '+' => calculator.op(Calculation::Add, loc),
+                    '-' => calculator.op(Calculation::Subtract, loc),
+                    '*' => calculator.op(Calculation::Multiply, loc),
+                    '/' => calculator.op(Calculation::Divide(loc), loc),
+                    '(' => calculator.push(loc),
+                    ')' => calculator.pop(loc),
+                    ']' => {
+                        let token = Token::new(&calculator.result().to_string(), last_loc);
+                        vec.push(MacroComponent { kind: MacroComponentKind::LocalValue, token });
+                        state = State::Neutral;
+                    }
+                    _ if c.is_local_value_char() => {
+                        state = State::Calculation(Some(i));
+                    }
+                    _ => {
+                        unknown_char(c, loc);
+                        state = State::Neutral;
+                    }
+                }
+            }
+            State::Macro => {
+                if c == '$' {
+                    if last_pos != i {
+                        vec.push(MacroComponent {
+                            kind: MacroComponentKind::Macro,
+                            token: content.subtoken(last_pos..i, last_loc),
+                        });
+                    } else {
+                        err(ErrorKey::ParseError).msg("empty macro").loc(last_loc).push();
+                    }
+
+                    last_loc = loc;
+                    last_loc.column += 1;
+                    last_pos = i + 1;
+                    state = State::Neutral;
+                } else if !c.is_id_char() {
+                    unknown_char(c, loc);
                 }
             }
         }
@@ -1130,6 +1129,27 @@ fn split_macros(content: &Token) -> Vec<Token> {
             loc.column += 1;
         }
     }
-    vec.push(content.subtoken(last_pos.., last_loc));
+
+    match state {
+        State::Macro => {
+            let mut err_loc = last_loc;
+            // point to the opening '$'
+            err_loc.column -= 1;
+            fatal(ErrorKey::ParseError).msg("macro not closed by '$'").loc(err_loc).push();
+        }
+        State::Calculation(_) => {
+            // point to the '['
+            fatal(ErrorKey::ParseError)
+                .msg("local value calculation not closed by ']'")
+                .loc(last_loc)
+                .push();
+        }
+        _ => (),
+    }
+
+    vec.push(MacroComponent {
+        kind: MacroComponentKind::Source,
+        token: content.subtoken(last_pos.., last_loc),
+    });
     vec
 }

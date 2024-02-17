@@ -10,6 +10,8 @@ use std::ops::{Bound, Range, RangeBounds};
 use std::path::{Path, PathBuf};
 use std::slice::SliceIndex;
 
+use bumpalo::Bump;
+
 use crate::date::Date;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pathtable::{PathTable, PathTableIndex};
@@ -92,7 +94,32 @@ impl Debug for Loc {
     }
 }
 
-/// A Token consists of a string (stored in a `StringTable`) and its location in the parsed files.
+/// Leak the string, but first get it into a `Box<str>` so it is on the heap and without
+/// any excess capacity.
+/// 
+/// It should only be used for large strings, rather than for small, individuals strings,
+/// due to the memory overhead. Use [`bump`] instead, which uses a bump allocator to store
+/// the strings.
+pub fn leak(s: impl Into<Box<str>>) -> &'static str {
+    Box::leak(s.into())
+}
+
+thread_local!(static STR_BUMP: Bump = Bump::new());
+
+/// Allocate the string on heap with a bump allocator.
+/// 
+/// SAFETY: This is safe as long as no `Bump::reset` is called to deallocate memory.
+pub fn bump(s: &str) -> &'static str {
+    STR_BUMP.with(|bump| {
+        let s = bump.alloc_str(s);
+        unsafe {
+            let s_ptr: *const str = s;
+            &*s_ptr
+        }
+    })
+}
+
+/// A Token consists of a string and its location in the parsed files.
 #[allow(missing_copy_implementations)]
 #[derive(Clone, Debug)]
 pub struct Token {
@@ -103,7 +130,7 @@ pub struct Token {
 impl Token {
     #[must_use]
     pub fn new(s: &str, loc: Loc) -> Self {
-        Token { s: StringTable::store(s), loc }
+        Token { s: bump(s), loc }
     }
 
     #[must_use]
@@ -259,7 +286,7 @@ impl Token {
         let mut s = self.s.to_string();
         s.push(c);
         s.push_str(other.s);
-        self.s = StringTable::store(&s);
+        self.s = bump(&s);
     }
 
     #[must_use]
