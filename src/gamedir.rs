@@ -71,6 +71,7 @@ pub fn find_game_directory_steam(steam_app_id: &str, game_dir: &Path) -> Option<
         let on_windows = PathBuf::from(on_windows).join("steamapps");
         return find_game_dir_in_steam_dir(&on_windows, steam_app_id, game_dir);
     }
+    #[cfg(not(windows))]
     None
 }
 
