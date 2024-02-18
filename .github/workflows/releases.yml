@@ -25,15 +25,10 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Install msrv toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - name: Rust cache
-        uses: Swatinem/rust-cache@v2
+          toolchain: 1.70.0
 
       - name: Get version
         id: version
@@ -51,17 +46,11 @@ jobs:
         run: |
           test "${{ github.ref_name }}" = "${{ steps.version.outputs.version }}"
 
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release -p ck3-tiger
+      - name: Build CK3
+        run: cargo build --release -p ck3-tiger
 
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release -p vic3-tiger
+      - name: Build Vic3
+        run: cargo build --release -p vic3-tiger
 
       - name: Create output dirs
         shell: bash
