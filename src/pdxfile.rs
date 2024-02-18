@@ -5,6 +5,7 @@
 #[cfg(feature = "ck3")]
 use std::fs::read;
 use std::fs::read_to_string;
+use std::mem::ManuallyDrop;
 
 #[cfg(feature = "ck3")]
 use encoding_rs::{UTF_8, WINDOWS_1252};
@@ -28,12 +29,16 @@ pub enum PdxEncoding {
 
 fn strip_bom(contents: String) -> String {
     // leak so does not deallocate memory
-    let contents = contents.leak();
-    let ptr = contents.as_mut_ptr();
+    let contents = ManuallyDrop::new(contents);
+    let ptr = contents.as_ptr();
     unsafe {
         // This would cause a memory leak for the first three bytes and any excess capacity of `contents`,
         // but is deemed acceptable
-        String::from_raw_parts(ptr.add(BOM_LEN), contents.len() - BOM_LEN, contents.len() - BOM_LEN)
+        String::from_raw_parts(
+            ptr.cast_mut().add(BOM_LEN),
+            contents.len() - BOM_LEN,
+            contents.len() - BOM_LEN,
+        )
     }
 }
 

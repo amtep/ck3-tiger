@@ -95,20 +95,23 @@ impl Debug for Loc {
     }
 }
 
-/// Leak the string, including any excess capacity to avoid additional allocation/copy
-/// into a `Box<str>`.
-/// 
+/// Leak the string, including any excess capacity.
+///
 /// It should only be used for large strings, rather than for small, individuals strings,
 /// due to the memory overhead. Use [`bump`] instead, which uses a bump allocator to store
 /// the strings.
 pub fn leak(s: String) -> &'static str {
-    s.leak()
+    let s = ManuallyDrop::new(s);
+    unsafe {
+        let s_ptr: *const str = s.as_ref();
+        &*s_ptr
+    }
 }
 
 thread_local!(static STR_BUMP: ManuallyDrop<Bump> = ManuallyDrop::new(Bump::new()));
 
 /// Allocate the string on heap with a bump allocator.
-/// 
+///
 /// SAFETY: This is safe as long as no `Bump::reset` is called to deallocate memory
 /// and `STR_BUMP` is not dropped when thread exits.
 pub fn bump(s: &str) -> &'static str {
