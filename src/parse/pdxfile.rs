@@ -2,6 +2,7 @@
 //!
 //! The main entry points are [`parse_pdx`] and [`parse_pdx_macro`].
 
+use std::fmt::Display;
 use std::mem::{swap, take};
 use std::path::PathBuf;
 
@@ -28,7 +29,7 @@ enum State {
     /// Parsing a comparator like `=` or `<=`.
     Comparator,
     /// Parsing a `@[ ... ]` local value calculation.
-    Calculation(Option<usize>),
+    Calculation(Option<(usize, Loc)>),
     /// Parsing a comment till end of line.
     Comment,
 }
@@ -53,6 +54,18 @@ enum Calculation {
     Multiply,
     /// Division carries a [`Loc`] in order to report errors about division by zero when appropriate.
     Divide(Loc),
+}
+
+impl Display for Calculation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Calculation::Value(v) => write!(f, "{v:.5}"),
+            Calculation::Add => write!(f, "+"),
+            Calculation::Subtract => write!(f, "-"),
+            Calculation::Multiply => write!(f, "*"),
+            Calculation::Divide(_) => write!(f, "/"),
+        }
+    }
 }
 
 impl Calculation {
@@ -93,7 +106,7 @@ impl Calculator {
             // accept negation
             self.current.push(op);
         } else {
-            let msg = "operator `{op}` without left-hand value";
+            let msg = format!("operator `{op}` without left-hand value");
             err(ErrorKey::LocalValues).msg(msg).loc(loc).push();
         }
     }
@@ -245,7 +258,7 @@ impl CharExt for char {
     }
 
     fn is_local_value_char(self) -> bool {
-        self.is_ascii_alphanumeric() || self == '_' || self == '.'
+        self.is_ascii_alphanumeric() || self == '_'
     }
 
     fn is_comparator_char(self) -> bool {
@@ -376,26 +389,34 @@ impl Parser {
             if let Some((cmp, _)) = self.current.cmp.take() {
                 if let Some(local_value_key) = key.as_str().strip_prefix('@') {
                     // @local_value_key = ...
-                    if key.as_str().starts_with(|c: char| c.is_ascii_alphabetic()) {
-                        if key.as_str().chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
-                            if let Some(local_value) = token.as_str().strip_prefix('@') {
-                                // @local_value_key = @local_value
-                                if let Some(value) = self.local_values.get_as_string(local_value) {
-                                    self.local_values.insert(local_value_key, &value);
-                                } else {
-                                    error(token, ErrorKey::LocalValues, "local value not defined");
-                                }
-                            } else {
-                                // @localvalue_key = value
-                                self.local_values.insert(local_value_key, token.as_str());
-                            }
-                        } else {
-                            let msg = "local value names must only contain ascii letters, numbers or underscores";
-                            err(ErrorKey::LocalValues).msg(msg).loc(key).push();
-                        }
-                    } else {
+                    if local_value_key.is_empty() {
+                        let msg = "empty local value key";
+                        err(ErrorKey::LocalValues).msg(msg).loc(key).push();
+                        return;
+                    }
+
+                    if !local_value_key.starts_with(|c: char| c.is_ascii_alphabetic()) {
                         let msg = "local value names must start with an ascii letter";
                         err(ErrorKey::LocalValues).msg(msg).loc(key).push();
+                        return;
+                    }
+
+                    if !local_value_key.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+                        let msg = "local value names must only contain ascii letters, numbers or underscores";
+                        err(ErrorKey::LocalValues).msg(msg).loc(key).push();
+                        return;
+                    }
+
+                    if let Some(local_value) = token.as_str().strip_prefix('@') {
+                        // @local_value_key = @local_value
+                        if let Some(value) = self.local_values.get_as_string(local_value) {
+                            self.local_values.insert(local_value_key, &value);
+                        } else {
+                            error(token, ErrorKey::LocalValues, "local value not defined");
+                        }
+                    } else {
+                        // @localvalue_key = value
+                        self.local_values.insert(local_value_key, token.as_str());
                     }
                 } else if let Some(local_value) = token.as_str().strip_prefix('@') {
                     // key = @local_value
@@ -850,10 +871,9 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
             }
             State::Calculation(current_value) => {
                 let calculator = &mut parser.calculator;
-                if matches!(c, '+' | '-' | '*' | '/' | '(' | ')' | ']' | _ if c.is_ascii_whitespace())
-                {
-                    if let Some(offset) = current_value {
-                        calculator.next(&content[offset..i], &parser.local_values, loc);
+                if c.is_ascii_whitespace() || matches!(c, '+' | '-' | '*' | '/' | '(' | ')' | ']') {
+                    if let Some((start_offset, start_loc)) = current_value {
+                        calculator.next(&content[start_offset..i], &parser.local_values, start_loc);
                         state = State::Calculation(None);
                     }
                 }
@@ -871,8 +891,10 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                         parser.token(token);
                         state = State::Neutral;
                     }
-                    _ if c.is_local_value_char() => {
-                        state = State::Calculation(Some(i));
+                    _ if c.is_local_value_char() || c == '.' => {
+                        if current_value.is_none() {
+                            state = State::Calculation(Some((i, loc)));
+                        }
                     }
                     _ => {
                         unknown_char(c, loc);
@@ -1006,7 +1028,7 @@ fn split_macros(content: &Token, local_values: &LocalValues) -> Vec<MacroCompone
         QString,
         Comment,
         LocalValue,
-        Calculation(Option<usize>),
+        Calculation(Option<(usize, Loc)>),
         Macro,
     }
     let mut state = State::Neutral;
@@ -1067,16 +1089,16 @@ fn split_macros(content: &Token, local_values: &LocalValues) -> Vec<MacroCompone
                     } else {
                         err(ErrorKey::ParseError).msg("empty local value").loc(last_loc).push();
                     }
+                    last_pos = i;
                     state = State::Neutral;
                 } else if !c.is_local_value_char() {
                     unknown_char(c, loc);
                 }
             }
             State::Calculation(current_value) => {
-                if matches!(c, '+' | '-' | '*' | '/' | '(' | ')' | ']' | _ if c.is_ascii_whitespace())
-                {
-                    if let Some(offset) = current_value {
-                        calculator.next(&content.as_str()[offset..i], local_values, loc);
+                if c.is_ascii_whitespace() || matches!(c, '+' | '-' | '*' | '/' | '(' | ')' | ']') {
+                    if let Some((start_offset, start_loc)) = current_value {
+                        calculator.next(&content.as_str()[start_offset..i], local_values, start_loc);
                         state = State::Calculation(None);
                     }
                 }
@@ -1092,10 +1114,13 @@ fn split_macros(content: &Token, local_values: &LocalValues) -> Vec<MacroCompone
                     ']' => {
                         let token = Token::new(&calculator.result().to_string(), last_loc);
                         vec.push(MacroComponent { kind: MacroComponentKind::LocalValue, token });
+                        last_pos = i + 1;
                         state = State::Neutral;
                     }
-                    _ if c.is_local_value_char() => {
-                        state = State::Calculation(Some(i));
+                    _ if c.is_local_value_char() || c == '.' => {
+                        if current_value.is_none() {
+                            state = State::Calculation(Some((i, loc)));
+                        }
                     }
                     _ => {
                         unknown_char(c, loc);
