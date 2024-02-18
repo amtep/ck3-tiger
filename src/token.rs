@@ -5,6 +5,7 @@ use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::hash::Hash;
+use std::mem::ManuallyDrop;
 use std::num::NonZeroU32;
 use std::ops::{Bound, Range, RangeBounds};
 use std::path::{Path, PathBuf};
@@ -94,21 +95,22 @@ impl Debug for Loc {
     }
 }
 
-/// Leak the string, but first get it into a `Box<str>` so it is on the heap and without
-/// any excess capacity.
+/// Leak the string, including any excess capacity to avoid additional allocation/copy
+/// into a `Box<str>`.
 /// 
 /// It should only be used for large strings, rather than for small, individuals strings,
 /// due to the memory overhead. Use [`bump`] instead, which uses a bump allocator to store
 /// the strings.
-pub fn leak(s: impl Into<Box<str>>) -> &'static str {
-    Box::leak(s.into())
+pub fn leak(s: String) -> &'static str {
+    s.leak()
 }
 
-thread_local!(static STR_BUMP: Bump = Bump::new());
+thread_local!(static STR_BUMP: ManuallyDrop<Bump> = ManuallyDrop::new(Bump::new()));
 
 /// Allocate the string on heap with a bump allocator.
 /// 
-/// SAFETY: This is safe as long as no `Bump::reset` is called to deallocate memory.
+/// SAFETY: This is safe as long as no `Bump::reset` is called to deallocate memory
+/// and `STR_BUMP` is not dropped when thread exits.
 pub fn bump(s: &str) -> &'static str {
     STR_BUMP.with(|bump| {
         let s = bump.alloc_str(s);
