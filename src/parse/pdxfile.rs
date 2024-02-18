@@ -245,7 +245,7 @@ impl CharExt for char {
     }
 
     fn is_local_value_char(self) -> bool {
-        self.is_alphabetic() || self.is_ascii_digit()
+        self.is_ascii_alphanumeric() || self == '_' || self == '.'
     }
 
     fn is_comparator_char(self) -> bool {
@@ -376,16 +376,26 @@ impl Parser {
             if let Some((cmp, _)) = self.current.cmp.take() {
                 if let Some(local_value_key) = key.as_str().strip_prefix('@') {
                     // @local_value_key = ...
-                    if let Some(local_value) = token.as_str().strip_prefix('@') {
-                        // @local_value_key = @local_value
-                        if let Some(value) = self.local_values.get_as_string(local_value) {
-                            self.local_values.insert(local_value_key, &value);
+                    if key.as_str().starts_with(|c: char| c.is_ascii_alphabetic()) {
+                        if key.as_str().chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+                            if let Some(local_value) = token.as_str().strip_prefix('@') {
+                                // @local_value_key = @local_value
+                                if let Some(value) = self.local_values.get_as_string(local_value) {
+                                    self.local_values.insert(local_value_key, &value);
+                                } else {
+                                    error(token, ErrorKey::LocalValues, "local value not defined");
+                                }
+                            } else {
+                                // @localvalue_key = value
+                                self.local_values.insert(local_value_key, token.as_str());
+                            }
                         } else {
-                            error(token, ErrorKey::LocalValues, "local value not defined");
+                            let msg = "local value names must only contain ascii letters, numbers or underscores";
+                            err(ErrorKey::LocalValues).msg(msg).loc(key).push();
                         }
                     } else {
-                        // @localvalue_key = value
-                        self.local_values.insert(local_value_key, token.as_str());
+                        let msg = "local value names must start with an ascii letter";
+                        err(ErrorKey::LocalValues).msg(msg).loc(key).push();
                     }
                 } else if let Some(local_value) = token.as_str().strip_prefix('@') {
                     // key = @local_value
@@ -1058,15 +1068,6 @@ fn split_macros(content: &Token, local_values: &LocalValues) -> Vec<MacroCompone
                         err(ErrorKey::ParseError).msg("empty local value").loc(last_loc).push();
                     }
                     state = State::Neutral;
-                } else if c == '!' {
-                    if let Some("icon") = content.as_str().get(i - 4..i) {
-                        // TODO test that '!' is followed by a whitespace
-                    } else {
-                        err(ErrorKey::LocalValues)
-                            .msg("incorrect format; should be `@<name>_icon! `")
-                            .loc(last_loc)
-                            .push();
-                    }
                 } else if !c.is_local_value_char() {
                     unknown_char(c, loc);
                 }
