@@ -213,7 +213,7 @@ impl DbKind for CulturePillar {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated("color", validate_possibly_named_color);
-        vd.field_block("parameters");
+        vd.field_validated_block("parameters", validate_parameters);
     }
 }
 
@@ -253,18 +253,7 @@ impl DbKind for CultureTradition {
             let loca = format!("{key}_desc");
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
-        vd.field_validated_block("parameters", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.unknown_value_fields(|key, value| {
-                if matches!(key.as_str(), "number_of_spouses" | "number_of_consorts") {
-                    ValueValidator::new(value, data).integer_range(0, i64::MAX);
-                } else {
-                    ValueValidator::new(value, data).bool();
-                }
-                let loca = format!("culture_parameter_{key}");
-                data.verify_exists_implied(Item::Localization, &loca, key);
-            });
-        });
+        vd.field_validated_block("parameters", validate_parameters);
         vd.field_value("category");
         vd.field_validated_block("layers", |block, data| {
             let mut layer_path = Vec::new();
@@ -333,6 +322,20 @@ impl DbKind for CultureTradition {
         sc.define_name("replacing", Scopes::CultureTradition, key);
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
     }
+}
+
+fn validate_parameters(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.unknown_value_fields(|key, value| {
+        if matches!(key.as_str(), "number_of_spouses" | "number_of_consorts") {
+            ValueValidator::new(value, data).integer_range(0, i64::MAX);
+        } else {
+            ValueValidator::new(value, data).bool();
+        }
+        // culture parameter loca are lowercased, verified in 1.11
+        let loca = format!("culture_parameter_{}", key.as_str().to_lowercase());
+        data.verify_exists_implied(Item::Localization, &loca, key);
+    });
 }
 
 fn validate_modifiers(vd: &mut Validator) {
