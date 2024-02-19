@@ -2,6 +2,7 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -81,6 +82,36 @@ impl DbKind for CourtierGuestManagement {
             });
         } else {
             let msg = "expected either `courtier_management` or `guest_management`";
+            err(ErrorKey::Validation).msg(msg).loc(key).push();
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct GuestSystem {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::GuestSystem, GuestSystem::add)
+}
+
+impl GuestSystem {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::GuestSystem, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for GuestSystem {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        // TODO: the root scope is not documented here
+        let mut sc = ScopeContext::new(Scopes::None, key);
+        sc.define_name("mover", Scopes::Character, key);
+
+        if key.is("destination_for_guest_entering_pool")
+            || key.is("destination_for_courtier_entering_pool")
+        {
+            validate_effect(block, data, &mut sc, Tooltipped::No);
+        } else {
+            let msg = "expected either `destination_for_guest_entering_pool` or `destination_for_courtier_entering_pool`";
             err(ErrorKey::Validation).msg(msg).loc(key).push();
         }
     }
