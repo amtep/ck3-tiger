@@ -1,5 +1,6 @@
 pub mod accolades;
 pub mod activities;
+pub mod ai_war_stances;
 pub mod amenities;
 pub mod artifacts;
 pub mod bookmarks;
