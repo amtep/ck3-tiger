@@ -70,6 +70,7 @@ impl DbKind for MilitaryTradition {
         vd.field_value("icon");
         vd.field_item("enable_tactic", Item::CombatTactic);
         vd.field_item("enable_ability", Item::UnitAbility);
+        vd.field_item("allow_unit_type", Item::Unit);
 
         vd.field_list_items("requires", Item::MilitaryTradition);
 

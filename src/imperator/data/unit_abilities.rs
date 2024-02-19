@@ -77,6 +77,9 @@ impl DbKind for UnitAbility {
         vd.field_validated_block("finish_effect", |b, data| {
             validate_effect(b, data, &mut sc, Tooltipped::Yes);
         });
+        vd.field_validated_block("on_entering_province", |b, data| {
+            validate_effect(b, data, &mut sc, Tooltipped::Yes);
+        });
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
     }
 }

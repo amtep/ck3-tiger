@@ -45,14 +45,18 @@ pub fn validate_add_modifier(
 }
 
 pub fn validate_add_party_conviction_or_approval(
-    _key: &Token,
+    key: &Token,
     _block: &Block,
     _data: &Everything,
     sc: &mut ScopeContext,
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    vd.req_field("party_type");
+    if key.is("add_party_approval") {
+        vd.req_field("party");
+    } else {
+        vd.req_field("party_type");
+    }
     vd.req_field("value");
     vd.field_item_or_target("party_type", sc, Item::PartyType, Scopes::Party);
     vd.field_script_value("value", sc);

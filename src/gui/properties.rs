@@ -766,11 +766,9 @@ impl WidgetProperty {
     pub fn to_game_flags(self) -> GameFlags {
         #[allow(clippy::match_same_arms)] // alphabetic is better
         match self {
-            animate_negative_changes
-            | autoresize_slider
-            | camera_fov_y_degrees
-            | camera_look_at
-            | click_modifiers => GameFlags::Ck3 | GameFlags::Vic3,
+            animate_negative_changes | autoresize_slider | click_modifiers => {
+                GameFlags::Ck3 | GameFlags::Vic3
+            }
 
             coat_of_arms | coat_of_arms_mask => GameFlags::Ck3,
 

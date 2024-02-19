@@ -1,4 +1,5 @@
 use crate::block::Block;
+use crate::block::BV;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
@@ -29,14 +30,19 @@ impl DbKind for EventPicture {
         let mut sc = ScopeContext::new(Scopes::Country, key);
 
         vd.field_item("theme", Item::EventTheme);
-        vd.field_item("picture", Item::File);
 
-        vd.field_validated_block("picture", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_item("texture", Item::File);
-            vd.field_validated_block("trigger", |b, data| {
-                validate_trigger(b, data, &mut sc, Tooltipped::No);
-            });
+        vd.multi_field_validated("picture", |bv, data| match bv {
+            BV::Value(t) => {
+                let mut vd = Validator::new(block, data);
+                vd.field_item("picture", Item::File);
+            }
+            BV::Block(b) => {
+                let mut vd = Validator::new(block, data);
+                vd.field_item("texture", Item::File);
+                vd.field_validated_block("trigger", |b, data| {
+                    validate_trigger(b, data, &mut sc, Tooltipped::No);
+                });
+            }
         });
     }
 }

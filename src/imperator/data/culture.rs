@@ -62,7 +62,6 @@ impl DbKind for CultureGroup {
             let mut vd = Validator::new(block, data);
             vd.unknown_value_fields(|key, value| {
                 data.verify_exists(Item::Ethnicity, key);
-                value.expect_number();
             });
         });
     }

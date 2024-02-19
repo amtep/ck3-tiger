@@ -36,7 +36,7 @@ impl DbKind for Ambition {
 
         vd.req_field("can_be_picked");
         vd.req_field("finished_when");
-        vd.req_field("abort");
+        vd.field("abort");
         vd.req_field("chance");
 
         vd.field_validated_block("can_be_picked", |b, data| {

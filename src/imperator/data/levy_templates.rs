@@ -20,17 +20,13 @@ impl LevyTemplate {
 }
 
 impl DbKind for LevyTemplate {
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        vd.unknown_block_fields(|_key, block| {
-            let mut vd = Validator::new(block, data);
-
-            vd.field_bool("default");
-            vd.unknown_value_fields(|key, value| {
-                data.verify_exists(Item::Unit, key);
-                value.expect_number();
-            });
+        vd.field_bool("default");
+        vd.unknown_value_fields(|key, value| {
+            data.verify_exists(Item::Unit, key);
+            value.expect_number();
         });
     }
 }

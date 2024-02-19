@@ -112,7 +112,7 @@ pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext
 pub fn validate_optional_duration_int(vd: &mut Validator) {
     let mut count = 0;
 
-    for field in &["days", "weeks", "months", "years"] {
+    for field in &["days", "weeks", "months", "years", "duration"] {
         vd.field_validated_value(field, |key, mut vd| {
             vd.integer();
             count += 1;
@@ -128,7 +128,7 @@ pub fn validate_optional_duration_int(vd: &mut Validator) {
 pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
     let mut count = 0;
 
-    for field in &["days", "weeks", "months", "years"] {
+    for field in &["days", "weeks", "months", "years", "duration"] {
         vd.field_validated_key(field, |key, bv, data| {
             validate_script_value(bv, data, sc);
             count += 1;

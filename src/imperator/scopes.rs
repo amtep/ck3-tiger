@@ -268,6 +268,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
             .union(Scopes::Character)
             .union(Scopes::Province)
             .union(Scopes::Pop)
+            .union(Scopes::CountryCulture)
             .union(Scopes::Culture),
         "culture_group",
         Scopes::CultureGroup,

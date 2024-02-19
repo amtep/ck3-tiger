@@ -32,7 +32,7 @@ impl DbKind for Terrain {
         vd.field_numeric("combat_width");
         vd.field_numeric("defender");
 
-        vd.field_validated_block("province", |block, data| {
+        vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Province, vd);
         });

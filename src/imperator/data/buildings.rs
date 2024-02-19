@@ -28,7 +28,7 @@ impl Building {
 impl DbKind for Building {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new(Scopes::Country, key);
+        let mut sc = ScopeContext::new(Scopes::Province, key);
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_desc");
@@ -53,6 +53,6 @@ impl DbKind for Building {
         // TODO - Not sure what to do with modification_display, it is extremely irregular so I just want to not validate the whole block
         vd.field_block("modification_display"); // TODO
 
-        validate_modifs(block, data, ModifKinds::Country, vd);
+        validate_modifs(block, data, ModifKinds::Province, vd);
     }
 }

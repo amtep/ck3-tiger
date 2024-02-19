@@ -57,6 +57,8 @@ impl DbKind for Mission {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
 
+        // TODO - Any scopes that are saved in the on_potential or on_start get added to the ScopeContext of every other block in the mission tree, except for the potential block for the entire tree.
+        // Need to figure out how to propogate these save scopes to the new blocks
         vd.field_validated_block("on_potential", |b, data| {
             validate_effect(b, data, &mut sc, Tooltipped::No);
         });

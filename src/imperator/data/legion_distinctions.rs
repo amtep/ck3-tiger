@@ -42,5 +42,9 @@ impl DbKind for LegionDistinction {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Country, vd);
         });
+        vd.field_validated_block("legion", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Country, vd);
+        });
     }
 }
