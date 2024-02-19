@@ -31,6 +31,7 @@ compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled 
 #[cfg(all(not(feature = "ck3"), not(feature = "vic3"), not(feature = "imperator")))]
 compile_error!("exactly one of the features \"ck3\", \"vic3\", \"imperator\" must be enabled");
 
+pub use crate::config_load::validate_config_file;
 pub use crate::everything::Everything;
 pub use crate::fileset::FileKind;
 pub use crate::game::Game;

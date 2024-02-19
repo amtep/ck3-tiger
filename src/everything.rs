@@ -187,6 +187,7 @@ impl Everything {
     ///
     /// `replace_paths` is from the similarly named field in the `.mod` file.
     pub fn new(
+        config_filepath: Option<&Path>,
         vanilla_dir: Option<&Path>,
         mod_root: &Path,
         replace_paths: Vec<PathBuf>,
@@ -202,7 +203,11 @@ impl Everything {
             Game::Imperator => "imperator-tiger.conf",
         };
 
-        let config_file = mod_root.join(config_file_name);
+        let config_file = match config_filepath {
+            Some(path) => path.to_path_buf(),
+            None => mod_root.join(config_file_name),
+        };
+
         let config = if config_file.is_file() {
             Self::_read_config(config_file_name, &config_file)
                 .ok_or(FilesError::ConfigUnreadable { path: config_file })?
