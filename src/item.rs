@@ -244,6 +244,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] MottoInsert,
     #[cfg(feature = "ck3")] Motto,
     #[cfg(feature = "ck3")] Music,
+    #[cfg(feature = "ck3")] NameEquivalency,
     #[cfg(feature = "ck3")] NameList,
     #[cfg(feature = "ck3")] Nickname,
     #[cfg(feature = "ck3")] OpinionModifier,
@@ -811,6 +812,8 @@ impl Item {
             Item::Motto => "common/dynasty_house_mottos/",
             #[cfg(feature = "ck3")]
             Item::Music => "music/",
+            #[cfg(feature = "ck3")]
+            Item::NameEquivalency => "common/culture/name_equivalency/",
             #[cfg(feature = "ck3")]
             Item::NameList => "common/culture/name_lists/",
             #[cfg(feature = "ck3")]

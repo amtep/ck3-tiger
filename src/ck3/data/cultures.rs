@@ -435,3 +435,25 @@ impl DbKind for CultureCreationName {
         vd.field_bool("hybrid");
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct NameEquivalency {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::NameEquivalency, NameEquivalency::add)
+}
+
+impl NameEquivalency {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::NameEquivalency, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for NameEquivalency {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        for name in vd.values() {
+            data.verify_exists(Item::Localization, name);
+        }
+    }
+}
