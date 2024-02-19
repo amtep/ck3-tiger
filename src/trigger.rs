@@ -1164,7 +1164,14 @@ pub fn partition(token: &Token) -> Vec<Part> {
                         // The just completed part has no argument
                         let mut part_loc = token.loc;
                         part_loc.column += part_col;
-                        let part_token = token.subtoken(part_idx..idx, part_loc);
+                        #[allow(unused_mut)]
+                        let mut part_token = token.subtoken(part_idx..idx, part_loc);
+                        #[cfg(feature = "imperator")]
+                        // Imperator has a `hidden:` prefix that can go before other prefixes so it
+                        // has to be handled specially.
+                        if let Some(hidden_arg) = part_token.strip_prefix("hidden:") {
+                            part_token = hidden_arg;
+                        }
                         parts.push(Part::Token(part_token));
                     }
                     has_part_argument = false;
@@ -1254,7 +1261,13 @@ pub fn partition(token: &Token) -> Vec<Part> {
         let mut part_loc = token.loc;
         part_loc.column += part_col;
         // SAFETY: part_idx < token.as_str.len()
-        let part_token = token.subtoken(part_idx.., part_loc);
+        #[allow(unused_mut)]
+        let mut part_token = token.subtoken(part_idx.., part_loc);
+        #[cfg(feature = "imperator")]
+        // see above
+        if let Some(hidden_arg) = part_token.strip_prefix("hidden:") {
+            part_token = hidden_arg;
+        }
         parts.push(Part::Token(part_token));
     }
     parts
