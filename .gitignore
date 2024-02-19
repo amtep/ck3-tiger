@@ -4,6 +4,7 @@
 cachegrind.out*
 callgrind.out*
 flamegraph*.svg
+*.swp
 
 # Random testing stuff not useful to anyone else in its current form
 cerr1
