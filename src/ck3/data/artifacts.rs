@@ -1,11 +1,12 @@
 use crate::block::{Block, BV};
+use crate::ck3::tables::misc::ARTIFACT_RARITY;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{warn, ErrorKey};
+use crate::modif::{validate_modifs, verify_modif_exists, ModifKinds};
+use crate::report::{warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -255,5 +256,47 @@ impl ArtifactFeatureGroup {
 impl DbKind for ArtifactFeatureGroup {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut _vd = Validator::new(block, data);
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ArtifactBlueprint {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ArtifactBlueprint, ArtifactBlueprint::add)
+}
+
+impl ArtifactBlueprint {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::ArtifactBlueprint, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for ArtifactBlueprint {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        vd.req_field("in_type");
+        vd.req_field("in_visuals");
+        vd.field_item("in_type", Item::ArtifactType);
+        vd.field_item("in_visuals", Item::ArtifactVisual);
+
+        vd.req_field("out_type");
+        vd.req_field("out_visuals");
+        vd.field_item("out_type", Item::ArtifactType);
+        vd.field_item("out_visuals", Item::ArtifactVisual);
+
+        vd.field_validated_list("disallowed_modifiers", |token, data| {
+            verify_modif_exists(token, data, ModifKinds::all(), Severity::Warning);
+        });
+        vd.field_validated_block("replacement_modifiers", |block, data| {
+            let mut vd = Validator::new(block, data);
+            for field in ARTIFACT_RARITY {
+                // There seems to be no way to verify that these are specifically artifact modifiers
+                vd.field_list_items(field, Item::Modifier);
+            }
+        });
+
+        vd.field_item("template", Item::ArtifactTemplate);
     }
 }
