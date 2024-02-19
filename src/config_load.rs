@@ -32,6 +32,34 @@ pub fn check_for_legacy_ignore(config: &Block) {
     }
 }
 
+/// Check if config file that was passed in with --conf argument is valid.
+/// If it is not valid let the user know, set it to None, and use the default one instead.
+pub fn validate_config_file(config: Option<PathBuf>) -> Option<PathBuf> {
+    match config {
+        Some(config) => {
+            if config.is_file() {
+                if config.extension().map(|s| s != "conf").unwrap_or(false) {
+                    eprintln!(
+                        "{} is not a valid .conf file. Using the default conf file instead.",
+                        config.display()
+                    );
+                    None
+                } else {
+                    eprintln!("Using conf file: {}", config.display());
+                    Some(config)
+                }
+            } else {
+                eprintln!(
+                    "{} is not a valid file. Using the default conf file instead.",
+                    config.display()
+                );
+                None
+            }
+        }
+        None => None,
+    }
+}
+
 pub fn load_filter(config: &Block) {
     assert_one_key("filter", config);
     if let Some(filter) = config.get_field_block("filter") {
