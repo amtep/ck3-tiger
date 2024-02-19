@@ -13,6 +13,7 @@ pub mod combat_effects;
 pub mod council;
 pub mod court_scene;
 pub mod court_type;
+pub mod courtier_guest_mgmt;
 pub mod courtpos;
 pub mod culture_history;
 pub mod cultures;
