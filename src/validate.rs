@@ -487,6 +487,8 @@ pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut S
     vd.field_validated("base", validate_non_dynamic_script_value);
     vd.fields_script_value("add", sc);
     vd.fields_script_value("factor", sc);
+    vd.fields_script_value("min", sc);
+    vd.fields_script_value("max", sc);
     validate_modifiers(&mut vd, sc);
     validate_scripted_modifier_calls(vd, data, sc);
 }

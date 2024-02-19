@@ -187,6 +187,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] CourtSceneRole,
     #[cfg(feature = "ck3")] CourtSceneSetting,
     #[cfg(feature = "ck3")] CourtType,
+    #[cfg(feature = "ck3")] CourtierGuestManagement,
     #[cfg(feature = "ck3")] CultureAesthetic,
     #[cfg(feature = "ck3")] CultureCreationName,
     #[cfg(feature = "ck3")] CultureEra,
@@ -697,6 +698,8 @@ impl Item {
             Item::CourtSceneSetting => "gfx/court_scene/scene_settings/",
             #[cfg(feature = "ck3")]
             Item::CourtType => "common/court_types/",
+            #[cfg(feature = "ck3")]
+            Item::CourtierGuestManagement => "common/courtier_guest_management/",
             #[cfg(feature = "ck3")]
             Item::CultureAesthetic => "common/culture/aesthetics_bundles/",
             #[cfg(feature = "ck3")]
