@@ -38,7 +38,7 @@ pub fn validate_config_file(config: Option<PathBuf>) -> Option<PathBuf> {
     match config {
         Some(config) => {
             if config.is_file() {
-                if config.extension().map(|s| s != "conf").unwrap_or(false) {
+                if config.extension().is_some_and(|s| s != "conf") {
                     eprintln!(
                         "{} is not a valid .conf file. Using the default conf file instead.",
                         config.display()

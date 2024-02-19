@@ -14,7 +14,7 @@ fn check_mod_helper(modname: &str) -> Vec<LogReport> {
     let vanilla_dir = PathBuf::from("tests/files/ck3");
     let mod_root = PathBuf::from(format!("tests/files/{}", modname));
 
-    let mut everything = Everything::new(Some(&vanilla_dir), &mod_root, Vec::new()).unwrap();
+    let mut everything = Everything::new(None, Some(&vanilla_dir), &mod_root, Vec::new()).unwrap();
     everything.load_all();
     everything.validate_all();
 
