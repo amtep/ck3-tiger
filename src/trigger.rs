@@ -1489,7 +1489,8 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
             s,
             Trigger::CompareValue | Trigger::CompareDate | Trigger::ItemOrCompareValue(_),
         )) => Some(s),
-        // TODO: add imperator
+        #[cfg(feature = "imperator")]
+        Some((s, Trigger::CompareValue | Trigger::CompareDate)) => Some(s),
         _ => std::option::Option::None,
     }
 }
