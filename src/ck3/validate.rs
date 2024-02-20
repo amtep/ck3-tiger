@@ -5,7 +5,7 @@ use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, fatal, old_warn, ErrorKey};
+use crate::report::{error, fatal, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -79,7 +79,7 @@ pub fn validate_camera_color(block: &Block, data: &Everything) {
     let tag = block.tag.as_deref().map_or("rgb", Token::as_str);
     if tag != "hsv" {
         let msg = "camera colors should be in hsv";
-        old_warn(block, ErrorKey::Colors, msg);
+        warn(ErrorKey::Colors).msg(msg).loc(block).push();
         validate_color(block, data);
         return;
     }

@@ -3,7 +3,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{error, old_warn, ErrorKey};
+use crate::report::{error, warn, ErrorKey};
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -92,7 +92,7 @@ impl AccessoryVariation {
                 error(key, ErrorKey::FieldMissing, "pattern_layout without a name");
             }
         } else {
-            old_warn(key, ErrorKey::UnknownField, "unknown variation type");
+            warn(ErrorKey::UnknownField).msg("unknown variation type").loc(key).push();
         }
     }
 }

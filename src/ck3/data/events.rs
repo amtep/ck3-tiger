@@ -19,7 +19,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pathtable::PathTableIndex;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, error_info, old_warn, warn, warn_info, ErrorKey, Severity};
+use crate::report::{error, error_info, warn, warn_info, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -277,7 +277,7 @@ impl Event {
             if let Some(scope) = Scopes::from_snake_case(token.as_str()) {
                 sc = ScopeContext::new(scope, token);
             } else {
-                old_warn(token, ErrorKey::Scopes, "unknown scope type");
+                warn(ErrorKey::Scopes).msg("unknown scope type").loc(token).push();
             }
         }
         sc.set_strict_scopes(false);

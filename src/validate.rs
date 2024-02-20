@@ -14,7 +14,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, error, fatal, old_warn, report, warn, Confidence, ErrorKey, Severity};
+use crate::report::{err, error, fatal, report, warn, Confidence, ErrorKey, Severity};
 #[cfg(feature = "ck3")]
 use crate::scopes::Scopes;
 use crate::scopes::{scope_prefix, scope_to_scope};
@@ -217,7 +217,7 @@ pub fn precheck_iterator_fields(
                         token.check_number();
                         if num > 1.0 {
                             let msg = "'percent' here needs to be between 0 and 1";
-                            old_warn(token, ErrorKey::Range, msg);
+                            warn(ErrorKey::Range).msg(msg).loc(token).push();
                         }
                     }
                 }
@@ -553,7 +553,7 @@ pub fn validate_scripted_modifier_call(
             if !modifier.macro_parms().is_empty() {
                 fatal(ErrorKey::Macro).msg("expected macro arguments").loc(token).push();
             } else if !token.is("yes") {
-                old_warn(token, ErrorKey::Validation, "expected just modifier = yes");
+                warn(ErrorKey::Validation).msg("expected just modifier = yes").loc(token).push();
             }
             modifier.validate_call(key, data, sc);
         }
@@ -599,7 +599,7 @@ pub fn validate_scripted_modifier_calls(
             validate_scripted_modifier_call(key, bv, modifier, data, sc);
         } else {
             let msg = format!("unknown field `{key}`");
-            old_warn(key, ErrorKey::UnknownField, &msg);
+            warn(ErrorKey::UnknownField).msg(msg).loc(key).push();
         }
     });
 }
@@ -686,14 +686,14 @@ pub fn validate_ifelse_sequence(block: &Block, key_if: &str, key_elseif: &str, k
         } else if key.is(key_elseif) {
             if !seen_if {
                 let msg = format!("`{key_elseif} without preceding `{key_if}`");
-                old_warn(key, ErrorKey::IfElse, &msg);
+                warn(ErrorKey::IfElse).msg(msg).loc(key).push();
             }
             seen_if = true;
             continue;
         } else if key.is(key_else) {
             if !seen_if {
                 let msg = format!("`{key_else} without preceding `{key_if}`");
-                old_warn(key, ErrorKey::IfElse, &msg);
+                warn(ErrorKey::IfElse).msg(msg).loc(key).push();
             }
             if block.has_key("limit") {
                 // `else` with a `limit`, followed by another `else`, does work.

@@ -14,9 +14,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{
-    err, error, error_info, fatal, old_warn, untidy, warn, warn_info, ErrorKey, Severity,
-};
+use crate::report::{err, error, error_info, fatal, untidy, warn, warn_info, ErrorKey, Severity};
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -102,7 +100,7 @@ impl Gui {
                             let info = "did you forget the `type` keyword?";
                             warn_info(field, ErrorKey::ParseError, &msg, info);
                         } else {
-                            old_warn(field, ErrorKey::ParseError, &msg);
+                            warn(ErrorKey::ParseError).msg(msg).loc(field).push();
                         }
                     } else if let Some(token) = item.expect_value() {
                         if token.is("type") || token.is("local_type") {

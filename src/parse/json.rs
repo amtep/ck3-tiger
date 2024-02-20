@@ -7,7 +7,7 @@ use std::mem::{swap, take};
 use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
 use crate::fileset::FileEntry;
-use crate::report::{err, error, error_info, old_warn, warn_info, ErrorKey};
+use crate::report::{err, error, error_info, warn, warn_info, ErrorKey};
 use crate::token::{Loc, Token};
 
 #[derive(Copy, Clone, Debug)]
@@ -202,7 +202,7 @@ fn parse(blockloc: Loc, content: &str) -> Block {
                     state = State::Neutral;
                 } else if c == '\n' {
                     let token = Token::new(&take(&mut current_id), token_start);
-                    old_warn(token, ErrorKey::ParseError, "Quoted string not closed");
+                    warn(ErrorKey::ParseError).msg("quoted string not closed").loc(token).push();
                     state = State::Neutral;
                 } else {
                     current_id.push(c);

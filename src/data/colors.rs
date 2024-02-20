@@ -4,7 +4,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxEncoding;
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_color;
 
@@ -22,7 +22,7 @@ impl NamedColor {
                 db.add(Item::NamedColor, key, block, Box::new(Self {}));
             }
         } else {
-            old_warn(key, ErrorKey::ParseError, "unexpected field");
+            warn(ErrorKey::ParseError).msg("unexpected field").loc(key).push();
         }
     }
 }

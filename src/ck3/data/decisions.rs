@@ -7,7 +7,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -128,21 +128,21 @@ fn check_cost(blocks: &[&Block]) {
             if let Some(gold) = cost.get_field("gold") {
                 if seen_gold {
                     let msg = "This value of the gold cost overrides the previously set cost.";
-                    old_warn(gold, ErrorKey::Conflict, msg);
+                    warn(ErrorKey::Conflict).msg(msg).loc(gold).push();
                 }
                 seen_gold = true;
             }
             if let Some(prestige) = cost.get_field("prestige") {
                 if seen_prestige {
                     let msg = "This value of the prestige cost overrides the previously set cost.";
-                    old_warn(prestige, ErrorKey::Conflict, msg);
+                    warn(ErrorKey::Conflict).msg(msg).loc(prestige).push();
                 }
                 seen_prestige = true;
             }
             if let Some(piety) = cost.get_field("piety") {
                 if seen_piety {
                     let msg = "This value of the piety cost overrides the previously set cost.";
-                    old_warn(piety, ErrorKey::Conflict, msg);
+                    warn(ErrorKey::Conflict).msg(msg).loc(piety).push();
                 }
                 seen_piety = true;
             }

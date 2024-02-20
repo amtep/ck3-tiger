@@ -7,7 +7,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -299,7 +299,7 @@ impl DbKind for CharacterInteraction {
                 && !key.is("revoke_title_interaction")
             {
                 let msg = "`ai_potential` will not be used if `ai_frequency` is 0";
-                old_warn(token, ErrorKey::Unneeded, msg);
+                warn(ErrorKey::Unneeded).msg(msg).loc(token).push();
             }
         }
         vd.field_validated_sc("ai_intermediary_accept", &mut sc.clone(), validate_ai_chance);
@@ -376,7 +376,7 @@ fn validate_bool_or_trigger(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     match bv {
         BV::Value(t) => {
             if !t.is("yes") && !t.is("no") {
-                old_warn(t, ErrorKey::Validation, "expected yes or no");
+                warn(ErrorKey::Validation).msg("expected yes or no").loc(t).push();
             }
         }
         BV::Block(b) => {

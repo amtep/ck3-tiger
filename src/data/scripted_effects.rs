@@ -11,7 +11,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
 use crate::macros::{MacroCache, MACRO_MAP};
 use crate::pdxfile::PdxFile;
-use crate::report::{err, old_warn, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -77,7 +77,7 @@ impl FileHandler<Block> for Effects {
                             scopes |= scope;
                         } else {
                             let msg = format!("unknown scope type `{part}`");
-                            old_warn(part, ErrorKey::Config, &msg);
+                            warn(ErrorKey::Config).msg(msg).loc(part).push();
                         }
                     }
                 }

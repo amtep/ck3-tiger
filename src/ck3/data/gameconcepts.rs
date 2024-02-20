@@ -8,7 +8,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -106,7 +106,7 @@ impl Concept {
             vd.field_integer("frame");
             if self.block.has_key("framesize") != self.block.has_key("frame") {
                 let msg = "`framesize` and `frame` should be specified together";
-                old_warn(&self.key, ErrorKey::Validation, msg);
+                warn(ErrorKey::Validation).msg(msg).loc(&self.key).push();
             }
             if let Some(frame) = self.block.get_field_integer("frame") {
                 if let Some(b) = self.block.get_field_block("framesize") {

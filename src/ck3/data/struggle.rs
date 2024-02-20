@@ -6,7 +6,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{old_warn, warn, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;
@@ -85,12 +85,12 @@ impl DbKind for Struggle {
                 }
             });
             if !has_one {
-                old_warn(block, ErrorKey::Validation, "must have at least one phase");
+                warn(ErrorKey::Validation).msg("must have at least one phase").loc(block).push();
             }
             // TODO: Verify if it is OK to have an ending phase but no ending decisions
             if !has_ending {
                 let msg = "must have at least one phase with ending_decisions";
-                old_warn(block, ErrorKey::Validation, msg);
+                warn(ErrorKey::Validation).msg(msg).loc(block).push();
             }
         });
 
@@ -157,7 +157,10 @@ fn validate_phase(block: &Block, data: &Everything, phases: &[&Token]) {
                 vd.field_validated_block("catalysts", validate_catalyst_list);
             });
             if !has_one {
-                old_warn(block, ErrorKey::Validation, "must have at least one future phase");
+                warn(ErrorKey::Validation)
+                    .msg("must have at least one future phase")
+                    .loc(block)
+                    .push();
             }
         });
 
@@ -222,7 +225,7 @@ fn validate_struggle_parameters(block: &Block, data: &Everything) {
     vd.unknown_value_fields(|key, value| {
         if !value.is("yes") {
             let msg = format!("expected `{key} = yes`");
-            old_warn(value, ErrorKey::Validation, &msg);
+            warn(ErrorKey::Validation).msg(msg).loc(value).push();
         }
 
         let loca = format!("struggle_parameter_{key}");

@@ -9,7 +9,7 @@ use crate::game::Game;
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{old_warn, warn2, Confidence, ErrorKey, Severity};
+use crate::report::{warn, warn2, Confidence, ErrorKey, Severity};
 use crate::token::Token;
 use crate::util::SmartJoin;
 use crate::validate::validate_numeric_range;
@@ -371,7 +371,7 @@ impl Asset {
         } else if self.key.is("arrowType") {
             // TODO: arrowType
         } else {
-            old_warn(&self.key, ErrorKey::UnknownField, "unknown asset type");
+            warn(ErrorKey::UnknownField).msg("unknown asset type").loc(&self.key).push();
         }
     }
 }

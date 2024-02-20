@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::pdxfile::PdxFile;
-use crate::report::{error, fatal, old_warn, report, untidy, ErrorKey, Severity};
+use crate::report::{error, fatal, report, untidy, warn, ErrorKey, Severity};
 use crate::token::{Loc, Token};
 
 pub type ProvId = u32;
@@ -243,7 +243,7 @@ impl FileHandler<FileContent> for Ck3Provinces {
                         seen_terminator = true;
                     } else if seen_terminator {
                         let msg = "the line with all `-1;` should be the last line in the file";
-                        old_warn(&csv[0], ErrorKey::ParseError, msg);
+                        warn(ErrorKey::ParseError).msg(msg).loc(&csv[0]).push();
                         break;
                     } else {
                         self.adjacencies.extend(Adjacency::parse(&csv));
@@ -285,7 +285,7 @@ impl FileHandler<FileContent> for Ck3Provinces {
             if let Some(province) = self.provinces.get(&i) {
                 if let Some(k) = seen_colors.get(&province.color) {
                     let msg = format!("color was already used for id {k}");
-                    old_warn(&province.comment, ErrorKey::Colors, &msg);
+                    warn(ErrorKey::Colors).msg(msg).loc(&province.comment).push();
                 } else {
                     seen_colors.insert(province.color, i);
                 }

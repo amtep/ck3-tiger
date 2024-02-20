@@ -5,7 +5,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -37,7 +37,7 @@ impl DbKind for CustomLocalization {
             } else if let Some(scopes) = Scopes::from_snake_case(token.as_str()) {
                 sc = ScopeContext::new(scopes, token);
             } else {
-                old_warn(token, ErrorKey::Scopes, "unknown scope type");
+                warn(ErrorKey::Scopes).msg("unknown scope type").loc(token).push();
                 sc = ScopeContext::new(Scopes::all(), token);
             }
         } else {
@@ -94,7 +94,7 @@ impl CustomLocalization {
                     let msg = format!(
                         "custom localization {key} is for {this_scopes} but context is {scopes}"
                     );
-                    old_warn(caller, ErrorKey::Scopes, &msg);
+                    warn(ErrorKey::Scopes).msg(msg).loc(caller).push();
                 }
             }
         }

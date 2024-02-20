@@ -10,7 +10,7 @@ use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
 use crate::lowercase::Lowercase;
 use crate::macros::{MacroCache, MACRO_MAP};
 use crate::pdxfile::PdxFile;
-use crate::report::{err, old_warn, ErrorKey, Severity};
+use crate::report::{err, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -81,7 +81,7 @@ impl FileHandler<Block> for Triggers {
                             scopes |= scope;
                         } else {
                             let msg = format!("unknown scope type `{part}`");
-                            old_warn(part, ErrorKey::Config, &msg);
+                            warn(ErrorKey::Config).msg(msg).loc(part).push();
                         }
                     }
                 }

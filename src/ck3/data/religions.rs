@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::fileset::FileKind;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{err, old_warn, warn, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
@@ -221,7 +221,7 @@ impl Faith {
                 continue;
             }
             let msg = format!("faith or religion missing localization for {loca}");
-            old_warn(key, ErrorKey::MissingLocalization, &msg);
+            warn(ErrorKey::MissingLocalization).msg(msg).loc(key).push();
         }
     }
 }

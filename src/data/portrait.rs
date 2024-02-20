@@ -8,7 +8,7 @@ use crate::game::Game;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxEncoding;
-use crate::report::{error, old_warn, Confidence, ErrorKey, Severity};
+use crate::report::{error, warn, Confidence, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -71,7 +71,7 @@ impl DbKind for PortraitModifierGroup {
         if let Some(token) = vd.field_value("fallback") {
             if !block.has_key(token.as_str()) {
                 let msg = "portrait modifier not defined";
-                old_warn(token, ErrorKey::MissingItem, msg);
+                warn(ErrorKey::MissingItem).msg(msg).loc(token).push();
             }
         }
         vd.multi_field_validated_block("add_accessory_modifiers", |block, data| {
@@ -236,7 +236,7 @@ impl DbKind for PortraitAnimation {
                     BV::Value(token) => {
                         // TODO: check that the chain eventually resolves to a block
                         if !TYPES.contains(&token.as_str()) {
-                            old_warn(token, ErrorKey::Validation, "unknown body type");
+                            warn(ErrorKey::Validation).msg("unknown body type").loc(token).push();
                         }
                     }
                     BV::Block(block) => {

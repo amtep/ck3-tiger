@@ -4,7 +4,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -57,7 +57,7 @@ fn validate_candidates(vd: &mut Validator, sc: &mut ScopeContext) {
         BV::Value(token) => {
             if !CANDIDATE_TYPES.contains(&token.as_str()) {
                 let msg = "unknown candidate category";
-                old_warn(token, ErrorKey::Choice, msg);
+                warn(ErrorKey::Choice).msg(msg).loc(token).push();
             }
         }
         BV::Block(block) => {

@@ -5,7 +5,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -176,7 +176,7 @@ impl DbKind for ArtifactVisual {
         });
         if !unconditional {
             let msg = "needs one icon without a trigger";
-            old_warn(key, ErrorKey::Validation, msg);
+            warn(ErrorKey::Validation).msg(msg).loc(key).push();
         }
 
         unconditional = false;
@@ -200,7 +200,7 @@ impl DbKind for ArtifactVisual {
         });
         if !unconditional {
             let msg = "needs at least one asset without a trigger";
-            old_warn(key, ErrorKey::Validation, msg);
+            warn(ErrorKey::Validation).msg(msg).loc(key).push();
         }
     }
 }

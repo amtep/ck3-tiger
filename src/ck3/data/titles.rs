@@ -12,7 +12,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, old_warn, ErrorKey};
+use crate::report::{error, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -164,7 +164,7 @@ impl FileHandler<Block> for Titles {
             if Tier::try_from(&key).is_ok() {
                 self.load_item(key, &block, None, false);
             } else {
-                old_warn(key, ErrorKey::Validation, "expected title");
+                warn(ErrorKey::Validation).msg("expected title").loc(key).push();
             }
         }
     }
@@ -268,7 +268,7 @@ impl Title {
         vd.unknown_block_fields(|key, _| {
             if Tier::try_from(key).is_err() {
                 let msg = format!("unknown field `{key}`");
-                old_warn(key, ErrorKey::UnknownField, &msg);
+                warn(ErrorKey::UnknownField).msg(msg).loc(key).push();
             }
         });
     }

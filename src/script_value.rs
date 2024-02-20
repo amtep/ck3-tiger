@@ -10,7 +10,7 @@ use crate::everything::Everything;
 use crate::helpers::TriBool;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{advice_info, err, error, error_info, old_warn, untidy, ErrorKey};
+use crate::report::{advice_info, err, error, error_info, untidy, warn, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -65,7 +65,7 @@ fn validate_inner(
         } else if token.is("value") {
             if have_value == TriBool::True {
                 let msg = "setting value here will overwrite the previous calculations";
-                old_warn(token, ErrorKey::Logic, msg);
+                warn(ErrorKey::Logic).msg(msg).loc(token).push();
             }
             have_value = TriBool::True;
             validate_bv(bv, data, sc, check_desc);
@@ -77,26 +77,26 @@ fn validate_inner(
         } else if token.is("multiply") || token.is("divide") || token.is("modulo") {
             if have_value == TriBool::False {
                 let msg = format!("nothing to {token} yet");
-                old_warn(token, ErrorKey::Logic, &msg);
+                warn(ErrorKey::Logic).msg(msg).loc(token).push();
             }
             validate_bv(bv, data, sc, check_desc);
             made_changes = true;
         } else if token.is("round") || token.is("ceiling") || token.is("floor") || token.is("abs") {
             if have_value == TriBool::False {
                 let msg = format!("nothing to {token} yet");
-                old_warn(token, ErrorKey::Logic, &msg);
+                warn(ErrorKey::Logic).msg(msg).loc(token).push();
             }
             if let Some(value) = bv.expect_value() {
                 if !value.is("yes") && !value.is("no") {
                     let msg = "expected yes or no";
-                    old_warn(value, ErrorKey::Validation, msg);
+                    warn(ErrorKey::Validation).msg(msg).loc(value).push();
                 }
                 made_changes = true;
             }
         } else if token.is("fixed_range") || token.is("integer_range") {
             if have_value == TriBool::True {
                 let msg = "using fixed_range here will overwrite the previous calculations";
-                old_warn(token, ErrorKey::Logic, msg);
+                warn(ErrorKey::Logic).msg(msg).loc(token).push();
             }
             if let Some(block) = bv.expect_block() {
                 validate_minmax_range(block, data, sc, check_desc);
@@ -284,7 +284,7 @@ fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bo
                         validate_target_ok_this(v, data, sc, Scopes::Value | Scopes::Bool);
                     }
                 } else {
-                    old_warn(b, ErrorKey::Validation, "invalid script value range");
+                    warn(ErrorKey::Validation).msg("invalid script value range").loc(b).push();
                 }
             } else {
                 validate_inner(vd, b, data, sc, TriBool::False, check_desc);

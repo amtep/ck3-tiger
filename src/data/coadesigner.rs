@@ -6,7 +6,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 #[cfg(feature = "ck3")]
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -56,7 +56,7 @@ impl CoaDesignerColorPalette {
                 db.add(Item::CoaDesignerColorPalette, token, block, Box::new(Self {}));
             }
         } else {
-            old_warn(key, ErrorKey::UnknownField, "unknown key");
+            warn(ErrorKey::UnknownField).msg("unknown key").loc(key).push();
         }
     }
 }

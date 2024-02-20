@@ -11,7 +11,7 @@ use crate::game::{Game, GameFlags};
 use crate::helpers::{dup_error, exact_dup_advice};
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::{PdxEncoding, PdxFile};
-use crate::report::{old_warn, untidy, warn, ErrorKey, Severity};
+use crate::report::{untidy, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -180,7 +180,7 @@ pub fn validate_coa_layout(block: &Block, data: &Everything) {
             for token in vd.values() {
                 if let Some(mask) = token.expect_integer() {
                     if !(1..=3).contains(&mask) {
-                        old_warn(token, ErrorKey::Range, "mask should be from 1 to 3");
+                        warn(ErrorKey::Range).msg("mask should be from 1 to 3").loc(token).push();
                     }
                 }
             }
@@ -231,11 +231,11 @@ fn validate_coa_color(bv: &BV, block: Option<&Block>, data: &Everything) {
                 if let Some(block) = block {
                     if !block.has_key(color.as_str()) {
                         let msg = format!("setting to {color} but {color} is not defined");
-                        old_warn(color, ErrorKey::Colors, &msg);
+                        warn(ErrorKey::Colors).msg(msg).loc(color).push();
                     }
                 } else {
                     let msg = format!("setting to {color} only works in an emblem");
-                    old_warn(color, ErrorKey::Colors, &msg);
+                    warn(ErrorKey::Colors).msg(msg).loc(color).push();
                 }
             } else {
                 data.verify_exists(Item::NamedColor, color);
@@ -276,7 +276,7 @@ impl CoaTemplateList {
             }
         } else {
             let msg = format!("unknown list type {key}");
-            old_warn(key, ErrorKey::UnknownField, &msg);
+            warn(ErrorKey::UnknownField).msg(msg).loc(key).push();
         }
     }
 }

@@ -16,7 +16,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, error, fatal, old_warn, untidy, warn, warn_info, ErrorKey};
+use crate::report::{err, error, fatal, untidy, warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -120,7 +120,7 @@ impl Characters {
     pub fn verify_alive(&self, item: &Token, date: Date) {
         if !self.is_alive(item, date) {
             let msg = format!("{item} is not alive on {date}");
-            old_warn(item, ErrorKey::History, &msg);
+            warn(ErrorKey::History).msg(msg).loc(item).push();
         }
     }
 

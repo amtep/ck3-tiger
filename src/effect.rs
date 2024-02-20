@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{advice_info, err, error, fatal, old_warn, warn_info, ErrorKey};
+use crate::report::{advice_info, err, error, fatal, warn, warn_info, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::script_value::validate_script_value;
 use crate::token::Token;
@@ -120,7 +120,7 @@ pub fn validate_effect_field(
                 if !effect.macro_parms().is_empty() {
                     fatal(ErrorKey::Macro).msg("expected macro arguments").loc(token).push();
                 } else if !token.is("yes") {
-                    old_warn(token, ErrorKey::Validation, "expected just effect = yes");
+                    warn(ErrorKey::Validation).msg("expected just effect = yes").loc(token).push();
                 }
                 effect.validate_call(key, data, sc, tooltipped);
             }
@@ -183,7 +183,7 @@ pub fn validate_effect_field(
                 if let Some(token) = bv.expect_value() {
                     if !token.is("yes") {
                         let msg = format!("expected just `{key} = yes`");
-                        old_warn(token, ErrorKey::Validation, &msg);
+                        warn(ErrorKey::Validation).msg(msg).loc(token).push();
                     }
                 }
             }
@@ -207,7 +207,7 @@ pub fn validate_effect_field(
                                 warn_info(token, ErrorKey::Range, msg, info);
                             } else {
                                 let msg = format!("{key} does not take negative numbers");
-                                old_warn(token, ErrorKey::Range, &msg);
+                                warn(ErrorKey::Range).msg(msg).loc(token).push();
                             }
                         }
                     }
@@ -465,14 +465,14 @@ pub fn validate_effect_control(
         }
         if let Some(token) = vd.field_value("goto") {
             let msg = "`goto` was removed from interface messages in 1.9";
-            old_warn(token, ErrorKey::Removed, msg);
+            warn(ErrorKey::Removed).msg(msg).loc(token).push();
         }
     }
 
     if caller == "while" {
         if !(block.has_key("limit") || block.has_key("count")) {
             let msg = "`while` needs one of `limit` or `count`";
-            old_warn(block, ErrorKey::Validation, msg);
+            warn(ErrorKey::Validation).msg(msg).loc(block).push();
         }
 
         vd.field_script_value("count", sc);

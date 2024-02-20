@@ -19,9 +19,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "vic3")]
 use crate::modif::{verify_modif_exists, ModifKinds};
-use crate::report::{
-    advice_info, err, error, fatal, old_warn, warn, warn_info, ErrorKey, Severity,
-};
+use crate::report::{advice_info, err, error, fatal, warn, warn_info, ErrorKey, Severity};
 use crate::scopes::{
     needs_prefix, scope_iterator, scope_prefix, scope_to_scope, ArgumentValue, Scopes,
 };
@@ -633,7 +631,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.expect_value() {
                 if Date::from_str(token.as_str()).is_err() {
                     let msg = format!("{name} expects a date value");
-                    old_warn(token, ErrorKey::Validation, &msg);
+                    warn(ErrorKey::Validation).msg(msg).loc(token).push();
                 }
             }
         }
@@ -643,7 +641,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.expect_value() {
                 if !LEVELS.contains(&token.as_str()) {
                     let msg = format!("{name} expects one of {}", stringify_list(LEVELS));
-                    old_warn(token, ErrorKey::Validation, &msg);
+                    warn(ErrorKey::Validation).msg(msg).loc(token).push();
                 }
             }
         }
@@ -653,7 +651,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.expect_value() {
                 if !STANCES.contains(&token.as_str()) {
                     let msg = format!("{name} expects one of {}", stringify_list(STANCES));
-                    old_warn(token, ErrorKey::Validation, &msg);
+                    warn(ErrorKey::Validation).msg(msg).loc(token).push();
                 }
             }
         }
@@ -663,7 +661,7 @@ fn match_trigger_bv(
             if let Some(token) = bv.expect_value() {
                 if !token.is_number() && !APPROVALS.contains(&token.as_str()) {
                     let msg = format!("{name} expects one of {}", stringify_list(APPROVALS));
-                    old_warn(token, ErrorKey::Validation, &msg);
+                    warn(ErrorKey::Validation).msg(msg).loc(token).push();
                 }
             }
         }
@@ -765,7 +763,7 @@ fn match_trigger_bv(
             if let Some(block) = bv.expect_block() {
                 if block.iter_items().count() != 1 {
                     let msg = "unexpected number of items in block";
-                    old_warn(block, ErrorKey::Validation, msg);
+                    warn(ErrorKey::Validation).msg(msg).loc(block).push();
                 }
                 for Field(key, _, bv) in block.iter_fields_warn() {
                     validate_target(key, data, sc, *s);
@@ -815,7 +813,7 @@ fn match_trigger_bv(
                     if token.is("yes") || token.is("no") {
                         if sc.must_be(Scopes::None) {
                             let msg = "`exists = {token}` does nothing in None scope";
-                            old_warn(token, ErrorKey::Scopes, msg);
+                            warn(ErrorKey::Scopes).msg(msg).loc(token).push();
                         }
                     } else if token.starts_with("scope:") && !token.as_str().contains('.') {
                         // exists = scope:name is used to check if that scope name was set
@@ -973,11 +971,11 @@ fn match_trigger_bv(
     if matches!(cmp, Comparator::Equals(_)) {
         if warn_if_eq {
             let msg = format!("`{name} {cmp}` means exactly equal to that amount, which is usually not what you want");
-            old_warn(name, ErrorKey::Logic, &msg);
+            warn(ErrorKey::Logic).msg(msg).loc(name).push();
         }
     } else if must_be_eq {
         let msg = format!("unexpected comparator {cmp}");
-        old_warn(name, ErrorKey::Validation, &msg);
+        warn(ErrorKey::Validation).msg(msg).loc(name).push();
     }
     side_effects
 }
@@ -996,7 +994,7 @@ pub fn validate_target_ok_this(
     if token.is_number() {
         if !outscopes.intersects(Scopes::Value | Scopes::None) {
             let msg = format!("expected {outscopes}");
-            old_warn(token, ErrorKey::Scopes, &msg);
+            warn(ErrorKey::Scopes).msg(msg).loc(token).push();
         }
         return;
     }
@@ -1107,7 +1105,7 @@ pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, 
     validate_target_ok_this(token, data, sc, outscopes);
     if token.is("this") {
         let msg = "target `this` makes no sense here";
-        old_warn(token, ErrorKey::UseOfThis, msg);
+        warn(ErrorKey::UseOfThis).msg(msg).loc(token).push();
     }
 }
 

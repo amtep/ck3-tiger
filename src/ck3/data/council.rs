@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{err, error, old_warn, ErrorKey};
+use crate::report::{err, error, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -57,7 +57,7 @@ impl DbKind for CouncilPosition {
             count += 1;
             if count > 5 {
                 let msg = "no more than 5 modifier blocks can be specified here";
-                old_warn(block, ErrorKey::Validation, msg);
+                warn(ErrorKey::Validation).msg(msg).loc(block).push();
             }
         });
         count = 0;
@@ -72,7 +72,7 @@ impl DbKind for CouncilPosition {
                 count += 1;
                 if count > 5 {
                     let msg = "no more than 5 council_owner_modifier blocks can be specified here";
-                    old_warn(block, ErrorKey::Validation, msg);
+                    warn(ErrorKey::Validation).msg(msg).loc(block).push();
                 }
             },
         );
@@ -167,7 +167,7 @@ impl DbKind for CouncilTask {
             if let Some(token) = block.get_field_value("county_target") {
                 if token.is("neighbor_land_or_water") {
                     let msg = "`neighbor_land_or_water` is only for `ai_county_target`";
-                    old_warn(token, ErrorKey::Validation, msg);
+                    warn(ErrorKey::Validation).msg(msg).loc(token).push();
                 }
             }
             vd.field_script_value("ai_target_score", &mut sc);

@@ -5,7 +5,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{fatal, old_warn, ErrorKey};
+use crate::report::{fatal, warn, ErrorKey};
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -38,11 +38,11 @@ impl DbKind for HolySite {
 
         if let Some(county) = block.get_field_value("county") {
             if Tier::try_from(county) != Ok(Tier::County) {
-                old_warn(county, ErrorKey::TitleTier, "must be a county");
+                warn(ErrorKey::TitleTier).msg("must be a county").loc(county).push();
             }
             if let Some(barony) = block.get_field_value("barony") {
                 if Tier::try_from(barony) != Ok(Tier::Barony) {
-                    old_warn(barony, ErrorKey::TitleTier, "must be a barony");
+                    warn(ErrorKey::TitleTier).msg("must be a barony").loc(barony).push();
                 }
                 if let Some(title) = data.titles.get(barony.as_str()) {
                     if title.parent.as_deref() != Some(county.as_str()) {

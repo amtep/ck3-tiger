@@ -9,7 +9,7 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{old_warn, warn_info, ErrorKey};
+use crate::report::{warn, warn_info, ErrorKey};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
@@ -74,12 +74,12 @@ fn validate_desc_map_block(
             if let Some(block) = bv.expect_block() {
                 if caller != "triggered_desc" {
                     let msg = "`trigger` is only for `triggered_desc";
-                    old_warn(key, ErrorKey::Validation, msg);
+                    warn(ErrorKey::Validation).msg(msg).loc(key).push();
                 }
                 validate_trigger(block, data, sc, Tooltipped::No);
             }
         } else {
-            old_warn(key, ErrorKey::UnknownField, "unexpected key in description");
+            warn(ErrorKey::UnknownField).msg("unexpected key in description").loc(key).push();
         }
     });
 }

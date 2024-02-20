@@ -9,7 +9,7 @@ use crate::effect_validation::validate_random_list;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{error, old_warn, warn_info, ErrorKey};
+use crate::report::{error, warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
@@ -627,7 +627,7 @@ pub fn validate_create_character_memory(
                 if !data.item_has_property(Item::MemoryType, memtype.as_str(), key.as_str()) {
                     let msg =
                         format!("memory type `{memtype}` does not define participant `{key}`");
-                    old_warn(key, ErrorKey::Validation, &msg);
+                    warn(ErrorKey::Validation).msg(msg).loc(key).push();
                 }
             }
             validate_target_ok_this(token, data, sc, Scopes::Character);
@@ -1506,7 +1506,7 @@ pub fn validate_death(
         BV::Value(token) => {
             if !token.is("natural") {
                 let msg = "expected `death = natural`";
-                old_warn(token, ErrorKey::Validation, msg);
+                warn(ErrorKey::Validation).msg(msg).loc(token).push();
             }
         }
         BV::Block(block) => {

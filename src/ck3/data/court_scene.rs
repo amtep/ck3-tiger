@@ -9,7 +9,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxEncoding;
-use crate::report::{old_warn, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -129,7 +129,8 @@ impl DbKind for CourtSceneSetting {
                 validate_camera(block, data, &mut cameras);
             }
             if cameras.is_empty() {
-                old_warn(block, ErrorKey::Validation, "need at least one camera");
+                let msg = "need at least one camera";
+                warn(ErrorKey::Validation).msg(msg).loc(block).push();
             }
         });
 
@@ -207,7 +208,7 @@ fn validate_character(block: &Block, data: &Everything, cameras: &[String]) {
     vd.field_value("description");
     if let Some(token) = vd.field_value("camera") {
         if !cameras.contains(&token.to_string()) {
-            old_warn(token, ErrorKey::MissingItem, "unknown camera");
+            warn(ErrorKey::MissingItem).msg("unknown camera").loc(token).push();
         }
     }
     vd.field_list_items("roles", Item::CourtSceneRole);
