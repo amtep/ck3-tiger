@@ -1,5 +1,6 @@
 pub mod ai_plan_goals;
 pub mod ambitions;
+pub mod areas;
 pub mod buildings;
 pub mod character_interactions;
 pub mod combat_tactics;
@@ -29,6 +30,7 @@ pub mod party_agendas;
 pub mod pop_types;
 pub mod prices;
 pub mod province_ranks;
+pub mod regions;
 pub mod religions;
 pub mod subject_types;
 pub mod tech_tables;

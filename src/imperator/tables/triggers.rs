@@ -238,7 +238,6 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "treasure_count",
         CompareValue,
     ),
-    (Scopes::Country, "alliance_with", Scope(Scopes::Country)),
     (Scopes::Country, "biggest_party", ScopeOrItem(Scopes::Party, Item::PartyType)),
     (Scopes::Country, "alliance_with", Scope(Scopes::Country)),
     (Scopes::Country, "can_activate", Scope(Scopes::Deity)),

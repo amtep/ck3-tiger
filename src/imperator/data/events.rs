@@ -183,6 +183,7 @@ impl Event {
 
         vd.field_choice("type", EVENT_TYPES);
         vd.field_bool("hidden");
+        vd.field_bool("interface_lock");
         vd.field_bool("fire_only_once");
         vd.field_target("goto_location", &mut sc, Scopes::Province);
 
@@ -227,6 +228,10 @@ impl Event {
         }
         vd.multi_field_validated_block("option", |block, data| {
             validate_event_option(block, data, &mut sc, tooltipped);
+        });
+
+        vd.field_validated_block("after", |block, data| {
+            validate_effect(block, data, &mut sc, tooltipped_immediate);
         });
     }
 }

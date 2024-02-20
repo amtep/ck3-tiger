@@ -145,6 +145,8 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "recalc_succession", Boolean),
     (Scopes::Country, "refund_price", Item(Item::Price)),
     (Scopes::Country, "release_prisoner", Vbv(validate_release_prisoner)),
+    (Scopes::Country, "release_prisoner", Vbv(validate_release_prisoner)),
+    (Scopes::Country, "release_subject", Scope(Scopes::Country)),
     (Scopes::Country, "remove_country_modifier", Item(Item::Modifier)),
     (Scopes::Country, "remove_gurantee", Scope(Scopes::Country)),
     (Scopes::Country, "remove_opinion", Vb(validate_change_opinion)),

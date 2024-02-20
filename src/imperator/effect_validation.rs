@@ -52,12 +52,9 @@ pub fn validate_add_party_conviction_or_approval(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    if key.is("add_party_approval") {
-        vd.req_field("party");
-    } else {
-        vd.req_field("party_type");
-    }
     vd.req_field("value");
+
+    vd.field_item_or_target("party", sc, Item::PartyType, Scopes::Party);
     vd.field_item_or_target("party_type", sc, Item::PartyType, Scopes::Party);
     vd.field_script_value("value", sc);
 }
@@ -118,6 +115,7 @@ pub fn validate_make_pregnant(
     vd.req_field("father");
     vd.field_target("father", sc, Scopes::Character);
     vd.field_bool("known_bastard");
+    vd.field_integer("number_of_children");
 }
 
 pub fn validate_change_opinion(
@@ -174,7 +172,7 @@ pub fn validate_add_truce(
     vd.req_field("target");
     vd.req_field("duration");
     vd.field_target("target", sc, Scopes::Country);
-    vd.field_validated_block_sc("duration", sc, validate_duration);
+    vd.field_integer("duration");
 }
 
 pub fn validate_declare_war(
@@ -264,7 +262,11 @@ pub fn validate_create_treasure(
     vd.req_field("icon");
     vd.field_validated_block("modifier", |block, data| {
         let vd = Validator::new(block, data);
-        validate_modifs(block, data, ModifKinds::Country, vd);
+        validate_modifs(block, data, ModifKinds::Country | ModifKinds::Province, vd);
+    });
+    vd.field_validated_block("character_modifier", |block, data| {
+        let vd = Validator::new(block, data);
+        validate_modifs(block, data, ModifKinds::Character, vd);
     });
 }
 
@@ -294,6 +296,7 @@ pub fn validate_create_character(
     let caller = Lowercase::new(key.as_str());
     sc.open_scope(Scopes::Character, key.clone());
     vd.field_value("first_name");
+    vd.field_value("family_name");
     vd.field_value("dna");
     vd.field_target("culture", sc, Scopes::Culture);
     vd.field_target("religion", sc, Scopes::Religion);

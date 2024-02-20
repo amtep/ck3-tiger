@@ -138,11 +138,16 @@ fn validate_portrait_modifier(
         validate_trigger(block, data, sc, Tooltipped::No);
     });
 
+    #[cfg(feature = "imperator")]
+    let modes = &["add", "replace", "modify", "replace_template"];
+    #[cfg(not(feature = "imperator"))]
+    let modes = &["add", "replace", "modify", "modify_multiply"];
+
     vd.multi_field_validated_block("dna_modifiers", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.multi_field_validated_block("morph", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_choice("mode", &["add", "replace", "modify", "modify_multiply"]);
+            vd.field_choice("mode", modes);
             vd.field_item("gene", Item::GeneCategory);
             if let Some(category) = block.get_field_value("gene") {
                 if let Some(template) = vd.field_value("template") {
@@ -156,14 +161,14 @@ fn validate_portrait_modifier(
         });
         vd.multi_field_validated_block("color", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_choice("mode", &["add", "replace", "modify", "modify_multiply"]);
+            vd.field_choice("mode", modes);
             vd.field_item("gene", Item::GeneCategory);
             vd.field_numeric("x");
             vd.field_numeric("y");
         });
         vd.multi_field_validated_block("accessory", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_choice("mode", &["add", "replace", "modify", "modify_multiply"]);
+            vd.field_choice("mode", modes);
             vd.field_item("gene", Item::GeneCategory);
             if let Some(category) = block.get_field_value("gene") {
                 if let Some(template) = vd.field_value("template") {
@@ -349,14 +354,14 @@ impl DbKind for PortraitCamera {
 
         vd.field_validated_block("camera", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_list_integers_exactly("position", 3);
+            vd.field_list_numeric_exactly("position", 3);
             vd.field_value("position_node"); // TODO
 
-            vd.field_list_integers_exactly("look_at", 3);
+            vd.field_list_numeric_exactly("look_at", 3);
             vd.field_value("look_at_node"); // TODO
 
-            vd.field_integer("fov");
-            vd.field_list_integers_exactly("camera_near_far", 2);
+            vd.field_numeric("fov");
+            vd.field_list_numeric_exactly("camera_near_far", 2);
         });
 
         if let Some(token) = vd.field_value("unknown") {

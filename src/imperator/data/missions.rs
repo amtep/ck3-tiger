@@ -50,20 +50,19 @@ impl DbKind for Mission {
 
         vd.field_validated_block_sc("chance", &mut sc, validate_modifiers_with_base);
 
-        vd.field_validated_block("potential", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("abort", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-
         // TODO - Any scopes that are saved in the on_potential or on_start get added to the ScopeContext of every other block in the mission tree, except for the potential block for the entire tree.
         // Need to figure out how to propogate these save scopes to the new blocks
         vd.field_validated_block("on_potential", |b, data| {
             validate_effect(b, data, &mut sc, Tooltipped::No);
         });
+        vd.field_validated_block("potential", |b, data| {
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
+        });
         vd.field_validated_block("on_start", |b, data| {
             validate_effect(b, data, &mut sc, Tooltipped::No);
+        });
+        vd.field_validated_block("abort", |b, data| {
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("on_abort", |b, data| {
             validate_effect(b, data, &mut sc, Tooltipped::Yes);
@@ -98,8 +97,8 @@ impl DbKind for MissionTask {
         vd.field_list_items("prevented_by", Item::MissionTask);
 
         vd.field_validated_block("highlight", |b, data| {
-            let mut sc = ScopeContext::new(Scopes::Province, key);
-            // scope:province is optional in highlight blocks so we need to pick up a new scope context here
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("province", Scopes::Province, key);
             validate_trigger(b, data, &mut sc, Tooltipped::Yes);
         });
 

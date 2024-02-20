@@ -50,11 +50,22 @@ impl DbKind for CultureGroup {
         vd.field_item("flank_navy", Item::Unit);
         vd.field_item("levy_template", Item::LevyTemplate);
         vd.field_item("graphical_culture", Item::GraphicalCultureType);
+        vd.field_bool("use_latin_name_rules");
 
-        vd.field_list("male_names");
-        vd.field_list("female_names");
+        vd.field_validated_block("nickname", validate_name_list);
+        vd.field_validated_block("female_order", validate_name_list);
+        vd.field_validated_block("male_names", validate_name_list);
+        vd.field_validated_block("female_names", validate_name_list);
+        vd.field_validated_block("barbarian_names", validate_name_list);
+        // TODO this and the one below should get validated slightly different, family entries appear with 4 localized keys per family like this:
+        // family = {
+        //     Aburius.Aburia.Aburii.Aburian
+        //     Accius.Accia.Accii.Accian
+        //     Acilius.Acilia.Acilii.Acilian
+        // }
+        vd.field_validated_block("family", validate_name_list);
+
         vd.field_list("family");
-        vd.field_list("barbarian_names");
 
         vd.field_block("culture"); // validated by Culture class
 
@@ -68,14 +79,33 @@ impl DbKind for CultureGroup {
     }
 }
 
+fn validate_name_list(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    for token in vd.values() {
+        data.verify_exists(Item::Localization, token);
+    }
+    for (_, block) in vd.integer_blocks() {
+        let mut vd = Validator::new(block, data);
+        for token in vd.values() {
+            data.verify_exists(Item::Localization, token);
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Culture {}
 
 impl DbKind for Culture {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+        // TODO - culture Items don't seem to be getting loaded for some reason.
 
         data.verify_exists(Item::Localization, key);
+
         vd.field_item("levy_template", Item::LevyTemplate);
+        vd.field_validated_block("nickname", validate_name_list);
+        vd.field_validated_block("male_names", validate_name_list);
+        vd.field_validated_block("female_names", validate_name_list);
+        vd.field_validated_block("family", validate_name_list);
     }
 }

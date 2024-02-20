@@ -123,6 +123,7 @@ pub enum WidgetProperty {
     background_texture,
     bezier,
     blend_mode,
+    bottomtotop,
     button_ignore,
     button_trigger,
     buttontext,
@@ -162,6 +163,8 @@ pub enum WidgetProperty {
     drag_drop_base_type,
     drag_drop_data,
     drag_drop_id,
+    dragdropargs,
+    dragdropid,
     draggable_by,
     droptarget,
     duration,
@@ -188,8 +191,10 @@ pub enum WidgetProperty {
     fonttintcolor,
     fontweight,
     force_data_properties_update,
+    forcedown,
     format_override,
     frame,
+    frame_tier,
     framesize,
     from,
     gfx_environment_file,
@@ -276,12 +281,15 @@ pub enum WidgetProperty {
     oncolorchanged,
     oncoloredited,
     oncreate,
+    ondatacontextchanged,
     ondefault,
     ondoubleclick,
     oneditingfinished,
     oneditingfinished_with_changes,
     oneditingstart,
+    onenter_signal,
     onfocusout,
+    onleave_signal,
     onmousehierarchyenter,
     onmousehierarchyleave,
     onpressed,
@@ -394,6 +402,7 @@ pub enum WidgetProperty {
     upframe,
     uphoverframe,
     uppressedframe,
+    url,
     useragent,
     uv_scale,
     value,
@@ -445,8 +454,8 @@ impl GuiValidation {
     pub fn from_property(property: WidgetProperty) -> Self {
         #[allow(clippy::match_same_arms)] // keep it alphabetic
         match property {
-            active_item => Widget,
             accept_tabs => Boolean,
+            active_item => Widget,
             addcolumn => NumberOrPercent,
             addrow => NumberOrPercent,
             align => Align,
@@ -465,6 +474,7 @@ impl GuiValidation {
             background_texture => Item(Item::File),
             bezier => CVector4f,
             blend_mode => Blendmode,
+            bottomtotop => Boolean,
             button_ignore => MouseButton(&["both", "none", "left", "right"]),
             button_trigger => UncheckedValue, // only example is "none"
             buttontext => Widget,
@@ -504,6 +514,8 @@ impl GuiValidation {
             drag_drop_base_type => Choice(&["icon", "coat_of_arms_icon"]),
             drag_drop_data => Datacontext,
             drag_drop_id => UncheckedValue, // TODO what are the options?
+            dragdropargs => CString,
+            dragdropid => CString,
             draggable_by => MouseButtonSet(&["left", "right", "middle"]),
             droptarget => Boolean,
             duration => Number,
@@ -530,8 +542,10 @@ impl GuiValidation {
             fonttintcolor => Color,
             fontweight => UncheckedValue, // TODO: what are the options?
             force_data_properties_update => Boolean,
+            forcedown => DatatypeExpr,
             format_override => FormatOverride,
             frame => Integer,
+            frame_tier => Integer,
             framesize => CVector2i,
             from => CVector2f,
             gfx_environment_file => Item(Item::File),
@@ -546,11 +560,10 @@ impl GuiValidation {
             glow_texture_downscale => NumberF,
             grayscale => Boolean,
             grid_entity_name => Item(Item::Entity),
-            highlightchecked => Boolean,
             header_height => Integer,
+            highlightchecked => Boolean,
             ignore_in_debug_draw => Boolean,
-            // middle and left are guesses
-            ignore_unset_buttons => MouseButtonSet(&["right", "middle", "left"]),
+            ignore_unset_buttons => MouseButtonSet(&["right", "middle", "left"]), // middle and left are guesses
             ignoreinvisible => Boolean,
             inc_button => Widget,
             indent => Integer,
@@ -619,12 +632,15 @@ impl GuiValidation {
             oncolorchanged => DatatypeExpr,
             oncoloredited => DatatypeExpr,
             oncreate => DatatypeExpr,
+            ondatacontextchanged => DatatypeExpr,
             ondefault => DatatypeExpr,
             ondoubleclick => DatatypeExpr,
             oneditingfinished => DatatypeExpr,
             oneditingfinished_with_changes => DatatypeExpr,
             oneditingstart => DatatypeExpr,
+            onenter_signal => DatatypeExpr,
             onfocusout => DatatypeExpr,
+            onleave_signal => DatatypeExpr,
             onmousehierarchyenter => DatatypeExpr,
             onmousehierarchyleave => DatatypeExpr,
             onpressed => DatatypeExpr,
@@ -660,8 +676,8 @@ impl GuiValidation {
             raw_text => RawText,
             raw_tooltip => RawText,
             realtime => Boolean,
-            reorder_on_mouse => UncheckedValue, // TODO: only example is "presstop"
             recursive => Yes,
+            reorder_on_mouse => UncheckedValue, // TODO: only example is "presstop"
             resizable => Boolean,
             resizeparent => Boolean,
             restart_on_show => Boolean,
@@ -678,8 +694,7 @@ impl GuiValidation {
             scrollbar_vertical => Widget,
             scrollbaralign_horizontal => Choice(&["top", "bottom"]),
             scrollbaralign_vertical => Choice(&["left", "right"]),
-            // TODO: always_on is a guess
-            scrollbarpolicy_horizontal => Choice(&["as_needed", "always_off", "always_on"]),
+            scrollbarpolicy_horizontal => Choice(&["as_needed", "always_off", "always_on"]), // TODO: always_on is a guess
             scrollbarpolicy_vertical => Choice(&["as_needed", "always_off", "always_on"]),
             scrollwidget => Widget,
             selectallonfocus => Boolean,
@@ -695,7 +710,7 @@ impl GuiValidation {
             snap_to_pixels => Boolean,
             soundeffect => Item(Item::Sound),
             soundparam => ComplexProperty,
-            spacing => Integer,
+            spacing => NumberF,
             spriteborder => CVector2f,
             spriteborder_bottom => Integer,
             spriteborder_left => Integer,
@@ -738,6 +753,7 @@ impl GuiValidation {
             upframe => Integer,
             uphoverframe => Integer,
             uppressedframe => Integer,
+            url => CString,
             useragent => UncheckedValue,
             uv_scale => CVector2f,
             value => NumberOrInt32,
@@ -820,6 +836,11 @@ impl WidgetProperty {
             tooltip_enabled => GameFlags::Vic3 | GameFlags::Imperator,
             tooltip_visible => GameFlags::Ck3,
             video => GameFlags::Ck3 | GameFlags::Vic3,
+
+            frame_tier | pop_out_v | ondatacontextchanged | dragdropid | dragdropargs
+            | forcedown | url | bottomtotop | onleave_signal | onenter_signal => {
+                GameFlags::Imperator
+            }
 
             _ => GameFlags::all(),
         }

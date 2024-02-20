@@ -41,6 +41,7 @@ impl DbKind for CharacterInteraction {
         data.verify_exists_implied(Item::Localization, &loca3, key);
 
         vd.field_bool("message");
+        vd.field_bool("close_ui");
         vd.field_bool("on_other_nation");
         vd.field_bool("on_own_nation");
         vd.field_bool("on_other_nation");
@@ -48,6 +49,8 @@ impl DbKind for CharacterInteraction {
         vd.field_bool("needs_senate_approval");
 
         vd.field_item("sound", Item::Sound);
+        // TODO - test if more diplo actions are valid to use here
+        vd.field_choice("diplomatic_action", &["ransom"]);
 
         vd.field_validated_block("potential_trigger", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
@@ -61,13 +64,13 @@ impl DbKind for CharacterInteraction {
         vd.field_validated_block("character_target_trigger", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
-        vd.field_validated_block("country_target_trigger", |b, data| {
+        vd.field_validated_block("country_actor_trigger", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("country_target_trigger", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
-        vd.field_validated_block("province_target_trigger", |b, data| {
+        vd.field_validated_block("province_actor_trigger", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("province_target_trigger", |b, data| {

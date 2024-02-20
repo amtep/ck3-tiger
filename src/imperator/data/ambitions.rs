@@ -30,6 +30,8 @@ impl DbKind for Ambition {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Character, key);
 
+        sc.define_name("ongoing_scheme_target", Scopes::Character, key);
+
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);

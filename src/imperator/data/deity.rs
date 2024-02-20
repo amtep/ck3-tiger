@@ -44,6 +44,9 @@ impl DbKind for Deity {
         vd.field_validated_block("trigger", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
+        vd.field_validated_block("allow_on_setup", |b, data| {
+            validate_trigger(b, data, &mut sc, Tooltipped::No);
+        });
         vd.field_item("icon", Item::File);
         vd.field_validated_block("passive_modifier", |block, data| {
             let vd = Validator::new(block, data);

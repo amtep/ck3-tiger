@@ -26,6 +26,7 @@ pub enum BuiltinWidget {
     drag_drop_icon,
     drag_drop_target,
     dragdropicon,
+    dragdroptarget,
     dropdown,
     dynamicgridbox,
     editbox,
@@ -49,6 +50,8 @@ pub enum BuiltinWidget {
     right_click_menu_widget,
     scrollarea,
     scrollbar,
+    taborder,
+    target,
     text_occluder,
     textbox,
     tools_dragdrop_widget,
@@ -100,7 +103,11 @@ impl BuiltinWidget {
             | BuiltinWidget::minimap_window
             | BuiltinWidget::right_click_menu_widget => GameFlags::Vic3,
 
-            BuiltinWidget::dragdropicon | BuiltinWidget::mini_map => GameFlags::Imperator,
+            BuiltinWidget::dragdropicon
+            | BuiltinWidget::mini_map
+            | BuiltinWidget::dragdroptarget
+            | BuiltinWidget::target
+            | BuiltinWidget::taborder => GameFlags::Imperator,
 
             BuiltinWidget::cameracontrolwidget
             | BuiltinWidget::colormap_picker
