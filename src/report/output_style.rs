@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use ansi_term::Colour::{Black, Blue, Cyan, Green, Purple, Red, White, Yellow};
-use ansi_term::Style;
+use ansiterm::Colour::{Black, Blue, Cyan, Green, Purple, Red, White, Yellow};
+use ansiterm::Style;
 
 use crate::report::Severity;
 

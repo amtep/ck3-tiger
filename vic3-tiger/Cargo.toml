@@ -22,4 +22,4 @@ clap = { version = "~4.4", features = ["derive"] }
 console = "0.15.7"
 
 [target.'cfg(windows)'.dependencies]
-ansi_term = "0.12.1"
+ansiterm = "0.12.2"

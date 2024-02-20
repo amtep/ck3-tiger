@@ -39,7 +39,7 @@ fn main() {
 fn inner_main() -> Result<()> {
     // Colors are off by default, but enable ANSI support in case the config file turns colors on again.
     #[cfg(windows)]
-    let _ = ansi_term::enable_ansi_support().map_err(|_| {
+    let _ = ansiterm::enable_ansi_support().map_err(|_| {
         eprintln!("Failed to enable ANSI support for Windows10 users. Continuing anyway.")
     });
 

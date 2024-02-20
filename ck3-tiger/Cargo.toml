@@ -25,4 +25,4 @@ serde_json = "1.0.104"
 strum = "0.26.0"
 
 [target.'cfg(windows)'.dependencies]
-ansi_term = "0.12.1"
+ansiterm = "0.12.2"

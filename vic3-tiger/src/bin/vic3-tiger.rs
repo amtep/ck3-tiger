@@ -50,7 +50,7 @@ fn main() -> Result<()> {
 
     #[cfg(windows)]
     if !args.no_color {
-        let _ = ansi_term::enable_ansi_support()
+        let _ = ansiterm::enable_ansi_support()
             .map_err(|_| eprintln!("Failed to enable ANSI support for Windows10 users. Continuing probably without colored output."));
     }
 

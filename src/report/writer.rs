@@ -1,4 +1,4 @@
-use ansi_term::{ANSIString, ANSIStrings};
+use ansiterm::{ANSIString, ANSIStrings};
 use unicode_width::UnicodeWidthChar;
 
 use crate::fileset::FileKind;

@@ -24,10 +24,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299"
 
 [[package]]
-name = "ansi_term"
-version = "0.12.1"
+name = "ansiterm"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d52a9bb7ec0cf484c551830a7ce27bd20d67eac647e1befb56b0be4ee39a55d2"
+checksum = "4ab587f5395da16dd2e6939adf53dede583221b320cadfb94e02b5b7b9bf24cc"
 dependencies = [
  "winapi",
 ]
@@ -183,7 +183,7 @@ dependencies = [
 name = "ck3-tiger"
 version = "0.8.11"
 dependencies = [
- "ansi_term",
+ "ansiterm",
  "anyhow",
  "clap",
  "console",
@@ -480,7 +480,7 @@ dependencies = [
 name = "imperator-tiger"
 version = "0.8.11"
 dependencies = [
- "ansi_term",
+ "ansiterm",
  "anyhow",
  "clap",
  "tiger-lib",
@@ -893,7 +893,7 @@ dependencies = [
 name = "tiger-lib"
 version = "0.8.11"
 dependencies = [
- "ansi_term",
+ "ansiterm",
  "anyhow",
  "as-any",
  "bimap",
@@ -996,7 +996,7 @@ dependencies = [
 name = "vic3-tiger"
 version = "0.8.11"
 dependencies = [
- "ansi_term",
+ "ansiterm",
  "anyhow",
  "clap",
  "console",
