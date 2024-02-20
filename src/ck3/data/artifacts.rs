@@ -287,13 +287,22 @@ impl DbKind for ArtifactBlueprint {
         vd.field_item("out_visuals", Item::ArtifactVisual);
 
         vd.field_validated_list("disallowed_modifiers", |token, data| {
-            verify_modif_exists(token, data, ModifKinds::all(), Severity::Warning);
+            verify_modif_exists(token, data, ModifKinds::Character, Severity::Warning);
         });
         vd.field_validated_block("replacement_modifiers", |block, data| {
             let mut vd = Validator::new(block, data);
             for field in ARTIFACT_RARITY {
-                // There seems to be no way to verify that these are specifically artifact modifiers
-                vd.field_list_items(field, Item::Modifier);
+                vd.field_validated_list(field, |token, data| {
+                    data.verify_exists(Item::Modifier, token);
+                    // Verify that all the modifs in this modifier are artifact-compatible.
+                    data.database.validate_property_use(
+                        Item::Modifier,
+                        token,
+                        data,
+                        token,
+                        "artifact_modifier",
+                    );
+                });
             }
         });
 
