@@ -144,17 +144,13 @@ impl Event {
 
         if let Some(event_type) = block.get_field_value("type") {
             match event_type.as_str() {
-                "character_event" => {
+                "minor_character_event" | "character_event" => {
                     expects_scope = Scopes::Character;
                     expects_from_token = event_type.clone();
                 }
-                "minor_character_event" => {
-                    expects_scope = Scopes::Character;
+                "country_event" | "minor_country_event" | "major_country_event" => {
                     expects_from_token = event_type.clone();
                 }
-                "country_event" => expects_from_token = event_type.clone(),
-                "minor_country_event" => expects_from_token = event_type.clone(),
-                "major_country_event" => expects_from_token = event_type.clone(),
                 "state_event" => {
                     expects_scope = Scopes::State;
                     expects_from_token = event_type.clone();

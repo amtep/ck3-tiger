@@ -33,14 +33,13 @@ impl DbKind for EventPicture {
 
         vd.multi_field_validated("picture", |bv, data| match bv {
             BV::Value(t) => {
-                let mut vd = Validator::new(block, data);
-                vd.field_item("picture", Item::File);
+                data.verify_exists(Item::File, t);
             }
-            BV::Block(b) => {
+            BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.field_item("texture", Item::File);
-                vd.field_validated_block("trigger", |b, data| {
-                    validate_trigger(b, data, &mut sc, Tooltipped::No);
+                vd.field_validated_block("trigger", |block, data| {
+                    validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
             }
         });

@@ -1359,7 +1359,7 @@ pub fn validate_argument(
     #[cfg(feature = "imperator")]
     if Game::is_imperator() {
         // Imperator does not use `()`
-        let msg = format!("imperator does not support the `()` syntax");
+        let msg = "imperator does not support the `()` syntax";
         let mut opening_paren_loc = arg.loc;
         opening_paren_loc.column -= 1;
         err(ErrorKey::Validation).msg(msg).loc(opening_paren_loc).push();

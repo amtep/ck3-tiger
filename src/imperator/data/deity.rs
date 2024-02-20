@@ -35,8 +35,8 @@ impl DbKind for Deity {
 
         // Slice "deity_" off the front of the key
         if let Some(deity_key) = key_str.strip_prefix("deity_") {
-            let loca = format!("omen_{}", deity_key);
-            let loca2 = format!("omen_{}_desc", deity_key);
+            let loca = format!("omen_{deity_key}");
+            let loca2 = format!("omen_{deity_key}_desc");
             data.verify_exists_implied(Item::Localization, &loca, key);
             data.verify_exists_implied(Item::Localization, &loca2, key);
         }

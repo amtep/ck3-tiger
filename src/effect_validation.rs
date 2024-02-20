@@ -145,6 +145,7 @@ pub fn validate_save_scope(
 }
 
 /// A specific validator for the `save_scope_value` effect.
+#[cfg(not(feature = "imperator"))]
 pub fn validate_save_scope_value(
     _key: &Token,
     _block: &Block,

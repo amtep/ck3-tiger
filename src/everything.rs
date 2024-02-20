@@ -60,6 +60,8 @@ use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::game::Game;
 #[cfg(feature = "imperator")]
+use crate::imperator::data::events::ImperatorEvents;
+#[cfg(feature = "imperator")]
 use crate::imperator::tables::misc::*;
 use crate::item::{Item, ItemLoader};
 use crate::lowercase::Lowercase;
@@ -130,6 +132,8 @@ pub struct Everything {
     pub(crate) events_ck3: Ck3Events,
     #[cfg(feature = "vic3")]
     pub(crate) events_vic3: Vic3Events,
+    #[cfg(feature = "imperator")]
+    pub(crate) events_imperator: ImperatorEvents,
 
     pub(crate) scripted_modifiers: ScriptedModifiers,
     pub(crate) on_actions: OnActions,
@@ -250,6 +254,8 @@ impl Everything {
             events_ck3: Ck3Events::default(),
             #[cfg(feature = "vic3")]
             events_vic3: Vic3Events::default(),
+            #[cfg(feature = "imperator")]
+            events_imperator: ImperatorEvents::default(),
             scripted_modifiers: ScriptedModifiers::default(),
             on_actions: OnActions::default(),
             #[cfg(feature = "ck3")]
@@ -432,7 +438,9 @@ impl Everything {
     }
 
     #[cfg(feature = "imperator")]
-    fn load_all_imperator(&mut self) {}
+    fn load_all_imperator(&mut self) {
+        self.fileset.handle(&mut self.events_imperator);
+    }
 
     pub fn load_all(&mut self) {
         self.load_all_generic();
@@ -490,7 +498,10 @@ impl Everything {
         s.spawn(|_| BuyPackage::crosscheck(self));
     }
 
-    // Imperator one goes here when needed
+    #[cfg(feature = "imperator")]
+    fn validate_all_imperator<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.events_imperator.validate(self));
+    }
 
     pub fn validate_all(&self) {
         scope(|s| {
@@ -501,7 +512,7 @@ impl Everything {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => self.validate_all_vic3(s),
                 #[cfg(feature = "imperator")]
-                Game::Imperator => (), // TODO - imperator -
+                Game::Imperator => self.validate_all_imperator(s),
             }
         });
         self.database.validate(self);
@@ -632,6 +643,8 @@ impl Everything {
     fn item_exists_imperator(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Dlc => DLC_IMPERATOR.contains(&key),
+            Item::Event => self.events_imperator.exists(key),
+            Item::EventNamespace => self.events_imperator.namespace_exists(key),
             Item::Sound => {
                 if let Some(filename) = key.strip_prefix("file://") {
                     self.fileset.exists(filename)
@@ -874,7 +887,7 @@ impl Everything {
             #[cfg(feature = "vic3")]
             Game::Vic3 => self.events_vic3.check_scope(token, sc),
             #[cfg(feature = "imperator")]
-            Game::Imperator => (), // TODO - imperator -
+            Game::Imperator => self.events_imperator.check_scope(token, sc),
         };
     }
 
@@ -950,7 +963,11 @@ impl Everything {
 
     #[cfg(feature = "imperator")]
     fn iter_keys_imperator<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
-        Box::new(self.database.iter_keys(itype))
+        match itype {
+            Item::Event => Box::new(self.events_imperator.iter_keys()),
+            Item::EventNamespace => Box::new(self.events_imperator.iter_namespace_keys()),
+            _ => Box::new(self.database.iter_keys(itype)),
+        }
     }
 
     pub fn iter_keys<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {

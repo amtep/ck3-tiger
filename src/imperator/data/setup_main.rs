@@ -71,6 +71,7 @@ fn validate_treasures(block: &Block, data: &Everything) {
 }
 
 fn validate_families(block: &Block, data: &Everything) {
+    // TODO - imperator - Family should be its own Item type with the "key" field being the name of each one. Then the "fam:" link should be updated with the new item.
     let mut vd = Validator::new(block, data);
     vd.field_validated_block("families", |block, data| {
         let mut vd = Validator::new(block, data);

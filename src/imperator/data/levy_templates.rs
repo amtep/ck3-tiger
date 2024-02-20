@@ -20,7 +20,7 @@ impl LevyTemplate {
 }
 
 impl DbKind for LevyTemplate {
-    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
         vd.field_bool("default");

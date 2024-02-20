@@ -2,13 +2,12 @@
 
 use std::fmt::Formatter;
 
-use fnv::FnvHashMap;
-use once_cell::sync::Lazy;
-
 use crate::everything::Everything;
 use crate::helpers::display_choices;
 use crate::item::Item;
 use crate::scopes::{ArgumentValue, Scopes};
+use fnv::FnvHashMap;
+use once_cell::sync::Lazy;
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
@@ -142,17 +141,16 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     // if scopes == Scopes::Family && data.item_exists(Item::Family, arg) {
     //     return Some("fam");
     // }
-    // TODO: - imperator - add this when Item::Party exists
-    // if scopes == Scopes::Party && data.item_exists(Item::Party, arg) {
-    //     return Some("party");
+    // TODO: - imperator - add this when Item::Character exists
+    // if scopes == Scopes::Character && data.item_exists(Item::Character, arg) {
+    //     return Some("char");
     // }
+    if scopes == Scopes::Party && data.item_exists(Item::PartyType, arg) {
+        return Some("party");
+    }
     if scopes == Scopes::Treasure && data.item_exists(Item::Treasure, arg) {
         return Some("treasure");
     }
-    // TODO: - imperator - add this when Item::Character exists
-    // if scopes == Scopes::Character && data.item_exists(Item::Character, arg) {
-    //     return Some("character");
-    // }
     if scopes == Scopes::Region && data.item_exists(Item::Region, arg) {
         return Some("region");
     }
@@ -342,12 +340,13 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Argument
 
 // Basically just search the log for "Requires Data: yes" and put all that here.
 const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
+    use crate::item::Item;
     use ArgumentValue::*;
-    //TODO: Remove `UncheckedValue` for correct validation
+    // TODO - treasure and char need to be done when Character and Treasure types are implemented.
     &[
         (Scopes::None, "array_define", Scopes::Value, UncheckedValue),
         (Scopes::Country, "fam", Scopes::Family, UncheckedValue),
-        (Scopes::Country, "party", Scopes::Party, UncheckedValue),
+        (Scopes::Country, "party", Scopes::Party, Item(Item::PartyType)),
         (
             Scopes::Country
                 .union(Scopes::Province)
@@ -364,14 +363,14 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
                 .union(Scopes::Governorship),
             "job_holder",
             Scopes::Job,
-            UncheckedValue,
+            Item(Item::Office),
         ),
         (Scopes::Treasure, "treasure", Scopes::Treasure, UncheckedValue),
         (Scopes::None, "character", Scopes::Character, UncheckedValue),
-        (Scopes::None, "region", Scopes::Region, UncheckedValue),
-        (Scopes::None, "area", Scopes::Area, UncheckedValue),
-        (Scopes::None, "culture", Scopes::Culture, UncheckedValue),
-        (Scopes::None, "deity", Scopes::Deity, UncheckedValue),
+        (Scopes::None, "region", Scopes::Region, Item(Item::Region)),
+        (Scopes::None, "area", Scopes::Area, Item(Item::Area)),
+        (Scopes::None, "culture", Scopes::Culture, Item(Item::Culture)),
+        (Scopes::None, "deity", Scopes::Deity, Item(Item::Deity)),
         (Scopes::None, "c", Scopes::Country, UncheckedValue),
         (Scopes::None, "char", Scopes::Character, UncheckedValue),
         (Scopes::None, "define", Scopes::Value, UncheckedValue),
@@ -379,7 +378,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "global_var", Scopes::all(), UncheckedValue),
         (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
         (Scopes::None, "p", Scopes::Province, UncheckedValue),
-        (Scopes::None, "religion", Scopes::Religion, UncheckedValue),
+        (Scopes::None, "religion", Scopes::Religion, Item(Item::Religion)),
         (Scopes::None, "scope", Scopes::all(), UncheckedValue),
         (Scopes::all(), "var", Scopes::all(), UncheckedValue),
     ]

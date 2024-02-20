@@ -280,7 +280,7 @@ pub fn validate_raise_legion(
     sc.open_scope(Scopes::Legion, key.clone());
     vd.req_field_warn("create_unit");
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
-    sc.close()
+    sc.close();
 }
 
 pub fn validate_create_character(
@@ -306,7 +306,7 @@ pub fn validate_create_character(
     vd.field_value("age");
     vd.field_target_or_integer("birth_province", sc, Scopes::Province);
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
-    sc.close()
+    sc.close();
 }
 
 pub fn validate_create_unit(
@@ -324,7 +324,7 @@ pub fn validate_create_unit(
     vd.field_bool("navy");
     vd.field_item("sub_unit", Item::Unit);
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
-    sc.close()
+    sc.close();
 }
 
 pub fn validate_create_country(
@@ -344,5 +344,5 @@ pub fn validate_create_country(
         vd.field_value("adjective");
     });
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
-    sc.close()
+    sc.close();
 }
