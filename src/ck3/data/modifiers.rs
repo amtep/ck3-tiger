@@ -77,8 +77,8 @@ impl DbKind for Modifier {
         &self,
         _key: &Token,
         block: &Block,
-        property: &Token,
-        _caller: &str,
+        _property: &Token,
+        caller: &str,
         data: &Everything,
     ) {
         let mut vd = Validator::new(block, data);
@@ -86,13 +86,14 @@ impl DbKind for Modifier {
         vd.field("icon");
         vd.field("stacking");
         vd.field("hide_effects");
+        vd.field("scale");
 
         // TODO: make validate_modifs explain why it expected this kind
-        validate_modifs(block, data, get_modif_kinds(property.as_str()), vd);
+        validate_modifs(block, data, get_modif_kinds(caller), vd);
     }
 }
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.11.5
 /// Get the modifier kinds from property name
 /// See `effects.log` from the game data dumps.
 fn get_modif_kinds(name: &str) -> ModifKinds {

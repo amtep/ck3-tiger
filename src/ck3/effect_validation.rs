@@ -167,16 +167,17 @@ pub fn validate_scheme_cooldown(
 
 pub fn validate_scheme_modifier(
     key: &Token,
-    _block: &Block,
+    block: &Block,
     data: &Everything,
-    _sc: &mut ScopeContext,
+    sc: &mut ScopeContext,
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("type");
     if let Some(token) = vd.field_value("type") {
         data.verify_exists(Item::Modifier, token);
-        data.database.validate_property_use(Item::Modifier, token, data, key, "");
+        data.database.validate_call(Item::Modifier, token, block, data, sc);
+        data.database.validate_property_use(Item::Modifier, token, data, key, key.as_str());
     }
     vd.field_integer("days");
 }
@@ -249,7 +250,7 @@ pub fn validate_add_modifier(
             }
             let block = Block::new(key.loc);
             data.database.validate_call(Item::Modifier, token, &block, data, sc);
-            data.database.validate_property_use(Item::Modifier, token, data, key, "");
+            data.database.validate_property_use(Item::Modifier, token, data, key, key.as_str());
         }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
@@ -261,7 +262,7 @@ pub fn validate_add_modifier(
                     data.verify_exists(Item::Localization, token);
                 }
                 data.database.validate_call(Item::Modifier, token, block, data, sc);
-                data.database.validate_property_use(Item::Modifier, token, data, key, "");
+                data.database.validate_property_use(Item::Modifier, token, data, key, key.as_str());
             }
             vd.field_validated_sc("desc", sc, validate_desc);
             validate_optional_duration(&mut vd, sc);
