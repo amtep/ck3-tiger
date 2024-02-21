@@ -893,7 +893,10 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                 _ => (),
             },
             State::Id => {
-                if !c.is_id_char() {
+                if c.is_id_char() {
+                } else if c == '$' {
+                    parser.current.contains_macro_parms = true;
+                } else {
                     let token = Token::from_static_str(&content[index_loc.0..i], index_loc.1);
                     parser.token(token);
 
@@ -938,10 +941,6 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
             },
             State::LocalValue => match c {
                 _ if c.is_local_value_char() => (),
-                _ if c.is_ascii_whitespace() => {
-                    let token = Token::from_static_str(&content[index_loc.0..i], index_loc.1);
-                    parser.token(token);
-                }
                 '[' => {
                     if index_loc.0 + 1 != i {
                         let msg = "not in @[...] form for local value calculation";
@@ -950,8 +949,39 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                     state = State::Calculation(None);
                 }
                 _ => {
-                    unknown_char(c, loc);
-                    state = State::Neutral;
+                    let token = Token::from_static_str(&content[index_loc.0..i], index_loc.1);
+                    parser.token(token);
+
+                    match c {
+                        _ if c.is_ascii_whitespace() => state = State::Neutral,
+                        _ if c.is_comparator_char() => {
+                            index_loc = IndexLoc(i, loc);
+                            state = State::Comparator;
+                        }
+                        '{' => {
+                            parser.open_brace(loc, i);
+                            state = State::Neutral;
+                        }
+                        '}' => {
+                            parser.close_brace(loc, content, i);
+                            state = State::Neutral;
+                        }
+                        '#' => state = State::Comment,
+                        ';' => state = State::Neutral,
+                        '$' => {
+                            parser.current.contains_macro_parms = true;
+                            index_loc = IndexLoc(i, loc);
+                            state = State::Macro;
+                        }
+                        '@' => {
+                            index_loc = IndexLoc(i, loc);
+                            state = State::LocalValue;
+                        }
+                        _ => {
+                            unknown_char(c, loc);
+                            state = State::Neutral;
+                        }
+                    }
                 }
             },
             State::Calculation(current_value) => {
@@ -1143,7 +1173,7 @@ fn split_macros(token: &Token, local_values: &LocalValues) -> Vec<MacroComponent
     let mut index_loc = IndexLoc(0, loc);
     let mut state = State::Neutral;
 
-    for (i, c) in content.char_indices().chain(std::iter::once((usize::MAX, ' '))) {
+    for (i, c) in content.char_indices() {
         match state {
             State::Neutral => match c {
                 '#' => state = State::Comment,
@@ -1183,7 +1213,7 @@ fn split_macros(token: &Token, local_values: &LocalValues) -> Vec<MacroComponent
                         err(ErrorKey::LocalValues).msg(msg).loc(loc).push();
                     }
                 }
-                _ if c.is_ascii_whitespace() => {
+                _ => {
                     let str = &content[index_loc.0..i];
                     if let Some(value) = local_values.get_as_str(str) {
                         let token = Token::from_static_str(value, index_loc.1);
@@ -1196,9 +1226,21 @@ fn split_macros(token: &Token, local_values: &LocalValues) -> Vec<MacroComponent
                             .push();
                     }
                     index_loc = IndexLoc(i, loc);
-                    state = State::Neutral;
+                    match c {
+                        _ if c.is_ascii_whitespace() => state = State::Neutral,
+                        '#' => state = State::Comment,
+                        '"' => state = State::QString,
+                        '$' | '@' => {
+                            // Skip the current '$' or '@'
+                            index_loc = index_loc.next();
+                            state = if c == '$' { State::Macro } else { State::LocalValue };
+                        }
+                        _ => {
+                            unknown_char(c, loc);
+                            state = State::Neutral;
+                        }
+                    }
                 }
-                _ => unknown_char(c, loc),
             },
             State::Calculation(current_value) => {
                 if c.is_ascii_whitespace() || matches!(c, '+' | '-' | '*' | '/' | '(' | ')' | ']') {
