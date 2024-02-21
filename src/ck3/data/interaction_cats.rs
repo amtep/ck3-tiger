@@ -8,7 +8,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, ErrorKey};
+use crate::report::{err, ErrorKey};
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -70,7 +70,7 @@ impl FileHandler<Block> for CharacterInteractionCategories {
                     bad_range = i_taken >= taken.len();
                     if let Some(other) = taken[i_taken] {
                         let msg = format!("index duplicates the index of {other}");
-                        error(&item.key, ErrorKey::DuplicateItem, &msg);
+                        err(ErrorKey::DuplicateItem).msg(msg).loc(&item.key).push();
                     } else {
                         taken[i_taken] = Some(&item.key);
                     }
@@ -79,7 +79,7 @@ impl FileHandler<Block> for CharacterInteractionCategories {
                 }
                 if bad_range {
                     let msg = "index needs to be from 0 to the number of categories";
-                    error(&item.key, ErrorKey::Range, msg);
+                    err(ErrorKey::Range).msg(msg).loc(&item.key).push();
                 }
             }
             // if no index, the item will warn about that in validate

@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, warn, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -109,11 +109,11 @@ impl DataBinding {
                     replace = Some(chain.clone());
                 } else {
                     let msg = "could not parse macro replacement";
-                    error(rep, ErrorKey::Datafunctions, msg);
+                    err(ErrorKey::Datafunctions).msg(msg).loc(rep).push();
                 }
             } else {
                 let msg = "could not parse macro replacement";
-                error(rep, ErrorKey::Datafunctions, msg);
+                err(ErrorKey::Datafunctions).msg(msg).loc(rep).push();
             }
         }
         Self { key, block, params, replace }
@@ -122,7 +122,7 @@ impl DataBinding {
     pub fn replace(&self, call: &Code) -> Option<CodeChain> {
         if call.arguments.len() != self.params.len() {
             let msg = "wrong number of arguments for macro";
-            error(&call.name, ErrorKey::Datafunctions, msg);
+            err(ErrorKey::Datafunctions).msg(msg).loc(&call.name).push();
             return None;
         }
         if let Some(replacement) = &self.replace {
@@ -158,7 +158,7 @@ impl DataBinding {
                                     CodeArg::Literal(token) => {
                                         if chain.codes.len() != 1 {
                                             let msg = "cannot substitute a literal here";
-                                            error(token, ErrorKey::Datafunctions, msg);
+                                            err(ErrorKey::Datafunctions).msg(msg).loc(token).push();
                                             return None;
                                         }
                                         return Some(call.arguments[i].clone());

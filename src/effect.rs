@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{advice_info, err, error, fatal, warn, warn_info, ErrorKey};
+use crate::report::{advice_info, err, fatal, warn, warn_info, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::script_value::validate_script_value;
 use crate::token::Token;
@@ -160,7 +160,7 @@ pub fn validate_effect_field(
     if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
         if caller != "random" && caller != "random_list" && caller != "duel" {
             let msg = "cannot use scripted modifier here";
-            error(key, ErrorKey::Validation, msg);
+            err(ErrorKey::Validation).msg(msg).loc(key).push();
             return;
         }
         validate_scripted_modifier_call(key, bv, modifier, data, sc);
@@ -286,7 +286,7 @@ pub fn validate_effect_field(
                 if let Some(token) = bv.expect_value() {
                     if !choices.contains(&token.as_str()) {
                         let msg = format!("expected one of {}", choices.join(", "));
-                        error(token, ErrorKey::Choice, &msg);
+                        err(ErrorKey::Choice).msg(msg).loc(token).push();
                     }
                 }
             }
@@ -349,7 +349,7 @@ pub fn validate_effect_field(
             if let Some((inscopes, outscope)) = scope_iterator(&it_name, data, sc) {
                 if it_type.is("any") {
                     let msg = "cannot use `any_` lists in an effect";
-                    error(key, ErrorKey::Validation, msg);
+                    err(ErrorKey::Validation).msg(msg).loc(key).push();
                     return;
                 }
                 sc.expect(inscopes, &Reason::Token(key.clone()));
@@ -382,7 +382,7 @@ pub fn validate_effect_field(
         sc.finalize_builder();
         if key.starts_with("flag:") {
             let msg = "as of 1.9, flag literals can not be used on the left-hand side";
-            error(key, ErrorKey::Scopes, msg);
+            err(ErrorKey::Scopes).msg(msg).loc(key).push();
         }
         if let Some(block) = bv.expect_block() {
             validate_effect(block, data, sc, tooltipped);

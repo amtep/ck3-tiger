@@ -3,7 +3,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{error, fatal, ErrorKey};
+use crate::report::{err, fatal, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_color;
 use crate::validator::Validator;
@@ -59,14 +59,14 @@ impl DbKind for Region {
         vd.field_validated_list("counties", |token, data| {
             if !token.starts_with("c_") {
                 let msg = "only counties can be listed in the counties field";
-                error(token, ErrorKey::Validation, msg);
+                err(ErrorKey::Validation).msg(msg).loc(token).push();
             }
             data.verify_exists(Item::Title, token);
         });
         vd.field_validated_list("duchies", |token, data| {
             if !token.starts_with("d_") {
                 let msg = "only duchies can be listed in the duchies field";
-                error(token, ErrorKey::Validation, msg);
+                err(ErrorKey::Validation).msg(msg).loc(token).push();
             }
             data.verify_exists(Item::Title, token);
         });

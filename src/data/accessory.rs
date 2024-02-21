@@ -3,7 +3,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{error, warn, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -66,7 +66,7 @@ impl AccessoryVariation {
             if let Some(name) = block.get_field_value("name") {
                 db.add(Item::AccessoryVariation, name.clone(), block, Box::new(Self {}));
             } else {
-                error(key, ErrorKey::FieldMissing, "variation without a name");
+                err(ErrorKey::FieldMissing).msg("variation without a name").loc(key).push();
             }
         } else if key.is("pattern_textures") {
             if let Some(name) = block.get_field_value("name") {
@@ -78,7 +78,7 @@ impl AccessoryVariation {
                 );
             } else {
                 let msg = "pattern_textures without a name";
-                error(key, ErrorKey::FieldMissing, msg);
+                err(ErrorKey::FieldMissing).msg(msg).loc(key).push();
             }
         } else if key.is("pattern_layout") {
             if let Some(name) = block.get_field_value("name") {
@@ -89,7 +89,7 @@ impl AccessoryVariation {
                     Box::new(AccessoryVariationLayout {}),
                 );
             } else {
-                error(key, ErrorKey::FieldMissing, "pattern_layout without a name");
+                err(ErrorKey::FieldMissing).msg("pattern_layout without a name").loc(key).push();
             }
         } else {
             warn(ErrorKey::UnknownField).msg("unknown variation type").loc(key).push();

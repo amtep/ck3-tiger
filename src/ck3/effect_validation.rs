@@ -9,7 +9,7 @@ use crate::effect_validation::validate_random_list;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{error, warn, warn_info, ErrorKey};
+use crate::report::{err, warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
@@ -287,7 +287,7 @@ pub fn validate_add_truce(
     validate_optional_duration(&mut vd, sc);
     if block.has_key("war") && block.has_key("casus_belli") {
         let msg = "cannot use both `war` and `casus_belli`";
-        error(block, ErrorKey::Validation, msg);
+        err(ErrorKey::Validation).msg(msg).loc(block).push();
     }
 }
 

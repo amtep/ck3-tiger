@@ -11,7 +11,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::item::Item;
-use crate::report::{err, error, ErrorKey, Severity};
+use crate::report::{err, ErrorKey, Severity};
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::validator::Validator;
@@ -77,7 +77,7 @@ impl ModifKinds {
     pub fn require(self, other: Self, token: &Token) {
         if (self & other).is_empty() {
             let msg = format!("`{token}` is a modifier for {other} but expected {self}");
-            error(token, ErrorKey::Modifiers, &msg);
+            err(ErrorKey::Modifiers).msg(msg).loc(token).push();
         }
     }
 }

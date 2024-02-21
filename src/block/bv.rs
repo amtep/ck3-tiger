@@ -1,5 +1,5 @@
 use crate::block::Block;
-use crate::report::{error, ErrorKey};
+use crate::report::{err, ErrorKey};
 use crate::token::Token;
 
 /// `BV` is an component a `Field`, which represents keyed items in `Block`.
@@ -28,7 +28,7 @@ impl BV {
     pub fn expect_block(&self) -> Option<&Block> {
         match self {
             BV::Value(_) => {
-                error(self, ErrorKey::Structure, "expected block, found value");
+                err(ErrorKey::Structure).msg("expected block, found value").loc(self).push();
                 None
             }
             BV::Block(b) => Some(b),
@@ -39,7 +39,7 @@ impl BV {
         match self {
             BV::Value(t) => Some(t),
             BV::Block(_) => {
-                error(self, ErrorKey::Structure, "expected value, found block");
+                err(ErrorKey::Structure).msg("expected value, found block").loc(self).push();
                 None
             }
         }
@@ -57,7 +57,7 @@ impl BV {
         match self {
             BV::Value(t) => Some(t),
             BV::Block(_) => {
-                error(self, ErrorKey::Structure, "expected value, found block");
+                err(ErrorKey::Structure).msg("expected value, found block").loc(self).push();
                 None
             }
         }
@@ -74,7 +74,7 @@ impl BV {
     pub fn expect_into_block(self) -> Option<Block> {
         match self {
             BV::Value(_) => {
-                error(self, ErrorKey::Structure, "expected block, found value");
+                err(ErrorKey::Structure).msg("expected block, found value").loc(self).push();
                 None
             }
             BV::Block(b) => Some(b),

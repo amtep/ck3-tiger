@@ -1,5 +1,5 @@
 use crate::block::{Block, Comparator, Eq::*, BV};
-use crate::report::{error, ErrorKey};
+use crate::report::{err, ErrorKey};
 use crate::token::Token;
 
 #[derive(Debug, Clone)]
@@ -40,7 +40,8 @@ impl Field {
         if matches!(cmp, Comparator::Equals(Single)) {
             true
         } else {
-            error(self, ErrorKey::Validation, &format!("expected `{key} =`, found `{cmp}`"));
+            let msg = &format!("expected `{key} =`, found `{cmp}`");
+            err(ErrorKey::Validation).msg(msg).loc(self).push();
             false
         }
     }
@@ -68,7 +69,7 @@ impl Field {
             }
             _ => {
                 let msg = format!("expected definition, found {}", self.describe());
-                error(self, ErrorKey::Structure, &msg);
+                err(ErrorKey::Structure).msg(msg).loc(self).push();
             }
         }
         None
@@ -82,7 +83,7 @@ impl Field {
             }
             _ => {
                 let msg = format!("expected definition, found {}", self.describe());
-                error(self, ErrorKey::Structure, &msg);
+                err(ErrorKey::Structure).msg(msg).loc(self).push();
             }
         }
         None
@@ -128,7 +129,7 @@ impl Field {
             }
             _ => {
                 let msg = format!("expected assignment, found {}", self.describe());
-                error(self, ErrorKey::Structure, &msg);
+                err(ErrorKey::Structure).msg(msg).loc(self).push();
             }
         }
         None

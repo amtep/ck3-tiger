@@ -19,7 +19,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pathtable::PathTableIndex;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, error_info, warn, warn_info, ErrorKey, Severity};
+use crate::report::{err, error_info, warn, warn_info, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -161,7 +161,7 @@ impl FileHandler<Block> for Ck3Events {
                     }
                 } else if key.is("scripted_trigger") || key.is("scripted_effect") {
                     let msg = format!("`{key}` should be used without `=`");
-                    error(key, ErrorKey::ParseError, &msg);
+                    err(ErrorKey::ParseError).msg(msg).loc(key).push();
                 } else if let Some(block) = bv.into_block() {
                     match expecting {
                         Expecting::ScriptedTrigger => {
@@ -178,7 +178,7 @@ impl FileHandler<Block> for Ck3Events {
                     };
                 } else {
                     let msg = "unknown setting in event files";
-                    error(key, ErrorKey::UnknownField, msg);
+                    err(ErrorKey::UnknownField).msg(msg).loc(key).push();
                 }
             } else if let Some(key) = item.expect_value() {
                 if matches!(expecting, Expecting::Event) && key.is("scripted_trigger") {
@@ -250,7 +250,8 @@ impl Event {
         let evtype = self.block.get_field_value("type").map_or("character_event", |t| t.as_str());
         if evtype == "empty" {
             let msg = "`type = empty` has been replaced by `scope = none`";
-            error(vd.field_value("type").unwrap(), ErrorKey::Validation, msg);
+            let errloc = vd.field_value("type").unwrap();
+            err(ErrorKey::Validation).msg(msg).loc(errloc).push();
         } else {
             vd.field_choice("type", EVENT_TYPES);
         }

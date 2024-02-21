@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{err, error, warn, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -326,7 +326,7 @@ fn validate_yes_no_trigger(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     match bv {
         BV::Value(token) => {
             if !token.is("yes") && !token.is("no") {
-                error(token, ErrorKey::Validation, "expected yes or no or trigger");
+                err(ErrorKey::Validation).msg("expected yes or no or trigger").loc(token).push();
             }
         }
         BV::Block(block) => {

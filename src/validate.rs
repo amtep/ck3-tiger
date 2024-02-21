@@ -14,7 +14,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, error, fatal, report, warn, Confidence, ErrorKey, Severity};
+use crate::report::{err, fatal, report, warn, Confidence, ErrorKey, Severity};
 #[cfg(feature = "ck3")]
 use crate::scopes::Scopes;
 use crate::scopes::{scope_prefix, scope_to_scope};
@@ -79,7 +79,7 @@ pub fn validate_compare_duration(block: &Block, data: &Everything, sc: &mut Scop
     if count != 1 {
         let msg = "must have 1 of days, weeks, months, or years";
         let key = if count == 0 { ErrorKey::FieldMissing } else { ErrorKey::Validation };
-        error(block, key, msg);
+        err(key).msg(msg).loc(block).push();
     }
 }
 
@@ -98,7 +98,7 @@ pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext
     if count != 1 {
         let msg = "must have 1 of days, weeks, months, or years";
         let key = if count == 0 { ErrorKey::FieldMissing } else { ErrorKey::Validation };
-        error(block, key, msg);
+        err(key).msg(msg).loc(block).push();
     }
 }
 

@@ -19,7 +19,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "vic3")]
 use crate::modif::{verify_modif_exists, ModifKinds};
-use crate::report::{advice_info, err, error, fatal, warn, warn_info, ErrorKey, Severity};
+use crate::report::{advice_info, err, fatal, warn, warn_info, ErrorKey, Severity};
 use crate::scopes::{
     needs_prefix, scope_iterator, scope_prefix, scope_to_scope, ArgumentValue, Scopes,
 };
@@ -258,7 +258,7 @@ pub fn validate_trigger_internal(
                 if let Some((inscopes, outscope)) = scope_iterator(&it_name, data, sc) {
                     if !it_type.is("any") {
                         let msg = format!("cannot use `{it_type}_` list in a trigger");
-                        error(key, ErrorKey::Validation, &msg);
+                        err(ErrorKey::Validation).msg(msg).loc(key).push();
                         return;
                     }
                     sc.expect(inscopes, &Reason::Token(key.clone()));

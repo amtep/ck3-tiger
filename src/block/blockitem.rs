@@ -1,5 +1,5 @@
 use crate::block::{Block, Comparator, Eq::*, Field, BV};
-use crate::report::{error, error_info, ErrorKey};
+use crate::report::{err, error_info, ErrorKey};
 use crate::token::Token;
 
 #[derive(Debug, Clone)]
@@ -55,7 +55,7 @@ impl BlockItem {
             Some(token)
         } else {
             let msg = format!("expected value, found {}", self.describe());
-            error(self, ErrorKey::Structure, &msg);
+            err(ErrorKey::Structure).msg(msg).loc(self).push();
             None
         }
     }
@@ -65,7 +65,7 @@ impl BlockItem {
             Some(token)
         } else {
             let msg = format!("expected value, found {}", self.describe());
-            error(self, ErrorKey::Structure, &msg);
+            err(ErrorKey::Structure).msg(msg).loc(self).push();
             None
         }
     }
@@ -84,7 +84,7 @@ impl BlockItem {
             Some(block)
         } else {
             let msg = format!("expected block, found {}", self.describe());
-            error(self, ErrorKey::Structure, &msg);
+            err(ErrorKey::Structure).msg(msg).loc(self).push();
             None
         }
     }
@@ -94,7 +94,7 @@ impl BlockItem {
             Some(block)
         } else {
             let msg = format!("expected block, found {}", self.describe());
-            error(self, ErrorKey::Structure, &msg);
+            err(ErrorKey::Structure).msg(msg).loc(self).push();
             None
         }
     }
@@ -132,7 +132,7 @@ impl BlockItem {
                 }
                 _ => {
                     let msg = format!("expected assignment, found {}", field.describe());
-                    error(self, ErrorKey::Structure, &msg);
+                    err(ErrorKey::Structure).msg(msg).loc(self).push();
                 }
             }
         }

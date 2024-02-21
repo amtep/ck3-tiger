@@ -13,7 +13,7 @@ use std::slice::SliceIndex;
 use crate::date::Date;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pathtable::{PathTable, PathTableIndex};
-use crate::report::{error, error_info, untidy, ErrorKey};
+use crate::report::{err, error_info, untidy, ErrorKey};
 use crate::stringtable::StringTable;
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -297,7 +297,7 @@ impl Token {
         if let Ok(v) = self.s.parse::<f64>() {
             Some(v)
         } else {
-            error(self, ErrorKey::Validation, "expected number");
+            err(ErrorKey::Validation).msg("expected number").loc(self).push();
             None
         }
     }
@@ -326,7 +326,7 @@ impl Token {
         if let Ok(v) = self.s.parse::<f64>() {
             Some(v)
         } else {
-            error(self, ErrorKey::Validation, "expected number");
+            err(ErrorKey::Validation).msg("expected number").loc(self).push();
             None
         }
     }
@@ -335,7 +335,7 @@ impl Token {
         if let Ok(v) = self.s.parse::<i64>() {
             Some(v)
         } else {
-            error(self, ErrorKey::Validation, "expected integer");
+            err(ErrorKey::Validation).msg("expected integer").loc(self).push();
             None
         }
     }
@@ -355,7 +355,7 @@ impl Token {
             }
             Some(v)
         } else {
-            error(self, ErrorKey::Validation, "expected date");
+            err(ErrorKey::Validation).msg("expected date").loc(self).push();
             None
         }
     }

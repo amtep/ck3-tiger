@@ -11,7 +11,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, error_info, warn, warn2, ErrorKey};
+use crate::report::{err, error_info, warn, warn2, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -60,7 +60,7 @@ impl TitleHistories {
             item.verify_has_holder(key, date, data);
         } else {
             let msg = format!("{key} has no title history");
-            error(key, ErrorKey::MissingItem, &msg);
+            err(ErrorKey::MissingItem).msg(msg).loc(key).push();
         }
     }
 }
@@ -161,7 +161,7 @@ impl TitleHistory {
                 if let Some(title) = data.titles.get(token.as_str()) {
                     if title.tier <= self.tier {
                         let msg = format!("liege must be higher tier than {}", self.key);
-                        error(token, ErrorKey::TitleTier, &msg);
+                        err(ErrorKey::TitleTier).msg(msg).loc(token).push();
                     }
                     data.title_history.verify_has_holder(token, date, data);
                 }
@@ -174,7 +174,7 @@ impl TitleHistory {
                 if let Some(title) = data.titles.get(token.as_str()) {
                     if title.tier <= self.tier {
                         let msg = format!("liege must be higher tier than {}", self.key);
-                        error(token, ErrorKey::TitleTier, &msg);
+                        err(ErrorKey::TitleTier).msg(msg).loc(token).push();
                     }
                 }
             }

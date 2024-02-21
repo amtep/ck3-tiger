@@ -13,7 +13,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, error_info, warn_info, ErrorKey};
+use crate::report::{err, error_info, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -110,7 +110,7 @@ impl FileHandler<Block> for ImperatorEvents {
                     self.load_event(key, block);
                 } else {
                     let msg = "unknown setting in event files";
-                    error(key, ErrorKey::UnknownField, msg);
+                    err(ErrorKey::UnknownField).msg(msg).loc(key).push();
                 }
             }
         }

@@ -8,7 +8,7 @@ use crate::game::Game;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxEncoding;
-use crate::report::{error, warn, Confidence, ErrorKey, Severity};
+use crate::report::{err, warn, Confidence, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -325,7 +325,7 @@ fn validate_portrait_modifiers(_block: &Block, data: &Everything, mut vd: Valida
         data.verify_exists(Item::PortraitModifierGroup, key);
         if !data.item_has_property(Item::PortraitModifierGroup, key.as_str(), value.as_str()) {
             let msg = format!("portrait modifier {value} not found in group {key}");
-            error(value, ErrorKey::MissingItem, &msg);
+            err(ErrorKey::MissingItem).msg(msg).loc(value).push();
         }
     });
 }

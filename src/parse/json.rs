@@ -222,7 +222,7 @@ fn parse(blockloc: Loc, content: &str) -> Block {
     match state {
         State::QString => {
             let token = Token::new(&current_id, token_start);
-            error(&token, ErrorKey::ParseError, "Quoted string not closed");
+            err(ErrorKey::ParseError).msg("Quoted string not closed").loc(&token).push();
             parser.token(token);
         }
         State::Neutral => (),

@@ -16,7 +16,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, error, fatal, untidy, warn, warn_info, ErrorKey};
+use crate::report::{err, fatal, untidy, warn, warn_info, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -94,10 +94,11 @@ impl Characters {
         if let Some(ch) = self.characters.get(item.as_str()) {
             if gender != ch.gender() {
                 let msg = format!("character is not {gender}");
-                error(item, ErrorKey::WrongGender, &msg);
+                err(ErrorKey::WrongGender).msg(msg).loc(item).push();
             }
         } else {
-            error(item, ErrorKey::MissingItem, "character not defined in history/characters/");
+            let msg = "character not defined in history/characters/";
+            err(ErrorKey::MissingItem).msg(msg).loc(item).push();
         }
     }
 
@@ -370,7 +371,10 @@ impl Character {
                     "capital" => {
                         data.verify_exists(Item::Title, value);
                         if !value.as_str().starts_with("c_") {
-                            error(value, ErrorKey::Validation, "capital must be a county");
+                            err(ErrorKey::Validation)
+                                .msg("capital must be a county")
+                                .loc(value)
+                                .push();
                         }
                         return None;
                     }
@@ -599,7 +603,7 @@ impl Character {
             && !self.key.is("791762")
         {
             let msg = "nosferatu with predefined dna lacks had_POD_character_nosferatu_looks";
-            error(&self.key, ErrorKey::PrincesOfDarkness, msg);
+            err(ErrorKey::PrincesOfDarkness).msg(msg).loc(&self.key).push();
         }
     }
 

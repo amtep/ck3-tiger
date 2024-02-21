@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use fnv::FnvHashMap;
 
 use crate::fileset::{FileEntry, FileHandler};
-use crate::report::{advice_info, error, error_info, warn, ErrorKey};
+use crate::report::{advice_info, err, error_info, warn, ErrorKey};
 #[cfg(feature = "ck3")]
 use crate::token::Token;
 
@@ -44,7 +44,7 @@ impl DdsFiles {
             return Ok(None);
         }
         if !buffer.starts_with(b"DDS ") {
-            error(entry, ErrorKey::ImageFormat, "not a DDS file");
+            err(ErrorKey::ImageFormat).msg("not a DDS file").loc(entry).push();
             return Ok(None);
         }
         Ok(Some(DdsInfo::new(&buffer)))

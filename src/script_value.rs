@@ -10,7 +10,7 @@ use crate::everything::Everything;
 use crate::helpers::TriBool;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{advice_info, err, error, error_info, untidy, warn, ErrorKey};
+use crate::report::{advice_info, err, error_info, untidy, warn, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -125,7 +125,7 @@ fn validate_inner(
                     if let Some((inscopes, outscope)) = scope_iterator(&it_name, data, sc) {
                         if it_type.is("any") {
                             let msg = "cannot use `any_` iterators in a script value";
-                            error(token, ErrorKey::Validation, msg);
+                            err(ErrorKey::Validation).msg(msg).loc(token).push();
                         }
                         sc.expect(inscopes, &Reason::Token(token.clone()));
                         if let Some(block) = bv.expect_block() {

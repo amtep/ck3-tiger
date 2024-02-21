@@ -6,7 +6,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{error, ErrorKey};
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -89,7 +89,7 @@ impl DbKind for Innovation {
                     && !data.item_exists(Item::MenAtArmsBase, token.as_str())
                 {
                     let msg = format!("{token} is not a men-at-arms type or base type");
-                    error(token, ErrorKey::MissingItem, &msg);
+                    err(ErrorKey::MissingItem).msg(msg).loc(token).push();
                 }
             }
             validate_maa_stats(&mut vd);

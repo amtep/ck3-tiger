@@ -10,8 +10,8 @@ use strum::IntoEnumIterator;
 use crate::block::{Block, BlockItem, Comparator, Eq::*, Field, BV};
 use crate::helpers::stringify_list;
 use crate::report::{
-    err, error, set_predicate, set_show_loaded_mods, set_show_vanilla, Confidence, ErrorKey,
-    ErrorLoc, FilterRule, PointedMessage, Severity,
+    err, set_predicate, set_show_loaded_mods, set_show_vanilla, Confidence, ErrorKey, ErrorLoc,
+    FilterRule, PointedMessage, Severity,
 };
 
 /// Checks for legacy ignore blocks (that no longer work) and report an error if they are present.
@@ -87,7 +87,8 @@ fn load_rules_from_bv(bv: &BV) -> Option<Vec<FilterRule>> {
     match bv {
         BV::Block(block) => Some(load_rules(block)),
         BV::Value(_) => {
-            error(bv, ErrorKey::Config, "Expected a trigger block. Example usage: `AND = { }`");
+            let msg = "Expected a trigger block. Example usage: `AND = { }`";
+            err(ErrorKey::Config).msg(msg).loc(bv).push();
             None
         }
     }
@@ -98,11 +99,10 @@ fn load_rule(field: &Field) -> Option<FilterRule> {
     let Field(key, cmp, bv) = field;
     let cmp = *cmp;
     if !key.is("severity") && !key.is("confidence") && !matches!(cmp, Comparator::Equals(Single)) {
-        error(
-            key,
-            ErrorKey::Config,
-            &format!("Unexpected operator `{cmp}`, only `=` is valid here."),
-        );
+        err(ErrorKey::Config)
+            .msg(format!("Unexpected operator `{cmp}`, only `=` is valid here."))
+            .loc(key)
+            .push();
         return None;
     }
     match key.as_str() {
@@ -123,7 +123,7 @@ fn load_rule(field: &Field) -> Option<FilterRule> {
             Some(FilterRule::Negation(Box::new(FilterRule::Disjunction(load_rules_from_bv(bv)?))))
         }
         _ => {
-            error(key, ErrorKey::Config, "Unexpected key");
+            err(ErrorKey::Config).msg("Unexpected key").loc(key).push();
             None
         }
     }
@@ -135,11 +135,10 @@ fn load_rule(field: &Field) -> Option<FilterRule> {
 fn load_not(bv: &BV) -> Option<FilterRule> {
     let mut children = load_rules_from_bv(bv)?;
     if children.is_empty() {
-        error(
-            bv,
-            ErrorKey::Config,
-            "This NOT block contains no valid triggers. It will be ignored.",
-        );
+        err(ErrorKey::Config)
+            .msg("This NOT block contains no valid triggers. It will be ignored.")
+            .loc(bv)
+            .push();
         None
     } else if children.len() == 1 {
         Some(FilterRule::Negation(Box::new(children.remove(0))))
@@ -151,22 +150,20 @@ fn load_not(bv: &BV) -> Option<FilterRule> {
 fn load_rule_always(bv: &BV) -> Option<FilterRule> {
     match bv {
         BV::Block(_) => {
-            error(
-                bv,
-                ErrorKey::Config,
-                "`always` can't open a block. Valid values are `yes` and `no`.",
-            );
+            err(ErrorKey::Config)
+                .msg("`always` can't open a block. Valid values are `yes` and `no`.")
+                .loc(bv)
+                .push();
             None
         }
         BV::Value(token) => match token.as_str() {
             "yes" => Some(FilterRule::Tautology),
             "no" => Some(FilterRule::Contradiction),
             _ => {
-                error(
-                    bv,
-                    ErrorKey::Config,
-                    "`always` value not recognised. Valid values are `yes` and `no`.",
-                );
+                err(ErrorKey::Config)
+                    .msg("`always` value not recognised. Valid values are `yes` and `no`.")
+                    .loc(bv)
+                    .push();
                 None
             }
         },
@@ -295,25 +292,23 @@ fn load_files_array(array_block: &Block) -> Option<FilterRule> {
 fn load_rule_severity(comparator: Comparator, value: &BV) -> Option<FilterRule> {
     match value {
         BV::Block(_) => {
-            error(
-                value,
-                ErrorKey::Config,
-                "`severity` can't open a block. Example usage: `severity >= Warning`",
-            );
+            err(ErrorKey::Config)
+                .msg("`severity` can't open a block. Example usage: `severity >= Warning`")
+                .loc(value)
+                .push();
             None
         }
         BV::Value(token) => {
             if let Ok(severity) = token.as_str().to_lowercase().parse() {
                 Some(FilterRule::Severity(comparator, severity))
             } else {
-                error(
-                    token,
-                    ErrorKey::Config,
-                    &format!(
+                err(ErrorKey::Config)
+                    .msg(format!(
                         "Invalid Severity value. Valid values: {}",
                         stringify_list(&Severity::iter().map(Severity::into).collect::<Vec<_>>()),
-                    ),
-                );
+                    ))
+                    .loc(token)
+                    .push();
                 None
             }
         }
@@ -323,27 +318,25 @@ fn load_rule_severity(comparator: Comparator, value: &BV) -> Option<FilterRule> 
 fn load_rule_confidence(comparator: Comparator, value: &BV) -> Option<FilterRule> {
     match value {
         BV::Block(_) => {
-            error(
-                value,
-                ErrorKey::Config,
-                "`confidence` can't open a block. Example usage: `confidence >= Reasonable`",
-            );
+            err(ErrorKey::Config)
+                .msg("`confidence` can't open a block. Example usage: `confidence >= Reasonable`")
+                .loc(value)
+                .push();
             None
         }
         BV::Value(token) => {
             if let Ok(confidence) = token.as_str().to_lowercase().parse() {
                 Some(FilterRule::Confidence(comparator, confidence))
             } else {
-                error(
-                    token,
-                    ErrorKey::Config,
-                    &format!(
+                err(ErrorKey::Config)
+                    .msg(format!(
                         "Invalid Confidence value. Valid values are {}",
                         stringify_list(
                             &Confidence::iter().map(Confidence::into).collect::<Vec<_>>()
-                        ),
-                    ),
-                );
+                        )
+                    ))
+                    .loc(token)
+                    .push();
                 None
             }
         }
@@ -353,22 +346,19 @@ fn load_rule_confidence(comparator: Comparator, value: &BV) -> Option<FilterRule
 fn load_rule_key(value: &BV) -> Option<FilterRule> {
     match value {
         BV::Block(_) => {
-            error(
-                value,
-                ErrorKey::Config,
-                "`key` can't open a block. Example usage: `key = missing-item`",
-            );
+            err(ErrorKey::Config)
+                .msg("`key` can't open a block. Example usage: `key = missing-item`")
+                .loc(value)
+                .push();
             None
         }
         BV::Value(token) => {
             if let Ok(error_key) = token.as_str().parse() {
                 Some(FilterRule::Key(error_key))
             } else {
-                error(
-                    token,
-                    ErrorKey::Config,
+                err(ErrorKey::Config).msg(
                     "Invalid key. In the output, keys are listed between parentheses on the first line of each report. For example, in `Warning(missing-item)`, the key is `missing-item`.",
-                );
+                ).loc(token).push();
                 None
             }
         }
@@ -378,11 +368,10 @@ fn load_rule_key(value: &BV) -> Option<FilterRule> {
 fn load_rule_file(value: &BV) -> Option<FilterRule> {
     match value {
         BV::Block(_) => {
-            error(
-                value,
-                ErrorKey::Config,
+            err(
+                ErrorKey::Config).msg(
                 "`file` can't open a block. Example usage: `file = common/traits/00_traits.txt`",
-            );
+            ).loc(value).push();
             None
         }
         BV::Value(token) => Some(FilterRule::File(PathBuf::from(token.as_str()))),
@@ -392,11 +381,10 @@ fn load_rule_file(value: &BV) -> Option<FilterRule> {
 fn load_rule_text(bv: &BV) -> Option<FilterRule> {
     match bv {
         BV::Block(_) => {
-            error(
-                bv,
-                ErrorKey::Config,
+            err(
+                ErrorKey::Config).msg(
                 "`text` can't open a block. Example usage: `text = \"coat of arms is redefined\"`",
-            );
+            ).loc(bv).push();
             None
         }
         BV::Value(token) => Some(FilterRule::Text(token.to_string())),

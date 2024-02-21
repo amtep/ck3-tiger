@@ -9,7 +9,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, ErrorKey};
+use crate::report::{err, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
@@ -113,7 +113,7 @@ impl List {
                     validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
             } else {
-                error(token, ErrorKey::MissingItem, "no such base list");
+                err(ErrorKey::MissingItem).msg("no such base list").loc(token).push();
             }
         }
     }

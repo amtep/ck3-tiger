@@ -10,7 +10,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::pdxfile::PdxFile;
-use crate::report::{error, fatal, report, untidy, warn, ErrorKey, Severity};
+use crate::report::{err, fatal, report, untidy, warn, ErrorKey, Severity};
 use crate::token::{Loc, Token};
 
 pub type ProvId = u32;
@@ -39,11 +39,10 @@ impl Ck3Provinces {
     fn parse_definition(&mut self, csv: &[Token]) {
         if let Some(province) = Province::parse(csv) {
             if self.provinces.contains_key(&province.id) {
-                error(
-                    &province.comment,
-                    ErrorKey::DuplicateItem,
-                    "duplicate entry for this province id",
-                );
+                err(ErrorKey::DuplicateItem)
+                    .msg("duplicate entry for this province id")
+                    .loc(&province.comment)
+                    .push();
             }
             self.provinces.insert(province.id, province);
         }
@@ -85,14 +84,14 @@ impl Ck3Provinces {
                     if let Some(block) = item.expect_block() {
                         let vec: Vec<&Token> = block.iter_values().collect();
                         if vec.len() != 2 {
-                            error(block, ErrorKey::Validation, "invalid RANGE");
+                            err(ErrorKey::Validation).msg("invalid RANGE").loc(block).push();
                             expecting = Expecting::Nothing;
                             continue;
                         }
                         let from = vec[0].as_str().parse::<ProvId>();
                         let to = vec[1].as_str().parse::<ProvId>();
                         if from.is_err() || to.is_err() {
-                            error(block, ErrorKey::Validation, "invalid RANGE");
+                            err(ErrorKey::Validation).msg("invalid RANGE").loc(block).push();
                             expecting = Expecting::Nothing;
                             continue;
                         }
@@ -115,7 +114,10 @@ impl Ck3Provinces {
                                     self.sea_or_river.insert(provid);
                                 }
                             } else {
-                                error(token, ErrorKey::Validation, "invalid LIST item");
+                                err(ErrorKey::Validation)
+                                    .msg("invalid LIST item")
+                                    .loc(token)
+                                    .push();
                                 break;
                             }
                         }
@@ -181,11 +183,10 @@ impl FileHandler<FileContent> for Ck3Provinces {
                     let content = match read_csv(entry.fullpath()) {
                         Ok(content) => content,
                         Err(e) => {
-                            error(
-                                entry,
-                                ErrorKey::ReadError,
-                                &format!("could not read file: {e:#}"),
-                            );
+                            err(ErrorKey::ReadError)
+                                .msg(format!("could not read file: {e:#}"))
+                                .loc(entry)
+                                .push();
                             return None;
                         }
                     };
@@ -198,7 +199,7 @@ impl FileHandler<FileContent> for Ck3Provinces {
                         Err(e) => {
                             let msg =
                                 format!("could not read `{}`: {:#}", entry.path().display(), e);
-                            error(entry, ErrorKey::ReadError, &msg);
+                            err(ErrorKey::ReadError).msg(msg).loc(entry).push();
                             return None;
                         }
                     };
@@ -210,7 +211,7 @@ impl FileHandler<FileContent> for Ck3Provinces {
                         Ok(img) => img,
                         Err(e) => {
                             let msg = format!("could not read `{}`: {e:#}", entry.path().display());
-                            error(entry, ErrorKey::ReadError, &msg);
+                            err(ErrorKey::ReadError).msg(msg).loc(entry).push();
                             return None;
                         }
                     };
@@ -222,7 +223,7 @@ impl FileHandler<FileContent> for Ck3Provinces {
                         entry.path().display(),
                         img.color()
                     );
-                    error(entry, ErrorKey::ImageFormat, &msg);
+                    err(ErrorKey::ImageFormat).msg(msg).loc(entry).push();
                 }
 
                 "default.map" => {
@@ -251,7 +252,7 @@ impl FileHandler<FileContent> for Ck3Provinces {
                 }
                 if !seen_terminator {
                     let msg = "CK3 needs a line with all `-1;` at the end of this file";
-                    error(entry, ErrorKey::ParseError, msg);
+                    err(ErrorKey::ParseError).msg(msg).loc(entry).push();
                 }
             }
             FileContent::Definitions(content) => {
@@ -291,7 +292,7 @@ impl FileHandler<FileContent> for Ck3Provinces {
                 }
             } else {
                 let msg = format!("province ids must be sequential, but {i} is missing");
-                error(definition_csv, ErrorKey::Validation, &msg);
+                err(ErrorKey::Validation).msg(msg).loc(definition_csv).push();
                 return;
             }
         }
@@ -335,7 +336,7 @@ pub struct Adjacency {
 fn _verify<T: FromStr>(v: &Token, msg: &str) -> Option<T> {
     let r = v.as_str().parse().ok();
     if r.is_none() {
-        error(v, ErrorKey::ParseError, msg);
+        err(ErrorKey::ParseError).msg(msg).loc(v).push();
     }
     r
 }
@@ -350,7 +351,7 @@ impl Adjacency {
 
         if csv.len() != 9 {
             let msg = "wrong number of fields for this line, expected 9";
-            error(&csv[0], ErrorKey::ParseError, msg);
+            err(ErrorKey::ParseError).msg(msg).loc(&csv[0]).push();
             return None;
         }
 
@@ -400,7 +401,7 @@ impl Province {
 
         if csv.len() < 5 {
             let msg = "too few fields for this line, expected 5";
-            error(csv[0].loc, ErrorKey::ParseError, msg);
+            err(ErrorKey::ParseError).msg(msg).loc(&csv[0]).push();
             return None;
         }
 

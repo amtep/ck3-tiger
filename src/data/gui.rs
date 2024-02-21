@@ -14,7 +14,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, error, error_info, fatal, untidy, warn, warn_info, ErrorKey, Severity};
+use crate::report::{err, error_info, fatal, untidy, warn, warn_info, ErrorKey, Severity};
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -107,7 +107,7 @@ impl Gui {
                             stage = Expecting::Header;
                         } else {
                             let msg = format!("unexpected token `{token}`");
-                            error(token, ErrorKey::ParseError, &msg);
+                            err(ErrorKey::ParseError).msg(msg).loc(token).push();
                         }
                     }
                 }
@@ -115,7 +115,7 @@ impl Gui {
                     if let Some((key, token)) = item.get_assignment() {
                         stage = Expecting::Body(key, token);
                     } else {
-                        error(item, ErrorKey::ParseError, "expected type header");
+                        err(ErrorKey::ParseError).msg("expected type header").loc(item).push();
                         stage = Expecting::Type;
                     }
                 }
@@ -309,7 +309,7 @@ impl FileHandler<Block> for Gui {
                             expecting = Expecting::Layer;
                         } else {
                             let msg = format!("unexpected value `{token}`");
-                            error(token, ErrorKey::ParseError, &msg);
+                            err(ErrorKey::ParseError).msg(msg).loc(token).push();
                         }
                     }
                 }

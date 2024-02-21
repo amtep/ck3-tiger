@@ -3,7 +3,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{error, ErrorKey};
+use crate::report::{err, ErrorKey};
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -43,7 +43,7 @@ impl DbKind for GameRule {
         if let Some(token) = vd.field_value("default") {
             if token.is("categories") || block.get_field_block(token.as_str()).is_none() {
                 let msg = "this rule does not have that setting";
-                error(token, ErrorKey::MissingItem, msg);
+                err(ErrorKey::MissingItem).msg(msg).loc(token).push();
             }
         }
 
@@ -57,12 +57,12 @@ impl DbKind for GameRule {
                 if let Some((category, modifier)) = token.split_once(':') {
                     if !category.is("player") && !category.is("ai") && !category.is("all") {
                         let msg = "expected player: ai: or all:";
-                        error(category, ErrorKey::Validation, msg);
+                        err(ErrorKey::Validation).msg(msg).loc(category).push();
                     }
                     data.verify_exists(Item::Modifier, &modifier);
                 } else {
                     let msg = "expected format category:modifier";
-                    error(token, ErrorKey::Validation, msg);
+                    err(ErrorKey::Validation).msg(msg).loc(token).push();
                 }
             }
 

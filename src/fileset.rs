@@ -20,7 +20,7 @@ use crate::item::Item;
 use crate::modfile::ModFile;
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{
-    add_loaded_mod_root, err, error, fatal, report, warn_abbreviated, warn_header, will_maybe_log,
+    add_loaded_mod_root, err, fatal, report, warn_abbreviated, warn_header, will_maybe_log,
     ErrorKey, Severity,
 };
 use crate::token::Token;
@@ -256,7 +256,7 @@ impl Fileset {
                 mod_idx = idx;
             } else {
                 let msg = "too many loaded mods, cannot process more";
-                error(block, ErrorKey::Config, msg);
+                err(ErrorKey::Config).msg(msg).loc(block).push();
                 break;
             }
 

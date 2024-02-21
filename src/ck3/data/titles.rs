@@ -12,7 +12,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{error, warn, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -96,14 +96,13 @@ impl Titles {
                 if let Ok(provid) = ProvId::try_from(provid) {
                     self.baronies.insert(provid, title);
                 } else {
-                    error(
-                        block.get_field_value("province").unwrap(),
-                        ErrorKey::Validation,
-                        "province id out of range",
-                    );
+                    err(ErrorKey::Validation)
+                        .msg("province id out of range")
+                        .loc(block.get_field_value("province").unwrap())
+                        .push();
                 }
             } else {
-                error(&key, ErrorKey::Validation, "barony without province id");
+                err(ErrorKey::Validation).msg("barony without province id").loc(&key).push();
             }
         }
 
@@ -112,14 +111,14 @@ impl Titles {
             if let Ok(tier) = Tier::try_from(k) {
                 if tier >= parent_tier {
                     let msg = format!("can't put a {tier} inside a {parent_tier}");
-                    error(k, ErrorKey::TitleTier, &msg);
+                    err(ErrorKey::TitleTier).msg(msg).loc(k).push();
                 }
                 self.load_item(k.clone(), block, Some(key.as_str()), is_county_capital);
                 is_county_capital = false;
             }
         }
         if is_county_capital {
-            error(key, ErrorKey::Validation, "county with no baronies!");
+            err(ErrorKey::Validation).msg("county with no baronies!").loc(key).push();
         }
     }
 
@@ -214,7 +213,7 @@ impl Title {
             data.verify_exists(Item::Title, token);
             if Tier::try_from(token) != Ok(Tier::County) {
                 let msg = "capital must be a county";
-                error(token, ErrorKey::TitleTier, msg);
+                err(ErrorKey::TitleTier).msg(msg).loc(token).push();
             }
         }
         vd.field_bool("definite_form");

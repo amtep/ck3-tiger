@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{error, ErrorKey};
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -48,7 +48,7 @@ impl DbKind for LawGroup {
         if let Some(token) = vd.field_value("default") {
             if block.get_field_block(token.as_str()).is_none() {
                 let msg = "law not defined in this group";
-                error(token, ErrorKey::MissingItem, msg);
+                err(ErrorKey::MissingItem).msg(msg).loc(token).push();
             }
         }
         vd.field_bool("cumulative");
@@ -165,7 +165,7 @@ impl DbKind for Law {
                 if let Some(traversal_order) = block.get_field_value("traversal_order") {
                     if title_division.is("partition") && !traversal_order.is("children") {
                         let msg = "partition is only for `traversal_order = children`";
-                        error(title_division, ErrorKey::Validation, msg);
+                        err(ErrorKey::Validation).msg(msg).loc(title_division).push();
                     }
                 }
             }

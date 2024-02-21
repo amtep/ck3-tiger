@@ -6,7 +6,7 @@ use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
 use crate::helpers::dup_error;
 use crate::item::{Item, ItemLoader};
-use crate::report::{error, fatal, warn, warn2, Confidence, ErrorKey, Severity};
+use crate::report::{err, fatal, warn, warn2, Confidence, ErrorKey, Severity};
 use crate::token::Token;
 use crate::validate::validate_numeric_range;
 use crate::validator::Validator;
@@ -70,7 +70,7 @@ impl Gene {
     pub fn verify_has_template(category: &str, template: &Token, data: &Everything) {
         if !data.item_has_property(Item::GeneCategory, category, template.as_str()) {
             let msg = format!("gene {category} does not have template {template}");
-            error(template, ErrorKey::MissingItem, &msg);
+            err(ErrorKey::MissingItem).msg(msg).loc(template).push();
         }
     }
 }
@@ -225,7 +225,7 @@ impl DbKind for MorphGene {
             if count % 2 == 0 {
                 if !token.is("") && !self.templates.contains_key(token.as_str()) {
                     let msg = format!("Gene template {token} not found in category {call_key}");
-                    error(token, ErrorKey::MissingItem, &msg);
+                    err(ErrorKey::MissingItem).msg(msg).loc(token).push();
                 }
             } else if let Some(i) = token.expect_integer() {
                 if !(0..=256).contains(&i) {
@@ -235,13 +235,13 @@ impl DbKind for MorphGene {
             count += 1;
             if count > 4 {
                 let msg = "too many values in this gene";
-                error(token, ErrorKey::Validation, msg);
+                err(ErrorKey::Validation).msg(msg).loc(token).push();
                 break;
             }
         }
         if count < 4 {
             let msg = "too few values in this gene";
-            error(call_block, ErrorKey::Validation, msg);
+            err(ErrorKey::Validation).msg(msg).loc(call_block).push();
         }
     }
 }
@@ -376,7 +376,7 @@ impl DbKind for AccessoryGene {
             if count % 2 == 0 {
                 if !token.is("") && !self.templates.contains_key(token.as_str()) {
                     let msg = format!("Gene template {token} not found in category {call_key}");
-                    error(token, ErrorKey::MissingItem, &msg);
+                    err(ErrorKey::MissingItem).msg(msg).loc(token).push();
                 }
             } else if let Some(i) = token.expect_integer() {
                 if !(0..=256).contains(&i) {
@@ -386,13 +386,13 @@ impl DbKind for AccessoryGene {
             count += 1;
             if count > 4 {
                 let msg = "too many values in this gene";
-                error(token, ErrorKey::Validation, msg);
+                err(ErrorKey::Validation).msg(msg).loc(token).push();
                 break;
             }
         }
         if count < 4 {
             let msg = "too few values in this gene";
-            error(call_block, ErrorKey::Validation, msg);
+            err(ErrorKey::Validation).msg(msg).loc(call_block).push();
         }
     }
 }
@@ -436,17 +436,19 @@ fn validate_curve_range(block: &Block, data: &Everything) {
             #[allow(clippy::collapsible_else_if)]
             if count == 1 {
                 if !(0.0..=1.0).contains(&v) {
-                    error(token, ErrorKey::Range, "expected number from 0.0 to 1.0");
+                    let msg = "expected number from 0.0 to 1.0";
+                    err(ErrorKey::Range).msg(msg).loc(token).push();
                 }
             } else {
                 if !(-1.0..=1.0).contains(&v) {
-                    error(token, ErrorKey::Range, "expected number from -1.0 to 1.0");
+                    let msg = "expected number from -1.0 to 1.0";
+                    err(ErrorKey::Range).msg(msg).loc(token).push();
                 }
             }
         }
     }
     if count != 2 {
-        error(block, ErrorKey::Validation, "expected exactly 2 numbers");
+        err(ErrorKey::Validation).msg("expected exactly 2 numbers").loc(block).push();
     }
 }
 
@@ -462,7 +464,8 @@ fn validate_hsv_curve_range(block: &Block, data: &Everything) {
                 if let Some(v) = token.expect_number() {
                     found_first = true;
                     if !(0.0..=1.0).contains(&v) {
-                        error(token, ErrorKey::Range, "expected number from 0.0 to 1.0");
+                        let msg = "expected number from 0.0 to 1.0";
+                        err(ErrorKey::Range).msg(msg).loc(token).push();
                     }
                 }
             }
@@ -475,12 +478,13 @@ fn validate_hsv_curve_range(block: &Block, data: &Everything) {
                     if let Some(v) = token.expect_number() {
                         count += 1;
                         if !(-1.0..=1.0).contains(&v) {
-                            error(token, ErrorKey::Range, "expected number from -1.0 to 1.0");
+                            let msg = "expected number from -1.0 to 1.0";
+                            err(ErrorKey::Range).msg(msg).loc(token).push();
                         }
                     }
                 }
                 if count != 3 {
-                    error(block, ErrorKey::Validation, "expected exactly 3 numbers");
+                    err(ErrorKey::Validation).msg("expected exactly 3 numbers").loc(block).push();
                 }
             }
         }

@@ -5,7 +5,7 @@ use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{error, fatal, warn, ErrorKey};
+use crate::report::{err, fatal, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -90,16 +90,18 @@ pub fn validate_camera_color(block: &Block, data: &Everything) {
             if let Some(f) = t.get_number() {
                 if count <= 1 && !(0.0..=1.0).contains(&f) {
                     let msg = "h and s values should be between 0.0 and 1.0";
-                    error(t, ErrorKey::Colors, msg);
+                    err(ErrorKey::Colors).msg(msg).loc(t).push();
                 }
             } else {
-                error(t, ErrorKey::Colors, "expected hsv value");
+                let msg = "expected hsv value";
+                err(ErrorKey::Colors).msg(msg).loc(t).push();
             }
             count += 1;
         }
     }
     if count != 3 {
-        error(block, ErrorKey::Colors, "expected 3 color values");
+        let msg = "expected 3 color values";
+        err(ErrorKey::Colors).msg(msg).loc(block).push();
     }
 }
 
@@ -304,7 +306,7 @@ pub fn validate_portrait_modifier_overrides(block: &Block, data: &Everything) {
         data.verify_exists(Item::PortraitModifierGroup, key);
         if !data.item_has_property(Item::PortraitModifierGroup, key.as_str(), value.as_str()) {
             let msg = format!("portrait modifier group {key} does not have the modifier {value}");
-            error(value, ErrorKey::MissingItem, &msg);
+            err(ErrorKey::MissingItem).msg(msg).loc(value).push();
         }
     });
 }

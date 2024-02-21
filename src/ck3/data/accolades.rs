@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{error, ErrorKey};
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -84,7 +84,7 @@ impl DbKind for AccoladeName {
         if let Some(n) = block.get_field_integer("num_options") {
             if count != n {
                 let msg = format!("expected {n} `option` blocks, found {count}");
-                error(block, ErrorKey::Validation, &msg);
+                err(ErrorKey::Validation).msg(msg).loc(block).push();
             }
         }
 
