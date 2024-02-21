@@ -38,22 +38,23 @@ impl Loc {
         Loc { idx, kind, line: 0, column: 0, link_idx: None }
     }
 
-    pub fn filename(&self) -> Cow<str> {
+    pub fn filename(self) -> Cow<'static, str> {
         PathTable::lookup_path(self.idx)
             .file_name()
             .unwrap_or_else(|| OsStr::new(""))
             .to_string_lossy()
     }
 
-    pub fn pathname(&self) -> &'static Path {
+    pub fn pathname(self) -> &'static Path {
         PathTable::lookup_path(self.idx)
     }
 
-    pub fn fullpath(&self) -> &'static Path {
+    pub fn fullpath(self) -> &'static Path {
         PathTable::lookup_fullpath(self.idx)
     }
 
-    pub fn same_file(&self, other: Loc) -> bool {
+    #[inline]
+    pub fn same_file(self, other: Loc) -> bool {
         self.idx == other.idx
     }
 }
@@ -100,7 +101,7 @@ impl Debug for Loc {
 /// It should only be used for large strings, rather than for small, individuals strings,
 /// due to the memory overhead. Use [`bump`] instead, which uses a bump allocator to store
 /// the strings.
-pub fn leak(s: String) -> &'static str {
+pub(crate) fn leak(s: String) -> &'static str {
     let s = ManuallyDrop::new(s);
     unsafe {
         let s_ptr: *const str = s.as_ref();
@@ -114,7 +115,7 @@ thread_local!(static STR_BUMP: ManuallyDrop<Bump> = ManuallyDrop::new(Bump::new(
 ///
 /// SAFETY: This is safe as long as no `Bump::reset` is called to deallocate memory
 /// and `STR_BUMP` is not dropped when thread exits.
-pub fn bump(s: &str) -> &'static str {
+pub(crate) fn bump(s: &str) -> &'static str {
     STR_BUMP.with(|bump| {
         let s = bump.alloc_str(s);
         unsafe {
@@ -184,7 +185,7 @@ impl Token {
         Token { s: &self.s[range], loc }
     }
 
-    pub fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> &'static str {
         self.s
     }
 
