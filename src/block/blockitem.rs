@@ -15,7 +15,7 @@ impl BlockItem {
             Some(field)
         } else {
             let msg = format!("unexpected {}", self.describe());
-            err(ErrorKey::Structure).msg(msg).info("Did you forgetr an = ?").loc(self).push();
+            err(ErrorKey::Structure).msg(msg).info("Did you forget an = ?").loc(self).push();
             None
         }
     }
@@ -25,7 +25,7 @@ impl BlockItem {
             Some(field)
         } else {
             let msg = format!("unexpected {}", self.describe());
-            err(ErrorKey::Structure).msg(msg).info("Did you forgetr an = ?").loc(self).push();
+            err(ErrorKey::Structure).msg(msg).info("Did you forget an = ?").loc(self).push();
             None
         }
     }

@@ -436,9 +436,6 @@ impl Block {
                         }
                     }
                 }
-                //  else {
-
-                // }
             }
             Some(parse_pdx_macro(&content))
         } else {

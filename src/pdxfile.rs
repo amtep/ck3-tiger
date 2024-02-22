@@ -15,8 +15,8 @@ use crate::fileset::FileEntry;
 use crate::parse::pdxfile::parse_pdx_file;
 use crate::report::{err, warn, ErrorKey};
 
-const BOM_AS_BYTES: &[u8] = b"\xef\xbb\xbf";
-const BOM_LEN: usize = BOM_AS_BYTES.len();
+const BOM_UTF8_BYTES: &[u8] = b"\xef\xbb\xbf";
+const BOM_UTF8_LEN: usize = BOM_UTF8_BYTES.len();
 const BOM_CHAR: char = '\u{feff}';
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -27,17 +27,20 @@ pub enum PdxEncoding {
     Detect,
 }
 
+/// Return a modified `String` that does not have the leading UTF-8 BOM.
+/// `contents` *must* start with the BOM.
+/// The returned `String` *must not* ever be deallocated.
 fn strip_bom(contents: String) -> String {
     // leak so does not deallocate memory
     let contents = ManuallyDrop::new(contents);
     let ptr = contents.as_ptr();
     unsafe {
-        // This would cause a memory leak for the first three bytes and any excess capacity of `contents`,
-        // but is deemed acceptable
+        // Re-using the input `String` is faster than allocating a new version.
+        // The tradeoff is that it wastes the three starting bytes and any excess capacity in `contents`, but that is acceptable.
         String::from_raw_parts(
-            ptr.cast_mut().add(BOM_LEN),
-            contents.len() - BOM_LEN,
-            contents.len() - BOM_LEN,
+            ptr.cast_mut().add(BOM_UTF8_LEN),
+            contents.len() - BOM_UTF8_LEN,
+            contents.len() - BOM_UTF8_LEN,
         )
     }
 }
@@ -92,8 +95,8 @@ impl PdxFile {
                 return None;
             }
         };
-        if bytes.starts_with(BOM_AS_BYTES) {
-            let (contents, errors) = UTF_8.decode_without_bom_handling(&bytes[BOM_LEN..]);
+        if bytes.starts_with(BOM_UTF8_BYTES) {
+            let (contents, errors) = UTF_8.decode_without_bom_handling(&bytes[BOM_UTF8_LEN..]);
             if errors {
                 let msg = "could not decode UTF-8 file";
                 err(ErrorKey::Encoding).msg(msg).loc(entry).push();

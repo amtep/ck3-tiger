@@ -115,7 +115,7 @@ impl Calculator {
         self.current.clear();
     }
 
-    /// Register a part of a calculation, either an operator or a [`Value`](`Calculation::Value`).
+    /// Register an operator.
     fn op(&mut self, op: Calculation, loc: Loc) {
         if let Some(Calculation::Value(_)) = self.current.last() {
             self.current.push(op);
@@ -646,6 +646,7 @@ impl Id {
         *self = Self::Borrowed(str, index, index, loc);
     }
 
+    /// **ASSERT**: the char must match the char starting at the end index of the borrowed string (if applicable).
     fn add_char(&mut self, c: char) {
         match *self {
             Self::Uninit => unreachable!(),
@@ -654,7 +655,8 @@ impl Id {
                 string.push(c);
                 *self = Self::Owned(string, loc);
             }
-            Self::Borrowed(_, _, ref mut end, _) => {
+            Self::Borrowed(_str, _, ref mut end, _) => {
+                // ASSERT: _str[*end..].starts_with(c)
                 *end += c.len_utf8();
             }
             Self::Owned(ref mut string, _) => string.push(c),
@@ -669,7 +671,7 @@ impl Id {
         self.add_char(c);
     }
 
-    fn token(&mut self) -> Token {
+    fn take_to_token(&mut self) -> Token {
         match take(self) {
             Id::Uninit => unreachable!(),
             Id::Borrowed(str, start, end, loc) => Token::from_static_str(&str[start..end], loc),
@@ -720,7 +722,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                             // empty quoted string
                             Token::from_static_str("", loc)
                         } else {
-                            current_id.token()
+                            current_id.take_to_token()
                         };
                         parser.token(token);
                         state = State::Neutral;
@@ -731,7 +733,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                             // empty quoted string
                             Token::from_static_str("", loc)
                         } else {
-                            current_id.token()
+                            current_id.take_to_token()
                         };
                         parser.token(token);
                         state = State::Neutral;
@@ -742,7 +744,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                     if c.is_id_char() {
                         current_id.push(c, content, i, loc);
                     } else {
-                        parser.token(current_id.token());
+                        parser.token(current_id.take_to_token());
 
                         match c {
                             _ if c.is_ascii_whitespace() => state = State::Neutral,
@@ -772,7 +774,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                     if c.is_comparator_char() {
                         current_id.push(c, content, i, loc);
                     } else {
-                        let token = current_id.token();
+                        let token = current_id.take_to_token();
                         parser.comparator(token.as_str(), token.loc);
 
                         match c {
@@ -820,7 +822,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
 
     // Deal with state at end of file
     if !matches!(current_id, Id::Uninit) {
-        let token = current_id.token();
+        let token = current_id.take_to_token();
         match state {
             State::QString => {
                 err(ErrorKey::ParseError).msg("Quoted string not closed").loc(&token).push();
@@ -1149,7 +1151,7 @@ pub enum MacroComponentKind {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-/// Macro components outputted from [`split_macros`].
+/// Macro components output from [`split_macros`].
 pub struct MacroComponent {
     kind: MacroComponentKind,
     token: Token,
@@ -1173,13 +1175,13 @@ impl MacroComponent {
 /// The function is aware of comments and quoted strings and will avoid detecting macro parameters
 /// inside those.
 fn split_macros(token: &Token, local_values: &LocalValues) -> Vec<MacroComponent> {
-    #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+    #[derive(Debug, Clone, Copy)]
     enum State {
         Neutral,
         QString,
         Comment,
         LocalValue,
-        Calculation(Option<(usize, Loc)>),
+        Calculation(Option<IndexLoc>),
         Macro,
     }
     let content = token.as_str();
@@ -1268,7 +1270,7 @@ fn split_macros(token: &Token, local_values: &LocalValues) -> Vec<MacroComponent
             },
             State::Calculation(current_value) => {
                 if c.is_ascii_whitespace() || matches!(c, '+' | '-' | '*' | '/' | '(' | ')' | ']') {
-                    if let Some((start_offset, start_loc)) = current_value {
+                    if let Some(IndexLoc(start_offset, start_loc)) = current_value {
                         // end of current value
                         calculator.next(&content[start_offset..i], local_values, start_loc);
                         state = State::Calculation(None);
@@ -1285,13 +1287,13 @@ fn split_macros(token: &Token, local_values: &LocalValues) -> Vec<MacroComponent
                     }
                     _ if c.is_local_value_char() => {
                         if current_value.is_none() {
-                            state = State::Calculation(Some((i, loc)));
+                            state = State::Calculation(Some(IndexLoc(i, loc)));
                         }
                     }
                     '.' => {
                         // `@[.5 + local_value]` is verified to work
                         if current_value.is_none() {
-                            state = State::Calculation(Some((i, loc)));
+                            state = State::Calculation(Some(IndexLoc(i, loc)));
                         }
                     }
                     '+' => calculator.op(Calculation::Add, loc),
