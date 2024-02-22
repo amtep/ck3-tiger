@@ -215,6 +215,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] Faction,
     #[cfg(feature = "ck3")] Faith,
     #[cfg(feature = "ck3")] FaithIcon,
+    #[cfg(feature = "ck3")] FervorModifier,
     #[cfg(feature = "ck3")] Flavorization,
     #[cfg(feature = "ck3")] Focus,
     #[cfg(feature = "ck3")] GeneticConstraint,
@@ -756,6 +757,8 @@ impl Item {
             Item::Faith => "common/religion/religions/",
             #[cfg(feature = "ck3")]
             Item::FaithIcon => "common/religion/religions/",
+            #[cfg(feature = "ck3")]
+            Item::FervorModifier => "common/religion/fervor_modifiers/",
             #[cfg(feature = "ck3")]
             Item::Faction => "common/factions/",
             #[cfg(feature = "ck3")]

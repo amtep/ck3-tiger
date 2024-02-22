@@ -2,13 +2,17 @@ use fnv::FnvHashMap;
 
 use crate::block::{Block, BV};
 use crate::ck3::validate::validate_traits;
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::FileKind;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::report::{err, warn, ErrorKey};
+use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
+use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
@@ -354,6 +358,30 @@ impl DbKind for ReligionFamily {
             data.verify_exists_implied(Item::File, &pathname, icon);
         }
         vd.field_item("hostility_doctrine", Item::Doctrine);
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct FervorModifier {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::FervorModifier, FervorModifier::add)
+}
+
+impl FervorModifier {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::FervorModifier, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for FervorModifier {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        let mut sc = ScopeContext::new(Scopes::Faith, key);
+        vd.field_script_value("value", &mut sc);
+        vd.field_validated_block("trigger", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
     }
 }
 
