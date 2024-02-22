@@ -864,7 +864,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                 }
                 '$' => {
                     parser.current.contains_macro_parms = true;
-                    index_loc = IndexLoc(i, loc);
+                    index_loc = IndexLoc(i, loc).next();
                     state = State::Macro;
                 }
                 '@' => {
@@ -930,7 +930,8 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
             State::Macro => match c {
                 _ if c.is_id_char() => (),
                 '$' => {
-                    parser.current.contains_macro_parms = true;
+                    let token = Token::from_static_str(&content[index_loc.0..i], index_loc.1);
+                    parser.token(token);
                     index_loc = IndexLoc(i, loc).next();
                     state = State::Neutral;
                 }
@@ -970,11 +971,11 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                         ';' => state = State::Neutral,
                         '$' => {
                             parser.current.contains_macro_parms = true;
-                            index_loc = IndexLoc(i, loc);
+                            index_loc = IndexLoc(i, loc).next();
                             state = State::Macro;
                         }
                         '@' => {
-                            index_loc = IndexLoc(i, loc);
+                            index_loc = IndexLoc(i, loc).next();
                             state = State::LocalValue;
                         }
                         _ => {
@@ -1000,11 +1001,17 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                         parser.token(token);
                         state = State::Neutral;
                     }
-                    _ if current_value.is_none() && c.is_local_value_char() => {
-                        state = State::Calculation(Some((i, loc)));
+                    _ if c.is_local_value_char() => {
+                        if current_value.is_none() {
+                            state = State::Calculation(Some((i, loc)));
+                        }
                     }
                     // `@[.5 + local_value]` is verified to work
-                    '.' if current_value.is_none() => state = State::Calculation(Some((i, loc))),
+                    '.' => {
+                        if current_value.is_none() {
+                            state = State::Calculation(Some((i, loc)));
+                        }
+                    }
                     '+' => calculator.op(Calculation::Add, loc),
                     '-' => calculator.op(Calculation::Subtract, loc),
                     '*' => calculator.op(Calculation::Multiply, loc),
@@ -1045,11 +1052,11 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                         }
                         '$' => {
                             parser.current.contains_macro_parms = true;
-                            index_loc = IndexLoc(i, loc);
+                            index_loc = IndexLoc(i, loc).next();
                             state = State::Macro;
                         }
                         '@' => {
-                            index_loc = IndexLoc(i, loc);
+                            index_loc = IndexLoc(i, loc).next();
                             state = State::LocalValue;
                         }
                         _ => {
@@ -1178,14 +1185,21 @@ fn split_macros(token: &Token, local_values: &LocalValues) -> Vec<MacroComponent
             State::Neutral => match c {
                 '#' => state = State::Comment,
                 '"' => state = State::QString,
-                '$' | '@' => {
+                '$' => {
                     vec.push(MacroComponent {
                         kind: MacroComponentKind::Source,
                         token: token.subtoken(index_loc.0..i, index_loc.1),
                     });
-                    // Skip the current '$' or '@'
                     index_loc = IndexLoc(i, loc).next();
-                    state = if c == '$' { State::Macro } else { State::LocalValue };
+                    state = State::Macro;
+                }
+                '@' => {
+                    vec.push(MacroComponent {
+                        kind: MacroComponentKind::Source,
+                        token: token.subtoken(index_loc.0..i, index_loc.1),
+                    });
+                    index_loc = IndexLoc(i, loc);
+                    state = State::LocalValue;
                 }
                 _ => (),
             },
@@ -1205,7 +1219,7 @@ fn split_macros(token: &Token, local_values: &LocalValues) -> Vec<MacroComponent
             State::LocalValue => match c {
                 _ if c.is_local_value_char() => (),
                 '[' => {
-                    if index_loc.1 == loc {
+                    if index_loc.0 + 1 == i {
                         calculator.start();
                         state = State::Calculation(None);
                     } else {
@@ -1214,7 +1228,7 @@ fn split_macros(token: &Token, local_values: &LocalValues) -> Vec<MacroComponent
                     }
                 }
                 _ => {
-                    let str = &content[index_loc.0..i];
+                    let str = &content[index_loc.0 + 1..i];
                     if let Some(value) = local_values.get_as_str(str) {
                         let token = Token::from_static_str(value, index_loc.1);
                         vec.push(MacroComponent { kind: MacroComponentKind::LocalValue, token });
@@ -1230,11 +1244,11 @@ fn split_macros(token: &Token, local_values: &LocalValues) -> Vec<MacroComponent
                         _ if c.is_ascii_whitespace() => state = State::Neutral,
                         '#' => state = State::Comment,
                         '"' => state = State::QString,
-                        '$' | '@' => {
-                            // Skip the current '$' or '@'
+                        '$' => {
                             index_loc = index_loc.next();
-                            state = if c == '$' { State::Macro } else { State::LocalValue };
+                            state = State::Macro;
                         }
+                        '@' => state = State::LocalValue,
                         _ => {
                             unknown_char(c, loc);
                             state = State::Neutral;
@@ -1259,10 +1273,17 @@ fn split_macros(token: &Token, local_values: &LocalValues) -> Vec<MacroComponent
                         index_loc = IndexLoc(i, loc).next();
                         state = State::Neutral;
                     }
-                    _ if current_value.is_none() && c.is_local_value_char() => {
-                        state = State::Calculation(Some((i, loc)));
+                    _ if c.is_local_value_char() => {
+                        if current_value.is_none() {
+                            state = State::Calculation(Some((i, loc)));
+                        }
                     }
-                    '.' if current_value.is_none() => state = State::Calculation(Some((i, loc))),
+                    '.' => {
+                        // `@[.5 + local_value]` is verified to work
+                        if current_value.is_none() {
+                            state = State::Calculation(Some((i, loc)));
+                        }
+                    }
                     '+' => calculator.op(Calculation::Add, loc),
                     '-' => calculator.op(Calculation::Subtract, loc),
                     '*' => calculator.op(Calculation::Multiply, loc),
