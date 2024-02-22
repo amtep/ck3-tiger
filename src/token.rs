@@ -17,7 +17,6 @@ use crate::date::Date;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{err, error_info, untidy, ErrorKey};
-use crate::stringtable::StringTable;
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
