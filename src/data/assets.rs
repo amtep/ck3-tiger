@@ -9,7 +9,7 @@ use crate::game::Game;
 use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, warn2, Confidence, ErrorKey, Severity};
+use crate::report::{warn, Confidence, ErrorKey, Severity};
 use crate::token::Token;
 use crate::util::SmartJoin;
 use crate::validate::validate_numeric_range;
@@ -144,13 +144,11 @@ impl FileHandler<Option<Block>> for Assets {
         if name.ends_with(".dds") {
             if let Some((other, _)) = self.textures.get(&name.to_string()) {
                 if other.kind() >= entry.kind() {
-                    warn2(
-                        other,
-                        ErrorKey::DuplicateItem,
-                        "texture file is redefined by another file",
-                        entry,
-                        "the other file is here",
-                    );
+                    warn(ErrorKey::DuplicateItem)
+                        .msg("texture file is redefined by another file")
+                        .loc(other)
+                        .loc(entry, "the other file is here")
+                        .push();
                 }
             }
             let entry_token = Token::new(&entry.filename().to_string_lossy(), entry.into());

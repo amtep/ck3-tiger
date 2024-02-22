@@ -9,7 +9,7 @@ use crate::effect_validation::validate_random_list;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, warn, warn_info, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
@@ -950,12 +950,12 @@ pub fn validate_revoke_court_position(
     if let Some(token) = vd.field_value("recipient") {
         let msg = "as of 1.9.2 neither `recipient` nor `target` work here";
         let info = "For court positions with multiple holders (such as bodyguard), an arbitrary one will be revoked";
-        warn_info(token, ErrorKey::Bugs, msg, info);
+        warn(ErrorKey::Bugs).msg(msg).info(info).loc(token).push();
     }
     if let Some(token) = vd.field_value("target") {
         let msg = "as of 1.9.2 neither `recipient` nor `target` work here";
         let info = "For court positions with multiple holders (such as bodyguard), an arbitrary one will be revoked";
-        warn_info(token, ErrorKey::Bugs, msg, info);
+        warn(ErrorKey::Bugs).msg(msg).info(info).loc(token).push();
     }
 }
 

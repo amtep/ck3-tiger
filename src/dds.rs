@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use fnv::FnvHashMap;
 
 use crate::fileset::{FileEntry, FileHandler};
-use crate::report::{advice_info, err, error_info, warn, ErrorKey};
+use crate::report::{err, tips, warn, ErrorKey};
 #[cfg(feature = "ck3")]
 use crate::token::Token;
 
@@ -40,7 +40,7 @@ impl DdsFiles {
             let msg = "actually a PNG";
             let info =
                 "this may be slower and lower quality because PNG format does not have mipmaps";
-            advice_info(entry, ErrorKey::ImageFormat, msg, info);
+            tips(ErrorKey::ImageFormat).msg(msg).info(info).loc(entry).push();
             return Ok(None);
         }
         if !buffer.starts_with(b"DDS ") {
@@ -85,12 +85,11 @@ impl FileHandler<DdsInfo> for DdsFiles {
         match Self::load_dds(entry) {
             Ok(info) => info,
             Err(e) => {
-                error_info(
-                    entry,
-                    ErrorKey::ReadError,
-                    "could not read dds header",
-                    &format!("{e:#}"),
-                );
+                err(ErrorKey::ReadError)
+                    .msg("could not read dds header")
+                    .info(format!("{e:#}"))
+                    .loc(entry)
+                    .push();
                 None
             }
         }

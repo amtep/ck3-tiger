@@ -10,7 +10,7 @@ use crate::everything::Everything;
 use crate::helpers::TriBool;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{advice_info, err, error_info, untidy, warn, ErrorKey};
+use crate::report::{err, tips, untidy, warn, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -253,7 +253,7 @@ fn validate_else(
     vd.field_validated_key_block("limit", |key, block, data| {
         let msg = "`else` with a `limit` does work, but may indicate a mistake";
         let info = "normally you would use `else_if` instead.";
-        advice_info(key, ErrorKey::IfElse, msg, info);
+        tips(ErrorKey::IfElse).msg(msg).info(info).loc(key).push();
         side_effects |= validate_trigger(block, data, sc, Tooltipped::No);
     });
     side_effects |= validate_inner(vd, block, data, sc, TriBool::Maybe, check_desc);
@@ -316,5 +316,5 @@ pub fn validate_non_dynamic_script_value(bv: &BV, data: &Everything) {
     }
     let msg = "dynamic script values are not allowed here";
     let info = "only literal numbers or the name of a simple script value";
-    error_info(bv, ErrorKey::Validation, msg, info);
+    err(ErrorKey::Validation).msg(msg).info(info).loc(bv).push();
 }

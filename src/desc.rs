@@ -9,7 +9,7 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{warn, warn_info, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
@@ -36,12 +36,12 @@ fn validate_desc_map_block(
             if seen_desc && caller == "triggered_desc" {
                 let msg = "multiple descs in one triggered_desc";
                 let info = "only the last one will be shown";
-                warn_info(key, ErrorKey::DuplicateField, msg, info);
+                warn(ErrorKey::DuplicateField).msg(msg).info(info).loc(key).push();
             }
             if seen_unconditional_desc && caller == "first_valid" {
                 let msg = "multiple unconditional desc in one first_valid";
                 let info = "only the first one will be shown";
-                warn_info(key, ErrorKey::DuplicateField, msg, info);
+                warn(ErrorKey::DuplicateField).msg(msg).info(info).loc(key).push();
             }
             if key.is("desc") {
                 match bv {
@@ -65,7 +65,7 @@ fn validate_desc_map_block(
                 if seen_desc && caller == "triggered_desc" {
                     let msg = "multiple descs in one triggered_desc";
                     let info = "only the last one will be shown";
-                    warn_info(key, ErrorKey::DuplicateField, msg, info);
+                    warn(ErrorKey::DuplicateField).msg(msg).info(info).loc(key).push();
                 }
                 validate_desc_map_block(key.as_str(), block, data, sc, f);
                 seen_desc = true;

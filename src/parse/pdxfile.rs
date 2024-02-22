@@ -11,7 +11,7 @@ use fnv::FnvHashMap;
 use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
 use crate::fileset::{FileEntry, FileKind};
-use crate::report::{err, error, fatal, untidy, warn, warn_info, ErrorKey};
+use crate::report::{err, fatal, untidy, warn, ErrorKey};
 use crate::token::{bump, leak, Loc, Token};
 
 /// ^Z is by convention an end-of-text marker, and the game engine treats it as such.
@@ -197,7 +197,7 @@ impl Calculator {
                         Calculation::Divide(loc) => {
                             if value2 == 0.0 {
                                 let msg = "dividing by zero";
-                                error(loc, ErrorKey::LocalValues, msg);
+                                err(ErrorKey::LocalValues).msg(msg).loc(loc).push();
                             } else {
                                 calc.splice(
                                     i - 1..=i + 1,
@@ -392,7 +392,7 @@ impl Parser {
 
         if self.stack.is_empty() && self.current.contains_macro_parms {
             let msg = "$-substitutions only work inside blocks, not at top level";
-            error(&token, ErrorKey::ParseError, msg);
+            err(ErrorKey::ParseError).msg(msg).loc(&token).push();
             self.current.contains_macro_parms = false;
         }
 
@@ -423,7 +423,10 @@ impl Parser {
                         if let Some(value) = self.local_values.get_as_str(local_value) {
                             self.local_values.insert(local_value_key, value);
                         } else {
-                            error(token, ErrorKey::LocalValues, "local value not defined");
+                            err(ErrorKey::LocalValues)
+                                .msg("local value not defined")
+                                .loc(&token)
+                                .push();
                         }
                     } else {
                         // @localvalue_key = value
@@ -438,7 +441,10 @@ impl Parser {
                         let token = Token::from_static_str(value, token.loc);
                         self.current.block.add_key_bv(key, cmp, BV::Value(token));
                     } else {
-                        error(&token, ErrorKey::LocalValues, "local value not defined");
+                        err(ErrorKey::LocalValues)
+                            .msg("local value not defined")
+                            .loc(&token)
+                            .push();
                         self.current.block.add_key_bv(key, cmp, BV::Value(token));
                     }
                 } else {
@@ -451,7 +457,7 @@ impl Parser {
                         let token = Token::from_static_str(value, key.loc);
                         self.current.block.add_value(token);
                     } else {
-                        error(&key, ErrorKey::LocalValues, "local value not defined");
+                        err(ErrorKey::LocalValues).msg("local value not defined").loc(&key).push();
                         self.current.block.add_value(key);
                     }
                 } else {
@@ -490,13 +496,13 @@ impl Parser {
     fn comparator(&mut self, s: &'static str, loc: Loc) {
         let cmp = Comparator::from_str(s).unwrap_or_else(|| {
             let msg = format!("Unrecognized comparator '{s}'");
-            error(loc, ErrorKey::ParseError, &msg);
+            err(ErrorKey::ParseError).msg(msg).loc(loc).push();
             Comparator::Equals(Single)
         });
 
         if self.current.key.is_none() {
             let msg = format!("Unexpected comparator '{s}'");
-            error(loc, ErrorKey::ParseError, &msg);
+            err(ErrorKey::ParseError).msg(msg).loc(loc).push();
         } else if let Some((cmp, _)) = self.current.cmp {
             // Double comparator is valid in macro parameters, such as `OPERATOR = >=`.
             if cmp == Comparator::Equals(Single) {
@@ -504,7 +510,7 @@ impl Parser {
                 self.token(token);
             } else {
                 let msg = &format!("Double comparator '{s}'");
-                error(loc, ErrorKey::ParseError, msg);
+                err(ErrorKey::ParseError).msg(msg).loc(loc).push();
             }
         } else {
             self.current.cmp = Some((cmp, loc));
@@ -516,14 +522,14 @@ impl Parser {
     fn end_assign(&mut self) {
         if let Some(key) = self.current.key.take() {
             if let Some((_, cmp_loc)) = self.current.cmp.take() {
-                error(cmp_loc, ErrorKey::ParseError, "Comparator without value");
+                err(ErrorKey::ParseError).msg("comparator without value").loc(cmp_loc).push();
             }
             if let Some(local_value) = key.as_str().strip_prefix('@') {
                 if let Some(value) = self.local_values.get_as_str(local_value) {
                     let token = Token::from_static_str(value, key.loc);
                     self.current.block.add_value(token);
                 } else {
-                    error(&key, ErrorKey::LocalValues, "local value not defined");
+                    err(ErrorKey::LocalValues).msg("local value not defined").loc(&key).push();
                     self.current.block.add_value(key);
                 }
             } else {
@@ -568,14 +574,15 @@ impl Parser {
             }
             self.block_value(prev_level.block);
             if loc.column == 1 && !self.stack.is_empty() {
-                warn_info(loc,
-                          ErrorKey::BracePlacement,
-                          "possible brace error",
-                          "This closing brace is at the start of a line but does not end a top-level item.",
-                );
+                let info = "This closing brace is at the start of a line but does not end a top-level item.";
+                warn(ErrorKey::BracePlacement)
+                    .msg("possible brace error")
+                    .info(info)
+                    .loc(loc)
+                    .push();
             }
         } else {
-            error(loc, ErrorKey::BraceError, "Unexpected }");
+            err(ErrorKey::BraceError).msg("unexpected }").loc(loc).push();
         }
     }
 
@@ -587,7 +594,10 @@ impl Parser {
     fn eof(mut self) -> Block {
         self.end_assign();
         while let Some(mut prev_level) = self.stack.pop() {
-            error(self.current.block.loc, ErrorKey::BraceError, "Opening { was never closed");
+            err(ErrorKey::BraceError)
+                .msg("opening { was never closed")
+                .loc(self.current.block.loc)
+                .push();
             swap(&mut self.current, &mut prev_level);
             self.block_value(prev_level.block);
         }
@@ -598,7 +608,7 @@ impl Parser {
 /// Found a character that doesn't fit anywhere. Log an error message about it and then ignore it.
 fn unknown_char(c: char, loc: Loc) {
     let msg = format!("Unrecognized character {c}");
-    error(loc, ErrorKey::ParseError, &msg);
+    err(ErrorKey::ParseError).msg(msg).loc(loc).push();
 }
 
 /// Found a ^Z character. Log an error message about it and then ignore it. The lexer should

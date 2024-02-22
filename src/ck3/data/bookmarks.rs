@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxEncoding;
-use crate::report::{warn, warn_info, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::validator::Validator;
@@ -111,7 +111,7 @@ fn validate_bookmark_character(
         if !data.item_exists(Item::Coa, token.as_str()) {
             let msg = format!("{} {token} not defined in {}", Item::Coa, Item::Coa.path());
             let info = "bookmark characters must have a defined coa or their shields will be blank";
-            warn_info(token, ErrorKey::MissingItem, &msg, info);
+            warn(ErrorKey::MissingItem).msg(msg).info(info).loc(token).push();
         }
     }
     vd.field_integer("dynasty_splendor_level");

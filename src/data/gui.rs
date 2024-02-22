@@ -14,7 +14,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, error_info, fatal, untidy, warn, warn_info, ErrorKey, Severity};
+use crate::report::{err, fatal, untidy, warn, ErrorKey, Severity};
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -98,7 +98,7 @@ impl Gui {
                         let msg = format!("unexpected {}", field.describe());
                         if field.is_eq() {
                             let info = "did you forget the `type` keyword?";
-                            warn_info(field, ErrorKey::ParseError, &msg, info);
+                            warn(ErrorKey::ParseError).msg(msg).info(info).loc(field).push();
                         } else {
                             warn(ErrorKey::ParseError).msg(msg).loc(field).push();
                         }
@@ -321,7 +321,7 @@ impl FileHandler<Block> for Gui {
                             field.key(),
                             field.cmp()
                         );
-                        error_info(field, ErrorKey::ParseError, &msg, &info);
+                        err(ErrorKey::ParseError).msg(msg).info(info).loc(field).push();
                         expecting = Expecting::Widget;
                     } else if item.expect_value().is_some() {
                         expecting = Expecting::TypesBody;
@@ -343,7 +343,7 @@ impl FileHandler<Block> for Gui {
                             field.key(),
                             field.cmp()
                         );
-                        error_info(field, ErrorKey::ParseError, &msg, &info);
+                        err(ErrorKey::ParseError).msg(msg).info(info).loc(field).push();
                         expecting = Expecting::Widget;
                     } else if let Some(token) = item.expect_into_value() {
                         expecting = Expecting::TemplateBody(token);
@@ -365,7 +365,7 @@ impl FileHandler<Block> for Gui {
                             field.key(),
                             field.cmp()
                         );
-                        error_info(field, ErrorKey::ParseError, &msg, &info);
+                        err(ErrorKey::ParseError).msg(msg).info(info).loc(field).push();
                         expecting = Expecting::Widget;
                     } else if let Some(token) = item.expect_into_value() {
                         expecting = Expecting::LayerBody(token);

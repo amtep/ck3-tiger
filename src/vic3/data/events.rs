@@ -13,7 +13,7 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, error_info, warn_info, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -39,7 +39,9 @@ impl Vic3Events {
                 return;
             }
         }
-        warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.");
+        let msg = "Event names should be in the form NAMESPACE.NUMBER";
+        let info = "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.";
+        warn(ErrorKey::EventNamespace).msg(msg).info(info).loc(key).push();
     }
 
     pub fn get_event(&self, key: &str) -> Option<&Event> {
@@ -160,7 +162,7 @@ impl Event {
             if !data.item_exists(Item::EventNamespace, namespace) {
                 let msg = format!("event file should start with `namespace = {namespace}`");
                 let info = "otherwise the event won't be found in-game";
-                error_info(&self.key, ErrorKey::EventNamespace, &msg, info);
+                err(ErrorKey::EventNamespace).msg(msg).info(info).loc(&self.key).push();
             }
         }
 

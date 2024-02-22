@@ -16,7 +16,7 @@ use bumpalo::Bump;
 use crate::date::Date;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pathtable::{PathTable, PathTableIndex};
-use crate::report::{err, error_info, untidy, ErrorKey};
+use crate::report::{err, untidy, ErrorKey};
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
@@ -348,7 +348,7 @@ impl Token {
                 let msg = "only 5 decimals are supported";
                 let info =
                     "if you give more decimals, you get an error and the number is read as 0";
-                error_info(self, ErrorKey::Validation, msg, info);
+                err(ErrorKey::Validation).msg(msg).info(info).loc(self).push();
             }
         }
     }

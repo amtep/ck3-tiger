@@ -3,7 +3,7 @@ use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{warn_info, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::Trigger;
@@ -36,7 +36,7 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
         if !data.item_exists(Item::Building, part) && !data.item_exists(Item::PopType, part) {
             let msg = format!("could not find any {part}");
             let info = "Possible valid options would be: num_of_$POPTYPE$ or num_of_$BUILDING$";
-            warn_info(name, ErrorKey::MissingItem, &msg, info);
+            warn(ErrorKey::MissingItem).msg(msg).info(info).loc(name).push();
         }
         return Some((Scopes::Country, Trigger::CompareValue));
     }

@@ -16,7 +16,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, fatal, untidy, warn, warn_info, ErrorKey};
+use crate::report::{err, fatal, untidy, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -531,7 +531,7 @@ impl Character {
             let msg =
                 format!("`character:{}` will not work because of the dot in the id", &self.key);
             let info = "script code will not be able to refer to this character";
-            warn_info(&self.key, ErrorKey::CharacterId, &msg, info);
+            warn(ErrorKey::CharacterId).msg(msg).info(info).loc(&self.key).push();
         }
 
         vd.req_field("name");
