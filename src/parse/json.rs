@@ -239,7 +239,11 @@ pub fn parse_json_file(entry: &FileEntry) -> Option<Block> {
     let contents = match read_to_string(entry.fullpath()) {
         Ok(contents) => contents,
         Err(e) => {
-            err(ErrorKey::ReadError).msg("could not read file").info(format!("{e:#}")).loc(entry).push();
+            err(ErrorKey::ReadError)
+                .msg("could not read file")
+                .info(format!("{e:#}"))
+                .loc(entry)
+                .push();
             return None;
         }
     };

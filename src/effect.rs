@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{tips, err, fatal, warn, ErrorKey};
+use crate::report::{err, fatal, tips, warn, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::script_value::validate_script_value;
 use crate::token::Token;

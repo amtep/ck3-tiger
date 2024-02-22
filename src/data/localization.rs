@@ -21,8 +21,7 @@ use crate::item::Item;
 use crate::macros::MACRO_MAP;
 use crate::parse::localization::{parse_loca, ValueParser};
 use crate::report::{
-    err, report, warn, warn_abbreviated, warn_header, will_maybe_log,
-    ErrorKey, Severity,
+    err, report, warn, warn_abbreviated, warn_header, will_maybe_log, ErrorKey, Severity,
 };
 use crate::scopes::Scopes;
 use crate::token::Token;
