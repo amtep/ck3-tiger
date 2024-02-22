@@ -12,7 +12,7 @@ use crate::item::Item;
 use crate::on_action::on_action_scopecontext;
 use crate::pdxfile::PdxFile;
 #[cfg(feature = "ck3")]
-use crate::report::{error_info, warn_info, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -151,7 +151,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
             // TODO: verify
             let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
             let info = "try combining them into one block";
-            warn_info(key, ErrorKey::Validation, &msg, info);
+            warn(ErrorKey::Validation).msg(msg).info(info).loc(key).push();
         }
     });
     count = 0;
@@ -173,7 +173,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
         if Game::is_ck3() && count == 2 {
             let msg = format!("multiple `{key}` blocks in one on_action do not work");
             let info = "try putting each into its own on_action and firing those separately";
-            error_info(key, ErrorKey::Validation, &msg, info);
+            err(ErrorKey::Validation).msg(msg).info(info).loc(key).push();
         }
     });
     count = 0;
@@ -190,7 +190,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
             // TODO: verify
             let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
             let info = "try putting each into its own on_action and firing those separately";
-            warn_info(key, ErrorKey::Validation, &msg, info);
+            warn(ErrorKey::Validation).msg(msg).info(info).loc(key).push();
         }
     });
     count = 0;
@@ -207,7 +207,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
             // TODO: verify
             let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
             let info = "try combining them into one block";
-            warn_info(key, ErrorKey::Validation, &msg, info);
+            warn(ErrorKey::Validation).msg(msg).info(info).loc(key).push();
         }
     });
     count = 0;
@@ -228,7 +228,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
             // TODO: verify
             let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
             let info = "try putting each into its own on_action and firing those separately";
-            warn_info(key, ErrorKey::Validation, &msg, info);
+            warn(ErrorKey::Validation).msg(msg).info(info).loc(key).push();
         }
     });
     count = 0;
@@ -244,7 +244,7 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
             // TODO: verify
             let msg = format!("not sure if multiple `{key}` blocks in one on_action work");
             let info = "try putting each into its own on_action and firing those separately";
-            warn_info(key, ErrorKey::Validation, &msg, info);
+            warn(ErrorKey::Validation).msg(msg).info(info).loc(key).push();
         }
     });
     vd.field_validated_block("effect", |b, data| {

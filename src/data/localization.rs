@@ -20,11 +20,8 @@ use crate::helpers::{dup_error, stringify_list};
 use crate::item::Item;
 use crate::macros::MACRO_MAP;
 use crate::parse::localization::{parse_loca, ValueParser};
-#[cfg(feature = "ck3")]
-use crate::report::warn2;
 use crate::report::{
-    err, error_info, report, warn, warn_abbreviated, warn_header, warn_info, will_maybe_log,
-    ErrorKey, Severity,
+    err, report, warn, warn_abbreviated, warn_header, will_maybe_log, ErrorKey, Severity,
 };
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -468,29 +465,25 @@ impl Localization {
                             let find = format!("${prefix}{i}$");
                             let find2 = format!("${prefix}{i}|");
                             if !orig.as_str().contains(&find) && !orig.as_str().contains(&find2) {
-                                warn2(
-                                    key,
-                                    ErrorKey::Validation,
-                                    &format!("localization is missing {find}"),
-                                    &entry.key,
-                                    "here",
-                                );
+                                warn(ErrorKey::Validation)
+                                    .msg(format!("localization is missing {find}"))
+                                    .loc(key)
+                                    .loc(&entry.key, "here")
+                                    .push();
                             }
                         }
                         let find = format!("${prefix}{}$", n + 1);
                         let find2 = format!("${prefix}{}|", n + 1);
                         if orig.as_str().contains(&find) && !orig.as_str().contains(&find2) {
-                            warn2(
-                                key,
-                                ErrorKey::Validation,
-                                "localization has too many options",
-                                &entry.key,
-                                "here",
-                            );
+                            warn(ErrorKey::Validation)
+                                .msg("localization has too many options")
+                                .loc(key)
+                                .loc(&entry.key, "here")
+                                .push();
                         }
                     } else if n > 0 {
                         let msg = format!("localization is missing ${prefix}1$");
-                        warn2(key, ErrorKey::Validation, &msg, &entry.key, "here");
+                        warn(ErrorKey::Validation).msg(msg).loc(key).loc(&entry.key, "here").push();
                     }
                 }
             }
@@ -589,7 +582,7 @@ impl Localization {
                     }
                     let msg = format!("missing loca `{key}_name: \"{key}_visible\"`");
                     let info = "this is needed for the `window_character_lifestyle.gui` code";
-                    error_info(key, ErrorKey::PrincesOfDarkness, &msg, info);
+                    err(ErrorKey::PrincesOfDarkness).msg(msg).info(info).loc(key).push();
                 }
             }
         }
@@ -644,7 +637,9 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
             // However, if there's one in a subdirectory for a *different* language than the one in its name,
             // then something is probably wrong.
             if filelang != lang && KNOWN_LANGUAGES.contains(&&*lang) {
-                warn_info(entry, ErrorKey::Filename, "localization file with wrong name or in wrong directory", "A localization file should be in a subdirectory corresponding to its language.");
+                let msg = "localization file with wrong name or in wrong directory";
+                let info = "A localization file should be in a subdirectory corresponding to its language.";
+                warn(ErrorKey::Filename).msg(msg).info(info).loc(entry).push();
             }
             match read_to_string(entry.fullpath()) {
                 Ok(content) => {
@@ -658,12 +653,12 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
             }
         } else if entry.kind() >= FileKind::Vanilla {
             // Check for `FileKind::Vanilla` because Jomini and Clausewitz support more languages
-            error_info(
-                entry,
-                ErrorKey::Filename,
-                "could not determine language from filename",
-                &format!("Localization filenames should end in _l_language.yml, where language is one of {}", KNOWN_LANGUAGES.join(", ")),
+            let msg = "could not determine language from filename";
+            let info = format!(
+                "Localization filenames should end in _l_language.yml, where language is one of {}",
+                KNOWN_LANGUAGES.join(", ")
             );
+            err(ErrorKey::Filename).msg(msg).info(info).loc(entry).push();
         }
         None
     }

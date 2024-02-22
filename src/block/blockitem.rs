@@ -1,5 +1,5 @@
 use crate::block::{Block, Comparator, Eq::*, Field, BV};
-use crate::report::{err, error_info, ErrorKey};
+use crate::report::{err, ErrorKey};
 use crate::token::Token;
 
 #[derive(Debug, Clone)]
@@ -15,7 +15,7 @@ impl BlockItem {
             Some(field)
         } else {
             let msg = format!("unexpected {}", self.describe());
-            error_info(self, ErrorKey::Structure, &msg, "Did you forget an = ?");
+            err(ErrorKey::Structure).msg(msg).info("Did you forget an = ?").loc(self).push();
             None
         }
     }
@@ -25,7 +25,7 @@ impl BlockItem {
             Some(field)
         } else {
             let msg = format!("unexpected {}", self.describe());
-            error_info(self, ErrorKey::Structure, &msg, "Did you forget an = ?");
+            err(ErrorKey::Structure).msg(msg).info("Did you forget an = ?").loc(self).push();
             None
         }
     }

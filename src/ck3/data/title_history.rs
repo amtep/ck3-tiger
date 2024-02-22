@@ -11,7 +11,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, error_info, warn, warn2, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -27,13 +27,11 @@ impl TitleHistories {
         if let Some(other) = self.histories.get_mut(key.as_str()) {
             // Multiple entries are valid but could easily be a mistake.
             if other.key.loc.kind >= key.loc.kind {
-                warn2(
-                    &other.key,
-                    ErrorKey::DuplicateItem,
-                    "title has two definition blocks, they will be added together",
-                    key,
-                    "the other one is here",
-                );
+                warn(ErrorKey::DuplicateItem)
+                    .msg("title has two definition blocks, they will be added together")
+                    .loc(&other.key)
+                    .loc(key, "the other one is here")
+                    .push();
             }
             other.block.append(&mut block);
         } else {
@@ -103,35 +101,22 @@ impl TitleHistory {
     }
 
     pub fn verify_has_holder(&self, token: &Token, date: Date, data: &Everything) {
+        let info = "setting the liege will not have effect here";
+
         if let Some(holder) = self.block.get_field_at_date("holder", date) {
             // if holder is not a value then we already warned about that
             if let Some(holder) = holder.get_value() {
                 if holder.is("0") {
                     let msg = format!("{token} has no holder at {date}");
-                    error_info(
-                        token,
-                        ErrorKey::History,
-                        &msg,
-                        "setting the liege will not have effect here",
-                    );
+                    err(ErrorKey::History).msg(msg).info(info).loc(token).push();
                 } else if !data.characters.is_alive(holder, date) {
                     let msg = format!("holder of {token} is not alive at {date}");
-                    error_info(
-                        token,
-                        ErrorKey::History,
-                        &msg,
-                        "setting the liege will not have effect here",
-                    );
+                    err(ErrorKey::History).msg(msg).info(info).loc(token).push();
                 }
             }
         } else {
             let msg = format!("{token} has no holder at {date}");
-            error_info(
-                token,
-                ErrorKey::History,
-                &msg,
-                "setting the liege will not have effect here",
-            );
+            err(ErrorKey::History).msg(msg).info(info).loc(token).push();
         }
     }
 

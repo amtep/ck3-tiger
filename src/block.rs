@@ -2,7 +2,7 @@
 
 use crate::date::Date;
 use crate::macros::MACRO_MAP;
-use crate::parse::pdxfile::{parse_pdx_macro, LocalMacros};
+use crate::parse::pdxfile::{parse_pdx_macro, MacroComponent, MacroComponentKind};
 use crate::token::{Loc, Token};
 
 mod blockitem;
@@ -45,7 +45,7 @@ pub struct Block {
     /// The source has already been split into a vec that alternates content with macro parameters.
     /// It is in a `Box` to save space (80 bytes) from blocks that don't contain macro substitutions,
     /// which is most of them.
-    pub source: Option<Box<(Vec<Token>, LocalMacros)>>,
+    pub source: Option<Vec<MacroComponent>>,
 }
 
 impl Block {
@@ -394,51 +394,50 @@ impl Block {
     /// Return a sorted vector of macro parameters taken by this block.
     /// Macro parameters are between `$` like `$CHARACTER$`.
     pub fn macro_parms(&self) -> Vec<&str> {
-        let mut vec = Vec::new();
-        if let Some(source_box) = &self.source {
-            let source = &source_box.0;
-            let mut odd = false;
-            for part in source {
-                odd = !odd;
-                if !odd {
-                    vec.push(part.as_str());
-                }
-            }
+        if let Some(source) = &self.source {
+            let mut vec = source
+                .iter()
+                .filter(|mc| mc.kind() == MacroComponentKind::Macro)
+                .map(|mc| mc.token().as_str())
+                .collect::<Vec<_>>();
             vec.sort_unstable();
             vec.dedup();
+            vec
+        } else {
+            Vec::new()
         }
-        vec
     }
 
     /// Expand a block that has macro parameters by substituting arguments for those parameters,
     /// then re-parsing the script, that links the expanded content back to `loc`.
     pub fn expand_macro(&self, args: &[(&str, Token)], loc: Loc) -> Option<Block> {
         let link_index = MACRO_MAP.get_or_insert_loc(loc);
-        if let Some(source_box) = &self.source {
-            let (source, local_macros) = source_box.as_ref();
+        if let Some(source) = &self.source {
             let mut content = Vec::new();
-            let mut odd = false;
             for part in source {
-                odd = !odd;
-                if odd {
-                    content.push(part.clone().linked(Some(link_index)));
-                } else {
-                    for (arg, val) in args {
-                        if part.is(arg) {
-                            // Make the replacement be a token that has the substituted content, but the original's loc,
-                            // and a loc.link back to the caller's parameter. This gives the best error messages.
-                            let mut val = val.clone();
-                            let orig_loc = val.loc;
-                            val.loc = part.loc;
-                            val.loc.column -= 1; // point at the $, it looks better
-                            val.loc.link_idx = Some(MACRO_MAP.get_or_insert_loc(orig_loc));
-                            content.push(val);
-                            break;
+                let token = part.token();
+                match part.kind() {
+                    MacroComponentKind::Source | MacroComponentKind::LocalValue => {
+                        content.push(token.clone().linked(Some(link_index)));
+                    }
+                    MacroComponentKind::Macro => {
+                        for (arg, val) in args {
+                            if token.is(arg) {
+                                // Make the replacement be a token that has the substituted content, but the original's loc,
+                                // and a loc.link back to the caller's parameter. This gives the best error messages.
+                                let mut val = val.clone();
+                                let orig_loc = val.loc;
+                                val.loc = token.loc;
+                                val.loc.column -= 1; // point at the $, it looks better
+                                val.loc.link_idx = Some(MACRO_MAP.get_or_insert_loc(orig_loc));
+                                content.push(val);
+                                break;
+                            }
                         }
                     }
                 }
             }
-            Some(parse_pdx_macro(&content, local_macros.clone()))
+            Some(parse_pdx_macro(&content))
         } else {
             None
         }

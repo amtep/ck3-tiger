@@ -82,7 +82,6 @@ mod report;
 mod rivers;
 mod scopes;
 mod script_value;
-mod stringtable;
 mod token;
 mod tooltipped;
 mod trigger;

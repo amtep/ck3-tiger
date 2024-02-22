@@ -7,7 +7,7 @@ use std::mem::{swap, take};
 use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
 use crate::fileset::FileEntry;
-use crate::report::{err, error, error_info, warn, warn_info, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::token::{Loc, Token};
 
 #[derive(Copy, Clone, Debug)]
@@ -33,7 +33,7 @@ struct Parser {
 impl Parser {
     fn unknown_char(c: char, loc: Loc) {
         let msg = format!("Unrecognized character {c}");
-        error(loc, ErrorKey::ParseError, &msg);
+        err(ErrorKey::ParseError).msg(msg).loc(loc).push();
     }
 
     fn colon(&mut self, loc: Loc) {
@@ -129,25 +129,20 @@ impl Parser {
             }
             self.block_value(prev_level.block);
             if loc.column == 1 && !self.stack.is_empty() {
-                warn_info(loc,
-                          ErrorKey::BracePlacement,
-                          "possible bracket error",
-                          "This closing bracket is at the start of a line but does not end a top-level item.",
-                );
+                let msg = "possible bracket error";
+                let info = "This closing bracket is at the start of a line but does not end a top-level item.";
+                warn(ErrorKey::BracePlacement).msg(msg).info(info).loc(loc).push();
             }
         } else {
-            error(loc, ErrorKey::ParseError, &format!("Unexpected {bracket}"));
+            err(ErrorKey::ParseError).msg(format!("Unexpected {bracket}")).loc(loc).push();
         }
     }
 
     fn eof(mut self) -> Block {
         self.end_assign();
         while let Some(mut prev_level) = self.stack.pop() {
-            error(
-                prev_level.block.loc,
-                ErrorKey::ParseError,
-                &format!("Opening {} was never closed", prev_level.opening_bracket),
-            );
+            let msg = format!("Opening {} was never closed", prev_level.opening_bracket);
+            err(ErrorKey::ParseError).msg(msg).loc(prev_level.block.loc).push();
             swap(&mut self.current, &mut prev_level);
             self.block_value(prev_level.block);
         }
@@ -244,7 +239,11 @@ pub fn parse_json_file(entry: &FileEntry) -> Option<Block> {
     let contents = match read_to_string(entry.fullpath()) {
         Ok(contents) => contents,
         Err(e) => {
-            error_info(entry, ErrorKey::ReadError, "could not read file", &format!("{e:#}"));
+            err(ErrorKey::ReadError)
+                .msg("could not read file")
+                .info(format!("{e:#}"))
+                .loc(entry)
+                .push();
             return None;
         }
     };

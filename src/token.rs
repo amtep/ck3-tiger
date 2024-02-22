@@ -5,16 +5,18 @@ use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::hash::Hash;
+use std::mem::ManuallyDrop;
 use std::num::NonZeroU32;
 use std::ops::{Bound, Range, RangeBounds};
 use std::path::{Path, PathBuf};
 use std::slice::SliceIndex;
 
+use bumpalo::Bump;
+
 use crate::date::Date;
 use crate::fileset::{FileEntry, FileKind};
 use crate::pathtable::{PathTable, PathTableIndex};
-use crate::report::{err, error_info, untidy, ErrorKey};
-use crate::stringtable::StringTable;
+use crate::report::{err, untidy, ErrorKey};
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Loc {
@@ -35,22 +37,23 @@ impl Loc {
         Loc { idx, kind, line: 0, column: 0, link_idx: None }
     }
 
-    pub fn filename(&self) -> Cow<str> {
+    pub fn filename(self) -> Cow<'static, str> {
         PathTable::lookup_path(self.idx)
             .file_name()
             .unwrap_or_else(|| OsStr::new(""))
             .to_string_lossy()
     }
 
-    pub fn pathname(&self) -> &'static Path {
+    pub fn pathname(self) -> &'static Path {
         PathTable::lookup_path(self.idx)
     }
 
-    pub fn fullpath(&self) -> &'static Path {
+    pub fn fullpath(self) -> &'static Path {
         PathTable::lookup_fullpath(self.idx)
     }
 
-    pub fn same_file(&self, other: Loc) -> bool {
+    #[inline]
+    pub fn same_file(self, other: Loc) -> bool {
         self.idx == other.idx
     }
 }
@@ -92,7 +95,36 @@ impl Debug for Loc {
     }
 }
 
-/// A Token consists of a string (stored in a `StringTable`) and its location in the parsed files.
+/// Leak the string, including any excess capacity.
+///
+/// It should only be used for large strings, rather than for small, individuals strings,
+/// due to the memory overhead. Use [`bump`] instead, which uses a bump allocator to store
+/// the strings.
+pub(crate) fn leak(s: String) -> &'static str {
+    let s = ManuallyDrop::new(s);
+    unsafe {
+        let s_ptr: *const str = s.as_ref();
+        &*s_ptr
+    }
+}
+
+thread_local!(static STR_BUMP: ManuallyDrop<Bump> = ManuallyDrop::new(Bump::new()));
+
+/// Allocate the string on heap with a bump allocator.
+///
+/// SAFETY: This is safe as long as no `Bump::reset` is called to deallocate memory
+/// and `STR_BUMP` is not dropped when thread exits.
+pub(crate) fn bump(s: &str) -> &'static str {
+    STR_BUMP.with(|bump| {
+        let s = bump.alloc_str(s);
+        unsafe {
+            let s_ptr: *const str = s;
+            &*s_ptr
+        }
+    })
+}
+
+/// A Token consists of a string and its location in the parsed files.
 #[allow(missing_copy_implementations)]
 #[derive(Clone, Debug)]
 pub struct Token {
@@ -103,7 +135,7 @@ pub struct Token {
 impl Token {
     #[must_use]
     pub fn new(s: &str, loc: Loc) -> Self {
-        Token { s: StringTable::store(s), loc }
+        Token { s: bump(s), loc }
     }
 
     #[must_use]
@@ -152,7 +184,7 @@ impl Token {
         Token { s: &self.s[range], loc }
     }
 
-    pub fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> &'static str {
         self.s
     }
 
@@ -259,7 +291,7 @@ impl Token {
         let mut s = self.s.to_string();
         s.push(c);
         s.push_str(other.s);
-        self.s = StringTable::store(&s);
+        self.s = bump(&s);
     }
 
     #[must_use]
@@ -316,7 +348,7 @@ impl Token {
                 let msg = "only 5 decimals are supported";
                 let info =
                     "if you give more decimals, you get an error and the number is read as 0";
-                error_info(self, ErrorKey::Validation, msg, info);
+                err(ErrorKey::Validation).msg(msg).info(info).loc(self).push();
             }
         }
     }

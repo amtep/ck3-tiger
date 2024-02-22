@@ -3,7 +3,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{warn2, ErrorKey};
+use crate::report::{warn, ErrorKey};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validator::Validator;
@@ -36,7 +36,7 @@ impl EffectLocalization {
                     }
                 }
                 let msg = "missing present perspective";
-                warn2(caller, ErrorKey::MissingPerspective, msg, key, "here");
+                warn(ErrorKey::MissingPerspective).msg(msg).loc(caller).loc(key, "here").push();
             }
             Tooltipped::Past => {
                 for field in &["global_past", "first_past", "third_past"] {
@@ -54,7 +54,7 @@ impl EffectLocalization {
                     }
                 }
                 let msg = "missing `_past` perspective";
-                warn2(caller, ErrorKey::MissingPerspective, msg, key, "here");
+                warn(ErrorKey::MissingPerspective).msg(msg).loc(caller).loc(key, "here").push();
             }
         }
     }

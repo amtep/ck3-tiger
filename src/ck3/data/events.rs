@@ -19,7 +19,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pathtable::PathTableIndex;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, error_info, warn, warn_info, ErrorKey, Severity};
+use crate::report::{err, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -48,7 +48,9 @@ impl Ck3Events {
                 return;
             }
         }
-        warn_info(key, ErrorKey::EventNamespace, "Event names should be in the form NAMESPACE.NUMBER", "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.");
+        let msg = "Event names should be in the form NAMESPACE.NUMBER";
+        let info = "where NAMESPACE is the namespace declared at the top of the file, and NUMBER is a series of up to 4 digits.";
+        warn(ErrorKey::EventNamespace).msg(msg).info(info).loc(key).push();
     }
 
     fn load_scripted_trigger(&mut self, key: Token, block: Block) {
@@ -186,12 +188,11 @@ impl FileHandler<Block> for Ck3Events {
                 } else if matches!(expecting, Expecting::Event) && key.is("scripted_effect") {
                     expecting = Expecting::ScriptedEffect;
                 } else {
-                    error_info(
-                        key,
-                        ErrorKey::Validation,
-                        "unexpected token",
-                        "Did you forget an = ?",
-                    );
+                    err(ErrorKey::Validation)
+                        .msg("unexpected token")
+                        .info("Did you forget an = ?")
+                        .loc(key)
+                        .push();
                 }
             }
         }
@@ -238,7 +239,7 @@ impl Event {
             if !data.item_exists(Item::EventNamespace, namespace) {
                 let msg = format!("event file should start with `namespace = {namespace}`");
                 let info = "otherwise the event won't be found in-game";
-                error_info(&self.key, ErrorKey::EventNamespace, &msg, info);
+                err(ErrorKey::EventNamespace).msg(msg).info(info).loc(&self.key).push();
             }
             if namespace == "debug" {
                 // Suppress missing-localization messages caused via these debug events

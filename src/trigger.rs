@@ -19,7 +19,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "vic3")]
 use crate::modif::{verify_modif_exists, ModifKinds};
-use crate::report::{advice_info, err, fatal, warn, warn_info, ErrorKey, Severity};
+use crate::report::{err, fatal, tips, warn, ErrorKey, Severity};
 use crate::scopes::{
     needs_prefix, scope_iterator, scope_prefix, scope_to_scope, ArgumentValue, Scopes,
 };
@@ -145,7 +145,7 @@ pub fn validate_trigger_internal(
             caller.to_uppercase()
         );
         let info = "Try adding a custom_description or custom_tooltip, or simplifying the trigger";
-        warn_info(block, ErrorKey::Tooltip, &msg, info);
+        warn(ErrorKey::Tooltip).msg(msg).info(info).loc(block).push();
     }
 
     if caller == "trigger_if" || caller == "trigger_else_if" || caller == "trigger_else" {
@@ -156,7 +156,7 @@ pub fn validate_trigger_internal(
             if caller == "trigger_else" {
                 let msg = "`trigger_else` with a `limit` does work, but may indicate a mistake";
                 let info = "normally you would use `trigger_else_if` instead.";
-                advice_info(key, ErrorKey::IfElse, msg, info);
+                tips(ErrorKey::IfElse).msg(msg).info(info).loc(key).push();
             }
             side_effects |= validate_trigger(block, data, sc, Tooltipped::No);
         });
@@ -442,12 +442,11 @@ pub fn validate_trigger_key_bv(
                     }
                     validate_inscopes(part_flags, part, inscopes, sc);
                     if sc.scopes() == Scopes::None && part.lowercase_is("current_year") {
-                        warn_info(
-                            part,
-                            ErrorKey::Bugs,
-                            "current_year does not work in empty scope",
-                            "try using current_date, or dummy_male.current_year",
-                        );
+                        warn(ErrorKey::Bugs)
+                            .msg("current_year does not work in empty scope")
+                            .info("try using current_date, or dummy_male.current_year")
+                            .loc(part)
+                            .push();
                     }
                     sc.close();
                     side_effects |= match_trigger_bv(
@@ -711,7 +710,7 @@ fn match_trigger_bv(
                 if !choices.iter().any(|c| token.is(c)) {
                     let msg = format!("unknown value {token} for {name}");
                     let info = format!("valid values are: {}", stringify_choices(choices));
-                    warn_info(token, ErrorKey::Validation, &msg, &info);
+                    warn(ErrorKey::Validation).msg(msg).info(info).loc(token).push();
                 }
             }
         }
@@ -830,7 +829,7 @@ fn match_trigger_bv(
                             if let Some(firstpart) = token.as_str().strip_suffix(".holder") {
                                 let msg = format!("could rewrite this as `{firstpart} = {{ is_title_created = yes }}`");
                                 let info = "it gives a nicer tooltip";
-                                advice_info(name, ErrorKey::Tooltip, &msg, info);
+                                tips(ErrorKey::Tooltip).msg(msg).info(info).loc(name).push();
                             }
                         }
                     }

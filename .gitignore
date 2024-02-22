@@ -3,6 +3,7 @@
 /benches/config.toml
 cachegrind.out*
 callgrind.out*
+massif.out*
 flamegraph*.svg
 *.swp
 

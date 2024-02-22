@@ -6,7 +6,7 @@ use fnv::FnvHashMap;
 
 use crate::game::Game;
 use crate::helpers::stringify_choices;
-use crate::report::{err, warn2, warn3, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 
@@ -634,7 +634,7 @@ impl ScopeContext {
                     let token = reason.token();
                     let msg = format!("`{token}` is for {scopes} but scope seems to be {s}");
                     let msg2 = format!("scope was {}", r.msg());
-                    warn2(token, ErrorKey::Scopes, &msg, r.token(), &msg2);
+                    warn(ErrorKey::Scopes).msg(msg).loc(token).loc(r.token(), msg2).push();
                 }
             }
             _ => unreachable!(),
@@ -663,7 +663,12 @@ impl ScopeContext {
                     );
                     let msg2 = format!("expected {report} was {}", reason.msg());
                     let msg3 = format!("actual {report} was {}", r.msg());
-                    warn3(key, ErrorKey::Scopes, &msg, reason.token(), &msg2, r.token(), &msg3);
+                    warn(ErrorKey::Scopes)
+                        .msg(msg)
+                        .loc(key)
+                        .loc(reason.token(), msg2)
+                        .loc(r.token(), msg3)
+                        .push();
                 }
             }
             _ => unreachable!(),
@@ -873,7 +878,7 @@ impl ScopeContext {
                 let token = other.is_input[oidx].as_ref().unwrap();
                 let msg = format!("`{key}` expects scope:{name} to be set");
                 let msg2 = "here";
-                warn2(key, ErrorKey::StrictScopes, &msg, token, msg2);
+                warn(ErrorKey::StrictScopes).msg(msg).loc(key).loc(token, msg2).push();
             } else {
                 // Their scopes now become our scopes.
                 let (s, reason) = other._resolve_named(oidx);
@@ -899,7 +904,7 @@ impl ScopeContext {
                 let token = other.is_input[oidx].as_ref().unwrap();
                 let msg = format!("`{key}` expects list {name} to exist");
                 let msg2 = "here";
-                warn2(key, ErrorKey::StrictScopes, &msg, token, msg2);
+                warn(ErrorKey::StrictScopes).msg(msg).loc(key).loc(token, msg2).push();
             } else {
                 // Their lists now become our lists.
                 let (s, reason) = other._resolve_named(oidx);

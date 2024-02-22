@@ -5,17 +5,19 @@
 #[cfg(feature = "ck3")]
 use std::fs::read;
 use std::fs::read_to_string;
+use std::mem::ManuallyDrop;
 
 #[cfg(feature = "ck3")]
 use encoding_rs::{UTF_8, WINDOWS_1252};
 
 use crate::block::Block;
 use crate::fileset::FileEntry;
-use crate::parse::pdxfile::parse_pdx;
+use crate::parse::pdxfile::parse_pdx_file;
 use crate::report::{err, warn, ErrorKey};
 
-#[cfg(feature = "ck3")]
-const BOM_AS_BYTES: &[u8] = b"\xef\xbb\xbf";
+const BOM_UTF8_BYTES: &[u8] = b"\xef\xbb\xbf";
+const BOM_UTF8_LEN: usize = BOM_UTF8_BYTES.len();
+const BOM_CHAR: char = '\u{feff}';
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PdxEncoding {
@@ -23,6 +25,24 @@ pub enum PdxEncoding {
     Utf8OptionalBom,
     #[cfg(feature = "ck3")]
     Detect,
+}
+
+/// Return a modified `String` that does not have the leading UTF-8 BOM.
+/// `contents` *must* start with the BOM.
+/// The returned `String` *must not* ever be deallocated.
+fn strip_bom(contents: String) -> String {
+    // leak so does not deallocate memory
+    let contents = ManuallyDrop::new(contents);
+    let ptr = contents.as_ptr();
+    unsafe {
+        // Re-using the input `String` is faster than allocating a new version.
+        // The tradeoff is that it wastes the three starting bytes and any excess capacity in `contents`, but that is acceptable.
+        String::from_raw_parts(
+            ptr.cast_mut().add(BOM_UTF8_LEN),
+            contents.len() - BOM_UTF8_LEN,
+            contents.len() - BOM_UTF8_LEN,
+        )
+    }
 }
 
 pub struct PdxFile {}
@@ -44,22 +64,22 @@ impl PdxFile {
     /// Parse a UTF-8 file that should start with a BOM (Byte Order Marker).
     pub fn read(entry: &FileEntry) -> Option<Block> {
         let contents = Self::read_utf8(entry)?;
-        if let Some(bomless) = contents.strip_prefix('\u{feff}') {
-            Some(parse_pdx(entry, bomless))
+        if contents.starts_with(BOM_CHAR) {
+            Some(parse_pdx_file(entry, strip_bom(contents)))
         } else {
             let msg = "file must start with a UTF-8 BOM";
             warn(ErrorKey::Encoding).msg(msg).loc(entry).push();
-            Some(parse_pdx(entry, &contents))
+            Some(parse_pdx_file(entry, contents))
         }
     }
 
     /// Parse a UTF-8 file that may optionally start with a BOM (Byte Order Marker).
     pub fn read_optional_bom(entry: &FileEntry) -> Option<Block> {
         let contents = Self::read_utf8(entry)?;
-        if let Some(bomless) = contents.strip_prefix('\u{feff}') {
-            Some(parse_pdx(entry, bomless))
+        if contents.starts_with(BOM_CHAR) {
+            Some(parse_pdx_file(entry, strip_bom(contents)))
         } else {
-            Some(parse_pdx(entry, &contents))
+            Some(parse_pdx_file(entry, contents))
         }
     }
 
@@ -75,14 +95,14 @@ impl PdxFile {
                 return None;
             }
         };
-        if bytes.starts_with(BOM_AS_BYTES) {
-            let (contents, errors) = UTF_8.decode_without_bom_handling(&bytes[3..]);
+        if bytes.starts_with(BOM_UTF8_BYTES) {
+            let (contents, errors) = UTF_8.decode_without_bom_handling(&bytes[BOM_UTF8_LEN..]);
             if errors {
                 let msg = "could not decode UTF-8 file";
                 err(ErrorKey::Encoding).msg(msg).loc(entry).push();
                 None
             } else {
-                Some(parse_pdx(entry, &contents))
+                Some(parse_pdx_file(entry, contents.into_owned()))
             }
         } else {
             let (contents, errors) = WINDOWS_1252.decode_without_bom_handling(&bytes);
@@ -91,7 +111,7 @@ impl PdxFile {
                 err(ErrorKey::Encoding).msg(msg).loc(entry).push();
                 None
             } else {
-                Some(parse_pdx(entry, &contents))
+                Some(parse_pdx_file(entry, contents.into_owned()))
             }
         }
     }

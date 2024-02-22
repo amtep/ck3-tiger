@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{advice_info, err, fatal, warn, warn_info, ErrorKey};
+use crate::report::{err, fatal, tips, warn, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::script_value::validate_script_value;
 use crate::token::Token;
@@ -73,7 +73,7 @@ pub fn validate_effect_internal<'a>(
             if caller == "else" {
                 let msg = "`else` with a `limit` does work, but may indicate a mistake";
                 let info = "normally you would use `else_if` instead.";
-                advice_info(key, ErrorKey::IfElse, msg, info);
+                tips(ErrorKey::IfElse).msg(msg).info(info).loc(key).push();
             }
             validate_trigger(block, data, sc, tooltipped);
         });
@@ -204,7 +204,7 @@ pub fn validate_effect_field(
                             if key.is("add_gold") {
                                 let msg = "add_gold does not take negative numbers";
                                 let info = "try remove_short_term_gold instead";
-                                warn_info(token, ErrorKey::Range, msg, info);
+                                warn(ErrorKey::Range).msg(msg).info(info).loc(token).push();
                             } else {
                                 let msg = format!("{key} does not take negative numbers");
                                 warn(ErrorKey::Range).msg(msg).loc(token).push();
@@ -336,7 +336,7 @@ pub fn validate_effect_field(
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             Effect::Removed(version, explanation) => {
                 let msg = format!("`{key}` was removed in {version}");
-                warn_info(key, ErrorKey::Removed, &msg, explanation);
+                warn(ErrorKey::Removed).msg(msg).info(explanation).loc(key).push();
             }
             Effect::Unchecked | Effect::UncheckedTodo => (),
         }

@@ -6,7 +6,7 @@ use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
 use crate::helpers::dup_error;
 use crate::item::{Item, ItemLoader};
-use crate::report::{err, fatal, warn, warn2, Confidence, ErrorKey, Severity};
+use crate::report::{err, fatal, warn, Confidence, ErrorKey, Severity};
 use crate::token::Token;
 use crate::validate::validate_numeric_range;
 use crate::validator::Validator;
@@ -265,7 +265,11 @@ fn validate_portrait_modifier_use(
                     let loca = format!("PORTRAIT_MODIFIER_{caller}_{token}");
                     if !data.item_exists(Item::Localization, &loca) {
                         let msg = format!("missing localization key {loca}");
-                        warn2(property, ErrorKey::MissingLocalization, &msg, token, "this setting");
+                        warn(ErrorKey::MissingLocalization)
+                            .msg(msg)
+                            .loc(property)
+                            .loc(token, "this setting")
+                            .push();
                     }
                 }
             }
