@@ -429,6 +429,9 @@ fn validate_gui_loca(key: &Token, loca_value: LocaValue, data: &Everything) {
                 false,
             );
         }
+        LocaValue::Icon(token) => {
+            data.verify_exists(Item::TextIcon, &token);
+        }
         _ => (),
     }
 }
