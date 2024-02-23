@@ -521,7 +521,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "is_country_type", Item(Item::CountryType)),
     (Scopes::Character, "is_defender_in_battle", Boolean),
     (Scopes::DiplomaticPact, "is_diplomatic_action_type", Item(Item::DiplomaticAction)),
-    (Scopes::DiplomaticPact, "is_diplomatic_in_danger", Boolean),
+    (Scopes::DiplomaticPact, "is_diplomatic_pact_in_danger", Boolean),
     (Scopes::Country, "is_diplomatic_play_ally_of", Scope(Scopes::Country)),
     (Scopes::Country, "is_diplomatic_play_committed_participant", Boolean),
     (Scopes::Country, "is_diplomatic_play_enemy_of", Scope(Scopes::Country)),

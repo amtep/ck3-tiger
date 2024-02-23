@@ -299,6 +299,8 @@ pub enum Item {
 
     // Items specific to vic3
     #[cfg(feature = "vic3")] AiStrategy,
+    #[cfg(feature = "vic3")] Alert,
+    #[cfg(feature = "vic3")] AlertGroup,
     #[cfg(feature = "vic3")] Approval,
     #[cfg(feature = "vic3")] Attitude,
     #[cfg(feature = "vic3")] BattleCondition,
@@ -926,6 +928,10 @@ impl Item {
 
             #[cfg(feature = "vic3")]
             Item::AiStrategy => "common/ai_strategies/",
+            #[cfg(feature = "vic3")]
+            Item::Alert => "common/alert_types",
+            #[cfg(feature = "vic3")]
+            Item::AlertGroup => "common/alert_groups",
             #[cfg(feature = "vic3")]
             Item::Approval => "",
             #[cfg(feature = "vic3")]
