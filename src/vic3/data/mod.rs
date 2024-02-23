@@ -7,6 +7,7 @@ pub mod character_interactions;
 pub mod character_templates;
 pub mod character_traits;
 pub mod combat_units;
+pub mod commanders;
 pub mod companies;
 pub mod countries;
 pub mod cultures;

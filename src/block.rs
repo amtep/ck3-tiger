@@ -260,6 +260,31 @@ impl Block {
         self.get_key(name).is_some()
     }
 
+    #[cfg(feature = "vic3")]
+    pub fn has_key_recursive(&self, name: &str) -> bool {
+        for item in &self.v {
+            match item {
+                BlockItem::Field(Field(key, _, bv)) => {
+                    if key.is(name) {
+                        return true;
+                    }
+                    if let Some(block) = bv.get_block() {
+                        if block.has_key_recursive(name) {
+                            return true;
+                        }
+                    }
+                }
+                BlockItem::Block(block) => {
+                    if block.has_key_recursive(name) {
+                        return true;
+                    }
+                }
+                BlockItem::Value(_) => (),
+            }
+        }
+        false
+    }
+
     /// Return the number of times `name` occurs in this block as a field key.
     #[allow(dead_code)] // Not used by all games
     pub fn count_keys(&self, name: &str) -> usize {

@@ -471,6 +471,25 @@ impl<'a> Validator<'a> {
         });
     }
 
+    /// Expect field `name`, if present, to be set to an integer at least `min`
+    /// Expect no more than one `name` field.
+    /// Returns true iff the field is present.
+    #[cfg(feature = "vic3")]
+    pub fn field_integer_min(&mut self, name: &str, min: i64) {
+        let sev = Severity::Error.at_most(self.max_severity);
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                // TODO: pass max_severity here
+                if let Some(i) = token.expect_integer() {
+                    if i < min {
+                        let msg = format!("should be at least {min}");
+                        report(ErrorKey::Range, sev).msg(msg).loc(token).push();
+                    }
+                }
+            }
+        });
+    }
+
     /// Expect field `name`, if present, to be set to a number with up to 5 decimals.
     /// (5 decimals is the limit accepted by the game engine in most contexts).
     /// Expect no more than one `name` field.
