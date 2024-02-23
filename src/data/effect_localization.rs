@@ -36,7 +36,7 @@ impl EffectLocalization {
                     }
                 }
                 let msg = "missing present perspective";
-                warn(ErrorKey::MissingPerspective).msg(msg).loc(caller).loc(key, "here").push();
+                warn(ErrorKey::MissingPerspective).msg(msg).loc(caller).loc_msg(key, "here").push();
             }
             Tooltipped::Past => {
                 for field in &["global_past", "first_past", "third_past"] {
@@ -54,7 +54,7 @@ impl EffectLocalization {
                     }
                 }
                 let msg = "missing `_past` perspective";
-                warn(ErrorKey::MissingPerspective).msg(msg).loc(caller).loc(key, "here").push();
+                warn(ErrorKey::MissingPerspective).msg(msg).loc(caller).loc_msg(key, "here").push();
             }
         }
     }

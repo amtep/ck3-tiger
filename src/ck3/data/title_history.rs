@@ -30,7 +30,7 @@ impl TitleHistories {
                 warn(ErrorKey::DuplicateItem)
                     .msg("title has two definition blocks, they will be added together")
                     .loc(&other.key)
-                    .loc(key, "the other one is here")
+                    .loc_msg(key, "the other one is here")
                     .push();
             }
             other.block.append(&mut block);

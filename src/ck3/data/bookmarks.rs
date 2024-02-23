@@ -225,15 +225,20 @@ fn validate_bookmark_against_history(
                     .strong()
                     .msg(msg)
                     .loc_msg(field, "bookmark")
-                    .loc(history, "history")
-                    .opt_loc(name, "character")
+                    .loc_msg(history, "history")
+                    .opt_loc_msg(name, "character")
                     .push();
             }
         } else {
             let msg = format!(
                 "{desc} is {field} in bookmark but character has no {desc} in history at {date}"
             );
-            warn(ErrorKey::Bookmarks).strong().msg(msg).loc(field).opt_loc(name, "bookmark").push();
+            warn(ErrorKey::Bookmarks)
+                .strong()
+                .msg(msg)
+                .loc(field)
+                .opt_loc_msg(name, "bookmark")
+                .push();
         }
     }
 }

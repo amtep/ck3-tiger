@@ -97,7 +97,7 @@ impl DbKind for CombatUnit {
             if let Some(unconditional) = &seen_unconditional {
                 let msg = "there was a previous `combat_unit_image` without a trigger, so this one will not be used";
                 let info = "try moving that one to the end";
-                warn(ErrorKey::Validation).msg(msg).info(info).loc_msg(key, "this one").loc(unconditional, "previous").push();
+                warn(ErrorKey::Validation).msg(msg).info(info).loc(key).loc_msg(unconditional, "previous").push();
             }
             let mut vd = Validator::new(block, data);
             vd.field_validated_key_block("trigger", |key, block, data| {

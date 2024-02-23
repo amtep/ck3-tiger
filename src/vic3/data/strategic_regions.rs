@@ -35,7 +35,7 @@ impl StrategicRegion {
                             .strong()
                             .msg(msg)
                             .loc(key)
-                            .loc(other, "the other one")
+                            .loc_msg(other, "the other one")
                             .push();
                     } else {
                         seen.insert(token.to_string(), key);

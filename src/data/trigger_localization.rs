@@ -44,7 +44,7 @@ impl TriggerLocalization {
                     }
                 }
                 let msg = format!("missing `NOT_` perspective for {key}");
-                warn(ErrorKey::MissingPerspective).msg(msg).loc(caller).loc(key, "here").push();
+                warn(ErrorKey::MissingPerspective).msg(msg).loc(caller).loc_msg(key, "here").push();
             } else {
                 for field in &["global", "first", "third", "none"] {
                     if block.has_key(field) {
@@ -52,7 +52,7 @@ impl TriggerLocalization {
                     }
                 }
                 let msg = format!("missing positive perspective for {key}");
-                warn(ErrorKey::MissingPerspective).msg(msg).loc(caller).loc(key, "here").push();
+                warn(ErrorKey::MissingPerspective).msg(msg).loc(caller).loc_msg(key, "here").push();
             }
         }
     }
