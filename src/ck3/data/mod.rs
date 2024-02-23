@@ -46,6 +46,7 @@ pub mod inspirations;
 pub mod interaction_cats;
 pub mod interactions;
 pub mod laws;
+pub mod lease_contracts;
 pub mod lifestyles;
 pub mod maa;
 pub mod map_environment;

@@ -239,6 +239,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] Inspiration,
     #[cfg(feature = "ck3")] Language,
     #[cfg(feature = "ck3")] LawFlag,
+    #[cfg(feature = "ck3")] LeaseContract,
     #[cfg(feature = "ck3")] Lifestyle,
     #[cfg(feature = "ck3")] MartialCustom,
     #[cfg(feature = "ck3")] MemoryCategory,
@@ -808,6 +809,8 @@ impl Item {
             Item::Language => "common/culture/pillars/",
             #[cfg(feature = "ck3")]
             Item::LawFlag => "common/laws/",
+            #[cfg(feature = "ck3")]
+            Item::LeaseContract => "common/lease_contracts/",
             #[cfg(feature = "ck3")]
             Item::Lifestyle => "common/lifestyles/",
             #[cfg(feature = "ck3")]
