@@ -309,6 +309,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] CharacterRole,
     #[cfg(feature = "vic3")] CombatUnit,
     #[cfg(feature = "vic3")] CombatUnitExperienceLevel,
+    #[cfg(feature = "vic3")] CombatUnitGroup,
     #[cfg(feature = "vic3")] CommanderOrder,
     #[cfg(feature = "vic3")] CommanderRank,
     #[cfg(feature = "vic3")] CompanyType,
@@ -946,6 +947,8 @@ impl Item {
             Item::CombatUnit => "common/combat_unit_types/",
             #[cfg(feature = "vic3")]
             Item::CombatUnitExperienceLevel => "common/combat_unit_experience_levels/",
+            #[cfg(feature = "vic3")]
+            Item::CombatUnitGroup => "common/combat_unit_groups/",
             #[cfg(feature = "vic3")]
             Item::CommanderOrder => "common/commander_orders/",
             #[cfg(feature = "vic3")]
