@@ -49,7 +49,7 @@ impl DbKind for PopType {
         vd.field_bool("unemployment");
         vd.field_numeric("unemployment_wealth");
 
-        vd.field_numeric_range("political_engagement_base", 0.0, 1.0);
+        vd.field_numeric_range("political_engagement_base", 0.0..=1.0);
         vd.field_numeric("political_engagement_literacy_factor");
         vd.field_script_value_rooted("political_engagement_mult", Scopes::Pop);
 
@@ -66,7 +66,7 @@ impl DbKind for PopType {
         // undocumented
 
         vd.field_numeric("education_access");
-        vd.field_numeric_range("working_adult_ratio", 0.0, 1.0);
+        vd.field_numeric_range("working_adult_ratio", 0.0..=1.0);
         vd.field_bool("can_always_hire");
         vd.field_bool("subsistence_income");
         vd.field_bool("ignores_employment_proportionality");

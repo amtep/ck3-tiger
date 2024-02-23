@@ -62,7 +62,7 @@ impl DbKind for LeaseContract {
             vd.field_validated_block(field, |block, data| {
                 let mut vd = Validator::new(block, data);
                 if key.is("theocracy_lease") {
-                    vd.field_integer_range("lease_liege", 0, 100);
+                    vd.field_integer_range("lease_liege", 0..=100);
                 } else {
                     // Technically it just requires a hierarchy definition,
                     // but hierarchy is only valid for theocracy_lease.
@@ -75,7 +75,7 @@ impl DbKind for LeaseContract {
                     }
                     BV::Block(block) => {
                         let mut vd = Validator::new(block, data);
-                        vd.field_integer_range("max", 0, 100);
+                        vd.field_integer_range("max", 0..=100);
                         let mut sc = ScopeContext::new(Scopes::None, key);
                         sc.define_name("ruler", Scopes::Character, key);
                         sc.define_name("lessee", Scopes::Character, key);

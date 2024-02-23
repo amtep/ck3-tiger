@@ -328,7 +328,7 @@ fn validate_parameters(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.unknown_value_fields(|key, value| {
         if matches!(key.as_str(), "number_of_spouses" | "number_of_consorts") {
-            ValueValidator::new(value, data).integer_range(0, i64::MAX);
+            ValueValidator::new(value, data).integer_range(0..);
         } else {
             ValueValidator::new(value, data).bool();
         }

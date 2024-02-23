@@ -73,8 +73,8 @@ impl DbKind for CommanderOrder {
             vd.ban_field("naval_entity", || "navy");
         }
 
-        vd.field_numeric_range("indicator_position_angle", 0.0, 360.0);
-        vd.field_numeric_range("indicator_position_angle_for_enemy", 0.0, 360.0);
+        vd.field_numeric_range("indicator_position_angle", 0.0..360.0);
+        vd.field_numeric_range("indicator_position_angle_for_enemy", 0.0..360.0);
         vd.field_item("clicksound", Item::Sound);
         vd.field_numeric("experience");
 
@@ -111,7 +111,7 @@ impl DbKind for CommanderRank {
         // "If you're adding more ranks that commanders can be promoted to, make sure to change HIGHEST_PROMOTION_RANK in defines"
         // but that doesn't limit the possible `rank_value` values, since they can be set in other
         // ways than promotion.
-        vd.field_integer_min("rank_value", 1);
+        vd.field_integer_range("rank_value", 1..);
 
         for field in
             &["character_modifier", "general_modifier", "admiral_modifier", "country_modifier"]

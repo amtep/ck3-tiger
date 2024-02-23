@@ -30,7 +30,7 @@ impl DbKind for CoaDesignerColoredEmblem {
         let pathname = format!("{}{key}", Item::CoaDesignerColoredEmblem.path());
         data.verify_exists_implied(Item::File, &pathname, key);
 
-        vd.field_integer_range("colors", 0, 5);
+        vd.field_integer_range("colors", 0..=5);
         vd.field_bool("visible");
         if let Some(token) = vd.field_value("category") {
             let loca = format!("COA_DESIGNER_CATEGORY_{token}");
@@ -113,7 +113,7 @@ impl DbKind for CoaDesignerPattern {
         let pathname = format!("{}{key}", Item::CoaDesignerPattern.path());
         data.verify_exists_implied(Item::File, &pathname, key);
 
-        vd.field_integer_range("colors", 0, 5);
+        vd.field_integer_range("colors", 0..=5);
         vd.field_bool("visible");
     }
 }

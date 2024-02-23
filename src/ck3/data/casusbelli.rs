@@ -63,8 +63,8 @@ impl DbKind for CasusBelli {
         );
         vd.field_numeric("attacker_ticking_warscore");
         vd.field_numeric("defender_ticking_warscore");
-        vd.field_numeric_range("attacker_wargoal_percentage", 0.0, 1.0);
-        vd.field_numeric_range("defender_wargoal_percentage", 0.0, 1.0);
+        vd.field_numeric_range("attacker_wargoal_percentage", 0.0..=1.0);
+        vd.field_numeric_range("defender_wargoal_percentage", 0.0..=1.0);
         vd.field_numeric("attacker_score_from_occupation_scale");
         vd.field_numeric("defender_score_from_occupation_scale");
         vd.field_numeric("attacker_score_from_battles_scale");

@@ -99,12 +99,12 @@ impl DbKind for Scheme {
         });
 
         // TODO: check that maximum >= minimum ?
-        vd.field_integer_range("maximum_success", 0, 100);
-        vd.field_integer_range("minimum_success", 0, 100);
-        vd.field_integer_range("maximum_secrecy", 0, 100);
-        vd.field_integer_range("minimum_secrecy", 0, 100);
-        vd.field_integer_range("maximum_progress_chance", 0, 100);
-        vd.field_integer_range("minimum_progress_chance", 0, 100);
+        vd.field_integer_range("maximum_success", 0..=100);
+        vd.field_integer_range("minimum_success", 0..=100);
+        vd.field_integer_range("maximum_secrecy", 0..=100);
+        vd.field_integer_range("minimum_secrecy", 0..=100);
+        vd.field_integer_range("maximum_progress_chance", 0..=100);
+        vd.field_integer_range("minimum_progress_chance", 0..=100);
 
         vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
 

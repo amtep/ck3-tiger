@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 use std::fmt::{Debug, Display, Error, Formatter};
+#[cfg(feature = "ck3")]
+use std::ops::{Bound, RangeBounds};
 use std::str::FromStr;
 
 use crate::context::ScopeContext;
@@ -229,8 +231,8 @@ impl<'a> ValueValidator<'a> {
     }
 
     /// Expect the value to be an integer between `low` and `high` (inclusive).
-    #[allow(dead_code)] // not used yet
-    pub fn integer_range(&mut self, low: i64, high: i64) {
+    #[cfg(feature = "ck3")]
+    pub fn integer_range<R: RangeBounds<i64>>(&mut self, range: R) {
         if self.validated {
             return;
         }
@@ -238,8 +240,31 @@ impl<'a> ValueValidator<'a> {
         self.validated = true;
         // TODO: pass max_severity here
         if let Some(i) = self.value.expect_integer() {
-            if !(low..=high).contains(&i) {
-                let msg = format!("should be between {low} and {high} (inclusive)");
+            if !range.contains(&i) {
+                let low = match range.start_bound() {
+                    Bound::Unbounded => None,
+                    Bound::Included(&n) => Some(n),
+                    Bound::Excluded(&n) => Some(n + 1),
+                };
+                let high = match range.end_bound() {
+                    Bound::Unbounded => None,
+                    Bound::Included(&n) => Some(n),
+                    Bound::Excluded(&n) => Some(n - 1),
+                };
+                let msg;
+                if low.is_some() && high.is_some() {
+                    msg = format!(
+                        "should be between {} and {} (inclusive)",
+                        low.unwrap(),
+                        high.unwrap()
+                    );
+                } else if low.is_some() {
+                    msg = format!("should be at least {}", low.unwrap());
+                } else if high.is_some() {
+                    msg = format!("should be at most {}", high.unwrap());
+                } else {
+                    unreachable!(); // could not have failed the contains check
+                }
                 report(ErrorKey::Range, sev).msg(msg).loc(self).push();
             }
         }
@@ -266,24 +291,6 @@ impl<'a> ValueValidator<'a> {
         self.validated = true;
         // TODO: pass max_severity here
         self.value.expect_precise_number();
-    }
-
-    /// Expect the value to be a number between `low` and `high` (inclusive).
-    /// Accept at most 5 decimals. (5 decimals is the limit accepted by the game engine in most contexts).
-    #[allow(dead_code)] // not used yet
-    pub fn numeric_range(&mut self, low: f64, high: f64) {
-        if self.validated {
-            return;
-        }
-        let sev = Severity::Error.at_most(self.max_severity);
-        self.validated = true;
-        // TODO: pass max_severity here
-        if let Some(f) = self.value.expect_number() {
-            if !(low..=high).contains(&f) {
-                let msg = format!("should be between {low} and {high} (inclusive)");
-                report(ErrorKey::Range, sev).msg(msg).loc(self).push();
-            }
-        }
     }
 
     /// Expect the value to be a date.

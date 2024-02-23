@@ -41,8 +41,8 @@ fn validate_history(_date: Date, _key: &Token, block: &Block, data: &Everything)
     vd.multi_field_validated_block("add_innovation_progress", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_item("culture_innovation", Item::Innovation);
-        vd.field_numeric_range("progress", 0.0, 100.0);
+        vd.field_numeric_range("progress", 0.0..=100.0);
     });
     vd.field_item("join_era", Item::CultureEra);
-    vd.field_numeric_range("progress_era", 0.0, 100.0);
+    vd.field_numeric_range("progress_era", 0.0..=100.0);
 }

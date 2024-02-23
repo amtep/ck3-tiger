@@ -1,5 +1,6 @@
 use std::borrow::Borrow;
 use std::fmt::{Debug, Display, Formatter};
+use std::ops::{Bound, RangeBounds};
 use std::str::FromStr;
 
 use crate::block::{Block, BlockItem, Comparator, Eq::*, Field, BV};
@@ -456,33 +457,37 @@ impl<'a> Validator<'a> {
     /// Expect field `name`, if present, to be set to an integer between `low` and `high` (inclusive).
     /// Expect no more than one `name` field.
     /// Returns true iff the field is present.
-    pub fn field_integer_range(&mut self, name: &str, low: i64, high: i64) {
+    pub fn field_integer_range<R: RangeBounds<i64>>(&mut self, name: &str, range: R) {
         let sev = Severity::Error.at_most(self.max_severity);
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 // TODO: pass max_severity here
                 if let Some(i) = token.expect_integer() {
-                    if !(low..=high).contains(&i) {
-                        let msg = format!("should be between {low} and {high} (inclusive)");
-                        report(ErrorKey::Range, sev).msg(msg).loc(token).push();
-                    }
-                }
-            }
-        });
-    }
-
-    /// Expect field `name`, if present, to be set to an integer at least `min`
-    /// Expect no more than one `name` field.
-    /// Returns true iff the field is present.
-    #[cfg(feature = "vic3")]
-    pub fn field_integer_min(&mut self, name: &str, min: i64) {
-        let sev = Severity::Error.at_most(self.max_severity);
-        self.field_check(name, |_, bv| {
-            if let Some(token) = bv.expect_value() {
-                // TODO: pass max_severity here
-                if let Some(i) = token.expect_integer() {
-                    if i < min {
-                        let msg = format!("should be at least {min}");
+                    if !range.contains(&i) {
+                        let low = match range.start_bound() {
+                            Bound::Unbounded => None,
+                            Bound::Included(&n) => Some(n),
+                            Bound::Excluded(&n) => Some(n + 1),
+                        };
+                        let high = match range.end_bound() {
+                            Bound::Unbounded => None,
+                            Bound::Included(&n) => Some(n),
+                            Bound::Excluded(&n) => Some(n - 1),
+                        };
+                        let msg;
+                        if low.is_some() && high.is_some() {
+                            msg = format!(
+                                "should be between {} and {} (inclusive)",
+                                low.unwrap(),
+                                high.unwrap()
+                            );
+                        } else if low.is_some() {
+                            msg = format!("should be at least {}", low.unwrap());
+                        } else if high.is_some() {
+                            msg = format!("should be at most {}", high.unwrap());
+                        } else {
+                            unreachable!(); // could not have failed the contains check
+                        }
                         report(ErrorKey::Range, sev).msg(msg).loc(token).push();
                     }
                 }
@@ -517,13 +522,33 @@ impl<'a> Validator<'a> {
     /// Accept at most 5 decimals. (5 decimals is the limit accepted by the game engine in most contexts).
     /// Expect no more than one `name` field.
     /// Returns true iff the field is present.
-    pub fn field_numeric_range(&mut self, name: &str, low: f64, high: f64) {
+    pub fn field_numeric_range<R: RangeBounds<f64>>(&mut self, name: &str, range: R) {
         let sev = Severity::Error.at_most(self.max_severity);
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 if let Some(f) = token.expect_number() {
-                    if !(low..=high).contains(&f) {
-                        let msg = format!("should be between {low} and {high} (inclusive)");
+                    if !range.contains(&f) {
+                        let low = match range.start_bound() {
+                            Bound::Unbounded => None,
+                            Bound::Included(f) => Some(format!("{f} (inclusive)")),
+                            Bound::Excluded(f) => Some(format!("{f}")),
+                        };
+                        let high = match range.end_bound() {
+                            Bound::Unbounded => None,
+                            Bound::Included(f) => Some(format!("{f} (inclusive)")),
+                            Bound::Excluded(f) => Some(format!("{f}")),
+                        };
+                        let msg;
+                        if low.is_some() && high.is_some() {
+                            msg =
+                                format!("should be between {} and {}", low.unwrap(), high.unwrap());
+                        } else if low.is_some() {
+                            msg = format!("should be at least {}", low.unwrap());
+                        } else if high.is_some() {
+                            msg = format!("should be at most {}", high.unwrap());
+                        } else {
+                            unreachable!(); // could not have failed the contains check
+                        }
                         report(ErrorKey::Range, sev).msg(msg).loc(token).push();
                     }
                 }
