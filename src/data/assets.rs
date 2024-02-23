@@ -147,7 +147,7 @@ impl FileHandler<Option<Block>> for Assets {
                     warn(ErrorKey::DuplicateItem)
                         .msg("texture file is redefined by another file")
                         .loc(other)
-                        .loc(entry, "the other file is here")
+                        .loc_msg(entry, "the other file is here")
                         .push();
                 }
             }

@@ -124,7 +124,7 @@ impl Parser {
                     .strong()
                     .msg(msg)
                     .loc(loc)
-                    .loc(prev_level.block.loc, "here")
+                    .loc_msg(prev_level.block.loc, "here")
                     .push();
             }
             self.block_value(prev_level.block);

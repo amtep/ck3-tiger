@@ -91,7 +91,7 @@ impl War {
                     err(ErrorKey::Range)
                         .msg("start date is after end date")
                         .loc_msg(start_date_token.as_ref().unwrap(), "start date")
-                        .loc(end_date_token.as_ref().unwrap(), "end date")
+                        .loc_msg(end_date_token.as_ref().unwrap(), "end date")
                         .push();
                 }
             }
@@ -111,8 +111,8 @@ impl War {
                         if date < start_date {
                             err(ErrorKey::Range)
                                 .msg("date is before start date")
-                                .loc_msg(key, "date")
-                                .loc(start_date_token.as_ref().unwrap(), "start date")
+                                .loc(key)
+                                .loc_msg(start_date_token.as_ref().unwrap(), "start date")
                                 .push();
                         }
                     }
@@ -120,8 +120,8 @@ impl War {
                         if date > end_date {
                             err(ErrorKey::Range)
                                 .msg("date is after end date")
-                                .loc_msg(key, "date")
-                                .loc(end_date_token.as_ref().unwrap(), "end date")
+                                .loc(key)
+                                .loc_msg(end_date_token.as_ref().unwrap(), "end date")
                                 .push();
                         }
                     }

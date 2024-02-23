@@ -268,7 +268,7 @@ fn validate_portrait_modifier_use(
                         warn(ErrorKey::MissingLocalization)
                             .msg(msg)
                             .loc(property)
-                            .loc(token, "this setting")
+                            .loc_msg(token, "this setting")
                             .push();
                     }
                 }

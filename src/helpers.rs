@@ -10,7 +10,7 @@ pub fn dup_error(key: &Token, other: &Token, id: &str) {
     warn(ErrorKey::DuplicateItem)
         .msg(format!("{id} is redefined by another {id}"))
         .loc(other)
-        .loc(key, format!("the other {id} is here"))
+        .loc_msg(key, format!("the other {id} is here"))
         .push();
 }
 
@@ -19,7 +19,7 @@ pub fn exact_dup_error(key: &Token, other: &Token, id: &str) {
     warn(ErrorKey::ExactDuplicateItem)
         .msg(format!("{id} is redefined by an identical {id}"))
         .loc(other)
-        .loc(key, format!("the other {id} is here"))
+        .loc_msg(key, format!("the other {id} is here"))
         .push();
 }
 
@@ -28,7 +28,7 @@ pub fn exact_dup_advice(key: &Token, other: &Token, id: &str) {
     tips(ErrorKey::DuplicateItem)
         .msg(format!("{id} is redefined by an identical {id}, which may cause problems if one of them is later changed"))
         .loc(other)
-        .loc(key, format!("the other {id} is here"))
+        .loc_msg(key, format!("the other {id} is here"))
         .push();
 }
 
@@ -44,7 +44,7 @@ pub fn dup_assign_error(key: &Token, other: &Token) {
     warn(ErrorKey::DuplicateField)
         .msg(format!("`{other}` is redefined in a following line").as_str())
         .loc(other.loc)
-        .loc(key.loc, "the other one is here")
+        .loc_msg(key.loc, "the other one is here")
         .push();
 }
 

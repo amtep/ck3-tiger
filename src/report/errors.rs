@@ -291,7 +291,7 @@ pub(crate) fn warn2<E: ErrorLoc, F: ErrorLoc>(
     eloc2: F,
     msg2: &str,
 ) {
-    warn(key).msg(msg).loc(eloc).loc(eloc2, msg2).push();
+    warn(key).msg(msg).loc(eloc).loc_msg(eloc2, msg2).push();
 }
 
 #[allow(dead_code)]
@@ -305,7 +305,7 @@ pub(crate) fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
     eloc3: E3,
     msg3: &str,
 ) {
-    warn(key).msg(msg).loc(eloc).loc(eloc2, msg2).loc(eloc3, msg3).push();
+    warn(key).msg(msg).loc(eloc).loc_msg(eloc2, msg2).loc_msg(eloc3, msg3).push();
 }
 
 #[allow(dead_code)]

@@ -104,7 +104,7 @@ impl ReportBuilderStage2 {
         }
     }
 
-    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    #[cfg(feature = "ck3")]
     pub fn loc_msg<E: ErrorLoc, S: Into<String>>(self, eloc: E, msg: S) -> ReportBuilderStage3 {
         let length = eloc.loc_length();
         ReportBuilderStage3 {
@@ -130,12 +130,12 @@ pub struct ReportBuilderStage3 {
 }
 
 impl ReportBuilderStage3 {
-    pub fn loc<E: ErrorLoc, S: Into<String>>(mut self, eloc: E, msg: S) -> Self {
+    pub fn loc_msg<E: ErrorLoc, S: Into<String>>(mut self, eloc: E, msg: S) -> Self {
         let length = eloc.loc_length();
         self.pointers.push(PointedMessage { loc: eloc.into_loc(), length, msg: Some(msg.into()) });
         self
     }
-    pub fn opt_loc<E: ErrorLoc, S: Into<String>>(mut self, eloc: Option<E>, msg: S) -> Self {
+    pub fn opt_loc_msg<E: ErrorLoc, S: Into<String>>(mut self, eloc: Option<E>, msg: S) -> Self {
         if let Some(eloc) = eloc {
             let length = eloc.loc_length();
             self.pointers.push(PointedMessage {

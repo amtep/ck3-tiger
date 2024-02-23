@@ -142,8 +142,8 @@ fn validate_doctrines(iname: &str, data: &Everything, vd: &mut Validator) {
                     let msg = format!("duplicate doctrine {doctrine}");
                     warn(ErrorKey::DuplicateField)
                         .msg(msg)
-                        .loc_msg(doctrine, "doctrine")
-                        .loc(other_doctrine, "earlier doctrine")
+                        .loc(doctrine)
+                        .loc_msg(other_doctrine, "earlier doctrine")
                         .push();
                 } else if picks == 1 {
                     // SAFETY: we never push empty vecs into this hash
@@ -153,8 +153,8 @@ fn validate_doctrines(iname: &str, data: &Everything, vd: &mut Validator) {
                     err(ErrorKey::Conflict)
                         .msg(msg)
                         .info(info)
-                        .loc_msg(doctrine, "doctrine")
-                        .loc(other_doctrine, "earlier doctrine")
+                        .loc(doctrine)
+                        .loc_msg(other_doctrine, "earlier doctrine")
                         .push();
                 } else if picks == (seen.len() as i64) {
                     let msg = format!("{iname} has more than {picks} doctrines from {category}");
@@ -162,8 +162,8 @@ fn validate_doctrines(iname: &str, data: &Everything, vd: &mut Validator) {
                     // way to get picks > 1
                     err(ErrorKey::Conflict)
                         .msg(msg)
-                        .loc_msg(doctrine, "doctrine")
-                        .loc(picks_token.unwrap(), "picks")
+                        .loc(doctrine)
+                        .loc_msg(picks_token.unwrap(), "picks")
                         .push();
                 }
                 seen.push(doctrine.clone());

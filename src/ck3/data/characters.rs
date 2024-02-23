@@ -81,7 +81,7 @@ impl Characters {
                     .msg("duplicate character id")
                     .info("this will create two characters with the same id")
                     .loc(&other.key)
-                    .loc(&key, "duplicate")
+                    .loc_msg(&key, "duplicate")
                     .push();
                 self.duplicates.push(Character::new(key, block));
             }
@@ -464,7 +464,11 @@ impl Character {
                     );
                     let mut loc = token.loc;
                     loc.column = 0;
-                    warn(ErrorKey::History).msg(msg).loc(loc).loc(death_loc, "from here").push();
+                    warn(ErrorKey::History)
+                        .msg(msg)
+                        .loc(loc)
+                        .loc_msg(death_loc, "from here")
+                        .push();
                 }
             }
 
@@ -478,7 +482,7 @@ impl Character {
                         warn(ErrorKey::History)
                             .msg(msg)
                             .loc(loc)
-                            .loc(birth_loc, "from here")
+                            .loc_msg(birth_loc, "from here")
                             .push();
                     }
                     birth = Some((date, loc));
@@ -490,7 +494,7 @@ impl Character {
                         warn(ErrorKey::History)
                             .msg(msg)
                             .loc(token)
-                            .loc(curr_token, "from here")
+                            .loc_msg(curr_token, "from here")
                             .push();
                     }
                 }

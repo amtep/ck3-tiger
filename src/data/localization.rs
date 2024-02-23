@@ -468,7 +468,7 @@ impl Localization {
                                 warn(ErrorKey::Validation)
                                     .msg(format!("localization is missing {find}"))
                                     .loc(key)
-                                    .loc(&entry.key, "here")
+                                    .loc_msg(&entry.key, "here")
                                     .push();
                             }
                         }
@@ -478,12 +478,16 @@ impl Localization {
                             warn(ErrorKey::Validation)
                                 .msg("localization has too many options")
                                 .loc(key)
-                                .loc(&entry.key, "here")
+                                .loc_msg(&entry.key, "here")
                                 .push();
                         }
                     } else if n > 0 {
                         let msg = format!("localization is missing ${prefix}1$");
-                        warn(ErrorKey::Validation).msg(msg).loc(key).loc(&entry.key, "here").push();
+                        warn(ErrorKey::Validation)
+                            .msg(msg)
+                            .loc(key)
+                            .loc_msg(&entry.key, "here")
+                            .push();
                     }
                 }
             }
