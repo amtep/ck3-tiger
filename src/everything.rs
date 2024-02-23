@@ -583,8 +583,6 @@ impl Everything {
             Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
             Item::Wargoal => WARGOALS.contains(&key),
             Item::CombatUnit
-            | Item::CommanderRank
-            | Item::CommanderOrder
             | Item::CultureGraphics
             | Item::MobilizationOption
             | Item::TutorialLesson => true, // TODO
