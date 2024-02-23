@@ -181,7 +181,7 @@ impl<'a> Validator<'a> {
 
     /// Require field `name` to not be in the block. If it is found, warn that it has been replaced by `replaced_by`.
     /// This is used to adapt to and warn about changes in the game engine.
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub fn replaced_field(&mut self, name: &str, replaced_by: &str) {
         let sev = Severity::Error.at_most(self.max_severity);
         self.multi_field_check(name, |key, _| {

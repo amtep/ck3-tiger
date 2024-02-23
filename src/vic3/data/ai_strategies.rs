@@ -75,6 +75,28 @@ impl DbKind for AiStrategy {
             sc.define_name("target_country", Scopes::Country, key);
             validate_script_value(bv, data, &mut sc);
         });
+        vd.field_validated_key("state_value", |key, bv, data| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("target_state", Scopes::State, key);
+            sc.define_name("target_country", Scopes::Country, key);
+            validate_script_value(bv, data, &mut sc);
+        });
+        vd.field_validated_key("treaty_port_value", |key, bv, data| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("target_state", Scopes::State, key);
+            sc.define_name("target_country", Scopes::Country, key);
+            validate_script_value(bv, data, &mut sc);
+        });
+        vd.field_validated_key("subject_value", |key, bv, data| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("target_country", Scopes::Country, key);
+            validate_script_value(bv, data, &mut sc);
+        });
+        vd.field_validated_key("become_subject_value", |key, bv, data| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("overlord", Scopes::Country, key);
+            validate_script_value(bv, data, &mut sc);
+        });
         vd.field_validated_key("recklessness", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("target_country", Scopes::Country, key);
@@ -85,10 +107,20 @@ impl DbKind for AiStrategy {
             sc.define_name("target_country", Scopes::Country, key);
             validate_script_value(bv, data, &mut sc);
         });
-        vd.field_script_value_rooted("wanted_construction_sector_levels", Scopes::Country);
+        vd.field_script_value_rooted("wanted_construction_output", Scopes::Country);
+        vd.replaced_field("wanted_construction_sector_levels", "wanted_construction_output");
         vd.field_script_value_rooted("wanted_army_size", Scopes::Country);
         vd.field_script_value_rooted("wanted_navy_size", Scopes::Country);
 
+        vd.field_validated_key_block(
+            "combat_unit_group_weights",
+            validate_combat_unit_group_weights,
+        );
+        {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("military_formation", Scopes::MilitaryFormation, key);
+            vd.field_script_value("conscript_battalion_ratio", &mut sc);
+        }
         vd.field_validated_key_block("building_group_weights", validate_building_group_weights);
 
         vd.field_validated_key_block("subsidies", validate_subsidies);
@@ -119,6 +151,16 @@ fn validate_institution_scores(key: &Token, block: &Block, data: &Everything) {
     let mut sc = ScopeContext::new(Scopes::Country, key); // TODO verify scope type
     vd.unknown_fields(|key, bv| {
         data.verify_exists(Item::Institution, key);
+        validate_script_value(bv, data, &mut sc);
+    });
+}
+
+fn validate_combat_unit_group_weights(_key: &Token, block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.unknown_fields(|key, bv| {
+        data.verify_exists(Item::CombatUnitGroup, key);
+        let mut sc = ScopeContext::new(Scopes::Country, key);
+        sc.define_name("military_formation", Scopes::MilitaryFormation, key);
         validate_script_value(bv, data, &mut sc);
     });
 }

@@ -104,7 +104,7 @@ impl ReportBuilderStage2 {
         }
     }
 
-    #[cfg(feature = "ck3")] // vic3 happens not to use
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub fn loc_msg<E: ErrorLoc, S: Into<String>>(self, eloc: E, msg: S) -> ReportBuilderStage3 {
         let length = eloc.loc_length();
         ReportBuilderStage3 {
