@@ -64,7 +64,7 @@ impl DbKind for Struggle {
         vd.field_list_items("regions", Item::Region);
 
         vd.field_validated_block_sc("transition_state_duration", &mut sc, validate_duration);
-        vd.field_numeric_range("involvement_prerequisite_percentage", 0.0, 1.0);
+        vd.field_numeric_range("involvement_prerequisite_percentage", 0.0..=1.0);
 
         vd.req_field("phase_list");
         vd.field_validated_block("phase_list", |block, data| {

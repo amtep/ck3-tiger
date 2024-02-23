@@ -65,7 +65,7 @@ impl DbKind for BuildingType {
         vd.field_validated("required_construction", validate_non_dynamic_script_value);
 
         vd.field_item("owners", Item::PopType);
-        vd.field_numeric_range("economic_contribution", 0.0, 1.0);
+        vd.field_numeric_range("economic_contribution", 0.0..=1.0);
         vd.field_numeric("min_raise_to_hire");
 
         vd.field_bool("naval");

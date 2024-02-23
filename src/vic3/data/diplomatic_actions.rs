@@ -96,7 +96,7 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_bool("recipient_pays_maintenance"); // undocumented
     vd.field_bool("recipient_gets_income_transfer");
     vd.field_bool("income_transfer_based_on_recipient");
-    vd.field_numeric_range("income_transfer", 0.0, 1.0);
+    vd.field_numeric_range("income_transfer", 0.0..=1.0);
 
     vd.field_numeric("relations_progress_per_day"); // undocumented
     vd.field_numeric("relations_improvement_max"); // undocumented
@@ -140,7 +140,7 @@ fn validate_ai(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_bool("check_acceptance_for_will_break");
     vd.field_bool("check_acceptance_for_will_propose");
 
-    vd.field_numeric_range("max_influence_spending_fraction", 0.0, 1.0);
+    vd.field_numeric_range("max_influence_spending_fraction", 0.0..=1.0);
 
     for field in &["will_propose", "will_break"] {
         vd.field_validated_block(field, |block, data| {

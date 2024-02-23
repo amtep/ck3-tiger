@@ -68,18 +68,18 @@ impl DbKind for AiWarStance {
             err(ErrorKey::Validation).msg(msg).loc(key).push();
         }
 
-        vd.field_integer_range("enemy_unit_priority", 1, 1000);
+        vd.field_integer_range("enemy_unit_priority", 1..=1000);
 
         vd.multi_field_validated_block("objectives", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.multi_field_validated_block("enemy_unit_province", |block, data| {
                 let mut vd = Validator::new(block, data);
-                vd.field_integer_range("priority", 1, 1000);
+                vd.field_integer_range("priority", 1..=1000);
                 vd.multi_field_choice("area", AI_WAR_AREAS);
             });
             for &objective in AI_WAR_OBJECTIVES {
                 if objective != "enemy_unit_province" {
-                    vd.field_integer_range(objective, 1, 1000);
+                    vd.field_integer_range(objective, 1..=1000);
                 }
             }
         });

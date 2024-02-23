@@ -114,7 +114,7 @@ impl DbKind for CharacterTemplate {
             vd.field_choice("role", &["general", "admiral"]);
             vd.field_date("earliest_usage_date");
             vd.field_date("latest_usage_date");
-            vd.field_numeric_range("chance", 0.0, 100.0);
+            vd.field_numeric_range("chance", 0.0..=100.0);
         });
 
         for field in &["interest_group_leader_usage", "agitator_usage"] {
@@ -130,7 +130,7 @@ impl DbKind for CharacterTemplate {
                 });
                 vd.field_date("earliest_usage_date");
                 vd.field_date("latest_usage_date");
-                vd.field_numeric_range("chance", 0.0, 100.0);
+                vd.field_numeric_range("chance", 0.0..=100.0);
             });
         }
     }

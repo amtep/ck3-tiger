@@ -427,7 +427,7 @@ impl DbKind for ActivityType {
         vd.field_validated_block("pulse_actions", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_list_items("entries", Item::PulseAction);
-            vd.field_numeric_range("chance_of_no_event", 0.0, 100.0);
+            vd.field_numeric_range("chance_of_no_event", 0.0..=100.0);
         });
     }
 }

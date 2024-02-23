@@ -236,16 +236,16 @@ impl Trait {
         vd.field_numeric("opposite_opinion");
         vd.field_numeric("same_faith_opinion");
         vd.field_integer("level");
-        vd.field_integer_range("inherit_chance", 0, 100);
-        vd.field_integer_range("both_parent_has_trait_inherit_chance", 0, 100);
+        vd.field_integer_range("inherit_chance", 0..=100);
+        vd.field_integer_range("both_parent_has_trait_inherit_chance", 0..=100);
         vd.advice_field("can_inherit", "no longer used");
         vd.field_bool("inherit_from_real_mother");
         vd.field_bool("inherit_from_real_father");
         vd.field_choice("parent_inheritance_sex", &["male", "female", "all"]);
         vd.field_choice("child_inheritance_sex", &["male", "female", "all"]);
         if genetic {
-            vd.field_numeric_range("birth", 0.0, 1.0);
-            vd.field_numeric_range("random_creation", 0.0, 1.0);
+            vd.field_numeric_range("birth", 0.0..=1.0);
+            vd.field_numeric_range("random_creation", 0.0..=1.0);
             vd.ban_field("random_creation_weight", || "genetic = no");
         } else {
             vd.ban_field("birth", || "genetic = yes");
