@@ -355,7 +355,7 @@ pub fn validate_property(
     }
 }
 
-fn validate_datatype_field(
+pub fn validate_datatype_field(
     dtype: Datatype,
     key: &Token,
     bv: &BV,

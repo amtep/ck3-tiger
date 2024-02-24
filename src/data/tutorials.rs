@@ -1,9 +1,11 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
+use crate::datatype::Datatype;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
+use crate::gui::validate_datatype_field;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -36,7 +38,8 @@ impl TutorialLesson {
 }
 
 impl DbKind for TutorialLesson {
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+    #[allow(unused_variables)] // for `key` when not vic3
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
         vd.field_item("chain", Item::TutorialLessonChain);
@@ -50,9 +53,18 @@ impl DbKind for TutorialLesson {
         // TODO: register these as item Flags and check them for
         // the IsTutorialTagOpen gui function?
         // Downside: some mods may check other mods' tags for compatibility.
-        vd.field_value("gui_tag");
+        vd.multi_field_value("gui_tag");
         // TODO: check that this is a widget name
         vd.field_value("highlight_widget");
+        // TODO: verify this works in CK3 too
+        vd.field_validated_key("highlight_widget_dynamic_loc", |key, bv, data| {
+            validate_datatype_field(Datatype::Unknown, key, bv, data, false);
+        });
+        #[cfg(feature = "vic3")]
+        {
+            let mut sc = ScopeContext::new(Scopes::JournalEntry, key);
+            vd.multi_field_target("highlight_target", &mut sc, Scopes::all());
+        }
 
         vd.multi_field_validated_block("trigger_transition", validate_trigger_transition);
 
@@ -61,6 +73,7 @@ impl DbKind for TutorialLesson {
 
         vd.field_bool("finish_gamestate_tutorial");
         vd.field_bool("shown_in_encyclopedia");
+        vd.field_item("encyclopedia_text", Item::Localization);
 
         // The tutorial lesson steps are validated in `TutorialLessonStep`
         vd.unknown_block_fields(|_, _| ());
@@ -73,7 +86,7 @@ pub struct TutorialLessonChain {
 }
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::all(), Item::TutorialLessonChain, TutorialLessonChain::add)
+    ItemLoader::Normal(GameFlags::Ck3.union(GameFlags::Vic3), Item::TutorialLessonChain, TutorialLessonChain::add)
 }
 
 impl TutorialLessonChain {
@@ -90,8 +103,7 @@ impl DbKind for TutorialLessonChain {
 
         vd.field_validated_key_block("trigger", |key, block, data| {
             // TODO: verify root scope
-            // All the examples in vanilla work with Scopes::None
-            let mut sc = ScopeContext::new(Scopes::None, key);
+            let mut sc = ScopeContext::new(game_tutorial_scope(), key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
@@ -124,11 +136,21 @@ impl DbKind for TutorialLessonStep {
 
         vd.field_item("text", Item::Localization);
         vd.field_item("header_info", Item::Localization); // undocumented
-                                                          // see gui_tag in TutorialLesson
-        vd.field_value("gui_tag");
+
+        // see gui_tag in TutorialLesson
+        vd.multi_field_value("gui_tag");
         vd.field_value("window_name");
         // TODO: check that this is a widget name
         vd.multi_field_value("highlight_widget");
+        // TODO: verify this works in CK3 too
+        vd.field_validated_key("highlight_widget_dynamic_loc", |key, bv, data| {
+            validate_datatype_field(Datatype::Unknown, key, bv, data, false);
+        });
+        #[cfg(feature = "vic3")]
+        {
+            let mut sc = ScopeContext::new(Scopes::JournalEntry, key);
+            vd.multi_field_target("highlight_target", &mut sc, Scopes::all());
+        }
 
         // TODO: These two are not used in vanilla and the docs are a bit unclear
         vd.field_item("soundeffect", Item::Sound);
@@ -138,6 +160,7 @@ impl DbKind for TutorialLessonStep {
         vd.field_integer("delay");
         vd.field_value("animation");
         vd.field_bool("shown_in_encyclopedia");
+        vd.field_item("encyclopedia_text", Item::Localization);
 
         vd.multi_field_validated_block("gui_transition", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -151,6 +174,7 @@ impl DbKind for TutorialLessonStep {
         });
         vd.multi_field_validated_block("trigger_transition", validate_trigger_transition);
 
+        // TODO: verify this works in Vic3 too
         vd.field_validated_key_block("interface_effect", |key, block, data| {
             // TODO: need a general way to restrict effects to interface effects only
             let mut sc = ScopeContext::new(Scopes::None, key);
@@ -199,7 +223,5 @@ fn game_tutorial_scope() -> Scopes {
         Game::Ck3 => Scopes::Character,
         #[cfg(feature = "vic3")]
         Game::Vic3 => Scopes::Country,
-        #[cfg(feature = "imperator")]
-        Game::Imperator => Scopes::Country,
     }
 }
