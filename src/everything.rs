@@ -585,7 +585,6 @@ impl Everything {
             Item::CombatUnit
             | Item::CommanderRank
             | Item::CommanderOrder
-            | Item::CompanyType
             | Item::CultureGraphics
             | Item::MobilizationOption
             | Item::TutorialLesson => true, // TODO
