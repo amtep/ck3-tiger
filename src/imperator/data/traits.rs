@@ -31,6 +31,7 @@ impl DbKind for CharacterTrait {
         vd.field_choice("type", &["health", "military", "personality", "status"]);
 
         vd.field_bool("congenital");
+        vd.field_list_items("opposites", Item::CharacterTrait);
 
         vd.field_validated_block("unit", |block, data| {
             let vd = Validator::new(block, data);
@@ -40,6 +41,11 @@ impl DbKind for CharacterTrait {
         vd.field_validated_block("country", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Country, vd);
+        });
+
+        vd.field_validated_block("province", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Province, vd);
         });
 
         // dna_modifiers block gets ignored

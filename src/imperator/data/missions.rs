@@ -71,59 +71,65 @@ impl DbKind for Mission {
             validate_effect(b, data, &mut sc, Tooltipped::Yes);
         });
 
-        // The individual mission tasks. They are validated in the MissionTask class.
-        vd.unknown_block_fields(|_, _| ());
+        // The individual mission tasks. They are validated in the MissionTask Item.
+        vd.unknown_block_fields(|key, block| {
+            validate_task(key, block, &mut sc, data);
+        });
     }
+}
+
+fn validate_task(key: &Token, block: &Block, sc: &mut ScopeContext, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+
+    data.verify_exists(Item::Localization, key);
+    let loca = format!("{key}_DESC");
+    data.verify_exists_implied(Item::Localization, &loca, key);
+
+    vd.field_value("icon");
+    vd.field_script_value("duration", sc);
+    vd.field_item("monthly_on_action", Item::OnAction);
+    vd.field_bool("final");
+
+    vd.field_list_items("requires", Item::MissionTask);
+    vd.field_list_items("prevented_by", Item::MissionTask);
+
+    vd.field_validated_block("highlight", |b, data| {
+        let mut sc = ScopeContext::new(Scopes::Country, key);
+        sc.define_name("province", Scopes::Province, key);
+        validate_trigger(b, data, &mut sc, Tooltipped::Yes);
+    });
+
+    vd.field_validated_block("potential", |b, data| {
+        validate_trigger(b, data, sc, Tooltipped::No);
+    });
+
+    vd.field_validated_block("allow", |b, data| {
+        validate_trigger(b, data, sc, Tooltipped::Yes);
+    });
+
+    vd.field_validated_block("bypass", |b, data| {
+        validate_trigger(b, data, sc, Tooltipped::Yes);
+    });
+
+    vd.field_validated_block_sc("ai_chance", sc, validate_modifiers_with_base);
+
+    vd.field_validated_block("on_start", |b, data| {
+        validate_effect(b, data, sc, Tooltipped::Yes);
+    });
+    vd.field_validated_block("on_completion", |b, data| {
+        validate_effect(b, data, sc, Tooltipped::Yes);
+    });
+    vd.field_validated_block("on_bypass", |b, data| {
+        validate_effect(b, data, sc, Tooltipped::No);
+    });
 }
 
 #[derive(Clone, Debug)]
 pub struct MissionTask {}
 
 impl DbKind for MissionTask {
-    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new(Scopes::Country, key);
-
-        data.verify_exists(Item::Localization, key);
-        let loca = format!("{key}_DESC");
-        data.verify_exists_implied(Item::Localization, &loca, key);
-
-        vd.field_value("icon");
-        vd.field_script_value("duration", &mut sc);
-        vd.field_item("monthly_on_action", Item::OnAction);
-        vd.field_bool("final");
-
-        vd.field_list_items("requires", Item::MissionTask);
-        vd.field_list_items("prevented_by", Item::MissionTask);
-
-        vd.field_validated_block("highlight", |b, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            sc.define_name("province", Scopes::Province, key);
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-
-        vd.field_validated_block("potential", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-
-        vd.field_validated_block("allow", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-
-        vd.field_validated_block("bypass", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-
-        vd.field_validated_block_sc("ai_chance", &mut sc, validate_modifiers_with_base);
-
-        vd.field_validated_block("on_start", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_completion", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_bypass", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
+    fn validate(&self, _key: &Token, _block: &Block, _data: &Everything) {
+        // All validation in MissionTask's is done in the validate_task function which is called from the Mission Item
+        // This is so the scopes saves in Mission can get passed down into the MissionTask properly while also saving MissionTask Items like that need to be saved.
     }
 }
