@@ -62,19 +62,20 @@ impl PdxFile {
     }
 
     /// Parse a UTF-8 file that should start with a BOM (Byte Order Marker).
-    pub fn read(entry: &FileEntry) -> Option<Block> {
+    fn _read_mandatory_bom(entry: &FileEntry) -> Option<(Block, bool)> {
         let contents = Self::read_utf8(entry)?;
         if contents.starts_with(BOM_CHAR) {
             Some(parse_pdx_file(entry, strip_bom(contents)))
         } else {
             let msg = "file must start with a UTF-8 BOM";
             warn(ErrorKey::Encoding).msg(msg).loc(entry).push();
-            Some(parse_pdx_file(entry, contents))
+            let (block, _can_cache) = parse_pdx_file(entry, contents);
+            Some((block, false))
         }
     }
 
     /// Parse a UTF-8 file that may optionally start with a BOM (Byte Order Marker).
-    pub fn read_optional_bom(entry: &FileEntry) -> Option<Block> {
+    fn _read_optional_bom(entry: &FileEntry) -> Option<(Block, bool)> {
         let contents = Self::read_utf8(entry)?;
         if contents.starts_with(BOM_CHAR) {
             Some(parse_pdx_file(entry, strip_bom(contents)))
@@ -85,7 +86,7 @@ impl PdxFile {
 
     /// Parse a file that may be in UTF-8 with BOM encoding, or Windows-1252 encoding.
     #[cfg(feature = "ck3")]
-    pub fn read_detect_encoding(entry: &FileEntry) -> Option<Block> {
+    fn _read_detect_encoding(entry: &FileEntry) -> Option<(Block, bool)> {
         let bytes = match read(entry.fullpath()) {
             Ok(bytes) => bytes,
             Err(e) => {
@@ -117,11 +118,49 @@ impl PdxFile {
     }
 
     pub fn read_encoded(entry: &FileEntry, encoding: PdxEncoding) -> Option<Block> {
-        match encoding {
-            PdxEncoding::Utf8Bom => Self::read(entry),
-            PdxEncoding::Utf8OptionalBom => Self::read_optional_bom(entry),
-            #[cfg(feature = "ck3")]
-            PdxEncoding::Detect => Self::read_detect_encoding(entry),
+        if let Some(block) = PdxFile::cache_lookup(entry) {
+            return Some(block);
         }
+
+        let parse_result = match encoding {
+            PdxEncoding::Utf8Bom => Self::_read_mandatory_bom(entry),
+            PdxEncoding::Utf8OptionalBom => Self::_read_optional_bom(entry),
+            #[cfg(feature = "ck3")]
+            PdxEncoding::Detect => Self::_read_detect_encoding(entry),
+        };
+
+        if let Some((block, can_cache)) = parse_result {
+            if can_cache {
+                PdxFile::cache_put(entry, &block);
+            }
+            return Some(block);
+        }
+
+        None
+    }
+
+    /// Convenience function for `Utf8Bom`
+    pub fn read(entry: &FileEntry) -> Option<Block> {
+        Self::read_encoded(entry, PdxEncoding::Utf8Bom)
+    }
+
+    /// Convenience function for `Utf8OptionalBom`
+    pub fn read_optional_bom(entry: &FileEntry) -> Option<Block> {
+        Self::read_encoded(entry, PdxEncoding::Utf8OptionalBom)
+    }
+
+    /// Convenience function for detect encoding
+    #[cfg(feature = "ck3")]
+    pub fn read_detect_encoding(entry: &FileEntry) -> Option<Block> {
+        Self::read_encoded(entry, PdxEncoding::Detect)
+    }
+
+    fn cache_lookup(_entry: &FileEntry) -> Option<Block> {
+        // TODO
+        None
+    }
+
+    fn cache_put(_entry: &FileEntry, _block: &Block) {
+        // TODO
     }
 }

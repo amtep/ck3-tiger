@@ -103,11 +103,12 @@ impl Calculation {
 struct Calculator {
     stack: Vec<Vec<Calculation>>,
     current: Vec<Calculation>,
+    can_cache: bool,
 }
 
 impl Calculator {
     fn new() -> Self {
-        Self { stack: Vec::new(), current: Vec::new() }
+        Self { stack: Vec::new(), current: Vec::new(), can_cache: true }
     }
 
     fn start(&mut self) {
@@ -123,6 +124,7 @@ impl Calculator {
             // accept negation
             self.current.push(op);
         } else {
+            self.can_cache = false;
             let msg = format!("operator `{op}` without left-hand value");
             err(ErrorKey::LocalValues).msg(msg).loc(loc).push();
         }
@@ -136,6 +138,7 @@ impl Calculator {
         if let Some(value) = local_values.get_value(local_value) {
             self.current.push(Calculation::Value(value));
         } else {
+            self.can_cache = false;
             let msg = format!("local value {local_value} not defined");
             err(ErrorKey::LocalValues).msg(msg).loc(loc).push();
         }
@@ -144,6 +147,7 @@ impl Calculator {
     /// Register an opening `(` in a local value calculation.
     fn push(&mut self, loc: Loc) {
         if let Some(Calculation::Value(_)) = self.current.last() {
+            self.can_cache = false;
             let msg = "calculation has two values with no operator in between";
             err(ErrorKey::LocalValues).msg(msg).loc(loc).push();
         }
@@ -156,6 +160,7 @@ impl Calculator {
             calc.push(Calculation::Value(self.result()));
             self.current = calc;
         } else {
+            self.can_cache = false;
             let msg = "found `)` without corresponding `(`";
             warn(ErrorKey::LocalValues).msg(msg).loc(loc).push();
         }
@@ -163,13 +168,16 @@ impl Calculator {
 
     /// Register the end of a `@[ ... ]` calculation, and return the resulting numerical value.
     fn result(&mut self) -> f64 {
-        Self::calculate(take(&mut self.current))
+        let (result, can_cache) = Self::calculate(take(&mut self.current));
+        self.can_cache = self.can_cache && can_cache;
+        result
     }
 
     /// Evaluate a completely parsed formula, hopefully resulting in a single [`Calculation::Value`].
     ///
     /// If the formula is malformed, it returns 0.0.
-    fn calculate(mut calc: Vec<Calculation>) -> f64 {
+    fn calculate(mut calc: Vec<Calculation>) -> (f64, bool) {
+        let mut can_cache = true;
         // Handle unary negation
         for i in 0..calc.len().saturating_sub(1) {
             if let Calculation::Subtract = calc[i] {
@@ -196,6 +204,7 @@ impl Calculator {
                         }
                         Calculation::Divide(loc) => {
                             if value2 == 0.0 {
+                                can_cache = false;
                                 let msg = "dividing by zero";
                                 err(ErrorKey::LocalValues).msg(msg).loc(loc).push();
                             } else {
@@ -238,11 +247,11 @@ impl Calculator {
 
         if calc.len() == 1 {
             if let Calculation::Value(value) = calc[0] {
-                return value;
+                return (value, can_cache);
             }
         }
         // Whatever went wrong, we've already logged an error about it
-        0.0
+        (0.0, false)
     }
 }
 
@@ -351,6 +360,11 @@ struct Parser {
     local_values: LocalValues,
     /// calculator used to store and calculate local variable calculations.
     calculator: Calculator,
+    /// Whether the result of this parse can be cached for later re-use.
+    /// It's true unless the parser has had to emit any warnings.
+    /// (Since the warnings wouldn't be cached, loading the parse result from cache would
+    /// otherwise silently skip those warnings).
+    can_cache: bool,
 }
 
 impl Parser {
@@ -368,6 +382,7 @@ impl Parser {
             stack: Vec::new(),
             local_values: LocalValues::default(),
             calculator: Calculator::new(),
+            can_cache: true,
         }
     }
 
@@ -391,6 +406,7 @@ impl Parser {
         }
 
         if self.stack.is_empty() && self.current.contains_macro_parms {
+            self.can_cache = false;
             let msg = "$-substitutions only work inside blocks, not at top level";
             err(ErrorKey::ParseError).msg(msg).loc(&token).push();
             self.current.contains_macro_parms = false;
@@ -401,18 +417,21 @@ impl Parser {
                 if let Some(local_value_key) = key.as_str().strip_prefix('@') {
                     // @local_value_key = ...
                     if local_value_key.is_empty() {
+                        self.can_cache = false;
                         let msg = "empty local value key";
                         err(ErrorKey::LocalValues).msg(msg).loc(key).push();
                         return;
                     }
 
                     if !local_value_key.starts_with(|c: char| c.is_ascii_alphabetic()) {
+                        self.can_cache = false;
                         let msg = "local value names must start with an ascii letter";
                         err(ErrorKey::LocalValues).msg(msg).loc(key).push();
                         return;
                     }
 
                     if !local_value_key.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+                        self.can_cache = false;
                         let msg = "local value names must only contain ascii letters, numbers or underscores";
                         err(ErrorKey::LocalValues).msg(msg).loc(key).push();
                         return;
@@ -423,6 +442,7 @@ impl Parser {
                         if let Some(value) = self.local_values.get_as_str(local_value) {
                             self.local_values.insert(local_value_key, value);
                         } else {
+                            self.can_cache = false;
                             err(ErrorKey::LocalValues)
                                 .msg("local value not defined")
                                 .loc(&token)
@@ -441,6 +461,7 @@ impl Parser {
                         let token = Token::from_static_str(value, token.loc);
                         self.current.block.add_key_bv(key, cmp, BV::Value(token));
                     } else {
+                        self.can_cache = false;
                         err(ErrorKey::LocalValues)
                             .msg("local value not defined")
                             .loc(&token)
@@ -457,6 +478,7 @@ impl Parser {
                         let token = Token::from_static_str(value, key.loc);
                         self.current.block.add_value(token);
                     } else {
+                        self.can_cache = false;
                         err(ErrorKey::LocalValues).msg("local value not defined").loc(&key).push();
                         self.current.block.add_value(key);
                     }
@@ -495,12 +517,14 @@ impl Parser {
     /// The parser will look up whether it's a valid comparator and log an error if not.
     fn comparator(&mut self, s: &'static str, loc: Loc) {
         let cmp = Comparator::from_str(s).unwrap_or_else(|| {
+            self.can_cache = false;
             let msg = format!("Unrecognized comparator '{s}'");
             err(ErrorKey::ParseError).msg(msg).loc(loc).push();
             Comparator::Equals(Single)
         });
 
         if self.current.key.is_none() {
+            self.can_cache = false;
             let msg = format!("Unexpected comparator '{s}'");
             err(ErrorKey::ParseError).msg(msg).loc(loc).push();
         } else if let Some((cmp, _)) = self.current.cmp {
@@ -509,6 +533,7 @@ impl Parser {
                 let token = Token::from_static_str(s, loc);
                 self.token(token);
             } else {
+                self.can_cache = false;
                 let msg = &format!("Double comparator '{s}'");
                 err(ErrorKey::ParseError).msg(msg).loc(loc).push();
             }
@@ -522,6 +547,7 @@ impl Parser {
     fn end_assign(&mut self) {
         if let Some(key) = self.current.key.take() {
             if let Some((_, cmp_loc)) = self.current.cmp.take() {
+                self.can_cache = false;
                 err(ErrorKey::ParseError).msg("comparator without value").loc(cmp_loc).push();
             }
             if let Some(local_value) = key.as_str().strip_prefix('@') {
@@ -529,6 +555,7 @@ impl Parser {
                     let token = Token::from_static_str(value, key.loc);
                     self.current.block.add_value(token);
                 } else {
+                    self.can_cache = false;
                     err(ErrorKey::LocalValues).msg("local value not defined").loc(&key).push();
                     self.current.block.add_value(key);
                 }
@@ -574,6 +601,7 @@ impl Parser {
             }
             self.block_value(prev_level.block);
             if loc.column == 1 && !self.stack.is_empty() {
+                self.can_cache = false;
                 let info = "This closing brace is at the start of a line but does not end a top-level item.";
                 warn(ErrorKey::BracePlacement)
                     .msg("possible brace error")
@@ -582,6 +610,7 @@ impl Parser {
                     .push();
             }
         } else {
+            self.can_cache = false;
             err(ErrorKey::BraceError).msg("unexpected }").loc(loc).push();
         }
     }
@@ -591,9 +620,10 @@ impl Parser {
     ///
     /// The game engine parser is very forgiving, and this parser tries to emulate it, so parsing
     /// never fails and always returns a block.
-    fn eof(mut self) -> Block {
+    fn eof(mut self) -> (Block, bool) {
         self.end_assign();
         while let Some(mut prev_level) = self.stack.pop() {
+            self.can_cache = false;
             err(ErrorKey::BraceError)
                 .msg("opening { was never closed")
                 .loc(self.current.block.loc)
@@ -601,7 +631,7 @@ impl Parser {
             swap(&mut self.current, &mut prev_level);
             self.block_value(prev_level.block);
         }
-        self.current.block
+        (self.current.block, self.can_cache && self.calculator.can_cache)
     }
 }
 
@@ -709,7 +739,10 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                     '}' => parser.close_brace(loc, content, i),
                     '#' => state = State::Comment,
                     '"' => state = State::QString,
-                    _ => unknown_char(c, loc),
+                    _ => {
+                        parser.can_cache = false;
+                        unknown_char(c, loc);
+                    }
                 },
                 State::Comment => {
                     if c == '\n' {
@@ -728,6 +761,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                         state = State::Neutral;
                     }
                     '\n' => {
+                        parser.can_cache = false;
                         warn(ErrorKey::ParseError).msg("quoted string not closed").loc(loc).push();
                         let token = if matches!(current_id, Id::Uninit) {
                             // empty quoted string
@@ -764,6 +798,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                             '"' => state = State::QString,
                             ';' => state = State::Neutral,
                             _ => {
+                                parser.can_cache = false;
                                 unknown_char(c, loc);
                                 state = State::Neutral;
                             }
@@ -796,6 +831,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                             '#' => state = State::Comment,
                             '"' => state = State::QString,
                             _ => {
+                                parser.can_cache = false;
                                 unknown_char(c, loc);
                                 state = State::Neutral;
                             }
@@ -808,6 +844,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
 
             match c {
                 CONTROL_Z => {
+                    parser.can_cache = false;
                     control_z(loc, content[i + 1..].trim().is_empty());
                     break;
                 }
@@ -825,6 +862,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
         let token = current_id.take_to_token();
         match state {
             State::QString => {
+                parser.can_cache = false;
                 err(ErrorKey::ParseError).msg("Quoted string not closed").loc(&token).push();
                 parser.token(token);
             }
@@ -837,7 +875,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
             _ => (),
         }
     }
-    parser.eof()
+    parser.eof().0
 }
 
 /// Parse a whole file into a `Block`.
@@ -847,7 +885,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
 /// [`Token`] objects that are just references into that string. It's much faster that way and uses
 /// less memory.
 #[allow(clippy::module_name_repetitions)]
-fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
+fn parse_pdx(entry: &FileEntry, content: &'static str) -> (Block, bool) {
     let mut loc = Loc::from(entry);
     let mut parser = Parser::new(loc);
     loc.line = 1;
@@ -883,7 +921,10 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                     index_loc = IndexLoc(i, loc);
                     state = State::LocalValue;
                 }
-                _ => unknown_char(c, loc),
+                _ => {
+                    parser.can_cache = false;
+                    unknown_char(c, loc);
+                }
             },
             State::Comment => {
                 if c == '\n' {
@@ -897,6 +938,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                     state = State::Neutral;
                 }
                 '\n' => {
+                    parser.can_cache = false;
                     warn(ErrorKey::ParseError).msg("quoted string not closed").loc(loc).push();
                     let token = Token::from_static_str(&content[index_loc.0..i], index_loc.1);
                     parser.token(token);
@@ -933,6 +975,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                         }
                         ';' => state = State::Neutral,
                         _ => {
+                            parser.can_cache = false;
                             unknown_char(c, loc);
                             state = State::Neutral;
                         }
@@ -948,6 +991,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                     state = State::Neutral;
                 }
                 _ => {
+                    parser.can_cache = false;
                     unknown_char(c, loc);
                     state = State::Neutral;
                 }
@@ -956,6 +1000,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                 _ if c.is_local_value_char() => (),
                 '[' => {
                     if index_loc.0 + 1 != i {
+                        parser.can_cache = false;
                         let msg = "not in @[...] form for local value calculation";
                         err(ErrorKey::LocalValues).msg(msg).loc(loc).push();
                     }
@@ -991,6 +1036,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                             state = State::LocalValue;
                         }
                         _ => {
+                            parser.can_cache = false;
                             unknown_char(c, loc);
                             state = State::Neutral;
                         }
@@ -1031,6 +1077,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                     '(' => calculator.push(loc),
                     ')' => calculator.pop(loc),
                     _ => {
+                        parser.can_cache = false;
                         unknown_char(c, loc);
                         state = State::Neutral;
                     }
@@ -1072,6 +1119,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                             state = State::LocalValue;
                         }
                         _ => {
+                            parser.can_cache = false;
                             unknown_char(c, loc);
                             state = State::Neutral;
                         }
@@ -1082,6 +1130,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
 
         match c {
             CONTROL_Z => {
+                parser.can_cache = false;
                 control_z(loc, content[i + 1..].trim().is_empty());
                 break;
             }
@@ -1099,9 +1148,11 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
             let token = Token::from_static_str(&content[index_loc.0..], index_loc.1);
             match state {
                 State::QString => {
+                    parser.can_cache = false;
                     err(ErrorKey::ParseError).msg("quoted string not closed").loc(&token).push();
                 }
                 State::Macro => {
+                    parser.can_cache = false;
                     err(ErrorKey::ParseError).msg("macro not closed by `$`").loc(&token).push();
                 }
                 _ => (),
@@ -1114,6 +1165,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
                 calculator.next(&content[start_offset..], &parser.local_values, start_loc);
             }
             let token = Token::new(&calculator.result().to_string(), index_loc.1);
+            parser.can_cache = false;
             err(ErrorKey::ParseError)
                 .msg("local value calculation not closed by `]`")
                 .loc(&token)
@@ -1130,7 +1182,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
 }
 
 /// Parse the content associated with the [`FileEntry`].
-pub fn parse_pdx_file(entry: &FileEntry, content: String) -> Block {
+pub fn parse_pdx_file(entry: &FileEntry, content: String) -> (Block, bool) {
     let content = leak(content);
     parse_pdx(entry, content)
 }
@@ -1139,7 +1191,7 @@ pub fn parse_pdx_file(entry: &FileEntry, content: String) -> Block {
 /// allow it to load game description data from internal strings that are in pdx script format.
 pub fn parse_pdx_internal(input: &'static str, desc: &str) -> Block {
     let entry = FileEntry::new(PathBuf::from(desc), FileKind::Internal, PathBuf::from(desc));
-    parse_pdx(&entry, input)
+    parse_pdx(&entry, input).0
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
