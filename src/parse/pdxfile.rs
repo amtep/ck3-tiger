@@ -1,6 +1,6 @@
 //! Parses a Pdx script file into a [`Block`].
 //!
-//! The main entry points are [`parse_pdx`] and [`parse_pdx_macro`].
+//! The main entry points are [`parse_pdx_file`], [`parse_pdx_macro`], and [`parse_pdx_internal`].
 
 use std::fmt::Display;
 use std::mem::{swap, take};
@@ -846,6 +846,10 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
 /// good cause: this function uses the fact that all the input is in one big string to construct
 /// [`Token`] objects that are just references into that string. It's much faster that way and uses
 /// less memory.
+///
+/// NOTE: [`parse_pdx_macro`] has now been updated to create `Token` objects that refer to the
+/// input `Token`s where possible, so maybe the performance advantage is gone and these functions
+/// can be merged again.
 #[allow(clippy::module_name_repetitions)]
 fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
     let mut loc = Loc::from(entry);
@@ -1130,9 +1134,9 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
 }
 
 /// Parse the content associated with the [`FileEntry`].
-pub fn parse_pdx_file(entry: &FileEntry, content: String) -> Block {
+pub fn parse_pdx_file(entry: &FileEntry, content: String, offset: usize) -> Block {
     let content = leak(content);
-    parse_pdx(entry, content)
+    parse_pdx(entry, &content[offset..])
 }
 
 /// Parse a string into a [`Block`]. This function is meant for use by the validator itself, to
