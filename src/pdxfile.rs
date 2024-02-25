@@ -5,7 +5,6 @@
 #[cfg(feature = "ck3")]
 use std::fs::read;
 use std::fs::read_to_string;
-use std::mem::ManuallyDrop;
 
 #[cfg(feature = "ck3")]
 use encoding_rs::{UTF_8, WINDOWS_1252};
@@ -25,24 +24,6 @@ pub enum PdxEncoding {
     Utf8OptionalBom,
     #[cfg(feature = "ck3")]
     Detect,
-}
-
-/// Return a modified `String` that does not have the leading UTF-8 BOM.
-/// `contents` *must* start with the BOM.
-/// The returned `String` *must not* ever be deallocated.
-fn strip_bom(contents: String) -> String {
-    // leak so does not deallocate memory
-    let contents = ManuallyDrop::new(contents);
-    let ptr = contents.as_ptr();
-    unsafe {
-        // Re-using the input `String` is faster than allocating a new version.
-        // The tradeoff is that it wastes the three starting bytes and any excess capacity in `contents`, but that is acceptable.
-        String::from_raw_parts(
-            ptr.cast_mut().add(BOM_UTF8_LEN),
-            contents.len() - BOM_UTF8_LEN,
-            contents.len() - BOM_UTF8_LEN,
-        )
-    }
 }
 
 pub struct PdxFile {}
@@ -65,11 +46,11 @@ impl PdxFile {
     pub fn read(entry: &FileEntry) -> Option<Block> {
         let contents = Self::read_utf8(entry)?;
         if contents.starts_with(BOM_CHAR) {
-            Some(parse_pdx_file(entry, strip_bom(contents)))
+            Some(parse_pdx_file(entry, contents, BOM_UTF8_LEN))
         } else {
             let msg = "file must start with a UTF-8 BOM";
             warn(ErrorKey::Encoding).msg(msg).loc(entry).push();
-            Some(parse_pdx_file(entry, contents))
+            Some(parse_pdx_file(entry, contents, 0))
         }
     }
 
@@ -77,9 +58,9 @@ impl PdxFile {
     pub fn read_optional_bom(entry: &FileEntry) -> Option<Block> {
         let contents = Self::read_utf8(entry)?;
         if contents.starts_with(BOM_CHAR) {
-            Some(parse_pdx_file(entry, strip_bom(contents)))
+            Some(parse_pdx_file(entry, contents, BOM_UTF8_LEN))
         } else {
-            Some(parse_pdx_file(entry, contents))
+            Some(parse_pdx_file(entry, contents, 0))
         }
     }
 
@@ -102,7 +83,7 @@ impl PdxFile {
                 err(ErrorKey::Encoding).msg(msg).loc(entry).push();
                 None
             } else {
-                Some(parse_pdx_file(entry, contents.into_owned()))
+                Some(parse_pdx_file(entry, contents.into_owned(), 0))
             }
         } else {
             let (contents, errors) = WINDOWS_1252.decode_without_bom_handling(&bytes);
@@ -111,7 +92,7 @@ impl PdxFile {
                 err(ErrorKey::Encoding).msg(msg).loc(entry).push();
                 None
             } else {
-                Some(parse_pdx_file(entry, contents.into_owned()))
+                Some(parse_pdx_file(entry, contents.into_owned(), 0))
             }
         }
     }
