@@ -11,7 +11,10 @@ use std::mem::ManuallyDrop;
 use encoding_rs::{UTF_8, WINDOWS_1252};
 
 use crate::block::Block;
+use crate::capnp::fileheader_capnp::ParserType;
 use crate::fileset::FileEntry;
+use crate::game::Game;
+use crate::parse::cache::{cache_lookup, cache_put};
 use crate::parse::pdxfile::parse_pdx_file;
 use crate::report::{err, warn, ErrorKey};
 
@@ -155,12 +158,27 @@ impl PdxFile {
         Self::read_encoded(entry, PdxEncoding::Detect)
     }
 
-    fn cache_lookup(_entry: &FileEntry) -> Option<Block> {
+    fn cache_lookup(entry: &FileEntry) -> Option<Block> {
         // TODO
+        _ = cache_lookup(entry, ParserType::pdx_from_game(), 1);
         None
     }
 
-    fn cache_put(_entry: &FileEntry, _block: &Block) {
+    fn cache_put(entry: &FileEntry, _block: &Block) {
         // TODO
+        cache_put(entry, ParserType::pdx_from_game(), 1, &[]);
+    }
+}
+
+impl ParserType {
+    pub fn pdx_from_game() -> Self {
+        match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => ParserType::PdxCk3,
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => ParserType::PdxVic3,
+            #[cfg(feature = "imperator")]
+            Game::Imperator => ParserType::Imperator,
+        }
     }
 }

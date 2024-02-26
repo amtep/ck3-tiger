@@ -6,4 +6,9 @@ flamegraph-single: always
 	RAYON_NUM_THREADS=1 cargo flamegraph --profile bench --package=$(PACKAGE) --output=flamegraph-single.svg -- "$(MOD)"
 	rm -f perf.data perf.data.old
 
-.PHONY: always
+capnp: src/capnp/fileheader_capnp.rs
+
+src/capnp/fileheader_capnp.rs: capnp/fileheader.capnp
+	capnpc -orust:src $<
+
+.PHONY: always capnp

@@ -53,6 +53,7 @@ mod imperator;
 mod vic3;
 
 mod block;
+mod capnp;
 mod config_load;
 mod context;
 mod data;

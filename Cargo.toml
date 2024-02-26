@@ -32,6 +32,8 @@ as-any = "0.3.0"
 bimap = "0.6.3"
 bitflags = "2.3.3"
 bumpalo = "~3.14"
+capnp = "0.19.2"
+directories = "5.0.1"
 encoding_rs = "0.8.32"
 fnv = "1"
 home = "0.5"
@@ -48,6 +50,7 @@ strum_macros = "0.26"
 thiserror = "1"
 unicode-width = "0.1.9"
 walkdir = "2"
+xxhash-rust = { version = "0.8.10", features = ["xxh3"] }
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.52"

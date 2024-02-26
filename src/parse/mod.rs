@@ -1,5 +1,6 @@
 //! Parsers for the various kinds of game script.
 
+pub mod cache;
 #[cfg(feature = "ck3")]
 pub mod csv;
 #[cfg(feature = "vic3")]
