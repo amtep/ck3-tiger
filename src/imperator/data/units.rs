@@ -43,7 +43,7 @@ impl DbKind for Unit {
 
         vd.field_choice("levy_tier", &["advanced", "basic", "none"]);
         vd.field_choice("category", &["light", "medium", "heavy"]);
-        
+
         vd.field_numeric("watercrossing_negation");
         vd.field_numeric("siege_impact");
         vd.field_numeric("build_time");

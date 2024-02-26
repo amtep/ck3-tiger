@@ -78,7 +78,12 @@ impl DbKind for Mission {
     }
 }
 
-fn validate_mission_task_highlight(key: &Token, b: &Block, sc: &mut ScopeContext, data: &Everything) {
+fn validate_mission_task_highlight(
+    key: &Token,
+    b: &Block,
+    sc: &mut ScopeContext,
+    data: &Everything,
+) {
     sc.define_name("province", Scopes::Province, key);
     validate_trigger(b, data, sc, Tooltipped::Yes);
 }

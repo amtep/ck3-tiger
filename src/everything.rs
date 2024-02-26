@@ -60,9 +60,7 @@ use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::game::Game;
 #[cfg(feature = "imperator")]
-use crate::imperator::data:: {
-    events::ImperatorEvents, provinces::ImperatorProvinces
-};
+use crate::imperator::data::{events::ImperatorEvents, provinces::ImperatorProvinces};
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::misc::*;
 use crate::item::{Item, ItemLoader};
@@ -789,7 +787,9 @@ impl Everything {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => self.provinces_vic3.verify_exists_implied(key, token, max_sev),
                 #[cfg(feature = "imperator")]
-                Game::Imperator => self.provinces_imperator.verify_exists_implied(key, token, max_sev),
+                Game::Imperator => {
+                    self.provinces_imperator.verify_exists_implied(key, token, max_sev)
+                }
             },
             Item::TextureFile => {
                 if let Some(entry) = self.assets.get_texture(key) {

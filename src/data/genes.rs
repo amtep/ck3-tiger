@@ -551,15 +551,14 @@ fn validate_morph_gene(block: &Block, data: &Everything) {
                     vd.multi_field_validated_block("decal", validate_gene_decal_imperator);
                     vd.multi_field_validated_block("texture_override", validate_texture_override);
 
-                    if !Game::is_imperator() {
-                        vd.field_validated_block("hair_hsv_shift_curve", validate_shift_curve);
-                        vd.field_validated_block("eye_hsv_shift_curve", validate_shift_curve);
-                        vd.field_validated_block("skin_hsv_shift_curve", validate_shift_curve);
-                    }
-                    else {
+                    if Game::is_imperator() {
                         vd.field_validated_block("hair_hsv_shift_curve", validate_hsv_curve);
                         vd.field_validated_block("eye_hsv_shift_curve", validate_hsv_curve);
                         vd.field_validated_block("skin_hsv_shift_curve", validate_hsv_curve);
+                    } else {
+                        vd.field_validated_block("hair_hsv_shift_curve", validate_shift_curve);
+                        vd.field_validated_block("eye_hsv_shift_curve", validate_shift_curve);
+                        vd.field_validated_block("skin_hsv_shift_curve", validate_shift_curve);
                     }
                 }
             }
@@ -615,7 +614,7 @@ fn validate_gene_setting(block: &Block, data: &Everything) {
     vd.field_validated_block("curve", validate_curve);
     #[cfg(feature = "imperator")]
     vd.multi_field_validated_block("animation_curve", validate_curve);
-    
+
     vd.field_validated("age", validate_age_field);
     if let Some(token) = vd.field_value("required_tags") {
         for tag in token.split(',') {

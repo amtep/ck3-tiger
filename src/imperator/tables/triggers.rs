@@ -289,7 +289,10 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::Country,
         "has_opinion",
-        Block(&[("modifier", Item(Item::Opinion)), ("target", ScopeOrItem(Scopes::Country, Item::Localization))]),
+        Block(&[
+            ("modifier", Item(Item::Opinion)),
+            ("target", ScopeOrItem(Scopes::Country, Item::Localization)),
+        ]),
     ),
     (Scopes::Country, "has_party_type", Item(Item::PartyType)),
     (Scopes::Country, "has_primary_heir", Boolean),
@@ -351,7 +354,10 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::Country,
         "opinion",
-        Block(&[("target", ScopeOrItem(Scopes::Country, Item::Localization)), ("value", CompareValue)]),
+        Block(&[
+            ("target", ScopeOrItem(Scopes::Country, Item::Localization)),
+            ("value", CompareValue),
+        ]),
     ),
     (Scopes::Country, "owns", Scope(Scopes::Province)),
     (Scopes::Country, "owns_area", ScopeOrItem(Scopes::Area, Item::Area)),
@@ -428,7 +434,10 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::War,
         "war_score",
-        Block(&[("target", ScopeOrItem(Scopes::Country, Item::Localization)), ("value", CompareValue)]),
+        Block(&[
+            ("target", ScopeOrItem(Scopes::Country, Item::Localization)),
+            ("value", CompareValue),
+        ]),
     ),
     // Deity triggers
     (Scopes::Deity, "deity_religion", ScopeOrItem(Scopes::Religion, Item::Religion)),

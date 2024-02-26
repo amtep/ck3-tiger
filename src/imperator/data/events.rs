@@ -196,12 +196,12 @@ impl Event {
             tooltipped = Tooltipped::No;
         }
 
-
         let mut minor_event = false;
-        if self.block.field_value_is("type", "minor_character_event") || self.block.field_value_is("type", "minor_country_event") {
+        if self.block.field_value_is("type", "minor_character_event")
+            || self.block.field_value_is("type", "minor_country_event")
+        {
             minor_event = true;
         }
-
 
         if !hidden && !minor_event {
             vd.req_field("picture");

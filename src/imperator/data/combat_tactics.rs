@@ -61,7 +61,6 @@ impl DbKind for CombatTactic {
 
         vd.field_item("sound", Item::Sound);
 
-
         vd.field_validated_block("effective_composition", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.unknown_value_fields(|key, value| {
