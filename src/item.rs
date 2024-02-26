@@ -1143,9 +1143,9 @@ impl Item {
             #[cfg(feature = "imperator")]
             Item::DeityCategory => "common/deity_categories/",
             #[cfg(feature = "imperator")]
-            Item::DiplomaticStance => "common/diplomatic_stance/",
+            Item::DiplomaticStance => "common/diplomatic_stances/",
             #[cfg(feature = "imperator")]
-            Item::EconomicPolicy => "common/economic_policy/",
+            Item::EconomicPolicy => "common/economic_policies/",
             #[cfg(feature = "imperator")]
             Item::EventPicture => "common/event_pictures/",
             #[cfg(feature = "imperator")]

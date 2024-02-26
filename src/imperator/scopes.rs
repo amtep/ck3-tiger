@@ -286,6 +286,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
             .union(Scopes::Character)
             .union(Scopes::Province)
             .union(Scopes::Pop)
+            .union(Scopes::CultureGroup)
             .union(Scopes::CountryCulture),
         "culture",
         Scopes::Culture,
@@ -370,6 +371,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "region", Scopes::Region, Item(Item::Region)),
         (Scopes::None, "area", Scopes::Area, Item(Item::Area)),
         (Scopes::None, "culture", Scopes::Culture, Item(Item::Culture)),
+        (Scopes::None, "culture_group", Scopes::CultureGroup, Item(Item::CultureGroup)),
         (Scopes::None, "deity", Scopes::Deity, Item(Item::Deity)),
         (Scopes::None, "c", Scopes::Country, UncheckedValue),
         (Scopes::None, "char", Scopes::Character, UncheckedValue),

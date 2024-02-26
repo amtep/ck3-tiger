@@ -33,7 +33,7 @@ impl DbKind for Office {
 
         vd.field_validated_block("skill_modifier", |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Country, vd);
+            validate_modifs(block, data, ModifKinds::Country | ModifKinds::Character, vd);
         });
 
         vd.field_validated_block("personal_modifier", |block, data| {

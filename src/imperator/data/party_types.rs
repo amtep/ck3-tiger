@@ -2,16 +2,21 @@ use crate::validator::Validator;
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
+use crate::game::GameFlags;
+use crate::scopes::Scopes;
 use crate::context::ScopeContext;
-use crate::item::Item;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validate::validate_modifiers_with_base;
 
 #[derive(Clone, Debug)]
 pub struct PartyType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Imperator, Item::PartyType, PartyType::add)
+}
 
 impl PartyType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -31,7 +36,7 @@ impl DbKind for PartyType {
         });
         vd.field_validated_key_block("can_character_belong", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_validated_block("province", |block, data| {

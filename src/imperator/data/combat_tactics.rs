@@ -57,15 +57,17 @@ impl DbKind for CombatTactic {
         vd.field_bool("navy");
         vd.field_bool("enable");
 
+        vd.field_numeric("casualties");
+
         vd.field_item("sound", Item::Sound);
 
-        vd.unknown_value_fields(|key, value| {
-            data.verify_exists(Item::CombatTactic, key);
-            value.expect_number();
-        });
 
-        vd.field_validated_block("effective_composition", |_block, data| {
-            data.verify_exists(Item::Unit, key);
+        vd.field_validated_block("effective_composition", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_value_fields(|key, value| {
+                data.verify_exists(Item::Unit, key);
+                value.expect_number();
+            });
         });
     }
 }

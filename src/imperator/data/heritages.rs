@@ -3,7 +3,9 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::context::ScopeContext;
-use crate::item::Item;
+use crate::scopes::Scopes;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -11,6 +13,10 @@ use crate::trigger::validate_trigger;
 
 #[derive(Clone, Debug)]
 pub struct Heritage {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Imperator, Item::Heritage, Heritage::add)
+}
 
 impl Heritage {
     pub fn add(db: &mut Db, key: Token, block: Block) {

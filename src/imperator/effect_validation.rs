@@ -9,7 +9,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
-use crate::validate::{validate_duration, validate_optional_duration, ListType};
+use crate::validate::{validate_optional_duration, ListType};
 use crate::validator::{Validator, ValueValidator};
 
 pub fn validate_remove_subunit_loyalty(
@@ -67,7 +67,6 @@ pub fn validate_death(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    vd.req_field("death_reason");
     vd.field_item("death_reason", Item::DeathReason);
     vd.field_target("killer", sc, Scopes::Character);
     vd.field_bool("silent");
@@ -307,7 +306,7 @@ pub fn validate_create_character(
     vd.field_bool("no_stats");
     vd.field_bool("no_traits");
     vd.field_value("age");
-    vd.field_target_or_integer("birth_province", sc, Scopes::Province);
+    vd.field_integer("birth_province");
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
     sc.close();
 }

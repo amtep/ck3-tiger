@@ -60,7 +60,9 @@ use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::game::Game;
 #[cfg(feature = "imperator")]
-use crate::imperator::data::events::ImperatorEvents;
+use crate::imperator::data:: {
+    events::ImperatorEvents, provinces::ImperatorProvinces
+};
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::misc::*;
 use crate::item::{Item, ItemLoader};
@@ -145,6 +147,8 @@ pub struct Everything {
     pub(crate) provinces_ck3: Ck3Provinces,
     #[cfg(feature = "vic3")]
     pub(crate) provinces_vic3: Vic3Provinces,
+    #[cfg(feature = "imperator")]
+    pub(crate) provinces_imperator: ImperatorProvinces,
 
     #[cfg(feature = "ck3")]
     pub(crate) province_histories: ProvinceHistories,
@@ -264,6 +268,8 @@ impl Everything {
             provinces_ck3: Ck3Provinces::default(),
             #[cfg(feature = "vic3")]
             provinces_vic3: Vic3Provinces::default(),
+            #[cfg(feature = "imperator")]
+            provinces_imperator: ImperatorProvinces::default(),
             #[cfg(feature = "ck3")]
             province_histories: ProvinceHistories::default(),
             #[cfg(feature = "ck3")]
@@ -440,6 +446,7 @@ impl Everything {
     #[cfg(feature = "imperator")]
     fn load_all_imperator(&mut self) {
         self.fileset.handle(&mut self.events_imperator);
+        self.fileset.handle(&mut self.provinces_imperator);
     }
 
     pub fn load_all(&mut self) {
@@ -501,6 +508,7 @@ impl Everything {
     #[cfg(feature = "imperator")]
     fn validate_all_imperator<'a>(&'a self, s: &Scope<'a>) {
         s.spawn(|_| self.events_imperator.validate(self));
+        s.spawn(|_| self.provinces_imperator.validate(self));
     }
 
     pub fn validate_all(&self) {
@@ -775,12 +783,13 @@ impl Everything {
             Item::Localization => self.localization.verify_exists_implied(key, token, max_sev),
             #[cfg(feature = "ck3")]
             Item::Music => self.music.verify_exists_implied(key, token, max_sev),
-            #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::Province => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => self.provinces_ck3.verify_exists_implied(key, token, max_sev),
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => self.provinces_vic3.verify_exists_implied(key, token, max_sev),
+                #[cfg(feature = "imperator")]
+                Game::Imperator => self.provinces_imperator.verify_exists_implied(key, token, max_sev),
             },
             Item::TextureFile => {
                 if let Some(entry) = self.assets.get_texture(key) {

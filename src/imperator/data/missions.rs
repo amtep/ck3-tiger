@@ -78,6 +78,11 @@ impl DbKind for Mission {
     }
 }
 
+fn validate_mission_task_highlight(key: &Token, b: &Block, sc: &mut ScopeContext, data: &Everything) {
+    sc.define_name("province", Scopes::Province, key);
+    validate_trigger(b, data, sc, Tooltipped::Yes);
+}
+
 fn validate_task(key: &Token, block: &Block, sc: &mut ScopeContext, data: &Everything) {
     let mut vd = Validator::new(block, data);
 
@@ -93,14 +98,12 @@ fn validate_task(key: &Token, block: &Block, sc: &mut ScopeContext, data: &Every
     vd.field_list_items("requires", Item::MissionTask);
     vd.field_list_items("prevented_by", Item::MissionTask);
 
-    vd.field_validated_block("highlight", |b, data| {
-        let mut sc = ScopeContext::new(Scopes::Country, key);
-        sc.define_name("province", Scopes::Province, key);
-        validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-    });
-
     vd.field_validated_block("potential", |b, data| {
         validate_trigger(b, data, sc, Tooltipped::No);
+    });
+
+    vd.field_validated_block("highlight", |b, data| {
+        validate_mission_task_highlight(key, b, sc, data);
     });
 
     vd.field_validated_block("allow", |b, data| {

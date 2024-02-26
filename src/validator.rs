@@ -417,25 +417,6 @@ impl<'a> Validator<'a> {
         })
     }
 
-    /// This is a combination of [`Validator::field_integer`] and [`Validator::field_target`].
-    /// Returns true if the field is present.
-    #[cfg(feature = "imperator")] // other games don't use, silence dead code warning.
-    pub fn field_target_or_integer(
-        &mut self,
-        name: &str,
-        sc: &mut ScopeContext,
-        outscopes: Scopes,
-    ) -> bool {
-        self.field_check(name, |_, bv| {
-            if let Some(token) = bv.expect_value() {
-                if token.expect_integer().is_some() {
-                    // TODO: pass max_severity here
-                    validate_target(token, self.data, sc, outscopes);
-                }
-            }
-        })
-    }
-
     /// Expect field `name`, if present, to be a definition `name = { block }`.
     /// Expect no more than one `name` field.
     /// No other validation is done.

@@ -52,17 +52,17 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         return Some(ModifKinds::Country);
     }
 
-    // $Party$_party_influence
-    if let Some(part) = name_lc.strip_suffix_unchecked("_party_influence") {
+    // $Party$_influence
+    if let Some(part) = name_lc.strip_suffix_unchecked("_influence") {
         maybe_warn(Item::PartyType, &part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
-    // monthly_$Party$_party_conviction
+    // monthly_$Party$_conviction
     if let Some(part) = name_lc.strip_prefix_unchecked("monthly_") {
-        if let Some(part) = part.strip_suffix_unchecked("_party_conviction") {
+        if let Some(part) = part.strip_suffix_unchecked("_conviction") {
             maybe_warn(Item::PartyType, &part, name, data, warn);
-            return Some(ModifKinds::Country);
+            return Some(ModifKinds::Character);
         }
     }
 
@@ -210,7 +210,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("local_state_trade_routes", ModifKinds::Province.union(ModifKinds::State)),
     ("global_capital_trade_routes", ModifKinds::Country),
     ("global_state_trade_routes", ModifKinds::Country),
-    ("research_points", ModifKinds::Country),
+    ("research_points", ModifKinds::Country.union(ModifKinds::Province)),
     ("research_points_modifier", ModifKinds::Country),
     ("local_research_points_modifier", ModifKinds::Province.union(ModifKinds::State)),
     ("omen_power", ModifKinds::Country),
@@ -219,11 +219,11 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("local_defensive", ModifKinds::Province.union(ModifKinds::State)),
     ("global_defensive", ModifKinds::Country),
     ("commerce_value", ModifKinds::Country),
-    ("local_commerce_value_modifier", ModifKinds::Country.union(ModifKinds::State)),
+    ("local_commerce_value_modifier", ModifKinds::Province.union(ModifKinds::State)),
     ("global_commerce_modifier", ModifKinds::Country),
     ("global_export_commerce_modifier", ModifKinds::Country),
     ("global_import_commerce_modifier", ModifKinds::Country),
-    ("state_commerce_modifier", ModifKinds::Country.union(ModifKinds::State)),
+    ("state_commerce_modifier", ModifKinds::Province.union(ModifKinds::State)),
     ("tribute_income_modifier", ModifKinds::Country),
     ("ruler_popularity_gain", ModifKinds::Country),
     ("max_loyalty", ModifKinds::Country),
@@ -285,7 +285,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("barbarian_growth", ModifKinds::Country),
     ("barbarian_spawn_chance", ModifKinds::Country),
     ("loyalty_gain_chance", ModifKinds::Country),
-    ("loyalty_gain_chance_modifier", ModifKinds::Country),
+    ("loyalty_gain_chance_modifier", ModifKinds::Country.union(ModifKinds::Character)),
     ("prominence", ModifKinds::Character),
     ("senate_influence", ModifKinds::Character),
     ("monthly_party_approval", ModifKinds::Country),

@@ -21,7 +21,12 @@ inventory::submit! {
 
 impl Deity {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::Deity, key, block, Box::new(Self {}));
+        // Changes the key from "deity_name" to "omen_name"
+        if let Some(s) = key.strip_prefix("deity_") {
+            let omen_string = "omen_".to_owned() + s.as_str();
+            let token = Token::new(&omen_string, key.loc);
+            db.add(Item::Deity, token, block, Box::new(Self {}));
+        }
     }
 }
 
