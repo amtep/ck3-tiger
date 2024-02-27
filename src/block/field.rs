@@ -1,6 +1,5 @@
-use crate::block::serializer::Serializer;
-use crate::block::{Block, Comparator, Eq::*, BV};
-use crate::capnp::pdxfile_capnp::field::Builder;
+use crate::block::{Block, Comparator, Deserializer, Eq::*, Serializer, BV};
+use crate::capnp::pdxfile_capnp::field;
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
 
@@ -137,12 +136,22 @@ impl Field {
         None
     }
 
-    pub fn serialize(&self, s: &mut Serializer, builder: &mut Builder) {
+    pub fn serialize(&self, s: &mut Serializer, builder: &mut field::Builder) {
         s.add_token(&mut builder.reborrow().init_token(), &self.0);
         builder.set_comparator(self.1.into());
         match &self.2 {
             BV::Value(token) => s.add_token(&mut builder.reborrow().get_bv().init_value(), token),
             BV::Block(block) => block.serialize(s, &mut builder.reborrow().get_bv().init_block()),
         }
+    }
+
+    pub fn deserialize(d: &Deserializer, reader: field::Reader) -> Option<Field> {
+        let token = d.get_token(reader.get_token().ok()?);
+        let comparator = reader.get_comparator().ok()?.into();
+        let bv = match reader.get_bv().which().ok()? {
+            field::bv::Value(token_reader) => BV::Value(d.get_token(token_reader.ok()?)),
+            field::bv::Block(block_reader) => BV::Block(Block::deserialize(d, block_reader.ok()?)?),
+        };
+        Some(Field(token, comparator, bv))
     }
 }

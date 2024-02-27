@@ -13,6 +13,7 @@ use std::time::{Duration, SystemTime};
 use capnp::message::{Builder, DEFAULT_READER_OPTIONS};
 use capnp::serialize::{read_message_from_flat_slice, write_message_to_words};
 use directories::ProjectDirs;
+use once_cell::sync::Lazy;
 use xxhash_rust::xxh3::xxh3_128;
 
 use crate::capnp::fileheader_capnp::file_header;
@@ -20,6 +21,10 @@ pub use crate::capnp::fileheader_capnp::ParserType;
 use crate::fileset::FileEntry;
 
 const MAGIC: &[u8] = b"TIGER\n\x1a\x00";
+
+static PROJECT_DIRS: Lazy<ProjectDirs> = Lazy::new(|| {
+    ProjectDirs::from("io.github", "amtep", "tiger-lib").expect("No valid home directory found")
+});
 
 impl ParserType {
     fn to_filename(self) -> &'static str {
@@ -34,14 +39,13 @@ impl ParserType {
 /// Return the full path for a cache file based on `entry`.
 /// The subdirectories leading up to it do not necessarily exist.
 fn cache_pathname(entry: &FileEntry, parser: ParserType) -> Option<PathBuf> {
-    let dirs = ProjectDirs::from("io.github", "amtep", "tiger-lib")?;
     let hash = format!("{:0x}", xxh3_128(entry.fullpath().to_string_lossy().as_bytes()));
     // Put the cache files into subdirectories based on the start of the hash,
     // in order to distribute them over smaller directories instead of one giant one.
     // This helps with filesystem performance.
     let subdir = format!("tiger.{}", &hash[0..2]);
     let filename = format!("tiger.{}.{hash}", parser.to_filename());
-    Some(dirs.cache_dir().join(subdir).join(filename))
+    Some(PROJECT_DIRS.cache_dir().join(subdir).join(filename))
 }
 
 /// Return the cached parse result for this `entry`, if it's found in the cache and is still valid.

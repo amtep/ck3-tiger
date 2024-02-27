@@ -9,7 +9,8 @@ use std::path::PathBuf;
 use fnv::FnvHashMap;
 
 use crate::block::Eq::Single;
-use crate::block::{Block, Comparator, BV};
+use crate::block::{Block, Comparator, Deserializer, BV};
+use crate::capnp::pdxfile_capnp::macro_component;
 use crate::fileset::{FileEntry, FileKind};
 use crate::report::{err, fatal, untidy, warn, ErrorKey};
 use crate::token::{bump, leak, Loc, Token};
@@ -1216,6 +1217,20 @@ impl MacroComponent {
 
     pub fn token(&self) -> &Token {
         &self.token
+    }
+
+    pub fn deserialize(d: &Deserializer, reader: macro_component::Reader) -> Option<Self> {
+        Some(match reader.which().ok()? {
+            macro_component::Source(token) => {
+                Self { kind: MacroComponentKind::Source, token: d.get_token(token.ok()?) }
+            }
+            macro_component::LocalValue(token) => {
+                Self { kind: MacroComponentKind::LocalValue, token: d.get_token(token.ok()?) }
+            }
+            macro_component::Macro(token) => {
+                Self { kind: MacroComponentKind::Macro, token: d.get_token(token.ok()?) }
+            }
+        })
     }
 }
 

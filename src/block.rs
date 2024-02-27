@@ -1,6 +1,6 @@
 //! [`Block`] is the core type to represent Pdx script code
 
-use crate::capnp::pdxfile_capnp::block::Builder;
+use crate::capnp::pdxfile_capnp::block::{Builder, Reader};
 use crate::date::Date;
 use crate::macros::MACRO_MAP;
 use crate::parse::pdxfile::{parse_pdx_macro, MacroComponent, MacroComponentKind};
@@ -16,7 +16,7 @@ pub use crate::block::blockitem::BlockItem;
 pub use crate::block::bv::BV;
 pub use crate::block::comparator::{Comparator, Eq};
 pub use crate::block::field::Field;
-pub use crate::block::serializer::Serializer;
+pub use crate::block::serializer::{Deserializer, Serializer};
 
 /// This type represents the most basic structural element of Pdx script code.
 /// Blocks are delimited by `{` and `}`. An entire file is also a `Block`.
@@ -558,6 +558,27 @@ impl Block {
             let mut item_builder = items_builder.reborrow().get(i as u32);
             blockitem.serialize(s, &mut item_builder);
         }
+    }
+
+    pub fn deserialize(d: &Deserializer, reader: Reader) -> Option<Block> {
+        let mut block = Block::new(d.loc_at(reader.get_line(), reader.get_column()));
+        if reader.has_tag() {
+            block.tag = Some(Box::new(d.get_token(reader.get_tag().ok()?)));
+        }
+        if reader.has_source() {
+            let components = reader.get_source().ok()?;
+            let mut source = Vec::with_capacity(components.len() as usize);
+            for component_reader in components {
+                source.push(MacroComponent::deserialize(d, component_reader)?);
+            }
+            block.source = Some(source);
+        }
+        let items = reader.get_items().ok()?;
+        block.v = Vec::with_capacity(items.len() as usize);
+        for item_reader in items {
+            block.v.push(BlockItem::deserialize(d, item_reader)?);
+        }
+        Some(block)
     }
 }
 

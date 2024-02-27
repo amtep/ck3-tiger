@@ -10,7 +10,7 @@ use std::mem::ManuallyDrop;
 #[cfg(feature = "ck3")]
 use encoding_rs::{UTF_8, WINDOWS_1252};
 
-use crate::block::{Block, Serializer};
+use crate::block::{Block, Deserializer, Serializer};
 use crate::capnp::fileheader_capnp::ParserType;
 use crate::fileset::FileEntry;
 use crate::game::Game;
@@ -159,9 +159,8 @@ impl PdxFile {
     }
 
     fn cache_lookup(entry: &FileEntry) -> Option<Block> {
-        // TODO
-        _ = cache_lookup(entry, ParserType::pdx_from_game(), 1);
-        None
+        let (serialized, offset) = cache_lookup(entry, ParserType::pdx_from_game(), 1)?;
+        Deserializer::deserialize(entry, &serialized[offset..])
     }
 
     fn cache_put(entry: &FileEntry, block: &Block) {
@@ -178,7 +177,7 @@ impl ParserType {
             #[cfg(feature = "vic3")]
             Game::Vic3 => ParserType::PdxVic3,
             #[cfg(feature = "imperator")]
-            Game::Imperator => ParserType::Imperator,
+            Game::Imperator => ParserType::PdxImperator,
         }
     }
 }

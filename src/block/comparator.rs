@@ -86,3 +86,18 @@ impl From<Comparator> for CapnpComparator {
         }
     }
 }
+
+impl From<CapnpComparator> for Comparator {
+    fn from(c: CapnpComparator) -> Self {
+        match c {
+            CapnpComparator::EqualsSingle => Comparator::Equals(Single),
+            CapnpComparator::EqualsDouble => Comparator::Equals(Double),
+            CapnpComparator::EqualsQuestion => Comparator::Equals(Question),
+            CapnpComparator::LessThan => Comparator::LessThan,
+            CapnpComparator::GreaterThan => Comparator::GreaterThan,
+            CapnpComparator::AtMost => Comparator::AtMost,
+            CapnpComparator::AtLeast => Comparator::AtLeast,
+            CapnpComparator::NotEquals => Comparator::NotEquals,
+        }
+    }
+}

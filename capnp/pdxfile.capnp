@@ -10,24 +10,10 @@ struct PdxFile {
     # The parse result of a pdxscript file. It is stored as a combination of
     # string table (for the tokens) and a recursive Block.
 
-    fileKind @2 :FileKind;
-    pathName @3 :Text; # The pathname relative to the root of the fileKind
-
     stringTable @0 :Text;
     # Tokens in the following Block are (offset, len) pointers into this table.
 
     block @1 :Block;
-}
-
-struct FileKind {
-    union {
-        internal @0 :Void;
-        clausewitz @1 :Void;
-        jomini @2 :Void;
-        vanilla @3 :Void;
-        loadedMod @4 :UInt8;
-        mod @5 :Void;
-    }
 }
 
 struct Block {

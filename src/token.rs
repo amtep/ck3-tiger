@@ -80,6 +80,13 @@ impl From<FileEntry> for Loc {
     }
 }
 
+impl From<(PathTableIndex, FileKind)> for Loc {
+    fn from(tuple: (PathTableIndex, FileKind)) -> Self {
+        let (idx, kind) = tuple;
+        Loc { idx, kind, line: 0, column: 0, link_idx: None }
+    }
+}
+
 impl Debug for Loc {
     /// Roll our own `Debug` implementation to handle the path field
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
