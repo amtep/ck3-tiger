@@ -1645,12 +1645,12 @@ pub mod token {
       self.reader.total_size()
     }
     #[inline]
-    pub fn get_offset(self) -> i32 {
-      self.reader.get_data_field::<i32>(0)
+    pub fn get_offset(self) -> u32 {
+      self.reader.get_data_field::<u32>(0)
     }
     #[inline]
-    pub fn get_length(self) -> i32 {
-      self.reader.get_data_field::<i32>(1)
+    pub fn get_length(self) -> u32 {
+      self.reader.get_data_field::<u32>(1)
     }
     #[inline]
     pub fn get_line(self) -> u32 {
@@ -1715,20 +1715,20 @@ pub mod token {
       self.builder.as_reader().total_size()
     }
     #[inline]
-    pub fn get_offset(self) -> i32 {
-      self.builder.get_data_field::<i32>(0)
+    pub fn get_offset(self) -> u32 {
+      self.builder.get_data_field::<u32>(0)
     }
     #[inline]
-    pub fn set_offset(&mut self, value: i32)  {
-      self.builder.set_data_field::<i32>(0, value);
+    pub fn set_offset(&mut self, value: u32)  {
+      self.builder.set_data_field::<u32>(0, value);
     }
     #[inline]
-    pub fn get_length(self) -> i32 {
-      self.builder.get_data_field::<i32>(1)
+    pub fn get_length(self) -> u32 {
+      self.builder.get_data_field::<u32>(1)
     }
     #[inline]
-    pub fn set_length(&mut self, value: i32)  {
-      self.builder.set_data_field::<i32>(1, value);
+    pub fn set_length(&mut self, value: u32)  {
+      self.builder.set_data_field::<u32>(1, value);
     }
     #[inline]
     pub fn get_line(self) -> u32 {
@@ -1805,19 +1805,19 @@ pub mod token {
       ::capnp::word(104, 0, 0, 0, 3, 0, 1, 0),
       ::capnp::word(116, 0, 0, 0, 2, 0, 1, 0),
       ::capnp::word(111, 102, 102, 115, 101, 116, 0, 0),
-      ::capnp::word(4, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(8, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-      ::capnp::word(4, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(8, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(108, 101, 110, 103, 116, 104, 0, 0),
-      ::capnp::word(4, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(8, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-      ::capnp::word(4, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(8, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
       ::capnp::word(108, 105, 110, 101, 0, 0, 0, 0),
@@ -1839,8 +1839,8 @@ pub mod token {
     ];
     pub fn get_field_types(index: u16) -> ::capnp::introspect::Type {
       match index {
-        0 => <i32 as ::capnp::introspect::Introspect>::introspect(),
-        1 => <i32 as ::capnp::introspect::Introspect>::introspect(),
+        0 => <u32 as ::capnp::introspect::Introspect>::introspect(),
+        1 => <u32 as ::capnp::introspect::Introspect>::introspect(),
         2 => <u32 as ::capnp::introspect::Introspect>::introspect(),
         3 => <u16 as ::capnp::introspect::Introspect>::introspect(),
         _ => panic!("invalid field index {}", index),

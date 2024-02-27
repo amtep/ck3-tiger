@@ -53,8 +53,8 @@ enum Comparator {
 }
 
 struct Token {
-    offset @0 :Int32; # offset into PdxFile.stringTable
-    length @1 :Int32;
+    offset @0 :UInt32; # offset into PdxFile.stringTable
+    length @1 :UInt32;
     line @2 :UInt32;
     column @3 :UInt16;
 }

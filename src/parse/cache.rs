@@ -38,14 +38,14 @@ impl ParserType {
 
 /// Return the full path for a cache file based on `entry`.
 /// The subdirectories leading up to it do not necessarily exist.
-fn cache_pathname(entry: &FileEntry, parser: ParserType) -> Option<PathBuf> {
+fn cache_pathname(entry: &FileEntry, parser: ParserType) -> PathBuf {
     let hash = format!("{:0x}", xxh3_128(entry.fullpath().to_string_lossy().as_bytes()));
     // Put the cache files into subdirectories based on the start of the hash,
     // in order to distribute them over smaller directories instead of one giant one.
     // This helps with filesystem performance.
     let subdir = format!("tiger.{}", &hash[0..2]);
     let filename = format!("tiger.{}.{hash}", parser.to_filename());
-    Some(PROJECT_DIRS.cache_dir().join(subdir).join(filename))
+    PROJECT_DIRS.cache_dir().join(subdir).join(filename)
 }
 
 /// Return the cached parse result for this `entry`, if it's found in the cache and is still valid.
@@ -55,7 +55,7 @@ pub fn cache_lookup(
     parser: ParserType,
     version: u32,
 ) -> Option<(Vec<u8>, usize)> {
-    let pathname = cache_pathname(entry, parser)?;
+    let pathname = cache_pathname(entry, parser);
     let bytes = read(pathname).ok()?;
     if !bytes.starts_with(MAGIC) {
         return None;
@@ -100,7 +100,7 @@ fn cache_put_inner(
     let size = attr.len();
     let modtime = attr.modified().ok()?.duration_since(SystemTime::UNIX_EPOCH).ok()?;
 
-    let pathname = cache_pathname(entry, parser)?;
+    let pathname = cache_pathname(entry, parser);
 
     let mut message = Builder::new_default();
     let mut file_header = message.init_root::<file_header::Builder>();

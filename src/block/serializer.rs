@@ -54,8 +54,8 @@ impl Serializer {
 
         // This will panic if offsets or lengths grow beyond 2GB.
         // Panicking is better than silently putting the wrong value.
-        builder.set_offset(i32::try_from(offset).unwrap());
-        builder.set_length(i32::try_from(token.as_str().len()).unwrap());
+        builder.set_offset(u32::try_from(offset).unwrap());
+        builder.set_length(u32::try_from(token.as_str().len()).unwrap());
         // From the loc only line and column are needed, because the file information is kept
         // centralized for the whole file, and the link index is not used in raw file parse
         // results (which are the only blocks we serialize).
