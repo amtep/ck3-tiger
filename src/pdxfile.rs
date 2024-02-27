@@ -10,7 +10,7 @@ use std::mem::ManuallyDrop;
 #[cfg(feature = "ck3")]
 use encoding_rs::{UTF_8, WINDOWS_1252};
 
-use crate::block::Block;
+use crate::block::{Block, Serializer};
 use crate::capnp::fileheader_capnp::ParserType;
 use crate::fileset::FileEntry;
 use crate::game::Game;
@@ -164,9 +164,9 @@ impl PdxFile {
         None
     }
 
-    fn cache_put(entry: &FileEntry, _block: &Block) {
-        // TODO
-        cache_put(entry, ParserType::pdx_from_game(), 1, &[]);
+    fn cache_put(entry: &FileEntry, block: &Block) {
+        let mut s = Serializer::new();
+        cache_put(entry, ParserType::pdx_from_game(), 1, &s.serialize(block));
     }
 }
 

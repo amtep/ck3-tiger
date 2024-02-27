@@ -1,5 +1,6 @@
 //! [`Block`] is the core type to represent Pdx script code
 
+use crate::capnp::pdxfile_capnp::block::Builder;
 use crate::date::Date;
 use crate::macros::MACRO_MAP;
 use crate::parse::pdxfile::{parse_pdx_macro, MacroComponent, MacroComponentKind};
@@ -9,11 +10,13 @@ mod blockitem;
 mod bv;
 mod comparator;
 mod field;
+mod serializer;
 
 pub use crate::block::blockitem::BlockItem;
 pub use crate::block::bv::BV;
 pub use crate::block::comparator::{Comparator, Eq};
 pub use crate::block::field::Field;
+pub use crate::block::serializer::Serializer;
 
 /// This type represents the most basic structural element of Pdx script code.
 /// Blocks are delimited by `{` and `}`. An entire file is also a `Block`.
@@ -521,6 +524,40 @@ impl Block {
             }
         }
         other
+    }
+
+    pub fn serialize(&self, s: &mut Serializer, m: &mut Builder) {
+        if let Some(tag) = self.tag.as_ref() {
+            s.add_token(&mut m.reborrow().init_tag(), tag.as_ref());
+        }
+        // From the loc only line and column are needed, because the file information is kept
+        // centralized for the whole file, and the link index is not used in raw file parse
+        // results (which are the only blocks we serialize).
+        m.set_line(self.loc.line);
+        m.set_column(self.loc.column);
+
+        if let Some(source) = self.source.as_ref() {
+            #[allow(clippy::cast_possible_truncation)]
+            let mut source_builder = m.reborrow().init_source(source.len() as u32);
+            for (i, mc) in source.iter().enumerate() {
+                #[allow(clippy::cast_possible_truncation)]
+                let mc_builder = source_builder.reborrow().get(i as u32);
+                let mut mc_token_builder = match mc.kind() {
+                    MacroComponentKind::Source => mc_builder.init_source(),
+                    MacroComponentKind::LocalValue => mc_builder.init_local_value(),
+                    MacroComponentKind::Macro => mc_builder.init_macro(),
+                };
+                s.add_token(&mut mc_token_builder, mc.token());
+            }
+        }
+
+        #[allow(clippy::cast_possible_truncation)]
+        let mut items_builder = m.reborrow().init_items(self.v.len() as u32);
+        for (i, blockitem) in self.v.iter().enumerate() {
+            #[allow(clippy::cast_possible_truncation)]
+            let mut item_builder = items_builder.reborrow().get(i as u32);
+            blockitem.serialize(s, &mut item_builder);
+        }
     }
 }
 

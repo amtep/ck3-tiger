@@ -1,4 +1,6 @@
+use crate::block::serializer::Serializer;
 use crate::block::{Block, Comparator, Eq::*, BV};
+use crate::capnp::pdxfile_capnp::field::Builder;
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
 
@@ -133,5 +135,14 @@ impl Field {
             }
         }
         None
+    }
+
+    pub fn serialize(&self, s: &mut Serializer, builder: &mut Builder) {
+        s.add_token(&mut builder.reborrow().init_token(), &self.0);
+        builder.set_comparator(self.1.into());
+        match &self.2 {
+            BV::Value(token) => s.add_token(&mut builder.reborrow().get_bv().init_value(), token),
+            BV::Block(block) => block.serialize(s, &mut builder.reborrow().get_bv().init_block()),
+        }
     }
 }

@@ -1,6 +1,7 @@
 use std::fmt::{Display, Error, Formatter};
 
 use crate::block::comparator::Eq::*;
+use crate::capnp::pdxfile_capnp::Comparator as CapnpComparator;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Comparator {
@@ -67,6 +68,21 @@ impl Display for Comparator {
             Comparator::AtMost => write!(f, "<="),
             Comparator::AtLeast => write!(f, ">="),
             Comparator::NotEquals => write!(f, "!="),
+        }
+    }
+}
+
+impl From<Comparator> for CapnpComparator {
+    fn from(c: Comparator) -> Self {
+        match c {
+            Comparator::Equals(Single) => CapnpComparator::EqualsSingle,
+            Comparator::Equals(Double) => CapnpComparator::EqualsDouble,
+            Comparator::Equals(Question) => CapnpComparator::EqualsQuestion,
+            Comparator::LessThan => CapnpComparator::LessThan,
+            Comparator::GreaterThan => CapnpComparator::GreaterThan,
+            Comparator::AtMost => CapnpComparator::AtMost,
+            Comparator::AtLeast => CapnpComparator::AtLeast,
+            Comparator::NotEquals => CapnpComparator::NotEquals,
         }
     }
 }
