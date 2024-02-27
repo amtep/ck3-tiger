@@ -50,7 +50,7 @@ impl CombatTactic {
 }
 
 impl DbKind for CombatTactic {
-    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
         vd.field_bool("use_as_default");
@@ -58,7 +58,6 @@ impl DbKind for CombatTactic {
         vd.field_bool("enable");
 
         vd.field_numeric("casualties");
-
         vd.field_item("sound", Item::Sound);
 
         vd.field_validated_block("effective_composition", |block, data| {
@@ -67,6 +66,11 @@ impl DbKind for CombatTactic {
                 data.verify_exists(Item::Unit, key);
                 value.expect_number();
             });
+        });
+
+        vd.unknown_value_fields(|key, value| {
+            data.verify_exists(Item::CombatTactic, key);
+            value.expect_number();
         });
     }
 }

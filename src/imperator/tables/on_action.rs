@@ -69,6 +69,7 @@ pub const ON_ACTION_SCOPES: &str = "
 
     on_civil_war_lost = {
         root = country
+        losing_side = country
         target = character
     }
 
@@ -146,7 +147,7 @@ pub const ON_ACTION_SCOPES: &str = "
         root = none
     }
 
-    on_reign_ending_successor = on_game_initialized
+    on_reign_ending_successor = on_reign_ending
     on_deified_ruler_death = on_game_initialized
     on_great_work_anniversary = on_game_initialized
     on_battle_won = on_game_initialized

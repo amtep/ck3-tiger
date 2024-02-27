@@ -44,6 +44,11 @@ impl DbKind for PartyType {
             validate_modifs(block, data, ModifKinds::Country, vd);
         });
 
+        vd.field_validated_block("ruler_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+
         vd.field_value("description");
     }
 }

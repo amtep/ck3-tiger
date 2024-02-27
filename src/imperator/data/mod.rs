@@ -19,6 +19,7 @@ pub mod goods;
 pub mod governments;
 pub mod governor_policies;
 pub mod graphical_culture_types;
+pub mod great_work;
 pub mod heritages;
 pub mod ideas;
 pub mod inventions;

@@ -409,6 +409,7 @@ pub enum Item {
     #[cfg(feature = "imperator")] GreatWorkCategory,
     #[cfg(feature = "imperator")] GreatWorkMaterial,
     #[cfg(feature = "imperator")] GreatWorkModule,
+    #[cfg(feature = "imperator")] GreatWorkTemplate,
     #[cfg(feature = "imperator")] Heritage,
     #[cfg(feature = "imperator")] Idea,
     #[cfg(feature = "imperator")] Invention,
@@ -1162,6 +1163,8 @@ impl Item {
             Item::GreatWorkMaterial => "common/great_work_materials/",
             #[cfg(feature = "imperator")]
             Item::GreatWorkModule => "common/great_work_modules/",
+            #[cfg(feature = "imperator")]
+            Item::GreatWorkTemplate => "common/great_work_templates/",
             #[cfg(feature = "imperator")]
             Item::Heritage => "common/heritage/",
             #[cfg(feature = "imperator")]

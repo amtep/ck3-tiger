@@ -83,7 +83,7 @@ pub fn validate_deify_character(
     vd.req_field("deity");
     vd.req_field("country");
     vd.field_target("deity", sc, Scopes::Deity);
-    vd.field_target("country", sc, Scopes::Country);
+    vd.field_item_or_target("country", sc, Item::Country, Scopes::Country);
 }
 
 pub fn validate_legion_history(
@@ -128,7 +128,7 @@ pub fn validate_change_opinion(
     vd.req_field("modifier");
     vd.req_field("target");
     vd.field_item("modifier", Item::Opinion);
-    vd.field_target("target", sc, Scopes::Country);
+    vd.field_item_or_target("target", sc, Item::Country, Scopes::Country);
 }
 
 pub fn validate_add_research(
@@ -170,7 +170,7 @@ pub fn validate_add_truce(
 ) {
     vd.req_field("target");
     vd.req_field("duration");
-    vd.field_target("target", sc, Scopes::Country);
+    vd.field_item_or_target("target", sc, Item::Country, Scopes::Country);
     vd.field_integer("duration");
 }
 
@@ -185,7 +185,7 @@ pub fn validate_declare_war(
     vd.req_field("war_goal");
     vd.req_field("target");
     vd.field_item("war_goal", Item::Wargoal);
-    vd.field_target("target", sc, Scopes::Country);
+    vd.field_item_or_target("target", sc, Item::Country, Scopes::Country);
     vd.field_target("province", sc, Scopes::Province);
 }
 
@@ -211,7 +211,7 @@ pub fn validate_make_subject(
 ) {
     vd.req_field("target");
     vd.req_field("type");
-    vd.field_target("target", sc, Scopes::Country);
+    vd.field_item_or_target("target", sc, Item::Country, Scopes::Country);
     vd.field_item("type", Item::SubjectType);
 }
 

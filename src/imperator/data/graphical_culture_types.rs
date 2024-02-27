@@ -4,7 +4,6 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::token::Token;
-use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct GraphicalCultureType {}
@@ -20,8 +19,7 @@ impl GraphicalCultureType {
 }
 
 impl DbKind for GraphicalCultureType {
-    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        let mut vd = Validator::new(block, data);
+    fn validate(&self, _key: &Token, _block: &Block, _data: &Everything) {
         // Literally nothing
     }
 }

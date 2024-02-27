@@ -788,7 +788,7 @@ impl Everything {
                 Game::Vic3 => self.provinces_vic3.verify_exists_implied(key, token, max_sev),
                 #[cfg(feature = "imperator")]
                 Game::Imperator => {
-                    self.provinces_imperator.verify_exists_implied(key, token, max_sev)
+                    self.provinces_imperator.verify_exists_implied(key, token, max_sev);
                 }
             },
             Item::TextureFile => {

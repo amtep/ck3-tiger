@@ -142,18 +142,6 @@ impl ImperatorProvinces {
         }
     }
 
-    pub fn exists(&self, key: &str) -> bool {
-        if let Ok(provid) = key.parse::<ProvId>() {
-            self.provinces.contains_key(&provid)
-        } else {
-            false
-        }
-    }
-
-    pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
-        self.provinces.values().map(|item| &item.key)
-    }
-
     pub fn validate(&self, data: &Everything) {
         for item in &self.adjacencies {
             item.validate(self);

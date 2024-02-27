@@ -653,6 +653,7 @@ fn validate_gene_decal_imperator(block: &Block, data: &Everything) {
     vd.multi_field_validated_block("alpha_curve", validate_curve);
 }
 
+#[cfg(not(feature = "imperator"))]
 fn validate_decal_textures(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     // TODO: validate that it's a dds? What properties should the dds have?
@@ -673,6 +674,7 @@ fn validate_texture_override(block: &Block, data: &Everything) {
     vd.field_item("properties", Item::File);
 }
 
+#[cfg(not(feature = "imperator"))]
 fn validate_blend_modes(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     let choices = &["overlay", "replace", "hard_light", "multiply"];

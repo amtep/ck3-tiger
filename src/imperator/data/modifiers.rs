@@ -22,7 +22,7 @@ impl Modifier {
 
 impl DbKind for Modifier {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        let mut vd = Validator::new(block, data);
+        let vd = Validator::new(block, data);
 
         data.verify_exists(Item::Localization, key);
         validate_modifs(block, data, ModifKinds::all(), vd);
