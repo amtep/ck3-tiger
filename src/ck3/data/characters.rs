@@ -1,8 +1,11 @@
-use std::cmp::Ordering;
+//! Registry and validation of all characters defined in history/characters/
+
 use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
 use std::str::FromStr;
+use std::sync::atomic::Ordering;
 
+use atomic_enum::atomic_enum;
 use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::{Block, Comparator, Eq::*, BV};
@@ -55,7 +58,7 @@ impl Display for Gender {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 #[allow(clippy::struct_field_names)]
 pub struct Characters {
     config_only_born: Option<Date>,
@@ -163,41 +166,58 @@ impl Characters {
         }
     }
 
-    // Check the ancestors of `ch` to see if `ch` is among them.
-    // If a cycle is found, return a `Vec` with the ancestry from `ch` up to `ch`.
-    pub fn _check_ancestors<'a>(
-        &'a self,
-        item: &'a Character,
-        ch: &str,
-        checking: &mut FnvHashSet<&'a str>,
-    ) -> Vec<String> {
-        let first = checking.is_empty();
-        if item.key.is(ch) && !first {
-            // Found a cycle
-            return vec![ch.to_string()];
-        }
-
-        if checking.contains(&item.key.as_str()) {
-            // not necessarily a cycle, could just be a shared ancestor
-            return Vec::new();
-        }
-        checking.insert(item.key.as_str());
-
-        let mut cycle_vec = Vec::new();
-        if let Some(token) = item.block.get_field_value("father") {
-            if let Some(parent) = self.characters.get(token.as_str()) {
-                cycle_vec = self._check_ancestors(parent, ch, checking);
+    // Recursive depth-first search of ancestor graph to see if there are any cycles.
+    // If a cycle is found, print a warning about it that includes all the characters in the cycle.
+    //
+    // If there are multiple cycles, this algorithm might not find them all, because that's an
+    // NP-hard problem. Fortunately the user can just re-run after fixing the known cycles.
+    //
+    // Returns None if `ch` is not part of any cycles.
+    // Returns a vector of `Token` if `ch` is part of a cycle.
+    fn check_ancestor_cycles(&self, ch: &Character) -> Option<Vec<Token>> {
+        match ch.ancestor_state.load(Ordering::Acquire) {
+            AncestorState::Unchecked => {
+                ch.ancestor_state.store(AncestorState::Checking, Ordering::Release);
+            }
+            AncestorState::Checking => {
+                // Found a cycle
+                return Some(vec![ch.key.clone()]);
+            }
+            AncestorState::Checked => {
+                // Reached a char that is known not to be part of any cycles
+                // (or is part of a cycle that has already been reported)
+                return None;
             }
         }
-        if let Some(token) = item.block.get_field_value("mother") {
-            if let Some(parent) = self.characters.get(token.as_str()) {
-                cycle_vec = self._check_ancestors(parent, ch, checking);
+
+        for field in &["father", "mother"] {
+            if let Some(token) = ch.block.get_field_value(field) {
+                if let Some(parent) = self.characters.get(token.as_str()) {
+                    if let Some(mut cycle_vec) = self.check_ancestor_cycles(parent) {
+                        // unwrap is safe because the vec is always created with one element
+                        if &ch.key == cycle_vec.first().unwrap() {
+                            let msg = "character is their own ancestor";
+                            cycle_vec.reverse();
+                            cycle_vec.pop();
+                            let mut report = fatal(ErrorKey::Crash).msg(msg).loc(&ch.key);
+                            for token in cycle_vec {
+                                report = report.loc_msg(token, "from here");
+                            }
+                            report.push();
+                        } else {
+                            cycle_vec.push(token.clone());
+                            // Returning here means if the father is in a cycle we won't check the
+                            // mother, but that's ok because we're not promising to find all
+                            // cycles anyway.
+                            ch.ancestor_state.store(AncestorState::Checked, Ordering::Release);
+                            return Some(cycle_vec);
+                        }
+                    }
+                }
             }
         }
-        if !cycle_vec.is_empty() && !first {
-            cycle_vec.insert(0, item.key.to_string());
-        }
-        cycle_vec
+        ch.ancestor_state.store(AncestorState::Checked, Ordering::Release);
+        None
     }
 
     pub fn check_pod_flags(&self, data: &Everything) {
@@ -241,27 +261,31 @@ impl FileHandler<Block> for Characters {
     fn finalize(&mut self) {
         // Find loops in the ancestry tree. These will crash the game.
         for item in self.characters.values() {
-            let mut checking = FnvHashSet::default();
-            let cycle_vec = self._check_ancestors(item, item.key.as_str(), &mut checking);
-            // TODO: make this a report with a pointer for every character in the cycle
-            if !cycle_vec.is_empty() {
-                let msg = "character is their own ancestor";
-                let info = format!("via {}", cycle_vec.join(", "));
-                fatal(ErrorKey::Crash).strong().msg(msg).info(info).loc(&item.key).push();
-            }
+            let opt_cycle_vec = self.check_ancestor_cycles(item);
+            // It shouldn't be possible that a cycle vec is passed back beyond the first character.
+            assert!(opt_cycle_vec.is_none());
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[atomic_enum]
+enum AncestorState {
+    Unchecked,
+    Checking,
+    Checked,
+}
+
+#[derive(Debug)]
 pub struct Character {
     key: Token,
     block: Block,
+    /// Storage for the ancestor cycle check algorithm.
+    ancestor_state: AtomicAncestorState,
 }
 
 impl Character {
     pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+        Self { key, block, ancestor_state: AtomicAncestorState::new(AncestorState::Unchecked) }
     }
 
     pub fn born_by(&self, born_by: Option<Date>) -> bool {
@@ -707,16 +731,16 @@ impl PartialEq for LifeEvent {
 impl Eq for LifeEvent {}
 
 impl Ord for LifeEvent {
-    fn cmp(&self, other: &Self) -> Ordering {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         match self.date.cmp(&other.date) {
-            Ordering::Equal => self.index.cmp(&other.index),
+            std::cmp::Ordering::Equal => self.index.cmp(&other.index),
             other => other,
         }
     }
 }
 
 impl PartialOrd for LifeEvent {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
