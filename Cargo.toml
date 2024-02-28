@@ -29,6 +29,7 @@ imperator = []
 ansiterm = "0.12.2"
 anyhow = "1"
 as-any = "0.3.0"
+atomic_refcell = "0.1.13"
 bimap = "0.6.3"
 bitflags = "2.3.3"
 bumpalo = "~3.14"
