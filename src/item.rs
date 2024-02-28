@@ -181,6 +181,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] Character,
     #[cfg(feature = "ck3")] CharacterBackground,
     #[cfg(feature = "ck3")] CharacterInteractionCategory,
+    #[cfg(feature = "ck3")] Climate,
     #[cfg(feature = "ck3")] ClothingGfx,
     #[cfg(feature = "ck3")] CoaGfx,
     #[cfg(feature = "ck3")] CoaDynamicDefinition,
@@ -695,6 +696,8 @@ impl Item {
             Item::CharacterBackground => "common/character_backgrounds/",
             #[cfg(feature = "ck3")]
             Item::CharacterInteractionCategory => "common/character_interaction_categories/",
+            #[cfg(feature = "ck3")]
+            Item::Climate => "map_data/climate.txt",
             #[cfg(feature = "ck3")]
             Item::ClothingGfx => "common/culture/cultures/",
             #[cfg(feature = "ck3")]
