@@ -175,7 +175,7 @@ fn validate_iterator(
     });
 
     let mut tooltipped = Tooltipped::No;
-    validate_iterator_fields(Lowercase::empty(), ltype, data, sc, &mut vd, &mut tooltipped);
+    validate_iterator_fields(Lowercase::empty(), ltype, data, sc, &mut vd, &mut tooltipped, true);
 
     validate_inside_iterator(
         &Lowercase::new(it_name.as_str()),

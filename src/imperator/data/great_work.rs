@@ -20,7 +20,12 @@ inventory::submit! {
 
 impl GreatWorkEffect {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::GreatWorkEffect, key.clone(), block.clone(), Box::new(Self {}));
+        db.add(Item::GreatWorkEffect, key.clone(), block, Box::new(Self {}));
+        for tier in 1..5 {
+            let tier_key = format!("{}:{}", key.as_str(), tier);
+            let tier_token = Token::new(&tier_key, key.loc);
+            db.add_flag(Item::GreatWorkEffect, tier_token);
+        }
     }
 }
 

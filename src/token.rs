@@ -326,7 +326,9 @@ impl Token {
 
     pub fn expect_number(&self) -> Option<f64> {
         self.check_number();
-        if let Ok(v) = self.s.parse::<f64>() {
+        // Trim "f" from the end of numbers
+        let s = self.s.trim_end_matches('f');
+        if let Ok(v) = s.parse::<f64>() {
             Some(v)
         } else {
             err(ErrorKey::Validation).msg("expected number").loc(self).push();

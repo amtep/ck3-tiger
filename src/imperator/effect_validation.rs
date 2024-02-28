@@ -45,7 +45,7 @@ pub fn validate_add_modifier(
 }
 
 pub fn validate_add_party_conviction_or_approval(
-    key: &Token,
+    _key: &Token,
     _block: &Block,
     _data: &Everything,
     sc: &mut ScopeContext,
@@ -53,7 +53,6 @@ pub fn validate_add_party_conviction_or_approval(
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("value");
-
     vd.field_item_or_target("party", sc, Item::PartyType, Scopes::Party);
     vd.field_item_or_target("party_type", sc, Item::PartyType, Scopes::Party);
     vd.field_script_value("value", sc);
@@ -83,7 +82,7 @@ pub fn validate_deify_character(
     vd.req_field("deity");
     vd.req_field("country");
     vd.field_target("deity", sc, Scopes::Deity);
-    vd.field_item_or_target("country", sc, Item::Country, Scopes::Country);
+    vd.field_item_or_target("country", sc, Item::Localization, Scopes::Country);
 }
 
 pub fn validate_legion_history(
@@ -128,7 +127,7 @@ pub fn validate_change_opinion(
     vd.req_field("modifier");
     vd.req_field("target");
     vd.field_item("modifier", Item::Opinion);
-    vd.field_item_or_target("target", sc, Item::Country, Scopes::Country);
+    vd.field_item_or_target("target", sc, Item::Localization, Scopes::Country);
 }
 
 pub fn validate_add_research(
@@ -170,7 +169,7 @@ pub fn validate_add_truce(
 ) {
     vd.req_field("target");
     vd.req_field("duration");
-    vd.field_item_or_target("target", sc, Item::Country, Scopes::Country);
+    vd.field_item_or_target("target", sc, Item::Localization, Scopes::Country);
     vd.field_integer("duration");
 }
 
@@ -185,7 +184,7 @@ pub fn validate_declare_war(
     vd.req_field("war_goal");
     vd.req_field("target");
     vd.field_item("war_goal", Item::Wargoal);
-    vd.field_item_or_target("target", sc, Item::Country, Scopes::Country);
+    vd.field_item_or_target("target", sc, Item::Localization, Scopes::Country);
     vd.field_target("province", sc, Scopes::Province);
 }
 
@@ -211,7 +210,7 @@ pub fn validate_make_subject(
 ) {
     vd.req_field("target");
     vd.req_field("type");
-    vd.field_item_or_target("target", sc, Item::Country, Scopes::Country);
+    vd.field_item_or_target("target", sc, Item::Localization, Scopes::Country);
     vd.field_item("type", Item::SubjectType);
 }
 
@@ -341,9 +340,8 @@ pub fn validate_create_country(
     sc.open_scope(Scopes::Country, key.clone());
     vd.field_validated_block("name", |block, data| {
         let mut vd = Validator::new(block, data);
-        // TODO - imperator - I think these are localization keys
-        vd.field_value("name");
-        vd.field_value("adjective");
+        vd.field_item("name", Item::Localization);
+        vd.field_item("adjective", Item::Localization);
     });
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
     sc.close();

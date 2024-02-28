@@ -90,7 +90,7 @@ pub fn validate_effect_internal<'a>(
         vd.ban_field("filter", || "lists");
     }
 
-    validate_iterator_fields(caller, list_type, data, sc, &mut vd, &mut tooltipped);
+    validate_iterator_fields(caller, list_type, data, sc, &mut vd, &mut tooltipped, false);
 
     if list_type != ListType::None {
         validate_inside_iterator(caller, list_type, block, data, sc, &mut vd, tooltipped);

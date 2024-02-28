@@ -273,6 +273,7 @@ pub fn validate_iterator_fields(
     sc: &mut ScopeContext,
     vd: &mut Validator,
     tooltipped: &mut Tooltipped,
+    is_svalue: bool,
 ) {
     // undocumented
     if list_type == ListType::None {
@@ -309,7 +310,7 @@ pub fn validate_iterator_fields(
     } else {
         vd.ban_field("order_by", || "`ordered_` lists");
         vd.ban_field("position", || "`ordered_` lists");
-        if caller != "random_list" && caller != "duel" {
+        if caller != "random_list" && caller != "duel" && !is_svalue {
             vd.ban_field("min", || "`ordered_` lists, `random_list`, and `duel`");
             vd.ban_field("max", || "`ordered_` lists, `random_list`, and `duel`");
         }
@@ -558,8 +559,8 @@ pub fn validate_vic3_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
 
 #[cfg(feature = "imperator")]
 pub fn validate_imperator_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
-    vd.multi_field_validated("modifier", |bv, data| {
-        validate_script_value(bv, data, sc);
+    vd.multi_field_validated_block("modifier", |b, data| {
+        validate_modifiers_with_base(b, data, sc);
     });
 }
 

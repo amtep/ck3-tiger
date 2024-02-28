@@ -16,7 +16,11 @@ inventory::submit! {
 
 impl Office {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::Office, key, block, Box::new(Self {}));
+        db.add(Item::Office, key.clone(), block, Box::new(Self {}));
+
+        for office in &["civic_tech", "religious_tech", "oratory_tech", "military_tech"] {
+            db.add_flag(Item::Office, Token::new(office, key.loc));
+        }
     }
 }
 

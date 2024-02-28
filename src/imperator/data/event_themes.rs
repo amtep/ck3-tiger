@@ -23,7 +23,7 @@ impl DbKind for EventTheme {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_item("icon", Item::File);
+        vd.field_value("icon");
         vd.field_item("soundeffect", Item::Sound);
     }
 }

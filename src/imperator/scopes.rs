@@ -2,12 +2,13 @@
 
 use std::fmt::Formatter;
 
+use fnv::FnvHashMap;
+use once_cell::sync::Lazy;
+
 use crate::everything::Everything;
 use crate::helpers::display_choices;
 use crate::item::Item;
 use crate::scopes::{ArgumentValue, Scopes};
-use fnv::FnvHashMap;
-use once_cell::sync::Lazy;
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
@@ -220,7 +221,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "current_ruler", Scopes::Character),
     (Scopes::Country, "fam", Scopes::Family),
     (Scopes::Country, "overlord", Scopes::Country),
-    (Scopes::Country, "party", Scopes::Party),
+    (Scopes::Country.union(Scopes::Character), "party", Scopes::Party),
     (Scopes::Country, "primary_heir", Scopes::Character),
     (Scopes::Country, "secondary_heir", Scopes::Character),
     (Scopes::Character.union(Scopes::Pop).union(Scopes::Job), "country", Scopes::Country),
@@ -280,7 +281,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
         Scopes::Country,
     ),
     (Scopes::Family, "family_country", Scopes::Country),
-    (Scopes::Family, "head_of_family", Scopes::Country),
+    (Scopes::Family, "head_of_family", Scopes::Character),
     (
         Scopes::Country
             .union(Scopes::Character)
@@ -473,7 +474,6 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "province", Scopes::Province),
     (Scopes::None, "region", Scopes::Province),
     (Scopes::None, "sea_and_river_zone", Scopes::Province),
-    (Scopes::None, "in_list", Scopes::None), // to handle any/random/ordered/every_in_list
 ];
 
 pub fn scope_iterator_removed(name: &str) -> Option<(&'static str, &'static str)> {

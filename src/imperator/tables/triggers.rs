@@ -33,12 +33,14 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
         if data.item_exists(Item::Building, part) {
             return Some((Scopes::Province, Trigger::CompareValue));
         }
+        if data.item_exists(Item::PopType, part) {
+            return Some((Scopes::Province.union(Scopes::Country), Trigger::CompareValue));
+        }
         if !data.item_exists(Item::Building, part) && !data.item_exists(Item::PopType, part) {
             let msg = format!("could not find any {part}");
             let info = "Possible valid options would be: num_of_$POPTYPE$ or num_of_$BUILDING$";
             warn(ErrorKey::MissingItem).msg(msg).info(info).loc(name).push();
         }
-        return Some((Scopes::Country, Trigger::CompareValue));
     }
     // This one is weird...the trigger is just Item::TechnologyTable with no suffix or prefix.
     if data.item_exists(Item::TechnologyTable, name.as_str()) {
@@ -147,7 +149,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_culture", ScopeOrItem(Scopes::Culture, Item::Culture)),
     (Scopes::Character, "has_culture_group", ScopeOrItem(Scopes::CultureGroup, Item::CultureGroup)),
     (Scopes::Character, "has_father", Boolean),
-    (Scopes::Character, "has_holding_in", Scope(Scopes::Province)),
+    (Scopes::Character, "has_holding_in", ScopeOrItem(Scopes::Province, Item::Province)),
     (Scopes::Character, "has_job", Boolean),
     (Scopes::Character, "has_loyalty", Item(Item::Loyalty)),
     (Scopes::Character, "has_mother", Boolean),
@@ -167,7 +169,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "is_admiral", Boolean),
     (Scopes::Character, "is_adult", Boolean),
     (Scopes::Character, "is_alive", Boolean),
-    (Scopes::Character, "is_at_location", Scope(Scopes::Province)),
+    (Scopes::Character, "is_at_location", ScopeOrItem(Scopes::Province, Item::Province)),
     (Scopes::Character, "is_at_same_location", Scope(Scopes::Character)),
     (Scopes::Character, "is_banished", Boolean),
     (Scopes::Character, "is_bastard", Boolean),
@@ -359,9 +361,9 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             ("value", CompareValue),
         ]),
     ),
-    (Scopes::Country, "owns", Scope(Scopes::Province)),
+    (Scopes::Country, "owns", ScopeOrItem(Scopes::Province, Item::Province)),
     (Scopes::Country, "owns_area", ScopeOrItem(Scopes::Area, Item::Area)),
-    (Scopes::Country, "owns_or_subject_owns", Scope(Scopes::Province)),
+    (Scopes::Country, "owns_or_subject_owns", ScopeOrItem(Scopes::Province, Item::Province)),
     (Scopes::Country, "owns_or_subject_owns_area", ScopeOrItem(Scopes::Area, Item::Area)),
     (Scopes::Country, "owns_or_subject_owns_region", ScopeOrItem(Scopes::Region, Item::Region)),
     (Scopes::Country, "owns_region", ScopeOrItem(Scopes::Region, Item::Region)),
@@ -490,7 +492,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Province, "is_in_region", ScopeOrItem(Scopes::Region, Item::Region)),
     (Scopes::Province, "is_inhabitable", Boolean),
     (Scopes::Province, "is_model_shown", UncheckedValue),
-    (Scopes::Province, "is_neighbor", Scope(Scopes::Province)),
+    (Scopes::Province, "is_neighbor", ScopeOrItem(Scopes::Province, Item::Province)),
     (Scopes::Province, "is_port", Boolean),
     (Scopes::Province, "is_previous_controller", ScopeOrItem(Scopes::Country, Item::Localization)),
     (Scopes::Province, "is_previous_owner", ScopeOrItem(Scopes::Country, Item::Localization)),

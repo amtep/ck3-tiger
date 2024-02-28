@@ -22,6 +22,7 @@ inventory::submit! {
 impl Mission {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, block) in block.iter_definitions() {
+            // TODO - eliminate all known block-keys here...also need to do this for Decisions, Military Traditions, Inventions, and Laws.
             db.add(Item::MissionTask, key.clone(), block.clone(), Box::new(MissionTask {}));
         }
         db.add(Item::Mission, key, block, Box::new(Self {}));
@@ -50,8 +51,8 @@ impl DbKind for Mission {
 
         vd.field_validated_block_sc("chance", &mut sc, validate_modifiers_with_base);
 
-        // TODO - Any scopes that are saved in the on_potential or on_start get added to the ScopeContext of every other block in the mission tree, except for the potential block for the entire tree.
-        // Need to figure out how to propogate these save scopes to the new blocks
+        vd.field_validated_block_sc("ai_chance", &mut sc, validate_modifiers_with_base);
+
         vd.field_validated_block("on_potential", |b, data| {
             validate_effect(b, data, &mut sc, Tooltipped::No);
         });
@@ -71,7 +72,7 @@ impl DbKind for Mission {
             validate_effect(b, data, &mut sc, Tooltipped::Yes);
         });
 
-        // The individual mission tasks. They are validated in the MissionTask Item.
+        // The individual mission tasks. They are validated by the validate_task function instead of the MissionTask Item.
         vd.unknown_block_fields(|key, block| {
             validate_task(key, block, &mut sc, data);
         });

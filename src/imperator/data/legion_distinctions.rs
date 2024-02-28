@@ -32,7 +32,7 @@ impl DbKind for LegionDistinction {
         vd.req_field("commander");
         vd.req_field("unit");
 
-        vd.field_item("icon", Item::File);
+        vd.field_value("icon");
 
         vd.field_validated_block("commander", |block, data| {
             let vd = Validator::new(block, data);
