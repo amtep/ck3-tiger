@@ -21,10 +21,11 @@ use crate::block::Block;
 use crate::block::BV;
 #[cfg(feature = "ck3")]
 use crate::ck3::data::{
-    characters::Characters, data_binding::DataBindings, doctrines::Doctrines, events::Ck3Events,
-    gameconcepts::GameConcepts, interaction_cats::CharacterInteractionCategories,
-    maa::MenAtArmsTypes, music::Musics, prov_history::ProvinceHistories, provinces::Ck3Provinces,
-    title_history::TitleHistories, titles::Titles, traits::Traits, wars::Wars,
+    characters::Characters, climate::Climate, data_binding::DataBindings, doctrines::Doctrines,
+    events::Ck3Events, gameconcepts::GameConcepts,
+    interaction_cats::CharacterInteractionCategories, maa::MenAtArmsTypes, music::Musics,
+    prov_history::ProvinceHistories, provinces::Ck3Provinces, title_history::TitleHistories,
+    titles::Titles, traits::Traits, wars::Wars,
 };
 #[cfg(feature = "ck3")]
 use crate::ck3::tables::misc::*;
@@ -454,6 +455,7 @@ impl Everything {
         s.spawn(|_| self.events_ck3.validate(self));
         s.spawn(|_| self.provinces_ck3.validate(self));
         s.spawn(|_| self.wars.validate(self));
+        s.spawn(|_| Climate::validate_all(&self.database, self));
     }
 
     #[cfg(feature = "vic3")]

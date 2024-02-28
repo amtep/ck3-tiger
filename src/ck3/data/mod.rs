@@ -8,6 +8,7 @@ pub mod buildings;
 pub mod casusbelli;
 pub mod character_templates;
 pub mod characters;
+pub mod climate;
 pub mod combat;
 pub mod combat_effects;
 pub mod council;
