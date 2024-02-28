@@ -572,7 +572,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::None,
         "is_lens_open",
-        Block(&[("lens", UncheckedValue), ("tab_name", UncheckedValue)]),
+        Block(&[("lens", UncheckedValue), ("?tab_name", UncheckedValue)]),
     ),
     (Scopes::Country, "is_local_player", Boolean),
     (Scopes::Country, "is_losing_power_rank", Boolean),
@@ -593,7 +593,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[
             ("?target", UncheckedValue),
             ("?panel_name", UncheckedValue),
-            ("tab_name", UncheckedValue),
+            ("?tab_name", UncheckedValue),
         ]),
     ),
     (Scopes::Party, "is_party", Scope(Scopes::Party)),
@@ -619,7 +619,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "is_researching_technology_category", UncheckedValue), // No examples in vanilla
     (Scopes::Country.union(Scopes::InterestGroup), "is_revolutionary", Boolean),
     (Scopes::PoliticalMovement, "is_revolutionary_movement", Boolean),
-    (Scopes::None, "is_rightclick_menu_open", Boolean),
+    (Scopes::None, "is_rightclick_menu_open", UncheckedValue),
     (Scopes::Character, "is_ruler", Boolean),
     (Scopes::InterestGroup, "is_same_interest_group_type", Scope(Scopes::InterestGroup)),
     (Scopes::LawType, "is_same_law_group_as", Scope(Scopes::LawType)),

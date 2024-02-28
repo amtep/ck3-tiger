@@ -136,6 +136,12 @@ pub enum Item {
     Region,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     SubjectType,
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    TutorialLesson,
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    TutorialLessonChain,
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    TutorialLessonStep,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     Wargoal,
 
@@ -366,7 +372,6 @@ pub enum Item {
     #[cfg(feature = "vic3")] TerrainMask,
     #[cfg(feature = "vic3")] TerrainMaterial,
     #[cfg(feature = "vic3")] TransferOfPower,
-    #[cfg(feature = "vic3")] TutorialLesson,
 
     // Items specific to imperator
     #[cfg(feature = "imperator")] Ambition,
@@ -606,6 +611,12 @@ impl Item {
             },
             #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::SubjectType => "common/subject_types/",
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
+            Item::TutorialLesson => "common/tutorial_lessons",
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
+            Item::TutorialLessonChain => "common/tutorial_lesson_chains",
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
+            Item::TutorialLessonStep => "common/tutorial_lessons",
             #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::Wargoal => match Game::game() {
                 #[cfg(feature = "vic3")]
@@ -1063,8 +1074,6 @@ impl Item {
             Item::TerrainMaterial => "gfx/map/terrain/materials.settings",
             #[cfg(feature = "vic3")]
             Item::TransferOfPower => "",
-            #[cfg(feature = "vic3")]
-            Item::TutorialLesson => "common/tutorial_lessons/",
 
             #[cfg(feature = "imperator")]
             Item::AiPlanGoals => "common/ai_plan_goals/",

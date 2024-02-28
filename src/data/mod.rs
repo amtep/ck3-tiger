@@ -25,3 +25,5 @@ pub mod scripted_lists;
 pub mod scripted_modifiers;
 pub mod scripted_triggers;
 pub mod trigger_localization;
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+pub mod tutorials;

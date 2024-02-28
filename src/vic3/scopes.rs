@@ -479,7 +479,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Institution, "investment_max", Scopes::Value),
     (Scopes::Country, "investment_pool_income", Scopes::Value),
     (Scopes::None, "is_setup", Scopes::Value),
-    (Scopes::Country, "je_tutorial", Scopes::JournalEntry),
+    (Scopes::None, "je_tutorial", Scopes::JournalEntry),
     (Scopes::Province.union(Scopes::State), "land_controller_hq", Scopes::Hq),
     (Scopes::Province.union(Scopes::State), "land_hq", Scopes::Hq),
     (Scopes::InterestGroup, "leader", Scopes::Character),

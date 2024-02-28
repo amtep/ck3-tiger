@@ -364,6 +364,23 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Returns true iff the field is present.
+    /// Just like [`Validator::field_target`], but allows multiple fields.
+    #[cfg(feature = "vic3")]
+    pub fn multi_field_target(
+        &mut self,
+        name: &str,
+        sc: &mut ScopeContext,
+        outscopes: Scopes,
+    ) -> bool {
+        self.multi_field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                // TODO: pass max_severity here
+                validate_target(token, self.data, sc, outscopes);
+            }
+        })
+    }
+
     /// Just like [`Validator::field_target`], but allows the value to be simply "`this`".
     /// It is expected to be used judiciously in cases where "`this`" can be correct.
     pub fn field_target_ok_this(
