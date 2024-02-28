@@ -54,6 +54,8 @@ impl Default for OutputStyle {
         map.insert(Styled::SourceText, Style::new());
         map.insert(Styled::Emphasis, Style::new().italic());
 
+        map.insert(Styled::Tag(Severity::Fatal, true), White.bold());
+        map.insert(Styled::Tag(Severity::Fatal, false), White.bold());
         map.insert(Styled::Tag(Severity::Error, true), Red.bold());
         map.insert(Styled::Tag(Severity::Error, false), Red.bold());
         map.insert(Styled::Tag(Severity::Warning, true), Yellow.bold());
