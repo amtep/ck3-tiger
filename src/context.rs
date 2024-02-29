@@ -428,11 +428,16 @@ impl ScopeContext {
     }
 
     /// Replace the `this` in a temporary scope level with a reference to the previous scope level.
-    ///
-    /// Note that the previous scope level is counted from the last real level, so one further back
-    /// than you might expect.
     pub fn replace_prev(&mut self) {
-        self.this = ScopeEntry::Backref(1);
+        if Game::is_imperator() {
+            // Allow `prev.prev` for imperator.
+            match self.this {
+                ScopeEntry::Backref(r) => self.this = ScopeEntry::Backref(r + 1),
+                _ => self.this = ScopeEntry::Backref(1),
+            }
+        } else {
+            self.this = ScopeEntry::Backref(1);
+        }
     }
 
     /// Replace the `this` in a temporary scope level with a reference to the real level below it.

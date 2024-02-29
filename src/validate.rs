@@ -653,7 +653,10 @@ pub fn validate_scope_chain(
                     || part.lowercase_is("prev")
                     || part.lowercase_is("this")
                 {
-                    if !part_flags.contains(PartFlags::First) {
+                    #[allow(clippy::nonminimal_bool)]
+                    if !part_flags.contains(PartFlags::First)
+                        && !(Game::is_imperator() && part.lowercase_is("prev"))
+                    {
                         warn_not_first(part);
                     }
                     if part.lowercase_is("root") {
