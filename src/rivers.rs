@@ -6,7 +6,7 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Result};
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 use png::{ColorType, Decoder};
 
 use crate::everything::Everything;
@@ -50,21 +50,20 @@ impl Rivers {
         Ok(())
     }
 
-    fn river_neighbors(&self, x: u32, y: u32) -> usize {
-        let mut n = 0;
+    fn river_neighbors(&self, x: u32, y: u32, output: &mut Vec<(u32, u32)>) {
+        output.clear();
         if x > 0 && (3..=11).contains(&self.pixel(x - 1, y)) {
-            n += 1;
+            output.push((x - 1, y));
         }
         if y > 0 && (3..=11).contains(&self.pixel(x, y - 1)) {
-            n += 1;
+            output.push((x, y - 1));
         }
         if x + 1 < self.width && (3..=11).contains(&self.pixel(x + 1, y)) {
-            n += 1;
+            output.push((x + 1, y));
         }
         if y + 1 < self.height && (3..=11).contains(&self.pixel(x, y + 1)) {
-            n += 1;
+            output.push((x, y + 1));
         }
-        n
     }
 
     fn special_neighbors(&self, c: (u32, u32)) -> Vec<(u32, u32)> {
@@ -92,65 +91,62 @@ impl Rivers {
 
     fn validate_segments(
         &self,
-        river_segments: Vec<RiverSegment>,
+        river_segments: FnvHashMap<(u32, u32), (u32, u32)>,
         mut specials: FnvHashMap<(u32, u32), bool>,
     ) {
-        for segment in river_segments {
-            match segment {
-                RiverSegment::Single(c) => {
-                    let special_neighbors = self.special_neighbors(c);
-                    if special_neighbors.len() > 1 {
+        let mut seen = FnvHashSet::default();
+
+        for (start, end) in river_segments {
+            if seen.contains(&start) {
+                continue;
+            }
+            seen.insert(end);
+
+            if start == end {
+                // Single-pixel segment
+                let special_neighbors = self.special_neighbors(start);
+                if special_neighbors.len() > 1 {
+                    let msg = format!(
+                        "({}, {}) river pixel connects two special pixels",
+                        start.0, start.1
+                    );
+                    warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
+                } else if special_neighbors.is_empty() {
+                    let msg = format!("({}, {}) orphan river pixel", start.0, start.1);
+                    warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
+                } else {
+                    let s = special_neighbors[0];
+                    if specials[&s] {
                         let msg =
-                            format!("({}, {}) river pixel connects two special pixels", c.0, c.1);
-                        warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
-                    } else if special_neighbors.is_empty() {
-                        let msg = format!("({}, {}) orphan river pixel", c.0, c.1);
+                            format!("({}, {}) pixel terminates multiple river segments", s.0, s.1);
                         warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
                     } else {
-                        let s = special_neighbors[0];
-                        if specials[&s] {
-                            let msg = format!(
-                                "({}, {}) pixel terminates multiple river segments",
-                                s.0, s.1
-                            );
-                            warn(ErrorKey::Rivers)
-                                .msg(msg)
-                                .loc(self.entry.as_ref().unwrap())
-                                .push();
-                        } else {
-                            specials.insert(s, true);
-                        }
+                        specials.insert(s, true);
                     }
                 }
-                RiverSegment::Stream(c1, c2) => {
-                    let mut special_neighbors = self.special_neighbors(c1);
-                    special_neighbors.append(&mut self.special_neighbors(c2));
-                    if special_neighbors.is_empty() {
-                        let msg = format!(
-                            "({}, {}) - ({}, {}) orphan river segment",
-                            c1.0, c1.1, c2.0, c2.1
-                        );
-                        warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
-                    } else if special_neighbors.len() > 1 {
-                        let msg = format!(
-                            "({}, {}) - ({}, {}) river segment has two terminators",
-                            c1.0, c1.1, c2.0, c2.1
-                        );
+            } else {
+                let mut special_neighbors = self.special_neighbors(start);
+                special_neighbors.append(&mut self.special_neighbors(end));
+                if special_neighbors.is_empty() {
+                    let msg = format!(
+                        "({}, {}) - ({}, {}) orphan river segment",
+                        start.0, start.1, end.0, end.1
+                    );
+                    warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
+                } else if special_neighbors.len() > 1 {
+                    let msg = format!(
+                        "({}, {}) - ({}, {}) river segment has two terminators",
+                        start.0, start.1, end.0, end.1
+                    );
+                    warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
+                } else {
+                    let s = special_neighbors[0];
+                    if specials[&s] {
+                        let msg =
+                            format!("({}, {}) pixel terminates multiple river segments", s.0, s.1);
                         warn(ErrorKey::Rivers).msg(msg).loc(self.entry.as_ref().unwrap()).push();
                     } else {
-                        let s = special_neighbors[0];
-                        if specials[&s] {
-                            let msg = format!(
-                                "({}, {}) pixel terminates multiple river segments",
-                                s.0, s.1
-                            );
-                            warn(ErrorKey::Rivers)
-                                .msg(msg)
-                                .loc(self.entry.as_ref().unwrap())
-                                .push();
-                        } else {
-                            specials.insert(s, true);
-                        }
+                        specials.insert(s, true);
                     }
                 }
             }
@@ -177,8 +173,19 @@ impl Rivers {
             return;
         }
 
-        let mut river_segments = Vec::new();
+        // Maps each endpoint of a segment to the other endpoint.
+        // Single-pixel segments map that coordinate to itself.
+        // The river pixels that connect the endpoints are not remembered.
+        let mut river_segments: FnvHashMap<(u32, u32), (u32, u32)> = FnvHashMap::default();
+
+        // Maps the coordinates of special pixels (sources, sinks, and splits)
+        // to a boolean that says whether the pixel terminates a segment.
         let mut specials = FnvHashMap::default();
+
+        // A working vec, holding the list of river-pixel neighbors of the current pixel.
+        // It is declared here to avoid the overhead of creating and destroying the Vec in every
+        // iteration.
+        let mut river_neighbors = Vec::new();
 
         let mut bad_problem = false;
         // TODO: multi-thread this
@@ -186,8 +193,8 @@ impl Rivers {
             for y in 0..self.height {
                 match self.pixel(x, y) {
                     0 => {
-                        let river_neighbors = self.river_neighbors(x, y);
-                        if river_neighbors == 1 {
+                        self.river_neighbors(x, y, &mut river_neighbors);
+                        if river_neighbors.len() == 1 {
                             specials.insert((x, y), false);
                         } else {
                             let msg =
@@ -200,8 +207,8 @@ impl Rivers {
                         }
                     }
                     1 => {
-                        let river_neighbors = self.river_neighbors(x, y);
-                        if river_neighbors >= 2 {
+                        self.river_neighbors(x, y, &mut river_neighbors);
+                        if river_neighbors.len() >= 2 {
                             specials.insert((x, y), false);
                         } else {
                             let msg = format!(
@@ -215,8 +222,8 @@ impl Rivers {
                         }
                     }
                     2 => {
-                        let river_neighbors = self.river_neighbors(x, y);
-                        if river_neighbors >= 2 {
+                        self.river_neighbors(x, y, &mut river_neighbors);
+                        if river_neighbors.len() >= 2 {
                             specials.insert((x, y), false);
                         } else {
                             let msg = format!(
@@ -230,46 +237,47 @@ impl Rivers {
                         }
                     }
                     3..=15 => {
-                        let river_neighbors = self.river_neighbors(x, y);
-                        if river_neighbors <= 2 {
-                            let mut found = Vec::new();
-                            for (i, segment) in river_segments.iter_mut().enumerate() {
-                                match *segment {
-                                    RiverSegment::Single(coord) => {
-                                        if are_neighbors(coord, (x, y)) {
-                                            *segment = RiverSegment::Stream(coord, (x, y));
-                                            found.push(i);
-                                        }
-                                    }
-                                    RiverSegment::Stream(c1, c2) => {
-                                        if are_neighbors(c1, (x, y)) && are_neighbors(c2, (x, y)) {
+                        self.river_neighbors(x, y, &mut river_neighbors);
+                        if river_neighbors.len() <= 2 {
+                            let mut found = false;
+                            for &coords in &river_neighbors {
+                                if let Some(&other_end) = river_segments.get(&coords) {
+                                    found = true;
+                                    if let Some(&third_end) = river_segments.get(&(x, y)) {
+                                        // This can only happen if we're on the second iteration.
+                                        // It means the pixel borders two segments, and joins them.
+                                        // First make sure it's not a single segment in a loop
+                                        // though.
+                                        if third_end == (x, y) {
                                             let msg = format!("({x}, {y}) river forms a loop");
                                             warn(ErrorKey::Rivers)
                                                 .msg(msg)
                                                 .loc(self.entry.as_ref().unwrap())
                                                 .push();
                                             bad_problem = true;
-                                        } else if are_neighbors(c1, (x, y)) {
-                                            *segment = RiverSegment::Stream((x, y), c2);
-                                            found.push(i);
-                                        } else if are_neighbors(c2, (x, y)) {
-                                            *segment = RiverSegment::Stream(c1, (x, y));
-                                            found.push(i);
+                                        } else {
+                                            river_segments.insert(other_end, third_end);
+                                            river_segments.insert(third_end, other_end);
+                                            river_segments.remove(&(x, y));
+                                            river_segments.remove(&coords);
                                         }
+                                    } else {
+                                        // Extend the neighboring segment to include this pixel.
+                                        river_segments.insert((x, y), other_end);
+                                        river_segments.insert(other_end, (x, y));
+                                        river_segments.remove(&coords);
                                     }
                                 }
                             }
-                            if found.is_empty() {
-                                river_segments.push(RiverSegment::Single((x, y)));
-                            } else if found.len() == 2 {
-                                let new_segment =
-                                    river_segments[found[0]].combine(&river_segments[found[1]]);
-                                river_segments[found[0]] = new_segment;
-                                river_segments.swap_remove(found[1]);
+                            if !found {
+                                // Start a new single-pixel segment.
+                                river_segments.insert((x, y), (x, y));
                             }
                         } else {
-                            let msg =
-                                format!("({x}, {y}) river pixel has {river_neighbors} neighbors",);
+                            let msg = format!(
+                                "({x}, {y}) river pixel has {} neighbors",
+                                river_neighbors.len()
+                            );
                             warn(ErrorKey::Rivers)
                                 .msg(msg)
                                 .loc(self.entry.as_ref().unwrap())
@@ -307,40 +315,4 @@ impl FileHandler<()> for Rivers {
                 .push();
         }
     }
-}
-
-// A river segment is either a single pixel or a set of pixels between 2 endpoints.
-// Endpoints have 1 neighbor, all pixels in between have 2 neighbors.
-// There's no need to keep track of the pixels between the endpoints.
-#[derive(Copy, Clone, Debug)]
-enum RiverSegment {
-    Single((u32, u32)),
-    Stream((u32, u32), (u32, u32)),
-}
-
-impl RiverSegment {
-    fn combine(&self, other: &Self) -> Self {
-        // We'll never be asked to combine singles
-        if let RiverSegment::Stream(c1, c2) = self {
-            if let RiverSegment::Stream(o1, o2) = other {
-                if c1 == o1 {
-                    return RiverSegment::Stream(*c2, *o2);
-                } else if c1 == o2 {
-                    return RiverSegment::Stream(*c2, *o1);
-                } else if c2 == o1 {
-                    return RiverSegment::Stream(*c1, *o2);
-                } else if c2 == o2 {
-                    return RiverSegment::Stream(*c1, *o1);
-                }
-                panic!("asked to join non-adjacent river segments");
-            }
-        }
-        panic!("asked to join single-pixel river segments");
-    }
-}
-
-fn are_neighbors(c1: (u32, u32), c2: (u32, u32)) -> bool {
-    let (x1, y1) = c1;
-    let (x2, y2) = c2;
-    (y1 == y2 && (x1 == x2 + 1 || x2 == x1 + 1)) || (x1 == x2 && (y1 == y2 + 1 || y2 == y1 + 1))
 }
