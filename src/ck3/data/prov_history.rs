@@ -17,6 +17,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validator::Validator;
+use crate::Severity;
 
 #[derive(Clone, Debug, Default)]
 pub struct ProvinceHistories {
@@ -37,8 +38,8 @@ impl ProvinceHistories {
     }
 
     pub fn validate(&self, data: &Everything) {
-        for item in self.provinces.values() {
-            item.validate(data);
+        for (provid, item) in &self.provinces {
+            item.validate(*provid, data);
         }
     }
 
@@ -135,7 +136,8 @@ impl ProvinceHistory {
         Self::validate_common(&mut vd, data);
     }
 
-    fn validate(&self, data: &Everything) {
+    fn validate(&self, provid: ProvId, data: &Everything) {
+        data.provinces_ck3.verify_exists_provid(provid, &self.key, Severity::Error);
         // TODO: verify that all county-capital provinces have a culture and religion
         // This needs province mappings to be loaded too
         let mut vd = Validator::new(&self.block, data);

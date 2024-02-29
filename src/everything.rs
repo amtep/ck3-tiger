@@ -19,6 +19,7 @@ use thiserror::Error;
 use crate::block::Block;
 #[cfg(feature = "ck3")]
 use crate::block::BV;
+use crate::ck3::data::prov_terrain::ProvinceTerrains;
 #[cfg(feature = "ck3")]
 use crate::ck3::data::{
     characters::Characters, climate::Climate, data_binding::DataBindings, doctrines::Doctrines,
@@ -133,6 +134,8 @@ pub struct Everything {
 
     #[cfg(feature = "ck3")]
     pub(crate) province_histories: ProvinceHistories,
+    #[cfg(feature = "ck3")]
+    pub(crate) province_terrains: ProvinceTerrains,
 
     #[cfg(feature = "ck3")]
     pub(crate) gameconcepts: GameConcepts,
@@ -245,6 +248,8 @@ impl Everything {
             provinces_vic3: Vic3Provinces::default(),
             #[cfg(feature = "ck3")]
             province_histories: ProvinceHistories::default(),
+            #[cfg(feature = "ck3")]
+            province_terrains: ProvinceTerrains::default(),
             #[cfg(feature = "ck3")]
             gameconcepts: GameConcepts::default(),
             #[cfg(feature = "ck3")]
@@ -387,6 +392,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.events_ck3));
             s.spawn(|_| self.fileset.handle(&mut self.interaction_cats));
             s.spawn(|_| self.fileset.handle(&mut self.province_histories));
+            s.spawn(|_| self.fileset.handle(&mut self.province_terrains));
             s.spawn(|_| self.fileset.handle(&mut self.gameconcepts));
             s.spawn(|_| self.fileset.handle(&mut self.titles));
             s.spawn(|_| self.fileset.handle(&mut self.characters));
@@ -443,6 +449,7 @@ impl Everything {
     fn validate_all_ck3<'a>(&'a self, s: &Scope<'a>) {
         s.spawn(|_| self.interaction_cats.validate(self));
         s.spawn(|_| self.province_histories.validate(self));
+        s.spawn(|_| self.province_terrains.validate(self));
         s.spawn(|_| self.gameconcepts.validate(self));
         s.spawn(|_| self.titles.validate(self));
         s.spawn(|_| self.characters.validate(self));

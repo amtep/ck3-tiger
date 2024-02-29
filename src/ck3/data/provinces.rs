@@ -128,12 +128,19 @@ impl Ck3Provinces {
         }
     }
 
+    pub(crate) fn verify_exists_provid(&self, provid: ProvId, item: &Token, max_sev: Severity) {
+        if !self.provinces.contains_key(&provid) {
+            let msg = format!("province {provid} not defined in map_data/definition.csv");
+            report(ErrorKey::MissingItem, Item::Province.severity().at_most(max_sev))
+                .msg(msg)
+                .loc(item)
+                .push();
+        }
+    }
+
     pub fn verify_exists_implied(&self, key: &str, item: &Token, max_sev: Severity) {
         if let Ok(provid) = key.parse::<ProvId>() {
-            if !self.provinces.contains_key(&provid) {
-                let msg = format!("province {provid} not defined in map_data/definition.csv");
-                report(ErrorKey::MissingItem, Item::Province.severity()).msg(msg).loc(item).push();
-            }
+            self.verify_exists_provid(provid, item, max_sev);
         } else {
             let msg = "province id should be numeric";
             let sev = Item::Province.severity().at_most(max_sev);
@@ -147,6 +154,10 @@ impl Ck3Provinces {
         } else {
             false
         }
+    }
+
+    pub(crate) fn is_water_or_impassable(&self, provid: ProvId) -> bool {
+        self.sea_or_river.contains(&provid) || self.impassable.contains(&provid)
     }
 
     pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {

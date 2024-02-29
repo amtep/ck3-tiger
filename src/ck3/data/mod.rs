@@ -65,6 +65,7 @@ pub mod perks;
 pub mod points_of_interest;
 pub mod pool;
 pub mod prov_history;
+pub mod prov_terrain;
 pub mod provinces;
 pub mod regions;
 pub mod relations;
