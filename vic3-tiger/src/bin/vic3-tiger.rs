@@ -54,8 +54,8 @@ fn main() -> Result<()> {
             .map_err(|_| eprintln!("Failed to enable ANSI support for Windows10 users. Continuing probably without colored output."));
     }
 
-    // LAST UPDATED VERSION VIC3 1.5.2
-    eprintln!("This validator was made for Victoria 3 version 1.5.12.");
+    // LAST UPDATED VERSION VIC3 1.5.13
+    eprintln!("This validator was made for Victoria 3 version 1.5.13.");
     eprintln!("If you are using a newer version of Victoria 3, it may be inaccurate.");
     eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
 
