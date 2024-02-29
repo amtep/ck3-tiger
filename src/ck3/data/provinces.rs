@@ -156,8 +156,8 @@ impl Ck3Provinces {
         }
     }
 
-    pub(crate) fn is_water_or_impassable(&self, provid: ProvId) -> bool {
-        self.sea_or_river.contains(&provid) || self.impassable.contains(&provid)
+    pub(crate) fn is_sea_or_river(&self, provid: ProvId) -> bool {
+        self.sea_or_river.contains(&provid)
     }
 
     pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {

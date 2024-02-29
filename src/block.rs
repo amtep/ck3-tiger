@@ -367,6 +367,7 @@ impl Block {
 
     /// Like [`Block::iter_assignments_warn`] but it's a destructive iterator that gives ownership
     /// over the returned assignments.
+    #[allow(dead_code)] // Not used by all games
     pub fn drain_assignments_warn(&mut self) -> DrainAssignments {
         DrainAssignments { iter: self.v.drain(..) }
     }

@@ -132,7 +132,7 @@ impl FileHandler<Block> for ProvinceProperties {
         PdxFile::read_detect_encoding(entry)
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, mut block: Block) {
+    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             if let Ok(id) = key.as_str().parse() {
                 self.load_item(id, key, block);
@@ -158,7 +158,7 @@ impl ProvinceProperty {
     fn validate(&self, provid: ProvId, data: &Everything) {
         data.provinces_ck3.verify_exists_provid(provid, &self.key, Severity::Error);
         let mut vd = Validator::new(&self.block, data);
-        if data.provinces_ck3.is_water_or_impassable(provid) {
+        if data.provinces_ck3.is_sea_or_river(provid) {
             vd.field_validated_value("winter_severity_bias", |_, mut vd| {
                 vd.maybe_is("0.0");
             });
