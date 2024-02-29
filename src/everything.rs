@@ -210,7 +210,7 @@ impl Everything {
         };
 
         let config = if config_file.is_file() {
-            Self::_read_config(config_file_name, &config_file)
+            Self::read_config(config_file_name, &config_file)
                 .ok_or(FilesError::ConfigUnreadable { path: config_file })?
         } else {
             Block::new(Loc::for_file(config_file.clone(), FileKind::Mod, config_file.clone()))
@@ -276,7 +276,7 @@ impl Everything {
         })
     }
 
-    fn _read_config(name: &str, path: &Path) -> Option<Block> {
+    fn read_config(name: &str, path: &Path) -> Option<Block> {
         let entry = FileEntry::new(PathBuf::from(name), FileKind::Mod, path.to_path_buf());
         PdxFile::read_optional_bom(&entry)
     }
