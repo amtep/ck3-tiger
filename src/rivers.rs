@@ -184,9 +184,9 @@ impl Rivers {
         // TODO: multi-thread this
         for x in 0..self.width {
             for y in 0..self.height {
-                let river_neighbors = self.river_neighbors(x, y);
                 match self.pixel(x, y) {
                     0 => {
+                        let river_neighbors = self.river_neighbors(x, y);
                         if river_neighbors == 1 {
                             specials.insert((x, y), false);
                         } else {
@@ -200,6 +200,7 @@ impl Rivers {
                         }
                     }
                     1 => {
+                        let river_neighbors = self.river_neighbors(x, y);
                         if river_neighbors >= 2 {
                             specials.insert((x, y), false);
                         } else {
@@ -214,6 +215,7 @@ impl Rivers {
                         }
                     }
                     2 => {
+                        let river_neighbors = self.river_neighbors(x, y);
                         if river_neighbors >= 2 {
                             specials.insert((x, y), false);
                         } else {
@@ -228,6 +230,7 @@ impl Rivers {
                         }
                     }
                     3..=15 => {
+                        let river_neighbors = self.river_neighbors(x, y);
                         if river_neighbors <= 2 {
                             let mut found = Vec::new();
                             for (i, segment) in river_segments.iter_mut().enumerate() {
