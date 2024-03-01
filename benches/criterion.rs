@@ -64,6 +64,7 @@ fn bench_mod(vanilla_dir: &str, modfile: &ModFile) {
     .unwrap();
     everything.load_all();
     everything.validate_all();
+    everything.check_rivers();
 }
 
 criterion_group!(benches, bench_multiple);
