@@ -3,6 +3,7 @@
 //! The `rivers.png` file has detailed requirements for its image format and the layout of every pixel.
 
 use std::fs::File;
+use std::ops::{RangeInclusive, RangeToInclusive};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Result};
@@ -12,6 +13,30 @@ use png::{ColorType, Decoder};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::report::{err, warn, will_maybe_log, ErrorKey};
+
+/// The `rivers.png` has an indexed palette where the colors don't matter, only the index values
+/// used in the pixels matter. Pixels that are not among the values defined here are ignored when
+/// the game processes the `rivers.png`.
+struct RiverPixels {}
+impl RiverPixels {
+    /// Normal rivers of various widths (usually blue through greenish).
+    /// They are still all one pixel wide in the `rivers.png`; this just controls how they are painted on the map.
+    /// River pixels must be adjacent to each other horizontally or vertically; together they form river segments.
+    const NORMAL: RangeInclusive<u8> = (RiverPixels::FIRST_NORMAL..=RiverPixels::LAST_NORMAL);
+    const FIRST_NORMAL: u8 = 3;
+    const LAST_NORMAL: u8 = 15;
+    /// "specials" are the starting and ending pixels of river segments
+    const SPECIAL: RangeToInclusive<u8> = (..=RiverPixels::LAST_SPECIAL);
+    const LAST_SPECIAL: u8 = 2;
+    /// A pixel at the start of a river segment (usually green)
+    const SOURCE: u8 = 0;
+    /// A pixel that joins one river segment into another (usually red)
+    const TRIBUTARY: u8 = 1;
+    /// A pixel that is used where a river splits off from another (usually yellow)
+    const SPLIT: u8 = 2;
+    /// Noncoding pixels
+    const FIRST_IGNORE: u8 = 16;
+}
 
 #[derive(Clone, Debug, Default)]
 pub struct Rivers {
@@ -52,16 +77,16 @@ impl Rivers {
 
     fn river_neighbors(&self, x: u32, y: u32, output: &mut Vec<(u32, u32)>) {
         output.clear();
-        if x > 0 && (3..=11).contains(&self.pixel(x - 1, y)) {
+        if x > 0 && RiverPixels::NORMAL.contains(&self.pixel(x - 1, y)) {
             output.push((x - 1, y));
         }
-        if y > 0 && (3..=11).contains(&self.pixel(x, y - 1)) {
+        if y > 0 && RiverPixels::NORMAL.contains(&self.pixel(x, y - 1)) {
             output.push((x, y - 1));
         }
-        if x + 1 < self.width && (3..=11).contains(&self.pixel(x + 1, y)) {
+        if x + 1 < self.width && RiverPixels::NORMAL.contains(&self.pixel(x + 1, y)) {
             output.push((x + 1, y));
         }
-        if y + 1 < self.height && (3..=11).contains(&self.pixel(x, y + 1)) {
+        if y + 1 < self.height && RiverPixels::NORMAL.contains(&self.pixel(x, y + 1)) {
             output.push((x, y + 1));
         }
     }
@@ -69,16 +94,16 @@ impl Rivers {
     fn special_neighbors(&self, c: (u32, u32)) -> Vec<(u32, u32)> {
         let (x, y) = c;
         let mut vec = Vec::new();
-        if x > 0 && self.pixel(x - 1, y) <= 2 {
+        if x > 0 && RiverPixels::SPECIAL.contains(&self.pixel(x - 1, y)) {
             vec.push((x - 1, y));
         }
-        if y > 0 && self.pixel(x, y - 1) <= 2 {
+        if y > 0 && RiverPixels::SPECIAL.contains(&self.pixel(x, y - 1)) {
             vec.push((x, y - 1));
         }
-        if x + 1 < self.width && self.pixel(x + 1, y) <= 2 {
+        if x + 1 < self.width && RiverPixels::SPECIAL.contains(&self.pixel(x + 1, y)) {
             vec.push((x + 1, y));
         }
-        if y + 1 < self.height && self.pixel(x, y + 1) <= 2 {
+        if y + 1 < self.height && RiverPixels::SPECIAL.contains(&self.pixel(x, y + 1)) {
             vec.push((x, y + 1));
         }
         vec
@@ -192,7 +217,7 @@ impl Rivers {
         for x in 0..self.width {
             for y in 0..self.height {
                 match self.pixel(x, y) {
-                    0 => {
+                    RiverPixels::SOURCE => {
                         self.river_neighbors(x, y, &mut river_neighbors);
                         if river_neighbors.len() == 1 {
                             specials.insert((x, y), false);
@@ -206,7 +231,7 @@ impl Rivers {
                             bad_problem = true;
                         }
                     }
-                    1 => {
+                    RiverPixels::TRIBUTARY => {
                         self.river_neighbors(x, y, &mut river_neighbors);
                         if river_neighbors.len() >= 2 {
                             specials.insert((x, y), false);
@@ -221,7 +246,7 @@ impl Rivers {
                             bad_problem = true;
                         }
                     }
-                    2 => {
+                    RiverPixels::SPLIT => {
                         self.river_neighbors(x, y, &mut river_neighbors);
                         if river_neighbors.len() >= 2 {
                             specials.insert((x, y), false);
@@ -236,7 +261,7 @@ impl Rivers {
                             bad_problem = true;
                         }
                     }
-                    3..=15 => {
+                    RiverPixels::FIRST_NORMAL..=RiverPixels::LAST_NORMAL => {
                         self.river_neighbors(x, y, &mut river_neighbors);
                         if river_neighbors.len() <= 2 {
                             let mut found = false;
@@ -285,7 +310,7 @@ impl Rivers {
                             bad_problem = true;
                         }
                     }
-                    16.. => (),
+                    RiverPixels::FIRST_IGNORE.. => (),
                 }
             }
         }
