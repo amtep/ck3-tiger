@@ -11,7 +11,9 @@ use crate::item::Item;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::trigger::{validate_target, validate_target_ok_this};
+use crate::trigger::validate_target;
+#[cfg(feature = "imperator")]
+use crate::trigger::validate_target_ok_this;
 
 /// A validator for one `Token`.
 /// The intended usage is that the block-level [`Validator`](crate::validator::Validator) wraps the `Token`
