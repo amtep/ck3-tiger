@@ -24,7 +24,9 @@ inventory::submit! {
 impl InventionGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, block) in block.iter_definitions() {
-            db.add(Item::Invention, key.clone(), block.clone(), Box::new(Invention {}));
+            if !&["technology", "color"].iter().any(|&v| key.is(v)) {
+                db.add(Item::Invention, key.clone(), block.clone(), Box::new(Invention {}));
+            }
         }
         db.add(Item::InventionGroup, key, block, Box::new(Self {}));
     }

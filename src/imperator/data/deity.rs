@@ -20,12 +20,14 @@ inventory::submit! {
 }
 
 impl Deity {
+    #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, block: Block) {
         // Changes the key from "deity_name" to "omen_name"
         if let Some(s) = key.strip_prefix("deity_") {
             let omen_string = "omen_".to_owned() + s.as_str();
             let token = Token::new(&omen_string, key.loc);
             db.add(Item::Deity, token, block, Box::new(Self {}));
+            db.add_flag(Item::Deity, key);
         }
     }
 }
@@ -52,7 +54,7 @@ impl DbKind for Deity {
         vd.field_validated_block("allow_on_setup", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
-        vd.field_item("icon", Item::File);
+        vd.field_value("icon");
         vd.field_validated_block("passive_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Country, vd);

@@ -83,6 +83,7 @@ impl<'a> ValueValidator<'a> {
 
     /// Expect the value to be the key of an `itype` item the game database.
     /// The item is looked up and must exist.
+    #[cfg(not(feature = "imperator"))] // silence dead code warning
     pub fn item(&mut self, itype: Item) {
         if self.validated {
             return;
@@ -183,7 +184,7 @@ impl<'a> ValueValidator<'a> {
 
     /// Just like [`ValueValidator::target`], but allows the value to be simply "`this`".
     /// It is expected to be used judiciously in cases where "`this`" can be correct.
-    #[allow(dead_code)] // not used yet
+    #[cfg(feature = "imperator")]
     pub fn target_ok_this(&mut self, sc: &mut ScopeContext, outscopes: Scopes) {
         if self.validated {
             return;
@@ -221,6 +222,7 @@ impl<'a> ValueValidator<'a> {
     }
 
     /// Expect the value to be an integer.
+    #[cfg(not(feature = "imperator"))]
     pub fn integer(&mut self) {
         if self.validated {
             return;

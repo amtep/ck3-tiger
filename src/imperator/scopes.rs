@@ -256,12 +256,12 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Color, "hue", Scopes::Value),
     (Scopes::Color, "red", Scopes::Value),
     (Scopes::Color, "saturation", Scopes::Value),
-    (Scopes::Unit, "commander", Scopes::Character),
-    (Scopes::Unit, "unit_destination", Scopes::Province),
-    (Scopes::Unit, "unit_location", Scopes::Province),
-    (Scopes::Unit, "unit_next_location", Scopes::Province),
-    (Scopes::Unit, "unit_objective_destination", Scopes::Province),
-    (Scopes::Unit, "unit_owner", Scopes::Country),
+    (Scopes::Unit.union(Scopes::Legion), "commander", Scopes::Character),
+    (Scopes::Unit.union(Scopes::Legion), "unit_destination", Scopes::Province),
+    (Scopes::Unit.union(Scopes::Legion), "unit_location", Scopes::Province),
+    (Scopes::Unit.union(Scopes::Legion), "unit_next_location", Scopes::Province),
+    (Scopes::Unit.union(Scopes::Legion), "unit_objective_destination", Scopes::Province),
+    (Scopes::Unit.union(Scopes::Legion), "unit_owner", Scopes::Country),
     (
         Scopes::Country
             .union(Scopes::Character)
@@ -364,10 +364,10 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
                 .union(Scopes::State)
                 .union(Scopes::Governorship),
             "job_holder",
-            Scopes::Job,
+            Scopes::Character,
             Item(Item::Office),
         ),
-        (Scopes::Treasure, "treasure", Scopes::Treasure, UncheckedValue),
+        (Scopes::None, "treasure", Scopes::Treasure, UncheckedValue),
         (Scopes::None, "character", Scopes::Character, UncheckedValue),
         (Scopes::None, "region", Scopes::Region, Item(Item::Region)),
         (Scopes::None, "area", Scopes::Area, Item(Item::Area)),
@@ -472,8 +472,9 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "living_character", Scopes::Character),
     (Scopes::None, "ownable_province", Scopes::Province),
     (Scopes::None, "province", Scopes::Province),
-    (Scopes::None, "region", Scopes::Province),
+    (Scopes::None, "region", Scopes::Region),
     (Scopes::None, "sea_and_river_zone", Scopes::Province),
+    (Scopes::None, "in_list", Scopes::all()),
 ];
 
 pub fn scope_iterator_removed(name: &str) -> Option<(&'static str, &'static str)> {

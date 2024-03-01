@@ -1004,7 +1004,7 @@ fn scope_type_from_name(mut name: &str) -> Option<Scopes> {
     if Game::is_imperator() {
         return match name {
             "party" | "character_party" => Some(Scopes::Party),
-            "employer" | "party_country" | "country" | "actor" | "overlord" | "unit_owner"
+            "employer" | "party_country" | "country" | "overlord" | "unit_owner"
             | "attacker_warleader" | "defender_warleader" | "former_overlord"
             | "target_subject" | "future_overlord" | "old_country" | "controller" | "owner"
             | "family_country" | "losing_side" | "home_country" => Some(Scopes::Country),

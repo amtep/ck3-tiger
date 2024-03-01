@@ -23,12 +23,14 @@ inventory::submit! {
 impl MilitaryTraditionTree {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, block) in block.iter_definitions() {
-            db.add(
-                Item::MilitaryTradition,
-                key.clone(),
-                block.clone(),
-                Box::new(MilitaryTradition {}),
-            );
+            if !&["color", "image", "allow"].iter().any(|&v| key.is(v)) {
+                db.add(
+                    Item::MilitaryTradition,
+                    key.clone(),
+                    block.clone(),
+                    Box::new(MilitaryTradition {}),
+                );
+            }
         }
         db.add(Item::MilitaryTraditionTree, key, block, Box::new(Self {}));
     }

@@ -185,7 +185,7 @@ impl Event {
         vd.field_bool("hidden");
         vd.field_bool("interface_lock");
         vd.field_bool("fire_only_once");
-        vd.field_target("goto_location", &mut sc, Scopes::Province);
+        vd.field_item_or_target("goto_location", &mut sc, Item::Province, Scopes::Province);
 
         vd.field_validated_sc("title", &mut sc, validate_desc);
         vd.field_validated_sc("desc", &mut sc, validate_desc);
@@ -212,7 +212,7 @@ impl Event {
             let mut count = 0;
             vd.multi_field_validated_value(field, |_, mut vd| {
                 count += 1;
-                vd.target(&mut sc, Scopes::Character);
+                vd.target_ok_this(&mut sc, Scopes::Character);
                 if count == 4 {
                     let msg = format!("Event has more than 3 {field} attributes.");
                     let info = "Events can only have up to 3 portraits displayed at a time.";

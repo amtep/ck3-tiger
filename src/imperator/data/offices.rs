@@ -15,6 +15,7 @@ inventory::submit! {
 }
 
 impl Office {
+    #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::Office, key.clone(), block, Box::new(Self {}));
 

@@ -98,7 +98,7 @@ pub fn validate_legion_history(
     vd.req_field("province");
     vd.field_value("key");
     vd.field_target("commander", sc, Scopes::Character);
-    vd.field_target("province", sc, Scopes::Province);
+    vd.field_item_or_target("province", sc, Item::Province, Scopes::Province);
     vd.field_date("date");
 }
 
@@ -185,7 +185,7 @@ pub fn validate_declare_war(
     vd.req_field("target");
     vd.field_item("war_goal", Item::Wargoal);
     vd.field_item_or_target("target", sc, Item::Localization, Scopes::Country);
-    vd.field_target("province", sc, Scopes::Province);
+    vd.field_item_or_target("province", sc, Item::Province, Scopes::Province);
 }
 
 pub fn validate_imprison(
@@ -305,7 +305,7 @@ pub fn validate_create_character(
     vd.field_bool("no_stats");
     vd.field_bool("no_traits");
     vd.field_value("age");
-    vd.field_integer("birth_province");
+    vd.field_item_or_target("birth_province", sc, Item::Province, Scopes::Province);
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
     sc.close();
 }
@@ -321,7 +321,7 @@ pub fn validate_create_unit(
     let caller = Lowercase::new(key.as_str());
     sc.open_scope(Scopes::Unit, key.clone());
     vd.field_value("name");
-    vd.field_target("location", sc, Scopes::Province);
+    vd.field_item_or_target("location", sc, Item::Province, Scopes::Province);
     vd.field_bool("navy");
     vd.field_item("sub_unit", Item::Unit);
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
@@ -345,4 +345,31 @@ pub fn validate_create_country(
     });
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
     sc.close();
+}
+
+pub fn validate_pay_gold(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("target");
+    vd.req_field("gold");
+    vd.field_item_or_target("target", sc, Item::Localization, Scopes::Country);
+    vd.field_numeric("gold");
+}
+
+pub fn validate_great_work_construction(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_item("great_work", Item::GreatWorkTemplate);
+    vd.field_choice("locator", &["primary_great_work", "secondary_great_work"]);
+    vd.field_bool("is_ancient");
 }

@@ -260,6 +260,7 @@ impl Localization {
             .flat_map(|hash| hash.values().map(|item| &item.key))
     }
 
+    #[cfg(not(feature = "imperator"))]
     pub fn verify_exists(&self, token: &Token) {
         self.verify_exists_implied(token.as_str(), token, Severity::Error);
     }

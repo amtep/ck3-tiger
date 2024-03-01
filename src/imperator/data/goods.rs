@@ -38,7 +38,7 @@ impl DbKind for TradeGood {
         vd.field_numeric("category");
         vd.field_numeric("gold");
 
-        vd.field_item("allow_unit_type", Item::Unit);
+        vd.multi_field_item("allow_unit_type", Item::Unit);
 
         vd.field_validated_block("province", |block, data| {
             let vd = Validator::new(block, data);

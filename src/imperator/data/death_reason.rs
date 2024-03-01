@@ -26,7 +26,7 @@ impl DeathReason {
 impl DbKind for DeathReason {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new(Scopes::State, key);
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         vd.field_bool("default");
         vd.field_bool("natural");

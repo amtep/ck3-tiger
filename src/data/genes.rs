@@ -6,7 +6,10 @@ use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
 use crate::helpers::dup_error;
 use crate::item::{Item, ItemLoader};
+#[cfg(not(feature = "imperator"))]
 use crate::report::{err, fatal, warn, Confidence, ErrorKey, Severity};
+#[cfg(feature = "imperator")]
+use crate::report::{err, fatal, warn, ErrorKey};
 use crate::token::Token;
 #[cfg(not(feature = "imperator"))]
 use crate::validate::validate_numeric_range;

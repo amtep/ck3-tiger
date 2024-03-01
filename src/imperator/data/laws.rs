@@ -22,7 +22,9 @@ inventory::submit! {
 impl LawGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, block) in block.iter_definitions() {
-            db.add(Item::Law, key.clone(), block.clone(), Box::new(Law {}));
+            if !key.is("potential") {
+                db.add(Item::Law, key.clone(), block.clone(), Box::new(Law {}));
+            }
         }
         db.add(Item::LawGroup, key, block, Box::new(Self {}));
     }

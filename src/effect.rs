@@ -13,19 +13,18 @@ use crate::scopes::{scope_iterator, Scopes};
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-#[cfg(feature = "ck3")]
+#[cfg(any(feature = "ck3", feature = "imperator"))]
 use crate::trigger::validate_target_ok_this;
 use crate::trigger::{validate_target, validate_trigger};
-#[cfg(feature = "imperator")]
-use crate::validate::validate_imperator_modifiers;
-#[cfg(feature = "ck3")]
+#[cfg(not(feature = "imperator"))]
+use crate::validate::validate_compare_duration;
+#[cfg(any(feature = "ck3", feature = "imperator"))]
 use crate::validate::validate_modifiers;
 #[cfg(feature = "vic3")]
 use crate::validate::validate_vic3_modifiers;
 use crate::validate::{
-    precheck_iterator_fields, validate_compare_duration, validate_ifelse_sequence,
-    validate_inside_iterator, validate_iterator_fields, validate_scope_chain,
-    validate_scripted_modifier_call, ListType,
+    precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
+    validate_iterator_fields, validate_scope_chain, validate_scripted_modifier_call, ListType,
 };
 use crate::validator::{Validator, ValueValidator};
 
@@ -225,7 +224,7 @@ pub fn validate_effect_field(
                     validate_target(token, data, sc, outscopes);
                 }
             }
-            #[cfg(feature = "ck3")]
+            #[cfg(any(feature = "ck3", feature = "imperator"))]
             Effect::ScopeOkThis(outscopes) => {
                 if let Some(token) = bv.expect_value() {
                     validate_target_ok_this(token, data, sc, outscopes);
@@ -252,6 +251,7 @@ pub fn validate_effect_field(
                     vd.field_target(key, sc, outscopes);
                 }
             }
+            #[cfg(not(feature = "imperator"))]
             Effect::TargetValue(key, outscopes, valuekey) => {
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
@@ -292,6 +292,7 @@ pub fn validate_effect_field(
             }
             #[cfg(feature = "ck3")]
             Effect::Desc => validate_desc(bv, data, sc),
+            #[cfg(not(feature = "imperator"))]
             Effect::Timespan => {
                 if let Some(block) = bv.expect_block() {
                     validate_compare_duration(block, data, sc);
@@ -333,12 +334,13 @@ pub fn validate_effect_field(
                     );
                 }
             }
-            #[cfg(any(feature = "ck3", feature = "vic3"))]
             Effect::Removed(version, explanation) => {
                 let msg = format!("`{key}` was removed in {version}");
                 warn(ErrorKey::Removed).msg(msg).info(explanation).loc(key).push();
             }
-            Effect::Unchecked | Effect::UncheckedTodo => (),
+            Effect::Unchecked => (),
+            #[cfg(not(feature = "imperator"))]
+            Effect::UncheckedTodo => (),
         }
         return;
     }
@@ -494,7 +496,7 @@ pub fn validate_effect_control(
         }
         #[cfg(feature = "imperator")]
         if Game::is_imperator() {
-            validate_imperator_modifiers(&mut vd, sc);
+            validate_modifiers(&mut vd, sc);
         }
         #[cfg(feature = "ck3")]
         if Game::is_ck3() {
@@ -561,7 +563,7 @@ pub enum Effect {
     /// default behavior for targets is to warn about that, because it's usually a mistake.
     ///
     /// * Example: `destroy_artifact = this`
-    #[cfg(feature = "ck3")]
+    #[cfg(any(feature = "ck3", feature = "imperator"))]
     ScopeOkThis(Scopes),
     /// The effect takes a literal string that must exist in the item database for the given [`Item`] type.
     ///
@@ -584,6 +586,7 @@ pub enum Effect {
     /// the given [`Scopes`] type and the other specifies a script value.
     ///
     /// * Example: `change_de_jure_drift_progress = { target = root.primary_title value = 5 }`
+    #[cfg(not(feature = "imperator"))]
     TargetValue(&'static str, Scopes, &'static str),
     /// The effect takes a block with two fields, both named here, where one specifies a key for
     /// the given [`Item`] type and the other specifies a target of the given [`Scopes`] type.
@@ -605,6 +608,7 @@ pub enum Effect {
     /// The effect takes a duration, with a `days`, `weeks`, `months`, or `years` script value.
     ///
     /// * Example: `add_destination_progress = { days = 5 }`
+    #[cfg(not(feature = "imperator"))]
     Timespan,
     /// The effect takes a block that contains other effects.
     ///
@@ -619,6 +623,7 @@ pub enum Effect {
     /// * Examples: `assert_if`, `debug_log`, `remove_variable`
     Unchecked,
     /// This variant is for effects that we haven't gotten around to validating yet.
+    #[cfg(not(feature = "imperator"))]
     UncheckedTodo,
     /// The effect takes a literal string that is one of the options given here.
     ///
@@ -627,7 +632,6 @@ pub enum Effect {
     /// The effect is no longer valid; warn if it's still being used.
     /// The first string is the game version number where it was removed and the second string is
     /// an explanation that suggests a different effect to try. The second string may be empty.
-    #[cfg(any(feature = "ck3", feature = "vic3"))]
     Removed(&'static str, &'static str),
     /// The effect takes a block that will be validated by this function
     Vb(fn(&Token, &Block, &Everything, &mut ScopeContext, Validator, Tooltipped)),

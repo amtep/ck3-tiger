@@ -115,9 +115,22 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // $Unit$_cost
+    // $Building$_cost
     if let Some(part) = name_lc.strip_suffix_unchecked("_cost") {
-        maybe_warn(Item::Unit, &part, name, data, warn);
-        return Some(ModifKinds::Country);
+        if let Some(sev) = warn {
+            if !data.item_exists(Item::Unit, part) && !data.item_exists(Item::Building, part) {
+                let msg = format!("{part} not found as unit or building");
+                let info = format!("so the modifier {name} does not exist");
+                report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
+            }
+            if data.item_exists(Item::Unit, part) {
+                return Some(ModifKinds::Country);
+            }
+            if data.item_exists(Item::Building, part) {
+                return Some(ModifKinds::Province);
+            }
+        }
+        return Some(ModifKinds::Province | ModifKinds::Country);
     }
 
     // $TechnologyTable$_investment

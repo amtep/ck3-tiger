@@ -22,8 +22,24 @@ inventory::submit! {
 impl Mission {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, block) in block.iter_definitions() {
-            // TODO - eliminate all known block-keys here...also need to do this for Decisions, Military Traditions, Inventions, and Laws.
-            db.add(Item::MissionTask, key.clone(), block.clone(), Box::new(MissionTask {}));
+            if !&[
+                "icon",
+                "header",
+                "repeatable",
+                "chance",
+                "ai_chance",
+                "on_potential",
+                "potential",
+                "on_start",
+                "abort",
+                "on_abort",
+                "on_completion",
+            ]
+            .iter()
+            .any(|&v| key.is(v))
+            {
+                db.add(Item::MissionTask, key.clone(), block.clone(), Box::new(MissionTask {}));
+            }
         }
         db.add(Item::Mission, key, block, Box::new(Self {}));
     }

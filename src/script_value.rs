@@ -87,8 +87,22 @@ fn validate_inner(
                 warn(ErrorKey::Logic).msg(msg).loc(token).push();
             }
             if let Some(value) = bv.expect_value() {
+                #[cfg(not(feature = "imperator"))]
                 if !value.is("yes") && !value.is("no") {
                     let msg = "expected yes or no";
+                    warn(ErrorKey::Validation).msg(msg).loc(value).push();
+                }
+                #[cfg(feature = "imperator")]
+                if !token.is("round") && !value.is("yes") && !value.is("no") {
+                    let msg = "expected yes or no";
+                    warn(ErrorKey::Validation).msg(msg).loc(value).push();
+                }
+                #[cfg(feature = "imperator")]
+                if token.is("round")
+                    && !&["yes", "no", "floor", "ceiling"].iter().any(|&v| value.is(v))
+                {
+                    // imperator allows "round = <yes/no/floor/ceiling>"
+                    let msg = "expected yes, no, floor, or ceiling";
                     warn(ErrorKey::Validation).msg(msg).loc(value).push();
                 }
                 made_changes = true;

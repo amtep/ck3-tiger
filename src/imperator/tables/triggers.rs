@@ -218,6 +218,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "number_of_personality_traits", CompareValue),
     (Scopes::Character, "number_of_status_traits", CompareValue),
     (Scopes::Character, "number_of_traits", CompareValue),
+    (Scopes::Character, "total_power_base", CompareValue),
     (Scopes::Character, "party", Scope(Scopes::Party)),
     (Scopes::Character, "party_type", Item(Item::PartyType)),
     (Scopes::Character, "popularity", CompareValue),
@@ -236,6 +237,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Pop, "pop_hapiness", CompareValue),
     (Scopes::Pop, "pop_religion", ScopeOrItem(Scopes::Religion, Item::Religion)),
     (Scopes::Pop, "pop_type", Item(Item::PopType)),
+    (Scopes::Pop, "is_pop_type_right", Item(Item::PopType)),
     // Country Triggers
     (
         Scopes::Country.union(Scopes::Character).union(Scopes::Province),
@@ -379,7 +381,6 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "tag", ScopeOrItem(Scopes::Country, Item::Localization)),
     (Scopes::Country, "threat_in_owned_land", CompareValue),
     (Scopes::Country, "total_holdings", CompareValue),
-    (Scopes::Country, "total_power_base", CompareValue),
     (Scopes::Country, "towards_civil_war", Boolean),
     (Scopes::Country, "treasury", CompareValue),
     (Scopes::Country, "tyranny", CompareValue),
@@ -430,7 +431,6 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Siege, "has_breach", Boolean),
     // War triggers
     (Scopes::War, "is_civil_war", Boolean),
-    (Scopes::War, "has_breach", Boolean),
     (Scopes::War, "is_war_leader", ScopeOrItem(Scopes::Country, Item::Localization)),
     (Scopes::War, "is_war_over", Boolean),
     (
@@ -466,6 +466,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "great_work_locator_is_free",
         Choice(&["primary_great_work", "secondary_great_work"]),
     ),
+    // TODO - ancient wonders are defined in setup/main by great works with "ancient_wonder = yes"
     (Scopes::Province, "has_ancient_wonder", UncheckedValue),
     (Scopes::Province, "has_building", Item(Item::Building)),
     (Scopes::Province, "has_city_status", Boolean),
@@ -603,6 +604,4 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "weighted_calc_true_if", Special),
     (Scopes::None, "in_color_list", UncheckedValue),
     (Scopes::None, "is_color", UncheckedValue),
-    // Pop triggers
-    (Scopes::None, "is_pop_type_right", Item(Item::PopType)),
 ];

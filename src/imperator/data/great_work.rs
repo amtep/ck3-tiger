@@ -19,6 +19,7 @@ inventory::submit! {
 }
 
 impl GreatWorkEffect {
+    #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::GreatWorkEffect, key.clone(), block, Box::new(Self {}));
         for tier in 1..5 {

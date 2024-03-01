@@ -244,8 +244,17 @@ pub fn precheck_iterator_fields(
             };
         }
         ListType::Ordered => {
-            for field in &["position", "min", "max"] {
+            for field in &["min", "max"] {
                 if let Some(bv) = block.get_field(field) {
+                    validate_script_value(bv, data, sc);
+                }
+            }
+            if let Some(bv) = block.get_field("position") {
+                if let Some(token) = bv.get_value() {
+                    if !token.is("end") {
+                        validate_script_value(bv, data, sc);
+                    }
+                } else {
                     validate_script_value(bv, data, sc);
                 }
             }
@@ -554,13 +563,6 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
 pub fn validate_vic3_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     vd.multi_field_validated("modifier", |bv, data| {
         validate_script_value(bv, data, sc);
-    });
-}
-
-#[cfg(feature = "imperator")]
-pub fn validate_imperator_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
-    vd.multi_field_validated_block("modifier", |b, data| {
-        validate_modifiers_with_base(b, data, sc);
     });
 }
 

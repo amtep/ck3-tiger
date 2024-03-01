@@ -247,6 +247,7 @@ pub enum Arg {
     DType(Datatype),
     /// The argument is expected to be a literal containing a key to this [`Item`] type, or a code
     /// chain that returns a `CString` (in which case the `Item` lookup is not checked).
+    #[cfg(not(feature = "imperator"))]
     IType(Item),
 }
 
@@ -333,6 +334,7 @@ fn validate_argument(
                 }
             }
         }
+        #[cfg(not(feature = "imperator"))]
         Arg::IType(itype) => match arg {
             CodeArg::Chain(chain) => {
                 validate_datatypes(chain, data, sc, Datatype::CString, lang, format, false);

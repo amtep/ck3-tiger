@@ -26,6 +26,6 @@ impl DbKind for DeityCategory {
         let loca = key.as_str().to_uppercase();
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.field_item("icon", Item::File);
+        vd.field_value("icon");
     }
 }

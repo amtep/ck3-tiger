@@ -76,9 +76,9 @@ pub const ON_ACTION_SCOPES: &str = "
     on_civil_war_won = on_civil_war_lost
 
     on_culture_reduced_right = {
-        root = none
-        target_culture = culture
-        target = culture
+        root = country
+        target_culture = country_culture
+        target = pop
     }
 
     on_holding_lost = {
@@ -112,8 +112,8 @@ pub const ON_ACTION_SCOPES: &str = "
     on_ruler_change = on_reign_ending
 
     on_culture_increased_right = {
-        root = none
-        target_culture = culture
+        root = country
+        target_culture = country_culture
         target = pop
     }
 
@@ -130,7 +130,7 @@ pub const ON_ACTION_SCOPES: &str = "
 
     on_culture_integration_0 = {
         root = country
-        target_culture = culture
+        target_culture = country_culture
     }
 
     on_culture_integration_25 = on_culture_integration_0
@@ -144,7 +144,7 @@ pub const ON_ACTION_SCOPES: &str = "
     }
 
     on_game_initialized = {
-        root = none
+        root = country
     }
 
     on_reign_ending_successor = on_reign_ending
@@ -159,7 +159,7 @@ pub const ON_ACTION_SCOPES: &str = "
     on_legion_dissolved = on_legion_raised
 
     on_subject_defect = {
-        root = none
+        root = country
         future_overlord = country
         target_subject = country
     }

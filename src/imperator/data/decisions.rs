@@ -21,7 +21,9 @@ inventory::submit! {
 
 impl Decision {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::Decision, key, block, Box::new(Self {}));
+        if !key.is("country_decisions") {
+            db.add(Item::Decision, key, block, Box::new(Self {}));
+        }
     }
 }
 
