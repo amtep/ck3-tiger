@@ -346,6 +346,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] JournalEntry,
     #[cfg(feature = "vic3")] JournalEntryGroup,
     #[cfg(feature = "vic3")] LawType,
+    #[cfg(feature = "vic3")] LegitimacyLevel,
     #[cfg(feature = "vic3")] Level,
     #[cfg(feature = "vic3")] MapLayer,
     #[cfg(feature = "vic3")] MediaAlias,
@@ -1024,6 +1025,8 @@ impl Item {
             Item::JournalEntryGroup => "common/journal_entry_groups/",
             #[cfg(feature = "vic3")]
             Item::LawType => "common/laws/",
+            #[cfg(feature = "vic3")]
+            Item::LegitimacyLevel => "common/legitimacy_levels/",
             #[cfg(feature = "vic3")]
             Item::Level => "",
             #[cfg(feature = "vic3")]

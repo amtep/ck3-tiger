@@ -5,6 +5,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
+use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -47,5 +48,34 @@ impl DbKind for GovernmentType {
         vd.field_validated_block("on_government_type_change", |block, data| {
             validate_effect(block, data, &mut sc, Tooltipped::No);
         });
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct LegitimacyLevel {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::LegitimacyLevel, LegitimacyLevel::add)
+}
+
+impl LegitimacyLevel {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::LegitimacyLevel, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for LegitimacyLevel {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        // This entire item type is undocumented
+        let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+
+        vd.field_integer_range("threshold", 0..=100);
+        vd.field_validated_block("modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::all(), vd);
+        });
+        vd.field_script_value_rooted("loyalties_gain", Scopes::Country);
     }
 }
