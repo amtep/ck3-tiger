@@ -332,6 +332,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] DiplomaticAction,
     #[cfg(feature = "vic3")] DiplomaticPlay,
     #[cfg(feature = "vic3")] DiscriminationTrait,
+    #[cfg(feature = "vic3")] DynamicCompanyName,
     #[cfg(feature = "vic3")] DynamicCountryMapColor,
     #[cfg(feature = "vic3")] DynamicCountryName,
     #[cfg(feature = "vic3")] EventCategory,
@@ -995,6 +996,8 @@ impl Item {
             Item::DiplomaticPlay => "common/diplomatic_plays/",
             #[cfg(feature = "vic3")]
             Item::DiscriminationTrait => "common/discrimination_traits/",
+            #[cfg(feature = "vic3")]
+            Item::DynamicCompanyName => "common/dynamic_company_names/",
             #[cfg(feature = "vic3")]
             Item::DynamicCountryMapColor => "common/dynamic_country_map_colors/",
             #[cfg(feature = "vic3")]
