@@ -349,6 +349,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] LegitimacyLevel,
     #[cfg(feature = "vic3")] Level,
     #[cfg(feature = "vic3")] MapLayer,
+    #[cfg(feature = "vic3")] MapInteractionType,
     #[cfg(feature = "vic3")] MediaAlias,
     #[cfg(feature = "vic3")] MobilizationOption,
     #[cfg(feature = "vic3")] ModifierType,
@@ -1031,6 +1032,8 @@ impl Item {
             Item::Level => "",
             #[cfg(feature = "vic3")]
             Item::MapLayer => "gfx/map/map_object_data/layers.txt",
+            #[cfg(feature = "vic3")]
+            Item::MapInteractionType => "common/map_interaction_types/",
             #[cfg(feature = "vic3")]
             Item::MediaAlias => "gfx/media_aliases/",
             #[cfg(feature = "vic3")]
