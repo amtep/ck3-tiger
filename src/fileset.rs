@@ -17,6 +17,9 @@ use crate::everything::Everything;
 use crate::everything::FilesError;
 use crate::game::Game;
 use crate::item::Item;
+#[cfg(feature = "vic3")]
+use crate::mod_metadata::ModMetadata;
+#[cfg(any(feature = "ck3", feature = "imperator"))]
 use crate::modfile::ModFile;
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{
@@ -264,6 +267,7 @@ impl Fileset {
             let label =
                 block.get_field_value("label").map_or_else(default_label, ToString::to_string);
             if Game::is_ck3() || Game::is_imperator() {
+                #[cfg(any(feature = "ck3", feature = "imperator"))]
                 if let Some(path) = block.get_field_value("modfile") {
                     let path = PathBuf::from(path.as_str());
                     if let Ok(modfile) = ModFile::read(&path) {
@@ -292,14 +296,23 @@ impl Fileset {
                     err(ErrorKey::Config).msg(msg).loc(block).push();
                 }
             } else if Game::is_vic3() {
+                #[cfg(feature = "vic3")]
                 if let Some(path) = block.get_field_value("mod") {
                     let pathdir = PathBuf::from(path.as_str());
-                    if pathdir.is_dir() && pathdir.join(".metadata/metadata.json").is_file() {
-                        // TODO: get human-friendly mod name from metadata
-                        eprintln!("Loading secondary mod {label} from: {}", pathdir.display(),);
+                    if let Ok(metadata) = ModMetadata::read(&pathdir) {
+                        let mod_name_append = if let Some(name) = metadata.display_name() {
+                            format!(" \"{name}\"")
+                        } else {
+                            String::new()
+                        };
+                        eprintln!(
+                            "Loading secondary mod {label} from: {}{}",
+                            pathdir.display(),
+                            mod_name_append
+                        );
                         let kind = FileKind::LoadedMod(mod_idx);
-                        // replace_paths don't seem to be a thing in Vic3
-                        let loaded_mod = LoadedMod::new(kind, label.clone(), pathdir, Vec::new());
+                        let loaded_mod =
+                            LoadedMod::new(kind, label.clone(), pathdir, metadata.replace_paths());
                         add_loaded_mod_root(label);
                         self.loaded_mods.push(loaded_mod);
                     } else {

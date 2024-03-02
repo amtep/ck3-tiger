@@ -6,7 +6,7 @@ use clap::Parser;
 
 use tiger_lib::{
     disable_ansi_colors, emit_reports, find_game_directory_steam, set_show_loaded_mods,
-    set_show_vanilla, validate_config_file, Everything, Game,
+    set_show_vanilla, validate_config_file, Everything, Game, ModMetadata,
 };
 
 /// Steam's code for Victoria 3
@@ -103,17 +103,15 @@ fn main() -> Result<()> {
         disable_ansi_colors();
     }
 
-    if args.modpath.is_dir() {
-        let mut sig = args.modpath.clone();
-        sig.push(".metadata/metadata.json");
-        if !sig.is_file() {
-            bail!("{} does not look like a mod directory.", args.modpath.display());
-        }
-    }
-    eprintln!("Using mod directory: {}", args.modpath.display());
+    let metadata = ModMetadata::read(&args.modpath)?;
+    eprintln!("Using mod directory: {}", metadata.modpath().display());
 
-    let mut everything =
-        Everything::new(args.config.as_deref(), args.vic3.as_deref(), &args.modpath, Vec::new())?;
+    let mut everything = Everything::new(
+        args.config.as_deref(),
+        args.vic3.as_deref(),
+        &args.modpath,
+        metadata.replace_paths(),
+    )?;
 
     // Print a blank line between the preamble and the first report:
     eprintln!();

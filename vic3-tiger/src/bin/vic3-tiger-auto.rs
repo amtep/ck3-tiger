@@ -7,7 +7,7 @@ use console::Term;
 
 use tiger_lib::{
     emit_reports, find_game_directory_steam, find_paradox_directory, set_output_file, Everything,
-    Game, ModFile,
+    Game, ModMetadata,
 };
 
 /// Steam's code for Victoria 3
@@ -71,7 +71,7 @@ fn inner_main() -> Result<()> {
     let pdxlogs = pdx.join("logs");
 
     let mut entries: Vec<_> =
-        read_dir(pdxmod)?.filter_map(|entry| entry.ok()).filter(is_local_modfile_entry).collect();
+        read_dir(pdxmod)?.filter_map(|entry| entry.ok()).filter(is_local_mod_entry).collect();
     entries.sort_by_key(|entry| entry.file_name());
 
     if entries.len() == 1 {
@@ -119,12 +119,7 @@ fn inner_main() -> Result<()> {
 }
 
 fn validate_mod(vic3: &Path, modpath: &Path, logdir: &Path) -> Result<()> {
-    let modfile = ModFile::read(modpath)?;
-    let modpath = modfile.modpath();
-    if !modpath.is_dir() {
-        eprintln!("Looking for mod in {}", modpath.display());
-        bail!("Cannot find mod directory. Please make sure the .mod file is correct.");
-    }
+    let metadata = ModMetadata::read(modpath)?;
     eprintln!("Using mod directory: {}", modpath.display());
 
     let output_filename =
@@ -134,7 +129,7 @@ fn validate_mod(vic3: &Path, modpath: &Path, logdir: &Path) -> Result<()> {
     eprintln!("Writing error reports to {} ...", output_file.display());
     eprintln!("This will take a few seconds.");
 
-    let mut everything = Everything::new(None, Some(vic3), &modpath, modfile.replace_paths())?;
+    let mut everything = Everything::new(None, Some(vic3), modpath, metadata.replace_paths())?;
 
     // Unfortunately have to disable the colors by default because
     // on Windows there's no easy way to view a file that contains those escape sequences.
@@ -155,8 +150,6 @@ fn validate_mod(vic3: &Path, modpath: &Path, logdir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn is_local_modfile_entry(entry: &DirEntry) -> bool {
-    let filename = entry.file_name();
-    let name = filename.to_string_lossy();
-    name.ends_with(".mod") && !name.starts_with("pdx_") && !name.starts_with("ugc")
+fn is_local_mod_entry(entry: &DirEntry) -> bool {
+    entry.path().join(".metadata/metadata.json").is_file()
 }
