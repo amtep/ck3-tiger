@@ -111,6 +111,7 @@ pub enum Item {
     TextIcon,
     TextureFile,
     TriggerLocalization,
+    WidgetName,
 
     // Items shared by more than one game
     #[cfg(any(feature = "ck3", feature = "imperator"))]
@@ -570,6 +571,7 @@ impl Item {
             Item::TextIcon => "gui/",
             Item::TextureFile => "gfx/models/",
             Item::TriggerLocalization => "common/trigger_localization/",
+            Item::WidgetName => "gui/",
 
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::Building => "common/buildings/",

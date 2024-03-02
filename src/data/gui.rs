@@ -31,6 +31,7 @@ pub struct Gui {
     textformats: FnvHashMap<String, TextFormat>,
     // This is indexed by a (colorblindmode, textformatname) pair
     textformats_colorblind: FnvHashMap<(String, String), TextFormat>,
+    widget_names: FnvHashMap<String, Token>,
 }
 
 impl Gui {
@@ -74,6 +75,9 @@ impl Gui {
                 }
             }
         } else {
+            if let Some(name) = block.get_field_value("name") {
+                self.widget_names.insert(name.to_string(), name.clone());
+            }
             if let Some(guifile) = self.files.get_mut(&filename) {
                 guifile.push(GuiWidget::new(key, block));
             } else {
@@ -225,6 +229,14 @@ impl Gui {
 
     pub fn iter_textformat_keys(&self) -> impl Iterator<Item = &Token> {
         self.textformats.values().map(|item| &item.key)
+    }
+
+    pub fn name_exists(&self, key: &str) -> bool {
+        self.widget_names.contains_key(key)
+    }
+
+    pub fn iter_names(&self) -> impl Iterator<Item = &Token> {
+        self.widget_names.values()
     }
 
     pub fn validate(&self, data: &Everything) {
