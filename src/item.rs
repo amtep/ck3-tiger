@@ -351,6 +351,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] MapLayer,
     #[cfg(feature = "vic3")] MapInteractionType,
     #[cfg(feature = "vic3")] MediaAlias,
+    #[cfg(feature = "vic3")] MilitaryFormationFlag,
     #[cfg(feature = "vic3")] MobilizationOption,
     #[cfg(feature = "vic3")] ModifierType,
     #[cfg(feature = "vic3")] Objective,
@@ -1036,6 +1037,8 @@ impl Item {
             Item::MapInteractionType => "common/map_interaction_types/",
             #[cfg(feature = "vic3")]
             Item::MediaAlias => "gfx/media_aliases/",
+            #[cfg(feature = "vic3")]
+            Item::MilitaryFormationFlag => "common/military_formation_flags/",
             #[cfg(feature = "vic3")]
             Item::MobilizationOption => "common/mobilization_options/",
             #[cfg(feature = "vic3")]
