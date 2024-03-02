@@ -19,7 +19,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, fatal, untidy, warn, ErrorKey};
+use crate::report::{err, fatal, untidy, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -342,7 +342,7 @@ impl Character {
 
                 match key.as_str() {
                     "name" => {
-                        data.verify_exists(Item::Localization, value);
+                        data.localization.verify_name_exists(value, Severity::Warning);
                         return None;
                     }
                     "birth" => {
@@ -563,7 +563,9 @@ impl Character {
         }
 
         vd.req_field("name");
-        vd.field_item("name", Item::Localization);
+        if let Some(name) = vd.field_value("name") {
+            data.localization.verify_name_exists(name, Severity::Warning);
+        }
 
         vd.field_item("dna", Item::Dna);
         vd.field_bool("female");
