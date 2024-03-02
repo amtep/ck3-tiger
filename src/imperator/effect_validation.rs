@@ -296,8 +296,8 @@ pub fn validate_create_character(
     vd.field_value("first_name");
     vd.field_value("family_name");
     vd.field_value("dna");
-    vd.field_target("culture", sc, Scopes::Culture);
-    vd.field_target("religion", sc, Scopes::Religion);
+    vd.field_item_or_target("culture", sc, Item::Culture, Scopes::Culture);
+    vd.field_item_or_target("religion", sc, Item::Religion, Scopes::Religion);
     vd.field_target("family", sc, Scopes::Family);
     vd.field_target("father", sc, Scopes::Character);
     vd.field_target("mother", sc, Scopes::Character);

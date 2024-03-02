@@ -65,15 +65,19 @@ impl DbKind for CharacterInteraction {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("country_actor_trigger", |b, data| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("country_target_trigger", |b, data| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("province_actor_trigger", |b, data| {
+            let mut sc = ScopeContext::new(Scopes::Province, key);
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("province_target_trigger", |b, data| {
+            let mut sc = ScopeContext::new(Scopes::Province, key);
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("effect", |b, data| {

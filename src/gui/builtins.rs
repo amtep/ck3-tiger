@@ -109,8 +109,7 @@ impl BuiltinWidget {
             | BuiltinWidget::target
             | BuiltinWidget::taborder => GameFlags::Imperator,
 
-            BuiltinWidget::cameracontrolwidget
-            | BuiltinWidget::colormap_picker
+            BuiltinWidget::colormap_picker
             | BuiltinWidget::datacontext_from_model
             | BuiltinWidget::tools_dragdrop_widget
             | BuiltinWidget::tools_keyframe_button
