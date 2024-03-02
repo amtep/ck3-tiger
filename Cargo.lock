@@ -198,9 +198,12 @@ dependencies = [
  "anyhow",
  "clap",
  "console",
+ "criterion",
+ "serde",
  "serde_json",
  "strum",
  "tiger-lib",
+ "toml",
 ]
 
 [[package]]
@@ -910,7 +913,6 @@ dependencies = [
  "bimap",
  "bitflags 2.4.2",
  "bumpalo",
- "criterion",
  "encoding_rs",
  "fnv",
  "home",
@@ -925,7 +927,6 @@ dependencies = [
  "strum",
  "strum_macros",
  "thiserror",
- "toml",
  "unicode-width",
  "walkdir",
  "winreg",
@@ -1011,7 +1012,11 @@ dependencies = [
  "anyhow",
  "clap",
  "console",
+ "criterion",
+ "serde",
+ "serde_json",
  "tiger-lib",
+ "toml",
 ]
 
 [[package]]

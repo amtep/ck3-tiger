@@ -53,13 +53,5 @@ walkdir = "2"
 [target.'cfg(windows)'.dependencies]
 winreg = "0.52"
 
-[dev-dependencies]
-toml = "0.8.8"
-criterion = "0.5"
-
-[[bench]]
-name = "criterion"
-harness = false
-
 [profile.bench]
 debug = true

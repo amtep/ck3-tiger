@@ -25,3 +25,12 @@ strum = "0.26.0"
 
 [target.'cfg(windows)'.dependencies]
 ansiterm = "0.12.2"
+
+[dev-dependencies]
+serde = { version = "1.0.184", features = ["derive"] }
+toml = "0.8.8"
+criterion = "0.5"
+
+[[bench]]
+name = "criterion"
+harness = false
