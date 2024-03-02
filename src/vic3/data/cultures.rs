@@ -42,7 +42,7 @@ impl DbKind for Culture {
 
         vd.field_list_items("obsessions", Item::Goods);
 
-        vd.field_value("graphics"); // TODO
+        vd.field_item("graphics", Item::CultureGraphics);
         vd.field_validated_block("ethnicities", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.numeric_keys(|_, bv| {
@@ -51,5 +51,25 @@ impl DbKind for Culture {
                 }
             });
         });
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct CultureGraphics {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::CultureGraphics, CultureGraphics::add)
+}
+
+impl CultureGraphics {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CultureGraphics, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for CultureGraphics {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        // When it is dropped, this validator will check that the block is empty
+        Validator::new(block, data);
     }
 }
