@@ -6,7 +6,7 @@ use std::any::Any;
 use std::fmt::Debug;
 
 use as_any::AsAny;
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 use rayon::prelude::*;
 use strum::IntoEnumIterator;
 
@@ -22,10 +22,10 @@ use crate::token::Token;
 pub struct Db {
     /// Items with full DbEntries, meaning a key and a block for each.
     /// The `Vec` is indexed with an `Item` discriminant.
-    database: Vec<FnvHashMap<String, DbEntry>>,
+    database: Vec<FnvHashMap<&'static str, DbEntry>>,
     /// Items generated as side effects of the full items in `database`.
     /// The `Vec` is indexed with an `Item` discriminant.
-    flags: Vec<FnvHashMap<String, Token>>,
+    flags: Vec<FnvHashSet<Token>>,
 }
 
 impl Default for Db {
@@ -33,7 +33,7 @@ impl Default for Db {
         let mut db = Self { database: Vec::default(), flags: Vec::default() };
         for _ in Item::iter() {
             db.database.push(FnvHashMap::default());
-            db.flags.push(FnvHashMap::default());
+            db.flags.push(FnvHashSet::default());
         }
         db
     }
@@ -50,7 +50,7 @@ impl Db {
                 }
             }
         }
-        self.database[item as usize].insert(key.to_string(), DbEntry { key, block, kind });
+        self.database[item as usize].insert(key.as_str(), DbEntry { key, block, kind });
     }
 
     pub fn add_exact_dup_ok(
@@ -69,11 +69,11 @@ impl Db {
                 }
             }
         }
-        self.database[item as usize].insert(key.to_string(), DbEntry { key, block, kind });
+        self.database[item as usize].insert(key.as_str(), DbEntry { key, block, kind });
     }
 
     pub fn add_flag(&mut self, item: Item, key: Token) {
-        self.flags[item as usize].insert(key.to_string(), key);
+        self.flags[item as usize].insert(key);
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -85,8 +85,7 @@ impl Db {
     }
 
     pub fn exists(&self, item: Item, key: &str) -> bool {
-        self.database[item as usize].contains_key(key)
-            || self.flags[item as usize].contains_key(key)
+        self.database[item as usize].contains_key(key) || self.flags[item as usize].contains(key)
     }
 
     #[allow(dead_code)] // not currently used, but was hard to write...
@@ -159,7 +158,7 @@ impl Db {
         self.database[itype as usize]
             .values()
             .map(|entry| &entry.key)
-            .chain(self.flags[itype as usize].values())
+            .chain(self.flags[itype as usize].iter())
     }
 }
 
