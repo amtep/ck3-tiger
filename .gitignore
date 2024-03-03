@@ -1,6 +1,6 @@
 .idea/
 /target/
-/benches/config.toml
+*/benches/config.toml
 cachegrind.out*
 callgrind.out*
 massif.out*
