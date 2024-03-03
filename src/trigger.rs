@@ -434,12 +434,14 @@ pub fn validate_trigger_key_bv(
                     data.script_values.validate_call(part, data, sc);
                     sc.replace(Scopes::Value, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
+                    #[cfg(feature = "imperator")]
                     if let Some((inscopes, trigger)) = scope_trigger(part, data) {
                         // If a trigger of the same name exists, and it's compatible with this
                         // location and scope context, then that trigger takes precedence.
                         if part_flags.contains(PartFlags::Last)
                             && (inscopes.contains(Scopes::None) || sc.scopes().intersects(inscopes))
                         {
+                            validate_inscopes(part_flags, part, inscopes, sc);
                             sc.close();
                             side_effects |= match_trigger_bv(
                                 &trigger,
@@ -1077,12 +1079,14 @@ pub fn validate_target_ok_this(
                     data.script_values.validate_call(part, data, sc);
                     sc.replace(Scopes::Value, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
+                    #[cfg(feature = "imperator")]
                     if let Some(inscopes) = trigger_comparevalue(part, data) {
                         // If a trigger of the same name exists, and it's compatible with this
                         // location and scope context, then that trigger takes precedence.
                         if part_flags.contains(PartFlags::Last)
                             && (inscopes.contains(Scopes::None) || sc.scopes().intersects(inscopes))
                         {
+                            validate_inscopes(part_flags, part, inscopes, sc);
                             sc.replace(Scopes::Value, part.clone());
                             continue;
                         }
