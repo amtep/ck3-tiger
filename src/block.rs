@@ -365,6 +365,13 @@ impl Block {
         DrainDefinitions { iter: self.v.drain(..) }
     }
 
+    /// Like [`Block::iter_assignments_warn`] but it's a destructive iterator that gives ownership
+    /// over the returned assignments.
+    #[allow(dead_code)] // Not used by all games
+    pub fn drain_assignments_warn(&mut self) -> DrainAssignments {
+        DrainAssignments { iter: self.v.drain(..) }
+    }
+
     /// Iterate over the loose values in the block.
     pub fn iter_values(&self) -> IterValues {
         IterValues { iter: self.v.iter(), warn: false }
@@ -613,6 +620,26 @@ impl Iterator for DrainDefinitions<'_> {
         for item in self.iter.by_ref() {
             if let Some((key, block)) = item.expect_into_definition() {
                 return Some((key, block));
+            }
+        }
+        None
+    }
+}
+
+/// An iterator for (key, value) pairs that transfers ownership.
+/// It is returned by [`Block::drain_assignments_warn`].
+#[derive(Debug)]
+pub struct DrainAssignments<'a> {
+    iter: std::vec::Drain<'a, BlockItem>,
+}
+
+impl Iterator for DrainAssignments<'_> {
+    type Item = (Token, Token);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for item in self.iter.by_ref() {
+            if let Some((key, value)) = item.expect_into_assignment() {
+                return Some((key, value));
             }
         }
         None

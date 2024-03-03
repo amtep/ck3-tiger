@@ -123,6 +123,14 @@ impl BlockItem {
         }
     }
 
+    pub fn expect_into_assignment(self) -> Option<(Token, Token)> {
+        if let Some(field) = self.expect_into_field() {
+            field.expect_into_assignment()
+        } else {
+            None
+        }
+    }
+
     pub fn expect_assignment(&self) -> Option<(&Token, &Token)> {
         if let Some(field) = self.expect_field() {
             #[allow(clippy::single_match_else)] // too complicated for a `let`

@@ -120,6 +120,20 @@ impl Field {
         }
     }
 
+    pub fn expect_into_assignment(self) -> Option<(Token, Token)> {
+        #[allow(clippy::single_match_else)] // too complicated for a `let`
+        match self {
+            Field(key, Comparator::Equals(Single | Question), BV::Value(token)) => {
+                return Some((key, token))
+            }
+            _ => {
+                let msg = format!("expected assignment, found {}", self.describe());
+                err(ErrorKey::Structure).msg(msg).loc(self).push();
+            }
+        }
+        None
+    }
+
     #[allow(dead_code)] // It's here for symmetry
     pub fn expect_assignment(&self) -> Option<(&Token, &Token)> {
         #[allow(clippy::single_match_else)] // too complicated for a `let`
