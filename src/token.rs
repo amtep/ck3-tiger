@@ -1,7 +1,7 @@
 //! Contains the core [`Token`] and [`Loc`] types, which represent pieces of game script and where
 //! in the game files they came from.
 
-use std::borrow::Cow;
+use std::borrow::{Borrow, Cow};
 use std::ffi::OsStr;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::hash::Hash;
@@ -425,6 +425,12 @@ impl Eq for Token {}
 impl Hash for Token {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.s.hash(state);
+    }
+}
+
+impl Borrow<str> for Token {
+    fn borrow(&self) -> &str {
+        self.s
     }
 }
 

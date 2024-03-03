@@ -112,14 +112,14 @@ impl ScriptedModifier {
         }
     }
 
-    pub fn macro_parms(&self) -> Vec<&str> {
+    pub fn macro_parms(&self) -> Vec<&'static str> {
         self.block.macro_parms()
     }
 
     pub fn cached_compat(
         &self,
         key: &Token,
-        args: &[(&str, Token)],
+        args: &[(&'static str, Token)],
         sc: &mut ScopeContext,
     ) -> bool {
         self.cache.perform(key, args, Tooltipped::No, false, |our_sc| {
@@ -130,7 +130,7 @@ impl ScriptedModifier {
     pub fn validate_macro_expansion(
         &self,
         key: &Token,
-        args: &[(&str, Token)],
+        args: &[(&'static str, Token)],
         data: &Everything,
         sc: &mut ScopeContext,
     ) {

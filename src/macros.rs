@@ -1,7 +1,4 @@
-//! [`MacroCache`] is a helper for scripted effects, triggers, and modifiers, all of which can
-//! accept macro arguments and which need to be expanded for every macro call.
-//!
-//! The cache helps avoid needless re-expansions for arguments that have already been validated.
+//! [`MacroCache`] to cache macro expansions, and [`MacroMap`] to track [`Loc`] use across macro expansions.
 
 use std::hash::Hash;
 use std::num::NonZeroU32;
@@ -19,7 +16,7 @@ struct MacroKey {
     /// the loc of the call site
     loc: Loc,
     /// lexically sorted macro arguments
-    args: Vec<(String, String)>,
+    args: Vec<(&'static str, &'static str)>,
     tooltipped: Tooltipped,
     /// only for triggers
     negated: bool,
@@ -28,19 +25,22 @@ struct MacroKey {
 impl MacroKey {
     pub fn new(
         mut loc: Loc,
-        args: &[(&str, Token)],
+        args: &[(&'static str, Token)],
         tooltipped: Tooltipped,
         negated: bool,
     ) -> Self {
         loc.link_idx = None;
-        let mut args: Vec<(String, String)> =
-            args.iter().map(|(parm, arg)| ((*parm).to_string(), arg.to_string())).collect();
-        args.sort();
+        let mut args: Vec<_> = args.iter().map(|(parm, arg)| (*parm, arg.as_str())).collect();
+        args.sort_unstable();
         Self { loc, args, tooltipped, negated }
     }
 }
 
 #[derive(Debug)]
+/// A helper for scripted effects, triggers, and modifiers, all of which can
+/// accept macro arguments and which need to be expanded for every macro call.
+///
+/// The cache helps avoid needless re-expansions for arguments that have already been validated.
 pub struct MacroCache<T> {
     cache: RwLock<FnvHashMap<MacroKey, T>>,
 }
@@ -49,12 +49,11 @@ impl<T> MacroCache<T> {
     pub fn perform(
         &self,
         key: &Token,
-        args: &[(&str, Token)],
+        args: &[(&'static str, Token)],
         tooltipped: Tooltipped,
         negated: bool,
         mut f: impl FnMut(&T),
     ) -> bool {
-        // TODO: find a way to avoid all the cloning for creating a MacroKey just to look it up in the cache
         let key = MacroKey::new(key.loc, args, tooltipped, negated);
         if let Some(x) = self.cache.read().unwrap().get(&key) {
             f(x);
@@ -67,7 +66,7 @@ impl<T> MacroCache<T> {
     pub fn insert(
         &self,
         key: &Token,
-        args: &[(&str, Token)],
+        args: &[(&'static str, Token)],
         tooltipped: Tooltipped,
         negated: bool,
         value: T,

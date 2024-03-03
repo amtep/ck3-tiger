@@ -425,7 +425,7 @@ impl Block {
 
     /// Return a sorted vector of macro parameters taken by this block.
     /// Macro parameters are between `$` like `$CHARACTER$`.
-    pub fn macro_parms(&self) -> Vec<&str> {
+    pub fn macro_parms(&self) -> Vec<&'static str> {
         if let Some(source) = &self.source {
             let mut vec = source
                 .iter()
