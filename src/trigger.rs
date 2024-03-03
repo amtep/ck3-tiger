@@ -393,6 +393,7 @@ pub fn validate_trigger_key_bv(
         match part {
             Part::TokenArgument(func, arg) => validate_argument(part_flags, func, arg, data, sc),
             Part::Token(part) => {
+                let part_lc = Lowercase::new(part.as_str());
                 // prefixed scope transition, e.g. cp:councillor_steward
                 if let Some((prefix, mut arg)) = part.split_once(':') {
                     // event_id have multiple parts separated by `.`
@@ -412,23 +413,15 @@ pub fn validate_trigger_key_bv(
                         sc.close();
                         return side_effects;
                     }
-                } else if part.lowercase_is("root")
-                    || part.lowercase_is("prev")
-                    || part.lowercase_is("this")
-                {
-                    #[allow(clippy::nonminimal_bool)]
-                    if !part_flags.contains(PartFlags::First)
-                        && !(Game::is_imperator() && part.lowercase_is("prev"))
-                    {
+                } else if part_lc == "root" {
+                    sc.replace_root();
+                } else if part_lc == "prev" {
+                    if !part_flags.contains(PartFlags::First) && !Game::is_imperator() {
                         warn_not_first(part);
                     }
-                    if part.lowercase_is("root") {
-                        sc.replace_root();
-                    } else if part.lowercase_is("prev") {
-                        sc.replace_prev();
-                    } else {
-                        sc.replace_this();
-                    }
+                    sc.replace_prev();
+                } else if part_lc == "this" {
+                    sc.replace_this();
                 } else if data.script_values.exists(part.as_str()) {
                     // TODO: check side_effects
                     data.script_values.validate_call(part, data, sc);
@@ -467,7 +460,7 @@ pub fn validate_trigger_key_bv(
                         return side_effects;
                     }
                     validate_inscopes(part_flags, part, inscopes, sc);
-                    if sc.scopes() == Scopes::None && part.lowercase_is("current_year") {
+                    if sc.scopes() == Scopes::None && part_lc == "current_year" {
                         warn(ErrorKey::Bugs)
                             .msg("current_year does not work in empty scope")
                             .info("try using current_date, or dummy_male.current_year")
@@ -1038,6 +1031,7 @@ pub fn validate_target_ok_this(
         match part {
             Part::TokenArgument(func, arg) => validate_argument(part_flags, func, arg, data, sc),
             Part::Token(part) => {
+                let part_lc = Lowercase::new(part.as_str());
                 // prefixed scope transition, e.g. cp:councillor_steward
                 if let Some((prefix, mut arg)) = part.split_once(':') {
                     // event_id have multiple parts separated by `.`
@@ -1057,23 +1051,15 @@ pub fn validate_target_ok_this(
                         sc.close();
                         return;
                     }
-                } else if part.lowercase_is("root")
-                    || part.lowercase_is("prev")
-                    || part.lowercase_is("this")
-                {
-                    #[allow(clippy::nonminimal_bool)]
-                    if !part_flags.contains(PartFlags::First)
-                        && !(Game::is_imperator() && part.lowercase_is("prev"))
-                    {
+                } else if part_lc == "root" {
+                    sc.replace_root();
+                } else if part_lc == "prev" {
+                    if !part_flags.contains(PartFlags::First) && !Game::is_imperator() {
                         warn_not_first(part);
                     }
-                    if part.lowercase_is("root") {
-                        sc.replace_root();
-                    } else if part.lowercase_is("prev") {
-                        sc.replace_prev();
-                    } else {
-                        sc.replace_this();
-                    }
+                    sc.replace_prev();
+                } else if part_lc == "this" {
+                    sc.replace_this();
                 } else if data.script_values.exists(part.as_str()) {
                     // TODO: check side_effects
                     data.script_values.validate_call(part, data, sc);
@@ -1101,7 +1087,7 @@ pub fn validate_target_ok_this(
                         return;
                     }
                     validate_inscopes(part_flags, part, inscopes, sc);
-                    if sc.scopes() == Scopes::None && part.lowercase_is("current_year") {
+                    if sc.scopes() == Scopes::None && part_lc == "current_year" {
                         warn(ErrorKey::Bugs)
                             .msg("current_year does not work in empty scope")
                             .info("try using current_date, or dummy_male.current_year")
