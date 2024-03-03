@@ -21,7 +21,7 @@ const DEFAULT_TERRAINS: &[&str] = &["default_land", "default_sea", "default_coas
 pub struct ProvinceTerrains {
     provinces: FnvHashMap<ProvId, ProvinceTerrain>,
     file_loc: Option<Loc>,
-    defaults: Box<[Option<Token>; DEFAULT_TERRAINS.len()]>,
+    defaults: [Option<Token>; DEFAULT_TERRAINS.len()],
 }
 
 impl ProvinceTerrains {
@@ -30,7 +30,7 @@ impl ProvinceTerrains {
             if province.key.loc.kind >= key.loc.kind {
                 dup_error(&key, &province.key, "province");
             }
-            province.terrain = value;
+            *province = ProvinceTerrain::new(key, value);
         } else {
             self.provinces.insert(id, ProvinceTerrain::new(key, value));
         }
@@ -41,16 +41,20 @@ impl ProvinceTerrains {
             item.validate(*provid, data);
         }
 
-        for (name, terrains) in DEFAULT_TERRAINS.iter().zip(&*self.defaults) {
-            if let Some(terrain) = terrains {
-                data.verify_exists(Item::Terrain, terrain);
-            } else {
-                let msg = format!("missing default terrain: {}", name);
-                warn(ErrorKey::Validation)
-                    .msg(msg)
-                    // SAFETY: `file_loc` has been set in `handle_file`.
-                    .loc(self.file_loc.unwrap())
-                    .push();
+        // If no file was handled, for example when using `replace_paths`, self.file_loc is None.
+        // TODO: Find a way to denote `ErrorLoc` error report when no loc is available.
+        if self.file_loc.is_some() {
+            for (name, terrains) in DEFAULT_TERRAINS.iter().zip(&self.defaults) {
+                if let Some(terrain) = terrains {
+                    data.verify_exists(Item::Terrain, terrain);
+                } else {
+                    let msg = format!("missing default terrain: {name}");
+                    warn(ErrorKey::Validation)
+                        .msg(msg)
+                        // SAFETY: self.file_loc is `Some`
+                        .loc(self.file_loc.unwrap())
+                        .push();
+                }
             }
         }
     }
