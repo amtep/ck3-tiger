@@ -288,6 +288,10 @@ impl Localization {
     #[cfg(feature = "ck3")]
     pub fn verify_name_exists(&self, name: &Token, max_sev: Severity) {
         if name.as_str().is_empty() {
+            report(ErrorKey::MissingLocalization, Severity::Warning.at_most(max_sev))
+                .msg("empty name")
+                .loc(name)
+                .push();
             return;
         }
         self.mark_used(name.as_str());
@@ -302,9 +306,12 @@ impl Localization {
             // It's merely untidy if the name is only missing in latin-script languages and the
             // name doesn't have indicators that it really needs to be localized (such as underscores
             // or extra uppercase letters). In all other cases it's a warning.
+            //
+            // TODO: this logic assumes the input name is in English and it doesn't consider for example
+            // a Russian mod that only supports Russian localization and has names in Cyrillic.
             let sev = if only_latin_script(&langs)
                 && !name.as_str().contains('_')
-                && name.as_str().chars().filter(|c| c.is_uppercase()).count() == 1
+                && normal_capitalization_for_name(name.as_str())
             {
                 Severity::Untidy
             } else {
@@ -833,6 +840,19 @@ fn only_latin_script(langs: &[&str]) -> bool {
     langs.iter().all(|lang| LATIN_SCRIPT_LANGS.contains(lang))
 }
 
+/// Check that the string only has capital letters at the start or after a space or hyphen
+#[cfg(feature = "ck3")]
+fn normal_capitalization_for_name(name: &str) -> bool {
+    let mut expect_cap = true;
+    for ch in name.chars() {
+        if ch.is_uppercase() && !expect_cap {
+            return false;
+        }
+        expect_cap = ch == ' ' || ch == '-';
+    }
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -845,5 +865,16 @@ mod tests {
         assert!(!only_latin_script(&langs));
         langs.clear();
         assert!(only_latin_script(&langs));
+    }
+
+    #[test]
+    fn test_normal_capitalization_for_name() {
+        assert!(normal_capitalization_for_name("George"));
+        assert!(normal_capitalization_for_name("george"));
+        assert!(!normal_capitalization_for_name("BjOrn"));
+        assert!(normal_capitalization_for_name("Jean-Claude"));
+        assert!(normal_capitalization_for_name("Abu-l-Fadl al-Malik"));
+        assert!(normal_capitalization_for_name("Abu Abdallah Muhammad"));
+        assert!(!normal_capitalization_for_name("AbuAbdallahMuhammad"));
     }
 }
