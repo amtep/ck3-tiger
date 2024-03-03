@@ -1,13 +1,13 @@
 //! Loader and validator for the `.metadata/metadata.json` files used by Vic3
 
 use std::path::{Path, PathBuf};
-use std::string::ToString;
 
 use anyhow::{Context, Result};
 
 use crate::block::Block;
 use crate::fileset::{FileEntry, FileKind};
 use crate::parse::json::parse_json_file;
+use crate::token::Token;
 use crate::util::fix_slashes_for_target_platform;
 
 /// Representation of a `metadata.json` file and its contents.
@@ -31,8 +31,8 @@ impl ModMetadata {
     }
 
     /// Return the full path to the mod root.
-    pub fn modpath(&self) -> PathBuf {
-        self.modpath.clone()
+    pub fn modpath(&self) -> &Path {
+        &self.modpath
     }
 
     /// Return the paths that this mod fully replaces
@@ -46,7 +46,7 @@ impl ModMetadata {
     }
 
     /// The mod's name in human-friendly form, if available.
-    pub fn display_name(&self) -> Option<String> {
-        self.block.get_field_value("name").map(ToString::to_string)
+    pub fn display_name(&self) -> Option<&'static str> {
+        self.block.get_field_value("name").map(Token::as_str)
     }
 }

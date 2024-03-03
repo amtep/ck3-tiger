@@ -205,10 +205,9 @@ fn parse(blockloc: Loc, content: &str) -> Block {
                     if token.is("true") || token.is("false") {
                         parser.token(token);
                     } else {
-                        warn(ErrorKey::ParseError)
-                            .msg("unexpected unquoted string")
-                            .loc(token)
-                            .push();
+                        let msg = "unexpected unquoted string";
+                        let info = "expected only true or false";
+                        warn(ErrorKey::ParseError).msg(msg).info(info).loc(token).push();
                     }
                     state = State::Neutral;
                     if c.is_ascii_whitespace() {
@@ -267,7 +266,9 @@ fn parse(blockloc: Loc, content: &str) -> Block {
             if token.is("true") || token.is("false") {
                 parser.token(token);
             } else {
-                warn(ErrorKey::ParseError).msg("unexpected unquoted string").loc(token).push();
+                let msg = "unexpected unquoted string";
+                let info = "expected only true or false";
+                warn(ErrorKey::ParseError).msg(msg).info(info).loc(token).push();
             }
         }
         State::Neutral => (),

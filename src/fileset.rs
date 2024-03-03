@@ -271,15 +271,12 @@ impl Fileset {
                 if let Some(path) = block.get_field_value("modfile") {
                     let path = PathBuf::from(path.as_str());
                     if let Ok(modfile) = ModFile::read(&path) {
-                        let mod_name_append = if let Some(name) = modfile.display_name() {
-                            format!(" \"{name}\"")
-                        } else {
-                            String::new()
-                        };
                         eprintln!(
                             "Loading secondary mod {label} from: {}{}",
                             modfile.modpath().display(),
-                            mod_name_append,
+                            modfile
+                                .display_name()
+                                .map_or_else(String::new, |name| format!(" \"{name}\"")),
                         );
                         let kind = FileKind::LoadedMod(mod_idx);
                         let loaded_mod = LoadedMod::new(
@@ -300,15 +297,12 @@ impl Fileset {
                 if let Some(path) = block.get_field_value("mod") {
                     let pathdir = PathBuf::from(path.as_str());
                     if let Ok(metadata) = ModMetadata::read(&pathdir) {
-                        let mod_name_append = if let Some(name) = metadata.display_name() {
-                            format!(" \"{name}\"")
-                        } else {
-                            String::new()
-                        };
                         eprintln!(
                             "Loading secondary mod {label} from: {}{}",
                             pathdir.display(),
-                            mod_name_append
+                            metadata
+                                .display_name()
+                                .map_or_else(String::new, |name| format!(" \"{name}\"")),
                         );
                         let kind = FileKind::LoadedMod(mod_idx);
                         let loaded_mod =
