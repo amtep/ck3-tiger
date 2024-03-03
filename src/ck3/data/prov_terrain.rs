@@ -1,7 +1,6 @@
-use std::hash::Hash;
 use std::path::PathBuf;
 
-use fnv::{FnvHashMap, FnvHashSet};
+use fnv::FnvHashMap;
 
 use crate::block::Block;
 use crate::everything::Everything;
@@ -10,32 +9,49 @@ use crate::helpers::dup_error;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::report::{warn, ErrorKey};
-use crate::token::Token;
+use crate::token::{Loc, Token};
 use crate::validator::Validator;
 use crate::Severity;
 
 use super::provinces::ProvId;
 
+const DEFAULT_TERRAINS: &[&str] = &["default_land", "default_sea", "default_coastal_sea"];
+
 #[derive(Clone, Debug, Default)]
 pub struct ProvinceTerrains {
-    provinces: FnvHashSet<ProvinceTerrain>,
+    provinces: FnvHashMap<ProvId, ProvinceTerrain>,
+    file_loc: Option<Loc>,
+    defaults: Box<[Option<Token>; DEFAULT_TERRAINS.len()]>,
 }
 
 impl ProvinceTerrains {
-    fn load_item(&mut self, key: Token, value: Token) {
-        let province = ProvinceTerrain::new(key, value);
-        if let Some(existing_province) = self.provinces.get(&province) {
-            if existing_province.key.loc.kind >= province.key.loc.kind {
-                dup_error(&province.key, &existing_province.key, "province");
+    fn load_item(&mut self, id: ProvId, key: Token, value: Token) {
+        if let Some(province) = self.provinces.get_mut(&id) {
+            if province.key.loc.kind >= key.loc.kind {
+                dup_error(&key, &province.key, "province");
             }
+            province.terrain = value;
         } else {
-            self.provinces.insert(province);
+            self.provinces.insert(id, ProvinceTerrain::new(key, value));
         }
     }
 
     pub fn validate(&self, data: &Everything) {
-        for item in &self.provinces {
-            item.validate(data);
+        for (provid, item) in &self.provinces {
+            item.validate(*provid, data);
+        }
+
+        for (name, terrains) in DEFAULT_TERRAINS.iter().zip(&*self.defaults) {
+            if let Some(terrain) = terrains {
+                data.verify_exists(Item::Terrain, terrain);
+            } else {
+                let msg = format!("missing default terrain: {}", name);
+                warn(ErrorKey::Validation)
+                    .msg(msg)
+                    // SAFETY: `file_loc` has been set in `handle_file`.
+                    .loc(self.file_loc.unwrap())
+                    .push();
+            }
         }
     }
 }
@@ -55,8 +71,22 @@ impl FileHandler<Block> for ProvinceTerrains {
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
+        self.file_loc = Some(block.loc);
         for (key, value) in block.drain_assignments_warn() {
-            self.load_item(key, value);
+            if let Ok(id) = key.as_str().parse() {
+                self.load_item(id, key, value);
+            } else if let Some(index) = DEFAULT_TERRAINS.iter().position(|&x| x == key.as_str()) {
+                if let Some(default) = &self.defaults[index] {
+                    if default.loc.kind >= key.loc.kind {
+                        dup_error(&key, default, "default terrain");
+                    }
+                } else {
+                    self.defaults[index] = Some(value);
+                }
+            } else {
+                let msg = "unexpected key, expected only province ids or default terrains";
+                warn(ErrorKey::Validation).msg(msg).loc(key).push();
+            }
         }
     }
 }
@@ -67,29 +97,13 @@ pub struct ProvinceTerrain {
     terrain: Token,
 }
 
-impl Hash for ProvinceTerrain {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.key.hash(state);
-    }
-}
-
-impl PartialEq for ProvinceTerrain {
-    fn eq(&self, other: &Self) -> bool {
-        self.key == other.key
-    }
-}
-
-impl Eq for ProvinceTerrain {}
-
 impl ProvinceTerrain {
     fn new(key: Token, terrain: Token) -> Self {
         Self { key, terrain }
     }
 
-    fn validate(&self, data: &Everything) {
-        if !matches!(self.key.as_str(), "default_land" | "default_sea" | "default_coastal_sea") {
-            data.verify_exists(Item::Province, &self.key);
-        }
+    fn validate(&self, provid: ProvId, data: &Everything) {
+        data.provinces_ck3.verify_exists_provid(provid, &self.key, Severity::Error);
         data.verify_exists(Item::Terrain, &self.terrain);
     }
 }
@@ -162,6 +176,9 @@ impl ProvinceProperty {
             vd.field_validated_value("winter_severity_bias", |_, mut vd| {
                 vd.maybe_is("0.0");
             });
+            vd.ban_field("mild_winter_factor_override", || "sea and river province");
+            vd.ban_field("normal_winter_factor_override", || "sea and river province");
+            vd.ban_field("harsh_winter_factor_override", || "sea and river province");
         } else {
             vd.field_numeric_range("winter_severity_bias", 0.0..=1.0);
             vd.field_numeric_range("mild_winter_factor_override", 0.0..=1.0);
