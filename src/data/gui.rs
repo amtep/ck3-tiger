@@ -21,17 +21,17 @@ use crate::validator::Validator;
 #[derive(Debug, Default)]
 pub struct Gui {
     files: FnvHashMap<PathBuf, Vec<GuiWidget>>,
-    templates: FnvHashMap<String, GuiTemplate>,
+    templates: FnvHashMap<&'static str, GuiTemplate>,
     // Type keys are stored in lowercase because type lookup is case-insensitive
-    types: FnvHashMap<String, GuiType>,
-    layers: FnvHashMap<String, GuiLayer>,
+    types: FnvHashMap<Lowercase<'static>, GuiType>,
+    layers: FnvHashMap<&'static str, GuiLayer>,
     // TextIcon is in a Vec because a single icon can have multiple definitions with different
     // iconsize parameters.
-    texticons: FnvHashMap<String, Vec<TextIcon>>,
-    textformats: FnvHashMap<String, TextFormat>,
+    texticons: FnvHashMap<&'static str, Vec<TextIcon>>,
+    textformats: FnvHashMap<&'static str, TextFormat>,
     // This is indexed by a (colorblindmode, textformatname) pair
-    textformats_colorblind: FnvHashMap<(String, String), TextFormat>,
-    widget_names: FnvHashMap<String, Token>,
+    textformats_colorblind: FnvHashMap<(&'static str, &'static str), TextFormat>,
+    widget_names: FnvHashMap<&'static str, Token>,
 }
 
 impl Gui {
@@ -76,7 +76,7 @@ impl Gui {
             }
         } else {
             if let Some(name) = block.get_field_value("name") {
-                self.widget_names.insert(name.to_string(), name.clone());
+                self.widget_names.insert(name.as_str(), name.clone());
             }
             if let Some(guifile) = self.files.get_mut(&filename) {
                 guifile.push(GuiWidget::new(key, block));
@@ -134,7 +134,7 @@ impl Gui {
     }
 
     pub fn load_type(&mut self, key: Token, base: Token, block: Block) {
-        let key_lc = key.as_str().to_lowercase();
+        let key_lc = Lowercase::new(key.as_str());
 
         if let Some(other) = self.types.get(&key_lc) {
             if other.key.loc.kind >= key.loc.kind {
@@ -150,7 +150,7 @@ impl Gui {
                 dup_error(&key, &other.key, "gui template");
             }
         }
-        self.templates.insert(key.to_string(), GuiTemplate::new(key, block));
+        self.templates.insert(key.as_str(), GuiTemplate::new(key, block));
     }
 
     pub fn load_layer(&mut self, key: Token, block: Block) {
@@ -159,7 +159,7 @@ impl Gui {
                 dup_error(&key, &other.key, "gui layer");
             }
         }
-        self.layers.insert(key.to_string(), GuiLayer::new(key, block));
+        self.layers.insert(key.as_str(), GuiLayer::new(key, block));
     }
 
     pub fn load_texticon(&mut self, key: Token, block: Block) {
@@ -167,13 +167,13 @@ impl Gui {
         if let Some(vec) = self.texticons.get_mut(key.as_str()) {
             vec.push(TextIcon::new(key, block));
         } else {
-            self.texticons.insert(key.to_string(), vec![TextIcon::new(key, block)]);
+            self.texticons.insert(key.as_str(), vec![TextIcon::new(key, block)]);
         }
     }
 
     pub fn load_textformat(&mut self, key: Token, block: Block, color_blind_mode: Option<Token>) {
         if let Some(cbm) = color_blind_mode {
-            let index = (cbm.to_string(), key.to_string());
+            let index = (cbm.as_str(), key.as_str());
             if let Some(other) = self.textformats_colorblind.get(&index) {
                 if other.key.loc.kind >= key.loc.kind {
                     let id = format!("textformat for {cbm}");
@@ -187,7 +187,7 @@ impl Gui {
                     dup_error(&key, &other.key, "textformat");
                 }
             }
-            self.textformats.insert(key.to_string(), TextFormat::new(key, block, None));
+            self.textformats.insert(key.as_str(), TextFormat::new(key, block, None));
         }
     }
 
@@ -503,8 +503,8 @@ impl GuiTemplate {
 
     pub fn calculate_gui_block(
         &self,
-        types: &FnvHashMap<String, GuiType>,
-        templates: &FnvHashMap<String, GuiTemplate>,
+        types: &FnvHashMap<Lowercase<'static>, GuiType>,
+        templates: &FnvHashMap<&'static str, GuiTemplate>,
     ) -> Arc<GuiBlock> {
         if let Ok(mut gui_block) = self.gui_block.try_write() {
             let calc = GuiBlock::from_block(GuiBlockFrom::Template, &self.block, types, templates);
@@ -519,8 +519,8 @@ impl GuiTemplate {
 
     pub fn gui_block(
         &self,
-        types: &FnvHashMap<String, GuiType>,
-        templates: &FnvHashMap<String, GuiTemplate>,
+        types: &FnvHashMap<Lowercase<'static>, GuiType>,
+        templates: &FnvHashMap<&'static str, GuiTemplate>,
     ) -> Arc<GuiBlock> {
         if let Ok(gui_block) = self.gui_block.try_read() {
             if let Some(gui_block) = gui_block.clone() {
@@ -582,9 +582,12 @@ impl GuiType {
         self.gui_block.read().unwrap().as_ref().unwrap().validate(None, data);
     }
 
-    pub fn calculate_builtin(&self, types: &FnvHashMap<String, GuiType>) -> Option<BuiltinWidget> {
+    pub fn calculate_builtin(
+        &self,
+        types: &FnvHashMap<Lowercase<'static>, GuiType>,
+    ) -> Option<BuiltinWidget> {
         if let Ok(mut builtin) = self.builtin.try_write() {
-            let base_lc = self.base.as_str().to_lowercase();
+            let base_lc = Lowercase::new(self.base.as_str());
             let calc = types.get(&base_lc).and_then(|t| t.builtin(types));
             *builtin = Some(calc);
             calc
@@ -595,7 +598,10 @@ impl GuiType {
         }
     }
 
-    pub fn builtin(&self, types: &FnvHashMap<String, GuiType>) -> Option<BuiltinWidget> {
+    pub fn builtin(
+        &self,
+        types: &FnvHashMap<Lowercase<'static>, GuiType>,
+    ) -> Option<BuiltinWidget> {
         if let Ok(builtin) = self.builtin.try_read() {
             if let Some(builtin) = *builtin {
                 builtin
@@ -612,8 +618,8 @@ impl GuiType {
 
     pub fn calculate_gui_block(
         &self,
-        types: &FnvHashMap<String, GuiType>,
-        templates: &FnvHashMap<String, GuiTemplate>,
+        types: &FnvHashMap<Lowercase<'static>, GuiType>,
+        templates: &FnvHashMap<&'static str, GuiTemplate>,
     ) -> Arc<GuiBlock> {
         if let Ok(mut gui_block) = self.gui_block.try_write() {
             let from = if self.is_builtin_wrapper {
@@ -633,8 +639,8 @@ impl GuiType {
 
     pub fn gui_block(
         &self,
-        types: &FnvHashMap<String, GuiType>,
-        templates: &FnvHashMap<String, GuiTemplate>,
+        types: &FnvHashMap<Lowercase<'static>, GuiType>,
+        templates: &FnvHashMap<&'static str, GuiTemplate>,
     ) -> Arc<GuiBlock> {
         if let Ok(gui_block) = self.gui_block.try_read() {
             // cloning the Option Arc

@@ -68,8 +68,8 @@ impl GuiBlock {
     pub fn from_block(
         from: GuiBlockFrom,
         block: &Block,
-        types: &FnvHashMap<String, GuiType>,
-        templates: &FnvHashMap<String, GuiTemplate>,
+        types: &FnvHashMap<Lowercase<'static>, GuiType>,
+        templates: &FnvHashMap<&'static str, GuiTemplate>,
     ) -> Arc<Self> {
         enum Expecting<'a> {
             Field,
@@ -92,7 +92,7 @@ impl GuiBlock {
         match from {
             GuiBlockFrom::Template | GuiBlockFrom::NoParent => (),
             GuiBlockFrom::WidgetKey(base) | GuiBlockFrom::TypeBase(base) => {
-                if let Some(basetype) = types.get(&base.as_str().to_lowercase()) {
+                if let Some(basetype) = types.get(&Lowercase::new(base.as_str())) {
                     gui.container = basetype.builtin(types).map(PropertyContainer::from);
                     let gui_block = basetype.gui_block(types, templates);
                     gui.substnames = gui_block.substnames.clone();
@@ -103,7 +103,7 @@ impl GuiBlock {
                 gui.container = PropertyContainer::try_from(prop).ok();
             }
             GuiBlockFrom::TypeWrapper(base) => {
-                if let Some(basetype) = types.get(&base.as_str().to_lowercase()) {
+                if let Some(basetype) = types.get(&Lowercase::new(base.as_str())) {
                     gui.container = basetype.builtin(types).map(PropertyContainer::from);
                 }
             }
