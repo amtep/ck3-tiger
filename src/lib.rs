@@ -37,6 +37,9 @@ pub use crate::fileset::FileKind;
 pub use crate::game::Game;
 pub use crate::gamedir::{find_game_directory_steam, find_paradox_directory};
 pub use crate::item::Item;
+#[cfg(feature = "vic3")]
+pub use crate::mod_metadata::ModMetadata;
+#[cfg(any(feature = "ck3", feature = "imperator"))]
 pub use crate::modfile::ModFile;
 pub use crate::report::{
     add_loaded_mod_root, disable_ansi_colors, emit_reports, log, set_output_file, set_output_style,
@@ -72,6 +75,9 @@ mod helpers;
 mod item;
 mod lowercase;
 mod macros;
+#[cfg(feature = "vic3")]
+mod mod_metadata;
+#[cfg(any(feature = "ck3", feature = "imperator"))]
 mod modfile;
 mod modif;
 mod on_action;

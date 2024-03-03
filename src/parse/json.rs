@@ -1,6 +1,8 @@
-/// Parse a JSON file into a `Block`.
-/// `Block` is used, instead of a JSON-specific representation, for compatibility with the rest of the code.
-/// Unfortunately can't use serde-json because we need the locations for error reporting.
+//! Parse a JSON file into a `Block`.
+//!
+//! `Block` is used, instead of a JSON-specific representation, for compatibility with the rest of the code.
+//! Unfortunately can't use serde-json because we need the locations for error reporting.
+
 use std::fs::read_to_string;
 use std::mem::{swap, take};
 
@@ -14,6 +16,7 @@ use crate::token::{Loc, Token};
 enum State {
     Neutral,
     QString,
+    Id,
 }
 
 struct ParseLevel {
@@ -174,6 +177,10 @@ fn parse(blockloc: Loc, content: &str) -> Block {
                 } else if c == '"' {
                     token_start = loc;
                     state = State::QString;
+                } else if c.is_alphabetic() {
+                    token_start = loc;
+                    current_id.push(c);
+                    state = State::Id;
                 } else if c == ':' {
                     parser.colon(loc);
                 } else if c == ',' {
@@ -188,6 +195,40 @@ fn parse(blockloc: Loc, content: &str) -> Block {
                     parser.close_bracket(loc, ']');
                 } else {
                     Parser::unknown_char(c, loc);
+                }
+            }
+            State::Id => {
+                if c.is_alphabetic() {
+                    current_id.push(c);
+                } else {
+                    let token = Token::new(&take(&mut current_id), token_start);
+                    if token.is("true") || token.is("false") {
+                        parser.token(token);
+                    } else {
+                        let msg = "unexpected unquoted string";
+                        let info = "expected only true or false";
+                        warn(ErrorKey::ParseError).msg(msg).info(info).loc(token).push();
+                    }
+                    state = State::Neutral;
+                    if c.is_ascii_whitespace() {
+                    } else if c == '"' {
+                        token_start = loc;
+                        state = State::QString;
+                    } else if c == ':' {
+                        parser.colon(loc);
+                    } else if c == ',' {
+                        parser.comma(loc);
+                    } else if c == '{' {
+                        parser.open_bracket(loc, '{');
+                    } else if c == '}' {
+                        parser.close_bracket(loc, '}');
+                    } else if c == '[' {
+                        parser.open_bracket(loc, '[');
+                    } else if c == ']' {
+                        parser.close_bracket(loc, ']');
+                    } else {
+                        Parser::unknown_char(c, loc);
+                    }
                 }
             }
             State::QString => {
@@ -219,6 +260,16 @@ fn parse(blockloc: Loc, content: &str) -> Block {
             let token = Token::new(&current_id, token_start);
             err(ErrorKey::ParseError).msg("Quoted string not closed").loc(&token).push();
             parser.token(token);
+        }
+        State::Id => {
+            let token = Token::new(&current_id, token_start);
+            if token.is("true") || token.is("false") {
+                parser.token(token);
+            } else {
+                let msg = "unexpected unquoted string";
+                let info = "expected only true or false";
+                warn(ErrorKey::ParseError).msg(msg).info(info).loc(token).push();
+            }
         }
         State::Neutral => (),
     }
