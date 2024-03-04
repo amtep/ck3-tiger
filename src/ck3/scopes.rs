@@ -9,7 +9,7 @@ use crate::everything::Everything;
 use crate::helpers::display_choices;
 use crate::scopes::{ArgumentValue, Scopes};
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
         "none" => Scopes::None,
@@ -57,11 +57,16 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "tax_slot" => Scopes::TaxSlot,
         "vassal_contract" => Scopes::VassalContract,
         "vassal_contract_obligation_level" => Scopes::VassalObligationLevel,
+        "epidemic_type" => Scopes::EpidemicType,
+        "epidemic" => Scopes::Epidemic,
+        "legend_type" => Scopes::LegendType,
+        "legend" => Scopes::Legend,
+        "geographical_region" => Scopes::GeographicalRegion,
         _ => return std::option::Option::None,
     })
 }
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
     let mut vec = Vec::new();
     if s.contains(Scopes::None) {
@@ -199,6 +204,21 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::VassalObligationLevel) {
         vec.push("vassal obligation level");
     }
+    if s.contains(Scopes::EpidemicType) {
+        vec.push("epidemic type");
+    }
+    if s.contains(Scopes::Epidemic) {
+        vec.push("epidemic");
+    }
+    if s.contains(Scopes::LegendType) {
+        vec.push("legend type");
+    }
+    if s.contains(Scopes::Legend) {
+        vec.push("legend");
+    }
+    if s.contains(Scopes::GeographicalRegion) {
+        vec.push("geographical region");
+    }
     display_choices(f, &vec, "or")
 }
 
@@ -232,11 +252,17 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     if scopes == Scopes::Dynasty && data.item_exists(Item::Dynasty, arg) {
         return Some("dynasty");
     }
+    if scopes == Scopes::EpidemicType && data.item_exists(Item::EpidemicType, arg) {
+        return Some("epidemic_type");
+    }
     if scopes == Scopes::Faith && data.item_exists(Item::Faith, arg) {
         return Some("faith");
     }
     if scopes == Scopes::Flag {
         return Some("flag");
+    }
+    if scopes == Scopes::GeographicalRegion && data.item_exists(Item::Region, arg) {
+        return Some("geographical_region");
     }
     if scopes == Scopes::GovernmentType && data.item_exists(Item::GovernmentType, arg) {
         return Some("government_type");
@@ -246,6 +272,9 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     }
     if scopes == Scopes::DynastyHouse && data.item_exists(Item::House, arg) {
         return Some("house");
+    }
+    if scopes == Scopes::LegendType && data.item_exists(Item::LegendType, arg) {
+        return Some("legend_type");
     }
     if scopes == Scopes::Province && data.item_exists(Item::Province, arg) {
         return Some("province");
@@ -278,7 +307,7 @@ static SCOPE_TO_SCOPE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = La
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.11.3
+/// LAST UPDATED CK3 VERSION 1.12.1
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
@@ -327,6 +356,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Culture, "culture_head", Scopes::Character),
     (Scopes::LandedTitle, "current_heir", Scopes::Character),
     (Scopes::TravelPlan, "current_location", Scopes::Province),
+    (Scopes::Legend, "current_or_last_legend_owner", Scopes::Character),
     (Scopes::Character, "current_travel_plan", Scopes::TravelPlan),
     (Scopes::LandedTitle, "de_facto_liege", Scopes::LandedTitle),
     (Scopes::LandedTitle, "de_jure_liege", Scopes::LandedTitle),
@@ -337,6 +367,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "diarch", Scopes::Character),
     (Scopes::Character, "diarchy_successor", Scopes::Character),
     (Scopes::LandedTitle.union(Scopes::Province), "duchy", Scopes::LandedTitle),
+    (Scopes::Dynasty, "dynasty_founder", Scopes::Character),
     (Scopes::None, "dummy_female", Scopes::Character),
     (Scopes::None, "dummy_male", Scopes::Character),
     (Scopes::Dynasty, "dynast", Scopes::Character),
@@ -344,6 +375,8 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::LandedTitle.union(Scopes::Province), "empire", Scopes::LandedTitle),
     (Scopes::Character, "employer", Scopes::Character),
     (Scopes::CombatSide, "enemy_side", Scopes::CombatSide),
+    (Scopes::EpidemicType, "epidemic_trait", Scopes::Trait),
+    (Scopes::Epidemic, "epidemic_type", Scopes::Epidemic),
     (Scopes::Faction, "faction_leader", Scopes::Character),
     (Scopes::Faction, "faction_target", Scopes::Character),
     (Scopes::Faction, "faction_war", Scopes::War),
@@ -390,6 +423,9 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::DynastyHouse, "last_house_head", Scopes::Character),
     (Scopes::Character, "last_played_character", Scopes::Character),
     (Scopes::HolyOrder, "leader", Scopes::Character),
+    (Scopes::Legend, "legend_owner", Scopes::Character),
+    (Scopes::Legend, "legend_protagonist", Scopes::Character),
+    (Scopes::Legend, "legend_type", Scopes::LegendType),
     (Scopes::LandedTitle, "lessee", Scopes::Character),
     (Scopes::LandedTitle, "lessee_title", Scopes::LandedTitle),
     (Scopes::Character, "liege", Scopes::Character),
@@ -403,6 +439,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::TravelPlan, "next_destination_province", Scopes::Province),
     (Scopes::TravelPlan, "next_location", Scopes::Province),
     (Scopes::None, "no", Scopes::Bool),
+    (Scopes::Epidemic, "outbreak_province", Scopes::Province),
     (Scopes::Character, "player_heir", Scopes::Character),
     (Scopes::Character, "pregnancy_assumed_father", Scopes::Character),
     (Scopes::Character, "pregnancy_real_father", Scopes::Character),
@@ -418,6 +455,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "primary_spouse", Scopes::Character),
     (Scopes::Character, "primary_title", Scopes::LandedTitle),
     (Scopes::Accolade, "primary_type", Scopes::AccoladeType),
+    (Scopes::Character, "promoted_legend", Scopes::Legend),
     (Scopes::Province, "province_owner", Scopes::Character),
     (Scopes::Character, "real_father", Scopes::Character),
     (Scopes::Character, "real_mother", Scopes::Character),
@@ -480,7 +518,7 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Argument
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.11.3
+/// LAST UPDATED CK3 VERSION 1.12.1
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
@@ -503,13 +541,17 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "define", Scopes::Value, UncheckedValue),
         (Scopes::None, "doctrine", Scopes::Doctrine, Item(Item::Doctrine)),
         (Scopes::None, "dynasty", Scopes::Dynasty, Item(Item::Dynasty)),
+        (Scopes::None, "epidemic_type", Scopes::EpidemicType, Item(Item::EpidemicType)),
         (Scopes::None, "event_id", Scopes::Flag, Item(Item::Event)),
         (Scopes::None, "faith", Scopes::Faith, Item(Item::Faith)),
         (Scopes::None, "flag", Scopes::Flag, UncheckedValue),
+        (Scopes::None, "geographical_region", Scopes::GeographicalRegion, Item(Item::Region)),
         (Scopes::None, "global_var", Scopes::all(), UncheckedValue),
         (Scopes::None, "government_type", Scopes::GovernmentType, Item(Item::GovernmentType)),
         (Scopes::None, "holding_type", Scopes::HoldingType, Item(Item::GovernmentType)),
         (Scopes::None, "house", Scopes::DynastyHouse, Item(Item::House)),
+        (Scopes::Legend, "legend_property", Scopes::all(), Item(Item::LegendProperty)),
+        (Scopes::None, "legend_type", Scopes::LegendType, Item(Item::LegendType)),
         (Scopes::None, "list_size", Scopes::Value, UncheckedValue),
         (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
         (

@@ -1,4 +1,4 @@
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 pub const ON_ACTION_SCOPES: &str = "
 	on_accolade_rank_change = {
 		root = accolade
@@ -544,4 +544,7 @@ pub const ON_ACTION_SCOPES: &str = "
 		imprisoner = character
 		reason = flag
 	}
+    funeral_wake_pulse = {
+        root = character
+    }
 ";
