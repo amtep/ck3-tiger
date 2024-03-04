@@ -381,7 +381,7 @@ pub fn validate_effect_field(
     if validate_scope_chain(key, data, sc, matches!(cmp, Comparator::Equals(Question))) {
         sc.finalize_builder();
         if key.starts_with("flag:") {
-            let msg = "as of 1.9, flag literals can not be used on the left-hand side";
+            let msg = "as of 1.9, flag literals cannot be used on the left-hand side";
             err(ErrorKey::Scopes).msg(msg).loc(key).push();
         }
         if let Some(block) = bv.expect_block() {

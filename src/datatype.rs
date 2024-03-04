@@ -435,7 +435,7 @@ pub fn validate_datatypes(
                     rtype = xrtype;
                 }
                 LookupResult::WrongType => {
-                    let msg = format!("{} can not follow a {curtype} promote", code.name);
+                    let msg = format!("{} cannot follow a {curtype} promote", code.name);
                     warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                     return;
                 }
@@ -449,7 +449,7 @@ pub fn validate_datatypes(
                     rtype = xrtype;
                 }
                 LookupResult::WrongType => {
-                    let msg = format!("{} can not follow a {curtype} promote", code.name);
+                    let msg = format!("{} cannot follow a {curtype} promote", code.name);
                     warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                     return;
                 }
@@ -463,17 +463,17 @@ pub fn validate_datatypes(
             // Properly reporting these errors is tricky because `code.name`
             // might be found in any or all of the functions and promotes tables.
             if is_first && (p_found || f_found) && !gp_found && !gf_found {
-                let msg = format!("{} can not be the first in a chain", code.name);
+                let msg = format!("{} cannot be the first in a chain", code.name);
                 warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 return;
             }
             if is_last && (gp_found || p_found) && !gf_found && !f_found && !expect_promote {
-                let msg = format!("{} can not be last in a chain", code.name);
+                let msg = format!("{} cannot be last in a chain", code.name);
                 warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 return;
             }
             if expect_promote && (gf_found || f_found) {
-                let msg = format!("{} can not be used in this field", code.name);
+                let msg = format!("{} cannot be used in this field", code.name);
                 warn(ErrorKey::Datafunctions).msg(msg).loc(&code.name).push();
                 return;
             }

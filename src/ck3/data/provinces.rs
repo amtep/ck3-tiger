@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
+use bitvec::BitArr;
 use fnv::{FnvHashMap, FnvHashSet};
 use image::{DynamicImage, Rgb};
 
@@ -15,10 +16,44 @@ use crate::token::{Loc, Token};
 
 pub type ProvId = u32;
 
-#[derive(Clone, Debug, Default)]
+const COLOUR_COUNT: usize = 256 * 256 * 256;
+#[derive(Clone, Copy, Debug, Default)]
+struct ColorBitArray(BitArr!(for COLOUR_COUNT));
+
+impl ColorBitArray {
+    fn get_index(color: Rgb<u8>) -> usize {
+        let Rgb([r, g, b]) = color;
+        (r as usize) << 16 | (g as usize) << 8 | b as usize
+    }
+
+    #[allow(clippy::cast_possible_truncation)]
+    fn get_color(index: usize) -> Rgb<u8> {
+        let r = (index >> 16) as u8;
+        let g = (index >> 8) as u8;
+        let b = index as u8;
+        Rgb([r, g, b])
+    }
+}
+
+impl std::ops::Deref for ColorBitArray {
+    type Target = BitArr!(for COLOUR_COUNT);
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for ColorBitArray {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+
+#[derive(Debug, Default)]
 pub struct Ck3Provinces {
     /// Colors in the provinces.png
-    colors: FnvHashSet<Rgb<u8>>,
+    colors: ColorBitArray,
 
     /// Provinces defined in definition.csv.
     /// CK3 requires uninterrupted indices starting at 0, but we want to be able to warn
@@ -274,8 +309,11 @@ impl FileHandler<FileContent> for Ck3Provinces {
             }
             FileContent::Provinces(img) => {
                 if let DynamicImage::ImageRgb8(img) = img {
-                    for pixel in img.pixels() {
-                        self.colors.insert(*pixel);
+                    for pixel in img.pixels().copied() {
+                        unsafe {
+                            // SAFETY: `ColorBitArray::index` is guaranteed to return a valid index
+                            self.colors.get_unchecked_mut(ColorBitArray::get_index(pixel)).commit(true);
+                        }
                     }
                 }
             }
@@ -307,8 +345,9 @@ impl FileHandler<FileContent> for Ck3Provinces {
                 return;
             }
         }
-        for color in &self.colors {
-            if !seen_colors.contains_key(color) {
+        for color_index in self.colors.iter_ones() {
+            let color = ColorBitArray::get_color(color_index);
+            if !seen_colors.contains_key(&color) {
                 let Rgb(rgb) = color;
                 let msg = format!(
                     "definitions.csv lacks entry for color ({}, {}, {})",
