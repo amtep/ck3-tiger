@@ -54,6 +54,7 @@ inventory::submit! {
 }
 
 // LAST UPDATED VIC3 VERSION 1.5.13
+// Taken from gfx/map/map_modes/map_modes.txt
 const MAP_PAINTING_MODES: &[&str] = &[
     "clout_nationally",
     "colonizable_provinces",
@@ -94,12 +95,9 @@ const MAP_PAINTING_MODES: &[&str] = &[
 ];
 
 // LAST UPDATED VIC3 VERSION 1.5.13
+// Taken from gfx/map/map_modes/map_modes.txt
 const MAP_NAMES: &[&str] =
     &["countries", "cultures", "markets", "states", "strategic_regions", "theaters"];
-
-// LAST UPDATED VIC3 VERSION 1.5.13
-const GRADIENT_BORDER_SETTINGS: &[&str] =
-    &["default", "heatmap", "interactive", "mapmode_extra", "states"];
 
 impl MapMode {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -108,9 +106,11 @@ impl MapMode {
 }
 
 impl DbKind for MapMode {
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         // This entire item type is undocumented
         let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
 
         vd.field_choice("map_painting_mode", MAP_PAINTING_MODES);
         vd.field_choice("map_painting_mode_secondary", MAP_PAINTING_MODES);
@@ -124,7 +124,7 @@ impl DbKind for MapMode {
         vd.field_bool("show_formation_movement_arrows");
         vd.field_bool("is_visible");
         vd.field_bool("is_visible_to_countryless_observer");
-        vd.field_choice("gradient_border_settings", GRADIENT_BORDER_SETTINGS);
+        vd.field_item("gradient_border_settings", Item::GradientBorderSettings);
 
         vd.field_item("soundeffect", Item::Sound);
 
@@ -174,5 +174,41 @@ impl DbKind for MapInteractionType {
         vd.field_item("mapmode", Item::MapMode);
         vd.field_item("clicksound", Item::Sound);
         vd.field_bool("show_interaction_text_on_click");
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct GradientBorderSettings {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::GradientBorderSettings, GradientBorderSettings::add)
+}
+
+impl GradientBorderSettings {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::GradientBorderSettings, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for GradientBorderSettings {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        // This entire item type is undocumented.
+        let mut vd = Validator::new(block, data);
+
+        vd.field_numeric("gradient_water_borders_zoom");
+        vd.multi_field_validated_block("gradient_parameters", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_numeric("zoom_step");
+            vd.field_numeric("gradient_alpha_inside");
+            vd.field_numeric("gradient_alpha_outside");
+            vd.field_numeric("gradient_width");
+            vd.field_numeric("gradient_color_mult");
+            vd.field_numeric("edge_width");
+            vd.field_numeric("edge_sharpness");
+            vd.field_numeric("edge_alpha");
+            vd.field_numeric("edge_color_mult");
+            vd.field_numeric("before_lighting_blend");
+            vd.field_numeric("after_lighting_blend");
+        });
     }
 }

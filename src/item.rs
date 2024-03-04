@@ -338,6 +338,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] EventCategory,
     #[cfg(feature = "vic3")] FlagDefinition,
     #[cfg(feature = "vic3")] Goods,
+    #[cfg(feature = "vic3")] GradientBorderSettings,
     #[cfg(feature = "vic3")] Ideology,
     #[cfg(feature = "vic3")] InfamyThreshold,
     #[cfg(feature = "vic3")] Institution,
@@ -1011,6 +1012,9 @@ impl Item {
             Item::FlagDefinition => "common/flag_definitions/",
             #[cfg(feature = "vic3")]
             Item::Goods => "common/goods/",
+            #[cfg(feature = "vic3")]
+            // TODO: find out if different filenames are acceptable in this dir
+            Item::GradientBorderSettings => "gfx/map/gradient_border_settings/",
             #[cfg(feature = "vic3")]
             Item::Ideology => "common/ideologies/",
             #[cfg(feature = "vic3")]

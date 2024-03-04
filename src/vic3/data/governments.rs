@@ -77,5 +77,9 @@ impl DbKind for LegitimacyLevel {
             validate_modifs(block, data, ModifKinds::all(), vd);
         });
         vd.field_script_value_rooted("loyalties_gain", Scopes::Country);
+        if block.has_key("loyalties_gain") {
+            let loca = format!("{key}_loyalties_gain");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
     }
 }
