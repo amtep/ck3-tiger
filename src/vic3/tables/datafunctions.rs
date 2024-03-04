@@ -12,7 +12,7 @@ use Vic3Datatype::*;
 
 pub static LOWERCASE_DATATYPE_SET: Lazy<FnvHashSet<CaseInsensitiveStr>> = Lazy::new(|| {
     let mut set = FnvHashSet::default();
-    
+
     for (name, _, _) in GLOBAL_PROMOTES.iter().copied() {
         set.insert(CaseInsensitiveStr(name));
     }

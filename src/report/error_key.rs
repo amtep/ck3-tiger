@@ -2,6 +2,7 @@ use serde::Serialize;
 use strum_macros::{Display, EnumString};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Display, EnumString, Hash, Serialize)]
+#[strum(use_phf)]
 #[strum(serialize_all = "kebab-case")]
 #[serde(rename_all = "kebab-case")]
 pub enum ErrorKey {
