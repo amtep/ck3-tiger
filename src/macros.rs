@@ -4,10 +4,10 @@ use std::hash::Hash;
 use std::num::NonZeroU32;
 use std::sync::RwLock;
 
-use bimap::BiHashMap;
-use fnv::{FnvBuildHasher, FnvHashMap};
+use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
+use crate::helpers::BiFnvHashMap;
 use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
 
@@ -81,8 +81,6 @@ impl<T> Default for MacroCache<T> {
         MacroCache { cache: RwLock::new(FnvHashMap::default()) }
     }
 }
-
-type BiFnvHashMap<L, R> = BiHashMap<L, R, FnvBuildHasher, FnvBuildHasher>;
 
 /// Global macro map
 pub(crate) static MACRO_MAP: Lazy<MacroMap> = Lazy::new(MacroMap::default);

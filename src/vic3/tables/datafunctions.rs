@@ -1,4 +1,8 @@
-use crate::datatype::{Arg, Args, Datatype, Vic3Datatype};
+use fnv::{FnvHashMap, FnvHashSet};
+use once_cell::sync::Lazy;
+
+use crate::datatype::{Arg, Args, CaseInsensitiveStr, Datatype, Vic3Datatype};
+use crate::helpers::BiFnvHashMap;
 use crate::item::Item;
 use crate::scopes::Scopes;
 
@@ -6,10 +10,75 @@ use Arg::*;
 use Datatype::*;
 use Vic3Datatype::*;
 
+pub static LOWERCASE_DATATYPE_SET: Lazy<FnvHashSet<CaseInsensitiveStr>> = Lazy::new(|| {
+    let mut set = FnvHashSet::default();
+    
+    for (name, _, _) in GLOBAL_PROMOTES.iter().copied() {
+        set.insert(CaseInsensitiveStr(name));
+    }
+
+    for (name, _, _) in GLOBAL_FUNCTIONS.iter().copied() {
+        set.insert(CaseInsensitiveStr(name));
+    }
+
+    for (name, _, _, _) in PROMOTES.iter().copied() {
+        set.insert(CaseInsensitiveStr(name));
+    }
+
+    for (name, _, _, _) in FUNCTIONS.iter().copied() {
+        set.insert(CaseInsensitiveStr(name));
+    }
+    set
+});
+
+pub static DATATYPE_AND_SCOPE_MAP: Lazy<BiFnvHashMap<Datatype, Scopes>> = Lazy::new(|| {
+    let mut map = BiFnvHashMap::default();
+    for (datatype, scope) in DATATYPE_AND_SCOPE.iter().copied() {
+        map.insert(datatype, scope);
+    }
+    map
+});
+
+pub static GLOBAL_PROMOTES_MAP: Lazy<FnvHashMap<&'static str, (Args, Datatype)>> =
+    Lazy::new(|| {
+        let mut map = FnvHashMap::default();
+        for (name, args, datatype) in GLOBAL_PROMOTES.iter().copied() {
+            map.insert(name, (args, datatype));
+        }
+        map
+    });
+
+pub static GLOBAL_FUNCTIONS_MAP: Lazy<FnvHashMap<&'static str, (Args, Datatype)>> =
+    Lazy::new(|| {
+        let mut map = FnvHashMap::default();
+        for (name, args, datatype) in GLOBAL_FUNCTIONS.iter().copied() {
+            map.insert(name, (args, datatype));
+        }
+        map
+    });
+
+pub static PROMOTES_MAP: Lazy<FnvHashMap<&'static str, (Datatype, Args, Datatype)>> =
+    Lazy::new(|| {
+        let mut map = FnvHashMap::default();
+        for (name, from, args, to) in PROMOTES.iter().copied() {
+            map.insert(name, (from, args, to));
+        }
+        map
+    });
+
+pub static FUNCTIONS_MAP: Lazy<FnvHashMap<&'static str, (Datatype, Args, Datatype)>> =
+    Lazy::new(|| {
+        let mut map = FnvHashMap::default();
+        for (name, from, args, to) in FUNCTIONS.iter().copied() {
+            map.insert(name, (from, args, to));
+        }
+        map
+    });
+
 // The include/ files are converted from the game's data_type_* output files.
 
 // TODO: find the right datatypes for the commented out ones
-pub const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
+const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
     (Vic3(Country), Scopes::Country),
     (Vic3(Battle), Scopes::Battle),
     // (Vic3(BattleSide),Scopes::BattleSide),
@@ -63,11 +132,10 @@ pub const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
     (Vic3(War), Scopes::War),
 ];
 
-pub const GLOBAL_PROMOTES: &[(&str, Args, Datatype)] = include!("include/data_global_promotes.rs");
+const GLOBAL_PROMOTES: &[(&str, Args, Datatype)] = include!("include/data_global_promotes.rs");
 
-pub const GLOBAL_FUNCTIONS: &[(&str, Args, Datatype)] =
-    include!("include/data_global_functions.rs");
+const GLOBAL_FUNCTIONS: &[(&str, Args, Datatype)] = include!("include/data_global_functions.rs");
 
-pub const PROMOTES: &[(&str, Datatype, Args, Datatype)] = include!("include/data_promotes.rs");
+const PROMOTES: &[(&str, Datatype, Args, Datatype)] = include!("include/data_promotes.rs");
 
-pub const FUNCTIONS: &[(&str, Datatype, Args, Datatype)] = include!("include/data_functions.rs");
+const FUNCTIONS: &[(&str, Datatype, Args, Datatype)] = include!("include/data_functions.rs");
