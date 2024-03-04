@@ -22,7 +22,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct Titles {
-    titles: FnvHashMap<String, Arc<Title>>,
+    titles: FnvHashMap<&'static str, Arc<Title>>,
     baronies: FnvHashMap<ProvId, Arc<Title>>,
 }
 
@@ -79,7 +79,7 @@ impl Titles {
         &mut self,
         key: Token,
         block: &Block,
-        parent: Option<&str>,
+        parent: Option<&'static str>,
         is_county_capital: bool,
     ) {
         if let Some(other) = self.titles.get(key.as_str()) {
@@ -88,7 +88,7 @@ impl Titles {
             }
         }
         let title = Arc::new(Title::new(key.clone(), block.clone(), parent, is_county_capital));
-        self.titles.insert(key.to_string(), title.clone());
+        self.titles.insert(key.as_str(), title.clone());
 
         let parent_tier = Tier::try_from(&key).unwrap(); // guaranteed by caller
         if parent_tier == Tier::Barony {
@@ -174,14 +174,18 @@ pub struct Title {
     key: Token,
     block: Block,
     pub tier: Tier,
-    pub parent: Option<String>,
+    pub parent: Option<&'static str>,
     is_county_capital: bool, // for baronies
 }
 
 impl Title {
-    pub fn new(key: Token, block: Block, parent: Option<&str>, is_county_capital: bool) -> Self {
+    pub fn new(
+        key: Token,
+        block: Block,
+        parent: Option<&'static str>,
+        is_county_capital: bool,
+    ) -> Self {
         let tier = Tier::try_from(&key).unwrap(); // guaranteed by caller
-        let parent = parent.map(String::from);
         Self { key, block, tier, parent, is_county_capital }
     }
 
@@ -274,7 +278,7 @@ impl Title {
 
     fn capital_of(&self) -> Option<&str> {
         if self.is_county_capital {
-            self.parent.as_deref()
+            self.parent
         } else {
             None
         }

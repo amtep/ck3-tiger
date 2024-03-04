@@ -45,7 +45,7 @@ impl DbKind for HolySite {
                     warn(ErrorKey::TitleTier).msg("must be a barony").loc(barony).push();
                 }
                 if let Some(title) = data.titles.get(barony.as_str()) {
-                    if title.parent.as_deref() != Some(county.as_str()) {
+                    if title.parent != Some(county.as_str()) {
                         let msg = format!("barony not in specified county {county}");
                         fatal(ErrorKey::Crash).strong().msg(msg).loc(barony).push();
                     }

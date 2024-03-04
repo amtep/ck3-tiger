@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::{Block, BlockItem, Field, BV};
 use crate::ck3::validate::{
@@ -31,10 +31,10 @@ use crate::validator::Validator;
 
 #[derive(Debug, Default)]
 pub struct Ck3Events {
-    events: FnvHashMap<(String, u16), Event>,
-    namespaces: FnvHashMap<String, Token>,
-    triggers: FnvHashMap<(PathTableIndex, String), Trigger>,
-    effects: FnvHashMap<(PathTableIndex, String), Effect>,
+    events: FnvHashMap<(&'static str, u16), Event>,
+    namespaces: FnvHashSet<Token>,
+    triggers: FnvHashMap<(PathTableIndex, &'static str), Trigger>,
+    effects: FnvHashMap<(PathTableIndex, &'static str), Effect>,
 }
 
 impl Ck3Events {
@@ -44,7 +44,7 @@ impl Ck3Events {
                 if let Some(other) = self.get_event(key.as_str()) {
                     dup_error(&key, &other.key, "event");
                 }
-                self.events.insert((key_a.to_string(), id), Event::new(key, block));
+                self.events.insert((key_a, id), Event::new(key, block));
                 return;
             }
         }
@@ -54,7 +54,7 @@ impl Ck3Events {
     }
 
     fn load_scripted_trigger(&mut self, key: Token, block: Block) {
-        let index = (key.loc.idx, key.to_string());
+        let index = (key.loc.idx, key.as_str());
         if let Some(other) = self.triggers.get(&index) {
             dup_error(&key, &other.key, "scripted trigger");
         }
@@ -62,7 +62,7 @@ impl Ck3Events {
     }
 
     fn load_scripted_effect(&mut self, key: Token, block: Block) {
-        let index = (key.loc.idx, key.to_string());
+        let index = (key.loc.idx, key.as_str());
         if let Some(other) = self.effects.get(&index) {
             dup_error(&key, &other.key, "scripted effect");
         }
@@ -70,19 +70,19 @@ impl Ck3Events {
     }
 
     pub fn get_trigger(&self, key: &Token) -> Option<&Trigger> {
-        let index = (key.loc.idx, key.to_string());
+        let index = (key.loc.idx, key.as_str());
         self.triggers.get(&index)
     }
 
     pub fn get_effect(&self, key: &Token) -> Option<&Effect> {
-        let index = (key.loc.idx, key.to_string());
+        let index = (key.loc.idx, key.as_str());
         self.effects.get(&index)
     }
 
-    pub fn get_event(&self, key: &str) -> Option<&Event> {
+    pub fn get_event<'a>(&'a self, key: &'a str) -> Option<&Event> {
         if let Some((namespace, id)) = key.split_once('.') {
             if let Ok(id) = u16::from_str(id) {
-                return self.events.get(&(namespace.to_string(), id));
+                return self.events.get(&(namespace, id));
             }
         }
         None
@@ -95,17 +95,17 @@ impl Ck3Events {
     }
 
     pub fn namespace_exists(&self, key: &str) -> bool {
-        self.namespaces.contains_key(key)
+        self.namespaces.contains(key)
     }
 
     pub fn iter_namespace_keys(&self) -> impl Iterator<Item = &Token> {
-        self.namespaces.values()
+        self.namespaces.iter()
     }
 
     pub fn exists(&self, key: &str) -> bool {
         if let Some((namespace, id)) = key.split_once('.') {
             if let Ok(id) = u16::from_str(id) {
-                if self.events.contains_key(&(namespace.to_string(), id)) {
+                if self.events.contains_key(&(namespace, id)) {
                     return true;
                 }
             }
@@ -159,7 +159,7 @@ impl FileHandler<Block> for Ck3Events {
             if let BlockItem::Field(Field(key, _, bv)) = item {
                 if key.is("namespace") {
                     if let Some(value) = bv.expect_into_value() {
-                        self.namespaces.insert(value.to_string(), value);
+                        self.namespaces.insert(value);
                     }
                 } else if key.is("scripted_trigger") || key.is("scripted_effect") {
                     let msg = format!("`{key}` should be used without `=`");

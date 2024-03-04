@@ -19,7 +19,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct TitleHistories {
-    histories: FnvHashMap<String, TitleHistory>,
+    histories: FnvHashMap<&'static str, TitleHistory>,
 }
 
 impl TitleHistories {
@@ -35,7 +35,7 @@ impl TitleHistories {
             }
             other.block.append(&mut block);
         } else {
-            self.histories.insert(key.to_string(), TitleHistory::new(key.clone(), block));
+            self.histories.insert(key.as_str(), TitleHistory::new(key.clone(), block));
         }
     }
 

@@ -177,11 +177,11 @@ impl DbKind for CourtSceneSetting {
     }
 }
 
-fn validate_camera(block: &Block, data: &Everything, cameras: &mut Vec<String>) {
+fn validate_camera(block: &Block, data: &Everything, cameras: &mut Vec<&'static str>) {
     let mut vd = Validator::new(block, data);
     vd.req_field("description");
     if let Some(token) = vd.field_value("description") {
-        cameras.push(token.to_string());
+        cameras.push(token.as_str());
     }
     vd.field_precise_numeric("fov");
     vd.field_list_precise_numeric_exactly("position", 3);
@@ -199,7 +199,7 @@ fn validate_light(block: &Block, data: &Everything) {
     vd.field_block("shadow_camera"); // TODO
 }
 
-fn validate_character(block: &Block, data: &Everything, cameras: &[String]) {
+fn validate_character(block: &Block, data: &Everything, cameras: &[&'static str]) {
     let mut vd = Validator::new(block, data);
     vd.field_list_precise_numeric_exactly("position", 3);
     vd.field_list_precise_numeric_exactly("rotation", 3);
@@ -207,7 +207,7 @@ fn validate_character(block: &Block, data: &Everything, cameras: &[String]) {
     vd.field_value("locator"); // TODO
     vd.field_value("description");
     if let Some(token) = vd.field_value("camera") {
-        if !cameras.contains(&token.to_string()) {
+        if !cameras.contains(&token.as_str()) {
             warn(ErrorKey::MissingItem).msg("unknown camera").loc(token).push();
         }
     }

@@ -63,7 +63,7 @@ impl Display for Gender {
 pub struct Characters {
     config_only_born: Option<Date>,
 
-    characters: FnvHashMap<String, Character>,
+    characters: FnvHashMap<&'static str, Character>,
 
     /// These are characters with duplicate ids. We can't put them in the `characters` map because of the ids,
     /// but we do want to validate them.
@@ -89,7 +89,7 @@ impl Characters {
                 self.duplicates.push(Character::new(key, block));
             }
         } else {
-            self.characters.insert(key.to_string(), Character::new(key, block));
+            self.characters.insert(key.as_str(), Character::new(key, block));
         }
     }
 

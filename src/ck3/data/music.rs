@@ -19,7 +19,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct Musics {
-    musics: FnvHashMap<String, Music>,
+    musics: FnvHashMap<&'static str, Music>,
 }
 
 impl Musics {
@@ -29,7 +29,7 @@ impl Musics {
                 dup_error(&key, &other.key, "music");
             }
         }
-        self.musics.insert(key.to_string(), Music { key, block });
+        self.musics.insert(key.as_str(), Music { key, block });
     }
 
     pub fn exists(&self, key: &str) -> bool {

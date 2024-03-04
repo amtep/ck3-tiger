@@ -18,8 +18,8 @@ use crate::trigger::validate_trigger_internal;
 
 #[derive(Debug, Default)]
 pub struct Triggers {
-    scope_overrides: FnvHashMap<String, Scopes>,
-    triggers: FnvHashMap<String, Trigger>,
+    scope_overrides: FnvHashMap<&'static str, Scopes>,
+    triggers: FnvHashMap<&'static str, Trigger>,
 }
 
 impl Triggers {
@@ -45,7 +45,7 @@ impl Triggers {
             if block.source.is_some() {
                 MACRO_MAP.insert_loc(key.loc);
             }
-            self.triggers.insert(key.to_string(), Trigger::new(key, block, scope_override));
+            self.triggers.insert(key.as_str(), Trigger::new(key, block, scope_override));
         }
     }
 
@@ -85,7 +85,7 @@ impl FileHandler<Block> for Triggers {
                         }
                     }
                 }
-                self.scope_overrides.insert(key.as_str().to_string(), scopes);
+                self.scope_overrides.insert(key.as_str(), scopes);
             }
         }
     }

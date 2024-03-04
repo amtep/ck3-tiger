@@ -18,7 +18,7 @@ use crate::validator::Validator;
 
 #[derive(Debug, Default)]
 pub struct ScriptedModifiers {
-    scripted_modifiers: FnvHashMap<String, ScriptedModifier>,
+    scripted_modifiers: FnvHashMap<&'static str, ScriptedModifier>,
 }
 
 impl ScriptedModifiers {
@@ -35,7 +35,7 @@ impl ScriptedModifiers {
             if block.source.is_some() {
                 MACRO_MAP.insert_loc(key.loc);
             }
-            self.scripted_modifiers.insert(key.to_string(), ScriptedModifier::new(key, block));
+            self.scripted_modifiers.insert(key.as_str(), ScriptedModifier::new(key, block));
         }
     }
 

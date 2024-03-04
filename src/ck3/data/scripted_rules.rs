@@ -52,20 +52,20 @@ impl DbKind for ScriptedRule {
 struct ScriptedRuleScopeContext {
     tooltipped: Tooltipped,
     root: Scopes,
-    names: Vec<(String, Scopes)>,
-    lists: Vec<(String, Scopes)>,
+    names: Vec<(&'static str, Scopes)>,
+    lists: Vec<(&'static str, Scopes)>,
 }
 
 /// Processed version of [`SCRIPTED_RULES`].
-static SCRIPTED_RULE_SCOPES_MAP: Lazy<FnvHashMap<String, ScriptedRuleScopeContext>> =
+static SCRIPTED_RULE_SCOPES_MAP: Lazy<FnvHashMap<&'static str, ScriptedRuleScopeContext>> =
     Lazy::new(|| build_scripted_rule_hashmap(SCRIPTED_RULES));
 
 // Mostly copied from build_on_action_hashmap.
 // TODO: more generic facility for this?
 fn build_scripted_rule_hashmap(
     description: &'static str,
-) -> FnvHashMap<String, ScriptedRuleScopeContext> {
-    let mut hash: FnvHashMap<String, ScriptedRuleScopeContext> = FnvHashMap::default();
+) -> FnvHashMap<&'static str, ScriptedRuleScopeContext> {
+    let mut hash: FnvHashMap<&'static str, ScriptedRuleScopeContext> = FnvHashMap::default();
 
     let mut block = parse_pdx_internal(description, "scripted rule builtin scopes");
     for (key, block) in block.drain_definitions_warn() {
@@ -83,17 +83,17 @@ fn build_scripted_rule_hashmap(
                 continue;
             }
             let s = Scopes::from_snake_case(token.as_str()).expect("internal error");
-            value.names.push((key.to_string(), s));
+            value.names.push((key.as_str(), s));
         }
         for (key, block) in block.iter_definitions() {
             if key.is("list") {
                 for (key, token) in block.iter_assignments() {
                     let s = Scopes::from_snake_case(token.as_str()).expect("internal error");
-                    value.lists.push((key.to_string(), s));
+                    value.lists.push((key.as_str(), s));
                 }
             }
         }
-        hash.insert(key.to_string(), value);
+        hash.insert(key.as_str(), value);
     }
 
     hash
