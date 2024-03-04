@@ -13,8 +13,7 @@ use rayon::prelude::*;
 use walkdir::WalkDir;
 
 use crate::block::Block;
-use crate::everything::Everything;
-use crate::everything::FilesError;
+use crate::everything::{Everything, FilesError};
 use crate::game::Game;
 use crate::item::Item;
 #[cfg(feature = "vic3")]
@@ -23,8 +22,8 @@ use crate::mod_metadata::ModMetadata;
 use crate::modfile::ModFile;
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{
-    add_loaded_mod_root, err, fatal, report, warn_abbreviated, warn_header, will_maybe_log,
-    ErrorKey, Severity,
+    add_loaded_dlc_root, add_loaded_mod_root, err, fatal, report, warn_abbreviated, warn_header,
+    will_maybe_log, ErrorKey, Severity,
 };
 use crate::token::Token;
 
@@ -41,6 +40,8 @@ pub enum FileKind {
     Jomini,
     /// The base game files.
     Vanilla,
+    /// Downloadable content present on the user's system.
+    Dlc(u8),
     /// Other mods loaded as directed by the config file. 0-based indexing.
     LoadedMod(u8),
     /// The mod under scrutiny. Usually, warnings are not emitted unless they touch `Mod` files.
@@ -192,38 +193,41 @@ impl LoadedMod {
 
 #[derive(Debug)]
 pub struct Fileset {
-    /// The CK3 game directory
+    /// The CK3 game directory.
     vanilla_root: Option<PathBuf>,
 
-    /// Extra CK3 directory loaded before vanilla
+    /// Extra CK3 directory loaded before vanilla.
     clausewitz_root: Option<PathBuf>,
 
-    /// Extra CK3 directory loaded before vanilla
+    /// Extra CK3 directory loaded before vanilla.
     jomini_root: Option<PathBuf>,
 
-    /// The mod being analyzed
+    /// The mod being analyzed.
     the_mod: LoadedMod,
 
-    /// Other mods to be loaded before `mod`, in order
+    /// Other mods to be loaded before `mod`, in order.
     pub loaded_mods: Vec<LoadedMod>,
 
-    /// The ck3-tiger config
+    /// DLC directories to be loaded after vanilla, in order.
+    loaded_dlcs: Vec<LoadedMod>,
+
+    /// The ck3-tiger config.
     config: Option<Block>,
 
-    /// The CK3 and mod files in arbitrary order (will be empty after `finalize`)
+    /// The CK3 and mod files in arbitrary order (will be empty after `finalize`).
     files: Vec<FileEntry>,
 
-    /// The CK3 and mod files in the order the game would load them
+    /// The CK3 and mod files in the order the game would load them.
     ordered_files: Vec<FileEntry>,
 
     /// Filename Tokens for the files in `ordered_files`.
     /// Used for [`Fileset::iter_keys()`].
     filename_tokens: Vec<Token>,
 
-    /// All filenames from ordered_files, for quick lookup
+    /// All filenames from ordered_files, for quick lookup.
     filenames: FnvHashSet<PathBuf>,
 
-    /// All directories that have been looked up, for quick lookup
+    /// All directories that have been looked up, for quick lookup.
     directories: RwLock<FnvHashSet<PathBuf>>,
 
     /// Filenames that have been looked up during validation. Used to filter the --unused output.
@@ -242,6 +246,7 @@ impl Fileset {
             jomini_root,
             the_mod: LoadedMod::new_main_mod(mod_root, replace_paths),
             loaded_mods: Vec::new(),
+            loaded_dlcs: Vec::new(),
             config: None,
             files: Vec::new(),
             ordered_files: Vec::new(),
@@ -376,6 +381,27 @@ impl Fileset {
             self.scan(&vanilla_root.clone(), FileKind::Vanilla).map_err(|e| {
                 FilesError::VanillaUnreadable { path: vanilla_root.clone(), source: e }
             })?;
+            let dlc_root = vanilla_root.join("dlc");
+            for entry in
+                WalkDir::new(dlc_root).max_depth(1).sort_by_file_name().into_iter().flatten()
+            {
+                if entry.depth() == 1 && entry.file_type().is_dir() {
+                    let label = entry.file_name().to_string_lossy().to_string();
+                    let idx =
+                        u8::try_from(self.loaded_dlcs.len()).expect("more than 256 DLCs installed");
+                    let dlc = LoadedMod::new(
+                        FileKind::Dlc(idx),
+                        label.clone(),
+                        entry.path().to_path_buf(),
+                        Vec::new(),
+                    );
+                    self.scan(dlc.root(), dlc.kind()).map_err(|e| {
+                        FilesError::VanillaUnreadable { path: dlc.root().to_path_buf(), source: e }
+                    })?;
+                    self.loaded_dlcs.push(dlc);
+                    add_loaded_dlc_root(label);
+                }
+            }
         }
         // loaded_mods is cloned here for the borrow checker
         for loaded_mod in &self.loaded_mods.clone() {
