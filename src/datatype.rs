@@ -6,6 +6,7 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 use once_cell::sync::Lazy;
+use phf::phf_map;
 use strum_macros::{Display, EnumString};
 
 #[cfg(feature = "ck3")]
@@ -87,47 +88,49 @@ pub enum Datatype {
     Imperator(ImperatorDatatype),
 }
 
+static STR_DATATYPE_MAP: phf::Map<&'static str, Datatype> = phf_map! {
+    "Unknown" => Datatype::Unknown,
+    "AnyScope" => Datatype::AnyScope,
+    "CFixedPoint" => Datatype::CFixedPoint,
+    "CString" => Datatype::CString,
+    "CUTF8String" => Datatype::CUTF8String,
+    "CVector2f" => Datatype::CVector2f,
+    "CVector2i" => Datatype::CVector2i,
+    "CVector3f" => Datatype::CVector3f,
+    "CVector3i" => Datatype::CVector3i,
+    "CVector4f" => Datatype::CVector4f,
+    "CVector4i" => Datatype::CVector4i,
+    "Date" => Datatype::Date,
+    "Scope" => Datatype::Scope,
+    "TopScope" => Datatype::TopScope,
+    "bool" => Datatype::bool,
+    "double" => Datatype::double,
+    "float" => Datatype::float,
+    "int16" => Datatype::int16,
+    "int32" => Datatype::int32,
+    "int64" => Datatype::int64,
+    "int8" => Datatype::int8,
+    "uint16" => Datatype::uint16,
+    "uint32" => Datatype::uint32,
+    "uint64" => Datatype::uint64,
+    "uint8" => Datatype::uint8,
+    "void" => Datatype::void,
+};
+
 impl FromStr for Datatype {
     type Err = strum::ParseError;
     /// Read a Datatype from a string, without requiring the string to use the game-specific wrappers.
     fn from_str(s: &str) -> Result<Self, strum::ParseError> {
-        // Have to do the generic variants by hand, so that the per-game variants can be done with the macro.
-        match s {
-            "Unknown" => Ok(Datatype::Unknown),
-            "AnyScope" => Ok(Datatype::AnyScope),
-            "CFixedPoint" => Ok(Datatype::CFixedPoint),
-            "CString" => Ok(Datatype::CString),
-            "CUTF8String" => Ok(Datatype::CUTF8String),
-            "CVector2f" => Ok(Datatype::CVector2f),
-            "CVector2i" => Ok(Datatype::CVector2i),
-            "CVector3f" => Ok(Datatype::CVector3f),
-            "CVector3i" => Ok(Datatype::CVector3i),
-            "CVector4f" => Ok(Datatype::CVector4f),
-            "CVector4i" => Ok(Datatype::CVector4i),
-            "Date" => Ok(Datatype::Date),
-            "Scope" => Ok(Datatype::Scope),
-            "TopScope" => Ok(Datatype::TopScope),
-            "bool" => Ok(Datatype::bool),
-            "double" => Ok(Datatype::double),
-            "float" => Ok(Datatype::float),
-            "int16" => Ok(Datatype::int16),
-            "int32" => Ok(Datatype::int32),
-            "int64" => Ok(Datatype::int64),
-            "int8" => Ok(Datatype::int8),
-            "uint16" => Ok(Datatype::uint16),
-            "uint32" => Ok(Datatype::uint32),
-            "uint64" => Ok(Datatype::uint64),
-            "uint8" => Ok(Datatype::uint8),
-            "void" => Ok(Datatype::void),
-            _ => match Game::game() {
+        STR_DATATYPE_MAP.get(s).copied().ok_or(strum::ParseError::VariantNotFound).or_else(|_| {
+            match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => Ck3Datatype::from_str(s).map(Datatype::Ck3),
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => Vic3Datatype::from_str(s).map(Datatype::Vic3),
                 #[cfg(feature = "imperator")]
                 Game::Imperator => ImperatorDatatype::from_str(s).map(Datatype::Imperator),
-            },
-        }
+            }
+        })
     }
 }
 

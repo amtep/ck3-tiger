@@ -1,12 +1,6 @@
 [workspace]
 
-members = [
-    "ck3-tiger",
-    "vic3-tiger",
-    "imperator-tiger",
-    "utils",
-    ".",
-]
+members = ["ck3-tiger", "vic3-tiger", "imperator-tiger", "utils", "."]
 
 [package]
 name = "tiger-lib"
@@ -40,6 +34,7 @@ image = "0.24"
 inventory = "0.3.11"
 lazy_static = "1"
 once_cell = "1.18.0"
+phf = { version = "0.11", features = ["macros"] }
 png = "0.17.6"
 rayon = "1.7.0"
 serde = { version = "1.0.184", features = ["derive"] }
