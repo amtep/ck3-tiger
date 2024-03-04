@@ -4,7 +4,7 @@ use std::mem::drop;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::{Block, BlockItem, Field, BV};
 use crate::everything::Everything;
@@ -31,7 +31,7 @@ pub struct Gui {
     textformats: FnvHashMap<&'static str, TextFormat>,
     // This is indexed by a (colorblindmode, textformatname) pair
     textformats_colorblind: FnvHashMap<(&'static str, &'static str), TextFormat>,
-    widget_names: FnvHashMap<&'static str, Token>,
+    widget_names: FnvHashSet<Token>,
 }
 
 impl Gui {
@@ -76,7 +76,7 @@ impl Gui {
             }
         } else {
             if let Some(name) = block.get_field_value("name") {
-                self.widget_names.insert(name.as_str(), name.clone());
+                self.widget_names.insert(name.clone());
             }
             if let Some(guifile) = self.files.get_mut(&filename) {
                 guifile.push(GuiWidget::new(key, block));
@@ -232,11 +232,11 @@ impl Gui {
     }
 
     pub fn name_exists(&self, key: &str) -> bool {
-        self.widget_names.contains_key(key)
+        self.widget_names.contains(key)
     }
 
     pub fn iter_names(&self) -> impl Iterator<Item = &Token> {
-        self.widget_names.values()
+        self.widget_names.iter()
     }
 
     pub fn validate(&self, data: &Everything) {
