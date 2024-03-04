@@ -575,6 +575,12 @@ impl Everything {
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitTrack => self.traits.track_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
+            Item::EpidemicType
+            | Item::LegendProperty
+            | Item::LegendType
+            | Item::LegendChapter
+            | Item::LegendChronicle
+            | Item::LegitimacyFlag => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }

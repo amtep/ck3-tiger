@@ -976,7 +976,7 @@ fn match_trigger_bv(
             }
             // TODO: time_of_year
         }
-        #[cfg(feature = "vic3")]
+        #[cfg(any(feature = "ck3", feature = "vic3"))]
         Trigger::Removed(msg, info) => {
             err(ErrorKey::Removed).msg(*msg).info(*info).loc(name).push();
         }
@@ -1479,7 +1479,7 @@ pub enum Trigger {
     #[cfg(feature = "ck3")]
     CompareToScope(Scopes),
 
-    #[cfg(feature = "vic3")]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     Removed(&'static str, &'static str),
 
     /// this key opens another trigger block

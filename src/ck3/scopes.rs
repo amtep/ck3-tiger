@@ -598,7 +598,7 @@ static SCOPE_ITERATOR_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = La
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.11.3
+/// LAST UPDATED CK3 VERSION 1.12.1
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
@@ -624,6 +624,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Activity, "attending_character", Scopes::Character),
     (Scopes::None, "barony", Scopes::LandedTitle),
     (Scopes::Character, "character_artifact", Scopes::Artifact),
+    (Scopes::Character, "character_epidemic", Scopes::Epidemic),
     (Scopes::Province, "character_in_location", Scopes::Character),
     (Scopes::Character, "character_struggle", Scopes::Struggle),
     (
@@ -660,6 +661,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "close_family_member", Scopes::Character),
     (Scopes::Character, "close_or_extended_family_member", Scopes::Character),
     (Scopes::Combat, "combat_side", Scopes::CombatSide),
+    (Scopes::None, "completed_legend", Scopes::Legend),
     (Scopes::Character, "concubine", Scopes::Character),
     (Scopes::LandedTitle, "connected_county", Scopes::LandedTitle),
     (Scopes::Character, "consort", Scopes::Character),
@@ -701,6 +703,8 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::LandedTitle, "elector", Scopes::Character),
     (Scopes::None, "empire", Scopes::LandedTitle),
     (Scopes::TravelPlan, "entourage_character", Scopes::Character),
+    (Scopes::None, "epidemic", Scopes::Epidemic),
+    (Scopes::None, "epidemic_type", Scopes::EpidemicType),
     (Scopes::Character, "equipped_character_artifact", Scopes::Artifact),
     (Scopes::Character, "extended_family_member", Scopes::Character),
     (Scopes::Faction, "faction_county_member", Scopes::LandedTitle),
@@ -716,6 +720,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "former_spouse", Scopes::Character),
     (Scopes::TravelPlan, "future_path_location", Scopes::Province),
     (Scopes::Character, "general_councillor", Scopes::Character),
+    (Scopes::None, "geographical_region", Scopes::GeographicalRegion),
     (Scopes::Character, "government_type", Scopes::GovernmentType),
     (Scopes::Activity, "guest_subset", Scopes::Character),
     (Scopes::Activity, "guest_subset_current_phase", Scopes::Character),
@@ -739,6 +744,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "in_list", Scopes::all()),
     (Scopes::None, "in_local_list", Scopes::all()),
     (Scopes::None, "independent_ruler", Scopes::Character),
+    (Scopes::Epidemic, "infected_province", Scopes::Province),
     (Scopes::None, "inspiration", Scopes::Inspiration),
     (Scopes::None, "inspired_character", Scopes::Character),
     (Scopes::Struggle, "interloper_ruler", Scopes::Character),
@@ -753,6 +759,9 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "known_secret", Scopes::Secret),
     (Scopes::Character, "learning_councillor", Scopes::Character),
     (Scopes::HolyOrder, "leased_title", Scopes::LandedTitle),
+    (Scopes::None, "legend", Scopes::Legend),
+    (Scopes::Legend, "legend_promoter", Scopes::Character),
+    (Scopes::None, "legend_type", Scopes::LegendType),
     (Scopes::Character, "liege_or_above", Scopes::Character),
     (Scopes::None, "living_character", Scopes::Character),
     (Scopes::Character, "martial_councillor", Scopes::Character),
@@ -793,8 +802,11 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "primary_war_enemy", Scopes::Character),
     (Scopes::Character, "prisoner", Scopes::Character),
     (Scopes::None, "province", Scopes::Province),
+    (Scopes::Province, "province_epidemic", Scopes::Epidemic),
+    (Scopes::Province, "province_legend", Scopes::Legend),
     (Scopes::Character, "prowess_councillor", Scopes::Character),
     (Scopes::Character, "raid_target", Scopes::Character),
+    (Scopes::Character, "realm_border_county", Scopes::LandedTitle),
     (Scopes::Character, "realm_county", Scopes::LandedTitle),
     (Scopes::Character, "realm_de_jure_duchy", Scopes::LandedTitle),
     (Scopes::Character, "realm_de_jure_empire", Scopes::LandedTitle),
@@ -817,6 +829,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "sponsored_inspiration", Scopes::Inspiration),
     (Scopes::Character, "spouse", Scopes::Character),
     (Scopes::Character, "spouse_candidate", Scopes::Character),
+    (Scopes::Legend, "spread_province", Scopes::Province),
     (Scopes::Character, "stewardship_councillor", Scopes::Character),
     (Scopes::Character, "sub_realm_barony", Scopes::LandedTitle),
     (Scopes::Character, "sub_realm_county", Scopes::LandedTitle),
@@ -855,6 +868,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::LandedTitle, "title_to_title_neighboring_duchy", Scopes::LandedTitle),
     (Scopes::LandedTitle, "title_to_title_neighboring_empire", Scopes::LandedTitle),
     (Scopes::LandedTitle, "title_to_title_neighboring_kingdom", Scopes::LandedTitle),
+    (Scopes::Character, "top_realm_border_county", Scopes::LandedTitle),
     (Scopes::Culture, "tradition", Scopes::CultureTradition),
     (Scopes::None, "trait", Scopes::Trait),
     (Scopes::None, "trait_in_category", Scopes::Trait),

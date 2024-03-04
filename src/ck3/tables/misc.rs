@@ -25,7 +25,7 @@ pub const ARTIFACT_HISTORY: &[&str] = &[
     "reforged",
 ];
 
-// LAST UPDATED CK3 VERSION 1.11.5
+// LAST UPDATED CK3 VERSION 1.12.1
 // TODO: parse it from dlc_metadata/
 pub const DLC_CK3: &[&str] = &[
     "Garments of the Holy Roman Empire",
@@ -38,11 +38,12 @@ pub const DLC_CK3: &[&str] = &[
     "Elegance of the Empire",
     "Wards and Wardens",
     "Legacy of Persia",
+    "Legends of the Dead",
     "North African Attire",
     "Couture of the Capets",
 ];
 
-/// LAST UPDATED CK3 VERSION 1.11.5
+/// LAST UPDATED CK3 VERSION 1.12.1
 /// Taken from `has_dlc_feature` in triggers.log
 pub const DLC_FEATURES_CK3: &[&str] = &[
     "garments_of_the_hre",
@@ -61,6 +62,8 @@ pub const DLC_FEATURES_CK3: &[&str] = &[
     "legacy_of_persia",
     "elegance_of_the_empire",
     "wards_and_wardens",
+    "legends_of_the_dead",
+    "legends",
     "north_african_attire",
     "couture_of_the_capets",
 ];
