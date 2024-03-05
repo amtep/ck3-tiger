@@ -769,10 +769,7 @@ fn lookup_global_function(lookup_name: &str) -> Option<(Args, Datatype)> {
     global_function(lookup_name)
 }
 
-fn lookup_promote_or_function(
-    ltype: Datatype,
-    vec: &[(Datatype, Args, Datatype)],
-) -> LookupResult {
+fn lookup_promote_or_function(ltype: Datatype, vec: &[(Datatype, Args, Datatype)]) -> LookupResult {
     let mut possible_args = None;
     let mut possible_rtype = None;
 
@@ -836,7 +833,7 @@ fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {
     result.map_or(LookupResult::NotFound, |x| lookup_promote_or_function(ltype, x))
 }
 
-pub(crate) struct CaseInsensitiveStr(pub(crate) &'static str);
+pub struct CaseInsensitiveStr(pub(crate) &'static str);
 
 impl PartialEq for CaseInsensitiveStr {
     fn eq(&self, other: &Self) -> bool {
@@ -882,7 +879,6 @@ fn datatype_and_scope_map() -> &'static Lazy<BiFnvHashMap<Datatype, Scopes>> {
 
 /// Return the scope type that best matches `dtype`, or `None` if there is no match.
 /// Nearly every scope type has a matching datatype, but there are far more datatypes than scope types.
-// TODO: do more efficient lookup than this linear scan.
 fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
     datatype_and_scope_map().get_by_left(&dtype).copied()
 }
@@ -890,7 +886,6 @@ fn scope_from_datatype(dtype: Datatype) -> Option<Scopes> {
 /// Return the datatype that best matches `scopes`, or `Datatype::Unknown` if there is no match.
 /// Nearly every scope type has a matching datatype, but there are far more datatypes than scope types.
 /// Note that only `Scopes` values that are narrowed down to a single scope type can be matched.
-// TODO: do more efficient lookup than this linear scan.
 fn datatype_from_scopes(scopes: Scopes) -> Datatype {
     datatype_and_scope_map().get_by_right(&scopes).copied().unwrap_or(Datatype::Unknown)
 }

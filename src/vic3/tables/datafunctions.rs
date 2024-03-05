@@ -57,6 +57,7 @@ pub static GLOBAL_FUNCTIONS_MAP: Lazy<FnvHashMap<&'static str, (Args, Datatype)>
         map
     });
 
+#[allow(clippy::type_complexity)]
 pub static PROMOTES_MAP: Lazy<FnvHashMap<&'static str, Vec<(Datatype, Args, Datatype)>>> =
     Lazy::new(|| {
         let mut map = FnvHashMap::<&'static str, Vec<(Datatype, Args, Datatype)>>::default();
@@ -66,6 +67,7 @@ pub static PROMOTES_MAP: Lazy<FnvHashMap<&'static str, Vec<(Datatype, Args, Data
         map
     });
 
+#[allow(clippy::type_complexity)]
 pub static FUNCTIONS_MAP: Lazy<FnvHashMap<&'static str, Vec<(Datatype, Args, Datatype)>>> =
     Lazy::new(|| {
         let mut map = FnvHashMap::<&'static str, Vec<(Datatype, Args, Datatype)>>::default();
