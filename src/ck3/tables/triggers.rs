@@ -635,7 +635,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Culture, "has_innovation", Item(Item::Innovation)),
     (Scopes::Culture, "has_innovation_flag", Item(Item::InnovationFlag)),
     (Scopes::Inspiration, "has_inspiration_type", Item(Item::Inspiration)),
-    (Scopes::Legend, "has_legend_chapter", ItemOrBlock(Item::LegendChapter, &[("name", Item(Item::LegendChapter)), ("localization_key", UncheckedValue)])),
+    (Scopes::Legend, "has_legend_chapter", ItemOrBlock(Item::LegendChapter, &[("name", Item(Item::LegendChapter)), ("?localization_key", UncheckedValue)])),
     (Scopes::Legend, "has_legend_chronicle", Item(Item::LegendChronicle)),
     (Scopes::Legend, "has_legend_county_modifier", Item(Item::Modifier)),
     (Scopes::Legend, "has_legend_county_modifier_duration_remaining", UncheckedValue),
