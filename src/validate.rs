@@ -85,8 +85,7 @@ pub fn validate_compare_duration(block: &Block, data: &Everything, sc: &mut Scop
 
 // Very similar to validate_days_weeks_months_years, but requires = instead of allowing comparators
 // "weeks" is not documented but is used all over vanilla TODO: verify
-pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext) {
-    let mut vd = Validator::new(block, data);
+pub fn validate_mandatory_duration(block: &Block, vd: &mut Validator, sc: &mut ScopeContext) {
     let mut count = 0;
 
     for field in &["days", "weeks", "months", "years"] {
@@ -100,6 +99,11 @@ pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext
         let key = if count == 0 { ErrorKey::FieldMissing } else { ErrorKey::Validation };
         err(key).msg(msg).loc(block).push();
     }
+}
+
+pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    validate_mandatory_duration(block, &mut vd, sc);
 }
 
 // Very similar to validate_duration, but validates part of a block that may contain a duration

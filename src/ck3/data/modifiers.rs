@@ -103,6 +103,7 @@ fn get_modif_kinds(name: &str) -> ModifKinds {
         "dynasty_modifier",
         "house_modifier",
         "house_unity_modifier",
+        "legend_owner_modifier",
     ] {
         if name.contains(substr) {
             return ModifKinds::Character;

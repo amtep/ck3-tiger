@@ -16,7 +16,8 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_target_ok_this};
 use crate::validate::{
-    validate_duration, validate_optional_duration, validate_optional_duration_int, ListType,
+    validate_duration, validate_mandatory_duration, validate_optional_duration,
+    validate_optional_duration_int, ListType,
 };
 use crate::validator::{Validator, ValueValidator};
 
@@ -241,7 +242,10 @@ pub fn validate_add_modifier(
         || caller == "add_house_modifier"
         || caller == "add_dynasty_modifier"
         || caller == "add_county_modifier"
-        || caller == "add_house_unity_modifier";
+        || caller == "add_house_unity_modifier"
+        || caller == "add_legend_county_modifier"
+        || caller == "add_legend_owner_modifier"
+        || caller == "add_legend_province_modifier";
     match bv {
         BV::Value(token) => {
             data.verify_exists(Item::Modifier, token);
@@ -1049,6 +1053,31 @@ pub fn validate_set_ghw_target(
     }
 }
 
+pub fn validate_set_legend_chapter(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    _sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_item("name", Item::LegendChapter);
+    vd.field_item("localization_key", Item::Localization);
+}
+
+pub fn validate_set_legend_property(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_item("name", Item::LegendProperty);
+    // TODO: look up possible scope types from the legend properties
+    vd.field_target("target", sc, Scopes::all());
+}
+
 pub fn validate_setup_cb(
     key: &Token,
     _block: &Block,
@@ -1364,6 +1393,20 @@ pub fn validate_add_character_flag(
     }
 }
 
+pub fn validate_add_dead_character_flag(
+    _key: &Token,
+    block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.set_case_sensitive(false);
+    vd.req_field("flag");
+    vd.multi_field_value("flag");
+    validate_mandatory_duration(block, &mut vd, sc);
+}
+
 pub fn validate_begin_create_holding(
     _key: &Token,
     bv: &BV,
@@ -1449,6 +1492,23 @@ pub fn validate_create_alliance(
             vd.field_target("allied_through_owner", sc, Scopes::Character);
             vd.field_target("allied_through_target", sc, Scopes::Character);
         }
+    }
+}
+
+pub fn validate_create_epidemic_outbreak(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("type");
+    vd.req_field("intensity");
+    vd.field_item("type", Item::EpidemicType);
+    vd.field_choice("intensity", &["minor", "major", "apocalyptic"]);
+    if let Some(name) = vd.field_value("save_scope_as") {
+        sc.define_name_token(name.as_str(), Scopes::Epidemic, name);
     }
 }
 
@@ -1562,6 +1622,25 @@ pub fn validate_remove_courtier_or_guest(
             vd.field_target("new_location", sc, Scopes::Province);
         }
     }
+}
+
+pub fn validate_set_dead_character_variable(
+    _key: &Token,
+    block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("name");
+    vd.field_value("name");
+    vd.field_validated("value", |bv, data| match bv {
+        BV::Value(token) => {
+            validate_target_ok_this(token, data, sc, Scopes::all_but_none());
+        }
+        BV::Block(_) => validate_script_value(bv, data, sc),
+    });
+    validate_mandatory_duration(block, &mut vd, sc);
 }
 
 pub fn validate_set_location(

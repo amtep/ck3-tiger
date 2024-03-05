@@ -40,6 +40,8 @@ pub fn validate_add_to_variable_list(
     vd.req_field("target");
     vd.field_value("name");
     vd.field_target_ok_this("target", sc, Scopes::all_but_none());
+    #[cfg(feature = "ck3")]
+    validate_optional_duration(&mut vd, sc);
 }
 
 /// A specific validator for the three `change_variable` effects (`global`, `local`, and default).
