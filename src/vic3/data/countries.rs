@@ -40,6 +40,7 @@ impl DbKind for Country {
         vd.field_item("religion", Item::Religion);
         vd.field_item("capital", Item::StateRegion);
         vd.field_bool("is_named_from_capital");
+        vd.field_bool("dynamic_country_definition");
 
         vd.field_validated_key_block(
             "valid_as_home_country_for_separatists",

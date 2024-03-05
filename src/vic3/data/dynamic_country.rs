@@ -70,6 +70,7 @@ fn validate_dynamic_country_name(block: &Block, data: &Everything) {
 
     vd.field_bool("is_revolutionary");
     vd.field_bool("is_main_tag_only");
+    vd.field_bool("use_overlord_prefix");
     vd.field_integer("priority");
 
     vd.field_validated_key_block("trigger", |key, block, data| {

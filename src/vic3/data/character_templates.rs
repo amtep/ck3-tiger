@@ -55,6 +55,7 @@ impl DbKind for CharacterTemplate {
         });
 
         vd.field_bool("historical");
+        vd.field_bool("noble");
         vd.field_bool("female");
 
         vd.field_validated_value("culture", |_, mut vd| {

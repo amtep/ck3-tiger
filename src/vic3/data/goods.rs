@@ -29,6 +29,7 @@ impl DbKind for Goods {
         vd.field_numeric("cost");
         vd.field_choice("category", &["industrial", "luxury", "military", "staple"]);
 
+        vd.field_bool("local");
         vd.field_bool("tradeable");
         vd.field_bool("fixed_price");
 

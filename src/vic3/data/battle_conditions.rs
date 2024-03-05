@@ -38,13 +38,21 @@ impl DbKind for BattleCondition {
             validate_modifs(block, data, ModifKinds::Unit | ModifKinds::Battle, vd);
         });
 
-        let mut sc = ScopeContext::new(Scopes::BattleSide, key);
-        sc.define_name("is_advancing_side", Scopes::Bool, key); // undocumented
-        sc.define_name("character", Scopes::Character, key); // undocumented
+        let sc_builder = |key| {
+            let mut sc = ScopeContext::new(Scopes::BattleSide, key);
+            sc.define_name("is_advancing_side", Scopes::Bool, key); // undocumented
+            sc.define_name("character", Scopes::Character, key); // undocumented
+            sc
+        };
 
+        let mut sc = sc_builder(key);
         vd.field_script_value("weight", &mut sc);
-        // undocumented
+        vd.field_validated_block("instant_switch", |block, data| {
+            let mut sc = sc_builder(key);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
         vd.field_validated_block("possible", |block, data| {
+            let mut sc = sc_builder(key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
     }

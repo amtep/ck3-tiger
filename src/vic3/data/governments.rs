@@ -47,5 +47,9 @@ impl DbKind for GovernmentType {
         vd.field_validated_block("on_government_type_change", |block, data| {
             validate_effect(block, data, &mut sc, Tooltipped::No);
         });
+        // This uses scopes set in on_government_type_change
+        vd.field_validated_block("on_post_government_type_change", |block, data| {
+            validate_effect(block, data, &mut sc, Tooltipped::No);
+        });
     }
 }
