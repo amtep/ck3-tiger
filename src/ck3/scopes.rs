@@ -222,7 +222,7 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     display_choices(f, &vec, "or")
 }
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
     use crate::item::Item;
     if scopes == Scopes::AccoladeType && data.item_exists(Item::AccoladeType, arg) {
@@ -376,7 +376,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "employer", Scopes::Character),
     (Scopes::CombatSide, "enemy_side", Scopes::CombatSide),
     (Scopes::EpidemicType, "epidemic_trait", Scopes::Trait),
-    (Scopes::Epidemic, "epidemic_type", Scopes::Epidemic),
+    (Scopes::Epidemic, "epidemic_type", Scopes::EpidemicType),
     (Scopes::Faction, "faction_leader", Scopes::Character),
     (Scopes::Faction, "faction_target", Scopes::Character),
     (Scopes::Faction, "faction_war", Scopes::War),
@@ -898,7 +898,6 @@ pub fn scope_iterator_removed(name: &str) -> Option<(&'static str, &'static str)
     None
 }
 
-/// LAST UPDATED CK3 VERSION 1.11.3
 /// Every entry represents a every_, ordered_, random_, and any_ version.
 const SCOPE_ITERATOR_REMOVED: &[(&str, &str, &str)] = &[
     ("activity_declined", "1.9", ""),
@@ -915,7 +914,6 @@ pub fn scope_to_scope_removed(name: &str) -> Option<(&'static str, &'static str)
     None
 }
 
-/// LAST UPDATED CK3 VERSION 1.11.3
 const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
     ("activity", "1.9", ""),
     ("activity_owner", "1.9", "replaced by `activity_host`"),
