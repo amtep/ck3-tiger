@@ -355,7 +355,7 @@ pub fn validate_effect_field(
                 sc.expect(inscopes, &Reason::Token(key.clone()));
                 let ltype = ListType::try_from(it_type.as_str()).unwrap();
                 if let Some(b) = bv.expect_block() {
-                    precheck_iterator_fields(ltype, b, data, sc);
+                    precheck_iterator_fields(ltype, it_name.as_str(), b, data, sc);
                 }
                 sc.open_scope(outscope, key.clone());
                 if let Some(b) = bv.get_block() {

@@ -263,7 +263,7 @@ pub fn validate_trigger_internal(
                     }
                     sc.expect(inscopes, &Reason::Token(key.clone()));
                     if let Some(b) = bv.expect_block() {
-                        precheck_iterator_fields(ListType::Any, b, data, sc);
+                        precheck_iterator_fields(ListType::Any, it_name.as_str(), b, data, sc);
                         sc.open_scope(outscope, key.clone());
                         side_effects |= validate_trigger_internal(
                             &Lowercase::new(it_name.as_str()),

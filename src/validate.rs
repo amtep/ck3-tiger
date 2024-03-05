@@ -207,8 +207,10 @@ pub fn validate_possibly_named_color(bv: &BV, data: &Everything) {
 }
 
 /// Check some iterator fields *before* the list scope has opened.
+#[allow(unused_variables)] // `name` is only used for ck3
 pub fn precheck_iterator_fields(
     ltype: ListType,
+    name: &str,
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
@@ -242,6 +244,15 @@ pub fn precheck_iterator_fields(
             }
         }
         ListType::Random | ListType::Every | ListType::None => (),
+    }
+
+    #[cfg(feature = "ck3")]
+    if Game::is_ck3() && name == "county_in_region" {
+        for region in block.get_field_values("region") {
+            if !data.item_exists(Item::Region, region.as_str()) {
+                validate_target_ok_this(region, data, sc, Scopes::GeographicalRegion);
+            }
+        }
     }
 }
 
@@ -358,7 +369,7 @@ pub fn validate_inside_iterator(
     if Game::is_ck3() {
         if name == "county_in_region" {
             vd.req_field("region");
-            vd.field_item_or_target("region", sc, Item::Region, Scopes::GeographicalRegion);
+            vd.multi_field_value("region"); // prechecked
         } else {
             vd.ban_field("region", || format!("`{listtype}_county_in_region`"));
         }

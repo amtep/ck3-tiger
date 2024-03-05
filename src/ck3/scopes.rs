@@ -668,7 +668,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::LandedTitle, "controlled_faith", Scopes::Faith),
     (Scopes::Character, "councillor", Scopes::Character),
     (Scopes::None, "county", Scopes::LandedTitle),
-    (Scopes::None, "county_in_region", Scopes::LandedTitle), // TODO region = region_name inside it
+    (Scopes::None, "county_in_region", Scopes::LandedTitle),
     (Scopes::LandedTitle, "county_province", Scopes::Province),
     (Scopes::LandedTitle, "county_struggle", Scopes::Struggle),
     (Scopes::Character, "court_position_employer", Scopes::Character),

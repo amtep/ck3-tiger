@@ -130,7 +130,7 @@ fn validate_inner(
                         sc.expect(inscopes, &Reason::Token(token.clone()));
                         if let Some(block) = bv.expect_block() {
                             let ltype = ListType::try_from(it_type.as_str()).unwrap();
-                            precheck_iterator_fields(ltype, block, data, sc);
+                            precheck_iterator_fields(ltype, it_name.as_str(), block, data, sc);
                             sc.open_scope(outscope, token.clone());
                             validate_iterator(ltype, &it_name, block, data, sc, check_desc);
                             made_changes = true;
