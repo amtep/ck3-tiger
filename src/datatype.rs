@@ -771,25 +771,27 @@ fn lookup_global_function(lookup_name: &str) -> Option<(Args, Datatype)> {
 
 fn lookup_promote_or_function(
     ltype: Datatype,
-    (intype, args, rtype): (Datatype, Args, Datatype),
+    vec: &[(Datatype, Args, Datatype)],
 ) -> LookupResult {
     let mut possible_args = None;
     let mut possible_rtype = None;
 
-    if ltype == Datatype::Unknown {
-        if possible_rtype.is_none() {
-            possible_args = Some(args);
-            possible_rtype = Some(rtype);
-        } else {
-            if possible_rtype != Some(rtype) {
-                possible_rtype = Some(Datatype::Unknown);
+    for (intype, args, rtype) in vec.iter().copied() {
+        if ltype == Datatype::Unknown {
+            if possible_rtype.is_none() {
+                possible_args = Some(args);
+                possible_rtype = Some(rtype);
+            } else {
+                if possible_rtype != Some(rtype) {
+                    possible_rtype = Some(Datatype::Unknown);
+                }
+                if possible_args != Some(args) {
+                    possible_args = Some(Args::Unknown);
+                }
             }
-            if possible_args != Some(args) {
-                possible_args = Some(Args::Unknown);
-            }
+        } else if ltype == intype {
+            return LookupResult::Found(args, rtype);
         }
-    } else if ltype == intype {
-        return LookupResult::Found(args, rtype);
     }
 
     if ltype == Datatype::Unknown {
@@ -800,7 +802,7 @@ fn lookup_promote_or_function(
     }
 }
 
-fn promote(lookup_name: &str) -> Option<(Datatype, Args, Datatype)> {
+fn promote(lookup_name: &str) -> Option<&Vec<(Datatype, Args, Datatype)>> {
     let promotes_map = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => &crate::ck3::tables::datafunctions::PROMOTES_MAP,
@@ -809,7 +811,7 @@ fn promote(lookup_name: &str) -> Option<(Datatype, Args, Datatype)> {
         #[cfg(feature = "imperator")]
         Game::Imperator => &crate::imperator::tables::datafunctions::PROMOTES_MAP,
     };
-    promotes_map.get(lookup_name).copied()
+    promotes_map.get(lookup_name)
 }
 
 fn lookup_promote(lookup_name: &str, ltype: Datatype) -> LookupResult {
@@ -817,7 +819,7 @@ fn lookup_promote(lookup_name: &str, ltype: Datatype) -> LookupResult {
     result.map_or(LookupResult::NotFound, |x| lookup_promote_or_function(ltype, x))
 }
 
-fn function(lookup_name: &str) -> Option<(Datatype, Args, Datatype)> {
+fn function(lookup_name: &str) -> Option<&Vec<(Datatype, Args, Datatype)>> {
     let functions_map = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => &crate::ck3::tables::datafunctions::FUNCTIONS_MAP,
@@ -826,7 +828,7 @@ fn function(lookup_name: &str) -> Option<(Datatype, Args, Datatype)> {
         #[cfg(feature = "imperator")]
         Game::Imperator => &crate::imperator::tables::datafunctions::FUNCTIONS_MAP,
     };
-    functions_map.get(lookup_name).copied()
+    functions_map.get(lookup_name)
 }
 
 fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {

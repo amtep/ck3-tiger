@@ -49,7 +49,6 @@ impl std::ops::DerefMut for ColorBitArray {
     }
 }
 
-
 #[derive(Debug, Default)]
 pub struct Ck3Provinces {
     /// Colors in the provinces.png
@@ -312,7 +311,9 @@ impl FileHandler<FileContent> for Ck3Provinces {
                     for pixel in img.pixels().copied() {
                         unsafe {
                             // SAFETY: `ColorBitArray::index` is guaranteed to return a valid index
-                            self.colors.get_unchecked_mut(ColorBitArray::get_index(pixel)).commit(true);
+                            self.colors
+                                .get_unchecked_mut(ColorBitArray::get_index(pixel))
+                                .commit(true);
                         }
                     }
                 }

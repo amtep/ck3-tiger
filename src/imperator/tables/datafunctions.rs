@@ -57,20 +57,20 @@ pub static GLOBAL_FUNCTIONS_MAP: Lazy<FnvHashMap<&'static str, (Args, Datatype)>
         map
     });
 
-pub static PROMOTES_MAP: Lazy<FnvHashMap<&'static str, (Datatype, Args, Datatype)>> =
+pub static PROMOTES_MAP: Lazy<FnvHashMap<&'static str, Vec<(Datatype, Args, Datatype)>>> =
     Lazy::new(|| {
-        let mut map = FnvHashMap::default();
+        let mut map = FnvHashMap::<&'static str, Vec<(Datatype, Args, Datatype)>>::default();
         for (name, from, args, to) in PROMOTES.iter().copied() {
-            map.insert(name, (from, args, to));
+            map.entry(name).or_default().push((from, args, to));
         }
         map
     });
 
-pub static FUNCTIONS_MAP: Lazy<FnvHashMap<&'static str, (Datatype, Args, Datatype)>> =
+pub static FUNCTIONS_MAP: Lazy<FnvHashMap<&'static str, Vec<(Datatype, Args, Datatype)>>> =
     Lazy::new(|| {
-        let mut map = FnvHashMap::default();
+        let mut map = FnvHashMap::<&'static str, Vec<(Datatype, Args, Datatype)>>::default();
         for (name, from, args, to) in FUNCTIONS.iter().copied() {
-            map.insert(name, (from, args, to));
+            map.entry(name).or_default().push((from, args, to));
         }
         map
     });
