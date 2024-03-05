@@ -60,6 +60,7 @@ pub enum Item {
     CustomLocalization,
     Decision,
     Define,
+    Directory,
     Dlc,
     DlcFeature,
     EffectLocalization,
@@ -219,10 +220,12 @@ pub enum Item {
     #[cfg(feature = "ck3")] DynastyPerk,
     #[cfg(feature = "ck3")] EpidemicType,
     #[cfg(feature = "ck3")] EventBackground,
+    #[cfg(feature = "ck3")] EventEffect2d,
     #[cfg(feature = "ck3")] EventTransition,
     #[cfg(feature = "ck3")] Faction,
     #[cfg(feature = "ck3")] Faith,
     #[cfg(feature = "ck3")] FaithIcon,
+    #[cfg(feature = "ck3")] FaithParameter,
     #[cfg(feature = "ck3")] FervorModifier,
     #[cfg(feature = "ck3")] Flavorization,
     #[cfg(feature = "ck3")] Focus,
@@ -483,6 +486,7 @@ impl Item {
             Item::Define => "common/defines/",
             Item::Dlc => "",
             Item::DlcFeature => "",
+            Item::Directory => "",
             Item::EffectLocalization => "common/effect_localization/",
             Item::Entity => "gfx/models/",
             Item::Entry => "",
@@ -779,11 +783,15 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::EventBackground => "common/event_backgrounds/",
             #[cfg(feature = "ck3")]
+            Item::EventEffect2d => "common/event_2d_effects/",
+            #[cfg(feature = "ck3")]
             Item::EventTransition => "common/event_transitions/",
             #[cfg(feature = "ck3")]
             Item::Faith => "common/religion/religions/",
             #[cfg(feature = "ck3")]
             Item::FaithIcon => "common/religion/religions/",
+            #[cfg(feature = "ck3")]
+            Item::FaithParameter => "common/religion/religions/",
             #[cfg(feature = "ck3")]
             Item::FervorModifier => "common/religion/fervor_modifiers/",
             #[cfg(feature = "ck3")]

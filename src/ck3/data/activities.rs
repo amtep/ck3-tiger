@@ -163,6 +163,9 @@ impl DbKind for ActivityType {
         vd.field_validated_block("is_shown", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
+        // TODO: cryptic comment in docs
+        // "any saved scope targets that are added to the creation data will also be available here
+        // when validating if an activity can start"
         vd.field_validated_block("can_start", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });

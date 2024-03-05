@@ -94,5 +94,9 @@ impl DbKind for Terrain {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Province, vd);
         });
+        vd.field_validated_block("county_capital_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Province, vd);
+        });
     }
 }

@@ -56,7 +56,7 @@ impl DbKind for CourtPosition {
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         let mut vd = Validator::new(block, data);
-        vd.advice_field("skill", "`skill` was removed in 1.8");
+        vd.field_item("skill", Item::Skill);
         vd.field_integer("max_available_positions");
         vd.field_item("category", Item::CourtPositionCategory);
         vd.field_choice("minimum_rank", &["county", "duchy", "kingdom", "empire"]);
@@ -100,6 +100,15 @@ impl DbKind for CourtPosition {
         });
 
         vd.field_validated_block("scaling_employer_modifiers", |block, data| {
+            validate_scaling_employer_modifiers(block, data);
+        });
+
+        vd.field_validated_block("base_employer_court_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+
+        vd.field_validated_block("scaling_employer_court_modifiers", |block, data| {
             validate_scaling_employer_modifiers(block, data);
         });
 

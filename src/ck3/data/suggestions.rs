@@ -45,22 +45,22 @@ impl DbKind for Suggestion {
 
         vd.field_validated_block("effect", |block, data| {
             let mut sc = sc.clone();
-            // TODO: The scope context will contain all scopes passed in the try_create_important_action call
+            // TODO: The scope context will contain all scopes passed in the try_create_suggestion call
             sc.set_strict_scopes(false);
             // TODO: "only interface effects are allowed"
             validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-
-        vd.field_validated_block("is_valid", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_item("soundeffect", Item::Sound);
 
         vd.field_validated_block_sc("weight", &mut sc, validate_modifiers_with_base);
 
-        // TODO: The scope context will contain all scopes passed in the try_create_important_action call
+        // TODO: The scope context will contain all scopes passed in the try_create_suggestion call
         sc.set_strict_scopes(false);
         vd.field_validated_block_sc("score", &mut sc, validate_modifiers_with_base);
+
+        vd.field_validated_block("is_valid", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
     }
 }

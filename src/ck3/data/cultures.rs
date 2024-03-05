@@ -212,7 +212,16 @@ impl DbKind for CulturePillar {
         vd.field_validated_block("can_pick", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
-        vd.field_validated("color", validate_possibly_named_color);
+        if block.field_value_is("type", "language") {
+            vd.field_validated("color", validate_possibly_named_color);
+        } else {
+            vd.ban_field("color", || "languages");
+        }
+        if block.field_value_is("type", "heritage") {
+            vd.field_value("audio_parameter");
+        } else {
+            vd.ban_field("audio_parameter", || "heritages");
+        }
         vd.field_validated_block("parameters", validate_parameters);
     }
 }

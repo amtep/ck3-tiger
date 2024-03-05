@@ -141,6 +141,12 @@ impl DbKind for Building {
             vd.field_item("county_holder_dynasty_perk", Item::DynastyPerk);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
+        vd.multi_field_validated_block("character_faith_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("parameter");
+            vd.field_item("parameter", Item::FaithParameter);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
 
         vd.multi_field_validated_block("province_modifier", |block, data| {
             let vd = Validator::new(block, data);
@@ -150,6 +156,12 @@ impl DbKind for Building {
             let mut vd = Validator::new(block, data);
             vd.req_field("parameter");
             vd.field_item("parameter", Item::CultureParameter);
+            validate_modifs(block, data, ModifKinds::Province, vd);
+        });
+        vd.multi_field_validated_block("province_faith_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("parameter");
+            vd.field_item("parameter", Item::FaithParameter);
             validate_modifs(block, data, ModifKinds::Province, vd);
         });
         vd.multi_field_validated_block("province_terrain_modifier", |block, data| {
@@ -176,6 +188,12 @@ impl DbKind for Building {
             vd.field_item("parameter", Item::CultureParameter);
             validate_modifs(block, data, ModifKinds::County, vd);
         });
+        vd.multi_field_validated_block("county_faith_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("parameter");
+            vd.field_item("parameter", Item::FaithParameter);
+            validate_modifs(block, data, ModifKinds::County, vd);
+        });
 
         if let Some(token) = block.get_field_value("type") {
             if token.is("duchy_capital") {
@@ -189,6 +207,15 @@ impl DbKind for Building {
                         let mut vd = Validator::new(block, data);
                         vd.req_field("parameter");
                         vd.field_item("parameter", Item::CultureParameter);
+                        validate_modifs(block, data, ModifKinds::County, vd);
+                    },
+                );
+                vd.multi_field_validated_block(
+                    "duchy_capital_county_faith_modifier",
+                    |block, data| {
+                        let mut vd = Validator::new(block, data);
+                        vd.req_field("parameter");
+                        vd.field_item("parameter", Item::FaithParameter);
                         validate_modifs(block, data, ModifKinds::County, vd);
                     },
                 );
