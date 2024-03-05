@@ -1,4 +1,6 @@
 //! Miscellaneous convenience functions.
+use bimap::BiHashMap;
+use fnv::FnvBuildHasher;
 
 use std::fmt::{Display, Formatter};
 
@@ -107,3 +109,5 @@ pub const BANNED_NAMES: &[&str] = &[
     "switch",
     "take_hostage", // actually used by vanilla CK3
 ];
+
+pub(crate) type BiFnvHashMap<L, R> = BiHashMap<L, R, FnvBuildHasher, FnvBuildHasher>;

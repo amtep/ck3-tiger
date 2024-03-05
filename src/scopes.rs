@@ -30,7 +30,7 @@ bitflags! {
     // Each scope type gets one bitflag. In order to keep the bit count down, scope types from
     // the different games have overlapping bitflags. Therefore, scope types from different games
     // should be kept carefully separated.
-    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
     #[rustfmt::skip] // having the cfg and the flag on one line is much more readable
     pub struct Scopes: ScopesBits {
         // Generic scope types
