@@ -3,6 +3,7 @@ use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::{err, ErrorKey};
 use crate::scopes::{ArgumentValue, Scopes};
 use crate::token::Token;
 use crate::trigger::Trigger;
@@ -41,13 +42,22 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
         data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
         return Some((Scopes::Character, Trigger::CompareValue));
     }
-    if let Some(legacy) = name_lc.strip_suffix("_track_perks") {
-        data.verify_exists_implied(Item::DynastyLegacy, legacy, name);
-        return Some((Scopes::Dynasty, Trigger::CompareValue));
-    }
-    if let Some(lifestyle) = name_lc.strip_suffix("_perks") {
-        data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
-        return Some((Scopes::Character, Trigger::CompareValue));
+    // Either $DYNASTY_LEGACY_TRACK$_perks and $LIFESTYLE$_perks
+    if let Some(part) = name_lc.strip_suffix("_perks") {
+        if data.item_exists(Item::DynastyLegacy, part) {
+            return Some((Scopes::Dynasty, Trigger::CompareValue));
+        }
+        if data.item_exists(Item::Lifestyle, part) {
+            return Some((Scopes::Character, Trigger::CompareValue));
+        }
+        let msg = format!("{part} not found as dynasty legacy or lifestyle");
+        err(ErrorKey::MissingItem).msg(msg).loc(name).push();
+        // Heuristic about which one is likely intended
+        return if part.ends_with("_track") {
+            Some((Scopes::Dynasty, Trigger::CompareValue))
+        } else {
+            Some((Scopes::Character, Trigger::CompareValue))
+        };
     }
     if let Some(lifestyle) = name_lc.strip_suffix("_xp") {
         data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
@@ -625,7 +635,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Culture, "has_innovation", Item(Item::Innovation)),
     (Scopes::Culture, "has_innovation_flag", Item(Item::InnovationFlag)),
     (Scopes::Inspiration, "has_inspiration_type", Item(Item::Inspiration)),
-    (Scopes::Legend, "has_legend_chapter", Block(&[("name", Item(Item::LegendChapter)), ("localization_key", UncheckedValue)])),
+    (Scopes::Legend, "has_legend_chapter", ItemOrBlock(Item::LegendChapter, &[("name", Item(Item::LegendChapter)), ("localization_key", UncheckedValue)])),
     (Scopes::Legend, "has_legend_chronicle", Item(Item::LegendChronicle)),
     (Scopes::Legend, "has_legend_county_modifier", Item(Item::Modifier)),
     (Scopes::Legend, "has_legend_county_modifier_duration_remaining", UncheckedValue),

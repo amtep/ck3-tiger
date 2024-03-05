@@ -467,6 +467,13 @@ pub fn validate_effect_control(
             let msg = "`goto` was removed from interface messages in 1.9";
             warn(ErrorKey::Removed).msg(msg).loc(token).push();
         }
+        // These seem to be scopes to set for the message loca.
+        vd.field_validated_block("localization_values", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_value_fields(|_key, value| {
+                validate_target_ok_this(value, data, sc, Scopes::all());
+            });
+        });
     }
 
     if caller == "while" {

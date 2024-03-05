@@ -358,7 +358,7 @@ pub fn validate_inside_iterator(
     if Game::is_ck3() {
         if name == "county_in_region" {
             vd.req_field("region");
-            vd.field_item("region", Item::Region);
+            vd.field_item_or_target("region", sc, Item::Region, Scopes::GeographicalRegion);
         } else {
             vd.ban_field("region", || format!("`{listtype}_county_in_region`"));
         }
