@@ -439,8 +439,11 @@ impl TextIcon {
             vd.field_item("texture", Item::File);
             vd.field_list_integers_exactly("size", 2);
             vd.field_list_integers_exactly("offset", 2);
+            vd.field_list_integers_exactly("framesize", 2);
+            vd.field_integer("frame");
             vd.field_integer("fontsize");
             vd.field_list_numeric_exactly("uv", 4);
+            vd.field_item("color", Item::TextFormat);
         });
     }
 }
