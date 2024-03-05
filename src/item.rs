@@ -60,6 +60,7 @@ pub enum Item {
     CustomLocalization,
     Decision,
     Define,
+    Directory,
     Dlc,
     DlcFeature,
     EffectLocalization,
@@ -217,7 +218,9 @@ pub enum Item {
     #[cfg(feature = "ck3")] Dynasty,
     #[cfg(feature = "ck3")] DynastyLegacy,
     #[cfg(feature = "ck3")] DynastyPerk,
+    #[cfg(feature = "ck3")] EpidemicType,
     #[cfg(feature = "ck3")] EventBackground,
+    #[cfg(feature = "ck3")] EventEffect2d,
     #[cfg(feature = "ck3")] EventTransition,
     #[cfg(feature = "ck3")] Faction,
     #[cfg(feature = "ck3")] Faith,
@@ -247,6 +250,13 @@ pub enum Item {
     #[cfg(feature = "ck3")] Language,
     #[cfg(feature = "ck3")] LawFlag,
     #[cfg(feature = "ck3")] LeaseContract,
+    #[cfg(feature = "ck3")] LegendChapter,
+    #[cfg(feature = "ck3")] LegendChronicle,
+    #[cfg(feature = "ck3")] LegendProperty,
+    #[cfg(feature = "ck3")] LegendSeed,
+    #[cfg(feature = "ck3")] LegendType,
+    #[cfg(feature = "ck3")] LegitimacyFlag,
+    #[cfg(feature = "ck3")] LegitimacyType,
     #[cfg(feature = "ck3")] Lifestyle,
     #[cfg(feature = "ck3")] MartialCustom,
     #[cfg(feature = "ck3")] MemoryCategory,
@@ -477,6 +487,7 @@ impl Item {
             Item::Define => "common/defines/",
             Item::Dlc => "",
             Item::DlcFeature => "",
+            Item::Directory => "",
             Item::EffectLocalization => "common/effect_localization/",
             Item::Entity => "gfx/models/",
             Item::Entry => "",
@@ -769,7 +780,11 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::DynastyPerk => "common/dynasty_perks/",
             #[cfg(feature = "ck3")]
+            Item::EpidemicType => "common/epidemics/",
+            #[cfg(feature = "ck3")]
             Item::EventBackground => "common/event_backgrounds/",
+            #[cfg(feature = "ck3")]
+            Item::EventEffect2d => "common/event_2d_effects/",
             #[cfg(feature = "ck3")]
             Item::EventTransition => "common/event_transitions/",
             #[cfg(feature = "ck3")]
@@ -828,6 +843,20 @@ impl Item {
             Item::LawFlag => "common/laws/",
             #[cfg(feature = "ck3")]
             Item::LeaseContract => "common/lease_contracts/",
+            #[cfg(feature = "ck3")]
+            Item::LegendChapter => "common/legends/chronicles/",
+            #[cfg(feature = "ck3")]
+            Item::LegendChronicle => "common/legends/chronicles/",
+            #[cfg(feature = "ck3")]
+            Item::LegendProperty => "common/legends/chronicles/",
+            #[cfg(feature = "ck3")]
+            Item::LegendSeed => "common/legends/legend_seeds/",
+            #[cfg(feature = "ck3")]
+            Item::LegendType => "common/legends/legend_types/",
+            #[cfg(feature = "ck3")]
+            Item::LegitimacyFlag => "common/legitimacy/",
+            #[cfg(feature = "ck3")]
+            Item::LegitimacyType => "common/legitimacy/",
             #[cfg(feature = "ck3")]
             Item::Lifestyle => "common/lifestyles/",
             #[cfg(feature = "ck3")]

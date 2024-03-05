@@ -3,7 +3,7 @@
 // LAST UPDATED CK3 VERSION 1.11.3
 pub const ACTIVITY_STATES: &[&str] = &["passive", "travel", "active"];
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 // Taken from the create_artifact description in effects.log
 pub const ARTIFACT_HISTORY: &[&str] = &[
     "created_before_history",
@@ -25,7 +25,7 @@ pub const ARTIFACT_HISTORY: &[&str] = &[
     "reforged",
 ];
 
-// LAST UPDATED CK3 VERSION 1.11.5
+// LAST UPDATED CK3 VERSION 1.12.1
 // TODO: parse it from dlc_metadata/
 pub const DLC_CK3: &[&str] = &[
     "Garments of the Holy Roman Empire",
@@ -38,11 +38,12 @@ pub const DLC_CK3: &[&str] = &[
     "Elegance of the Empire",
     "Wards and Wardens",
     "Legacy of Persia",
+    "Legends of the Dead",
     "North African Attire",
     "Couture of the Capets",
 ];
 
-/// LAST UPDATED CK3 VERSION 1.11.5
+/// LAST UPDATED CK3 VERSION 1.12.1
 /// Taken from `has_dlc_feature` in triggers.log
 pub const DLC_FEATURES_CK3: &[&str] = &[
     "garments_of_the_hre",
@@ -61,26 +62,28 @@ pub const DLC_FEATURES_CK3: &[&str] = &[
     "legacy_of_persia",
     "elegance_of_the_empire",
     "wards_and_wardens",
+    "legends_of_the_dead",
+    "legends",
     "north_african_attire",
     "couture_of_the_capets",
 ];
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 // Gathered from vanilla game files
 pub const REWARD_ITEMS: &[&str] = &["newsletter_crown"];
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 // Gathered from vanilla game files
 pub const PRISON_TYPES: &[&str] = &["dungeon", "house_arrest"];
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 pub const SKILLS: &[&str] =
     &["diplomacy", "intrigue", "learning", "martial", "prowess", "stewardship"];
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 pub const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual", "none"];
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 // Taken from recent_history description in triggers.log
 pub const TITLE_HISTORY_TYPES: &[&str] = &[
     "conquest",
@@ -103,22 +106,23 @@ pub const TITLE_HISTORY_TYPES: &[&str] = &[
     "swear_fealty",
 ];
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 // Gathered from vanilla common/traits/
 pub const TRAIT_CATEGORIES: &[&str] = &[
-    "personality",
-    "education",
     "childhood",
     "commander",
-    "winter_commander",
-    "lifestyle",
     "court_type",
+    "education",
     "fame",
     "health",
+    "lifestyle",
+    "personality",
+    "winter_commander",
 ];
 
-// LAST UPDATED CK3 VERSION 1.11.3
-// Gathered from vanilla game files
+// LAST UPDATED CK3 VERSION 1.12.1
+// Gathered from vanilla game files, both the use of the `travel_danger_type` trigger and what's in
+// the localization files for `travel_danger_type_*`
 pub const DANGER_TYPES: &[&str] = &[
     "default",
     "battle",
@@ -129,21 +133,15 @@ pub const DANGER_TYPES: &[&str] = &[
     "county_control",
     "county_opinion",
     "owner_opinion",
+    "epidemic",
 ];
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 pub const ARTIFACT_RARITY: &[&str] = &["common", "masterwork", "famed", "illustrious"];
 
-// LAST UPDATED CK3 VERSION 1.11.3
-// Taken from the object browser
+// LAST UPDATED CK3 VERSION 1.12.1
+// Taken from the object browser, under audio events
 pub const SOUNDS_CK3: &[&str] = &[
-    "event:/DLC/BP1/MUSIC/moodtrack/mx_BP1Mood_Generic",
-    "event:/DLC/BP1/MUSIC/moodtrack/mx_BP1Mood_MiddleEastern",
-    "event:/DLC/BP1/MUSIC/moodtrack/mx_BP1Mood_Western",
-    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_01",
-    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_02",
-    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_03",
-    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_04",
     "event:/DLC/EP1/MX/Cuetracks/mx_cuetrack_01_middleeasterncourt",
     "event:/DLC/EP1/MX/Cuetracks/mx_cuetrack_02_europeancourt",
     "event:/DLC/EP1/MX/Cuetracks/mx_cuetrack_03_indiancourt",
@@ -189,24 +187,6 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/DLC/EP1/SFX/UI/hold_court",
     "event:/DLC/EP1/SFX/UI/inventory_artifact_place",
     "event:/DLC/EP1/SFX/courtcamera",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_01_tournament_west",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_02_tournament_mena",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_03_tournament_india",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_04_tournament_end",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_05_tour_west",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_06_tour_mena",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_07_tour_india",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_08_tour_end",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_09_wedding_west",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_10_wedding_mena",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_11_wedding_india",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_12_wedding_end",
-    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_13_murder_feast",
-    "event:/DLC/EP2/MX/Maintheme/mx_mep2_maintheme",
-    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_01",
-    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_02",
-    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_03",
-    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_04",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_crowd_base",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_crowd_base_rise",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_crowd_negative_reaction",
@@ -214,8 +194,6 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_crowd_surprise_reaction",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_begin_set",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_locale",
-    "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_locale_close",
-    "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_locale_open",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_outcome_set",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_tournament_pivotal_set",
     "event:/DLC/EP2/SFX/Animation/ep2_anim_char_mena_female_walk",
@@ -318,16 +296,9 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/DLC/EP2/SFX/UI/Travel/ep2_ui_travel_end_neutral",
     "event:/DLC/EP2/SFX/UI/Travel/ep2_ui_travel_end_positive",
     "event:/DLC/FP1/MUSIC/cuetracks/mx_raid",
-    "event:/DLC/FP1/MUSIC/maintheme/maintheme_01",
     "event:/DLC/FP1/MUSIC/moodtrack/mx_drakkar",
     "event:/DLC/FP1/MUSIC/moodtrack/mx_scandinavia",
     "event:/DLC/FP1/MUSIC/moodtrack/mx_thefeast",
-    "event:/DLC/FP1/SFX/Ambience/Urban/norse_castle_tier_01",
-    "event:/DLC/FP1/SFX/Ambience/Urban/norse_castle_tier_02",
-    "event:/DLC/FP1/SFX/Ambience/Urban/norse_castle_tier_03",
-    "event:/DLC/FP1/SFX/Ambience/Urban/norse_castle_tier_04",
-    "event:/DLC/FP1/SFX/Ambience/Urban/norse_city_tier_01",
-    "event:/DLC/FP1/SFX/Ambience/Urban/norse_city_tier_02",
     "event:/DLC/FP1/SFX/Animation/Unit/norse_infantry_horn",
     "event:/DLC/FP1/SFX/Animation/Unit/norse_ship_tier_01",
     "event:/DLC/FP1/SFX/Events/event_beached_longships",
@@ -358,10 +329,6 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/DLC/FP2/MUSIC/moodtrack/mx_iberian_moodTrack3",
     "event:/DLC/FP2/SFX/Ambience/Nature/iberian_nature_01",
     "event:/DLC/FP2/SFX/Ambience/Nature/iberian_nature_02",
-    "event:/DLC/FP2/SFX/Ambience/Urban/iberian_castle",
-    "event:/DLC/FP2/SFX/Ambience/Urban/iberian_city_tier_01",
-    "event:/DLC/FP2/SFX/Ambience/Urban/iberian_city_tier_02",
-    "event:/DLC/FP2/SFX/Animation/Unit/iberia_infantry_sweetener",
     "event:/DLC/FP2/SFX/Animation/Unit/iberia_ship_move",
     "event:/DLC/FP2/SFX/Animation/Unit/iberia_ship_start_move",
     "event:/DLC/FP2/SFX/Events/corridor_day",
@@ -389,53 +356,59 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/DLC/FP2/SFX/UI/fp2_struggle_view_close",
     "event:/DLC/FP2/SFX/UI/fp2_struggle_view_open",
     "event:/DLC/FP2/SFX/UI/fp2_ui_war_declare_war",
-    "event:/DLC/FP3/MX/Cuetracks/mx_cuetracks_01_struggle_starts",
-    "event:/DLC/FP3/MX/Cuetracks/mx_cuetracks_02_struggle_ends",
-    "event:/DLC/FP3/MX/Cuetracks/mx_cuetracks_03_war_during_struggle",
-    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_01",
-    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_02",
-    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_03",
-    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_04",
-    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_05",
     "event:/DLC/FP3/SFX/Ambience/3DMapEmitters/Holdings/fp3_ambience_3D_holdings_imamrezashrine",
     "event:/DLC/FP3/SFX/Ambience/3DMapEmitters/Holdings/fp3_ambience_3D_holdings_minaret",
     "event:/DLC/FP3/SFX/Ambience/3DMapEmitters/Holdings/fp3_ambience_3D_holdings_soltaniyeh",
     "event:/DLC/FP3/SFX/UI/Generic/fp3_ui_war_declare_war",
     "event:/DLC/FP3/SFX/UI/Notifications/Toasts/struggle_end_negative",
     "event:/DLC/FP3/SFX/UI/Notifications/Toasts/struggle_end_positive",
+    "event:/DLC/FP4/MUSIC/Stingers/mx_stinger_legends_lvl_03",
+    "event:/DLC/FP4/MUSIC/Stingers/mx_stinger_legends_lvl_04",
+    "event:/DLC/FP4/MUSIC/Stingers/mx_stinger_legends_lvl_05",
+    "event:/DLC/FP4/SFX/Ambience/3D/sfx_3d_epidemic_model",
+    "event:/DLC/FP4/SFX/Ambience/3D/sfx_3d_epidemic_vfx",
+    "event:/DLC/FP4/SFX/Events/Story/apocalyptic_epidemic_mena",
+    "event:/DLC/FP4/SFX/Events/Story/apocalyptic_epidemic_western",
+    "event:/DLC/FP4/SFX/Events/Story/black_death_arrives",
+    "event:/DLC/FP4/SFX/Events/Story/heroic_story",
+    "event:/DLC/FP4/SFX/Events/Story/holy_story",
+    "event:/DLC/FP4/SFX/Events/Themes/sfx_event_theme_type_epidemic_lvl_03",
+    "event:/DLC/FP4/SFX/Events/Themes/sfx_event_theme_type_epidemic_lvl_04",
+    "event:/DLC/FP4/SFX/Events/Themes/sfx_event_theme_type_epidemic_lvl_05",
+    "event:/DLC/FP4/SFX/UI/Unique/sfx_ui_musician_task",
+    "event:/DLC/FP4/SFX/UI/Unique/sfx_ui_physician_task",
+    "event:/DLC/FP4/SFX/UI/Unique/sfx_ui_spread_legend",
     "event:/Error/Errorhof",
     "event:/Error/placeholder_obnoxious_ui",
-    "event:/MUSIC/Cues/Events/Banquet/mx_banquet_track_01",
-    "event:/MUSIC/Cues/Events/Banquet/mx_banquet_track_02",
     "event:/MUSIC/Cues/Events/Banquet/mx_cue_banquet",
     "event:/MUSIC/Cues/Events/Birth/mx_cue_birth",
-    "event:/MUSIC/Cues/Events/CK3VocalMainTheme/mx_cue_ck3_vocal_maintheme",
+    "event:/MUSIC/Cues/Events/CK3 Vocal Main Theme/mx_cue_ck3_vocal_maintheme",
     "event:/MUSIC/Cues/Events/Combat/mx_cue_combat_2",
     "event:/MUSIC/Cues/Events/Combat/mx_cue_combat_3",
     "event:/MUSIC/Cues/Events/Combat/mx_cue_combat_stinger",
-    "event:/MUSIC/Cues/Events/CrusadeStarts/mx_cue_crusade_starts",
+    "event:/MUSIC/Cues/Events/Crusade Starts/mx_cue_crusade_starts",
     "event:/MUSIC/Cues/Events/Death/mx_cue_death",
-    "event:/MUSIC/Cues/Events/GeneralCrusadeEvent/mx_cue_general_crusade_event_1",
-    "event:/MUSIC/Cues/Events/GeneralCrusadeEvent/mx_cue_general_crusade_event_2",
-    "event:/MUSIC/Cues/Events/GeneralCrusadeEvent/mx_cue_general_crusade_event_3",
-    "event:/MUSIC/Cues/Events/HighStress/mx_cue_stress",
+    "event:/MUSIC/Cues/Events/General Crusade Event/mx_cue_general_crusade_event_1",
+    "event:/MUSIC/Cues/Events/General Crusade Event/mx_cue_general_crusade_event_2",
+    "event:/MUSIC/Cues/Events/General Crusade Event/mx_cue_general_crusade_event_3",
+    "event:/MUSIC/Cues/Events/High Stress/mx_cue_stress",
     "event:/MUSIC/Cues/Events/Illness/mx_cue_illness",
-    "event:/MUSIC/Cues/Events/LowKeyPositive/mx_cue_low_key_postive",
+    "event:/MUSIC/Cues/Events/Low Key Positive/mx_cue_low_key_postive",
     "event:/MUSIC/Cues/Events/Marriage/mx_cue_marriage",
     "event:/MUSIC/Cues/Events/Murder/mx_cue_murder",
-    "event:/MUSIC/Cues/Events/PaganRite/mx_cue_sacredrite",
+    "event:/MUSIC/Cues/Events/Pagan Rite/mx_cue_sacredrite",
     "event:/MUSIC/Cues/Events/Peace_ensues/mx_cue_peace_ensues",
     "event:/MUSIC/Cues/Events/Positive/mx_cue_postive_effect",
     "event:/MUSIC/Cues/Events/Prison/mx_cue_prison",
-    "event:/MUSIC/Cues/Events/SacralHappening/mx_cue_epic_sacral_moment",
+    "event:/MUSIC/Cues/Events/Sacral Happening/mx_cue_epic_sacral_moment",
     "event:/MUSIC/Cues/Events/Secret/mx_cue_secret",
     "event:/MUSIC/Cues/Events/Seduction/mx_cue_seduction",
     "event:/MUSIC/Cues/Events/Succession/mx_cue_succession",
     "event:/MUSIC/Cues/Events/Succession/mx_cue_succession_instrumental",
     "event:/MUSIC/Cues/Events/Tavern/mx_cue_in_taberna_instrumental",
     "event:/MUSIC/Cues/Events/Tavern/mx_cue_meadandwine",
-    "event:/MUSIC/Cues/Events/TouchingMoment/mx_cue_touching_moment",
-    "event:/MUSIC/Cues/Events/WarDeclared/mx_cue_war_declared",
+    "event:/MUSIC/Cues/Events/Touching Moment/mx_cue_touching_moment",
+    "event:/MUSIC/Cues/Events/War Declared/mx_cue_war_declared",
     "event:/MUSIC/Cues/Events/faith_conversion/mx_cue_faith_conversion",
     "event:/MUSIC/Cues/Events/kill_mx_cue",
     "event:/MUSIC/MainTheme/Maintheme",
@@ -469,13 +442,17 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/MUSIC/Moods/General/mx_mood_balik/mx_mood_balik_part1",
     "event:/MUSIC/Moods/General/mx_mood_balik/mx_mood_balik_part2",
     "event:/SFX/Ambience/2D/Nature/masterAmbienceSystem",
+    "event:/SFX/Ambience/3DMapEmitters/Holdings/Castle/iberian_castle",
     "event:/SFX/Ambience/3DMapEmitters/Holdings/Castle/indian_castle",
     "event:/SFX/Ambience/3DMapEmitters/Holdings/Castle/mediterranean_castle",
     "event:/SFX/Ambience/3DMapEmitters/Holdings/Castle/mena_castle",
+    "event:/SFX/Ambience/3DMapEmitters/Holdings/Castle/nordic_castle",
     "event:/SFX/Ambience/3DMapEmitters/Holdings/Castle/western_castle",
+    "event:/SFX/Ambience/3DMapEmitters/Holdings/City/iberian_city",
     "event:/SFX/Ambience/3DMapEmitters/Holdings/City/indian_city",
     "event:/SFX/Ambience/3DMapEmitters/Holdings/City/mediterranean_city",
     "event:/SFX/Ambience/3DMapEmitters/Holdings/City/mena_city",
+    "event:/SFX/Ambience/3DMapEmitters/Holdings/City/nordic_city",
     "event:/SFX/Ambience/3DMapEmitters/Holdings/City/tribal_city",
     "event:/SFX/Ambience/3DMapEmitters/Holdings/City/western_city",
     "event:/SFX/Ambience/3DMapEmitters/Holdings/Siege/sfx_amb_3d_holdings_siege",
@@ -526,6 +503,7 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/SFX/Animations/Units/SiegeWeapons/Anim_Unit_Siegeweapons_Onanger",
     "event:/SFX/Animations/Units/SiegeWeapons/Anim_Unit_Siegeweapons_Trebuchet",
     "event:/SFX/Animations/Units/combat_ambience",
+    "event:/SFX/Animations/Units/components/weapon_impact",
     "event:/SFX/Debug/debug_1",
     "event:/SFX/Debug/debug_2",
     "event:/SFX/Debug/debug_parameter",
@@ -536,6 +514,13 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/SFX/Events/Backgrounds/Bedchamber",
     "event:/SFX/Events/Backgrounds/Bedchamber_alt",
     "event:/SFX/Events/Backgrounds/Burning_building",
+    "event:/SFX/Events/Backgrounds/FP4/fp4_condemned_village",
+    "event:/SFX/Events/Backgrounds/FP4/fp4_epidemic_corpsecarts",
+    "event:/SFX/Events/Backgrounds/FP4/fp4_heroic_battlefield",
+    "event:/SFX/Events/Backgrounds/FP4/fp4_magical_spring",
+    "event:/SFX/Events/Backgrounds/FP4/fp4_mena_physician",
+    "event:/SFX/Events/Backgrounds/Feasthall",
+    "event:/SFX/Events/Backgrounds/Fields_farms_day",
     "event:/SFX/Events/Backgrounds/Office_workplace",
     "event:/SFX/Events/Backgrounds/Old/Interior/corridor_night",
     "event:/SFX/Events/Backgrounds/Old/Interior/dungeon",
@@ -556,8 +541,6 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/SFX/Events/Backgrounds/desert_day",
     "event:/SFX/Events/Backgrounds/docks_day",
     "event:/SFX/Events/Backgrounds/dungeon",
-    "event:/SFX/Events/Backgrounds/feasthall",
-    "event:/SFX/Events/Backgrounds/fields_farms_day",
     "event:/SFX/Events/Backgrounds/gallows_execution_platform",
     "event:/SFX/Events/Backgrounds/meetingchamber_western",
     "event:/SFX/Events/Backgrounds/mountains_day",
@@ -576,7 +559,6 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/SFX/Events/Backgrounds/townmarket_western_day",
     "event:/SFX/Events/Panels/sfx_event_panel_large",
     "event:/SFX/Events/Panels/sfx_event_panel_letter",
-    "event:/SFX/Events/Panels/sfx_event_panel_small",
     "event:/SFX/Events/Themes/sfx_event_theme_type_activity",
     "event:/SFX/Events/Themes/sfx_event_theme_type_corruption",
     "event:/SFX/Events/Themes/sfx_event_theme_type_court",
@@ -605,7 +587,7 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/SFX/Events/Themes/sfx_event_theme_type_war",
     "event:/SFX/Snapshots/sfx_snapshots_AnimationGlow",
     "event:/SFX/Snapshots/sfx_snapshots_WaroutcomeWindow",
-    "event:/SFX/Snapshots/sfx_snapshots_game_pause",
+    "event:/SFX/Snapshots/sfx_snapshots_closeWarOutcome",
     "event:/SFX/UI/Character/Lifestyle/OLD/sfx_ui_character_lifestyle_mastery_trait_unlocked",
     "event:/SFX/UI/Character/Lifestyle/OLD/sfx_ui_character_lifestyle_skillpoint_reclaim",
     "event:/SFX/UI/Character/Lifestyle/OLD/sfx_ui_character_lifestyle_skillpoint_shimmer",
@@ -668,6 +650,7 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/SFX/UI/Generic/sfx_ui_generic_region_select",
     "event:/SFX/UI/Generic/sfx_ui_generic_savegame",
     "event:/SFX/UI/Generic/sfx_ui_generic_select",
+    "event:/SFX/UI/Generic/sfx_ui_generic_selected_playable",
     "event:/SFX/UI/Generic/sfx_ui_generic_start_game",
     "event:/SFX/UI/Generic/sfx_ui_generic_tab",
     "event:/SFX/UI/Generic/sfx_ui_generic_tab_sub",
@@ -741,19 +724,17 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/SFX/VFX/vfx_winter_heavy",
     "event:/SFX/VFX/vfx_winter_light",
     "snapshot:/DefaultSnaphot",
-    "snapshot:/EventBackgroundPopup",
     "snapshot:/Gameplay/AnimationGlowFadeIn",
     "snapshot:/Gameplay/EP1_Courtroom_Snapshot",
     "snapshot:/Gameplay/EP2_Tournament_Locale",
-    "snapshot:/Gameplay/EP2_mx_stinger",
-    "snapshot:/Gameplay/EventBackgroundPopup",
     "snapshot:/Gameplay/GamespeedLowerVolume",
     "snapshot:/Gameplay/LetterPopup",
+    "snapshot:/Gameplay/MX_Stinger",
+    "snapshot:/Gameplay/Mute_bus_events",
     "snapshot:/Gameplay/PanelPopup",
     "snapshot:/Gameplay/WaroverviewWindowSlideup",
     "snapshot:/Gameplay/WindowFullscreenPopUp",
     "snapshot:/Gameplay/WindowSlideup",
-    "snapshot:/Gameplay/mute_bus_events",
     "snapshot:/States/OptionsMenu",
     "snapshot:/States/PauseGame",
     "snapshot:/States/QuitGame",
@@ -761,7 +742,7 @@ pub const SOUNDS_CK3: &[&str] = &[
     "snapshot:/States/mute_frontend_shimmer",
 ];
 
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 pub const COMMON_DIRS: &[&str] = &[
     "common/accolade_icons",
     "common/accolade_names",
@@ -803,6 +784,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/council_tasks",
     "common/court_amenities",
     "common/court_positions/categories",
+    "common/court_positions/tasks",
     "common/court_positions/types",
     "common/court_types",
     "common/courtier_guest_management",
@@ -829,7 +811,9 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/dynasty_legacies",
     "common/dynasty_perks",
     "common/effect_localization",
+    "common/epidemics",
     "common/ethnicities",
+    "common/event_2d_effects",
     "common/event_backgrounds",
     "common/event_themes",
     "common/event_transitions",
@@ -849,6 +833,10 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/landed_titles",
     "common/laws",
     "common/lease_contracts",
+    "common/legends/chronicles",
+    "common/legends/legend_seeds",
+    "common/legends/legend_types",
+    "common/legitimacy",
     "common/lifestyle_perks",
     "common/lifestyles",
     "common/men_at_arms_types",

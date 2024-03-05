@@ -5,7 +5,8 @@ use fnv::FnvHashMap;
 
 use crate::block::{Block, BlockItem, Field, BV};
 use crate::ck3::validate::{
-    validate_theme_background, validate_theme_icon, validate_theme_sound, validate_theme_transition,
+    validate_theme_background, validate_theme_effect_2d, validate_theme_icon, validate_theme_sound,
+    validate_theme_transition,
 };
 use crate::context::{Reason, ScopeContext};
 use crate::data::scripted_effects::Effect;
@@ -359,6 +360,7 @@ impl Event {
             &mut sc,
             validate_theme_transition,
         );
+        vd.multi_field_validated_block_sc("override_effect_2d", &mut sc, validate_theme_effect_2d);
         // Note: override_environment seems to be unused, and themes defined in
         // common/event_themes don't have environments. So I left it out even though
         // it's in the docs.

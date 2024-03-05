@@ -575,6 +575,15 @@ impl Everything {
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitTrack => self.traits.track_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
+            Item::EpidemicType
+            | Item::EventEffect2d
+            | Item::LegendProperty
+            | Item::LegendType
+            | Item::LegendChapter
+            | Item::LegendChronicle
+            | Item::LegendSeed
+            | Item::LegitimacyType
+            | Item::LegitimacyFlag => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
@@ -652,7 +661,7 @@ impl Everything {
             Item::TextFormat => self.gui.textformat_exists(key),
             Item::TextIcon => self.gui.texticon_exists(key),
             Item::TextureFile => self.assets.texture_exists(key),
-            Item::Shortcut => true, // TODO
+            Item::Directory | Item::Shortcut => true, // TODO
             _ => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => self.item_exists_ck3(itype, key),

@@ -3,13 +3,14 @@ use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::{err, ErrorKey};
 use crate::scopes::{ArgumentValue, Scopes};
 use crate::token::Token;
 use crate::trigger::Trigger;
 
 use Trigger::*;
 
-/// LAST UPDATED CK3 VERSION 1.11.3
+/// LAST UPDATED CK3 VERSION 1.12.1
 pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger)> {
     let name_lc = name.as_str().to_lowercase();
 
@@ -41,13 +42,22 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
         data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
         return Some((Scopes::Character, Trigger::CompareValue));
     }
-    if let Some(legacy) = name_lc.strip_suffix("_track_perks") {
-        data.verify_exists_implied(Item::DynastyLegacy, legacy, name);
-        return Some((Scopes::Dynasty, Trigger::CompareValue));
-    }
-    if let Some(lifestyle) = name_lc.strip_suffix("_perks") {
-        data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
-        return Some((Scopes::Character, Trigger::CompareValue));
+    // Either $DYNASTY_LEGACY_TRACK$_perks and $LIFESTYLE$_perks
+    if let Some(part) = name_lc.strip_suffix("_perks") {
+        if data.item_exists(Item::DynastyLegacy, part) {
+            return Some((Scopes::Dynasty, Trigger::CompareValue));
+        }
+        if data.item_exists(Item::Lifestyle, part) {
+            return Some((Scopes::Character, Trigger::CompareValue));
+        }
+        let msg = format!("{part} not found as dynasty legacy or lifestyle");
+        err(ErrorKey::MissingItem).msg(msg).loc(name).push();
+        // Heuristic about which one is likely intended
+        return if part.ends_with("_track") {
+            Some((Scopes::Dynasty, Trigger::CompareValue))
+        } else {
+            Some((Scopes::Character, Trigger::CompareValue))
+        };
     }
     if let Some(lifestyle) = name_lc.strip_suffix("_xp") {
         data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
@@ -64,7 +74,7 @@ static TRIGGER_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::ne
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.11.3
+/// LAST UPDATED CK3 VERSION 1.12.1
 /// See `triggers.log` from the game data dumps
 /// special:
 ///    `<legacy>_track_perks`
@@ -163,6 +173,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Secret, "can_be_exposed_by", Scope(Scopes::Character)),
     (Scopes::LandedTitle, "can_be_leased_out", Boolean),
     (Scopes::Character, "can_be_parent_of", Scope(Scopes::Character)),
+    (Scopes::Character, "can_become_owner_of_legend", Scope(Scopes::Legend)),
     (Scopes::Character, "can_benefit_from_artifact", Scope(Scopes::Artifact)),
     (Scopes::TravelPlan, "can_cancel", Boolean),
     (
@@ -238,13 +249,13 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "character_men_at_arms_expense_prestige_relative", CompareValue),
     (Scopes::Province, "combined_building_level", CompareValue),
     (Scopes::Character, "completely_controls", Scope(Scopes::LandedTitle)),
-    (Scopes::Character, "completely_controls_region", Item(Item::Region)),
+    (Scopes::Character, "completely_controls_region", ScopeOrItem(Scopes::GeographicalRegion, Item::Region)),
     (Scopes::Faith, "controls_holy_site", Item(Item::HolySite)),
     (Scopes::Faith, "controls_holy_site_with_flag", Item(Item::HolySiteFlag)),
     (Scopes::Character, "council_task_monthly_progress", CompareValue),
     (Scopes::LandedTitle, "county_control", CompareValue),
-    (Scopes::LandedTitle, "county_control_rate", CompareValue),
-    (Scopes::LandedTitle, "county_control_rate_modifier", CompareValue),
+    (Scopes::LandedTitle, "county_control_rate", Removed("1.12", "replaced by monthly_county_control_change")),
+    (Scopes::LandedTitle, "county_control_rate_modifier", Removed("1.12", "replaced by monthly_county_control_decline_factor and monthly_county_control_growth_factor")),
     (Scopes::LandedTitle, "county_holder_opinion", CompareValue),
     (Scopes::LandedTitle, "county_opinion", CompareValue),
     (
@@ -275,7 +286,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::Culture, "culture_age", CompareValueWarnEq),
     (Scopes::Culture, "culture_number_of_counties", CompareValue),
-    (Scopes::Culture, "culture_overlaps_geographical_region", Item(Item::Region)),
+    (Scopes::Culture, "culture_overlaps_geographical_region", ScopeOrItem(Scopes::GeographicalRegion, Item::Region)),
     (Scopes::None, "current_computer_date", CompareDate),
     (Scopes::None, "current_computer_date_day", CompareValue),
     (Scopes::None, "current_computer_date_month", CompareValue),
@@ -296,10 +307,15 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "days_of_continuous_peace", CompareValue),
     (Scopes::Character, "days_of_continuous_war", CompareValue),
     (Scopes::Inspiration, "days_since_creation", CompareValue),
+    (Scopes::Legend, "days_since_legend_completion", CompareValue),
+    (Scopes::Legend, "days_since_legend_start_date", CompareValue),
     (Scopes::Character, "days_since_death", CompareValue),
     (Scopes::Character, "days_since_joined_court", CompareValue),
     (Scopes::War, "days_since_max_war_score", CompareValue),
+    (Scopes::Epidemic, "days_since_outbreak_start", CompareValue),
+    (Scopes::Province, "days_since_province_infection", Block(&[("epidemic", Scope(Scopes::Epidemic)), ("value", CompareValue)])),
     (Scopes::Inspiration, "days_since_sponsorship", CompareValue),
+    (Scopes::Character, "days_since_vassal_contract_liege_dynasty_reign_start", CompareValue),
     (Scopes::TravelPlan, "days_travelled", CompareValue),
     (Scopes::GreatHolyWar, "days_until_ghw_launch", CompareValue),
     (
@@ -351,6 +367,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "effective_age", CompareValue),
     (Scopes::Character, "employs_court_position", Item(Item::CourtPosition)),
     (Scopes::Character, "employs_tax_collector", Boolean),
+    (Scopes::Province, "epidemic_resistance", CompareValue),
     (Scopes::Faith, "estimated_faith_strength", CompareValue),
     (Scopes::None, "exists", Special),
     (Scopes::Faction, "faction_can_press_demands", Boolean),
@@ -375,7 +392,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Province, "free_building_slots", CompareValue),
     (Scopes::Culture, "free_tradition_slot", CompareValue),
     (Scopes::None, "game_start_date", CompareDate),
-    (Scopes::Province, "geographical_region", Item(Item::Region)),
+    (Scopes::Province, "geographical_region", ScopeOrItem(Scopes::GeographicalRegion, Item::Region)),
     (Scopes::GreatHolyWar, "ghw_attackers_strength", CompareValue),
     (Scopes::GreatHolyWar, "ghw_defenders_strength", CompareValue),
     (Scopes::GreatHolyWar, "ghw_war_chest_gold", CompareValueWarnEq),
@@ -522,6 +539,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_culture", Scope(Scopes::Culture)),
     (Scopes::Activity, "has_current_phase", Item(Item::ActivityPhase)),
     (Scopes::Character, "has_de_jure_claim_on", Scope(Scopes::Character)),
+    (Scopes::Character, "has_dead_character_flag", UncheckedValue),
+    (Scopes::Character, "has_dead_character_variable", UncheckedValue),
     (Scopes::Character, "has_diarchy_active_parameter", Item(Item::DiarchyParameter)),
     (Scopes::Character, "has_diarchy_parameter", Item(Item::DiarchyParameter)),
     (Scopes::Character, "has_diarchy_type", Item(Item::DiarchyType)),
@@ -615,6 +634,15 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Culture, "has_innovation", Item(Item::Innovation)),
     (Scopes::Culture, "has_innovation_flag", Item(Item::InnovationFlag)),
     (Scopes::Inspiration, "has_inspiration_type", Item(Item::Inspiration)),
+    (Scopes::Legend, "has_legend_chapter", ItemOrBlock(Item::LegendChapter, &[("name", Item(Item::LegendChapter)), ("?localization_key", UncheckedValue)])),
+    (Scopes::Legend, "has_legend_chronicle", Item(Item::LegendChronicle)),
+    (Scopes::Legend, "has_legend_county_modifier", Item(Item::Modifier)),
+    (Scopes::Legend, "has_legend_county_modifier_duration_remaining", UncheckedValue),
+    (Scopes::Legend, "has_legend_owner_modifier", Item(Item::Modifier)),
+    (Scopes::Legend, "has_legend_owner_modifier_duration_remaining", UncheckedValue),
+    (Scopes::Legend, "has_legend_province_modifier", Item(Item::Modifier)),
+    (Scopes::Legend, "has_legend_province_modifier_duration_remaining", UncheckedValue),
+    (Scopes::Character, "has_legitimacy_flag", Item(Item::LegitimacyFlag)),
     (Scopes::Character, "has_lifestyle", Item(Item::Lifestyle)),
     (Scopes::None, "has_local_player_open_court_event", Boolean),
     (Scopes::None, "has_local_player_seen_unopened_court_event", Boolean),
@@ -649,6 +677,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_pending_interaction_of_type", Item(Item::CharacterInteraction)),
     (Scopes::Character, "has_perk", Item(Item::Perk)),
     (Scopes::Character, "has_personal_artifact_claim", Scope(Scopes::Artifact)),
+    (Scopes::Character, "has_personal_legend_seed", ScopeOrItem(Scopes::LegendType, Item::LegendType)),
     (
         Scopes::Activity,
         "has_phase",
@@ -768,7 +797,9 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::TravelPlan, "has_travel_option", Item(Item::TravelOption)),
     (Scopes::TravelPlan, "has_travel_plan_modifier", Item(Item::Modifier)),
+    (Scopes::TravelPlan, "has_travel_plan_modifier_duration_remaining", UncheckedValue),
     (Scopes::Province, "has_travel_point_of_interest", Item(Item::PointOfInterest)),
+    (Scopes::Character, "has_triggered_legend_seed", Item(Item::LegendType)),
     (Scopes::Character, "has_truce", Scope(Scopes::Character)),
     (Scopes::Culture, "has_unit_gfx", Item(Item::UnitGfx)),
     (Scopes::Character, "has_usable_hook", Scope(Scopes::Character)),
@@ -1000,6 +1031,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "is_leader_in_war", Scope(Scopes::War)),
     (Scopes::Character, "is_leading_faction_type", Item(Item::Faction)),
     (Scopes::LandedTitle, "is_leased_out", Boolean),
+    (Scopes::Legend, "is_legend_completed", Boolean),
     (Scopes::Character, "is_liege_or_above_of", Scope(Scopes::Character)),
     (Scopes::Character, "is_local_player", Boolean),
     (Scopes::Character, "is_lowborn", Boolean),
@@ -1035,6 +1067,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Army, "is_raid_army", Boolean),
     (Scopes::Province, "is_raided", Boolean),
     (Scopes::Activity, "is_required_special_guest", Scope(Scopes::Character)),
+    (Scopes::Character, "is_rightful_liege_of", Scope(Scopes::Character)),
     (Scopes::Province, "is_river_province", Boolean),
     (Scopes::LandedTitle, "is_riverside_county", Boolean),
     (Scopes::Province, "is_riverside_province", Boolean),
@@ -1118,6 +1151,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "is_war_overview_tab_open", UncheckedValue), // TODO
     (Scopes::War, "is_white_peace_possible", Boolean),
     (Scopes::None, "is_widget_open", UncheckedValue), // TODO
+    (Scopes::None, "is_widgetid_open", UncheckedValue), // TODO
     (
         Scopes::Character,
         "join_faction_chance",
@@ -1141,6 +1175,12 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "learning_for_portrait", CompareValue),
     (Scopes::Character, "levies_to_liege", CompareValueWarnEq),
     (Scopes::None, "list_size", Block(&[("name", UncheckedValue), ("+value", CompareValue)])),
+    (Scopes::Legend, "legend_completion_date", CompareDate),
+    (Scopes::Legend, "legend_quality", Choice(&["famed", "illustrious", "mythical"])),
+    (Scopes::Legend, "legend_start_date", CompareDate),
+    (Scopes::Character, "legitimacy", CompareValueWarnEq),
+    (Scopes::Character, "legitimacy_level", CompareValue),
+    (Scopes::Character, "levies_to_liege", CompareValue),
     (Scopes::Secret, "local_player_knows_this_secret", Boolean),
     (
         Scopes::None,
@@ -1172,6 +1212,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::Character, "max_number_of_concubines", CompareValue),
     (Scopes::Character, "max_number_of_knights", CompareValue),
+    (Scopes::Character, "meets_legitimacy_expectation_of", Scope(Scopes::Character)),
     (Scopes::CharacterMemory, "memory_age_years", CompareValueWarnEq),
     (Scopes::CharacterMemory, "memory_creation_date", CompareDate),
     (Scopes::CharacterMemory, "memory_end_date", CompareDate),
@@ -1186,6 +1227,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "monthly_character_income_war_chest", CompareValueWarnEq),
     (Scopes::Character, "monthly_character_men_at_arms_expense_gold", CompareValueWarnEq),
     (Scopes::Character, "monthly_character_men_at_arms_expense_prestige", CompareValueWarnEq),
+    (Scopes::LandedTitle, "monthly_county_control_change", CompareValue),
+    (Scopes::LandedTitle, "monthly_county_control_decline", CompareValue),
+    (Scopes::LandedTitle, "monthly_county_control_decline_factor", CompareValue),
+    (Scopes::LandedTitle, "monthly_county_control_growth", CompareValue),
+    (Scopes::LandedTitle, "monthly_county_control_growth_factor", CompareValue),
     (Scopes::Province, "monthly_income", CompareValueWarnEq),
     (Scopes::Character, "months_as_ruler", CompareValueWarnEq),
     (Scopes::Faction, "months_until_max_discontent", CompareValueWarnEq),
@@ -1214,6 +1260,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Province, "num_buildings", CompareValue),
     (Scopes::Faith, "num_character_followers", CompareValue),
     (Scopes::Faith, "num_county_followers", CompareValue),
+    (Scopes::LandedTitle, "num_county_holdings", CompareValue),
     (Scopes::Culture, "num_discovered_innovations", CompareValue),
     (
         Scopes::Culture,
@@ -1230,6 +1277,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "num_of_known_languages", CompareValue),
     (Scopes::TravelPlan, "num_options", CompareValue),
     (Scopes::Activity, "num_past_phases", CompareValue),
+    (Scopes::Character, "num_personal_legend_seeds", CompareValue),
     (Scopes::Activity, "num_phases", CompareValue),
     (
         Scopes::Character,
@@ -1237,6 +1285,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         CompareValueOrBlock(&[("+value", CompareValue), ("faith", Scope(Scopes::Faith))]),
     ),
     (Scopes::Combat, "num_total_troops", CompareValueWarnEq),
+    (Scopes::Character, "num_triggered_legend_seeds", CompareValue),
     (
         Scopes::Character,
         "num_virtuous_traits",
@@ -1322,6 +1371,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("target", Scope(Scopes::Character)), ("+value", CompareValue)]),
     ),
     (Scopes::None, "or", Control),
+    (Scopes::Epidemic, "outbreak_intensity", Choice(&["minor", "major", "apocalyptic"])),
+    (Scopes::Epidemic, "outbreak_start_date", CompareDate),
     (Scopes::Character, "owns_a_story", Boolean),
     (Scopes::Character, "owns_story_of_type", Item(Item::Story)),
     (Scopes::Character, "patrilinear_betrothal", Boolean),
@@ -1353,6 +1404,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "prestige", CompareValueWarnEq),
     (Scopes::Character, "prestige_level", CompareValue),
     (Scopes::Accolade, "primary_tier", CompareValue),
+    (Scopes::Province, "province_infection_date", Block(&[("epidemic", Scope(Scopes::Epidemic)), ("value", CompareDate)])),
+    (Scopes::Province, "province_infection_rate", Block(&[("epidemic", Scope(Scopes::Epidemic)), ("value", CompareValueWarnEq)])),
     (Scopes::Character, "prowess", CompareValue),
     (
         Scopes::Character,
@@ -1551,6 +1604,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Army, "total_army_screen", CompareValue),
     (Scopes::Army, "total_army_siege_value", CompareValue),
     (Scopes::Army, "total_army_toughness", CompareValue),
+    (Scopes::Epidemic, "total_infected_provinces", CompareValueWarnEq),
     (
         Scopes::Character,
         "trait_compatibility",
@@ -1592,6 +1646,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "vassal_contract_has_flag", Item(Item::VassalContractFlag)),
     (Scopes::Character, "vassal_contract_has_modifiable_obligations", Boolean),
     (Scopes::Character, "vassal_contract_is_blocked_from_modification", Boolean),
+    (Scopes::Character, "vassal_contract_liege_dynasty_reign_start_date", CompareDate),
     (
         Scopes::Character,
         "vassal_contract_obligation_level_can_be_decreased",
@@ -1619,6 +1674,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::TravelPlan, "was_activity_invalidated", Boolean),
     (Scopes::War, "was_called", Scope(Scopes::Character)),
     (Scopes::Character, "was_hostage_child", Boolean),
+    (Scopes::Character, "was_preferred_heir", Scope(Scopes::Character)),
     (Scopes::None, "weighted_calc_true_if", Special),
     (Scopes::Character, "year_of_birth", CompareValue),
     (Scopes::Character, "yearly_character_balance", CompareValueWarnEq),
@@ -1655,7 +1711,7 @@ static TRIGGER_COMPLEX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, ArgumentValue
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.11.3
+/// LAST UPDATED CK3 VERSION 1.12.1
 /// See `triggers.log` from the game data dumps
 /// `(inscopes, trigger name, argtype)`
 /// Currently only works with single argument triggers
@@ -1664,9 +1720,16 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue)] = {
     use crate::item::Item;
     use ArgumentValue::*;
     &[
+        (Scopes::Character, "ai_values_divergence", Scope(Scopes::Character)),
+        (Scopes::LandedTitle, "county_opinion_target", Scope(Scopes::Character)),
         (Scopes::Culture, "cultural_acceptance", Scope(Scopes::Culture)),
+        (Scopes::Province, "days_since_province_infection", Scope(Scopes::Epidemic)),
         (Scopes::Faith, "faith_hostility_level", Scope(Scopes::Faith)),
         (Scopes::None, "list_size", UncheckedValue),
+        (Scopes::Character, "morph_gene_value", Item(Item::GeneCategory)),
+        (Scopes::Character, "opinion", Scope(Scopes::Character)),
+        (Scopes::Character, "reverse_opinion", Scope(Scopes::Character)),
+        (Scopes::Character, "trait_compatibility", Scope(Scopes::Character)),
         (Scopes::Province, "travel_danger_value", Scope(Scopes::TravelPlan)),
         (Scopes::Character, "amenity_level", Item(Item::Amenity)),
         // (Scopes::Character, "create_faction_type_chance", Item(Item::Faction), Scope(Scopes::Character)),
@@ -1694,6 +1757,8 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue)] = {
         (Scopes::Character, "number_of_virtue_traits_in_common", Scope(Scopes::Character)),
         (Scopes::Character, "perks_in_tree", Item(Item::PerkTree)),
         (Scopes::Character, "player_heir_position", Scope(Scopes::Character)),
+        (Scopes::Province, "province_infection_date", Scope(Scopes::Epidemic)),
+        (Scopes::Province, "province_infection_rate", Scope(Scopes::Epidemic)),
         (Scopes::Character, "prowess_diff", Scope(Scopes::Character)),
         (Scopes::Character, "realm_to_title_distance_squared", Scope(Scopes::LandedTitle)),
         (Scopes::Character, "stewardship_diff", Scope(Scopes::Character)),
@@ -1708,5 +1773,6 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue)] = {
         // (Scopes::LandedTitle, "title_create_faction_type_chance", Item(Item::Faction), Scope(Scopes::Character)),
         (Scopes::LandedTitle, "title_join_faction_chance", Scope(Scopes::Faction)),
         (Scopes::LandedTitle.union(Scopes::Province), "squared_distance", Scope(Scopes::Province)),
+        (Scopes::War, "war_contribution", Scope(Scopes::Character)),
     ]
 };

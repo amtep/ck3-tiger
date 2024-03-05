@@ -23,7 +23,7 @@ bitflags! {
     ///
     /// The available scope types depend on the game.
     /// They are listed in `event_scopes.log` from the game data dumps.
-    // LAST UPDATED CK3 VERSION 1.11.3
+    // LAST UPDATED CK3 VERSION 1.12.1
     // LAST UPDATED VIC3 VERSION 1.5.3
     // LAST UPDATED IR VERSION 2.0.4
     //
@@ -95,6 +95,12 @@ bitflags! {
         // CK3 1.11
         #[cfg(feature = "ck3")] const HoldingType = 0x0004_0000_0000_0000;
         #[cfg(feature = "ck3")] const TaxSlot = 0x0008_0000_0000_0000;
+        // CK3 1.12
+        #[cfg(feature = "ck3")] const EpidemicType = 0x0010_0000_0000_0000;
+        #[cfg(feature = "ck3")] const Epidemic = 0x0020_0000_0000_0000;
+        #[cfg(feature = "ck3")] const LegendType = 0x0040_0000_0000_0000;
+        #[cfg(feature = "ck3")] const Legend = 0x0080_0000_0000_0000;
+        #[cfg(feature = "ck3")] const GeographicalRegion = 0x0100_0000_0000_0000;
 
         #[cfg(feature = "vic3")] const Battle = 0x0001_0000;
         #[cfg(feature = "vic3")] const BattleSide = 0x0002_0000;

@@ -85,8 +85,7 @@ pub fn validate_compare_duration(block: &Block, data: &Everything, sc: &mut Scop
 
 // Very similar to validate_days_weeks_months_years, but requires = instead of allowing comparators
 // "weeks" is not documented but is used all over vanilla TODO: verify
-pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext) {
-    let mut vd = Validator::new(block, data);
+pub fn validate_mandatory_duration(block: &Block, vd: &mut Validator, sc: &mut ScopeContext) {
     let mut count = 0;
 
     for field in &["days", "weeks", "months", "years"] {
@@ -100,6 +99,11 @@ pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext
         let key = if count == 0 { ErrorKey::FieldMissing } else { ErrorKey::Validation };
         err(key).msg(msg).loc(block).push();
     }
+}
+
+pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    validate_mandatory_duration(block, &mut vd, sc);
 }
 
 // Very similar to validate_duration, but validates part of a block that may contain a duration
@@ -203,8 +207,10 @@ pub fn validate_possibly_named_color(bv: &BV, data: &Everything) {
 }
 
 /// Check some iterator fields *before* the list scope has opened.
+#[allow(unused_variables)] // `name` is only used for ck3
 pub fn precheck_iterator_fields(
     ltype: ListType,
+    name: &str,
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
@@ -238,6 +244,15 @@ pub fn precheck_iterator_fields(
             }
         }
         ListType::Random | ListType::Every | ListType::None => (),
+    }
+
+    #[cfg(feature = "ck3")]
+    if Game::is_ck3() && name == "county_in_region" {
+        for region in block.get_field_values("region") {
+            if !data.item_exists(Item::Region, region.as_str()) {
+                validate_target_ok_this(region, data, sc, Scopes::GeographicalRegion);
+            }
+        }
     }
 }
 
@@ -354,7 +369,7 @@ pub fn validate_inside_iterator(
     if Game::is_ck3() {
         if name == "county_in_region" {
             vd.req_field("region");
-            vd.field_item("region", Item::Region);
+            vd.multi_field_value("region"); // prechecked
         } else {
             vd.ban_field("region", || format!("`{listtype}_county_in_region`"));
         }

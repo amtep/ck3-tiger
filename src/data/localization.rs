@@ -47,7 +47,7 @@ pub struct Localization {
 }
 
 /// List of languages that are supported by the game engine.
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const KNOWN_LANGUAGES: &[&str] = &[
     "english",
@@ -72,7 +72,9 @@ pub const KNOWN_LANGUAGES: &[&str] = &[
 /// This list is used to avoid reporting false positives.
 /// The [`Localization`] module also does a scan of vanilla localization values to see which
 /// all-uppercase keys are used, and adds them to the list here.
-// LAST UPDATED VERSION 1.9.2
+// LAST UPDATED CK3 VERSION 1.9.2
+// TODO: an updated version of this list would be very long and it's not clear what the benefit is,
+// considering that there is also the runtime scan.
 pub const BUILTIN_MACROS: &[&str] = &[
     "ACTION",
     "ACTUAL_NEGATION",
@@ -754,6 +756,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
                             if k.as_str()
                                 .chars()
                                 .all(|c| c.is_uppercase() || c.is_ascii_digit() || c == '_')
+                                && !lang.contains_key(k.as_str())
                             {
                                 builtins.insert(k.as_str());
                             }

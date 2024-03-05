@@ -93,7 +93,7 @@ impl DbKind for Modifier {
     }
 }
 
-// LAST UPDATED CK3 VERSION 1.11.5
+// LAST UPDATED CK3 VERSION 1.12.1
 /// Get the modifier kinds from property name
 /// See `effects.log` from the game data dumps.
 fn get_modif_kinds(name: &str) -> ModifKinds {
@@ -103,6 +103,7 @@ fn get_modif_kinds(name: &str) -> ModifKinds {
         "dynasty_modifier",
         "house_modifier",
         "house_unity_modifier",
+        "legend_owner_modifier",
     ] {
         if name.contains(substr) {
             return ModifKinds::Character;

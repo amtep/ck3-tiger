@@ -242,6 +242,7 @@ pub enum WidgetProperty {
     mask,
     mask_uv_scale,
     max,
+    max_height,
     max_update_rate,
     max_width,
     maxcharacters,
@@ -250,6 +251,7 @@ pub enum WidgetProperty {
     maxverticalslots,
     min,
     min_dist_from_screen_edge,
+    min_height,
     min_width,
     minimumsize,
     mipmaplodbias,
@@ -299,6 +301,7 @@ pub enum WidgetProperty {
     plotpoints,
     points,
     pop_out,
+    pop_out_v,
     portrait_context,
     portrait_offset,
     portrait_scale,
@@ -378,6 +381,7 @@ pub enum WidgetProperty {
     tooltip_parentanchor,
     tooltip_type,
     tooltip_verticalbehavior,
+    tooltip_visible,
     tooltip_widgetanchor,
     tooltipwidget,
     track,
@@ -579,6 +583,7 @@ impl GuiValidation {
             mask => Item(Item::File),
             mask_uv_scale => CVector2f,
             max => NumberOrInt32,
+            max_height => Integer,
             max_update_rate => Integer,
             max_width => Integer,
             maxcharacters => UnsignedInteger,
@@ -587,6 +592,7 @@ impl GuiValidation {
             maxverticalslots => Integer,
             min => NumberOrInt32,
             min_dist_from_screen_edge => Integer,
+            min_height => Integer,
             min_width => Integer,
             minimumsize => TwoNumberOrPercent,
             mipmaplodbias => Integer,
@@ -636,6 +642,7 @@ impl GuiValidation {
             plotpoints => DatatypeExpr,
             points => DatatypeExpr,
             pop_out => Boolean,
+            pop_out_v => Number,
             portrait_context => DatatypeExpr,
             portrait_offset => CVector2f,
             portrait_scale => CVector2f,
@@ -716,6 +723,7 @@ impl GuiValidation {
             tooltip_parentanchor => Align,
             tooltip_type => Choice(&["mouse", "widget"]),
             tooltip_verticalbehavior => Choice(&["mirror", "slide", "flip"]),
+            tooltip_visible => Boolean,
             tooltip_widgetanchor => Align,
             tooltipwidget => Widget,
             track => Widget,
@@ -776,12 +784,17 @@ impl WidgetProperty {
 
             input_action => GameFlags::Vic3,
 
-            invert_reticule_color
-            | keyframe_editor_lane_container
-            | Loop
-            | max_update_rate
-            | min_dist_from_screen_edge
-            | on_keyframe_move
+            invert_reticule_color | keyframe_editor_lane_container | Loop => {
+                GameFlags::Ck3 | GameFlags::Vic3
+            }
+
+            max_height => GameFlags::Ck3,
+
+            max_update_rate | min_dist_from_screen_edge => GameFlags::Ck3 | GameFlags::Vic3,
+
+            min_height => GameFlags::Ck3,
+
+            on_keyframe_move
             | onalt
             | ondefault
             | ondoubleclick
@@ -800,8 +813,11 @@ impl WidgetProperty {
             | timeline_line_direction
             | timeline_line_height
             | timeline_texts
-            | timeline_time_points
-            | video => GameFlags::Ck3 | GameFlags::Vic3,
+            | timeline_time_points => GameFlags::Ck3 | GameFlags::Vic3,
+
+            tooltip_enabled => GameFlags::Vic3 | GameFlags::Imperator,
+            tooltip_visible => GameFlags::Ck3,
+            video => GameFlags::Ck3 | GameFlags::Vic3,
 
             _ => GameFlags::all(),
         }

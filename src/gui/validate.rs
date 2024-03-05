@@ -26,8 +26,13 @@ pub fn validate_property(
     let game = GameFlags::game();
     let gameflags = property.to_game_flags();
     if !gameflags.contains(game) {
-        let msg = format!("{key} is only for {gameflags}");
-        err(ErrorKey::WrongGame).weak().msg(msg).loc(key).push();
+        if property == WidgetProperty::tooltip_enabled {
+            let msg = "tooltip_enabled has been renamed to tooltip_visible";
+            err(ErrorKey::Removed).msg(msg).loc(key).push();
+        } else {
+            let msg = format!("{key} is only for {gameflags}");
+            err(ErrorKey::WrongGame).weak().msg(msg).loc(key).push();
+        }
         return;
     }
     if let Some(container) = container {

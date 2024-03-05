@@ -355,7 +355,7 @@ pub fn validate_effect_field(
                 sc.expect(inscopes, &Reason::Token(key.clone()));
                 let ltype = ListType::try_from(it_type.as_str()).unwrap();
                 if let Some(b) = bv.expect_block() {
-                    precheck_iterator_fields(ltype, b, data, sc);
+                    precheck_iterator_fields(ltype, it_name.as_str(), b, data, sc);
                 }
                 sc.open_scope(outscope, key.clone());
                 if let Some(b) = bv.get_block() {
@@ -467,6 +467,13 @@ pub fn validate_effect_control(
             let msg = "`goto` was removed from interface messages in 1.9";
             warn(ErrorKey::Removed).msg(msg).loc(token).push();
         }
+        // These seem to be scopes to set for the message loca.
+        vd.field_validated_block("localization_values", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_value_fields(|_key, value| {
+                validate_target_ok_this(value, data, sc, Scopes::all());
+            });
+        });
     }
 
     if caller == "while" {

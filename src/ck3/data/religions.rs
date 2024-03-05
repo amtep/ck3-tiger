@@ -385,7 +385,7 @@ impl DbKind for FervorModifier {
     }
 }
 
-// LAST UPDATED VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 // Taken from the Faith.random_ values in `data_types_uncategorized.txt`
 pub const CUSTOM_RELIGION_LOCAS: &[&str] = &[
     "AltPriestTermPlural",
@@ -400,6 +400,7 @@ pub const CUSTOM_RELIGION_LOCAS: &[&str] = &[
     "CreatorName",
     "CreatorNamePossessive",
     "CreatorSheHe",
+    "DeathDeityHerHim",
     "DeathDeityHerHis",
     "DeathDeityName",
     "DeathDeityNamePossessive",

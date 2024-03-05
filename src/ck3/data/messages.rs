@@ -35,6 +35,8 @@ impl DbKind for Message {
         }
         vd.field_choice("style", &["good", "bad", "neutral"]);
 
-        vd.field_list("flags"); // docs say integers but they are text
+        vd.advice_field("flags", "removed in 1.12");
+        vd.multi_field_value("flag");
+        vd.field_bool("combine_into_one");
     }
 }

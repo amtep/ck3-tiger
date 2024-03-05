@@ -263,7 +263,7 @@ pub fn validate_trigger_internal(
                     }
                     sc.expect(inscopes, &Reason::Token(key.clone()));
                     if let Some(b) = bv.expect_block() {
-                        precheck_iterator_fields(ListType::Any, b, data, sc);
+                        precheck_iterator_fields(ListType::Any, it_name.as_str(), b, data, sc);
                         sc.open_scope(outscope, key.clone());
                         side_effects |= validate_trigger_internal(
                             &Lowercase::new(it_name.as_str()),
@@ -976,7 +976,7 @@ fn match_trigger_bv(
             }
             // TODO: time_of_year
         }
-        #[cfg(feature = "vic3")]
+        #[cfg(any(feature = "ck3", feature = "vic3"))]
         Trigger::Removed(msg, info) => {
             err(ErrorKey::Removed).msg(*msg).info(*info).loc(name).push();
         }
@@ -1479,7 +1479,7 @@ pub enum Trigger {
     #[cfg(feature = "ck3")]
     CompareToScope(Scopes),
 
-    #[cfg(feature = "vic3")]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     Removed(&'static str, &'static str),
 
     /// this key opens another trigger block

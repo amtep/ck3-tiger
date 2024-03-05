@@ -28,7 +28,6 @@ impl Suggestion {
 impl DbKind for Suggestion {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_label");
@@ -38,6 +37,7 @@ impl DbKind for Suggestion {
         let loca = format!("{key}_click");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
+        let mut sc = ScopeContext::new(Scopes::Character, key);
         vd.field_validated_block("check_create_suggestion", |block, data| {
             // TODO: "only interface effects are allowed"
             validate_effect(block, data, &mut sc, Tooltipped::No);
@@ -45,22 +45,25 @@ impl DbKind for Suggestion {
 
         vd.field_validated_block("effect", |block, data| {
             let mut sc = sc.clone();
-            // TODO: The scope context will contain all scopes passed in the try_create_important_action call
+            // TODO: The scope context will contain all scopes passed in the try_create_suggestion call
             sc.set_strict_scopes(false);
             // TODO: "only interface effects are allowed"
             validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-
-        vd.field_validated_block("is_valid", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         vd.field_item("soundeffect", Item::Sound);
 
         vd.field_validated_block_sc("weight", &mut sc, validate_modifiers_with_base);
 
-        // TODO: The scope context will contain all scopes passed in the try_create_important_action call
+        // TODO: The scope context will contain all scopes passed in the try_create_suggestion call
+        let mut sc = ScopeContext::new(Scopes::Character, key);
         sc.set_strict_scopes(false);
         vd.field_validated_block_sc("score", &mut sc, validate_modifiers_with_base);
+
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.set_strict_scopes(false); // same as above
+        vd.field_validated_block("is_valid", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
     }
 }

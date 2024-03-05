@@ -13,12 +13,20 @@ use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
 /// Returns None otherwise.
-// LAST UPDATED CK3 VERSION 1.11.3
+// LAST UPDATED CK3 VERSION 1.12.1
 pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> Option<ModifKinds> {
     let name_lc = name.as_str().to_lowercase();
 
     if let result @ Some(_) = MODIF_MAP.get(&*name_lc).copied() {
         return result;
+    }
+
+    if let Some(info) = MODIF_REMOVED_MAP.get(&*name_lc).copied() {
+        if let Some(sev) = warn {
+            let msg = format!("{name} has been removed");
+            report(ErrorKey::Removed, sev).msg(msg).info(info).loc(name).push();
+        }
+        return Some(ModifKinds::all());
     }
 
     // Look up generated modifs, in a careful order because of possibly overlapping suffixes.
@@ -314,7 +322,7 @@ static MODIF_MAP: Lazy<FnvHashMap<&'static str, ModifKinds>> = Lazy::new(|| {
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.11.3
+/// LAST UPDATED CK3 VERSION 1.12.1
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, ModifKinds)] = &[
@@ -326,6 +334,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ),
     ("advantage", ModifKinds::Character),
     ("advantage_against_coreligionists", ModifKinds::Character),
+    ("adult_health", ModifKinds::Character),
     ("ai_amenity_spending", ModifKinds::Character),
     ("ai_amenity_target_baseline", ModifKinds::Character),
     ("ai_boldness", ModifKinds::Character),
@@ -374,6 +383,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("character_travel_speed", ModifKinds::Character),
     ("character_travel_speed_mult", ModifKinds::Character),
     ("child_except_player_heir_opinion", ModifKinds::Character),
+    ("child_health", ModifKinds::Character),
     ("child_opinion", ModifKinds::Character),
     ("clergy_opinion", ModifKinds::Character),
     ("close_relative_opinion", ModifKinds::Character),
@@ -382,7 +392,10 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("councillor_opinion", ModifKinds::Character),
     ("counter_efficiency", ModifKinds::Character.union(ModifKinds::Terrain)),
     ("counter_resistance", ModifKinds::Character.union(ModifKinds::Terrain)),
-    ("county_opinion_add", ModifKinds::Character.union(ModifKinds::County)),
+    (
+        "county_opinion_add",
+        ModifKinds::Character.union(ModifKinds::County).union(ModifKinds::Province),
+    ),
     ("county_opinion_add_even_if_baron", ModifKinds::Character),
     ("court_grandeur_baseline_add", ModifKinds::Character),
     ("courtier_and_guest_opinion", ModifKinds::Character),
@@ -402,6 +415,14 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
     ),
     ("defender_winter_advantage", ModifKinds::Province),
+    (
+        "development_decline",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "development_decline_factor",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
     (
         "development_growth",
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
@@ -439,6 +460,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("dread_per_tyranny_mult", ModifKinds::Character),
     ("dynasty_house_opinion", ModifKinds::Character),
     ("dynasty_opinion", ModifKinds::Character),
+    ("elderly_health", ModifKinds::Character),
     ("eligible_child_except_player_heir_opinion", ModifKinds::Character),
     ("eligible_child_opinion", ModifKinds::Character),
     ("embarkation_cost_mult", ModifKinds::Character),
@@ -446,6 +468,14 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("enemy_hostile_scheme_success_chance_add", ModifKinds::Character),
     ("enemy_personal_scheme_success_chance_add", ModifKinds::Character),
     ("enemy_terrain_advantage", ModifKinds::Character),
+    (
+        "epidemic_resistance",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "epidemic_travel_danger",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
     ("faith_conversion_piety_cost_add", ModifKinds::Character),
     ("faith_conversion_piety_cost_mult", ModifKinds::Character),
     ("faith_creation_piety_cost_add", ModifKinds::Character),
@@ -524,6 +554,9 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("learning_scheme_power", ModifKinds::Character),
     ("learning_scheme_resistance", ModifKinds::Character),
     ("led_by_owner_extra_advantage_add", ModifKinds::Character),
+    ("legitimacy_baseline_add", ModifKinds::Character),
+    ("legitimacy_gain_mult", ModifKinds::Character),
+    ("legitimacy_loss_mult", ModifKinds::Character),
     ("levy_attack", ModifKinds::Character),
     ("levy_maintenance", ModifKinds::Character),
     ("levy_pursuit", ModifKinds::Character),
@@ -577,23 +610,41 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("mercenary_hire_cost_mult", ModifKinds::Character),
     ("min_combat_roll", ModifKinds::Character),
     (
-        "monthly_county_control_change_add",
+        "monthly_county_control_decline_add",
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
     ),
-    ("monthly_county_control_change_add_even_if_baron", ModifKinds::Character),
+    ("monthly_county_control_decline_add_even_if_baron", ModifKinds::Character),
     (
-        "monthly_county_control_change_at_war_add",
-        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
-    ),
-    (
-        "monthly_county_control_change_at_war_mult",
+        "monthly_county_control_decline_at_war_add",
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
     ),
     (
-        "monthly_county_control_change_factor",
+        "monthly_county_control_decline_at_war_factor",
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
     ),
-    ("monthly_county_control_change_factor_even_if_baron", ModifKinds::Character),
+    (
+        "monthly_county_control_decline_factor",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("monthly_county_control_decline_factor_even_if_baron", ModifKinds::Character),
+    (
+        "monthly_county_control_growth_add",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("monthly_county_control_growth_add_even_if_baron", ModifKinds::Character),
+    (
+        "monthly_county_control_growth_at_war_add",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "monthly_county_control_growth_at_war_factor",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    (
+        "monthly_county_control_growth_factor",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
+    ("monthly_county_control_growth_factor_even_if_baron", ModifKinds::Character),
     ("monthly_court_grandeur_change_add", ModifKinds::Character),
     ("monthly_court_grandeur_change_mult", ModifKinds::Character),
     ("monthly_dread", ModifKinds::Character),
@@ -603,6 +654,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("monthly_income_mult", ModifKinds::Character),
     ("monthly_income_per_stress_level_add", ModifKinds::Character),
     ("monthly_income_per_stress_level_mult", ModifKinds::Character),
+    ("monthly_legitimacy_add", ModifKinds::Character),
     ("monthly_lifestyle_xp_gain_mult", ModifKinds::Character),
     ("monthly_piety", ModifKinds::Character),
     ("monthly_piety_from_buildings_mult", ModifKinds::Character),
@@ -611,6 +663,8 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("monthly_piety_gain_per_dread_mult", ModifKinds::Character),
     ("monthly_piety_gain_per_happy_powerful_vassal_add", ModifKinds::Character),
     ("monthly_piety_gain_per_happy_powerful_vassal_mult", ModifKinds::Character),
+    ("monthly_piety_gain_per_legitimacy_level_add", ModifKinds::Character),
+    ("monthly_piety_gain_per_legitimacy_level_mult", ModifKinds::Character),
     ("monthly_piety_gain_per_knight_add", ModifKinds::Character),
     ("monthly_piety_gain_per_knight_mult", ModifKinds::Character),
     ("monthly_prestige", ModifKinds::Character),
@@ -620,6 +674,8 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("monthly_prestige_gain_per_dread_mult", ModifKinds::Character),
     ("monthly_prestige_gain_per_happy_powerful_vassal_add", ModifKinds::Character),
     ("monthly_prestige_gain_per_happy_powerful_vassal_mult", ModifKinds::Character),
+    ("monthly_prestige_gain_per_legitimacy_level_add", ModifKinds::Character),
+    ("monthly_prestige_gain_per_legitimacy_level_mult", ModifKinds::Character),
     ("monthly_prestige_gain_per_knight_add", ModifKinds::Character),
     ("monthly_prestige_gain_per_knight_mult", ModifKinds::Character),
     ("monthly_tyranny", ModifKinds::Character),
@@ -652,6 +708,8 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("opinion_of_same_faith", ModifKinds::Character),
     ("opinion_of_vassal", ModifKinds::Character),
     ("owned_hostile_scheme_success_chance_add", ModifKinds::Character),
+    ("owned_legend_spread_add", ModifKinds::Character),
+    ("owned_legend_spread_mult", ModifKinds::Character),
     ("owned_personal_scheme_success_chance_add", ModifKinds::Character),
     ("owned_scheme_secrecy_add", ModifKinds::Character),
     ("personal_scheme_power_add", ModifKinds::Character),
@@ -763,7 +821,7 @@ static SPECIAL_MODIF_LOC_MAP: Lazy<FnvHashMap<&'static str, &'static str>> = Laz
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.11.4
+/// LAST UPDATED CK3 VERSION 1.12.1
 /// Special cases for static modifs defined in `modifiers/modifiers_l_english.yml`
 const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[
     // Negate penalty
@@ -805,25 +863,32 @@ const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[
     // Building Slot
     ("building_slot_add", "MOD_NUM_BUILDING_SLOTS"),
     // County
+    ("development_decline_factor", "MOD_MONTHLY_DEVELOPMENT_DECLINE_FACTOR"),
+    ("development_decline", "MOD_MONTHLY_DEVELOPMENT_DECLINE"),
     ("development_growth_factor", "MOD_MONTHLY_DEVELOPMENT_GROWTH_FACTOR"),
     ("development_growth", "MOD_MONTHLY_DEVELOPMENT_GROWTH"),
     (
         "character_capital_county_monthly_development_growth_add",
         "MOD_CHARACTER_CAPITAL_MONTHLY_DEVELOPMENT_GROWTH_ADD",
     ),
-    ("monthly_county_control_change_add", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH"),
-    ("monthly_county_control_change_factor", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_FACTOR"),
+    ("monthly_county_control_decline_add", "MOD_MONTHLY_COUNTY_CONTROL_DECLINE"),
+    ("monthly_county_control_growth_add", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH"),
     (
-        "monthly_county_control_change_add_even_if_baron",
+        "monthly_county_control_decline_add_even_if_baron",
+        "MOD_MONTHLY_COUNTY_CONTROL_DECLINE_EVEN_IF_BARON",
+    ),
+    (
+        "monthly_county_control_growth_add_even_if_baron",
         "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_EVEN_IF_BARON",
     ),
+    ("monthly_county_control_decline_at_war_add", "MOD_MONTHLY_COUNTY_CONTROL_DECLINE_AT_WAR"),
+    ("monthly_county_control_growth_at_war_add", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_AT_WAR"),
     (
-        "monthly_county_control_change_factor_even_if_baron",
-        "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_FACTOR_EVEN_IF_BARON",
+        "monthly_county_control_decline_at_war_factor",
+        "MOD_MONTHLY_COUNTY_CONTROL_DECLINE_FACTOR_AT_WAR",
     ),
-    ("monthly_county_control_change_at_war_add", "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_AT_WAR"),
     (
-        "monthly_county_control_change_at_war_mult",
+        "monthly_county_control_growth_at_war_factor",
         "MOD_MONTHLY_COUNTY_CONTROL_GROWTH_FACTOR_AT_WAR",
     ),
     ("different_faith_county_opinion_mult", "MOD_COUNTY_OPINION_DIFFERENT_FAITH_MULT"),
@@ -840,4 +905,21 @@ const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[
     ("court_grandeur_baseline_add", "MOD_COURT_GRANDEUR_BASELINE"),
     // Tax Slot
     ("tax_slot_add", "MOD_NUM_TAX_SLOTS"),
+];
+
+static MODIF_REMOVED_MAP: Lazy<FnvHashMap<&'static str, &'static str>> = Lazy::new(|| {
+    let mut hash = FnvHashMap::default();
+    for (s, info) in MODIF_REMOVED_TABLE.iter().copied() {
+        hash.insert(s, info);
+    }
+    hash
+});
+
+const MODIF_REMOVED_TABLE: &[(&str, &str)] = &[
+    ("monthly_county_control_change_add_even_if_baron", "replaced with monthly_county_control_decline_add_even_if_baron and monthly_county_control_growth_add_even_if_baron"),
+    ("monthly_county_control_change_factor_even_if_baron", "replaced with monthly_county_control_decline_factor_even_if_baron and monthly_county_control_growth_factor_even_if_baron"),
+    ("monthly_county_control_change_add", "replaced with monthly_county_control_decline_add and monthly_county_control_growth_add"),
+    ("monthly_county_control_change_factor", "replaced with monthly_county_control_decline_factor and monthly_county_control_growth_factor"),
+    ("monthly_county_control_change_at_war_add", "replaced with monthly_county_control_decline_at_war_add and monthly_county_control_growth_at_war_add"),
+    ("monthly_county_control_change_at_war_mult", "replaced with monthly_county_control_decline_at_war_factor and monthly_county_control_growth_at_war_factor"),
 ];

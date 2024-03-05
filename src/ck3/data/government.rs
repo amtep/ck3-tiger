@@ -132,5 +132,6 @@ fn validate_ai(block: &Block, data: &Everything) {
     vd.field_bool("use_goals");
     vd.field_bool("use_decisions");
     vd.field_bool("use_scripted_guis");
+    vd.field_bool("use_legends");
     vd.field_bool("perform_religious_reformation");
 }

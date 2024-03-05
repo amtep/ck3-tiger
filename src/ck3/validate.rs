@@ -72,6 +72,17 @@ pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut Scop
     }
 }
 
+pub fn validate_theme_effect_2d(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+
+    vd.field_validated_block("trigger", |b, data| {
+        validate_trigger(b, data, sc, Tooltipped::No);
+    });
+    if let Some(token) = vd.field_value("reference") {
+        data.verify_exists(Item::EventEffect2d, token);
+    }
+}
+
 /// Camera colors must be hsv, and value can be > 1
 pub fn validate_camera_color(block: &Block, data: &Everything) {
     let mut count = 0;

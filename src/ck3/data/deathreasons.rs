@@ -30,7 +30,7 @@ impl DbKind for DeathReason {
         let mut sc = ScopeContext::new(Scopes::Character, key);
 
         vd.field_bool("public_knowledge");
-        vd.field_bool("natural");
+        vd.advice_field("natural", "removed in 1.12");
         vd.field_integer("priority");
         vd.field_bool("default");
 
@@ -55,5 +55,6 @@ impl DbKind for DeathReason {
         });
 
         vd.field_item("use_equipped_artifact_in_slot", Item::ArtifactSlot);
+        vd.field_item("epidemic", Item::EpidemicType);
     }
 }

@@ -58,8 +58,8 @@ fn main() -> Result<()> {
             .map_err(|_| eprintln!("Failed to enable ANSI support for Windows10 users. Continuing probably without colored output."));
     }
 
-    // LAST UPDATED VERSION 1.11.5
-    eprintln!("This validator was made for Crusader Kings version 1.11.5 (Peacock).");
+    // LAST UPDATED CK3 VERSION 1.12.1
+    eprintln!("This validator was made for Crusader Kings version 1.12.1 (Scythe).");
     eprintln!("If you are using a newer version of Crusader Kings, it may be inaccurate.");
     eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
 

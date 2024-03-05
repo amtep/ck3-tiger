@@ -29,11 +29,15 @@ impl DbKind for ScriptedIllustration {
         // TODO: validate the call from gui
         let mut sc = ScopeContext::new(Scopes::all(), key);
 
+        vd.field_item("folder", Item::Directory);
+        let folder =
+            block.get_field_value("folder").map_or("gfx/interface/illustrations", Token::as_str);
+
         vd.multi_field_validated("texture", |bv, data| match bv {
-            BV::Value(token) => validate_texture(key, ValueValidator::new(token, data)),
+            BV::Value(token) => ValueValidator::new(token, data).dir_file(folder),
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
-                vd.field_validated_value("reference", validate_texture);
+                vd.field_validated_value("reference", |_key, mut vd| vd.dir_file(folder));
                 vd.field_validated_block("trigger", |block, data| {
                     validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
@@ -49,8 +53,4 @@ impl DbKind for ScriptedIllustration {
             });
         });
     }
-}
-
-fn validate_texture(_key: &Token, mut vd: ValueValidator) {
-    vd.dir_file("gfx/interface/illustrations");
 }

@@ -29,8 +29,11 @@ static ERRORS: Lazy<Mutex<Errors>> = Lazy::new(|| Mutex::new(Errors::default()))
 pub struct Errors {
     pub(crate) output: RefCell<Box<dyn Write + Send>>,
 
-    /// Extra loaded mods' error tags
+    /// Extra loaded mods' error tags.
     pub(crate) loaded_mods_labels: Vec<String>,
+
+    /// Loaded DLCs' error tags.
+    pub(crate) loaded_dlcs_labels: Vec<String>,
 
     /// Files that have been read in to get the lines where errors occurred.
     /// Cached here to avoid duplicate I/O and UTF-8 parsing.
@@ -52,6 +55,7 @@ impl Default for Errors {
         Errors {
             output: RefCell::new(Box::new(stdout())),
             loaded_mods_labels: Vec::default(),
+            loaded_dlcs_labels: Vec::default(),
             filecache: FnvHashMap::default(),
             filter: ReportFilter::default(),
             styles: OutputStyle::default(),
@@ -201,6 +205,13 @@ impl Errors {
 pub fn add_loaded_mod_root(label: String) {
     let mut errors = Errors::get_mut();
     errors.loaded_mods_labels.push(label);
+}
+
+/// Record a DLC directory from the vanilla installation.
+/// `label` is what it should be called in the error reports.
+pub fn add_loaded_dlc_root(label: String) {
+    let mut errors = Errors::get_mut();
+    errors.loaded_dlcs_labels.push(label);
 }
 
 /// Configure the error reports to be written to this file instead of to stdout.

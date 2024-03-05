@@ -2,7 +2,8 @@ use std::sync::RwLock;
 
 use crate::block::Block;
 use crate::ck3::validate::{
-    validate_theme_background, validate_theme_icon, validate_theme_sound, validate_theme_transition,
+    validate_theme_background, validate_theme_effect_2d, validate_theme_icon, validate_theme_sound,
+    validate_theme_transition,
 };
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
@@ -68,8 +69,8 @@ impl DbKind for EventTheme {
         vd.multi_field_validated_sc("background", sc, validate_theme_background);
         vd.multi_field_validated_block_sc("icon", sc, validate_theme_icon);
         vd.multi_field_validated_block_sc("sound", sc, validate_theme_sound);
-        // `transition` is not documented but presumably works the same way
         vd.multi_field_validated_block_sc("transition", sc, validate_theme_transition);
+        vd.multi_field_validated_block_sc("effect_2d", sc, validate_theme_effect_2d);
     }
 }
 
