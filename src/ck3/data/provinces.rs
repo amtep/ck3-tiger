@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use bitvec::BitArr;
+use bitvec::bitbox;
+use bitvec::boxed::BitBox;
 use fnv::{FnvHashMap, FnvHashSet};
 use image::{DynamicImage, Rgb};
 
@@ -17,8 +18,14 @@ use crate::token::{Loc, Token};
 pub type ProvId = u32;
 
 const COLOUR_COUNT: usize = 256 * 256 * 256;
-#[derive(Clone, Copy, Debug, Default)]
-struct ColorBitArray(BitArr!(for COLOUR_COUNT));
+#[derive(Clone, Debug)]
+struct ColorBitArray(BitBox);
+
+impl Default for ColorBitArray {
+    fn default() -> Self {
+        Self(bitbox![0; COLOUR_COUNT])
+    }
+}
 
 impl ColorBitArray {
     fn get_index(color: Rgb<u8>) -> usize {
@@ -36,7 +43,7 @@ impl ColorBitArray {
 }
 
 impl std::ops::Deref for ColorBitArray {
-    type Target = BitArr!(for COLOUR_COUNT);
+    type Target = BitBox;
 
     fn deref(&self) -> &Self::Target {
         &self.0
