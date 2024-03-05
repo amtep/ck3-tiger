@@ -544,7 +544,4 @@ pub const ON_ACTION_SCOPES: &str = "
 		imprisoner = character
 		reason = flag
 	}
-    funeral_wake_pulse = {
-        root = character
-    }
 ";

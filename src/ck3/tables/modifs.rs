@@ -613,6 +613,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
         "monthly_county_control_decline_add",
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
     ),
+    ("monthly_county_control_decline_add_even_if_baron", ModifKinds::Character),
     (
         "monthly_county_control_decline_at_war_add",
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
@@ -622,13 +623,15 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
     ),
     (
-        "monthly_county_control_growth_factor",
+        "monthly_county_control_decline_factor",
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
     ),
+    ("monthly_county_control_decline_factor_even_if_baron", ModifKinds::Character),
     (
         "monthly_county_control_growth_add",
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
     ),
+    ("monthly_county_control_growth_add_even_if_baron", ModifKinds::Character),
     (
         "monthly_county_control_growth_at_war_add",
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
@@ -638,13 +641,9 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
     ),
     (
-        "monthly_county_control_change_factor",
+        "monthly_county_control_growth_factor",
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
     ),
-    ("monthly_county_control_change_factor_even_if_baron", ModifKinds::Character),
-    ("monthly_county_control_decline_add_even_if_baron", ModifKinds::Character),
-    ("monthly_county_control_decline_factor_even_if_baron", ModifKinds::Character),
-    ("monthly_county_control_growth_add_even_if_baron", ModifKinds::Character),
     ("monthly_county_control_growth_factor_even_if_baron", ModifKinds::Character),
     ("monthly_court_grandeur_change_add", ModifKinds::Character),
     ("monthly_court_grandeur_change_mult", ModifKinds::Character),

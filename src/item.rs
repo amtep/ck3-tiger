@@ -225,7 +225,6 @@ pub enum Item {
     #[cfg(feature = "ck3")] Faction,
     #[cfg(feature = "ck3")] Faith,
     #[cfg(feature = "ck3")] FaithIcon,
-    #[cfg(feature = "ck3")] FaithParameter,
     #[cfg(feature = "ck3")] FervorModifier,
     #[cfg(feature = "ck3")] Flavorization,
     #[cfg(feature = "ck3")] Focus,
@@ -254,8 +253,10 @@ pub enum Item {
     #[cfg(feature = "ck3")] LegendChapter,
     #[cfg(feature = "ck3")] LegendChronicle,
     #[cfg(feature = "ck3")] LegendProperty,
+    #[cfg(feature = "ck3")] LegendSeed,
     #[cfg(feature = "ck3")] LegendType,
     #[cfg(feature = "ck3")] LegitimacyFlag,
+    #[cfg(feature = "ck3")] LegitimacyType,
     #[cfg(feature = "ck3")] Lifestyle,
     #[cfg(feature = "ck3")] MartialCustom,
     #[cfg(feature = "ck3")] MemoryCategory,
@@ -791,8 +792,6 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::FaithIcon => "common/religion/religions/",
             #[cfg(feature = "ck3")]
-            Item::FaithParameter => "common/religion/religions/",
-            #[cfg(feature = "ck3")]
             Item::FervorModifier => "common/religion/fervor_modifiers/",
             #[cfg(feature = "ck3")]
             Item::Faction => "common/factions/",
@@ -851,9 +850,13 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::LegendProperty => "common/legends/chronicles/",
             #[cfg(feature = "ck3")]
+            Item::LegendSeed => "common/legends/legend_seeds/",
+            #[cfg(feature = "ck3")]
             Item::LegendType => "common/legends/legend_types/",
             #[cfg(feature = "ck3")]
             Item::LegitimacyFlag => "common/legitimacy/",
+            #[cfg(feature = "ck3")]
+            Item::LegitimacyType => "common/legitimacy/",
             #[cfg(feature = "ck3")]
             Item::Lifestyle => "common/lifestyles/",
             #[cfg(feature = "ck3")]

@@ -577,11 +577,12 @@ impl Everything {
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
             Item::EpidemicType
             | Item::EventEffect2d
-            | Item::FaithParameter
             | Item::LegendProperty
             | Item::LegendType
             | Item::LegendChapter
             | Item::LegendChronicle
+            | Item::LegendSeed
+            | Item::LegitimacyType
             | Item::LegitimacyFlag => true, // TODO
             _ => self.database.exists(itype, key),
         }

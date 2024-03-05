@@ -144,7 +144,7 @@ impl DbKind for Building {
         vd.multi_field_validated_block("character_faith_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("parameter");
-            vd.field_item("parameter", Item::FaithParameter);
+            vd.field_item("parameter", Item::DoctrineParameter);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
 
@@ -161,7 +161,7 @@ impl DbKind for Building {
         vd.multi_field_validated_block("province_faith_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("parameter");
-            vd.field_item("parameter", Item::FaithParameter);
+            vd.field_item("parameter", Item::DoctrineParameter);
             validate_modifs(block, data, ModifKinds::Province, vd);
         });
         vd.multi_field_validated_block("province_terrain_modifier", |block, data| {
@@ -191,7 +191,7 @@ impl DbKind for Building {
         vd.multi_field_validated_block("county_faith_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.req_field("parameter");
-            vd.field_item("parameter", Item::FaithParameter);
+            vd.field_item("parameter", Item::DoctrineParameter);
             validate_modifs(block, data, ModifKinds::County, vd);
         });
 
@@ -215,7 +215,7 @@ impl DbKind for Building {
                     |block, data| {
                         let mut vd = Validator::new(block, data);
                         vd.req_field("parameter");
-                        vd.field_item("parameter", Item::FaithParameter);
+                        vd.field_item("parameter", Item::DoctrineParameter);
                         validate_modifs(block, data, ModifKinds::County, vd);
                     },
                 );
