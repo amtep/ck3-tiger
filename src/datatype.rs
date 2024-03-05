@@ -727,7 +727,7 @@ pub fn validate_datatypes(
     }
 }
 
-fn global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
+fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
     let global_promotes_map = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => &crate::ck3::tables::datafunctions::GLOBAL_PROMOTES_MAP,
@@ -736,11 +736,8 @@ fn global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
         #[cfg(feature = "imperator")]
         Game::Imperator => &crate::imperator::tables::datafunctions::GLOBAL_PROMOTES_MAP,
     };
-    global_promotes_map.get(lookup_name).copied()
-}
 
-fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
-    if let result @ Some(_) = global_promote(lookup_name) {
+    if let result @ Some(_) = global_promotes_map.get(lookup_name).copied() {
         return result;
     }
 
@@ -752,7 +749,7 @@ fn lookup_global_promote(lookup_name: &str) -> Option<(Args, Datatype)> {
     None
 }
 
-fn global_function(lookup_name: &str) -> Option<(Args, Datatype)> {
+fn lookup_global_function(lookup_name: &str) -> Option<(Args, Datatype)> {
     let global_functions_map = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => &crate::ck3::tables::datafunctions::GLOBAL_FUNCTIONS_MAP,
@@ -762,11 +759,6 @@ fn global_function(lookup_name: &str) -> Option<(Args, Datatype)> {
         Game::Imperator => &crate::imperator::tables::datafunctions::GLOBAL_FUNCTIONS_MAP,
     };
     global_functions_map.get(lookup_name).copied()
-}
-
-#[inline]
-fn lookup_global_function(lookup_name: &str) -> Option<(Args, Datatype)> {
-    global_function(lookup_name)
 }
 
 fn lookup_promote_or_function(ltype: Datatype, vec: &[(Datatype, Args, Datatype)]) -> LookupResult {
@@ -799,7 +791,7 @@ fn lookup_promote_or_function(ltype: Datatype, vec: &[(Datatype, Args, Datatype)
     }
 }
 
-fn promote(lookup_name: &str) -> Option<&Vec<(Datatype, Args, Datatype)>> {
+fn lookup_promote(lookup_name: &str, ltype: Datatype) -> LookupResult {
     let promotes_map = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => &crate::ck3::tables::datafunctions::PROMOTES_MAP,
@@ -808,15 +800,13 @@ fn promote(lookup_name: &str) -> Option<&Vec<(Datatype, Args, Datatype)>> {
         #[cfg(feature = "imperator")]
         Game::Imperator => &crate::imperator::tables::datafunctions::PROMOTES_MAP,
     };
-    promotes_map.get(lookup_name)
+
+    promotes_map
+        .get(lookup_name)
+        .map_or(LookupResult::NotFound, |x| lookup_promote_or_function(ltype, x))
 }
 
-fn lookup_promote(lookup_name: &str, ltype: Datatype) -> LookupResult {
-    let result = promote(lookup_name);
-    result.map_or(LookupResult::NotFound, |x| lookup_promote_or_function(ltype, x))
-}
-
-fn function(lookup_name: &str) -> Option<&Vec<(Datatype, Args, Datatype)>> {
+fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {
     let functions_map = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => &crate::ck3::tables::datafunctions::FUNCTIONS_MAP,
@@ -825,12 +815,10 @@ fn function(lookup_name: &str) -> Option<&Vec<(Datatype, Args, Datatype)>> {
         #[cfg(feature = "imperator")]
         Game::Imperator => &crate::imperator::tables::datafunctions::FUNCTIONS_MAP,
     };
-    functions_map.get(lookup_name)
-}
 
-fn lookup_function(lookup_name: &str, ltype: Datatype) -> LookupResult {
-    let result = function(lookup_name);
-    result.map_or(LookupResult::NotFound, |x| lookup_promote_or_function(ltype, x))
+    functions_map
+        .get(lookup_name)
+        .map_or(LookupResult::NotFound, |x| lookup_promote_or_function(ltype, x))
 }
 
 pub struct CaseInsensitiveStr(pub(crate) &'static str);

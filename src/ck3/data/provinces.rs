@@ -18,6 +18,7 @@ use crate::token::{Loc, Token};
 pub type ProvId = u32;
 
 const COLOUR_COUNT: usize = 256 * 256 * 256;
+
 #[derive(Clone, Debug)]
 struct ColorBitArray(BitBox);
 
