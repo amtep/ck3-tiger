@@ -680,7 +680,12 @@ pub fn validate_datatypes(
         // TODO: vic3 docs say that `Localize` can take a `CustomLocalization` as well
         if code.name.is("Localize") && code.arguments.len() == 1 {
             if let CodeArg::Literal(ref token) = code.arguments[0] {
-                data.verify_exists(Item::Localization, token);
+                // The is_ascii check is to weed out some localizations (looking at you, Russian)
+                // that do a lot of Localize on already localized strings. There's no reason for
+                // it, but I guess it makes them happy.
+                if token.as_str().is_ascii() {
+                    data.localization.verify_exists_lang(token, lang);
+                }
             }
         }
 
