@@ -642,7 +642,7 @@ impl GuiValidation {
             plotpoints => DatatypeExpr,
             points => DatatypeExpr,
             pop_out => Boolean,
-            pop_out_v => Number,
+            pop_out_v => NumberOrInt32,
             portrait_context => DatatypeExpr,
             portrait_offset => CVector2f,
             portrait_scale => CVector2f,
