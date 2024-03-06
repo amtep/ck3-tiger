@@ -661,6 +661,7 @@ impl Everything {
             Item::TextFormat => self.gui.textformat_exists(key),
             Item::TextIcon => self.gui.texticon_exists(key),
             Item::TextureFile => self.assets.texture_exists(key),
+            Item::WidgetName => self.gui.name_exists(key),
             Item::Directory | Item::Shortcut => true, // TODO
             _ => match Game::game() {
                 #[cfg(feature = "ck3")]
@@ -917,6 +918,7 @@ impl Everything {
             Item::TextFormat => Box::new(self.gui.iter_textformat_keys()),
             Item::TextIcon => Box::new(self.gui.iter_texticon_keys()),
             Item::TextureFile => Box::new(self.assets.iter_texture_keys()),
+            Item::WidgetName => Box::new(self.gui.iter_names()),
             _ => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => self.iter_keys_ck3(itype),
