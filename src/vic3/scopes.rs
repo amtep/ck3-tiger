@@ -741,7 +741,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         ),
         (Scopes::Country, "num_pending_events", Scopes::Value, Item(Item::EventCategory)),
         (Scopes::Country, "num_shared_rivals", Scopes::Value, Scope(Scopes::Country)),
-        (Scopes::Front, "num_total_battalions", Scopes::Value, Item(Item::EventCategory)),
+        (Scopes::Front, "num_total_battalions", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::None, "p", Scopes::Province, Item(Item::Province)),
         (Scopes::None, "pop_type", Scopes::PopType, Item(Item::PopType)),
         (Scopes::Country, "py", Scopes::Party, Item(Item::Party)),
