@@ -23,7 +23,7 @@ impl GameRule {
     }
 }
 
-/// LAST UPDATED VIC3 VERSION 1.3.6
+/// LAST UPDATED VIC3 VERSION 1.6.0
 /// Taken from `common/game_rules/_game_rules.info`
 const SIMPLE_GAME_RULE_FLAGS: &[&str] = &[
     "blocks_achievements",

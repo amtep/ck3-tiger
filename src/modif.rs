@@ -25,7 +25,7 @@ bitflags! {
     /// in most places; for example you can add Building and Unit modifiers to a State.
     /// For Imperator it is not yet known how important this is.
     // LAST UPDATED CK3 1.11.3
-    // LAST UPDATED VIC3 1.3.6
+    // LAST UPDATED VIC3 1.6.0
     // LAST UPDATED IMPERATOR 2.0.4
     // Taken from the game's `modifers.log`
     // Remember to update the display_fmt functions when ModifKinds changes.

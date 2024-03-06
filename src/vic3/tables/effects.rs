@@ -24,7 +24,7 @@ static SCOPE_EFFECT_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Effect)>> = Lazy
     hash
 });
 
-// LAST UPDATED VIC3 VERSION 1.5.11
+// LAST UPDATED VIC3 VERSION 1.6.0
 // See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::InterestGroup, "abandon_revolution", Boolean),

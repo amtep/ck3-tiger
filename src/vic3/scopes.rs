@@ -390,7 +390,7 @@ static SCOPE_TO_SCOPE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = La
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.5.12
+/// LAST UPDATED VIC3 VERSION 1.6.0
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
@@ -657,7 +657,7 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Argument
         hash
     });
 
-/// LAST UPDATED VIC3 VERSION 1.5.3
+/// LAST UPDATED VIC3 VERSION 1.6.0
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
@@ -775,7 +775,7 @@ static SCOPE_ITERATOR_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = La
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.5.3
+/// LAST UPDATED VIC3 VERSION 1.6.0
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.

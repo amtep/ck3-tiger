@@ -21,7 +21,7 @@ static TRIGGER_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::ne
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.5.3
+/// LAST UPDATED VIC3 VERSION 1.6.0
 /// See `triggers.log` from the game data dumps
 /// A key ends with '(' if it is the version that takes a parenthesized argument in script.
 const TRIGGER: &[(Scopes, &str, Trigger)] = &[
@@ -896,7 +896,7 @@ static TRIGGER_COMPLEX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, ArgumentValue
         hash
     });
 
-/// LAST UPDATED VIC3 VERSION 1.5.12
+/// LAST UPDATED VIC3 VERSION 1.6.0
 /// See `triggers.log` from the game data dumps
 /// `(inscopes, trigger name, argtype)`
 /// Currently only works with single argument triggers

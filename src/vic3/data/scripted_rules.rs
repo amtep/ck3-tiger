@@ -109,7 +109,7 @@ fn build_scripted_rule_hashmap(
 /// `root` is the root of the scope context. Other fields are added named scopes.
 ///
 /// For ease of updating, the rules are in the order they are found in the game files.
-// LAST UPDATED Vic3 VERSION 1.5.13
+// LAST UPDATED VIC3 VERSION 1.6.0
 // Taken from information in common/scripted_rules/00_scripted_rules.txt
 const SCRIPTED_RULES: &str = "
     violate_sovereignty_war_check_rule = {

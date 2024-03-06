@@ -99,7 +99,7 @@ impl DbKind for AlertGroup {
     }
 }
 
-// LAST UPDATED VIC3 VERSION 1.5.13
+// LAST UPDATED VIC3 VERSION 1.6.0
 const SCRIPT_CONTEXTS: &[(&str, Scopes)] = &[
     ("player_country", Scopes::Country),
     ("player_diplomatic_play", Scopes::DiplomaticPlay),

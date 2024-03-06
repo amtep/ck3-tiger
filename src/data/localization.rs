@@ -48,7 +48,7 @@ pub struct Localization {
 
 /// List of languages that are supported by the game engine.
 // LAST UPDATED CK3 VERSION 1.12.1
-// LAST UPDATED VIC3 VERSION 1.3.6
+// LAST UPDATED VIC3 VERSION 1.6.0
 pub const KNOWN_LANGUAGES: &[&str] = &[
     "english",
     "spanish",

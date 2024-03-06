@@ -60,7 +60,7 @@ pub const TRANSFER_OF_POWER: &[&str] =
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const STRATA: &[&str] = &["poor", "middle", "rich"];
 
-// LAST UPDATED VIC3 VERSION 1.5.12
+// LAST UPDATED VIC3 VERSION 1.6.0
 // Taken from `localization/english/diplomatic_plays_l_english.yml` entries
 // that start with `war_goal_`.
 pub const WARGOALS: &[&str] = &[
@@ -536,7 +536,7 @@ pub const SOUNDS_VIC3: &[&str] = &[
     "snapshot:/States/MainMenu",
 ];
 
-// LAST UPDATED VIC3 VERSION 1.4.0
+// LAST UPDATED VIC3 VERSION 1.6.0
 pub const COMMON_DIRS: &[&str] = &[
     "common/achievement_groups.txt",
     "common/achievements",

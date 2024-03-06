@@ -296,7 +296,7 @@ static MODIF_MAP: Lazy<FnvHashMap<&'static str, ModifKinds>> = Lazy::new(|| {
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.5.2
+/// LAST UPDATED VIC3 VERSION 1.6.0
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, ModifKinds)] = &[

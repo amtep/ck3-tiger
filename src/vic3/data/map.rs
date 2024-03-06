@@ -53,7 +53,7 @@ inventory::submit! {
     ItemLoader::Normal(GameFlags::Vic3, Item::MapMode, MapMode::add)
 }
 
-// LAST UPDATED VIC3 VERSION 1.5.13
+// LAST UPDATED VIC3 VERSION 1.6.0
 // Taken from gfx/map/map_modes/map_modes.txt
 const MAP_PAINTING_MODES: &[&str] = &[
     "clout_nationally",
@@ -73,7 +73,9 @@ const MAP_PAINTING_MODES: &[&str] = &[
     "literacy",
     "loyalists",
     "market_access",
+    "mass_migration_pull",
     "migration",
+    "migration_pull",
     "none",
     "player_alliances",
     "player_culture_population",
@@ -89,6 +91,7 @@ const MAP_PAINTING_MODES: &[&str] = &[
     "religion_population",
     "standard_of_living",
     "state_gradient",
+    "state_mass_migration_pull",
     "states",
     "strategic_regions",
     "technology_progress",
