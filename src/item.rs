@@ -342,11 +342,13 @@ pub enum Item {
     #[cfg(feature = "vic3")] DiplomaticAction,
     #[cfg(feature = "vic3")] DiplomaticPlay,
     #[cfg(feature = "vic3")] DiscriminationTrait,
+    #[cfg(feature = "vic3")] DynamicCompanyName,
     #[cfg(feature = "vic3")] DynamicCountryMapColor,
     #[cfg(feature = "vic3")] DynamicCountryName,
     #[cfg(feature = "vic3")] EventCategory,
     #[cfg(feature = "vic3")] FlagDefinition,
     #[cfg(feature = "vic3")] Goods,
+    #[cfg(feature = "vic3")] GradientBorderSettings,
     #[cfg(feature = "vic3")] Ideology,
     #[cfg(feature = "vic3")] InfamyThreshold,
     #[cfg(feature = "vic3")] Institution,
@@ -355,9 +357,12 @@ pub enum Item {
     #[cfg(feature = "vic3")] JournalEntry,
     #[cfg(feature = "vic3")] JournalEntryGroup,
     #[cfg(feature = "vic3")] LawType,
+    #[cfg(feature = "vic3")] LegitimacyLevel,
     #[cfg(feature = "vic3")] Level,
     #[cfg(feature = "vic3")] MapLayer,
+    #[cfg(feature = "vic3")] MapInteractionType,
     #[cfg(feature = "vic3")] MediaAlias,
+    #[cfg(feature = "vic3")] MilitaryFormationFlag,
     #[cfg(feature = "vic3")] MobilizationOption,
     #[cfg(feature = "vic3")] ModifierType,
     #[cfg(feature = "vic3")] Objective,
@@ -1025,6 +1030,8 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::DiscriminationTrait => "common/discrimination_traits/",
             #[cfg(feature = "vic3")]
+            Item::DynamicCompanyName => "common/dynamic_company_names/",
+            #[cfg(feature = "vic3")]
             Item::DynamicCountryMapColor => "common/dynamic_country_map_colors/",
             #[cfg(feature = "vic3")]
             Item::DynamicCountryName => "common/dynamic_country_names/",
@@ -1034,6 +1041,9 @@ impl Item {
             Item::FlagDefinition => "common/flag_definitions/",
             #[cfg(feature = "vic3")]
             Item::Goods => "common/goods/",
+            #[cfg(feature = "vic3")]
+            // TODO: find out if different filenames are acceptable in this dir
+            Item::GradientBorderSettings => "gfx/map/gradient_border_settings/",
             #[cfg(feature = "vic3")]
             Item::Ideology => "common/ideologies/",
             #[cfg(feature = "vic3")]
@@ -1051,11 +1061,17 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::LawType => "common/laws/",
             #[cfg(feature = "vic3")]
+            Item::LegitimacyLevel => "common/legitimacy_levels/",
+            #[cfg(feature = "vic3")]
             Item::Level => "",
             #[cfg(feature = "vic3")]
             Item::MapLayer => "gfx/map/map_object_data/layers.txt",
             #[cfg(feature = "vic3")]
+            Item::MapInteractionType => "common/map_interaction_types/",
+            #[cfg(feature = "vic3")]
             Item::MediaAlias => "gfx/media_aliases/",
+            #[cfg(feature = "vic3")]
+            Item::MilitaryFormationFlag => "common/military_formation_flags/",
             #[cfg(feature = "vic3")]
             Item::MobilizationOption => "common/mobilization_options/",
             #[cfg(feature = "vic3")]

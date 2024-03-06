@@ -68,3 +68,28 @@ impl DbKind for CompanyType {
         vd.field_script_value("ai_weight", &mut sc);
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct DynamicCompanyName {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::DynamicCompanyName, DynamicCompanyName::add)
+}
+
+impl DynamicCompanyName {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::DynamicCompanyName, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for DynamicCompanyName {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+
+        vd.field_bool("uses_plural_naming");
+        vd.field_bool("use_for_flavored_companies");
+        vd.field_script_value_rooted("weight", Scopes::Country);
+    }
+}
