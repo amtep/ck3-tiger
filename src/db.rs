@@ -15,6 +15,7 @@ use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::helpers::{dup_error, exact_dup_advice, exact_dup_error};
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::token::Token;
 
 /// The main database of game items.
@@ -26,14 +27,18 @@ pub struct Db {
     /// Items generated as side effects of the full items in `database`.
     /// The `Vec` is indexed with an `Item` discriminant.
     flags: Vec<FnvHashSet<Token>>,
+    /// Case-folded registry of database items and flags, for case insensitive lookups
+    items_lc: Vec<FnvHashMap<Lowercase<'static>, &'static str>>,
 }
 
 impl Default for Db {
     fn default() -> Self {
-        let mut db = Self { database: Vec::default(), flags: Vec::default() };
+        let mut db =
+            Self { database: Vec::default(), flags: Vec::default(), items_lc: Vec::default() };
         for _ in Item::iter() {
             db.database.push(FnvHashMap::default());
             db.flags.push(FnvHashSet::default());
+            db.items_lc.push(FnvHashMap::default());
         }
         db
     }
@@ -50,6 +55,7 @@ impl Db {
                 }
             }
         }
+        self.items_lc[item as usize].insert(Lowercase::new(key.as_str()), key.as_str());
         self.database[item as usize].insert(key.as_str(), DbEntry { key, block, kind });
     }
 
@@ -69,10 +75,12 @@ impl Db {
                 }
             }
         }
+        self.items_lc[item as usize].insert(Lowercase::new(key.as_str()), key.as_str());
         self.database[item as usize].insert(key.as_str(), DbEntry { key, block, kind });
     }
 
     pub fn add_flag(&mut self, item: Item, key: Token) {
+        self.items_lc[item as usize].insert(Lowercase::new(key.as_str()), key.as_str());
         self.flags[item as usize].insert(key);
     }
 
@@ -86,6 +94,10 @@ impl Db {
 
     pub fn exists(&self, item: Item, key: &str) -> bool {
         self.database[item as usize].contains_key(key) || self.flags[item as usize].contains(key)
+    }
+
+    pub fn exists_lc(&self, item: Item, key: &Lowercase) -> bool {
+        self.items_lc[item as usize].contains_key(key)
     }
 
     #[allow(dead_code)] // not currently used, but was hard to write...
@@ -104,6 +116,22 @@ impl Db {
 
     pub fn has_property(&self, item: Item, key: &str, property: &str, data: &Everything) -> bool {
         if let Some(entry) = self.database[item as usize].get(key) {
+            entry.kind.has_property(&entry.key, &entry.block, property, data)
+        } else {
+            false
+        }
+    }
+
+    #[cfg(feature = "ck3")] // vic3 happens not to use
+    pub fn cf_has_property(
+        &self,
+        item: Item,
+        key: &Lowercase,
+        property: &str,
+        data: &Everything,
+    ) -> bool {
+        let real_key = self.items_lc[item as usize].get(key);
+        if let Some(entry) = real_key.and_then(|key| self.database[item as usize].get(key)) {
             entry.kind.has_property(&entry.key, &entry.block, property, data)
         } else {
             false

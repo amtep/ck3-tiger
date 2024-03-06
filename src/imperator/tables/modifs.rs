@@ -5,6 +5,7 @@ use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::modif::ModifKinds;
 use crate::report::{report, ErrorKey, Severity};
 use crate::token::Token;
@@ -12,9 +13,9 @@ use crate::token::Token;
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
 /// Returns None otherwise.
 pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> Option<ModifKinds> {
-    let name_lc = name.as_str().to_lowercase();
+    let name_lc = Lowercase::new(name.as_str());
 
-    if let result @ Some(_) = MODIF_MAP.get(&*name_lc).copied() {
+    if let result @ Some(_) = MODIF_MAP.get(&name_lc).copied() {
         return result;
     }
 
@@ -23,10 +24,10 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // local_$PopType$_output
     // local_$PopType$_happyness
     // local_$PopType$_desired_pop_ratio
-    if let Some(part) = name_lc.strip_prefix("local_") {
-        for sfx in &["_output", "_desired_pop_ratio", "_happyness"] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::PopType, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("local_") {
+        for &sfx in &["_output", "_desired_pop_ratio", "_happyness"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::PopType, &part, name, data, warn);
                 return Some(ModifKinds::Province | ModifKinds::State);
             }
         }
@@ -36,31 +37,31 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // global_$PopType$_happyness
     // global_$PopType$_desired_pop_ratio
     // global_$PopType$_city_desired_pop_ratio
-    if let Some(part) = name_lc.strip_prefix("global_") {
-        for sfx in &["_output", "_desired_pop_ratio", "_city_desired_pop_ratio", "_happyness"] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::PopType, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("global_") {
+        for &sfx in &["_output", "_desired_pop_ratio", "_city_desired_pop_ratio", "_happyness"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::PopType, &part, name, data, warn);
                 return Some(ModifKinds::Country);
             }
         }
     }
 
     // $Price$_cost_modifier
-    if let Some(part) = name_lc.strip_suffix("_cost_modifier") {
-        maybe_warn(Item::Price, part, name, data, warn);
+    if let Some(part) = name_lc.strip_suffix_unchecked("_cost_modifier") {
+        maybe_warn(Item::Price, &part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
     // $Party$_party_influence
-    if let Some(part) = name_lc.strip_suffix("_party_influence") {
-        maybe_warn(Item::PartyType, part, name, data, warn);
+    if let Some(part) = name_lc.strip_suffix_unchecked("_party_influence") {
+        maybe_warn(Item::PartyType, &part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
     // monthly_$Party$_party_conviction
-    if let Some(part) = name_lc.strip_prefix("monthly_") {
-        if let Some(part) = part.strip_suffix("_party_conviction") {
-            maybe_warn(Item::PartyType, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("monthly_") {
+        if let Some(part) = part.strip_suffix_unchecked("_party_conviction") {
+            maybe_warn(Item::PartyType, &part, name, data, warn);
             return Some(ModifKinds::Country);
         }
     }
@@ -71,7 +72,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // $Unit$_defensive
     // $Unit$_maintenance_cost
     // $Unit$_movement_speed
-    for sfx in &[
+    for &sfx in &[
         "_discipline",
         "_morale",
         "_offensive",
@@ -79,47 +80,47 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         "_maintenance_cost",
         "_movement_speed",
     ] {
-        if let Some(part) = name_lc.strip_suffix(sfx) {
-            maybe_warn(Item::Unit, part, name, data, warn);
+        if let Some(part) = name_lc.strip_suffix_unchecked(sfx) {
+            maybe_warn(Item::Unit, &part, name, data, warn);
             return Some(ModifKinds::Country);
         }
     }
 
     // $Terrain$_combat_bonus
     // $Unit$_$Terrain$_combat_bonus
-    if let Some(part) = name_lc.strip_suffix("_combat_bonus") {
+    if let Some(part) = name_lc.strip_suffix_unchecked("_combat_bonus") {
         // This is tricky because both Unit and Terrain can have `_` in them.
         // Try each possible separation point in turn.
-        for (i, _) in part.rmatch_indices('_') {
-            if data.item_exists(Item::Terrain, &part[i + 1..]) {
+        for (i, _) in part.rmatch_indices_unchecked('_') {
+            if data.item_exists_lc(Item::Terrain, &part.slice(i + 1..)) {
                 // If the Terrain exists, then the prefix must be the Unit.
-                maybe_warn(Item::Unit, &part[..i], name, data, warn);
+                maybe_warn(Item::Unit, &part.slice(..i), name, data, warn);
                 return Some(ModifKinds::Country);
             }
         }
         // Check if it's the kind without $Unit$
-        maybe_warn(Item::Terrain, part, name, data, warn);
+        maybe_warn(Item::Terrain, &part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
     // $Unit$_cost
-    if let Some(part) = name_lc.strip_suffix("_cost") {
-        maybe_warn(Item::Unit, part, name, data, warn);
+    if let Some(part) = name_lc.strip_suffix_unchecked("_cost") {
+        maybe_warn(Item::Unit, &part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
     // $TechnologyTable$_investment
-    if let Some(part) = name_lc.strip_suffix("_investment") {
-        maybe_warn(Item::TechnologyTable, part, name, data, warn);
+    if let Some(part) = name_lc.strip_suffix_unchecked("_investment") {
+        maybe_warn(Item::TechnologyTable, &part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
     None
 }
 
-fn maybe_warn(itype: Item, s: &str, name: &Token, data: &Everything, warn: Option<Severity>) {
+fn maybe_warn(itype: Item, s: &Lowercase, name: &Token, data: &Everything, warn: Option<Severity>) {
     if let Some(sev) = warn {
-        if !data.item_exists(itype, s) {
+        if !data.item_exists_lc(itype, s) {
             let msg = format!("could not find {itype} {s}");
             let info = format!("so the modifier {name} does not exist");
             report(ErrorKey::MissingItem, sev).strong().msg(msg).info(info).loc(name).push();
@@ -127,10 +128,10 @@ fn maybe_warn(itype: Item, s: &str, name: &Token, data: &Everything, warn: Optio
     }
 }
 
-static MODIF_MAP: Lazy<FnvHashMap<&'static str, ModifKinds>> = Lazy::new(|| {
+static MODIF_MAP: Lazy<FnvHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
     for (s, kind) in MODIF_TABLE.iter().copied() {
-        hash.insert(s, kind);
+        hash.insert(Lowercase::new_unchecked(s), kind);
     }
     hash
 });

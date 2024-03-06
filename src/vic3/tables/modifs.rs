@@ -5,6 +5,7 @@ use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::modif::ModifKinds;
 use crate::report::{report, ErrorKey, Severity};
 use crate::token::Token;
@@ -12,13 +13,13 @@ use crate::token::Token;
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
 /// Returns None otherwise.
 pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> Option<ModifKinds> {
-    let name_lc = name.as_str().to_lowercase();
+    let name_lc = Lowercase::new(name.as_str());
 
-    if let result @ Some(_) = MODIF_MAP.get(&*name_lc).copied() {
+    if let result @ Some(_) = MODIF_MAP.get(&name_lc).copied() {
         return result;
     }
 
-    if let Some(info) = MODIF_REMOVED_MAP.get(&*name_lc).copied() {
+    if let Some(info) = MODIF_REMOVED_MAP.get(&name_lc).copied() {
         if let Some(sev) = warn {
             let msg = format!("{name} has been removed");
             report(ErrorKey::Removed, sev).msg(msg).info(info).loc(name).push();
@@ -30,10 +31,10 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // building_employment_$PopType$_add
     // building_employment_$PopType$_mult
-    if let Some(part) = name_lc.strip_prefix("building_employment_") {
-        for sfx in &["_add", "_mult"] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::PopType, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("building_employment_") {
+        for &sfx in &["_add", "_mult"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::PopType, &part, name, data, warn);
                 return Some(ModifKinds::Building);
             }
         }
@@ -49,31 +50,31 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // building_group_$BuildingGroup$_unincorporated_throughput_add
     // building_group_$BuildingGroup$_throughput_add
     // building_group_$BuildingGroup$_tax_mult
-    if let Some(part) = name_lc.strip_prefix("building_group_") {
-        for sfx in &["_fertility_mult", "_mortality_mult", "_standard_of_living_add"] {
-            if let Some(part) = part.strip_suffix(sfx) {
+    if let Some(part) = name_lc.strip_prefix_unchecked("building_group_") {
+        for &sfx in &["_fertility_mult", "_mortality_mult", "_standard_of_living_add"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
                 // This is tricky because both BuildingGroup and PopType can have `_` in them.
-                for (i, _) in part.rmatch_indices('_') {
-                    if data.item_exists(Item::PopType, &part[i + 1..]) {
-                        maybe_warn(Item::BuildingGroup, &part[..i], name, data, warn);
+                for (i, _) in part.rmatch_indices_unchecked('_') {
+                    if data.item_exists_lc(Item::PopType, &part.slice(i + 1..)) {
+                        maybe_warn(Item::BuildingGroup, &part.slice(..i), name, data, warn);
                         return Some(ModifKinds::Building);
                     }
                 }
                 // Check if it's the kind without $PopType$
-                maybe_warn(Item::BuildingGroup, part, name, data, warn);
+                maybe_warn(Item::BuildingGroup, &part, name, data, warn);
                 return Some(ModifKinds::Building);
             }
         }
-        for sfx in
+        for &sfx in
             &["_employee_mult", "_tax_mult", "_unincorporated_throughput_add", "_throughput_add"]
         {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::BuildingGroup, part, name, data, warn);
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::BuildingGroup, &part, name, data, warn);
                 return Some(ModifKinds::Building);
             }
         }
-        if let Some(part) = part.strip_suffix("_throughput_mult") {
-            maybe_warn(Item::BuildingGroup, part, name, data, warn);
+        if let Some(part) = part.strip_suffix_unchecked("_throughput_mult") {
+            maybe_warn(Item::BuildingGroup, &part, name, data, warn);
             if let Some(sev) = warn {
                 let msg = format!("`{name}` was removed in 1.5");
                 let info = "it was replaced with `_add`";
@@ -84,8 +85,8 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // $BuildingType$_throughput_mult (obsolete)
-    if let Some(part) = name_lc.strip_suffix("_throughput_mult") {
-        maybe_warn(Item::BuildingType, part, name, data, warn);
+    if let Some(part) = name_lc.strip_suffix_unchecked("_throughput_mult") {
+        maybe_warn(Item::BuildingType, &part, name, data, warn);
         if let Some(sev) = warn {
             let msg = format!("`{name}` was removed in 1.5");
             let info = "it was replaced with `_add`";
@@ -94,8 +95,8 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         return Some(ModifKinds::Building);
     }
     // $BuildingType$_throughput_add
-    if let Some(part) = name_lc.strip_suffix("_throughput_add") {
-        maybe_warn(Item::BuildingType, part, name, data, warn);
+    if let Some(part) = name_lc.strip_suffix_unchecked("_throughput_add") {
+        maybe_warn(Item::BuildingType, &part, name, data, warn);
         return Some(ModifKinds::Building);
     }
 
@@ -103,19 +104,19 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // building_$PopType$_mortality_mult
     // building_$PopType$_shares_add
     // building_$PopType$_shares_mult
-    if let Some(part) = name_lc.strip_prefix("building_") {
-        for sfx in &["_fertility_mult", "_mortality_mult", "_shares_add", "_shares_mult"] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::PopType, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("building_") {
+        for &sfx in &["_fertility_mult", "_mortality_mult", "_shares_add", "_shares_mult"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::PopType, &part, name, data, warn);
                 return Some(ModifKinds::Building);
             }
         }
     }
 
     // building_input_$Goods$_add (obsolete)
-    if let Some(part) = name_lc.strip_prefix("building_input_") {
-        if let Some(part) = part.strip_suffix("_add") {
-            maybe_warn(Item::Goods, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("building_input_") {
+        if let Some(part) = part.strip_suffix_unchecked("_add") {
+            maybe_warn(Item::Goods, &part, name, data, warn);
             if let Some(sev) = warn {
                 let msg = format!("`{name}` was removed in 1.5");
                 let info = format!("replaced with `goods_input_{part}_add`");
@@ -127,10 +128,10 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // TODO: the _mult doesn't exist for all goods
     // goods_input_$Goods$_add
     // goods_input_$Goods$_mult
-    if let Some(part) = name_lc.strip_prefix("goods_input_") {
-        for sfx in &["_add", "_mult"] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::Goods, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("goods_input_") {
+        for &sfx in &["_add", "_mult"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::Goods, &part, name, data, warn);
                 return Some(ModifKinds::Goods);
             }
         }
@@ -138,11 +139,11 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // building_output_$Goods$_add (obsolete)
     // building_output_$Goods$_mult (obsolete)
-    if let Some(part) = name_lc.strip_prefix("building_output_") {
+    if let Some(part) = name_lc.strip_prefix_unchecked("building_output_") {
         // TODO: some goods don't have the _mult version. Figure out why.
-        for sfx in &["_add", "_mult"] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::Goods, part, name, data, warn);
+        for &sfx in &["_add", "_mult"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::Goods, &part, name, data, warn);
                 if let Some(sev) = warn {
                     let msg = format!("`{name}` was removed in 1.5");
                     let info = format!("it was replaced with `goods_output_{part}{sfx}`");
@@ -154,56 +155,56 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
     // goods_output_$Goods$_add
     // goods_output_$Goods$_mult
-    if let Some(part) = name_lc.strip_prefix("goods_output_") {
+    if let Some(part) = name_lc.strip_prefix_unchecked("goods_output_") {
         // TODO: some goods don't have the _mult version. Figure out why.
-        for sfx in &["_add", "_mult"] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::Goods, part, name, data, warn);
+        for &sfx in &["_add", "_mult"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::Goods, &part, name, data, warn);
                 return Some(ModifKinds::Goods);
             }
         }
     }
 
     // character_$BattleCondition$_mult
-    if let Some(part) = name_lc.strip_prefix("character_") {
-        if let Some(part) = part.strip_suffix("_mult") {
-            maybe_warn(Item::BattleCondition, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("character_") {
+        if let Some(part) = part.strip_suffix_unchecked("_mult") {
+            maybe_warn(Item::BattleCondition, &part, name, data, warn);
             return Some(ModifKinds::Character);
         }
     }
 
     // country_$PopType$_pol_str_mult
     // country_$PopType$_voting_power_add
-    if let Some(part) = name_lc.strip_prefix("country_") {
-        for sfx in &["_pol_str_mult", "_voting_power_add"] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::PopType, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_") {
+        for &sfx in &["_pol_str_mult", "_voting_power_add"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::PopType, &part, name, data, warn);
                 return Some(ModifKinds::Country);
             }
         }
     }
 
     // country_$Institution$_max_investment_add
-    if let Some(part) = name_lc.strip_prefix("country_") {
-        if let Some(part) = part.strip_suffix("_max_investment_add") {
-            maybe_warn(Item::Institution, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_") {
+        if let Some(part) = part.strip_suffix_unchecked("_max_investment_add") {
+            maybe_warn(Item::Institution, &part, name, data, warn);
             return Some(ModifKinds::Country);
         }
     }
 
     // country_subsidies_$BuildingGroup$
-    if let Some(part) = name_lc.strip_prefix("country_subsidies_") {
-        maybe_warn(Item::BuildingGroup, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_subsidies_") {
+        maybe_warn(Item::BuildingGroup, &part, name, data, warn);
         return Some(ModifKinds::Country);
     }
 
     // interest_group_$InterestGroup$_approval_add
     // interest_group_$InterestGroup$_pol_str_mult
     // interest_group_$InterestGroup$_pop_attraction_mult
-    if let Some(part) = name_lc.strip_prefix("interest_group_") {
-        for sfx in &["_approval_add", "_pol_str_mult", "_pop_attraction_mult"] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::InterestGroup, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("interest_group_") {
+        for &sfx in &["_approval_add", "_pol_str_mult", "_pop_attraction_mult"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::InterestGroup, &part, name, data, warn);
                 return Some(ModifKinds::InterestGroup);
             }
         }
@@ -211,10 +212,11 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // state_$Culture$_standard_of_living_add
     // state_$Religion$_standard_of_living_add
-    if let Some(part) = name_lc.strip_prefix("state_") {
-        if let Some(part) = part.strip_suffix("_standard_of_living_add") {
+    if let Some(part) = name_lc.strip_prefix_unchecked("state_") {
+        if let Some(part) = part.strip_suffix_unchecked("_standard_of_living_add") {
             if let Some(sev) = warn {
-                if !data.item_exists(Item::Religion, part) && !data.item_exists(Item::Culture, part)
+                if !data.item_exists_lc(Item::Religion, &part)
+                    && !data.item_exists_lc(Item::Culture, &part)
                 {
                     let msg = format!("{part} not found as culture or religion");
                     let info = format!("so the modifier {name} does not exist");
@@ -229,15 +231,15 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // state_$PopType$_investment_pool_contribution_add
     // state_$PopType$_investment_pool_efficiency_mult
     // state_$PopType$_mortality_mult
-    if let Some(part) = name_lc.strip_prefix("state_") {
-        for sfx in &[
+    if let Some(part) = name_lc.strip_prefix_unchecked("state_") {
+        for &sfx in &[
             "_dependent_wage_mult",
             "_investment_pool_contribution_add",
             "_investment_pool_efficiency_mult",
             "_mortality_mult",
         ] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::PopType, part, name, data, warn);
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::PopType, &part, name, data, warn);
                 return Some(ModifKinds::State);
             }
         }
@@ -245,10 +247,10 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // state_pop_support_$Law$_add
     // state_pop_support_$Law$_mult
-    if let Some(part) = name_lc.strip_prefix("state_pop_support_") {
-        for sfx in &["_add", "_mult"] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::LawType, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("state_pop_support_") {
+        for &sfx in &["_add", "_mult"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::LawType, &part, name, data, warn);
                 return Some(ModifKinds::State);
             }
         }
@@ -257,10 +259,10 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // TODO: not all of these exist for all unit types
     // unit_$CombatUnit$_offense_mult
     // unit_$CombatUnit$_offense_add
-    if let Some(part) = name_lc.strip_prefix("unit_") {
-        for sfx in &["_offense_add", "_offense_mult"] {
-            if let Some(part) = part.strip_suffix(sfx) {
-                maybe_warn(Item::CombatUnit, part, name, data, warn);
+    if let Some(part) = name_lc.strip_prefix_unchecked("unit_") {
+        for &sfx in &["_offense_add", "_offense_mult"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::CombatUnit, &part, name, data, warn);
                 return Some(ModifKinds::Unit);
             }
         }
@@ -271,16 +273,16 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // User-defined modifs are accepted in Vic3.
     // They must have a ModifierType entry to be accepted by the game engine,
     // so if that exists then accept the modif.
-    if data.item_exists(Item::ModifierType, name_lc.as_str()) {
+    if data.item_exists_lc(Item::ModifierType, &name_lc) {
         return Some(ModifKinds::all());
     }
 
     None
 }
 
-fn maybe_warn(itype: Item, s: &str, name: &Token, data: &Everything, warn: Option<Severity>) {
+fn maybe_warn(itype: Item, s: &Lowercase, name: &Token, data: &Everything, warn: Option<Severity>) {
     if let Some(sev) = warn {
-        if !data.item_exists(itype, s) {
+        if !data.item_exists_lc(itype, s) {
             let msg = format!("could not find {itype} {s}");
             let info = format!("so the modifier {name} does not exist");
             report(ErrorKey::MissingItem, sev).strong().msg(msg).info(info).loc(name).push();
@@ -288,10 +290,10 @@ fn maybe_warn(itype: Item, s: &str, name: &Token, data: &Everything, warn: Optio
     }
 }
 
-static MODIF_MAP: Lazy<FnvHashMap<&'static str, ModifKinds>> = Lazy::new(|| {
+static MODIF_MAP: Lazy<FnvHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
     for (s, kind) in MODIF_TABLE.iter().copied() {
-        hash.insert(s, kind);
+        hash.insert(Lowercase::new_unchecked(s), kind);
     }
     hash
 });
@@ -602,10 +604,10 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("unit_supply_consumption_mult", ModifKinds::Unit),
 ];
 
-static MODIF_REMOVED_MAP: Lazy<FnvHashMap<&'static str, &'static str>> = Lazy::new(|| {
+static MODIF_REMOVED_MAP: Lazy<FnvHashMap<Lowercase<'static>, &'static str>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
     for (s, info) in MODIF_REMOVED_TABLE.iter().copied() {
-        hash.insert(s, info);
+        hash.insert(Lowercase::new_unchecked(s), info);
     }
     hash
 });

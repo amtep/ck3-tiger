@@ -9,6 +9,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -21,6 +22,7 @@ use crate::validator::Validator;
 pub struct MenAtArmsTypes {
     menatarmsbasetypes: FnvHashSet<Token>,
     menatarmstypes: FnvHashMap<&'static str, MenAtArmsType>,
+    menatarmsbasetypes_lc: FnvHashSet<Lowercase<'static>>,
 }
 
 impl MenAtArmsTypes {
@@ -33,6 +35,7 @@ impl MenAtArmsTypes {
 
         if let Some(base) = block.get_field_value("type") {
             self.menatarmsbasetypes.insert(base.clone());
+            self.menatarmsbasetypes_lc.insert(Lowercase::new(base.as_str()));
         }
 
         self.menatarmstypes.insert(key.as_str(), MenAtArmsType::new(key, block));
@@ -40,6 +43,10 @@ impl MenAtArmsTypes {
 
     pub fn base_exists(&self, key: &str) -> bool {
         self.menatarmsbasetypes.contains(key)
+    }
+
+    pub fn base_exists_lc(&self, key: &Lowercase) -> bool {
+        self.menatarmsbasetypes_lc.contains(key)
     }
 
     pub fn iter_base_keys(&self) -> impl Iterator<Item = &Token> {

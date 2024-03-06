@@ -7,6 +7,7 @@ use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::modif::ModifKinds;
 use crate::report::{report, ErrorKey, Severity};
 use crate::token::Token;
@@ -15,13 +16,13 @@ use crate::token::Token;
 /// Returns None otherwise.
 // LAST UPDATED CK3 VERSION 1.12.1
 pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> Option<ModifKinds> {
-    let name_lc = name.as_str().to_lowercase();
+    let name_lc = Lowercase::new(name.as_str());
 
-    if let result @ Some(_) = MODIF_MAP.get(&*name_lc).copied() {
+    if let result @ Some(_) = MODIF_MAP.get(&name_lc).copied() {
         return result;
     }
 
-    if let Some(info) = MODIF_REMOVED_MAP.get(&*name_lc).copied() {
+    if let Some(info) = MODIF_REMOVED_MAP.get(&name_lc).copied() {
         if let Some(sev) = warn {
             let msg = format!("{name} has been removed");
             report(ErrorKey::Removed, sev).msg(msg).info(info).loc(name).push();
@@ -47,27 +48,27 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         "_same_culture_opinion",
         "_same_faith_opinion",
     ] {
-        if let Some(s) = name_lc.strip_suffix(sfx) {
-            return modif_check(name, s, Item::VassalStance, ModifKinds::Character, data, warn);
+        if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
+            return modif_check(name, &s, Item::VassalStance, ModifKinds::Character, data, warn);
         }
     }
 
     // government type opinions
-    for sfx in &["_vassal_opinion", "_opinion_same_faith"] {
-        if let Some(s) = name_lc.strip_suffix(sfx) {
-            return modif_check(name, s, Item::GovernmentType, ModifKinds::Character, data, warn);
+    for &sfx in &["_vassal_opinion", "_opinion_same_faith"] {
+        if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
+            return modif_check(name, &s, Item::GovernmentType, ModifKinds::Character, data, warn);
         }
     }
 
     // other opinions
-    if let Some(s) = name_lc.strip_suffix("_opinion") {
+    if let Some(s) = name_lc.strip_suffix_unchecked("_opinion") {
         if let Some(sev) = warn {
-            if !data.item_exists(Item::Culture, s)
-                && !data.item_exists(Item::Faith, s)
-                && !data.item_exists(Item::Religion, s)
-                && !data.item_exists(Item::ReligionFamily, s)
-                && !data.item_exists(Item::GovernmentType, s)
-                && !data.item_exists(Item::VassalStance, s)
+            if !data.item_exists_lc(Item::Culture, &s)
+                && !data.item_exists_lc(Item::Faith, &s)
+                && !data.item_exists_lc(Item::Religion, &s)
+                && !data.item_exists_lc(Item::ReligionFamily, &s)
+                && !data.item_exists_lc(Item::GovernmentType, &s)
+                && !data.item_exists_lc(Item::VassalStance, &s)
             {
                 let msg = format!("could not find any {s}");
                 let info = "Could be a culture, faith, religion, religion family, government type, or vassal stance";
@@ -78,16 +79,16 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // levy and tax contributions
-    for sfx in &[
+    for &sfx in &[
         "_levy_contribution_add",
         "_levy_contribution_mult",
         "_tax_contribution_add",
         "_tax_contribution_mult",
     ] {
-        if let Some(s) = name_lc.strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
             if let Some(sev) = warn {
-                if !data.item_exists(Item::GovernmentType, s)
-                    && !data.item_exists(Item::VassalStance, s)
+                if !data.item_exists_lc(Item::GovernmentType, &s)
+                    && !data.item_exists_lc(Item::VassalStance, &s)
                 {
                     let msg = format!("could not find any {s}");
                     let info = "Could be a government type or vassal stance";
@@ -99,7 +100,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // men-at-arms types
-    for sfx in &[
+    for &sfx in &[
         "_damage_add",
         "_damage_mult",
         "_pursuit_add",
@@ -111,50 +112,58 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         "_toughness_add",
         "_toughness_mult",
     ] {
-        if let Some(s) = name_lc.strip_suffix(sfx) {
-            if let Some(s) = s.strip_prefix("stationed_") {
-                return modif_check(name, s, Item::MenAtArmsBase, ModifKinds::Province, data, warn);
+        if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
+            if let Some(s) = s.strip_prefix_unchecked("stationed_") {
+                return modif_check(
+                    name,
+                    &s,
+                    Item::MenAtArmsBase,
+                    ModifKinds::Province,
+                    data,
+                    warn,
+                );
             }
-            return modif_check(name, s, Item::MenAtArmsBase, ModifKinds::Character, data, warn);
+            return modif_check(name, &s, Item::MenAtArmsBase, ModifKinds::Character, data, warn);
         }
     }
 
     // men-at-arms types, non-stationed
-    for sfx in &["_maintenance_mult", "_max_size_add", "_max_size_mult", "_recruitment_cost_mult"] {
-        if let Some(s) = name_lc.strip_suffix(sfx) {
-            return modif_check(name, s, Item::MenAtArmsBase, ModifKinds::Character, data, warn);
+    for &sfx in &["_maintenance_mult", "_max_size_add", "_max_size_mult", "_recruitment_cost_mult"]
+    {
+        if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
+            return modif_check(name, &s, Item::MenAtArmsBase, ModifKinds::Character, data, warn);
         }
     }
 
     // scheme types
-    for sfx in &[
+    for &sfx in &[
         "_scheme_power_add",
         "_scheme_power_mult",
         "_scheme_resistance_add",
         "_scheme_resistance_mult",
     ] {
-        if let Some(s) = name_lc.strip_suffix(sfx) {
-            return modif_check(name, s, Item::Scheme, ModifKinds::Character, data, warn);
+        if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
+            return modif_check(name, &s, Item::Scheme, ModifKinds::Character, data, warn);
         }
     }
 
     // terrain
-    for sfx in &[
+    for &sfx in &[
         "_advantage",
         "_attrition_mult",
         "_cancel_negative_supply",
         "_max_combat_roll",
         "_min_combat_roll",
     ] {
-        if let Some(s) = name_lc.strip_suffix(sfx) {
-            return modif_check(name, s, Item::Terrain, ModifKinds::Character, data, warn);
+        if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
+            return modif_check(name, &s, Item::Terrain, ModifKinds::Character, data, warn);
         }
     }
 
     // monthly_$LIFESTYLE$_xp_gain_mult
-    if let Some(s) = name_lc.strip_prefix("monthly_") {
-        if let Some(s) = s.strip_suffix("_xp_gain_mult") {
-            return modif_check(name, s, Item::Lifestyle, ModifKinds::Character, data, warn);
+    if let Some(s) = name_lc.strip_prefix_unchecked("monthly_") {
+        if let Some(s) = s.strip_suffix_unchecked("_xp_gain_mult") {
+            return modif_check(name, &s, Item::Lifestyle, ModifKinds::Character, data, warn);
         }
     }
 
@@ -162,18 +171,20 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // It's also possible to use the names of traits that have one or more tracks directly, without the trait_track_.
     // Presumably it applies to all of a trait's tracks in that case.
     // $LIFESTYLE$_xp_gain_mult needs to be handled here too.
-    for sfx in &["_xp_degradation_mult", "_xp_gain_mult", "_xp_loss_mult"] {
-        if let Some(s) = name_lc.strip_suffix(sfx) {
-            if let Some(s) = s.strip_prefix("trait_track_") {
-                return modif_check(name, s, Item::TraitTrack, ModifKinds::Character, data, warn);
+    for &sfx in &["_xp_degradation_mult", "_xp_gain_mult", "_xp_loss_mult"] {
+        if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
+            if let Some(s) = s.strip_prefix_unchecked("trait_track_") {
+                return modif_check(name, &s, Item::TraitTrack, ModifKinds::Character, data, warn);
             }
             // It can be a lifestyle or a trait.
             if let Some(sev) = warn {
-                if !data.item_exists(Item::Lifestyle, s) && !data.item_exists(Item::Trait, s) {
+                if !data.item_exists_lc(Item::Lifestyle, &s)
+                    && !data.item_exists_lc(Item::Trait, &s)
+                {
                     let msg = "`{s}` was not found as a trait or lifestyle";
                     let info = format!("so the modifier {name} does not exist");
                     report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
-                } else if data.item_exists(Item::Trait, s) && !data.traits.has_track(s) {
+                } else if data.item_exists_lc(Item::Trait, &s) && !data.traits.has_track_lc(&s) {
                     let msg = format!("trait {s} does not have an xp track");
                     let info = format!("so the modifier {name} does not exist");
                     report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
@@ -184,32 +195,32 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // max_$SCHEME_TYPE$_schemes_add
-    if let Some(s) = name_lc.strip_prefix("max_") {
-        if let Some(s) = s.strip_suffix("_schemes_add") {
-            return modif_check(name, s, Item::Scheme, ModifKinds::Character, data, warn);
+    if let Some(s) = name_lc.strip_prefix_unchecked("max_") {
+        if let Some(s) = s.strip_suffix_unchecked("_schemes_add") {
+            return modif_check(name, &s, Item::Scheme, ModifKinds::Character, data, warn);
         }
     }
 
     // scheme power against scripted relation
-    if let Some(s) = name_lc.strip_prefix("scheme_power_against_") {
-        for sfx in &["_add", "_mult"] {
-            if let Some(s) = s.strip_suffix(sfx) {
-                return modif_check(name, s, Item::Relation, ModifKinds::Character, data, warn);
+    if let Some(s) = name_lc.strip_prefix_unchecked("scheme_power_against_") {
+        for &sfx in &["_add", "_mult"] {
+            if let Some(s) = s.strip_suffix_unchecked(sfx) {
+                return modif_check(name, &s, Item::Relation, ModifKinds::Character, data, warn);
             }
         }
     }
 
     // $TAX_SLOT_TYPE$_add
-    if let Some(s) = name_lc.strip_suffix("_add") {
-        return modif_check(name, s, Item::TaxSlotType, ModifKinds::Character, data, warn);
+    if let Some(s) = name_lc.strip_suffix_unchecked("_add") {
+        return modif_check(name, &s, Item::TaxSlotType, ModifKinds::Character, data, warn);
     }
 
     // geographical region or terrain
-    for sfx in &["_development_growth", "_development_growth_factor"] {
-        if let Some(s) = name_lc.strip_suffix(sfx) {
-            if data.item_exists(Item::Region, s) {
+    for &sfx in &["_development_growth", "_development_growth_factor"] {
+        if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
+            if data.item_exists_lc(Item::Region, &s) {
                 if let Some(sev) = warn {
-                    if !data.item_has_property(Item::Region, s, "generates_modifiers") {
+                    if !data.item_lc_has_property(Item::Region, &s, "generates_modifiers") {
                         let msg = format!("region {s} does not have `generates_modifiers = yes`");
                         let info = format!("so the modifier {name} does not exist");
                         report(ErrorKey::MissingItem, sev)
@@ -221,7 +232,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
                     }
                 }
             } else if let Some(sev) = warn {
-                if !data.item_exists(Item::Terrain, s) {
+                if !data.item_exists_lc(Item::Terrain, &s) {
                     let msg = format!("could not find any {s}");
                     let info = "Could be a geographical region or terrain";
                     report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
@@ -232,13 +243,13 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // holding type
-    for sfx in &["_build_gold_cost", "_build_piety_cost", "_build_prestige_cost", "_build_speed"] {
-        if let Some(s) = name_lc.strip_suffix(sfx) {
-            if data.item_exists(Item::HoldingType, s) {
+    for &sfx in &["_build_gold_cost", "_build_piety_cost", "_build_prestige_cost", "_build_speed"] {
+        if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
+            if data.item_exists_lc(Item::HoldingType, &s) {
                 return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
             }
-            if let Some(s) = s.strip_suffix("_holding") {
-                if data.item_exists(Item::HoldingType, s) {
+            if let Some(s) = s.strip_suffix_unchecked("_holding") {
+                if data.item_exists_lc(Item::HoldingType, &s) {
                     return Some(ModifKinds::Character | ModifKinds::Province | ModifKinds::County);
                 }
             }
@@ -252,7 +263,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // terrain type
-    for sfx in &[
+    for &sfx in &[
         "_holding_construction_gold_cost",
         "_holding_construction_piety_cost",
         "_holding_construction_prestige_cost",
@@ -265,10 +276,10 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         "_tax_mult",
         "_travel_danger",
     ] {
-        if let Some(s) = name_lc.strip_suffix(sfx) {
+        if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
             return modif_check(
                 name,
-                s,
+                &s,
                 Item::Terrain,
                 ModifKinds::Character | ModifKinds::Province | ModifKinds::County,
                 data,
@@ -283,14 +294,14 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 #[allow(clippy::unnecessary_wraps)]
 fn modif_check(
     name: &Token,
-    s: &str,
+    s: &Lowercase,
     itype: Item,
     mk: ModifKinds,
     data: &Everything,
     warn: Option<Severity>,
 ) -> Option<ModifKinds> {
     if let Some(sev) = warn {
-        if !data.item_exists(itype, s) {
+        if !data.item_exists_lc(itype, s) {
             let msg = format!("could not find {itype} {s}");
             let info = format!("so the modifier {name} does not exist");
             report(ErrorKey::MissingItem, sev).strong().msg(msg).info(info).loc(name).push();
@@ -303,21 +314,21 @@ fn modif_check(
 /// i.e. a code defined modifier, it begins with `MOD_` and may have a different body in special cases.
 /// If the modifier is dynamic, i.e. generated from script defined items, then its name is returned unchanged.
 pub fn modif_loc(name: &Token) -> Cow<'static, str> {
-    let name_lc = name.as_str().to_lowercase();
+    let name_lc = Lowercase::new(name.as_str());
 
-    if let Some(body) = SPECIAL_MODIF_LOC_MAP.get(&*name_lc).copied() {
+    if let Some(body) = SPECIAL_MODIF_LOC_MAP.get(&name_lc).copied() {
         Cow::Borrowed(body)
-    } else if MODIF_MAP.contains_key(&*name_lc) {
+    } else if MODIF_MAP.contains_key(&name_lc) {
         Cow::Owned(format!("MOD_{}", name_lc.to_uppercase()))
     } else {
-        Cow::Owned(name_lc)
+        name_lc.into_cow()
     }
 }
 
-static MODIF_MAP: Lazy<FnvHashMap<&'static str, ModifKinds>> = Lazy::new(|| {
+static MODIF_MAP: Lazy<FnvHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
     for (s, kind) in MODIF_TABLE.iter().copied() {
-        hash.insert(s, kind);
+        hash.insert(Lowercase::new_unchecked(s), kind);
     }
     hash
 });
@@ -813,13 +824,14 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("years_of_fertility", ModifKinds::Character),
 ];
 
-static SPECIAL_MODIF_LOC_MAP: Lazy<FnvHashMap<&'static str, &'static str>> = Lazy::new(|| {
-    let mut hash = FnvHashMap::default();
-    for (s, loc) in SPECIAL_MODIF_LOC_TABLE.iter().copied() {
-        hash.insert(s, loc);
-    }
-    hash
-});
+static SPECIAL_MODIF_LOC_MAP: Lazy<FnvHashMap<Lowercase<'static>, &'static str>> =
+    Lazy::new(|| {
+        let mut hash = FnvHashMap::default();
+        for (s, loc) in SPECIAL_MODIF_LOC_TABLE.iter().copied() {
+            hash.insert(Lowercase::new_unchecked(s), loc);
+        }
+        hash
+    });
 
 /// LAST UPDATED CK3 VERSION 1.12.1
 /// Special cases for static modifs defined in `modifiers/modifiers_l_english.yml`
@@ -907,10 +919,10 @@ const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[
     ("tax_slot_add", "MOD_NUM_TAX_SLOTS"),
 ];
 
-static MODIF_REMOVED_MAP: Lazy<FnvHashMap<&'static str, &'static str>> = Lazy::new(|| {
+static MODIF_REMOVED_MAP: Lazy<FnvHashMap<Lowercase<'static>, &'static str>> = Lazy::new(|| {
     let mut hash = FnvHashMap::default();
     for (s, info) in MODIF_REMOVED_TABLE.iter().copied() {
-        hash.insert(s, info);
+        hash.insert(Lowercase::new_unchecked(s), info);
     }
     hash
 });

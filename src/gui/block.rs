@@ -194,7 +194,7 @@ impl GuiBlock {
                                     templates,
                                 );
                                 gui.substnames.extend(guiblock.substnames.iter().cloned());
-                                gui.items.push(GuiItem::Widget(key_lc.into_owned(), guiblock));
+                                gui.items.push(GuiItem::Widget(key_lc, guiblock));
                             }
                         } else if let Ok(builtin) = BuiltinWidget::try_from(&key_lc) {
                             // If we got here, then it must be a builtin but not for the current game

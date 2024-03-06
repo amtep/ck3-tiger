@@ -9,6 +9,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::dup_error;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxFile;
 use crate::report::{err, ErrorKey};
@@ -27,6 +28,11 @@ pub struct Traits {
     tracks: FnvHashSet<Token>,
     constraints: FnvHashSet<Token>,
     flags: FnvHashSet<Token>,
+
+    // Casefolded registries of the above collections, for case-insensitive lookups
+    traits_lc: FnvHashMap<Lowercase<'static>, &'static str>,
+    tracks_lc: FnvHashSet<Lowercase<'static>>,
+    groups_lc: FnvHashSet<Lowercase<'static>>,
 }
 
 impl Traits {
@@ -38,6 +44,7 @@ impl Traits {
         }
         if let Some(token) = block.get_field_value("group") {
             self.groups.insert(token.clone());
+            self.groups_lc.insert(Lowercase::new(token.as_str()));
         }
         for token in block.get_field_values("flag") {
             self.flags.insert(token.clone());
@@ -51,20 +58,28 @@ impl Traits {
         }
         if let Some(token) = block.get_field_value("group_equivalence") {
             self.groups.insert(token.clone());
+            self.groups_lc.insert(Lowercase::new(token.as_str()));
         }
         if block.has_key("track") {
             self.tracks.insert(key.clone());
+            self.tracks_lc.insert(Lowercase::new(key.as_str()));
         }
         if let Some(block) = block.get_field_block("tracks") {
             for (key, _) in block.iter_definitions() {
                 self.tracks.insert(key.clone());
+                self.tracks_lc.insert(Lowercase::new(key.as_str()));
             }
         }
+        self.traits_lc.insert(Lowercase::new(key.as_str()), key.as_str());
         self.traits.insert(key.as_str(), Trait::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {
         self.traits.contains_key(key) || self.groups.contains(key)
+    }
+
+    pub fn exists_lc(&self, key: &Lowercase) -> bool {
+        self.traits_lc.contains_key(key) || self.groups_lc.contains(key)
     }
 
     pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
@@ -91,13 +106,17 @@ impl Traits {
         self.tracks.contains(key)
     }
 
+    pub fn track_exists_lc(&self, key: &Lowercase) -> bool {
+        self.tracks_lc.contains(key)
+    }
+
     pub fn iter_track_keys(&self) -> impl Iterator<Item = &Token> {
         self.tracks.iter()
     }
 
     // Is the trait itself a track? Different than a trait having multiple tracks
-    pub fn has_track(&self, key: &str) -> bool {
-        self.traits.get(key).map_or(false, |t| t.has_track)
+    pub fn has_track_lc(&self, key: &Lowercase) -> bool {
+        self.traits_lc.get(key).map_or(false, |t| self.traits.get(t).unwrap().has_track)
     }
 
     pub fn validate(&self, data: &Everything) {
