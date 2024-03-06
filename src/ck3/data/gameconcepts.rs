@@ -14,8 +14,8 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct GameConcepts {
-    concepts: FnvHashMap<String, Concept>,
-    aliases: FnvHashMap<String, String>,
+    concepts: FnvHashMap<&'static str, Concept>,
+    aliases: FnvHashMap<&'static str, &'static str>,
 }
 
 impl GameConcepts {
@@ -26,9 +26,9 @@ impl GameConcepts {
             }
         }
         for token in block.get_multi_field_list("alias") {
-            self.aliases.insert(token.to_string(), key.to_string());
+            self.aliases.insert(token.as_str(), key.as_str());
         }
-        self.concepts.insert(key.to_string(), Concept::new(key, block));
+        self.concepts.insert(key.as_str(), Concept::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {

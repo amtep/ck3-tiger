@@ -18,8 +18,8 @@ use crate::tooltipped::Tooltipped;
 
 #[derive(Debug, Default)]
 pub struct Effects {
-    scope_overrides: FnvHashMap<String, Scopes>,
-    effects: FnvHashMap<String, Effect>,
+    scope_overrides: FnvHashMap<&'static str, Scopes>,
+    effects: FnvHashMap<&'static str, Effect>,
 }
 
 impl Effects {
@@ -41,7 +41,7 @@ impl Effects {
             if block.source.is_some() {
                 MACRO_MAP.insert_loc(key.loc);
             }
-            self.effects.insert(key.to_string(), Effect::new(key, block, scope_override));
+            self.effects.insert(key.as_str(), Effect::new(key, block, scope_override));
         }
     }
 
@@ -81,7 +81,7 @@ impl FileHandler<Block> for Effects {
                         }
                     }
                 }
-                self.scope_overrides.insert(key.as_str().to_string(), scopes);
+                self.scope_overrides.insert(key.as_str(), scopes);
             }
         }
     }

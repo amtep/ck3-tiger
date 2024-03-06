@@ -16,8 +16,8 @@ use crate::token::{Loc, Token};
 
 #[derive(Debug, Default)]
 pub struct ScriptValues {
-    scope_overrides: FnvHashMap<String, Scopes>,
-    script_values: FnvHashMap<String, ScriptValue>,
+    scope_overrides: FnvHashMap<&'static str, Scopes>,
+    script_values: FnvHashMap<&'static str, ScriptValue>,
 }
 
 impl ScriptValues {
@@ -37,7 +37,7 @@ impl ScriptValues {
         } else {
             let scope_override = self.scope_overrides.get(key.as_str()).copied();
             self.script_values
-                .insert(key.to_string(), ScriptValue::new(key.clone(), bv.clone(), scope_override));
+                .insert(key.as_str(), ScriptValue::new(key.clone(), bv.clone(), scope_override));
         }
     }
 
@@ -85,7 +85,7 @@ impl FileHandler<Block> for ScriptValues {
                         }
                     }
                 }
-                self.scope_overrides.insert(key.as_str().to_string(), scopes);
+                self.scope_overrides.insert(key.as_str(), scopes);
             }
         }
     }

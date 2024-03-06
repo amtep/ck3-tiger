@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::Block;
 use crate::ck3::validate::validate_traits;
@@ -21,9 +21,9 @@ use crate::validator::Validator;
 #[derive(Clone, Debug, Default)]
 #[allow(clippy::struct_field_names)]
 pub struct Doctrines {
-    categories: FnvHashMap<String, DoctrineCategory>,
-    doctrines: FnvHashMap<String, Doctrine>,
-    parameters: FnvHashMap<String, Token>, // only the boolean parameters
+    categories: FnvHashMap<&'static str, DoctrineCategory>,
+    doctrines: FnvHashMap<&'static str, Doctrine>,
+    parameters: FnvHashSet<Token>, // only the boolean parameters
 }
 
 impl Doctrines {
@@ -49,17 +49,17 @@ impl Doctrines {
             if let Some(b) = block.get_field_block("parameters") {
                 for (k, v) in b.iter_assignments() {
                     if v.is("yes") || v.is("no") {
-                        self.parameters.insert(k.to_string(), k.clone());
+                        self.parameters.insert(k.clone());
                     }
                 }
             }
             self.doctrines.insert(
-                doctrine.to_string(),
+                doctrine.as_str(),
                 Doctrine::new(doctrine.clone(), block.clone(), key.clone()),
             );
         }
 
-        self.categories.insert(key.to_string(), DoctrineCategory::new(key, block));
+        self.categories.insert(key.as_str(), DoctrineCategory::new(key, block));
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -96,11 +96,11 @@ impl Doctrines {
     }
 
     pub fn parameter_exists(&self, key: &str) -> bool {
-        self.parameters.contains_key(key)
+        self.parameters.contains(key)
     }
 
     pub fn iter_parameter_keys(&self) -> impl Iterator<Item = &Token> {
-        self.parameters.values()
+        self.parameters.iter()
     }
 
     pub fn unreformed(&self, key: &str) -> bool {

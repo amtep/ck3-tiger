@@ -18,7 +18,7 @@ use crate::tooltipped::Tooltipped;
 
 #[derive(Clone, Debug, Default)]
 pub struct History {
-    history: FnvHashMap<String, HistoryEffect>,
+    history: FnvHashMap<&'static str, HistoryEffect>,
 }
 
 impl History {
@@ -26,15 +26,15 @@ impl History {
         if let Some(entry) = self.history.get_mut(key.as_str()) {
             entry.block.append(&mut block);
         } else {
-            self.history.insert(key.to_string(), HistoryEffect::new(key, block));
+            self.history.insert(key.as_str(), HistoryEffect::new(key, block));
         }
     }
 
     pub fn validate(&self, data: &Everything) {
         // Don't know what order the history effects are executed in, so let's do alphabetic
         // except for `GLOBAL`, which is documented to go last.
-        let mut names: Vec<&str> =
-            self.history.keys().filter(|name| *name != "GLOBAL").map(|name| &**name).collect();
+        let mut names: Vec<&'static str> =
+            self.history.keys().filter(|name| **name != "GLOBAL").map(|name| &**name).collect();
         names.sort_unstable();
         names.push("GLOBAL");
 

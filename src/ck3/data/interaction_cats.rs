@@ -14,7 +14,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct CharacterInteractionCategories {
-    categories: FnvHashMap<String, Category>,
+    categories: FnvHashMap<&'static str, Category>,
 }
 
 impl CharacterInteractionCategories {
@@ -24,7 +24,7 @@ impl CharacterInteractionCategories {
                 dup_error(&key, &other.key, "interaction category");
             }
         }
-        self.categories.insert(key.to_string(), Category::new(key, block));
+        self.categories.insert(key.as_str(), Category::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {

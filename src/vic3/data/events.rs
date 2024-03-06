@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::{Block, Field, BV};
 use crate::context::{Reason, ScopeContext};
@@ -24,8 +24,8 @@ use crate::vic3::tables::misc::EVENT_CATEGORIES;
 
 #[derive(Clone, Debug, Default)]
 pub struct Vic3Events {
-    events: FnvHashMap<(String, u16), Event>,
-    namespaces: FnvHashMap<String, Token>,
+    events: FnvHashMap<(&'static str, u16), Event>,
+    namespaces: FnvHashSet<Token>,
 }
 
 impl Vic3Events {
@@ -35,7 +35,7 @@ impl Vic3Events {
                 if let Some(other) = self.get_event(key.as_str()) {
                     dup_error(&key, &other.key, "event");
                 }
-                self.events.insert((key_a.to_string(), id), Event::new(key, block));
+                self.events.insert((key_a, id), Event::new(key, block));
                 return;
             }
         }
@@ -44,10 +44,10 @@ impl Vic3Events {
         warn(ErrorKey::EventNamespace).msg(msg).info(info).loc(key).push();
     }
 
-    pub fn get_event(&self, key: &str) -> Option<&Event> {
+    pub fn get_event<'a>(&'a self, key: &'a str) -> Option<&Event> {
         if let Some((namespace, id)) = key.split_once('.') {
             if let Ok(id) = u16::from_str(id) {
-                return self.events.get(&(namespace.to_string(), id));
+                return self.events.get(&(namespace, id));
             }
         }
         None
@@ -60,17 +60,17 @@ impl Vic3Events {
     }
 
     pub fn namespace_exists(&self, key: &str) -> bool {
-        self.namespaces.contains_key(key)
+        self.namespaces.contains(key)
     }
 
     pub fn iter_namespace_keys(&self) -> impl Iterator<Item = &Token> {
-        self.namespaces.values()
+        self.namespaces.iter()
     }
 
     pub fn exists(&self, key: &str) -> bool {
         if let Some((namespace, id)) = key.split_once('.') {
             if let Ok(id) = u16::from_str(id) {
-                if self.events.contains_key(&(namespace.to_string(), id)) {
+                if self.events.contains_key(&(namespace, id)) {
                     return true;
                 }
             }
@@ -107,7 +107,7 @@ impl FileHandler<Block> for Vic3Events {
             if let Some(Field(key, _, bv)) = item.expect_into_field() {
                 if key.is("namespace") {
                     if let Some(value) = bv.expect_into_value() {
-                        self.namespaces.insert(value.to_string(), value);
+                        self.namespaces.insert(value);
                     }
                 } else if let Some(block) = bv.into_block() {
                     self.load_event(key, block);

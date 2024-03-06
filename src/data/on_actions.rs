@@ -22,7 +22,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct OnActions {
-    on_actions: FnvHashMap<String, OnAction>,
+    on_actions: FnvHashMap<&'static str, OnAction>,
 }
 
 impl OnActions {
@@ -30,7 +30,7 @@ impl OnActions {
         if let Some(other) = self.on_actions.get_mut(key.as_str()) {
             on_action_special_append(&mut other.block, block);
         } else {
-            self.on_actions.insert(key.to_string(), OnAction::new(key, block));
+            self.on_actions.insert(key.as_str(), OnAction::new(key, block));
         }
     }
 

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::{Block, BV};
 use crate::everything::Everything;
@@ -18,9 +18,9 @@ use crate::validator::Validator;
 #[derive(Clone, Debug, Default)]
 #[allow(clippy::struct_field_names)]
 pub struct Assets {
-    assets: FnvHashMap<String, Asset>,
-    attributes: FnvHashMap<String, Token>,
-    blend_shapes: FnvHashMap<String, Token>,
+    assets: FnvHashMap<&'static str, Asset>,
+    attributes: FnvHashSet<Token>,
+    blend_shapes: FnvHashSet<Token>,
     textures: FnvHashMap<String, (FileEntry, Token)>,
 }
 
@@ -30,7 +30,7 @@ impl Assets {
             for (key, block) in block.iter_definitions() {
                 if key.is("blend_shape") {
                     if let Some(id) = block.get_field_value("id") {
-                        self.blend_shapes.insert(id.to_string(), id.clone());
+                        self.blend_shapes.insert(id.clone());
                     }
                 }
             }
@@ -38,7 +38,7 @@ impl Assets {
             for (key, block) in block.iter_definitions() {
                 if key.is("attribute") {
                     if let Some(name) = block.get_field_value("name") {
-                        self.attributes.insert(name.to_string(), name.clone());
+                        self.attributes.insert(name.clone());
                     }
                 }
             }
@@ -49,8 +49,7 @@ impl Assets {
                     dup_error(name, &other.key, "asset");
                 }
             }
-            self.assets
-                .insert(name.to_string(), Asset::new(key.clone(), name.clone(), block.clone()));
+            self.assets.insert(name.as_str(), Asset::new(key.clone(), name.clone(), block.clone()));
         }
     }
 
@@ -87,19 +86,19 @@ impl Assets {
     }
 
     pub fn blend_shape_exists(&self, key: &str) -> bool {
-        self.blend_shapes.contains_key(key)
+        self.blend_shapes.contains(key)
     }
 
     pub fn iter_blend_shape_keys(&self) -> impl Iterator<Item = &Token> {
-        self.blend_shapes.values()
+        self.blend_shapes.iter()
     }
 
     pub fn attribute_exists(&self, key: &str) -> bool {
-        self.attributes.contains_key(key)
+        self.attributes.contains(key)
     }
 
     pub fn iter_attribute_keys(&self) -> impl Iterator<Item = &Token> {
-        self.attributes.values()
+        self.attributes.iter()
     }
 
     pub fn texture_exists(&self, key: &str) -> bool {
@@ -142,7 +141,7 @@ impl FileHandler<Option<Block>> for Assets {
     fn handle_file(&mut self, entry: &FileEntry, loaded: Option<Block>) {
         let name = entry.filename().to_string_lossy();
         if name.ends_with(".dds") {
-            if let Some((other, _)) = self.textures.get(&name.to_string()) {
+            if let Some((other, _)) = self.textures.get(&*name) {
                 if other.kind() >= entry.kind() {
                     warn(ErrorKey::DuplicateItem)
                         .msg("texture file is redefined by another file")

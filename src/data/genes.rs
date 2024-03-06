@@ -1,4 +1,4 @@
-use fnv::FnvHashMap;
+use fnv::FnvHashSet;
 
 use crate::block::{Block, BV};
 use crate::db::{Db, DbKind};
@@ -148,12 +148,12 @@ impl DbKind for AgePresetGene {
 #[derive(Clone, Debug)]
 pub struct MorphGene {
     special_gene: bool,
-    templates: FnvHashMap<String, Token>,
+    templates: FnvHashSet<Token>,
 }
 
 impl MorphGene {
     pub fn add(db: &mut Db, key: Token, block: Block, special_gene: bool) {
-        let mut templates = FnvHashMap::default();
+        let mut templates = FnvHashSet::default();
         for (key, _block) in block.iter_definitions() {
             if key.is("ugliness_feature_categories") {
                 continue;
@@ -161,7 +161,7 @@ impl MorphGene {
             if let Some(other) = templates.get(key.as_str()) {
                 dup_error(key, other, "morph gene template");
             }
-            templates.insert(key.to_string(), key.clone());
+            templates.insert(key.clone());
         }
         db.add(Item::GeneCategory, key, block, Box::new(Self { special_gene, templates }));
     }
@@ -197,7 +197,7 @@ impl DbKind for MorphGene {
         property: &str,
         _data: &Everything,
     ) -> bool {
-        self.templates.contains_key(property)
+        self.templates.contains(property)
     }
 
     fn validate_property_use(
@@ -223,7 +223,7 @@ impl DbKind for MorphGene {
         let mut count = 0;
         for token in vd.values() {
             if count % 2 == 0 {
-                if !token.is("") && !self.templates.contains_key(token.as_str()) {
+                if !token.is("") && !self.templates.contains(token) {
                     let msg = format!("Gene template {token} not found in category {call_key}");
                     err(ErrorKey::MissingItem).msg(msg).loc(token).push();
                 }
@@ -279,12 +279,12 @@ fn validate_portrait_modifier_use(
 
 #[derive(Clone, Debug)]
 pub struct AccessoryGene {
-    templates: FnvHashMap<String, Token>,
+    templates: FnvHashSet<Token>,
 }
 
 impl AccessoryGene {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        let mut templates = FnvHashMap::default();
+        let mut templates = FnvHashSet::default();
         #[allow(unused_variables)] // vic3 does not use `block`
         for (key, block) in block.iter_definitions() {
             if key.is("ugliness_feature_categories") {
@@ -293,7 +293,7 @@ impl AccessoryGene {
             if let Some(other) = templates.get(key.as_str()) {
                 dup_error(key, other, "accessory gene template");
             }
-            templates.insert(key.to_string(), key.clone());
+            templates.insert(key.clone());
 
             #[cfg(feature = "ck3")]
             if let Some(tags) = block.get_field_value("set_tags") {
@@ -352,7 +352,7 @@ impl DbKind for AccessoryGene {
         property: &str,
         _data: &Everything,
     ) -> bool {
-        self.templates.contains_key(property)
+        self.templates.contains(property)
     }
 
     fn validate_property_use(
@@ -378,7 +378,7 @@ impl DbKind for AccessoryGene {
         let mut count = 0;
         for token in vd.values() {
             if count % 2 == 0 {
-                if !token.is("") && !self.templates.contains_key(token.as_str()) {
+                if !token.is("") && !self.templates.contains(token) {
                     let msg = format!("Gene template {token} not found in category {call_key}");
                     err(ErrorKey::MissingItem).msg(msg).loc(token).push();
                 }

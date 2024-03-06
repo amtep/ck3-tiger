@@ -18,7 +18,7 @@ use crate::validator::Validator;
 
 #[derive(Debug, Default)]
 pub struct ScriptedLists {
-    lists: FnvHashMap<String, List>,
+    lists: FnvHashMap<&'static str, List>,
 }
 
 impl ScriptedLists {
@@ -28,7 +28,7 @@ impl ScriptedLists {
                 dup_error(&key, &other.key, "scripted list");
             }
         }
-        self.lists.insert(key.to_string(), List::new(key, block));
+        self.lists.insert(key.as_str(), List::new(key, block));
     }
 
     pub fn exists(&self, key: &str) -> bool {

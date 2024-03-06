@@ -16,7 +16,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct DataBindings {
-    bindings: FnvHashMap<String, DataBinding>,
+    bindings: FnvHashMap<&'static str, DataBinding>,
 }
 
 impl DataBindings {
@@ -37,7 +37,7 @@ impl DataBindings {
                 dup_error(&key, &other.key, "data binding");
             }
         }
-        self.bindings.insert(key.to_string(), DataBinding::new(key, block));
+        self.bindings.insert(key.as_str(), DataBinding::new(key, block));
     }
 
     pub fn get(&self, key: &str) -> Option<&DataBinding> {

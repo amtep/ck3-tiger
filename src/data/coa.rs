@@ -21,8 +21,8 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct Coas {
-    coas: FnvHashMap<String, Coa>,
-    templates: FnvHashMap<String, Coa>,
+    coas: FnvHashMap<&'static str, Coa>,
+    templates: FnvHashMap<&'static str, Coa>,
 }
 
 impl Coas {
@@ -42,7 +42,7 @@ impl Coas {
                         }
                     }
                     self.templates.insert(
-                        key.to_string(),
+                        key.as_str(),
                         Coa::new(key.clone(), BV::Block(block.clone().condense_tag("list"))),
                     );
                 }
@@ -57,7 +57,7 @@ impl Coas {
                     }
                 }
             }
-            self.coas.insert(key.to_string(), Coa::new(key.clone(), bv.clone()));
+            self.coas.insert(key.as_str(), Coa::new(key.clone(), bv.clone()));
         }
     }
 
