@@ -120,7 +120,7 @@ impl Music {
 }
 
 /// A list of music provided by DLCs, for people who don't have them
-/// LAST UPDATED VERSION 1.11.3
+/// LAST UPDATED VERSION 1.12.1
 const DLC_MUSIC: &[&str] = &[
     // FP1
     "mx_raid",
@@ -166,7 +166,7 @@ const DLC_MUSIC: &[&str] = &[
     "weddingindia_cue",
     "weddingend_cue",
     "grandfeast_cue",
-    "murderfeast_cue",
+    "murderfeast_event_cue",
     "murderfest_cue",
     "india_arrival_neutral_cue",
     "india_arrival_suspicious_cue",
@@ -198,4 +198,31 @@ const DLC_MUSIC: &[&str] = &[
     "mx_cue_tavern",
     "mx_cue_temple",
     "mx_cue_weaponsmith",
+    // BP2
+    "mbp2_mood_01",
+    "mbp2_mood_02",
+    "mbp2_mood_03",
+    "mbp2_mood_04",
+    "group_bp2_moodtrack",
+    // FP3
+    "strugglestart_cue",
+    "struggleend_cue",
+    "strugglewar_cue",
+    "mfp3_mood_01",
+    "mfp3_mood_02",
+    "mfp3_mood_03",
+    "mfp3_mood_04",
+    "mfp3_mood_05",
+    "group_fp3_cuetrack",
+    "group_fp3_moodtrack",
+    // CE1 (documented as fp4)
+    "apocalyptic_plague",
+    "black_death",
+    "legend_begins",
+    "mfp4_mood_epidemics_01",
+    "mfp4_mood_epidemics_02",
+    "mfp4_mood_legends_01",
+    "mfp4_mood_legends_02",
+    "group_fp4_cuetrack",
+    "group_fp4_moodtrack",
 ];
