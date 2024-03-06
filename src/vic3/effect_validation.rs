@@ -254,6 +254,18 @@ pub fn validate_country_value(
     vd.field_script_value("value", sc);
 }
 
+pub fn validate_form_government(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_script_value("value", sc);
+    vd.multi_field_item("interest_group_type", Item::InterestGroup);
+}
+
 pub fn validate_set_secret_goal(
     _key: &Token,
     _block: &Block,

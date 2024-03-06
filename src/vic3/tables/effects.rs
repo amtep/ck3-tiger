@@ -43,6 +43,8 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::StateRegion, "add_claim", Scope(Scopes::Country)),
     (Scopes::Character, "add_commander_rank", Integer),
     (Scopes::Country, "add_company", Scope(Scopes::CompanyType)),
+    (Scopes::State, "add_cultural_community", Item(Item::Culture)),
+    (Scopes::Culture, "add_cultural_community_in_state", Scope(Scopes::State)),
     (Scopes::Culture, "add_cultural_obsession", Item(Item::Goods)),
     (
         Scopes::State,
@@ -322,6 +324,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "transfer_character", Scope(Scopes::Country)),
     (Scopes::Character, "transfer_to_formation", Scope(Scopes::MilitaryFormation)),
     (Scopes::None, "trigger_event", Vbv(validate_trigger_event)),
+    (Scopes::Country, "try_form_government_with", Vb(validate_form_government)),
     (Scopes::State, "unset_available_for_autonomous_investment", Scope(Scopes::BuildingType)),
     (Scopes::Country, "update_party_support", Yes),
     (Scopes::Country, "validate_subsidies", Boolean),

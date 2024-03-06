@@ -407,7 +407,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country.union(Scopes::State), "average_expected_sol", Scopes::Value),
     (Scopes::Country.union(Scopes::State), "average_sol", Scopes::Value),
     (Scopes::BattleSide, "battle", Scopes::Battle),
-    (Scopes::CombatUnit.union(Scopes::NewCombatUnit), "building", Scopes::Building),
+    (Scopes::NewCombatUnit, "building", Scopes::Building),
     (Scopes::Country, "building_levels", Scopes::Value),
     (Scopes::Country, "cached_ai_coastal_population", Scopes::Value),
     (Scopes::Country, "cached_ai_incorporated_coastal_population", Scopes::Value),
@@ -423,23 +423,20 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "colonial_growth_per_colony", Scopes::Value),
     (Scopes::Province, "combat_width", Scopes::Value),
     (Scopes::Character, "command_limit_num_units", Scopes::Value),
-    (Scopes::CombatUnit.union(Scopes::NewCombatUnit), "commander", Scopes::Character),
+    (Scopes::NewCombatUnit, "commander", Scopes::Character),
     (Scopes::Character, "commander_military_formation", Scopes::MilitaryFormation),
     (Scopes::Province.union(Scopes::State), "controller", Scopes::Country),
     (Scopes::MilitaryFormation, "country", Scopes::Country),
     (Scopes::Country, "country_definition", Scopes::CountryDefinition),
     (Scopes::Country, "credit", Scopes::Value),
-    (
-        Scopes::Character.union(Scopes::CombatUnit).union(Scopes::NewCombatUnit).union(Scopes::Pop),
-        "culture",
-        Scopes::Culture,
-    ),
+    (Scopes::Character.union(Scopes::NewCombatUnit).union(Scopes::Pop), "culture", Scopes::Culture),
+    (Scopes::MilitaryFormation, "current_hq", Scopes::Hq),
     (Scopes::Law, "currently_active_law_in_group", Scopes::Law),
     (Scopes::Country, "currently_enacting_law", Scopes::Law),
     (Scopes::Battle, "defender_side", Scopes::BattleSide),
     (Scopes::War, "defender_warleader", Scopes::Country),
-    (Scopes::CombatUnit.union(Scopes::NewCombatUnit), "defense", Scopes::Value),
-    (Scopes::CombatUnit.union(Scopes::NewCombatUnit), "demoralized", Scopes::Value),
+    (Scopes::NewCombatUnit, "defense", Scopes::Value),
+    (Scopes::NewCombatUnit, "demoralized", Scopes::Value),
     (Scopes::PoliticalMovement, "desired_law", Scopes::LawType),
     (Scopes::DiplomaticPact, "diplomatic_pact_other_country(", Scopes::Country),
     (Scopes::War, "diplomatic_play", Scopes::DiplomaticPlay),
@@ -468,6 +465,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "heir", Scopes::Character),
     (Scopes::MilitaryFormation, "highest_ranked_commander", Scopes::Character),
     (Scopes::Character.union(Scopes::Pop), "home_country", Scopes::Country),
+    (Scopes::MilitaryFormation, "home_hq", Scopes::Hq),
     (Scopes::Character, "ideology", Scopes::Ideology),
     (Scopes::TradeRoute, "importer", Scopes::Market),
     (Scopes::Country, "income", Scopes::Value),
@@ -485,7 +483,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::InterestGroup, "leader", Scopes::Character),
     (Scopes::Country, "legitimacy", Scopes::Value),
     (Scopes::Building.union(Scopes::TradeRoute), "level", Scopes::Value),
-    (Scopes::CombatUnit.union(Scopes::NewCombatUnit), "manpower", Scopes::Value),
+    (Scopes::NewCombatUnit, "manpower", Scopes::Value),
     (
         Scopes::Country
             .union(Scopes::Building)
@@ -500,12 +498,12 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     ),
     (Scopes::Country, "market_capital", Scopes::State),
     (Scopes::State, "mass_migration_culture", Scopes::Culture),
-    (Scopes::CombatUnit.union(Scopes::NewCombatUnit), "mobilization", Scopes::Value),
+    (Scopes::Country.union(Scopes::State), "migration_pull", Scopes::Value),
+    (Scopes::NewCombatUnit, "mobilization", Scopes::Value),
     (Scopes::Party, "momentum", Scopes::Value),
-    (Scopes::CombatUnit.union(Scopes::NewCombatUnit), "morale", Scopes::Value),
+    (Scopes::NewCombatUnit, "morale", Scopes::Value),
     (Scopes::Province, "naval_controller_hq", Scopes::Hq),
     (Scopes::Province, "naval_hq", Scopes::Hq),
-    // TODO: in the docs these two have a whole list of input scope types that doesn't include NavalInvasion
     (Scopes::NavalInvasion, "naval_invasion_attacker", Scopes::Country),
     (Scopes::NavalInvasion, "naval_invasion_defender", Scopes::Country),
     (Scopes::Country, "navy_size", Scopes::Value),
@@ -520,7 +518,6 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "num_battalions", Scopes::Value),
     (Scopes::Country, "num_characters", Scopes::Value),
     (Scopes::Country, "num_colony_projects", Scopes::Value),
-    (Scopes::Character, "num_commanded_units", Scopes::Value),
     (Scopes::MilitaryFormation, "num_commanderless_units", Scopes::Value),
     (Scopes::Country, "num_commanders", Scopes::Value),
     (Scopes::Country, "num_convoys_available", Scopes::Value),
@@ -551,9 +548,8 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "num_treaty_ports", Scopes::Value),
     (Scopes::Country, "num_unincorporated_states", Scopes::Value),
     (Scopes::Character.union(Scopes::MilitaryFormation), "num_units", Scopes::Value),
-    (Scopes::Character, "num_units_not_in_battle", Scopes::Value),
     (Scopes::Character, "num_units_share", Scopes::Value),
-    (Scopes::CombatUnit.union(Scopes::NewCombatUnit), "offense", Scopes::Value),
+    (Scopes::NewCombatUnit, "offense", Scopes::Value),
     (Scopes::Character, "opposing_commander", Scopes::Character),
     (Scopes::BattleSide, "opposite_battle_side", Scopes::BattleSide),
     (Scopes::Country, "overlord", Scopes::Country),
@@ -562,7 +558,6 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
             .union(Scopes::Building)
             .union(Scopes::Character)
             .union(Scopes::NewCombatUnit)
-            .union(Scopes::CombatUnit)
             .union(Scopes::Decree)
             .union(Scopes::Institution)
             .union(Scopes::InterestMarker)
@@ -592,6 +587,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (
         Scopes::Building
             .union(Scopes::DiplomaticPlay)
+            .union(Scopes::Hq)
             .union(Scopes::InterestMarker)
             .union(Scopes::Province)
             .union(Scopes::State)
@@ -618,7 +614,6 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
         Scopes::State,
     ),
     (Scopes::State, "state_region", Scopes::StateRegion),
-    (Scopes::Character, "supply", Scopes::Value),
     (Scopes::DiplomaticPlay.union(Scopes::JournalEntry), "target", Scopes::all()), // TODO: scope type?
     (Scopes::TradeRoute, "target_market", Scopes::Market),
     (Scopes::Country, "technology_being_researched", Scopes::Technology),
@@ -706,7 +701,6 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "list_size", Scopes::Value, UncheckedValue),
         (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
         (Scopes::Market, "mg", Scopes::MarketGoods, Item(Item::Goods)),
-        // TODO: the docs give a huge list of scopes instead of MobilizationOption
         (
             Scopes::None,
             "mobilization_option",
@@ -739,7 +733,6 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
             Scope(Scopes::Country),
         ),
         (Scopes::Front, "num_defending_battalions", Scopes::Value, Scope(Scopes::Country)),
-        (Scopes::Front, "num_enemy_units", Scopes::Value, Scope(Scopes::Country)),
         (
             Scopes::Country,
             "num_mutual_trade_route_levels_with_country",
@@ -756,6 +749,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::StateRegion, "region_state", Scopes::State, Item(Item::Country)), // undocumented
         (Scopes::None, "rel", Scopes::Religion, Item(Item::Religion)),
         (Scopes::Country, "relations", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "relations_change_rate", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::None, "relations_threshold", Scopes::Value, Item(Item::RelationsThreshold)),
         (Scopes::None, "s", Scopes::StateRegion, Item(Item::StateRegion)),
         (Scopes::None, "scope", Scopes::all(), UncheckedValue),
@@ -948,4 +942,9 @@ pub fn scope_to_scope_removed(name: &str) -> Option<(&'static str, &'static str)
     None
 }
 
-const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[];
+const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
+    ("num_commanded_units", "1.6", ""),
+    ("num_enemy_units", "1.6", ""),
+    ("num_units_not_in_battle", "1.6", ""),
+    ("supply", "1.6", ""),
+];
