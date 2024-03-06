@@ -434,6 +434,12 @@ impl Borrow<str> for Token {
     }
 }
 
+impl Borrow<str> for &Token {
+    fn borrow(&self) -> &str {
+        self.s
+    }
+}
+
 impl From<Loc> for Token {
     fn from(loc: Loc) -> Self {
         Token { s: "", loc }

@@ -531,6 +531,16 @@ impl Everything {
         self.database.has_property(itype, key, property, self)
     }
 
+    #[cfg(feature = "ck3")] // vic3 happens not to use
+    pub(crate) fn item_lc_has_property(
+        &self,
+        itype: Item,
+        key: &Lowercase,
+        property: &str,
+    ) -> bool {
+        self.database.lc_has_property(itype, key, property, self)
+    }
+
     #[cfg(feature = "ck3")]
     fn item_exists_ck3(&self, itype: Item, key: &str) -> bool {
         match itype {
@@ -667,6 +677,58 @@ impl Everything {
                 Game::Vic3 => self.item_exists_vic3(itype, key),
                 #[cfg(feature = "imperator")]
                 Game::Imperator => self.item_exists_imperator(itype, key),
+            },
+        }
+    }
+
+    /// Return true iff the item `key` is found with a case insensitive match.
+    /// This function is **incomplete**. It only contains the item types for which case insensitive
+    /// matches are needed; this is currently the ones used in `src/ck3/tables/modif.rs`.
+    #[cfg(feature = "ck3")]
+    fn item_exists_lc_ck3(&self, itype: Item, key: &Lowercase) -> bool {
+        match itype {
+            Item::MenAtArmsBase => self.menatarmstypes.base_exists_lc(key),
+            Item::Trait => self.traits.exists_lc(key),
+            Item::TraitTrack => self.traits.track_exists_lc(key),
+            _ => self.database.exists_lc(itype, key),
+        }
+    }
+
+    /// Return true iff the item `key` is found with a case insensitive match.
+    /// This function is **incomplete**. It only contains the item types for which case insensitive
+    /// matches are needed; this is currently the ones used in `src/vic3/tables/modif.rs`.
+    #[cfg(feature = "vic3")]
+    fn item_exists_lc_vic3(&self, itype: Item, key: &Lowercase) -> bool {
+        #[allow(clippy::match_single_binding)]
+        match itype {
+            _ => self.database.exists_lc(itype, key),
+        }
+    }
+
+    /// Return true iff the item `key` is found with a case insensitive match.
+    /// This function is **incomplete**. It only contains the item types for which case insensitive
+    /// matches are needed; this is currently the ones used in `src/imperator/tables/modif.rs`.
+    #[cfg(feature = "imperator")]
+    fn item_exists_lc_imperator(&self, itype: Item, key: &Lowercase) -> bool {
+        #[allow(clippy::match_single_binding)]
+        match itype {
+            _ => self.database.exists_lc(itype, key),
+        }
+    }
+
+    /// Return true iff the item `key` is found with a case insensitive match.
+    /// This function is **incomplete**. It only contains the item types for which case insensitive
+    /// matches are needed; this is currently the ones used in modif lookups.
+    pub(crate) fn item_exists_lc(&self, itype: Item, key: &Lowercase) -> bool {
+        #[allow(clippy::match_single_binding)]
+        match itype {
+            _ => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => self.item_exists_lc_ck3(itype, key),
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => self.item_exists_lc_vic3(itype, key),
+                #[cfg(feature = "imperator")]
+                Game::Imperator => self.item_exists_lc_imperator(itype, key),
             },
         }
     }

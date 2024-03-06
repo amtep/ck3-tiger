@@ -2,11 +2,18 @@
 
 use std::borrow::{Borrow, Cow};
 use std::fmt::{Display, Error, Formatter};
+#[cfg(any(feature = "vic3", feature = "imperator"))]
+use std::slice::SliceIndex;
+#[cfg(any(feature = "vic3", feature = "imperator"))]
+use std::str::RMatchIndices;
 
 /// Wraps a string (either owned or `&str`) and guarantees that it's lowercase.
 ///
 /// This allows interfaces that expect lowercase strings to declare this expectation in their
 /// argument type, so that the caller can choose how to fulfill it.
+///
+/// Only ASCII characters are lowercased. This is faster than full unicode casemapping, and it
+/// matches what the game engine does.
 ///
 /// The lowercase string is a [`Cow<str>`] internally, so it can be either owned or borrowed.
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -16,10 +23,10 @@ impl<'a> Lowercase<'a> {
     /// Take a string and return the lowercased version.
     pub fn new(s: &'a str) -> Self {
         // Avoid allocating if it's not necessary
-        if s.chars().all(char::is_lowercase) {
-            Lowercase(Cow::Borrowed(s))
+        if s.chars().any(|c| c.is_ascii_uppercase()) {
+            Lowercase(Cow::Owned(s.to_ascii_lowercase()))
         } else {
-            Lowercase(Cow::Owned(s.to_lowercase()))
+            Lowercase(Cow::Borrowed(s))
         }
     }
 
@@ -44,12 +51,32 @@ impl<'a> Lowercase<'a> {
         &self.0
     }
 
-    pub fn into_owned(self) -> Lowercase<'static> {
-        Lowercase(Cow::Owned(self.0.into_owned()))
+    pub fn into_cow(self) -> Cow<'a, str> {
+        self.0
     }
 
     pub fn to_uppercase(&self) -> String {
-        self.as_str().to_uppercase()
+        self.as_str().to_ascii_uppercase()
+    }
+
+    /// Like [`str::strip_prefix`]. Takes a prefix that is known to be already lowercase.
+    pub fn strip_prefix_unchecked<S: Borrow<str>>(&'a self, prefix: S) -> Option<Lowercase<'a>> {
+        self.0.strip_prefix(prefix.borrow()).map(|s| Self(Cow::Borrowed(s)))
+    }
+
+    /// Like [`str::strip_suffix`]. Takes a suffix that is known to be already lowercase.
+    pub fn strip_suffix_unchecked<S: Borrow<str>>(&'a self, suffix: S) -> Option<Lowercase<'a>> {
+        self.0.strip_suffix(suffix.borrow()).map(|s| Self(Cow::Borrowed(s)))
+    }
+
+    #[cfg(any(feature = "vic3", feature = "imperator"))]
+    pub fn rmatch_indices_unchecked(&self, separator: char) -> RMatchIndices<char> {
+        self.0.rmatch_indices(separator)
+    }
+
+    #[cfg(any(feature = "vic3", feature = "imperator"))]
+    pub fn slice<R: 'a + SliceIndex<str, Output = str>>(&'a self, range: R) -> Self {
+        Lowercase::new_unchecked(&self.0[range])
     }
 }
 
