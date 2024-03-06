@@ -111,18 +111,35 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_bool("is_breaking_hostile");
     vd.field_bool("is_target_breaking_hostile");
 
-    vd.field_validated_block("should_auto_break", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::Yes);
-    });
-    for field in
-        &["is_about_to_auto_break", "should_invalidate", "actor_can_break", "target_can_break"]
-    {
+    vd.replaced_field(
+        "is_about_to_auto_break",
+        "show_about_to_break_warning in requirement_to_maintain",
+    );
+    vd.replaced_field("should_auto_break", "trigger in requirement_to_maintain");
+    vd.replaced_field("should_invalidate", "trigger in requirement_to_maintain");
+    for field in &["actor_can_break", "target_can_break"] {
         vd.field_validated_block(field, |block, data| {
             validate_trigger(block, data, sc, Tooltipped::No);
         });
     }
+    vd.multi_field_validated_block("requirement_to_maintain", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_validated_block("trigger", |block, data| {
+            validate_trigger(block, data, sc, Tooltipped::No);
+        });
+        vd.field_validated_block("show_about_to_break_warning", |block, data| {
+            validate_trigger(block, data, sc, Tooltipped::No);
+        });
+    });
 
-    for field in &["daily_effect", "weekly_effect", "monthly_effect", "break_effect"] {
+    vd.replaced_field("break_effect", "manual_break_effect and auto_break_effect");
+    for field in &[
+        "daily_effect",
+        "weekly_effect",
+        "monthly_effect",
+        "manual_break_effect",
+        "auto_break_effect",
+    ] {
         vd.field_validated_block(field, |block, data| {
             validate_effect(block, data, sc, Tooltipped::No);
         });
