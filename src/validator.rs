@@ -1015,7 +1015,6 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
-    #[cfg(feature = "ck3")]
     pub fn field_validated_block_build_sc<B, F>(&mut self, name: &str, mut b: B, mut f: F) -> bool
     where
         B: FnMut(&Token) -> ScopeContext,
