@@ -149,7 +149,7 @@ fn validate_legend_quality(block: &Block, data: &Everything) {
     vd.field_validated_block("impact", |block, data| {
         let mut vd = Validator::new(block, data);
         validate_impact_modifiers(&mut vd);
-        // proper validation in `validate_use`
+        // proper validation in `validate_call`
         vd.field_block("on_complete");
     });
     vd.field_validated_block("ai_chance", validate_ai_chance);
@@ -296,7 +296,12 @@ impl DbKind for LegendSeed {
 
                 // Validate type's `on_complete` block based on the chronicle's properties
                 if let Some(value) = vd.field_value("type") {
-                    data.validate_call(Item::LegendType, key, block, &mut build_impact_on_complete_sc(chronicle, value));
+                    data.validate_call(
+                        Item::LegendType,
+                        key,
+                        block,
+                        &mut build_impact_on_complete_sc(chronicle, value),
+                    );
                 }
             }
         }
