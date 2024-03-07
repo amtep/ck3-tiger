@@ -868,7 +868,7 @@ impl<'a> Validator<'a> {
     /// `root` type with the key of this field, for clearer warnings. A passed-in [`ScopeContext`] would have to be associated
     /// with a key that is further away.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn field_validated_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F) -> bool
+    pub fn field_validated_rooted<F>(&mut self, name: &str, scopes: Scopes, f: F) -> bool
     where
         F: FnMut(&BV, &Everything, &mut ScopeContext),
     {

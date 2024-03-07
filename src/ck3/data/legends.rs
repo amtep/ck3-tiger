@@ -151,7 +151,7 @@ fn validate_impact(block: &Block, data: &Everything) {
         |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("protagonist", Scopes::Character, key);
-            // scopes defined by chronicle properties not validated
+            // TODO validate scopes defined by chronicle properties
             sc.set_strict_scopes(false);
             sc
         },
@@ -189,4 +189,50 @@ fn validate_ai_chance(block: &Block, data: &Everything) {
         },
         validate_script_value_no_breakdown,
     );
+}
+
+#[derive(Clone, Debug)]
+pub struct LegendSeed {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::LegendSeed, LegendSeed::add)
+}
+
+impl LegendSeed {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::LegendSeed, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for LegendSeed {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let loca = format!("legend_{key}");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+        let loca = format!("legend_{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        let mut vd = Validator::new(block, data);
+        vd.field_choice("quality", &["famed", "illustrious", "mythical"]);
+        vd.field_item("type", Item::LegendType);
+        vd.field_validated_block_rooted("is_shown", Scopes::Character, |block, data, sc| {
+            validate_trigger(block, data, sc, Tooltipped::No);
+        });
+        vd.field_validated_block_rooted("is_valid", Scopes::Character, |block, data, sc| {
+            validate_trigger(block, data, sc, Tooltipped::Yes); // TODO verify tooltip
+        });
+        vd.field_item("chronicle", Item::LegendChronicle);
+        vd.field_validated_block_rooted("chronicle_properties", Scopes::Character, |block, data, sc| {
+            let mut vd = Validator::new(block, data);
+            
+            todo!()
+        });
+
+        vd.field_validated_block("chronicle_chapters", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_value_fields(|key, value| {
+                data.verify_exists(Item::LegendChapter, key);
+                data.verify_exists(Item::Localization, value);
+            });
+        });
+    }
 }
