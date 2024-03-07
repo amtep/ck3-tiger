@@ -64,6 +64,7 @@ impl ImperatorProvinces {
                             || key.is("river_provinces")
                             || key.is("impassable_terrain")
                             || key.is("uninhabitable")
+                            || key.is("wasteland")
                             || key.is("lakes")
                             || key.is("LAKES")
                         {

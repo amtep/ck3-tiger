@@ -19,7 +19,7 @@ pub fn validate_remove_subunit_loyalty(
     _tooltipped: Tooltipped,
 ) {
     vd.maybe_is("yes");
-    vd.target(sc, Scopes::SubUnit);
+    vd.target_ok_this(sc, Scopes::SubUnit);
 }
 
 pub fn validate_add_modifier(
