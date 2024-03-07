@@ -2,6 +2,7 @@ use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::{Block, BV};
 use crate::ck3::scopes::scope_from_snake_case;
+use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -11,9 +12,7 @@ use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
-use crate::script_value::{
-    validate_non_dynamic_script_value, validate_script_value, validate_script_value_no_breakdown,
-};
+use crate::script_value::{validate_non_dynamic_script_value, validate_script_value_no_breakdown};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_trigger};
@@ -141,10 +140,10 @@ fn validate_legend_quality(block: &Block, data: &Everything) {
         validate_script_value_no_breakdown,
     );
     vd.field_validated("max_provinces", validate_non_dynamic_script_value);
-    vd.field_validated_rooted("owner_cost", Scopes::Character, validate_script_value);
-    vd.field_validated_build_sc("promoter_cost", build_character_legend_sc, validate_script_value);
-    vd.field_validated_rooted("creation_cost", Scopes::Character, validate_script_value);
-    vd.field_validated_rooted("upgrade_cost", Scopes::Character, validate_script_value);
+    vd.field_validated_block_rooted("owner_cost", Scopes::Character, validate_cost);
+    vd.field_validated_block_build_sc("promoter_cost", build_character_legend_sc, validate_cost);
+    vd.field_validated_block_rooted("creation_cost", Scopes::Character, validate_cost);
+    vd.field_validated_block_rooted("upgrade_cost", Scopes::Character, validate_cost);
     vd.field_validated_block_rooted("removal_duration", Scopes::empty(), validate_duration);
     vd.field_validated_block("impact", |block, data| {
         let mut vd = Validator::new(block, data);
@@ -348,7 +347,7 @@ impl DbKind for LegendChronicle {
 
         if !vd.field_validated_build_sc(
             "name",
-            |key| build_root_properties_sc(Scopes::Character, self, key),
+            |key| build_impact_on_complete_sc(self, key),
             validate_desc,
         ) {
             let loca = format!("legend_chronicle_{key}");
@@ -357,7 +356,7 @@ impl DbKind for LegendChronicle {
 
         if !vd.field_validated_build_sc(
             "description",
-            |key| build_root_properties_sc(Scopes::Character, self, key),
+            |key| build_impact_on_complete_sc(self, key),
             validate_desc,
         ) {
             let loca = format!("legend_chronicle_{key}_desc");

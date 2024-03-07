@@ -1,6 +1,7 @@
 use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
+use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::report::{err, ErrorKey};
@@ -1371,7 +1372,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("target", Scope(Scopes::Character)), ("+value", CompareValue)]),
     ),
     (Scopes::None, "or", Control),
-    (Scopes::Epidemic, "outbreak_intensity", Choice(&["minor", "major", "apocalyptic"])),
+    (Scopes::Epidemic, "outbreak_intensity", CompareChoice(OUTBREAK_INTENSITIES)),
     (Scopes::Epidemic, "outbreak_start_date", CompareDate),
     (Scopes::Character, "owns_a_story", Boolean),
     (Scopes::Character, "owns_story_of_type", Item(Item::Story)),

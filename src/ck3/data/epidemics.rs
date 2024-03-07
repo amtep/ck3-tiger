@@ -1,4 +1,5 @@
 use crate::block::{Block, BV};
+use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -61,10 +62,12 @@ impl DbKind for EpidemicType {
             },
         );
 
-        vd.field_script_value_no_breakdown_build_sc(
-            "character_infection_chance",
-            build_character_epidemic_sc,
-        );
+        vd.field_script_value_no_breakdown_build_sc("character_infection_chance", |key| {
+            let mut sc = build_character_epidemic_sc(key);
+            // undocumented
+            sc.define_name("province", Scopes::Province, key);
+            sc
+        });
 
         vd.field_validated_block_build_sc(
             "on_character_infected",
@@ -131,7 +134,7 @@ impl DbKind for EpidemicType {
 
         vd.field_validated_block("outbreak_intensities", |block, data| {
             let mut vd = Validator::new(block, data);
-            for &level in &["minor", "major", "apocalyptic"] {
+            for &level in OUTBREAK_INTENSITIES {
                 vd.req_field(level);
                 vd.field_validated_block(level, validate_outbreak_level);
             }

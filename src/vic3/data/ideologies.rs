@@ -10,8 +10,9 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_trigger, STANCES};
+use crate::trigger::validate_trigger;
 use crate::validator::Validator;
+use crate::vic3::tables::misc::STANCES;
 
 #[derive(Clone, Debug)]
 pub struct Ideology {}

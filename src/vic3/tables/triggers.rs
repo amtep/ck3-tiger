@@ -3,6 +3,7 @@ use crate::item::Item;
 use crate::scopes::*;
 use crate::token::Token;
 use crate::trigger::Trigger;
+use crate::vic3::tables::misc::{APPROVALS, LEVELS, STANCES};
 
 use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
@@ -243,7 +244,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "gold_reserves_limit", CompareValue),
     (Scopes::Country, "government_legitimacy", CompareValue),
     (Scopes::Country, "government_transfer_of_power", Item(Item::TransferOfPower)),
-    (Scopes::Country, "government_wage_level", CompareLevel),
+    (Scopes::Country, "government_wage_level", CompareChoice(LEVELS)),
     (Scopes::Country, "government_wage_level_value", CompareValue),
     (Scopes::Market.union(Scopes::State), "has_active_building", Item(Item::BuildingType)),
     (Scopes::Country, "has_active_peace_deal", Boolean),
@@ -425,7 +426,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "has_wasted_construction", Boolean),
     (Scopes::None, "hidden_trigger", Control),
     (Scopes::Country, "highest_secession_progress", CompareValue),
-    (Scopes::InterestGroup, "ig_approval", CompareApproval),
+    (Scopes::InterestGroup, "ig_approval", CompareChoice(APPROVALS)),
     (Scopes::InterestGroup, "ig_clout", CompareValue),
     (Scopes::InterestGroup, "ig_government_power_share", CompareValue),
     (
@@ -652,7 +653,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::Character.union(Scopes::InterestGroup),
         "law_stance",
-        Block(&[("law", Scope(Scopes::LawType)), ("value", CompareStance)]),
+        Block(&[("law", Scope(Scopes::LawType)), ("value", CompareChoice(STANCES))]),
     ),
     (Scopes::Country, "leading_producer_of", Scope(Scopes::Goods)),
     (Scopes::Country, "leads_customs_union", Boolean),
@@ -690,7 +691,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Market, "market_has_goods_shortage", Boolean),
     (Scopes::MilitaryFormation, "max_organization", CompareValue),
     (Scopes::Country, "max_num_declared_interests", CompareValue),
-    (Scopes::Country, "military_wage_level", CompareLevel),
+    (Scopes::Country, "military_wage_level", CompareChoice(LEVELS)),
     (Scopes::Country, "military_wage_level_value", CompareValue),
     (Scopes::Character, "mobilization_cost", Removed("1.5", "")),
     (Scopes::None, "month", CompareValue), // TODO: 0 to 11
@@ -851,7 +852,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::DiplomaticPlay, "target_is", Scope(Scopes::Country)),
     (Scopes::State, "tax_capacity", CompareValue),
     (Scopes::State, "tax_capacity_usage", CompareValue),
-    (Scopes::Country, "tax_level", CompareLevel),
+    (Scopes::Country, "tax_level", CompareChoice(LEVELS)),
     (Scopes::Country, "tax_level_value", CompareValue),
     (Scopes::Country, "tension(", CompareValue),
     (Scopes::Country, "total_manpower", Removed("1.6", "")),

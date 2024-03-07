@@ -1,5 +1,5 @@
 use crate::block::{Block, BV};
-use crate::ck3::tables::misc::ARTIFACT_RARITY;
+use crate::ck3::tables::misc::ARTIFACT_RARITIES;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
@@ -291,7 +291,7 @@ impl DbKind for ArtifactBlueprint {
         });
         vd.field_validated_block("replacement_modifiers", |block, data| {
             let mut vd = Validator::new(block, data);
-            for field in ARTIFACT_RARITY {
+            for field in ARTIFACT_RARITIES {
                 vd.field_validated_list(field, |token, data| {
                     data.verify_exists(Item::Modifier, token);
                     // Verify that all the modifs in this modifier are artifact-compatible.

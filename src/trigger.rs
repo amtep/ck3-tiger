@@ -13,8 +13,6 @@ use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::game::Game;
 use crate::helpers::stringify_choices;
-#[cfg(feature = "vic3")]
-use crate::helpers::stringify_list;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "vic3")]
@@ -31,8 +29,6 @@ use crate::validate::{
     validate_iterator_fields, ListType,
 };
 use crate::validator::Validator;
-#[cfg(feature = "vic3")]
-use crate::vic3::tables::misc::{APPROVALS, LEVELS};
 
 /// Look up a trigger token that evaluates to a trigger value.
 ///
@@ -592,10 +588,6 @@ fn match_trigger_fields(
     side_effects
 }
 
-#[cfg(feature = "vic3")]
-pub const STANCES: &[&str] =
-    &["strongly_disapprove", "disapprove", "neutral", "approve", "strongly_approve"];
-
 /// Takes a [`Trigger`] and a trigger field, and validates that the constraints
 /// specified by the `Trigger` hold.
 ///
@@ -654,36 +646,6 @@ fn match_trigger_bv(
             }
         }
         #[cfg(feature = "vic3")]
-        Trigger::CompareLevel => {
-            must_be_eq = false;
-            if let Some(token) = bv.expect_value() {
-                if !LEVELS.contains(&token.as_str()) {
-                    let msg = format!("{name} expects one of {}", stringify_list(LEVELS));
-                    warn(ErrorKey::Validation).msg(msg).loc(token).push();
-                }
-            }
-        }
-        #[cfg(feature = "vic3")]
-        Trigger::CompareStance => {
-            must_be_eq = false;
-            if let Some(token) = bv.expect_value() {
-                if !STANCES.contains(&token.as_str()) {
-                    let msg = format!("{name} expects one of {}", stringify_list(STANCES));
-                    warn(ErrorKey::Validation).msg(msg).loc(token).push();
-                }
-            }
-        }
-        #[cfg(feature = "vic3")]
-        Trigger::CompareApproval => {
-            must_be_eq = false;
-            if let Some(token) = bv.expect_value() {
-                if !token.is_number() && !APPROVALS.contains(&token.as_str()) {
-                    let msg = format!("{name} expects one of {}", stringify_list(APPROVALS));
-                    warn(ErrorKey::Validation).msg(msg).loc(token).push();
-                }
-            }
-        }
-        #[cfg(feature = "vic3")]
         Trigger::ItemOrCompareValue(i) => {
             if let Some(token) = bv.expect_value() {
                 if !data.item_exists(*i, token.as_str()) {
@@ -730,6 +692,15 @@ fn match_trigger_bv(
                     let msg = format!("unknown value {token} for {name}");
                     let info = format!("valid values are: {}", stringify_choices(choices));
                     warn(ErrorKey::Validation).msg(msg).info(info).loc(token).push();
+                }
+            }
+        }
+        Trigger::CompareChoice(choices) => {
+            must_be_eq = false;
+            if let Some(token) = bv.expect_value() {
+                if !choices.contains(&token.as_str()) {
+                    let msg = format!("{name} expects one of {}", stringify_choices(choices));
+                    warn(ErrorKey::Validation).msg(msg).loc(token).push();
                 }
             }
         }
@@ -1436,15 +1407,6 @@ pub enum Trigger {
     SetValue,
     /// value must be a valid date
     CompareDate,
-    /// value is a level from LEVELS array
-    #[cfg(feature = "vic3")]
-    CompareLevel,
-    /// value is a stance from `strongly_disapprove` to `strongly_approve`
-    #[cfg(feature = "vic3")]
-    CompareStance,
-    /// value is a number, or a token from `angry` to `loyal`
-    #[cfg(feature = "vic3")]
-    CompareApproval,
     /// trigger is either = item or compared to another trigger
     #[cfg(feature = "vic3")]
     ItemOrCompareValue(Item),
@@ -1457,6 +1419,8 @@ pub enum Trigger {
     ScopeOrItem(Scopes, Item),
     /// value is chosen from a list given here
     Choice(&'static [&'static str]),
+    /// value is from a list given here that can be compared
+    CompareChoice(&'static [&'static str]),
     /// For Block, if a field name in the array starts with ? it means that field is optional
     /// trigger takes a block with these fields
     Block(&'static [(&'static str, Trigger)]),

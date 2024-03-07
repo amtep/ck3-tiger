@@ -21,6 +21,8 @@ use crate::validate::{
 };
 use crate::validator::{Validator, ValueValidator};
 
+use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
+
 pub fn validate_add_activity_log_entry(
     key: &Token,
     block: &Block,
@@ -1506,7 +1508,7 @@ pub fn validate_create_epidemic_outbreak(
     vd.req_field("type");
     vd.req_field("intensity");
     vd.field_item("type", Item::EpidemicType);
-    vd.field_choice("intensity", &["minor", "major", "apocalyptic"]);
+    vd.field_choice("intensity", OUTBREAK_INTENSITIES);
     if let Some(name) = vd.field_value("save_scope_as") {
         sc.define_name_token(name.as_str(), Scopes::Epidemic, name);
     }

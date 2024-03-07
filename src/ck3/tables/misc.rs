@@ -137,7 +137,10 @@ pub const DANGER_TYPES: &[&str] = &[
 ];
 
 // LAST UPDATED CK3 VERSION 1.12.1
-pub const ARTIFACT_RARITY: &[&str] = &["common", "masterwork", "famed", "illustrious"];
+pub const ARTIFACT_RARITIES: &[&str] = &["common", "masterwork", "famed", "illustrious"];
+
+// LAST UPDATED CK3 VERSION 1.12.1
+pub const OUTBREAK_INTENSITIES: &[&str] = &["minor", "major", "apocalyptic"];
 
 // LAST UPDATED CK3 VERSION 1.12.1
 // Taken from the object browser, under audio events
