@@ -872,8 +872,17 @@ impl<'a> Validator<'a> {
     where
         F: FnMut(&BV, &Everything, &mut ScopeContext),
     {
+        self.field_validated_build_sc(name, |key| ScopeContext::new(scopes, key), f)
+    }
+
+    #[cfg(feature = "ck3")]
+    pub fn field_validated_build_sc<B, F>(&mut self, name: &str, mut b: B, mut f: F) -> bool
+    where
+        B: FnMut(&Token) -> ScopeContext,
+        F: FnMut(&BV, &Everything, &mut ScopeContext),
+    {
         self.field_validated_key(name, |key, bv, data| {
-            let mut sc = ScopeContext::new(scopes, key);
+            let mut sc = b(key);
             f(bv, data, &mut sc);
         })
     }
@@ -1006,6 +1015,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    #[cfg(feature = "ck3")]
     pub fn field_validated_block_build_sc<B, F>(&mut self, name: &str, mut b: B, mut f: F) -> bool
     where
         B: FnMut(&Token) -> ScopeContext,

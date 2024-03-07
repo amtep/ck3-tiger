@@ -13,6 +13,7 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_possibly_named_color};
 use crate::validator::Validator;
+use crate::Everything;
 
 #[derive(Clone, Debug)]
 pub struct EpidemicType {}
@@ -29,18 +30,6 @@ impl EpidemicType {
 
 impl DbKind for EpidemicType {
     fn validate(&self, key: &Token, block: &Block, data: &crate::Everything) {
-        fn build_character_epidemic_sc(key: &Token) -> ScopeContext {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            sc.define_name("epidemic", Scopes::Epidemic, key);
-            sc
-        }
-
-        fn build_province_epidemic_sc(key: &Token) -> ScopeContext {
-            let mut sc = ScopeContext::new(Scopes::Province, key);
-            sc.define_name("epidemic", Scopes::Epidemic, key);
-            sc
-        }
-
         let mut vd = Validator::new(block, data);
         vd.req_field("trait");
         vd.field_item("trait", Item::Trait);
@@ -144,45 +133,53 @@ impl DbKind for EpidemicType {
             let mut vd = Validator::new(block, data);
             for &level in &["minor", "major", "apocalyptic"] {
                 vd.req_field(level);
-                vd.field_validated_block(level, |block, data| {
-                    let mut vd = Validator::new(block, data);
-                    vd.field_bool("global_notification");
-                    vd.field_script_value_no_breakdown_build_sc("outbreak_chance", |key| {
-                        let mut sc = ScopeContext::new(Scopes::Province, key);
-                        sc.define_name("epidemic_type", Scopes::EpidemicType, key);
-                        sc
-                    });
-
-                    vd.field_script_value_build_sc("spread_chance", build_province_epidemic_sc);
-                    vd.field_script_value_no_breakdown_build_sc("max_provinces", |key| {
-                        ScopeContext::new(Scopes::None, key)
-                    });
-
-                    vd.field_validated_block_build_sc(
-                        "infection_duration",
-                        build_province_epidemic_sc,
-                        |block, data, sc| {
-                            validate_duration(block, data, sc);
-                        },
-                    );
-
-                    vd.field_validated_block_build_sc(
-                        "infection_progress_duration",
-                        build_province_epidemic_sc,
-                        |block, data, sc| {
-                            validate_duration(block, data, sc);
-                        },
-                    );
-
-                    vd.field_validated_block_build_sc(
-                        "infection_recovery_duration",
-                        build_province_epidemic_sc,
-                        |block, data, sc| {
-                            validate_duration(block, data, sc);
-                        },
-                    );
-                });
+                vd.field_validated_block(level, validate_outbreak_level);
             }
         });
     }
+}
+
+fn build_character_epidemic_sc(key: &Token) -> ScopeContext {
+    let mut sc = ScopeContext::new(Scopes::Character, key);
+    sc.define_name("epidemic", Scopes::Epidemic, key);
+    sc
+}
+
+fn build_province_epidemic_sc(key: &Token) -> ScopeContext {
+    let mut sc = ScopeContext::new(Scopes::Province, key);
+    sc.define_name("epidemic", Scopes::Epidemic, key);
+    sc
+}
+
+fn validate_outbreak_level(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.field_bool("global_notification");
+    vd.field_script_value_no_breakdown_build_sc("outbreak_chance", |key| {
+        let mut sc = ScopeContext::new(Scopes::Province, key);
+        sc.define_name("epidemic_type", Scopes::EpidemicType, key);
+        sc
+    });
+
+    vd.field_script_value_build_sc("spread_chance", build_province_epidemic_sc);
+    vd.field_script_value_no_breakdown_build_sc("max_provinces", |key| {
+        ScopeContext::new(Scopes::empty(), key)
+    });
+
+    vd.field_validated_block_build_sc(
+        "infection_duration",
+        build_province_epidemic_sc,
+        validate_duration,
+    );
+
+    vd.field_validated_block_build_sc(
+        "infection_progress_duration",
+        build_province_epidemic_sc,
+        validate_duration,
+    );
+
+    vd.field_validated_block_build_sc(
+        "infection_recovery_duration",
+        build_province_epidemic_sc,
+        validate_duration,
+    );
 }
