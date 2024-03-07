@@ -5,11 +5,14 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
+use crate::report::report;
+use crate::report::ErrorKey;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validator::Validator;
+use crate::Severity;
 
 #[derive(Clone, Debug)]
 pub struct EventPicture {}
@@ -32,9 +35,7 @@ impl DbKind for EventPicture {
         vd.field_item("theme", Item::EventTheme);
 
         vd.multi_field_validated("picture", |bv, data| match bv {
-            BV::Value(t) => {
-                data.verify_exists(Item::File, t);
-            }
+            BV::Value(t) => verify_exists_or_empty(data, t, Severity::Error),
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.field_item("texture", Item::File);
@@ -43,5 +44,20 @@ impl DbKind for EventPicture {
                 });
             }
         });
+    }
+}
+
+pub fn verify_exists_or_empty(data: &Everything, file: &Token, max_sev: Severity) {
+    let file_str = file.as_str();
+    if file_str.is_empty() {
+        return;
+    }
+    data.fileset.mark_used(&file_str.replace("//", "/"));
+    if !data.fileset.exists(file_str) {
+        let msg = format!("file {file_str} does not exist");
+        report(ErrorKey::MissingFile, Item::File.severity().at_most(max_sev))
+            .msg(msg)
+            .loc(file)
+            .push();
     }
 }
