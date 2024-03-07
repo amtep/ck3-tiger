@@ -464,7 +464,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::Province,
         "great_work_locator_is_free",
-        Choice(&["primary_great_work", "secondary_great_work"]),
+        Choice(&["primary_great_work", "secondary_great_work", "great_work"]),
     ),
     // TODO - ancient wonders are defined in setup/main by great works with "ancient_wonder = yes"
     (Scopes::Province, "has_ancient_wonder", UncheckedValue),
@@ -478,7 +478,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Province, "has_owner", Boolean),
     (Scopes::Province, "has_province_modifier", Item(Item::Modifier)),
     (Scopes::Province, "has_province_rank", Item(Item::ProvinceRank)),
-    (Scopes::Province, "has_road_towards", ScopeOrItem(Scopes::Country, Item::Localization)),
+    (Scopes::Province, "has_road_towards", ScopeOrItem(Scopes::Province, Item::Province)),
     (Scopes::Province, "has_siege", Boolean),
     (Scopes::Province, "has_specific_construction", Boolean),
     (Scopes::Province, "has_winter", Boolean),
@@ -489,8 +489,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Province, "is_core_of", ScopeOrItem(Scopes::Country, Item::Localization)),
     (Scopes::Province, "is_holy_site", Boolean),
     (Scopes::Province, "is_importing_trade_good", Item(Item::TradeGood)),
-    (Scopes::Province, "is_in_area", ScopeOrItem(Scopes::Area, Item::Area)),
-    (Scopes::Province, "is_in_region", ScopeOrItem(Scopes::Region, Item::Region)),
+    (Scopes::Province, "is_in_area", ScopeOrItem(Scopes::Province, Item::Area)),
+    (Scopes::Province, "is_in_region", ScopeOrItem(Scopes::Province, Item::Region)),
     (Scopes::Province, "is_inhabitable", Boolean),
     (Scopes::Province, "is_model_shown", UncheckedValue),
     (Scopes::Province, "is_neighbor", ScopeOrItem(Scopes::Province, Item::Province)),

@@ -475,6 +475,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "region", Scopes::Region),
     (Scopes::None, "sea_and_river_zone", Scopes::Province),
     (Scopes::None, "in_list", Scopes::all()),
+    (Scopes::None, "in_global_list", Scopes::all()),
 ];
 
 pub fn scope_iterator_removed(name: &str) -> Option<(&'static str, &'static str)> {

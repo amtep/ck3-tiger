@@ -26,7 +26,7 @@ impl DbKind for Religion {
         let mut vd = Validator::new(block, data);
 
         data.verify_exists(Item::Localization, key);
-        let loca = format!("{key}DESC");
+        let loca = format!("desc_{key}");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.req_field("modifier");

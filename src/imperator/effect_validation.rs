@@ -322,6 +322,7 @@ pub fn validate_create_unit(
     sc.open_scope(Scopes::Unit, key.clone());
     vd.field_value("name");
     vd.field_item_or_target("location", sc, Item::Province, Scopes::Province);
+    vd.field_target("commander", sc, Scopes::Character);
     vd.field_bool("navy");
     vd.field_item("sub_unit", Item::Unit);
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
@@ -365,11 +366,11 @@ pub fn validate_great_work_construction(
     _key: &Token,
     _block: &Block,
     _data: &Everything,
-    sc: &mut ScopeContext,
+    _sc: &mut ScopeContext,
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
     vd.field_item("great_work", Item::GreatWorkTemplate);
-    vd.field_choice("locator", &["primary_great_work", "secondary_great_work"]);
+    vd.field_choice("locator", &["primary_great_work", "secondary_great_work", "great_work"]);
     vd.field_bool("is_ancient");
 }

@@ -5,7 +5,9 @@ pub const ON_ACTION_SCOPES: &str = "
 
     monthly_country_pulse = yearly_country_pulse
     on_deficit_pulse = yearly_country_pulse
-    on_state_secession = yearly_country_pulse
+    on_state_secession = {
+        root = state
+    }
     on_change_pantheon = yearly_country_pulse
     biyearly_country_pulse = yearly_country_pulse
     on_rebellion_in_country = yearly_country_pulse

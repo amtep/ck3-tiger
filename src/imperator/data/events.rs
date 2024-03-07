@@ -185,7 +185,12 @@ impl Event {
         vd.field_bool("hidden");
         vd.field_bool("interface_lock");
         vd.field_bool("fire_only_once");
-        vd.field_item_or_target("goto_location", &mut sc, Item::Province, Scopes::Province);
+        vd.field_item_or_target(
+            "goto_location",
+            &mut sc,
+            Item::Province,
+            Scopes::Province.union(Scopes::Country),
+        );
 
         vd.field_validated_sc("title", &mut sc, validate_desc);
         vd.field_validated_sc("desc", &mut sc, validate_desc);

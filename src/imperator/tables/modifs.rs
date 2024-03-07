@@ -123,14 +123,8 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
                 let info = format!("so the modifier {name} does not exist");
                 report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
             }
-            if data.item_exists(Item::Unit, part) {
-                return Some(ModifKinds::Country);
-            }
-            if data.item_exists(Item::Building, part) {
-                return Some(ModifKinds::Province);
-            }
         }
-        return Some(ModifKinds::Province | ModifKinds::Country);
+        return Some(ModifKinds::Country);
     }
 
     // $TechnologyTable$_investment
@@ -335,9 +329,9 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("monthly_character_wealth", ModifKinds::Character),
     ("primary_heir_attraction", ModifKinds::Character),
     ("support_for_character_as_heir", ModifKinds::Character),
-    ("next_ruler_legitimacy", ModifKinds::Character),
-    ("num_of_clan_chiefs", ModifKinds::Character),
-    ("clan_retinue_size", ModifKinds::Character),
+    ("next_ruler_legitimacy", ModifKinds::Country),
+    ("num_of_clan_chiefs", ModifKinds::Country),
+    ("clan_retinue_size", ModifKinds::Country),
     ("enslavement_efficiency", ModifKinds::Character.union(ModifKinds::Country)),
     ("local_output_modifier", ModifKinds::Province.union(ModifKinds::State)),
     ("holdings_possible_for_character", ModifKinds::Character),

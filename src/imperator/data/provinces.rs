@@ -158,9 +158,6 @@ impl ImperatorProvinces {
         for item in &self.adjacencies {
             item.validate(self);
         }
-        for item in self.provinces.values() {
-            item.validate(self, data);
-        }
     }
 }
 
@@ -412,12 +409,5 @@ impl Province {
         let b = _verify(&csv[3], "expected blue value")?;
         let color = Rgb::from([r, g, b]);
         Some(Province { key: csv[0].clone(), id, color, comment: csv[4].clone() })
-    }
-
-    fn validate(&self, provinces: &ImperatorProvinces, data: &Everything) {
-        if provinces.sea_or_river.contains(&self.id) {
-            // TODO: this really needs an explanation, like "missing .... for sea zone"
-            data.verify_exists(Item::Localization, &self.comment);
-        }
     }
 }

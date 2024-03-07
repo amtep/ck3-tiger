@@ -42,8 +42,6 @@ impl DbKind for MilitaryTraditionTree {
         let mut sc = ScopeContext::new(Scopes::Country, key);
 
         data.verify_exists(Item::Localization, key);
-        let loca = format!("{key}desc");
-        data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.field_validated_block("color", validate_color);
         vd.field_value("image");

@@ -30,7 +30,7 @@ impl DbKind for Idea {
         let mut sc = ScopeContext::new(Scopes::Country, key);
 
         data.verify_exists(Item::Localization, key);
-        let loca = format!("idea_{key}_desc");
+        let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.req_field("trigger");
