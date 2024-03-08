@@ -38,6 +38,7 @@ impl DbKind for LawType {
         vd.field_item("icon", Item::File);
 
         vd.field_numeric("progressiveness");
+        vd.field_bool("limited_to_frontier_colonization"); // undocumented
 
         vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);
