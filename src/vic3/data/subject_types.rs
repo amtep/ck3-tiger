@@ -3,6 +3,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
+use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -38,6 +39,9 @@ impl DbKind for SubjectType {
         vd.field_bool("use_for_release_country");
         vd.field_bool("gives_prestige_to_overlord");
         vd.field_bool("subservient_to_overlord");
+        vd.field_bool("can_target_with_transfer_wargoal");
+        vd.field_bool("can_be_used_in_sway_offers");
+        vd.field_bool("can_offer_to_become_in_sway_offers");
 
         vd.field_numeric("convoy_contribution");
 
@@ -49,5 +53,11 @@ impl DbKind for SubjectType {
         vd.field_list_items("valid_subject_country_types", Item::CountryType);
         vd.field_list_items("valid_overlord_ranks", Item::CountryRank);
         vd.field_list_items("valid_subject_ranks", Item::CountryRank);
+        vd.field_list_items("higher_autonomy_subject_type_alternatives", Item::SubjectType);
+        vd.field_list_items("same_autonomy_subject_type_alternatives", Item::SubjectType);
+        vd.field_list_items("lower_autonomy_subject_type_alternatives", Item::SubjectType);
+
+        // TODO: verify scope type
+        vd.field_script_value_rooted("ai_value", Scopes::Country);
     }
 }
