@@ -149,6 +149,7 @@ pub fn validate_add_war_goal(
     // TODO: verify this; there's only one example in vanilla
     vd.advice_field("country", "docs say `country` but it's `target_country`");
     vd.field_target("target_country", sc, Scopes::Country);
+    vd.field_target("target_state", sc, Scopes::State);
     vd.field_target("region", sc, Scopes::StateRegion);
     vd.field_bool("primary_demand");
 }
