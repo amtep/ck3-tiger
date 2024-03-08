@@ -32,7 +32,7 @@ impl ReportFilter {
         }
         // If every single Loc in the chain is out of scope, the report is out of scope.
         let out_of_scope = report.pointers.iter().map(|p| &p.loc).all(|loc| {
-            (loc.kind <= FileKind::Vanilla && !self.show_vanilla)
+            (loc.kind.counts_as_vanilla() && !self.show_vanilla)
                 || (matches!(loc.kind, FileKind::LoadedMod(_)) && !self.show_loaded_mods)
         });
         if out_of_scope {
@@ -48,7 +48,7 @@ impl ReportFilter {
             // undermine the operation of the application. They must always be printed.
             return true;
         }
-        if (loc.kind <= FileKind::Vanilla && !self.show_vanilla)
+        if (loc.kind.counts_as_vanilla() && !self.show_vanilla)
             || (matches!(loc.kind, FileKind::LoadedMod(_)) && !self.show_loaded_mods)
         {
             return false;

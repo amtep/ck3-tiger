@@ -48,6 +48,15 @@ pub enum FileKind {
     Mod,
 }
 
+impl FileKind {
+    pub fn counts_as_vanilla(&self) -> bool {
+        match self {
+            FileKind::Clausewitz | FileKind::Jomini | FileKind::Vanilla | FileKind::Dlc(_) => true,
+            FileKind::Internal | FileKind::LoadedMod(_) | FileKind::Mod => false,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FileEntry {
     /// Pathname components below the mod directory or the vanilla game dir
