@@ -43,7 +43,6 @@ pub mod production_methods;
 pub mod provinces;
 pub mod religions;
 pub mod scripted_buttons;
-pub mod scripted_rules;
 pub mod state_regions;
 pub mod state_traits;
 pub mod strategic_regions;

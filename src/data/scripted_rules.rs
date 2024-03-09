@@ -5,7 +5,7 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::game::GameFlags;
+use crate::game::{Game, GameFlags};
 use crate::item::{Item, ItemLoader};
 use crate::parse::pdxfile::parse_pdx_internal;
 use crate::report::{err, ErrorKey};
@@ -18,7 +18,7 @@ use crate::trigger::validate_trigger;
 pub struct ScriptedRule {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Vic3, Item::ScriptedRule, ScriptedRule::add)
+    ItemLoader::Normal(GameFlags::Ck3.union(GameFlags::Vic3), Item::ScriptedRule, ScriptedRule::add)
 }
 
 impl ScriptedRule {
@@ -56,9 +56,17 @@ struct ScriptedRuleScopeContext {
     lists: Vec<(&'static str, Scopes)>,
 }
 
-/// Processed version of [`SCRIPTED_RULES`].
+/// Processed version of game-specific `SCRIPTED_RULES`.
 static SCRIPTED_RULE_SCOPES_MAP: Lazy<FnvHashMap<&'static str, ScriptedRuleScopeContext>> =
-    Lazy::new(|| build_scripted_rule_hashmap(SCRIPTED_RULES));
+    Lazy::new(|| {
+        let rules = match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => crate::ck3::tables::rules::SCRIPTED_RULES,
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => crate::vic3::tables::rules::SCRIPTED_RULES,
+        };
+        build_scripted_rule_hashmap(rules)
+    });
 
 // Mostly copied from build_on_action_hashmap.
 // TODO: more generic facility for this?
@@ -98,28 +106,3 @@ fn build_scripted_rule_hashmap(
 
     hash
 }
-
-/// Specification of the hardcoded scripted rules in Vic3.
-///
-/// Each definition is one rule.
-///
-/// `tooltipped` says whether the contents of this rule are tooltipped for the player.
-/// It defaults to no. Left out when tooltipping is uncertain, otherwise set to yes or no.
-///
-/// `root` is the root of the scope context. Other fields are added named scopes.
-///
-/// For ease of updating, the rules are in the order they are found in the game files.
-// LAST UPDATED VIC3 VERSION 1.6.0
-// Taken from information in common/scripted_rules/00_scripted_rules.txt
-const SCRIPTED_RULES: &str = "
-    violate_sovereignty_war_check_rule = {
-		tooltipped = no
-		root = war
-        target_country = country
-	}
-
-	has_voting_franchise = {
-		tooltipped = no
-		root = country
-	}
-    ";

@@ -23,6 +23,8 @@ pub mod scripted_effects;
 pub mod scripted_guis;
 pub mod scripted_lists;
 pub mod scripted_modifiers;
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+pub mod scripted_rules;
 pub mod scripted_triggers;
 pub mod trigger_localization;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
