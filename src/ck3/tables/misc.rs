@@ -137,11 +137,21 @@ pub const DANGER_TYPES: &[&str] = &[
 ];
 
 // LAST UPDATED CK3 VERSION 1.12.1
-pub const ARTIFACT_RARITY: &[&str] = &["common", "masterwork", "famed", "illustrious"];
+pub const ARTIFACT_RARITIES: &[&str] = &["common", "masterwork", "famed", "illustrious"];
+
+// LAST UPDATED CK3 VERSION 1.12.1
+pub const OUTBREAK_INTENSITIES: &[&str] = &["minor", "major", "apocalyptic"];
 
 // LAST UPDATED CK3 VERSION 1.12.1
 // Taken from the object browser, under audio events
 pub const SOUNDS_CK3: &[&str] = &[
+    "event:/DLC/BP1/MUSIC/moodtrack/mx_BP1Mood_Generic",
+    "event:/DLC/BP1/MUSIC/moodtrack/mx_BP1Mood_MiddleEastern",
+    "event:/DLC/BP1/MUSIC/moodtrack/mx_BP1Mood_Western",
+    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_01",
+    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_02",
+    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_03",
+    "event:/DLC/BP2/MX/moodtrack/mx_mbp2_moodtrack_04",
     "event:/DLC/EP1/MX/Cuetracks/mx_cuetrack_01_middleeasterncourt",
     "event:/DLC/EP1/MX/Cuetracks/mx_cuetrack_02_europeancourt",
     "event:/DLC/EP1/MX/Cuetracks/mx_cuetrack_03_indiancourt",
@@ -187,6 +197,24 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/DLC/EP1/SFX/UI/hold_court",
     "event:/DLC/EP1/SFX/UI/inventory_artifact_place",
     "event:/DLC/EP1/SFX/courtcamera",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_01_tournament_west",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_02_tournament_mena",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_03_tournament_india",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_04_tournament_end",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_05_tour_west",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_06_tour_mena",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_07_tour_india",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_08_tour_end",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_09_wedding_west",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_10_wedding_mena",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_11_wedding_india",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_12_wedding_end",
+    "event:/DLC/EP2/MX/Cuetracks/mx_cuetrack_13_murder_feast",
+    "event:/DLC/EP2/MX/Maintheme/mx_mep2_maintheme",
+    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_01",
+    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_02",
+    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_03",
+    "event:/DLC/EP2/MX/Moodtracks/mx_mep2_mood_04",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_crowd_base",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_crowd_base_rise",
     "event:/DLC/EP2/SFX/Ambience/2D/ep2_amb_2d_crowd_negative_reaction",
@@ -356,12 +384,27 @@ pub const SOUNDS_CK3: &[&str] = &[
     "event:/DLC/FP2/SFX/UI/fp2_struggle_view_close",
     "event:/DLC/FP2/SFX/UI/fp2_struggle_view_open",
     "event:/DLC/FP2/SFX/UI/fp2_ui_war_declare_war",
+    "event:/DLC/FP3/MX/Cuetracks/mx_cuetracks_01_struggle_starts",
+    "event:/DLC/FP3/MX/Cuetracks/mx_cuetracks_02_struggle_ends",
+    "event:/DLC/FP3/MX/Cuetracks/mx_cuetracks_03_war_during_struggle",
+    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_01",
+    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_02",
+    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_03",
+    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_04",
+    "event:/DLC/FP3/MX/Moodtracks/mx_mfp3_mood_05",
     "event:/DLC/FP3/SFX/Ambience/3DMapEmitters/Holdings/fp3_ambience_3D_holdings_imamrezashrine",
     "event:/DLC/FP3/SFX/Ambience/3DMapEmitters/Holdings/fp3_ambience_3D_holdings_minaret",
     "event:/DLC/FP3/SFX/Ambience/3DMapEmitters/Holdings/fp3_ambience_3D_holdings_soltaniyeh",
     "event:/DLC/FP3/SFX/UI/Generic/fp3_ui_war_declare_war",
     "event:/DLC/FP3/SFX/UI/Notifications/Toasts/struggle_end_negative",
     "event:/DLC/FP3/SFX/UI/Notifications/Toasts/struggle_end_positive",
+    "event:/DLC/FP4/MUSIC/Cues/mx_cue_apocalyptic_plague",
+    "event:/DLC/FP4/MUSIC/Cues/mx_cue_black_death",
+    "event:/DLC/FP4/MUSIC/Cues/mx_cue_legend_begins",
+    "event:/DLC/FP4/MUSIC/Moods/mx_mood_epidemics_01",
+    "event:/DLC/FP4/MUSIC/Moods/mx_mood_epidemics_02",
+    "event:/DLC/FP4/MUSIC/Moods/mx_mood_legends_01",
+    "event:/DLC/FP4/MUSIC/Moods/mx_mood_legends_02",
     "event:/DLC/FP4/MUSIC/Stingers/mx_stinger_legends_lvl_03",
     "event:/DLC/FP4/MUSIC/Stingers/mx_stinger_legends_lvl_04",
     "event:/DLC/FP4/MUSIC/Stingers/mx_stinger_legends_lvl_05",

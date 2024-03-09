@@ -53,6 +53,10 @@ pub const SECRET_GOALS: &[&str] =
     &["none", "befriend", "reconcile", "protect", "antagonize", "conquer", "dominate"];
 
 // LAST UPDATED VIC3 VERSION 1.3.6
+pub const STANCES: &[&str] =
+    &["strongly_disapprove", "disapprove", "neutral", "approve", "strongly_approve"];
+
+// LAST UPDATED VIC3 VERSION 1.3.6
 // Deduced from `common/government_types/`
 pub const TRANSFER_OF_POWER: &[&str] =
     &["hereditary", "presidential_elective", "dictatorial", "parliamentary_elective"];

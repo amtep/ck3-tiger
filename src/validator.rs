@@ -471,7 +471,7 @@ impl<'a> Validator<'a> {
         })
     }
 
-    /// Expect field `name`, if present, to be set to an integer between `low` and `high` (inclusive).
+    /// Expect field `name`, if present, to be set to an integer within the `range` provided.
     /// Expect no more than one `name` field.
     /// Returns true iff the field is present.
     pub fn field_integer_range<R: RangeBounds<i64>>(&mut self, name: &str, range: R) {
@@ -535,7 +535,7 @@ impl<'a> Validator<'a> {
         })
     }
 
-    /// Expect field `name`, if present, to be set to a number between `low` and `high` (inclusive).
+    /// Expect field `name`, if present, to be set to a number within the `range` provided.
     /// Accept at most 5 decimals. (5 decimals is the limit accepted by the game engine in most contexts).
     /// Expect no more than one `name` field.
     /// Returns true iff the field is present.
@@ -633,7 +633,7 @@ impl<'a> Validator<'a> {
     /// as the input to build and output a [`ScopeContext`]. This is a convenient way to associate the `root` type with the key
     /// of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated with a key that is further away.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn field_script_value_key<F>(&mut self, name: &str, mut f: F) -> bool
+    pub fn field_script_value_build_sc<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token) -> ScopeContext,
     {
@@ -641,6 +641,23 @@ impl<'a> Validator<'a> {
             let mut sc = f(key);
             // TODO: pass max_severity value down
             validate_script_value(bv, self.data, &mut sc);
+        })
+    }
+
+    /// Just like [`Validator::field_script_value`], but it takes a closure that uses the field key token
+    /// as the input to build and output a [`ScopeContext`]. This is a convenient way to associate the `root` type with the key
+    /// of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated with a key that is further away.
+    ///
+    /// Does not warn if it is an inline script value and the `desc` fields in it do not contain valid localizations.
+    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
+    pub fn field_script_value_no_breakdown_build_sc<F>(&mut self, name: &str, mut f: F) -> bool
+    where
+        F: FnMut(&Token) -> ScopeContext,
+    {
+        self.field_check(name, |key, bv| {
+            let mut sc = f(key);
+            // TODO: pass max_severity value down
+            validate_script_value_no_breakdown(bv, self.data, &mut sc);
         })
     }
 
@@ -851,12 +868,21 @@ impl<'a> Validator<'a> {
     /// `root` type with the key of this field, for clearer warnings. A passed-in [`ScopeContext`] would have to be associated
     /// with a key that is further away.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn field_validated_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F) -> bool
+    pub fn field_validated_rooted<F>(&mut self, name: &str, scopes: Scopes, f: F) -> bool
     where
         F: FnMut(&BV, &Everything, &mut ScopeContext),
     {
+        self.field_validated_build_sc(name, |key| ScopeContext::new(scopes, key), f)
+    }
+
+    #[cfg(feature = "ck3")]
+    pub fn field_validated_build_sc<B, F>(&mut self, name: &str, mut b: B, mut f: F) -> bool
+    where
+        B: FnMut(&Token) -> ScopeContext,
+        F: FnMut(&BV, &Everything, &mut ScopeContext),
+    {
         self.field_validated_key(name, |key, bv, data| {
-            let mut sc = ScopeContext::new(scopes, key);
+            let mut sc = b(key);
             f(bv, data, &mut sc);
         })
     }
@@ -989,6 +1015,29 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    pub fn field_validated_block_build_sc<B, F>(&mut self, name: &str, mut b: B, mut f: F) -> bool
+    where
+        B: FnMut(&Token) -> ScopeContext,
+        F: FnMut(&Block, &Everything, &mut ScopeContext),
+    {
+        let mut found = None;
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if key.is(name) {
+                self.known_fields.push(key.as_str());
+                if let Some(other) = found {
+                    dup_assign_error(key, other);
+                }
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(block) = bv.expect_block() {
+                    let mut sc = b(key);
+                    f(block, self.data, &mut sc);
+                }
+                found = Some(key);
+            }
+        }
+        found.is_some()
+    }
+
     /// Just like [`Validator::field_validated_key_block`], but expect any number of `name` fields in the block.
     pub fn multi_field_validated_key_block<F>(&mut self, name: &str, mut f: F) -> bool
     where
@@ -1025,26 +1074,11 @@ impl<'a> Validator<'a> {
     /// to be used for the `root` of a [`ScopeContext`] that is made on the spot. This is a convenient way to associate the
     /// `root` type with the key of this field, for clearer warnings. A passed-in [`ScopeContext`] would have to be associated
     /// with a key that is further away.
-    pub fn field_validated_block_rooted<F>(&mut self, name: &str, scopes: Scopes, mut f: F) -> bool
+    pub fn field_validated_block_rooted<F>(&mut self, name: &str, scopes: Scopes, f: F) -> bool
     where
         F: FnMut(&Block, &Everything, &mut ScopeContext),
     {
-        let mut found = None;
-        for Field(key, cmp, bv) in self.block.iter_fields() {
-            if key.is(name) {
-                self.known_fields.push(key.as_str());
-                if let Some(other) = found {
-                    dup_assign_error(key, other);
-                }
-                self.expect_eq_qeq(key, *cmp);
-                if let Some(block) = bv.expect_block() {
-                    let mut sc = ScopeContext::new(scopes, key);
-                    f(block, self.data, &mut sc);
-                }
-                found = Some(key);
-            }
-        }
-        found.is_some()
+        self.field_validated_block_build_sc(name, |key| ScopeContext::new(scopes, key), f)
     }
 
     /// Just like [`Validator::field_validated_block_rooted`], but expect any number of `name` fields in the block.

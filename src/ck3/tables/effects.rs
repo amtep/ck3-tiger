@@ -2,6 +2,7 @@ use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
 use crate::ck3::effect_validation::*;
+use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
 use crate::effect::Effect;
 use crate::effect_validation::*;
 use crate::everything::Everything;
@@ -648,11 +649,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "set_diarchy_type", Item(Item::DiarchyType)),
     (Scopes::Dynasty, "set_dynasty_name", Item(Item::Localization)),
     (Scopes::Character, "set_employer", Scope(Scopes::Character)),
-    (
-        Scopes::Epidemic,
-        "set_epidemic_outbreak_intensity",
-        Choice(&["minor", "major", "apocalyptic"]),
-    ),
+    (Scopes::Epidemic, "set_epidemic_outbreak_intensity", Choice(OUTBREAK_INTENSITIES)),
     (Scopes::Culture, "set_ethos_from", Scope(Scopes::Culture)),
     (Scopes::Struggle, "set_faith_as_involved", Scope(Scopes::Faith)),
     (Scopes::Struggle, "set_faith_as_uninvolved", Scope(Scopes::Faith)),
