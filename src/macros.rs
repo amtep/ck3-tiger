@@ -103,37 +103,34 @@ impl Default for MacroMapInner {
 
 impl MacroMap {
     /// Get the loc associated with the index
-    pub fn get_loc(&self, index: NonZeroU32) -> Option<Loc> {
-        self.0.read().unwrap().bi_map.get_by_left(&index).copied()
+    pub fn get_loc(&self, index: MacroMapIndex) -> Option<Loc> {
+        self.0.read().unwrap().bi_map.get_by_left(&index.0).copied()
     }
     /// Get the index associated with the loc
-    pub fn get_index(&self, loc: Loc) -> Option<NonZeroU32> {
-        self.0.read().unwrap().bi_map.get_by_right(&loc).copied()
+    pub fn get_index(&self, loc: Loc) -> Option<MacroMapIndex> {
+        self.0.read().unwrap().bi_map.get_by_right(&loc).copied().map(MacroMapIndex)
     }
 
     /// Insert a loc and output the index it is associated with
-    pub fn insert_loc(&self, loc: Loc) -> NonZeroU32 {
+    pub fn insert_loc(&self, loc: Loc) -> MacroMapIndex {
         let mut guard = self.0.write().unwrap();
         let counter = guard.counter;
         guard.bi_map.insert(counter, loc);
         guard.counter =
             guard.counter.checked_add(1).expect("internal error: 2^32 macro map entries");
-        counter
+        MacroMapIndex(counter)
     }
 
     /// Get the index or insert the loc if it is not present
-    pub fn get_or_insert_loc(&self, loc: Loc) -> NonZeroU32 {
+    pub fn get_or_insert_loc(&self, loc: Loc) -> MacroMapIndex {
         if let Some(index) = self.get_index(loc) {
             index
         } else {
             self.insert_loc(loc)
         }
     }
-
-    /// Clear all entries
-    pub fn clear(&self) {
-        let mut guard = self.0.write().unwrap();
-        guard.counter = NonZeroU32::new(1).unwrap();
-        guard.bi_map.clear();
-    }
 }
+
+/// Type-safety wrapper.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct MacroMapIndex(NonZeroU32);

@@ -2,7 +2,6 @@
 
 use std::ffi::OsStr;
 use std::fs::read_to_string;
-use std::num::NonZeroU32;
 use std::path::{Path, PathBuf};
 use std::sync::RwLock;
 
@@ -18,7 +17,7 @@ use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::game::Game;
 use crate::helpers::{dup_error, stringify_list};
 use crate::item::Item;
-use crate::macros::MACRO_MAP;
+use crate::macros::{MacroMapIndex, MACRO_MAP};
 use crate::parse::localization::{parse_loca, ValueParser};
 use crate::report::{
     err, report, warn, warn_abbreviated, warn_header, will_maybe_log, ErrorKey, Severity,
@@ -162,7 +161,7 @@ impl LocaEntry {
         from: &'a FnvHashMap<String, LocaEntry>,
         count: &mut usize,
         used: &mut FnvHashSet<String>,
-        link: Option<NonZeroU32>,
+        link: Option<MacroMapIndex>,
     ) -> bool {
         // Are we (probably) stuck in a macro loop?
         if *count > 250 {

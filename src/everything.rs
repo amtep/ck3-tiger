@@ -63,7 +63,6 @@ use crate::game::Game;
 use crate::imperator::tables::misc::*;
 use crate::item::{Item, ItemLoader};
 use crate::lowercase::Lowercase;
-use crate::macros::MACRO_MAP;
 #[cfg(feature = "vic3")]
 use crate::parse::json::parse_json_file;
 use crate::pdxfile::PdxFile;
@@ -507,9 +506,6 @@ impl Everything {
         self.database.validate(self);
 
         self.localization.validate_pass2(self);
-
-        // Clear macro map
-        MACRO_MAP.clear();
     }
 
     pub fn check_rivers(&mut self) {

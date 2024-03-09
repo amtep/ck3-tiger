@@ -6,7 +6,6 @@ use std::ffi::OsStr;
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::hash::Hash;
 use std::mem::ManuallyDrop;
-use std::num::NonZeroU32;
 use std::ops::{Bound, Range, RangeBounds};
 use std::path::{Path, PathBuf};
 use std::slice::SliceIndex;
@@ -15,6 +14,7 @@ use bumpalo::Bump;
 
 use crate::date::Date;
 use crate::fileset::{FileEntry, FileKind};
+use crate::macros::MacroMapIndex;
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{err, untidy, ErrorKey};
 
@@ -27,7 +27,7 @@ pub struct Loc {
     pub column: u16,
     /// Used in macro expansions to point to the macro invocation
     /// in the macro table
-    pub link_idx: Option<NonZeroU32>,
+    pub link_idx: Option<MacroMapIndex>,
 }
 
 impl Loc {
@@ -401,7 +401,7 @@ impl Token {
     }
 
     #[must_use]
-    pub fn linked(mut self, link_idx: Option<NonZeroU32>) -> Self {
+    pub fn linked(mut self, link_idx: Option<MacroMapIndex>) -> Self {
         self.loc.link_idx = link_idx;
         self
     }
