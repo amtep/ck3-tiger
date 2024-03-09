@@ -170,6 +170,7 @@ pub enum WidgetProperty {
     elide,
     enabled,
     end_sound,
+    endangle,
     entity_enable_sound,
     entity_instance,
     even_row_widget,
@@ -359,6 +360,7 @@ pub enum WidgetProperty {
     spritetype,
     stackmode,
     start_sound,
+    startangle,
     state,
     step,
     sticky,
@@ -510,6 +512,7 @@ impl GuiValidation {
             elide => Choice(&["right", "middle", "left"]),
             enabled => Boolean,
             end_sound => ComplexProperty,
+            endangle => NumberOrInt32,
             entity_enable_sound => Boolean,
             entity_instance => Item(Item::Entity),
             even_row_widget => Widget,
@@ -701,6 +704,7 @@ impl GuiValidation {
             spritetype => UncheckedValue, // TODO
             stackmode => UncheckedValue,  // TODO only example is "top"
             start_sound => ComplexProperty,
+            startangle => NumberOrInt32,
             state => ComplexProperty,
             step => NumberOrInt32,
             sticky => Boolean,
