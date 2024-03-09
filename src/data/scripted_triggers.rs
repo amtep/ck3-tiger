@@ -5,7 +5,7 @@ use fnv::FnvHashMap;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
-use crate::fileset::{FileEntry, FileHandler, FileKind};
+use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
 use crate::lowercase::Lowercase;
 use crate::macros::{MacroCache, MACRO_MAP};
@@ -244,7 +244,7 @@ const BUILTIN_OVERRIDE_TRIGGERS: &[&str] = &[
 /// but only if the key is from vanilla. If it's from the mod, they may have implemented the
 /// trigger differently.
 fn builtin_scope_overrides(key: &Token) -> Option<Scopes> {
-    if key.loc.kind == FileKind::Vanilla && BUILTIN_OVERRIDE_TRIGGERS.contains(&key.as_str()) {
+    if key.loc.kind.counts_as_vanilla() && BUILTIN_OVERRIDE_TRIGGERS.contains(&key.as_str()) {
         Some(Scopes::all())
     } else {
         None

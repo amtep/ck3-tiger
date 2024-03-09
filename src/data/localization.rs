@@ -746,7 +746,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
         builtins.extend(BUILTIN_MACROS);
         for lang in self.locas.values() {
             for entry in lang.values() {
-                if entry.key.loc.kind > FileKind::Vanilla {
+                if !entry.key.loc.kind.counts_as_vanilla() {
                     continue;
                 }
 
