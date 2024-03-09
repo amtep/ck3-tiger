@@ -245,16 +245,12 @@ pub fn validate_trigger_event(
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);
             vd.field_item("id", Item::Event);
+            vd.field_item("on_action", Item::OnAction);
             #[cfg(feature = "ck3")]
             if Game::is_ck3() {
-                vd.field_item("on_action", Item::OnAction);
                 vd.field_target("saved_event_id", sc, Scopes::Flag);
                 vd.field_date("trigger_on_next_date");
                 vd.field_bool("delayed");
-            }
-            #[cfg(feature = "imperator")]
-            if Game::is_imperator() {
-                vd.field_item("on_action", Item::OnAction);
             }
             #[cfg(feature = "vic3")]
             if Game::is_vic3() {

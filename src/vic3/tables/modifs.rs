@@ -438,7 +438,6 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("interest_group_pol_str_factor", ModifKinds::InterestGroup),
     ("interest_group_pol_str_mult", ModifKinds::InterestGroup),
     ("interest_group_pop_attraction_mult", ModifKinds::InterestGroup),
-    ("limited_to_frontier_colonization", ModifKinds::Country), // undocumented
     ("market_disallow_trade_routes", ModifKinds::Market),
     ("market_land_trade_capacity_add", ModifKinds::Market),
     ("market_max_exports_add", ModifKinds::Market),

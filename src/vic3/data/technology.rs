@@ -1,11 +1,13 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -42,6 +44,9 @@ impl DbKind for Technology {
 
         vd.field_list_items("unlocking_technologies", Item::Technology);
 
+        vd.field_validated_block_rooted("on_researched", Scopes::Country, |block, data, sc| {
+            validate_effect(block, data, sc, Tooltipped::No);
+        });
         vd.field_script_value_rooted("ai_weight", Scopes::Country);
     }
 }
