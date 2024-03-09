@@ -1,6 +1,7 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
+use crate::desc::validate_desc;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -34,8 +35,8 @@ impl DbKind for ScriptedButton {
         sc.define_name("journal_entry", Scopes::JournalEntry, key);
         sc.define_name("target", Scopes::all(), key);
 
-        vd.field_item("name", Item::Localization);
-        vd.field_item("desc", Item::Localization);
+        vd.field_validated_sc("name", &mut sc, validate_desc);
+        vd.field_validated_sc("desc", &mut sc, validate_desc);
 
         vd.field_validated_block("visible", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
