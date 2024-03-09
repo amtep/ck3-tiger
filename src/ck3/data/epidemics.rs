@@ -36,9 +36,7 @@ impl DbKind for EpidemicType {
         vd.field_item("trait", Item::Trait);
         vd.field_validated("color", validate_possibly_named_color);
 
-        if !vd.field_validated_rooted("name", Scopes::Epidemic, |bv, data, sc| {
-            validate_desc(bv, data, sc);
-        }) {
+        if !vd.field_validated_rooted("name", Scopes::Epidemic, validate_desc) {
             let loca = format!("epidemic_{key}");
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
@@ -165,7 +163,7 @@ fn validate_outbreak_level(block: &Block, data: &Everything) {
 
     vd.field_script_value_build_sc("spread_chance", build_province_epidemic_sc);
     vd.field_script_value_no_breakdown_build_sc("max_provinces", |key| {
-        ScopeContext::new(Scopes::empty(), key)
+        ScopeContext::new(Scopes::None, key)
     });
 
     vd.field_validated_block_build_sc(

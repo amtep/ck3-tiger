@@ -144,7 +144,7 @@ fn validate_legend_quality(block: &Block, data: &Everything) {
     vd.field_validated_block_build_sc("promoter_cost", build_character_legend_sc, validate_cost);
     vd.field_validated_block_rooted("creation_cost", Scopes::Character, validate_cost);
     vd.field_validated_block_rooted("upgrade_cost", Scopes::Character, validate_cost);
-    vd.field_validated_block_rooted("removal_duration", Scopes::empty(), validate_duration);
+    vd.field_validated_block_rooted("removal_duration", Scopes::None, validate_duration);
     vd.field_validated_block("impact", |block, data| {
         let mut vd = Validator::new(block, data);
         validate_impact_modifiers(&mut vd);
