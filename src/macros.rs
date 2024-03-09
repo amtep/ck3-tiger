@@ -111,22 +111,27 @@ impl MacroMap {
         self.0.read().unwrap().bi_map.get_by_right(&loc).copied().map(MacroMapIndex)
     }
 
-    /// Insert a loc and output the index it is associated with
-    pub fn insert_loc(&self, loc: Loc) -> MacroMapIndex {
+    /// Insert a loc that is not expected to be in the map yet, and return its index.
+    pub fn insert_or_get_loc(&self, loc: Loc) -> MacroMapIndex {
         let mut guard = self.0.write().unwrap();
         let counter = guard.counter;
-        guard.bi_map.insert(counter, loc);
+        if guard.bi_map.insert_no_overwrite(counter, loc).is_err() {
+            // The loc was already in the map. (The counter is always unique so that side can't have collided.)
+            return guard.bi_map.get_by_right(&loc).copied().map(MacroMapIndex).unwrap();
+        }
         guard.counter =
             guard.counter.checked_add(1).expect("internal error: 2^32 macro map entries");
         MacroMapIndex(counter)
     }
 
-    /// Get the index or insert the loc if it is not present
+    /// Get the index of a loc, inserting it if it was not yet stored
     pub fn get_or_insert_loc(&self, loc: Loc) -> MacroMapIndex {
+        // First try with just a read lock, which allows for more parallelism than using a write lock.
         if let Some(index) = self.get_index(loc) {
             index
         } else {
-            self.insert_loc(loc)
+            // We need a write lock.
+            self.insert_or_get_loc(loc)
         }
     }
 }
