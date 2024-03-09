@@ -1,4 +1,5 @@
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -58,6 +59,7 @@ impl DbKind for SubjectType {
         vd.field_list_items("lower_autonomy_subject_type_alternatives", Item::SubjectType);
 
         // TODO: verify scope type
-        vd.field_script_value_rooted("ai_value", Scopes::Country);
+        let mut sc = ScopeContext::new(Scopes::Country, key);
+        vd.field_script_value_no_breakdown("ai_value", &mut sc);
     }
 }
