@@ -63,6 +63,7 @@ use crate::game::Game;
 use crate::imperator::tables::misc::*;
 use crate::item::{Item, ItemLoader};
 use crate::lowercase::Lowercase;
+use crate::macros::MACRO_MAP;
 #[cfg(feature = "vic3")]
 use crate::parse::json::parse_json_file;
 use crate::pdxfile::PdxFile;
@@ -924,5 +925,12 @@ impl Everything {
                 Game::Imperator => self.iter_keys_imperator(itype),
             },
         }
+    }
+}
+
+impl Drop for Everything {
+    fn drop(&mut self) {
+        // For the sake of the benchmark code, restore MACRO_MAP to a clean slate
+        MACRO_MAP.clear();
     }
 }

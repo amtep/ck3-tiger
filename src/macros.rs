@@ -134,6 +134,13 @@ impl MacroMap {
             self.insert_or_get_loc(loc)
         }
     }
+
+    /// Clear all entries. This will break all existing `MacroMapIndex` values!
+    pub(crate) fn clear(&self) {
+        let mut guard = self.0.write().unwrap();
+        guard.counter = NonZeroU32::new(1).unwrap();
+        guard.bi_map.clear();
+    }
 }
 
 /// Type-safety wrapper.
