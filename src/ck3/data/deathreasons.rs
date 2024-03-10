@@ -20,12 +20,10 @@ inventory::submit! {
 
 impl DeathReason {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        if let Some(epidemic) = block.get_field_value("epidemic") {
+            db.add_flag(Item::EpidemicDeathReason, epidemic.clone());
+        }
         db.add(Item::DeathReason, key, block, Box::new(Self {}));
-    }
-
-    #[allow(clippy::unused_self)] // whether self is used should not affect the API here
-    pub fn is_for_epidemic(&self, _key: &Token, block: &Block, epidemic_key: &str) -> bool {
-        block.field_value_is("epidemic", epidemic_key)
     }
 }
 
