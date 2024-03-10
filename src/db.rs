@@ -27,7 +27,7 @@ pub struct Db {
     /// Items generated as side effects of the full items in `database`.
     /// The `Vec` is indexed with an `Item` discriminant.
     flags: Vec<FnvHashSet<Token>>,
-    /// Case-folded registry of database items and flags, for case insensitive lookups
+    /// Lowercased registry of database items and flags, for case insensitive lookups
     items_lc: Vec<FnvHashMap<Lowercase<'static>, &'static str>>,
 }
 
@@ -123,7 +123,7 @@ impl Db {
     }
 
     #[cfg(feature = "ck3")] // vic3 happens not to use
-    pub fn cf_has_property(
+    pub fn lc_has_property(
         &self,
         item: Item,
         key: &Lowercase,

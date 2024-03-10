@@ -74,7 +74,6 @@ impl<'a> Lowercase<'a> {
         self.0.rmatch_indices(separator)
     }
 
-    /// Implementing `SliceIndex` directly requires some nightly-only API
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     pub fn slice<R: 'a + SliceIndex<str, Output = str>>(&'a self, range: R) -> Self {
         Lowercase::new_unchecked(&self.0[range])

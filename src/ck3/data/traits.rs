@@ -29,7 +29,7 @@ pub struct Traits {
     constraints: FnvHashSet<Token>,
     flags: FnvHashSet<Token>,
 
-    // Casefolded registries of the above collections, for case-insensitive lookups
+    // Lowercased registries of the above collections, for case-insensitive lookups
     traits_lc: FnvHashMap<Lowercase<'static>, &'static str>,
     tracks_lc: FnvHashSet<Lowercase<'static>>,
     groups_lc: FnvHashSet<Lowercase<'static>>,

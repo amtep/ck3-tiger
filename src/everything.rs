@@ -538,7 +538,7 @@ impl Everything {
         key: &Lowercase,
         property: &str,
     ) -> bool {
-        self.database.cf_has_property(itype, key, property, self)
+        self.database.lc_has_property(itype, key, property, self)
     }
 
     #[cfg(feature = "ck3")]
