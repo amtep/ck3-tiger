@@ -22,6 +22,11 @@ impl DeathReason {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::DeathReason, key, block, Box::new(Self {}));
     }
+
+    #[allow(clippy::unused_self)] // whether self is used should not affect the API here
+    pub fn is_for_epidemic(&self, _key: &Token, block: &Block, epidemic_key: &str) -> bool {
+        block.field_value_is("epidemic", epidemic_key)
+    }
 }
 
 impl DbKind for DeathReason {

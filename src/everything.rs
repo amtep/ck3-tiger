@@ -763,7 +763,7 @@ impl Everything {
         self.localization.validate_use(key, self, sc);
     }
 
-    #[allow(dead_code)] // not currently used, but was hard to write...
+    #[allow(dead_code)]
     pub(crate) fn get_item<T: DbKind>(
         &self,
         itype: Item,

@@ -1,4 +1,5 @@
 use crate::block::{Block, BV};
+use crate::ck3::data::deathreasons::DeathReason;
 use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
@@ -7,6 +8,7 @@ use crate::effect::validate_effect;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
@@ -137,7 +139,27 @@ impl DbKind for EpidemicType {
                 vd.field_validated_block(level, validate_outbreak_level);
             }
         });
+
+        if !find_deathreason(key.as_str(), data) {
+            let msg = format!("no deathreason found for epidemic {key}");
+            let info = "this will lead to the game showing 0 deaths from this epidemic";
+            warn(ErrorKey::MissingItem).msg(msg).info(info).loc(key).push();
+        }
     }
+}
+
+/// Check if there's at least one deathreason for this epidemic
+fn find_deathreason(epidemic_key: &str, data: &Everything) -> bool {
+    for deathreason_key in data.iter_keys(Item::DeathReason) {
+        if let Some((key, block, deathreason)) =
+            data.get_item::<DeathReason>(Item::DeathReason, deathreason_key.as_str())
+        {
+            if deathreason.is_for_epidemic(key, block, epidemic_key) {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 fn build_character_epidemic_sc(key: &Token) -> ScopeContext {
