@@ -7,6 +7,7 @@ use crate::effect::validate_effect;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
@@ -137,6 +138,12 @@ impl DbKind for EpidemicType {
                 vd.field_validated_block(level, validate_outbreak_level);
             }
         });
+
+        if !data.item_exists(Item::EpidemicDeathReason, key.as_str()) {
+            let msg = format!("no deathreason found for epidemic {key}");
+            let info = "this will lead to the game showing 0 deaths from this epidemic";
+            warn(ErrorKey::MissingItem).msg(msg).info(info).loc(key).push();
+        }
     }
 }
 

@@ -220,6 +220,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] DynastyLegacy,
     #[cfg(feature = "ck3")] DynastyPerk,
     #[cfg(feature = "ck3")] EpidemicType,
+    #[cfg(feature = "ck3")] EpidemicDeathReason,
     #[cfg(feature = "ck3")] EventBackground,
     #[cfg(feature = "ck3")] EventEffect2d,
     #[cfg(feature = "ck3")] EventTransition,
@@ -788,6 +789,8 @@ impl Item {
             Item::DynastyPerk => "common/dynasty_perks/",
             #[cfg(feature = "ck3")]
             Item::EpidemicType => "common/epidemics/",
+            #[cfg(feature = "ck3")]
+            Item::EpidemicDeathReason => "common/deathreasons/",
             #[cfg(feature = "ck3")]
             Item::EventBackground => "common/event_backgrounds/",
             #[cfg(feature = "ck3")]

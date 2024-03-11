@@ -88,7 +88,7 @@ impl Db {
         self.database[item as usize].contains_key(key) || self.flags[item as usize].contains(key)
     }
 
-    #[allow(dead_code)] // not currently used, but was hard to write...
+    #[allow(dead_code)]
     pub fn get_item<T: DbKind + Any>(&self, item: Item, key: &str) -> Option<(&Token, &Block, &T)> {
         if let Some(entry) = self.database[item as usize].get(key) {
             if let Some(kind) = (*entry.kind).as_any().downcast_ref::<T>() {
