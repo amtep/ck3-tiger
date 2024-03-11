@@ -1,4 +1,3 @@
-// For imperator "Args(&[])" will mean unknown number of arguments, as well as zero arguments.
 &[
     ("Abs_CFixedPoint", Args::Unknown, CFixedPoint),
     ("Abs_CFixedPoint64", Args::Unknown, Unknown),
@@ -42,7 +41,9 @@
     ("EqualTo_string", Args::Unknown, bool),
     ("EqualTo_uint32", Args::Unknown, bool),
     ("ErrorTooltip", Args::Unknown, CString),
-    ("ExecuteConsoleCommand", Args::Unknown, void),
+    ("ExecuteConsoleCommand", Args::Args(&[DType(CString)]), void),
+    ("ExecuteConsoleCommands", Args::Args(&[DType(CString)]), void),
+    ("ExecuteConsoleCommandsForced", Args::Args(&[DType(CString)]), void),
     ("FixedPoint64ToFloat", Args::Unknown, float),
     ("FixedPoint64ToInt", Args::Unknown, int32),
     ("FixedPointToFloat", Args::Unknown, float),

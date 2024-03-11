@@ -1177,7 +1177,7 @@ impl<'a> Validator<'a> {
             }
         }
         if found < expect {
-            let msg = format!("expected {expect} integers");
+            let msg = format!("expected at least {expect} integers");
             let sev = Severity::Error.at_most(self.max_severity);
             report(ErrorKey::Validation, sev).msg(msg).loc(self.block).push();
         }

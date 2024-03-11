@@ -247,7 +247,6 @@ pub enum Arg {
     DType(Datatype),
     /// The argument is expected to be a literal containing a key to this [`Item`] type, or a code
     /// chain that returns a `CString` (in which case the `Item` lookup is not checked).
-    #[cfg(not(feature = "imperator"))]
     IType(Item),
 }
 
@@ -334,7 +333,6 @@ fn validate_argument(
                 }
             }
         }
-        #[cfg(not(feature = "imperator"))]
         Arg::IType(itype) => match arg {
             CodeArg::Chain(chain) => {
                 validate_datatypes(chain, data, sc, Datatype::CString, lang, format, false);
@@ -459,8 +457,6 @@ pub fn validate_datatypes(
             }
         }
 
-        // Ignore for imperator since everything in imperator-tiger is a promote, probably a better way to do this.
-        #[cfg(not(feature = "imperator"))]
         if !found {
             // Properly reporting these errors is tricky because `code.name`
             // might be found in any or all of the functions and promotes tables.

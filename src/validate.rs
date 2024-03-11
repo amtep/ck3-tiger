@@ -65,6 +65,7 @@ impl TryFrom<&str> for ListType {
     }
 }
 
+#[cfg(not(feature = "imperator"))]
 pub fn validate_compare_duration(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;

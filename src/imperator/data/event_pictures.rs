@@ -48,13 +48,12 @@ impl DbKind for EventPicture {
 }
 
 pub fn verify_exists_or_empty(data: &Everything, file: &Token, max_sev: Severity) {
-    let file_str = file.as_str();
-    if file_str.is_empty() {
+    if file.as_str().is_empty() {
         return;
     }
-    data.fileset.mark_used(&file_str.replace("//", "/"));
-    if !data.fileset.exists(file_str) {
-        let msg = format!("file {file_str} does not exist");
+    data.fileset.mark_used(&file.as_str().replace("//", "/"));
+    if !data.fileset.exists(file.as_str()) {
+        let msg = format!("file {} does not exist", file.as_str());
         report(ErrorKey::MissingFile, Item::File.severity().at_most(max_sev))
             .msg(msg)
             .loc(file)

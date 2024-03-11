@@ -160,6 +160,7 @@ static MODIF_MAP: Lazy<FnvHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new(|
 const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("build_cost", ModifKinds::Country),
     ("build_time", ModifKinds::Country),
+    ("desert_hills_combat_bonus", ModifKinds::Country),
     ("minimum_unrest", ModifKinds::Province.union(ModifKinds::State)),
     ("local_unrest", ModifKinds::Province.union(ModifKinds::State)),
     ("global_unrest", ModifKinds::Country),

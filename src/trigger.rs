@@ -695,6 +695,7 @@ fn match_trigger_bv(
                 }
             }
         }
+        #[cfg(not(feature = "imperator"))]
         Trigger::CompareChoice(choices) => {
             must_be_eq = false;
             if let Some(token) = bv.expect_value() {
@@ -1306,6 +1307,7 @@ fn validate_argument_internal(
 ) {
     match validation {
         ArgumentValue::Item(item) => data.verify_exists(item, arg),
+        #[cfg(not(feature = "imperator"))]
         ArgumentValue::Scope(scope) => validate_target(arg, data, sc, scope),
         #[cfg(feature = "ck3")]
         ArgumentValue::ScopeOrItem(scope, item) => {
@@ -1420,6 +1422,7 @@ pub enum Trigger {
     /// value is chosen from a list given here
     Choice(&'static [&'static str]),
     /// value is from a list given here that can be compared
+    #[cfg(not(feature = "imperator"))]
     CompareChoice(&'static [&'static str]),
     /// For Block, if a field name in the array starts with ? it means that field is optional
     /// trigger takes a block with these fields

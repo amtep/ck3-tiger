@@ -61,12 +61,11 @@ impl ImperatorProvinces {
                 Expecting::Nothing => {
                     if let Some((key, token)) = item.expect_assignment() {
                         if key.is("sea_zones")
-                            || key.is("river_provinces")
-                            || key.is("impassable_terrain")
-                            || key.is("uninhabitable")
-                            || key.is("wasteland")
-                            || key.is("lakes")
-                            || key.is("LAKES")
+                            || key.lowercase_is("river_provinces")
+                            || key.lowercase_is("impassable_terrain")
+                            || key.lowercase_is("uninhabitable")
+                            || key.lowercase_is("wasteland")
+                            || key.lowercase_is("lakes")
                         {
                             if token.is("LIST") {
                                 expecting = Expecting::List(key);
@@ -155,7 +154,7 @@ impl ImperatorProvinces {
         self.provinces.values().map(|item| &item.key)
     }
 
-    pub fn validate(&self, data: &Everything) {
+    pub fn validate(&self, _data: &Everything) {
         for item in &self.adjacencies {
             item.validate(self);
         }
