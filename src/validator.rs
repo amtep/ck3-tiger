@@ -14,7 +14,7 @@ use crate::report::fatal;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
-#[cfg(feature = "ck3")]
+#[cfg(not(feature = "imperator"))]
 use crate::script_value::validate_script_value_no_breakdown;
 use crate::token::Token;
 use crate::trigger::{validate_target, validate_target_ok_this};
@@ -607,7 +607,7 @@ impl<'a> Validator<'a> {
     /// Just like [`Validator::field_script_value`], but does not warn if it is an inline script value and the `desc` fields
     /// in it do not contain valid localizations. This is generally used for script values that will never be shown to
     /// the user except in debugging contexts, such as `ai_will_do`.
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
+    #[cfg(not(feature = "imperator"))] // imperator happens not to use; silence dead code warning
     pub fn field_script_value_no_breakdown(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             // TODO: pass max_severity value down
