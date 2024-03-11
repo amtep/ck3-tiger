@@ -46,9 +46,9 @@ impl DbKind for EpidemicType {
 
         vd.field_validated_block("shader_data", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_numeric_range("strength", 0.0..=1.0);
-            vd.field_numeric_range("edge_fade", 0.0..=1.0);
-            vd.field_numeric_range("tile_multiplier", 0.0..=1.0);
+            vd.field_precise_numeric_range("strength", 0.0..=1.0);
+            vd.field_precise_numeric_range("edge_fade", 0.0..=1.0);
+            vd.field_precise_numeric_range("tile_multiplier", 0.0..=1.0);
             vd.field_integer_range("texture_index", 0..);
             vd.field_choice("channel", &["red", "green", "blue", "alpha"]);
         });
