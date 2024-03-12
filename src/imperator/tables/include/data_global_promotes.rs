@@ -37,7 +37,7 @@
     ("GetPartyType", Args::Unknown, Imperator(PartyType)),
     ("GetPortraitEditorWindow", Args::Unknown, Imperator(PortraitEditorWindow)),
     ("GetPrice", Args::Unknown, Imperator(Price)),
-    ("GetProvince", Args::Unknown, Imperator(Province)),
+    ("GetProvince", Args::Args(&[DType(int32)]), Imperator(Province)),
     ("GetProvinceRank", Args::Unknown, Imperator(ProvinceRank)),
     ("GetQuickAccessBar", Args::Unknown, Imperator(QuickAccessBar)),
     ("GetReligion", Args::Unknown, Imperator(Religion)),

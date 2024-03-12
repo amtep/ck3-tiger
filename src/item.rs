@@ -427,6 +427,7 @@ pub enum Item {
     #[cfg(feature = "imperator")] PartyType,
     #[cfg(feature = "imperator")] Price,
     #[cfg(feature = "imperator")] ProvinceRank,
+    #[cfg(feature = "imperator")] SetupMain,
     #[cfg(feature = "imperator")] TechnologyTable,
     #[cfg(feature = "imperator")] TradeGood,
     #[cfg(feature = "imperator")] Treasure,
@@ -1201,6 +1202,8 @@ impl Item {
             Item::ProvinceRank => "common/province_ranks/",
             #[cfg(feature = "imperator")]
             Item::TechnologyTable => "common/technology_tables/",
+            #[cfg(feature = "imperator")]
+            Item::SetupMain => "setup/main/",
             #[cfg(feature = "imperator")]
             Item::TradeGood => "common/trade_goods/",
             #[cfg(feature = "imperator")]

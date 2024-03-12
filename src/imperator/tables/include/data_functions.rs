@@ -4008,7 +4008,6 @@
 	("IsMinor", Imperator(Family), Args::Args(&[]), bool),
 	("IsMisMatch", Imperator(IdeaItem), Args::Args(&[]), bool),
 	("IsMissingTooltip", Imperator(ScriptRunnerResult), Args::Args(&[]), bool),
-	("IsMissingTradeGood", Imperator(GreatWorkWindow), Args::Args(&[]), bool),
 	("IsMissingTradeGood", Imperator(GreatWorkWindow), Args::Args(&[DType(Unknown)]), bool),
 	("IsMissingTradeGoods", Imperator(GreatWork), Args::Args(&[DType(Unknown)]), bool),
 	("IsMissionSelectionVisible", Imperator(MissionView), Args::Args(&[]), bool),

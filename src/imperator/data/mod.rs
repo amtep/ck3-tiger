@@ -40,6 +40,7 @@ pub mod province_ranks;
 pub mod provinces;
 pub mod regions;
 pub mod religions;
+pub mod setup_main;
 pub mod subject_types;
 pub mod tech_tables;
 pub mod terrains;
