@@ -95,7 +95,7 @@ impl DbKind for Mission {
     }
 }
 
-fn validate_mission_task_highlight(
+pub fn validate_imperator_highlight(
     key: &Token,
     b: &Block,
     sc: &mut ScopeContext,
@@ -125,7 +125,7 @@ fn validate_task(key: &Token, block: &Block, sc: &mut ScopeContext, data: &Every
     });
 
     vd.field_validated_block("highlight", |b, data| {
-        validate_mission_task_highlight(key, b, sc, data);
+        validate_imperator_highlight(key, b, sc, data);
     });
 
     vd.field_validated_block("allow", |b, data| {

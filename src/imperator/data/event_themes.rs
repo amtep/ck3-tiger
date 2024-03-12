@@ -11,7 +11,6 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validator::Validator;
-use crate::Severity;
 
 #[derive(Clone, Debug)]
 pub struct EventTheme {}
@@ -32,7 +31,7 @@ impl DbKind for EventTheme {
         let mut sc = ScopeContext::new(Scopes::Country, key);
 
         vd.multi_field_validated("icon", |bv, data| match bv {
-            BV::Value(t) => verify_exists_or_empty(data, t, Severity::Error),
+            BV::Value(t) => verify_exists_or_empty(data, t),
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.field_item("texture", Item::File);

@@ -60,7 +60,7 @@ impl ImperatorProvinces {
             match expecting {
                 Expecting::Nothing => {
                     if let Some((key, token)) = item.expect_assignment() {
-                        if key.is("sea_zones")
+                        if key.lowercase_is("sea_zones")
                             || key.lowercase_is("river_provinces")
                             || key.lowercase_is("impassable_terrain")
                             || key.lowercase_is("uninhabitable")

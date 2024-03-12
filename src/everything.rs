@@ -60,7 +60,9 @@ use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::game::Game;
 #[cfg(feature = "imperator")]
-use crate::imperator::data::{events::ImperatorEvents, provinces::ImperatorProvinces};
+use crate::imperator::data::{
+    decisions::Decisions, events::ImperatorEvents, provinces::ImperatorProvinces,
+};
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::misc::*;
 use crate::item::{Item, ItemLoader};
@@ -134,6 +136,8 @@ pub struct Everything {
     pub(crate) events_vic3: Vic3Events,
     #[cfg(feature = "imperator")]
     pub(crate) events_imperator: ImperatorEvents,
+    #[cfg(feature = "imperator")]
+    pub(crate) decisions_imperator: Decisions,
 
     pub(crate) scripted_modifiers: ScriptedModifiers,
     pub(crate) on_actions: OnActions,
@@ -258,6 +262,8 @@ impl Everything {
             events_vic3: Vic3Events::default(),
             #[cfg(feature = "imperator")]
             events_imperator: ImperatorEvents::default(),
+            #[cfg(feature = "imperator")]
+            decisions_imperator: Decisions::default(),
             scripted_modifiers: ScriptedModifiers::default(),
             on_actions: OnActions::default(),
             #[cfg(feature = "ck3")]
@@ -444,6 +450,7 @@ impl Everything {
     #[cfg(feature = "imperator")]
     fn load_all_imperator(&mut self) {
         self.fileset.handle(&mut self.events_imperator);
+        self.fileset.handle(&mut self.decisions_imperator);
         self.fileset.handle(&mut self.provinces_imperator);
     }
 
@@ -506,6 +513,7 @@ impl Everything {
     #[cfg(feature = "imperator")]
     fn validate_all_imperator<'a>(&'a self, s: &Scope<'a>) {
         s.spawn(|_| self.events_imperator.validate(self));
+        s.spawn(|_| self.decisions_imperator.validate(self));
         s.spawn(|_| self.provinces_imperator.validate(self));
     }
 
@@ -649,6 +657,7 @@ impl Everything {
     fn item_exists_imperator(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Dlc => DLC_IMPERATOR.contains(&key),
+            Item::Decision => self.decisions_imperator.exists(key),
             Item::Event => self.events_imperator.exists(key),
             Item::EventNamespace => self.events_imperator.namespace_exists(key),
             Item::Province => self.provinces_imperator.exists(key),
@@ -889,7 +898,6 @@ impl Everything {
         self.effects.get(key.as_str())
     }
 
-    #[allow(unused_variables)] // TODO - imperator - does not use
     pub(crate) fn check_event_scope(&self, token: &Token, sc: &mut ScopeContext) {
         match Game::game() {
             #[cfg(feature = "ck3")]
@@ -974,6 +982,7 @@ impl Everything {
     #[cfg(feature = "imperator")]
     fn iter_keys_imperator<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
         match itype {
+            Item::Decision => Box::new(self.decisions_imperator.iter_keys()),
             Item::Event => Box::new(self.events_imperator.iter_keys()),
             Item::EventNamespace => Box::new(self.events_imperator.iter_namespace_keys()),
             Item::Province => Box::new(self.provinces_imperator.iter_keys()),
