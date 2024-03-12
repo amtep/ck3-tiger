@@ -533,15 +533,18 @@ impl<'a> Validator<'a> {
         })
     }
 
-    /// Expect field `name`, if present, to be set to a number within the `range` provided.
-    /// Accept at most 5 decimals. (5 decimals is the limit accepted by the game engine in most contexts).
-    /// Expect no more than one `name` field.
-    /// Returns true iff the field is present.
-    pub fn field_numeric_range<R: RangeBounds<f64>>(&mut self, name: &str, range: R) {
+    pub fn field_numeric_range_internal<R: RangeBounds<f64>>(
+        &mut self,
+        name: &str,
+        range: R,
+        precise: bool,
+    ) {
         let sev = Severity::Error.at_most(self.max_severity);
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
-                if let Some(f) = token.expect_number() {
+                let numeric =
+                    if precise { token.expect_precise_number() } else { token.expect_number() };
+                if let Some(f) = numeric {
                     if !range.contains(&f) {
                         let low = match range.start_bound() {
                             Bound::Unbounded => None,
@@ -569,6 +572,20 @@ impl<'a> Validator<'a> {
                 }
             }
         });
+    }
+
+    /// Expect field `name`, if present, to be set to a number within the `range` provided.
+    /// Accept at most 5 decimals. (5 decimals is the limit accepted by the game engine in most contexts).
+    /// Expect no more than one `name` field.
+    pub fn field_numeric_range<R: RangeBounds<f64>>(&mut self, name: &str, range: R) {
+        self.field_numeric_range_internal(name, range, false);
+    }
+
+    /// Expect field `name`, if present, to be set to a number within the `range` provided.
+    /// Expect no more than one `name` field.
+    #[cfg(feature = "ck3")]
+    pub fn field_precise_numeric_range<R: RangeBounds<f64>>(&mut self, name: &str, range: R) {
+        self.field_numeric_range_internal(name, range, true);
     }
 
     /// Expect field `name`, if present, to be set to a date.
