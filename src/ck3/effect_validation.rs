@@ -49,7 +49,7 @@ pub fn validate_add_activity_log_entry(
     vd.field_target("location", sc, Scopes::Province);
     vd.field_target("artifact", sc, Scopes::Artifact);
     // effects can be put directly in this block
-    validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal(&caller, ListType::None, block, data, sc, &mut vd, tooltipped);
 }
 
 pub fn validate_add_artifact_history(
