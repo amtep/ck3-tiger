@@ -96,7 +96,7 @@ pub fn validate_legion_history(
     vd.req_field("key");
     vd.req_field("commander");
     vd.req_field("province");
-    vd.field_value("key");
+    vd.field_item("key", Item::Localization);
     vd.field_target("commander", sc, Scopes::Character);
     vd.field_item_or_target("province", sc, Item::Province, Scopes::Province);
     vd.field_date("date");
@@ -293,8 +293,8 @@ pub fn validate_create_character(
 ) {
     let caller = Lowercase::new(key.as_str());
     sc.open_scope(Scopes::Character, key.clone());
-    vd.field_value("first_name");
-    vd.field_value("family_name");
+    vd.field_item("first_name", Item::Localization);
+    vd.field_item("family_name", Item::Localization);
     vd.field_value("dna");
     vd.field_item_or_target("culture", sc, Item::Culture, Scopes::Culture);
     vd.field_item_or_target("religion", sc, Item::Religion, Scopes::Religion);
@@ -304,7 +304,8 @@ pub fn validate_create_character(
     vd.field_bool("female");
     vd.field_bool("no_stats");
     vd.field_bool("no_traits");
-    vd.field_value("age");
+    vd.field_integer("age");
+    vd.field_date("birth_date");
     vd.field_item_or_target("birth_province", sc, Item::Province, Scopes::Province);
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
     sc.close();
@@ -320,7 +321,7 @@ pub fn validate_create_unit(
 ) {
     let caller = Lowercase::new(key.as_str());
     sc.open_scope(Scopes::Unit, key.clone());
-    vd.field_value("name");
+    vd.field_item("name", Item::Localization);
     vd.field_item_or_target("location", sc, Item::Province, Scopes::Province);
     vd.field_target("commander", sc, Scopes::Character);
     vd.field_bool("navy");

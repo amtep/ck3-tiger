@@ -1,7 +1,8 @@
 use crate::block::Block;
-use crate::db::DbKind;
+use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::item::Item;
+use crate::item::{Item, ItemLoader};
+use crate::game::GameFlags;
 use crate::token::Token;
 use crate::validator::Validator;
 use crate::modif::{validate_modifs, ModifKinds};
@@ -9,6 +10,16 @@ use crate::imperator::tables::misc::{DLC_IMPERATOR};
 
 #[derive(Clone, Debug)]
 pub struct SetupMain {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Imperator, Item::SetupMain, SetupMain::add)
+}
+
+impl SetupMain {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::SetupMain, key, block, Box::new(Self {}));
+    }
+}
 
 impl DbKind for SetupMain {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
@@ -61,7 +72,8 @@ fn validate_treasures(block: &Block, data: &Everything) {
 }
 
 fn validate_families(block: &Block, data: &Everything) {
-    // TODO - imperator - Family should be its own Item type with the "key" field being the name of each one. Then the "fam:" link should be updated with the new item.
+    // TODO - imperator - Family should be its own Item type with the "key" field being the name of each one. 
+    // Then the "fam:" link should be updated with the new item.
     let mut vd = Validator::new(block, data);
     vd.field_validated_block("families", |block, data| {
         let mut vd = Validator::new(block, data);
@@ -245,9 +257,10 @@ fn validate_countries(block: &Block, data: &Everything) {
                 ],
             );
 
-            // TODO - I have no idea how to validate laws here the syntax is like this:
-            // <Item::LawGroup> = Item::Law
-            // succession_law=egyption_succession_law
+            vd.unknown_value_fields(|key, _value| {
+                data.verify_exists(Item::LawGroup, key);
+                data.verify_exists(Item::Law, key);
+            });
         });
     });
 }
