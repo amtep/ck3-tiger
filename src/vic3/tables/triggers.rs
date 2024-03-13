@@ -426,7 +426,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "has_wasted_construction", Boolean),
     (Scopes::None, "hidden_trigger", Control),
     (Scopes::Country, "highest_secession_progress", CompareValue),
-    (Scopes::InterestGroup, "ig_approval", CompareChoice(APPROVALS)),
+    (Scopes::InterestGroup, "ig_approval", CompareChoiceOrNumber(APPROVALS)),
     (Scopes::InterestGroup, "ig_clout", CompareValue),
     (Scopes::InterestGroup, "ig_government_power_share", CompareValue),
     (
