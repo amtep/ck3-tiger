@@ -1310,6 +1310,7 @@ pub fn validate_inscopes(
     sc.expect(inscopes, &Reason::Token(name.clone()));
 }
 
+#[allow(unused_variables)] // imperator does not use sc
 fn validate_argument_internal(
     arg: &Token,
     validation: ArgumentValue,

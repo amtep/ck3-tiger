@@ -516,6 +516,7 @@ impl<'a> Validator<'a> {
         })
     }
 
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub fn field_numeric_range_internal<R: RangeBounds<f64>>(
         &mut self,
         name: &str,
@@ -560,6 +561,7 @@ impl<'a> Validator<'a> {
     /// Expect field `name`, if present, to be set to a number within the `range` provided.
     /// Accept at most 5 decimals. (5 decimals is the limit accepted by the game engine in most contexts).
     /// Expect no more than one `name` field.
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub fn field_numeric_range<R: RangeBounds<f64>>(&mut self, name: &str, range: R) {
         self.field_numeric_range_internal(name, range, false);
     }
@@ -1160,24 +1162,6 @@ impl<'a> Validator<'a> {
         }
         if found != expect {
             let msg = format!("expected {expect} integers");
-            let sev = Severity::Error.at_most(self.max_severity);
-            report(ErrorKey::Validation, sev).msg(msg).loc(self.block).push();
-        }
-    }
-
-    /// Expect this [`Block`] to be a block at least `expect` loose values that are integers.
-    /// So it's of the form `{ 1 2 3 }`.
-    #[cfg(feature = "imperator")]
-    pub fn req_tokens_integers_at_least(&mut self, expect: usize) {
-        self.accepted_tokens = true;
-        let mut found = 0;
-        for token in self.block.iter_values() {
-            if token.expect_integer().is_some() {
-                found += 1;
-            }
-        }
-        if found < expect {
-            let msg = format!("expected at least {expect} integers");
             let sev = Severity::Error.at_most(self.max_severity);
             report(ErrorKey::Validation, sev).msg(msg).loc(self.block).push();
         }
