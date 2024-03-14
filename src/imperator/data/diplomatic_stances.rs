@@ -36,6 +36,6 @@ impl DbKind for DiplomaticStance {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Country, vd);
         });
-        vd.field_validated_block_sc("chance", &mut sc, validate_modifiers_with_base);
+        vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
     }
 }

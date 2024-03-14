@@ -457,8 +457,6 @@ pub fn validate_datatypes(
             }
         }
 
-        // Ignore for imperator since everything in imperator-tiger is a promote, probably a better way to do this.
-        #[cfg(not(feature = "imperator"))]
         if !found {
             // Properly reporting these errors is tricky because `code.name`
             // might be found in any or all of the functions and promotes tables.

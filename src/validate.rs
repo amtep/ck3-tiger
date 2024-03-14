@@ -65,6 +65,7 @@ impl TryFrom<&str> for ListType {
     }
 }
 
+#[cfg(not(feature = "imperator"))]
 pub fn validate_compare_duration(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
@@ -128,7 +129,14 @@ pub fn validate_optional_duration_int(vd: &mut Validator) {
 pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
     let mut count = 0;
 
-    for field in &["days", "weeks", "months", "years"] {
+    #[cfg(not(feature = "imperator"))]
+    let options = &["days", "weeks", "months", "years"];
+
+    // Imperator does not allow a "weeks" field and does allow a "duration" field for modifiers.
+    #[cfg(feature = "imperator")]
+    let options = &["days", "months", "years", "duration"];
+
+    for field in options {
         vd.field_validated_key(field, |key, bv, data| {
             validate_script_value(bv, data, sc);
             count += 1;
@@ -237,8 +245,17 @@ pub fn precheck_iterator_fields(
             };
         }
         ListType::Ordered => {
-            for field in &["position", "min", "max"] {
+            for field in &["min", "max"] {
                 if let Some(bv) = block.get_field(field) {
+                    validate_script_value(bv, data, sc);
+                }
+            }
+            if let Some(bv) = block.get_field("position") {
+                if let Some(token) = bv.get_value() {
+                    if !token.is("end") {
+                        validate_script_value(bv, data, sc);
+                    }
+                } else {
                     validate_script_value(bv, data, sc);
                 }
             }
@@ -266,6 +283,7 @@ pub fn validate_iterator_fields(
     sc: &mut ScopeContext,
     vd: &mut Validator,
     tooltipped: &mut Tooltipped,
+    is_svalue: bool,
 ) {
     // undocumented
     if list_type == ListType::None {
@@ -302,7 +320,7 @@ pub fn validate_iterator_fields(
     } else {
         vd.ban_field("order_by", || "`ordered_` lists");
         vd.ban_field("position", || "`ordered_` lists");
-        if caller != "random_list" && caller != "duel" {
+        if caller != "random_list" && caller != "duel" && !is_svalue {
             vd.ban_field("min", || "`ordered_` lists, `random_list`, and `duel`");
             vd.ban_field("max", || "`ordered_` lists, `random_list`, and `duel`");
         }
@@ -544,13 +562,6 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
 
 #[cfg(feature = "vic3")]
 pub fn validate_vic3_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
-    vd.multi_field_validated("modifier", |bv, data| {
-        validate_script_value(bv, data, sc);
-    });
-}
-
-#[cfg(feature = "imperator")]
-pub fn validate_imperator_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     vd.multi_field_validated("modifier", |bv, data| {
         validate_script_value(bv, data, sc);
     });

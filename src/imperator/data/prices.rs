@@ -27,6 +27,7 @@ impl DbKind for Price {
         vd.field_numeric("stability");
         vd.field_numeric("gold");
         vd.field_numeric("tyranny");
+        vd.field_numeric("manpower");
         vd.field_numeric("scaled_gold");
         vd.field_numeric("scaled_manpower");
         vd.field_numeric("aggressive_expansion");

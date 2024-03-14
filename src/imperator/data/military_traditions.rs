@@ -23,12 +23,14 @@ inventory::submit! {
 impl MilitaryTraditionTree {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         for (key, block) in block.iter_definitions() {
-            db.add(
-                Item::MilitaryTradition,
-                key.clone(),
-                block.clone(),
-                Box::new(MilitaryTradition {}),
-            );
+            if !&["color", "image", "allow"].iter().any(|&v| key.is(v)) {
+                db.add(
+                    Item::MilitaryTradition,
+                    key.clone(),
+                    block.clone(),
+                    Box::new(MilitaryTradition {}),
+                );
+            }
         }
         db.add(Item::MilitaryTraditionTree, key, block, Box::new(Self {}));
     }
@@ -40,8 +42,6 @@ impl DbKind for MilitaryTraditionTree {
         let mut sc = ScopeContext::new(Scopes::Country, key);
 
         data.verify_exists(Item::Localization, key);
-        let loca = format!("{key}desc");
-        data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.field_validated_block("color", validate_color);
         vd.field_value("image");
@@ -70,6 +70,7 @@ impl DbKind for MilitaryTradition {
         vd.field_value("icon");
         vd.field_item("enable_tactic", Item::CombatTactic);
         vd.field_item("enable_ability", Item::UnitAbility);
+        vd.field_item("allow_unit_type", Item::Unit);
 
         vd.field_list_items("requires", Item::MilitaryTradition);
 

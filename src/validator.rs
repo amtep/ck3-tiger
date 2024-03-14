@@ -13,7 +13,9 @@ use crate::item::Item;
 use crate::report::fatal;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
-use crate::script_value::{validate_script_value, validate_script_value_no_breakdown};
+use crate::script_value::validate_script_value;
+#[cfg(not(feature = "imperator"))]
+use crate::script_value::validate_script_value_no_breakdown;
 use crate::token::Token;
 use crate::trigger::{validate_target, validate_target_ok_this};
 
@@ -415,25 +417,6 @@ impl<'a> Validator<'a> {
         })
     }
 
-    /// This is a combination of [`Validator::field_integer`] and [`Validator::field_target`].
-    /// Returns true if the field is present.
-    #[cfg(feature = "imperator")] // other games don't use, silence dead code warning.
-    pub fn field_target_or_integer(
-        &mut self,
-        name: &str,
-        sc: &mut ScopeContext,
-        outscopes: Scopes,
-    ) -> bool {
-        self.field_check(name, |_, bv| {
-            if let Some(token) = bv.expect_value() {
-                if token.expect_integer().is_some() {
-                    // TODO: pass max_severity here
-                    validate_target(token, self.data, sc, outscopes);
-                }
-            }
-        })
-    }
-
     /// Expect field `name`, if present, to be a definition `name = { block }`.
     /// Expect no more than one `name` field.
     /// No other validation is done.
@@ -624,6 +607,7 @@ impl<'a> Validator<'a> {
     /// Just like [`Validator::field_script_value`], but does not warn if it is an inline script value and the `desc` fields
     /// in it do not contain valid localizations. This is generally used for script values that will never be shown to
     /// the user except in debugging contexts, such as `ai_will_do`.
+    #[cfg(not(feature = "imperator"))] // imperator happens not to use; silence dead code warning
     pub fn field_script_value_no_breakdown(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             // TODO: pass max_severity value down
@@ -635,6 +619,7 @@ impl<'a> Validator<'a> {
     /// to be used for the `root` of a `ScopeContext` that is made on the spot. This is a convenient way to associate the
     /// `root` type with the key of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated
     /// with a key that is further away.
+    #[cfg(not(feature = "imperator"))]
     pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
         self.field_check(name, |key, bv| {
             let mut sc = ScopeContext::new(scopes, key);
@@ -676,6 +661,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_script_value`], but it can accept a literal `flag:something` value as well as a script value.
+    #[cfg(not(feature = "imperator"))]
     pub fn field_script_value_or_flag(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             // TODO: pass max_severity value down
@@ -1191,7 +1177,7 @@ impl<'a> Validator<'a> {
             }
         }
         if found < expect {
-            let msg = format!("expected {expect} integers");
+            let msg = format!("expected at least {expect} integers");
             let sev = Severity::Error.at_most(self.max_severity);
             report(ErrorKey::Validation, sev).msg(msg).loc(self.block).push();
         }
@@ -1258,6 +1244,7 @@ impl<'a> Validator<'a> {
 
     /// If `name` is present in the block, emit a low-severity warning together with the helpful message `msg`.
     /// This is for harmless but unneeded fields.
+    #[cfg(not(feature = "imperator"))]
     pub fn advice_field(&mut self, name: &str, msg: &str) {
         if let Some(key) = self.block.get_key(name) {
             self.known_fields.push(key.as_str());

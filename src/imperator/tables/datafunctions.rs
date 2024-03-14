@@ -1,3 +1,4 @@
+use crate::Item;
 use fnv::{FnvHashMap, FnvHashSet};
 use once_cell::sync::Lazy;
 

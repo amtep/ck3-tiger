@@ -9,7 +9,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
-use crate::validate::{validate_duration, validate_optional_duration, ListType};
+use crate::validate::{validate_optional_duration, ListType};
 use crate::validator::{Validator, ValueValidator};
 
 pub fn validate_remove_subunit_loyalty(
@@ -19,7 +19,7 @@ pub fn validate_remove_subunit_loyalty(
     _tooltipped: Tooltipped,
 ) {
     vd.maybe_is("yes");
-    vd.target(sc, Scopes::SubUnit);
+    vd.target_ok_this(sc, Scopes::SubUnit);
 }
 
 pub fn validate_add_modifier(
@@ -52,8 +52,8 @@ pub fn validate_add_party_conviction_or_approval(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    vd.req_field("party_type");
     vd.req_field("value");
+    vd.field_item_or_target("party", sc, Item::PartyType, Scopes::Party);
     vd.field_item_or_target("party_type", sc, Item::PartyType, Scopes::Party);
     vd.field_script_value("value", sc);
 }
@@ -66,7 +66,6 @@ pub fn validate_death(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    vd.req_field("death_reason");
     vd.field_item("death_reason", Item::DeathReason);
     vd.field_target("killer", sc, Scopes::Character);
     vd.field_bool("silent");
@@ -83,7 +82,7 @@ pub fn validate_deify_character(
     vd.req_field("deity");
     vd.req_field("country");
     vd.field_target("deity", sc, Scopes::Deity);
-    vd.field_target("country", sc, Scopes::Country);
+    vd.field_item_or_target("country", sc, Item::Localization, Scopes::Country);
 }
 
 pub fn validate_legion_history(
@@ -97,9 +96,9 @@ pub fn validate_legion_history(
     vd.req_field("key");
     vd.req_field("commander");
     vd.req_field("province");
-    vd.field_value("key");
+    vd.field_item("key", Item::Localization);
     vd.field_target("commander", sc, Scopes::Character);
-    vd.field_target("province", sc, Scopes::Province);
+    vd.field_item_or_target("province", sc, Item::Province, Scopes::Province);
     vd.field_date("date");
 }
 
@@ -114,6 +113,7 @@ pub fn validate_make_pregnant(
     vd.req_field("father");
     vd.field_target("father", sc, Scopes::Character);
     vd.field_bool("known_bastard");
+    vd.field_integer("number_of_children");
 }
 
 pub fn validate_change_opinion(
@@ -127,7 +127,7 @@ pub fn validate_change_opinion(
     vd.req_field("modifier");
     vd.req_field("target");
     vd.field_item("modifier", Item::Opinion);
-    vd.field_target("target", sc, Scopes::Country);
+    vd.field_item_or_target("target", sc, Item::Localization, Scopes::Country);
 }
 
 pub fn validate_add_research(
@@ -169,8 +169,8 @@ pub fn validate_add_truce(
 ) {
     vd.req_field("target");
     vd.req_field("duration");
-    vd.field_target("target", sc, Scopes::Country);
-    vd.field_validated_block_sc("duration", sc, validate_duration);
+    vd.field_item_or_target("target", sc, Item::Localization, Scopes::Country);
+    vd.field_integer("duration");
 }
 
 pub fn validate_declare_war(
@@ -184,8 +184,8 @@ pub fn validate_declare_war(
     vd.req_field("war_goal");
     vd.req_field("target");
     vd.field_item("war_goal", Item::Wargoal);
-    vd.field_target("target", sc, Scopes::Country);
-    vd.field_target("province", sc, Scopes::Province);
+    vd.field_item_or_target("target", sc, Item::Localization, Scopes::Country);
+    vd.field_item_or_target("province", sc, Item::Province, Scopes::Province);
 }
 
 pub fn validate_imprison(
@@ -210,7 +210,7 @@ pub fn validate_make_subject(
 ) {
     vd.req_field("target");
     vd.req_field("type");
-    vd.field_target("target", sc, Scopes::Country);
+    vd.field_item_or_target("target", sc, Item::Localization, Scopes::Country);
     vd.field_item("type", Item::SubjectType);
 }
 
@@ -260,7 +260,11 @@ pub fn validate_create_treasure(
     vd.req_field("icon");
     vd.field_validated_block("modifier", |block, data| {
         let vd = Validator::new(block, data);
-        validate_modifs(block, data, ModifKinds::Country, vd);
+        validate_modifs(block, data, ModifKinds::Country | ModifKinds::Province, vd);
+    });
+    vd.field_validated_block("character_modifier", |block, data| {
+        let vd = Validator::new(block, data);
+        validate_modifs(block, data, ModifKinds::Character, vd);
     });
 }
 
@@ -276,7 +280,7 @@ pub fn validate_raise_legion(
     sc.open_scope(Scopes::Legion, key.clone());
     vd.req_field_warn("create_unit");
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
-    sc.close()
+    sc.close();
 }
 
 pub fn validate_create_character(
@@ -289,20 +293,22 @@ pub fn validate_create_character(
 ) {
     let caller = Lowercase::new(key.as_str());
     sc.open_scope(Scopes::Character, key.clone());
-    vd.field_value("first_name");
+    vd.field_item("first_name", Item::Localization);
+    vd.field_item("family_name", Item::Localization);
     vd.field_value("dna");
-    vd.field_target("culture", sc, Scopes::Culture);
-    vd.field_target("religion", sc, Scopes::Religion);
+    vd.field_item_or_target("culture", sc, Item::Culture, Scopes::Culture);
+    vd.field_item_or_target("religion", sc, Item::Religion, Scopes::Religion);
     vd.field_target("family", sc, Scopes::Family);
     vd.field_target("father", sc, Scopes::Character);
     vd.field_target("mother", sc, Scopes::Character);
     vd.field_bool("female");
     vd.field_bool("no_stats");
     vd.field_bool("no_traits");
-    vd.field_value("age");
-    vd.field_target_or_integer("birth_province", sc, Scopes::Province);
+    vd.field_integer("age");
+    vd.field_date("birth_date");
+    vd.field_item_or_target("birth_province", sc, Item::Province, Scopes::Province);
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
-    sc.close()
+    sc.close();
 }
 
 pub fn validate_create_unit(
@@ -315,12 +321,13 @@ pub fn validate_create_unit(
 ) {
     let caller = Lowercase::new(key.as_str());
     sc.open_scope(Scopes::Unit, key.clone());
-    vd.field_value("name");
-    vd.field_target("location", sc, Scopes::Province);
+    vd.field_item("name", Item::Localization);
+    vd.field_item_or_target("location", sc, Item::Province, Scopes::Province);
+    vd.field_target("commander", sc, Scopes::Character);
     vd.field_bool("navy");
     vd.field_item("sub_unit", Item::Unit);
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
-    sc.close()
+    sc.close();
 }
 
 pub fn validate_create_country(
@@ -335,10 +342,36 @@ pub fn validate_create_country(
     sc.open_scope(Scopes::Country, key.clone());
     vd.field_validated_block("name", |block, data| {
         let mut vd = Validator::new(block, data);
-        // TODO - imperator - I think these are localization keys
-        vd.field_value("name");
-        vd.field_value("adjective");
+        vd.field_item("name", Item::Localization);
+        vd.field_item("adjective", Item::Localization);
     });
     validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
-    sc.close()
+    sc.close();
+}
+
+pub fn validate_pay_gold(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("target");
+    vd.req_field("gold");
+    vd.field_item_or_target("target", sc, Item::Localization, Scopes::Country);
+    vd.field_numeric("gold");
+}
+
+pub fn validate_great_work_construction(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    _sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_item("great_work", Item::GreatWorkTemplate);
+    vd.field_choice("locator", &["primary_great_work", "secondary_great_work", "great_work"]);
+    vd.field_bool("is_ancient");
 }

@@ -169,7 +169,7 @@ pub fn validate_trigger_internal(
     }
 
     let list_type = if in_list { ListType::Any } else { ListType::None };
-    validate_iterator_fields(caller, list_type, data, sc, &mut vd, &mut tooltipped);
+    validate_iterator_fields(caller, list_type, data, sc, &mut vd, &mut tooltipped, false);
 
     if list_type != ListType::None {
         validate_inside_iterator(caller, list_type, block, data, sc, &mut vd, tooltipped);
@@ -695,6 +695,7 @@ fn match_trigger_bv(
                 }
             }
         }
+        #[cfg(not(feature = "imperator"))]
         Trigger::CompareChoice(choices) => {
             must_be_eq = false;
             if let Some(token) = bv.expect_value() {
@@ -1306,6 +1307,7 @@ fn validate_argument_internal(
 ) {
     match validation {
         ArgumentValue::Item(item) => data.verify_exists(item, arg),
+        #[cfg(not(feature = "imperator"))]
         ArgumentValue::Scope(scope) => validate_target(arg, data, sc, scope),
         #[cfg(feature = "ck3")]
         ArgumentValue::ScopeOrItem(scope, item) => {
@@ -1359,7 +1361,7 @@ pub fn validate_argument(
     #[cfg(feature = "imperator")]
     if Game::is_imperator() {
         // Imperator does not use `()`
-        let msg = format!("imperator does not support the `()` syntax");
+        let msg = "imperator does not support the `()` syntax";
         let mut opening_paren_loc = arg.loc;
         opening_paren_loc.column -= 1;
         err(ErrorKey::Validation).msg(msg).loc(opening_paren_loc).push();
@@ -1420,6 +1422,7 @@ pub enum Trigger {
     /// value is chosen from a list given here
     Choice(&'static [&'static str]),
     /// value is from a list given here that can be compared
+    #[cfg(not(feature = "imperator"))]
     CompareChoice(&'static [&'static str]),
     /// For Block, if a field name in the array starts with ? it means that field is optional
     /// trigger takes a block with these fields

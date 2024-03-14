@@ -30,13 +30,14 @@ impl DbKind for Ambition {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Character, key);
 
+        sc.define_name("ongoing_scheme_target", Scopes::Character, key);
+
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.req_field("can_be_picked");
         vd.req_field("finished_when");
-        vd.req_field("abort");
         vd.req_field("chance");
 
         vd.field_validated_block("can_be_picked", |b, data| {

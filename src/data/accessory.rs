@@ -21,6 +21,11 @@ impl Accessory {
                 db.add_flag(Item::AccessoryTag, tag);
             }
         }
+        // For some reason I can't get the tags to load from common/genes properly for imperator, so im hacking them in here instead for now.
+        #[cfg(feature = "imperator")]
+        for tag in &["no_hair", "fat2_normal", "fat2_max", "fat1_normal", "fat1_max", "no_fat"] {
+            db.add_flag(Item::AccessoryTag, Token::new(tag, block.loc));
+        }
         db.add(Item::Accessory, key, block, Box::new(Self {}));
     }
 }

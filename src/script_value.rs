@@ -87,8 +87,22 @@ fn validate_inner(
                 warn(ErrorKey::Logic).msg(msg).loc(token).push();
             }
             if let Some(value) = bv.expect_value() {
+                #[cfg(not(feature = "imperator"))]
                 if !value.is("yes") && !value.is("no") {
                     let msg = "expected yes or no";
+                    warn(ErrorKey::Validation).msg(msg).loc(value).push();
+                }
+                #[cfg(feature = "imperator")]
+                if !token.is("round") && !value.is("yes") && !value.is("no") {
+                    let msg = "expected yes or no";
+                    warn(ErrorKey::Validation).msg(msg).loc(value).push();
+                }
+                #[cfg(feature = "imperator")]
+                if token.is("round")
+                    && !&["yes", "no", "floor", "ceiling"].iter().any(|&v| value.is(v))
+                {
+                    // imperator allows "round = <yes/no/floor/ceiling>"
+                    let msg = "expected yes, no, floor, or ceiling";
                     warn(ErrorKey::Validation).msg(msg).loc(value).push();
                 }
                 made_changes = true;
@@ -175,7 +189,7 @@ fn validate_iterator(
     });
 
     let mut tooltipped = Tooltipped::No;
-    validate_iterator_fields(Lowercase::empty(), ltype, data, sc, &mut vd, &mut tooltipped);
+    validate_iterator_fields(Lowercase::empty(), ltype, data, sc, &mut vd, &mut tooltipped, true);
 
     validate_inside_iterator(
         &Lowercase::new(it_name.as_str()),
@@ -297,6 +311,7 @@ pub fn validate_script_value(bv: &BV, data: &Everything, sc: &mut ScopeContext) 
     validate_bv(bv, data, sc, true);
 }
 
+#[cfg(not(feature = "imperator"))]
 pub fn validate_script_value_no_breakdown(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     validate_bv(bv, data, sc, false);
 }

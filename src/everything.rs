@@ -60,6 +60,10 @@ use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::game::Game;
 #[cfg(feature = "imperator")]
+use crate::imperator::data::{
+    decisions::Decisions, events::ImperatorEvents, provinces::ImperatorProvinces,
+};
+#[cfg(feature = "imperator")]
 use crate::imperator::tables::misc::*;
 use crate::item::{Item, ItemLoader};
 use crate::lowercase::Lowercase;
@@ -130,6 +134,10 @@ pub struct Everything {
     pub(crate) events_ck3: Ck3Events,
     #[cfg(feature = "vic3")]
     pub(crate) events_vic3: Vic3Events,
+    #[cfg(feature = "imperator")]
+    pub(crate) events_imperator: ImperatorEvents,
+    #[cfg(feature = "imperator")]
+    pub(crate) decisions_imperator: Decisions,
 
     pub(crate) scripted_modifiers: ScriptedModifiers,
     pub(crate) on_actions: OnActions,
@@ -141,6 +149,8 @@ pub struct Everything {
     pub(crate) provinces_ck3: Ck3Provinces,
     #[cfg(feature = "vic3")]
     pub(crate) provinces_vic3: Vic3Provinces,
+    #[cfg(feature = "imperator")]
+    pub(crate) provinces_imperator: ImperatorProvinces,
 
     #[cfg(feature = "ck3")]
     pub(crate) province_histories: ProvinceHistories,
@@ -250,6 +260,10 @@ impl Everything {
             events_ck3: Ck3Events::default(),
             #[cfg(feature = "vic3")]
             events_vic3: Vic3Events::default(),
+            #[cfg(feature = "imperator")]
+            events_imperator: ImperatorEvents::default(),
+            #[cfg(feature = "imperator")]
+            decisions_imperator: Decisions::default(),
             scripted_modifiers: ScriptedModifiers::default(),
             on_actions: OnActions::default(),
             #[cfg(feature = "ck3")]
@@ -258,6 +272,8 @@ impl Everything {
             provinces_ck3: Ck3Provinces::default(),
             #[cfg(feature = "vic3")]
             provinces_vic3: Vic3Provinces::default(),
+            #[cfg(feature = "imperator")]
+            provinces_imperator: ImperatorProvinces::default(),
             #[cfg(feature = "ck3")]
             province_histories: ProvinceHistories::default(),
             #[cfg(feature = "ck3")]
@@ -432,7 +448,11 @@ impl Everything {
     }
 
     #[cfg(feature = "imperator")]
-    fn load_all_imperator(&mut self) {}
+    fn load_all_imperator(&mut self) {
+        self.fileset.handle(&mut self.events_imperator);
+        self.fileset.handle(&mut self.decisions_imperator);
+        self.fileset.handle(&mut self.provinces_imperator);
+    }
 
     pub fn load_all(&mut self) {
         self.load_all_generic();
@@ -490,7 +510,12 @@ impl Everything {
         s.spawn(|_| BuyPackage::crosscheck(self));
     }
 
-    // Imperator one goes here when needed
+    #[cfg(feature = "imperator")]
+    fn validate_all_imperator<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.events_imperator.validate(self));
+        s.spawn(|_| self.decisions_imperator.validate(self));
+        s.spawn(|_| self.provinces_imperator.validate(self));
+    }
 
     pub fn validate_all(&self) {
         scope(|s| {
@@ -501,7 +526,7 @@ impl Everything {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => self.validate_all_vic3(s),
                 #[cfg(feature = "imperator")]
-                Game::Imperator => (), // TODO - imperator -
+                Game::Imperator => self.validate_all_imperator(s),
             }
         });
         self.database.validate(self);
@@ -632,6 +657,10 @@ impl Everything {
     fn item_exists_imperator(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Dlc => DLC_IMPERATOR.contains(&key),
+            Item::Decision => self.decisions_imperator.exists(key),
+            Item::Event => self.events_imperator.exists(key),
+            Item::EventNamespace => self.events_imperator.namespace_exists(key),
+            Item::Province => self.provinces_imperator.exists(key),
             Item::Sound => {
                 if let Some(filename) = key.strip_prefix("file://") {
                     self.fileset.exists(filename)
@@ -762,12 +791,15 @@ impl Everything {
             Item::Localization => self.localization.verify_exists_implied(key, token, max_sev),
             #[cfg(feature = "ck3")]
             Item::Music => self.music.verify_exists_implied(key, token, max_sev),
-            #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::Province => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => self.provinces_ck3.verify_exists_implied(key, token, max_sev),
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => self.provinces_vic3.verify_exists_implied(key, token, max_sev),
+                #[cfg(feature = "imperator")]
+                Game::Imperator => {
+                    self.provinces_imperator.verify_exists_implied(key, token, max_sev);
+                }
             },
             Item::TextureFile => {
                 if let Some(entry) = self.assets.get_texture(key) {
@@ -866,7 +898,6 @@ impl Everything {
         self.effects.get(key.as_str())
     }
 
-    #[allow(unused_variables)] // TODO - imperator - does not use
     pub(crate) fn check_event_scope(&self, token: &Token, sc: &mut ScopeContext) {
         match Game::game() {
             #[cfg(feature = "ck3")]
@@ -874,7 +905,7 @@ impl Everything {
             #[cfg(feature = "vic3")]
             Game::Vic3 => self.events_vic3.check_scope(token, sc),
             #[cfg(feature = "imperator")]
-            Game::Imperator => (), // TODO - imperator -
+            Game::Imperator => self.events_imperator.check_scope(token, sc),
         };
     }
 
@@ -950,7 +981,13 @@ impl Everything {
 
     #[cfg(feature = "imperator")]
     fn iter_keys_imperator<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
-        Box::new(self.database.iter_keys(itype))
+        match itype {
+            Item::Decision => Box::new(self.decisions_imperator.iter_keys()),
+            Item::Event => Box::new(self.events_imperator.iter_keys()),
+            Item::EventNamespace => Box::new(self.events_imperator.iter_namespace_keys()),
+            Item::Province => Box::new(self.provinces_imperator.iter_keys()),
+            _ => Box::new(self.database.iter_keys(itype)),
+        }
     }
 
     pub fn iter_keys<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {

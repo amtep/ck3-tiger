@@ -178,6 +178,7 @@ impl Db {
         }
     }
 
+    #[cfg(not(feature = "imperator"))]
     pub fn iter_key_block(&self, itype: Item) -> impl Iterator<Item = (&Token, &Block)> {
         self.database[itype as usize].values().map(|entry| (&entry.key, &entry.block))
     }

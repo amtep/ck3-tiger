@@ -5,6 +5,7 @@ use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_control};
 use crate::everything::Everything;
+#[cfg(not(feature = "imperator"))]
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
@@ -145,6 +146,7 @@ pub fn validate_save_scope(
 }
 
 /// A specific validator for the `save_scope_value` effect.
+#[cfg(not(feature = "imperator"))]
 pub fn validate_save_scope_value(
     _key: &Token,
     _block: &Block,

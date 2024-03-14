@@ -15,8 +15,13 @@ inventory::submit! {
 }
 
 impl Office {
+    #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::Office, key, block, Box::new(Self {}));
+        db.add(Item::Office, key.clone(), block, Box::new(Self {}));
+
+        for office in &["civic_tech", "religious_tech", "oratory_tech", "military_tech"] {
+            db.add_flag(Item::Office, Token::new(office, key.loc));
+        }
     }
 }
 
@@ -33,7 +38,7 @@ impl DbKind for Office {
 
         vd.field_validated_block("skill_modifier", |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::Country, vd);
+            validate_modifs(block, data, ModifKinds::Country | ModifKinds::Character, vd);
         });
 
         vd.field_validated_block("personal_modifier", |block, data| {

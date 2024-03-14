@@ -239,8 +239,11 @@ impl Asset {
 
     pub fn validate_entity(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
+        vd.set_case_sensitive(false);
+
         vd.field_value("name");
         vd.field_item("pdxmesh", Item::Pdxmesh);
+        vd.field_item("clone", Item::Entity);
         vd.field_bool("get_state_from_parent");
         vd.field_numeric("scale");
         vd.field_numeric("cull_radius");

@@ -259,6 +259,7 @@ impl Display for Scopes {
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum ArgumentValue {
     /// The value must be an expression that resolves to a scope object of the given type.
+    #[cfg(not(feature = "imperator"))]
     Scope(Scopes),
     /// The value must be the name of an item of the given item type.
     Item(Item),

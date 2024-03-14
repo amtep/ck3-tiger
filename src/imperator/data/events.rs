@@ -144,17 +144,13 @@ impl Event {
 
         if let Some(event_type) = block.get_field_value("type") {
             match event_type.as_str() {
-                "character_event" => {
+                "minor_character_event" | "character_event" => {
                     expects_scope = Scopes::Character;
                     expects_from_token = event_type.clone();
                 }
-                "minor_character_event" => {
-                    expects_scope = Scopes::Character;
+                "country_event" | "minor_country_event" | "major_country_event" => {
                     expects_from_token = event_type.clone();
                 }
-                "country_event" => expects_from_token = event_type.clone(),
-                "minor_country_event" => expects_from_token = event_type.clone(),
-                "major_country_event" => expects_from_token = event_type.clone(),
                 "state_event" => {
                     expects_scope = Scopes::State;
                     expects_from_token = event_type.clone();
@@ -187,8 +183,14 @@ impl Event {
 
         vd.field_choice("type", EVENT_TYPES);
         vd.field_bool("hidden");
+        vd.field_bool("interface_lock");
         vd.field_bool("fire_only_once");
-        vd.field_target("goto_location", &mut sc, Scopes::Province);
+        vd.field_item_or_target(
+            "goto_location",
+            &mut sc,
+            Item::Province,
+            Scopes::Province.union(Scopes::Country),
+        );
 
         vd.field_validated_sc("title", &mut sc, validate_desc);
         vd.field_validated_sc("desc", &mut sc, validate_desc);
@@ -199,7 +201,14 @@ impl Event {
             tooltipped = Tooltipped::No;
         }
 
-        if !hidden {
+        let mut minor_event = false;
+        if self.block.field_value_is("type", "minor_character_event")
+            || self.block.field_value_is("type", "minor_country_event")
+        {
+            minor_event = true;
+        }
+
+        if !hidden && !minor_event {
             vd.req_field("picture");
         }
         vd.field_item("picture", Item::EventPicture);
@@ -208,7 +217,7 @@ impl Event {
             let mut count = 0;
             vd.multi_field_validated_value(field, |_, mut vd| {
                 count += 1;
-                vd.target(&mut sc, Scopes::Character);
+                vd.target_ok_this(&mut sc, Scopes::Character);
                 if count == 4 {
                     let msg = format!("Event has more than 3 {field} attributes.");
                     let info = "Events can only have up to 3 portraits displayed at a time.";
@@ -231,6 +240,10 @@ impl Event {
         }
         vd.multi_field_validated_block("option", |block, data| {
             validate_event_option(block, data, &mut sc, tooltipped);
+        });
+
+        vd.field_validated_block("after", |block, data| {
+            validate_effect(block, data, &mut sc, tooltipped_immediate);
         });
     }
 }

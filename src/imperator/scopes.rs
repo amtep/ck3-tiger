@@ -142,17 +142,16 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     // if scopes == Scopes::Family && data.item_exists(Item::Family, arg) {
     //     return Some("fam");
     // }
-    // TODO: - imperator - add this when Item::Party exists
-    // if scopes == Scopes::Party && data.item_exists(Item::Party, arg) {
-    //     return Some("party");
+    // TODO: - imperator - add this when Item::Character exists
+    // if scopes == Scopes::Character && data.item_exists(Item::Character, arg) {
+    //     return Some("char");
     // }
+    if scopes == Scopes::Party && data.item_exists(Item::PartyType, arg) {
+        return Some("party");
+    }
     if scopes == Scopes::Treasure && data.item_exists(Item::Treasure, arg) {
         return Some("treasure");
     }
-    // TODO: - imperator - add this when Item::Character exists
-    // if scopes == Scopes::Character && data.item_exists(Item::Character, arg) {
-    //     return Some("character");
-    // }
     if scopes == Scopes::Region && data.item_exists(Item::Region, arg) {
         return Some("region");
     }
@@ -222,7 +221,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "current_ruler", Scopes::Character),
     (Scopes::Country, "fam", Scopes::Family),
     (Scopes::Country, "overlord", Scopes::Country),
-    (Scopes::Country, "party", Scopes::Party),
+    (Scopes::Country.union(Scopes::Character), "party", Scopes::Party),
     (Scopes::Country, "primary_heir", Scopes::Character),
     (Scopes::Country, "secondary_heir", Scopes::Character),
     (Scopes::Character.union(Scopes::Pop).union(Scopes::Job), "country", Scopes::Country),
@@ -257,17 +256,18 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Color, "hue", Scopes::Value),
     (Scopes::Color, "red", Scopes::Value),
     (Scopes::Color, "saturation", Scopes::Value),
-    (Scopes::Unit, "commander", Scopes::Character),
-    (Scopes::Unit, "unit_destination", Scopes::Province),
-    (Scopes::Unit, "unit_location", Scopes::Province),
-    (Scopes::Unit, "unit_next_location", Scopes::Province),
-    (Scopes::Unit, "unit_objective_destination", Scopes::Province),
-    (Scopes::Unit, "unit_owner", Scopes::Country),
+    (Scopes::Unit.union(Scopes::Legion), "commander", Scopes::Character),
+    (Scopes::Unit.union(Scopes::Legion), "unit_destination", Scopes::Province),
+    (Scopes::Unit.union(Scopes::Legion), "unit_location", Scopes::Province),
+    (Scopes::Unit.union(Scopes::Legion), "unit_next_location", Scopes::Province),
+    (Scopes::Unit.union(Scopes::Legion), "unit_objective_destination", Scopes::Province),
+    (Scopes::Unit.union(Scopes::Legion), "unit_owner", Scopes::Country),
     (
         Scopes::Country
             .union(Scopes::Character)
             .union(Scopes::Province)
             .union(Scopes::Pop)
+            .union(Scopes::CountryCulture)
             .union(Scopes::Culture),
         "culture_group",
         Scopes::CultureGroup,
@@ -281,12 +281,13 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
         Scopes::Country,
     ),
     (Scopes::Family, "family_country", Scopes::Country),
-    (Scopes::Family, "head_of_family", Scopes::Country),
+    (Scopes::Family, "head_of_family", Scopes::Character),
     (
         Scopes::Country
             .union(Scopes::Character)
             .union(Scopes::Province)
             .union(Scopes::Pop)
+            .union(Scopes::CultureGroup)
             .union(Scopes::CountryCulture),
         "culture",
         Scopes::Culture,
@@ -341,12 +342,13 @@ static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, Argument
 
 // Basically just search the log for "Requires Data: yes" and put all that here.
 const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
+    use crate::item::Item;
     use ArgumentValue::*;
-    //TODO: Remove `UncheckedValue` for correct validation
+    // TODO - treasure and char need to be done when Character and Treasure types are implemented.
     &[
         (Scopes::None, "array_define", Scopes::Value, UncheckedValue),
         (Scopes::Country, "fam", Scopes::Family, UncheckedValue),
-        (Scopes::Country, "party", Scopes::Party, UncheckedValue),
+        (Scopes::Country, "party", Scopes::Party, Item(Item::PartyType)),
         (
             Scopes::Country
                 .union(Scopes::Province)
@@ -362,15 +364,16 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
                 .union(Scopes::State)
                 .union(Scopes::Governorship),
             "job_holder",
-            Scopes::Job,
-            UncheckedValue,
+            Scopes::Character,
+            Item(Item::Office),
         ),
-        (Scopes::Treasure, "treasure", Scopes::Treasure, UncheckedValue),
+        (Scopes::None, "treasure", Scopes::Treasure, UncheckedValue),
         (Scopes::None, "character", Scopes::Character, UncheckedValue),
-        (Scopes::None, "region", Scopes::Region, UncheckedValue),
-        (Scopes::None, "area", Scopes::Area, UncheckedValue),
-        (Scopes::None, "culture", Scopes::Culture, UncheckedValue),
-        (Scopes::None, "deity", Scopes::Deity, UncheckedValue),
+        (Scopes::None, "region", Scopes::Region, Item(Item::Region)),
+        (Scopes::None, "area", Scopes::Area, Item(Item::Area)),
+        (Scopes::None, "culture", Scopes::Culture, Item(Item::Culture)),
+        (Scopes::None, "culture_group", Scopes::CultureGroup, Item(Item::CultureGroup)),
+        (Scopes::None, "deity", Scopes::Deity, Item(Item::Deity)),
         (Scopes::None, "c", Scopes::Country, UncheckedValue),
         (Scopes::None, "char", Scopes::Character, UncheckedValue),
         (Scopes::None, "define", Scopes::Value, UncheckedValue),
@@ -378,7 +381,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "global_var", Scopes::all(), UncheckedValue),
         (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
         (Scopes::None, "p", Scopes::Province, UncheckedValue),
-        (Scopes::None, "religion", Scopes::Religion, UncheckedValue),
+        (Scopes::None, "religion", Scopes::Religion, Item(Item::Religion)),
         (Scopes::None, "scope", Scopes::all(), UncheckedValue),
         (Scopes::all(), "var", Scopes::all(), UncheckedValue),
     ]
@@ -469,8 +472,10 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "living_character", Scopes::Character),
     (Scopes::None, "ownable_province", Scopes::Province),
     (Scopes::None, "province", Scopes::Province),
-    (Scopes::None, "region", Scopes::Province),
+    (Scopes::None, "region", Scopes::Region),
     (Scopes::None, "sea_and_river_zone", Scopes::Province),
+    (Scopes::None, "in_list", Scopes::all()),
+    (Scopes::None, "in_global_list", Scopes::all()),
 ];
 
 pub fn scope_iterator_removed(name: &str) -> Option<(&'static str, &'static str)> {
