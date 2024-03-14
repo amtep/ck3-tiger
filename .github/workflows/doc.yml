@@ -34,7 +34,7 @@ jobs:
           toolchain: stable
 
       - name: Build documentation
-        run: cargo doc --features "ck3 vic3" --no-deps --document-private-items
+        run: cargo doc --features "ck3 vic3 imperator" --no-deps --document-private-items
 
       - name: Create index.html
         shell: bash

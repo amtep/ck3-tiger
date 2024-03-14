@@ -37,9 +37,11 @@ jobs:
           version=v$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
           ck3_pkgdir="ck3-tiger-${{ matrix.name }}-$version"
           vic3_pkgdir="vic3-tiger-${{ matrix.name }}-$version"
+          vic3_pkgdir="imperator-tiger-${{ matrix.name }}-$version"
           echo "::set-output name=version::$version"
           echo "::set-output name=ck3_pkgdir::$ck3_pkgdir"
           echo "::set-output name=vic3_pkgdir::$vic3_pkgdir"
+          echo "::set-output name=imperator_pkgdir::$imperator_pkgdir"
 
       - name: Verify version against tag
         shell: bash
@@ -52,6 +54,9 @@ jobs:
       - name: Build Vic3
         run: cargo build --release -p vic3-tiger
 
+      - name: Build Imperator
+        run: cargo build --release -p imperator-tiger
+
       - name: Create output dirs
         shell: bash
         run: |
@@ -59,6 +64,8 @@ jobs:
           cp -p README.md filter.md TODO.md CONTRIBUTORS.md LICENSE ck3-tiger.conf target/release/ck3-tiger${{ matrix.extension }} target/release/ck3-tiger-auto${{ matrix.extension }} ${{ steps.version.outputs.ck3_pkgdir }}
           mkdir ${{ steps.version.outputs.vic3_pkgdir }}
           cp -p README.md filter.md TODO.md CONTRIBUTORS.md LICENSE vic3-tiger.conf target/release/vic3-tiger${{ matrix.extension }} target/release/vic3-tiger-auto${{ matrix.extension }} ${{ steps.version.outputs.vic3_pkgdir }}
+          mkdir ${{ steps.version.outputs.imperator_pkgdir }}
+          cp -p README.md filter.md TODO.md CONTRIBUTORS.md LICENSE imperator-tiger.conf target/release/imperator-tiger${{ matrix.extension }} steps.version.outputs.imperator_pkgdir }}
 
       - name: Archive .zip ck3
         uses: vimtor/action-zip@v1
@@ -73,6 +80,13 @@ jobs:
         with:
           files: ${{ steps.version.outputs.vic3_pkgdir }}/
           dest: ${{ steps.version.outputs.vic3_pkgdir }}.zip
+
+      - name: Archive .zip imperator
+        uses: vimtor/action-zip@v1
+        if: ${{ matrix.archive == 'zip' }}
+        with:
+          files: ${{ steps.version.outputs.imperator_pkgdir }}/
+          dest: ${{ steps.version.outputs.imperator_pkgdir }}.zip
 
       - name: Archive .tar.gz
         if: ${{ matrix.archive == 'tar.gz' }}
@@ -92,6 +106,13 @@ jobs:
         with:
           name: archives
           path: ${{ steps.version.outputs.vic3_pkgdir }}.${{ matrix.archive }}
+          if-no-files-found: error
+
+      - name: Upload Archive imperator
+        uses: actions/upload-artifact@v3
+        with:
+          name: archives
+          path: ${{ steps.version.outputs.imperator_pkgdir }}.${{ matrix.archive }}
           if-no-files-found: error
 
   release:

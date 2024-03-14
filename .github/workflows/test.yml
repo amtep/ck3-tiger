@@ -62,6 +62,9 @@ jobs:
       - name: Vic3 clippy
         run: cargo clippy -p vic3-tiger
 
+      - name: Imperator clippy
+        run: cargo clippy -p imperator-tiger
+
       - name: utils clippy
         run: cargo clippy -p utils
 
@@ -90,3 +93,6 @@ jobs:
 
       - name: Vic3 msrv
         run: cargo check -p vic3-tiger
+
+      - name: Imperator msrv
+        run: cargo check -p imperator-tiger
