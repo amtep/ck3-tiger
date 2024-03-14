@@ -6,12 +6,11 @@ use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
 use crate::helpers::dup_error;
 use crate::item::{Item, ItemLoader};
-#[cfg(not(feature = "imperator"))]
-use crate::report::{err, fatal, warn, Confidence, ErrorKey, Severity};
-#[cfg(feature = "imperator")]
 use crate::report::{err, fatal, warn, ErrorKey};
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+use crate::report::{Confidence, Severity};
 use crate::token::Token;
-#[cfg(not(feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::validate::validate_numeric_range;
 use crate::validator::Validator;
 
@@ -107,14 +106,14 @@ impl DbKind for ColorGene {
         }
 
         vd.req_field("color");
-        #[cfg(not(feature = "imperator"))]
+        #[cfg(any(feature = "ck3", feature = "vic3"))]
         vd.req_field("blend_range");
 
         vd.field_item("sync_inheritance_with", Item::GeneCategory);
         vd.field_value("group"); // TODO
         vd.field_value("color"); // TODO
 
-        #[cfg(not(feature = "imperator"))]
+        #[cfg(any(feature = "ck3", feature = "vic3"))]
         vd.field_validated_block("blend_range", |block, data| {
             validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
         });
@@ -530,7 +529,7 @@ fn validate_morph_gene(block: &Block, data: &Everything) {
     vd.field_value("negative_mirror"); // TODO
     #[cfg(feature = "imperator")]
     vd.field_value("set_tags");
-    #[cfg(not(feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     let choices = &["male", "female", "boy", "girl"];
     #[cfg(feature = "imperator")]
     let choices = &["male", "female", "boy", "girl", "infant"];
@@ -548,7 +547,7 @@ fn validate_morph_gene(block: &Block, data: &Everything) {
                 BV::Block(block) => {
                     let mut vd = Validator::new(block, data);
                     vd.multi_field_validated_block("setting", validate_gene_setting);
-                    #[cfg(not(feature = "imperator"))]
+                    #[cfg(any(feature = "ck3", feature = "vic3"))]
                     vd.multi_field_validated_block("decal", validate_gene_decal);
                     #[cfg(feature = "imperator")]
                     vd.multi_field_validated_block("decal", validate_gene_decal_imperator);
@@ -574,7 +573,7 @@ fn validate_accessory_gene(block: &Block, data: &Everything) {
     vd.req_field("index");
     vd.field_integer("index"); // TODO: verify unique indices
     vd.field_value("set_tags");
-    #[cfg(not(feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     let choices = &["male", "female", "boy", "girl"];
     #[cfg(feature = "imperator")]
     let choices = &["male", "female", "boy", "girl", "infant"];
@@ -631,7 +630,7 @@ fn validate_gene_setting(block: &Block, data: &Everything) {
     }
 }
 
-#[cfg(not(feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 fn validate_gene_decal(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.req_field("body_part");
@@ -656,7 +655,7 @@ fn validate_gene_decal_imperator(block: &Block, data: &Everything) {
     vd.multi_field_validated_block("alpha_curve", validate_curve);
 }
 
-#[cfg(not(feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 fn validate_decal_textures(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     // TODO: validate that it's a dds? What properties should the dds have?
@@ -677,7 +676,7 @@ fn validate_texture_override(block: &Block, data: &Everything) {
     vd.field_item("properties", Item::File);
 }
 
-#[cfg(not(feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 fn validate_blend_modes(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     let choices = &["overlay", "replace", "hard_light", "multiply"];

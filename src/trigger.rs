@@ -1434,7 +1434,7 @@ pub enum Trigger {
     /// value is chosen from a list given here
     Choice(&'static [&'static str]),
     /// value is from a list given here that can be compared
-    #[cfg(not(feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     CompareChoice(&'static [&'static str]),
     /// like `CompareChoice` but value can also be just a number
     #[cfg(feature = "vic3")]

@@ -259,7 +259,7 @@ pub fn validate_effect_field(
                     vd.field_target(key, sc, outscopes);
                 }
             }
-            #[cfg(not(feature = "imperator"))]
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
             Effect::TargetValue(key, outscopes, valuekey) => {
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
@@ -300,7 +300,7 @@ pub fn validate_effect_field(
             }
             #[cfg(feature = "ck3")]
             Effect::Desc => validate_desc(bv, data, sc),
-            #[cfg(not(feature = "imperator"))]
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
             Effect::Timespan => {
                 if let Some(block) = bv.expect_block() {
                     validate_compare_duration(block, data, sc);
@@ -347,7 +347,7 @@ pub fn validate_effect_field(
                 warn(ErrorKey::Removed).msg(msg).info(explanation).loc(key).push();
             }
             Effect::Unchecked => (),
-            #[cfg(not(feature = "imperator"))]
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
             Effect::UncheckedTodo => (),
         }
         return;
@@ -606,7 +606,7 @@ pub enum Effect {
     /// the given [`Scopes`] type and the other specifies a script value.
     ///
     /// * Example: `change_de_jure_drift_progress = { target = root.primary_title value = 5 }`
-    #[cfg(not(feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     TargetValue(&'static str, Scopes, &'static str),
     /// The effect takes a block with two fields, both named here, where one specifies a key for
     /// the given [`Item`] type and the other specifies a target of the given [`Scopes`] type.
@@ -628,7 +628,7 @@ pub enum Effect {
     /// The effect takes a duration, with a `days`, `weeks`, `months`, or `years` script value.
     ///
     /// * Example: `add_destination_progress = { days = 5 }`
-    #[cfg(not(feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     Timespan,
     /// The effect takes a block that contains other effects.
     ///
@@ -643,7 +643,7 @@ pub enum Effect {
     /// * Examples: `assert_if`, `debug_log`, `remove_variable`
     Unchecked,
     /// This variant is for effects that we haven't gotten around to validating yet.
-    #[cfg(not(feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     UncheckedTodo,
     /// The effect takes a literal string that is one of the options given here.
     ///

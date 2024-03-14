@@ -122,7 +122,7 @@ pub fn validate_modifs<'a>(
     });
 }
 
-#[cfg(not(feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 pub fn verify_modif_exists(key: &Token, data: &Everything, kinds: ModifKinds, sev: Severity) {
     let lookup_modif = match Game::game() {
         #[cfg(feature = "ck3")]

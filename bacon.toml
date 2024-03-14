@@ -28,6 +28,10 @@ need_stdout = false
 command = ["cargo", "test", "--color", "always"]
 need_stdout = true
 
+[jobs.docs]
+command = ["cargo", "doc", "--color", "always", "--features", "ck3 vic3 imperator", "--no-deps", "--document-private-items"]
+need_stdout = false
+
 [keybindings]
 1 = "job:build_ck3"
 2 = "job:build_vic3"
@@ -35,4 +39,4 @@ need_stdout = true
 "!" = "job:clippy_ck3"
 "@" = "job:clippy_vic3"
 "#" = "job:clippy_imperator"
-
+"d" = "job:docs"
