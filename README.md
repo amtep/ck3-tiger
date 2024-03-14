@@ -9,7 +9,7 @@ Tiger pounces on bugs. Checks Crusader Kings 3 user mod files for mistakes and w
 
 Crusader Kings 3 is a grand strategy game made by Paradox Interactive, and user mods are made by the players to enhance or change their game experience. This tool is for the people who make the mods.
 
-`ck3-tiger` now also comes with `vic3-tiger`, which does the same thing for Victoria 3.
+`ck3-tiger` now also comes with `vic3-tiger`, which does the same thing for Victoria 3, and with `imperator-tiger`, which does the same thing for Imperator: Rome.
 
 ## Status
 
@@ -19,7 +19,7 @@ This project is maturing but not yet stable. It will warn about some things that
 
 ## Features
 
-`ck3-tiger` (or `vic3-tiger`) will read the relevant vanilla files and your mod's files, and it will complain about everything in your mod that looks wrong. Where possible, it will tell you why it thinks the thing is wrong and (still in very few cases) what you should do instead.
+`ck3-tiger` (or `vic3-tiger` or `imperator-tiger`) will read the relevant vanilla files and your mod's files, and it will complain about everything in your mod that looks wrong. Where possible, it will tell you why it thinks the thing is wrong and (still in very few cases) what you should do instead.
 
 * Syntax validation: are you using the right key = value pairs? No misspellings?
 * Missing items: is every game object that you refer to actually defined somewhere?
@@ -27,9 +27,6 @@ This project is maturing but not yet stable. It will warn about some things that
 * Scope consistency checking: are you using culture effects on cultures and character effects on characters, etc.?
 * History (for CK3): Are spouses, employers, and lieges alive on the relevant dates? Is no one their own grandfather?
 * Special: rivers.png check
-
-`ck3-tiger` loads and checks nearly all the game files.
-`vic3-tiger` still has gaps in its coverage of the game item types.
 
 ## Sample output
 
@@ -85,11 +82,31 @@ If you want the output in a file, you can redirect it like this:
 vic3-tiger <i>path/to/your/mod</i> ><i>filename</i>
 </pre>
 
+### `imperator-tiger`
+
+Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere.
+
+Run the tool from the command prompt:
+<pre>
+<i>path/to/</i>imperator-tiger <i>path/to/your/</i>descriptor.mod
+</pre>
+or
+<pre>
+<i>path/to/</i>imperator-tiger "<i>path/to/</i>Paradox Interactive/ImperatorRome/mod/YourMod.mod"
+</pre>
+
+(Note that the quote marks around the path are important because of the spaces in it.)
+
+If you want the output in a file, you can redirect it like this:
+<pre>
+imperator-tiger <i>path/to/your/mod</i> ><i>filename</i>
+</pre>
+
 ## How to configure
 
-You can place a file `ck3-tiger.conf` (or `vic3-tiger.conf`) in your mod directory. You can use it to select which languages to check localizations for, and to suppress messages about things you don't want to fix.
+You can place a file `ck3-tiger.conf` (or `vic3-tiger.conf` or `imperator.conf`) in your mod directory. You can use it to select which languages to check localizations for, and to suppress messages about things you don't want to fix.
 
-There is a sample [`ck3-tiger.conf`](ck3-tiger.conf) file and [`vic3-tiger.conf`](vic3-tiger.conf) file in the release, with an explanation of what goes in it. There is also a [guide](filter.md).
+There is a sample [`ck3-tiger.conf`](ck3-tiger.conf) file, [`vic3-tiger.conf`](vic3-tiger.conf) file, and [`imperator-tiger.conf`(imperator-tiger.conf) file in the release, with an explanation of what goes in it. There is also a [guide](filter.md).
 
 ## How to build
 
@@ -97,8 +114,9 @@ You can unpack the archive from the "Release" page on GitHub and use it that way
 
 If you want to build it yourself, you will have to [install the Rust programming language](https://www.rust-lang.org/tools/install).
 
-For `ck3-tiger`, run `cargo build --release -p ck3-tiger` in the project's directory, then run the program as `cargo run --release -p ck3-tiger`.
-For `vic3-tiger`, run `cargo build --release -p vic3-tiger` in the project's directory, then run the program as `cargo run --release -p vic3-tiger`.
+For `ck3-tiger`, run `cargo build --release -p ck3-tiger` in the project's directory, then run the program as `cargo run --release -p ck3-tiger`.  
+For `vic3-tiger`, run `cargo build --release -p vic3-tiger` in the project's directory, then run the program as `cargo run --release -p vic3-tiger`.  
+For `imperator-tiger`, run `cargo build --release -p imperator-tiger` in the project's directory, then run the program as `cargo run --release -p imperator-tiger`.
 
 ## Visual Studio Code extension
 
