@@ -118,7 +118,9 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // $Building$_cost
     if let Some(part) = name_lc.strip_suffix_unchecked("_cost") {
         if let Some(sev) = warn {
-            if !data.item_exists(Item::Unit, part.as_str()) && !data.item_exists(Item::Building, part.as_str()) {
+            if !data.item_exists(Item::Unit, part.as_str())
+                && !data.item_exists(Item::Building, part.as_str())
+            {
                 let msg = format!("{part} not found as unit or building");
                 let info = format!("so the modifier {name} does not exist");
                 report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
