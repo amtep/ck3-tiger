@@ -279,7 +279,7 @@ pub fn validate_raise_legion(
     let caller = Lowercase::new(key.as_str());
     sc.open_scope(Scopes::Legion, key.clone());
     vd.req_field_warn("create_unit");
-    validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal(&caller, ListType::None, block, data, sc, &mut vd, tooltipped);
     sc.close();
 }
 
@@ -307,7 +307,7 @@ pub fn validate_create_character(
     vd.field_integer("age");
     vd.field_date("birth_date");
     vd.field_item_or_target("birth_province", sc, Item::Province, Scopes::Province);
-    validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal(&caller, ListType::None, block, data, sc, &mut vd, tooltipped);
     sc.close();
 }
 
@@ -326,7 +326,7 @@ pub fn validate_create_unit(
     vd.field_target("commander", sc, Scopes::Character);
     vd.field_bool("navy");
     vd.field_item("sub_unit", Item::Unit);
-    validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal(&caller, ListType::None, block, data, sc, &mut vd, tooltipped);
     sc.close();
 }
 
@@ -345,7 +345,7 @@ pub fn validate_create_country(
         vd.field_item("name", Item::Localization);
         vd.field_item("adjective", Item::Localization);
     });
-    validate_effect_internal(&caller, ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal(&caller, ListType::None, block, data, sc, &mut vd, tooltipped);
     sc.close();
 }
 
