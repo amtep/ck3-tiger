@@ -38,8 +38,16 @@ pub fn validate_effect(
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
 ) {
-    let vd = Validator::new(block, data);
-    validate_effect_internal(Lowercase::empty(), ListType::None, block, data, sc, vd, tooltipped);
+    let mut vd = Validator::new(block, data);
+    validate_effect_internal(
+        Lowercase::empty(),
+        ListType::None,
+        block,
+        data,
+        sc,
+        &mut vd,
+        tooltipped,
+    );
 }
 
 /// The interface to effect validation when [`validate_effect`] is too limited.
@@ -53,13 +61,13 @@ pub fn validate_effect(
 ///
 /// `vd` is a `Validator` that may have already been checked for some fields by the caller. This is
 /// because some effects are in contexts where other keys than just the effects are valid.
-pub fn validate_effect_internal<'a>(
+pub fn validate_effect_internal(
     caller: &Lowercase,
     list_type: ListType,
     block: &Block,
-    data: &'a Everything,
+    data: &Everything,
     sc: &mut ScopeContext,
-    mut vd: Validator<'a>,
+    vd: &mut Validator,
     mut tooltipped: Tooltipped,
 ) {
     if caller == "if"
@@ -89,10 +97,10 @@ pub fn validate_effect_internal<'a>(
         vd.ban_field("filter", || "lists");
     }
 
-    validate_iterator_fields(caller, list_type, data, sc, &mut vd, &mut tooltipped, false);
+    validate_iterator_fields(caller, list_type, data, sc, vd, &mut tooltipped, false);
 
     if list_type != ListType::None {
-        validate_inside_iterator(caller, list_type, block, data, sc, &mut vd, tooltipped);
+        validate_inside_iterator(caller, list_type, block, data, sc, vd, tooltipped);
     }
 
     validate_ifelse_sequence(block, "if", "else_if", "else");
@@ -361,14 +369,14 @@ pub fn validate_effect_field(
                 }
                 sc.open_scope(outscope, key.clone());
                 if let Some(b) = bv.get_block() {
-                    let vd = Validator::new(b, data);
+                    let mut vd = Validator::new(b, data);
                     validate_effect_internal(
                         &Lowercase::new(it_name.as_str()),
                         ltype,
                         b,
                         data,
                         sc,
-                        vd,
+                        &mut vd,
                         tooltipped,
                     );
                 }
@@ -454,28 +462,18 @@ pub fn validate_effect_control(
     #[cfg(feature = "ck3")]
     if Game::is_ck3() && (caller == "send_interface_message" || caller == "send_interface_toast") {
         vd.field_item("type", Item::Message);
-        vd.field_validated_sc("title", sc, validate_desc);
-        vd.field_validated_sc("desc", sc, validate_desc);
-        vd.field_validated_sc("tooltip", sc, validate_desc);
-        let icon_scopes =
-            Scopes::Character | Scopes::LandedTitle | Scopes::Artifact | Scopes::Faith;
-        if let Some(token) = vd.field_value("left_icon") {
-            validate_target_ok_this(token, data, sc, icon_scopes);
-        }
-        if let Some(token) = vd.field_value("right_icon") {
-            validate_target_ok_this(token, data, sc, icon_scopes);
-        }
         if let Some(token) = vd.field_value("goto") {
             let msg = "`goto` was removed from interface messages in 1.9";
             warn(ErrorKey::Removed).msg(msg).loc(token).push();
         }
-        // These seem to be scopes to set for the message loca.
-        vd.field_validated_block("localization_values", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.unknown_value_fields(|_key, value| {
-                validate_target_ok_this(value, data, sc, Scopes::all());
-            });
-        });
+        // Mark all these as known fields. This exempts them from the unknown-fields loop in `validate_effect_internal`.
+        // They will be validated after that loop, because the effects may have set named scopes for them to use.
+        vd.field("title");
+        vd.field("desc");
+        vd.field("tooltip");
+        vd.field("left_icon");
+        vd.field("right_icon");
+        vd.field("localization_values");
     }
 
     if caller == "while" {
@@ -523,7 +521,29 @@ pub fn validate_effect_control(
         vd.ban_field("show_chance", || "`random_list` or `duel`");
     }
 
-    validate_effect_internal(caller, ListType::None, block, data, sc, vd, tooltipped);
+    validate_effect_internal(caller, ListType::None, block, data, sc, &mut vd, tooltipped);
+
+    #[cfg(feature = "ck3")]
+    if Game::is_ck3() && (caller == "send_interface_message" || caller == "send_interface_toast") {
+        vd.field_validated_sc("title", sc, validate_desc);
+        vd.field_validated_sc("desc", sc, validate_desc);
+        vd.field_validated_sc("tooltip", sc, validate_desc);
+        let icon_scopes =
+            Scopes::Character | Scopes::LandedTitle | Scopes::Artifact | Scopes::Faith;
+        if let Some(token) = vd.field_value("left_icon") {
+            validate_target_ok_this(token, data, sc, icon_scopes);
+        }
+        if let Some(token) = vd.field_value("right_icon") {
+            validate_target_ok_this(token, data, sc, icon_scopes);
+        }
+        // These seem to be scopes to set for the message loca.
+        vd.field_validated_block("localization_values", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_value_fields(|_key, value| {
+                validate_target_ok_this(value, data, sc, Scopes::all());
+            });
+        });
+    }
 }
 
 /// This `enum` describes what arguments an effect takes, so that they can be validated.

@@ -447,7 +447,7 @@ fn validate_event_option(
         block,
         data,
         sc,
-        vd,
+        &mut vd,
         tooltipped,
     );
 }

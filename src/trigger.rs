@@ -705,6 +705,17 @@ fn match_trigger_bv(
                 }
             }
         }
+        #[cfg(feature = "vic3")]
+        Trigger::CompareChoiceOrNumber(choices) => {
+            must_be_eq = false;
+            if let Some(token) = bv.expect_value() {
+                if !token.is_number() && !choices.contains(&token.as_str()) {
+                    let msg =
+                        format!("{name} expects a number or one of {}", stringify_choices(choices));
+                    warn(ErrorKey::Validation).msg(msg).loc(token).push();
+                }
+            }
+        }
         Trigger::Block(fields) => {
             if let Some(block) = bv.expect_block() {
                 side_effects |=
@@ -1424,6 +1435,9 @@ pub enum Trigger {
     /// value is from a list given here that can be compared
     #[cfg(not(feature = "imperator"))]
     CompareChoice(&'static [&'static str]),
+    /// like `CompareChoice` but value can also be just a number
+    #[cfg(feature = "vic3")]
+    CompareChoiceOrNumber(&'static [&'static str]),
     /// For Block, if a field name in the array starts with ? it means that field is optional
     /// trigger takes a block with these fields
     Block(&'static [(&'static str, Trigger)]),
