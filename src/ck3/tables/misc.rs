@@ -34,7 +34,7 @@ pub const DLC_CK3: &[&str] = &[
     "The Royal Court",
     "The Fate of Iberia",
     "Friends and Foes",
-    "tours_and_tournaments", // sic
+    "Tours and Tournaments",
     "Elegance of the Empire",
     "Wards and Wardens",
     "Legacy of Persia",
