@@ -837,10 +837,8 @@ impl WidgetProperty {
             tooltip_visible => GameFlags::Ck3,
             video => GameFlags::Ck3 | GameFlags::Vic3,
 
-            frame_tier | pop_out_v | ondatacontextchanged | dragdropid | dragdropargs
-            | forcedown | url | bottomtotop | onleave_signal | onenter_signal => {
-                GameFlags::Imperator
-            }
+            frame_tier | ondatacontextchanged | dragdropid | dragdropargs | forcedown | url
+            | bottomtotop | onleave_signal | onenter_signal => GameFlags::Imperator,
 
             _ => GameFlags::all(),
         }
