@@ -192,7 +192,7 @@ impl Asset {
                 vd.req_field("index");
                 vd.req_field("percent");
                 vd.field_integer("index");
-                vd.field_numeric("percent");
+                vd.field_precise_numeric("percent");
             });
         });
 
