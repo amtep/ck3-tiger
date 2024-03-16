@@ -19,7 +19,7 @@ use crate::report::filter::ReportFilter;
 use crate::report::writer::log_report;
 use crate::report::writer_json::log_report_json;
 use crate::report::{ErrorKey, FilterRule, LogReport, OutputStyle, PointedMessage};
-use crate::token::Loc;
+use crate::token::{leak, Loc};
 
 static ERRORS: Lazy<Mutex<Errors>> = Lazy::new(|| Mutex::new(Errors::default()));
 
@@ -35,7 +35,7 @@ pub struct Errors {
 
     /// Files that have been read in to get the lines where errors occurred.
     /// Cached here to avoid duplicate I/O and UTF-8 parsing.
-    filecache: FnvHashMap<PathBuf, String>,
+    filecache: FnvHashMap<PathBuf, &'static str>,
 
     /// Determines whether a report should be printed.
     pub(crate) filter: ReportFilter,
@@ -79,8 +79,9 @@ impl Errors {
             (contents, _, false) => contents,
             (_, _, true) => WINDOWS_1252.decode(&bytes).0,
         };
+        let contents = leak(contents.into_owned());
         let line = contents.lines().nth(loc.line as usize - 1).map(str::to_string);
-        self.filecache.insert(fullpath.to_path_buf(), contents.into_owned());
+        self.filecache.insert(fullpath.to_path_buf(), contents);
         line
     }
 
@@ -178,6 +179,10 @@ impl Errors {
         }
     }
 
+    pub fn store_source_file(&mut self, fullpath: PathBuf, source: &'static str) {
+        self.filecache.insert(fullpath, source);
+    }
+
     /// Get a mutable lock on the global ERRORS struct.
     ///
     /// # Panics
@@ -267,6 +272,10 @@ pub fn emit_reports(json: bool) {
 /// The stored reports will be left empty.
 pub fn take_reports() -> Vec<LogReport> {
     Errors::get_mut().take_reports()
+}
+
+pub fn store_source_file(fullpath: PathBuf, source: &'static str) {
+    Errors::get_mut().store_source_file(fullpath, source);
 }
 
 // =================================================================================================
