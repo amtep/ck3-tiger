@@ -18,9 +18,7 @@ use crate::report::error_loc::ErrorLoc;
 use crate::report::filter::ReportFilter;
 use crate::report::writer::log_report;
 use crate::report::writer_json::log_report_json;
-use crate::report::{
-    err, tips, warn, ErrorKey, FilterRule, LogReport, OutputStyle, PointedMessage,
-};
+use crate::report::{ErrorKey, FilterRule, LogReport, OutputStyle, PointedMessage};
 use crate::token::Loc;
 
 static ERRORS: Lazy<Mutex<Errors>> = Lazy::new(|| Mutex::new(Errors::default()));
@@ -274,62 +272,6 @@ pub fn take_reports() -> Vec<LogReport> {
 // =================================================================================================
 // =============== Deprecated legacy calls to submit reports:
 // =================================================================================================
-
-#[allow(dead_code)]
-#[deprecated = "use [`err`] instead"]
-pub(crate) fn error<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
-    err(key).msg(msg).loc(eloc).push();
-}
-
-#[allow(dead_code)]
-#[deprecated = "use [`err`] instead"]
-pub(crate) fn error_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
-    err(key).msg(msg).info(info).loc(eloc).push();
-}
-
-#[allow(dead_code)]
-#[deprecated = "use [`warn`] instead"]
-pub(crate) fn old_warn<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str) {
-    warn(key).msg(msg).loc(eloc).push();
-}
-
-#[allow(dead_code)]
-#[deprecated = "use [`warn`] instead"]
-pub(crate) fn warn2<E: ErrorLoc, F: ErrorLoc>(
-    eloc: E,
-    key: ErrorKey,
-    msg: &str,
-    eloc2: F,
-    msg2: &str,
-) {
-    warn(key).msg(msg).loc(eloc).loc_msg(eloc2, msg2).push();
-}
-
-#[allow(dead_code)]
-#[deprecated = "use [`warn`] instead"]
-pub(crate) fn warn3<E: ErrorLoc, E2: ErrorLoc, E3: ErrorLoc>(
-    eloc: E,
-    key: ErrorKey,
-    msg: &str,
-    eloc2: E2,
-    msg2: &str,
-    eloc3: E3,
-    msg3: &str,
-) {
-    warn(key).msg(msg).loc(eloc).loc_msg(eloc2, msg2).loc_msg(eloc3, msg3).push();
-}
-
-#[allow(dead_code)]
-#[deprecated = "use [`warn`] instead"]
-pub(crate) fn warn_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
-    warn(key).msg(msg).info(info).loc(eloc).push();
-}
-
-#[allow(dead_code)]
-#[deprecated = "use [`tips`] instead"]
-pub(crate) fn advice_info<E: ErrorLoc>(eloc: E, key: ErrorKey, msg: &str, info: &str) {
-    tips(key).msg(msg).info(info).loc(eloc).push();
-}
 
 /// Immediately print an error message. It is intended to introduce a following block of
 /// messages printed with [`warn_abbreviated`].
