@@ -102,7 +102,12 @@ pub fn validate_modifs<'a>(
             kinds.require(mk, key);
             validate_non_dynamic_script_value(bv, data);
             #[cfg(feature = "ck3")]
-            if Game::is_ck3() && !key.is("health") && !key.is("negate_health_penalty_add") {
+            if Game::is_ck3()
+                && !key.is("health")
+                && !key.is("elderly_health")
+                && !key.is("child_health")
+                && !key.is("negate_health_penalty_add")
+            {
                 data.verify_exists(Item::ModifierFormat, key);
             }
             #[cfg(feature = "vic3")]
