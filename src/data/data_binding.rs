@@ -81,7 +81,7 @@ pub struct DataBinding {
     key: Token,
     block: Block,
     params: Vec<Token>,
-    replace: Option<CodeChain>,
+    body: Option<CodeChain>,
 }
 
 impl DataBinding {
@@ -96,7 +96,7 @@ impl DataBinding {
                 }
             }
         }
-        let mut replace = None;
+        let mut body = None;
         if let Some(rep) = block.get_field_value("replace_with") {
             // TODO: restructure ValueParser to have a separate DatafunctionParser,
             // so that we don't have to synthesize these brackets.
@@ -106,7 +106,7 @@ impl DataBinding {
             let valuevec = ValueParser::new(to_parse).parse_value();
             if valuevec.len() == 1 {
                 if let LocaValue::Code(chain, _) = &valuevec[0] {
-                    replace = Some(chain.clone());
+                    body = Some(chain.clone());
                 } else {
                     let msg = "could not parse macro replacement";
                     err(ErrorKey::Datafunctions).msg(msg).loc(rep).push();
@@ -116,7 +116,7 @@ impl DataBinding {
                 err(ErrorKey::Datafunctions).msg(msg).loc(rep).push();
             }
         }
-        Self { key, block, params, replace }
+        Self { key, block, params, body }
     }
 
     pub fn replace(&self, call: &Code) -> Option<CodeChain> {
@@ -125,40 +125,36 @@ impl DataBinding {
             err(ErrorKey::Datafunctions).msg(msg).loc(&call.name).push();
             return None;
         }
-        if let Some(replacement) = &self.replace {
-            let mut result = CodeChain { codes: Vec::new() };
-            for code in &replacement.codes {
-                let mut new_code = Code { name: code.name.clone(), arguments: Vec::new() };
-                for arg in &code.arguments {
-                    if let Some(replacement) = self.replace_param(arg, call) {
-                        new_code.arguments.push(replacement);
-                    } else {
-                        return None;
-                    }
-                }
-                result.codes.push(new_code);
+        let mut codes = Vec::new();
+        for body_code in &self.body.as_ref()?.codes {
+            let mut new_code = Code { name: body_code.name.clone(), arguments: Vec::new() };
+            for body_arg in &body_code.arguments {
+                new_code.arguments.push(self.replace_param(body_arg, call)?);
             }
-            Some(result)
-        } else {
-            None
+            codes.push(new_code);
         }
+        Some(CodeChain { codes })
     }
 
-    fn replace_param(&self, arg: &CodeArg, call: &Code) -> Option<CodeArg> {
-        match arg {
-            CodeArg::Chain(chain) => {
+    fn replace_param(&self, body_arg: &CodeArg, call: &Code) -> Option<CodeArg> {
+        match body_arg {
+            CodeArg::Chain(body_chain) => {
                 let mut result = CodeChain { codes: Vec::new() };
-                for code in &chain.codes {
-                    if code.arguments.is_empty() {
+                for body_code in &body_chain.codes {
+                    if body_code.arguments.is_empty() {
+                        // Check if body_code is a macro parameter
                         let mut found = false;
                         for (i, param) in self.params.iter().enumerate() {
-                            if param.is(code.name.as_str()) {
+                            if param.is(body_code.name.as_str()) {
                                 found = true;
                                 match &call.arguments[i] {
-                                    CodeArg::Literal(token) => {
-                                        if chain.codes.len() != 1 {
+                                    CodeArg::Literal(caller_token) => {
+                                        if body_chain.codes.len() != 1 {
                                             let msg = "cannot substitute a literal here";
-                                            err(ErrorKey::Datafunctions).msg(msg).loc(token).push();
+                                            err(ErrorKey::Datafunctions)
+                                                .msg(msg)
+                                                .loc(caller_token)
+                                                .push();
                                             return None;
                                         }
                                         return Some(call.arguments[i].clone());
@@ -173,23 +169,20 @@ impl DataBinding {
                             }
                         }
                         if !found {
-                            result.codes.push(code.clone());
+                            result.codes.push(body_code.clone());
                         }
                     } else {
-                        let mut new_code = Code { name: code.name.clone(), arguments: Vec::new() };
-                        for arg in &code.arguments {
-                            if let Some(rep) = self.replace_param(arg, call) {
-                                new_code.arguments.push(rep);
-                            } else {
-                                return None;
-                            }
+                        let mut new_code =
+                            Code { name: body_code.name.clone(), arguments: Vec::new() };
+                        for arg in &body_code.arguments {
+                            new_code.arguments.push(self.replace_param(arg, call)?);
                         }
                         result.codes.push(new_code);
                     }
                 }
                 Some(CodeArg::Chain(result))
             }
-            CodeArg::Literal(_) => Some(arg.clone()),
+            CodeArg::Literal(_) => Some(body_arg.clone()),
         }
     }
 
