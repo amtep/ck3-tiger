@@ -18,7 +18,6 @@ pub mod courtier_guest_mgmt;
 pub mod courtpos;
 pub mod culture_history;
 pub mod cultures;
-pub mod data_binding;
 pub mod deathreasons;
 pub mod decisions;
 pub mod diarchies;

@@ -17,7 +17,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::helpers::BiFnvHashMap;
 use crate::item::Item;
-#[cfg(feature = "ck3")]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::report::err;
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -366,15 +366,15 @@ pub fn validate_datatypes(
     expect_promote: bool,
 ) {
     let mut curtype = Datatype::Unknown;
-    #[allow(unused_mut)] // vic3 does not need the mut
+    #[allow(unused_mut)] // imperator does not need the mut
     let mut codes = Cow::from(&chain.codes[..]);
-    #[cfg(feature = "ck3")]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     let mut macro_count = 0;
     // Have to loop with `while` instead of `for` because the array can mutate during the loop because of macro substitution
     let mut i = 0;
     while i < codes.len() {
-        #[cfg(feature = "ck3")]
-        if Game::is_ck3() {
+        #[cfg(any(feature = "ck3", feature = "vic3"))]
+        if Game::is_ck3() || Game::is_vic3() {
             while let Some(binding) = data.data_bindings.get(codes[i].name.as_str()) {
                 if let Some(replacement) = binding.replace(&codes[i]) {
                     macro_count += 1;

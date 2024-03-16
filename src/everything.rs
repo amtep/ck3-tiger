@@ -23,7 +23,6 @@ use crate::block::BV;
 use crate::ck3::data::{
     characters::Characters,
     climate::Climate,
-    data_binding::DataBindings,
     doctrines::Doctrines,
     events::Ck3Events,
     gameconcepts::GameConcepts,
@@ -42,6 +41,8 @@ use crate::ck3::data::{
 use crate::ck3::tables::misc::*;
 use crate::config_load::{check_for_legacy_ignore, load_filter};
 use crate::context::ScopeContext;
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+use crate::data::data_binding::DataBindings;
 use crate::data::{
     assets::Assets,
     coa::Coas,
@@ -186,7 +187,7 @@ pub struct Everything {
     pub(crate) menatarmstypes: MenAtArmsTypes,
 
     pub(crate) gui: Gui,
-    #[cfg(feature = "ck3")]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub(crate) data_bindings: DataBindings,
 
     pub(crate) assets: Assets,
@@ -298,7 +299,7 @@ impl Everything {
             #[cfg(feature = "ck3")]
             menatarmstypes: MenAtArmsTypes::default(),
             gui: Gui::default(),
-            #[cfg(feature = "ck3")]
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
             data_bindings: DataBindings::default(),
             assets: Assets::default(),
             #[cfg(feature = "ck3")]
@@ -444,6 +445,7 @@ impl Everything {
         self.fileset.handle(&mut self.history);
         self.fileset.handle(&mut self.events_vic3);
         self.fileset.handle(&mut self.provinces_vic3);
+        self.fileset.handle(&mut self.data_bindings);
         self.load_json(Item::TerrainMask, TerrainMask::add_json);
     }
 
@@ -506,6 +508,7 @@ impl Everything {
         s.spawn(|_| self.events_vic3.validate(self));
         s.spawn(|_| self.history.validate(self));
         s.spawn(|_| self.provinces_vic3.validate(self));
+        s.spawn(|_| self.data_bindings.validate(self));
         s.spawn(|_| StrategicRegion::crosscheck(self));
         s.spawn(|_| BuyPackage::crosscheck(self));
     }

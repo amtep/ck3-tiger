@@ -7,6 +7,8 @@ pub mod coa;
 pub mod coadesigner;
 pub mod colors;
 pub mod customloca;
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+pub mod data_binding;
 pub mod defines;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 pub mod dna;
