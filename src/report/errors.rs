@@ -6,6 +6,7 @@ use std::fs::{read, File};
 use std::io::{stdout, Write};
 use std::mem::take;
 use std::path::{Path, PathBuf};
+use std::string::ToString;
 use std::sync::{Mutex, MutexGuard};
 
 use anyhow::Result;
@@ -37,6 +38,9 @@ pub struct Errors {
     /// Cached here to avoid duplicate I/O and UTF-8 parsing.
     filecache: FnvHashMap<PathBuf, &'static str>,
 
+    /// Files that have been linesplit, cached to avoid doing that work again
+    linecache: FnvHashMap<PathBuf, Vec<&'static str>>,
+
     /// Determines whether a report should be printed.
     pub(crate) filter: ReportFilter,
     /// Output color and style configuration.
@@ -55,6 +59,7 @@ impl Default for Errors {
             loaded_mods_labels: Vec::default(),
             loaded_dlcs_labels: Vec::default(),
             filecache: FnvHashMap::default(),
+            linecache: FnvHashMap::default(),
             filter: ReportFilter::default(),
             styles: OutputStyle::default(),
             storage: FnvHashSet::default(),
@@ -69,8 +74,14 @@ impl Errors {
             return None;
         }
         let fullpath = loc.fullpath();
+        if let Some(lines) = self.linecache.get(fullpath) {
+            return lines.get(loc.line as usize - 1).map(ToString::to_string);
+        }
         if let Some(contents) = self.filecache.get(fullpath) {
-            return contents.lines().nth(loc.line as usize - 1).map(str::to_string);
+            let lines: Vec<_> = contents.lines().collect();
+            let line = lines.get(loc.line as usize - 1).map(ToString::to_string);
+            self.linecache.insert(fullpath.to_path_buf(), lines);
+            return line;
         }
         let bytes = read(fullpath).ok()?;
         // Try decoding it as UTF-8. If that succeeds without errors, use it, otherwise fall back
@@ -80,8 +91,11 @@ impl Errors {
             (_, _, true) => WINDOWS_1252.decode(&bytes).0,
         };
         let contents = leak(contents.into_owned());
-        let line = contents.lines().nth(loc.line as usize - 1).map(str::to_string);
         self.filecache.insert(fullpath.to_path_buf(), contents);
+
+        let lines: Vec<_> = contents.lines().collect();
+        let line = lines.get(loc.line as usize - 1).map(ToString::to_string);
+        self.linecache.insert(fullpath.to_path_buf(), lines);
         line
     }
 
