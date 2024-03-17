@@ -691,7 +691,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
             }
             match read_to_string(entry.fullpath()) {
                 Ok(content) => {
-                    return Some((filelang, parse_loca(entry, &content, filelang).collect()));
+                    return Some((filelang, parse_loca(entry, content, filelang).collect()));
                 }
                 Err(e) => {
                     let msg = "could not read file";

@@ -6,7 +6,7 @@ use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
 use crate::report::{untidy, warn, ErrorKey};
-use crate::token::{Loc, Token};
+use crate::token::{leak, Loc, Token};
 
 fn is_key_char(c: char) -> bool {
     c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '\''
@@ -19,19 +19,19 @@ fn is_code_char(c: char) -> bool {
 }
 
 #[derive(Clone, Debug)]
-struct LocaParser<'a> {
+struct LocaParser {
     loc: Loc,
     offset: usize,
-    content: &'a str,
-    chars: Peekable<Chars<'a>>,
+    content: &'static str,
+    chars: Peekable<Chars<'static>>,
     language: &'static str,
     expecting_language: bool,
     loca_end: usize,
     value: Vec<LocaValue>,
 }
 
-impl<'a> LocaParser<'a> {
-    fn new(mut loc: Loc, content: &'a str, lang: &'static str) -> Self {
+impl LocaParser {
+    fn new(mut loc: Loc, content: &'static str, lang: &'static str) -> Self {
         let mut chars = content.chars().peekable();
         let mut offset = 0;
         if chars.peek() == Some(&'\u{feff}') {
@@ -123,7 +123,7 @@ impl<'a> LocaParser<'a> {
             }
         }
         let s = &self.content[start_offset..self.offset];
-        Token::new(s, loc)
+        Token::from_static_str(s, loc)
     }
 
     fn unexpected_char(&mut self, expected: &str) {
@@ -189,7 +189,7 @@ impl<'a> LocaParser<'a> {
         while let Some(&c) = self.chars.peek() {
             if c == '$' {
                 let s = &self.content[offset..self.offset];
-                v.push(MacroValue::Text(Token::new(s, loc)));
+                v.push(MacroValue::Text(Token::from_static_str(s, loc)));
 
                 if let Some(mv) = self.parse_keyword() {
                     v.push(mv);
@@ -201,7 +201,7 @@ impl<'a> LocaParser<'a> {
                 offset = self.offset;
             } else if c == '"' && self.offset == self.loca_end {
                 let s = &self.content[offset..self.offset];
-                v.push(MacroValue::Text(Token::new(s, loc)));
+                v.push(MacroValue::Text(Token::from_static_str(s, loc)));
                 self.value.push(LocaValue::Macro(v));
                 self.next_char();
                 return;
@@ -210,7 +210,7 @@ impl<'a> LocaParser<'a> {
             }
         }
         let s = &self.content[offset..self.offset];
-        v.push(MacroValue::Text(Token::new(s, loc)));
+        v.push(MacroValue::Text(Token::from_static_str(s, loc)));
         self.value.push(LocaValue::Macro(v));
     }
 
@@ -227,9 +227,9 @@ impl<'a> LocaParser<'a> {
             warn(ErrorKey::Localization).weak().msg(msg).loc(key).push();
             return None;
         }
-        let s = &self.content[start_offset..end_offset];
         self.next_char();
-        Some(MacroValue::Keyword(Token::new(s, loc), format))
+        let s = &self.content[start_offset..end_offset];
+        Some(MacroValue::Keyword(Token::from_static_str(s, loc), format))
     }
 
     fn skip_until_key(&mut self) {
@@ -319,7 +319,7 @@ impl<'a> LocaParser<'a> {
 
         self.value = Vec::new();
         let s = &self.content[self.offset..self.loca_end];
-        let token = Token::new(s, self.loc);
+        let token = Token::from_static_str(s, self.loc);
 
         // We also need to pre-parse because $macros$ can appear anywhere and
         // we don't know how to parse the results until we know what to
@@ -793,11 +793,11 @@ impl<'a> ValueParser<'a> {
     }
 }
 
-pub struct LocaReader<'a> {
-    parser: LocaParser<'a>,
+pub struct LocaReader {
+    parser: LocaParser,
 }
 
-impl<'a> Iterator for LocaReader<'a> {
+impl Iterator for LocaReader {
     type Item = LocaEntry;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -805,10 +805,11 @@ impl<'a> Iterator for LocaReader<'a> {
     }
 }
 
-pub fn parse_loca<'a>(entry: &FileEntry, content: &'a str, lang: &'static str) -> LocaReader<'a> {
+pub fn parse_loca(entry: &FileEntry, content: String, lang: &'static str) -> LocaReader {
     let mut loc = Loc::from(entry);
     loc.line = 1;
     loc.column = 1;
+    let content = leak(content);
     let parser = LocaParser::new(loc, content, lang);
     LocaReader { parser }
 }
