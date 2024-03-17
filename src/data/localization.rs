@@ -417,7 +417,7 @@ impl Localization {
                     // The list of tag types can be found in ck3
                     // localization/english/tooltip_structs_l_english.yml
                     // LAST UPDATED CK3 VERSION 1.11.3
-                    match &*tag.as_str().to_lowercase() {
+                    match &*tag.as_str().to_ascii_lowercase() {
                         "accolade"
                         | "activity"
                         | "army"

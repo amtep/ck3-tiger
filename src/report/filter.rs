@@ -115,7 +115,7 @@ impl FilterRule {
             FilterRule::File(path) => {
                 report.pointers.iter().any(|pointer| pointer.loc.pathname().starts_with(path))
             }
-            FilterRule::Text(s) => report.msg.to_lowercase().contains(&s.to_lowercase()),
+            FilterRule::Text(s) => report.msg.to_ascii_lowercase().contains(&s.to_ascii_lowercase()),
         }
     }
 }

@@ -13,7 +13,7 @@ use crate::token::Token;
 use Effect::*;
 
 pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)> {
-    let name_lc = name.as_str().to_lowercase();
+    let name_lc = name.as_str().to_ascii_lowercase();
 
     if let result @ Some(_) = SCOPE_EFFECT_MAP.get(&*name_lc).copied() {
         return result;

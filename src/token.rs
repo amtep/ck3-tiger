@@ -193,7 +193,7 @@ impl Token {
     }
 
     pub fn lowercase_is(&self, s: &str) -> bool {
-        self.s.to_lowercase() == s
+        self.s.to_ascii_lowercase() == s
     }
 
     pub fn starts_with(&self, s: &str) -> bool {

@@ -299,7 +299,7 @@ fn load_rule_severity(comparator: Comparator, value: &BV) -> Option<FilterRule> 
             None
         }
         BV::Value(token) => {
-            if let Ok(severity) = token.as_str().to_lowercase().parse() {
+            if let Ok(severity) = token.as_str().to_ascii_lowercase().parse() {
                 Some(FilterRule::Severity(comparator, severity))
             } else {
                 err(ErrorKey::Config)
@@ -325,7 +325,7 @@ fn load_rule_confidence(comparator: Comparator, value: &BV) -> Option<FilterRule
             None
         }
         BV::Value(token) => {
-            if let Ok(confidence) = token.as_str().to_lowercase().parse() {
+            if let Ok(confidence) = token.as_str().to_ascii_lowercase().parse() {
                 Some(FilterRule::Confidence(comparator, confidence))
             } else {
                 err(ErrorKey::Config)

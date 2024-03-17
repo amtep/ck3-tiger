@@ -652,7 +652,7 @@ impl<'a> ValueParser<'a> {
                             value.push(c);
                             self.unexpected_char("expected `;`", ErrorKey::Markup);
                         } else if c == ';' {
-                            if key.to_lowercase() == "tooltip" {
+                            if key.to_ascii_lowercase() == "tooltip" {
                                 self.handle_tooltip(value, *loc);
                             }
                             state = State::InKey(String::new());
@@ -692,7 +692,7 @@ impl<'a> ValueParser<'a> {
                     self.value.push(LocaValue::Markup(Token::new(&text, loc)));
                 }
                 State::InValue(key, value, loc, bracecount) => {
-                    if key.to_lowercase() == "tooltip" {
+                    if key.to_ascii_lowercase() == "tooltip" {
                         self.handle_tooltip(&value, loc);
                     }
                     if bracecount > 0 {
