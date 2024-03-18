@@ -32,6 +32,7 @@
 #![warn(clippy::format_push_string)]
 #![warn(clippy::get_unwrap)]
 #![warn(clippy::if_then_some_else_none)]
+#![warn(clippy::impl_trait_in_params)]
 
 #[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator", not(doc)))]
 compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled at the same time");
