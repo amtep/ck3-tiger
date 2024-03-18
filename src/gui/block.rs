@@ -298,7 +298,7 @@ impl GuiBlock {
                 }
                 GuiItem::Subst(substname, gui) => {
                     if name.is(substname) {
-                        *gui = overrideblock.clone(); // cloning the Arc
+                        *gui = Arc::clone(overrideblock);
                     }
                 }
             }
@@ -313,12 +313,12 @@ impl GuiBlock {
         overrideblock: &Arc<GuiBlock>,
     ) -> Arc<GuiBlock> {
         if !gui.substnames.contains(name.as_str()) {
-            return gui.clone(); // cloning the Arc
+            return Arc::clone(gui);
         }
 
         let gui_mut = Arc::make_mut(gui); // clones the inner GuiBlock if needed
         gui_mut.apply_override(name, overrideblock);
-        gui.clone() // cloning the Arc
+        Arc::clone(gui)
     }
 
     /// Validate the property fields of this [`GuiBlock`] and all its contents.

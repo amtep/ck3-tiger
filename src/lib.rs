@@ -24,6 +24,8 @@
 // The construction being warned about here is the best way to express
 // validation of a field while handling the case of the field not existing.
 #![allow(clippy::blocks_in_conditions)]
+// Turn on selected warnings from clippy's restricted set
+#![warn(clippy::clone_on_ref_ptr)]
 
 #[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator", not(doc)))]
 compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled at the same time");
