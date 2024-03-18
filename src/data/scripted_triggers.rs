@@ -244,9 +244,6 @@ const BUILTIN_OVERRIDE_TRIGGERS: &[&str] = &[
 /// but only if the key is from vanilla. If it's from the mod, they may have implemented the
 /// trigger differently.
 fn builtin_scope_overrides(key: &Token) -> Option<Scopes> {
-    if key.loc.kind.counts_as_vanilla() && BUILTIN_OVERRIDE_TRIGGERS.contains(&key.as_str()) {
-        Some(Scopes::all())
-    } else {
-        None
-    }
+    (key.loc.kind.counts_as_vanilla() && BUILTIN_OVERRIDE_TRIGGERS.contains(&key.as_str()))
+        .then_some(Scopes::all())
 }

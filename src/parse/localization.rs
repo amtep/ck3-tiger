@@ -155,7 +155,7 @@ impl<'a> LocaParser<'a> {
     }
 
     fn parse_format(&mut self) -> Option<Token> {
-        if self.chars.peek() == Some(&'|') {
+        (self.chars.peek() == Some(&'|')).then(|| {
             self.next_char(); // eat the |
             let loc = self.loc;
             let mut text = String::new();
@@ -166,10 +166,8 @@ impl<'a> LocaParser<'a> {
                 text.push(c);
                 self.next_char();
             }
-            Some(Token::new(&text, loc))
-        } else {
-            None
-        }
+            Token::new(&text, loc)
+        })
     }
 
     fn line_has_macros(&self) -> bool {
@@ -441,7 +439,7 @@ impl<'a> ValueParser<'a> {
     }
 
     fn parse_format(&mut self) -> Option<Token> {
-        if self.peek() == Some('|') {
+        (self.peek() == Some('|')).then(|| {
             self.next_char(); // eat the |
             let loc = self.loc;
             let mut text = String::new();
@@ -452,10 +450,8 @@ impl<'a> ValueParser<'a> {
                 text.push(c);
                 self.next_char();
             }
-            Some(Token::new(&text, loc))
-        } else {
-            None
-        }
+            Token::new(&text, loc)
+        })
     }
 
     fn parse_code_args(&mut self) -> Vec<CodeArg> {

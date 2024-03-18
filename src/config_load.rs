@@ -398,11 +398,7 @@ pub fn assert_one_key(assert_key: &str, block: &Block) {
         .iter_items()
         .filter_map(|item| {
             if let BlockItem::Field(Field(key, _, _)) = item {
-                if key.as_str() == assert_key {
-                    Some(key)
-                } else {
-                    None
-                }
+                (key.as_str() == assert_key).then_some(key)
             } else {
                 None
             }
