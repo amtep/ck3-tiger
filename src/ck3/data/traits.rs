@@ -116,7 +116,8 @@ impl Traits {
 
     // Is the trait itself a track? Different than a trait having multiple tracks
     pub fn has_track_lc(&self, key: &Lowercase) -> bool {
-        self.traits_lc.get(key).map_or(false, |t| self.traits.get(t).unwrap().has_track)
+        // SAFETY: traits[t] will always succeed due to invariant of traits_lc.
+        self.traits_lc.get(key).map_or(false, |t| self.traits[t].has_track)
     }
 
     pub fn validate(&self, data: &Everything) {

@@ -26,6 +26,11 @@
 #![allow(clippy::blocks_in_conditions)]
 // Turn on selected warnings from clippy's restricted set
 #![warn(clippy::clone_on_ref_ptr)]
+#![warn(clippy::decimal_literal_representation)]
+#![warn(clippy::float_cmp_const)]
+#![warn(clippy::fn_to_numeric_cast_any)]
+#![warn(clippy::format_push_string)]
+#![warn(clippy::get_unwrap)]
 
 #[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator", not(doc)))]
 compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled at the same time");
