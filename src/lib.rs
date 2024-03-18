@@ -33,6 +33,15 @@
 #![warn(clippy::get_unwrap)]
 #![warn(clippy::if_then_some_else_none)]
 #![warn(clippy::impl_trait_in_params)]
+#![warn(clippy::integer_division)]
+#![warn(clippy::lossy_float_literal)]
+#![warn(clippy::mixed_read_write_in_expression)]
+#![warn(clippy::mutex_atomic)]
+#![warn(clippy::rc_buffer)]
+#![warn(clippy::rc_mutex)]
+#![warn(clippy::rest_pat_in_fully_bound_structs)]
+#![warn(clippy::string_add)]
+#![warn(clippy::string_to_string)]
 
 #[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator", not(doc)))]
 compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled at the same time");

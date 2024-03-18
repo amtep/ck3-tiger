@@ -24,8 +24,7 @@ impl Deity {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         // Changes the key from "deity_name" to "omen_name"
         if let Some(s) = key.strip_prefix("deity_") {
-            let omen_string = "omen_".to_owned() + s.as_str();
-            let token = Token::new(&omen_string, key.loc);
+            let token = Token::new(&format!("omen_{s}"), key.loc);
             db.add(Item::Deity, token, block, Box::new(Self {}));
             db.add_flag(Item::Deity, key);
         }

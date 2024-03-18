@@ -70,7 +70,7 @@ fn log_line_title(errors: &Errors, report: &LogReport) {
             .paint(format!("{}", report.severity)),
         errors.styles.style(Styled::Tag(report.severity, false)).paint(format!("({})", report.key)),
         errors.styles.style(Styled::Default).paint(": "),
-        errors.styles.style(Styled::ErrorMessage).paint(report.msg.to_string()),
+        errors.styles.style(Styled::ErrorMessage).paint(report.msg.clone()),
     ];
     _ = writeln!(errors.output.borrow_mut(), "{}", ANSIStrings(line));
 }
