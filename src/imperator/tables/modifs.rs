@@ -35,10 +35,10 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // global_$PopType$_output
     // global_$PopType$_happyness
-    // global_$PopType$_desired_pop_ratio
     // global_$PopType$_city_desired_pop_ratio
+    // global_$PopType$_desired_pop_ratio
     if let Some(part) = name_lc.strip_prefix_unchecked("global_") {
-        for &sfx in &["_output", "_desired_pop_ratio", "_city_desired_pop_ratio", "_happyness"] {
+        for &sfx in &["_output", "_city_desired_pop_ratio", "_desired_pop_ratio", "_happyness"] {
             if let Some(part) = part.strip_suffix_unchecked(sfx) {
                 maybe_warn(Item::PopType, &part, name, data, warn);
                 return Some(ModifKinds::Country);
