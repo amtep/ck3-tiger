@@ -8,6 +8,8 @@ use crate::fileset::FileEntry;
 use crate::report::{untidy, warn, ErrorKey};
 use crate::token::{leak, Loc, Token};
 
+use super::pdxfile::Cob;
+
 fn is_key_char(c: char) -> bool {
     c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '\''
 }
@@ -364,6 +366,7 @@ pub struct ValueParser<'a> {
     content_iters: Vec<Peekable<Chars<'a>>>,
     content_idx: usize,
     value: Vec<LocaValue>,
+    text: Cob,
 }
 
 // TODO: some duplication of helper functions between `LocaParser` and `ValueParser`
@@ -378,6 +381,7 @@ impl<'a> ValueParser<'a> {
             content,
             content_idx: 0,
             value: Vec::new(),
+            text: Cob::new(),
         }
     }
 
@@ -400,11 +404,15 @@ impl<'a> ValueParser<'a> {
     fn next_char(&mut self) {
         // self.peek advances content_idx if needed
         if self.peek().is_some() {
-            if let Some(c) = self.content_iters[self.content_idx].next() {
-                self.offset += c.len_utf8();
-                self.loc.column += 1;
-            }
+            let c = self.content_iters[self.content_idx].next().unwrap();
+            self.offset += c.len_utf8();
+            self.loc.column += 1;
         }
+    }
+
+    #[inline]
+    fn start_text(&mut self) {
+        self.text.set(self.content[self.content_idx].as_str(), self.offset, self.loc);
     }
 
     fn skip_whitespace(&mut self) {
@@ -425,32 +433,30 @@ impl<'a> ValueParser<'a> {
     }
 
     fn get_key(&mut self) -> Token {
-        let loc = self.loc;
-        let mut text = String::new();
+        self.start_text();
         while let Some(c) = self.peek() {
             if is_key_char(c) {
-                text.push(c);
+                self.text.add_char(c);
                 self.next_char();
             } else {
                 break;
             }
         }
-        Token::new(&text, loc)
+        self.text.take_to_token()
     }
 
     fn parse_format(&mut self) -> Option<Token> {
         (self.peek() == Some('|')).then(|| {
             self.next_char(); // eat the |
-            let loc = self.loc;
-            let mut text = String::new();
+            self.start_text();
             while let Some(c) = self.peek() {
                 if c == '$' || c == ']' {
                     break;
                 }
-                text.push(c);
+                self.text.add_char(c);
                 self.next_char();
             }
-            Token::new(&text, loc)
+            self.text.take_to_token()
         })
     }
 
@@ -463,8 +469,8 @@ impl<'a> ValueParser<'a> {
             if self.peek() == Some('\'') {
                 self.next_char();
                 let loc = self.loc;
-                let mut text = String::new();
                 let mut parens: isize = 0;
+                self.start_text();
                 while let Some(c) = self.peek() {
                     match c {
                         '\'' => break,
@@ -480,14 +486,14 @@ impl<'a> ValueParser<'a> {
                         }
                         _ => (),
                     }
-                    text.push(c);
+                    self.text.add_char(c);
                     self.next_char();
                 }
                 if self.peek() != Some('\'') {
                     self.value.push(LocaValue::Error);
                     return Vec::new();
                 }
-                v.push(CodeArg::Literal(Token::new(&text, loc)));
+                v.push(CodeArg::Literal(self.text.take_to_token()));
                 self.next_char();
             } else if self.peek() == Some(')') {
                 // Empty () means no arguments
@@ -509,17 +515,16 @@ impl<'a> ValueParser<'a> {
     }
 
     fn parse_code_code(&mut self) -> Code {
-        let loc = self.loc;
-        let mut text = String::new();
+        self.start_text();
         while let Some(c) = self.peek() {
             if is_code_char(c) {
-                text.push(c);
+                self.text.add_char(c);
                 self.next_char();
             } else {
                 break;
             }
         }
-        let name = Token::new(&text, loc);
+        let name = self.text.take_to_token();
         if self.peek() == Some('(') {
             Code { name, arguments: self.parse_code_args() }
         } else {
@@ -762,18 +767,17 @@ impl<'a> ValueParser<'a> {
     }
 
     fn parse_text(&mut self) {
-        let loc = self.loc;
-        let mut text = String::new();
+        self.start_text();
         while let Some(c) = self.peek() {
             match c {
                 '[' | '#' | '@' | '\\' => break,
                 _ => {
-                    text.push(c);
+                    self.text.add_char(c);
                     self.next_char();
                 }
             }
         }
-        self.value.push(LocaValue::Text(Token::new(&text, loc)));
+        self.value.push(LocaValue::Text(self.text.take_to_token()));
     }
 
     pub fn parse_value(&mut self) -> Vec<LocaValue> {

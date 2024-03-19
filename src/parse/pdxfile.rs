@@ -624,30 +624,32 @@ fn control_z(loc: Loc, at_end: bool) {
     }
 }
 
-enum Id {
+/// Copy on boundary type used for when a token may cross multiple parts of the input.
+#[derive(Clone, Debug)]
+pub(crate) enum Cob {
     Uninit,
     Borrowed(&'static str, usize, usize, Loc),
     Owned(String, Loc),
 }
 
-impl Default for Id {
+impl Default for Cob {
     fn default() -> Self {
         Self::Uninit
     }
 }
 
-impl Id {
-    fn new() -> Self {
+impl Cob {
+    pub(crate) fn new() -> Self {
         Self::default()
     }
 
     #[inline]
-    fn set(&mut self, str: &'static str, index: usize, loc: Loc) {
+    pub(crate) fn set(&mut self, str: &'static str, index: usize, loc: Loc) {
         *self = Self::Borrowed(str, index, index, loc);
     }
 
     /// **ASSERT**: the char must match the char starting at the end index of the borrowed string (if applicable).
-    fn add_char(&mut self, c: char) {
+    pub(crate) fn add_char(&mut self, c: char) {
         match *self {
             Self::Uninit => unreachable!(),
             Self::Borrowed(str, start, end, loc) if end == str.len() => {
@@ -664,18 +666,18 @@ impl Id {
     }
 
     #[inline]
-    fn push(&mut self, c: char, str: &'static str, index: usize, loc: Loc) {
+    pub(crate) fn push(&mut self, c: char, str: &'static str, index: usize, loc: Loc) {
         if matches!(self, Self::Uninit) {
             self.set(str, index, loc);
         }
         self.add_char(c);
     }
 
-    fn take_to_token(&mut self) -> Token {
+    pub(crate) fn take_to_token(&mut self) -> Token {
         match take(self) {
-            Id::Uninit => unreachable!(),
-            Id::Borrowed(str, start, end, loc) => Token::from_static_str(&str[start..end], loc),
-            Id::Owned(string, loc) => Token::new(&string, loc),
+            Cob::Uninit => unreachable!(),
+            Cob::Borrowed(str, start, end, loc) => Token::from_static_str(&str[start..end], loc),
+            Cob::Owned(string, loc) => Token::new(&string, loc),
         }
     }
 }
@@ -687,7 +689,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
     let blockloc = inputs[0].loc;
     let mut parser = Parser::new(blockloc);
     let mut state = State::Neutral;
-    let mut current_id = Id::new();
+    let mut current_id = Cob::new();
 
     for token in inputs {
         let content = token.as_str();
@@ -718,7 +720,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                 }
                 State::QString => match c {
                     '"' => {
-                        let token = if matches!(current_id, Id::Uninit) {
+                        let token = if matches!(current_id, Cob::Uninit) {
                             // empty quoted string
                             Token::from_static_str("", loc)
                         } else {
@@ -729,7 +731,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                     }
                     '\n' => {
                         warn(ErrorKey::ParseError).msg("quoted string not closed").loc(loc).push();
-                        let token = if matches!(current_id, Id::Uninit) {
+                        let token = if matches!(current_id, Cob::Uninit) {
                             // empty quoted string
                             Token::from_static_str("", loc)
                         } else {
@@ -821,7 +823,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
     }
 
     // Deal with state at end of file
-    if !matches!(current_id, Id::Uninit) {
+    if !matches!(current_id, Cob::Uninit) {
         let token = current_id.take_to_token();
         match state {
             State::QString => {
