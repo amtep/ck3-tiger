@@ -24,6 +24,24 @@
 // The construction being warned about here is the best way to express
 // validation of a field while handling the case of the field not existing.
 #![allow(clippy::blocks_in_conditions)]
+// Turn on selected warnings from clippy's restricted set
+#![warn(clippy::clone_on_ref_ptr)]
+#![warn(clippy::decimal_literal_representation)]
+#![warn(clippy::float_cmp_const)]
+#![warn(clippy::fn_to_numeric_cast_any)]
+#![warn(clippy::format_push_string)]
+#![warn(clippy::get_unwrap)]
+#![warn(clippy::if_then_some_else_none)]
+#![warn(clippy::impl_trait_in_params)]
+#![warn(clippy::integer_division)]
+#![warn(clippy::lossy_float_literal)]
+#![warn(clippy::mixed_read_write_in_expression)]
+#![warn(clippy::mutex_atomic)]
+#![warn(clippy::rc_buffer)]
+#![warn(clippy::rc_mutex)]
+#![warn(clippy::rest_pat_in_fully_bound_structs)]
+#![warn(clippy::string_add)]
+#![warn(clippy::string_to_string)]
 
 #[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator", not(doc)))]
 compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled at the same time");

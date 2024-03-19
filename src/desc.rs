@@ -87,11 +87,11 @@ fn validate_desc_map_block(
 /// Like [`validate_desc`], but allows the caller to decide what to do with the strings found in
 /// the description. This is useful for example for description blocks that resolve an icon name
 /// rather than a description.
-pub fn validate_desc_map(
+pub fn validate_desc_map<F: Fn(&Token, &Everything, &mut ScopeContext)>(
     bv: &BV,
     data: &Everything,
     sc: &mut ScopeContext,
-    f: impl Fn(&Token, &Everything, &mut ScopeContext),
+    f: F,
 ) {
     match bv {
         BV::Value(t) => {

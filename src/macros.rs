@@ -46,13 +46,13 @@ pub struct MacroCache<T> {
 }
 
 impl<T> MacroCache<T> {
-    pub fn perform(
+    pub fn perform<F: FnMut(&T)>(
         &self,
         key: &Token,
         args: &[(&'static str, Token)],
         tooltipped: Tooltipped,
         negated: bool,
-        mut f: impl FnMut(&T),
+        mut f: F,
     ) -> bool {
         let key = MacroKey::new(key.loc, args, tooltipped, negated);
         if let Some(x) = self.cache.read().unwrap().get(&key) {

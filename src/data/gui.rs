@@ -511,7 +511,7 @@ impl GuiTemplate {
     ) -> Arc<GuiBlock> {
         if let Ok(mut gui_block) = self.gui_block.try_write() {
             let calc = GuiBlock::from_block(GuiBlockFrom::Template, &self.block, types, templates);
-            *gui_block = Some(calc.clone());
+            *gui_block = Some(Arc::clone(&calc));
             calc
         } else {
             let msg = "cycle in type block definitions";
@@ -631,7 +631,7 @@ impl GuiType {
                 GuiBlockFrom::TypeBase(&self.base)
             };
             let calc = GuiBlock::from_block(from, &self.block, types, templates);
-            *gui_block = Some(calc.clone());
+            *gui_block = Some(Arc::clone(&calc));
             calc
         } else {
             let msg = "cycle in type block definitions";

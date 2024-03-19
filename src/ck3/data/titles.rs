@@ -88,7 +88,7 @@ impl Titles {
             }
         }
         let title = Arc::new(Title::new(key.clone(), block.clone(), parent, is_county_capital));
-        self.titles.insert(key.as_str(), title.clone());
+        self.titles.insert(key.as_str(), Arc::clone(&title));
 
         let parent_tier = Tier::try_from(&key).unwrap(); // guaranteed by caller
         if parent_tier == Tier::Barony {
