@@ -65,7 +65,7 @@ jobs:
           mkdir ${{ steps.version.outputs.vic3_pkgdir }}
           cp -p README.md filter.md TODO.md CONTRIBUTORS.md LICENSE vic3-tiger.conf target/release/vic3-tiger${{ matrix.extension }} target/release/vic3-tiger-auto${{ matrix.extension }} ${{ steps.version.outputs.vic3_pkgdir }}
           mkdir ${{ steps.version.outputs.imperator_pkgdir }}
-          cp -p README.md filter.md TODO.md CONTRIBUTORS.md LICENSE imperator-tiger.conf target/release/imperator-tiger${{ matrix.extension }} steps.version.outputs.imperator_pkgdir }}
+          cp -p README.md filter.md TODO.md CONTRIBUTORS.md LICENSE imperator-tiger.conf target/release/imperator-tiger${{ matrix.extension }} ${{ steps.version.outputs.imperator_pkgdir }}
 
       - name: Archive .zip ck3
         uses: vimtor/action-zip@v1
