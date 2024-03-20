@@ -109,6 +109,7 @@ impl LocaEntry {
         from: &'a TigerHashMap<String, LocaEntry>,
         count: &mut usize,
         used: &mut TigerHashSet<String>,
+        sc: &mut ScopeContext,
         link: Option<MacroMapIndex>,
     ) -> bool {
         // Are we (probably) stuck in a macro loop?
@@ -122,19 +123,33 @@ impl LocaEntry {
                 match macrovalue {
                     MacroValue::Text(ref token) => vec.push(token.clone().linked(link)),
                     MacroValue::Keyword(k, _) => {
-                        used.insert(k.to_string());
                         if let Some(entry) = from.get(k.as_str()) {
+                            used.insert(k.to_string());
                             if !entry.expand_macros(
                                 vec,
                                 from,
                                 count,
                                 used,
+                                sc,
                                 Some(MACRO_MAP.get_or_insert_loc(k.loc)),
                             ) {
                                 return false;
                             }
+                        } else if is_builtin_macro(k) {
+                            // we can't know what value it really has, so replace it with itself to
+                            // at least get comprehensible error messages
+                            vec.push(k.clone().linked(link));
+                        } else if let Some(scopes) = sc.is_name_defined(k.as_str()) {
+                            if scopes.contains(Scopes::Value) {
+                                // same as above... we can't know what value it really has
+                                vec.push(k.clone().linked(link));
+                            } else {
+                                let msg = &format!("The substitution parameter ${k}$ is not defined anywhere as a key.");
+                                warn(ErrorKey::Localization).msg(msg).loc(k).push();
+                            }
                         } else {
-                            return false;
+                            let msg = &format!("The substitution parameter ${k}$ is not defined anywhere as a key.");
+                            warn(ErrorKey::Localization).msg(msg).loc(k).push();
                         }
                     }
                 }
@@ -309,6 +324,7 @@ impl Localization {
 
     // Does every `[concept|E]` reference have a defined game concept?
     // Does every other `[code]` block have valid promotes and functions?
+    // Does every $key$ in a macro have a corresponding loca key or named scope?
     fn check_loca_code(
         value: &LocaValue,
         data: &Everything,
@@ -329,7 +345,9 @@ impl Localization {
                     if let Some(ref format) = format {
                         if format.as_str().contains('E') || format.as_str().contains('e') {
                             if let Some(name) = chain.as_gameconcept() {
-                                data.verify_exists(Item::GameConcept, name);
+                                if !is_builtin_macro(name) {
+                                    data.verify_exists(Item::GameConcept, name);
+                                }
                                 return;
                             }
                         }
@@ -356,7 +374,7 @@ impl Localization {
             LocaValue::ComplexTooltip(tag, token, _) => {
                 // TODO: if any of the three are datatype expressions, validate them.
                 #[cfg(feature = "ck3")]
-                if Game::is_ck3() && !token.starts_with("[") && !token.starts_with("$") {
+                if Game::is_ck3() && !token.starts_with("[") && !is_builtin_macro(token) {
                     // The list of tag types can be found in ck3
                     // localization/english/tooltip_structs_l_english.yml
                     // LAST UPDATED CK3 VERSION 1.11.3
@@ -481,12 +499,47 @@ impl Localization {
         }
     }
 
+    fn validate_loca(
+        &self,
+        entry: &LocaEntry,
+        from: &TigerHashMap<String, LocaEntry>,
+        data: &Everything,
+        sc: &mut ScopeContext,
+        lang: &'static str,
+    ) {
+        if matches!(entry.value, LocaValue::Macro(_)) {
+            let mut new_line = Vec::new();
+            let mut count = 0;
+            if entry.expand_macros(
+                &mut new_line,
+                from,
+                &mut count,
+                &mut self.keys_used.write().unwrap(),
+                sc,
+                None,
+            ) {
+                // re-parse after macro expansion
+                let new_line_as_ref = new_line.iter().collect();
+                let mut value = ValueParser::new(new_line_as_ref).parse_value();
+                let value = if value.len() == 1 {
+                    std::mem::take(&mut value[0])
+                } else {
+                    LocaValue::Concat(value)
+                };
+                Self::check_loca_code(&value, data, sc, lang);
+            }
+        } else {
+            Self::check_loca_code(&entry.value, data, sc, lang);
+        }
+    }
+
     pub fn validate_use(&self, key: &str, data: &Everything, sc: &mut ScopeContext) {
         self.keys_validated_with_sc.write().unwrap().insert(key.to_string());
+        self.mark_used(key);
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {
                 if let Some(entry) = hash.get(key) {
-                    Self::check_loca_code(&entry.value, data, sc, lang);
+                    self.validate_loca(entry, hash, data, sc, lang);
                 }
             }
         }
@@ -503,7 +556,7 @@ impl Localization {
                         s.spawn(|_| {
                             let mut sc = ScopeContext::new_unrooted(Scopes::all(), &entry.key);
                             sc.set_strict_scopes(false);
-                            Self::check_loca_code(&entry.value, data, &mut sc, lang);
+                            self.validate_loca(entry, hash, data, &mut sc, lang);
                         });
                     }
                 }
@@ -677,50 +730,6 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
                 }
             }
             hash.insert(loca.key.to_string(), loca);
-        }
-    }
-
-    /// Do checks that can only be done after having all of the loca values
-    fn finalize(&mut self) {
-        for lang in self.locas.values() {
-            for entry in lang.values() {
-                if let LocaValue::Macro(ref v) = entry.value {
-                    for macrovalue in v {
-                        if let MacroValue::Keyword(k, _) = macrovalue {
-                            if !lang.contains_key(k.as_str()) && !is_builtin_macro(k) {
-                                let msg = &format!("The substitution parameter ${k}$ is not defined anywhere as a key.");
-                                warn(ErrorKey::Localization).msg(msg).loc(k).push();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Now expand all the macro values we can, and re-parse them after expansion
-        for lang in self.locas.values_mut() {
-            let orig_lang = lang.clone();
-            for entry in lang.values_mut() {
-                if matches!(entry.value, LocaValue::Macro(_)) {
-                    let mut count = 0;
-                    let mut new_line: Vec<Token> = Vec::new();
-                    if entry.expand_macros(
-                        &mut new_line,
-                        &orig_lang,
-                        &mut count,
-                        &mut self.keys_used.write().unwrap(),
-                        None,
-                    ) {
-                        let new_line_as_ref = new_line.iter().collect();
-                        let mut value = ValueParser::new(new_line_as_ref).parse_value();
-                        entry.value = if value.len() == 1 {
-                            std::mem::take(&mut value[0])
-                        } else {
-                            LocaValue::Concat(value)
-                        };
-                    }
-                }
-            }
         }
     }
 }
