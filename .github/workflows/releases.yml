@@ -37,7 +37,7 @@ jobs:
           version=v$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
           ck3_pkgdir="ck3-tiger-${{ matrix.name }}-$version"
           vic3_pkgdir="vic3-tiger-${{ matrix.name }}-$version"
-          vic3_pkgdir="imperator-tiger-${{ matrix.name }}-$version"
+          imperator_pkgdir="imperator-tiger-${{ matrix.name }}-$version"
           echo "::set-output name=version::$version"
           echo "::set-output name=ck3_pkgdir::$ck3_pkgdir"
           echo "::set-output name=vic3_pkgdir::$vic3_pkgdir"
