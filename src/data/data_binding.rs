@@ -139,44 +139,43 @@ impl DataBinding {
         let mut result = Vec::new();
         for body_code in &body_chain.codes {
             if body_code.arguments.is_empty() {
-                // Check if body_code is a macro parameter
-                let mut found = false;
-                for (i, param) in self.params.iter().enumerate() {
-                    if param.is(body_code.name.as_str()) {
-                        found = true;
-                        match &call.arguments[i] {
-                            CodeArg::Literal(caller_token) => {
-                                if body_chain.codes.len() != 1 {
-                                    let msg = "cannot substitute a literal here";
-                                    err(ErrorKey::Datafunctions).msg(msg).loc(caller_token).push();
-                                    return None;
-                                }
-                                return Some(call.arguments[i].clone());
+                // Check if body_code is a macro parameter.
+                // Note: self.params and call.arguments have already been checked to be the same length, so
+                // using the same index on both is ok.
+                if let Some(idx) = self.params.iter().position(|param| param == &body_code.name) {
+                    match &call.arguments[idx] {
+                        CodeArg::Literal(caller_token) => {
+                            // A literal can't be part of a chain, so accept it only if the "chain"
+                            // is only one part.
+                            if body_chain.codes.len() != 1 {
+                                let msg = "cannot substitute a literal here";
+                                err(ErrorKey::Datafunctions).msg(msg).loc(caller_token).push();
+                                return None;
                             }
-                            CodeArg::Chain(caller_chain) => {
-                                for caller_code in &caller_chain.codes {
-                                    result.push(caller_code.clone());
-                                }
-                            }
+                            return Some(call.arguments[idx].clone());
                         }
-                        break;
+                        CodeArg::Chain(caller_chain) => {
+                            result.extend_from_slice(&caller_chain.codes);
+                        }
                     }
-                }
-                if !found {
+                } else {
                     result.push(body_code.clone());
                 }
             } else {
-                let mut new_code = Code { name: body_code.name.clone(), arguments: Vec::new() };
-                for arg in &body_code.arguments {
-                    new_code.arguments.push(self.replace_param(arg, call)?);
-                }
-                result.push(new_code);
+                result.push(Code {
+                    name: body_code.name.clone(),
+                    arguments: body_code
+                        .arguments
+                        .iter()
+                        .map(|arg| self.replace_arg(arg, call))
+                        .collect::<Option<Vec<_>>>()?,
+                });
             }
         }
         Some(CodeArg::Chain(CodeChain { codes: result }))
     }
 
-    fn replace_param(&self, body_arg: &CodeArg, call: &Code) -> Option<CodeArg> {
+    fn replace_arg(&self, body_arg: &CodeArg, call: &Code) -> Option<CodeArg> {
         match body_arg {
             CodeArg::Chain(body_chain) => self.replace_chain(body_chain, call),
             CodeArg::Literal(_) => Some(body_arg.clone()),
