@@ -1,4 +1,4 @@
-use crate::block::Block;
+use crate::block::{Block, BV};
 use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
@@ -115,7 +115,93 @@ impl DbKind for Decision {
         vd.field_validated_block("should_create_alert", |b, data| {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
-        vd.field("widget"); // TODO
+        vd.field_validated("widget", |bv, data| {
+            match bv {
+                BV::Value(value) => {
+                    let filename =
+                        format!("gui/decision_view_widgets/decision_view_widget_{value}.gui");
+                    data.verify_exists_implied(Item::File, &filename, value);
+                }
+                BV::Block(block) => {
+                    let mut vd = Validator::new(block, data);
+                    vd.field_validated_value("gui", |key, mut vd| {
+                        let filename = format!("gui/decision_view_widgets/{vd}.gui");
+                        data.verify_exists_implied(Item::File, &filename, key);
+                        vd.accept();
+                    });
+
+                    // LAST UPDATED CK3 VERSION 1.12.3
+                    vd.field_choice(
+                        "controller",
+                        &[
+                            "default",
+                            "decision_option_list_controller",
+                            "create_holy_order",
+                            "revoke_holy_order_lease", // undocumented
+                        ],
+                    );
+
+                    // Undocumented
+                    vd.field_item("decision_to_second_step_button", Item::Localization);
+                    // Undocumented
+                    vd.field_bool("show_from_start");
+
+                    match block.get_field_value("controller").map(Token::as_str) {
+                        Some("decision_option_list_controller") => {
+                            vd.multi_field_validated_block("item", |block, data| {
+                                let mut vd = Validator::new(block, data);
+                                vd.field_value("value");
+                                vd.field_validated_block_rooted(
+                                    "is_shown",
+                                    Scopes::Character,
+                                    |block, data, sc| {
+                                        validate_trigger(block, data, sc, Tooltipped::No);
+                                    },
+                                );
+                                vd.field_validated_block_rooted(
+                                    "is_valid",
+                                    Scopes::Character,
+                                    |block, data, sc| {
+                                        validate_trigger(block, data, sc, Tooltipped::FailuresOnly);
+                                    },
+                                );
+                                vd.field_validated_rooted(
+                                    "current_description",
+                                    Scopes::Character,
+                                    validate_desc,
+                                );
+                                vd.field_validated_rooted(
+                                    "localization",
+                                    Scopes::Character,
+                                    validate_desc,
+                                );
+                                vd.field_bool("is_default");
+                                vd.field_item("icon", Item::File);
+                                vd.field_bool("flat");
+
+                                vd.field_script_value_no_breakdown_build_sc("ai_chance", |key| {
+                                    ScopeContext::new(Scopes::Character, key)
+                                });
+                            });
+                        }
+                        Some("create_holy_order" | "revoke_holy_order_lease") => {
+                            vd.field_validated_block_build_sc(
+                                "barony_valid",
+                                |key| {
+                                    let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
+                                    sc.define_name("ruler", Scopes::Character, key);
+                                    sc
+                                },
+                                |block, data, sc| {
+                                    validate_trigger(block, data, sc, Tooltipped::No);
+                                },
+                            );
+                        }
+                        _ => (),
+                    }
+                }
+            }
+        });
     }
 }
 
