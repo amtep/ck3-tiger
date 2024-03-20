@@ -239,7 +239,7 @@ pub fn validate_add_modifier(
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
-    let caller = key.as_str().to_lowercase();
+    let caller = key.as_str().to_ascii_lowercase();
     let visible = caller == "add_character_modifier"
         || caller == "add_house_modifier"
         || caller == "add_dynasty_modifier"
@@ -459,7 +459,7 @@ pub fn validate_change_trait_rank(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    let caller = key.as_str().to_lowercase();
+    let caller = key.as_str().to_ascii_lowercase();
     vd.req_field("trait");
     vd.req_field("rank");
     // TODO: check that it's a rankable trait
@@ -509,7 +509,7 @@ pub fn validate_create_artifact(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    let caller = key.as_str().to_lowercase();
+    let caller = key.as_str().to_ascii_lowercase();
     vd.field_validated_sc("name", sc, validate_desc);
     vd.field_validated_sc("description", sc, validate_desc);
     vd.field_item("rarity", Item::ArtifactRarity);
@@ -853,7 +853,7 @@ pub fn validate_open_interaction_window(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    let caller = key.as_str().to_lowercase();
+    let caller = key.as_str().to_ascii_lowercase();
     vd.req_field("interaction");
     vd.req_field("actor");
     vd.req_field("recipient");
@@ -1044,7 +1044,7 @@ pub fn validate_set_ghw_target(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    let caller = key.as_str().to_lowercase();
+    let caller = key.as_str().to_ascii_lowercase();
     vd.req_field("target_character");
     vd.req_field("target_title");
     vd.field_target("target_character", sc, Scopes::Character);
@@ -1088,7 +1088,7 @@ pub fn validate_setup_cb(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    let caller = key.as_str().to_lowercase();
+    let caller = key.as_str().to_ascii_lowercase();
     vd.req_field("attacker");
     vd.req_field("defender");
     // vd.req_field("change"); is optional if you just want it to set scope:cb_prestige_factor

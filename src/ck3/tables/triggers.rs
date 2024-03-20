@@ -13,7 +13,7 @@ use Trigger::*;
 
 /// LAST UPDATED CK3 VERSION 1.12.1
 pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger)> {
-    let name_lc = name.as_str().to_lowercase();
+    let name_lc = name.as_str().to_ascii_lowercase();
 
     // TODO: binary search might be faster
     if let result @ Some(_) = TRIGGER_MAP.get(&*name_lc).copied() {

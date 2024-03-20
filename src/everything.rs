@@ -574,7 +574,7 @@ impl Everything {
         match itype {
             Item::ActivityState => ACTIVITY_STATES.contains(&key),
             Item::ArtifactHistory => ARTIFACT_HISTORY.contains(&key),
-            Item::ArtifactRarity => ARTIFACT_RARITIES.contains(&&*key.to_lowercase()),
+            Item::ArtifactRarity => ARTIFACT_RARITIES.contains(&&*key.to_ascii_lowercase()),
             Item::Character => self.characters.exists(key),
             Item::CharacterInteractionCategory => self.interaction_cats.exists(key),
             Item::DangerType => DANGER_TYPES.contains(&key),

@@ -242,7 +242,7 @@ pub fn validate_property(
         }
         GuiValidation::Blendmode => {
             if let Some(value) = bv.expect_value() {
-                let value_lc = value.as_str().to_lowercase();
+                let value_lc = value.as_str().to_ascii_lowercase();
                 if !BLENDMODES.contains(&&*value_lc) {
                     let msg = "unknown blendmode";
                     let info = format!("expected one of {}", stringify_choices(BLENDMODES));
@@ -258,7 +258,7 @@ pub fn validate_property(
                     // TODO: need some way of specifying "stringable" datatypes
                     validate_datatype_field(Datatype::Unknown, key, bv, data, false);
                 } else {
-                    let value_lc = value.as_str().to_lowercase();
+                    let value_lc = value.as_str().to_ascii_lowercase();
                     if !choices.contains(&&*value_lc) {
                         let msg = "unknown mouse button";
                         let info = format!("expected one of {}", stringify_choices(choices));
@@ -270,7 +270,7 @@ pub fn validate_property(
         GuiValidation::MouseButtonSet(choices) => {
             if let Some(value) = bv.expect_value() {
                 for part in value.split('|') {
-                    let part_lc = part.as_str().to_lowercase();
+                    let part_lc = part.as_str().to_ascii_lowercase();
                     if !choices.contains(&&*part_lc) {
                         let msg = "unknown mouse button";
                         let info = format!("expected one of {}", stringify_choices(choices));
@@ -281,7 +281,7 @@ pub fn validate_property(
         }
         GuiValidation::Choice(choices) => {
             if let Some(value) = bv.expect_value() {
-                let value_lc = value.as_str().to_lowercase();
+                let value_lc = value.as_str().to_ascii_lowercase();
                 if !choices.contains(&&*value_lc) {
                     let msg = "unknown value";
                     let info = format!("expected one of {}", stringify_choices(choices));
@@ -292,7 +292,7 @@ pub fn validate_property(
         GuiValidation::ChoiceSet(choices) => {
             if let Some(value) = bv.expect_value() {
                 for part in value.split('|') {
-                    let part_lc = part.as_str().to_lowercase();
+                    let part_lc = part.as_str().to_ascii_lowercase();
                     if !choices.contains(&&*part_lc) {
                         let msg = "unknown value";
                         let info = format!("expected one of {}", stringify_choices(choices));

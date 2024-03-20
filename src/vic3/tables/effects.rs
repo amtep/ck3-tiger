@@ -11,7 +11,7 @@ use once_cell::sync::Lazy;
 use Effect::*;
 
 pub fn scope_effect(name: &Token, _data: &Everything) -> Option<(Scopes, Effect)> {
-    let name_lc = name.as_str().to_lowercase();
+    let name_lc = name.as_str().to_ascii_lowercase();
     SCOPE_EFFECT_MAP.get(&*name_lc).copied()
 }
 

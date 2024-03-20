@@ -342,7 +342,7 @@ fn validate_parameters(block: &Block, data: &Everything) {
             ValueValidator::new(value, data).bool();
         }
         // culture parameter loca are lowercased, verified in 1.11
-        let loca = format!("culture_parameter_{}", key.as_str().to_lowercase());
+        let loca = format!("culture_parameter_{}", key.as_str().to_ascii_lowercase());
         data.verify_exists_implied(Item::Localization, &loca, key);
     });
 }

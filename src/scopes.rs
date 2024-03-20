@@ -301,7 +301,7 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
         Game::Imperator => crate::imperator::scopes::scope_to_scope_removed,
     };
 
-    let name_lc = name.as_str().to_lowercase();
+    let name_lc = name.as_str().to_ascii_lowercase();
     if let scopes @ Some((from, _)) = scope_to_scope(&name_lc) {
         #[cfg(feature = "vic3")]
         if Game::is_vic3() && name_lc == "type" {
@@ -355,7 +355,7 @@ pub fn scope_prefix(prefix: &Token) -> Option<(Scopes, Scopes, ArgumentValue)> {
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::scopes::scope_prefix,
     };
-    let prefix_lc = prefix.as_str().to_lowercase();
+    let prefix_lc = prefix.as_str().to_ascii_lowercase();
     scope_prefix(&prefix_lc)
 }
 
@@ -408,7 +408,7 @@ pub fn scope_iterator(
         Game::Imperator => crate::imperator::scopes::scope_iterator_removed,
     };
 
-    let name_lc = name.as_str().to_lowercase();
+    let name_lc = name.as_str().to_ascii_lowercase();
     if let scopes @ Some(_) = scope_iterator(&name_lc) {
         return scopes;
     } else if let Some((version, explanation)) = scope_iterator_removed(&name_lc) {
@@ -420,7 +420,7 @@ pub fn scope_iterator(
         return data
             .scripted_lists
             .base(name)
-            .and_then(|base| scope_iterator(&base.as_str().to_lowercase()));
+            .and_then(|base| scope_iterator(&base.as_str().to_ascii_lowercase()));
     }
     None
 }

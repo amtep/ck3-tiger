@@ -5,8 +5,9 @@ use std::str::Chars;
 use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
+use crate::parse::cob::Cob;
 use crate::report::{untidy, warn, ErrorKey};
-use crate::token::{Loc, Token};
+use crate::token::{leak, Loc, Token};
 
 fn is_key_char(c: char) -> bool {
     c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '\''
@@ -19,19 +20,19 @@ fn is_code_char(c: char) -> bool {
 }
 
 #[derive(Clone, Debug)]
-struct LocaParser<'a> {
+struct LocaParser {
     loc: Loc,
     offset: usize,
-    content: &'a str,
-    chars: Peekable<Chars<'a>>,
+    content: &'static str,
+    chars: Peekable<Chars<'static>>,
     language: &'static str,
     expecting_language: bool,
     loca_end: usize,
     value: Vec<LocaValue>,
 }
 
-impl<'a> LocaParser<'a> {
-    fn new(mut loc: Loc, content: &'a str, lang: &'static str) -> Self {
+impl LocaParser {
+    fn new(mut loc: Loc, content: &'static str, lang: &'static str) -> Self {
         let mut chars = content.chars().peekable();
         let mut offset = 0;
         if chars.peek() == Some(&'\u{feff}') {
@@ -123,7 +124,7 @@ impl<'a> LocaParser<'a> {
             }
         }
         let s = &self.content[start_offset..self.offset];
-        Token::new(s, loc)
+        Token::from_static_str(s, loc)
     }
 
     fn unexpected_char(&mut self, expected: &str) {
@@ -189,7 +190,7 @@ impl<'a> LocaParser<'a> {
         while let Some(&c) = self.chars.peek() {
             if c == '$' {
                 let s = &self.content[offset..self.offset];
-                v.push(MacroValue::Text(Token::new(s, loc)));
+                v.push(MacroValue::Text(Token::from_static_str(s, loc)));
 
                 if let Some(mv) = self.parse_keyword() {
                     v.push(mv);
@@ -201,7 +202,7 @@ impl<'a> LocaParser<'a> {
                 offset = self.offset;
             } else if c == '"' && self.offset == self.loca_end {
                 let s = &self.content[offset..self.offset];
-                v.push(MacroValue::Text(Token::new(s, loc)));
+                v.push(MacroValue::Text(Token::from_static_str(s, loc)));
                 self.value.push(LocaValue::Macro(v));
                 self.next_char();
                 return;
@@ -210,7 +211,7 @@ impl<'a> LocaParser<'a> {
             }
         }
         let s = &self.content[offset..self.offset];
-        v.push(MacroValue::Text(Token::new(s, loc)));
+        v.push(MacroValue::Text(Token::from_static_str(s, loc)));
         self.value.push(LocaValue::Macro(v));
     }
 
@@ -227,9 +228,9 @@ impl<'a> LocaParser<'a> {
             warn(ErrorKey::Localization).weak().msg(msg).loc(key).push();
             return None;
         }
-        let s = &self.content[start_offset..end_offset];
         self.next_char();
-        Some(MacroValue::Keyword(Token::new(s, loc), format))
+        let s = &self.content[start_offset..end_offset];
+        Some(MacroValue::Keyword(Token::from_static_str(s, loc), format))
     }
 
     fn skip_until_key(&mut self) {
@@ -319,7 +320,7 @@ impl<'a> LocaParser<'a> {
 
         self.value = Vec::new();
         let s = &self.content[self.offset..self.loca_end];
-        let token = Token::new(s, self.loc);
+        let token = Token::from_static_str(s, self.loc);
 
         // We also need to pre-parse because $macros$ can appear anywhere and
         // we don't know how to parse the results until we know what to
@@ -400,11 +401,16 @@ impl<'a> ValueParser<'a> {
     fn next_char(&mut self) {
         // self.peek advances content_idx if needed
         if self.peek().is_some() {
-            if let Some(c) = self.content_iters[self.content_idx].next() {
-                self.offset += c.len_utf8();
-                self.loc.column += 1;
-            }
+            let c = self.content_iters[self.content_idx].next().unwrap();
+            self.offset += c.len_utf8();
+            self.loc.column += 1;
         }
+    }
+
+    fn start_text(&self) -> Cob {
+        let mut cob = Cob::new();
+        cob.set(self.content[self.content_idx].as_str(), self.offset, self.loc);
+        cob
     }
 
     fn skip_whitespace(&mut self) {
@@ -425,32 +431,30 @@ impl<'a> ValueParser<'a> {
     }
 
     fn get_key(&mut self) -> Token {
-        let loc = self.loc;
-        let mut text = String::new();
+        let mut text = self.start_text();
         while let Some(c) = self.peek() {
             if is_key_char(c) {
-                text.push(c);
+                text.add_char(c);
                 self.next_char();
             } else {
                 break;
             }
         }
-        Token::new(&text, loc)
+        text.take_to_token()
     }
 
     fn parse_format(&mut self) -> Option<Token> {
         (self.peek() == Some('|')).then(|| {
             self.next_char(); // eat the |
-            let loc = self.loc;
-            let mut text = String::new();
+            let mut text = self.start_text();
             while let Some(c) = self.peek() {
                 if c == '$' || c == ']' {
                     break;
                 }
-                text.push(c);
+                text.add_char(c);
                 self.next_char();
             }
-            Token::new(&text, loc)
+            text.take_to_token()
         })
     }
 
@@ -463,8 +467,8 @@ impl<'a> ValueParser<'a> {
             if self.peek() == Some('\'') {
                 self.next_char();
                 let loc = self.loc;
-                let mut text = String::new();
                 let mut parens: isize = 0;
+                let mut text = self.start_text();
                 while let Some(c) = self.peek() {
                     match c {
                         '\'' => break,
@@ -480,14 +484,14 @@ impl<'a> ValueParser<'a> {
                         }
                         _ => (),
                     }
-                    text.push(c);
+                    text.add_char(c);
                     self.next_char();
                 }
                 if self.peek() != Some('\'') {
                     self.value.push(LocaValue::Error);
                     return Vec::new();
                 }
-                v.push(CodeArg::Literal(Token::new(&text, loc)));
+                v.push(CodeArg::Literal(text.take_to_token()));
                 self.next_char();
             } else if self.peek() == Some(')') {
                 // Empty () means no arguments
@@ -509,17 +513,16 @@ impl<'a> ValueParser<'a> {
     }
 
     fn parse_code_code(&mut self) -> Code {
-        let loc = self.loc;
-        let mut text = String::new();
+        let mut text = self.start_text();
         while let Some(c) = self.peek() {
             if is_code_char(c) {
-                text.push(c);
+                text.add_char(c);
                 self.next_char();
             } else {
                 break;
             }
         }
-        let name = Token::new(&text, loc);
+        let name = text.take_to_token();
         if self.peek() == Some('(') {
             Code { name, arguments: self.parse_code_args() }
         } else {
@@ -652,7 +655,7 @@ impl<'a> ValueParser<'a> {
                             value.push(c);
                             self.unexpected_char("expected `;`", ErrorKey::Markup);
                         } else if c == ';' {
-                            if key.to_lowercase() == "tooltip" {
+                            if key.to_ascii_lowercase() == "tooltip" {
                                 self.handle_tooltip(value, *loc);
                             }
                             state = State::InKey(String::new());
@@ -692,7 +695,7 @@ impl<'a> ValueParser<'a> {
                     self.value.push(LocaValue::Markup(Token::new(&text, loc)));
                 }
                 State::InValue(key, value, loc, bracecount) => {
-                    if key.to_lowercase() == "tooltip" {
+                    if key.to_ascii_lowercase() == "tooltip" {
                         self.handle_tooltip(&value, loc);
                     }
                     if bracecount > 0 {
@@ -762,18 +765,17 @@ impl<'a> ValueParser<'a> {
     }
 
     fn parse_text(&mut self) {
-        let loc = self.loc;
-        let mut text = String::new();
+        let mut text = self.start_text();
         while let Some(c) = self.peek() {
             match c {
                 '[' | '#' | '@' | '\\' => break,
                 _ => {
-                    text.push(c);
+                    text.add_char(c);
                     self.next_char();
                 }
             }
         }
-        self.value.push(LocaValue::Text(Token::new(&text, loc)));
+        self.value.push(LocaValue::Text(text.take_to_token()));
     }
 
     pub fn parse_value(&mut self) -> Vec<LocaValue> {
@@ -793,11 +795,11 @@ impl<'a> ValueParser<'a> {
     }
 }
 
-pub struct LocaReader<'a> {
-    parser: LocaParser<'a>,
+pub struct LocaReader {
+    parser: LocaParser,
 }
 
-impl<'a> Iterator for LocaReader<'a> {
+impl Iterator for LocaReader {
     type Item = LocaEntry;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -805,10 +807,11 @@ impl<'a> Iterator for LocaReader<'a> {
     }
 }
 
-pub fn parse_loca<'a>(entry: &FileEntry, content: &'a str, lang: &'static str) -> LocaReader<'a> {
+pub fn parse_loca(entry: &FileEntry, content: String, lang: &'static str) -> LocaReader {
     let mut loc = Loc::from(entry);
     loc.line = 1;
     loc.column = 1;
+    let content = leak(content);
     let parser = LocaParser::new(loc, content, lang);
     LocaReader { parser }
 }

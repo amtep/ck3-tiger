@@ -784,7 +784,7 @@ fn match_trigger_bv(
         Trigger::Control => {
             if let Some(block) = bv.expect_block() {
                 let mut negated = negated;
-                let name_lc = name.as_str().to_lowercase();
+                let name_lc = name.as_str().to_ascii_lowercase();
                 if name_lc == "all_false"
                     || name_lc == "not"
                     || name_lc == "nand"
@@ -1389,7 +1389,7 @@ pub fn validate_argument(
         Game::Imperator => unreachable!(),
     };
 
-    let func_lc = func.as_str().to_lowercase();
+    let func_lc = func.as_str().to_ascii_lowercase();
     if let Some((inscopes, validation)) = scope_trigger_complex(&func_lc) {
         sc.expect(inscopes, &Reason::Token(func.clone()));
         validate_argument_internal(arg, validation, data, sc);

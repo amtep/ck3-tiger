@@ -11,6 +11,7 @@ use fnv::FnvHashMap;
 use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
 use crate::fileset::{FileEntry, FileKind};
+use crate::parse::cob::Cob;
 use crate::report::{err, fatal, untidy, warn, ErrorKey};
 use crate::token::{bump, leak, Loc, Token};
 
@@ -624,62 +625,6 @@ fn control_z(loc: Loc, at_end: bool) {
     }
 }
 
-enum Id {
-    Uninit,
-    Borrowed(&'static str, usize, usize, Loc),
-    Owned(String, Loc),
-}
-
-impl Default for Id {
-    fn default() -> Self {
-        Self::Uninit
-    }
-}
-
-impl Id {
-    fn new() -> Self {
-        Self::default()
-    }
-
-    #[inline]
-    fn set(&mut self, str: &'static str, index: usize, loc: Loc) {
-        *self = Self::Borrowed(str, index, index, loc);
-    }
-
-    /// **ASSERT**: the char must match the char starting at the end index of the borrowed string (if applicable).
-    fn add_char(&mut self, c: char) {
-        match *self {
-            Self::Uninit => unreachable!(),
-            Self::Borrowed(str, start, end, loc) if end == str.len() => {
-                let mut string = str[start..].to_owned();
-                string.push(c);
-                *self = Self::Owned(string, loc);
-            }
-            Self::Borrowed(_str, _, ref mut end, _) => {
-                // ASSERT: _str[*end..].starts_with(c)
-                *end += c.len_utf8();
-            }
-            Self::Owned(ref mut string, _) => string.push(c),
-        }
-    }
-
-    #[inline]
-    fn push(&mut self, c: char, str: &'static str, index: usize, loc: Loc) {
-        if matches!(self, Self::Uninit) {
-            self.set(str, index, loc);
-        }
-        self.add_char(c);
-    }
-
-    fn take_to_token(&mut self) -> Token {
-        match take(self) {
-            Id::Uninit => unreachable!(),
-            Id::Borrowed(str, start, end, loc) => Token::from_static_str(&str[start..end], loc),
-            Id::Owned(string, loc) => Token::new(&string, loc),
-        }
-    }
-}
-
 /// Re-parse a macro (which is a scripted effect, trigger, or modifier that uses $ parameters)
 /// after argument substitution. A full re-parse is needed because the game engine allows tricks
 /// such as passing `#` as a macro argument in order to comment out the rest of a line.
@@ -687,7 +632,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
     let blockloc = inputs[0].loc;
     let mut parser = Parser::new(blockloc);
     let mut state = State::Neutral;
-    let mut current_id = Id::new();
+    let mut current_id = Cob::new();
 
     for token in inputs {
         let content = token.as_str();
@@ -718,7 +663,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                 }
                 State::QString => match c {
                     '"' => {
-                        let token = if matches!(current_id, Id::Uninit) {
+                        let token = if matches!(current_id, Cob::Uninit) {
                             // empty quoted string
                             Token::from_static_str("", loc)
                         } else {
@@ -729,7 +674,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
                     }
                     '\n' => {
                         warn(ErrorKey::ParseError).msg("quoted string not closed").loc(loc).push();
-                        let token = if matches!(current_id, Id::Uninit) {
+                        let token = if matches!(current_id, Cob::Uninit) {
                             // empty quoted string
                             Token::from_static_str("", loc)
                         } else {
@@ -821,7 +766,7 @@ pub fn parse_pdx_macro(inputs: &[Token]) -> Block {
     }
 
     // Deal with state at end of file
-    if !matches!(current_id, Id::Uninit) {
+    if !matches!(current_id, Cob::Uninit) {
         let token = current_id.take_to_token();
         match state {
             State::QString => {

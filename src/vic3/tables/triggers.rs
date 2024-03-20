@@ -10,7 +10,7 @@ use once_cell::sync::Lazy;
 use Trigger::*;
 
 pub fn scope_trigger(name: &Token, _data: &Everything) -> Option<(Scopes, Trigger)> {
-    let name_lc = name.as_str().to_lowercase();
+    let name_lc = name.as_str().to_ascii_lowercase();
     TRIGGER_MAP.get(&*name_lc).copied()
 }
 
