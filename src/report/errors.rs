@@ -6,7 +6,6 @@ use std::fs::{read, File};
 use std::io::{stdout, Write};
 use std::mem::take;
 use std::path::{Path, PathBuf};
-use std::string::ToString;
 use std::sync::{Mutex, MutexGuard};
 
 use anyhow::Result;
@@ -69,17 +68,17 @@ impl Default for Errors {
 
 impl Errors {
     /// Fetch the contents of a single line from a script file.
-    pub(crate) fn get_line(&mut self, loc: Loc) -> Option<String> {
+    pub(crate) fn get_line(&mut self, loc: Loc) -> Option<&'static str> {
         if loc.line == 0 {
             return None;
         }
         let fullpath = loc.fullpath();
         if let Some(lines) = self.linecache.get(fullpath) {
-            return lines.get(loc.line as usize - 1).map(ToString::to_string);
+            return lines.get(loc.line as usize - 1).copied();
         }
         if let Some(contents) = self.filecache.get(fullpath) {
             let lines: Vec<_> = contents.lines().collect();
-            let line = lines.get(loc.line as usize - 1).map(ToString::to_string);
+            let line = lines.get(loc.line as usize - 1).copied();
             self.linecache.insert(fullpath.to_path_buf(), lines);
             return line;
         }
@@ -94,7 +93,7 @@ impl Errors {
         self.filecache.insert(fullpath.to_path_buf(), contents);
 
         let lines: Vec<_> = contents.lines().collect();
-        let line = lines.get(loc.line as usize - 1).map(ToString::to_string);
+        let line = lines.get(loc.line as usize - 1).copied();
         self.linecache.insert(fullpath.to_path_buf(), lines);
         line
     }
