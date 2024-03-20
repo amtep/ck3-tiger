@@ -93,6 +93,7 @@ jobs:
         run: |
           tar cfvz ${{ steps.version.outputs.ck3_pkgdir }}.tar.gz  ${{ steps.version.outputs.ck3_pkgdir }}/
           tar cfvz ${{ steps.version.outputs.vic3_pkgdir }}.tar.gz  ${{ steps.version.outputs.vic3_pkgdir }}/
+          tar cfvz ${{ steps.version.outputs.imperator_pkgdir }}.tar.gz  ${{ steps.version.outputs.imperator_pkgdir }}/
 
       - name: Upload Archive ck3
         uses: actions/upload-artifact@v3
