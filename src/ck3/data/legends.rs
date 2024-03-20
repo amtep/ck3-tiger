@@ -73,6 +73,20 @@ impl DbKind for LegendType {
             },
         );
         vd.field_validated_block_build_sc(
+            "on_legend_start_promote",
+            build_character_legend_sc,
+            |block, data, sc| {
+                validate_effect(block, data, sc, Tooltipped::No); // TODO: verify tooltip
+            },
+        );
+        vd.field_validated_block_build_sc(
+            "on_legend_stop_promote",
+            build_character_legend_sc,
+            |block, data, sc| {
+                validate_effect(block, data, sc, Tooltipped::No);
+            },
+        );
+        vd.field_validated_block_build_sc(
             "is_valid_protagonist",
             build_character_character_sc,
             |block, data, sc| {
