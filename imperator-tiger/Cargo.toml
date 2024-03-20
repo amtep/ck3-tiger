@@ -8,7 +8,7 @@ description = "Validator that checks Imperator: Rome user mod files for mistakes
 homepage = "https://github.com/amtep/ck3-tiger"
 repository = "https://github.com/amtep/ck3-tiger"
 readme = "../README.md"
-keywords = [ "ir", "imperator", "rome", "imperator-rome", "mods", "validator", "paradox" ]
+keywords = [ "imperator", "rome", "mods", "validator", "paradox" ]
 categories = ["command-line-utilities", "development-tools", "game-development"]
 rust-version = "1.70"
 
