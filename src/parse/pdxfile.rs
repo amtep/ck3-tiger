@@ -12,7 +12,7 @@ use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
 use crate::fileset::{FileEntry, FileKind};
 use crate::parse::cob::Cob;
-use crate::report::{err, fatal, untidy, warn, ErrorKey};
+use crate::report::{err, fatal, store_source_file, untidy, warn, ErrorKey};
 use crate::token::{bump, leak, Loc, Token};
 
 /// ^Z is by convention an end-of-text marker, and the game engine treats it as such.
@@ -1081,6 +1081,7 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
 /// Parse the content associated with the [`FileEntry`].
 pub fn parse_pdx_file(entry: &FileEntry, content: String, offset: usize) -> Block {
     let content = leak(content);
+    store_source_file(entry.fullpath().to_path_buf(), &content[offset..]);
     parse_pdx(entry, &content[offset..])
 }
 
