@@ -1,9 +1,8 @@
-use fnv::FnvHashSet;
-
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
+use crate::helpers::TigerHashSet;
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxEncoding;
 use crate::report::{untidy, warn, ErrorKey};
@@ -25,7 +24,7 @@ impl Climate {
     /// Check if there are any duplicate provinces between climate items.
     /// The check for duplicate provinces within one climate item is done in [`Climate::validate`].
     pub fn validate_all(db: &Db, _data: &Everything) {
-        let mut other_seen: FnvHashSet<&Token> = FnvHashSet::default();
+        let mut other_seen: TigerHashSet<&Token> = TigerHashSet::default();
         for (_, block) in db.iter_key_block(Item::Climate) {
             for value in block.iter_values() {
                 if let Some(&other) = other_seen.get(value) {
@@ -45,7 +44,7 @@ impl Climate {
 impl DbKind for Climate {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut seen: FnvHashSet<&Token> = FnvHashSet::default();
+        let mut seen: TigerHashSet<&Token> = TigerHashSet::default();
         for token in vd.values() {
             data.verify_exists(Item::Province, token);
             if let Some(&other) = seen.get(token) {

@@ -1,14 +1,12 @@
 use std::fmt::Debug;
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
+use crate::helpers::{dup_error, exact_dup_error, TigerHashMap, BANNED_NAMES};
 use crate::macros::{MacroCache, MACRO_MAP};
 use crate::pdxfile::PdxFile;
 use crate::report::{err, warn, ErrorKey};
@@ -18,8 +16,8 @@ use crate::tooltipped::Tooltipped;
 
 #[derive(Debug, Default)]
 pub struct Effects {
-    scope_overrides: FnvHashMap<&'static str, Scopes>,
-    effects: FnvHashMap<&'static str, Effect>,
+    scope_overrides: TigerHashMap<&'static str, Scopes>,
+    effects: TigerHashMap<&'static str, Effect>,
 }
 
 impl Effects {

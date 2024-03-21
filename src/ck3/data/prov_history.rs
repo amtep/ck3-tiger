@@ -1,7 +1,5 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::{Block, BV};
 use crate::ck3::data::provinces::ProvId;
 use crate::ck3::data::titles::Titles;
@@ -9,7 +7,7 @@ use crate::date::Date;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::report::{warn, ErrorKey};
@@ -21,7 +19,7 @@ use crate::Severity;
 
 #[derive(Clone, Debug, Default)]
 pub struct ProvinceHistories {
-    provinces: FnvHashMap<ProvId, ProvinceHistory>,
+    provinces: TigerHashMap<ProvId, ProvinceHistory>,
 }
 
 impl ProvinceHistories {

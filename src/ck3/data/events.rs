@@ -1,8 +1,6 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use fnv::{FnvHashMap, FnvHashSet};
-
 use crate::block::{Block, BlockItem, Field, BV};
 use crate::ck3::validate::{
     validate_theme_background, validate_theme_effect_2d, validate_theme_icon, validate_theme_sound,
@@ -15,7 +13,7 @@ use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_internal};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pathtable::PathTableIndex;
@@ -32,10 +30,10 @@ use crate::validator::Validator;
 
 #[derive(Debug, Default)]
 pub struct Ck3Events {
-    events: FnvHashMap<(&'static str, u16), Event>,
-    namespaces: FnvHashSet<Token>,
-    triggers: FnvHashMap<(PathTableIndex, &'static str), Trigger>,
-    effects: FnvHashMap<(PathTableIndex, &'static str), Effect>,
+    events: TigerHashMap<(&'static str, u16), Event>,
+    namespaces: TigerHashSet<Token>,
+    triggers: TigerHashMap<(PathTableIndex, &'static str), Trigger>,
+    effects: TigerHashMap<(PathTableIndex, &'static str), Effect>,
 }
 
 impl Ck3Events {

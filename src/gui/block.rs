@@ -1,12 +1,11 @@
 use std::sync::Arc;
 
-use fnv::{FnvHashMap, FnvHashSet};
-
 use crate::block::{Block, BlockItem, Comparator, Eq::Single, Field, BV};
 use crate::data::gui::{GuiTemplate, GuiType};
 use crate::everything::Everything;
 use crate::gui::validate::validate_property;
 use crate::gui::{BuiltinWidget, GuiValidation, PropertyContainer, WidgetProperty};
+use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::lowercase::Lowercase;
 use crate::report::{err, untidy, warn, ErrorKey};
 use crate::token::Token;
@@ -42,7 +41,7 @@ pub struct GuiBlock {
     /// The contents of this block.
     items: Vec<GuiItem>,
     /// The names of all named blocks in this block, its base types, and its children.
-    substnames: FnvHashSet<String>,
+    substnames: TigerHashSet<String>,
 }
 
 /// An indication of where this [`Block`] was found, to help with determining the metadata for the
@@ -68,8 +67,8 @@ impl GuiBlock {
     pub fn from_block(
         from: GuiBlockFrom,
         block: &Block,
-        types: &FnvHashMap<Lowercase<'static>, GuiType>,
-        templates: &FnvHashMap<&'static str, GuiTemplate>,
+        types: &TigerHashMap<Lowercase<'static>, GuiType>,
+        templates: &TigerHashMap<&'static str, GuiTemplate>,
     ) -> Arc<Self> {
         enum Expecting<'a> {
             Field,
@@ -85,7 +84,7 @@ impl GuiBlock {
             container: None,
             base: None,
             items: Vec::new(),
-            substnames: FnvHashSet::default(),
+            substnames: TigerHashSet::default(),
         };
 
         // Fill in `container` and `base` fields if known

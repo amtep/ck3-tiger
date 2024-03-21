@@ -1,15 +1,13 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use fnv::FnvHashMap;
-
 use crate::block::{Block, Field};
 use crate::context::{Reason, ScopeContext};
 use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_internal};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
@@ -23,8 +21,8 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct ImperatorEvents {
-    events: FnvHashMap<(String, u16), Event>,
-    namespaces: FnvHashMap<String, Token>,
+    events: TigerHashMap<(String, u16), Event>,
+    namespaces: TigerHashMap<String, Token>,
 }
 
 impl ImperatorEvents {

@@ -1,13 +1,11 @@
 use std::path::PathBuf;
 use std::sync::RwLock;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap};
 use crate::pdxfile::PdxFile;
 use crate::report::{err, ErrorKey};
 use crate::scopes::{scope_iterator, Scopes};
@@ -18,7 +16,7 @@ use crate::validator::Validator;
 
 #[derive(Debug, Default)]
 pub struct ScriptedLists {
-    lists: FnvHashMap<&'static str, List>,
+    lists: TigerHashMap<&'static str, List>,
 }
 
 impl ScriptedLists {
@@ -80,12 +78,12 @@ impl FileHandler<Block> for ScriptedLists {
 pub struct List {
     pub key: Token,
     block: Block,
-    cache: RwLock<FnvHashMap<Loc, ScopeContext>>,
+    cache: RwLock<TigerHashMap<Loc, ScopeContext>>,
 }
 
 impl List {
     pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block, cache: RwLock::new(FnvHashMap::default()) }
+        Self { key, block, cache: RwLock::new(TigerHashMap::default()) }
     }
 
     fn cached_compat(&self, key: &Token, sc: &mut ScopeContext) -> bool {

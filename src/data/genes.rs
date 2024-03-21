@@ -1,10 +1,8 @@
-use fnv::FnvHashSet;
-
 use crate::block::{Block, BV};
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashSet};
 use crate::item::{Item, ItemLoader};
 use crate::report::{err, fatal, warn, ErrorKey};
 #[cfg(any(feature = "ck3", feature = "vic3"))]
@@ -161,12 +159,12 @@ impl DbKind for AgePresetGene {
 #[derive(Clone, Debug)]
 pub struct MorphGene {
     special_gene: bool,
-    templates: FnvHashSet<Token>,
+    templates: TigerHashSet<Token>,
 }
 
 impl MorphGene {
     pub fn add(db: &mut Db, key: Token, block: Block, special_gene: bool) {
-        let mut templates = FnvHashSet::default();
+        let mut templates = TigerHashSet::default();
         for (key, _block) in block.iter_definitions() {
             if key.is("ugliness_feature_categories") {
                 continue;
@@ -297,12 +295,12 @@ fn validate_portrait_modifier_use(
 
 #[derive(Clone, Debug)]
 pub struct AccessoryGene {
-    templates: FnvHashSet<Token>,
+    templates: TigerHashSet<Token>,
 }
 
 impl AccessoryGene {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        let mut templates = FnvHashSet::default();
+        let mut templates = TigerHashSet::default();
         #[allow(unused_variables)] // vic3 does not use `block`
         for (key, block) in block.iter_definitions() {
             if key.is("ugliness_feature_categories") {

@@ -45,6 +45,7 @@ strum_macros = "0.26"
 thiserror = "1"
 unicode-width = "0.1.9"
 walkdir = "2"
+ahash = { version = "0.8", features = ["std", "compile-time-rng"], default-features = false }
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.52"

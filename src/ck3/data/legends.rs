@@ -1,5 +1,3 @@
-use fnv::{FnvHashMap, FnvHashSet};
-
 use crate::block::{Block, BV};
 use crate::ck3::scopes::scope_from_snake_case;
 use crate::ck3::validate::validate_cost;
@@ -8,6 +6,7 @@ use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::effect::validate_effect;
 use crate::game::GameFlags;
+use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{err, ErrorKey};
@@ -258,7 +257,7 @@ impl DbKind for LegendSeed {
                 data.get_item::<LegendChronicle>(Item::LegendChronicle, chronicle_token.as_str())
             {
                 vd.field_validated_key_block("chronicle_properties", |key, block, data| {
-                    let mut found_properties = FnvHashSet::default();
+                    let mut found_properties = TigerHashSet::default();
                     let mut sc = ScopeContext::new(Scopes::Character, key);
                     let mut vd = Validator::new(block, data);
                     vd.unknown_fields(|key, bv| {
@@ -323,8 +322,8 @@ impl DbKind for LegendSeed {
 
 #[derive(Clone, Debug)]
 pub struct LegendChronicle {
-    properties: FnvHashMap<Token, Scopes>,
-    chapters: FnvHashSet<Token>,
+    properties: TigerHashMap<Token, Scopes>,
+    chapters: TigerHashSet<Token>,
 }
 
 inventory::submit! {
@@ -333,8 +332,8 @@ inventory::submit! {
 
 impl LegendChronicle {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        let mut properties = FnvHashMap::default();
-        let mut chapters = FnvHashSet::default();
+        let mut properties = TigerHashMap::default();
+        let mut chapters = TigerHashSet::default();
 
         if let Some(block) = block.get_field_block("properties") {
             for (key, value) in block.iter_assignments() {

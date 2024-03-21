@@ -1,9 +1,8 @@
-use fnv::FnvHashSet;
-
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
+use crate::helpers::TigerHashSet;
 use crate::item::{Item, ItemLoader};
 use crate::report::{untidy, ErrorKey};
 use crate::token::Token;
@@ -41,7 +40,7 @@ fn check_fallback_cycle(key: &Token, block: &Block, data: &Everything) {
     } else {
         return;
     }
-    let mut seen = FnvHashSet::default();
+    let mut seen = TigerHashSet::default();
     seen.insert(key.as_str());
     loop {
         if seen.contains(fallback.as_str()) {

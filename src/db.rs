@@ -6,14 +6,13 @@ use std::any::Any;
 use std::fmt::Debug;
 
 use as_any::AsAny;
-use fnv::{FnvHashMap, FnvHashSet};
 use rayon::prelude::*;
 use strum::IntoEnumIterator;
 
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
-use crate::helpers::{dup_error, exact_dup_advice, exact_dup_error};
+use crate::helpers::{dup_error, exact_dup_advice, exact_dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::token::Token;
@@ -23,12 +22,12 @@ use crate::token::Token;
 pub struct Db {
     /// Items with full DbEntries, meaning a key and a block for each.
     /// The `Vec` is indexed with an `Item` discriminant.
-    database: Vec<FnvHashMap<&'static str, DbEntry>>,
+    database: Vec<TigerHashMap<&'static str, DbEntry>>,
     /// Items generated as side effects of the full items in `database`.
     /// The `Vec` is indexed with an `Item` discriminant.
-    flags: Vec<FnvHashSet<Token>>,
+    flags: Vec<TigerHashSet<Token>>,
     /// Lowercased registry of database items and flags, for case insensitive lookups
-    items_lc: Vec<FnvHashMap<Lowercase<'static>, &'static str>>,
+    items_lc: Vec<TigerHashMap<Lowercase<'static>, &'static str>>,
 }
 
 impl Default for Db {
@@ -36,9 +35,9 @@ impl Default for Db {
         let mut db =
             Self { database: Vec::default(), flags: Vec::default(), items_lc: Vec::default() };
         for _ in Item::iter() {
-            db.database.push(FnvHashMap::default());
-            db.flags.push(FnvHashSet::default());
-            db.items_lc.push(FnvHashMap::default());
+            db.database.push(TigerHashMap::default());
+            db.flags.push(TigerHashSet::default());
+            db.items_lc.push(TigerHashMap::default());
         }
         db
     }

@@ -1,12 +1,10 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
+use crate::helpers::{dup_error, exact_dup_error, TigerHashMap, BANNED_NAMES};
 use crate::lowercase::Lowercase;
 use crate::macros::{MacroCache, MACRO_MAP};
 use crate::pdxfile::PdxFile;
@@ -18,8 +16,8 @@ use crate::trigger::validate_trigger_internal;
 
 #[derive(Debug, Default)]
 pub struct Triggers {
-    scope_overrides: FnvHashMap<&'static str, Scopes>,
-    triggers: FnvHashMap<&'static str, Trigger>,
+    scope_overrides: TigerHashMap<&'static str, Scopes>,
+    triggers: TigerHashMap<&'static str, Trigger>,
 }
 
 impl Triggers {

@@ -1,14 +1,12 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::game::{Game, GameFlags};
-use crate::helpers::{dup_error, exact_dup_advice};
+use crate::helpers::{dup_error, exact_dup_advice, TigerHashMap};
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::{PdxEncoding, PdxFile};
 use crate::report::{untidy, warn, ErrorKey, Severity};
@@ -21,8 +19,8 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct Coas {
-    coas: FnvHashMap<&'static str, Coa>,
-    templates: FnvHashMap<&'static str, Coa>,
+    coas: TigerHashMap<&'static str, Coa>,
+    templates: TigerHashMap<&'static str, Coa>,
 }
 
 impl Coas {

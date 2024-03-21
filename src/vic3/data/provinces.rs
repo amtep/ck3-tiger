@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashSet;
 use image::{DynamicImage, Rgb};
 
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::TigerHashSet;
 use crate::item::Item;
 use crate::report::{err, report, ErrorKey, Severity};
 use crate::token::Token;
@@ -12,7 +12,7 @@ use crate::token::Token;
 #[derive(Clone, Debug, Default)]
 pub struct Vic3Provinces {
     /// Colors in the provinces.png
-    colors: FnvHashSet<Rgb<u8>>,
+    colors: TigerHashSet<Rgb<u8>>,
 
     /// Kept and used for error reporting.
     provinces_png: Option<FileEntry>,

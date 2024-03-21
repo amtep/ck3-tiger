@@ -1,11 +1,9 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::report::{warn, ErrorKey};
@@ -19,7 +17,7 @@ const DEFAULT_TERRAINS: &[&str] = &["default_land", "default_sea", "default_coas
 
 #[derive(Clone, Debug, Default)]
 pub struct ProvinceTerrains {
-    provinces: FnvHashMap<ProvId, ProvinceTerrain>,
+    provinces: TigerHashMap<ProvId, ProvinceTerrain>,
     file_loc: Option<Loc>,
     defaults: [Option<Token>; DEFAULT_TERRAINS.len()],
 }
@@ -114,7 +112,7 @@ impl ProvinceTerrain {
 
 #[derive(Clone, Debug, Default)]
 pub struct ProvinceProperties {
-    provinces: FnvHashMap<ProvId, ProvinceProperty>,
+    provinces: TigerHashMap<ProvId, ProvinceProperty>,
 }
 
 impl ProvinceProperties {

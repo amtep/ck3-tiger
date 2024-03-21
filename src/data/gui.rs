@@ -4,13 +4,11 @@ use std::mem::drop;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
-use fnv::{FnvHashMap, FnvHashSet};
-
 use crate::block::{Block, BlockItem, Field, BV};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::gui::{BuiltinWidget, GuiBlock, GuiBlockFrom};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
@@ -20,18 +18,18 @@ use crate::validator::Validator;
 
 #[derive(Debug, Default)]
 pub struct Gui {
-    files: FnvHashMap<PathBuf, Vec<GuiWidget>>,
-    templates: FnvHashMap<&'static str, GuiTemplate>,
+    files: TigerHashMap<PathBuf, Vec<GuiWidget>>,
+    templates: TigerHashMap<&'static str, GuiTemplate>,
     // Type keys are stored in lowercase because type lookup is case-insensitive
-    types: FnvHashMap<Lowercase<'static>, GuiType>,
-    layers: FnvHashMap<&'static str, GuiLayer>,
+    types: TigerHashMap<Lowercase<'static>, GuiType>,
+    layers: TigerHashMap<&'static str, GuiLayer>,
     // TextIcon is in a Vec because a single icon can have multiple definitions with different
     // iconsize parameters.
-    texticons: FnvHashMap<&'static str, Vec<TextIcon>>,
-    textformats: FnvHashMap<&'static str, TextFormat>,
+    texticons: TigerHashMap<&'static str, Vec<TextIcon>>,
+    textformats: TigerHashMap<&'static str, TextFormat>,
     // This is indexed by a (colorblindmode, textformatname) pair
-    textformats_colorblind: FnvHashMap<(&'static str, &'static str), TextFormat>,
-    widget_names: FnvHashSet<Token>,
+    textformats_colorblind: TigerHashMap<(&'static str, &'static str), TextFormat>,
+    widget_names: TigerHashSet<Token>,
 }
 
 impl Gui {
@@ -506,8 +504,8 @@ impl GuiTemplate {
 
     pub fn calculate_gui_block(
         &self,
-        types: &FnvHashMap<Lowercase<'static>, GuiType>,
-        templates: &FnvHashMap<&'static str, GuiTemplate>,
+        types: &TigerHashMap<Lowercase<'static>, GuiType>,
+        templates: &TigerHashMap<&'static str, GuiTemplate>,
     ) -> Arc<GuiBlock> {
         if let Ok(mut gui_block) = self.gui_block.try_write() {
             let calc = GuiBlock::from_block(GuiBlockFrom::Template, &self.block, types, templates);
@@ -522,8 +520,8 @@ impl GuiTemplate {
 
     pub fn gui_block(
         &self,
-        types: &FnvHashMap<Lowercase<'static>, GuiType>,
-        templates: &FnvHashMap<&'static str, GuiTemplate>,
+        types: &TigerHashMap<Lowercase<'static>, GuiType>,
+        templates: &TigerHashMap<&'static str, GuiTemplate>,
     ) -> Arc<GuiBlock> {
         if let Ok(gui_block) = self.gui_block.try_read() {
             if let Some(gui_block) = gui_block.clone() {
@@ -587,7 +585,7 @@ impl GuiType {
 
     pub fn calculate_builtin(
         &self,
-        types: &FnvHashMap<Lowercase<'static>, GuiType>,
+        types: &TigerHashMap<Lowercase<'static>, GuiType>,
     ) -> Option<BuiltinWidget> {
         if let Ok(mut builtin) = self.builtin.try_write() {
             let base_lc = Lowercase::new(self.base.as_str());
@@ -603,7 +601,7 @@ impl GuiType {
 
     pub fn builtin(
         &self,
-        types: &FnvHashMap<Lowercase<'static>, GuiType>,
+        types: &TigerHashMap<Lowercase<'static>, GuiType>,
     ) -> Option<BuiltinWidget> {
         if let Ok(builtin) = self.builtin.try_read() {
             if let Some(builtin) = *builtin {
@@ -621,8 +619,8 @@ impl GuiType {
 
     pub fn calculate_gui_block(
         &self,
-        types: &FnvHashMap<Lowercase<'static>, GuiType>,
-        templates: &FnvHashMap<&'static str, GuiTemplate>,
+        types: &TigerHashMap<Lowercase<'static>, GuiType>,
+        templates: &TigerHashMap<&'static str, GuiTemplate>,
     ) -> Arc<GuiBlock> {
         if let Ok(mut gui_block) = self.gui_block.try_write() {
             let from = if self.is_builtin_wrapper {
@@ -642,8 +640,8 @@ impl GuiType {
 
     pub fn gui_block(
         &self,
-        types: &FnvHashMap<Lowercase<'static>, GuiType>,
-        templates: &FnvHashMap<&'static str, GuiTemplate>,
+        types: &TigerHashMap<Lowercase<'static>, GuiType>,
+        templates: &TigerHashMap<&'static str, GuiTemplate>,
     ) -> Arc<GuiBlock> {
         if let Ok(gui_block) = self.gui_block.try_read() {
             // cloning the Option Arc

@@ -6,7 +6,6 @@ use std::str::FromStr;
 use std::sync::atomic::Ordering;
 
 use atomic_enum::atomic_enum;
-use fnv::{FnvHashMap, FnvHashSet};
 
 use crate::block::{Block, Comparator, Eq::*, BV};
 use crate::ck3::data::houses::House;
@@ -16,6 +15,7 @@ use crate::date::Date;
 use crate::effect::{validate_effect, validate_effect_field};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
@@ -63,7 +63,7 @@ impl Display for Gender {
 pub struct Characters {
     config_only_born: Option<Date>,
 
-    characters: FnvHashMap<&'static str, Character>,
+    characters: TigerHashMap<&'static str, Character>,
 
     /// These are characters with duplicate ids. We can't put them in the `characters` map because of the ids,
     /// but we do want to validate them.
@@ -468,7 +468,7 @@ impl Character {
     fn validate_life(character: &Token, life_events: Vec<LifeEvent>) {
         let mut birth = None;
         let mut death = None;
-        let mut spouses = FnvHashSet::<Token>::default();
+        let mut spouses = TigerHashSet::<Token>::default();
         let mut employed = false;
 
         for LifeEvent { date, index: _, token, event } in life_events {

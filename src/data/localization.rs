@@ -5,7 +5,6 @@ use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 use std::sync::RwLock;
 
-use fnv::{FnvHashMap, FnvHashSet};
 use rayon::scope;
 
 use crate::block::Block;
@@ -15,7 +14,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::game::Game;
-use crate::helpers::{dup_error, stringify_list};
+use crate::helpers::{dup_error, stringify_list, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::macros::{MacroMapIndex, MACRO_MAP};
 use crate::parse::localization::{parse_loca, ValueParser};
@@ -35,14 +34,14 @@ pub struct Localization {
     /// (This saves them the effort of configuring `check_langs`).
     mod_langs: Vec<&'static str>,
     /// Database of all localizations, indexed first by language and then by localization key.
-    locas: FnvHashMap<&'static str, FnvHashMap<String, LocaEntry>>,
+    locas: TigerHashMap<&'static str, TigerHashMap<String, LocaEntry>>,
     /// Which localization keys have been "used" (looked up) by the rest of the mod.
     /// This is used to print out the unused ones if requested.
-    keys_used: RwLock<FnvHashSet<String>>,
+    keys_used: RwLock<TigerHashSet<String>>,
     /// Which localization keys have been validated via [`Localization::validate_use`].
     /// `validate_use` takes a [`ScopeContext`], so this field is used to avoid re-validating those
     /// keys with less information during the general validation pass.
-    keys_validated_with_sc: RwLock<FnvHashSet<String>>,
+    keys_validated_with_sc: RwLock<TigerHashSet<String>>,
 }
 
 /// List of languages that are supported by the game engine.
@@ -158,9 +157,9 @@ impl LocaEntry {
     fn expand_macros<'a>(
         &'a self,
         vec: &mut Vec<Token>,
-        from: &'a FnvHashMap<String, LocaEntry>,
+        from: &'a TigerHashMap<String, LocaEntry>,
         count: &mut usize,
-        used: &mut FnvHashSet<String>,
+        used: &mut TigerHashSet<String>,
         link: Option<MacroMapIndex>,
     ) -> bool {
         // Are we (probably) stuck in a macro loop?
@@ -742,7 +741,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
         // Check that every macro use refers to a defined key.
         // First build the list of builtin macros by just checking which ones vanilla uses.
         // TODO: scan the character interactions, which can also define macros
-        let mut builtins = FnvHashSet::default();
+        let mut builtins = TigerHashSet::default();
         builtins.extend(BUILTIN_MACROS);
         for lang in self.locas.values() {
             for entry in lang.values() {
@@ -813,10 +812,10 @@ impl Default for Localization {
     fn default() -> Self {
         Localization {
             check_langs: Vec::from(KNOWN_LANGUAGES),
-            locas: FnvHashMap::default(),
+            locas: TigerHashMap::default(),
             mod_langs: Vec::default(),
-            keys_used: RwLock::new(FnvHashSet::default()),
-            keys_validated_with_sc: RwLock::new(FnvHashSet::default()),
+            keys_used: RwLock::new(TigerHashSet::default()),
+            keys_validated_with_sc: RwLock::new(TigerHashSet::default()),
         }
     }
 }

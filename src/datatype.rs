@@ -15,7 +15,7 @@ use crate::context::ScopeContext;
 use crate::data::customloca::CustomLocalization;
 use crate::everything::Everything;
 use crate::game::Game;
-use crate::helpers::BiFnvHashMap;
+use crate::helpers::BiTigerHashMap;
 use crate::item::Item;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::report::err;
@@ -857,7 +857,7 @@ fn lookup_alternative(lookup_name: &'static str) -> Option<&'static str> {
     lowercase_datatype_set.get(&CaseInsensitiveStr(lookup_name)).map(|x| x.0)
 }
 
-fn datatype_and_scope_map() -> &'static Lazy<BiFnvHashMap<Datatype, Scopes>> {
+fn datatype_and_scope_map() -> &'static Lazy<BiTigerHashMap<Datatype, Scopes>> {
     match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => &crate::ck3::tables::datafunctions::DATATYPE_AND_SCOPE_MAP,

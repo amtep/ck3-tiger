@@ -1,12 +1,10 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, BANNED_NAMES};
+use crate::helpers::{dup_error, TigerHashMap, BANNED_NAMES};
 use crate::macros::{MacroCache, MACRO_MAP};
 use crate::pdxfile::PdxFile;
 use crate::report::{err, ErrorKey};
@@ -18,7 +16,7 @@ use crate::validator::Validator;
 
 #[derive(Debug, Default)]
 pub struct ScriptedModifiers {
-    scripted_modifiers: FnvHashMap<&'static str, ScriptedModifier>,
+    scripted_modifiers: TigerHashMap<&'static str, ScriptedModifier>,
 }
 
 impl ScriptedModifiers {

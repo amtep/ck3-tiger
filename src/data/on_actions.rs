@@ -1,13 +1,12 @@
 use std::path::PathBuf;
 
-use fnv::{FnvHashMap, FnvHashSet};
-
 use crate::block::{Block, BlockItem, Field, BV};
 use crate::context::ScopeContext;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::game::Game;
+use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::on_action::on_action_scopecontext;
 use crate::pdxfile::PdxFile;
@@ -22,7 +21,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct OnActions {
-    on_actions: FnvHashMap<&'static str, OnAction>,
+    on_actions: TigerHashMap<&'static str, OnAction>,
 }
 
 impl OnActions {
@@ -85,7 +84,7 @@ fn on_action_special_append(first: &mut Block, mut second: Block) {
         "random_on_action",
         "first_valid_on_action",
     ];
-    let mut seen: FnvHashSet<String> = FnvHashSet::default();
+    let mut seen: TigerHashSet<String> = TigerHashSet::default();
     for item in second.drain() {
         if let BlockItem::Field(Field(key, cmp, BV::Block(mut block))) = item {
             // For the special fields, append the first one we see to the first block's corresponding field.

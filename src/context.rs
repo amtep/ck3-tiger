@@ -2,10 +2,8 @@
 
 use std::borrow::Cow;
 
-use fnv::FnvHashMap;
-
 use crate::game::Game;
-use crate::helpers::stringify_choices;
+use crate::helpers::{stringify_choices, TigerHashMap};
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -31,8 +29,8 @@ pub struct ScopeContext {
     /// Names should only be added, never removed, and indices should stay consistent.
     /// This is because the indices are also used by `ScopeEntry::Named` values throughout this `ScopeContext`.
     /// `names` and `list_names` occupy separate namespaces, but index into the same `named` array.
-    names: FnvHashMap<String, usize>,
-    list_names: FnvHashMap<String, usize>,
+    names: TigerHashMap<String, usize>,
+    list_names: TigerHashMap<String, usize>,
 
     /// Named scope values are `ScopeEntry::Scope` or `ScopeEntry::Named` or `ScopeEntry::Rootref`.
     /// Invariant: there are no cycles in the array via `ScopeEntry::Named` entries.
@@ -154,8 +152,8 @@ impl ScopeContext {
             prev: None,
             this: ScopeEntry::Rootref,
             root: ScopeEntry::Scope(root, Reason::Builtin(token.into())),
-            names: FnvHashMap::default(),
-            list_names: FnvHashMap::default(),
+            names: TigerHashMap::default(),
+            list_names: TigerHashMap::default(),
             named: Vec::new(),
             is_input: Vec::new(),
             is_builder: false,
@@ -179,8 +177,8 @@ impl ScopeContext {
             })),
             this: ScopeEntry::Scope(this, Reason::Token(token.clone())),
             root: ScopeEntry::Scope(Scopes::all(), Reason::Token(token)),
-            names: FnvHashMap::default(),
-            list_names: FnvHashMap::default(),
+            names: TigerHashMap::default(),
+            list_names: TigerHashMap::default(),
             named: Vec::new(),
             is_input: Vec::new(),
             is_builder: false,

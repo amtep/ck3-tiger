@@ -10,8 +10,6 @@ use std::path::{Path, PathBuf};
 use std::sync::RwLock;
 
 use anyhow::Result;
-#[cfg(feature = "ck3")]
-use fnv::FnvHashSet;
 use rayon::{scope, Scope};
 use strum::IntoEnumIterator;
 use thiserror::Error;
@@ -60,6 +58,8 @@ use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::game::Game;
+#[cfg(feature = "ck3")]
+use crate::helpers::TigerHashSet;
 #[cfg(feature = "imperator")]
 use crate::imperator::data::{
     decisions::Decisions, events::ImperatorEvents, provinces::ImperatorProvinces,
@@ -113,7 +113,7 @@ pub struct Everything {
     /// A cache of define values (from common/defines) that are missing and that have already been
     /// warned about as missing. This is to avoid duplicate warnings.
     #[cfg(feature = "ck3")] // happens not to be used by vic3
-    warned_defines: RwLock<FnvHashSet<String>>,
+    warned_defines: RwLock<TigerHashSet<String>>,
 
     /// Tracks all the files (vanilla and mods) that are relevant to the current validation.
     pub(crate) fileset: Fileset,
@@ -252,7 +252,7 @@ impl Everything {
             dds: DdsFiles::default(),
             config,
             #[cfg(feature = "ck3")]
-            warned_defines: RwLock::new(FnvHashSet::default()),
+            warned_defines: RwLock::new(TigerHashSet::default()),
             database: Db::default(),
             localization: Localization::default(),
             scripted_lists: ScriptedLists::default(),

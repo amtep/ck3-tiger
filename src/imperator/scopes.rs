@@ -2,11 +2,10 @@
 
 use std::fmt::Formatter;
 
-use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
-use crate::helpers::display_choices;
+use crate::helpers::{display_choices, TigerHashMap};
 use crate::item::Item;
 use crate::scopes::{ArgumentValue, Scopes};
 
@@ -184,8 +183,8 @@ pub fn scope_to_scope(name: &str) -> Option<(Scopes, Scopes)> {
     SCOPE_TO_SCOPE_MAP.get(name).copied()
 }
 
-static SCOPE_TO_SCOPE_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
-    let mut hash = FnvHashMap::default();
+static SCOPE_TO_SCOPE_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
+    let mut hash = TigerHashMap::default();
     for (from, s, to) in SCOPE_TO_SCOPE.iter().copied() {
         hash.insert(s, (from, to));
     }
@@ -326,9 +325,9 @@ pub fn scope_prefix(name: &str) -> Option<(Scopes, Scopes, ArgumentValue)> {
     SCOPE_PREFIX_MAP.get(name).copied()
 }
 
-static SCOPE_PREFIX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes, ArgumentValue)>> =
+static SCOPE_PREFIX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes, ArgumentValue)>> =
     Lazy::new(|| {
-        let mut hash = FnvHashMap::default();
+        let mut hash = TigerHashMap::default();
         for (from, s, to, argument) in SCOPE_PREFIX.iter().copied() {
             hash.insert(s, (from, to, argument));
         }
@@ -392,8 +391,8 @@ pub fn scope_iterator(name: &str) -> Option<(Scopes, Scopes)> {
     SCOPE_ITERATOR_MAP.get(name).copied()
 }
 
-static SCOPE_ITERATOR_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
-    let mut hash = FnvHashMap::default();
+static SCOPE_ITERATOR_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
+    let mut hash = TigerHashMap::default();
     for (from, s, to) in SCOPE_ITERATOR.iter().copied() {
         hash.insert(s, (from, to));
     }

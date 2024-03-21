@@ -1,12 +1,10 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::report::{report, ErrorKey, Severity};
@@ -19,7 +17,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct Musics {
-    musics: FnvHashMap<&'static str, Music>,
+    musics: TigerHashMap<&'static str, Music>,
 }
 
 impl Musics {

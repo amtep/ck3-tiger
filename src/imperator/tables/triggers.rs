@@ -1,7 +1,7 @@
-use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
+use crate::helpers::TigerHashMap;
 use crate::item::Item;
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -49,8 +49,8 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
     None
 }
 
-static TRIGGER_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
-    let mut hash = FnvHashMap::default();
+static TRIGGER_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
+    let mut hash = TigerHashMap::default();
     for (from, s, trigger) in TRIGGER {
         hash.insert(*s, (*from, *trigger));
     }

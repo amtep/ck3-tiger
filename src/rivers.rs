@@ -7,11 +7,11 @@ use std::ops::{RangeInclusive, RangeToInclusive};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Result};
-use fnv::{FnvHashMap, FnvHashSet};
 use png::{ColorType, Decoder};
 
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::report::{err, warn, will_maybe_log, ErrorKey};
 
 /// The `rivers.png` has an indexed palette where the colors don't matter, only the index values
@@ -116,10 +116,10 @@ impl Rivers {
 
     fn validate_segments(
         &self,
-        river_segments: FnvHashMap<(u32, u32), (u32, u32)>,
-        mut specials: FnvHashMap<(u32, u32), bool>,
+        river_segments: TigerHashMap<(u32, u32), (u32, u32)>,
+        mut specials: TigerHashMap<(u32, u32), bool>,
     ) {
-        let mut seen = FnvHashSet::default();
+        let mut seen = TigerHashSet::default();
 
         for (start, end) in river_segments {
             if seen.contains(&start) {
@@ -201,11 +201,11 @@ impl Rivers {
         // Maps each endpoint of a segment to the other endpoint.
         // Single-pixel segments map that coordinate to itself.
         // The river pixels that connect the endpoints are not remembered.
-        let mut river_segments: FnvHashMap<(u32, u32), (u32, u32)> = FnvHashMap::default();
+        let mut river_segments: TigerHashMap<(u32, u32), (u32, u32)> = TigerHashMap::default();
 
         // Maps the coordinates of special pixels (sources, sinks, and splits)
         // to a boolean that says whether the pixel terminates a segment.
-        let mut specials = FnvHashMap::default();
+        let mut specials = TigerHashMap::default();
 
         // A working vec, holding the list of river-pixel neighbors of the current pixel.
         // It is declared here to avoid the overhead of creating and destroying the Vec in every

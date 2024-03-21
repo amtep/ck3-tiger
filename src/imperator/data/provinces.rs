@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use fnv::{FnvHashMap, FnvHashSet};
 use image::{DynamicImage, Rgb};
 
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::pdxfile::PdxFile;
@@ -18,21 +18,21 @@ pub type ProvId = u32;
 #[derive(Clone, Debug, Default)]
 pub struct ImperatorProvinces {
     /// Colors in the provinces.png
-    colors: FnvHashSet<Rgb<u8>>,
+    colors: TigerHashSet<Rgb<u8>>,
 
     /// Provinces defined in definition.csv.
     /// Imperator requires uninterrupted indices starting at 0, but we want to be able to warn
     /// and continue if they're not, so it's a hashmap.
-    provinces: FnvHashMap<ProvId, Province>,
+    provinces: TigerHashMap<ProvId, Province>,
 
     /// Kept and used for error reporting.
     definition_csv: Option<FileEntry>,
 
     adjacencies: Vec<Adjacency>,
 
-    impassable: FnvHashSet<ProvId>,
+    impassable: TigerHashSet<ProvId>,
 
-    sea_or_river: FnvHashSet<ProvId>,
+    sea_or_river: TigerHashSet<ProvId>,
 }
 
 impl ImperatorProvinces {
@@ -278,7 +278,7 @@ impl FileHandler<FileContent> for ImperatorProvinces {
         }
         let definition_csv = self.definition_csv.as_ref().unwrap();
 
-        let mut seen_colors = FnvHashMap::default();
+        let mut seen_colors = TigerHashMap::default();
         #[allow(clippy::cast_possible_truncation)]
         for i in 1..self.provinces.len() as u32 {
             if let Some(province) = self.provinces.get(&i) {

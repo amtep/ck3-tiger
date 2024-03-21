@@ -3,13 +3,13 @@
 //! On-actions are script items that are called by the game engine, either at scheduled intervals
 //! or when certain things happen.
 
-use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
 use crate::block::BV;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::game::Game;
+use crate::helpers::TigerHashMap;
 #[cfg(feature = "ck3")]
 use crate::item::Item;
 use crate::parse::pdxfile::parse_pdx_internal;
@@ -23,7 +23,7 @@ struct OnActionScopeContext {
     lists: Vec<(String, Scopes)>,
 }
 
-static ON_ACTION_SCOPES_MAP: Lazy<FnvHashMap<String, OnActionScopeContext>> = Lazy::new(|| {
+static ON_ACTION_SCOPES_MAP: Lazy<TigerHashMap<String, OnActionScopeContext>> = Lazy::new(|| {
     build_on_action_hashmap(match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::on_action::ON_ACTION_SCOPES,
@@ -70,8 +70,10 @@ pub fn on_action_scopecontext(key: &Token, data: &Everything) -> Option<ScopeCon
     None
 }
 
-fn build_on_action_hashmap(description: &'static str) -> FnvHashMap<String, OnActionScopeContext> {
-    let mut hash: FnvHashMap<String, OnActionScopeContext> = FnvHashMap::default();
+fn build_on_action_hashmap(
+    description: &'static str,
+) -> TigerHashMap<String, OnActionScopeContext> {
+    let mut hash: TigerHashMap<String, OnActionScopeContext> = TigerHashMap::default();
 
     let mut block = parse_pdx_internal(description, "on action builtin scopes");
     for item in block.drain() {

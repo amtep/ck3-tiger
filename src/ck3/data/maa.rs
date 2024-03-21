@@ -1,13 +1,11 @@
 use std::path::PathBuf;
 
-use fnv::{FnvHashMap, FnvHashSet};
-
 use crate::block::Block;
 use crate::ck3::validate::{validate_cost, validate_maa_stats};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
@@ -20,9 +18,9 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct MenAtArmsTypes {
-    menatarmsbasetypes: FnvHashSet<Token>,
-    menatarmstypes: FnvHashMap<&'static str, MenAtArmsType>,
-    menatarmsbasetypes_lc: FnvHashSet<Lowercase<'static>>,
+    menatarmsbasetypes: TigerHashSet<Token>,
+    menatarmstypes: TigerHashMap<&'static str, MenAtArmsType>,
+    menatarmsbasetypes_lc: TigerHashSet<Lowercase<'static>>,
 }
 
 impl MenAtArmsTypes {

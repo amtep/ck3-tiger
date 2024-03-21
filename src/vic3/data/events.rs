@@ -1,15 +1,13 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use fnv::{FnvHashMap, FnvHashSet};
-
 use crate::block::{Block, Field, BV};
 use crate::context::{Reason, ScopeContext};
 use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_internal};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
@@ -24,8 +22,8 @@ use crate::vic3::tables::misc::EVENT_CATEGORIES;
 
 #[derive(Clone, Debug, Default)]
 pub struct Vic3Events {
-    events: FnvHashMap<(&'static str, u16), Event>,
-    namespaces: FnvHashSet<Token>,
+    events: TigerHashMap<(&'static str, u16), Event>,
+    namespaces: TigerHashSet<Token>,
 }
 
 impl Vic3Events {
