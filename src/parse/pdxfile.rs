@@ -6,11 +6,10 @@ use std::fmt::Display;
 use std::mem::{swap, take};
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::Eq::Single;
 use crate::block::{Block, Comparator, BV};
 use crate::fileset::{FileEntry, FileKind};
+use crate::helpers::TigerHashMap;
 use crate::parse::cob::Cob;
 use crate::report::{err, fatal, store_source_file, untidy, warn, ErrorKey};
 use crate::token::{bump, leak, Loc, Token};
@@ -280,9 +279,9 @@ impl CharExt for char {
 #[derive(Clone, Debug, Default)]
 pub struct LocalValues {
     /// @-values defined as numbers. Calculations can be done with these in `@[ ... ]` blocks.
-    values: FnvHashMap<String, (f64, &'static str)>,
+    values: TigerHashMap<String, (f64, &'static str)>,
     /// @-values defined as text. These can be substituted at other locations in the script.
-    text: FnvHashMap<String, &'static str>,
+    text: TigerHashMap<String, &'static str>,
 }
 
 impl LocalValues {

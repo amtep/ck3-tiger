@@ -1,9 +1,9 @@
 #![allow(non_upper_case_globals)]
 
-use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
+use crate::helpers::TigerHashMap;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::modif::ModifKinds;
@@ -290,8 +290,8 @@ fn maybe_warn(itype: Item, s: &Lowercase, name: &Token, data: &Everything, warn:
     }
 }
 
-static MODIF_MAP: Lazy<FnvHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new(|| {
-    let mut hash = FnvHashMap::default();
+static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new(|| {
+    let mut hash = TigerHashMap::default();
     for (s, kind) in MODIF_TABLE.iter().copied() {
         hash.insert(Lowercase::new_unchecked(s), kind);
     }
@@ -604,8 +604,8 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("unit_supply_consumption_mult", ModifKinds::Unit),
 ];
 
-static MODIF_REMOVED_MAP: Lazy<FnvHashMap<Lowercase<'static>, &'static str>> = Lazy::new(|| {
-    let mut hash = FnvHashMap::default();
+static MODIF_REMOVED_MAP: Lazy<TigerHashMap<Lowercase<'static>, &'static str>> = Lazy::new(|| {
+    let mut hash = TigerHashMap::default();
     for (s, info) in MODIF_REMOVED_TABLE.iter().copied() {
         hash.insert(Lowercase::new_unchecked(s), info);
     }

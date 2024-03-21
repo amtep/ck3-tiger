@@ -2,14 +2,12 @@ use std::fmt::{Display, Formatter};
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::ck3::data::provinces::ProvId;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, warn, ErrorKey};
@@ -22,8 +20,8 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct Titles {
-    titles: FnvHashMap<&'static str, Arc<Title>>,
-    baronies: FnvHashMap<ProvId, Arc<Title>>,
+    titles: TigerHashMap<&'static str, Arc<Title>>,
+    baronies: TigerHashMap<ProvId, Arc<Title>>,
 }
 
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]

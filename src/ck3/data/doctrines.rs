@@ -1,14 +1,12 @@
 use std::path::PathBuf;
 
-use fnv::{FnvHashMap, FnvHashSet};
-
 use crate::block::Block;
 use crate::ck3::validate::validate_traits;
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxFile;
@@ -21,9 +19,9 @@ use crate::validator::Validator;
 #[derive(Clone, Debug, Default)]
 #[allow(clippy::struct_field_names)]
 pub struct Doctrines {
-    categories: FnvHashMap<&'static str, DoctrineCategory>,
-    doctrines: FnvHashMap<&'static str, Doctrine>,
-    parameters: FnvHashSet<Token>, // only the boolean parameters
+    categories: TigerHashMap<&'static str, DoctrineCategory>,
+    doctrines: TigerHashMap<&'static str, Doctrine>,
+    parameters: TigerHashSet<Token>, // only the boolean parameters
 }
 
 impl Doctrines {

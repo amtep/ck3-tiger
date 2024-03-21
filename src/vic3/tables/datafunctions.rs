@@ -1,8 +1,7 @@
-use fnv::{FnvHashMap, FnvHashSet};
 use once_cell::sync::Lazy;
 
 use crate::datatype::{Arg, Args, CaseInsensitiveStr, Datatype, Vic3Datatype};
-use crate::helpers::BiFnvHashMap;
+use crate::helpers::{BiTigerHashMap, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::scopes::Scopes;
 
@@ -10,8 +9,8 @@ use Arg::*;
 use Datatype::*;
 use Vic3Datatype::*;
 
-pub static LOWERCASE_DATATYPE_SET: Lazy<FnvHashSet<CaseInsensitiveStr>> = Lazy::new(|| {
-    let mut set = FnvHashSet::default();
+pub static LOWERCASE_DATATYPE_SET: Lazy<TigerHashSet<CaseInsensitiveStr>> = Lazy::new(|| {
+    let mut set = TigerHashSet::default();
 
     for (name, _, _) in GLOBAL_PROMOTES.iter().copied() {
         set.insert(CaseInsensitiveStr(name));
@@ -31,26 +30,26 @@ pub static LOWERCASE_DATATYPE_SET: Lazy<FnvHashSet<CaseInsensitiveStr>> = Lazy::
     set
 });
 
-pub static DATATYPE_AND_SCOPE_MAP: Lazy<BiFnvHashMap<Datatype, Scopes>> = Lazy::new(|| {
-    let mut map = BiFnvHashMap::default();
+pub static DATATYPE_AND_SCOPE_MAP: Lazy<BiTigerHashMap<Datatype, Scopes>> = Lazy::new(|| {
+    let mut map = BiTigerHashMap::default();
     for (datatype, scope) in DATATYPE_AND_SCOPE.iter().copied() {
         map.insert(datatype, scope);
     }
     map
 });
 
-pub static GLOBAL_PROMOTES_MAP: Lazy<FnvHashMap<&'static str, (Args, Datatype)>> =
+pub static GLOBAL_PROMOTES_MAP: Lazy<TigerHashMap<&'static str, (Args, Datatype)>> =
     Lazy::new(|| {
-        let mut map = FnvHashMap::default();
+        let mut map = TigerHashMap::default();
         for (name, args, datatype) in GLOBAL_PROMOTES.iter().copied() {
             map.insert(name, (args, datatype));
         }
         map
     });
 
-pub static GLOBAL_FUNCTIONS_MAP: Lazy<FnvHashMap<&'static str, (Args, Datatype)>> =
+pub static GLOBAL_FUNCTIONS_MAP: Lazy<TigerHashMap<&'static str, (Args, Datatype)>> =
     Lazy::new(|| {
-        let mut map = FnvHashMap::default();
+        let mut map = TigerHashMap::default();
         for (name, args, datatype) in GLOBAL_FUNCTIONS.iter().copied() {
             map.insert(name, (args, datatype));
         }
@@ -58,9 +57,9 @@ pub static GLOBAL_FUNCTIONS_MAP: Lazy<FnvHashMap<&'static str, (Args, Datatype)>
     });
 
 #[allow(clippy::type_complexity)]
-pub static PROMOTES_MAP: Lazy<FnvHashMap<&'static str, Vec<(Datatype, Args, Datatype)>>> =
+pub static PROMOTES_MAP: Lazy<TigerHashMap<&'static str, Vec<(Datatype, Args, Datatype)>>> =
     Lazy::new(|| {
-        let mut map = FnvHashMap::<&'static str, Vec<(Datatype, Args, Datatype)>>::default();
+        let mut map = TigerHashMap::<&'static str, Vec<(Datatype, Args, Datatype)>>::default();
         for (name, from, args, to) in PROMOTES.iter().copied() {
             map.entry(name).or_default().push((from, args, to));
         }
@@ -68,9 +67,9 @@ pub static PROMOTES_MAP: Lazy<FnvHashMap<&'static str, Vec<(Datatype, Args, Data
     });
 
 #[allow(clippy::type_complexity)]
-pub static FUNCTIONS_MAP: Lazy<FnvHashMap<&'static str, Vec<(Datatype, Args, Datatype)>>> =
+pub static FUNCTIONS_MAP: Lazy<TigerHashMap<&'static str, Vec<(Datatype, Args, Datatype)>>> =
     Lazy::new(|| {
-        let mut map = FnvHashMap::<&'static str, Vec<(Datatype, Args, Datatype)>>::default();
+        let mut map = TigerHashMap::<&'static str, Vec<(Datatype, Args, Datatype)>>::default();
         for (name, from, args, to) in FUNCTIONS.iter().copied() {
             map.entry(name).or_default().push((from, args, to));
         }

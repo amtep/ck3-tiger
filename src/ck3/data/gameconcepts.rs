@@ -1,11 +1,9 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::report::{warn, ErrorKey};
@@ -14,8 +12,8 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct GameConcepts {
-    concepts: FnvHashMap<&'static str, Concept>,
-    aliases: FnvHashMap<&'static str, &'static str>,
+    concepts: TigerHashMap<&'static str, Concept>,
+    aliases: TigerHashMap<&'static str, &'static str>,
 }
 
 impl GameConcepts {

@@ -1,12 +1,10 @@
 use std::path::PathBuf;
 
-use fnv::{FnvHashMap, FnvHashSet};
-
 use crate::block::{Block, BV};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::game::Game;
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::report::{warn, Confidence, ErrorKey, Severity};
@@ -18,10 +16,10 @@ use crate::validator::Validator;
 #[derive(Clone, Debug, Default)]
 #[allow(clippy::struct_field_names)]
 pub struct Assets {
-    assets: FnvHashMap<&'static str, Asset>,
-    attributes: FnvHashSet<Token>,
-    blend_shapes: FnvHashSet<Token>,
-    textures: FnvHashMap<String, (FileEntry, Token)>,
+    assets: TigerHashMap<&'static str, Asset>,
+    attributes: TigerHashSet<Token>,
+    blend_shapes: TigerHashSet<Token>,
+    textures: TigerHashMap<String, (FileEntry, Token)>,
 }
 
 impl Assets {

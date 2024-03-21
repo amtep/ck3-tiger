@@ -1,7 +1,5 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::ck3::data::titles::Tier;
 use crate::context::ScopeContext;
@@ -9,6 +7,7 @@ use crate::date::Date;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::TigerHashMap;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, warn, ErrorKey};
@@ -19,7 +18,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct TitleHistories {
-    histories: FnvHashMap<&'static str, TitleHistory>,
+    histories: TigerHashMap<&'static str, TitleHistory>,
 }
 
 impl TitleHistories {

@@ -8,13 +8,13 @@ use std::string::ToString;
 use std::sync::RwLock;
 
 use anyhow::Result;
-use fnv::FnvHashSet;
 use rayon::prelude::*;
 use walkdir::WalkDir;
 
 use crate::block::Block;
 use crate::everything::{Everything, FilesError};
 use crate::game::Game;
+use crate::helpers::TigerHashSet;
 use crate::item::Item;
 #[cfg(feature = "vic3")]
 use crate::mod_metadata::ModMetadata;
@@ -234,13 +234,13 @@ pub struct Fileset {
     filename_tokens: Vec<Token>,
 
     /// All filenames from ordered_files, for quick lookup.
-    filenames: FnvHashSet<PathBuf>,
+    filenames: TigerHashSet<PathBuf>,
 
     /// All directories that have been looked up, for quick lookup.
-    directories: RwLock<FnvHashSet<PathBuf>>,
+    directories: RwLock<TigerHashSet<PathBuf>>,
 
     /// Filenames that have been looked up during validation. Used to filter the --unused output.
-    used: RwLock<FnvHashSet<String>>,
+    used: RwLock<TigerHashSet<String>>,
 }
 
 impl Fileset {
@@ -260,9 +260,9 @@ impl Fileset {
             files: Vec::new(),
             ordered_files: Vec::new(),
             filename_tokens: Vec::new(),
-            filenames: FnvHashSet::default(),
-            directories: RwLock::new(FnvHashSet::default()),
-            used: RwLock::new(FnvHashSet::default()),
+            filenames: TigerHashSet::default(),
+            directories: RwLock::new(TigerHashSet::default()),
+            used: RwLock::new(TigerHashSet::default()),
         }
     }
 

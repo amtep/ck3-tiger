@@ -1,13 +1,11 @@
 use std::path::PathBuf;
 
-use fnv::{FnvHashMap, FnvHashSet};
-
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::desc::{validate_desc, validate_desc_map};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::modif::{validate_modifs, ModifKinds};
@@ -23,16 +21,16 @@ use crate::validator::Validator;
 #[derive(Clone, Debug, Default)]
 #[allow(clippy::struct_field_names)]
 pub struct Traits {
-    traits: FnvHashMap<&'static str, Trait>,
-    groups: FnvHashSet<Token>,
-    tracks: FnvHashSet<Token>,
-    constraints: FnvHashSet<Token>,
-    flags: FnvHashSet<Token>,
+    traits: TigerHashMap<&'static str, Trait>,
+    groups: TigerHashSet<Token>,
+    tracks: TigerHashSet<Token>,
+    constraints: TigerHashSet<Token>,
+    flags: TigerHashSet<Token>,
 
     // Lowercased registries of the above collections, for case-insensitive lookups
-    traits_lc: FnvHashMap<Lowercase<'static>, &'static str>,
-    tracks_lc: FnvHashSet<Lowercase<'static>>,
-    groups_lc: FnvHashSet<Lowercase<'static>>,
+    traits_lc: TigerHashMap<Lowercase<'static>, &'static str>,
+    tracks_lc: TigerHashSet<Lowercase<'static>>,
+    groups_lc: TigerHashSet<Lowercase<'static>>,
 }
 
 impl Traits {

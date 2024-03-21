@@ -1,17 +1,15 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::{Block, BV};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap};
 use crate::pdxfile::PdxFile;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
 pub struct Defines {
-    defines: FnvHashMap<String, Define>,
+    defines: TigerHashMap<String, Define>,
 }
 
 impl Defines {

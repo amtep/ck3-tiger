@@ -10,9 +10,9 @@ use std::sync::{Mutex, MutexGuard};
 
 use anyhow::Result;
 use encoding_rs::{UTF_8, WINDOWS_1252};
-use fnv::{FnvHashMap, FnvHashSet};
 use once_cell::sync::Lazy;
 
+use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::macros::MACRO_MAP;
 use crate::report::error_loc::ErrorLoc;
 use crate::report::filter::ReportFilter;
@@ -35,10 +35,10 @@ pub struct Errors {
 
     /// Files that have been read in to get the lines where errors occurred.
     /// Cached here to avoid duplicate I/O and UTF-8 parsing.
-    filecache: FnvHashMap<PathBuf, &'static str>,
+    filecache: TigerHashMap<PathBuf, &'static str>,
 
     /// Files that have been linesplit, cached to avoid doing that work again
-    linecache: FnvHashMap<PathBuf, Vec<&'static str>>,
+    linecache: TigerHashMap<PathBuf, Vec<&'static str>>,
 
     /// Determines whether a report should be printed.
     pub(crate) filter: ReportFilter,
@@ -48,7 +48,7 @@ pub struct Errors {
     /// All reports that passed the checks, stored here to be sorted before being emitted all at once.
     /// The "abbreviated" reports don't participate in this. They are still emitted immediately.
     /// It's a `HashSet` because duplicate reports are fairly common due to macro expansion and other revalidations.
-    storage: FnvHashSet<LogReport>,
+    storage: TigerHashSet<LogReport>,
 }
 
 impl Default for Errors {
@@ -57,11 +57,11 @@ impl Default for Errors {
             output: RefCell::new(Box::new(stdout())),
             loaded_mods_labels: Vec::default(),
             loaded_dlcs_labels: Vec::default(),
-            filecache: FnvHashMap::default(),
-            linecache: FnvHashMap::default(),
+            filecache: TigerHashMap::default(),
+            linecache: TigerHashMap::default(),
             filter: ReportFilter::default(),
             styles: OutputStyle::default(),
-            storage: FnvHashSet::default(),
+            storage: TigerHashSet::default(),
         }
     }
 }

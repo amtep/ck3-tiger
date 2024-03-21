@@ -1,5 +1,3 @@
-use fnv::FnvHashMap;
-
 use crate::block::{Block, BV};
 use crate::ck3::validate::validate_traits;
 use crate::context::ScopeContext;
@@ -7,6 +5,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::FileKind;
 use crate::game::GameFlags;
+use crate::helpers::TigerHashMap;
 use crate::item::{Item, ItemLoader};
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -129,7 +128,7 @@ impl DbKind for Religion {
 
 fn validate_doctrines(iname: &str, data: &Everything, vd: &mut Validator) {
     vd.req_field("doctrine");
-    let mut categories: FnvHashMap<&str, Vec<Token>> = FnvHashMap::default();
+    let mut categories: TigerHashMap<&str, Vec<Token>> = TigerHashMap::default();
     vd.multi_field_validated_value("doctrine", |_, mut vd| {
         vd.item(Item::Doctrine);
         if let Some(category) = data.doctrines.category(vd.value().as_str()) {

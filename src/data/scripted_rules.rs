@@ -1,4 +1,3 @@
-use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
 use crate::block::Block;
@@ -6,6 +5,7 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
+use crate::helpers::TigerHashMap;
 use crate::item::{Item, ItemLoader};
 use crate::parse::pdxfile::parse_pdx_internal;
 use crate::report::{err, ErrorKey};
@@ -57,7 +57,7 @@ struct ScriptedRuleScopeContext {
 }
 
 /// Processed version of game-specific `SCRIPTED_RULES`.
-static SCRIPTED_RULE_SCOPES_MAP: Lazy<FnvHashMap<&'static str, ScriptedRuleScopeContext>> =
+static SCRIPTED_RULE_SCOPES_MAP: Lazy<TigerHashMap<&'static str, ScriptedRuleScopeContext>> =
     Lazy::new(|| {
         let rules = match Game::game() {
             #[cfg(feature = "ck3")]
@@ -72,8 +72,8 @@ static SCRIPTED_RULE_SCOPES_MAP: Lazy<FnvHashMap<&'static str, ScriptedRuleScope
 // TODO: more generic facility for this?
 fn build_scripted_rule_hashmap(
     description: &'static str,
-) -> FnvHashMap<&'static str, ScriptedRuleScopeContext> {
-    let mut hash: FnvHashMap<&'static str, ScriptedRuleScopeContext> = FnvHashMap::default();
+) -> TigerHashMap<&'static str, ScriptedRuleScopeContext> {
+    let mut hash: TigerHashMap<&'static str, ScriptedRuleScopeContext> = TigerHashMap::default();
 
     let mut block = parse_pdx_internal(description, "scripted rule builtin scopes");
     for (key, block) in block.drain_definitions_warn() {

@@ -4,10 +4,9 @@ use std::hash::Hash;
 use std::num::NonZeroU32;
 use std::sync::RwLock;
 
-use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
-use crate::helpers::BiFnvHashMap;
+use crate::helpers::{BiTigerHashMap, TigerHashMap};
 use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
 
@@ -42,7 +41,7 @@ impl MacroKey {
 ///
 /// The cache helps avoid needless re-expansions for arguments that have already been validated.
 pub struct MacroCache<T> {
-    cache: RwLock<FnvHashMap<MacroKey, T>>,
+    cache: RwLock<TigerHashMap<MacroKey, T>>,
 }
 
 impl<T> MacroCache<T> {
@@ -78,7 +77,7 @@ impl<T> MacroCache<T> {
 
 impl<T> Default for MacroCache<T> {
     fn default() -> Self {
-        MacroCache { cache: RwLock::new(FnvHashMap::default()) }
+        MacroCache { cache: RwLock::new(TigerHashMap::default()) }
     }
 }
 
@@ -92,12 +91,12 @@ pub struct MacroMap(RwLock<MacroMapInner>);
 /// to the block containing the macros.
 pub struct MacroMapInner {
     counter: NonZeroU32,
-    bi_map: BiFnvHashMap<NonZeroU32, Loc>,
+    bi_map: BiTigerHashMap<NonZeroU32, Loc>,
 }
 
 impl Default for MacroMapInner {
     fn default() -> Self {
-        Self { counter: NonZeroU32::new(1).unwrap(), bi_map: BiFnvHashMap::default() }
+        Self { counter: NonZeroU32::new(1).unwrap(), bi_map: BiTigerHashMap::default() }
     }
 }
 

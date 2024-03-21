@@ -4,9 +4,8 @@ use std::fs::{metadata, File};
 use std::io::{Read, Result};
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::TigerHashMap;
 use crate::report::{err, tips, warn, ErrorKey};
 #[cfg(feature = "ck3")]
 use crate::token::Token;
@@ -24,7 +23,7 @@ fn from_le32(buffer: &[u8], offset: usize) -> u32 {
 
 #[derive(Clone, Debug, Default)]
 pub struct DdsFiles {
-    dds_files: FnvHashMap<String, DdsInfo>,
+    dds_files: TigerHashMap<String, DdsInfo>,
 }
 
 impl DdsFiles {

@@ -1,11 +1,9 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, ErrorKey};
@@ -14,7 +12,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct CharacterInteractionCategories {
-    categories: FnvHashMap<&'static str, Category>,
+    categories: TigerHashMap<&'static str, Category>,
 }
 
 impl CharacterInteractionCategories {

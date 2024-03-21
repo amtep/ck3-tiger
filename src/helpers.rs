@@ -1,11 +1,14 @@
 //! Miscellaneous convenience functions.
+use ahash::{HashMap, HashSet, RandomState};
 use bimap::BiHashMap;
-use fnv::FnvBuildHasher;
 
 use std::fmt::{Display, Formatter};
 
 use crate::report::{tips, warn, ErrorKey};
 use crate::token::Token;
+
+pub type TigerHashMap<K, V> = HashMap<K, V>;
+pub type TigerHashSet<T> = HashSet<T>;
 
 /// Warns about a redefinition of a database item
 pub fn dup_error(key: &Token, other: &Token, id: &str) {
@@ -110,4 +113,4 @@ pub const BANNED_NAMES: &[&str] = &[
     "take_hostage", // actually used by vanilla CK3
 ];
 
-pub(crate) type BiFnvHashMap<L, R> = BiHashMap<L, R, FnvBuildHasher, FnvBuildHasher>;
+pub(crate) type BiTigerHashMap<L, R> = BiHashMap<L, R, RandomState, RandomState>;

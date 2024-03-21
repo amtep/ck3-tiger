@@ -1,13 +1,11 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::data::localization::LocaValue;
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::dup_error;
+use crate::helpers::{dup_error, TigerHashMap};
 use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, warn, ErrorKey};
@@ -16,7 +14,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct DataBindings {
-    bindings: FnvHashMap<&'static str, DataBinding>,
+    bindings: TigerHashMap<&'static str, DataBinding>,
 }
 
 impl DataBindings {

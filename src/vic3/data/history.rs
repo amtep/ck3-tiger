@@ -1,12 +1,11 @@
 use std::path::PathBuf;
 
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::TigerHashMap;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -18,7 +17,7 @@ use crate::tooltipped::Tooltipped;
 
 #[derive(Clone, Debug, Default)]
 pub struct History {
-    history: FnvHashMap<&'static str, HistoryEffect>,
+    history: TigerHashMap<&'static str, HistoryEffect>,
 }
 
 impl History {

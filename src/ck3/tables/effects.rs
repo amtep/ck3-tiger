@@ -1,4 +1,3 @@
-use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
 use crate::ck3::effect_validation::*;
@@ -6,6 +5,7 @@ use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
 use crate::effect::Effect;
 use crate::effect_validation::*;
 use crate::everything::Everything;
+use crate::helpers::TigerHashMap;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -43,8 +43,8 @@ pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)>
 }
 
 /// A hashed version of [`SCOPE_EFFECT`], for quick lookup by effect name.
-static SCOPE_EFFECT_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Effect)>> = Lazy::new(|| {
-    let mut hash = FnvHashMap::default();
+static SCOPE_EFFECT_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Effect)>> = Lazy::new(|| {
+    let mut hash = TigerHashMap::default();
     for (from, s, effect) in SCOPE_EFFECT.iter().copied() {
         hash.insert(s, (from, effect));
     }

@@ -1,4 +1,3 @@
-use fnv::FnvHashMap;
 use std::path::PathBuf;
 
 use crate::block::Block;
@@ -6,6 +5,7 @@ use crate::context::ScopeContext;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::helpers::TigerHashMap;
 use crate::imperator::data::missions::validate_imperator_highlight;
 use crate::item::Item;
 use crate::pdxfile::PdxFile;
@@ -18,7 +18,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
 pub struct Decisions {
-    decisions: FnvHashMap<&'static str, Decision>,
+    decisions: TigerHashMap<&'static str, Decision>,
 }
 
 impl Decisions {

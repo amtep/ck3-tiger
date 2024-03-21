@@ -1,9 +1,8 @@
-use fnv::FnvHashMap;
-
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
+use crate::helpers::TigerHashMap;
 use crate::item::{Item, ItemLoader};
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
@@ -24,7 +23,7 @@ impl StrategicRegion {
 
     pub fn crosscheck(data: &Everything) {
         // Each state must be part of one and only one stategic region.
-        let mut seen = FnvHashMap::default();
+        let mut seen = TigerHashMap::default();
         for (key, block) in data.database.iter_key_block(Item::StrategicRegion) {
             if let Some(vec) = block.get_field_list("states") {
                 for token in vec {

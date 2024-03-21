@@ -1,13 +1,11 @@
 use std::path::PathBuf;
 use std::sync::RwLock;
 
-use fnv::FnvHashMap;
-
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, exact_dup_error, BANNED_NAMES};
+use crate::helpers::{dup_error, exact_dup_error, TigerHashMap, BANNED_NAMES};
 use crate::pdxfile::PdxFile;
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -16,8 +14,8 @@ use crate::token::{Loc, Token};
 
 #[derive(Debug, Default)]
 pub struct ScriptValues {
-    scope_overrides: FnvHashMap<&'static str, Scopes>,
-    script_values: FnvHashMap<&'static str, ScriptValue>,
+    scope_overrides: TigerHashMap<&'static str, Scopes>,
+    script_values: TigerHashMap<&'static str, ScriptValue>,
 }
 
 impl ScriptValues {
@@ -113,13 +111,13 @@ impl FileHandler<Block> for ScriptValues {
 pub struct ScriptValue {
     key: Token,
     bv: BV,
-    cache: RwLock<FnvHashMap<Loc, ScopeContext>>,
+    cache: RwLock<TigerHashMap<Loc, ScopeContext>>,
     scope_override: Option<Scopes>,
 }
 
 impl ScriptValue {
     pub fn new(key: Token, bv: BV, scope_override: Option<Scopes>) -> Self {
-        Self { key, bv, cache: RwLock::new(FnvHashMap::default()), scope_override }
+        Self { key, bv, cache: RwLock::new(TigerHashMap::default()), scope_override }
     }
 
     pub fn cached_compat(&self, key: &Token, sc: &mut ScopeContext) -> bool {

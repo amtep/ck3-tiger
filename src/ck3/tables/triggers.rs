@@ -1,8 +1,8 @@
-use fnv::FnvHashMap;
 use once_cell::sync::Lazy;
 
 use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
 use crate::everything::Everything;
+use crate::helpers::TigerHashMap;
 use crate::item::Item;
 use crate::report::{err, ErrorKey};
 use crate::scopes::{ArgumentValue, Scopes};
@@ -67,8 +67,8 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
     std::option::Option::None
 }
 
-static TRIGGER_MAP: Lazy<FnvHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
-    let mut hash = FnvHashMap::default();
+static TRIGGER_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
+    let mut hash = TigerHashMap::default();
     for (from, s, trigger) in TRIGGER.iter().copied() {
         hash.insert(s, (from, trigger));
     }
@@ -1703,9 +1703,9 @@ pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, ArgumentValue)> {
     TRIGGER_COMPLEX_MAP.get(name).copied()
 }
 
-static TRIGGER_COMPLEX_MAP: Lazy<FnvHashMap<&'static str, (Scopes, ArgumentValue)>> =
+static TRIGGER_COMPLEX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, ArgumentValue)>> =
     Lazy::new(|| {
-        let mut hash = FnvHashMap::default();
+        let mut hash = TigerHashMap::default();
         for (from, s, trigger) in TRIGGER_COMPLEX.iter().copied() {
             hash.insert(s, (from, trigger));
         }
