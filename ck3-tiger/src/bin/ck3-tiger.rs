@@ -21,9 +21,13 @@ const CK3_SIGNATURE_FILE: &str = "game/events/witch_events.txt";
 #[derive(Parser)]
 #[command(version)]
 #[command(propagate_version = true)]
+#[clap(args_conflicts_with_subcommands = true)]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
+    
+    #[clap(flatten)]
+    validate_args: Option<ValidateArgs>,
 }
 
 #[derive(Subcommand)]
@@ -33,8 +37,6 @@ enum Commands {
         /// release version to update to (default: latest release)
         version: Option<String>,
     },
-    /// Validate a mod
-    Validate(ValidateArgs),
 }
 
 #[derive(Args)]
@@ -72,10 +74,11 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Update { version } => {
+        Some(Commands::Update { version }) => {
             update(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"), version.as_deref())?
         }
-        Commands::Validate(mut args) => {
+        None => {
+            let mut args = cli.validate_args.unwrap();
             #[cfg(windows)]
             if !args.no_color {
                 let _ = ansiterm::enable_ansi_support()
