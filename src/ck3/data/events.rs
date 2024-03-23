@@ -391,7 +391,7 @@ fn validate_event_option(
     let mut vd = Validator::new(block, data);
     vd.multi_field_validated("name", |bv, data| match bv {
         BV::Value(t) => {
-            data.localization.verify_exists(t);
+            data.verify_exists(Item::Localization, t);
         }
         BV::Block(b) => {
             let mut vd = Validator::new(b, data);
