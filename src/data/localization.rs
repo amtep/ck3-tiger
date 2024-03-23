@@ -456,7 +456,9 @@ impl Localization {
                 // TODO: - imperator -
             }
             LocaValue::Icon(token) => {
-                data.verify_exists(Item::TextIcon, token);
+                if !is_builtin_macro(token) && !token.is("ICONKEY_icon") && !token.is("KEY_icon") {
+                    data.verify_exists(Item::TextIcon, token);
+                }
             }
             _ => (),
         }
