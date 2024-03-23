@@ -1,5 +1,6 @@
 //! Validate `.yml` localization files
 
+use std::borrow::Borrow;
 use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
@@ -8,13 +9,16 @@ use std::sync::RwLock;
 use rayon::scope;
 
 use crate::block::Block;
+#[cfg(feature = "ck3")]
+use crate::ck3::tables::localization::BUILTIN_MACROS_CK3;
 use crate::context::ScopeContext;
 use crate::datatype::{validate_datatypes, CodeChain, Datatype};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
-#[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::game::Game;
 use crate::helpers::{dup_error, stringify_list, TigerHashMap, TigerHashSet};
+#[cfg(feature = "imperator")]
+use crate::imperator::tables::localization::BUILTIN_MACROS_IMPERATOR;
 use crate::item::Item;
 use crate::macros::{MacroMapIndex, MACRO_MAP};
 use crate::parse::localization::{parse_loca, ValueParser};
@@ -23,6 +27,8 @@ use crate::report::{
 };
 use crate::scopes::Scopes;
 use crate::token::Token;
+#[cfg(feature = "vic3")]
+use crate::vic3::tables::localization::BUILTIN_MACROS_VIC3;
 
 /// Database of all loaded localization keys and their values, for all supported languages.
 #[derive(Debug)]
@@ -68,75 +74,18 @@ pub const KNOWN_LANGUAGES: &[&str] = &[
 
 /// List of known built-in keys used between `$...$` in any localization.
 /// This list is used to avoid reporting false positives.
-/// The [`Localization`] module also does a scan of vanilla localization values to see which
-/// all-uppercase keys are used, and adds them to the list here.
-// LAST UPDATED CK3 VERSION 1.9.2
-// TODO: an updated version of this list would be very long and it's not clear what the benefit is,
-// considering that there is also the runtime scan.
-pub const BUILTIN_MACROS: &[&str] = &[
-    "ACTION",
-    "ACTUAL_NEGATION",
-    "ADJUSTMENTS",
-    "BASE_NAME",
-    "BATTLENAME",
-    "BUDGET_CATEGORY",
-    "BUDGET_GOLD",
-    "BUDGET_MAXIMUM",
-    "BUILDING_NAME",
-    "CAP",
-    "CASUALTIES",
-    "CAUSE",
-    "CHAR01",
-    "CHAR02",
-    "COMPANIONS",
-    "COMPARATOR",
-    "CONTROLLER",
-    "DAY",
-    "DLC_NAME",
-    "DURATION_MIN",
-    "DURATION_MAX",
-    "ERRORS",
-    "ERROR_ACTION",
-    "EVENT",
-    "EVENT_TITLE",
-    "EXPENSE_DESC",
-    "FERVOR",
-    "FIRST",
-    "INCOME_DESC",
-    "INTERACTION",
-    "MAX_LEVIES",
-    "MAX_MEN_AT_ARMS",
-    "MAX_NEGATION",
-    "MAX_SUPPLY",
-    "MEN_AT_ARMS",
-    "MISSING_HOLDING",
-    "MOD",
-    "MONTH",
-    "MONTH_SHORT",
-    "MORE_RELATIONS",
-    "MULT",
-    "NUM",
-    "PERSONALITY",
-    "PING",
-    "PREVIOUS_NAME",
-    "ON_ACCEPT",
-    "ON_DECLINE",
-    "ON_SEND",
-    "OTHER_TRAIT",
-    "REGIMENTS",
-    "REINFORCEMENTS",
-    "RELATION01",
-    "RELATION02",
-    "SECOND",
-    "TIER_KEY",
-    "TRAIT",
-    "TRAIT_AGE",
-    "TRAIT_SEX",
-    "VALUE",
-    "WHAT",
-    "WHO",
-    "WINLOSE",
-];
+// TODO: maybe make the list more specific about which keys can contain which builtins
+fn is_builtin_macro<S: Borrow<str>>(s: S) -> bool {
+    let s = s.borrow();
+    match Game::game() {
+        #[cfg(feature = "ck3")]
+        Game::Ck3 => BUILTIN_MACROS_CK3.contains(&s),
+        #[cfg(feature = "vic3")]
+        Game::Vic3 => BUILTIN_MACROS_VIC3.contains(&s),
+        #[cfg(feature = "imperator")]
+        Game::Imperator => BUILTIN_MACROS_IMPERATOR.contains(&s),
+    }
+}
 
 /// One parsed key: value line from the localization values.
 #[derive(Clone, Debug)]
@@ -733,39 +682,12 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
 
     /// Do checks that can only be done after having all of the loca values
     fn finalize(&mut self) {
-        // Check that every macro use refers to a defined key.
-        // First build the list of builtin macros by just checking which ones vanilla uses.
-        // TODO: scan the character interactions, which can also define macros
-        let mut builtins = TigerHashSet::default();
-        builtins.extend(BUILTIN_MACROS);
-        for lang in self.locas.values() {
-            for entry in lang.values() {
-                if !entry.key.loc.kind.counts_as_vanilla() {
-                    continue;
-                }
-
-                if let LocaValue::Macro(ref v) = entry.value {
-                    for macrovalue in v {
-                        if let MacroValue::Keyword(k, _) = macrovalue {
-                            if k.as_str()
-                                .chars()
-                                .all(|c| c.is_uppercase() || c.is_ascii_digit() || c == '_')
-                                && !lang.contains_key(k.as_str())
-                            {
-                                builtins.insert(k.as_str());
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         for lang in self.locas.values() {
             for entry in lang.values() {
                 if let LocaValue::Macro(ref v) = entry.value {
                     for macrovalue in v {
                         if let MacroValue::Keyword(k, _) = macrovalue {
-                            if !lang.contains_key(k.as_str()) && !builtins.contains(k.as_str()) {
+                            if !lang.contains_key(k.as_str()) && !is_builtin_macro(k) {
                                 let msg = &format!("The substitution parameter ${k}$ is not defined anywhere as a key.");
                                 warn(ErrorKey::Localization).msg(msg).loc(k).push();
                             }
