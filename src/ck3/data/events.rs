@@ -551,7 +551,9 @@ fn validate_triggered_outfit(block: &Block, data: &Everything, sc: &mut ScopeCon
 
 fn validate_portrait(v: &BV, data: &Everything, sc: &mut ScopeContext) {
     match v {
-        BV::Value(t) => validate_target(t, data, sc, Scopes::Character),
+        BV::Value(t) => {
+            validate_target(t, data, sc, Scopes::Character);
+        }
         BV::Block(b) => {
             let mut vd = Validator::new(b, data);
 

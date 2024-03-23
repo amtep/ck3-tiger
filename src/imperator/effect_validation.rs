@@ -222,7 +222,9 @@ pub fn validate_release_prisoner(
     _tooltipped: Tooltipped,
 ) {
     match bv {
-        BV::Value(token) => validate_target(token, data, sc, Scopes::Character),
+        BV::Value(token) => {
+            validate_target(token, data, sc, Scopes::Character);
+        }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);

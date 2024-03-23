@@ -11,7 +11,7 @@ use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
+use crate::trigger::{validate_target, validate_trigger};
 use crate::validate::{validate_ai_chance, validate_duration, validate_modifiers_with_base};
 use crate::validator::Validator;
 
@@ -77,6 +77,14 @@ impl DbKind for CharacterInteraction {
                 sc.define_name(token.as_str(), Scopes::Bool, token);
             }
         }
+
+        vd.field_validated_block("localization_values", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_value_fields(|key, value| {
+                let scopes = validate_target(value, data, &mut sc, Scopes::all());
+                sc.define_name(key.as_str(), scopes, value);
+            });
+        });
 
         // Validate this early, to update the saved scopes in `sc`
         // TODO: figure out when exactly `redirect` is run
@@ -234,8 +242,6 @@ impl DbKind for CharacterInteraction {
             data.verify_exists_implied(Item::Localization, &loca, k);
             validate_effect(block, data, &mut sc.clone(), Tooltipped::No);
         });
-
-        vd.field_block("localization_values"); // TODO
 
         vd.multi_field_validated_block("send_option", |b, data| {
             let mut vd = Validator::new(b, data);

@@ -724,7 +724,9 @@ fn match_trigger_bv(
         }
         #[cfg(feature = "ck3")]
         Trigger::ScopeOrBlock(s, fields) => match bv {
-            BV::Value(token) => validate_target(token, data, sc, *s),
+            BV::Value(token) => {
+                validate_target(token, data, sc, *s);
+            }
             BV::Block(block) => {
                 side_effects |=
                     match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
@@ -882,7 +884,9 @@ fn match_trigger_bv(
                     vd.req_field("name");
                     vd.req_field("value");
                     vd.field_validated("value", |bv, data| match bv {
-                        BV::Value(token) => validate_target(token, data, sc, Scopes::primitive()),
+                        BV::Value(token) => {
+                            validate_target(token, data, sc, Scopes::primitive());
+                        }
                         BV::Block(_) => validate_script_value(bv, data, sc),
                     });
                     // TODO: figure out the scope type of `value` and use that
@@ -986,18 +990,20 @@ fn match_trigger_bv(
 /// `outscopes` is the set of scope types that this target is allowed to produce.
 /// * Example: in `has_claim_on = title:e_byzantium`, the target is `title:e_byzantium` and it
 /// should produce a [`Scopes::LandedTitle`] scope in order to be valid for `has_claim_on`.
+///
+/// Returns the best guess about the scope type that this target resolves to.
 pub fn validate_target_ok_this(
     token: &Token,
     data: &Everything,
     sc: &mut ScopeContext,
     outscopes: Scopes,
-) {
+) -> Scopes {
     if token.is_number() {
         if !outscopes.intersects(Scopes::Value | Scopes::None) {
             let msg = format!("expected {outscopes}");
             warn(ErrorKey::Scopes).msg(msg).loc(token).push();
         }
-        return;
+        return Scopes::Value;
     }
     let part_vec = partition(token);
     sc.open_builder();
@@ -1032,7 +1038,7 @@ pub fn validate_target_ok_this(
                         let msg = format!("unknown prefix `{prefix}:`");
                         err(ErrorKey::Validation).msg(msg).loc(prefix).push();
                         sc.close();
-                        return;
+                        return Scopes::all();
                     }
                 } else if part_lc == "root" {
                     sc.replace_root();
@@ -1067,7 +1073,7 @@ pub fn validate_target_ok_this(
                         let msg = format!("`{part}` should be the last part");
                         warn(ErrorKey::Validation).msg(msg).loc(part).push();
                         sc.close();
-                        return;
+                        return Scopes::all();
                     }
                     validate_inscopes(part_flags, part, inscopes, sc);
                     if sc.scopes() == Scopes::None && part_lc == "current_year" {
@@ -1091,7 +1097,7 @@ pub fn validate_target_ok_this(
                     let msg = format!("unknown token `{part}`");
                     err(ErrorKey::UnknownField).msg(msg).opt_info(opt_info).loc(part).push();
                     sc.close();
-                    return;
+                    return Scopes::all();
                 }
             }
         }
@@ -1106,16 +1112,22 @@ pub fn validate_target_ok_this(
         warn(ErrorKey::Scopes).msg(msg).loc(part).opt_loc_msg(opt_loc, msg2).push();
     }
     sc.close();
+    final_scopes
 }
 
 /// Just like [`validate_target_ok_this`], but warns if the target is a literal `this` because that
 /// is usually a mistake.
-pub fn validate_target(token: &Token, data: &Everything, sc: &mut ScopeContext, outscopes: Scopes) {
-    validate_target_ok_this(token, data, sc, outscopes);
+pub fn validate_target(
+    token: &Token,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    outscopes: Scopes,
+) -> Scopes {
     if token.is("this") {
         let msg = "target `this` makes no sense here";
         warn(ErrorKey::UseOfThis).msg(msg).loc(token).push();
     }
+    validate_target_ok_this(token, data, sc, outscopes)
 }
 
 /// A part in a token chain
@@ -1320,7 +1332,9 @@ fn validate_argument_internal(
     match validation {
         ArgumentValue::Item(item) => data.verify_exists(item, arg),
         #[cfg(not(feature = "imperator"))]
-        ArgumentValue::Scope(scope) => validate_target(arg, data, sc, scope),
+        ArgumentValue::Scope(scope) => {
+            validate_target(arg, data, sc, scope);
+        }
         #[cfg(feature = "ck3")]
         ArgumentValue::ScopeOrItem(scope, item) => {
             if !data.item_exists(item, arg.as_str()) {
