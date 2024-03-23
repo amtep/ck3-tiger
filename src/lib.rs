@@ -65,6 +65,7 @@ pub use crate::report::{
     Severity,
 };
 pub use crate::token::{Loc, Token};
+pub use crate::update::{update, UpdateError, Status};
 
 #[cfg(feature = "ck3")]
 mod ck3;
@@ -109,6 +110,7 @@ mod script_value;
 mod token;
 mod tooltipped;
 mod trigger;
+mod update;
 mod util;
 mod validate;
 mod validator;
