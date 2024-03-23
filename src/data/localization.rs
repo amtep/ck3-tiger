@@ -4,7 +4,8 @@ use std::borrow::Borrow;
 use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
-use std::sync::RwLock;
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering::Relaxed;
 
 use rayon::scope;
 
@@ -16,7 +17,7 @@ use crate::datatype::{validate_datatypes, CodeChain, Datatype};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::game::Game;
-use crate::helpers::{dup_error, stringify_list, TigerHashMap, TigerHashSet};
+use crate::helpers::{dup_error, stringify_list, TigerHashMap};
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::localization::BUILTIN_MACROS_IMPERATOR;
 use crate::item::Item;
@@ -41,13 +42,6 @@ pub struct Localization {
     mod_langs: Vec<&'static str>,
     /// Database of all localizations, indexed first by language and then by localization key.
     locas: TigerHashMap<&'static str, TigerHashMap<String, LocaEntry>>,
-    /// Which localization keys have been "used" (looked up) by the rest of the mod.
-    /// This is used to print out the unused ones if requested.
-    keys_used: RwLock<TigerHashSet<String>>,
-    /// Which localization keys have been validated via [`Localization::validate_use`].
-    /// `validate_use` takes a [`ScopeContext`], so this field is used to avoid re-validating those
-    /// keys with less information during the general validation pass.
-    keys_validated_with_sc: RwLock<TigerHashSet<String>>,
 }
 
 /// List of languages that are supported by the game engine.
@@ -88,18 +82,22 @@ fn is_builtin_macro<S: Borrow<str>>(s: S) -> bool {
 }
 
 /// One parsed key: value line from the localization values.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct LocaEntry {
     key: Token,
     value: LocaValue,
     /// The original unparsed value, with enclosing `"` stripped.
     /// This is used for macro replacement.
     orig: Option<Token>,
+    /// Whether this entry has been "used" (looked up) by anything in the mod
+    used: AtomicBool,
+    /// Whether this entry has been validated with a `ScopeContext`
+    validated: AtomicBool,
 }
 
 impl LocaEntry {
     pub fn new(key: Token, value: LocaValue, orig: Option<Token>) -> Self {
-        Self { key, value, orig }
+        Self { key, value, orig, used: AtomicBool::new(false), validated: AtomicBool::new(false) }
     }
 
     // returns false to abort expansion in case of an error
@@ -108,7 +106,6 @@ impl LocaEntry {
         vec: &mut Vec<Token>,
         from: &'a TigerHashMap<String, LocaEntry>,
         count: &mut usize,
-        used: &mut TigerHashSet<String>,
         sc: &mut ScopeContext,
         link: Option<MacroMapIndex>,
     ) -> bool {
@@ -124,12 +121,12 @@ impl LocaEntry {
                     MacroValue::Text(ref token) => vec.push(token.clone().linked(link)),
                     MacroValue::Keyword(k, _) => {
                         if let Some(entry) = from.get(k.as_str()) {
-                            used.insert(k.to_string());
+                            entry.used.store(true, Relaxed);
+                            entry.validated.store(true, Relaxed);
                             if !entry.expand_macros(
                                 vec,
                                 from,
                                 count,
-                                used,
                                 sc,
                                 Some(MACRO_MAP.get_or_insert_loc(k.loc)),
                             ) {
@@ -228,15 +225,15 @@ impl Localization {
             return;
         }
         self.mark_used(key);
-        let mut langs: Vec<&str> = Vec::new();
+        let mut langs_missing: Vec<&str> = Vec::new();
         for lang in &self.mod_langs {
             let hash = self.locas.get(lang);
             if hash.is_none() || !hash.unwrap().contains_key(key) {
-                langs.push(lang);
+                langs_missing.push(lang);
             }
         }
-        if !langs.is_empty() {
-            let msg = format!("missing {} localization key {key}", stringify_list(&langs));
+        if !langs_missing.is_empty() {
+            let msg = format!("missing {} localization key {key}", stringify_list(&langs_missing));
             // TODO: get confidence level from caller
             report(ErrorKey::MissingLocalization, Item::Localization.severity().at_most(max_sev))
                 .msg(msg)
@@ -255,21 +252,21 @@ impl Localization {
             return;
         }
         self.mark_used(name.as_str());
-        let mut langs: Vec<&str> = Vec::new();
+        let mut langs_missing: Vec<&str> = Vec::new();
         for lang in &self.mod_langs {
             let hash = self.locas.get(lang);
             if hash.is_none() || !hash.unwrap().contains_key(name.as_str()) {
-                langs.push(lang);
+                langs_missing.push(lang);
             }
         }
-        if !langs.is_empty() {
+        if !langs_missing.is_empty() {
             // It's merely untidy if the name is only missing in latin-script languages and the
             // name doesn't have indicators that it really needs to be localized (such as underscores
             // or extra uppercase letters). In all other cases it's a warning.
             //
             // TODO: this logic assumes the input name is in English and it doesn't consider for example
             // a Russian mod that only supports Russian localization and has names in Cyrillic.
-            let sev = if only_latin_script(&langs)
+            let sev = if only_latin_script(&langs_missing)
                 && !name.as_str().contains('_')
                 && normal_capitalization_for_name(name.as_str())
             {
@@ -278,7 +275,8 @@ impl Localization {
                 Severity::Warning
             };
 
-            let msg = format!("missing {} localization for name {name}", stringify_list(&langs));
+            let msg =
+                format!("missing {} localization for name {name}", stringify_list(&langs_missing));
             report(ErrorKey::MissingLocalization, sev.at_most(max_sev))
                 .strong()
                 .msg(msg)
@@ -319,7 +317,11 @@ impl Localization {
     }
 
     pub fn mark_used(&self, key: &str) {
-        self.keys_used.write().unwrap().insert(key.to_string());
+        for lang in &self.mod_langs {
+            if let Some(entry) = self.locas.get(lang).and_then(|hash| hash.get(key)) {
+                entry.used.store(true, Relaxed);
+            }
+        }
     }
 
     // Does every `[concept|E]` reference have a defined game concept?
@@ -500,7 +502,6 @@ impl Localization {
     }
 
     fn validate_loca(
-        &self,
         entry: &LocaEntry,
         from: &TigerHashMap<String, LocaEntry>,
         data: &Everything,
@@ -510,14 +511,7 @@ impl Localization {
         if matches!(entry.value, LocaValue::Macro(_)) {
             let mut new_line = Vec::new();
             let mut count = 0;
-            if entry.expand_macros(
-                &mut new_line,
-                from,
-                &mut count,
-                &mut self.keys_used.write().unwrap(),
-                sc,
-                None,
-            ) {
+            if entry.expand_macros(&mut new_line, from, &mut count, sc, None) {
                 // re-parse after macro expansion
                 let new_line_as_ref = new_line.iter().collect();
                 let mut value = ValueParser::new(new_line_as_ref).parse_value();
@@ -534,29 +528,27 @@ impl Localization {
     }
 
     pub fn validate_use(&self, key: &str, data: &Everything, sc: &mut ScopeContext) {
-        self.keys_validated_with_sc.write().unwrap().insert(key.to_string());
-        self.mark_used(key);
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {
                 if let Some(entry) = hash.get(key) {
-                    self.validate_loca(entry, hash, data, sc, lang);
+                    entry.used.store(true, Relaxed);
+                    entry.validated.store(true, Relaxed);
+                    Self::validate_loca(entry, hash, data, sc, lang);
                 }
             }
         }
     }
 
-    // This is in pass2 to make sure all `keys_validated_with_sc` have been marked.
+    // This is in pass2 to make sure all `validated` entries have been marked.
     pub fn validate_pass2(&self, data: &Everything) {
         scope(|s| {
-            // Hold the lock for the whole validation loop, to avoid the overhead of re-acquiring it
-            let already_validated = self.keys_validated_with_sc.read().unwrap();
             for (lang, hash) in &self.locas {
                 for entry in hash.values() {
-                    if !already_validated.contains(entry.key.as_str()) {
+                    if !entry.validated.load(Relaxed) {
                         s.spawn(|_| {
                             let mut sc = ScopeContext::new_unrooted(Scopes::all(), &entry.key);
                             sc.set_strict_scopes(false);
-                            self.validate_loca(entry, hash, data, &mut sc, lang);
+                            Self::validate_loca(entry, hash, data, &mut sc, lang);
                         });
                     }
                 }
@@ -585,8 +577,8 @@ impl Localization {
         for lang in &self.mod_langs {
             if let Some(hash) = self.locas.get(lang) {
                 let mut vec = Vec::new();
-                for (key, entry) in hash {
-                    if !self.keys_used.read().unwrap().contains(key) {
+                for entry in hash.values() {
+                    if !entry.used.load(Relaxed) {
                         vec.push(entry);
                     }
                 }
@@ -740,8 +732,6 @@ impl Default for Localization {
             check_langs: Vec::from(KNOWN_LANGUAGES),
             locas: TigerHashMap::default(),
             mod_langs: Vec::default(),
-            keys_used: RwLock::new(TigerHashSet::default()),
-            keys_validated_with_sc: RwLock::new(TigerHashSet::default()),
         }
     }
 }
