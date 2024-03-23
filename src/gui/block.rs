@@ -16,12 +16,12 @@ enum GuiItem {
     /// A property assignment.
     Property(WidgetProperty, Token, BV),
     /// A contained widget.
-    Widget(Lowercase<'static>, Arc<GuiBlock>),
+    Widget(Arc<GuiBlock>),
     /// A property which contains other properties. It can have `Subst` blocks too.
-    ComplexProperty(WidgetProperty, Token, Arc<GuiBlock>),
+    ComplexProperty(Arc<GuiBlock>),
     /// A property which contains a widget. It can have Subst blocks too.
     /// Recursive widgets (ones that have `recursive = yes`) are handled as normal `Property` items instead.
-    WidgetProperty(WidgetProperty, Token, Arc<GuiBlock>),
+    WidgetProperty(Arc<GuiBlock>),
     /// A named block whose contents can be substituted. Will be inlined later.
     Subst(String, Arc<GuiBlock>),
     /// A named block whose contents will be inserted into any Subst of the same name.
@@ -143,11 +143,7 @@ impl GuiBlock {
                                         types,
                                         templates,
                                     );
-                                    gui.items.push(GuiItem::ComplexProperty(
-                                        prop,
-                                        key.clone(),
-                                        guiblock,
-                                    ));
+                                    gui.items.push(GuiItem::ComplexProperty(guiblock));
                                 }
                             } else if validation == GuiValidation::Widget {
                                 // If the bv is a Value (should be a template name) or if it is a
@@ -165,11 +161,7 @@ impl GuiBlock {
                                             types,
                                             templates,
                                         );
-                                        gui.items.push(GuiItem::WidgetProperty(
-                                            prop,
-                                            key.clone(),
-                                            guiblock,
-                                        ));
+                                        gui.items.push(GuiItem::WidgetProperty(guiblock));
                                     }
                                     _ => {
                                         gui.items.push(GuiItem::Property(
@@ -193,7 +185,7 @@ impl GuiBlock {
                                     templates,
                                 );
                                 gui.substnames.extend(guiblock.substnames.iter().cloned());
-                                gui.items.push(GuiItem::Widget(key_lc, guiblock));
+                                gui.items.push(GuiItem::Widget(guiblock));
                             }
                         } else if let Ok(builtin) = BuiltinWidget::try_from(&key_lc) {
                             // If we got here, then it must be a builtin but not for the current game
@@ -290,9 +282,9 @@ impl GuiBlock {
         for item in &mut self.items {
             match item {
                 GuiItem::Property(_, _, _) | GuiItem::Override(_, _) => (),
-                GuiItem::Widget(_, gui)
-                | GuiItem::ComplexProperty(_, _, gui)
-                | GuiItem::WidgetProperty(_, _, gui) => {
+                GuiItem::Widget(gui)
+                | GuiItem::ComplexProperty(gui)
+                | GuiItem::WidgetProperty(gui) => {
                     *gui = Self::apply_override_arc(gui, name, overrideblock);
                 }
                 GuiItem::Subst(substname, gui) => {
@@ -337,9 +329,9 @@ impl GuiBlock {
                 GuiItem::Subst(_, gui_block) => {
                     gui_block.validate(container, data);
                 }
-                GuiItem::Widget(_, gui_block)
-                | GuiItem::ComplexProperty(_, _, gui_block)
-                | GuiItem::WidgetProperty(_, _, gui_block) => {
+                GuiItem::Widget(gui_block)
+                | GuiItem::ComplexProperty(gui_block)
+                | GuiItem::WidgetProperty(gui_block) => {
                     gui_block.validate(None, data);
                 }
                 GuiItem::Override(_, _) => (),
