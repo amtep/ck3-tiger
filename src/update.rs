@@ -1,14 +1,19 @@
+#[cfg(any(target_os = "windows", target_os = "linux"))]
 use regex::Regex;
+#[cfg(any(target_os = "windows", target_os = "linux"))]
 use self_update::backends::github::{ReleaseList, UpdateBuilder};
-#[allow(unused_imports)]
-pub use self_update::Status;
 use thiserror::Error;
 
-#[allow(dead_code)]
-#[derive(Debug, Error)]
+#[cfg(not(any(target_os = "windows", target_os = "linux")))]
+#[derive(Debug, Clone, Copy, Error)]
 pub enum UpdateError {
     #[error("Not supported on the platform: {0}")]
     NotSupported(&'static str),
+}
+
+#[cfg(any(target_os = "windows", target_os = "linux"))]
+#[derive(Debug, Error)]
+pub enum UpdateError {
     #[error("Version tag not in the format of '(v)X.Y.Z'")]
     VersionTag,
     #[error("No release is available for the target")]
@@ -17,15 +22,19 @@ pub enum UpdateError {
     SelfUpdate(#[from] self_update::errors::Error),
 }
 
+#[allow(unused_variables)]
 #[allow(clippy::missing_panics_doc)]
 pub fn update(
     bin_name: &str,
     current_version: &str,
     target_version: Option<&str>,
 ) -> Result<(), UpdateError> {
-    if cfg!(not(any(target_os = "windows", target_os = "linux"))) {
+    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+    {
         Err(UpdateError::NotSupported(std::env::consts::OS))
-    } else {
+    }
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
+    {
         let mut version = if let Some(version) = target_version {
             let version = version.to_owned();
             let re = Regex::new(r"^v?[0-9]+\.[0-9]+\.[0-9]+$").unwrap();

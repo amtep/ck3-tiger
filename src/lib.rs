@@ -65,7 +65,7 @@ pub use crate::report::{
     Severity,
 };
 pub use crate::token::{Loc, Token};
-pub use crate::update::{update, Status, UpdateError};
+pub use crate::update::{update, UpdateError};
 
 #[cfg(feature = "ck3")]
 mod ck3;
