@@ -25,7 +25,7 @@ const CK3_SIGNATURE_FILE: &str = "game/events/witch_events.txt";
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
-    
+
     #[clap(flatten)]
     validate_args: Option<ValidateArgs>,
 }

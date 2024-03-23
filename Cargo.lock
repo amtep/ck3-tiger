@@ -1615,7 +1615,8 @@ dependencies = [
 [[package]]
 name = "self_update"
 version = "0.39.0"
-source = "git+https://github.com/my4ng/self_update.git#94027f33ae61b00bbc7bc4903cd9f2525b70cbdd"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a34ad8e4a86884ab42e9b8690e9343abdcfe5fa38a0318cfe1565ba9ad437b4"
 dependencies = [
  "either",
  "flate2",

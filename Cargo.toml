@@ -55,14 +55,14 @@ ahash = { version = "0.8", features = [
 ], default-features = false }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-self_update = { git = "https://github.com/my4ng/self_update.git", features = [
+self_update = { version = "0.39", features = [
     "archive-zip",
     "compression-zip-deflate",
 ] }
 winreg = "0.52"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-self_update = { git = "https://github.com/my4ng/self_update.git", features = [
+self_update = { version = "0.39", features = [
     "archive-tar",
     "compression-flate2",
 ] }
