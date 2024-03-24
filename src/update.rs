@@ -59,8 +59,11 @@ pub fn update(
             version.insert(0, 'v');
         }
 
-        let bin_path =
-            format!("{0}-{1}-{2}/{0}{3}", bin_name, consts::OS, version, consts::EXE_SUFFIX);
+        #[cfg(target_os = "linux")]
+        let bin_path = format!("{0}-{1}-{2}/{0}", bin_name, consts::OS, version);
+        #[cfg(target_os = "windows")]
+        let bin_path = format!("{}.exe", bin_name);
+
         let mut updater = UpdateBuilder::new();
         updater
             .repo_owner("amtep")
