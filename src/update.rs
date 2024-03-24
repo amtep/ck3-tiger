@@ -1,3 +1,5 @@
+use std::env::consts;
+
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 use regex::Regex;
 #[cfg(any(target_os = "windows", target_os = "linux"))]
@@ -31,7 +33,7 @@ pub fn update(
 ) -> Result<(), UpdateError> {
     #[cfg(not(any(target_os = "windows", target_os = "linux")))]
     {
-        Err(UpdateError::NotSupported(std::env::consts::OS))
+        Err(UpdateError::NotSupported(consts::OS))
     }
     #[cfg(any(target_os = "windows", target_os = "linux"))]
     {
@@ -46,7 +48,7 @@ pub fn update(
             let releases = ReleaseList::configure()
                 .repo_owner("amtep")
                 .repo_name("ck3-tiger")
-                .with_target(std::env::consts::OS)
+                .with_target(consts::OS)
                 .build()?
                 .fetch()?;
 
@@ -57,20 +59,24 @@ pub fn update(
             version.insert(0, 'v');
         }
 
-        let bin_path = format!("{0}-{1}-{2}/{0}", bin_name, std::env::consts::OS, version);
-        UpdateBuilder::new()
+        let bin_path =
+            format!("{0}-{1}-{2}/{0}{3}", bin_name, consts::OS, version, consts::EXE_SUFFIX);
+        let mut updater = UpdateBuilder::new();
+        updater
             .repo_owner("amtep")
             .repo_name("ck3-tiger")
             .bin_name(bin_name)
             .bin_path_in_archive(&bin_path)
             .identifier(bin_name)
-            .target(std::env::consts::OS)
-            .target_version_tag(&version)
+            .target(consts::OS)
             .current_version(current_version)
-            .show_download_progress(true)
-            .no_confirm(true)
-            .build()?
-            .update()?;
+            .show_download_progress(true);
+
+        if target_version.is_some() {
+            updater.target_version_tag(&version);
+        }
+        updater.build()?.update()?;
+
         Ok(())
     }
 }
