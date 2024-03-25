@@ -31,11 +31,6 @@ impl MenAtArmsTypes {
             }
         }
 
-        if let Some(base) = block.get_field_value("type") {
-            self.menatarmsbasetypes.insert(base.clone());
-            self.menatarmsbasetypes_lc.insert(Lowercase::new(base.as_str()));
-        }
-
         self.menatarmstypes.insert(key.as_str(), MenAtArmsType::new(key, block));
     }
 
@@ -82,6 +77,15 @@ impl FileHandler<Block> for MenAtArmsTypes {
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             self.load_item(key, block);
+        }
+    }
+
+    fn finalize(&mut self) {
+        for maa in self.menatarmstypes.values() {
+            if let Some(base) = maa.block.get_field_value("type") {
+                self.menatarmsbasetypes.insert(base.clone());
+                self.menatarmsbasetypes_lc.insert(Lowercase::new(base.as_str()));
+            }
         }
     }
 }

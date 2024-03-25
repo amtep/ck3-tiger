@@ -23,9 +23,6 @@ impl GameConcepts {
                 dup_error(&key, &other.key, "game concept");
             }
         }
-        for token in block.get_multi_field_list("alias") {
-            self.aliases.insert(token.as_str(), key.as_str());
-        }
         self.concepts.insert(key.as_str(), Concept::new(key, block));
     }
 
@@ -60,6 +57,14 @@ impl FileHandler<Block> for GameConcepts {
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             self.load_item(key, block);
+        }
+    }
+
+    fn finalize(&mut self) {
+        for (key, concept) in &self.concepts {
+            for token in concept.block.get_multi_field_list("alias") {
+                self.aliases.insert(token.as_str(), key);
+            }
         }
     }
 }
