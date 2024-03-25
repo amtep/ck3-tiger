@@ -87,9 +87,15 @@ impl Db {
     pub fn add_subitems(&mut self) {
         for itype in Item::iter() {
             let queue = take(&mut self.database[itype as usize]);
-            for (key, entry) in queue {
+            for entry in queue.values() {
                 entry.kind.add_subitems(&entry.key, &entry.block, self);
-                self.database[itype as usize].insert(key, entry);
+            }
+            if self.database[itype as usize].is_empty() {
+                // The usual case. It should be extremely rare for `add_subitems` to add items of
+                // the same item type as its parent.
+                self.database[itype as usize] = queue;
+            } else {
+                self.database[itype as usize].extend(queue);
             }
         }
     }
