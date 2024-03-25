@@ -472,8 +472,13 @@ impl<'a> ValueParser<'a> {
                 while let Some(c) = self.peek() {
                     match c {
                         '\'' => break,
-                        ']' | ')' if parens == 0 => warn(ErrorKey::Localization)
-                            .msg("Possible unterminated argument string")
+                        ']' => {
+                            let msg = "possible unterminated argument string";
+                            let info = "Using [ ] inside argument strings does not work";
+                            warn(ErrorKey::Localization).msg(msg).info(info).loc(self.loc).push();
+                        }
+                        ')' if parens == 0 => warn(ErrorKey::Localization)
+                            .msg("possible unterminated argument string")
                             .loc(self.loc)
                             .push(),
                         '(' => parens += 1,

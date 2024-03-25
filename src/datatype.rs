@@ -203,10 +203,6 @@ pub struct Code {
 }
 
 /// `CodeArg` represents a single argument of a [`Code`].
-// Possibly the literal arguments can themselves contain [ ] code blocks.
-// I'll have to test that.
-// A literal argument can be a string that starts with a (datatype) in front
-// of it, such as '(int32)0'.
 #[derive(Clone, Debug)]
 pub enum CodeArg {
     /// An argument that is itself a [`CodeChain`], though it doesn't need the `[` `]` around it.
