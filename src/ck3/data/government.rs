@@ -22,14 +22,17 @@ inventory::submit! {
 
 impl Government {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for token in block.get_field_values("flag") {
-            db.add_flag(Item::GovernmentFlag, token.clone());
-        }
         db.add(Item::GovernmentType, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for Government {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for token in block.get_field_values("flag") {
+            db.add_flag(Item::GovernmentFlag, token.clone());
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Character, key);

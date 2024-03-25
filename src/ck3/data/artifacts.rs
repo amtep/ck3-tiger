@@ -22,14 +22,17 @@ inventory::submit! {
 
 impl ArtifactSlot {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        if let Some(slot_type) = block.get_field_value("type") {
-            db.add_flag(Item::ArtifactSlotType, slot_type.clone());
-        }
         db.add(Item::ArtifactSlot, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for ArtifactSlot {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        if let Some(slot_type) = block.get_field_value("type") {
+            db.add_flag(Item::ArtifactSlotType, slot_type.clone());
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         data.verify_exists(Item::Localization, key);

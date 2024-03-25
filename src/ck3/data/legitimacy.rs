@@ -20,16 +20,19 @@ inventory::submit! {
 
 impl LegitimacyType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for block in &block.get_field_blocks("level") {
-            for &flag in &block.get_field_values("flag") {
-                db.add_flag(Item::LegitimacyFlag, flag.clone());
-            }
-        }
         db.add(Item::LegitimacyType, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for LegitimacyType {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for block in &block.get_field_blocks("level") {
+            for &flag in &block.get_field_values("flag") {
+                db.add_flag(Item::LegitimacyFlag, flag.clone());
+            }
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let loca = format!("{key}_type_name");
         data.verify_exists_implied(Item::Localization, &loca, key);

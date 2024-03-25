@@ -16,16 +16,19 @@ inventory::submit! {
 
 impl Relation {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        if let Some(list) = block.get_field_list("flags") {
-            for token in list {
-                db.add_flag(Item::RelationFlag, token);
-            }
-        }
         db.add(Item::Relation, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for Relation {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        if let Some(list) = block.get_field_list("flags") {
+            for token in list {
+                db.add_flag(Item::RelationFlag, token);
+            }
+        }
+    }
+
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

@@ -23,6 +23,12 @@ inventory::submit! {
 
 impl LawGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::LawGroup, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for LawGroup {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         for (key, block) in block.iter_definitions() {
             for token in block.get_field_values("flag") {
                 db.add_flag(Item::LawFlag, token.clone());
@@ -37,11 +43,8 @@ impl LawGroup {
         for token in block.get_field_values("flag") {
             db.add_flag(Item::LawFlag, token.clone());
         }
-        db.add(Item::LawGroup, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for LawGroup {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

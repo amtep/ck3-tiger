@@ -19,6 +19,12 @@ inventory::submit! {
 
 impl HouseUnity {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::HouseUnity, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for HouseUnity {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         for (token, block) in block.iter_definitions() {
             db.add_flag(Item::HouseUnityStage, token.clone());
 
@@ -28,11 +34,8 @@ impl HouseUnity {
                 }
             }
         }
-        db.add(Item::HouseUnity, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for HouseUnity {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         vd.req_field("default_value");

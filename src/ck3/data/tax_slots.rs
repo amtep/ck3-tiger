@@ -96,15 +96,17 @@ inventory::submit! {
 
 impl TaxSlotObligation {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for token in block.get_field_values("flag") {
-            db.add_flag(Item::VassalContractFlag, token.clone());
-        }
-
         db.add(Item::TaxSlotObligation, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for TaxSlotObligation {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for token in block.get_field_values("flag") {
+            db.add_flag(Item::VassalContractFlag, token.clone());
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_flavor_desc");

@@ -301,8 +301,7 @@ pub struct AccessoryGene {
 impl AccessoryGene {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         let mut templates = TigerHashSet::default();
-        #[allow(unused_variables)] // vic3 does not use `block`
-        for (key, block) in block.iter_definitions() {
+        for (key, _) in block.iter_definitions() {
             if key.is("ugliness_feature_categories") {
                 continue;
             }
@@ -310,13 +309,6 @@ impl AccessoryGene {
                 dup_error(key, other, "accessory gene template");
             }
             templates.insert(key.clone());
-
-            #[cfg(feature = "ck3")]
-            if let Some(tags) = block.get_field_value("set_tags") {
-                for tag in tags.split(',') {
-                    db.add_flag(Item::AccessoryTag, tag);
-                }
-            }
         }
         db.add(Item::GeneCategory, key, block, Box::new(Self { templates }));
     }
@@ -351,6 +343,21 @@ impl AccessoryGene {
 }
 
 impl DbKind for AccessoryGene {
+    #[cfg(feature = "ck3")]
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for (key, block) in block.iter_definitions() {
+            if key.is("ugliness_feature_categories") {
+                continue;
+            }
+
+            if let Some(tags) = block.get_field_value("set_tags") {
+                for tag in tags.split(',') {
+                    db.add_flag(Item::AccessoryTag, tag);
+                }
+            }
+        }
+    }
+
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

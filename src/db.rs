@@ -4,6 +4,7 @@
 
 use std::any::Any;
 use std::fmt::Debug;
+use std::mem::take;
 
 use as_any::AsAny;
 use rayon::prelude::*;
@@ -81,6 +82,16 @@ impl Db {
     pub fn add_flag(&mut self, item: Item, key: Token) {
         self.items_lc[item as usize].insert(Lowercase::new(key.as_str()), key.as_str());
         self.flags[item as usize].insert(key);
+    }
+
+    pub fn add_subitems(&mut self) {
+        for itype in Item::iter() {
+            let queue = take(&mut self.database[itype as usize]);
+            for (key, entry) in queue {
+                entry.kind.add_subitems(&entry.key, &entry.block, self);
+                self.database[itype as usize].insert(key, entry);
+            }
+        }
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -198,6 +209,11 @@ pub struct DbEntry {
 }
 
 pub trait DbKind: Debug + AsAny + Sync + Send {
+    /// Add additional items that are implied by the current item, for example buildings that add
+    /// `BuildingFlag` items. It's done in a separate pass so that items that were later overridden
+    /// don't add their subitems.
+    fn add_subitems(&self, _key: &Token, _block: &Block, _db: &mut Db) {}
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything);
     fn has_property(
         &self,

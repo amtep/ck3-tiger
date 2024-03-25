@@ -16,6 +16,12 @@ inventory::submit! {
 
 impl Accessory {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::Accessory, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for Accessory {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         if let Some(token) = block.get_field_value("set_tags") {
             for tag in token.split(',') {
                 db.add_flag(Item::AccessoryTag, tag);
@@ -26,11 +32,8 @@ impl Accessory {
         for tag in &["no_hair", "fat2_normal", "fat2_max", "fat1_normal", "fat1_max", "no_fat"] {
             db.add_flag(Item::AccessoryTag, Token::new(tag, block.loc));
         }
-        db.add(Item::Accessory, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for Accessory {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

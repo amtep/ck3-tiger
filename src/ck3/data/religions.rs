@@ -24,6 +24,12 @@ inventory::submit! {
 
 impl Religion {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::Religion, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for Religion {
+    fn add_subitems(&self, key: &Token, block: &Block, db: &mut Db) {
         if let Some(block) = block.get_field_block("faiths") {
             for (faith, block) in block.iter_definitions() {
                 if let Some(token) = block.get_field_value("graphical_faith") {
@@ -49,11 +55,8 @@ impl Religion {
         if let Some(token) = block.get_field_value("graphical_faith") {
             db.add_flag(Item::GraphicalFaith, token.clone());
         }
-        db.add(Item::Religion, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for Religion {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_adj");
@@ -330,14 +333,17 @@ inventory::submit! {
 
 impl ReligionFamily {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        if let Some(token) = block.get_field_value("graphical_faith") {
-            db.add_flag(Item::GraphicalFaith, token.clone());
-        }
         db.add(Item::ReligionFamily, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for ReligionFamily {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        if let Some(token) = block.get_field_value("graphical_faith") {
+            db.add_flag(Item::GraphicalFaith, token.clone());
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

@@ -337,7 +337,6 @@ impl LegendChronicle {
 
         if let Some(block) = block.get_field_block("properties") {
             for (key, value) in block.iter_assignments() {
-                db.add_flag(Item::LegendProperty, key.clone());
                 if let Some(scopes) = scope_from_snake_case(value.as_str()) {
                     properties.insert(key.clone(), scopes);
                 }
@@ -346,7 +345,6 @@ impl LegendChronicle {
 
         if let Some(block) = block.get_field_block("chapters") {
             for (key, _) in block.iter_assignments() {
-                db.add_flag(Item::LegendChapter, key.clone());
                 chapters.insert(key.clone());
             }
         }
@@ -355,6 +353,20 @@ impl LegendChronicle {
 }
 
 impl DbKind for LegendChronicle {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        if let Some(block) = block.get_field_block("properties") {
+            for (key, _) in block.iter_assignments() {
+                db.add_flag(Item::LegendProperty, key.clone());
+            }
+        }
+
+        if let Some(block) = block.get_field_block("chapters") {
+            for (key, _) in block.iter_assignments() {
+                db.add_flag(Item::LegendChapter, key.clone());
+            }
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

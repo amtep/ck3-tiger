@@ -105,6 +105,12 @@ inventory::submit! {
 
 impl AccoladeType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::AccoladeType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for AccoladeType {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         if let Some(vec) = block.get_field_list("accolade_categories") {
             for token in vec {
                 db.add_flag(Item::AccoladeCategory, token);
@@ -121,11 +127,8 @@ impl AccoladeType {
                 }
             }
         }
-        db.add(Item::AccoladeType, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for AccoladeType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Character, key);
