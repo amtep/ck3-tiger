@@ -15,14 +15,17 @@ inventory::submit! {
 
 impl HoldingType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for token in block.get_field_values("flag") {
-            db.add_flag(Item::HoldingFlag, token.clone());
-        }
         db.add(Item::HoldingType, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for HoldingType {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for token in block.get_field_values("flag") {
+            db.add_flag(Item::HoldingFlag, token.clone());
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let modif = format!("{key}_build_speed");
         data.verify_exists_implied(Item::ModifierFormat, &modif, key);

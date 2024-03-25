@@ -23,16 +23,19 @@ inventory::submit! {
 
 impl InventionGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for (key, block) in block.iter_definitions() {
-            if !&["technology", "color"].iter().any(|&v| key.is(v)) {
-                db.add(Item::Invention, key.clone(), block.clone(), Box::new(Invention {}));
-            }
-        }
         db.add(Item::InventionGroup, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for InventionGroup {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for (key, block) in block.iter_definitions() {
+            if !&["technology", "color"].iter().any(|&v| key.is(v)) {
+                db.add(Item::Invention, key.clone(), block.clone(), Box::new(Invention {}));
+            }
+        }
+    }
+
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

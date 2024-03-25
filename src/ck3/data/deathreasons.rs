@@ -20,14 +20,17 @@ inventory::submit! {
 
 impl DeathReason {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        if let Some(epidemic) = block.get_field_value("epidemic") {
-            db.add_flag(Item::EpidemicDeathReason, epidemic.clone());
-        }
         db.add(Item::DeathReason, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for DeathReason {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        if let Some(epidemic) = block.get_field_value("epidemic") {
+            db.add_flag(Item::EpidemicDeathReason, epidemic.clone());
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Character, key);

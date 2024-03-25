@@ -21,6 +21,12 @@ inventory::submit! {
 
 impl Mission {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::Mission, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for Mission {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         for (key, block) in block.iter_definitions() {
             if !&[
                 "icon",
@@ -41,11 +47,8 @@ impl Mission {
                 db.add(Item::MissionTask, key.clone(), block.clone(), Box::new(MissionTask {}));
             }
         }
-        db.add(Item::Mission, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for Mission {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Country, key);

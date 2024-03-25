@@ -466,6 +466,7 @@ impl Everything {
             #[cfg(feature = "imperator")]
             Game::Imperator => self.load_all_imperator(),
         }
+        self.database.add_subitems();
     }
 
     fn validate_all_generic<'a>(&'a self, s: &Scope<'a>) {

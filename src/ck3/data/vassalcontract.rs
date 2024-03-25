@@ -21,6 +21,12 @@ inventory::submit! {
 
 impl VassalContract {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::VassalContract, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for VassalContract {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         if let Some(block) = block.get_field_block("obligation_levels") {
             for (key, block) in block.iter_definitions() {
                 for token in block.get_field_values("flag") {
@@ -31,11 +37,8 @@ impl VassalContract {
                 }
             }
         }
-        db.add(Item::VassalContract, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for VassalContract {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         data.verify_exists(Item::Localization, key);
 

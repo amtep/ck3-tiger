@@ -22,14 +22,17 @@ inventory::submit! {
 
 impl Perk {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        if let Some(tree) = block.get_field_value("tree") {
-            db.add_flag(Item::PerkTree, tree.clone());
-        }
         db.add(Item::Perk, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for Perk {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        if let Some(tree) = block.get_field_value("tree") {
+            db.add_flag(Item::PerkTree, tree.clone());
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Character, key);

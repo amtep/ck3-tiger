@@ -25,6 +25,12 @@ inventory::submit! {
 
 impl ActivityType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::ActivityType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for ActivityType {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         if let Some(block) = block.get_field_block("options") {
             for (key, block) in block.iter_definitions() {
                 db.add_flag(Item::ActivityOptionCategory, key.clone());
@@ -54,11 +60,8 @@ impl ActivityType {
                 db.add_flag(Item::GuestSubset, token.clone());
             }
         }
-        db.add(Item::ActivityType, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for ActivityType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let has_special_option = block.has_key("special_option_category");

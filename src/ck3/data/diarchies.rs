@@ -20,6 +20,12 @@ inventory::submit! {
 
 impl DiarchyType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::DiarchyType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for DiarchyType {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         for block in block.get_field_blocks("power_level") {
             for token in block.get_field_values("parameter") {
                 db.add_flag(Item::DiarchyParameter, token.clone());
@@ -28,11 +34,8 @@ impl DiarchyType {
                 db.add_flag(Item::DiarchyParameter, token.clone());
             }
         }
-        db.add(Item::DiarchyType, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for DiarchyType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::None, key); // TODO scope type

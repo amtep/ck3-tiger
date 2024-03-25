@@ -21,16 +21,19 @@ inventory::submit! {
 
 impl LawGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for (key, block) in block.iter_definitions() {
-            if !key.is("potential") {
-                db.add(Item::Law, key.clone(), block.clone(), Box::new(Law {}));
-            }
-        }
         db.add(Item::LawGroup, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for LawGroup {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for (key, block) in block.iter_definitions() {
+            if !key.is("potential") {
+                db.add(Item::Law, key.clone(), block.clone(), Box::new(Law {}));
+            }
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Country, key);

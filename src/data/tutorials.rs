@@ -22,6 +22,12 @@ inventory::submit! {
 
 impl TutorialLesson {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::TutorialLesson, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for TutorialLesson {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         let chain = block.get_field_value("chain");
         for (key, block) in block.iter_definitions() {
             if !key.is("trigger") && !key.is("trigger_transition") {
@@ -33,11 +39,8 @@ impl TutorialLesson {
                 );
             }
         }
-        db.add(Item::TutorialLesson, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for TutorialLesson {
     #[allow(unused_variables)] // for `key` when not vic3
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);

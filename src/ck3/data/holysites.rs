@@ -18,14 +18,17 @@ inventory::submit! {
 
 impl HolySite {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for token in block.get_field_values("flag") {
-            db.add_flag(Item::HolySiteFlag, token.clone());
-        }
         db.add(Item::HolySite, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for HolySite {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for token in block.get_field_values("flag") {
+            db.add_flag(Item::HolySiteFlag, token.clone());
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

@@ -31,32 +31,6 @@ impl Doctrines {
                 dup_error(&key, &other.key, "doctrine category");
             }
         }
-
-        for (doctrine, block) in block.iter_definitions() {
-            // skip definitions that are not doctrines
-            if doctrine.is("is_available_on_create") || doctrine.is("name") {
-                continue;
-            }
-
-            if let Some(other) = self.doctrines.get(doctrine.as_str()) {
-                if other.key.loc.kind >= doctrine.loc.kind {
-                    dup_error(doctrine, &other.key, "doctrine");
-                }
-            }
-
-            if let Some(b) = block.get_field_block("parameters") {
-                for (k, v) in b.iter_assignments() {
-                    if v.is("yes") || v.is("no") {
-                        self.parameters.insert(k.clone());
-                    }
-                }
-            }
-            self.doctrines.insert(
-                doctrine.as_str(),
-                Doctrine::new(doctrine.clone(), block.clone(), key.clone()),
-            );
-        }
-
         self.categories.insert(key.as_str(), DoctrineCategory::new(key, block));
     }
 
@@ -122,6 +96,35 @@ impl FileHandler<Block> for Doctrines {
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             self.load_item(key, block);
+        }
+    }
+
+    fn finalize(&mut self) {
+        for category in self.categories.values() {
+            for (doctrine, block) in category.block.iter_definitions() {
+                // skip definitions that are not doctrines
+                if doctrine.is("is_available_on_create") || doctrine.is("name") {
+                    continue;
+                }
+
+                if let Some(other) = self.doctrines.get(doctrine.as_str()) {
+                    if other.key.loc.kind >= doctrine.loc.kind {
+                        dup_error(doctrine, &other.key, "doctrine");
+                    }
+                }
+
+                if let Some(b) = block.get_field_block("parameters") {
+                    for (k, v) in b.iter_assignments() {
+                        if v.is("yes") || v.is("no") {
+                            self.parameters.insert(k.clone());
+                        }
+                    }
+                }
+                self.doctrines.insert(
+                    doctrine.as_str(),
+                    Doctrine::new(doctrine.clone(), block.clone(), category.key.clone()),
+                );
+            }
         }
     }
 }

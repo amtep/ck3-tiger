@@ -70,6 +70,12 @@ inventory::submit! {
 
 impl Culture {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::Culture, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for Culture {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         if let Some(list) = block.get_field_list("coa_gfx") {
             for token in list {
                 db.add_flag(Item::CoaGfx, token);
@@ -90,11 +96,8 @@ impl Culture {
                 db.add_flag(Item::UnitGfx, token);
             }
         }
-        db.add(Item::Culture, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for Culture {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -154,6 +157,12 @@ inventory::submit! {
 
 impl CulturePillar {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CulturePillar, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for CulturePillar {
+    fn add_subitems(&self, key: &Token, block: &Block, db: &mut Db) {
         if let Some(block) = block.get_field_block("parameters") {
             for (key, value) in block.iter_assignments() {
                 if value.is("yes") {
@@ -172,11 +181,8 @@ impl CulturePillar {
                 db.add_flag(Item::MartialCustom, key.clone());
             }
         }
-        db.add(Item::CulturePillar, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for CulturePillar {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         vd.field_choice("type", &["ethos", "heritage", "language", "martial_custom"]);
@@ -235,6 +241,12 @@ inventory::submit! {
 
 impl CultureTradition {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CultureTradition, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for CultureTradition {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         if let Some(block) = block.get_field_block("parameters") {
             for (key, value) in block.iter_assignments() {
                 if value.is("yes") {
@@ -245,11 +257,8 @@ impl CultureTradition {
         if let Some(value) = block.get_field_value("category") {
             db.add_flag(Item::CultureTraditionCategory, value.clone());
         }
-        db.add(Item::CultureTradition, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for CultureTradition {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         vd.field_item("name", Item::Localization);

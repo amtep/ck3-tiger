@@ -24,23 +24,6 @@ pub struct Assets {
 
 impl Assets {
     pub fn load_item(&mut self, key: &Token, block: &Block) {
-        if key.is("pdxmesh") {
-            for (key, block) in block.iter_definitions() {
-                if key.is("blend_shape") {
-                    if let Some(id) = block.get_field_value("id") {
-                        self.blend_shapes.insert(id.clone());
-                    }
-                }
-            }
-        } else if key.is("entity") {
-            for (key, block) in block.iter_definitions() {
-                if key.is("attribute") {
-                    if let Some(name) = block.get_field_value("name") {
-                        self.attributes.insert(name.clone());
-                    }
-                }
-            }
-        }
         if let Some(name) = block.get_field_value("name") {
             if let Some(other) = self.assets.get(name.as_str()) {
                 if other.key.loc.kind >= name.loc.kind {
@@ -156,6 +139,28 @@ impl FileHandler<Option<Block>> for Assets {
         let block = loaded.expect("internal error");
         for (key, block) in block.iter_definitions_warn() {
             self.load_item(key, block);
+        }
+    }
+
+    fn finalize(&mut self) {
+        for asset in self.assets.values() {
+            if asset.key.is("pdxmesh") {
+                for (key, block) in asset.block.iter_definitions() {
+                    if key.is("blend_shape") {
+                        if let Some(id) = block.get_field_value("id") {
+                            self.blend_shapes.insert(id.clone());
+                        }
+                    }
+                }
+            } else if asset.key.is("entity") {
+                for (key, block) in asset.block.iter_definitions() {
+                    if key.is("attribute") {
+                        if let Some(name) = block.get_field_value("name") {
+                            self.attributes.insert(name.clone());
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -16,16 +16,19 @@ inventory::submit! {
 
 impl CultureGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        if let Some(block) = block.get_field_block("culture") {
-            for (culture, block) in block.iter_definitions() {
-                db.add(Item::Culture, culture.clone(), block.clone(), Box::new(Culture {}));
-            }
-        }
         db.add(Item::CultureGroup, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for CultureGroup {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        if let Some(block) = block.get_field_block("culture") {
+            for (culture, block) in block.iter_definitions() {
+                db.add(Item::Culture, culture.clone(), block.clone(), Box::new(Culture {}));
+            }
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

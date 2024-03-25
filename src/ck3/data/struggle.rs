@@ -23,6 +23,12 @@ inventory::submit! {
 
 impl Struggle {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::Struggle, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for Struggle {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         if let Some(block) = block.get_field_block("phase_list") {
             for (key, block) in block.iter_definitions() {
                 db.add_flag(Item::StrugglePhase, key.clone());
@@ -46,11 +52,8 @@ impl Struggle {
                 }
             }
         }
-        db.add(Item::Struggle, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for Struggle {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Struggle, key);

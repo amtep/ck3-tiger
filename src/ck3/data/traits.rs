@@ -40,34 +40,6 @@ impl Traits {
                 dup_error(&key, &other.key, "trait");
             }
         }
-        if let Some(token) = block.get_field_value("group") {
-            self.groups.insert(token.clone());
-            self.groups_lc.insert(Lowercase::new(token.as_str()));
-        }
-        for token in block.get_field_values("flag") {
-            self.flags.insert(token.clone());
-        }
-        for field in
-            &["genetic_constraint_all", "genetic_constraint_men", "genetic_constraint_women"]
-        {
-            if let Some(token) = block.get_field_value(field) {
-                self.constraints.insert(token.clone());
-            }
-        }
-        if let Some(token) = block.get_field_value("group_equivalence") {
-            self.groups.insert(token.clone());
-            self.groups_lc.insert(Lowercase::new(token.as_str()));
-        }
-        if block.has_key("track") {
-            self.tracks.insert(key.clone());
-            self.tracks_lc.insert(Lowercase::new(key.as_str()));
-        }
-        if let Some(block) = block.get_field_block("tracks") {
-            for (key, _) in block.iter_definitions() {
-                self.tracks.insert(key.clone());
-                self.tracks_lc.insert(Lowercase::new(key.as_str()));
-            }
-        }
         self.traits_lc.insert(Lowercase::new(key.as_str()), key.as_str());
         self.traits.insert(key.as_str(), Trait::new(key, block));
     }
@@ -141,6 +113,39 @@ impl FileHandler<Block> for Traits {
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, block) in block.drain_definitions_warn() {
             self.load_item(key, block);
+        }
+    }
+
+    fn finalize(&mut self) {
+        for traititem in self.traits.values() {
+            if let Some(token) = traititem.block.get_field_value("group") {
+                self.groups.insert(token.clone());
+                self.groups_lc.insert(Lowercase::new(token.as_str()));
+            }
+            for token in traititem.block.get_field_values("flag") {
+                self.flags.insert(token.clone());
+            }
+            for field in
+                &["genetic_constraint_all", "genetic_constraint_men", "genetic_constraint_women"]
+            {
+                if let Some(token) = traititem.block.get_field_value(field) {
+                    self.constraints.insert(token.clone());
+                }
+            }
+            if let Some(token) = traititem.block.get_field_value("group_equivalence") {
+                self.groups.insert(token.clone());
+                self.groups_lc.insert(Lowercase::new(token.as_str()));
+            }
+            if traititem.block.has_key("track") {
+                self.tracks.insert(traititem.key.clone());
+                self.tracks_lc.insert(Lowercase::new(traititem.key.as_str()));
+            }
+            if let Some(block) = traititem.block.get_field_block("tracks") {
+                for (key, _) in block.iter_definitions() {
+                    self.tracks.insert(key.clone());
+                    self.tracks_lc.insert(Lowercase::new(key.as_str()));
+                }
+            }
         }
     }
 }

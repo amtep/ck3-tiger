@@ -22,6 +22,12 @@ inventory::submit! {
 
 impl MilitaryTraditionTree {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::MilitaryTraditionTree, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for MilitaryTraditionTree {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         for (key, block) in block.iter_definitions() {
             if !&["color", "image", "allow"].iter().any(|&v| key.is(v)) {
                 db.add(
@@ -32,11 +38,8 @@ impl MilitaryTraditionTree {
                 );
             }
         }
-        db.add(Item::MilitaryTraditionTree, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for MilitaryTraditionTree {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Country, key);

@@ -20,16 +20,19 @@ inventory::submit! {
 
 impl MemoryType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        if let Some(vec) = block.get_field_list("categories") {
-            for token in vec {
-                db.add_flag(Item::MemoryCategory, token.clone());
-            }
-        }
         db.add(Item::MemoryType, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for MemoryType {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        if let Some(vec) = block.get_field_list("categories") {
+            for token in vec {
+                db.add_flag(Item::MemoryCategory, token.clone());
+            }
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::CharacterMemory, key);

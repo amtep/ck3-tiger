@@ -16,9 +16,6 @@ inventory::submit! {
 
 impl GameRule {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for (key, _) in block.iter_definitions() {
-            db.add_flag(Item::GameRuleSetting, key.clone());
-        }
         db.add(Item::GameRule, key, block, Box::new(Self {}));
     }
 }
@@ -43,6 +40,12 @@ const SIMPLE_GAME_RULE_FLAGS: &[&str] = &[
 ];
 
 impl DbKind for GameRule {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for (key, _) in block.iter_definitions() {
+            db.add_flag(Item::GameRuleSetting, key.clone());
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

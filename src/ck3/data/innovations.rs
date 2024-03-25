@@ -22,14 +22,17 @@ inventory::submit! {
 
 impl Innovation {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for token in block.get_field_values("flag") {
-            db.add_flag(Item::InnovationFlag, token.clone());
-        }
         db.add(Item::Innovation, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for Innovation {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for token in block.get_field_values("flag") {
+            db.add_flag(Item::InnovationFlag, token.clone());
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Culture, key);

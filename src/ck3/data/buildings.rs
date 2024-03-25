@@ -29,12 +29,6 @@ impl Building {
     }
 
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        for token in block.get_field_values("flag") {
-            db.add_flag(Item::BuildingFlag, token.clone());
-        }
-        if block.field_value_is("type", "special") {
-            db.add_flag(Item::SpecialBuilding, key.clone());
-        }
         db.add(Item::Building, key, block, Box::new(Self::new()));
     }
 
@@ -52,6 +46,15 @@ impl Building {
 }
 
 impl DbKind for Building {
+    fn add_subitems(&self, key: &Token, block: &Block, db: &mut Db) {
+        for token in block.get_field_values("flag") {
+            db.add_flag(Item::BuildingFlag, token.clone());
+        }
+        if block.field_value_is("type", "special") {
+            db.add_flag(Item::SpecialBuilding, key.clone());
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 

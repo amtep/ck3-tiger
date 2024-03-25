@@ -19,18 +19,20 @@ inventory::submit! {
 }
 
 impl GreatWorkEffect {
-    #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::GreatWorkEffect, key.clone(), block, Box::new(Self {}));
+        db.add(Item::GreatWorkEffect, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for GreatWorkEffect {
+    fn add_subitems(&self, key: &Token, _block: &Block, db: &mut Db) {
         for tier in 1..5 {
             let tier_key = format!("{}:{}", key.as_str(), tier);
             let tier_token = Token::new(&tier_key, key.loc);
             db.add_flag(Item::GreatWorkEffect, tier_token);
         }
     }
-}
 
-impl DbKind for GreatWorkEffect {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Country, key);
