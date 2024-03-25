@@ -6,6 +6,7 @@ pub(crate) static BUILTIN_MACROS_CK3: Lazy<TigerHashSet<&'static str>> =
     Lazy::new(|| BUILTIN_MACROS.iter().copied().collect());
 
 // LAST UPDATED CK3 VERSION 1.12.3
+// The table entries were collected by analyzing tiger's own output.
 const BUILTIN_MACROS: &[&str] = &[
     "1",
     "2",

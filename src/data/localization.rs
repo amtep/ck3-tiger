@@ -119,8 +119,8 @@ impl LocaEntry {
             for macrovalue in v {
                 match macrovalue {
                     MacroValue::Text(ref token) => vec.push(token.clone().linked(link)),
-                    MacroValue::Keyword(k, _) => {
-                        if let Some(entry) = from.get(k.as_str()) {
+                    MacroValue::Keyword(keyword, _) => {
+                        if let Some(entry) = from.get(keyword.as_str()) {
                             entry.used.store(true, Relaxed);
                             entry.validated.store(true, Relaxed);
                             if !entry.expand_macros(
@@ -128,25 +128,25 @@ impl LocaEntry {
                                 from,
                                 count,
                                 sc,
-                                Some(MACRO_MAP.get_or_insert_loc(k.loc)),
+                                Some(MACRO_MAP.get_or_insert_loc(keyword.loc)),
                             ) {
                                 return false;
                             }
-                        } else if is_builtin_macro(k) {
+                        } else if is_builtin_macro(keyword) {
                             // we can't know what value it really has, so replace it with itself to
                             // at least get comprehensible error messages
-                            vec.push(k.clone().linked(link));
-                        } else if let Some(scopes) = sc.is_name_defined(k.as_str()) {
+                            vec.push(keyword.clone().linked(link));
+                        } else if let Some(scopes) = sc.is_name_defined(keyword.as_str()) {
                             if scopes.contains(Scopes::Value) {
                                 // same as above... we can't know what value it really has
-                                vec.push(k.clone().linked(link));
+                                vec.push(keyword.clone().linked(link));
                             } else {
-                                let msg = &format!("The substitution parameter ${k}$ is not defined anywhere as a key.");
-                                warn(ErrorKey::Localization).msg(msg).loc(k).push();
+                                let msg = &format!("The substitution parameter ${keyword}$ is not defined anywhere as a key.");
+                                warn(ErrorKey::Localization).msg(msg).loc(keyword).push();
                             }
                         } else {
-                            let msg = &format!("The substitution parameter ${k}$ is not defined anywhere as a key.");
-                            warn(ErrorKey::Localization).msg(msg).loc(k).push();
+                            let msg = &format!("The substitution parameter ${keyword}$ is not defined anywhere as a key.");
+                            warn(ErrorKey::Localization).msg(msg).loc(keyword).push();
                         }
                     }
                 }
@@ -547,6 +547,8 @@ impl Localization {
             for (lang, hash) in &self.locas {
                 for entry in hash.values() {
                     if !entry.validated.load(Relaxed) {
+                        // Technically we can now store true in entry.validated,
+                        // but the value is not needed anymore after this.
                         s.spawn(|_| {
                             let mut sc = ScopeContext::new_unrooted(Scopes::all(), &entry.key);
                             sc.set_strict_scopes(false);

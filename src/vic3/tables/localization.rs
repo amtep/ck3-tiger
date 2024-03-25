@@ -6,6 +6,7 @@ pub(crate) static BUILTIN_MACROS_VIC3: Lazy<TigerHashSet<&'static str>> =
     Lazy::new(|| BUILTIN_MACROS.iter().copied().collect());
 
 // LAST UPDATED VIC3 VERSION 1.6.2
+// The table entries were collected by analyzing tiger's own output.
 const BUILTIN_MACROS: &[&str] = &[
     "ABROAD_POP_CONCEPT",
     "ACTING_NEW_PRICE",
