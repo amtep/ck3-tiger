@@ -917,6 +917,14 @@ impl ScopeContext {
             }
         }
     }
+
+    /// Safely destroy a `ScopeContext` without fully unwinding its stack.
+    /// This is useful when a `ScopeContext` needed to be cloned for some reason.
+    #[allow(dead_code)]
+    pub(crate) fn destroy(mut self) {
+        self.is_unrooted = false;
+        self.prev = None;
+    }
 }
 
 impl Drop for ScopeContext {

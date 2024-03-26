@@ -1485,7 +1485,9 @@ pub fn validate_create_alliance(
     _tooltipped: Tooltipped,
 ) {
     match bv {
-        BV::Value(token) => validate_target(token, data, sc, Scopes::Character),
+        BV::Value(token) => {
+            validate_target(token, data, sc, Scopes::Character);
+        }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);
@@ -1615,7 +1617,9 @@ pub fn validate_remove_courtier_or_guest(
     _tooltipped: Tooltipped,
 ) {
     match bv {
-        BV::Value(token) => validate_target(token, data, sc, Scopes::Character),
+        BV::Value(token) => {
+            validate_target(token, data, sc, Scopes::Character);
+        }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);
@@ -1653,7 +1657,9 @@ pub fn validate_set_location(
     _tooltipped: Tooltipped,
 ) {
     match bv {
-        BV::Value(token) => validate_target(token, data, sc, Scopes::Province),
+        BV::Value(token) => {
+            validate_target(token, data, sc, Scopes::Province);
+        }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);
@@ -1672,7 +1678,9 @@ pub fn validate_set_owner(
     _tooltipped: Tooltipped,
 ) {
     match bv {
-        BV::Value(token) => validate_target(token, data, sc, Scopes::Character),
+        BV::Value(token) => {
+            validate_target(token, data, sc, Scopes::Character);
+        }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);
@@ -1692,7 +1700,9 @@ pub fn validate_set_relation(
     _tooltipped: Tooltipped,
 ) {
     match bv {
-        BV::Value(token) => validate_target(token, data, sc, Scopes::Character),
+        BV::Value(token) => {
+            validate_target(token, data, sc, Scopes::Character);
+        }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);

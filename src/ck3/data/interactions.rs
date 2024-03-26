@@ -11,7 +11,7 @@ use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
+use crate::trigger::{validate_target, validate_trigger};
 use crate::validate::{validate_ai_chance, validate_duration, validate_modifiers_with_base};
 use crate::validator::Validator;
 
@@ -77,6 +77,14 @@ impl DbKind for CharacterInteraction {
                 sc.define_name(token.as_str(), Scopes::Bool, token);
             }
         }
+
+        vd.field_validated_block("localization_values", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_value_fields(|key, value| {
+                let scopes = validate_target(value, data, &mut sc, Scopes::all());
+                sc.define_name(key.as_str(), scopes, value);
+            });
+        });
 
         // Validate this early, to update the saved scopes in `sc`
         // TODO: figure out when exactly `redirect` is run
@@ -186,7 +194,7 @@ impl DbKind for CharacterInteraction {
         // TODO: The ai_ name check is a heuristic. It would be better to check if the
         // is_shown trigger requires scope:actor to be is_ai = yes. But that's a long way off.
         if !key.as_str().starts_with("ai_") {
-            data.localization.verify_exists(key);
+            data.verify_exists(Item::Localization, key);
         }
         vd.field_validated_value("extra_icon", |k, mut vd| {
             vd.item(Item::File);
@@ -235,16 +243,14 @@ impl DbKind for CharacterInteraction {
             validate_effect(block, data, &mut sc.clone(), Tooltipped::No);
         });
 
-        vd.field_block("localization_values"); // TODO
-
         vd.multi_field_validated_block("send_option", |b, data| {
             let mut vd = Validator::new(b, data);
             vd.req_field("flag");
             // If localization field is not set, then flag is used as the localization
-            if vd.field_item("localization", Item::Localization) {
+            if vd.field_localization("localization", &mut sc) {
                 vd.field_value("flag");
             } else {
-                vd.field_item("flag", Item::Localization);
+                vd.field_localization("flag", &mut sc);
             }
             vd.field_validated_block("is_shown", |b, data| {
                 validate_trigger(b, data, &mut sc.clone(), Tooltipped::No);
@@ -324,24 +330,24 @@ impl DbKind for CharacterInteraction {
         vd.field_validated_sc("intermediary_notification_text", &mut sc.clone(), validate_desc);
         vd.field_validated_sc("notification_text", &mut sc.clone(), validate_desc);
         vd.field_validated_sc("on_decline_summary", &mut sc.clone(), validate_desc);
-        vd.field_item("answer_block_key", Item::Localization);
-        vd.field_item("answer_accept_key", Item::Localization);
-        vd.field_item("answer_reject_key", Item::Localization);
-        vd.field_item("answer_acknowledge_key", Item::Localization);
-        vd.field_item("options_heading", Item::Localization);
-        vd.field_item("pre_answer_maybe_breakdown_key", Item::Localization);
-        vd.field_item("pre_answer_no_breakdown_key", Item::Localization);
-        vd.field_item("pre_answer_yes_breakdown_key", Item::Localization);
-        vd.field_item("pre_answer_maybe_key", Item::Localization);
-        vd.field_item("pre_answer_no_key", Item::Localization);
-        vd.field_item("pre_answer_yes_key", Item::Localization);
-        vd.field_item("intermediary_breakdown_maybe", Item::Localization);
-        vd.field_item("intermediary_breakdown_no", Item::Localization);
-        vd.field_item("intermediary_breakdown_yes", Item::Localization);
-        vd.field_item("intermediary_answer_accept_key", Item::Localization);
-        vd.field_item("intermediary_answer_reject_key", Item::Localization);
-        vd.field_item("reply_item_key", Item::Localization);
-        vd.field_item("send_name", Item::Localization);
+        vd.field_localization("answer_block_key", &mut sc);
+        vd.field_localization("answer_accept_key", &mut sc);
+        vd.field_localization("answer_reject_key", &mut sc);
+        vd.field_localization("answer_acknowledge_key", &mut sc);
+        vd.field_localization("options_heading", &mut sc);
+        vd.field_localization("pre_answer_maybe_breakdown_key", &mut sc);
+        vd.field_localization("pre_answer_no_breakdown_key", &mut sc);
+        vd.field_localization("pre_answer_yes_breakdown_key", &mut sc);
+        vd.field_localization("pre_answer_maybe_key", &mut sc);
+        vd.field_localization("pre_answer_no_key", &mut sc);
+        vd.field_localization("pre_answer_yes_key", &mut sc);
+        vd.field_localization("intermediary_breakdown_maybe", &mut sc);
+        vd.field_localization("intermediary_breakdown_no", &mut sc);
+        vd.field_localization("intermediary_breakdown_yes", &mut sc);
+        vd.field_localization("intermediary_answer_accept_key", &mut sc);
+        vd.field_localization("intermediary_answer_reject_key", &mut sc);
+        vd.field_localization("reply_item_key", &mut sc);
+        vd.field_localization("send_name", &mut sc);
 
         vd.field_bool("needs_recipient_to_open");
         vd.field_bool("show_effects_in_notification");

@@ -391,7 +391,7 @@ fn validate_event_option(
     let mut vd = Validator::new(block, data);
     vd.multi_field_validated("name", |bv, data| match bv {
         BV::Value(t) => {
-            data.localization.verify_exists(t);
+            data.verify_exists(Item::Localization, t);
         }
         BV::Block(b) => {
             let mut vd = Validator::new(b, data);
@@ -551,7 +551,9 @@ fn validate_triggered_outfit(block: &Block, data: &Everything, sc: &mut ScopeCon
 
 fn validate_portrait(v: &BV, data: &Everything, sc: &mut ScopeContext) {
     match v {
-        BV::Value(t) => validate_target(t, data, sc, Scopes::Character),
+        BV::Value(t) => {
+            validate_target(t, data, sc, Scopes::Character);
+        }
         BV::Block(b) => {
             let mut vd = Validator::new(b, data);
 

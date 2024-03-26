@@ -525,9 +525,21 @@ pub fn validate_effect_control(
 
     #[cfg(feature = "ck3")]
     if Game::is_ck3() && (caller == "send_interface_message" || caller == "send_interface_toast") {
-        vd.field_validated_sc("title", sc, validate_desc);
-        vd.field_validated_sc("desc", sc, validate_desc);
-        vd.field_validated_sc("tooltip", sc, validate_desc);
+        // These are both scopes and $-parameters to set for the loca.
+        // They are applied only to the following loca.
+        let mut loca_sc = sc.clone();
+        vd.field_validated_block("localization_values", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_value_fields(|key, value| {
+                let scopes = validate_target_ok_this(value, data, sc, Scopes::all());
+                loca_sc.define_name(key.as_str(), scopes, value);
+            });
+        });
+        vd.field_validated_sc("title", &mut loca_sc, validate_desc);
+        vd.field_validated_sc("desc", &mut loca_sc, validate_desc);
+        vd.field_validated_sc("tooltip", &mut loca_sc, validate_desc);
+        loca_sc.destroy();
+
         let icon_scopes =
             Scopes::Character | Scopes::LandedTitle | Scopes::Artifact | Scopes::Faith;
         if let Some(token) = vd.field_value("left_icon") {
@@ -536,13 +548,6 @@ pub fn validate_effect_control(
         if let Some(token) = vd.field_value("right_icon") {
             validate_target_ok_this(token, data, sc, icon_scopes);
         }
-        // These seem to be scopes to set for the message loca.
-        vd.field_validated_block("localization_values", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.unknown_value_fields(|_key, value| {
-                validate_target_ok_this(value, data, sc, Scopes::all());
-            });
-        });
     }
 }
 

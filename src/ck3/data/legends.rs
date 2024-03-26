@@ -265,7 +265,9 @@ impl DbKind for LegendSeed {
                             found_properties.insert(key.clone());
 
                             match bv {
-                                BV::Value(value) => validate_target(value, data, &mut sc, scopes),
+                                BV::Value(value) => {
+                                    validate_target(value, data, &mut sc, scopes);
+                                }
                                 BV::Block(block) => {
                                     let mut vd = Validator::new(block, data);
                                     vd.field_validated_value("target", |_, mut vd| {

@@ -287,7 +287,9 @@ fn validate_else(
 fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
     // Using validate_target_ok_this here because when chaining script values to each other, you often do `value = this`
     match bv {
-        BV::Value(t) => validate_target_ok_this(t, data, sc, Scopes::Value | Scopes::Bool),
+        BV::Value(t) => {
+            validate_target_ok_this(t, data, sc, Scopes::Value | Scopes::Bool);
+        }
         BV::Block(b) => {
             let mut vd = Validator::new(b, data);
             if matches!(b.iter_items().next(), Some(BlockItem::Block(_) | BlockItem::Value(_))) {

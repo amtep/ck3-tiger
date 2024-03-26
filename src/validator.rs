@@ -347,6 +347,23 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be a localization key.
+    /// The key is looked up and must exist.
+    /// The key's localization entry is validated using the given `ScopeContext`.
+    ///
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    #[allow(dead_code)]
+    pub fn field_localization(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
+        let sev = self.max_severity;
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                self.data.verify_exists_max_sev(Item::Localization, token, sev);
+                self.data.localization.validate_use(token.as_str(), self.data, sc);
+            }
+        })
+    }
+
     /// Expect field `name`, if present, to be an assignment where the value evaluates to a scope type in `outscopes`.
     ///
     /// The value is evaluated in the scope context `sc`, so for example if the value does `scope:actor` but there is
