@@ -11,7 +11,7 @@ use rayon::scope;
 
 use crate::block::Block;
 #[cfg(feature = "ck3")]
-use crate::ck3::tables::localization::BUILTIN_MACROS_CK3;
+use crate::ck3::tables::localization::{BUILTIN_MACROS_CK3, COMPLEX_TOOLTIPS_CK3};
 use crate::context::ScopeContext;
 use crate::datatype::{validate_datatypes, CodeChain, Datatype};
 use crate::everything::Everything;
@@ -377,80 +377,17 @@ impl Localization {
                 // TODO: if any of the three are datatype expressions, validate them.
                 #[cfg(feature = "ck3")]
                 if Game::is_ck3() && !token.starts_with("[") && !is_builtin_macro(token) {
-                    // The list of tag types can be found in ck3
-                    // localization/english/tooltip_structs_l_english.yml
-                    // LAST UPDATED CK3 VERSION 1.11.3
-                    match &*tag.as_str().to_ascii_lowercase() {
-                        "accolade"
-                        | "activity"
-                        | "army"
-                        | "character"
-                        | "char_context_tooltip"
-                        | "scheme"
-                        | "secret"
-                        | "travel_plan" => (), // runtime id
-                        "game_concept" => data.verify_exists(Item::GameConcept, token),
-                        "culture" | "culture_innovation" | "culture_era" => {
-                            data.verify_exists(Item::Culture, token);
-                        }
-                        "faith" => data.verify_exists(Item::Faith, token),
-                        "religion" => data.verify_exists(Item::Religion, token),
-                        "religion_family" => data.verify_exists(Item::ReligionFamily, token),
-                        "game_trait" => data.verify_exists(Item::Trait, token),
-                        "men_at_arms_type" => data.verify_exists(Item::MenAtArmsBase, token),
-                        "specific_men_at_arms_type" => {
-                            data.verify_exists(Item::MenAtArms, token);
-                        }
-                        "dynasty" => data.verify_exists(Item::Dynasty, token),
-                        "dynasty_house" => data.verify_exists(Item::House, token),
-                        "building" => data.verify_exists(Item::Building, token),
-                        "faction" => data.verify_exists(Item::Faction, token),
-                        "title" => data.verify_exists(Item::Title, token),
-                        "government_type" => data.verify_exists(Item::GovernmentType, token),
-                        // TODO: Verify scaled modifier has `scale`
-                        "static_modifier" | "scaled_static_modifier" => {
-                            data.verify_exists(Item::Modifier, token);
-                        }
-                        "law" => data.verify_exists(Item::Law, token),
-                        "terrain" => data.verify_exists(Item::Terrain, token),
-                        "game_faith_doctrine" => data.verify_exists(Item::Doctrine, token),
-                        "lifestyle" => data.verify_exists(Item::Lifestyle, token),
-                        "focus" => data.verify_exists(Item::Focus, token),
-                        "perk" => data.verify_exists(Item::Perk, token),
-                        "dynasty_perk" => data.verify_exists(Item::DynastyPerk, token),
-                        // TODO "obligation_level", TODO: contract type?
-                        "holding" => data.verify_exists(Item::HoldingType, token),
-                        "secret_type" => data.verify_exists(Item::Secret, token),
-                        "geographical_region" => data.verify_exists(Item::Region, token),
-                        "culture_pillar" => data.verify_exists(Item::CulturePillar, token),
-                        "culture_tradition" => {
-                            data.verify_exists(Item::CultureTradition, token);
-                        }
-                        "inspiration" => data.verify_exists(Item::Inspiration, token),
-                        "court_type" => data.verify_exists(Item::CourtType, token),
-                        "artifact" => data.verify_exists(Item::ArtifactType, token),
-                        "court_position_type" => data.verify_exists(Item::CourtPosition, token),
-                        "scheme_type" => data.verify_exists(Item::Scheme, token),
-                        // TODO "court_amenities_setting" => { data.verify_exists(Item::CourtAmenitiesSetting, token); }
-                        "nickname" => data.verify_exists(Item::Nickname, token),
-                        "struggle" => data.verify_exists(Item::Struggle, token),
-                        "struggle_phase" => data.verify_exists(Item::StrugglePhase, token),
-                        "activity_type" => data.verify_exists(Item::ActivityType, token),
-                        "vassal_stance" => data.verify_exists(Item::VassalStance, token),
-                        // TODO "ai_personality" => data.verify_exists(Item::AiPersonality, token),
-                        "accolade_type" => data.verify_exists(Item::AccoladeType, token),
-                        "travel_option" => data.verify_exists(Item::TravelOption, token),
-                        "house_unity_stage" => data.verify_exists(Item::HouseUnityStage, token),
-                        "decision" => data.verify_exists(Item::Decision, token),
-                        "tax_slot_obligation" => data.verify_exists(Item::TaxSlotObligation, token),
-                        _ => {
+                    match COMPLEX_TOOLTIPS_CK3.get(&*tag.as_str().to_lowercase()).copied() {
+                        None => {
                             // TODO: should this be validated with validate_localization_sc ? (remember to avoid infinite loops)
                             data.localization.verify_exists_lang(token, lang);
                         }
+                        Some(None) => (), // token is a runtime id
+                        Some(Some(itype)) => data.verify_exists(itype, token),
                     }
                 }
                 #[cfg(feature = "vic3")]
-                if Game::is_vic3() && !token.starts_with("[") && !token.starts_with("$") {
+                if Game::is_vic3() && !token.starts_with("[") && !is_builtin_macro(token) {
                     data.localization.verify_exists_lang(token, lang);
                 }
                 // TODO: - imperator -

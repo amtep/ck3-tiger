@@ -1,6 +1,7 @@
 use once_cell::sync::Lazy;
 
-use crate::helpers::TigerHashSet;
+use crate::helpers::{TigerHashMap, TigerHashSet};
+use crate::item::Item;
 
 pub(crate) static BUILTIN_MACROS_CK3: Lazy<TigerHashSet<&'static str>> =
     Lazy::new(|| BUILTIN_MACROS.iter().copied().collect());
@@ -434,4 +435,74 @@ const BUILTIN_MACROS: &[&str] = &[
     "Y",
     "YEAR",
     "YEARS",
+];
+
+pub(crate) static COMPLEX_TOOLTIPS_CK3: Lazy<TigerHashMap<&'static str, Option<Item>>> =
+    Lazy::new(|| COMPLEX_TOOLTIPS.iter().copied().collect());
+
+/// Handling of `#TOOLTIP:tag:value` formatting in localization. The table contains the tag strings
+/// and the corresponding item type of the value. If the item type is `None`, it means the value is
+/// a runtime id which cannot be validated statically.
+// LAST UPDATED CK3 VERSION 1.12.3
+// The list of tag types can be found in localization/english/tooltip_structs_l_english.yml
+const COMPLEX_TOOLTIPS: &[(&str, Option<Item>)] = &[
+    ("accolade", None),
+    ("accolade_type", Some(Item::AccoladeType)),
+    ("activity", None),
+    ("activity_type", Some(Item::ActivityType)),
+    // TODO: ("ai_personality", Some(???)),
+    ("army", None),
+    ("artifact", None),
+    ("building", Some(Item::Building)),
+    ("character", None),
+    // TODO: ("court_amenities_setting", Some(Item::???)),
+    ("court_position_type", Some(Item::CourtPosition)),
+    ("court_type", Some(Item::CourtType)),
+    ("culture", Some(Item::Culture)),
+    ("culture_era", Some(Item::Culture)),
+    ("culture_innovation", Some(Item::Culture)),
+    ("culture_pillar", Some(Item::CulturePillar)),
+    ("culture_tradition", Some(Item::CultureTradition)),
+    ("decision", Some(Item::Decision)),
+    ("dynasty", Some(Item::Dynasty)),
+    ("dynasty_house", Some(Item::House)),
+    ("dynasty_perk", Some(Item::DynastyPerk)),
+    ("epidemic", None), // TODO: verify
+    ("faction", Some(Item::Faction)),
+    ("faith", Some(Item::Faith)),
+    ("focus", Some(Item::Focus)),
+    ("game_concept", Some(Item::GameConcept)),
+    ("game_faith_doctrine", Some(Item::Doctrine)),
+    ("game_trait", Some(Item::Trait)),
+    ("geographical_region", Some(Item::Region)),
+    ("government_type", Some(Item::GovernmentType)),
+    ("holding", Some(Item::HoldingType)),
+    ("house_unity_stage", Some(Item::HouseUnityStage)),
+    ("inspiration", Some(Item::Inspiration)),
+    ("landed_title", Some(Item::Title)),
+    ("law", Some(Item::Law)),
+    ("legend", Some(Item::LegendType)),
+    ("lifestyle", Some(Item::Lifestyle)),
+    ("men_at_arms_type", Some(Item::MenAtArmsBase)),
+    ("nickname", Some(Item::Nickname)),
+    ("obligation_level", Some(Item::VassalContract)),
+    ("perk", Some(Item::Perk)),
+    ("province", Some(Item::Province)),
+    ("religion", Some(Item::Religion)),
+    ("religion_family", Some(Item::ReligionFamily)),
+    // TODO: verify this modifier has `scale`
+    ("scaled_static_modifier", Some(Item::Modifier)),
+    ("scheme", None),
+    ("scheme_type", Some(Item::Scheme)),
+    ("secret", None),
+    ("secret_type", Some(Item::Secret)),
+    ("specific_men_at_arms_type", Some(Item::MenAtArms)),
+    ("static_modifier", Some(Item::Modifier)),
+    ("struggle", Some(Item::Struggle)),
+    ("struggle_phase", Some(Item::StrugglePhase)),
+    ("tax_slot_obligation", Some(Item::TaxSlotObligation)),
+    ("terrain", Some(Item::Terrain)),
+    ("travel_option", Some(Item::TravelOption)),
+    ("travel_plan", None),
+    ("vassal_stance", Some(Item::VassalStance)),
 ];
