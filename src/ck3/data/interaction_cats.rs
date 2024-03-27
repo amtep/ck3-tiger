@@ -63,22 +63,20 @@ impl FileHandler<Block> for CharacterInteractionCategories {
         let mut taken = vec![None; self.categories.len()];
         for item in self.categories.values() {
             if let Some(index) = item.index {
-                let bad_range;
-                if let Ok(i_taken) = usize::try_from(index) {
-                    bad_range = i_taken >= taken.len();
-                    if let Some(other) = taken[i_taken] {
-                        let msg = format!("index duplicates the index of {other}");
-                        err(ErrorKey::DuplicateItem).msg(msg).loc(&item.key).push();
-                    } else {
-                        taken[i_taken] = Some(&item.key);
+                if index >= 0 {
+                    let index = usize::try_from(index).expect("internal error");
+                    if index < taken.len() {
+                        if let Some(other) = taken[index] {
+                            let msg = format!("index duplicates the index of {other}");
+                            err(ErrorKey::DuplicateItem).msg(msg).loc(&item.key).push();
+                        } else {
+                            taken[index] = Some(&item.key);
+                        }
+                        continue;
                     }
-                } else {
-                    bad_range = true;
                 }
-                if bad_range {
-                    let msg = "index needs to be from 0 to the number of categories";
-                    err(ErrorKey::Range).msg(msg).loc(&item.key).push();
-                }
+                let msg = "index needs to be from 0 to the number of categories";
+                err(ErrorKey::Range).msg(msg).loc(&item.key).push();
             }
             // if no index, the item will warn about that in validate
         }
