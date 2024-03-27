@@ -13,5 +13,4 @@ publish = false
 [dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
-strum = "0.26"
 strum_macros = "0.26"

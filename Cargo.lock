@@ -1902,7 +1902,6 @@ dependencies = [
  "bitvec",
  "bumpalo",
  "encoding_rs",
- "fnv",
  "home",
  "image",
  "inventory",
@@ -2142,7 +2141,6 @@ version = "0.9.4"
 dependencies = [
  "anyhow",
  "clap",
- "strum",
  "strum_macros",
 ]
 
