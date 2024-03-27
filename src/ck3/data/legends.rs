@@ -390,6 +390,9 @@ impl DbKind for LegendChronicle {
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
+        // undocumented
+        vd.field_item("portrait_animation", Item::PortraitAnimation);
+
         vd.field_validated_block("properties", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.unknown_value_fields(|_, value| {
