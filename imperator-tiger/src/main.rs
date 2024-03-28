@@ -32,9 +32,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Update the binary
+    /// Update the binary. If no version is specified, the latest release is pulled from GitHub and
+    /// installed over the current binary.
     Update {
-        /// release version to update to (default: latest release)
+        /// release version (e.g. 0.9.3)
         version: Option<String>,
     },
 }
