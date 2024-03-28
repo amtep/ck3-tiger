@@ -297,6 +297,7 @@ pub fn validate_create_character(
     sc.open_scope(Scopes::Character, key.clone());
     vd.field_item("first_name", Item::Localization);
     vd.field_item("family_name", Item::Localization);
+    vd.field_item("nickname", Item::Localization);
     vd.field_value("dna");
     vd.field_item_or_target("culture", sc, Item::Culture, Scopes::Culture);
     vd.field_item_or_target("religion", sc, Item::Religion, Scopes::Religion);
@@ -306,8 +307,9 @@ pub fn validate_create_character(
     vd.field_bool("female");
     vd.field_bool("no_stats");
     vd.field_bool("no_traits");
-    vd.field_integer("age");
+    vd.field_script_value("age", sc);
     vd.field_date("birth_date");
+    vd.field_date("death_date");
     vd.field_item_or_target("birth_province", sc, Item::Province, Scopes::Province);
     validate_effect_internal(&caller, ListType::None, block, data, sc, &mut vd, tooltipped);
     sc.close();
