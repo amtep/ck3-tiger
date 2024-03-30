@@ -22,7 +22,7 @@ pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)>
     if let Some(x) = name_lc.strip_suffix("_perk_points") {
         if let Some(lifestyle) = x.strip_prefix("add_") {
             data.verify_exists_implied(Item::Lifestyle, lifestyle, name);
-            return Some((Scopes::Character, Effect::Integer));
+            return Some((Scopes::Character, Effect::ScriptValue));
         }
     }
     if let Some(x) = name_lc.strip_suffix("_xp") {
