@@ -333,7 +333,7 @@ impl LocaParser {
             }
         } else {
             let mut parser = ValueParser::new(vec![&token]);
-            self.value = parser.parse_value();
+            self.value = parser.parse_vec();
             while self.offset <= self.loca_end {
                 self.next_char();
             }
@@ -783,7 +783,7 @@ impl<'a> ValueParser<'a> {
         self.value.push(LocaValue::Text(text.take_to_token()));
     }
 
-    pub fn parse_value(&mut self) -> Vec<LocaValue> {
+    pub fn parse_vec(&mut self) -> Vec<LocaValue> {
         while let Some(c) = self.peek() {
             match c {
                 '[' => self.parse_code(),
@@ -796,7 +796,16 @@ impl<'a> ValueParser<'a> {
                 return vec![LocaValue::Error];
             }
         }
-        std::mem::take(&mut self.value)
+        take(&mut self.value)
+    }
+
+    pub fn parse(&mut self) -> LocaValue {
+        let mut value = self.parse_vec();
+        if value.len() == 1 {
+            take(&mut value[0])
+        } else {
+            LocaValue::Concat(value)
+        }
     }
 }
 

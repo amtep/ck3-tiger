@@ -334,26 +334,13 @@ pub fn validate_property(
                 }
             }
         }
-        GuiValidation::RawText => {
-            if let Some(value) = bv.expect_value() {
-                let valuevec = ValueParser::new(vec![value]).parse_value();
-                for v in valuevec {
-                    validate_gui_loca(key, v, data);
-                }
-                if !value.starts_with("[") {
-                    // raw text can still be a localization key sometimes
-                    data.mark_used(Item::Localization, value.as_str());
-                }
-            }
-        }
-        GuiValidation::Text => {
-            if let Some(value) = bv.expect_value() {
-                let valuevec = ValueParser::new(vec![value]).parse_value();
-                for v in valuevec {
-                    validate_gui_loca(key, v, data);
-                }
-                if !value.starts_with("[") && !value.as_str().contains(' ') {
-                    data.verify_exists(Item::Localization, value);
+        GuiValidation::RawText | GuiValidation::Text => {
+            if let Some(text) = bv.expect_value() {
+                let value = ValueParser::new(vec![text]).parse();
+                validate_gui_loca(key, value, data);
+                if !text.starts_with("[") && !text.as_str().contains(' ') {
+                    // even raw text can still be a localization key sometimes
+                    data.mark_used(Item::Localization, text.as_str());
                 }
             }
         }
@@ -369,31 +356,26 @@ pub fn validate_datatype_field(
 ) {
     if let Some(value) = bv.expect_value() {
         if value.starts_with("[") {
-            let valuevec = ValueParser::new(vec![value]).parse_value();
-            if valuevec.len() == 1 {
-                let mut sc = ScopeContext::new(Scopes::None, key);
-                match &valuevec[0] {
-                    // TODO: validate format
-                    LocaValue::Code(chain, format) => {
-                        validate_datatypes(
-                            chain,
-                            data,
-                            &mut sc,
-                            dtype,
-                            "",
-                            format.as_ref(),
-                            allow_promote,
-                        );
-                    }
-                    LocaValue::Error => (),
-                    _ => {
-                        let msg = "expected whole field to be a [ ] expression";
-                        warn(ErrorKey::Validation).msg(msg).loc(value).push();
-                    }
+            let loca_value = ValueParser::new(vec![value]).parse();
+            let mut sc = ScopeContext::new(Scopes::None, key);
+            match loca_value {
+                // TODO: validate format
+                LocaValue::Code(chain, format) => {
+                    validate_datatypes(
+                        &chain,
+                        data,
+                        &mut sc,
+                        dtype,
+                        "",
+                        format.as_ref(),
+                        allow_promote,
+                    );
                 }
-            } else {
-                let msg = "expected whole field to be a single [ ] expression";
-                warn(ErrorKey::Validation).msg(msg).loc(value).push();
+                LocaValue::Error => (),
+                _ => {
+                    let msg = "expected whole field to be a [ ] expression";
+                    warn(ErrorKey::Validation).msg(msg).loc(value).push();
+                }
             }
         } else {
             let msg = "expected a [ ] expression here";

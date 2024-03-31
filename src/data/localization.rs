@@ -453,12 +453,7 @@ impl Localization {
             if entry.expand_macros(&mut new_line, from, &mut count, sc, None) {
                 // re-parse after macro expansion
                 let new_line_as_ref = new_line.iter().collect();
-                let mut value = ValueParser::new(new_line_as_ref).parse_value();
-                let value = if value.len() == 1 {
-                    std::mem::take(&mut value[0])
-                } else {
-                    LocaValue::Concat(value)
-                };
+                let value = ValueParser::new(new_line_as_ref).parse();
                 Self::check_loca_code(&value, data, sc, lang);
             }
         } else {

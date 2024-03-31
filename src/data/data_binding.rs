@@ -1,3 +1,4 @@
+use std::mem::take;
 use std::path::PathBuf;
 
 use crate::block::Block;
@@ -101,14 +102,9 @@ impl DataBinding {
             let open_bracket = Token::from_static_str("[", rep.loc);
             let close_bracket = Token::from_static_str("]", rep.loc);
             let to_parse = vec![&open_bracket, rep, &close_bracket];
-            let valuevec = ValueParser::new(to_parse).parse_value();
-            if valuevec.len() == 1 {
-                if let LocaValue::Code(chain, _) = &valuevec[0] {
-                    body = Some(chain.clone());
-                } else {
-                    let msg = "could not parse macro replacement";
-                    err(ErrorKey::Datafunctions).msg(msg).loc(rep).push();
-                }
+            let value = ValueParser::new(to_parse).parse();
+            if let LocaValue::Code(mut chain, _) = value {
+                body = Some(take(&mut chain));
             } else {
                 let msg = "could not parse macro replacement";
                 err(ErrorKey::Datafunctions).msg(msg).loc(rep).push();

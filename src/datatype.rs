@@ -188,7 +188,7 @@ impl Display for Datatype {
 ///
 /// A `CodeChain` can also be very simple and consist of a single identifier, which should be a
 /// global function because it both starts and ends the chain.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct CodeChain {
     pub codes: Vec<Code>,
 }
