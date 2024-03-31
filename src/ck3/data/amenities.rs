@@ -26,6 +26,12 @@ impl Amenity {
 }
 
 impl DbKind for Amenity {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for (key, block) in block.iter_definitions() {
+            db.add(Item::AmenitySetting, key.clone(), block.clone(), Box::new(AmenitySetting {}));
+        }
+    }
+
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         if let Some(value) = vd.field_value("default") {
@@ -33,33 +39,37 @@ impl DbKind for Amenity {
                 err(ErrorKey::MissingItem).msg("default not found in amenity").loc(value).push();
             }
         }
-        vd.unknown_block_fields(|key, block| {
-            validate_amenity_setting(key, block, data);
-        });
+        // validated in AmenitySetting::validate
+        vd.unknown_block_fields(|_, _| {});
     }
 }
 
-fn validate_amenity_setting(key: &Token, block: &Block, data: &Everything) {
-    let mut vd = Validator::new(block, data);
-    data.verify_exists(Item::Localization, key);
+#[derive(Clone, Debug)]
+pub struct AmenitySetting {}
 
-    vd.field_validated_block_rooted("cost", Scopes::Character, validate_cost);
+impl DbKind for AmenitySetting {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        data.verify_exists(Item::Localization, key);
 
-    vd.field_validated_block("owner_modifier", |block, data| {
-        let vd = Validator::new(block, data);
-        validate_modifs(block, data, ModifKinds::Character, vd);
-    });
-    vd.field_item("owner_modifier_description", Item::Localization);
+        vd.field_validated_block_rooted("cost", Scopes::Character, validate_cost);
 
-    vd.field_validated_block("courtier_guest_modifier", |block, data| {
-        let vd = Validator::new(block, data);
-        validate_modifs(block, data, ModifKinds::Character, vd);
-    });
-    vd.field_item("courtier_guest_modifier_description", Item::Localization);
+        vd.field_validated_block("owner_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.field_item("owner_modifier_description", Item::Localization);
 
-    vd.field_script_value_rooted("ai_will_do", Scopes::Character);
+        vd.field_validated_block("courtier_guest_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.field_item("courtier_guest_modifier_description", Item::Localization);
 
-    vd.field_validated_block_rooted("can_pick", Scopes::Character, |block, data, sc| {
-        validate_trigger(block, data, sc, Tooltipped::Yes);
-    });
+        vd.field_script_value_rooted("ai_will_do", Scopes::Character);
+
+        vd.field_validated_block_rooted("can_pick", Scopes::Character, |block, data, sc| {
+            validate_trigger(block, data, sc, Tooltipped::Yes);
+        });
+    }
 }
