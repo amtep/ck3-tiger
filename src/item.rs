@@ -162,6 +162,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] ActivityType,
     #[cfg(feature = "ck3")] AiWarStance,
     #[cfg(feature = "ck3")] Amenity,
+    #[cfg(feature = "ck3")] AmenitySetting,
     #[cfg(feature = "ck3")] ArtifactBlueprint,
     #[cfg(feature = "ck3")] ArtifactFeature,
     #[cfg(feature = "ck3")] ArtifactFeatureGroup,
@@ -677,6 +678,8 @@ impl Item {
             Item::AiWarStance => "common/ai_war_stances/",
             #[cfg(feature = "ck3")]
             Item::Amenity => "common/court_amenities/",
+            #[cfg(feature = "ck3")]
+            Item::AmenitySetting => "common/court_amenities/",
             #[cfg(feature = "ck3")]
             Item::ArtifactBlueprint => "common/artifacts/blueprints/",
             #[cfg(feature = "ck3")]
