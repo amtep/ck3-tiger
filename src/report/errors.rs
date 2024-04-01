@@ -16,6 +16,7 @@ use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::macros::MACRO_MAP;
 use crate::report::error_loc::ErrorLoc;
 use crate::report::filter::ReportFilter;
+use crate::report::suppress::{Suppression, SuppressionKey};
 use crate::report::writer::log_report;
 use crate::report::writer_json::log_report_json;
 use crate::report::{ErrorKey, FilterRule, LogReport, OutputStyle, PointedMessage};
@@ -33,17 +34,14 @@ pub struct Errors {
     /// Loaded DLCs' error tags.
     pub(crate) loaded_dlcs_labels: Vec<String>,
 
-    /// Files that have been read in to get the lines where errors occurred.
-    /// Cached here to avoid duplicate I/O and UTF-8 parsing.
-    filecache: TigerHashMap<PathBuf, &'static str>,
-
-    /// Files that have been linesplit, cached to avoid doing that work again
-    linecache: TigerHashMap<PathBuf, Vec<&'static str>>,
+    pub(crate) cache: Cache,
 
     /// Determines whether a report should be printed.
     pub(crate) filter: ReportFilter,
     /// Output color and style configuration.
     pub(crate) styles: OutputStyle,
+
+    pub(crate) suppress: TigerHashMap<SuppressionKey, Vec<Suppression>>,
 
     /// All reports that passed the checks, stored here to be sorted before being emitted all at once.
     /// The "abbreviated" reports don't participate in this. They are still emitted immediately.
@@ -57,51 +55,41 @@ impl Default for Errors {
             output: RefCell::new(Box::new(stdout())),
             loaded_mods_labels: Vec::default(),
             loaded_dlcs_labels: Vec::default(),
-            filecache: TigerHashMap::default(),
-            linecache: TigerHashMap::default(),
+            cache: Cache::default(),
             filter: ReportFilter::default(),
             styles: OutputStyle::default(),
             storage: TigerHashSet::default(),
+            suppress: TigerHashMap::default(),
         }
     }
 }
 
 impl Errors {
-    /// Fetch the contents of a single line from a script file.
-    pub(crate) fn get_line(&mut self, loc: Loc) -> Option<&'static str> {
-        if loc.line == 0 {
-            return None;
+    fn should_suppress(&mut self, report: &LogReport) -> bool {
+        // TODO: see if this can be done without cloning
+        let key = SuppressionKey { key: report.key, message: report.msg.clone() };
+        if let Some(v) = self.suppress.get(&key) {
+            for suppression in v {
+                if suppression.len() != report.pointers.len() {
+                    continue;
+                }
+                for (s, p) in suppression.iter().zip(report.pointers.iter()) {
+                    if s.path == p.loc.pathname().to_string_lossy()
+                        && s.tag == p.msg
+                        && s.line.as_deref() == self.cache.get_line(p.loc)
+                    {
+                        return true;
+                    }
+                }
+            }
         }
-        let fullpath = loc.fullpath();
-        if let Some(lines) = self.linecache.get(fullpath) {
-            return lines.get(loc.line as usize - 1).copied();
-        }
-        if let Some(contents) = self.filecache.get(fullpath) {
-            let lines: Vec<_> = contents.lines().collect();
-            let line = lines.get(loc.line as usize - 1).copied();
-            self.linecache.insert(fullpath.to_path_buf(), lines);
-            return line;
-        }
-        let bytes = read(fullpath).ok()?;
-        // Try decoding it as UTF-8. If that succeeds without errors, use it, otherwise fall back
-        // to WINDOWS_1252. The decode method will do BOM stripping.
-        let contents = match UTF_8.decode(&bytes) {
-            (contents, _, false) => contents,
-            (_, _, true) => WINDOWS_1252.decode(&bytes).0,
-        };
-        let contents = leak(contents.into_owned());
-        self.filecache.insert(fullpath.to_path_buf(), contents);
-
-        let lines: Vec<_> = contents.lines().collect();
-        let line = lines.get(loc.line as usize - 1).copied();
-        self.linecache.insert(fullpath.to_path_buf(), lines);
-        line
+        false
     }
 
     /// Perform some checks to see whether the report should actually be logged.
     /// If yes, it will add it to the storage.
     fn push_report(&mut self, report: LogReport) {
-        if !self.filter.should_print_report(&report) {
+        if !self.filter.should_print_report(&report) || self.should_suppress(&report) {
             return;
         }
         self.storage.insert(report);
@@ -117,7 +105,7 @@ impl Errors {
         if self.filter.should_maybe_print(key, loc) {
             if loc.line == 0 {
                 _ = writeln!(self.output.get_mut(), "({key}) {}", loc.pathname().to_string_lossy());
-            } else if let Some(line) = self.get_line(loc) {
+            } else if let Some(line) = self.cache.get_line(loc) {
                 _ = writeln!(self.output.get_mut(), "({key}) {line}");
             }
         }
@@ -193,7 +181,7 @@ impl Errors {
     }
 
     pub fn store_source_file(&mut self, fullpath: PathBuf, source: &'static str) {
-        self.filecache.insert(fullpath, source);
+        self.cache.filecache.insert(fullpath, source);
     }
 
     /// Get a mutable lock on the global ERRORS struct.
@@ -213,6 +201,49 @@ impl Errors {
     /// May panic when the mutex has been poisoned by another thread.
     pub fn get() -> MutexGuard<'static, Errors> {
         ERRORS.lock().unwrap()
+    }
+}
+
+#[derive(Debug, Default)]
+pub(crate) struct Cache {
+    /// Files that have been read in to get the lines where errors occurred.
+    /// Cached here to avoid duplicate I/O and UTF-8 parsing.
+    filecache: TigerHashMap<PathBuf, &'static str>,
+
+    /// Files that have been linesplit, cached to avoid doing that work again
+    linecache: TigerHashMap<PathBuf, Vec<&'static str>>,
+}
+
+impl Cache {
+    /// Fetch the contents of a single line from a script file.
+    pub(crate) fn get_line(&mut self, loc: Loc) -> Option<&'static str> {
+        if loc.line == 0 {
+            return None;
+        }
+        let fullpath = loc.fullpath();
+        if let Some(lines) = self.linecache.get(fullpath) {
+            return lines.get(loc.line as usize - 1).copied();
+        }
+        if let Some(contents) = self.filecache.get(fullpath) {
+            let lines: Vec<_> = contents.lines().collect();
+            let line = lines.get(loc.line as usize - 1).copied();
+            self.linecache.insert(fullpath.to_path_buf(), lines);
+            return line;
+        }
+        let bytes = read(fullpath).ok()?;
+        // Try decoding it as UTF-8. If that succeeds without errors, use it, otherwise fall back
+        // to WINDOWS_1252. The decode method will do BOM stripping.
+        let contents = match UTF_8.decode(&bytes) {
+            (contents, _, false) => contents,
+            (_, _, true) => WINDOWS_1252.decode(&bytes).0,
+        };
+        let contents = leak(contents.into_owned());
+        self.filecache.insert(fullpath.to_path_buf(), contents);
+
+        let lines: Vec<_> = contents.lines().collect();
+        let line = lines.get(loc.line as usize - 1).copied();
+        self.linecache.insert(fullpath.to_path_buf(), lines);
+        line
     }
 }
 
