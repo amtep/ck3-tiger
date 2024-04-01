@@ -19,7 +19,7 @@ pub fn log_report_json(errors: &mut Errors, report: &LogReport) {
                 "linenr": if pointer.loc.line == 0 { None } else { Some(pointer.loc.line) },
                 "column": if pointer.loc.column == 0 { None } else { Some(pointer.loc.column) },
                 "length": if pointer.length == 0 { None } else { Some(pointer.length) },
-                "line": errors.get_line(pointer.loc),
+                "line": errors.cache.get_line(pointer.loc),
                 "tag": pointer.msg,
             })
         })

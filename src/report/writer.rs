@@ -54,7 +54,7 @@ fn log_pointer(
         // not any particular location within the file.
         return;
     }
-    if let Some(line) = errors.get_line(pointer.loc) {
+    if let Some(line) = errors.cache.get_line(pointer.loc) {
         let (line, removed, spaces) = line_spacing(line.to_owned());
         log_line_from_source(errors, pointer, indentation, &line, spaces);
         log_line_carets(errors, pointer, indentation, &line, removed, spaces, severity);
