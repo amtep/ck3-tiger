@@ -102,23 +102,21 @@ If you want the output in a file, you can redirect it like this:
 imperator-tiger <i>path/to/your/mod</i> ><i>filename</i>
 </pre>
 
-## How to configure
+### How to configure
 
 You can place a file `ck3-tiger.conf` (or `vic3-tiger.conf` or `imperator.conf`) in your mod directory. You can use it to select which languages to check localizations for, and to suppress messages about things you don't want to fix.
 
-There is a sample [`ck3-tiger.conf`](ck3-tiger.conf) file, [`vic3-tiger.conf`](vic3-tiger.conf) file, and [`imperator-tiger.conf`(imperator-tiger.conf) file in the release, with an explanation of what goes in it. There is also a [guide](filter.md).
+There is a sample [`ck3-tiger.conf`](ck3-tiger.conf) file, [`vic3-tiger.conf`](vic3-tiger.conf) file, and [`imperator-tiger.conf`](imperator-tiger.conf) file in the release, with an explanation of what goes in it. There is also a [guide](filter.md).
 
-## How to build
+### How to build
 
-You can unpack the archive from the "Release" page on GitHub and use it that way.
-
-If you want to build it yourself, you will have to [install the Rust programming language](https://www.rust-lang.org/tools/install).
+If you want to build it yourself, you will have to [install the Rust programming language](https://www.rust-lang.org/tools/install). You can either get the source archive from one of the releases (preferably the [latest](https://github.com/amtep/ck3-tiger/releases/latest)) or clone the git repository.
 
 For `ck3-tiger`, run `cargo build --release -p ck3-tiger` in the project's directory, then run the program as `cargo run --release -p ck3-tiger`.  
 For `vic3-tiger`, run `cargo build --release -p vic3-tiger` in the project's directory, then run the program as `cargo run --release -p vic3-tiger`.  
 For `imperator-tiger`, run `cargo build --release -p imperator-tiger` in the project's directory, then run the program as `cargo run --release -p imperator-tiger`.
 
-## Visual Studio Code extension
+### Visual Studio Code extension
 
 User unLomTrois has made a [VS Code extension](https://github.com/unLomTrois/ck3tiger-for-vscode) for `ck3-tiger`.
 It enables you to view the reports directly in the Problems tab.
