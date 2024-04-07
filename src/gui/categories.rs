@@ -276,6 +276,7 @@ impl GuiCategories {
             WidgetProperty::restrictparent_min => GuiCategories::Unknown,
             WidgetProperty::reuse_widgets => GuiCategories::Unknown,
             WidgetProperty::rightclick_modifiers => GuiCategories::Unknown,
+            WidgetProperty::rightclicksound => GuiCategories::Unknown,
             WidgetProperty::righttoleft => GuiCategories::Unknown,
             WidgetProperty::rotate_uv => GuiCategories::Unknown,
             WidgetProperty::row_height => GuiCategories::Unknown,

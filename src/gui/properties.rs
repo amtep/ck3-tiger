@@ -333,6 +333,7 @@ pub enum WidgetProperty {
     restrictparent_min,
     reuse_widgets,
     rightclick_modifiers,
+    rightclicksound,
     righttoleft,
     rotate_uv,
     row_height,
@@ -684,6 +685,7 @@ impl GuiValidation {
             restrictparent_min => Boolean,
             reuse_widgets => Boolean,
             rightclick_modifiers => ComplexProperty,
+            rightclicksound => ItemOrBlank(Item::Sound),
             righttoleft => Boolean,
             rotate_uv => Number,
             row_height => Integer,
@@ -779,6 +781,7 @@ impl WidgetProperty {
     // LAST UPDATED CK3 VERSION 1.9.2.1
     // LAST UPDATED VIC3 VERSION 1.3.6
     // LAST UPDATED IMPERATOR VERSION 2.0.3
+    // TODO: verify rightclicksound property for Vic3 and Imperator
     pub fn to_game_flags(self) -> GameFlags {
         #[allow(clippy::match_same_arms)] // alphabetic is better
         match self {
