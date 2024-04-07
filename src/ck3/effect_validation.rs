@@ -226,7 +226,8 @@ pub fn validate_add_trait_xp(
 ) {
     vd.req_field("trait");
     vd.req_field("value");
-    vd.field_item("trait", Item::Trait);
+    // TODO: if the trait is an Item, verify that the TraitTrack belongs to this trait
+    vd.field_item_or_target("trait", sc, Item::Trait, Scopes::Trait);
     vd.field_item("track", Item::TraitTrack);
     vd.field_script_value("value", sc);
 }
