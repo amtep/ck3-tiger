@@ -1919,6 +1919,7 @@ dependencies = [
  "thiserror",
  "unicode-width",
  "walkdir",
+ "winnow",
  "winreg 0.52.0",
 ]
 

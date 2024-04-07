@@ -52,6 +52,7 @@ ahash = { version = "0.8", features = [
     "std",
     "compile-time-rng",
 ], default-features = false }
+winnow = "0.6.5"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 self_update = { version = "0.39", features = [

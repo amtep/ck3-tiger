@@ -6,34 +6,43 @@ use anyhow::Result;
 use serde::Deserialize;
 
 use crate::helpers::TigerHashMap;
+use crate::parse::suppress::parse_suppressions;
 use crate::report::errors::Errors;
 use crate::report::ErrorKey;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct SuppressionKey {
+pub(crate) struct SuppressionKey {
     pub key: ErrorKey,
     pub message: String,
 }
 
-pub type Suppression = Vec<SuppressionLocation>;
+pub(crate) type Suppression = Vec<SuppressionLocation>;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
-pub struct SuppressionLocation {
+/// This picks out the fields we need from the json reports.
+/// It's also used by the suppression parser in `parse::suppression`.
+#[derive(Debug, PartialEq, Eq, Hash, Deserialize)]
+pub(crate) struct SuppressionLocation {
     pub path: String,
     pub line: Option<String>,
     pub tag: Option<String>,
 }
 
-/// This picks out the fields we need from the json reports
-#[derive(Deserialize)]
-struct JsonReport {
-    key: ErrorKey,
-    message: String,
-    locations: Vec<SuppressionLocation>,
+/// This picks out the fields we need from the json reports.
+/// It's also used by the suppression parser in `parse::suppression`.
+#[derive(Debug, Deserialize)]
+pub(crate) struct SuppressionReport {
+    pub(crate) key: ErrorKey,
+    pub(crate) message: String,
+    pub(crate) locations: Vec<SuppressionLocation>,
 }
 
-pub fn suppress_from_json(fullpath: &Path) -> Result<()> {
-    let reports: Vec<JsonReport> = serde_json::from_str(&read_to_string(fullpath)?)?;
+pub fn suppress_from_file(fullpath: &Path) -> Result<()> {
+    let input = read_to_string(fullpath)?;
+    let reports: Vec<SuppressionReport> = if input.starts_with("[\n") {
+        serde_json::from_str(&input)?
+    } else {
+        parse_suppressions(&input)?
+    };
     let mut suppress: TigerHashMap<SuppressionKey, Vec<Suppression>> = TigerHashMap::default();
     for mut report in reports {
         let locations = take(&mut report.locations);

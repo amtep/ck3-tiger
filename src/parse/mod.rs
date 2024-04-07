@@ -7,3 +7,4 @@ pub mod csv;
 pub mod json;
 pub mod localization;
 pub mod pdxfile;
+pub mod suppress;

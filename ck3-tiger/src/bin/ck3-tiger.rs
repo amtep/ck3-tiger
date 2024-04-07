@@ -6,7 +6,7 @@ use clap::{Args, Parser, Subcommand};
 
 use tiger_lib::{
     disable_ansi_colors, emit_reports, find_game_directory_steam, set_show_loaded_mods,
-    set_show_vanilla, suppress_from_json, update, validate_config_file, Everything, Game, ModFile,
+    set_show_vanilla, suppress_from_file, update, validate_config_file, Everything, Game, ModFile,
 };
 
 /// Steam's code for Crusader Kings 3
@@ -69,7 +69,7 @@ struct ValidateArgs {
     /// Can also be configured in the ck3-tiger.conf file.
     #[clap(long)]
     no_color: bool,
-    /// Load a JSON file of reports to remove from the output.
+    /// Load a file of reports from a previous run to remove from the output.
     #[clap(long)]
     suppress: Option<PathBuf>,
 }
@@ -122,8 +122,8 @@ fn main() -> Result<()> {
             args.config = validate_config_file(args.config);
 
             if let Some(suppress) = args.suppress {
-                eprintln!("Suppressing reports from: {}", suppress.display());
-                suppress_from_json(&suppress)?;
+                eprintln!("Suppressing reports found in: {}", suppress.display());
+                suppress_from_file(&suppress)?;
             }
 
             if args.show_vanilla {
