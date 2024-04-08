@@ -121,6 +121,17 @@ For `imperator-tiger`, run `cargo build --release -p imperator-tiger` in the pro
 User unLomTrois has made a [VS Code extension](https://github.com/unLomTrois/ck3tiger-for-vscode) for `ck3-tiger`.
 It enables you to view the reports directly in the Problems tab.
 
+### Showing only new reports
+
+You can tell `tiger` to suppress reports that were shown in a previous run.
+This can be helpful when you only want to see what changed, for example after updating your mod.
+First you have to generate a "baseline" to compare future runs to:
+<pre>ck3-tiger --json <i>path/to/your/mod</i> >baseline.json</pre>
+You can use any filename in place of `baseline.json`.
+Then when you run tiger again, you can tell it to exclude reports from the baseline:
+<pre>ck3-tiger --suppress baseline.json <i>path/to/your/mod</i></pre>
+It works with `vic3-tiger` and `imperator-tiger` too.
+
 ## Contributions
 
 I welcome contributions and collaborations! Some forms that contributions can take:
