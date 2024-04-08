@@ -1,0 +1,233 @@
+use std::{mem::forget, path::PathBuf};
+
+use anyhow::{bail, Result};
+use clap::{Args, Parser, Subcommand};
+#[cfg(any(feature = "ck3", feature = "imperator"))]
+use tiger_lib::ModFile;
+#[cfg(feature = "vic3")]
+use tiger_lib::ModMetadata;
+use tiger_lib::{
+    disable_ansi_colors, emit_reports, find_game_directory_steam, set_show_loaded_mods,
+    set_show_vanilla, validate_config_file, Everything,
+};
+
+use crate::{update::update, PackageEnv};
+
+/// String constants associated with the game being verified
+pub struct GameConsts {
+    /// Full name
+    pub name: &'static str,
+    /// Shortened name
+    pub name_short: &'static str,
+    /// Latest supported version
+    pub version: &'static str,
+    /// directory under steam library dir
+    pub dir: &'static str,
+    /// steam ID
+    pub app_id: &'static str,
+    /// A file that should be present if this is the correct game directory
+    pub signature_file: &'static str,
+}
+
+#[derive(Parser)]
+#[command(version)]
+#[command(propagate_version = true)]
+#[clap(args_conflicts_with_subcommands = true)]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
+    #[clap(flatten)]
+    validate_args: Option<ValidateArgs>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Update the binary. If no version is specified, the latest release is pulled from GitHub and
+    /// installed over the current binary.
+    Update {
+        /// release version (e.g. 0.9.3)
+        version: Option<String>,
+    },
+}
+
+#[derive(Args)]
+struct ValidateArgs {
+    /// Path to .mod file of mod to check.
+    modpath: PathBuf,
+    /// Path to game main directory.
+    #[clap(long)]
+    game: Option<PathBuf>,
+    /// Path to custom .conf file.
+    #[clap(long)]
+    config: Option<PathBuf>,
+    /// Show errors in the base game script code as well
+    #[clap(long)]
+    show_vanilla: bool,
+    /// Show errors in other loaded mods as well
+    #[clap(long)]
+    show_mods: bool,
+    /// Output the reports in JSON format
+    #[clap(long)]
+    json: bool,
+    /// Warn about items that are defined but unused
+    #[clap(long)]
+    unused: bool,
+    /// Do checks specific to the Princes of Darkness mod
+    #[cfg(feature = "ck3")]
+    #[clap(long)]
+    pod: bool,
+    /// Omit color from the output. False by default.
+    /// Can also be configured in the config file.
+    #[clap(long)]
+    no_color: bool,
+}
+
+pub fn run(game_consts: GameConsts, package_env: PackageEnv) -> Result<()> {
+    let GameConsts { name, name_short, version, dir, app_id, signature_file } = game_consts;
+    let cli = Cli::parse();
+
+    match cli.command {
+        Some(Commands::Update { version }) => {
+            update(package_env, version.as_deref())?;
+            Ok(())
+        }
+        None => {
+            let mut args = cli.validate_args.unwrap();
+            #[cfg(windows)]
+            if !args.no_color {
+                let _ = ansiterm::enable_ansi_support()
+                    .map_err(|_| eprintln!("Failed to enable ANSI support for Windows10 users. Continuing probably without colored output."));
+            }
+
+            eprintln!("This validator was made for {name} {version}.");
+            eprintln!("If you are using a newer version of {name}, it may be inaccurate.");
+            eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
+
+            if args.game.is_none() {
+                args.game = find_game_directory_steam(app_id, &PathBuf::from(dir));
+            }
+            if let Some(ref mut game) = args.game {
+                eprintln!("Using {name_short} directory: {}", game.display());
+                let mut sig = game.clone();
+                sig.push(signature_file);
+                if !sig.is_file() {
+                    eprintln!("That does not look like a {name_short} directory.");
+                    game.push("..");
+                    eprintln!("Trying: {}", game.display());
+                    sig = game.clone();
+                    sig.push(signature_file);
+                    if sig.is_file() {
+                        eprintln!("Ok.");
+                    } else {
+                        bail!("Cannot find {name_short} directory. Please supply it as the --game option.");
+                    }
+                }
+            } else {
+                bail!("Cannot find {name_short} directory. Please supply it as the --game option.");
+            }
+
+            args.config = validate_config_file(args.config);
+
+            if args.show_vanilla {
+                eprintln!("Showing warnings for base game files too. There will be many false positives in those.");
+            }
+
+            if args.show_mods {
+                eprintln!("Showing warnings for other loaded mods too.");
+            }
+
+            if args.unused {
+                eprintln!(
+                    "Showing warnings for unused localization. There will be many false positives."
+                );
+            }
+
+            #[cfg(feature = "ck3")]
+            if args.pod {
+                eprintln!("Doing special checks for the Princes of Darkness mod.");
+            }
+
+            if args.no_color {
+                // Disable colors both here and after reading the config, because reading the modfile and config may emit errors.
+                disable_ansi_colors();
+            }
+
+            let mut everything;
+
+            #[cfg(any(feature = "ck3", feature = "imperator"))]
+            {
+                if args.modpath.is_dir() {
+                    args.modpath.push("descriptor.mod");
+                }
+
+                let modfile = ModFile::read(&args.modpath)?;
+                let modpath = modfile.modpath();
+                if !modpath.exists() {
+                    eprintln!("Looking for mod in {}", modpath.display());
+                    bail!("Cannot find mod directory. Please make sure the .mod file is correct.");
+                }
+                eprintln!("Using mod directory: {}", modpath.display());
+
+                everything = Everything::new(
+                    args.config.as_deref(),
+                    args.game.as_deref(),
+                    &modpath,
+                    modfile.replace_paths(),
+                )?;
+            }
+            #[cfg(feature = "vic3")]
+            {
+                let metadata = ModMetadata::read(&args.modpath)?;
+                eprintln!("Using mod directory: {}", metadata.modpath().display());
+
+                everything = Everything::new(
+                    args.config.as_deref(),
+                    args.game.as_deref(),
+                    &args.modpath,
+                    metadata.replace_paths(),
+                )?;
+            }
+
+            // Print a blank line between the preamble and the first report:
+            eprintln!();
+
+            everything.load_output_settings(true);
+            everything.load_config_filtering_rules();
+
+            if !args.json {
+                emit_reports(false);
+            }
+
+            // We must apply the --no-color flag AFTER loading and applying the config,
+            // because we want it to override the config.
+            if args.no_color {
+                disable_ansi_colors();
+            }
+            // Same logic applies to showing vanilla and other mods
+            if args.show_vanilla {
+                set_show_vanilla(true);
+            }
+            if args.show_mods {
+                set_show_loaded_mods(true);
+            }
+
+            everything.load_all();
+            everything.validate_all();
+            everything.check_rivers();
+
+            #[cfg(feature = "ck3")]
+            if args.pod {
+                everything.check_pod();
+            }
+            emit_reports(args.json);
+            if args.unused {
+                everything.check_unused();
+            }
+
+            // Properly dropping `everything` takes a noticeable amount of time, and we're exiting anyway.
+            forget(everything);
+            Ok(())
+        }
+    }
+}

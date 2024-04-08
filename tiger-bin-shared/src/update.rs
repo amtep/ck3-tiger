@@ -7,7 +7,7 @@ use self_update::backends::github::{ReleaseList, UpdateBuilder};
 use thiserror::Error;
 
 #[cfg(not(any(target_os = "windows", target_os = "linux")))]
-#[derive(Debug, Clone, Copy, Error)]
+#[derive(Debug, Error)]
 pub enum UpdateError {
     #[error("Not supported on the platform: {0}")]
     NotSupported(&'static str),
@@ -24,19 +24,22 @@ pub enum UpdateError {
     SelfUpdate(#[from] self_update::errors::Error),
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct PackageEnv {
+    pub name: &'static str,
+    pub version: &'static str,
+}
+
 #[allow(unused_variables)]
 #[allow(clippy::missing_panics_doc)]
-pub fn update(
-    bin_name: &str,
-    current_version: &str,
-    target_version: Option<&str>,
-) -> Result<(), UpdateError> {
+pub fn update(package_env: PackageEnv, target_version: Option<&str>) -> Result<(), UpdateError> {
     #[cfg(not(any(target_os = "windows", target_os = "linux")))]
     {
         Err(UpdateError::NotSupported(consts::OS))
     }
     #[cfg(any(target_os = "windows", target_os = "linux"))]
     {
+        let PackageEnv { name: bin_name, version: current_version } = package_env;
         let mut version = if let Some(version) = target_version {
             let version = version.to_owned();
             let re = Regex::new(r"^v?[0-9]+\.[0-9]+\.[0-9]+$").unwrap();

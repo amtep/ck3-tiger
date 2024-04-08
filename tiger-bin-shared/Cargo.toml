@@ -1,0 +1,40 @@
+[package]
+name = "tiger-bin-shared"
+version = "0.9.5"
+edition = "2021"
+license = "GPL-3.0-or-later"
+description = "Shared binary library for ck3-tiger, vic3-tiger, and imperator-tiger."
+homepage = "https://github.com/amtep/ck3-tiger"
+repository = "https://github.com/amtep/ck3-tiger"
+readme = "../README.md"
+rust-version = "1.70"
+
+[dependencies]
+tiger-lib = { path = "..", default-features = false }
+
+anyhow = "1"
+clap = { version = "~4.4", features = ["derive"] }
+regex = "1.10"
+thiserror = "1"
+
+[target.'cfg(windows)'.dependencies]
+ansiterm = "0.12.2"
+
+[features]
+default = ["ck3"]
+ck3 = ["tiger-lib/ck3"]
+vic3 = ["tiger-lib/vic3"]
+imperator = ["tiger-lib/imperator"]
+
+[target.'cfg(target_os = "windows")'.dependencies]
+self_update = { version = "0.39", features = [
+    "archive-zip",
+    "compression-zip-deflate",
+]}
+winreg = "0.52"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+self_update = { version = "0.39", features = [
+    "archive-tar",
+    "compression-flate2",
+]}

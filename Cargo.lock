@@ -270,7 +270,6 @@ dependencies = [
 name = "ck3-tiger"
 version = "0.9.5"
 dependencies = [
- "ansiterm",
  "anyhow",
  "clap",
  "console",
@@ -278,6 +277,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
+ "tiger-bin-shared",
  "tiger-lib",
  "toml",
 ]
@@ -913,10 +913,8 @@ dependencies = [
 name = "imperator-tiger"
 version = "0.9.5"
 dependencies = [
- "ansiterm",
  "anyhow",
- "clap",
- "tiger-lib",
+ "tiger-bin-shared",
 ]
 
 [[package]]
@@ -1889,6 +1887,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "tiger-bin-shared"
+version = "0.9.5"
+dependencies = [
+ "ansiterm",
+ "anyhow",
+ "clap",
+ "regex",
+ "self_update",
+ "thiserror",
+ "tiger-lib",
+ "winreg 0.52.0",
+]
+
+[[package]]
 name = "tiger-lib"
 version = "0.9.5"
 dependencies = [
@@ -1910,8 +1922,6 @@ dependencies = [
  "phf 0.11.2",
  "png",
  "rayon",
- "regex",
- "self_update",
  "serde",
  "serde_json",
  "strum",
@@ -1919,7 +1929,6 @@ dependencies = [
  "thiserror",
  "unicode-width",
  "walkdir",
- "winreg 0.52.0",
 ]
 
 [[package]]
@@ -2162,11 +2171,11 @@ version = "0.9.5"
 dependencies = [
  "ansiterm",
  "anyhow",
- "clap",
  "console",
  "criterion",
  "serde",
  "serde_json",
+ "tiger-bin-shared",
  "tiger-lib",
  "toml",
 ]
