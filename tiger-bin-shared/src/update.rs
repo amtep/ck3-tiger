@@ -6,6 +6,8 @@ use regex::Regex;
 use self_update::backends::github::{ReleaseList, UpdateBuilder};
 use thiserror::Error;
 
+use crate::PackageEnv;
+
 #[cfg(not(any(target_os = "windows", target_os = "linux")))]
 #[derive(Debug, Error)]
 pub enum UpdateError {
@@ -22,12 +24,6 @@ pub enum UpdateError {
     MissingRelease,
     #[error("{0}")]
     SelfUpdate(#[from] self_update::errors::Error),
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct PackageEnv {
-    pub name: &'static str,
-    pub version: &'static str,
 }
 
 #[allow(unused_variables)]

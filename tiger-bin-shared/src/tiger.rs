@@ -7,27 +7,13 @@ use tiger_lib::ModFile;
 #[cfg(feature = "vic3")]
 use tiger_lib::ModMetadata;
 use tiger_lib::{
-    disable_ansi_colors, emit_reports, find_game_directory_steam, set_show_loaded_mods,
-    set_show_vanilla, validate_config_file, Everything,
+    disable_ansi_colors, emit_reports, set_show_loaded_mods, set_show_vanilla,
+    validate_config_file, Everything,
 };
 
-use crate::{update::update, PackageEnv};
-
-/// String constants associated with the game being verified
-pub struct GameConsts {
-    /// Full name
-    pub name: &'static str,
-    /// Shortened name
-    pub name_short: &'static str,
-    /// Latest supported version
-    pub version: &'static str,
-    /// directory under steam library dir
-    pub dir: &'static str,
-    /// steam ID
-    pub app_id: &'static str,
-    /// A file that should be present if this is the correct game directory
-    pub signature_file: &'static str,
-}
+use crate::gamedir::find_game_directory_steam;
+use crate::update::update;
+use crate::{GameConsts, PackageEnv};
 
 #[derive(Parser)]
 #[command(version)]
@@ -53,6 +39,10 @@ enum Commands {
 
 #[derive(Args)]
 struct ValidateArgs {
+    #[cfg(feature = "vic3")]
+    /// Path to folder of mod to check.
+    modpath: PathBuf,
+    #[cfg(not(feature = "vic3"))]
     /// Path to .mod file of mod to check.
     modpath: PathBuf,
     /// Path to game main directory.
@@ -84,7 +74,8 @@ struct ValidateArgs {
 }
 
 pub fn run(game_consts: GameConsts, package_env: PackageEnv) -> Result<()> {
-    let GameConsts { name, name_short, version, dir, app_id, signature_file } = game_consts;
+    let GameConsts { name, name_short, version, dir, app_id, signature_file, paradox_dir: _ } =
+        game_consts;
     let cli = Cli::parse();
 
     match cli.command {
@@ -100,7 +91,7 @@ pub fn run(game_consts: GameConsts, package_env: PackageEnv) -> Result<()> {
                     .map_err(|_| eprintln!("Failed to enable ANSI support for Windows10 users. Continuing probably without colored output."));
             }
 
-            eprintln!("This validator was made for {name} {version}.");
+            eprintln!("This validator was made for {name} version {version}.");
             eprintln!("If you are using a newer version of {name}, it may be inaccurate.");
             eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
 

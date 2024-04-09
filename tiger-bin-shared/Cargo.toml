@@ -10,15 +10,18 @@ readme = "../README.md"
 rust-version = "1.70"
 
 [dependencies]
-tiger-lib = { path = "..", default-features = false }
+tiger-lib = { path = "..", version = "0.9.5", default-features = false }
 
 anyhow = "1"
 clap = { version = "~4.4", features = ["derive"] }
+console = "0.15"
+home = "0.5"
 regex = "1.10"
 thiserror = "1"
 
 [target.'cfg(windows)'.dependencies]
 ansiterm = "0.12.2"
+winreg = "0.52"
 
 [features]
 default = ["ck3"]
@@ -30,11 +33,10 @@ imperator = ["tiger-lib/imperator"]
 self_update = { version = "0.39", features = [
     "archive-zip",
     "compression-zip-deflate",
-]}
-winreg = "0.52"
+] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 self_update = { version = "0.39", features = [
     "archive-tar",
     "compression-flate2",
-]}
+] }

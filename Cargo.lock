@@ -272,7 +272,6 @@ version = "0.9.5"
 dependencies = [
  "anyhow",
  "clap",
- "console",
  "criterion",
  "serde",
  "serde_json",
@@ -1893,6 +1892,8 @@ dependencies = [
  "ansiterm",
  "anyhow",
  "clap",
+ "console",
+ "home",
  "regex",
  "self_update",
  "thiserror",
@@ -1914,7 +1915,6 @@ dependencies = [
  "bitvec",
  "bumpalo",
  "encoding_rs",
- "home",
  "image",
  "inventory",
  "lazy_static",
@@ -2171,7 +2171,6 @@ version = "0.9.5"
 dependencies = [
  "ansiterm",
  "anyhow",
- "console",
  "criterion",
  "serde",
  "serde_json",

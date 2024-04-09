@@ -53,7 +53,6 @@ pub use crate::config_load::validate_config_file;
 pub use crate::everything::Everything;
 pub use crate::fileset::FileKind;
 pub use crate::game::Game;
-pub use crate::gamedir::{find_game_directory_steam, find_paradox_directory};
 pub use crate::item::Item;
 #[cfg(feature = "vic3")]
 pub use crate::mod_metadata::ModMetadata;
@@ -87,7 +86,6 @@ mod effect_validation;
 mod everything;
 mod fileset;
 mod game;
-mod gamedir;
 mod gui;
 mod helpers;
 mod item;
