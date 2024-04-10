@@ -67,7 +67,7 @@ pub fn find_game_directory_steam(steam_app_id: &str, game_dir: &Path) -> Option<
         let key = RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey(STEAM_WINDOWS_KEY).ok()?;
         let on_windows: String = key.get_value("InstallPath").ok()?;
         let on_windows = PathBuf::from(on_windows).join("steamapps");
-        return find_game_dir_in_steam_dir(&on_windows, steam_app_id, game_dir);
+        find_game_dir_in_steam_dir(&on_windows, steam_app_id, game_dir)
     }
     #[cfg(not(windows))]
     None
