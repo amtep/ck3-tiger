@@ -45,7 +45,10 @@ fn validate_inner(
         vd.field_value("format");
     }
 
+    // Whether this script value has done something useful yet
     let mut made_changes = false;
+    // Whether the script value's current value has been saved as a scope
+    let mut saved_value = false;
 
     validate_ifelse_sequence(block, "if", "else_if", "else");
     vd.set_allow_questionmark_equals(true);
@@ -57,21 +60,23 @@ fn validate_inner(
                 made_changes = true;
             }
         } else if token.is("save_temporary_value_as") {
-            // seen in vanilla
             if let Some(name) = bv.expect_value() {
                 sc.define_name_token(name.as_str(), Scopes::Value, name);
                 made_changes = true;
+                saved_value = true;
             }
         } else if token.is("value") {
-            if have_value == TriBool::True {
+            if have_value == TriBool::True && !saved_value {
                 let msg = "setting value here will overwrite the previous calculations";
                 warn(ErrorKey::Logic).msg(msg).loc(token).push();
             }
             have_value = TriBool::True;
+            saved_value = false;
             validate_bv(bv, data, sc, check_desc);
             made_changes = true;
         } else if token.is("add") || token.is("subtract") || token.is("min") || token.is("max") {
             have_value = TriBool::True;
+            saved_value = false;
             validate_bv(bv, data, sc, check_desc);
             made_changes = true;
         } else if token.is("multiply") || token.is("divide") || token.is("modulo") {
@@ -81,6 +86,7 @@ fn validate_inner(
             }
             validate_bv(bv, data, sc, check_desc);
             made_changes = true;
+            saved_value = false;
         } else if token.is("round") || token.is("ceiling") || token.is("floor") || token.is("abs") {
             if have_value == TriBool::False {
                 let msg = format!("nothing to {token} yet");
@@ -106,6 +112,7 @@ fn validate_inner(
                     warn(ErrorKey::Validation).msg(msg).loc(value).push();
                 }
                 made_changes = true;
+                saved_value = false;
             }
         } else if token.is("fixed_range") || token.is("integer_range") {
             if have_value == TriBool::True {
@@ -115,6 +122,7 @@ fn validate_inner(
             if let Some(block) = bv.expect_block() {
                 validate_minmax_range(block, data, sc, check_desc);
                 made_changes = true;
+                saved_value = false;
             }
             have_value = TriBool::True;
         } else if token.is("if") || token.is("else_if") {
