@@ -10,8 +10,6 @@ use winreg::enums::HKEY_LOCAL_MACHINE;
 #[cfg(windows)]
 use winreg::RegKey;
 
-use crate::util::fix_slashes_for_target_platform;
-
 // How to find steamapps dir on different systems
 const STEAM_LINUX: &str = ".local/share/Steam";
 const STEAM_LINUX_PROTON: &str = ".steam/steam";
@@ -69,7 +67,7 @@ pub fn find_game_directory_steam(steam_app_id: &str, game_dir: &Path) -> Option<
         let key = RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey(STEAM_WINDOWS_KEY).ok()?;
         let on_windows: String = key.get_value("InstallPath").ok()?;
         let on_windows = PathBuf::from(on_windows).join("steamapps");
-        return find_game_dir_in_steam_dir(&on_windows, steam_app_id, game_dir);
+        find_game_dir_in_steam_dir(&on_windows, steam_app_id, game_dir)
     }
     #[cfg(not(windows))]
     None
@@ -116,4 +114,10 @@ pub fn find_paradox_directory(dir_under: &Path) -> Option<PathBuf> {
         }
     }
     None
+}
+
+/// Redo a path so that all the slashes lean the correct way for the target platform.
+/// This is mostly for Windows users, to avoid showing them paths with a mix of slashes.
+fn fix_slashes_for_target_platform<P: std::borrow::Borrow<Path>>(path: P) -> PathBuf {
+    path.borrow().components().collect()
 }

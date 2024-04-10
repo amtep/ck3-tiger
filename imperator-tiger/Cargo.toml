@@ -8,16 +8,15 @@ description = "Validator that checks Imperator: Rome user mod files for mistakes
 homepage = "https://github.com/amtep/ck3-tiger"
 repository = "https://github.com/amtep/ck3-tiger"
 readme = "../README.md"
-keywords = [ "imperator", "rome", "mods", "validator", "paradox" ]
+keywords = ["imperator", "rome", "mods", "validator", "paradox"]
 categories = ["command-line-utilities", "development-tools", "game-development"]
 rust-version = "1.70"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tiger-lib = { version = "0.9.5", path = "..", default-features = false, features = ["imperator"] }
-anyhow = "1"
-clap = { version = "~4.4", features = ["derive"] }
+tiger-bin-shared = { path = "../tiger-bin-shared", version = "0.9.5", default-features = false, features = [
+    "imperator",
+] }
 
-[target.'cfg(windows)'.dependencies]
-ansiterm = "0.12.2"
+anyhow = "1"

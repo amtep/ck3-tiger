@@ -1,6 +1,6 @@
 use anyhow::Result;
+use imperator_tiger::GAME_CONSTS;
 use tiger_bin_shared::auto;
-use vic3_tiger::GAME_CONSTS;
 
 fn main() -> Result<()> {
     auto(GAME_CONSTS)
