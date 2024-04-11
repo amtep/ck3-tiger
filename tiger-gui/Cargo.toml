@@ -1,0 +1,22 @@
+[package]
+name = "tiger-gui"
+version = "0.9.6"
+edition = "2021"
+license = "GPL-3.0-or-later"
+default-run = "tiger-gui"
+description = "Validator that checks Crusader Kings 3, Victoria 3, and Imperator: Rome user mod files for mistakes and warns about them. For example: missing localizations, or using a faith trigger on a character. The games are grand strategy games made by Paradox Interactive, and user mods are made by the players to enhance or change their game experience. This tool is for the people who make the mods."
+homepage = "https://github.com/amtep/ck3-tiger"
+repository = "https://github.com/amtep/ck3-tiger"
+readme = "../README.md"
+keywords = [ "games", "linter", "mods", "validator", "paradox" ]
+categories = ["development-tools", "game-development"]
+rust-version = "1.70"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.81"
+enum-map = "2.7.3"
+iced = "0.12.1"
+strum = "0.26.2"
+strum_macros = "0.26.2"

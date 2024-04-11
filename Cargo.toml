@@ -5,6 +5,7 @@ members = [
     "vic3-tiger",
     "imperator-tiger",
     "tiger-bin-shared",
+    "tiger-gui",
     "utils",
     ".",
 ]
@@ -18,6 +19,8 @@ description = "Library used by the tools ck3-tiger, vic3-tiger, and imperator-ti
 homepage = "https://github.com/amtep/ck3-tiger"
 repository = "https://github.com/amtep/ck3-tiger"
 readme = "README.md"
+keywords = ["games", "linter", "mods", "validator", "paradox"]
+categories = ["development-tools", "game-development"]
 rust-version = "1.70"
 
 [features]
