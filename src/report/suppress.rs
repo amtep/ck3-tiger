@@ -1,5 +1,4 @@
 use std::fs::read_to_string;
-use std::mem::take;
 use std::path::Path;
 
 use anyhow::Result;
@@ -35,14 +34,8 @@ struct JsonReport {
 pub fn suppress_from_json(fullpath: &Path) -> Result<()> {
     let reports: Vec<JsonReport> = serde_json::from_str(&read_to_string(fullpath)?)?;
     let mut suppress: TigerHashMap<SuppressionKey, Vec<Suppression>> = TigerHashMap::default();
-    for mut report in reports {
-        let locations = take(&mut report.locations);
-        let suppressionkey = SuppressionKey { key: report.key, message: report.message };
-        if let Some(v) = suppress.get_mut(&suppressionkey) {
-            v.push(locations);
-        } else {
-            suppress.insert(suppressionkey, vec![locations]);
-        }
+    for JsonReport { key, message, locations } in reports {
+        suppress.entry(SuppressionKey { key, message }).or_default().push(locations);
     }
     Errors::get_mut().suppress = suppress;
     Ok(())
