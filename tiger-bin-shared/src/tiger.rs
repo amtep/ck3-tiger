@@ -42,11 +42,14 @@ struct ValidateArgs {
     #[cfg(feature = "vic3")]
     /// Path to folder of mod to check.
     modpath: PathBuf,
-    #[cfg(not(feature = "vic3"))]
+    #[cfg(any(feature = "ck3", feature = "imperator"))]
     /// Path to .mod file of mod to check.
     modpath: PathBuf,
-    /// Path to game main directory.
+    #[cfg_attr(feature = "ck3", clap(visible_alias = "ck3"))]
+    #[cfg_attr(feature = "vic3", clap(visible_alias = "vic3"))]
+    #[cfg_attr(feature = "imperator", clap(visible_alias = "imperator"))]
     #[clap(long)]
+    /// Path to game main directory.
     game: Option<PathBuf>,
     /// Path to custom .conf file.
     #[clap(long)]
