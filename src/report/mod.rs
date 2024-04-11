@@ -7,6 +7,7 @@ pub use errors::*;
 pub(crate) use filter::FilterRule;
 pub(crate) use output_style::OutputStyle;
 pub use report_struct::{Confidence, LogReport, PointedMessage, Severity};
+pub use suppress::suppress_from_json;
 
 mod builder;
 mod error_key;
@@ -15,5 +16,6 @@ mod errors;
 mod filter;
 mod output_style;
 mod report_struct;
+mod suppress;
 mod writer;
 mod writer_json;
