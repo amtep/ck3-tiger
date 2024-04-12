@@ -1,6 +1,6 @@
-use tiger_bin_shared::{GameConsts, PackageEnv};
+use tiger_bin_shared::GameConsts;
 
-pub const GAME_CONSTS: GameConsts = GameConsts {
+pub const GAME_CONSTS: &GameConsts = &GameConsts {
     name: "Crusader Kings 3",
     name_short: "CK3",
     version: "1.12.3 (SCYTHE)",
@@ -9,6 +9,3 @@ pub const GAME_CONSTS: GameConsts = GameConsts {
     signature_file: "game/events/witch_events.txt",
     paradox_dir: "Crusader Kings III",
 };
-
-pub const PACKAGE_ENV: PackageEnv =
-    PackageEnv { name: env!("CARGO_PKG_NAME"), version: env!("CARGO_PKG_VERSION") };

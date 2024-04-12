@@ -13,8 +13,12 @@ use tiger_lib::{emit_reports, set_output_file, Everything};
 use crate::gamedir::{find_game_directory_steam, find_paradox_directory};
 use crate::GameConsts;
 
-pub fn run(game_consts: GameConsts) -> Result<()> {
-    let GameConsts { name, name_short, version, dir, app_id, signature_file, paradox_dir } =
+/// Run the automatic version of the tiger application.
+///
+/// It can search the paradox mod folder, detect mods and list them for user selection. However,
+/// it has **no** command line arguments and hence less customizable compared to the main application.
+pub fn run(game_consts: &GameConsts) -> Result<()> {
+    let &GameConsts { name, name_short, version, dir, app_id, signature_file, paradox_dir } =
         game_consts;
 
     // Colors are off by default, but enable ANSI support in case the config file turns colors on again.

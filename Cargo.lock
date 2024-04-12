@@ -1891,6 +1891,7 @@ version = "0.9.5"
 dependencies = [
  "ansiterm",
  "anyhow",
+ "cfg-if",
  "clap",
  "console",
  "home",

@@ -13,7 +13,7 @@ use tiger_lib::{
 
 use crate::gamedir::find_game_directory_steam;
 use crate::update::update;
-use crate::{GameConsts, PackageEnv};
+use crate::GameConsts;
 
 #[derive(Parser)]
 #[command(version)]
@@ -79,14 +79,17 @@ struct ValidateArgs {
     suppress: Option<PathBuf>,
 }
 
-pub fn run(game_consts: GameConsts, package_env: PackageEnv) -> Result<()> {
-    let GameConsts { name, name_short, version, dir, app_id, signature_file, paradox_dir: _ } =
+/// Run the main tiger application.
+///
+/// It provides a number of command line arguments, as well as self-updating capability with the `update` subcommand.
+pub fn run(game_consts: &GameConsts, current_version: &str) -> Result<()> {
+    let &GameConsts { name, name_short, version, dir, app_id, signature_file, paradox_dir: _ } =
         game_consts;
     let cli = Cli::parse();
 
     match cli.command {
-        Some(Commands::Update { version }) => {
-            update(package_env, version.as_deref())?;
+        Some(Commands::Update { version: target_version }) => {
+            update(current_version, target_version.as_deref())?;
             Ok(())
         }
         None => {
