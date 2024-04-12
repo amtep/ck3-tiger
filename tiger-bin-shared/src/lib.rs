@@ -3,7 +3,7 @@ mod gamedir;
 mod tiger;
 mod update;
 
-/// String constants associated with the game being verified
+/// String constants associated with the game being verified.
 #[derive(Debug)]
 pub struct GameConsts {
     /// Full name
@@ -20,13 +20,6 @@ pub struct GameConsts {
     pub signature_file: &'static str,
     /// The directory under the Paradox Interactive directory for local files
     pub paradox_dir: &'static str,
-}
-
-/// Compile-time environment variables of the binary package
-#[derive(Debug)]
-pub struct PackageEnv {
-    pub name: &'static str,
-    pub version: &'static str,
 }
 
 pub use auto::run as auto;

@@ -1,7 +1,7 @@
 use anyhow::Result;
-use imperator_tiger::{GAME_CONSTS, PACKAGE_ENV};
+use imperator_tiger::GAME_CONSTS;
 use tiger_bin_shared::tiger;
 
 fn main() -> Result<()> {
-    tiger(GAME_CONSTS, PACKAGE_ENV)
+    tiger(GAME_CONSTS, env!("CARGO_PKG_VERSION"))
 }
