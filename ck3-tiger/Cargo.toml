@@ -1,6 +1,6 @@
 [package]
 name = "ck3-tiger"
-version = "0.9.5"
+version = "0.9.6"
 edition = "2021"
 license = "GPL-3.0-or-later"
 default-run = "ck3-tiger"
@@ -15,7 +15,7 @@ rust-version = "1.70"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tiger-lib = { path = "..", version = "0.9.5", features = ["ck3"] }
+tiger-lib = { path = "..", version = "0.9.6", features = ["ck3"] }
 tiger-bin-shared = { path = "../tiger-bin-shared", version = "0.9.5", features = ["ck3"] }
 
 anyhow = "1"
