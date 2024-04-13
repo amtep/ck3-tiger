@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::fs::{read_dir, read_to_string, File};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use clap::{Parser, ValueEnum};
@@ -131,9 +131,9 @@ impl Global {
     }
 }
 
-fn load_globals(fname: PathBuf, game: Game) -> Result<HashMap<String, Global>> {
+fn load_globals(fname: &Path, game: Game) -> Result<HashMap<String, Global>> {
     let mut globals = HashMap::new();
-    let global = read_to_string(&fname)?;
+    let global = read_to_string(fname)?;
     if let Some((_, middle)) = global.split_once("[\n") {
         if let Some((middle, _)) = middle.rsplit_once(']') {
             for line in middle.lines() {
@@ -144,7 +144,7 @@ fn load_globals(fname: PathBuf, game: Game) -> Result<HashMap<String, Global>> {
                 let args: Vec<_> = if line.is_empty() {
                     Vec::new()
                 } else {
-                    line.split(", ").map(|s| s.to_owned()).collect()
+                    line.split(", ").map(ToOwned::to_owned).collect()
                 };
                 let mut rtype = remove_game_wrapper(rtype);
                 let store;
@@ -212,9 +212,9 @@ impl NonGlobal {
     }
 }
 
-fn load_nonglobals(fname: PathBuf, game: Game) -> Result<HashMap<String, NonGlobal>> {
+fn load_nonglobals(fname: &Path, game: Game) -> Result<HashMap<String, NonGlobal>> {
     let mut nonglobals = HashMap::new();
-    let nonglobal = read_to_string(&fname)?;
+    let nonglobal = read_to_string(fname)?;
     if let Some((_, middle)) = nonglobal.split_once("[\n") {
         if let Some((middle, _)) = middle.rsplit_once(']') {
             for line in middle.lines() {
@@ -233,7 +233,7 @@ fn load_nonglobals(fname: PathBuf, game: Game) -> Result<HashMap<String, NonGlob
                 let args: Vec<_> = if line.is_empty() {
                     Vec::new()
                 } else {
-                    line.split(", ").map(|s| s.to_owned()).collect()
+                    line.split(", ").map(ToOwned::to_owned).collect()
                 };
                 let idx = format!("{dtype}.{name}");
                 let store2;
@@ -375,14 +375,14 @@ fn main() -> Result<()> {
     if args.game == Game::Ck3 && args.concepts.is_none() {
         bail!("When loading ck3 datatypes, must provide --concepts argument");
     }
-    let concepts_file = args.concepts.map(read_to_string).unwrap_or(Ok(String::new()))?;
+    let concepts_file = args.concepts.map_or(Ok(String::new()), read_to_string)?;
     let concepts: HashSet<_> = concepts_file.split_whitespace().collect();
 
     // let types = load_types(args.out.join("datatypes.rs"))?;
-    let mut global_promotes = load_globals(args.out.join("data_global_promotes.rs"), args.game)?;
-    let mut global_functions = load_globals(args.out.join("data_global_functions.rs"), args.game)?;
-    let mut promotes = load_nonglobals(args.out.join("data_promotes.rs"), args.game)?;
-    let mut functions = load_nonglobals(args.out.join("data_functions.rs"), args.game)?;
+    let mut global_promotes = load_globals(&args.out.join("data_global_promotes.rs"), args.game)?;
+    let mut global_functions = load_globals(&args.out.join("data_global_functions.rs"), args.game)?;
+    let mut promotes = load_nonglobals(&args.out.join("data_promotes.rs"), args.game)?;
+    let mut functions = load_nonglobals(&args.out.join("data_functions.rs"), args.game)?;
 
     let mut new_types = HashSet::new();
     let mut new_global_promotes = HashMap::new();

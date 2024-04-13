@@ -82,10 +82,12 @@ struct ValidateArgs {
 /// Run the main tiger application.
 ///
 /// It provides a number of command line arguments, as well as self-updating capability with the `update` subcommand.
+#[allow(clippy::missing_panics_doc)] // it thinks we can panic on cli.validate_args.unwrap()
 pub fn run(game_consts: &GameConsts, current_version: &str) -> Result<()> {
     let &GameConsts { name, name_short, version, app_id, signature_file, .. } = game_consts;
     let cli = Cli::parse();
 
+    #[allow(clippy::single_match_else)]
     match cli.command {
         Some(Commands::Update { version: target_version }) => {
             update(current_version, target_version.as_deref())?;

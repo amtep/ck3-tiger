@@ -39,17 +39,13 @@ pub fn run(game_consts: &GameConsts) -> Result<()> {
         bail!("Cannot find the game directory.");
     }
 
-    let pdx = find_paradox_directory(&PathBuf::from(paradox_dir));
-    if pdx.is_none() {
-        bail!("Cannot find the Paradox directory.");
-    }
-    let pdx = pdx.unwrap();
+    let pdx = get_paradox_directory(&PathBuf::from(paradox_dir))?;
     let pdxmod = pdx.join("mod");
     let pdxlogs = pdx.join("logs");
 
     let mut entries: Vec<_> =
-        read_dir(pdxmod)?.filter_map(|entry| entry.ok()).filter(is_local_mod_entry).collect();
-    entries.sort_by_key(|entry| entry.file_name());
+        read_dir(pdxmod)?.filter_map(Result::ok).filter(is_local_mod_entry).collect();
+    entries.sort_by_key(DirEntry::file_name);
 
     if entries.len() == 1 {
         validate_mod(name_short, &game, &entries[0].path(), &pdxlogs)?;
@@ -58,11 +54,12 @@ pub fn run(game_consts: &GameConsts) -> Result<()> {
     } else {
         eprintln!("Found several possible mods to validate:");
         for (i, entry) in entries.iter().enumerate().take(35) {
-            let ordinal = i + 1;
+            #[allow(clippy::cast_possible_truncation)] // known to be <= 35
+            let ordinal = (i + 1) as u32;
             if ordinal <= 9 {
                 eprintln!("{}. {}", ordinal, entry.file_name().to_str().unwrap_or(""));
             } else {
-                let modkey = char::from_u32((ordinal - 10 + 'A' as usize) as u32).unwrap();
+                let modkey = char::from_u32(ordinal - 10 + 'A' as u32).unwrap_or('?');
                 eprintln!("{modkey}. {}", entry.file_name().to_str().unwrap_or(""));
             }
         }
@@ -165,5 +162,13 @@ fn is_local_mod_entry(entry: &DirEntry) -> bool {
     #[cfg(feature = "vic3")]
     {
         entry.path().join(".metadata/metadata.json").is_file()
+    }
+}
+
+fn get_paradox_directory(paradox_dir: &Path) -> Result<PathBuf> {
+    if let Some(pdx) = find_paradox_directory(paradox_dir) {
+        Ok(pdx)
+    } else {
+        bail!("Cannot find the Paradox directory.");
     }
 }
