@@ -14,3 +14,6 @@ publish = false
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 strum_macros = "0.26"
+
+[lints]
+workspace = true
