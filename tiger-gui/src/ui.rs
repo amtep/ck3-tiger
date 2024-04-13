@@ -1,5 +1,5 @@
 use iced::widget::{row, vertical_rule};
-use iced::{Element, Length, Sandbox};
+use iced::{executor, Application, Command, Element, Length, Theme};
 
 use crate::message::Message;
 use crate::mods::Mods;
@@ -10,18 +10,27 @@ pub struct TigerApp {
     reports: Reports,
 }
 
-impl Sandbox for TigerApp {
+impl Application for TigerApp {
+    type Executor = executor::Default;
     type Message = Message;
+    type Theme = Theme;
+    type Flags = ();
 
-    fn new() -> Self {
-        Self { mods: Mods::default(), reports: Reports::new() }
+    fn new(_flags: Self::Flags) -> (Self, Command<Self::Message>) {
+        (Self { mods: Mods::default(), reports: Reports::new() }, Command::none())
     }
 
     fn title(&self) -> String {
         "Tiger".to_owned()
     }
 
-    fn update(&mut self, _message: Self::Message) {}
+    fn theme(&self) -> Self::Theme {
+        Theme::Dark
+    }
+
+    fn update(&mut self, _message: Self::Message) -> Command<Self::Message> {
+        Command::none()
+    }
 
     fn view(&self) -> Element<'_, Self::Message> {
         row![
