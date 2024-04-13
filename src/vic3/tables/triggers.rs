@@ -138,6 +138,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "country_army_unit_type_fraction",
         Block(&[("target", Scope(Scopes::CombatUnitType)), ("value", CompareValue)]),
     ),
+    (Scopes::Country, "country_can_have_mass_migration_to", Scope(Scopes::Country)), // undocumented
     (Scopes::CountryDefinition, "country_definition_has_culture", Scope(Scopes::Culture)),
     (
         Scopes::Country,
