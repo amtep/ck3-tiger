@@ -49,7 +49,6 @@ pub fn run(game_consts: &GameConsts) -> Result<()> {
 
     let mut entries: Vec<_> =
         read_dir(pdxmod)?.filter_map(|entry| entry.ok()).filter(is_local_mod_entry).collect();
-    dbg!(&entries);
     entries.sort_by_key(|entry| entry.file_name());
 
     if entries.len() == 1 {
