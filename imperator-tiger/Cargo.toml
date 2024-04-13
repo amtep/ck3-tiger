@@ -20,3 +20,6 @@ tiger-bin-shared = { path = "../tiger-bin-shared", version = "0.9.6", default-fe
 ] }
 
 anyhow = "1"
+
+[lints]
+workspace = true

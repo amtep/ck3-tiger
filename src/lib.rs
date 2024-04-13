@@ -2,47 +2,6 @@
 //! `imperator-tiger`. Each executable is a small wrapper around the functions in this library that
 //! start and perform validation.
 
-#![warn(missing_debug_implementations)]
-// Turn on clippy pedantic, but not all of them yet.
-#![warn(clippy::pedantic)]
-#![allow(clippy::struct_excessive_bools)] // we like our bools
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::must_use_candidate)]
-#![allow(clippy::module_name_repetitions)]
-#![allow(clippy::similar_names)]
-// When we do wildcards in `use`, it's deliberate
-#![allow(clippy::enum_glob_use)]
-#![allow(clippy::wildcard_imports)]
-// Turn on some rustc lints
-#![warn(future_incompatible)]
-#![warn(missing_copy_implementations)]
-#![warn(noop_method_call)]
-#![warn(trivial_casts)]
-#![warn(trivial_numeric_casts)]
-// This was causing a lot of warnings.
-#![allow(clippy::too_many_lines)]
-// The construction being warned about here is the best way to express
-// validation of a field while handling the case of the field not existing.
-#![allow(clippy::blocks_in_conditions)]
-// Turn on selected warnings from clippy's restricted set
-#![warn(clippy::clone_on_ref_ptr)]
-#![warn(clippy::decimal_literal_representation)]
-#![warn(clippy::float_cmp_const)]
-#![warn(clippy::fn_to_numeric_cast_any)]
-#![warn(clippy::format_push_string)]
-#![warn(clippy::get_unwrap)]
-#![warn(clippy::if_then_some_else_none)]
-#![warn(clippy::impl_trait_in_params)]
-#![warn(clippy::integer_division)]
-#![warn(clippy::lossy_float_literal)]
-#![warn(clippy::mixed_read_write_in_expression)]
-#![warn(clippy::mutex_atomic)]
-#![warn(clippy::rc_buffer)]
-#![warn(clippy::rc_mutex)]
-#![warn(clippy::rest_pat_in_fully_bound_structs)]
-#![warn(clippy::string_add)]
-#![warn(clippy::string_to_string)]
-
 #[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator", not(doc)))]
 compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled at the same time");
 

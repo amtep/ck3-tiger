@@ -4,6 +4,7 @@ mod tiger;
 mod update;
 
 /// String constants associated with the game being verified.
+#[allow(missing_copy_implementations)]
 #[derive(Debug)]
 pub struct GameConsts {
     /// Full name

@@ -41,3 +41,6 @@ self_update = { version = "0.39", features = [
     "archive-tar",
     "compression-flate2",
 ] }
+
+[lints]
+workspace = true
