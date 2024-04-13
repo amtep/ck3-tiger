@@ -79,6 +79,8 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_numeric("cost");
     vd.field_bool("counts_for_tech_spread");
     vd.field_bool("show_in_outliner"); // undocumented
+    vd.field_bool("can_be_used_in_sway_offers"); // undocumented
+    vd.field_integer("sway_maneuvers_cost"); // undocumented
     vd.field_bool("infamy_affects_maintenance"); // undocumented
     vd.field_bool("has_junior_participant"); // undocumented
     vd.field_bool("is_two_sided_pact"); // undocumented

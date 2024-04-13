@@ -39,5 +39,7 @@ impl DbKind for Goods {
 
         vd.field_numeric("obsession_chance");
         vd.field_numeric("consumption_tax_cost");
+
+        vd.field_bool("pop_consumption_can_add_infrastructure"); // undocumented
     }
 }
