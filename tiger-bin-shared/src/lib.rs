@@ -12,10 +12,8 @@ pub struct GameConsts {
     pub name_short: &'static str,
     /// Latest supported version
     pub version: &'static str,
-    /// directory under steam library dir
-    pub dir: &'static str,
     /// steam ID
-    pub app_id: &'static str,
+    pub app_id: u32,
     /// A file that should be present if this is the correct game directory
     pub signature_file: &'static str,
     /// The directory under the Paradox Interactive directory for local files

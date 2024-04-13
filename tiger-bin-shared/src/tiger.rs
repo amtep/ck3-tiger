@@ -83,8 +83,7 @@ struct ValidateArgs {
 ///
 /// It provides a number of command line arguments, as well as self-updating capability with the `update` subcommand.
 pub fn run(game_consts: &GameConsts, current_version: &str) -> Result<()> {
-    let &GameConsts { name, name_short, version, dir, app_id, signature_file, paradox_dir: _ } =
-        game_consts;
+    let &GameConsts { name, name_short, version, app_id, signature_file, .. } = game_consts;
     let cli = Cli::parse();
 
     match cli.command {
@@ -105,7 +104,7 @@ pub fn run(game_consts: &GameConsts, current_version: &str) -> Result<()> {
             eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
 
             if args.game.is_none() {
-                args.game = find_game_directory_steam(app_id, &PathBuf::from(dir));
+                args.game = find_game_directory_steam(app_id).ok();
             }
             if let Some(ref mut game) = args.game {
                 eprintln!("Using {name_short} directory: {}", game.display());
