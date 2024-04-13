@@ -12,6 +12,29 @@ use crate::trigger::validate_target;
 use crate::validate::{validate_optional_duration, ListType};
 use crate::validator::{Validator, ValueValidator};
 
+pub fn validate_trade_route(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_target("target", sc, Scopes::State);
+    vd.field_item("goods", Item::TradeGood);
+}
+
+pub fn validate_add_deity_to_pantheon(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_target("deity", sc, Scopes::Deity);
+}
+
 pub fn validate_remove_subunit_loyalty(
     _key: &Token,
     mut vd: ValueValidator,
