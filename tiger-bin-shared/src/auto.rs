@@ -2,7 +2,7 @@ use std::fs::{read_dir, DirEntry};
 use std::mem::forget;
 use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use console::Term;
 #[cfg(any(feature = "ck3", feature = "imperator"))]
 use tiger_lib::ModFile;
@@ -18,7 +18,7 @@ use crate::GameConsts;
 /// It can search the paradox mod folder, detect mods and list them for user selection. However,
 /// it has **no** command line arguments and hence less customizable compared to the main application.
 pub fn run(game_consts: &GameConsts) -> Result<()> {
-    let &GameConsts { name, name_short, version, dir, app_id, signature_file, paradox_dir } =
+    let &GameConsts { name, name_short, version, app_id, signature_file, paradox_dir } =
         game_consts;
 
     // Colors are off by default, but enable ANSI support in case the config file turns colors on again.
@@ -31,15 +31,11 @@ pub fn run(game_consts: &GameConsts) -> Result<()> {
     eprintln!("If you are using a newer version of {name}, it may be inaccurate.");
     eprintln!("!! Currently it's inaccurate anyway because it's in beta state.");
 
-    let mut game = find_game_directory_steam(app_id, &PathBuf::from(dir));
-    if let Some(ref mut game) = game {
-        eprintln!("Using {name_short} directory: {}", game.display());
-        let sig = game.clone().join(signature_file);
-        if !sig.is_file() {
-            eprintln!("That does not look like a {name_short} directory.");
-            bail!("Cannot find the game directory.");
-        }
-    } else {
+    let game = find_game_directory_steam(app_id).context("Cannot find the game directory.")?;
+    eprintln!("Using {name_short} directory: {}", game.display());
+    let sig = game.clone().join(signature_file);
+    if !sig.is_file() {
+        eprintln!("That does not look like a {name_short} directory.");
         bail!("Cannot find the game directory.");
     }
 
@@ -57,7 +53,7 @@ pub fn run(game_consts: &GameConsts) -> Result<()> {
     entries.sort_by_key(|entry| entry.file_name());
 
     if entries.len() == 1 {
-        validate_mod(name_short, &game.unwrap(), &entries[0].path(), &pdxlogs)?;
+        validate_mod(name_short, &game, &entries[0].path(), &pdxlogs)?;
     } else if entries.is_empty() {
         bail!("Did not find any mods to validate.");
     } else {
@@ -88,7 +84,7 @@ pub fn run(game_consts: &GameConsts) -> Result<()> {
                 };
                 if modnr < entries.len() {
                     eprintln!();
-                    validate_mod(name_short, &game.unwrap(), &entries[modnr].path(), &pdxlogs)?;
+                    validate_mod(name_short, &game, &entries[modnr].path(), &pdxlogs)?;
                     return Ok(());
                 }
             } else {
