@@ -17,7 +17,7 @@ impl Application for TigerApp {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        (Self { mods: Mods::default(), reports: Reports::new() }, Command::none())
+        (Self { mods: Mods::load(), reports: Reports::new() }, Command::none())
     }
 
     fn title(&self) -> String {

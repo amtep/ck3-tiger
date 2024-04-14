@@ -3698,6 +3698,7 @@ version = "0.9.6"
 dependencies = [
  "anyhow",
  "enum-map",
+ "home",
  "iced",
  "strum",
  "strum_macros",
