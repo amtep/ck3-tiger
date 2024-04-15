@@ -95,22 +95,25 @@ impl Mod {
     /// Construct a `Mod` from reading a `.mod` file.
     fn from_descriptor(game: Game, descriptor_path: &Path) -> Result<Self> {
         let descriptor = read_to_string(descriptor_path)?;
-        let name = if let Some(capture) = Regex::new("name=\"([^\"]+)\"")?.captures(&descriptor) {
-            capture[1].to_owned()
-        } else {
-            bail!("no name field in mod descriptor");
-        };
-        let version =
-            if let Some(capture) = Regex::new("version=\"([^\"]+)\"")?.captures(&descriptor) {
+        let name =
+            if let Some(capture) = Regex::new("name\\s*=\\s*\"([^\"]+)\"")?.captures(&descriptor) {
                 capture[1].to_owned()
             } else {
-                bail!("no version field in mod descriptor");
+                bail!("no name field in mod descriptor");
             };
-        let path = if let Some(capture) = Regex::new("path=\"([^\"]+)\"")?.captures(&descriptor) {
+        let version = if let Some(capture) =
+            Regex::new("version\\s*=\\s*\"([^\"]+)\"")?.captures(&descriptor)
+        {
             capture[1].to_owned()
         } else {
-            bail!("no path field in mod descriptor");
+            bail!("no version field in mod descriptor");
         };
+        let path =
+            if let Some(capture) = Regex::new("path\\s*=\\s*\"([^\"]+)\"")?.captures(&descriptor) {
+                capture[1].to_owned()
+            } else {
+                bail!("no path field in mod descriptor");
+            };
         let dir = if path.starts_with('/') {
             PathBuf::from(path)
         } else {
