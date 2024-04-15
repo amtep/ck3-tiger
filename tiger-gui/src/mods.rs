@@ -1,9 +1,11 @@
-use std::fs::read_dir;
-use std::path::Path;
+use std::fs::{read_dir, read_to_string};
+use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Result};
 use enum_map::EnumMap;
-use iced::widget::{column, Column, Container, Rule, Scrollable, Text};
+use iced::widget::{column, Button, Column, Container, Rule, Scrollable, Text};
+use iced::Element;
+use regex::Regex;
 use strum::IntoEnumIterator;
 
 use crate::game::Game;
@@ -39,16 +41,24 @@ impl Mods {
     pub(crate) fn view(&self) -> Column<Message> {
         let mut game_sections = Column::new().spacing(10);
         for game in Game::iter() {
-            game_sections =
-                game_sections.push(column![Text::new(game.fullname()), Rule::horizontal(1)]);
+            let mut game_section =
+                Column::new().push(Text::new(game.fullname())).push(Rule::horizontal(1));
+            for a_mod in &self.game_mods[game] {
+                game_section = game_section.push(Container::new(a_mod.view()).padding(2));
+            }
+            game_sections = game_sections.push(game_section);
         }
 
         column![Text::new("Mods"), Container::new(Scrollable::new(game_sections)),]
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct Mod {}
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
+struct Mod {
+    name: String,
+    version: String,
+    dir: PathBuf,
+}
 
 impl Mod {
     /// List the locally installed mods for the given game.
@@ -60,7 +70,7 @@ impl Mod {
                 for entry in entries.flatten() {
                     match game {
                         Game::Ck3 | Game::Imperator => {
-                            if !entry.file_name().to_string_lossy().ends_with(".mod")
+                            if entry.file_name().to_string_lossy().ends_with(".mod")
                                 && !entry.file_name().to_string_lossy().starts_with("ugc_")
                             {
                                 if let Ok(the_mod) = Self::from_descriptor(&entry.path()) {
@@ -69,10 +79,7 @@ impl Mod {
                             }
                         }
                         Game::Vic3 => {
-                            if let Ok(the_mod) = Self::from_metadata(
-                                &entry.path(),
-                                &entry.path().join(".metadata/metadata.json"),
-                            ) {
+                            if let Ok(the_mod) = Self::from_metadata(&entry.path()) {
                                 mods.push(the_mod);
                             }
                         }
@@ -85,13 +92,49 @@ impl Mod {
     }
 
     /// Construct a `Mod` from reading a `.mod` file.
-    // TODO: implement
-    fn from_descriptor(_descriptor: &Path) -> Result<Self> {
-        bail!("not implemented yet");
+    fn from_descriptor(descriptor_path: &Path) -> Result<Self> {
+        let descriptor = read_to_string(descriptor_path)?;
+        let name = if let Some(capture) = Regex::new("name=\"([^\"]+)\"")?.captures(&descriptor) {
+            capture[1].to_owned()
+        } else {
+            bail!("no name field in mod descriptor");
+        };
+        let version =
+            if let Some(capture) = Regex::new("version=\"([^\"]+)\"")?.captures(&descriptor) {
+                capture[1].to_owned()
+            } else {
+                bail!("no version field in mod descriptor");
+            };
+        let path = if let Some(capture) = Regex::new("path=\"([^\"]+)\"")?.captures(&descriptor) {
+            capture[1].to_owned()
+        } else {
+            bail!("no path field in mod descriptor");
+        };
+        let dir = if path.starts_with('/') {
+            PathBuf::from(path)
+        } else {
+            // Relative paths are relative to the parent of the mod/ directory,
+            // so do parent() twice: once to get rid of the .mod filename, then
+            // again to get rid of the mod directory.
+            descriptor_path.parent().unwrap().parent().unwrap().join(path)
+        };
+        Ok(Mod { dir, name, version })
     }
 
     /// Construct a `Mod` from reading a `metadata.json` file.
-    fn from_metadata(_dir: &Path, _metadata: &Path) -> Result<Self> {
-        bail!("not implemented yet");
+    fn from_metadata(dir: &Path) -> Result<Self> {
+        let metadata = read_to_string(dir.join(".metadata/metadata.json"))?;
+        let value: serde_json::Value = serde_json::from_str(&metadata)?;
+        if let (Some(name), Some(version)) = (value["name"].as_str(), value["version"].as_str()) {
+            Ok(Mod { name: name.to_owned(), version: version.to_owned(), dir: dir.to_owned() })
+        } else {
+            bail!("missing fields in .metadata/metadata.json");
+        }
+    }
+
+    fn view(&self) -> Element<Message> {
+        Button::new(Text::new(format!("{} (v{})", self.name, self.version)))
+            .on_press(Message::ShowResults(self.dir.clone()))
+            .into()
     }
 }
