@@ -3,8 +3,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Result};
 use enum_map::EnumMap;
+use iced::alignment::Horizontal;
 use iced::widget::{button, column, container, horizontal_rule, scrollable, text, Column};
-use iced::Element;
+use iced::{theme, Element, Length};
 use regex::Regex;
 use strum::IntoEnumIterator;
 
@@ -132,8 +133,12 @@ impl Mod {
     }
 
     fn view(&self) -> Element<Message> {
-        button(text(format!("{} (v{})", self.name, self.version)))
+        let contents = text(format!("{} (v{})", self.name, self.version))
+            .width(Length::Fill)
+            .horizontal_alignment(Horizontal::Center);
+        button(contents)
             .on_press(Message::ShowResults(self.dir.clone()))
+            .style(theme::Button::Secondary)
             .into()
     }
 }
