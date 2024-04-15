@@ -1,4 +1,4 @@
-use iced::widget::{column, Column, Text};
+use iced::widget::{column, text, Column};
 
 use crate::message::Message;
 
@@ -10,6 +10,6 @@ impl Reports {
     }
 
     pub(crate) fn view(&self) -> Column<Message> {
-        column![Text::new("Reports"), Text::new("no reports yet")]
+        column![text("Reports"), text("no reports yet")]
     }
 }

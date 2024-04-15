@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Result};
 use enum_map::EnumMap;
-use iced::widget::{column, Button, Column, Container, Rule, Scrollable, Text};
+use iced::widget::{button, column, container, horizontal_rule, scrollable, text, Column};
 use iced::Element;
 use regex::Regex;
 use strum::IntoEnumIterator;
@@ -39,17 +39,16 @@ impl Mods {
     }
 
     pub(crate) fn view(&self) -> Column<Message> {
-        let mut game_sections = Column::new().spacing(10);
+        let mut game_sections = column![].spacing(10);
         for game in Game::iter() {
-            let mut game_section =
-                Column::new().push(Text::new(game.fullname())).push(Rule::horizontal(1));
+            let mut game_section = column![text(game.fullname()), horizontal_rule(1)];
             for a_mod in &self.game_mods[game] {
-                game_section = game_section.push(Container::new(a_mod.view()).padding(2));
+                game_section = game_section.push(container(a_mod.view()).padding(2));
             }
             game_sections = game_sections.push(game_section);
         }
 
-        column![Text::new("Mods"), Container::new(Scrollable::new(game_sections)),]
+        column![text("Mods"), container(scrollable(game_sections))]
     }
 }
 
@@ -133,7 +132,7 @@ impl Mod {
     }
 
     fn view(&self) -> Element<Message> {
-        Button::new(Text::new(format!("{} (v{})", self.name, self.version)))
+        button(text(format!("{} (v{})", self.name, self.version)))
             .on_press(Message::ShowResults(self.dir.clone()))
             .into()
     }
