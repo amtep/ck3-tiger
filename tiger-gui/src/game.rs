@@ -8,7 +8,7 @@ use strum_macros::EnumIter;
 
 /// An enum listing the supported games that tiger can check.
 #[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq, Hash, Enum, EnumIter)]
-pub(crate) enum Game {
+pub enum Game {
     Ck3,
     Vic3,
     Imperator,

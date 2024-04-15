@@ -53,8 +53,9 @@ impl Mods {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Mod {
+    game: Game,
     name: String,
     version: String,
     dir: PathBuf,
@@ -73,13 +74,13 @@ impl Mod {
                             if entry.file_name().to_string_lossy().ends_with(".mod")
                                 && !entry.file_name().to_string_lossy().starts_with("ugc_")
                             {
-                                if let Ok(the_mod) = Self::from_descriptor(&entry.path()) {
+                                if let Ok(the_mod) = Self::from_descriptor(game, &entry.path()) {
                                     mods.push(the_mod);
                                 }
                             }
                         }
                         Game::Vic3 => {
-                            if let Ok(the_mod) = Self::from_metadata(&entry.path()) {
+                            if let Ok(the_mod) = Self::from_metadata(game, &entry.path()) {
                                 mods.push(the_mod);
                             }
                         }
@@ -92,7 +93,7 @@ impl Mod {
     }
 
     /// Construct a `Mod` from reading a `.mod` file.
-    fn from_descriptor(descriptor_path: &Path) -> Result<Self> {
+    fn from_descriptor(game: Game, descriptor_path: &Path) -> Result<Self> {
         let descriptor = read_to_string(descriptor_path)?;
         let name = if let Some(capture) = Regex::new("name=\"([^\"]+)\"")?.captures(&descriptor) {
             capture[1].to_owned()
@@ -118,15 +119,20 @@ impl Mod {
             // again to get rid of the mod directory.
             descriptor_path.parent().unwrap().parent().unwrap().join(path)
         };
-        Ok(Mod { dir, name, version })
+        Ok(Mod { game, dir, name, version })
     }
 
     /// Construct a `Mod` from reading a `metadata.json` file.
-    fn from_metadata(dir: &Path) -> Result<Self> {
+    fn from_metadata(game: Game, dir: &Path) -> Result<Self> {
         let metadata = read_to_string(dir.join(".metadata/metadata.json"))?;
         let value: serde_json::Value = serde_json::from_str(&metadata)?;
         if let (Some(name), Some(version)) = (value["name"].as_str(), value["version"].as_str()) {
-            Ok(Mod { name: name.to_owned(), version: version.to_owned(), dir: dir.to_owned() })
+            Ok(Mod {
+                game,
+                name: name.to_owned(),
+                version: version.to_owned(),
+                dir: dir.to_owned(),
+            })
         } else {
             bail!("missing fields in .metadata/metadata.json");
         }
@@ -137,7 +143,7 @@ impl Mod {
             .width(Length::Fill)
             .horizontal_alignment(Horizontal::Center);
         button(contents)
-            .on_press(Message::ShowResults(self.dir.clone()))
+            .on_press(Message::ShowResults(self.game, self.dir.clone()))
             .style(theme::Button::Secondary)
             .into()
     }
