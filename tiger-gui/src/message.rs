@@ -1,8 +1,6 @@
-use std::path::PathBuf;
-
-use crate::game::Game;
+use crate::mods::Mod;
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    ShowResults(Game, PathBuf),
+    ShowResults(Mod),
 }

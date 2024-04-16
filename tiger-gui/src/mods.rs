@@ -1,3 +1,4 @@
+use std::fmt;
 use std::fs::{read_dir, read_to_string};
 use std::path::{Path, PathBuf};
 
@@ -54,7 +55,7 @@ impl Mods {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct Mod {
+pub struct Mod {
     game: Game,
     name: String,
     version: String,
@@ -142,12 +143,17 @@ impl Mod {
     }
 
     fn view(&self) -> Element<Message> {
-        let contents = text(format!("{} (v{})", self.name, self.version))
-            .width(Length::Fill)
-            .horizontal_alignment(Horizontal::Center);
+        let contents =
+            text(format!("{self}")).width(Length::Fill).horizontal_alignment(Horizontal::Center);
         button(contents)
-            .on_press(Message::ShowResults(self.game, self.dir.clone()))
+            .on_press(Message::ShowResults(self.clone()))
             .style(theme::Button::Secondary)
             .into()
+    }
+}
+
+impl fmt::Display for Mod {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{} (v{})", self.name, self.version)
     }
 }
