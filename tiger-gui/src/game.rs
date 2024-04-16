@@ -51,4 +51,13 @@ impl Game {
         }
         None
     }
+
+    /// TODO: make the paths to the executables a persistent setting
+    pub(crate) fn executable(self) -> &'static str {
+        match self {
+            Game::Ck3 => "./ck3-tiger",
+            Game::Vic3 => "./vic3-tiger",
+            Game::Imperator => "./imperator-tiger",
+        }
+    }
 }

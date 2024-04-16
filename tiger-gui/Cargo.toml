@@ -23,3 +23,6 @@ regex = "1.10.4"
 serde_json = "1.0.115"
 strum = "0.26.2"
 strum_macros = "0.26.2"
+
+[lints]
+workspace = true

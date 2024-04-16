@@ -5,6 +5,7 @@ use crate::message::Message;
 use crate::mods::Mods;
 use crate::reports::Reports;
 
+#[derive(Debug)]
 pub struct TigerApp {
     mods: Mods,
     reports: Reports,
@@ -28,8 +29,10 @@ impl Application for TigerApp {
         Theme::Dark
     }
 
-    fn update(&mut self, _message: Self::Message) -> Command<Self::Message> {
-        Command::none()
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+        match message {
+            Message::ShowResults(_) | Message::ModScanned(_) => self.reports.update(message),
+        }
     }
 
     fn view(&self) -> Element<'_, Self::Message> {

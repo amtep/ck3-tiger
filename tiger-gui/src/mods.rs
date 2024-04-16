@@ -13,6 +13,7 @@ use strum::IntoEnumIterator;
 use crate::game::Game;
 use crate::message::Message;
 
+#[derive(Debug)]
 pub(crate) struct Mods {
     /// Mods to choose from when running Tiger, in the order they should be displayed to the user.
     /// Invariant: Every game has an entry in the map.
@@ -56,10 +57,11 @@ impl Mods {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Mod {
-    game: Game,
-    name: String,
-    version: String,
-    dir: PathBuf,
+    pub game: Game,
+    pub name: String,
+    pub version: String,
+    /// Equal to `dir` for vic3, or the path to the `.mod` file for ck3 or imperator
+    pub locator: PathBuf,
 }
 
 impl Mod {
@@ -123,7 +125,10 @@ impl Mod {
             // again to get rid of the mod directory.
             descriptor_path.parent().unwrap().parent().unwrap().join(path)
         };
-        Ok(Mod { game, dir, name, version })
+        if !dir.is_dir() {
+            bail!("mod folder does not exist");
+        }
+        Ok(Mod { game, name, version, locator: descriptor_path.to_owned() })
     }
 
     /// Construct a `Mod` from reading a `metadata.json` file.
@@ -135,7 +140,7 @@ impl Mod {
                 game,
                 name: name.to_owned(),
                 version: version.to_owned(),
-                dir: dir.to_owned(),
+                locator: dir.to_owned(),
             })
         } else {
             bail!("missing fields in .metadata/metadata.json");
