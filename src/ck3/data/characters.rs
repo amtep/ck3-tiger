@@ -100,7 +100,7 @@ impl Characters {
                 err(ErrorKey::WrongGender).msg(msg).loc(item).push();
             }
         } else {
-            let msg = "character not defined in history/characters/";
+            let msg = format!("character {item} not defined in history/characters/");
             err(ErrorKey::MissingItem).msg(msg).loc(item).push();
         }
     }
