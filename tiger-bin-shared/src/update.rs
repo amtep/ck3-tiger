@@ -4,7 +4,7 @@ use cfg_if::cfg_if;
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 use regex::Regex;
 #[cfg(any(target_os = "windows", target_os = "linux"))]
-use self_update::backends::github::{ReleaseList, UpdateBuilder};
+use self_update::backends::github::UpdateBuilder;
 use thiserror::Error;
 
 cfg_if! {
@@ -13,8 +13,6 @@ cfg_if! {
         pub enum UpdateError {
             #[error("Version tag not in the format of '(v)X.Y.Z'")]
             VersionTag,
-            #[error("No release is available for the target")]
-            MissingRelease,
             #[error("{0}")]
             SelfUpdate(#[from] self_update::errors::Error),
         }
@@ -50,30 +48,15 @@ cfg_if! {
 pub fn update(current_version: &str, target_version: Option<&str>) -> Result<(), UpdateError> {
     cfg_if! {
         if #[cfg(any(target_os = "windows", target_os = "linux"))] {
-            let mut version = if let Some(version) = target_version {
-                let version = version.to_owned();
+            if let Some(version) = target_version {
                 let re = Regex::new(r"^v?[0-9]+\.[0-9]+\.[0-9]+$").unwrap();
-                if !re.is_match(&version) {
+                if !re.is_match(version) {
                     return Err(UpdateError::VersionTag);
                 }
-                version
-            } else {
-                let releases = ReleaseList::configure()
-                    .repo_owner("amtep")
-                    .repo_name("ck3-tiger")
-                    .with_target(consts::OS)
-                    .build()?
-                    .fetch()?;
-
-                releases.first().ok_or(UpdateError::MissingRelease)?.version.clone()
-            };
-
-            if !version.starts_with('v') {
-                version.insert(0, 'v');
             }
 
             #[cfg(target_os = "linux")]
-            let bin_path = format!("{0}-{1}-{2}/{0}", BIN_NAME, consts::OS, version);
+            let bin_path = format!("{BIN_NAME}-linux-v{{{{version}}}}/{BIN_NAME}");
             #[cfg(target_os = "windows")]
             let bin_path = format!("{}.exe", BIN_NAME);
 
@@ -88,7 +71,11 @@ pub fn update(current_version: &str, target_version: Option<&str>) -> Result<(),
                 .current_version(current_version)
                 .show_download_progress(true);
 
-            if target_version.is_some() {
+            if let Some(version) = target_version {
+                let mut version = version.to_owned();
+                if !version.starts_with('v') {
+                    version.insert(0, 'v');
+                }
                 updater.target_version_tag(&version);
             }
             updater.build()?.update()?;

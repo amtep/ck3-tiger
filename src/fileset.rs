@@ -233,7 +233,7 @@ pub struct Fileset {
     /// Used for [`Fileset::iter_keys()`].
     filename_tokens: Vec<Token>,
 
-    /// All filenames from ordered_files, for quick lookup.
+    /// All filenames from `ordered_files`, for quick lookup.
     filenames: TigerHashSet<PathBuf>,
 
     /// All directories that have been looked up, for quick lookup.

@@ -381,8 +381,8 @@ pub struct Adjacency {
     line: Loc,
     from: ProvId,
     to: ProvId,
-    /// TODO: check type is "sea" or "river_large"
-    /// sea or river_large
+    /// TODO: check type is sea or `river_large`
+    /// sea or `river_large`
     kind: Token,
     through: ProvId,
     /// TODO: check start and stop are map coordinates and have the right color on province.png

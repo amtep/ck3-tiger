@@ -21,7 +21,7 @@ use crate::token::Token;
 /// The main database of game items.
 #[derive(Debug)]
 pub struct Db {
-    /// Items with full DbEntries, meaning a key and a block for each.
+    /// Items with full `DbEntries`, meaning a key and a block for each.
     /// The `Vec` is indexed with an `Item` discriminant.
     database: Vec<TigerHashMap<&'static str, DbEntry>>,
     /// Items generated as side effects of the full items in `database`.
@@ -214,6 +214,7 @@ pub struct DbEntry {
     kind: Box<dyn DbKind>,
 }
 
+#[allow(dead_code)]
 pub trait DbKind: Debug + AsAny + Sync + Send {
     /// Add additional items that are implied by the current item, for example buildings that add
     /// `BuildingFlag` items. It's done in a separate pass so that items that were later overridden

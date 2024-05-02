@@ -56,7 +56,7 @@ pub struct ScopeContext {
     strict_scopes: bool,
 
     /// A special flag for scope contexts that are known to be wrong. It's used for the
-    /// `scope_override` config file feature. If `no_warn` is set then this ScopeContext will not
+    /// `scope_override` config file feature. If `no_warn` is set then this `ScopeContext` will not
     /// emit any reports.
     no_warn: bool,
 }
