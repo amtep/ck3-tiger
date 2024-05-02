@@ -10,7 +10,7 @@ repository = "https://github.com/amtep/ck3-tiger"
 readme = "../README.md"
 keywords = [ "ck3", "linter", "mods", "validator", "paradox" ]
 categories = ["command-line-utilities", "development-tools", "game-development"]
-rust-version = "1.70"
+rust-version = "1.75"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -19,7 +19,7 @@ tiger-lib = { path = "..", version = "0.9.6", features = ["ck3"] }
 tiger-bin-shared = { path = "../tiger-bin-shared", version = "0.9.5", features = ["ck3"] }
 
 anyhow = "1"
-clap = { version = "~4.4", features = ["derive"] }
+clap = { version = "4.5", features = ["derive"] }
 serde_json = "1.0.104"
 strum = "0.26.0"
 
