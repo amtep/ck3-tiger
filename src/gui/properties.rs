@@ -64,7 +64,7 @@ pub enum GuiValidation {
     /// A block with 4 numbers (RGBA), or a [`Datatype::CVector4f`] expression.
     /// The difference with [`GuiValidation::CVector4f`] is in the error messages.
     Color,
-    /// A datatype expression returning a CString
+    /// A datatype expression returning a `CString`
     CString,
     /// A key for this item type, or a datatype expression that can be converted to string.
     Item(Item),

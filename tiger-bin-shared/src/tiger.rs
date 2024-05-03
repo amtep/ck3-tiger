@@ -116,7 +116,7 @@ pub fn run(game_consts: &GameConsts, current_version: &str) -> Result<()> {
                     eprintln!("That does not look like a {name_short} directory.");
                     game.push("..");
                     eprintln!("Trying: {}", game.display());
-                    sig = game.clone();
+                    sig.clone_from(game);
                     sig.push(signature_file);
                     if sig.is_file() {
                         eprintln!("Ok.");

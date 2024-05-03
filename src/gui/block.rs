@@ -94,7 +94,7 @@ impl GuiBlock {
                 if let Some(basetype) = types.get(&Lowercase::new(base.as_str())) {
                     gui.container = basetype.builtin(types).map(PropertyContainer::from);
                     let gui_block = basetype.gui_block(types, templates);
-                    gui.substnames = gui_block.substnames.clone();
+                    gui.substnames.clone_from(&gui_block.substnames);
                     gui.base = Some(gui_block);
                 }
             }
