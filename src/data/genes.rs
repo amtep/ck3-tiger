@@ -578,6 +578,7 @@ fn validate_accessory_gene(block: &Block, data: &Everything) {
     vd.req_field("index");
     vd.field_integer("index"); // TODO: verify unique indices
     vd.field_value("set_tags");
+    vd.field_bool("allow_game_entity_override"); // undocumented
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     let choices = &["male", "female", "boy", "girl"];
     #[cfg(feature = "imperator")]

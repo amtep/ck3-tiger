@@ -68,6 +68,7 @@ impl DbKind for Government {
         vd.field_bool("religious");
         vd.field_bool("rulers_should_have_dynasty");
         vd.field_bool("council");
+        vd.field_bool("legitimacy");
         vd.field_integer("fallback");
         vd.field_bool("always_use_patronym");
 

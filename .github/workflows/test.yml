@@ -84,6 +84,7 @@ jobs:
 
       - name: Install toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
+          toolchain: 1.75
 
       - name: tiger-lib msrv
         run: cargo check
