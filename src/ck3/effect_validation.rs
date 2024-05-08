@@ -1530,7 +1530,6 @@ pub fn validate_create_inspiration(
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);
             vd.req_field("type");
-            vd.req_field("gold");
             vd.field_item("type", Item::Inspiration);
             vd.field_script_value("gold", sc);
         }
