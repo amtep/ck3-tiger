@@ -61,6 +61,24 @@ static TRIGGER_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Trigger)>> = Lazy::
 /// See `triggers.log` from the game data dumps
 /// A key ends with '(' if it is the version that takes a parenthesized argument in script.
 const TRIGGER: &[(Scopes, &str, Trigger)] = &[
+    (
+        Scopes::State,
+        "can_create_trade_route",
+        Block(&[("target", Scope(Scopes::State)), ("goods", Item(Item::TradeGood))]),
+    ),
+    (Scopes::State, "has_capital_bonus_for_trade_good", Item(Item::TradeGood)),
+    (Scopes::State, "has_capital_surplus", Boolean),
+    (Scopes::State, "is_automated_trading", Boolean),
+    (Scopes::Province, "distance_from", ScopeOrItem(Scopes::Province, Item::Province)),
+    (
+        Scopes::Country,
+        "can_unlock_invention",
+        Block(&[
+            ("invention", Item(Item::Invention)),
+            ("free", Boolean),
+            ("ignore_dependencies", Boolean),
+        ]),
+    ),
     (Scopes::None, "debug_log", UncheckedValue),
     (Scopes::None, "debug_log_details", UncheckedValue),
     // State Triggers

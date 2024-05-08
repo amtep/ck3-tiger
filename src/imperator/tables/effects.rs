@@ -29,6 +29,10 @@ static SCOPE_EFFECT_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Effect)>> = La
 // Note: There are a lot of effects here that are marked as "Unchecked"
 // Most of these are actually deprecated OR have no example usage so can't really be checked properly
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
+    (Scopes::State, "add_trade_route", Vb(validate_trade_route)),
+    (Scopes::State, "remove_trade_route", Vb(validate_trade_route)),
+    (Scopes::State, "set_automated_trading", Boolean),
+    (Scopes::State, "set_governor_policy", Item(Item::GovernorPolicy)),
     (Scopes::State, "add_state_food", ScriptValue),
     (Scopes::State, "add_state_modifier", Vbv(validate_add_modifier)),
     (Scopes::State, "remove_state_modifier", Item(Item::Modifier)),
@@ -123,6 +127,11 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
         "transfer_treasure_to_province",
         ScopeOrItem(Scopes::Province, Item::Province),
     ),
+    (Scopes::Country, "add_deity_to_pantheon", Vb(validate_add_deity_to_pantheon)),
+    (Scopes::Country, "play_sound_effect", Item(Item::Sound)),
+    (Scopes::Country, "set_antagonist", Boolean),
+    (Scopes::Country, "set_player_country", Scope(Scopes::Country)),
+    (Scopes::Country, "unlock_invention", Item(Item::Invention)),
     (Scopes::Country, "add_aggressive_expansion", ScriptValue),
     (Scopes::Country, "add_alliance", ScopeOrItem(Scopes::Country, Item::Localization)),
     (Scopes::Country, "add_centralization", ScriptValue),
