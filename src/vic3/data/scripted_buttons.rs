@@ -35,7 +35,9 @@ impl DbKind for ScriptedButton {
         sc.define_name("journal_entry", Scopes::JournalEntry, key);
         sc.define_name("target", Scopes::all(), key);
 
+        vd.req_field("name");
         vd.field_validated_sc("name", &mut sc, validate_desc);
+        vd.req_field("desc");
         vd.field_validated_sc("desc", &mut sc, validate_desc);
 
         vd.field_validated_block("visible", |block, data| {
