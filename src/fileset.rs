@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use std::string::ToString;
 use std::sync::RwLock;
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use rayon::prelude::*;
 use walkdir::WalkDir;
 
@@ -266,15 +266,13 @@ impl Fileset {
         }
     }
 
-    pub fn config(&mut self, config: Block) {
+    pub fn config(&mut self, config: Block) -> Result<()> {
         for block in config.get_field_blocks("load_mod") {
             let mod_idx;
             if let Ok(idx) = u8::try_from(self.loaded_mods.len()) {
                 mod_idx = idx;
             } else {
-                let msg = "too many loaded mods, cannot process more";
-                err(ErrorKey::Config).msg(msg).loc(block).push();
-                break;
+                bail!("too many loaded mods, cannot process more");
             }
 
             let default_label = || format!("MOD{mod_idx}");
@@ -284,27 +282,25 @@ impl Fileset {
                 #[cfg(any(feature = "ck3", feature = "imperator"))]
                 if let Some(path) = block.get_field_value("modfile") {
                     let path = PathBuf::from(path.as_str());
-                    if let Ok(modfile) = ModFile::read(&path) {
-                        eprintln!(
-                            "Loading secondary mod {label} from: {}{}",
-                            modfile.modpath().display(),
-                            modfile
-                                .display_name()
-                                .map_or_else(String::new, |name| format!(" \"{name}\"")),
-                        );
-                        let kind = FileKind::LoadedMod(mod_idx);
-                        let loaded_mod = LoadedMod::new(
-                            kind,
-                            label.clone(),
-                            modfile.modpath().clone(),
-                            modfile.replace_paths(),
-                        );
-                        add_loaded_mod_root(label);
-                        self.loaded_mods.push(loaded_mod);
-                    }
+                    let modfile = ModFile::read(&path)?;
+                    eprintln!(
+                        "Loading secondary mod {label} from: {}{}",
+                        modfile.modpath().display(),
+                        modfile
+                            .display_name()
+                            .map_or_else(String::new, |name| format!(" \"{name}\"")),
+                    );
+                    let kind = FileKind::LoadedMod(mod_idx);
+                    let loaded_mod = LoadedMod::new(
+                        kind,
+                        label.clone(),
+                        modfile.modpath().clone(),
+                        modfile.replace_paths(),
+                    );
+                    add_loaded_mod_root(label);
+                    self.loaded_mods.push(loaded_mod);
                 } else {
-                    let msg = "could not load secondary mod from config; missing `modfile` field";
-                    err(ErrorKey::Config).msg(msg).loc(block).push();
+                    bail!("could not load secondary mod from config; missing `modfile` field");
                 }
             } else if Game::is_vic3() {
                 #[cfg(feature = "vic3")]
@@ -324,16 +320,15 @@ impl Fileset {
                         add_loaded_mod_root(label);
                         self.loaded_mods.push(loaded_mod);
                     } else {
-                        let msg = format!("does not look like a mod dir: {}", pathdir.display());
-                        err(ErrorKey::Config).msg(msg).loc(path).push();
+                        bail!("does not look like a mod dir: {}", pathdir.display());
                     }
                 } else {
-                    let msg = "could not load secondary mod from config; missing `mod` field";
-                    err(ErrorKey::Config).msg(msg).loc(block).push();
+                    bail!("could not load secondary mod from config; missing `mod` field");
                 }
             }
         }
         self.config = Some(config);
+        Ok(())
     }
 
     fn should_replace(&self, path: &Path, kind: FileKind) -> bool {

@@ -218,7 +218,7 @@ impl Everything {
         vanilla_dir: Option<&Path>,
         mod_root: &Path,
         replace_paths: Vec<PathBuf>,
-    ) -> Result<Self, FilesError> {
+    ) -> Result<Self> {
         let mut fileset = Fileset::new(vanilla_dir, mod_root.to_path_buf(), replace_paths);
 
         let config_file_name = match Game::game() {
@@ -242,7 +242,7 @@ impl Everything {
             Block::new(Loc::for_file(config_file.clone(), FileKind::Mod, config_file.clone()))
         };
 
-        fileset.config(config.clone());
+        fileset.config(config.clone())?;
 
         fileset.scan_all()?;
         fileset.finalize();
