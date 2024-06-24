@@ -528,7 +528,14 @@ impl Item {
             Item::Localization => "localization/",
             Item::MapEnvironment => "gfx/map/environment/",
             Item::MapMode => "gfx/map/map_modes/",
-            Item::Modifier => "common/modifiers/",
+            Item::Modifier => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => "common/modifiers/",
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => "common/static_modifiers/",
+                #[cfg(feature = "imperator")]
+                Game::Imperator => "common/modifiers/",
+            },
             Item::NamedColor => "common/named_colors/",
             Item::OnAction => match Game::game() {
                 #[cfg(feature = "ck3")]
