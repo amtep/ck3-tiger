@@ -87,7 +87,6 @@ const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
     (Vic3(CanalType), Scopes::CanalType),
     (Vic3(Character), Scopes::Character),
     (Vic3(CivilWar), Scopes::CivilWar),
-    (Vic3(CombatUnit), Scopes::CombatUnit),
     (Vic3(CommanderOrderType), Scopes::CommanderOrderType),
     (Vic3(CountryCreation), Scopes::CountryCreation),
     (Vic3(CountryDefinition), Scopes::CountryDefinition),

@@ -371,7 +371,6 @@ pub enum Item {
     #[cfg(feature = "vic3")] Objective,
     #[cfg(feature = "vic3")] ObjectiveSubgoal,
     #[cfg(feature = "vic3")] ObjectiveSubgoalCategory,
-    #[cfg(feature = "vic3")] OldCombatUnit,
     #[cfg(feature = "vic3")] Party,
     #[cfg(feature = "vic3")] PoliticalMovement,
     #[cfg(feature = "vic3")] PopNeed,
@@ -1094,8 +1093,6 @@ impl Item {
             Item::ObjectiveSubgoal => "common/objective_subgoals/",
             #[cfg(feature = "vic3")]
             Item::ObjectiveSubgoalCategory => "common/objective_subgoal_categories/",
-            #[cfg(feature = "vic3")]
-            Item::OldCombatUnit => "common/old_combat_unit_types/",
             #[cfg(feature = "vic3")]
             Item::Party => "common/parties/",
             #[cfg(feature = "vic3")]

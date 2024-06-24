@@ -23,7 +23,6 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "canal_type" => Scopes::CanalType,
         "character" => Scopes::Character,
         "civil_war" => Scopes::CivilWar,
-        "combat_unit" => Scopes::CombatUnit,
         "combat_unit_type" => Scopes::CombatUnitType,
         "company" => Scopes::Company,
         "company_type" => Scopes::CompanyType,
@@ -31,13 +30,21 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "country_creation" => Scopes::CountryCreation,
         "country_definition" => Scopes::CountryDefinition,
         "country_formation" => Scopes::CountryFormation,
+        "cultural_community" => Scopes::CulturalCommunity,
         "culture" => Scopes::Culture,
         "decree" => Scopes::Decree,
         "diplomatic_action" => Scopes::DiplomaticAction,
         "diplomatic_demand" => Scopes::DiplomaticDemand,
         "diplomatic_pact" => Scopes::DiplomaticPact,
         "diplomatic_play" => Scopes::DiplomaticPlay,
+        "diplomatic_play_type" => Scopes::DiplomaticPlayType,
         "diplomatic_relations" => Scopes::DiplomaticRelations,
+        "diplomatic_catalyst" => Scopes::DiplomaticCatalyst,
+        "diplomatic_catalyst_type" => Scopes::DiplomaticCatalystType,
+        "diplomatic_catalyst_category" => Scopes::DiplomaticCatalystCategory,
+        "political_lobby" => Scopes::PoliticalLobby,
+        "political_lobby_type" => Scopes::PoliticalLobbyType,
+        "political_lobby_appeasement" => Scopes::PoliticalLobbyAppeasement,
         "front" => Scopes::Front,
         "goods" => Scopes::Goods,
         "hq" => Scopes::Hq,
@@ -62,6 +69,10 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "political_movement" => Scopes::PoliticalMovement,
         "pop" => Scopes::Pop,
         "pop_type" => Scopes::PopType,
+        "power_bloc" => Scopes::PowerBloc,
+        "power_bloc_identity" => Scopes::PowerBlocIdentity,
+        "power_bloc_principle" => Scopes::PowerBlocPrinciple,
+        "power_bloc_principle_group" => Scopes::PowerBlocPrincipleGroup,
         "province" => Scopes::Province,
         "religion" => Scopes::Religion,
         "shipping_lane" => Scopes::ShippingLane,
@@ -125,9 +136,6 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::CivilWar) {
         vec.push("civil war");
     }
-    if s.contains(Scopes::CombatUnit) {
-        vec.push("combat unit");
-    }
     if s.contains(Scopes::CombatUnitType) {
         vec.push("combat unit type");
     }
@@ -152,6 +160,9 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::CountryFormation) {
         vec.push("country formation");
     }
+    if s.contains(Scopes::CulturalCommunity) {
+        vec.push("cultural community");
+    }
     if s.contains(Scopes::Culture) {
         vec.push("culture");
     }
@@ -170,8 +181,29 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::DiplomaticPlay) {
         vec.push("diplomatic play");
     }
+    if s.contains(Scopes::DiplomaticPlayType) {
+        vec.push("diplomatic play type");
+    }
     if s.contains(Scopes::DiplomaticRelations) {
         vec.push("diplomatic relations");
+    }
+    if s.contains(Scopes::DiplomaticCatalyst) {
+        vec.push("diplomatic catalyst");
+    }
+    if s.contains(Scopes::DiplomaticCatalystType) {
+        vec.push("diplomatic catalyst type");
+    }
+    if s.contains(Scopes::DiplomaticCatalystCategory) {
+        vec.push("diplomatic catalyst category");
+    }
+    if s.contains(Scopes::PoliticalLobby) {
+        vec.push("political lobby");
+    }
+    if s.contains(Scopes::PoliticalLobbyType) {
+        vec.push("political lobby type");
+    }
+    if s.contains(Scopes::PoliticalLobbyAppeasement) {
+        vec.push("political lobby appeasement");
     }
     if s.contains(Scopes::Front) {
         vec.push("front");
@@ -241,6 +273,18 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     }
     if s.contains(Scopes::PopType) {
         vec.push("pop type");
+    }
+    if s.contains(Scopes::PowerBloc) {
+        vec.push("power bloc");
+    }
+    if s.contains(Scopes::PowerBlocIdentity) {
+        vec.push("power bloc identity");
+    }
+    if s.contains(Scopes::PowerBlocPrinciple) {
+        vec.push("power bloc principle");
+    }
+    if s.contains(Scopes::PowerBlocPrincipleGroup) {
+        vec.push("power bloc principle group");
     }
     if s.contains(Scopes::Province) {
         vec.push("province");

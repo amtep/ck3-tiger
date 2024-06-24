@@ -24,7 +24,7 @@ bitflags! {
     /// The available scope types depend on the game.
     /// They are listed in `event_scopes.log` from the game data dumps.
     // LAST UPDATED CK3 VERSION 1.12.1
-    // LAST UPDATED VIC3 VERSION 1.5.3
+    // LAST UPDATED VIC3 VERSION 1.7.0
     // LAST UPDATED IR VERSION 2.0.4
     //
     // Each scope type gets one bitflag. In order to keep the bit count down, scope types from
@@ -108,7 +108,7 @@ bitflags! {
         #[cfg(feature = "vic3")] const BuildingType = 0x0008_0000;
         #[cfg(feature = "vic3")] const CanalType = 0x0010_0000;
         #[cfg(feature = "vic3")] const CivilWar = 0x0020_0000;
-        #[cfg(feature = "vic3")] const CombatUnit = 0x0040_0000;
+        #[cfg(feature = "vic3")] const CulturalCommunity = 0x0020_0000;
         #[cfg(feature = "vic3")] const NewCombatUnit = 0x0080_0000;
         #[cfg(feature = "vic3")] const CommanderOrderType = 0x0100_0000;
         #[cfg(feature = "vic3")] const CountryCreation = 0x0200_0000;
@@ -158,6 +158,17 @@ bitflags! {
         #[cfg(feature = "vic3")] const TravelConnectionDefinition = 0x0000_0000_0000_0040_0000_0000_0000_0000;
         #[cfg(feature = "vic3")] const NavalInvasion = 0x0000_0000_0000_0080_0000_0000_0000_0000;
         #[cfg(feature = "vic3")] const MobilizationOption = 0x0000_0000_0000_0100_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const PowerBlocPrincipleGroup = 0x0000_0000_0000_0200_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const DiplomaticPlayType = 0x0000_0000_0000_0400_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const DiplomaticCatalyst = 0x0000_0000_0000_0800_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const DiplomaticCatalystType = 0x0000_0000_0000_1000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const DiplomaticCatalystCategory = 0x0000_0000_0000_2000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const PoliticalLobby = 0x0000_0000_0000_4000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const PoliticalLobbyType = 0x0000_0000_0000_8000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const PoliticalLobbyAppeasement = 0x0000_0000_0001_0000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const PowerBloc = 0x0000_0000_0002_0000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const PowerBlocIdentity = 0x0000_0000_0004_0000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const PowerBlocPrinciple = 0x0000_0000_0008_0000_0000_0000_0000_0000;
 
         #[cfg(feature = "imperator")] const Area = 0x0001_0000;
         #[cfg(feature = "imperator")] const CountryCulture = 0x0002_0000;
