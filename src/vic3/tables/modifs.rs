@@ -229,6 +229,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // country_subsidies_$BuildingGroup$
     if let Some(part) = name_lc.strip_prefix_unchecked("country_subsidies_") {
+        maybe_warn(Item::BuildingGroup, &part, name, data, warn);
         if let Some(sev) = warn {
             let msg = format!("`{name}` was removed in 1.7");
             report(ErrorKey::Removed, sev).msg(msg).loc(name).push();
