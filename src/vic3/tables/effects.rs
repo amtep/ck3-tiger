@@ -25,7 +25,7 @@ static SCOPE_EFFECT_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Effect)>> = La
     hash
 });
 
-// LAST UPDATED VIC3 VERSION 1.6.0
+// LAST UPDATED VIC3 VERSION 1.7.0
 // See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::InterestGroup, "abandon_revolution", Boolean),
@@ -42,6 +42,8 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "add_character_role", Item(Item::CharacterRole)),
     (Scopes::CivilWar, "add_civil_war_progress", ScriptValue),
     (Scopes::StateRegion, "add_claim", Scope(Scopes::Country)),
+    (Scopes::PowerBloc, "add_cohesion_number", ScriptValue),
+    (Scopes::PowerBloc, "add_cohesion_percent", ScriptValue),
     (Scopes::Character, "add_commander_rank", Integer),
     (Scopes::Country, "add_company", Scope(Scopes::CompanyType)),
     (Scopes::State, "add_cultural_community", Scope(Scopes::Culture)),
@@ -72,6 +74,9 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "add_investment_pool", ScriptValue),
     (Scopes::None, "add_journal_entry", Vb(validate_add_journalentry)),
     (Scopes::Country, "add_law_progress", ScriptValue),
+    (Scopes::PowerBloc, "add_leverage", ScriptValue),
+    (Scopes::Country, "add_liberty_desire", ScriptValue),
+    (Scopes::PoliticalLobby, "add_lobby_member", Scope(Scopes::InterestGroup)),
     (Scopes::Country, "add_loyalists", Vb(validate_add_loyalists)),
     (Scopes::State, "add_loyalists_in_state", Vb(validate_add_loyalists)),
     (
@@ -82,6 +87,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
             .union(Scopes::InterestGroup)
             .union(Scopes::JournalEntry)
             .union(Scopes::PoliticalMovement)
+            .union(Scopes::PowerBloc)
             .union(Scopes::State),
         "add_modifier",
         Vbv(validate_add_modifier),
@@ -92,6 +98,8 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::StateRegion, "add_pollution", ScriptValue),
     (Scopes::Pop, "add_pop_wealth", UncheckedTodo), // no examples in vanilla
     (Scopes::Country, "add_primary_culture", Scope(Scopes::Culture)),
+    (Scopes::PowerBloc, "add_principle", Item(Item::Principle)),
+    (Scopes::JournalEntry, "add_progress", Vb(validate_progress)),
     (Scopes::Country, "add_radicals", Vb(validate_add_loyalists)),
     (Scopes::State, "add_radicals_in_state", Vb(validate_add_loyalists)),
     (Scopes::Character, "add_random_trait", Choice(&["personality", "skill", "condition"])),
@@ -123,6 +131,9 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "assert_read", Unchecked),
     (Scopes::Country, "call_election", Vb(validate_call_election)),
     (Scopes::Country, "cancel_enactment", Yes),
+    // Documentation says scope is None but describes scope as Law
+    (Scopes::Law, "cancel_imposition", Yes),
+    (Scopes::PoliticalLobby, "change_appeasement", Vb(validate_change_appeasement)),
     (Scopes::Character, "change_character_culture", Scope(Scopes::Culture)),
     (Scopes::Character, "change_character_religion", Scope(Scopes::Religion)),
     (Scopes::None, "change_global_variable", Vb(validate_change_variable)),
@@ -154,19 +165,28 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "complete_objective_subgoal", Item(Item::ObjectiveSubgoal)),
     (Scopes::State, "convert_population", TargetValue("target", Scopes::Religion, "value")),
     (Scopes::Country, "copy_laws", Scope(Scopes::Country)),
+    (Scopes::Country, "create_bidirectional_truce", Vb(validate_create_truce)),
     (Scopes::State, "create_building", UncheckedTodo),
     (Scopes::Country, "create_character", UncheckedTodo),
     (Scopes::None, "create_country", UncheckedTodo),
+    (Scopes::Country, "create_diplomatic_catalyst", Vb(validate_create_catalyst)),
     (Scopes::Country, "create_diplomatic_pact", Vb(validate_diplomatic_pact)),
     (Scopes::Country, "create_diplomatic_play", UncheckedTodo),
     (Scopes::None, "create_dynamic_country", UncheckedTodo),
     (Scopes::Country, "create_incident", Vb(validate_country_value)),
     (Scopes::State, "create_mass_migration", UncheckedTodo),
     (Scopes::Country, "create_military_formation", UncheckedTodo),
+    (Scopes::Country, "create_political_lobby", Vb(validate_create_lobby)),
     (Scopes::State, "create_pop", UncheckedTodo),
+    (Scopes::Country, "create_power_bloc", Vb(validate_create_power_bloc)),
     (Scopes::StateRegion, "create_state", UncheckedTodo),
     (Scopes::Country, "create_trade_route", UncheckedTodo),
-    (Scopes::Country, "create_truce", UncheckedTodo),
+    (
+        Scopes::Country,
+        "create_truce",
+        Removed("1.7", "replaced with create_bidirectional_truce and create_unidirectional_truce"),
+    ),
+    (Scopes::Country, "create_unidirectional_truce", Vb(validate_create_truce)),
     (Scopes::None, "custom_description", Control),
     (Scopes::None, "custom_description_no_bullet", Control),
     (Scopes::None, "custom_label", ControlOrLabel),
@@ -176,14 +196,16 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "deactivate_parties", Yes),
     (Scopes::None, "debug_log", Unchecked),
     (Scopes::None, "debug_log_scopes", Boolean),
-    (Scopes::Character, "demobilize", Removed("1.11", "")),
+    (Scopes::Country, "decrease_autonomy", Yes),
+    (Scopes::Character, "demobilize", Removed("1.6", "")),
     (Scopes::MilitaryFormation, "deploy_to_front", Scope(Scopes::Front)),
     (Scopes::Party, "disband_party", Yes),
+    (Scopes::PoliticalLobby, "disband_political_lobby", Yes),
     (Scopes::Character, "disinherit_character", Yes),
     (Scopes::None, "else", Control),
     (Scopes::None, "else_if", Control),
     (Scopes::DiplomaticPlay, "end_play", Boolean),
-    (Scopes::Country, "end_truce", Vb(validate_end_truce)),
+    (Scopes::Country, "end_truce", Scope(Scopes::Country)),
     (Scopes::Character, "exile_character", Yes),
     (Scopes::State, "force_resource_depletion", Item(Item::BuildingGroup)),
     (Scopes::State, "force_resource_discovery", Item(Item::BuildingGroup)),
@@ -191,7 +213,10 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::MilitaryFormation, "fully_mobilize_army", Yes),
     (Scopes::None, "hidden_effect", Control),
     (Scopes::None, "if", Control),
+    (Scopes::Country, "increase_autonomy", Yes),
+    (Scopes::Country, "join_power_bloc", Scope(Scopes::Country)),
     (Scopes::InterestGroup, "join_revolution", Boolean),
+    (Scopes::War, "join_war", Vb(validate_join_war)),
     (Scopes::Character, "kill_character", UncheckedTodo),
     (Scopes::Country, "kill_population", UncheckedTodo),
     (Scopes::Country, "kill_population_in_state", UncheckedTodo),
@@ -228,6 +253,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "remove_list_global_variable", Vb(validate_add_to_variable_list)),
     (Scopes::None, "remove_list_local_variable", Vb(validate_add_to_variable_list)),
     (Scopes::None, "remove_list_variable", Vb(validate_add_to_variable_list)),
+    (Scopes::PoliticalLobby, "remove_lobby_member", Scope(Scopes::InterestGroup)),
     (Scopes::None, "remove_local_variable", Unchecked),
     (
         Scopes::Country
@@ -237,11 +263,13 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
             .union(Scopes::InterestGroup)
             .union(Scopes::JournalEntry)
             .union(Scopes::PoliticalMovement)
+            .union(Scopes::PowerBloc)
             .union(Scopes::State),
         "remove_modifier",
         Item(Item::Modifier),
     ),
     (Scopes::Country, "remove_primary_culture", Scope(Scopes::Culture)),
+    (Scopes::PowerBloc, "remove_principle", Item(Item::Principle)),
     (Scopes::InterestGroup, "remove_ruling_interest_group", Boolean),
     (Scopes::StateRegion, "remove_state_trait", Item(Item::StateTrait)),
     (Scopes::DiplomaticPlay, "remove_target_backers", Vb(validate_addremove_backers)),
@@ -260,6 +288,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "seize_investment_pool", Boolean),
     (Scopes::Character, "set_as_interest_group_leader", Boolean),
     (Scopes::State, "set_available_for_autonomous_investment", Scope(Scopes::BuildingType)),
+    (Scopes::JournalEntry, "set_bar_progress", Vb(validate_progress)),
     (Scopes::Country, "set_capital", Item(Item::StateRegion)),
     (Scopes::Character, "set_character_as_ruler", Yes),
     (

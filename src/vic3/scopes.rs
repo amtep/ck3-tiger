@@ -818,11 +818,12 @@ static SCOPE_ITERATOR_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes)>> = 
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.6.0
+/// LAST UPDATED VIC3 VERSION 1.7.0
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
 const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
+    (Scopes::Country, "active_law", Scopes::Law),
     (Scopes::Country, "active_party", Scopes::Party),
     (Scopes::None, "character", Scopes::Character),
     (Scopes::None, "character_in_exile_pool", Scopes::Character),
@@ -841,7 +842,9 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     ),
     (Scopes::Country, "company", Scopes::Company),
     (Scopes::None, "country", Scopes::Country),
+    (Scopes::Country, "diplomatic_catalyst", Scopes::DiplomaticCatalyst),
     (Scopes::None, "diplomatic_play", Scopes::DiplomaticPlay),
+    (Scopes::Country, "diplomatically_relevant_country", Scopes::Country),
     (Scopes::Country, "enemy_in_diplo_play", Scopes::Country),
     (Scopes::Country, "enemy_in_war", Scopes::Country),
     (Scopes::None, "in_global_list", Scopes::all_but_none()),
@@ -850,6 +853,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "in_local_list", Scopes::all_but_none()),
     (Scopes::Country, "interest_group", Scopes::InterestGroup),
     (Scopes::Country, "law", Scopes::Law),
+    (Scopes::PoliticalLobby, "lobby_member", Scopes::InterestGroup),
     (Scopes::None, "market", Scopes::Market),
     (Scopes::Market, "market_goods", Scopes::MarketGoods),
     (Scopes::Party, "member", Scopes::InterestGroup),
@@ -868,8 +872,11 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     ),
     (Scopes::Country, "overlord_or_above", Scopes::Country),
     (Scopes::DiplomaticPact, "participant", Scopes::Country),
+    (Scopes::Country.union(Scopes::InterestGroup), "political_lobby", Scopes::PoliticalLobby),
     (Scopes::Country, "political_movement", Scopes::PoliticalMovement),
     (Scopes::Country, "potential_party", Scopes::Party),
+    (Scopes::None, "power_bloc", Scopes::PowerBloc),
+    (Scopes::PowerBloc, "power_bloc_member", Scopes::Country),
     (Scopes::InterestGroup, "preferred_law", Scopes::Law),
     (
         Scopes::Country.union(Scopes::CountryDefinition).union(Scopes::State),
@@ -879,6 +886,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     // TODO: verify. The docs have State and Province reversed.
     (Scopes::State, "province", Scopes::Province),
     (Scopes::Country, "rival_country", Scopes::Country),
+    (Scopes::Country, "rivaling_country", Scopes::Country),
     // TODO: Scopes::Front is in the docs but doesn't make sense for admirals
     (
         Scopes::Country
