@@ -36,6 +36,19 @@ pub const COUNTRY_TIERS: &[&str] =
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const INFAMY_THRESHOLDS: &[&str] = &["notorious", "infamous", "pariah"];
 
+// LAST UPDATED VIC3 VERSION 1.7.0
+pub const LOBBY_FORMATION_REASON: &[&str] = &[
+    "diplomacy",
+    "defense",
+    "ideology",
+    "funded",
+    "aggression",
+    "religion",
+    "technology",
+    "economy",
+    "none",
+];
+
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
 
