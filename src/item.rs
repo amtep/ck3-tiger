@@ -379,6 +379,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] PopNeed,
     #[cfg(feature = "vic3")] PowerBlocIdentity,
     #[cfg(feature = "vic3")] Principle,
+    #[cfg(feature = "vic3")] PrincipleGroup,
     #[cfg(feature = "vic3")] ProductionMethod,
     #[cfg(feature = "vic3")] ProductionMethodGroup,
     #[cfg(feature = "vic3")] RelationsThreshold,
@@ -1122,6 +1123,8 @@ impl Item {
             Item::PowerBlocIdentity => "common/power_bloc_identities/",
             #[cfg(feature = "vic3")]
             Item::Principle => "common/power_bloc_principles/",
+            #[cfg(feature = "vic3")]
+            Item::PrincipleGroup => "common/power_bloc_principle_groups/",
             #[cfg(feature = "vic3")]
             Item::ProductionMethod => "common/production_methods/",
             #[cfg(feature = "vic3")]

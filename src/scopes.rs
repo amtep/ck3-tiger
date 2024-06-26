@@ -322,6 +322,18 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
             if inscopes.contains(Scopes::Building) {
                 outscopes |= Scopes::BuildingType;
             }
+            if inscopes.contains(Scopes::Company) {
+                outscopes |= Scopes::CompanyType;
+            }
+            if inscopes.contains(Scopes::DiplomaticPlay) {
+                outscopes |= Scopes::DiplomaticPlayType;
+            }
+            if inscopes.contains(Scopes::DiplomaticCatalyst) {
+                outscopes |= Scopes::DiplomaticCatalystType;
+            }
+            if inscopes.contains(Scopes::PoliticalLobby) {
+                outscopes |= Scopes::PoliticalLobbyType;
+            }
             if inscopes.contains(Scopes::Institution) {
                 outscopes |= Scopes::InstitutionType;
             }
@@ -330,9 +342,6 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
             }
             if inscopes.contains(Scopes::Law) {
                 outscopes |= Scopes::LawType;
-            }
-            if inscopes.contains(Scopes::Company) {
-                outscopes |= Scopes::CompanyType;
             }
             if !outscopes.is_empty() {
                 return Some((from, outscopes));

@@ -437,11 +437,6 @@ static SCOPE_TO_SCOPE_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes)>> = 
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
-    (
-        Scopes::Country.union(Scopes::StrategicRegion),
-        "active_diplomatic_play",
-        Scopes::DiplomaticPlay,
-    ),
     (Scopes::TradeRoute, "actor_market", Scopes::Market),
     (Scopes::Country, "army_size", Scopes::Value),
     (Scopes::Country, "army_size_including_conscripts", Scopes::Value),
@@ -509,8 +504,11 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::MilitaryFormation, "highest_ranked_commander", Scopes::Character),
     (Scopes::Character.union(Scopes::Pop), "home_country", Scopes::Country),
     (Scopes::MilitaryFormation, "home_hq", Scopes::Hq),
+    (Scopes::PowerBloc, "identity", Scopes::PowerBlocIdentity),
     (Scopes::Character, "ideology", Scopes::Ideology),
     (Scopes::TradeRoute, "importer", Scopes::Market),
+    (Scopes::Country, "imposed_law", Scopes::Law),
+    (Scopes::Country.union(Scopes::Law), "imposer_of_law", Scopes::Country),
     (Scopes::Country, "income", Scopes::Value),
     (Scopes::Country, "infamy", Scopes::Value),
     (Scopes::DiplomaticPlay, "initiator", Scopes::Country),
@@ -542,6 +540,8 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "market_capital", Scopes::State),
     (Scopes::State, "mass_migration_culture", Scopes::Culture),
     (Scopes::Country.union(Scopes::State), "migration_pull", Scopes::Value),
+    (Scopes::Country, "military_expenses", Scopes::Value),
+    (Scopes::Country, "military_expenses_share", Scopes::Value),
     (Scopes::NewCombatUnit, "mobilization", Scopes::Value),
     (Scopes::Party, "momentum", Scopes::Value),
     (Scopes::NewCombatUnit, "morale", Scopes::Value),
@@ -574,6 +574,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "num_income_transfer_pacts", Scopes::Value),
     (Scopes::Country, "num_incorporated_states", Scopes::Value),
     (Scopes::Country, "num_interests", Scopes::Value),
+    (Scopes::PowerBloc, "num_mandates", Scopes::Value),
     (Scopes::Character, "num_mobilized_battalions", Scopes::Value),
     (Scopes::Country, "num_natural_interests", Scopes::Value),
     (Scopes::Country, "num_obligations_earned", Scopes::Value),
@@ -625,6 +626,9 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Pop, "pop_weight_modifier_scale", Scopes::Value),
     (Scopes::Character, "popularity", Scopes::Value),
     (Scopes::State, "population_below_expected_sol", Scopes::Value),
+    (Scopes::Country, "power_bloc", Scopes::PowerBloc),
+    (Scopes::Country, "power_bloc_leader", Scopes::PowerBloc),
+    (Scopes::PowerBloc, "power_struggle_contender", Scopes::Country),
     (Scopes::Company, "prosperity", Scopes::Value),
     (Scopes::BattleSide, "province", Scopes::Province),
     (
@@ -657,7 +661,14 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
         Scopes::State,
     ),
     (Scopes::State, "state_region", Scopes::StateRegion),
-    (Scopes::DiplomaticPlay.union(Scopes::JournalEntry), "target", Scopes::all()), // TODO: scope type?
+    (
+        Scopes::DiplomaticPlay
+            .union(Scopes::DiplomaticCatalyst)
+            .union(Scopes::PoliticalLobby)
+            .union(Scopes::JournalEntry),
+        "target",
+        Scopes::all(),
+    ), // TODO: scope type?
     (Scopes::TradeRoute, "target_market", Scopes::Market),
     (Scopes::Country, "technology_being_researched", Scopes::Technology),
     (Scopes::Country, "techs_researched", Scopes::Value),
@@ -668,16 +679,22 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     // The input and output scopes for this are special cased
     (
         Scopes::Building
+            .union(Scopes::Company)
+            .union(Scopes::DiplomaticPlay)
+            .union(Scopes::DiplomaticCatalyst)
+            .union(Scopes::PoliticalLobby)
             .union(Scopes::Institution)
             .union(Scopes::InterestGroup)
-            .union(Scopes::Law)
-            .union(Scopes::Company),
+            .union(Scopes::Law),
         "type",
         Scopes::BuildingType
+            .union(Scopes::CompanyType)
+            .union(Scopes::DiplomaticPlayType)
+            .union(Scopes::DiplomaticCatalystType)
+            .union(Scopes::PoliticalLobbyType)
             .union(Scopes::InstitutionType)
             .union(Scopes::InterestGroupType)
-            .union(Scopes::LawType)
-            .union(Scopes::CompanyType),
+            .union(Scopes::LawType),
     ),
     (Scopes::DiplomaticPlay, "war", Scopes::War),
     (Scopes::Company, "weekly_prosperity_change", Scopes::Value),
@@ -722,17 +739,24 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::State, "b", Scopes::Building, Item(Item::BuildingType)),
         (Scopes::None, "bt", Scopes::BuildingType, Item(Item::BuildingType)),
         (Scopes::None, "c", Scopes::Country, Item(Item::Country)),
+        (
+            Scopes::None,
+            "catalyst_type",
+            Scopes::DiplomaticCatalystType,
+            Item(Item::DiplomaticCatalyst),
+        ),
         (Scopes::None, "cd", Scopes::CountryDefinition, Item(Item::Country)),
         (Scopes::Country, "company", Scopes::Company, Item(Item::CompanyType)),
         (Scopes::None, "company_type", Scopes::CompanyType, Item(Item::CompanyType)),
         (Scopes::None, "cu", Scopes::Culture, Item(Item::Culture)),
-        (Scopes::Country, "decree_cost", Scopes::Value, Item(Item::Decree)),
+        (Scopes::State, "decree_cost", Scopes::Value, Item(Item::Decree)),
         (Scopes::None, "define", Scopes::Value, UncheckedValue),
         (Scopes::None, "flag", Scopes::Flag, UncheckedValue),
         (Scopes::None, "g", Scopes::Goods, Item(Item::Goods)),
         (Scopes::Country, "get_ruler_for", Scopes::Character, Item(Item::TransferOfPower)),
         (Scopes::None, "global_var", Scopes::all(), UncheckedValue),
         (Scopes::None, "i", Scopes::Ideology, Item(Item::Ideology)),
+        (Scopes::None, "identity", Scopes::PowerBlocIdentity, Item(Item::PowerBlocIdentity)),
         (Scopes::None, "ideology", Scopes::Ideology, Item(Item::Ideology)), // TODO difference with i:
         (Scopes::Country, "ig", Scopes::InterestGroup, Item(Item::InterestGroup)),
         (Scopes::None, "ig_trait", Scopes::InterestGroupTrait, Item(Item::InterestGroupTrait)),
@@ -742,6 +766,24 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::Country, "je", Scopes::JournalEntry, Item(Item::JournalEntry)),
         (Scopes::None, "law_type", Scopes::LawType, Item(Item::LawType)),
         (Scopes::None, "list_size", Scopes::Value, UncheckedValue),
+        (Scopes::Country, "lobby_foreign_anti_clout", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "lobby_foreign_pro_clout", Scopes::Value, Scope(Scopes::Country)),
+        (
+            Scopes::Country,
+            "lobby_in_government_foreign_anti_clout",
+            Scopes::Value,
+            Scope(Scopes::Country),
+        ),
+        (
+            Scopes::Country,
+            "lobby_in_government_foreign_pro_clout",
+            Scopes::Value,
+            Scope(Scopes::Country),
+        ),
+        (Scopes::InterestGroup, "lobby_join_weight", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::None, "lobby_type", Scopes::PoliticalLobbyType, Item(Item::PoliticalLobby)),
+        (Scopes::Country, "lobby_war_opposition", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "lobby_war_support", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::None, "local_var", Scopes::all(), UncheckedValue),
         (Scopes::Market, "mg", Scopes::MarketGoods, Item(Item::Goods)),
         (
@@ -757,6 +799,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
                 .union(Scopes::Character)
                 .union(Scopes::InterestGroup)
                 .union(Scopes::Market)
+                .union(Scopes::PowerBloc)
                 .union(Scopes::State),
             "modifier",
             Scopes::Value.union(Scopes::Bool),
@@ -786,7 +829,15 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::Country, "num_shared_rivals", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::Front, "num_total_battalions", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::None, "p", Scopes::Province, Item(Item::Province)),
+        (Scopes::None, "play_type", Scopes::DiplomaticPlayType, Item(Item::DiplomaticPlay)),
         (Scopes::None, "pop_type", Scopes::PopType, Item(Item::PopType)),
+        (Scopes::None, "principle", Scopes::PowerBlocPrinciple, Item(Item::Principle)),
+        (
+            Scopes::None,
+            "principle_group",
+            Scopes::PowerBlocPrincipleGroup,
+            Item(Item::PrincipleGroup),
+        ),
         (Scopes::Country, "py", Scopes::Party, Item(Item::Party)),
         (Scopes::None, "rank_value", Scopes::Value, Item(Item::CountryRank)),
         (Scopes::StateRegion, "region_state", Scopes::State, Item(Item::Country)), // undocumented
@@ -998,4 +1049,5 @@ const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
     ("num_enemy_units", "1.6", ""),
     ("num_units_not_in_battle", "1.6", ""),
     ("supply", "1.6", ""),
+    ("active_diplomatic_play", "1.7", ""),
 ];
