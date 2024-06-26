@@ -51,6 +51,7 @@ impl DbKind for DiplomaticPlay {
         vd.field_bool("is_epic");
         vd.field_bool("backing_down_always_ends_play"); // undocumented
         vd.field_bool("blocked_by_diplomatic_status"); // undocumented
+        vd.field_numeric("ai_acceptance_max");
 
         vd.field_validated_block("selectable_in_lens", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);

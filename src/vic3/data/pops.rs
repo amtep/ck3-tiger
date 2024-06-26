@@ -42,6 +42,7 @@ impl DbKind for PopType {
 
         vd.field_integer("start_quality_of_life");
         vd.field_numeric("wage_weight");
+        vd.field_bool("paid_private_wage");
         vd.field_numeric("literacy_target");
         vd.field_numeric("consumption_mult");
         vd.field_numeric("dependent_wage");

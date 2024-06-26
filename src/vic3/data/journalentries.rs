@@ -107,6 +107,7 @@ impl DbKind for JournalEntry {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_bool("progressbar");
+        vd.multi_field_item("scripted_progress_bar", Item::ScriptedProgressBar);
 
         vd.field_bool("can_deactivate");
 
