@@ -9,7 +9,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validator::Validator;
+use crate::validator::{Validator, ValueValidator};
 
 #[derive(Clone, Debug)]
 pub struct DiplomaticAction {}
@@ -40,7 +40,13 @@ impl DbKind for DiplomaticAction {
         let loca = format!("{key}_action_propose_name");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
+        vd.field_validated_list("groups", |token, data| {
+            let mut vd = ValueValidator::new(token, data);
+            vd.choice(&["general", "subject", "overlord", "power_bloc"]);
+        });
+
         vd.field_bool("requires_approval");
+        vd.field_bool("uses_random_approval");
         vd.field_bool("show_confirmation_box");
         vd.field_bool("is_hostile");
         vd.field_bool("should_notify_third_parties"); // undocumented
@@ -50,14 +56,40 @@ impl DbKind for DiplomaticAction {
         vd.field_bool("can_select"); // undocumented
         vd.field_bool("can_select_to_break"); // undocumented
 
+        vd.field_choice(
+            "state_selection",
+            &[
+                "first_required",
+                "first_optional",
+                "second_required",
+                "second_optional",
+                "both_required",
+                "both_optional",
+                "any_required",
+            ],
+        );
+        vd.field_choice("first_state_list", &["first_country", "second_country", "all"]);
+        vd.field_choice("second_state_list", &["first_country", "second_country", "all"]);
+
         vd.field_list_items("unlocking_technologies", Item::Technology); // undocumented
 
+        vd.field_validated_block("selectable", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
         vd.field_validated_block("potential", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("possible", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
+        for field in &["first_state_trigger", "second_state_trigger"] {
+            vd.field_validated_key_block(field, |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::State, key);
+                sc.define_name("country", Scopes::Country, key);
+                sc.define_name("target_country", Scopes::Country, key);
+                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            });
+        }
         vd.field_validated_block("accept_effect", |block, data| {
             validate_effect(block, data, &mut sc, Tooltipped::Yes);
         });
@@ -70,6 +102,11 @@ impl DbKind for DiplomaticAction {
 
         vd.field_item("reverse_pact", Item::DiplomaticAction); // undocumented
         vd.field_item("transfer_pact", Item::DiplomaticAction); // undocumented
+
+        vd.field_item("confirmation_sound", Item::File);
+        vd.field_item("request_sound", Item::File);
+        vd.field_item("hostile_sound", Item::File);
+        vd.field_item("benign_sound", Item::File);
     }
 }
 
@@ -96,13 +133,30 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_item("subject_type", Item::SubjectType); // undocumented
 
     vd.field_bool("recipient_pays_maintenance"); // undocumented
-    vd.field_bool("recipient_gets_income_transfer");
-    vd.field_bool("income_transfer_based_on_recipient");
+    vd.replaced_field(
+        "recipient_gets_income_transfer",
+        "renamed to second_country_gets_income_transfer",
+    );
+    vd.field_bool("second_country_gets_income_transfer");
+    vd.replaced_field(
+        "income_transfer_based_on_recipient",
+        "renamed to income_transfer_based_on_second_country",
+    );
+    vd.field_bool("income_transfer_based_on_second_country");
+    vd.field_validated_block("income_transfer_to_pops", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_bool("allow_discriminated");
+        for field in &["upper_strata_pops", "middle_strata_pops", "lower_strata_pops"] {
+            vd.field_script_value(field, sc);
+        }
+    });
     vd.field_numeric_range("income_transfer", 0.0..=1.0);
 
     vd.field_numeric("relations_progress_per_day"); // undocumented
     vd.field_numeric("relations_improvement_max"); // undocumented
     vd.field_numeric("relations_improvement_min"); // undocumented
+
+    vd.field_integer("forced_duration");
 
     vd.field_item("propose_string", Item::Localization);
     vd.field_item("break_string", Item::Localization);
@@ -151,17 +205,33 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         let mut vd = Validator::new(block, data);
         vd.field_bool("annex_on_country_formation");
     });
+
+    vd.multi_field_item("auto_support_type", Item::DiplomaticPlay);
 }
 
 fn validate_ai(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
+
+    vd.field_script_value("evaluation_chance", sc);
+
+    for field in &["will_select_as_first_state", "will_select_as_second_state"] {
+        vd.field_validated_key_block(field, |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::State, key);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+    }
 
     vd.field_bool("check_acceptance_for_will_break");
     vd.field_bool("check_acceptance_for_will_propose");
 
     vd.field_numeric_range("max_influence_spending_fraction", 0.0..=1.0);
 
-    for field in &["will_propose", "will_break"] {
+    for field in &[
+        "will_propose_with_states",
+        "will_propose",
+        "will_break",
+        "will_propose_even_if_not_accepted",
+    ] {
         vd.field_validated_block(field, |block, data| {
             validate_trigger(block, data, sc, Tooltipped::No);
         });
