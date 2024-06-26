@@ -5,6 +5,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
@@ -72,8 +73,9 @@ impl DbKind for BuildingType {
         vd.field_bool("naval");
         vd.field_item("canal", Item::CanalType);
 
-        vd.field_numeric("ai_value");
+        vd.field_script_value_rooted("ai_value", Scopes::State);
         vd.field_numeric("ai_subsidies_weight");
+        vd.field_script_value("ai_privatization_desire", &mut sc);
 
         vd.field_item("slaves_role", Item::PopType);
 
@@ -90,6 +92,18 @@ impl DbKind for BuildingType {
         vd.field_integer("levels_per_mesh");
         vd.field_integer("residence_points_per_level");
         vd.field_bool("override_centerpiece_mesh");
+        vd.field_bool("statue");
+        if block.field_value_is("override_centerpiece_mesh", "yes")
+            || block.field_value_is("statue", "yes")
+        {
+            vd.req_field("centerpiece_mesh_weight");
+        }
+        if block.field_value_is("override_centerpiece_mesh", "yes")
+            && block.field_value_is("statue", "yes")
+        {
+            let msg = "override_centerpiece_mesh and statue are mutually exclusive";
+            err(ErrorKey::Validation).msg(msg).loc(block).push();
+        }
         vd.field_integer("centerpiece_mesh_weight");
 
         vd.field_list("meshes"); // TODO
@@ -98,6 +112,9 @@ impl DbKind for BuildingType {
         vd.field_list("entity_constructed"); // TODO
         vd.field_value("locator"); // TODO
         vd.field_value("lens"); // TODO
+
+        vd.field_choice("ownership_type", &["no_ownership", "self", "other"]);
+        vd.field_item("background", Item::File);
 
         // undocumented
 
