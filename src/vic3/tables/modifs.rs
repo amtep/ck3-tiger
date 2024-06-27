@@ -377,7 +377,7 @@ static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.7.0
+/// LAST UPDATED VIC3 VERSION 1.7.1
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, ModifKinds)] = &[
@@ -501,7 +501,6 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("country_leverage_generation_mult", ModifKinds::Country),
     ("country_leverage_resistance_add", ModifKinds::Country),
     ("country_leverage_resistance_mult", ModifKinds::Country),
-    ("country_leverage_resistance_per_population_add", ModifKinds::Country),
     ("country_liberty_desire_add", ModifKinds::Country),
     ("country_liberty_desire_decrease_mult", ModifKinds::Country),
     ("country_liberty_desire_increase_mult", ModifKinds::Country),
@@ -605,6 +604,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("power_bloc_disallow_embargo_bool", ModifKinds::PowerBloc),
     ("power_bloc_disallow_war_bool", ModifKinds::PowerBloc),
     ("power_bloc_income_transfer_to_leader_factor", ModifKinds::PowerBloc),
+    ("power_bloc_invite_acceptance_add", ModifKinds::PowerBloc),
     ("power_bloc_leader_can_add_wargoal_bool", ModifKinds::PowerBloc),
     ("power_bloc_leader_can_force_state_religion_bool", ModifKinds::PowerBloc),
     ("power_bloc_leader_can_make_subjects_bool", ModifKinds::PowerBloc),
@@ -875,4 +875,5 @@ const MODIF_REMOVED_TABLE: &[(&str, &str)] = &[
     ("state_urbanization_add", "removed in 1.7"),
     ("state_urbanization_mult", "removed in 1.7"),
     ("unit_mobilization_speed_mult", "removed in 1.7"),
+    ("country_leverage_resistance_per_population_add", "removed in 1.7.1"),
 ];
