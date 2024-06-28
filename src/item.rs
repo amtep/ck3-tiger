@@ -368,6 +368,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] LibertyDesireLevel,
     #[cfg(feature = "vic3")] MapLayer,
     #[cfg(feature = "vic3")] MapInteractionType,
+    #[cfg(feature = "vic3")] MapNotificationType,
     #[cfg(feature = "vic3")] MediaAlias,
     #[cfg(feature = "vic3")] MilitaryFormationFlag,
     #[cfg(feature = "vic3")] MobilizationOption,
@@ -1104,6 +1105,8 @@ impl Item {
             Item::MapLayer => "gfx/map/map_object_data/layers.txt",
             #[cfg(feature = "vic3")]
             Item::MapInteractionType => "common/map_interaction_types/",
+            #[cfg(feature = "vic3")]
+            Item::MapNotificationType => "common/map_notification_types/",
             #[cfg(feature = "vic3")]
             Item::MediaAlias => "gfx/media_aliases/",
             #[cfg(feature = "vic3")]

@@ -215,3 +215,27 @@ impl DbKind for GradientBorderSettings {
         });
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct MapNotificationType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::MapNotificationType, MapNotificationType::add)
+}
+
+impl MapNotificationType {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::MapNotificationType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for MapNotificationType {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        vd.field_item("message", Item::Localization);
+        vd.field_item("widget", Item::WidgetName);
+        vd.field_integer("max_height");
+        vd.field_item("sound", Item::Sound);
+    }
+}
