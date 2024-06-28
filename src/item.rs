@@ -335,6 +335,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] CommanderOrder,
     #[cfg(feature = "vic3")] CommanderRank,
     #[cfg(feature = "vic3")] CompanyType,
+    #[cfg(feature = "vic3")] CohesionLevel,
     #[cfg(feature = "vic3")] CountryCreation,
     #[cfg(feature = "vic3")] CountryFormation,
     #[cfg(feature = "vic3")] CountryRank,
@@ -344,6 +345,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] Decree,
     #[cfg(feature = "vic3")] DiplomaticAction,
     #[cfg(feature = "vic3")] DiplomaticCatalyst,
+    #[cfg(feature = "vic3")] DiplomaticCatalystCategory,
     #[cfg(feature = "vic3")] DiplomaticPlay,
     #[cfg(feature = "vic3")] DiscriminationTrait,
     #[cfg(feature = "vic3")] DynamicCompanyName,
@@ -1035,6 +1037,8 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::CompanyType => "common/company_types/",
             #[cfg(feature = "vic3")]
+            Item::CohesionLevel => "common/cohesion_levels/",
+            #[cfg(feature = "vic3")]
             Item::CountryCreation => "common/country_creation/",
             #[cfg(feature = "vic3")]
             Item::CountryFormation => "common/country_formation/",
@@ -1052,6 +1056,8 @@ impl Item {
             Item::DiplomaticAction => "common/diplomatic_actions/",
             #[cfg(feature = "vic3")]
             Item::DiplomaticCatalyst => "common/diplomatic_catalysts/",
+            #[cfg(feature = "vic3")]
+            Item::DiplomaticCatalystCategory => "common/diplomatic_catalyst_categories/",
             #[cfg(feature = "vic3")]
             Item::DiplomaticPlay => "common/diplomatic_plays/",
             #[cfg(feature = "vic3")]
