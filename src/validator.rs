@@ -13,15 +13,59 @@ use crate::item::Item;
 use crate::report::fatal;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
-use crate::script_value::validate_script_value;
-#[cfg(not(feature = "imperator"))]
-use crate::script_value::validate_script_value_no_breakdown;
+use crate::script_value::{validate_bv, validate_script_value, validate_script_value_no_breakdown};
 use crate::token::Token;
 use crate::trigger::{validate_target, validate_target_ok_this};
 
 pub use self::value_validator::ValueValidator;
 
 mod value_validator;
+
+/// A helper enum for providing scope contexts to field validation functions.
+pub enum FieldScopeContext<'a> {
+    Full(&'a mut ScopeContext),
+    Rooted(Scopes),
+    Builder(&'a dyn Fn(&Token) -> ScopeContext),
+}
+
+impl<'a> From<&'a mut ScopeContext> for FieldScopeContext<'a> {
+    fn from(sc: &'a mut ScopeContext) -> Self {
+        Self::Full(sc)
+    }
+}
+
+impl<'a> From<Scopes> for FieldScopeContext<'a> {
+    fn from(scopes: Scopes) -> Self {
+        Self::Rooted(scopes)
+    }
+}
+
+impl<'a> From<&'a dyn Fn(&Token) -> ScopeContext> for FieldScopeContext<'a> {
+    fn from(builder: &'a dyn Fn(&Token) -> ScopeContext) -> Self {
+        Self::Builder(builder)
+    }
+}
+
+impl<'a> FieldScopeContext<'a> {
+    fn validate<F>(&mut self, key: &Token, validate_fn: F)
+    where
+        F: FnOnce(&mut ScopeContext),
+    {
+        let mut temp;
+        let sc = match self {
+            FieldScopeContext::Full(sc) => sc,
+            FieldScopeContext::Rooted(scopes) => {
+                temp = ScopeContext::new(*scopes, key);
+                &mut temp
+            }
+            FieldScopeContext::Builder(builder) => {
+                temp = builder(key);
+                &mut temp
+            }
+        };
+        validate_fn(sc);
+    }
+}
 
 /// A validator for one `Block`.
 /// The intended usage is that you wrap the `Block` in a validator, then call validation functions on it
@@ -604,6 +648,26 @@ impl<'a> Validator<'a> {
                     report(ErrorKey::Validation, sev).msg(msg).loc(token).push();
                 }
             }
+        })
+    }
+
+    /// Epexect field `name`, if present, to be set to a script value.
+    ///
+    /// The scope context may be a full `ScopeContext`, a rooted `Scopes` or a closure that builds
+    /// one from the field key token.
+    ///
+    /// If `breakdown` is true, it does not warn if it is an inline script value and the `desc`
+    /// fields in it do not contain valid localizations. This is generally used for script values
+    /// that will never be shown to the user except in debugging contexts, such as `ai_will_do`.
+    pub fn field_script_value_full<'b, T>(&mut self, name: &str, fsc: T, breakdown: bool) -> bool
+    where
+        T: Into<FieldScopeContext<'b>>,
+    {
+        let mut fsc = fsc.into();
+        self.field_check(name, |key, bv| {
+            fsc.validate(key, |sc| {
+                validate_bv(bv, self.data, sc, breakdown);
+            });
         })
     }
 
