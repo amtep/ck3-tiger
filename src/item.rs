@@ -365,6 +365,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] LawType,
     #[cfg(feature = "vic3")] LegitimacyLevel,
     #[cfg(feature = "vic3")] Level,
+    #[cfg(feature = "vic3")] LibertyDesireLevel,
     #[cfg(feature = "vic3")] MapLayer,
     #[cfg(feature = "vic3")] MapInteractionType,
     #[cfg(feature = "vic3")] MediaAlias,
@@ -1097,6 +1098,8 @@ impl Item {
             Item::LegitimacyLevel => "common/legitimacy_levels/",
             #[cfg(feature = "vic3")]
             Item::Level => "",
+            #[cfg(feature = "vic3")]
+            Item::LibertyDesireLevel => "common/liberty_desire_levels/",
             #[cfg(feature = "vic3")]
             Item::MapLayer => "gfx/map/map_object_data/layers.txt",
             #[cfg(feature = "vic3")]
