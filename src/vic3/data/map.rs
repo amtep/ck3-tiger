@@ -88,6 +88,7 @@ const MAP_PAINTING_MODES: &[&str] = &[
     "population",
     "province_terrain",
     "radicals",
+    "religion_overview",
     "religion_population",
     "standard_of_living",
     "state_gradient",
@@ -100,7 +101,7 @@ const MAP_PAINTING_MODES: &[&str] = &[
 // LAST UPDATED VIC3 VERSION 1.5.13
 // Taken from gfx/map/map_modes/map_modes.txt
 const MAP_NAMES: &[&str] =
-    &["countries", "cultures", "markets", "states", "strategic_regions", "theaters"];
+    &["countries", "cultures", "markets", "religions", "states", "strategic_regions", "theaters"];
 
 impl MapMode {
     pub fn add(db: &mut Db, key: Token, block: Block) {

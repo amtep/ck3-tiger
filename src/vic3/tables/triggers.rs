@@ -1326,5 +1326,6 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue)] = {
             Scope(Scopes::Country),
         ),
         (Scopes::PowerBloc, "predicted_cohesion_percentage_with", Scope(Scopes::Country)),
+        (Scopes::JournalEntry, "scripted_bar_progress", Item(Item::ScriptedProgressBar)),
     ]
 };

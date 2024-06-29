@@ -1,10 +1,20 @@
-// LAST UPDATED VIC3 VERSION 1.5.12
+// LAST UPDATED VIC3 VERSION 1.7.1
 pub const DLC_VIC3: &[&str] =
-    &["dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006", "dlc007", "dlc008"];
+    &["dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006", "dlc007", "dlc008", "dlc010"];
 
-// LAST UPDATED VIC3 VERSION 1.5.12
-pub const DLC_FEATURES_VIC3: &[&str] =
-    &["voice_of_the_people_content", "voice_of_the_people_preorder", "agitators", "rp1_content"];
+// LAST UPDATED VIC3 VERSION 1.7.1
+pub const DLC_FEATURES_VIC3: &[&str] = &[
+    "voice_of_the_people_content",
+    "voice_of_the_people_preorder",
+    "agitators",
+    "rp1_content",
+    "power_bloc_features",
+    "ep1_content",
+    "foreign_investment",
+    "lobbies",
+    "subject_and_bloc_actions",
+    "ep1_cosmetics",
+];
 
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const EVENT_CATEGORIES: &[&str] = &["enactment", "revolution"];
@@ -12,13 +22,14 @@ pub const EVENT_CATEGORIES: &[&str] = &["enactment", "revolution"];
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const APPROVALS: &[&str] = &["angry", "unhappy", "neutral", "happy", "loyal"];
 
-// LAST UPDATED VIC3 VERSION 1.3.6
+// LAST UPDATED VIC3 VERSION 1.7.1
 pub const ATTITUDES: &[&str] = &[
     "antagonistic",
     "belligerent",
     "cautious",
     "conciliatory",
     "cooperative",
+    "defiant",
     "disinterested",
     "domineering",
     "genial",
@@ -61,9 +72,18 @@ pub const POLITICAL_MOVEMENTS: &[&str] =
 pub const RELATIONS: &[&str] =
     &["friendly", "amicable", "cordial", "neutral", "poor", "cold", "hostile"];
 
-// LAST UPDATED VIC3 VERSION 1.3.6
-pub const SECRET_GOALS: &[&str] =
-    &["none", "befriend", "reconcile", "protect", "antagonize", "conquer", "dominate"];
+// LAST UPDATED VIC3 VERSION 1.7.1
+pub const SECRET_GOALS: &[&str] = &[
+    "none",
+    "befriend",
+    "reconcile",
+    "protect",
+    "antagonize",
+    "conquer",
+    "dominate",
+    "comply",
+    "defy",
+];
 
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const STANCES: &[&str] =

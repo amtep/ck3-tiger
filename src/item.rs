@@ -1155,9 +1155,9 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::ScriptedButton => "common/scripted_buttons/",
             #[cfg(feature = "vic3")]
-            Item::ScriptedProgressBar => "common/scripted_progress_bar/",
+            Item::ScriptedProgressBar => "common/scripted_progress_bars/",
             #[cfg(feature = "vic3")]
-            Item::SecretGoal => "common/secret_goals/",
+            Item::SecretGoal => "",
             #[cfg(feature = "vic3")]
             Item::StateRegion => "map_data/state_regions/",
             #[cfg(feature = "vic3")]

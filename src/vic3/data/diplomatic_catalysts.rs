@@ -75,7 +75,7 @@ impl DbKind for DiplomaticCatalyst {
             });
 
             vd.unknown_fields(|key, bv| {
-                data.verify_exists(Item::DiplomaticCatalyst, key);
+                data.verify_exists(Item::PoliticalLobby, key);
                 validate_script_value_no_breakdown(bv, data, &mut sc);
             });
         });
