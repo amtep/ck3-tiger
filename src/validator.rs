@@ -13,7 +13,9 @@ use crate::item::Item;
 use crate::report::fatal;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
-use crate::script_value::{validate_bv, validate_script_value, validate_script_value_no_breakdown};
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+use crate::script_value::validate_script_value_no_breakdown;
+use crate::script_value::{validate_bv, validate_script_value};
 use crate::token::Token;
 use crate::trigger::{validate_target, validate_target_ok_this};
 
@@ -47,6 +49,7 @@ impl<'a> From<&'a dyn Fn(&Token) -> ScopeContext> for FieldScopeContext<'a> {
 }
 
 impl<'a> FieldScopeContext<'a> {
+    #[allow(dead_code)]
     fn validate<F>(&mut self, key: &Token, validate_fn: F)
     where
         F: FnOnce(&mut ScopeContext),
@@ -659,6 +662,7 @@ impl<'a> Validator<'a> {
     /// If `breakdown` is true, it does not warn if it is an inline script value and the `desc`
     /// fields in it do not contain valid localizations. This is generally used for script values
     /// that will never be shown to the user except in debugging contexts, such as `ai_will_do`.
+    #[allow(dead_code)]
     pub fn field_script_value_full<'b, T>(&mut self, name: &str, fsc: T, breakdown: bool) -> bool
     where
         T: Into<FieldScopeContext<'b>>,

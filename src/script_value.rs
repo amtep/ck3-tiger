@@ -321,6 +321,7 @@ pub fn validate_script_value(bv: &BV, data: &Everything, sc: &mut ScopeContext) 
     validate_bv(bv, data, sc, true);
 }
 
+#[allow(dead_code)]
 pub fn validate_script_value_no_breakdown(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     validate_bv(bv, data, sc, false);
 }
