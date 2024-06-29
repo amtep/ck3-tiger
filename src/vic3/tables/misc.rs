@@ -1030,7 +1030,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/law_groups",
     "common/laws",
     "common/legitimacy_levels",
-    "common/liberary_desire_levels",
+    "common/liberty_desire_levels",
     "common/map_interaction_types",
     "common/map_notification_types",
     "common/messages",

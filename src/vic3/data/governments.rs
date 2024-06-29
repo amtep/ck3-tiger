@@ -88,7 +88,6 @@ impl DbKind for LegitimacyLevel {
     }
 }
 
-
 #[derive(Clone, Debug)]
 pub struct LibertyDesireLevel {}
 
@@ -105,7 +104,7 @@ impl LibertyDesireLevel {
 impl DbKind for LibertyDesireLevel {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         data.verify_exists(Item::Localization, key);
-        
+
         let mut vd = Validator::new(block, data);
         vd.field_integer("threshold");
         vd.field_list_items("valid_sway_wargoals_against_overlord", Item::Wargoal);
