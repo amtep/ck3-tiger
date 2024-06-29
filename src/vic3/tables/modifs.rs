@@ -352,7 +352,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // User-defined modifs are accepted in Vic3.
     // They must have a ModifierType entry to be accepted by the game engine,
     // so if that exists then accept the modif.
-    if data.item_exists_lc(Item::ModifierType, &name_lc) {
+    if data.item_exists_lc(Item::ModifierTypeDefinition, &name_lc) {
         return Some(ModifKinds::all());
     }
 

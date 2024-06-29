@@ -372,7 +372,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] MediaAlias,
     #[cfg(feature = "vic3")] MilitaryFormationFlag,
     #[cfg(feature = "vic3")] MobilizationOption,
-    #[cfg(feature = "vic3")] ModifierType,
+    #[cfg(feature = "vic3")] ModifierTypeDefinition,
     #[cfg(feature = "vic3")] Objective,
     #[cfg(feature = "vic3")] ObjectiveSubgoal,
     #[cfg(feature = "vic3")] ObjectiveSubgoalCategory,
@@ -1114,7 +1114,7 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::MobilizationOption => "common/mobilization_options/",
             #[cfg(feature = "vic3")]
-            Item::ModifierType => "common/modifier_types/",
+            Item::ModifierTypeDefinition => "common/modifier_type_definitions/",
             #[cfg(feature = "vic3")]
             Item::Objective => "common/objectives/",
             #[cfg(feature = "vic3")]
@@ -1353,7 +1353,7 @@ impl Item {
 
             #[cfg(feature = "vic3")]
             Item::MapLayer
-            | Item::ModifierType
+            | Item::ModifierTypeDefinition
             | Item::TerrainManipulator
             | Item::TerrainMask
             | Item::TerrainMaterial => Severity::Warning,

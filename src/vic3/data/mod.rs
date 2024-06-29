@@ -36,7 +36,7 @@ pub mod lobbies;
 pub mod map;
 pub mod media_aliases;
 pub mod messages;
-pub mod modifier_types;
+pub mod modifier_type_definitions;
 pub mod modifiers;
 pub mod objectives;
 pub mod parties;
