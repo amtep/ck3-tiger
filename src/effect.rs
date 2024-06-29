@@ -26,7 +26,7 @@ use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
     validate_iterator_fields, validate_scope_chain, validate_scripted_modifier_call, ListType,
 };
-use crate::validator::{FieldScopeContext, Validator, ValueValidator};
+use crate::validator::{Validator, ValueValidator};
 
 /// The standard interface to effect validation. Validates an effect in the given [`ScopeContext`].
 ///
@@ -48,31 +48,6 @@ pub fn validate_effect(
         &mut vd,
         tooltipped,
     );
-}
-
-/// The standard interface to effect validation. Validates an effect in the given
-/// [`FieldScopeContext`].
-pub fn validate_effect_full<'b, T>(
-    key: &Token,
-    block: &Block,
-    data: &Everything,
-    fsc: T,
-    tooltipped: Tooltipped,
-) where
-    T: Into<FieldScopeContext<'b>>,
-{
-    let mut vd = Validator::new(block, data);
-    fsc.into().validate(key, |sc| {
-        validate_effect_internal(
-            Lowercase::empty(),
-            ListType::None,
-            block,
-            data,
-            sc,
-            &mut vd,
-            tooltipped,
-        );
-    });
 }
 
 /// The interface to effect validation when [`validate_effect`] is too limited.

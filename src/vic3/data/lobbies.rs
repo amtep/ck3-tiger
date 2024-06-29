@@ -1,14 +1,13 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect_full;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger_full;
 use crate::validate::validate_duration;
 use crate::validator::{Builder, Validator};
 
@@ -51,32 +50,36 @@ impl DbKind for PoliticalLobby {
         vd.field_choice("category", &["foreign_pro_country", "foreign_anti_country", "foreign"]);
         vd.field_item("texture", Item::File);
 
-        vd.field_validated_key_block("can_create", |key, block, data| {
-            validate_trigger_full(key, block, data, sc_no_lobby, Tooltipped::No);
-        });
+        vd.field_trigger_full("can_create", sc_no_lobby, Tooltipped::No);
+        vd.field_trigger_full("on_created", sc_with_lobby, Tooltipped::No);
 
-        vd.field_validated_key_block("on_created", |key, block, data| {
-            validate_effect_full(key, block, data, sc_with_lobby, Tooltipped::No);
-        });
-
-        vd.field_validated_key_block("requirement_to_maintain", |key, block, data| {
+        vd.field_validated_block("requirement_to_maintain", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_validated_block("trigger", |block, data| {
-                validate_trigger_full(key, block, data, sc_with_lobby, Tooltipped::No);
-            });
-            vd.field_validated_block("on_failed", |block, data| {
-                validate_effect_full(key, block, data, sc_with_lobby, Tooltipped::No);
-            });
+            vd.field_trigger_full("trigger", sc_with_lobby, Tooltipped::No);
+            vd.field_effect_full("on_failed", sc_with_lobby, Tooltipped::No);
             vd.field_item("swap_type_on_failed", Item::PoliticalLobby);
         });
 
-        // TODO: validate "cannot contain appeasement factors marked as is_always_usable"
-        vd.field_list_items("appeasement_factors_pro", Item::PoliticalLobbyAppeasement);
-        vd.field_list_items("appeasement_factors_anti", Item::PoliticalLobbyAppeasement);
+        let appeasement_factors_validation = |value: &Token, data: &Everything| {
+            data.verify_exists(Item::PoliticalLobbyAppeasement, value);
+            if data.item_has_property(
+                Item::PoliticalLobbyAppeasement,
+                value.as_str(),
+                "is_always_usable",
+            ) {
+                let msg = "cannot contain appeasement factors marked as `is_always_usable`";
+                warn(ErrorKey::Validation).msg(msg).loc(value).push();
+            }
+        };
 
-        vd.field_validated_key_block("available_for_interest_group", |key, block, data| {
-            validate_trigger_full(key, block, data, Scopes::InterestGroup, Tooltipped::No);
-        });
+        vd.field_validated_list("appeasement_factors_pro", appeasement_factors_validation);
+        vd.field_validated_list("appeasement_factors_anti", appeasement_factors_validation);
+
+        vd.field_trigger_full(
+            "available_for_interest_group",
+            Scopes::InterestGroup,
+            Tooltipped::No,
+        );
 
         vd.field_script_value_full("join_weight", sc_with_lobby, false);
     }
@@ -108,5 +111,15 @@ impl DbKind for PoliticalLobbyAppeasement {
 
         vd.field_validated_block_sc("duration_to_show", &mut sc, validate_duration);
         vd.field_bool("is_always_usable");
+    }
+
+    fn has_property(
+        &self,
+        _key: &Token,
+        block: &Block,
+        property: &str,
+        _data: &Everything,
+    ) -> bool {
+        block.get_field_bool(property).unwrap_or_default()
     }
 }

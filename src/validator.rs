@@ -6,9 +6,11 @@ use std::str::FromStr;
 use crate::block::{Block, BlockItem, Comparator, Eq::*, Field, BV};
 use crate::context::ScopeContext;
 use crate::date::Date;
+use crate::effect::validate_effect_internal;
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 #[cfg(feature = "ck3")]
 use crate::report::fatal;
 use crate::report::{report, ErrorKey, Severity};
@@ -17,7 +19,9 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_script_value_no_breakdown;
 use crate::script_value::{validate_bv, validate_script_value};
 use crate::token::Token;
-use crate::trigger::{validate_target, validate_target_ok_this};
+use crate::tooltipped::Tooltipped;
+use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger_internal};
+use crate::validate::ListType;
 
 pub use self::value_validator::ValueValidator;
 
@@ -652,6 +656,58 @@ impl<'a> Validator<'a> {
                     report(ErrorKey::Validation, sev).msg(msg).loc(token).push();
                 }
             }
+        })
+    }
+
+    /// Expect field `name`, if present, to be set to a trigger block.
+    ///
+    /// The scope context may be a full `ScopeContext`, a rooted `Scopes` or a closure that builds
+    /// one from the field key token.
+    #[allow(dead_code)]
+    pub fn field_trigger_full<'b, T>(&mut self, name: &str, fsc: T, tooltipped: Tooltipped) -> bool
+    where
+        T: Into<FieldScopeContext<'b>>,
+    {
+        let mut fsc = fsc.into();
+        self.field_validated_key_block(name, |key, block, data| {
+            fsc.validate(key, |sc| {
+                validate_trigger_internal(
+                    Lowercase::empty(),
+                    false,
+                    block,
+                    data,
+                    sc,
+                    tooltipped,
+                    false,
+                    Severity::Error,
+                )
+            });
+        })
+    }
+
+    /// Expect field `name`, if present, to be set to an effect block.
+    ///
+    /// The scope context may be a full `ScopeContext`, a rooted `Scopes` or a closure that builds
+    /// one from the field key token.
+    #[allow(dead_code)]
+    pub fn field_effect_full<'b, T>(&mut self, name: &str, fsc: T, tooltipped: Tooltipped) -> bool
+    where
+        T: Into<FieldScopeContext<'b>>,
+    {
+        let mut fsc = fsc.into();
+        self.field_validated_key_block(name, |key, block, data| {
+            fsc.validate(key, |sc| {
+                let mut vd = Validator::new(block, data);
+                validate_effect_internal(
+                    Lowercase::empty(),
+                    ListType::None,
+                    block,
+                    data,
+                    sc,
+                    &mut vd,
+                    tooltipped,
+                );
+            });
         })
     }
 
