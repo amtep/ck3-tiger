@@ -55,7 +55,7 @@ impl<'a> From<&'a Builder> for FieldScopeContext<'a> {
 }
 
 impl<'a> FieldScopeContext<'a> {
-    pub fn validate<R, F>(&mut self, key: &Token, validate_fn: F) -> R
+    fn validate<R, F>(&mut self, key: &Token, validate_fn: F) -> R
     where
         F: FnOnce(&mut ScopeContext) -> R,
     {
