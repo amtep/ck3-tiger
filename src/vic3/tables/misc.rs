@@ -77,7 +77,7 @@ pub const TRANSFER_OF_POWER: &[&str] =
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const STRATA: &[&str] = &["poor", "middle", "rich"];
 
-// LAST UPDATED VIC3 VERSION 1.6.0
+// LAST UPDATED VIC3 VERSION 1.7.1
 // Taken from `localization/english/diplomatic_plays_l_english.yml` entries
 // that start with `war_goal_`.
 pub const WARGOALS: &[&str] = &[
@@ -86,10 +86,13 @@ pub const WARGOALS: &[&str] = &[
     "colonization_rights",
     "conquer_state",
     "contain_threat",
+    "force_nationalization",
     "force_recognition",
     "humiliation",
     "increase_autonomy",
     "independence",
+    "join_power_bloc",
+    "leave_power_bloc",
     "liberate_country",
     "liberate_subject",
     "make_protectorate",
