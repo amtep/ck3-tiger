@@ -42,7 +42,7 @@ impl DbKind for DiplomaticAction {
 
         vd.field_validated_list("groups", |token, data| {
             let mut vd = ValueValidator::new(token, data);
-            vd.choice(&["general", "subject", "overlord", "power_bloc"]);
+            vd.choice(&["general", "subject", "overlord", "power_bloc", "power_bloc_leader"]);
         });
 
         vd.field_bool("requires_approval");

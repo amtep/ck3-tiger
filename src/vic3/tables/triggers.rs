@@ -1249,6 +1249,7 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue)] = {
         (Scopes::Country, "culture_percent_country", Item(Item::Culture)),
         (Scopes::State, "culture_percent_state", Item(Item::Culture)),
         (Scopes::Culture, "culture_secession_progress", Scope(Scopes::Country)),
+        (Scopes::DiplomaticPact, "diplomatic_pact_other_country", Scope(Scopes::Country)),
         (Scopes::Country, "economic_dependence", Scope(Scopes::Country)),
         (Scopes::Country, "enactment_chance_for_law", Scope(Scopes::LawType)),
         (
@@ -1267,13 +1268,16 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue)] = {
         (Scopes::War, "has_war_support", Item(Item::Country)),
         (Scopes::State, "ig_state_pol_strength_share", Scope(Scopes::InterestGroup)),
         (Scopes::Country, "institution_investment_level", Item(Item::Institution)),
+        (Scopes::PowerBloc, "leverage_advantage", Scope(Scopes::Country)),
         (Scopes::None, "list_size", UncheckedValue),
         // loyalist_fraction
+        (Scopes::Country, "nationalization_cost", Scope(Scopes::Country)),
         (Scopes::War, "num_country_casualties", Scope(Scopes::Country)),
         (Scopes::War, "num_country_dead", Scope(Scopes::Country)),
         (Scopes::War, "num_country_wounded", Scope(Scopes::Country)),
         (Scopes::Country, "pop_type_percent_country", Item(Item::PopType)),
         (Scopes::State, "pop_type_percent_state", Item(Item::PopType)),
+        (Scopes::Country, "potential_diplomatic_play_power_ratio", Scope(Scopes::Country)),
         // radical_fraction
         (Scopes::Country, "religion_percent_country", Item(Item::Religion)),
         (Scopes::State, "religion_percent_state", Item(Item::Religion)),
