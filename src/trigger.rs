@@ -28,7 +28,7 @@ use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
     validate_iterator_fields, ListType,
 };
-use crate::validator::Validator;
+use crate::validator::{FieldScopeContext, Validator};
 
 /// Look up a trigger token that evaluates to a trigger value.
 ///
@@ -71,6 +71,32 @@ pub fn validate_trigger(
         false,
         Severity::Error,
     )
+}
+
+/// The standard interface to trigger validation. Validates a trigger in the given
+/// [`FieldScopeContext`].
+pub fn validate_trigger_full<'b, T>(
+    key: &Token,
+    block: &Block,
+    data: &Everything,
+    fsc: T,
+    tooltipped: Tooltipped,
+) -> bool
+where
+    T: Into<FieldScopeContext<'b>>,
+{
+    fsc.into().validate(key, |sc| {
+        validate_trigger_internal(
+            Lowercase::empty(),
+            false,
+            block,
+            data,
+            sc,
+            tooltipped,
+            false,
+            Severity::Warning,
+        )
+    })
 }
 
 /// Like [`validate_trigger`] but specifies a maximum [`Severity`] for the reports emitted by this

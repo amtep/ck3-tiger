@@ -1,16 +1,16 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
+use crate::effect::validate_effect_full;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
+use crate::trigger::validate_trigger_full;
 use crate::validate::validate_duration;
-use crate::validator::Validator;
+use crate::validator::{Builder, Validator};
 
 #[derive(Clone, Debug)]
 pub struct PoliticalLobby {}
@@ -27,18 +27,18 @@ impl PoliticalLobby {
 
 impl DbKind for PoliticalLobby {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        fn sc_no_lobby(key: &Token) -> ScopeContext {
+        let sc_no_lobby: &Builder = &|key: &Token| {
             let mut sc = ScopeContext::new(Scopes::InterestGroup, key);
             sc.define_name("country", Scopes::Country, key);
             sc.define_name("target_country", Scopes::Country, key);
             sc
-        }
+        };
 
-        fn sc_with_lobby(key: &Token) -> ScopeContext {
+        let sc_with_lobby: &Builder = &|key: &Token| {
             let mut sc = sc_no_lobby(key);
             sc.define_name("political_lobby", Scopes::PoliticalLobby, key);
             sc
-        }
+        };
 
         let mut vd = Validator::new(block, data);
 
@@ -52,20 +52,20 @@ impl DbKind for PoliticalLobby {
         vd.field_item("texture", Item::File);
 
         vd.field_validated_key_block("can_create", |key, block, data| {
-            validate_trigger(block, data, &mut sc_no_lobby(key), Tooltipped::No);
+            validate_trigger_full(key, block, data, sc_no_lobby, Tooltipped::No);
         });
 
         vd.field_validated_key_block("on_created", |key, block, data| {
-            validate_effect(block, data, &mut sc_with_lobby(key), Tooltipped::No);
+            validate_effect_full(key, block, data, sc_with_lobby, Tooltipped::No);
         });
 
         vd.field_validated_key_block("requirement_to_maintain", |key, block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_validated_block("trigger", |block, data| {
-                validate_trigger(block, data, &mut sc_with_lobby(key), Tooltipped::No);
+                validate_trigger_full(key, block, data, sc_with_lobby, Tooltipped::No);
             });
             vd.field_validated_block("on_failed", |block, data| {
-                validate_effect(block, data, &mut sc_with_lobby(key), Tooltipped::No);
+                validate_effect_full(key, block, data, sc_with_lobby, Tooltipped::No);
             });
             vd.field_item("swap_type_on_failed", Item::PoliticalLobby);
         });
@@ -74,12 +74,11 @@ impl DbKind for PoliticalLobby {
         vd.field_list_items("appeasement_factors_pro", Item::PoliticalLobbyAppeasement);
         vd.field_list_items("appeasement_factors_anti", Item::PoliticalLobbyAppeasement);
 
-        vd.field_validated_key_block("available_foR_interest_group", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::InterestGroup, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        vd.field_validated_key_block("available_for_interest_group", |key, block, data| {
+            validate_trigger_full(key, block, data, Scopes::InterestGroup, Tooltipped::No);
         });
 
-        vd.field_script_value("join_weight", &mut sc_with_lobby(key));
+        vd.field_script_value_full("join_weight", sc_with_lobby, false);
     }
 }
 

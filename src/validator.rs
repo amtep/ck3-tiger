@@ -23,11 +23,13 @@ pub use self::value_validator::ValueValidator;
 
 mod value_validator;
 
+pub type Builder = dyn Fn(&Token) -> ScopeContext;
+
 /// A helper enum for providing scope contexts to field validation functions.
 pub enum FieldScopeContext<'a> {
     Full(&'a mut ScopeContext),
     Rooted(Scopes),
-    Builder(&'a dyn Fn(&Token) -> ScopeContext),
+    Builder(&'a Builder),
 }
 
 impl<'a> From<&'a mut ScopeContext> for FieldScopeContext<'a> {
@@ -42,17 +44,16 @@ impl<'a> From<Scopes> for FieldScopeContext<'a> {
     }
 }
 
-impl<'a> From<&'a dyn Fn(&Token) -> ScopeContext> for FieldScopeContext<'a> {
-    fn from(builder: &'a dyn Fn(&Token) -> ScopeContext) -> Self {
+impl<'a> From<&'a Builder> for FieldScopeContext<'a> {
+    fn from(builder: &'a Builder) -> Self {
         Self::Builder(builder)
     }
 }
 
 impl<'a> FieldScopeContext<'a> {
-    #[allow(dead_code)]
-    fn validate<F>(&mut self, key: &Token, validate_fn: F)
+    pub fn validate<R, F>(&mut self, key: &Token, validate_fn: F) -> R
     where
-        F: FnOnce(&mut ScopeContext),
+        F: FnOnce(&mut ScopeContext) -> R,
     {
         let mut temp;
         let sc = match self {
@@ -66,7 +67,7 @@ impl<'a> FieldScopeContext<'a> {
                 &mut temp
             }
         };
-        validate_fn(sc);
+        validate_fn(sc)
     }
 }
 
