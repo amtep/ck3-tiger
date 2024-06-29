@@ -42,6 +42,8 @@ pub mod objectives;
 pub mod parties;
 pub mod pop_needs;
 pub mod pops;
+pub mod power_blocs;
+pub mod principles;
 pub mod production_methods;
 pub mod provinces;
 pub mod religions;

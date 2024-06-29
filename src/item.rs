@@ -381,7 +381,10 @@ pub enum Item {
     #[cfg(feature = "vic3")] PoliticalLobbyAppeasement,
     #[cfg(feature = "vic3")] PoliticalMovement,
     #[cfg(feature = "vic3")] PopNeed,
+    #[cfg(feature = "vic3")] PowerBlocCoaPiece,
     #[cfg(feature = "vic3")] PowerBlocIdentity,
+    #[cfg(feature = "vic3")] PowerBlocMapTexture,
+    #[cfg(feature = "vic3")] PowerBlocName,
     #[cfg(feature = "vic3")] Principle,
     #[cfg(feature = "vic3")] PrincipleGroup,
     #[cfg(feature = "vic3")] ProductionMethod,
@@ -1132,7 +1135,13 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::PopNeed => "common/pop_needs/",
             #[cfg(feature = "vic3")]
+            Item::PowerBlocCoaPiece => "common/power_bloc_coa_pieces/",
+            #[cfg(feature = "vic3")]
             Item::PowerBlocIdentity => "common/power_bloc_identities/",
+            #[cfg(feature = "vic3")]
+            Item::PowerBlocMapTexture => "common/power_bloc_map_textures/",
+            #[cfg(feature = "vic3")]
+            Item::PowerBlocName => "common/power_bloc_names/",
             #[cfg(feature = "vic3")]
             Item::Principle => "common/power_bloc_principles/",
             #[cfg(feature = "vic3")]
