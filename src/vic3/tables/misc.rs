@@ -88,6 +88,7 @@ pub const WARGOALS: &[&str] = &[
     "contain_threat",
     "force_nationalization",
     "force_recognition",
+    "foreign_investment_rights",
     "humiliation",
     "increase_autonomy",
     "independence",
