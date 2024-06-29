@@ -32,6 +32,7 @@ pub mod institutions;
 pub mod interest_groups;
 pub mod journalentries;
 pub mod laws;
+pub mod lobbies;
 pub mod map;
 pub mod media_aliases;
 pub mod messages;
