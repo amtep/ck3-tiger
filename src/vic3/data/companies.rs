@@ -66,6 +66,10 @@ impl DbKind for CompanyType {
 
         let mut sc = ScopeContext::new(Scopes::Country, key);
         vd.field_script_value("ai_weight", &mut sc);
+
+        // undocumented
+
+        vd.field_list_items("unlocking_principles", Item::Principle);
     }
 }
 

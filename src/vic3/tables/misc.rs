@@ -138,6 +138,18 @@ pub const WARGOALS: &[&str] = &[
 pub const CHARACTER_ROLES: &[&str] = &["admiral", "agitator", "general", "politician"];
 
 // LAST UPDATED VIC3 VERSION 1.7.1
+// Taken from common/labels/00_terrain_labels.txt and the unit_offense_ and unit_defense_ modifs.
+pub const TERRAIN_KEYS: &[&str] = &[
+    "flat",
+    "elevated",
+    "forested",
+    "hazardous",
+    "developed",
+    "water",
+    "travel_harsh_environment",
+];
+
+// LAST UPDATED VIC3 VERSION 1.7.1
 // Taken from the object browser
 pub const SOUNDS_VIC3: &[&str] = &[
     "event:/MUSIC/Main/theme_01",

@@ -71,5 +71,9 @@ impl DbKind for DiplomaticPlay {
         vd.field_validated_block("on_war_end", |block, data| {
             validate_effect(block, data, &mut sc, Tooltipped::No);
         });
+
+        // undocumented
+
+        vd.field_item("confirmation_sound", Item::Sound);
     }
 }

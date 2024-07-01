@@ -316,6 +316,21 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
+    // unit_defense_$TerrainKey$_add
+    // unit_defense_$TerrainKey$_mult
+    // unit_offense_$TerrainKey$_mult
+    // unit_offense_$TerrainKey$_mult
+    for &pfx in &["unit_defense_", "unit_offense_"] {
+        if let Some(part) = name_lc.strip_prefix_unchecked(pfx) {
+            for &sfx in &["_add", "_mult"] {
+                if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                    maybe_warn(Item::TerrainKey, &part, name, data, warn);
+                    return Some(ModifKinds::Unit);
+                }
+            }
+        }
+    }
+
     // TODO: not all of these exist for all unit types
     // unit_$CombatUnit$_offense_mult
     // unit_$CombatUnit$_offense_add
@@ -713,21 +728,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("unit_convoy_raiding_mult", ModifKinds::Unit),
     ("unit_convoy_requirements_mult", ModifKinds::Unit),
     ("unit_defense_add", ModifKinds::Unit),
-    ("unit_defense_developed_add", ModifKinds::Unit),
-    ("unit_defense_developed_mult", ModifKinds::Unit),
-    ("unit_defense_elevated_add", ModifKinds::Unit),
-    ("unit_defense_elevated_mult", ModifKinds::Unit),
-    ("unit_defense_flat_add", ModifKinds::Unit),
-    ("unit_defense_flat_mult", ModifKinds::Unit),
-    ("unit_defense_forested_add", ModifKinds::Unit),
-    ("unit_defense_forested_mult", ModifKinds::Unit),
-    ("unit_defense_hazardous_add", ModifKinds::Unit),
-    ("unit_defense_hazardous_mult", ModifKinds::Unit),
     ("unit_defense_mult", ModifKinds::Unit),
-    ("unit_defense_travel_harsh_environment_add", ModifKinds::Unit),
-    ("unit_defense_travel_harsh_environment_mult", ModifKinds::Unit),
-    ("unit_defense_water_add", ModifKinds::Unit),
-    ("unit_defense_water_mult", ModifKinds::Unit),
     ("unit_devastation_mult", ModifKinds::Unit),
     ("unit_experience_gain_add", ModifKinds::Unit),
     ("unit_experience_gain_mult", ModifKinds::Unit),
@@ -744,21 +745,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("unit_navy_offense_mult", ModifKinds::Unit),
     ("unit_occupation_mult", ModifKinds::Unit),
     ("unit_offense_add", ModifKinds::Unit),
-    ("unit_offense_developed_add", ModifKinds::Unit),
-    ("unit_offense_developed_mult", ModifKinds::Unit),
-    ("unit_offense_elevated_add", ModifKinds::Unit),
-    ("unit_offense_elevated_mult", ModifKinds::Unit),
-    ("unit_offense_flat_add", ModifKinds::Unit),
-    ("unit_offense_flat_mult", ModifKinds::Unit),
-    ("unit_offense_forested_add", ModifKinds::Unit),
-    ("unit_offense_forested_mult", ModifKinds::Unit),
-    ("unit_offense_hazardous_add", ModifKinds::Unit),
-    ("unit_offense_hazardous_mult", ModifKinds::Unit),
     ("unit_offense_mult", ModifKinds::Unit),
-    ("unit_offense_travel_harsh_environment_add", ModifKinds::Unit),
-    ("unit_offense_travel_harsh_environment_mult", ModifKinds::Unit),
-    ("unit_offense_water_add", ModifKinds::Unit),
-    ("unit_offense_water_mult", ModifKinds::Unit),
     ("unit_provinces_captured_mult", ModifKinds::Unit),
     ("unit_provinces_lost_mult", ModifKinds::Unit),
     ("unit_recovery_rate_add", ModifKinds::Unit),

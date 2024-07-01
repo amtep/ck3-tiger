@@ -4,13 +4,14 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::modif::{verify_modif_exists, ModifKinds};
+use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxEncoding;
-use crate::report::{untidy, warn, ErrorKey, Severity};
+use crate::report::{untidy, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::util::SmartJoin;
 use crate::validator::Validator;
+use crate::vic3::tables::misc::TERRAIN_KEYS;
 
 #[derive(Clone, Debug)]
 pub struct Terrain {}
@@ -90,8 +91,11 @@ impl DbKind for TerrainLabel {
 
         // TerrainLabel might have to be renamed if there are more options here
         vd.field_choice("type", &["terrain"]);
-        vd.field_validated_list("modifiers", |token, data| {
-            verify_modif_exists(token, data, ModifKinds::all(), Severity::Error);
+        vd.field_choice("modifier_key", TERRAIN_KEYS);
+        vd.replaced_field("modifiers", "modifier");
+        vd.field_validated_block("modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::all(), vd);
         });
     }
 }

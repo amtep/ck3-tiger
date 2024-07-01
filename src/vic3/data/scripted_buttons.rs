@@ -53,5 +53,9 @@ impl DbKind for ScriptedButton {
         });
 
         vd.field_validated_block_sc("ai_chance", &mut sc, validate_modifiers_with_base);
+
+        // undocumented
+
+        vd.field_trigger_full("selected", &mut sc, Tooltipped::No);
     }
 }

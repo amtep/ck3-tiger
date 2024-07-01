@@ -45,6 +45,7 @@ impl DbKind for ModifierTypeDefinition {
         });
 
         vd.field_item("prefix", Item::Localization);
-        vd.field_item("postfix", Item::Localization); // NOT found in source files
+        vd.replaced_field("postfix", "suffix");
+        vd.field_item("suffix", Item::Localization);
     }
 }

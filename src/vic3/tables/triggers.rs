@@ -425,7 +425,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::Country,
         "has_law_imposition_rights",
-        Block(&[("target_country", Scope(Scopes::Country)), ("type", Scope(Scopes::LawType))]),
+        Block(&[("target_country", Scope(Scopes::Country)), ("law_type", Scope(Scopes::LawType))]),
     ),
     (Scopes::None, "has_local_variable", UncheckedValue),
     (Scopes::None, "has_local_variable_list", UncheckedValue),

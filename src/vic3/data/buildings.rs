@@ -75,7 +75,11 @@ impl DbKind for BuildingType {
 
         vd.field_script_value_rooted("ai_value", Scopes::State);
         vd.field_numeric("ai_subsidies_weight");
-        vd.field_script_value("ai_privatization_desire", &mut sc);
+        vd.advice_field(
+            "ai_privatization_desire",
+            "docs say ai_privatization_desire but it's ai_nationalization_desire",
+        );
+        vd.field_script_value("ai_nationalization_desire", &mut sc);
 
         vd.field_item("slaves_role", Item::PopType);
 
@@ -128,6 +132,17 @@ impl DbKind for BuildingType {
             vd.field_bool("clear_collision_mesh_area");
             vd.field_bool("clear_size_area");
             vd.field_integer("size");
+        });
+
+        vd.field_bool("cannot_switch_owner");
+
+        vd.field_validated_block("investment_scores", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_block_fields(|_, block| {
+                let mut vd = Validator::new(block, data);
+                vd.field_item("group", Item::BuildingGroup);
+                vd.field_script_value_full("score", Scopes::Country, false);
+            });
         });
     }
 }
@@ -197,9 +212,13 @@ impl DbKind for BuildingGroup {
         // undocumented fields
 
         vd.field_numeric("economy_of_scale_ai_factor");
+        vd.field_numeric("foreign_investment_ai_factor");
         vd.field_numeric("infrastructure_usage_per_level");
+        vd.field_numeric("min_productivity_to_hire");
         vd.field_bool("fired_pops_become_radical");
         vd.field_bool("is_military");
         vd.field_bool("is_government_funded");
+        vd.field_bool("owns_other_buildings");
+        vd.field_bool("is_shown_in_outliner");
     }
 }

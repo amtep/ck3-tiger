@@ -51,7 +51,7 @@ impl DbKind for PoliticalLobby {
         vd.field_item("texture", Item::File);
 
         vd.field_trigger_full("can_create", sc_no_lobby, Tooltipped::No);
-        vd.field_trigger_full("on_created", sc_with_lobby, Tooltipped::No);
+        vd.field_effect_full("on_created", sc_with_lobby, Tooltipped::No);
 
         vd.field_validated_block("requirement_to_maintain", |block, data| {
             let mut vd = Validator::new(block, data);

@@ -399,6 +399,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] StrategicRegion,
     #[cfg(feature = "vic3")] Technology,
     #[cfg(feature = "vic3")] TechnologyEra,
+    #[cfg(feature = "vic3")] TerrainKey,
     #[cfg(feature = "vic3")] TerrainLabel,
     #[cfg(feature = "vic3")] TerrainManipulator,
     #[cfg(feature = "vic3")] TerrainMask,
@@ -1171,7 +1172,9 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::TechnologyEra => "common/technology/eras/",
             #[cfg(feature = "vic3")]
-            Item::TerrainLabel => "common/labels",
+            Item::TerrainKey => "common/labels/",
+            #[cfg(feature = "vic3")]
+            Item::TerrainLabel => "common/labels/",
             #[cfg(feature = "vic3")]
             Item::TerrainManipulator => "common/terrain_manipulators/",
             #[cfg(feature = "vic3")]

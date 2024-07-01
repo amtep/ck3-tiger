@@ -343,6 +343,10 @@ pub fn validate_create_power_bloc(
     vd.field_item("identity", Item::PowerBlocIdentity);
     vd.multi_field_item("principle", Item::Principle);
     vd.multi_field_target("member", sc, Scopes::Country);
+
+    // undocumented
+
+    vd.field_date("founding_date");
 }
 
 pub fn validate_create_lobby(

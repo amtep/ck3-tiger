@@ -116,9 +116,9 @@ pub fn validate_modifs<'a>(
                 // The Item::ModifierType doesn't need to exist if the defaults are ok,
                 // but the loca should exist.
                 // TODO: should the key be lowercased?
-                let loca = format!("modifier_{key}");
-                data.verify_exists_implied(Item::Localization, &loca, key);
-                let loca = format!("modifier_{key}_desc");
+                // NOTE: In 1.7 these were changed to no longer have a `modifier_` prefix.
+                data.verify_exists(Item::Localization, key);
+                let loca = format!("{key}_desc");
                 data.verify_exists_implied(Item::Localization, &loca, key);
             }
         } else {

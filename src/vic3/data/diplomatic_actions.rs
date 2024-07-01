@@ -5,6 +5,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
+use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -62,6 +63,7 @@ impl DbKind for DiplomaticAction {
         vd.field_bool("can_use_obligations"); // undocumented
         vd.field_bool("can_select"); // undocumented
         vd.field_bool("can_select_to_break"); // undocumented
+        vd.field_bool("show_in_lens"); // undocumented
 
         vd.field_choice(
             "state_selection",
@@ -124,6 +126,10 @@ impl DbKind for DiplomaticAction {
         vd.field_item("request_sound", Item::Sound);
         vd.field_item("hostile_sound", Item::Sound);
         vd.field_item("benign_sound", Item::Sound);
+
+        // undocumented
+
+        vd.field_item("texture", Item::File);
     }
 }
 
@@ -146,6 +152,10 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_bool("is_customs_union"); // undocumented
     vd.field_bool("is_humiliation"); // undocumented
     vd.field_bool("is_colonization_rights"); // undocumented
+    vd.field_bool("is_hostile"); // undocumented
+    vd.field_bool("is_guarantee_independence"); // undocumented
+    vd.field_bool("exempt_from_service"); // undocumented
+    vd.field_bool("is_foreign_investment_rights"); // undocumented
 
     vd.field_item("subject_type", Item::SubjectType); // undocumented
 
@@ -224,6 +234,26 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     });
 
     vd.multi_field_item("auto_support_type", Item::DiplomaticPlay);
+
+    // undocumented
+
+    // TODO: the existence of first_foreign_pro_country_lobby_member_modifier
+    // and first_foreign_anti_country_lobby_member_modifier is a guess. Verify.
+    for field in &[
+        "first_modifier",
+        "second_modifier",
+        "first_foreign_pro_country_lobby_member_modifier",
+        "first_foreign_anti_country_lobby_member_modifier",
+        "second_foreign_pro_country_lobby_member_modifier",
+        "second_foreign_anti_country_lobby_member_modifier",
+    ] {
+        vd.field_validated_block(field, |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::all(), vd);
+        });
+    }
+
+    vd.field_choice("market_owner", &["first_country", "second_country"]);
 }
 
 fn validate_ai(block: &Block, data: &Everything, sc: &mut ScopeContext) {
